@@ -61,6 +61,55 @@ describe('ColumnSorting', function() {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
+  it('should apply stable sort function #3606', function () {
+    var hot = handsontable({
+      data: [
+        ["mercedes1", "Mercedes", "A 160", "01/14/2007"],
+        ["citroen1", "Citroen", "C4 Coupe", "12/01/2007"],
+        ["opel1", "Opel", "Astra", "02/02/2006"],
+        ["bmw1", "BMW", "320i Coupe", "07/24/2009"],
+        ["citroen2", "Citroen", "C4 Coupe", "12/01/2012"],
+        ["opel2", "Opel", "Astra", "02/02/2004"],
+        ["mercedes2", "Mercedes", "A 160", "01/14/2008"],
+        ["citroen3", "Citroen", "C4 Coupe", "12/01/2007"],
+        ["mercedes3", "Mercedes", "A 160", "01/14/2009"],
+        ["opel3", "Opel", "Astra", "02/02/2006"],
+        ["bmw2", "BMW", "320i Coupe", "07/24/2013"],
+        ["bmw3", "BMW", "320i Coupe", "07/24/2012"],
+      ],
+      columns: [
+        {},
+        {},
+        {
+          type: 'date',
+          dateFormat: 'mm/dd/yy'
+        },
+        {
+          type: 'numeric'
+        }
+      ],
+      columnSorting: true
+    });
+
+    hot.sort(1, true); // ASC
+
+    expect(hot.getDataAtCol(0)).toEqual([
+      "bmw1", "bmw2", "bmw3",
+      "citroen1", "citroen2", "citroen3",
+      "mercedes1", "mercedes2", "mercedes3",
+      "opel1", "opel2", "opel3"
+    ]);
+
+    hot.sort(1, false); // DESC
+
+    expect(hot.getDataAtCol(0)).toEqual([
+      "opel1", "opel2", "opel3",
+      "mercedes1", "mercedes2", "mercedes3",
+      "citroen1", "citroen2", "citroen3",
+      "bmw1", "bmw2", "bmw3"
+    ]);
+  });
+
   it('should not throw error when trying run handsontable with columnSorting and autoRowSize in the same time.', function () {
     var errors = 0;
 
@@ -220,7 +269,93 @@ describe('ColumnSorting', function() {
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('20');
   });
 
+  it('defaultSort comparing function shouldn\'t change order when comparing empty string, null and undefined', function () {
+    var hot = handsontable({});
+    var defaultSort = hot.getPlugin('columnSorting').defaultSort;
+
+    expect(defaultSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
+    expect(defaultSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
+    expect(defaultSort(false, {})(['key1', undefined], ['key2', undefined])).toEqual(0);
+
+    expect(defaultSort(false, {})(['key1', ''], ['key2', null])).toEqual(0);
+    expect(defaultSort(false, {})(['key1', null], ['key2', ''])).toEqual(0);
+
+    expect(defaultSort(false, {})(['key1', ''], ['key2', undefined])).toEqual(0);
+    expect(defaultSort(false, {})(['key1', undefined], ['key2', ''])).toEqual(0);
+
+    expect(defaultSort(false, {})(['key1', null], ['key2', undefined])).toEqual(0);
+    expect(defaultSort(false, {})(['key1', undefined], ['key2', null])).toEqual(0);
+  });
+
+  it('should place empty strings, null and undefined values at proper position (stability of comparing function)', function () {
+    var hot = handsontable({
+      data: [
+        [null, "George Washington"],
+        [undefined, "John Adams"],
+        [null, "Thomas Jefferson"],
+        ['', "James Madison"],
+        ['', "James Monroe"],
+        [6, "John Quincy Adams"],
+        [7, "Andrew Jackson"],
+        [8, "Martin Van Buren"],
+        [9, "William Henry Harrison"],
+        [10, "John Tyler"]
+      ],
+      columnSorting: true
+    });
+
+    hot.sort(0, true); // ASC
+
+    expect(hot.getDataAtCol(1)).toEqual([
+      "John Quincy Adams",
+      "Andrew Jackson",
+      "Martin Van Buren",
+      "William Henry Harrison",
+      "John Tyler",
+
+      "George Washington",
+      "John Adams",
+      "Thomas Jefferson",
+      "James Madison",
+      "James Monroe",
+    ]);
+
+    hot.sort(0, false); // DESC
+
+    expect(hot.getDataAtCol(1)).toEqual([
+      "John Tyler",
+      "William Henry Harrison",
+      "Martin Van Buren",
+      "Andrew Jackson",
+      "John Quincy Adams",
+
+      "George Washington",
+      "John Adams",
+      "Thomas Jefferson",
+      "James Madison",
+      "James Monroe",
+    ]);
+  });
+
   describe('data type: date', function() {
+    it('dateSort comparing function shouldn\'t change order when comparing empty string, null and undefined', function () {
+      var hot = handsontable({});
+      var dateSort = hot.getPlugin('columnSorting').dateSort;
+
+      expect(dateSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
+      expect(dateSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
+      expect(dateSort(false, {})(['key1', undefined], ['key2', undefined])).toEqual(0);
+
+      expect(dateSort(false, {})(['key1', ''], ['key2', null])).toEqual(0);
+      expect(dateSort(false, {})(['key1', null], ['key2', ''])).toEqual(0);
+
+      expect(dateSort(false, {})(['key1', ''], ['key2', undefined])).toEqual(0);
+      expect(dateSort(false, {})(['key1', undefined], ['key2', ''])).toEqual(0);
+
+      expect(dateSort(false, {})(['key1', null], ['key2', undefined])).toEqual(0);
+      expect(dateSort(false, {})(['key1', undefined], ['key2', null])).toEqual(0);
+    });
+
     it('should sort date columns (MM/DD/YYYY)', function () {
       var hot = handsontable({
         data: [
@@ -459,6 +594,24 @@ describe('ColumnSorting', function() {
     expect(hot.getDataAtCol(3)).toEqual(['6999.9999', 8330, '8330', 8333, '33900', '7000', 30500]);
   });
 
+  it('numericSort comparing function shouldn\'t change order when comparing empty string, null and undefined', function () {
+    var hot = handsontable({});
+    var numericSort = hot.getPlugin('columnSorting').numericSort;
+
+    expect(numericSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
+    expect(numericSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
+    expect(numericSort(false, {})(['key1', undefined], ['key2', undefined])).toEqual(0);
+
+    expect(numericSort(false, {})(['key1', ''], ['key2', null])).toEqual(0);
+    expect(numericSort(false, {})(['key1', null], ['key2', ''])).toEqual(0);
+
+    expect(numericSort(false, {})(['key1', ''], ['key2', undefined])).toEqual(0);
+    expect(numericSort(false, {})(['key1', undefined], ['key2', ''])).toEqual(0);
+
+    expect(numericSort(false, {})(['key1', null], ['key2', undefined])).toEqual(0);
+    expect(numericSort(false, {})(['key1', undefined], ['key2', null])).toEqual(0);
+  });
+
   it('should sort table with multiple row headers', function() {
     var hot = handsontable({
       data: [
@@ -573,35 +726,33 @@ describe('ColumnSorting', function() {
 
   it("should NOT sort spare rows", function() {
     var myData = [
-      {a: false, b: 2, c: 3},
-      {a: true, b: 11, c: -4},
-      {a: false, b: 10, c: 11}
+      {a: 'aaa', b: 2, c: 3},
+      {a: 'z', b: 11, c: -4},
+      {a: 'dddd', b: 13, c: 13},
+      {a: 'bbbb', b: 10, c: 11}
     ];
 
     function customIsEmptyRow(row) {
-      var data = getSourceData();
+      var data = this.getSourceData();
       return data[row].isNew;
     }
 
     handsontable({
       data: myData,
-      minSpareRows: 1,
       rowHeaders: true,
       colHeaders: ["A", "B", "C"],
       columns: [
-        {data: "a", type: "checkbox"},
+        {data: "a", type: "text"},
         {data: "b", type: "text"},
         {data: "c", type: "text"}
       ],
       dataSchema: {isNew: true, a: false}, // default for a to avoid #bad value#
       columnSorting: true,
+      minSpareRows: 3,
       isEmptyRow: customIsEmptyRow
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0) :checkbox').is(':checked')).toBe(false);
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0) :checkbox').is(':checked')).toBe(true);
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0) :checkbox').is(':checked')).toBe(false);
-    expect(this.$container.find('tbody tr:eq(3) td:eq(0) :checkbox').is(':checked')).toBe(false); //spare row
+    // ASC
 
     updateSettings({
       columnSorting: {
@@ -610,10 +761,32 @@ describe('ColumnSorting', function() {
       }
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0) :checkbox').is(':checked')).toBe(false);
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0) :checkbox').is(':checked')).toBe(false);
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0) :checkbox').is(':checked')).toBe(true);
-    expect(this.$container.find('tbody tr:eq(3) td:eq(0) :checkbox').is(':checked')).toBe(false); //spare row
+    expect(getData()).toEqual([
+      ['aaa', 2, 3],
+      ['bbbb', 10, 11],
+      ['dddd', 13, 13],
+      ['z', 11, -4],
+      [false, null, null],
+      [false, null, null],
+      [false, null, null]
+    ]);
+
+    updateSettings({
+      columnSorting: {
+        column: 0,
+        sortOrder: false
+      }
+    });
+
+    expect(getData()).toEqual([
+      ['z', 11, -4],
+      ['dddd', 13, 13],
+      ['bbbb', 10, 11],
+      ['aaa', 2, 3],
+      [false, null, null],
+      [false, null, null],
+      [false, null, null]
+    ]);
   });
 
   it("should reset column sorting with updateSettings", function() {

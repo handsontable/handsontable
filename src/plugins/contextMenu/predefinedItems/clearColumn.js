@@ -11,7 +11,7 @@ export function clearColumnItem() {
       let column = selection.start.col;
 
       if (this.countRows()) {
-        this.populateFromArray(0, column, [[null]], Math.max(selection.start.row, selection.end.row), column);
+        this.populateFromArray(0, column, [[null]], Math.max(selection.start.row, selection.end.row), column, 'ContextMenu.clearColumn');
       }
     },
     disabled: function() {
