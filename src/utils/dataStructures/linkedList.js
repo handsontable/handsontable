@@ -3,7 +3,7 @@ import Handsontable from './../../browser';
 /**
  * Refactored implementation of LinkedList (part of javascript-algorithms project) by Github users:
  * mgechev, AndriiHeonia, Microfed and Jakeh (part of javascript-algorithms project - all project contributors
- * at repository site)
+ * at repository website)
  *
  * Link to repository: https://github.com/mgechev/javascript-algorithms
  */
@@ -264,7 +264,7 @@ class LinkedList {
   };
 };
 
-export default LinkedList;
+export {NodeStructure, LinkedList};
 
 // temp for tests only!
 Handsontable.utils.NodeStructure = NodeStructure;

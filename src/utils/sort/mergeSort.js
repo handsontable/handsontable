@@ -1,10 +1,10 @@
-import LinkedList from '../dataStructures/linkedList';
+import {LinkedList} from '../dataStructures/linkedList';
 import Handsontable from './../../browser';
 
 /**
  * Refactored implementation of mergeSort (part of javascript-algorithms project) by Github users:
  * mgechev, AndriiHeonia and lekkas (part of javascript-algorithms project - all project contributors
- * at repository site)
+ * at repository website)
  *
  * Link to repository: https://github.com/mgechev/javascript-algorithms
  */

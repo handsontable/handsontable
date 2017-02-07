@@ -1,6 +1,6 @@
 /**
  * Refactored implementation of megeSort tests by Github user mgechev
- * (part of javascript-algorithms project - all project contributors at repository site)
+ * (part of javascript-algorithms project - all project contributors at repository website)
  *
  * Link to repository: https://github.com/mgechev/javascript-algorithms
  */

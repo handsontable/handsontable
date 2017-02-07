@@ -1,6 +1,6 @@
 /**
  * Refactored implementation of LinkedList tests by Github user Jakehp
- * (part of javascript-algorithms project - all project contributors at repository site)
+ * (part of javascript-algorithms project - all project contributors at repository website)
  *
  * Link to repository: https://github.com/mgechev/javascript-algorithms
  */
