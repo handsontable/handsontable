@@ -565,6 +565,8 @@ class ManualRowMove extends BasePlugin {
    */
   onMouseUp() {
     let priv = privatePool.get(this);
+    let target = priv.target.row;
+    let rowsLen = priv.rowsToMove.length;
 
     priv.pressed = false;
     priv.backlightHeight = 0;
@@ -574,11 +576,11 @@ class ManualRowMove extends BasePlugin {
     if (this.hot.selection.selectedHeader.rows) {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
-    if (priv.rowsToMove.length < 1) {
+
+    if (rowsLen < 1 || target === void 0 || priv.rowsToMove.indexOf(target) > -1 ||
+        (priv.rowsToMove[rowsLen - 1] === target - 1)) {
       return;
     }
-
-    let target = priv.target.row;
 
     this.moveRows(priv.rowsToMove, target);
 
@@ -587,7 +589,7 @@ class ManualRowMove extends BasePlugin {
 
     if (!priv.disallowMoving) {
       let selectionStart = this.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
-      let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[priv.rowsToMove.length - 1]);
+      let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[rowsLen - 1]);
       this.changeSelection(selectionStart, selectionEnd);
     }
 
