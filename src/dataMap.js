@@ -530,7 +530,7 @@ DataMap.prototype.get = function(row, prop) {
     for (let i = 0, ilen = sliced.length; i < ilen; i++) {
       out = out[sliced[i]];
 
-      if (typeof out === 'undefined') {
+      if (typeof out === 'undefined' || out === null) {
         return null;
       }
     }
