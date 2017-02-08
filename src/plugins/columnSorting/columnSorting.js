@@ -129,20 +129,17 @@ class ColumnSorting extends BasePlugin {
     let loadedSortingState = this.loadSortingState();
     let sortingColumn;
     let sortingOrder;
-    let sortingEmptyCells;
 
     if (typeof loadedSortingState === 'undefined') {
       sortingColumn = sortingSettings.column;
       sortingOrder = sortingSettings.sortOrder;
-      sortingEmptyCells = sortingSettings.sortEmptyCells;
     } else {
       sortingColumn = loadedSortingState.sortColumn;
       sortingOrder = loadedSortingState.sortOrder;
-      sortingEmptyCells = loadedSortingState.sortEmptyCells;
     }
     if (typeof sortingColumn === 'number') {
       this.lastSortedColumn = sortingColumn;
-      this.sortByColumn(sortingColumn, sortingOrder, sortingEmptyCells);
+      this.sortByColumn(sortingColumn, sortingOrder);
     }
   }
 
@@ -152,14 +149,13 @@ class ColumnSorting extends BasePlugin {
    * @param {number} col Sorted column index.
    * @param {boolean|undefined} order Sorting order (`true` for ascending, `false` for descending).
    */
-  setSortingColumn(col, order, sortingEmptyCells) {
-    if (typeof col === 'undefined') {
+  setSortingColumn(col, order) {
+    if (typeof col == 'undefined') {
       this.hot.sortColumn = void 0;
       this.hot.sortOrder = void 0;
-      this.hot.sortEmptyCells = void 0;
 
       return;
-    } else if (this.hot.sortColumn === col && typeof order === 'undefined') {
+    } else if (this.hot.sortColumn === col && typeof order == 'undefined') {
       if (this.hot.sortOrder === false) {
         this.hot.sortOrder = void 0;
       } else {
@@ -171,21 +167,10 @@ class ColumnSorting extends BasePlugin {
     }
 
     this.hot.sortColumn = col;
-
-    if (sortingEmptyCells === undefined) {
-      const columnSorting = this.hot.getSettings().columnSorting;
-
-      if (columnSorting !== undefined) {
-        this.hot.sortEmptyCells = columnSorting.sortEmptyCells;
-      }
-
-    } else {
-      this.hot.sortEmptyCells = sortingEmptyCells;
-    }
   }
 
-  sortByColumn(col, order, sortingEmptyCells) {
-    this.setSortingColumn(col, order, sortingEmptyCells);
+  sortByColumn(col, order) {
+    this.setSortingColumn(col, order);
 
     if (typeof this.hot.sortColumn == 'undefined') {
       return;
@@ -270,7 +255,7 @@ class ColumnSorting extends BasePlugin {
    * @param {Object} columnMeta Column meta object.
    * @returns {Function} The comparing function.
    */
-  defaultSort(sortOrder, columnMeta, sortEmptyCells) {
+  defaultSort(sortOrder, columnMeta) {
     return function(a, b) {
       if (typeof a[1] == 'string') {
         a[1] = a[1].toLowerCase();
@@ -287,17 +272,11 @@ class ColumnSorting extends BasePlugin {
         if (isEmpty(b[1])) {
           return 0;
         }
-        if (sortEmptyCells) {
-          return sortOrder ? -1 : 1;
-        }
         return 1;
       }
       if (isEmpty(b[1])) {
         if (isEmpty(a[1])) {
           return 0;
-        }
-        if (sortEmptyCells) {
-          return sortOrder ? 1 : -1;
         }
         return -1;
       }
@@ -329,7 +308,7 @@ class ColumnSorting extends BasePlugin {
    * @param {Object} columnMeta Column meta object.
    * @returns {Function} The compare function.
    */
-  dateSort(sortOrder, columnMeta, sortEmptyCells) {
+  dateSort(sortOrder, columnMeta) {
     return function(a, b) {
       if (a[1] === b[1]) {
         return 0;
@@ -339,18 +318,12 @@ class ColumnSorting extends BasePlugin {
         if (isEmpty(b[1])) {
           return 0;
         }
-        if (sortEmptyCells) {
-          return sortOrder ? -1 : 1;
-        }
         return 1;
       }
 
       if (isEmpty(b[1])) {
         if (isEmpty(a[1])) {
           return 0;
-        }
-        if (sortEmptyCells) {
-          return sortOrder ? 1 : -1;
         }
         return -1;
       }
@@ -383,7 +356,7 @@ class ColumnSorting extends BasePlugin {
    * @param {Object} columnMeta Column meta object.
    * @returns {Function} The compare function.
    */
-  numericSort(sortOrder, columnMeta, sortEmptyCells) {
+  numericSort(sortOrder, columnMeta) {
     return function(a, b) {
       const parsedA = parseFloat(a[1]);
       const parsedB = parseFloat(b[1]);
@@ -392,18 +365,6 @@ class ColumnSorting extends BasePlugin {
       // Check below returns 0 when comparing empty string, null, undefined (as expected)
       if (parsedA === parsedB || (isNaN(parsedA) && isNaN(parsedB))) {
         return 0;
-      }
-
-      if (isEmpty(a[1])) {
-        if (sortEmptyCells) {
-          return sortOrder ? -1 : 1;
-        }
-      }
-
-      if (isEmpty(b[1])) {
-        if (sortEmptyCells) {
-          return sortOrder ? 1 : -1;
-        }
       }
 
       if (isNaN(parsedA)) {
@@ -471,7 +432,8 @@ class ColumnSorting extends BasePlugin {
           sortFunction = this.defaultSort;
       }
     }
-    mergeSort(this.hot.sortIndex, sortFunction(this.hot.sortOrder, colMeta, this.hot.sortEmptyCells));
+
+    mergeSort(this.hot.sortIndex, sortFunction(this.hot.sortOrder, colMeta));
 
     // Append spareRows
     for (let i = this.hot.sortIndex.length; i < this.hot.countRows(); i++) {
