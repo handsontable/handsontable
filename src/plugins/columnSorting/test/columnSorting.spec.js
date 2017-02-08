@@ -287,7 +287,7 @@ describe('ColumnSorting', function() {
     expect(defaultSort(false, {})(['key1', undefined], ['key2', null])).toEqual(0);
   });
 
-  it('should place empty strings, null and undefined values at proper position (stability of comparing function)', function () {
+  it('should place empty strings, null and undefined values at proper position (stability of default comparing function)', function () {
     var hot = handsontable({
       data: [
         [null, "George Washington"],
@@ -299,7 +299,8 @@ describe('ColumnSorting', function() {
         [7, "Andrew Jackson"],
         [8, "Martin Van Buren"],
         [9, "William Henry Harrison"],
-        [10, "John Tyler"]
+        [10, "John Tyler"],
+        [11, "Donald Trump"]
       ],
       columnSorting: true
     });
@@ -312,6 +313,7 @@ describe('ColumnSorting', function() {
       "Martin Van Buren",
       "William Henry Harrison",
       "John Tyler",
+      "Donald Trump",
 
       "George Washington",
       "John Adams",
@@ -321,6 +323,226 @@ describe('ColumnSorting', function() {
     ]);
 
     hot.sort(0, false); // DESC
+
+    expect(hot.getDataAtCol(1)).toEqual([
+      "Donald Trump",
+      "John Tyler",
+      "William Henry Harrison",
+      "Martin Van Buren",
+      "Andrew Jackson",
+      "John Quincy Adams",
+
+      "George Washington",
+      "John Adams",
+      "Thomas Jefferson",
+      "James Madison",
+      "James Monroe",
+    ]);
+  });
+
+  it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` option is enabled ' +
+    '(API call, data type: default)', function () {
+    var hot = handsontable({
+      data: [
+        [6, "John Quincy Adams"],
+        [null, "George Washington"],
+        [7, "Andrew Jackson"],
+        [8, "Martin Van Buren"],
+        [undefined, "John Adams"],
+        [9, "William Henry Harrison"],
+        [null, "Thomas Jefferson"],
+        [10, "John Tyler"],
+        ['', "James Madison"],
+        ['', "James Monroe"]
+      ],
+      columnSorting: {
+        sortEmptyCells: true
+      }
+    });
+
+    hot.sort(0, true); // ASC
+
+    expect(hot.getDataAtCol(1)).toEqual([
+      "George Washington",
+      "John Adams",
+      "Thomas Jefferson",
+      "James Madison",
+      "James Monroe",
+
+      "John Quincy Adams",
+      "Andrew Jackson",
+      "Martin Van Buren",
+      "William Henry Harrison",
+      "John Tyler"
+    ]);
+
+    hot.sort(0, false); // DESC
+
+    expect(hot.getDataAtCol(1)).toEqual([
+      "John Tyler",
+      "William Henry Harrison",
+      "Martin Van Buren",
+      "Andrew Jackson",
+      "John Quincy Adams",
+
+      "George Washington",
+      "John Adams",
+      "Thomas Jefferson",
+      "James Madison",
+      "James Monroe",
+    ]);
+  });
+
+  it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
+    'option is enabled and `column` property of `columnSorting` option is set (data type: default)', function () {
+    var hot = handsontable({
+      data: [
+        [6, "John Quincy Adams"],
+        [null, "George Washington"],
+        [7, "Andrew Jackson"],
+        [8, "Martin Van Buren"],
+        [undefined, "John Adams"],
+        [9, "William Henry Harrison"],
+        [null, "Thomas Jefferson"],
+        [10, "John Tyler"],
+        ['', "James Madison"],
+        ['', "James Monroe"]
+      ],
+      columnSorting: {
+        sortEmptyCells: true,
+        sortOrder: true,
+        column: 0
+      }
+    });
+
+    // ASC
+
+    expect(hot.getDataAtCol(1)).toEqual([
+      "George Washington",
+      "John Adams",
+      "Thomas Jefferson",
+      "James Madison",
+      "James Monroe",
+
+      "John Quincy Adams",
+      "Andrew Jackson",
+      "Martin Van Buren",
+      "William Henry Harrison",
+      "John Tyler"
+    ]);
+
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+
+    var hot = handsontable({
+      data: [
+        [6, "John Quincy Adams"],
+        [null, "George Washington"],
+        [7, "Andrew Jackson"],
+        [8, "Martin Van Buren"],
+        [undefined, "John Adams"],
+        [9, "William Henry Harrison"],
+        [null, "Thomas Jefferson"],
+        [10, "John Tyler"],
+        ['', "James Madison"],
+        ['', "James Monroe"]
+      ],
+      columnSorting: {
+        sortEmptyCells: true,
+        sortOrder: false,
+        column: 0
+      }
+    });
+
+    // DESC
+
+    expect(hot.getDataAtCol(1)).toEqual([
+      "John Tyler",
+      "William Henry Harrison",
+      "Martin Van Buren",
+      "Andrew Jackson",
+      "John Quincy Adams",
+
+      "George Washington",
+      "John Adams",
+      "Thomas Jefferson",
+      "James Madison",
+      "James Monroe",
+    ]);
+  });
+
+  it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
+    'option is enabled and `column` property of `columnSorting` option is set (data type: numeric)', function () {
+    var hot = handsontable({
+      data: [
+        [6, "John Quincy Adams"],
+        [null, "George Washington"],
+        [7, "Andrew Jackson"],
+        [8, "Martin Van Buren"],
+        [undefined, "John Adams"],
+        [9, "William Henry Harrison"],
+        [null, "Thomas Jefferson"],
+        [10, "John Tyler"],
+        ['', "James Madison"],
+        ['', "James Monroe"]
+      ],
+      columns: [
+        {
+          type: 'numeric'
+        },
+        {}
+      ],
+      columnSorting: {
+        sortEmptyCells: true,
+        sortOrder: true,
+        column: 0
+      }
+    });
+
+    // ASC
+
+    expect(hot.getDataAtCol(1)).toEqual([
+      "George Washington",
+      "John Adams",
+      "Thomas Jefferson",
+      "James Madison",
+      "James Monroe",
+
+      "John Quincy Adams",
+      "Andrew Jackson",
+      "Martin Van Buren",
+      "William Henry Harrison",
+      "John Tyler"
+    ]);
+
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+
+    var hot = handsontable({
+      data: [
+        [6, "John Quincy Adams"],
+        [null, "George Washington"],
+        [7, "Andrew Jackson"],
+        [8, "Martin Van Buren"],
+        [undefined, "John Adams"],
+        [9, "William Henry Harrison"],
+        [null, "Thomas Jefferson"],
+        [10, "John Tyler"],
+        ['', "James Madison"],
+        ['', "James Monroe"]
+      ],
+      columnSorting: {
+        sortEmptyCells: true,
+        sortOrder: false,
+        column: 0
+      }
+    });
+
+    // DESC
 
     expect(hot.getDataAtCol(1)).toEqual([
       "John Tyler",
@@ -354,6 +576,102 @@ describe('ColumnSorting', function() {
 
       expect(dateSort(false, {})(['key1', null], ['key2', undefined])).toEqual(0);
       expect(dateSort(false, {})(['key1', undefined], ['key2', null])).toEqual(0);
+    });
+
+    it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
+      'option is enabled and `column` property of `columnSorting` option is set', function () {
+      var hot = handsontable({
+        data: [
+          ["Citroen1", "C4 Coupe", null],
+          ["Mercedes1", "A 160", "12/01/2008"],
+          ["Mercedes2", "A 160", "01/14/2006"],
+          ["Citroen2", "C4 Coupe", undefined],
+          ["Audi1", "A4 Avant", "11/19/2011"],
+          ["Opel1", "Astra", "02/02/2004"],
+          ["Citroen3", "C4 Coupe", null],
+          ["BMW1", "320i Coupe", "07/24/2011"],
+          ["Citroen4", "C4 Coupe", ''],
+          ["Citroen5", "C4 Coupe", ''],
+        ],
+        columns: [
+          {},
+          {},
+          {
+            type: 'date',
+            dateFormat: 'MM/DD/YYYY'
+          }
+        ],
+        columnSorting: {
+          sortEmptyCells: true,
+          sortOrder: true,
+          column: 2
+        }
+      });
+
+      // ASC
+
+      expect(hot.getDataAtCol(0)).toEqual([
+        "Citroen1",
+        "Citroen2",
+        "Citroen3",
+        "Citroen4",
+        "Citroen5",
+
+        "Opel1",
+        "Mercedes2",
+        "Mercedes1",
+        "BMW1",
+        "Audi1"
+      ]);
+
+      if (this.$container) {
+        destroy();
+        this.$container.remove();
+      }
+
+      var hot = handsontable({
+        data: [
+          ["Citroen1", "C4 Coupe", null],
+          ["Mercedes1", "A 160", "12/01/2008"],
+          ["Mercedes2", "A 160", "01/14/2006"],
+          ["Citroen2", "C4 Coupe", undefined],
+          ["Audi1", "A4 Avant", "11/19/2011"],
+          ["Opel1", "Astra", "02/02/2004"],
+          ["Citroen3", "C4 Coupe", null],
+          ["BMW1", "320i Coupe", "07/24/2011"],
+          ["Citroen4", "C4 Coupe", ''],
+          ["Citroen5", "C4 Coupe", ''],
+        ],
+        columns: [
+          {},
+          {},
+          {
+            type: 'date',
+            dateFormat: 'MM/DD/YYYY'
+          }
+        ],
+        columnSorting: {
+          sortEmptyCells: true,
+          sortOrder: false,
+          column: 2
+        }
+      });
+
+      // DESC
+
+      expect(hot.getDataAtCol(0)).toEqual([
+        "Audi1",
+        "BMW1",
+        "Mercedes1",
+        "Mercedes2",
+        "Opel1",
+
+        "Citroen1",
+        "Citroen2",
+        "Citroen3",
+        "Citroen4",
+        "Citroen5"
+      ]);
     });
 
     it('should sort date columns (MM/DD/YYYY)', function () {
@@ -722,6 +1040,50 @@ describe('ColumnSorting', function() {
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+  });
+
+  it('should allow to change if sorting empty cells with updateSettings', function() {
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [2, ''],
+        [3, 'A'],
+        [4, ''],
+        [6, 'E'],
+        [7, ''],
+        [8, 'F'],
+      ],
+      colHeaders: true,
+      columnSorting: {
+        column: 1,
+        sortOrder: false,
+        sortEmptyCells: false
+      }
+    });
+
+    updateSettings({
+      columnSorting: {
+        column: 1,
+        sortOrder: true,
+        sortEmptyCells: true
+      }
+    });
+
+    // ASC with empty cells sorting
+
+    expect(hot.getDataAtCol(0)).toEqual([2, 4, 7, 3, 1, 6, 8]);
+
+    updateSettings({
+      columnSorting: {
+        column: 1,
+        sortOrder: true,
+        sortEmptyCells: false
+      }
+    });
+
+    // ASC without empty cells sorting
+
+    expect(hot.getDataAtCol(0)).toEqual([3, 1, 6, 8, 2, 4, 7]);
   });
 
   it("should NOT sort spare rows", function() {
