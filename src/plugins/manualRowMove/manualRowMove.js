@@ -411,6 +411,37 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
+   * This method checks arrayMap from rowsMapper and updates the rowsMapper if it's necessary.
+   *
+   * @private
+   */
+  updateRowsMapper() {
+    let countRows = this.hot.countSourceRows();
+    let rowsMapperLen = this.rowsMapper._arrayMap.length;
+
+    if (rowsMapperLen === 0) {
+      this.rowsMapper.createMap(countRows || this.hot.getSettings().startRows);
+
+    }  else if (rowsMapperLen < countRows) {
+      let diff = countRows - rowsMapperLen;
+
+      this.rowsMapper.insertItems(rowsMapperLen, diff);
+
+    } else if (rowsMapperLen > countRows) {
+      let maxIndex = countRows - 1;
+      let rowsToRemove = [];
+
+      arrayEach(this.rowsMapper._arrayMap, (value, index, array) => {
+        if (value > maxIndex) {
+          rowsToRemove.push(index);
+        }
+      });
+
+      this.rowsMapper.removeItems(rowsToRemove);
+    }
+  }
+
+  /**
    * Bind the events used by the plugin.
    *
    * @private
@@ -654,37 +685,12 @@ class ManualRowMove extends BasePlugin {
    * `afterLoadData` hook callback.
    *
    * @private
-   * @param firstTime
+   * @param {Boolean} firstTime True if that was loading data during the initialization.
    */
   onAfterLoadData(firstTime) {
-    this.refreshRowsMapper();
+    this.updateRowsMapper();
   }
 
-  refreshRowsMapper() {
-    let countRows = this.hot.countSourceRows();
-    let rowsMapperLen = this.rowsMapper._arrayMap.length;
-
-    if (rowsMapperLen === 0) {
-      this.rowsMapper.createMap(countRows || this.hot.getSettings().startRows);
-
-    }  else if (rowsMapperLen < countRows) {
-      let diff = countRows - rowsMapperLen;
-
-      this.rowsMapper.insertItems(rowsMapperLen, diff);
-
-    } else if (rowsMapperLen > countRows) {
-      let maxIndex = countRows - 1;
-      let rowsToRemove = [];
-
-      arrayEach(this.rowsMapper._arrayMap, (value, index, array) => {
-        if (value > maxIndex) {
-          rowsToRemove.push(index);
-        }
-      });
-
-      this.rowsMapper.removeItems(rowsToRemove);
-    }
-  }
   /**
    * 'modifyRow' hook callback.
    *
@@ -720,7 +726,7 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   onAfterPluginsInitialized() {
-    this.refreshRowsMapper();
+    this.updateRowsMapper();
     this.initialSettings();
     this.backlight.build();
     this.guideline.build();

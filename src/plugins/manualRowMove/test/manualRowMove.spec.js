@@ -132,7 +132,7 @@ describe('manualRowMove', function () {
   });
 
   describe('loadData', function() {
-    it("should increase numbers of rows if is needed", function () {
+    it("should increase numbers of rows if it is necessary", function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         manualRowMove: true
@@ -143,7 +143,7 @@ describe('manualRowMove', function () {
       expect(countRows()).toEqual(10);
       expect(hot.getPlugin('manualRowMove').rowsMapper.__arrayMap.length).toEqual(10);
     });
-    it("should decrease numbers of rows if is needed", function () {
+    it("should decrease numbers of rows if it is necessary", function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         manualRowMove: true
