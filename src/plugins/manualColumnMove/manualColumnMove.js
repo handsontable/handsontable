@@ -177,7 +177,6 @@ class ManualColumnMove extends BasePlugin {
     if (beforeColumnHook !== false) {
       // first we need to rewrite an visual indexes to logical for save reference after move
       arrayEach(columns, (column, index, array) => {
-        console.log(column);
         array[index] = this.columnsMapper.getValueByIndex(column);
       });
 
@@ -195,8 +194,6 @@ class ManualColumnMove extends BasePlugin {
     }
 
     this.hot.runHooks('afterColumnMove', columns, target);
-    console.log('this.columnsMapper: ');
-    console.log(this.columnsMapper);
   }
 
   /**
