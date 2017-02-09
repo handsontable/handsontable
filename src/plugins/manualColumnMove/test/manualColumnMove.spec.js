@@ -52,6 +52,23 @@ describe('manualColumnMove', function () {
       expect(getDataAtCell(0, 0)).toEqual(dataAt0_2Cell);
       done();
     });
+
+    it('should work with updateSettings properly', function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true,
+        persistentState: true
+      });
+
+      var dataAt0_2Cell = getDataAtCell(0, 2);
+      var manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
+
+      manualColumnMovePlugin.moveColumn(2, 0);
+      manualColumnMovePlugin.persistentStateSave();
+
+      updateSettings({});
+      expect(getDataAtCell(0, 0)).toEqual(dataAt0_2Cell);
+    });
   });
 
   describe('updateSettings', function() {

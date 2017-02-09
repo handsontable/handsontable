@@ -177,6 +177,7 @@ class ManualColumnMove extends BasePlugin {
     if (beforeColumnHook !== false) {
       // first we need to rewrite an visual indexes to logical for save reference after move
       arrayEach(columns, (column, index, array) => {
+        console.log(column);
         array[index] = this.columnsMapper.getValueByIndex(column);
       });
 
@@ -194,6 +195,8 @@ class ManualColumnMove extends BasePlugin {
     }
 
     this.hot.runHooks('afterColumnMove', columns, target);
+    console.log('this.columnsMapper: ');
+    console.log(this.columnsMapper);
   }
 
   /**
@@ -250,11 +253,7 @@ class ManualColumnMove extends BasePlugin {
       this.moveColumns(pluginSettings, 0);
 
     } else if (pluginSettings !== void 0) {
-      let persistentState = this.persistentStateLoad();
-
-      if (persistentState.length) {
-        this.moveColumns(persistentState, 0);
-      }
+      this.persistentStateLoad();
     }
   }
 
@@ -282,14 +281,15 @@ class ManualColumnMove extends BasePlugin {
    * Load the manual column positions from the persistent state.
    *
    * @private
-   * @returns {Array} Stored state.
    */
   persistentStateLoad() {
     let storedState = {};
 
     Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnMove', storedState);
 
-    return storedState.value ? storedState.value : [];
+    if (storedState.value) {
+      this.columnsMapper._arrayMap = storedState.value;
+    }
   }
 
   /**
