@@ -250,11 +250,7 @@ class ManualColumnMove extends BasePlugin {
       this.moveColumns(pluginSettings, 0);
 
     } else if (pluginSettings !== void 0) {
-      let persistentState = this.persistentStateLoad();
-
-      if (persistentState.length) {
-        this.moveColumns(persistentState, 0);
-      }
+      this.persistentStateLoad();
     }
   }
 
@@ -282,14 +278,15 @@ class ManualColumnMove extends BasePlugin {
    * Load the manual column positions from the persistent state.
    *
    * @private
-   * @returns {Array} Stored state.
    */
   persistentStateLoad() {
     let storedState = {};
 
-    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnsMove', storedState);
+    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnMove', storedState);
 
-    return storedState.value ? storedState.value : [];
+    if (storedState.value) {
+      this.columnsMapper._arrayMap = storedState.value;
+    }
   }
 
   /**
