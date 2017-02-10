@@ -8,7 +8,7 @@ export function columnRightItem() {
     name: 'Insert column on the right',
 
     callback: function(key, selection) {
-      this.alter('insert_col', selection.end.col + 1);
+      this.alter('insert_col', selection.end.col + 1, 1, 'ContextMenu.columnRight');
     },
     disabled: function() {
       let selected = getValidSelection(this);

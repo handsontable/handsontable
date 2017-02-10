@@ -508,4 +508,22 @@ describe('Core_updateSettings', function () {
 
     expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
   });
+
+  it("should change colHeader's row height if is needed", function() {
+    var hot = handsontable({
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    var rowHeights = [];
+
+    rowHeights.push(this.$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
+    updateSettings({
+      colHeaders: ['A<br/>A']
+    });
+
+    rowHeights.push(this.$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
+
+    expect(rowHeights[0]).toBeLessThan(rowHeights[1]);
+  });
 });

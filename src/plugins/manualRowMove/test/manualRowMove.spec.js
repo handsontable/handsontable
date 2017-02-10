@@ -260,9 +260,6 @@ describe('manualRowMove', function () {
 
       $rowsHeaders.eq(1).simulate('mousedown');
       $rowsHeaders.eq(1).simulate('mouseup');
-
-      var $guideline = this.$container.find('.ht__manualRowMove--guideline');
-
       $rowsHeaders.eq(1).simulate('mousedown');
       $rowsHeaders.eq(3).simulate('mouseover');
       $rowsHeaders.eq(3).simulate('mousemove');
@@ -271,6 +268,28 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
       expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    });
+
+    it("should not move row if it's not needed", function () {
+      var cache = [];
+
+      handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true,
+        afterRowMove(rows, target) {
+          cache.push(rows);
+        }
+      });
+
+      var $rowsHeaders = this.$container.find('.ht_clone_left tr th');
+
+      $rowsHeaders.eq(1).simulate('mousedown');
+      $rowsHeaders.eq(1).simulate('mouseup');
+      $rowsHeaders.eq(1).simulate('mousedown');
+      $rowsHeaders.eq(3).simulate('mouseup');
+
+      expect(cache.length).toEqual(0);
     });
 
     it('should properly scrolling viewport if mouse is over part-visible cell', function (done) {

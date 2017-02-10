@@ -8,7 +8,7 @@ export function rowBelowItem() {
     name: 'Insert row below',
 
     callback: function(key, selection) {
-      this.alter('insert_row', selection.end.row + 1);
+      this.alter('insert_row', selection.end.row + 1, 1, 'ContextMenu.rowBelow');
     },
     disabled: function() {
       let selected = getValidSelection(this);
