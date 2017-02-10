@@ -1,7 +1,7 @@
 import Handsontable from './browser';
 import SheetClip from 'SheetClip';
 import {cellMethodLookupFactory} from './helpers/data';
-import {columnFactory} from './helpers/setting';
+import {columnSettingsFactory} from './helpers/setting';
 import {createObjectPropListener, duckSchema, deepExtend, deepClone, isObject, deepObjectSize} from './helpers/object';
 import {extendArray, to2dArray} from './helpers/array';
 import {Interval} from './utils/interval';
@@ -271,7 +271,7 @@ DataMap.prototype.createCol = function(index, amount, source) {
 
   var maxCols = this.instance.getSettings().maxCols;
   while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
-    constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
+    constructor = columnSettingsFactory(this.GridSettings);
 
     if (typeof index !== 'number' || index >= this.instance.countCols()) {
       if (rlen > 0) {

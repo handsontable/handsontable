@@ -159,7 +159,7 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
         var type;
 
         if (typeof properties.type != 'string') {
-          throw new Error('Cell type must be a string ');
+          throw new Error('Cell type must be a string');
         }
         type = translateTypeNameToObject(properties.type);
 

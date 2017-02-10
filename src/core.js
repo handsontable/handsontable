@@ -1,7 +1,7 @@
 import Handsontable from './browser';
 import numbro from 'numbro';
 import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
-import {columnFactory} from './helpers/setting';
+import {columnSettingsFactory} from './helpers/setting';
 import {isFunction} from './helpers/function';
 import {isDefined, isUndefined} from './helpers/mixed';
 import {isMobileBrowser} from './helpers/browser';
@@ -90,7 +90,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   priv = {
     cellSettings: [],
     columnSettings: [],
-    columnsSettingConflicts: ['data', 'width'],
     settings: new GridSettings(), // current settings instance
     selRange: null, // exposed by public method `getSelectedRange`
     isPopulated: null,
@@ -257,7 +256,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         let emptyRows = instance.countEmptyRows(true);
 
         // should I add empty rows to meet minSpareRows?
-        if (emptyRows < priv.settings.minSpareRows) {
+        if (!priv.settings.rows && emptyRows < priv.settings.minSpareRows) {
           for (; emptyRows < priv.settings.minSpareRows && instance.countSourceRows() < priv.settings.maxRows; emptyRows++) {
             datamap.createRow(instance.countRows(), 1, 'auto');
           }
@@ -1062,7 +1061,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         continue;
       }
 
-      if (priv.settings.allowInsertRow) {
+      if (priv.settings.allowInsertRow && (!priv.settings.rows || priv.settings.rows.length === 0)) {
         while (changes[i][0] > instance.countRows() - 1) {
           let numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
 
@@ -1587,19 +1586,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings, init) {
-    let columnsAsFunc = false;
-    let i;
-    let j;
-    let clen;
-
-    if (isDefined(settings.rows)) {
-      throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
-    }
-    if (isDefined(settings.cols)) {
-      throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
-    }
-
-    for (i in settings) {
+    for (let i in settings) {
       if (i === 'data') {
         continue; // loadData will be triggered later
 
@@ -1618,6 +1605,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       }
     }
 
+    instance.priv = priv;
+
     // Load data or create data map
     if (settings.data === void 0 && priv.settings.data === void 0) {
       instance.loadData(null); // data source created just now
@@ -1629,49 +1618,54 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       datamap.createMap();
     }
 
-    clen = instance.countCols();
-
-    // Init columns constructors configuration
-    if (settings.columns && isFunction(settings.columns)) {
-      clen = instance.countSourceCols();
-      columnsAsFunc = true;
-    }
-
     // Clear cellSettings cache
-    if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
+    if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0 || settings.rows !== void 0) {
       priv.cellSettings.length = 0;
     }
 
-    if (clen > 0) {
-      let proto;
-      let column;
+    let columnsCount = instance.countCols();
+    let columnsAsFunc = false;
 
-      for (i = 0, j = 0; i < clen; i++) {
-        if (columnsAsFunc && !settings.columns(i)) {
-          continue;
-        }
-        priv.columnSettings[j] = columnFactory(GridSettings, priv.columnsSettingConflicts);
+    // Init columns constructors configuration
+    if (settings.columns && isFunction(settings.columns)) {
+      columnsCount = instance.countSourceCols();
+      columnsAsFunc = true;
+    }
 
-        // shortcut for prototype
-        proto = priv.columnSettings[j].prototype;
-
-        // Use settings provided by user
-        if (GridSettings.prototype.columns) {
-          if (columnsAsFunc) {
-            column = GridSettings.prototype.columns(i);
-
-          } else {
-            column = GridSettings.prototype.columns[j];
-          }
-
-          if (column) {
-            extend(proto, column);
-            extend(proto, expandType(column));
-          }
-        }
-
-        j++;
+    // Create settings for columns layer
+    rangeEach(columnsCount, (columnIndex) => {
+      if (columnsAsFunc && !settings.columns(columnIndex)) {
+        return;
       }
+      priv.columnSettings[columnIndex] = columnSettingsFactory(GridSettings);
+
+      // Use settings provided by user
+      if (GridSettings.prototype.columns) {
+        // ColumnSettings prototype
+        const proto = priv.columnSettings[columnIndex].prototype;
+        let columnMeta;
+
+        if (columnsAsFunc) {
+          columnMeta = GridSettings.prototype.columns(columnIndex);
+
+        } else {
+          columnMeta = GridSettings.prototype.columns[columnIndex];
+        }
+
+        if (columnMeta) {
+          extend(proto, columnMeta);
+          extend(proto, expandType(columnMeta));
+        }
+      }
+    });
+
+    let rowsCount = instance.countRows();
+    let rowsAsFunc = false;
+
+    // Init rows constructors configuration
+    if (settings.rows && isFunction(settings.rows)) {
+      rowsCount = instance.countSourceRows();
+      rowsAsFunc = true;
     }
 
     if (isDefined(settings.cell)) {
@@ -2311,7 +2305,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     [row, col] = recordTranslator.toPhysical(row, col);
 
     if (!priv.columnSettings[col]) {
-      priv.columnSettings[col] = columnFactory(GridSettings, priv.columnsSettingConflicts);
+      priv.columnSettings[col] = columnSettingsFactory(GridSettings);
+      console.log(222);
     }
 
     if (!priv.cellSettings[row]) {
