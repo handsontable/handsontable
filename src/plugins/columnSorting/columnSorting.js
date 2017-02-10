@@ -264,7 +264,6 @@ class ColumnSorting extends BasePlugin {
     const sortEmptyCells = columnSorting && columnSorting.sortEmptyCells;
 
     return function(a, b) {
-
       if (typeof a[1] == 'string') {
         a[1] = a[1].toLowerCase();
       }
