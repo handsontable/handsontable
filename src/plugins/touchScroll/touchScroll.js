@@ -30,7 +30,7 @@ class TouchScroll extends BasePlugin {
      * Flag which determines if collection of overlays should be refilled on every table render.
      *
      * @type {Boolean}
-     * @default true
+     * @default false
      */
     this.lockedCollection = false;
   }
