@@ -290,17 +290,17 @@ describe('ColumnSorting', function() {
   it('should place empty strings, null and undefined values at proper position (stability of default comparing function)', function () {
     var hot = handsontable({
       data: [
-        [null, "George Washington"],
-        [undefined, "John Adams"],
-        [null, "Thomas Jefferson"],
-        ['', "James Madison"],
-        ['', "James Monroe"],
-        [6, "John Quincy Adams"],
-        [7, "Andrew Jackson"],
-        [8, "Martin Van Buren"],
-        [9, "William Henry Harrison"],
-        [10, "John Tyler"],
-        [11, "Donald Trump"]
+        [null, "Ted Right"],
+        [undefined, "Jane Neat"],
+        [null, "Meg Jansen"],
+        ['', "Sean Hara"],
+        ['', "Eve Branson"],
+        [6, "Frank Honest"],
+        [7, "Joan Well"],
+        [8, "Sid Strong"],
+        [9, "Chuck Jackson"],
+        [10, "Rob Norris"],
+        [11, "Eve Well"]
       ],
       columnSorting: true
     });
@@ -308,35 +308,35 @@ describe('ColumnSorting', function() {
     hot.sort(0, true); // ASC
 
     expect(hot.getDataAtCol(1)).toEqual([
-      "John Quincy Adams",
-      "Andrew Jackson",
-      "Martin Van Buren",
-      "William Henry Harrison",
-      "John Tyler",
-      "Donald Trump",
+      "Frank Honest",
+      "Joan Well",
+      "Sid Strong",
+      "Chuck Jackson",
+      "Rob Norris",
+      "Eve Well",
 
-      "George Washington",
-      "John Adams",
-      "Thomas Jefferson",
-      "James Madison",
-      "James Monroe",
+      "Ted Right",
+      "Jane Neat",
+      "Meg Jansen",
+      "Sean Hara",
+      "Eve Branson",
     ]);
 
     hot.sort(0, false); // DESC
 
     expect(hot.getDataAtCol(1)).toEqual([
-      "Donald Trump",
-      "John Tyler",
-      "William Henry Harrison",
-      "Martin Van Buren",
-      "Andrew Jackson",
-      "John Quincy Adams",
+      "Eve Well",
+      "Rob Norris",
+      "Chuck Jackson",
+      "Sid Strong",
+      "Joan Well",
+      "Frank Honest",
 
-      "George Washington",
-      "John Adams",
-      "Thomas Jefferson",
-      "James Madison",
-      "James Monroe",
+      "Ted Right",
+      "Jane Neat",
+      "Meg Jansen",
+      "Sean Hara",
+      "Eve Branson",
     ]);
   });
 
@@ -344,16 +344,16 @@ describe('ColumnSorting', function() {
     '(API call, data type: default)', function () {
     var hot = handsontable({
       data: [
-        [6, "John Quincy Adams"],
-        [null, "George Washington"],
-        [7, "Andrew Jackson"],
-        [8, "Martin Van Buren"],
-        [undefined, "John Adams"],
-        [9, "William Henry Harrison"],
-        [null, "Thomas Jefferson"],
-        [10, "John Tyler"],
-        ['', "James Madison"],
-        ['', "James Monroe"]
+        [6, "Frank Honest"],
+        [null, "Ted Right"],
+        [7, "Joan Well"],
+        [8, "Sid Strong"],
+        [undefined, "Jane Neat"],
+        [9, "Chuck Jackson"],
+        [null, "Meg Jansen"],
+        [10, "Rob Norris"],
+        ['', "Sean Hara"],
+        ['', "Eve Branson"]
       ],
       columnSorting: {
         sortEmptyCells: true
@@ -363,33 +363,33 @@ describe('ColumnSorting', function() {
     hot.sort(0, true); // ASC
 
     expect(hot.getDataAtCol(1)).toEqual([
-      "George Washington",
-      "John Adams",
-      "Thomas Jefferson",
-      "James Madison",
-      "James Monroe",
+      "Ted Right",
+      "Jane Neat",
+      "Meg Jansen",
+      "Sean Hara",
+      "Eve Branson",
 
-      "John Quincy Adams",
-      "Andrew Jackson",
-      "Martin Van Buren",
-      "William Henry Harrison",
-      "John Tyler"
+      "Frank Honest",
+      "Joan Well",
+      "Sid Strong",
+      "Chuck Jackson",
+      "Rob Norris"
     ]);
 
     hot.sort(0, false); // DESC
 
     expect(hot.getDataAtCol(1)).toEqual([
-      "John Tyler",
-      "William Henry Harrison",
-      "Martin Van Buren",
-      "Andrew Jackson",
-      "John Quincy Adams",
+      "Rob Norris",
+      "Chuck Jackson",
+      "Sid Strong",
+      "Joan Well",
+      "Frank Honest",
 
-      "George Washington",
-      "John Adams",
-      "Thomas Jefferson",
-      "James Madison",
-      "James Monroe",
+      "Ted Right",
+      "Jane Neat",
+      "Meg Jansen",
+      "Sean Hara",
+      "Eve Branson",
     ]);
   });
 
@@ -397,16 +397,16 @@ describe('ColumnSorting', function() {
     'option is enabled and `column` property of `columnSorting` option is set (data type: default)', function () {
     var hot = handsontable({
       data: [
-        [6, "John Quincy Adams"],
-        [null, "George Washington"],
-        [7, "Andrew Jackson"],
-        [8, "Martin Van Buren"],
-        [undefined, "John Adams"],
-        [9, "William Henry Harrison"],
-        [null, "Thomas Jefferson"],
-        [10, "John Tyler"],
-        ['', "James Madison"],
-        ['', "James Monroe"]
+        [6, "Frank Honest"],
+        [null, "Ted Right"],
+        [7, "Joan Well"],
+        [8, "Sid Strong"],
+        [undefined, "Jane Neat"],
+        [9, "Chuck Jackson"],
+        [null, "Meg Jansen"],
+        [10, "Rob Norris"],
+        ['', "Sean Hara"],
+        ['', "Eve Branson"]
       ],
       columnSorting: {
         sortEmptyCells: true,
@@ -418,17 +418,17 @@ describe('ColumnSorting', function() {
     // ASC
 
     expect(hot.getDataAtCol(1)).toEqual([
-      "George Washington",
-      "John Adams",
-      "Thomas Jefferson",
-      "James Madison",
-      "James Monroe",
+      "Ted Right",
+      "Jane Neat",
+      "Meg Jansen",
+      "Sean Hara",
+      "Eve Branson",
 
-      "John Quincy Adams",
-      "Andrew Jackson",
-      "Martin Van Buren",
-      "William Henry Harrison",
-      "John Tyler"
+      "Frank Honest",
+      "Joan Well",
+      "Sid Strong",
+      "Chuck Jackson",
+      "Rob Norris"
     ]);
 
     if (this.$container) {
@@ -438,16 +438,16 @@ describe('ColumnSorting', function() {
 
     var hot = handsontable({
       data: [
-        [6, "John Quincy Adams"],
-        [null, "George Washington"],
-        [7, "Andrew Jackson"],
-        [8, "Martin Van Buren"],
-        [undefined, "John Adams"],
-        [9, "William Henry Harrison"],
-        [null, "Thomas Jefferson"],
-        [10, "John Tyler"],
-        ['', "James Madison"],
-        ['', "James Monroe"]
+        [6, "Frank Honest"],
+        [null, "Ted Right"],
+        [7, "Joan Well"],
+        [8, "Sid Strong"],
+        [undefined, "Jane Neat"],
+        [9, "Chuck Jackson"],
+        [null, "Meg Jansen"],
+        [10, "Rob Norris"],
+        ['', "Sean Hara"],
+        ['', "Eve Branson"]
       ],
       columnSorting: {
         sortEmptyCells: true,
@@ -459,17 +459,17 @@ describe('ColumnSorting', function() {
     // DESC
 
     expect(hot.getDataAtCol(1)).toEqual([
-      "John Tyler",
-      "William Henry Harrison",
-      "Martin Van Buren",
-      "Andrew Jackson",
-      "John Quincy Adams",
+      "Rob Norris",
+      "Chuck Jackson",
+      "Sid Strong",
+      "Joan Well",
+      "Frank Honest",
 
-      "George Washington",
-      "John Adams",
-      "Thomas Jefferson",
-      "James Madison",
-      "James Monroe",
+      "Ted Right",
+      "Jane Neat",
+      "Meg Jansen",
+      "Sean Hara",
+      "Eve Branson",
     ]);
   });
 
@@ -477,16 +477,16 @@ describe('ColumnSorting', function() {
     'option is enabled and `column` property of `columnSorting` option is set (data type: numeric)', function () {
     var hot = handsontable({
       data: [
-        [6, "John Quincy Adams"],
-        [null, "George Washington"],
-        [7, "Andrew Jackson"],
-        [8, "Martin Van Buren"],
-        [undefined, "John Adams"],
-        [9, "William Henry Harrison"],
-        [null, "Thomas Jefferson"],
-        [10, "John Tyler"],
-        ['', "James Madison"],
-        ['', "James Monroe"]
+        [6, "Frank Honest"],
+        [null, "Ted Right"],
+        [7, "Joan Well"],
+        [8, "Sid Strong"],
+        [undefined, "Jane Neat"],
+        [9, "Chuck Jackson"],
+        [null, "Meg Jansen"],
+        [10, "Rob Norris"],
+        ['', "Sean Hara"],
+        ['', "Eve Branson"]
       ],
       columns: [
         {
@@ -504,17 +504,17 @@ describe('ColumnSorting', function() {
     // ASC
 
     expect(hot.getDataAtCol(1)).toEqual([
-      "George Washington",
-      "John Adams",
-      "Thomas Jefferson",
-      "James Madison",
-      "James Monroe",
+      "Ted Right",
+      "Jane Neat",
+      "Meg Jansen",
+      "Sean Hara",
+      "Eve Branson",
 
-      "John Quincy Adams",
-      "Andrew Jackson",
-      "Martin Van Buren",
-      "William Henry Harrison",
-      "John Tyler"
+      "Frank Honest",
+      "Joan Well",
+      "Sid Strong",
+      "Chuck Jackson",
+      "Rob Norris"
     ]);
 
     if (this.$container) {
@@ -524,16 +524,16 @@ describe('ColumnSorting', function() {
 
     var hot = handsontable({
       data: [
-        [6, "John Quincy Adams"],
-        [null, "George Washington"],
-        [7, "Andrew Jackson"],
-        [8, "Martin Van Buren"],
-        [undefined, "John Adams"],
-        [9, "William Henry Harrison"],
-        [null, "Thomas Jefferson"],
-        [10, "John Tyler"],
-        ['', "James Madison"],
-        ['', "James Monroe"]
+        [6, "Frank Honest"],
+        [null, "Ted Right"],
+        [7, "Joan Well"],
+        [8, "Sid Strong"],
+        [undefined, "Jane Neat"],
+        [9, "Chuck Jackson"],
+        [null, "Meg Jansen"],
+        [10, "Rob Norris"],
+        ['', "Sean Hara"],
+        ['', "Eve Branson"]
       ],
       columnSorting: {
         sortEmptyCells: true,
@@ -545,17 +545,17 @@ describe('ColumnSorting', function() {
     // DESC
 
     expect(hot.getDataAtCol(1)).toEqual([
-      "John Tyler",
-      "William Henry Harrison",
-      "Martin Van Buren",
-      "Andrew Jackson",
-      "John Quincy Adams",
+      "Rob Norris",
+      "Chuck Jackson",
+      "Sid Strong",
+      "Joan Well",
+      "Frank Honest",
 
-      "George Washington",
-      "John Adams",
-      "Thomas Jefferson",
-      "James Madison",
-      "James Monroe",
+      "Ted Right",
+      "Jane Neat",
+      "Meg Jansen",
+      "Sean Hara",
+      "Eve Branson",
     ]);
   });
 
