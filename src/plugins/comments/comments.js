@@ -184,7 +184,7 @@ class Comments extends BasePlugin {
    * Set current cell range to be able to use general methods like {@link Comments#setComment},
    * {@link Comments#removeComment}, {@link Comments#show}.
    *
-   * @param {Object} range Object with `row` and `col` properties.
+   * @param {Object} range Object with `from` and `to` properties, each with `row` and `col` properties.
    */
   setRange(range) {
     this.range = range;
