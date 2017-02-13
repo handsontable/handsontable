@@ -34,7 +34,8 @@ Handsontable.hooks.register('afterColumnSort');
  * // as a object with initial order (sort ascending column at index 2)
  * columnSorting: {
  *  column: 2,
- *  sortOrder: true // true = ascending, false = descending, undefined = original order
+ *  sortOrder: true, // true = ascending, false = descending, undefined = original order
+ *  sortEmptyCells: true // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
  * }
  * ...
  * ```
