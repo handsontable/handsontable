@@ -331,7 +331,7 @@ describe('ColumnSorting', function() {
       "Sid Strong",
       "Joan Well",
       "Frank Honest",
-
+      // empty cells below
       "Ted Right",
       "Jane Neat",
       "Meg Jansen",
