@@ -315,6 +315,7 @@ describe('ColumnSorting', function() {
       "Rob Norris",
       "Eve Well",
 
+      // empty cells below
       "Ted Right",
       "Jane Neat",
       "Meg Jansen",
@@ -368,6 +369,7 @@ describe('ColumnSorting', function() {
       "Meg Jansen",
       "Sean Hara",
       "Eve Branson",
+      // empty cells above
 
       "Frank Honest",
       "Joan Well",
@@ -385,6 +387,7 @@ describe('ColumnSorting', function() {
       "Joan Well",
       "Frank Honest",
 
+      // empty cells below
       "Ted Right",
       "Jane Neat",
       "Meg Jansen",
@@ -423,6 +426,7 @@ describe('ColumnSorting', function() {
       "Meg Jansen",
       "Sean Hara",
       "Eve Branson",
+      // empty cells above
 
       "Frank Honest",
       "Joan Well",
@@ -465,6 +469,7 @@ describe('ColumnSorting', function() {
       "Joan Well",
       "Frank Honest",
 
+      // empty cells below
       "Ted Right",
       "Jane Neat",
       "Meg Jansen",
@@ -509,6 +514,7 @@ describe('ColumnSorting', function() {
       "Meg Jansen",
       "Sean Hara",
       "Eve Branson",
+      // empty cells above
 
       "Frank Honest",
       "Joan Well",
@@ -551,6 +557,7 @@ describe('ColumnSorting', function() {
       "Joan Well",
       "Frank Honest",
 
+      // empty cells below
       "Ted Right",
       "Jane Neat",
       "Meg Jansen",
@@ -616,6 +623,7 @@ describe('ColumnSorting', function() {
         "Citroen3",
         "Citroen4",
         "Citroen5",
+        // empty cells above
 
         "Opel1",
         "Mercedes2",
@@ -666,6 +674,7 @@ describe('ColumnSorting', function() {
         "Mercedes2",
         "Opel1",
 
+        // empty cells below
         "Citroen1",
         "Citroen2",
         "Citroen3",
@@ -1070,7 +1079,6 @@ describe('ColumnSorting', function() {
     });
 
     // ASC with empty cells sorting
-
     expect(hot.getDataAtCol(0)).toEqual([2, 4, 7, 3, 1, 6, 8]);
 
     updateSettings({
@@ -1082,7 +1090,6 @@ describe('ColumnSorting', function() {
     });
 
     // ASC without empty cells sorting
-
     expect(hot.getDataAtCol(0)).toEqual([3, 1, 6, 8, 2, 4, 7]);
   });
 

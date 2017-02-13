@@ -2,14 +2,11 @@ import Handsontable from './../../browser';
 import moment from 'moment';
 import {
   addClass,
-  closest,
   hasClass,
-  index,
   removeClass,
 } from './../../helpers/dom/element';
-import {arrayEach, arrayMap, arrayReduce} from './../../helpers/array';
+import {arrayMap, arrayReduce} from './../../helpers/array';
 import {isEmpty} from './../../helpers/mixed';
-import {eventManager as eventManagerObject} from './../../eventManager';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
 import {mergeSort} from './../../utils/sortingAlgorithms/mergeSort';
