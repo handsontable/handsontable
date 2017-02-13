@@ -1631,8 +1631,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     clen = instance.countCols();
 
+    const columnSetting = settings.columns || GridSettings.prototype.columns;
+
     // Init columns constructors configuration
-    if (settings.columns && isFunction(settings.columns)) {
+    if (columnSetting && isFunction(columnSetting)) {
       clen = instance.countSourceCols();
       columnsAsFunc = true;
     }
@@ -1647,7 +1649,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       let column;
 
       for (i = 0, j = 0; i < clen; i++) {
-        if (columnsAsFunc && !settings.columns(i)) {
+        if (columnsAsFunc && !columnSetting(i)) {
           continue;
         }
         priv.columnSettings[j] = columnFactory(GridSettings, priv.columnsSettingConflicts);
@@ -1656,12 +1658,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         proto = priv.columnSettings[j].prototype;
 
         // Use settings provided by user
-        if (GridSettings.prototype.columns) {
+        if (columnSetting) {
           if (columnsAsFunc) {
-            column = GridSettings.prototype.columns(i);
+            column = columnSetting(i);
 
           } else {
-            column = GridSettings.prototype.columns[j];
+            column = columnSetting[j];
           }
 
           if (column) {
