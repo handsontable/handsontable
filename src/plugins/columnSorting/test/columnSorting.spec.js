@@ -314,7 +314,6 @@ describe('ColumnSorting', function() {
       "Chuck Jackson",
       "Rob Norris",
       "Eve Well",
-
       // empty cells below
       "Ted Right",
       "Jane Neat",
@@ -370,7 +369,6 @@ describe('ColumnSorting', function() {
       "Sean Hara",
       "Eve Branson",
       // empty cells above
-
       "Frank Honest",
       "Joan Well",
       "Sid Strong",
@@ -386,7 +384,6 @@ describe('ColumnSorting', function() {
       "Sid Strong",
       "Joan Well",
       "Frank Honest",
-
       // empty cells below
       "Ted Right",
       "Jane Neat",
@@ -427,7 +424,6 @@ describe('ColumnSorting', function() {
       "Sean Hara",
       "Eve Branson",
       // empty cells above
-
       "Frank Honest",
       "Joan Well",
       "Sid Strong",
@@ -468,7 +464,6 @@ describe('ColumnSorting', function() {
       "Sid Strong",
       "Joan Well",
       "Frank Honest",
-
       // empty cells below
       "Ted Right",
       "Jane Neat",
@@ -515,7 +510,6 @@ describe('ColumnSorting', function() {
       "Sean Hara",
       "Eve Branson",
       // empty cells above
-
       "Frank Honest",
       "Joan Well",
       "Sid Strong",
@@ -556,7 +550,6 @@ describe('ColumnSorting', function() {
       "Sid Strong",
       "Joan Well",
       "Frank Honest",
-
       // empty cells below
       "Ted Right",
       "Jane Neat",
@@ -624,7 +617,6 @@ describe('ColumnSorting', function() {
         "Citroen4",
         "Citroen5",
         // empty cells above
-
         "Opel1",
         "Mercedes2",
         "Mercedes1",
@@ -673,7 +665,6 @@ describe('ColumnSorting', function() {
         "Mercedes1",
         "Mercedes2",
         "Opel1",
-
         // empty cells below
         "Citroen1",
         "Citroen2",
