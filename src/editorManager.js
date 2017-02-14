@@ -31,16 +31,58 @@ function EditorManager(instance, priv, selection) {
     }
   }
 
-  function moveSelectionUp(shiftKey) {
-    if (shiftKey) {
+  function moveSelectionUp(shiftKey, ctrlKey) {
+    if (ctrlKey) {
+      var data = instance.getSourceData();
+      var selected = instance.getSelected();
+      var cellIsBlank = false;
+      var selectionRowStart = selected[0];
+      var selectionColumnStart = selected[1];
+      var selectionRowEnd = selected[2];
+      var selectionColumnEnd = selected[3];
+      instance.selectCell(selectionRowEnd, selectionColumnEnd);
+      var i = selectionRowStart;
+      while (i > 0 && !cellIsBlank) {
+        selection.transformStart(-1, 0);
+        if (instance.getValue() === '' || instance.getValue() === null) {
+          selection.transformStart(1, 0);
+          cellIsBlank = true;
+        }
+        i--;
+      }
+      if (shiftKey) {
+        selectNonBlankRange(instance, selection, selectionRowStart, instance.getSelected()[0], selectionColumnStart, instance.getSelected()[1]);
+      }
+    } else if (shiftKey) {
       selection.transformEnd(-1, 0);
     } else {
       selection.transformStart(-1, 0);
     }
   }
 
-  function moveSelectionDown(shiftKey) {
-    if (shiftKey) {
+  function moveSelectionDown(shiftKey, ctrlKey) {
+    if (ctrlKey) {
+      var data = instance.getSourceData();
+      var selected = instance.getSelected();
+      var cellIsBlank = false;
+      var selectionRowStart = selected[0];
+      var selectionColumnStart = selected[1];
+      var selectionRowEnd = selected[2];
+      var selectionColumnEnd = selected[3];
+      instance.selectCell(selectionRowEnd, selectionColumnEnd);
+      var i = selectionRowEnd;
+      while (i < data.length - 1 && !cellIsBlank) {
+        selection.transformStart(1, 0);
+        if (instance.getValue() === '' || instance.getValue() === null) {
+          selection.transformStart(-1, 0);
+          cellIsBlank = true;
+        }
+        i++;
+      }
+      if (shiftKey) {
+        selectNonBlankRange(instance, selection, selectionRowStart, instance.getSelected()[0], selectionColumnStart, instance.getSelected()[1]);
+      }
+    } else if (shiftKey) {
       // expanding selection down with shift
       selection.transformEnd(1, 0);
     } else {
@@ -49,20 +91,69 @@ function EditorManager(instance, priv, selection) {
     }
   }
 
-  function moveSelectionRight(shiftKey) {
-    if (shiftKey) {
+  function moveSelectionRight(shiftKey, ctrlKey) {
+    if (ctrlKey) {
+      var data = instance.getSourceData();
+      var selected = instance.getSelected();
+      var cellIsBlank = false;
+      var selectionRowStart = selected[0];
+      var selectionColumnStart = selected[1];
+      var selectionRowEnd = selected[2];
+      var selectionColumnEnd = selected[3];
+      instance.selectCell(selectionRowEnd, selectionColumnEnd);
+      var i = selectionColumnEnd;
+      while (i < instance.countCols() - 1 && !cellIsBlank) {
+        selection.transformStart(0, 1);
+        if (instance.getValue() === '' || instance.getValue() === null) {
+          selection.transformStart(0, -1);
+          cellIsBlank = true;
+        }
+        i++;
+      }
+      if (shiftKey) {
+        selectNonBlankRange(instance, selection, selectionRowStart, instance.getSelected()[0], selectionColumnStart, instance.getSelected()[1]);
+      }
+    } else if (shiftKey) {
       selection.transformEnd(0, 1);
     } else {
       selection.transformStart(0, 1);
     }
   }
 
-  function moveSelectionLeft(shiftKey) {
-    if (shiftKey) {
+  function moveSelectionLeft(shiftKey, ctrlKey) {
+    if (ctrlKey) {
+      var data = instance.getSourceData();
+      var selected = instance.getSelected();
+      var cellIsBlank = false;
+      var selectionRowStart = selected[0];
+      var selectionColumnStart = selected[1];
+      var selectionRowEnd = selected[2];
+      var selectionColumnEnd = selected[3];
+      instance.selectCell(selectionRowEnd, selectionColumnEnd);
+      var i = selectionColumnEnd;
+      while (i > 0 && !cellIsBlank) {
+        selection.transformStart(0, -1);
+        if (instance.getValue() === '' || instance.getValue() === null) {
+          selection.transformStart(0, 1);
+          cellIsBlank = true;
+        }
+        i++;
+      }
+      if (shiftKey) {
+        selectNonBlankRange(instance, selection, selectionRowStart, instance.getSelected()[0], selectionColumnStart, instance.getSelected()[1]);
+      }
+    } else if (shiftKey) {
       selection.transformEnd(0, -1);
     } else {
       selection.transformStart(0, -1);
     }
+  }
+
+  function selectNonBlankRange(instance, selection, startingRow, endingRow, startingColumn, endingColumn) {
+    var totalRows = endingRow - startingRow;
+    var totalColumns = endingColumn - startingColumn;
+    instance.selectCell(startingRow, startingColumn);
+    selection.transformEnd(totalRows, totalColumns);
   }
 
   function onKeyDown(event) {
@@ -111,7 +202,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
-        moveSelectionUp(event.shiftKey);
+        moveSelectionUp(event.shiftKey, event.ctrlKey);
 
         event.preventDefault();
         stopPropagation(event);
@@ -121,7 +212,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
-        moveSelectionDown(event.shiftKey);
+        moveSelectionDown(event.shiftKey, event.ctrlKey);
 
         event.preventDefault();
         stopPropagation(event);
@@ -131,7 +222,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
-        moveSelectionRight(event.shiftKey);
+        moveSelectionRight(event.shiftKey, event.ctrlKey);
 
         event.preventDefault();
         stopPropagation(event);
@@ -141,7 +232,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
-        moveSelectionLeft(event.shiftKey);
+        moveSelectionLeft(event.shiftKey, event.ctrlKey);
 
         event.preventDefault();
         stopPropagation(event);
