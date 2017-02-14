@@ -345,7 +345,7 @@ describe('HandsontableObserveChanges', function () {
 
         setTimeout(function () {
           expect(afterCreateRowCallback.calls.count()).toEqual(1);
-          expect(afterCreateRowCallback).toHaveBeenCalledWith(2, undefined, undefined, undefined, undefined, undefined);
+          expect(afterCreateRowCallback).toHaveBeenCalledWith(2, 1, 'ObserveChanges.change', undefined, undefined, undefined);
           done();
         }, 200);
       });
@@ -361,7 +361,7 @@ describe('HandsontableObserveChanges', function () {
 
         setTimeout(function () {
           expect(afterRemoveRowCallback.calls.count()).toEqual(1);
-          expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
+          expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 1, 'ObserveChanges.change', undefined, undefined, undefined);
           done();
         }, 200);
       });
@@ -382,8 +382,8 @@ describe('HandsontableObserveChanges', function () {
           var args = [];
           args.push(afterRemoveRowCallback.calls.argsFor(0));
           args.push(afterRemoveRowCallback.calls.argsFor(1));
-          expect(args).toContain([1, 1, undefined, undefined, undefined, undefined]);
-          expect(args).toContain([0, 1, undefined, undefined, undefined, undefined]);
+          expect(args).toContain([1, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
+          expect(args).toContain([0, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
           done();
         }, 200);
       });
@@ -400,7 +400,7 @@ describe('HandsontableObserveChanges', function () {
 
         setTimeout(function () {
           expect(afterCreateColCallback.calls.count()).toEqual(1);
-          expect(afterCreateColCallback.calls.argsFor(0)).toEqual([2, undefined, undefined, undefined, undefined, undefined]);
+          expect(afterCreateColCallback.calls.argsFor(0)).toEqual([2, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
           done();
         }, 200);
       });
@@ -417,7 +417,7 @@ describe('HandsontableObserveChanges', function () {
 
         setTimeout(function () {
           expect(afterRemoveColCallback.calls.count()).toEqual(1);
-          expect(afterRemoveColCallback.calls.argsFor(0)).toEqual([1, 1, undefined, undefined, undefined, undefined]);
+          expect(afterRemoveColCallback.calls.argsFor(0)).toEqual([1, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
           done();
         }, 200);
       });
@@ -441,8 +441,8 @@ describe('HandsontableObserveChanges', function () {
           var args = [];
           args.push(afterRemoveColCallback.calls.argsFor(0));
           args.push(afterRemoveColCallback.calls.argsFor(1));
-          expect(args).toContain([1, 1, undefined, undefined, undefined, undefined]);
-          expect(args).toContain([0, 1, undefined, undefined, undefined, undefined]);
+          expect(args).toContain([1, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
+          expect(args).toContain([0, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
           done();
         }, 200);
       });
@@ -458,7 +458,7 @@ describe('HandsontableObserveChanges', function () {
 
         setTimeout(function () {
           expect(afterChangeCallback.calls.count()).toEqual(1);
-          expect(afterChangeCallback).toHaveBeenCalledWith([0, 0, null, "new string"], 'external', undefined, undefined, undefined, undefined);
+          expect(afterChangeCallback).toHaveBeenCalledWith([0, 0, null, "new string"], 'ObserveChanges.change', undefined, undefined, undefined, undefined);
           done();
         }, 200);
       });
@@ -490,7 +490,7 @@ describe('HandsontableObserveChanges', function () {
 
         setTimeout(function () {
           expect(afterCreateRowCallback.calls.count()).toEqual(1);
-          expect(afterCreateRowCallback).toHaveBeenCalledWith(2, undefined, undefined, undefined, undefined, undefined);
+          expect(afterCreateRowCallback).toHaveBeenCalledWith(2, 1, 'ObserveChanges.change', undefined, undefined, undefined);
           done();
         }, 200);
       });
@@ -506,7 +506,7 @@ describe('HandsontableObserveChanges', function () {
 
         setTimeout(function () {
           expect(afterRemoveRowCallback.calls.count()).toEqual(1);
-          expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
+          expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 1, 'ObserveChanges.change', undefined, undefined, undefined);
           done();
         }, 200);
       });
@@ -527,8 +527,8 @@ describe('HandsontableObserveChanges', function () {
           var args = [];
           args.push(afterRemoveRowCallback.calls.argsFor(0));
           args.push(afterRemoveRowCallback.calls.argsFor(1));
-          expect(args).toContain([1, 1, undefined, undefined, undefined, undefined]);
-          expect(args).toContain([0, 1, undefined, undefined, undefined, undefined]);
+          expect(args).toContain([1, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
+          expect(args).toContain([0, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
           done();
         }, 200);
       });
@@ -544,7 +544,7 @@ describe('HandsontableObserveChanges', function () {
 
         setTimeout(function () {
           expect(afterChangeCallback.calls.count()).toEqual(1);
-          expect(afterChangeCallback).toHaveBeenCalledWith([0, 'prop0', null, "new string"], 'external', undefined, undefined, undefined, undefined);
+          expect(afterChangeCallback).toHaveBeenCalledWith([0, 'prop0', null, "new string"], 'ObserveChanges.change', undefined, undefined, undefined, undefined);
           done();
         }, 200);
       });

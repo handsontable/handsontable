@@ -131,6 +131,31 @@ describe('manualRowMove', function () {
     });
   });
 
+  describe('loadData', function() {
+    it("should increase numbers of rows if it is necessary", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualRowMove: true
+      });
+
+      hot.loadData(Handsontable.helper.createSpreadsheetData(10, 10));
+
+      expect(countRows()).toEqual(10);
+      expect(hot.getPlugin('manualRowMove').rowsMapper.__arrayMap.length).toEqual(10);
+    });
+    it("should decrease numbers of rows if it is necessary", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualRowMove: true
+      });
+
+      hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+
+      expect(countRows()).toEqual(2);
+      expect(hot.getPlugin('manualRowMove').rowsMapper.__arrayMap.length).toEqual(2);
+    });
+  });
+
   describe('moving', function() {
     it('should move row by API', function () {
       var hot = handsontable({
@@ -260,9 +285,6 @@ describe('manualRowMove', function () {
 
       $rowsHeaders.eq(1).simulate('mousedown');
       $rowsHeaders.eq(1).simulate('mouseup');
-
-      var $guideline = this.$container.find('.ht__manualRowMove--guideline');
-
       $rowsHeaders.eq(1).simulate('mousedown');
       $rowsHeaders.eq(3).simulate('mouseover');
       $rowsHeaders.eq(3).simulate('mousemove');
@@ -271,6 +293,28 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
       expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    });
+
+    it("should not move row if it's not needed", function () {
+      var cache = [];
+
+      handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true,
+        afterRowMove(rows, target) {
+          cache.push(rows);
+        }
+      });
+
+      var $rowsHeaders = this.$container.find('.ht_clone_left tr th');
+
+      $rowsHeaders.eq(1).simulate('mousedown');
+      $rowsHeaders.eq(1).simulate('mouseup');
+      $rowsHeaders.eq(1).simulate('mousedown');
+      $rowsHeaders.eq(3).simulate('mouseup');
+
+      expect(cache.length).toEqual(0);
     });
 
     it('should properly scrolling viewport if mouse is over part-visible cell', function (done) {

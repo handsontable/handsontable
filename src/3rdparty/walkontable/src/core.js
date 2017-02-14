@@ -115,7 +115,7 @@ class Walkontable {
       return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
 
     } else if (coords.col < fixedColumns && coords.row >= totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomLeftCornerOverlay.clone) {
+      if (this.wtOverlays.bottomLeftCornerOverlay && this.wtOverlays.bottomLeftCornerOverlay.clone) {
         return this.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
       }
 
@@ -123,7 +123,7 @@ class Walkontable {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
 
     } else if (coords.row < totalRows && coords.row > totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomOverlay.clone) {
+      if (this.wtOverlays.bottomOverlay && this.wtOverlays.bottomOverlay.clone) {
         return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
       }
 

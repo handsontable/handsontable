@@ -146,7 +146,7 @@ describe('Core_populateFromArray', function() {
       called++;
     });
 
-    populateFromArray(0, 0, [['test','test2'],['test3','test4']], 1, 1, 'autofill', 'overwrite');
+    populateFromArray(0, 0, [['test','test2'],['test3','test4']], 1, 1, 'Autofill.fill', 'overwrite');
 
     expect(called).toEqual(4);
   });
@@ -163,7 +163,7 @@ describe('Core_populateFromArray', function() {
       };
     });
 
-    populateFromArray(0, 0, [['test','test2'],['test3','test4']], 1, 1, 'autofill', 'overwrite');
+    populateFromArray(0, 0, [['test','test2'],['test3','test4']], 1, 1, 'Autofill.fill', 'overwrite');
 
     expect(getDataAtCell(0, 0)).toEqual('my_test');
   });
