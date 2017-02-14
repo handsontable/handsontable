@@ -54,6 +54,40 @@ describe('Comments', function() {
   });
 
   describe('API', function() {
+    it('should return the comment from a proper cell, when using the getCommentAtCell method', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        comments: true,
+        cell: [
+          {row: 1, col: 1, comment: {value: 'test'}},
+          {row: 2, col: 2, comment: {value: 'another test'}}
+        ]
+      });
+
+      var plugin = hot.getPlugin('comments');
+
+      expect(plugin.getCommentAtCell(1, 1)).toEqual('test');
+      expect(plugin.getCommentAtCell(2, 2)).toEqual('another test');
+    });
+
+    it('should return the comment from a proper cell, when using the setRange and getComment methods', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        comments: true,
+        cell: [
+          {row: 1, col: 1, comment: {value: 'test'}},
+          {row: 2, col: 2, comment: {value: 'another test'}}
+        ]
+      });
+
+      var plugin = hot.getPlugin('comments');
+
+      plugin.setRange({from: {row: 1, col: 1}});
+      expect(plugin.getComment()).toEqual('test');
+      plugin.setRange({from: {row: 2, col: 2}});
+      expect(plugin.getComment()).toEqual('another test');
+    });
+
     it('should allow inserting comments using the `setCommentAtCell` method', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),

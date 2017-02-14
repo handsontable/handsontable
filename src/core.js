@@ -460,7 +460,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             current.col = start.col;
             cellMeta = instance.getCellMeta(current.row, current.col);
 
-            if ((source === 'paste' || source === 'autofill') && cellMeta.skipRowOnPaste) {
+            if ((source === 'CopyPaste.paste' || source === 'Autofill.autofill') && cellMeta.skipRowOnPaste) {
               skippedRow++;
               current.row++;
               rlen++;
@@ -476,7 +476,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               }
               cellMeta = instance.getCellMeta(current.row, current.col);
 
-              if ((source === 'paste' || source === 'autofill') && cellMeta.skipColumnOnPaste) {
+              if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipColumnOnPaste) {
                 skippedColumn++;
                 current.col++;
                 clen++;
@@ -494,7 +494,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 col: logicalColumn
               };
 
-              if (source === 'autofill') {
+              if (source === 'Autofill.fill') {
                 let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
 
                 if (result) {
@@ -1006,6 +1006,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               if (result === false && cellProperties.allowInvalid === false) {
                 changes.splice(i, 1);         // cancel the change
                 cellProperties.valid = true;  // we cancelled the change, so cell value is still valid
+                const cell = instance.getCell(cellProperties.row, cellProperties.col);
+                removeClass(cell, instance.getSettings().invalidCellClassName);
                 --i;
               }
               waitingForValidator.removeValidatorFormQueue();
@@ -1062,7 +1064,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       if (priv.settings.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
-          let numberOfCreatedRows = datamap.createRow();
+          let numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
 
           if (numberOfCreatedRows === 0) {
             skipThisChange = true;
@@ -1077,7 +1079,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
-          datamap.createCol();
+          datamap.createCol(void 0, void 0, source);
         }
       }
 
@@ -1739,6 +1741,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     if (!init) {
       datamap.clearLengthCache(); // force clear cache length on updateSettings() #3416
+
+      if (instance.view) {
+        instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
+      }
+
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
     }
 
@@ -4397,7 +4404,8 @@ DefaultSettings.prototype = {
    * // as a object with initial order (sort ascending column at index 2)
    * columnSorting: {
    *   column: 2,
-   *   sortOrder: true // true = ascending, false = descending, undefined = original order
+   *   sortOrder: true, // true = ascending, false = descending, undefined = original order
+   *   sortEmptyCells: true // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
    * }
    * ...
    * ```

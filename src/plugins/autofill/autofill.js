@@ -162,7 +162,7 @@ class Autofill extends BasePlugin {
         selectionData,
         endOfDragCoords.row,
         endOfDragCoords.col,
-        'autofill',
+        `${this.pluginName}.fill`,
         null,
         directionOfDrag,
         deltas
@@ -245,7 +245,7 @@ class Autofill extends BasePlugin {
    */
   addRow() {
     this.hot._registerTimeout(setTimeout(() => {
-      this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME);
+      this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME, void 0, 1, `${this.pluginName}.fill`);
 
       this.addingStarted = false;
     }, INTERVAL_FOR_ADDING_ROW));

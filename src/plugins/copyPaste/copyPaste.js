@@ -98,7 +98,7 @@ function CopyPastePlugin(instance) {
       }
     });
 
-    instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'paste', instance.getSettings().pasteMode);
+    instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', instance.getSettings().pasteMode);
   }
 
   function onBeforeKeyDown(event) {

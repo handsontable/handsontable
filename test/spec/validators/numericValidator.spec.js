@@ -195,5 +195,34 @@ describe('numericValidator', function () {
         done();
       }, 100);
     });
+
+    it('should add / remove `htInvalid` class properly when validating non-numeric data', function (done) {
+      var hot = handsontable({
+        data: [
+          {id: 1, name: "Ted", salary: 10000},
+          {id: 2, name: "Frank", salary: '5300'},
+          {id: 3, name: "Joan", salary: 'non-numeric value'}
+        ],
+        columns: [
+          {data: 'id'},
+          {data: 'name'},
+          {data: 'salary', type: 'numeric', allowInvalid: false}
+        ]
+      });
+
+      hot.validateCells();
+
+      setTimeout(function () {
+        expect($(getCell(1, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+        expect($(getCell(2, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+
+        setDataAtCell(2, 2, 8000);
+      }, 200);
+
+      setTimeout(function () {
+        expect($(getCell(2, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+        done();
+      }, 400);
+    });
   });
 });
