@@ -121,6 +121,9 @@ class Menu {
         } else {
           this.openSubMenu(coords.row);
         }
+      },
+      rowHeights: (row) => {
+        return filteredItems[row].name === SEPARATOR ? 1 : 23;
       }
     };
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
