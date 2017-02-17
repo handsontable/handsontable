@@ -7,7 +7,6 @@ import {rangeEach} from './../../helpers/number';
 import {stopImmediatePropagation, isImmediatePropagationStopped} from './../../helpers/dom/event';
 import {getSelectionText} from './../../helpers/dom/element';
 import {proxy} from './../../helpers/function';
-import {registerPlugin} from './../../plugins';
 import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
 import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
 
@@ -30,8 +29,10 @@ function CopyPastePlugin(instance) {
 
   this.copyPasteInstance = copyPaste();
   this.copyPasteInstance.onCut(onCut);
+  this.copyPasteInstance.triggerCopy = callCopyAction;
   this.copyPasteInstance.onPaste(onPaste);
   this.onPaste = onPaste; // for paste testing purposes
+  this.copyableRanges = [];
 
   instance.addHook('beforeKeyDown', onBeforeKeyDown);
 
@@ -39,7 +40,41 @@ function CopyPastePlugin(instance) {
     if (!instance.isListening()) {
       return;
     }
-    instance.selection.empty();
+  }
+
+  function callCutAction() {
+    let rangedData = _this.getRangedData(_this.copyableRanges);
+
+    if (instance.getSettings().fragmentSelection && (SheetClip.stringify(rangedData) != getSelectionText())) {
+      return;
+    }
+
+    let beforeCopyData = instance.runHooks('beforeCut', rangedData, _this.copyableRanges);
+
+    if (beforeCopyData) {
+      instance.copyPaste.copyPasteInstance.copyable(SheetClip.stringify(rangedData));
+      instance.selection.empty();
+      instance.runHooks('afterCut', beforeCopyData, _this.copyableRanges);
+    }
+  }
+
+  function callCopyAction() {
+    if (!instance.isListening()) {
+      return;
+    }
+
+    let rangedData = _this.getRangedData(_this.copyableRanges);
+
+    if (instance.getSettings().fragmentSelection && (SheetClip.stringify(rangedData) != getSelectionText())) {
+      return;
+    }
+
+    let beforeCopyData = instance.runHooks('beforeCopy', rangedData, _this.copyableRanges);
+
+    if (beforeCopyData) {
+      instance.copyPaste.copyPasteInstance.copyable(SheetClip.stringify(rangedData));
+      instance.runHooks('afterCopy', beforeCopyData, _this.copyableRanges);
+    }
   }
 
   function onPaste(str) {
@@ -98,7 +133,12 @@ function CopyPastePlugin(instance) {
       }
     });
 
-    instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', instance.getSettings().pasteMode);
+    let preventPasting = instance.runHooks('beforePaste', inputArray, [areaStart.row, areaStart.col, areaEnd.row, areaEnd.col]) === false;
+
+    if (!preventPasting) {
+      instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', instance.getSettings().pasteMode);
+      instance.runHooks('afterPaste', inputArray, [areaStart.row, areaStart.col, areaEnd.row, areaEnd.col]);
+    }
   }
 
   function onBeforeKeyDown(event) {
@@ -125,8 +165,16 @@ function CopyPastePlugin(instance) {
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     let ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
-    if (event.keyCode == KEY_CODES.A && ctrlDown) {
-      instance._registerTimeout(setTimeout(proxy(_this.setCopyableText, _this), 0));
+    if (ctrlDown) {
+      if (event.keyCode == KEY_CODES.A) {
+        instance._registerTimeout(setTimeout(proxy(_this.setCopyableText, _this), 0));
+      }
+      if (event.keyCode == KEY_CODES.X) {
+        callCutAction();
+      }
+      if (event.keyCode == KEY_CODES.C) {
+        callCopyAction();
+      }
     }
   }
 
@@ -180,18 +228,19 @@ function CopyPastePlugin(instance) {
     var endCol = bottomRight.col;
     var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
     var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
-    var copyableRanges = [];
 
-    copyableRanges.push({
+    this.copyableRanges.length = 0;
+
+    this.copyableRanges.push({
       startRow: startRow,
       startCol: startCol,
       endRow: finalEndRow,
       endCol: finalEndCol
     });
 
-    copyableRanges = Handsontable.hooks.run(instance, 'modifyCopyableRange', copyableRanges);
+    this.copyableRanges = instance.runHooks('modifyCopyableRange', this.copyableRanges);
 
-    var copyableData = this.getRangedCopyableData(copyableRanges);
+    let copyableData = this.getRangedCopyableData(this.copyableRanges);
 
     instance.copyPaste.copyPasteInstance.copyable(copyableData);
 
@@ -238,6 +287,45 @@ function CopyPastePlugin(instance) {
 
     return SheetClip.stringify(dataSet);
   };
+
+  /**
+   * Create copyable text releated to range objects.
+   *
+   * @since 0.31.1
+   * @param {Array} ranges Array of Objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   * @returns {Array} Returns array of arrays which will be copied into clipboard.
+   */
+  this.getRangedData = function(ranges) {
+    let dataSet = [];
+    let copyableRows = [];
+    let copyableColumns = [];
+
+    // Count all copyable rows and columns
+    arrayEach(ranges, (range) => {
+      rangeEach(range.startRow, range.endRow, (row) => {
+        if (copyableRows.indexOf(row) === -1) {
+          copyableRows.push(row);
+        }
+      });
+      rangeEach(range.startCol, range.endCol, (column) => {
+        if (copyableColumns.indexOf(column) === -1) {
+          copyableColumns.push(column);
+        }
+      });
+    });
+    // Concat all rows and columns data defined in ranges into one copyable string
+    arrayEach(copyableRows, (row) => {
+      let rowSet = [];
+
+      arrayEach(copyableColumns, (column) => {
+        rowSet.push(instance.getCopyableData(row, column));
+      });
+
+      dataSet.push(rowSet);
+    });
+
+    return dataSet;
+  };
 }
 
 /**
@@ -271,5 +359,11 @@ Handsontable.hooks.add('afterUpdateSettings', init);
 
 Handsontable.hooks.register('afterCopyLimit');
 Handsontable.hooks.register('modifyCopyableRange');
+Handsontable.hooks.register('beforeCut');
+Handsontable.hooks.register('afterCut');
+Handsontable.hooks.register('beforePaste');
+Handsontable.hooks.register('afterPaste');
+Handsontable.hooks.register('beforeCopy');
+Handsontable.hooks.register('afterCopy');
 
 export {CopyPastePlugin};
