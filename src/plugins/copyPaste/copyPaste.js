@@ -49,12 +49,15 @@ function CopyPastePlugin(instance) {
       return;
     }
 
-    let beforeCopyData = instance.runHooks('beforeCut', rangedData, _this.copyableRanges);
+    let beforeCutData = instance.runHooks('beforeCut', rangedData, _this.copyableRanges);
 
-    if (beforeCopyData) {
+    if (beforeCutData) {
       instance.copyPaste.copyPasteInstance.copyable(SheetClip.stringify(rangedData));
       instance.selection.empty();
-      instance.runHooks('afterCut', beforeCopyData, _this.copyableRanges);
+      instance.runHooks('afterCut', beforeCutData, _this.copyableRanges);
+
+    } else {
+      instance.copyPaste.copyPasteInstance.copyable('');
     }
   }
 
@@ -74,6 +77,9 @@ function CopyPastePlugin(instance) {
     if (beforeCopyData) {
       instance.copyPaste.copyPasteInstance.copyable(SheetClip.stringify(rangedData));
       instance.runHooks('afterCopy', beforeCopyData, _this.copyableRanges);
+
+    } else {
+      instance.copyPaste.copyPasteInstance.copyable('');
     }
   }
 

@@ -6,10 +6,10 @@ describe('CopyPaste', function () {
   });
 
   afterEach(function () {
-    // if (this.$container) {
-    //   destroy();
-    //   this.$container.remove();
-    // }
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
   });
 
   it("should remove additional new line from copied text (only safari)", function () {
