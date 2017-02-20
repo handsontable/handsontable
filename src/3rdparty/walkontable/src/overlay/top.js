@@ -297,21 +297,24 @@ class WalkontableTopOverlay extends WalkontableOverlay {
         removeClass(masterParent, 'innerBorderTop');
       }
 
-      // redrawing cell border - cell border should be positioned once again,
-      // because we added / removed 1px border from table header
-
-      const currentCellSelection = this.wot.selections[0];
-      const border = currentCellSelection.getBorder(this.wot);
-
-      if (currentCellSelection.cellRange) {
-        const corners = currentCellSelection.getCorners();
-
-        border.disappear();
-        border.appear(corners);
-      }
-
       if (!previousState && position || previousState && !position) {
         this.wot.wtOverlays.adjustElementsSize();
+
+        // redrawing cell border - cell border should be positioned once again,
+        // because we added / removed 1px border from table header
+
+        const selections = this.wot.selections;
+        const currentSelection = selections && selections.current;
+
+        if (currentSelection && currentSelection.cellRange) {
+          const border = currentSelection.getBorder(this.wot);
+          const corners = currentSelection.getCorners();
+
+          if (border) {
+            border.disappear();
+            border.appear(corners);
+          }
+        }
       }
     }
 
