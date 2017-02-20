@@ -19,6 +19,7 @@ function EditorManager(instance, priv, selection) {
   eventManager = eventManagerObject(instance);
 
   function moveSelectionAfterEnter(shiftKey) {
+    selection.setSelectedHeaders(false, false, false);
     var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
 
     if (shiftKey) {
@@ -33,8 +34,13 @@ function EditorManager(instance, priv, selection) {
 
   function moveSelectionUp(shiftKey) {
     if (shiftKey) {
+      if (selection.selectedHeader.cols) {
+        selection.setSelectedHeaders(selection.selectedHeader.rows, false, false);
+      }
       selection.transformEnd(-1, 0);
+
     } else {
+      selection.setSelectedHeaders(false, false, false);
       selection.transformStart(-1, 0);
     }
   }
@@ -44,7 +50,7 @@ function EditorManager(instance, priv, selection) {
       // expanding selection down with shift
       selection.transformEnd(1, 0);
     } else {
-      // move selection down
+      selection.setSelectedHeaders(false, false, false);
       selection.transformStart(1, 0);
     }
   }
@@ -53,14 +59,20 @@ function EditorManager(instance, priv, selection) {
     if (shiftKey) {
       selection.transformEnd(0, 1);
     } else {
+      selection.setSelectedHeaders(false, false, false);
       selection.transformStart(0, 1);
     }
   }
 
   function moveSelectionLeft(shiftKey) {
     if (shiftKey) {
+      if (selection.selectedHeader.rows) {
+        selection.setSelectedHeaders(false, selection.selectedHeader.cols, false);
+      }
       selection.transformEnd(0, -1);
+
     } else {
+      selection.setSelectedHeaders(false, false, false);
       selection.transformStart(0, -1);
     }
   }
@@ -121,7 +133,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
-        selection.setSelectedHeaders(false, false, false);
+
         moveSelectionDown(event.shiftKey);
 
         event.preventDefault();
@@ -132,7 +144,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
-        selection.setSelectedHeaders(false, false, false);
+
         moveSelectionRight(event.shiftKey);
 
         event.preventDefault();
@@ -143,7 +155,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
-        selection.setSelectedHeaders(false, false, false);
+
         moveSelectionLeft(event.shiftKey);
 
         event.preventDefault();
@@ -189,7 +201,6 @@ function EditorManager(instance, priv, selection) {
           if (activeEditor && activeEditor.state !== Handsontable.EditorState.WAITING) {
             _this.closeEditorAndSaveChanges(ctrlDown);
           }
-          selection.setSelectedHeaders(false, false, false);
           moveSelectionAfterEnter(event.shiftKey);
 
         } else {
@@ -200,7 +211,6 @@ function EditorManager(instance, priv, selection) {
               activeEditor.enableFullEditMode();
             }
           } else {
-            selection.setSelectedHeaders(false, false, false);
             moveSelectionAfterEnter(event.shiftKey);
           }
         }

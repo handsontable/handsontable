@@ -837,34 +837,82 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
 
   });
 
-  it("should select the entire row after row header is clicked", function(){
-    var hot = handsontable({
-      startRows: 5,
-      startCols: 5,
-      colHeaders: true,
-      rowHeaders: true
+  describe('selectedHeader', function () {
+    it("should select the entire row after row header is clicked", function(){
+      var hot = handsontable({
+        startRows: 5,
+        startCols: 5,
+        colHeaders: true,
+        rowHeaders: true
+      });
+
+      this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
+
+      expect(getSelected()).toEqual([1, 0, 1, 4]);
+      expect(hot.selection.selectedHeader.rows).toBe(true);
+      expect(hot.selection.selectedHeader.cols).toBe(false);
+      expect(hot.selection.selectedHeader.corner).toBe(false);
     });
 
-    this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
+    it("should properly change flag of the selected column if it's necessary", function(){
+      var hot = handsontable({
+        startRows: 5,
+        startCols: 5,
+        colHeaders: true,
+        rowHeaders: true
+      });
 
-    expect(getSelected()).toEqual([1, 0, 1, 4]);
-    expect(hot.selection.selectedHeader.rows).toBe(true);
-    expect(hot.selection.selectedHeader.cols).toBe(false);
-    expect(hot.selection.selectedHeader.corner).toBe(false);
-  });
+      this.$container.find('thead th:eq(1)').simulate('mousedown');
+      this.$container.find('thead th:eq(1)').simulate('mouseup');
 
-  it("should add classname after select row", function(){
-    var hot = handsontable({
-      width: 200,
-      height: 100,
-      startRows: 50,
-      startCols: 5,
-      rowHeaders: true
+      expect(hot.selection.selectedHeader.cols).toBe(true);
+      keyDownUp('arrow_right');
+      expect(hot.selection.selectedHeader.cols).toBe(false);
+
+      this.$container.find('thead th:eq(1)').simulate('mousedown');
+      this.$container.find('thead th:eq(1)').simulate('mouseup');
+
+      expect(hot.selection.selectedHeader.cols).toBe(true);
+      keyDownUp('shift+arrow_up');
+      expect(hot.selection.selectedHeader.cols).toBe(false);
     });
 
-    this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
+    it("should properly change flag of the selected row if it's necessary", function(){
+      var hot = handsontable({
+        startRows: 5,
+        startCols: 5,
+        colHeaders: true,
+        rowHeaders: true
+      });
 
-    expect(this.$container.hasClass('ht__selection--rows')).toBeTruthy();
+      this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
+      this.$container.find('tr:eq(2) th:eq(0)').simulate('mouseup');
+
+      expect(hot.selection.selectedHeader.rows).toBe(true);
+      keyDownUp('arrow_up');
+      expect(hot.selection.selectedHeader.rows).toBe(false);
+
+      this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
+      this.$container.find('tr:eq(2) th:eq(0)').simulate('mouseup');
+
+      expect(hot.selection.selectedHeader.rows).toBe(true);
+      keyDownUp('shift+arrow_left');
+      expect(hot.selection.selectedHeader.rows).toBe(false);
+    });
+
+    it("should add classname after select row", function(){
+      var hot = handsontable({
+        width: 200,
+        height: 100,
+        startRows: 50,
+        startCols: 5,
+        rowHeaders: true
+      });
+
+      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
+
+      expect(this.$container.hasClass('ht__selection--rows')).toBeTruthy();
+    });
   });
 
   it("should select the entire row of a partially fixed table after row header is clicked", function(){
