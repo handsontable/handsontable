@@ -1051,4 +1051,34 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(hot.selection.selectedHeader.cols).toBe(false);
     expect(hot.selection.selectedHeader.corner).toBe(true);
   });
+
+
+  it("should redraw selection when option `colHeaders` is set and user scrolled", function (done) {
+    var hot = handsontable({
+      startRows: 20,
+      startCols: 20,
+      colHeaders: true,
+      rowHeaders: true,
+      width: 400,
+      height: 200
+    }), cellVerticalPosition;
+    var borderOffsetInPixels = 1, topBorder;
+
+    selectCell(5, 5);
+    hot.view.wt.wtOverlays.topOverlay.scrollTo(2);
+
+    setTimeout(function () {
+      cellVerticalPosition = hot.getCell(5, 5).offsetTop;
+      topBorder = $(".wtBorder.current")[0];
+      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+      hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
+    }, 100);
+
+    setTimeout(function () {
+      cellVerticalPosition = hot.getCell(5, 5).offsetTop;
+      topBorder = $(".wtBorder.current")[0];
+      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+      done();
+    }, 200);
+  }, 10000);
 });
