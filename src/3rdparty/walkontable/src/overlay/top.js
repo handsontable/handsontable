@@ -282,9 +282,10 @@ class WalkontableTopOverlay extends WalkontableOverlay {
 
     if (currentSelection && currentSelection.cellRange) {
       const border = currentSelection.getBorder(this.wot);
-      const corners = currentSelection.getCorners();
 
       if (border) {
+        const corners = currentSelection.getCorners();
+
         border.disappear();
         border.appear(corners);
       }
