@@ -19,6 +19,7 @@ function EditorManager(instance, priv, selection) {
   eventManager = eventManagerObject(instance);
 
   function moveSelectionAfterEnter(shiftKey) {
+    selection.setSelectedHeaders(false, false, false);
     var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
 
     if (shiftKey) {
@@ -33,8 +34,13 @@ function EditorManager(instance, priv, selection) {
 
   function moveSelectionUp(shiftKey) {
     if (shiftKey) {
+      if (selection.selectedHeader.cols) {
+        selection.setSelectedHeaders(selection.selectedHeader.rows, false, false);
+      }
       selection.transformEnd(-1, 0);
+
     } else {
+      selection.setSelectedHeaders(false, false, false);
       selection.transformStart(-1, 0);
     }
   }
@@ -44,7 +50,7 @@ function EditorManager(instance, priv, selection) {
       // expanding selection down with shift
       selection.transformEnd(1, 0);
     } else {
-      // move selection down
+      selection.setSelectedHeaders(false, false, false);
       selection.transformStart(1, 0);
     }
   }
@@ -53,14 +59,20 @@ function EditorManager(instance, priv, selection) {
     if (shiftKey) {
       selection.transformEnd(0, 1);
     } else {
+      selection.setSelectedHeaders(false, false, false);
       selection.transformStart(0, 1);
     }
   }
 
   function moveSelectionLeft(shiftKey) {
     if (shiftKey) {
+      if (selection.selectedHeader.rows) {
+        selection.setSelectedHeaders(false, selection.selectedHeader.cols, false);
+      }
       selection.transformEnd(0, -1);
+
     } else {
+      selection.setSelectedHeaders(false, false, false);
       selection.transformStart(0, -1);
     }
   }
@@ -121,6 +133,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
+
         moveSelectionDown(event.shiftKey);
 
         event.preventDefault();
@@ -131,6 +144,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
+
         moveSelectionRight(event.shiftKey);
 
         event.preventDefault();
@@ -141,6 +155,7 @@ function EditorManager(instance, priv, selection) {
         if (_this.isEditorOpened() && !activeEditor.isWaiting()) {
           _this.closeEditorAndSaveChanges(ctrlDown);
         }
+
         moveSelectionLeft(event.shiftKey);
 
         event.preventDefault();
@@ -148,6 +163,7 @@ function EditorManager(instance, priv, selection) {
         break;
 
       case KEY_CODES.TAB:
+        selection.setSelectedHeaders(false, false, false);
         var tabMoves = typeof priv.settings.tabMoves === 'function' ? priv.settings.tabMoves(event) : priv.settings.tabMoves;
 
         if (event.shiftKey) {
@@ -210,6 +226,7 @@ function EditorManager(instance, priv, selection) {
         break;
 
       case KEY_CODES.HOME:
+        selection.setSelectedHeaders(false, false, false);
         if (event.ctrlKey || event.metaKey) {
           rangeModifier(new WalkontableCellCoords(0, priv.selRange.from.col));
         } else {
@@ -220,6 +237,7 @@ function EditorManager(instance, priv, selection) {
         break;
 
       case KEY_CODES.END:
+        selection.setSelectedHeaders(false, false, false);
         if (event.ctrlKey || event.metaKey) {
           rangeModifier(new WalkontableCellCoords(instance.countRows() - 1, priv.selRange.from.col));
         } else {
@@ -230,12 +248,14 @@ function EditorManager(instance, priv, selection) {
         break;
 
       case KEY_CODES.PAGE_UP:
+        selection.setSelectedHeaders(false, false, false);
         selection.transformStart(-instance.countVisibleRows(), 0);
         event.preventDefault(); // don't page up the window
         stopPropagation(event);
         break;
 
       case KEY_CODES.PAGE_DOWN:
+        selection.setSelectedHeaders(false, false, false);
         selection.transformStart(instance.countVisibleRows(), 0);
         event.preventDefault(); // don't page down the window
         stopPropagation(event);

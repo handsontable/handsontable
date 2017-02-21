@@ -396,17 +396,6 @@ function TableView(instance) {
         }
       }
 
-      if (selection.selectedHeader.rows) {
-        removeClass(instance.rootElement, 'ht__selection--columns');
-        addClass(instance.rootElement, 'ht__selection--rows');
-
-      } else if (selection.selectedHeader.cols) {
-        removeClass(instance.rootElement, 'ht__selection--rows');
-        addClass(instance.rootElement, 'ht__selection--columns');
-
-      } else {
-        removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-      }
       Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
       that.activeWt = that.wt;
     },

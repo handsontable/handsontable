@@ -686,6 +686,22 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           instance.view.scrollViewport(coords);
         }
       }
+
+      if (selection.selectedHeader.rows && selection.selectedHeader.cols) {
+        addClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+
+      } else if (selection.selectedHeader.rows) {
+        removeClass(instance.rootElement, 'ht__selection--columns');
+        addClass(instance.rootElement, 'ht__selection--rows');
+
+      } else if (selection.selectedHeader.cols) {
+        removeClass(instance.rootElement, 'ht__selection--rows');
+        addClass(instance.rootElement, 'ht__selection--columns');
+
+      } else {
+        removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+      }
+
       selection.refreshBorders(null, keepEditorOpened);
     },
 
@@ -879,6 +895,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (!priv.settings.multiSelect) {
         return;
       }
+      selection.setSelectedHeaders(true, true, true);
       selection.setRangeStart(new WalkontableCellCoords(0, 0));
       selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, instance.countCols() - 1), false);
     },
