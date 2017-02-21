@@ -1,4 +1,3 @@
-
 /**
  * @description
  * Handsontable events are the common interface that function in 2 ways: as __callbacks__ and as __hooks__.
@@ -751,7 +750,7 @@ const REGISTERED_HOOKS = [
    * @since 0.23.0
    * @param {Number} col Column index.
    */
-    'unmodifyCol',
+  'unmodifyCol',
 
   /**
    * Fired when a row index is about to be de-modified by a callback function.
@@ -1381,7 +1380,21 @@ class Hooks {
 
       if (bucket[key].indexOf(callback) === -1) {
         // only add a hook if it has not already been added (adding the same hook twice is now silently ignored)
-        bucket[key].push(callback);
+        let foundInitialHook = false;
+
+        if (callback.initialHook) {
+          arrayEach(bucket[key], (cb, i) => {
+            if (cb.initialHook) {
+              bucket[key][i] = callback;
+              foundInitialHook = true;
+            }
+          });
+
+        }
+
+        if (!foundInitialHook) {
+          bucket[key].push(callback);
+        }
       }
     }
 
