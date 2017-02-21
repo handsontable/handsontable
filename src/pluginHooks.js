@@ -1388,8 +1388,9 @@ class Hooks {
               bucket[key][i] = callback;
               foundInitialHook = true;
             }
-          });
 
+            return false;
+          });
         }
 
         if (!foundInitialHook) {
