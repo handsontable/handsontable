@@ -1387,9 +1387,9 @@ class Hooks {
             if (cb.initialHook) {
               bucket[key][i] = callback;
               foundInitialHook = true;
-            }
 
-            return false;
+              return false;
+            }
           });
         }
 

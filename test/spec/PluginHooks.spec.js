@@ -550,11 +550,44 @@ describe('PluginHooks', function () {
   });
 
 
+  it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method (when there was a hook already declared in the initialization)', function() {
+    var fn = function(){};
+    var fn2 = function(){};
+
+    var hot = handsontable({
+      afterGetCellMeta: fn
+    });
+
+    var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
+
+    hot.updateSettings({
+      afterGetCellMeta: function() {
+        var a = 'another function';
+      }
+    });
+
+    hot.updateSettings({
+      afterGetCellMeta: function() {
+        var a = 'yet another function';
+      }
+    });
+
+    hot.updateSettings({
+      afterGetCellMeta: fn2
+    });
+
+    expect(hot.pluginHookBucket.afterGetCellMeta.length).toEqual(initialCallbackCount);
+  });
+
   it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method', function() {
     var fn = function(){};
     var fn2 = function(){};
 
     var hot = handsontable();
+
+    hot.addHook('afterGetCellMeta', function() {return 'doesn\'t matter 1'});
+    hot.addHook('afterGetCellMeta', function() {return 'doesn\'t matter 2'});
+    hot.addHook('afterGetCellMeta', function() {return 'doesn\'t matter 3'});
 
     hot.updateSettings({
       afterGetCellMeta: fn
