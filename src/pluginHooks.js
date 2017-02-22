@@ -392,6 +392,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} c Selection start column index.
    * @param {Number} r2 Selection end row index.
    * @param {Number} c2 Selection end column index.
+   * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
    */
   'afterSelection',
 
@@ -403,6 +404,7 @@ const REGISTERED_HOOKS = [
    * @param {String} p Selection start data source object property name.
    * @param {Number} r2 Selection end row index.
    * @param {String} p2 Selection end data source object property name.
+   * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
    */
   'afterSelectionByProp',
 
