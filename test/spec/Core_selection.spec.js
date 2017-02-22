@@ -1099,4 +1099,46 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(hot.selection.selectedHeader.cols).toBe(false);
     expect(hot.selection.selectedHeader.corner).toBe(true);
   });
+
+  it("should prevent scrolling after selection when using `afterSelection` listener " +
+    "(by changing value of callback argument)", function () {
+    var hot = handsontable({
+      startRows: 200,
+      startCols: 5,
+      afterSelection: function (r, c, r2, c2, preventScrolling) {
+        preventScrolling.value = true;
+      }
+    }), scrollHeight;
+
+    selectCell(100, 0);
+
+    if (typeof window.scrollY !== 'undefined') {
+      scrollHeight = window.scrollY;
+    } else {
+      scrollHeight = document.documentElement.scrollTop;
+    }
+
+    expect(scrollHeight).toBe(0);
+  });
+
+  it("should prevent scrolling after selection when using `afterSelectionByProp` listener " +
+    "(by changing value of callback argument)", function () {
+    var hot = handsontable({
+      startRows: 200,
+      startCols: 5,
+      afterSelectionByProp: function (r, c, r2, c2, preventScrolling) {
+        preventScrolling.value = true;
+      }
+    }), scrollHeight;
+
+    selectCell(100, 0);
+
+    if (typeof window.scrollY !== 'undefined') {
+      scrollHeight = window.scrollY;
+    } else {
+      scrollHeight = document.documentElement.scrollTop;
+    }
+
+    expect(scrollHeight).toBe(0);
+  });
 });
