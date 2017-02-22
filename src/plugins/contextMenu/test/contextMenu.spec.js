@@ -2501,14 +2501,53 @@ describe('ContextMenu', function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(1000, 5),
         contextMenu: true,
-      });
+      }), scrollHeight;
 
       hot.selectCell(100, 0);
       contextMenu();
       window.scrollTo(0, 0);
       $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').simulate('mouseenter');
 
-      expect(window.scrollY || document.documentElement.scrollTop).toBe(0);
+      if (typeof window.scrollY !== 'undefined') {
+        scrollHeight = window.scrollY;
+      } else {
+        scrollHeight = document.documentElement.scrollTop;
+      }
+
+      expect(scrollHeight).toBe(0);
+    });
+
+    it('should not scroll window position after fireing click on menu', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1000, 5),
+        contextMenu: {
+          items: {
+            item1: {
+              name: 'Item1'
+            },
+            sep1: Handsontable.plugins.ContextMenu.SEPARATOR,
+            item2: {
+              name: 'Item2'
+            },
+            item3: {
+              name: 'Item3'
+            }
+          }
+        }
+      }), scrollHeight;
+
+      hot.selectCell(100, 0);
+      contextMenu();
+      window.scrollTo(0, 0);
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown');
+
+      if (typeof window.scrollY !== 'undefined') {
+        scrollHeight = window.scrollY;
+      } else {
+        scrollHeight = document.documentElement.scrollTop;
+      }
+
+      expect(scrollHeight).toBe(0);
     });
   });
 

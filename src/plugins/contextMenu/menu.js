@@ -130,6 +130,7 @@ class Menu {
     this.hot.getSettings().outsideClickDeselects = false;
     this.hotMenu = new Handsontable.Core(this.container, settings);
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
+    this.hotMenu.addHook('afterSelection', this.onAfterSelection);
     this.hotMenu.init();
     this.hotMenu.listen();
     this.blockMainTableCallbacks();
@@ -645,6 +646,19 @@ class Menu {
     holderStyle.width = currentHiderWidth + 22 + 'px';
     holderStyle.height = realHeight + 4 + 'px';
     hiderStyle.height = holderStyle.height;
+  }
+
+  /**
+   * On after selection listener.
+   *
+   * @param {Number} r Selection start row index.
+   * @param {Number} c Selection start column index.
+   * @param {Number} r2 Selection end row index.
+   * @param {Number} c2 Selection end column index.
+   * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+   */
+  onAfterSelection(r, c, r2, c2, preventScrolling) {
+    preventScrolling.value = true;
   }
 
   /**
