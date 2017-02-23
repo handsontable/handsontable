@@ -1099,4 +1099,147 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(hot.selection.selectedHeader.cols).toBe(false);
     expect(hot.selection.selectedHeader.corner).toBe(true);
   });
+
+  describe("selection scrolling", function () {
+    it("should scroll after selection if needed (by default)", function () {
+      var hot = handsontable({
+        startRows: 200,
+        startCols: 5
+      }), scrollHeight;
+
+      selectCell(100, 0);
+
+      if (typeof window.scrollY !== 'undefined') {
+        scrollHeight = window.scrollY;
+      } else {
+        scrollHeight = document.documentElement.scrollTop;
+      }
+
+      expect(scrollHeight).not.toBe(0);
+    });
+
+    it("should prevent scrolling after selection when using corresponding `afterSelection` listener " +
+      "(setting value of callback `preventScrolling` argument inside)", function () {
+      var hot = handsontable({
+        startRows: 200,
+        startCols: 5,
+        afterSelection: function (r, c, r2, c2, preventScrolling) {
+          preventScrolling.value = true;
+        }
+      }), scrollHeight;
+
+      selectCell(100, 0);
+
+      if (typeof window.scrollY !== 'undefined') {
+        scrollHeight = window.scrollY;
+      } else {
+        scrollHeight = document.documentElement.scrollTop;
+      }
+
+      expect(scrollHeight).toBe(0);
+    });
+
+    it("should prevent scrolling after selection when using corresponding `afterSelectionByProp` listener " +
+      "(setting value of callback `preventScrolling` argument inside)", function () {
+      var hot = handsontable({
+        startRows: 200,
+        startCols: 5,
+        afterSelectionByProp: function (r, c, r2, c2, preventScrolling) {
+          preventScrolling.value = true;
+        }
+      }), scrollHeight;
+
+      selectCell(100, 0);
+
+      if (typeof window.scrollY !== 'undefined') {
+        scrollHeight = window.scrollY;
+      } else {
+        scrollHeight = document.documentElement.scrollTop;
+      }
+
+      expect(scrollHeight).toBe(0);
+    });
+
+    it("should not prevent scrolling after selection when using corresponding `afterSelection` listener " +
+      "(setting value of callback `preventScrolling` argument inside)", function () {
+      var hot = handsontable({
+        startRows: 200,
+        startCols: 5,
+        afterSelection: function (r, c, r2, c2, preventScrolling) {
+          preventScrolling.value = false;
+        }
+      }), scrollHeight;
+
+      selectCell(100, 0);
+
+      if (typeof window.scrollY !== 'undefined') {
+        scrollHeight = window.scrollY;
+      } else {
+        scrollHeight = document.documentElement.scrollTop;
+      }
+
+      expect(scrollHeight).not.toBe(0);
+    });
+
+    it("should not prevent scrolling after selection when using corresponding `afterSelectionByProp` listener " +
+      "(setting value of callback `preventScrolling` argument inside)", function () {
+      var hot = handsontable({
+        startRows: 200,
+        startCols: 5,
+        afterSelectionByProp: function (r, c, r2, c2, preventScrolling) {
+          preventScrolling.value = false;
+        }
+      }), scrollHeight;
+
+      selectCell(100, 0);
+
+      if (typeof window.scrollY !== 'undefined') {
+        scrollHeight = window.scrollY;
+      } else {
+        scrollHeight = document.documentElement.scrollTop;
+      }
+
+      expect(scrollHeight).not.toBe(0);
+    });
+
+    it("should allow to change prevention of scrolling after selection, " +
+      "when changing `afterSelection` listener by `updateSetting`", function () {
+      var hot = handsontable({
+        startRows: 200,
+        startCols: 5,
+      }), scrollHeight;
+
+      updateSettings({
+        afterSelection: function (r, c, r2, c2, preventScrolling) {
+          preventScrolling.value = true;
+        }
+      });
+
+      selectCell(100, 0);
+
+      if (typeof window.scrollY !== 'undefined') {
+        scrollHeight = window.scrollY;
+      } else {
+        scrollHeight = document.documentElement.scrollTop;
+      }
+
+      expect(scrollHeight).toBe(0);
+
+      updateSettings({
+        afterSelection: function (r, c, r2, c2, preventScrolling) {
+          preventScrolling.value = false;
+        }
+      });
+
+      selectCell(100, 0);
+
+      if (typeof window.scrollY !== 'undefined') {
+        scrollHeight = window.scrollY;
+      } else {
+        scrollHeight = document.documentElement.scrollTop;
+      }
+
+      expect(scrollHeight).not.toBe(0);
+    });
+  });
 });
