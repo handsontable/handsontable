@@ -143,17 +143,15 @@ function WalkontableEvent(instance) {
   };
 
   var onMouseOut = function(event) {
-    var table, td, mainWOT;
+    var table, lastTD, nextTD;
 
     if (that.instance.hasSetting('onCellMouseOut')) {
       table = that.instance.wtTable.TABLE;
-      td = closestDown(event.realTarget, ['TD', 'TH'], table);
-      mainWOT = that.instance.cloneSource || that.instance;
+      lastTD = closestDown(event.realTarget, ['TD', 'TH'], table);
+      nextTD = closestDown(event.relatedTarget, ['TD', 'TH'], table);
 
-      console.log(mainWOT.lastMouseOut, td);
-      if (td && td !== mainWOT.lastMouseOut && isChildOf(td, table)) {
-        that.instance.getSetting('onCellMouseOut', event, that.instance.wtTable.getCoords(td), td, that.instance);
-        mainWOT.lastMouseOut = td;
+      if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
+        that.instance.getSetting('onCellMouseOut', event, that.instance.wtTable.getCoords(lastTD), lastTD, that.instance);
       }
     }
   };
