@@ -393,6 +393,16 @@ const REGISTERED_HOOKS = [
    * @param {Number} r2 Selection end row index.
    * @param {Number} c2 Selection end column index.
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+   *    * @example
+   * ```js
+   * handsontable({
+   *   afterSelectionByProp: function (r, c, r2, c2, preventScrolling) {
+   *     // setting if prevent scrolling after selection
+   *
+   *     preventScrolling.value = true;
+   *   }
+   * })
+   * ```
    */
   'afterSelection',
 
@@ -405,6 +415,16 @@ const REGISTERED_HOOKS = [
    * @param {Number} r2 Selection end row index.
    * @param {String} p2 Selection end data source object property name.
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+   *    * @example
+   * ```js
+   * handsontable({
+   *   afterSelectionByProp: function (r, c, r2, c2, preventScrolling) {
+   *     // setting if prevent scrolling after selection
+   *
+   *     preventScrolling.value = true;
+   *   }
+   * })
+   * ```
    */
   'afterSelectionByProp',
 
