@@ -39,6 +39,8 @@ class Menu {
     this.parentMenu = this.options.parent || null;
     this.menuItems = null;
     this.origOutsideClickDeselects = null;
+    this.keyEvent = false;
+
     this.offset = {
       above: 0,
       below: 0,
@@ -563,6 +565,7 @@ class Menu {
   onBeforeKeyDown(event) {
     let selection = this.hotMenu.getSelected();
     let stopEvent = false;
+    this.keyEvent = true;
 
     switch (event.keyCode) {
       case KEY_CODES.ESCAPE:
@@ -626,6 +629,8 @@ class Menu {
       event.preventDefault();
       stopImmediatePropagation(event);
     }
+
+    this.keyEvent = false;
   }
 
   /**
@@ -658,7 +663,9 @@ class Menu {
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
    */
   onAfterSelection(r, c, r2, c2, preventScrolling) {
-    preventScrolling.value = true;
+    if (this.keyEvent === false) {
+      preventScrolling.value = true;
+    }
   }
 
   /**
