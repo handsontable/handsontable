@@ -130,7 +130,7 @@ class Menu {
     this.hot.getSettings().outsideClickDeselects = false;
     this.hotMenu = new Handsontable.Core(this.container, settings);
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
-    this.hotMenu.addHook('afterSelection', this.onAfterSelection);
+    this.hotMenu.addHook('afterSelection', (r, c, r2, c2, preventScrolling) => this.onAfterSelection(r, c, r2, c2, preventScrolling));
     this.hotMenu.init();
     this.hotMenu.listen();
     this.blockMainTableCallbacks();
