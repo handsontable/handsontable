@@ -396,7 +396,7 @@ const REGISTERED_HOOKS = [
    *    * @example
    * ```js
    * handsontable({
-   *   afterSelectionByProp: function (r, c, r2, c2, preventScrolling) {
+   *   afterSelection: function (r, c, r2, c2, preventScrolling) {
    *     // setting if prevent scrolling after selection
    *
    *     preventScrolling.value = true;
