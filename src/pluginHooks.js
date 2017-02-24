@@ -904,9 +904,9 @@ const REGISTERED_HOOKS = [
   'modifyCopyableRange',
 
   /**
-   * Called before copying the values into clipboard and before clearing values of the selected cells
+   * Called before copying the values into clipboard and before clearing values of the selected cells.
    *
-   * @event Hooks#beforeCopy
+   * @event Hooks#beforeCut
    * @since 0.31.1
    * @param {Array} data An array of arrays which contains data to cut.
    * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
@@ -918,10 +918,11 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after data are cutted out from the table.
    *
-   * @event Hooks#afterCopy
+   * @event Hooks#afterCut
    * @since 0.31.1
-   * @param {Array} changes An array of arrays which contains the pasted data
-   * @param {Array} coords An array of visual indexes (rowStart, colStart, rowEnd, colEnd) where changes should be inserted.
+   * @param {Array} data An array of arrays which contains the cutted out data.
+   * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
+   *                       which was cut out.
    */
   'afterCut',
 
@@ -942,7 +943,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterCopy
    * @since 0.31.1
-   * @param {Array} changes An array of arrays which contains the pasted data
+   * @param {Array} data An array of arrays which contains the copied data.
    * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                       which was copied.
    */
@@ -954,7 +955,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforePaste
    * @since 0.31.1
    * @param {Array} data An array of arrays which contains data to paste.
-   * @param {Array} coords An array of visual indexes (rowStart, colStart, rowEnd, colEnd) where changes will be inserted.
+   * @param {Array} coords An array of visual indexes (`startRow`, `startCol`, `endRow`, `endCol`) where changes will be inserted.
    * @returns {*} If returns `false` then pasting is cancelled.
    */
   'beforePaste',
@@ -965,8 +966,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterePaste
    * @since 0.31.1
    * @param {Array} data An array of arrays which contains the pasted data.
-   * @param {Array} coords An array of objects with ranges of the visual indexes (`rowStart`, `colStart`, `rowEnd`, `colEnd`)
-*                          where changes should be inserted.
+   * @param {Array} coords An array of visual indexes (`startRow`, `startCol`, `endRow`, `endCol`) where changes was inserted.
    */
   'afterPaste',
 
