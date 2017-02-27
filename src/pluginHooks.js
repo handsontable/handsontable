@@ -314,6 +314,17 @@ const REGISTERED_HOOKS = [
   'afterOnCellMouseOver',
 
   /**
+   * Callback fired after leaving a cell or row/column header with the mouse cursor.
+   *
+   * @event Hooks#afterOnCellMouseOver
+   * @since 0.31.1
+   * @param {Object} event `mouseout` event object.
+   * @param {Object} coords Leaved cell's coordinate object.
+   * @param {Element} TD Cell's TD (or TH) element.
+   */
+  'afterOnCellMouseOut',
+
+  /**
    * Callback is fired when one or more columns are removed.
    *
    * @event Hooks#afterRemoveCol
@@ -640,6 +651,17 @@ const REGISTERED_HOOKS = [
    * @param {Object} blockCalculations Contain keys 'row' and 'column' with boolean value.
    */
   'beforeOnCellMouseOver',
+
+  /**
+   * Fired after the user moved cursor out from a cell, but before all the calculations related with it.
+   *
+   * @event Hooks#beforeOnCellMouseOut
+   * @since 0.31.1
+   * @param {Event} event The `mouseout` event object.
+   * @param {WalkontableCellCoords} coords WalkontableCellCoords object containing the coordinates of the leaved cell.
+   * @param {Element} TD TD element.
+   */
+  'beforeOnCellMouseOut',
 
   /**
    * Callback is fired when one or more columns are about to be removed.
