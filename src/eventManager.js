@@ -1,7 +1,14 @@
-import Handsontable from './browser';
+// import Core from './core';
 import {polymerWrap, closest} from './helpers/dom/element';
 import {isWebComponentSupportedNatively} from './helpers/feature';
 import {stopImmediatePropagation as _stopImmediatePropagation} from './helpers/dom/event';
+
+/**
+ * Counter which tracks unregistered listeners (useful for detecting memory leaks).
+ *
+ * @type {Number}
+ */
+let listenersCounter = 0;
 
 /**
  * Event DOM manager for internal use in Handsontable.
@@ -51,7 +58,7 @@ class EventManager {
     } else {
       element.attachEvent('on' + eventName, callbackProxy);
     }
-    Handsontable.countEventManagerListeners++;
+    listenersCounter++;
 
     return () => {
       this.removeEventListener(element, eventName, callback);
@@ -83,7 +90,7 @@ class EventManager {
         } else {
           tmpEvent.element.detachEvent('on' + tmpEvent.event, tmpEvent.callbackProxy);
         }
-        Handsontable.countEventManagerListeners--;
+        listenersCounter--;
       }
     }
   }
@@ -193,7 +200,7 @@ function extendEvent(context, event) {
     _stopImmediatePropagation(this);
   };
 
-  if (!Handsontable.eventManager.isHotTableEnv) {
+  if (!EventManager.isHotTableEnv) {
     return event;
   }
   event = polymerWrap(event);
@@ -220,9 +227,9 @@ function extendEvent(context, event) {
   if (isWebComponentSupportedNatively()) {
     event.realTarget = event.srcElement || event.toElement;
 
-  } else if (context instanceof Handsontable.Core || context instanceof Walkontable) {
+  } else if (context instanceof Core || context instanceof Walkontable) {
     // Polymer doesn't support `event.target` property properly we must emulate it ourselves
-    if (context instanceof Handsontable.Core) {
+    if (context instanceof Core) {
       fromElement = context.view ? context.view.wt.wtTable.TABLE : null;
 
     } else if (context instanceof Walkontable) {
@@ -249,13 +256,8 @@ function extendEvent(context, event) {
   return event;
 }
 
-export {EventManager, eventManager};
+export default EventManager;
 
-// used to debug memory leaks
-Handsontable.countEventManagerListeners = 0;
-// support for older versions of Handsontable, deprecated
-Handsontable.eventManager = eventManager;
-
-function eventManager(context) {
-  return new EventManager(context);
-}
+export function getListenersCounter() {
+  return listenersCounter;
+};

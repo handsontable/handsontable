@@ -2,7 +2,7 @@ import {getValidSelection} from './../utils';
 
 export const KEY = 'clear_column';
 
-export function clearColumnItem() {
+export default function clearColumnItem() {
   return {
     key: KEY,
     name: 'Clear column',

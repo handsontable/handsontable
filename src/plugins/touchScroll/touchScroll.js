@@ -1,4 +1,3 @@
-import Handsontable from './../../browser';
 import {addClass, removeClass} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
 import BasePlugin from './../_base';
@@ -137,7 +136,7 @@ class TouchScroll extends BasePlugin {
    * @private
    */
   onBeforeTouchScroll() {
-    Handsontable.freezeOverlays = true;
+    // Handsontable.freezeOverlays = true;
 
     arrayEach(this.clones, (clone) => {
       addClass(clone, 'hide-tween');
@@ -150,7 +149,7 @@ class TouchScroll extends BasePlugin {
    * @private
    */
   onAfterMomentumScroll() {
-    Handsontable.freezeOverlays = false;
+    // Handsontable.freezeOverlays = false;
 
     arrayEach(this.clones, (clone) => {
       removeClass(clone, 'hide-tween');
@@ -172,6 +171,6 @@ class TouchScroll extends BasePlugin {
   }
 }
 
-export {TouchScroll};
+export default TouchScroll;
 
 registerPlugin('touchScroll', TouchScroll);

@@ -1,5 +1,4 @@
-import Handsontable from './../../browser';
-import {arrayMapper} from './../../mixins/arrayMapper';
+import arrayMapper from './../../mixins/arrayMapper';
 import {arrayFilter} from './../../helpers/array';
 import {mixin} from './../../helpers/object';
 import {rangeEach} from './../../helpers/number';
@@ -64,7 +63,4 @@ class ColumnsMapper {
 
 mixin(ColumnsMapper, arrayMapper);
 
-export {ColumnsMapper};
-
-// For tests only!
-Handsontable.utils.ManualColumnMoveColumnsMapper = ColumnsMapper;
+export default ColumnsMapper;

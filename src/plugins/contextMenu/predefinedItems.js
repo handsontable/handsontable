@@ -1,16 +1,16 @@
 import {objectEach} from './../../helpers/object';
-import {alignmentItem, KEY as ALIGNMENT} from './predefinedItems/alignment';
-import {clearColumnItem, KEY as CLEAR_COLUMN} from './predefinedItems/clearColumn';
-import {columnLeftItem, KEY as COLUMN_LEFT} from './predefinedItems/columnLeft';
-import {columnRightItem, KEY as COLUMN_RIGHT} from './predefinedItems/columnRight';
-import {readOnlyItem, KEY as READ_ONLY} from './predefinedItems/readOnly';
-import {redoItem, KEY as REDO} from './predefinedItems/redo';
-import {removeColumnItem, KEY as REMOVE_COLUMN} from './predefinedItems/removeColumn';
-import {removeRowItem, KEY as REMOVE_ROW} from './predefinedItems/removeRow';
-import {rowAboveItem, KEY as ROW_ABOVE} from './predefinedItems/rowAbove';
-import {rowBelowItem, KEY as ROW_BELOW} from './predefinedItems/rowBelow';
-import {separatorItem, KEY as SEPARATOR} from './predefinedItems/separator';
-import {undoItem, KEY as UNDO} from './predefinedItems/undo';
+import {default as alignmentItem, KEY as ALIGNMENT} from './predefinedItems/alignment';
+import {default as clearColumnItem, KEY as CLEAR_COLUMN} from './predefinedItems/clearColumn';
+import {default as columnLeftItem, KEY as COLUMN_LEFT} from './predefinedItems/columnLeft';
+import {default as columnRightItem, KEY as COLUMN_RIGHT} from './predefinedItems/columnRight';
+import {default as readOnlyItem, KEY as READ_ONLY} from './predefinedItems/readOnly';
+import {default as redoItem, KEY as REDO} from './predefinedItems/redo';
+import {default as removeColumnItem, KEY as REMOVE_COLUMN} from './predefinedItems/removeColumn';
+import {default as removeRowItem, KEY as REMOVE_ROW} from './predefinedItems/removeRow';
+import {default as rowAboveItem, KEY as ROW_ABOVE} from './predefinedItems/rowAbove';
+import {default as rowBelowItem, KEY as ROW_BELOW} from './predefinedItems/rowBelow';
+import {default as separatorItem, KEY as SEPARATOR} from './predefinedItems/separator';
+import {default as undoItem, KEY as UNDO} from './predefinedItems/undo';
 
 export {KEY as ALIGNMENT} from './predefinedItems/alignment';
 export {KEY as CLEAR_COLUMN} from './predefinedItems/clearColumn';

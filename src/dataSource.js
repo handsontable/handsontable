@@ -207,4 +207,4 @@ class DataSource {
   }
 }
 
-export {DataSource};
+export default DataSource;

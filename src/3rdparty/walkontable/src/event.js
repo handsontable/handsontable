@@ -6,14 +6,14 @@ import {
 } from './../../../helpers/dom/element';
 import {partial} from './../../../helpers/function';
 import {isMobileBrowser} from './../../../helpers/browser';
-import {eventManager as eventManagerObject} from './../../../eventManager';
+import EventManager from './../../../eventManager';
 
 /**
  *
  */
-function WalkontableEvent(instance) {
+function Event(instance) {
   const that = this;
-  const eventManager = eventManagerObject(instance);
+  const eventManager = new EventManager(instance);
 
   this.instance = instance;
 
@@ -252,7 +252,7 @@ function WalkontableEvent(instance) {
   };
 }
 
-WalkontableEvent.prototype.parentCell = function(elem) {
+Event.prototype.parentCell = function(elem) {
   var cell = {};
   var TABLE = this.instance.wtTable.TABLE;
   var TD = closestDown(elem, ['TD', 'TH'], TABLE);
@@ -275,6 +275,4 @@ WalkontableEvent.prototype.parentCell = function(elem) {
   return cell;
 };
 
-export {WalkontableEvent};
-
-window.WalkontableEvent = WalkontableEvent;
+export default Event;

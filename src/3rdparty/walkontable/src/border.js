@@ -9,14 +9,14 @@ import {
 } from './../../../helpers/dom/element';
 import {stopImmediatePropagation} from './../../../helpers/dom/event';
 import {isMobileBrowser} from './../../../helpers/browser';
-import {EventManager} from './../../../eventManager';
-import {WalkontableCellCoords} from './cell/coords';
-import {WalkontableOverlay} from './overlay/_base.js';
+import EventManager from './../../../eventManager';
+import CellCoords from './cell/coords';
+import Overlay from './overlay/_base.js';
 
 /**
  *
  */
-class WalkontableBorder {
+class Border {
   /**
    * @param {Walkontable} wotInstance
    * @param {Object} settings
@@ -381,8 +381,8 @@ class WalkontableBorder {
       return;
     }
     isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    fromTD = this.wot.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
-    toTD = isMultiple ? this.wot.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
+    fromTD = this.wot.wtTable.getCell(new CellCoords(fromRow, fromColumn));
+    toTD = isMultiple ? this.wot.wtTable.getCell(new CellCoords(toRow, toColumn)) : fromTD;
     fromOffset = offset(fromTD);
     toOffset = isMultiple ? offset(toTD) : fromOffset;
     containerOffset = offset(this.wot.wtTable.TABLE);
@@ -495,6 +495,4 @@ class WalkontableBorder {
   }
 }
 
-export {WalkontableBorder};
-
-window.WalkontableBorder = WalkontableBorder;
+export default Border;

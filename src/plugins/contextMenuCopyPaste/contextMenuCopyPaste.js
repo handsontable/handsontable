@@ -2,7 +2,7 @@ import BasePlugin from './../_base';
 import ZeroClipboard from 'zeroclipboard';
 import {removeClass} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
-import {EventManager} from './../../eventManager';
+import EventManager from './../../eventManager';
 import {registerPlugin} from './../../plugins';
 import {SEPARATOR} from './../contextMenu/predefinedItems';
 
@@ -12,7 +12,7 @@ import {SEPARATOR} from './../contextMenu/predefinedItems';
  * copying data with a click.
  *
  * @plugin ContextMenuCopyPaste
- * @dependencies ContextMenu zeroclipboard
+ * @dependencies ContextMenu
  */
 class ContextMenuCopyPaste extends BasePlugin {
   /**
@@ -201,6 +201,6 @@ class ContextMenuCopyPaste extends BasePlugin {
   }
 }
 
-export {ContextMenuCopyPaste};
-
 registerPlugin('contextMenuCopyPaste', ContextMenuCopyPaste);
+
+export default ContextMenuCopyPaste;

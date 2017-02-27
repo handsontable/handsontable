@@ -1,10 +1,9 @@
-import Handsontable from './../browser';
 import {KEY_CODES} from './../helpers/unicode';
 import {extend} from './../helpers/object';
 import {setCaretPosition} from './../helpers/dom/element';
 import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
 import {getEditor, registerEditor} from './../editors';
-import {TextEditor} from './textEditor';
+import TextEditor from './textEditor';
 
 var HandsontableEditor = TextEditor.prototype.extend();
 
@@ -186,6 +185,6 @@ HandsontableEditor.prototype.assignHooks = function() {
   });
 };
 
-export {HandsontableEditor};
-
 registerEditor('handsontable', HandsontableEditor);
+
+export default HandsontableEditor;

@@ -1,10 +1,9 @@
-
 import {fastInnerText} from './../../../helpers/dom/element';
 
 /**
- * @class WalkontableSettings
+ * @class Settings
  */
-class WalkontableSettings {
+class Settings {
   /**
    * @param {Walkontable} wotInstance
    * @param {Object} settings
@@ -170,6 +169,4 @@ class WalkontableSettings {
   }
 }
 
-export {WalkontableSettings};
-
-window.WalkontableSettings = WalkontableSettings;
+export default Settings;

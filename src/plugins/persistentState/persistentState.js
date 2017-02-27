@@ -1,7 +1,5 @@
-import Handsontable from './../../browser';
+import Hooks from './../../pluginHooks';
 import {registerPlugin} from './../../plugins';
-
-export {HandsontablePersistentState};
 
 function Storage(prefix) {
   var savedKeys;
@@ -114,7 +112,7 @@ function HandsontablePersistentState() {
 
   for (var hookName in hooks) {
     if (hooks.hasOwnProperty(hookName)) {
-      Handsontable.hooks.register(hookName);
+      Hooks.getSingleton().register(hookName);
     }
   }
 
@@ -140,5 +138,8 @@ function HandsontablePersistentState() {
 }
 
 var htPersistentState = new HandsontablePersistentState();
-Handsontable.hooks.add('beforeInit', htPersistentState.init);
-Handsontable.hooks.add('afterUpdateSettings', htPersistentState.init);
+
+Hooks.getSingleton().add('beforeInit', htPersistentState.init);
+Hooks.getSingleton().add('afterUpdateSettings', htPersistentState.init);
+
+export default HandsontablePersistentState;

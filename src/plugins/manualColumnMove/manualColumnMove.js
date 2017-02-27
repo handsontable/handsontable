@@ -1,13 +1,20 @@
 import BasePlugin from './../_base.js';
-import Handsontable from './../../browser';
+import Hooks from './../../pluginHooks';
 import {arrayEach} from './../../helpers/array';
 import {addClass, removeClass, offset} from './../../helpers/dom/element';
 import {rangeEach} from './../../helpers/number';
-import {eventManager as eventManagerObject} from './../../eventManager';
+import EventManager from './../../eventManager';
 import {registerPlugin} from './../../plugins';
-import {ColumnsMapper} from './columnsMapper';
-import {BacklightUI} from './ui/backlight';
-import {GuidelineUI} from './ui/guideline';
+import ColumnsMapper from './columnsMapper';
+import BacklightUI from './ui/backlight';
+import GuidelineUI from './ui/guideline';
+import {CellCoords} from 'walkontable';
+
+import './manualColumnMove.css';
+
+Hooks.getSingleton().register('beforeColumnMove');
+Hooks.getSingleton().register('afterColumnMove');
+Hooks.getSingleton().register('unmodifyCol');
 
 const privatePool = new WeakMap();
 const CSS_PLUGIN = 'ht__manualColumnMove';
@@ -72,7 +79,7 @@ class ManualColumnMove extends BasePlugin {
      *
      * @type {Object}
      */
-    this.eventManager = eventManagerObject(this);
+    this.eventManager = new EventManager(this);
     /**
      * Backlight UI object.
      *
@@ -208,8 +215,8 @@ class ManualColumnMove extends BasePlugin {
     let selection = this.hot.selection;
     let lastRowIndex = this.hot.countRows() - 1;
 
-    selection.setRangeStartOnly(new WalkontableCellCoords(0, startColumn));
-    selection.setRangeEnd(new WalkontableCellCoords(lastRowIndex, endColumn), false);
+    selection.setRangeStartOnly(new CellCoords(0, startColumn));
+    selection.setRangeEnd(new CellCoords(lastRowIndex, endColumn), false);
   }
 
   /**
@@ -271,7 +278,7 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   persistentStateSave() {
-    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualColumnMove', this.columnsMapper._arrayMap);
+    this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.columnsMapper._arrayMap);
   }
 
   /**
@@ -282,7 +289,7 @@ class ManualColumnMove extends BasePlugin {
   persistentStateLoad() {
     let storedState = {};
 
-    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnMove', storedState);
+    this.hot.runHooks('persistentStateLoad', 'manualColumnMove', storedState);
 
     if (storedState.value) {
       this.columnsMapper._arrayMap = storedState.value;
@@ -423,7 +430,7 @@ class ManualColumnMove extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event
-   * @param {WalkontableCellCoords} coords
+   * @param {CellCoords} coords
    * @param {HTMLElement} TD
    * @param {Object} blockCalculations
    */
@@ -520,7 +527,7 @@ class ManualColumnMove extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event `mouseover` event properties.
-   * @param {WalkontableCellCoords} coords Cell coordinates where was fired event.
+   * @param {CellCoords} coords Cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
    * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
@@ -713,9 +720,6 @@ class ManualColumnMove extends BasePlugin {
   }
 }
 
-export {ManualColumnMove};
-
 registerPlugin('ManualColumnMove', ManualColumnMove);
-Handsontable.hooks.register('beforeColumnMove');
-Handsontable.hooks.register('afterColumnMove');
-Handsontable.hooks.register('unmodifyCol');
+
+export default ManualColumnMove;

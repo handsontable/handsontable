@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import moment from 'moment';
 
 // Formats which are correctly parsed to time (supported by momentjs)
@@ -17,7 +16,7 @@ const STRICT_FORMATS = [
  * @param {*} value - Value of edited cell
  * @param {Function} callback - Callback called with validation result
  */
-Handsontable.TimeValidator = function(value, callback) {
+function TimeValidator(value, callback) {
   let valid = true;
   let timeFormat = this.timeFormat || 'h:mm:ss a';
 
@@ -64,3 +63,5 @@ Handsontable.TimeValidator = function(value, callback) {
 
   callback(valid);
 };
+
+export default TimeValidator;

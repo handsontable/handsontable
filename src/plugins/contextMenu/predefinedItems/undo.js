@@ -1,6 +1,6 @@
 export const KEY = 'undo';
 
-export function undoItem() {
+export default function undoItem() {
   return {
     key: KEY,
     name: 'Undo',

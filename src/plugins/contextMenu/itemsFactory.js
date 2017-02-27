@@ -114,4 +114,4 @@ function getItems(pattern = null, defaultPattern = [], items = {}) {
   return result;
 }
 
-export {ItemsFactory};
+export default ItemsFactory;

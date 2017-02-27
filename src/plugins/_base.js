@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import {defineGetter, objectEach} from './../helpers/object';
 import {arrayEach} from './../helpers/array';
 import {registerIdentity, getTranslator} from './../utils/recordTranslator';
@@ -184,5 +183,3 @@ class BasePlugin {
 }
 
 export default BasePlugin;
-
-Handsontable.plugins.BasePlugin = BasePlugin;

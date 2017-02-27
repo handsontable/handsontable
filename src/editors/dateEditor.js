@@ -1,13 +1,14 @@
-import Handsontable from './../browser';
 import {addClass, outerHeight} from './../helpers/dom/element';
 import {deepExtend} from './../helpers/object';
-import {EventManager} from './../eventManager';
+import EventManager from './../eventManager';
 import {getEditor, registerEditor} from './../editors';
 import {isMetaKey} from './../helpers/unicode';
 import {stopPropagation} from './../helpers/dom/event';
-import {TextEditor} from './textEditor';
+import TextEditor from './textEditor';
 import moment from 'moment';
 import Pikaday from 'pikaday';
+
+import 'pikaday/css/pikaday.css';
 
 /**
  * @private
@@ -21,14 +22,11 @@ class DateEditor extends TextEditor {
    * @private
    */
   constructor(hotInstance) {
-    this.$datePicker = null;
-    this.datePicker = null;
-    this.datePickerStyle = null;
+    super(hotInstance);
+
     this.defaultDateFormat = 'DD/MM/YYYY';
     this.isCellEdited = false;
     this.parentDestroyed = false;
-
-    super(hotInstance);
   }
 
   init() {
@@ -247,9 +245,6 @@ class DateEditor extends TextEditor {
   }
 }
 
-export {DateEditor};
-
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.DateEditor = DateEditor;
-
 registerEditor('date', DateEditor);
+
+export default DateEditor;

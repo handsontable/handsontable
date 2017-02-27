@@ -1,7 +1,6 @@
-import Handsontable from './../../browser';
+import Hooks from './../../pluginHooks';
 import {registerPlugin} from './../../plugins';
-import {WalkontableCellRange} from './../../3rdparty/walkontable/src/cell/range';
-import {WalkontableSelection} from './../../3rdparty/walkontable/src/selection';
+import {CellRange, Selection} from 'walkontable';
 
 function CustomBorders() {}
 /***
@@ -100,7 +99,7 @@ var insertBorderIntoSettings = function(border) {
     row: border.row,
     col: border.col
   };
-  var selection = new WalkontableSelection(border, new WalkontableCellRange(coordinates, coordinates, coordinates));
+  var selection = new Selection(border, new CellRange(coordinates, coordinates, coordinates));
   var index = getSettingIndex(border.className);
 
   if (index >= 0) {
@@ -429,8 +428,9 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
     return;
   }
 
-  defaultOptions.items.push(Handsontable.plugins.ContextMenu.SEPARATOR);
-
+  defaultOptions.items.push({
+    name: '--------',
+  });
   defaultOptions.items.push({
     key: 'borders',
     name: 'Borders',
@@ -516,9 +516,9 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
   });
 };
 
-Handsontable.hooks.add('beforeInit', init);
-Handsontable.hooks.add('afterContextMenuDefaultOptions', addBordersOptionsToContextMenu);
-Handsontable.hooks.add('afterInit', function() {
+Hooks.getSingleton().add('beforeInit', init);
+Hooks.getSingleton().add('afterContextMenuDefaultOptions', addBordersOptionsToContextMenu);
+Hooks.getSingleton().add('afterInit', function() {
   var customBorders = this.getSettings().customBorders;
 
   if (customBorders) {
@@ -535,5 +535,3 @@ Handsontable.hooks.add('afterInit', function() {
     this.view.wt.draw(true);
   }
 });
-
-Handsontable.CustomBorders = CustomBorders;

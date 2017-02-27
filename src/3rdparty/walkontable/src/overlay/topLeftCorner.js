@@ -5,18 +5,18 @@ import {
   setOverlayPosition,
   resetCssTransform
 } from './../../../../helpers/dom/element';
-import {WalkontableOverlay} from './_base';
+import Overlay from './_base';
 
 /**
- * @class WalkontableTopLeftCornerOverlay
+ * @class TopLeftCornerOverlay
  */
-class WalkontableTopLeftCornerOverlay extends WalkontableOverlay {
+class TopLeftCornerOverlay extends Overlay {
   /**
    * @param {Walkontable} wotInstance
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(WalkontableOverlay.CLONE_TOP_LEFT_CORNER);
+    this.clone = this.makeClone(Overlay.CLONE_TOP_LEFT_CORNER);
   }
 
   /**
@@ -73,8 +73,6 @@ class WalkontableTopLeftCornerOverlay extends WalkontableOverlay {
   }
 }
 
-export {WalkontableTopLeftCornerOverlay};
+Overlay.registerOverlay(Overlay.CLONE_TOP_LEFT_CORNER, TopLeftCornerOverlay);
 
-window.WalkontableTopLeftCornerOverlay = WalkontableTopLeftCornerOverlay;
-
-WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, WalkontableTopLeftCornerOverlay);
+export default TopLeftCornerOverlay;

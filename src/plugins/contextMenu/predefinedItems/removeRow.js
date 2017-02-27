@@ -2,7 +2,7 @@ import {getValidSelection} from './../utils';
 
 export const KEY = 'remove_row';
 
-export function removeRowItem() {
+export default function removeRowItem() {
   return {
     key: KEY,
     name: 'Remove row',

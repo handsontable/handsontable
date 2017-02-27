@@ -1,4 +1,4 @@
-import {BaseUI} from './_base';
+import BaseUI from './_base';
 import {addClass} from './../../../helpers/dom/element';
 
 const CSS_CLASSNAME = 'ht__manualColumnMove--backlight';
@@ -22,4 +22,4 @@ class BacklightUI extends BaseUI {
   }
 }
 
-export {BacklightUI};
+export default BacklightUI;

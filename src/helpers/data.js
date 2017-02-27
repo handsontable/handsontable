@@ -1,4 +1,4 @@
-import Handsontable from './../browser';
+import cellTypes from './../cellTypes';
 import {getPrototypeOf} from './object';
 
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -176,7 +176,7 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
   };
 
   function translateTypeNameToObject(typeName) {
-    var type = Handsontable.cellTypes[typeName];
+    var type = cellTypes[typeName];
 
     if (typeof type == 'undefined') {
       throw new Error('You declared cell type "' + typeName + '" as a string that is not mapped to a known object. ' +

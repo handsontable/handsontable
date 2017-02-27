@@ -1,6 +1,6 @@
 import numbro from 'numbro';
 import {registerEditor} from './../editors';
-import {TextEditor} from './textEditor';
+import TextEditor from './textEditor';
 
 /**
  * @private
@@ -24,6 +24,6 @@ class NumericEditor extends TextEditor {
   }
 }
 
-export {NumericEditor};
-
 registerEditor('numeric', NumericEditor);
+
+export default NumericEditor;

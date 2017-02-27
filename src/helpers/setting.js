@@ -1,4 +1,3 @@
-
 import {inherit} from './object';
 
 /**

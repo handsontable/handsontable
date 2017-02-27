@@ -1,4 +1,4 @@
-export function unfreezeColumnItem(manualColumnFreezePlugin) {
+export default function unfreezeColumnItem(manualColumnFreezePlugin) {
   return {
     key: 'unfreeze_column',
     name: 'Unfreeze this column',

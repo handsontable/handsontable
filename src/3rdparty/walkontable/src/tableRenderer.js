@@ -1,4 +1,3 @@
-
 import {
   addClass,
   empty,
@@ -7,13 +6,14 @@ import {
   innerHeight,
   outerWidth
 } from './../../../helpers/dom/element';
+import Overlay from './overlay/_base';
 
 let performanceWarningAppeared = false;
 
 /**
- * @class WalkontableTableRenderer
+ * @class TableRenderer
  */
-class WalkontableTableRenderer {
+class TableRenderer {
   /**
    * @param {WalkontableTable} wtTable
    */
@@ -67,8 +67,8 @@ class WalkontableTableRenderer {
     let workspaceWidth;
     let adjusted = false;
 
-    if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
-        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+    if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM) ||
+        Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
 
       // do NOT render headers on the bottom or bottom-left corner overlay
       this.columnHeaders = [];
@@ -101,7 +101,7 @@ class WalkontableTableRenderer {
     }
     this.removeRedundantRows(rowsToRender);
 
-    if (!this.wtTable.isWorkingOnClone() || this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM)) {
+    if (!this.wtTable.isWorkingOnClone() || this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
       this.markOversizedRows();
     }
     if (!this.wtTable.isWorkingOnClone()) {
@@ -149,7 +149,7 @@ class WalkontableTableRenderer {
 
       this.wot.getSetting('onDraw', true);
 
-    } else if (this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM)) {
+    } else if (this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
       this.wot.cloneSource.wtOverlays.adjustElementsSize();
     }
   }
@@ -196,7 +196,7 @@ class WalkontableTableRenderer {
 
       if (!isWorkingOnClone ||
           // Necessary to refresh oversized row heights after editing cell in overlays
-          this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM)) {
+          this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
         // Reset the oversized row cache for this row
         this.resetOversizedRow(sourceRowIndex);
       }
@@ -656,6 +656,4 @@ function replaceThWithTd(TH, TR) {
   return TD;
 }
 
-export {WalkontableTableRenderer};
-
-window.WalkontableTableRenderer = WalkontableTableRenderer;
+export default TableRenderer;

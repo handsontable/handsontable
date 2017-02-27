@@ -1,8 +1,5 @@
-
-export {MultiMap};
-
 // TODO: Global expose for tests
-window.MultiMap = MultiMap;
+// window.MultiMap = MultiMap;
 
 function MultiMap() {
   var map = {
@@ -50,3 +47,5 @@ function MultiMap() {
     return obj !== obj; // NaN === NaN is always false
   }
 }
+
+export default MultiMap;

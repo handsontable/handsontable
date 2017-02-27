@@ -1,4 +1,3 @@
-
 import {arrayEach} from './../../helpers/array';
 
 /**
@@ -91,4 +90,4 @@ function findSubCommand(subCommandName, subCommands) {
   return command;
 }
 
-export {CommandExecutor};
+export default CommandExecutor;

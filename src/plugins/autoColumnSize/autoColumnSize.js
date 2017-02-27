@@ -2,13 +2,13 @@ import BasePlugin from './../_base';
 import {arrayEach, arrayFilter, arrayReduce, arrayMap} from './../../helpers/array';
 import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/feature';
 import {isVisible} from './../../helpers/dom/element';
-import {GhostTable} from './../../utils/ghostTable';
+import GhostTable from './../../utils/ghostTable';
 import {isObject, objectEach} from './../../helpers/object';
 import {valueAccordingPercent, rangeEach} from './../../helpers/number';
 import {registerPlugin} from './../../plugins';
-import {SamplesGenerator} from './../../utils/samplesGenerator';
+import SamplesGenerator from './../../utils/samplesGenerator';
 import {isPercentValue} from './../../helpers/string';
-import {WalkontableViewportColumnsCalculator} from './../../3rdparty/walkontable/src/calculator/viewportColumns';
+import {ViewportColumnsCalculator} from 'walkontable';
 
 const privatePool = new WeakMap();
 
@@ -319,7 +319,7 @@ class AutoColumnSize extends BasePlugin {
       width = this.widths[col];
 
       if (keepMinimum && typeof width === 'number') {
-        width = Math.max(width, WalkontableViewportColumnsCalculator.DEFAULT_WIDTH);
+        width = Math.max(width, ViewportColumnsCalculator.DEFAULT_WIDTH);
       }
     }
 
@@ -499,6 +499,6 @@ class AutoColumnSize extends BasePlugin {
   }
 }
 
-export {AutoColumnSize};
-
 registerPlugin('autoColumnSize', AutoColumnSize);
+
+export default AutoColumnSize;

@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import {KEY_CODES} from './../helpers/unicode';
 import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
 import {
@@ -14,8 +13,8 @@ import {
   setCaretPosition,
 } from './../helpers/dom/element';
 import {getEditor, registerEditor} from './../editors';
-import {BaseEditor} from './_baseEditor';
-import {eventManager as eventManagerObject} from './../eventManager';
+import BaseEditor from './_baseEditor';
+import EventManager from './../eventManager';
 
 var
   MobileTextEditor = BaseEditor.prototype.extend(),
@@ -51,7 +50,7 @@ MobileTextEditor.prototype.valueChanged = function() {
 
 MobileTextEditor.prototype.init = function() {
   var that = this;
-  this.eventManager = eventManagerObject(this.instance);
+  this.eventManager = new EventManager(this.instance);
 
   this.createElements();
   this.bindEvents();
@@ -315,6 +314,6 @@ MobileTextEditor.prototype.destroy = function() {
   this.editorContainer.parentNode.removeChild(this.editorContainer);
 };
 
-export {MobileTextEditor};
-
 registerEditor('mobile', MobileTextEditor);
+
+export default MobileTextEditor;

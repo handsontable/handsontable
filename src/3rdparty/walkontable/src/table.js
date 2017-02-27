@@ -10,16 +10,17 @@ import {
     closest
 } from './../../../helpers/dom/element';
 import {isFunction} from './../../../helpers/function';
-import {WalkontableCellCoords} from './cell/coords';
-import {WalkontableCellRange} from './cell/range';
-import {WalkontableColumnFilter} from './filter/column';
-import {WalkontableRowFilter} from './filter/row';
-import {WalkontableTableRenderer} from './tableRenderer';
+import CellCoords from './cell/coords';
+import CellRange from './cell/range';
+import ColumnFilter from './filter/column';
+import RowFilter from './filter/row';
+import TableRenderer from './tableRenderer';
+import Overlay from './overlay/_base';
 
 /**
  *
  */
-class WalkontableTable {
+class Table {
   /**
    * @param {Walkontable} wotInstance
    * @param {HTMLTableElement} table
@@ -189,7 +190,7 @@ class WalkontableTable {
    * Redraws the table
    *
    * @param {Boolean} fastDraw If TRUE, will try to avoid full redraw and only update the border positions. If FALSE or UNDEFINED, will perform a full redraw
-   * @returns {WalkontableTable}
+   * @returns {Table}
    */
   draw(fastDraw) {
     const {wtOverlays, wtViewport} = this.wot;
@@ -234,28 +235,28 @@ class WalkontableTable {
       }
       let startRow;
 
-      if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_DEBUG) ||
-          WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP) ||
-          WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
+      if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_DEBUG) ||
+          Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP) ||
+          Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER)) {
         startRow = 0;
-      } else if (WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
-          WalkontableOverlay.isOverlayTypeOf(this.instance.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      } else if (Overlay.isOverlayTypeOf(this.instance.cloneOverlay, Overlay.CLONE_BOTTOM) ||
+          Overlay.isOverlayTypeOf(this.instance.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startRow = Math.max(totalRows - this.wot.getSetting('fixedRowsBottom'), 0);
       } else {
         startRow = wtViewport.rowsRenderCalculator.startRow;
       }
       let startColumn;
 
-      if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_DEBUG) ||
-          WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_LEFT) ||
-          WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_TOP_LEFT_CORNER) ||
-          WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_DEBUG) ||
+          Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_LEFT) ||
+          Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_TOP_LEFT_CORNER) ||
+          Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startColumn = 0;
       } else {
         startColumn = wtViewport.columnsRenderCalculator.startColumn;
       }
-      this.rowFilter = new WalkontableRowFilter(startRow, totalRows, columnHeaders);
-      this.columnFilter = new WalkontableColumnFilter(startColumn, this.wot.getSetting('totalColumns'), rowHeaders);
+      this.rowFilter = new RowFilter(startRow, totalRows, columnHeaders);
+      this.columnFilter = new ColumnFilter(startColumn, this.wot.getSetting('totalColumns'), rowHeaders);
 
       this.alignOverlaysWithTrimmingContainer();
       this._doDraw(); //creates calculator after draw
@@ -288,7 +289,7 @@ class WalkontableTable {
   }
 
   _doDraw() {
-    const wtRenderer = new WalkontableTableRenderer(this);
+    const wtRenderer = new TableRenderer(this);
 
     wtRenderer.render();
   }
@@ -332,7 +333,7 @@ class WalkontableTable {
   /**
    * Get cell element at coords.
    *
-   * @param {WalkontableCellCoords} coords
+   * @param {CellCoords} coords
    * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:
    *  -1 row before viewport
    *  -2 row after viewport
@@ -390,7 +391,7 @@ class WalkontableTable {
    * Returns cell coords object for a given TD
    *
    * @param {HTMLTableCellElement} TD
-   * @returns {WalkontableCellCoords}
+   * @returns {CellCoords}
    */
   getCoords(TD) {
     if (TD.nodeName !== 'TD' && TD.nodeName !== 'TH') {
@@ -402,7 +403,7 @@ class WalkontableTable {
     let row = index(TR);
     let col = TD.cellIndex;
 
-    if (overlayContainsElement(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(WalkontableOverlay.CLONE_TOP, TD)) {
+    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(Overlay.CLONE_TOP, TD)) {
       if (CONTAINER.nodeName === 'THEAD') {
         row -= CONTAINER.childNodes.length;
       }
@@ -415,14 +416,14 @@ class WalkontableTable {
       }
     }
 
-    if (overlayContainsElement(WalkontableOverlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(WalkontableOverlay.CLONE_LEFT, TD)) {
+    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(Overlay.CLONE_LEFT, TD)) {
       col = this.columnFilter.offsettedTH(col);
 
     } else {
       col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
     }
 
-    return new WalkontableCellCoords(row, col);
+    return new CellCoords(row, col);
   }
 
   getTrForRow(row) {
@@ -502,12 +503,12 @@ class WalkontableTable {
     let columnsCount = this.wot.wtViewport.columnsRenderCalculator.count;
     let totalColumns = this.wot.getSetting('totalColumns');
 
-    if (this.wot.isOverlayName(WalkontableOverlay.CLONE_DEBUG)) {
+    if (this.wot.isOverlayName(Overlay.CLONE_DEBUG)) {
       columnsCount = totalColumns;
 
-    } else if (this.wot.isOverlayName(WalkontableOverlay.CLONE_LEFT) ||
-               this.wot.isOverlayName(WalkontableOverlay.CLONE_TOP_LEFT_CORNER) ||
-               this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+    } else if (this.wot.isOverlayName(Overlay.CLONE_LEFT) ||
+               this.wot.isOverlayName(Overlay.CLONE_TOP_LEFT_CORNER) ||
+               this.wot.isOverlayName(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       return Math.min(this.wot.getSetting('fixedColumnsLeft'), totalColumns);
 
     }
@@ -519,15 +520,15 @@ class WalkontableTable {
     let rowsCount = this.wot.wtViewport.rowsRenderCalculator.count;
     let totalRows = this.wot.getSetting('totalRows');
 
-    if (this.wot.isOverlayName(WalkontableOverlay.CLONE_DEBUG)) {
+    if (this.wot.isOverlayName(Overlay.CLONE_DEBUG)) {
       rowsCount = totalRows;
 
-    } else if (this.wot.isOverlayName(WalkontableOverlay.CLONE_TOP) ||
-               this.wot.isOverlayName(WalkontableOverlay.CLONE_TOP_LEFT_CORNER)) {
+    } else if (this.wot.isOverlayName(Overlay.CLONE_TOP) ||
+               this.wot.isOverlayName(Overlay.CLONE_TOP_LEFT_CORNER)) {
       rowsCount = Math.min(this.wot.getSetting('fixedRowsTop'), totalRows);
 
-    } else if (this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM) ||
-               this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+    } else if (this.wot.isOverlayName(Overlay.CLONE_BOTTOM) ||
+               this.wot.isOverlayName(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       rowsCount = Math.min(this.wot.getSetting('fixedRowsBottom'), totalRows);
     }
 
@@ -642,6 +643,4 @@ class WalkontableTable {
   }
 }
 
-export {WalkontableTable};
-
-window.WalkontableTable = WalkontableTable;
+export default Table;

@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import {stringify} from './../helpers/mixed';
 
 /**
@@ -9,7 +8,7 @@ import {stringify} from './../helpers/mixed';
  * @param {*} value - Value of edited cell
  * @param {Function} callback - Callback called with validation result
  */
-Handsontable.AutocompleteValidator = function(value, callback) {
+function AutocompleteValidator(value, callback) {
   if (value == null) {
     value = '';
   }
@@ -30,6 +29,8 @@ Handsontable.AutocompleteValidator = function(value, callback) {
     callback(true);
   }
 };
+
+export default AutocompleteValidator;
 
 /**
  * Function responsible for validation of autocomplete value.

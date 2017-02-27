@@ -1,14 +1,9 @@
-import Handsontable from './browser';
-import {WalkontableCellCoords} from './3rdparty/walkontable/src/cell/coords';
+import {CellCoords} from 'walkontable';
 import {KEY_CODES, isMetaKey, isCtrlKey} from './helpers/unicode';
 import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './helpers/dom/event';
 import {getEditor} from './editors';
-import {eventManager as eventManagerObject} from './eventManager';
-
-export {EditorManager};
-
-// support for older versions of Handsontable
-Handsontable.EditorManager = EditorManager;
+import EventManager from './eventManager';
+import {EditorState} from './editors/_baseEditor';
 
 function EditorManager(instance, priv, selection) {
   var _this = this,
@@ -16,7 +11,7 @@ function EditorManager(instance, priv, selection) {
     eventManager,
     activeEditor;
 
-  eventManager = eventManagerObject(instance);
+  eventManager = new EventManager(instance);
 
   function moveSelectionAfterEnter(shiftKey) {
     var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
@@ -71,7 +66,7 @@ function EditorManager(instance, priv, selection) {
     if (!instance.isListening()) {
       return;
     }
-    Handsontable.hooks.run(instance, 'beforeKeyDown', event);
+    instance.runHooks('beforeKeyDown', event);
 
     if (destroyed) {
       return;
@@ -182,7 +177,7 @@ function EditorManager(instance, priv, selection) {
         /* return/enter */
         if (_this.isEditorOpened()) {
 
-          if (activeEditor && activeEditor.state !== Handsontable.EditorState.WAITING) {
+          if (activeEditor && activeEditor.state !== EditorState.WAITING) {
             _this.closeEditorAndSaveChanges(ctrlDown);
           }
           moveSelectionAfterEnter(event.shiftKey);
@@ -211,9 +206,9 @@ function EditorManager(instance, priv, selection) {
 
       case KEY_CODES.HOME:
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier(new WalkontableCellCoords(0, priv.selRange.from.col));
+          rangeModifier(new CellCoords(0, priv.selRange.from.col));
         } else {
-          rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, 0));
+          rangeModifier(new CellCoords(priv.selRange.from.row, 0));
         }
         event.preventDefault(); // don't scroll the window
         stopPropagation(event);
@@ -221,9 +216,9 @@ function EditorManager(instance, priv, selection) {
 
       case KEY_CODES.END:
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier(new WalkontableCellCoords(instance.countRows() - 1, priv.selRange.from.col));
+          rangeModifier(new CellCoords(instance.countRows() - 1, priv.selRange.from.col));
         } else {
-          rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, instance.countCols() - 1));
+          rangeModifier(new CellCoords(priv.selRange.from.row, instance.countCols() - 1));
         }
         event.preventDefault(); // don't scroll the window
         stopPropagation(event);
@@ -319,7 +314,7 @@ function EditorManager(instance, priv, selection) {
     editorClass = instance.getCellEditor(cellProperties);
 
     if (editorClass) {
-      activeEditor = Handsontable.editors.getEditor(editorClass, instance);
+      activeEditor = getEditor(editorClass, instance);
       activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
 
     } else {
@@ -401,3 +396,5 @@ function EditorManager(instance, priv, selection) {
 
   init();
 }
+
+export default EditorManager;

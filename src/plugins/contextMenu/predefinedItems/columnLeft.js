@@ -2,7 +2,7 @@ import {getValidSelection} from './../utils';
 
 export const KEY = 'col_left';
 
-export function columnLeftItem() {
+export default function columnLeftItem() {
   return {
     key: KEY,
     name: 'Insert column on the left',

@@ -14,7 +14,7 @@ import {
   setCaretPosition,
 } from './../helpers/dom/element';
 import {registerEditor} from './../editors';
-import {HandsontableEditor} from './handsontableEditor';
+import HandsontableEditor from './handsontableEditor';
 
 var AutocompleteEditor = HandsontableEditor.prototype.extend();
 
@@ -413,6 +413,6 @@ AutocompleteEditor.prototype.discardEditor = function(result) {
   this.instance.view.render();
 };
 
-export {AutocompleteEditor};
-
 registerEditor('autocomplete', AutocompleteEditor);
+
+export default AutocompleteEditor;

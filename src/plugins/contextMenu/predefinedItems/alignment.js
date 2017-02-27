@@ -3,7 +3,7 @@ import {KEY as SEPARATOR} from './separator';
 
 export const KEY = 'alignment';
 
-export function alignmentItem() {
+export default function alignmentItem() {
   return {
     key: KEY,
     name: 'Alignment',

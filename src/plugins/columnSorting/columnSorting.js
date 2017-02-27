@@ -1,4 +1,3 @@
-import Handsontable from './../../browser';
 import moment from 'moment';
 import {
   addClass,
@@ -9,10 +8,11 @@ import {arrayMap, arrayReduce} from './../../helpers/array';
 import {isEmpty} from './../../helpers/mixed';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
-import {mergeSort} from './../../utils/sortingAlgorithms/mergeSort';
+import mergeSort from './../../utils/sortingAlgorithms/mergeSort';
+import Hooks from './../../pluginHooks';
 
-Handsontable.hooks.register('beforeColumnSort');
-Handsontable.hooks.register('afterColumnSort');
+Hooks.getSingleton().register('beforeColumnSort');
+Hooks.getSingleton().register('afterColumnSort');
 
 // TODO: Implement mixin arrayMapper to ColumnSorting plugin.
 
@@ -178,7 +178,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    let allowSorting = Handsontable.hooks.run(this.hot, 'beforeColumnSort', this.hot.sortColumn, this.hot.sortOrder);
+    let allowSorting = this.hot.runHooks('beforeColumnSort', this.hot.sortColumn, this.hot.sortOrder);
 
     if (allowSorting !== false) {
       this.sort();
@@ -186,7 +186,7 @@ class ColumnSorting extends BasePlugin {
     this.updateOrderClass();
     this.updateSortIndicator();
 
-    Handsontable.hooks.run(this.hot, 'afterColumnSort', this.hot.sortColumn, this.hot.sortOrder);
+    this.hot.runHooks('afterColumnSort', this.hot.sortColumn, this.hot.sortOrder);
 
     this.hot.render();
     this.saveSortingState();
@@ -207,7 +207,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (sortingState.hasOwnProperty('sortColumn') || sortingState.hasOwnProperty('sortOrder')) {
-      Handsontable.hooks.run(this.hot, 'persistentStateSave', 'columnSorting', sortingState);
+      this.hot.runHooks('persistentStateSave', 'columnSorting', sortingState);
     }
 
   }
@@ -219,7 +219,7 @@ class ColumnSorting extends BasePlugin {
    */
   loadSortingState() {
     let storedState = {};
-    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'columnSorting', storedState);
+    this.hot.runHooks('persistentStateLoad', 'columnSorting', storedState);
 
     return storedState.value;
   }
@@ -652,7 +652,7 @@ class ColumnSorting extends BasePlugin {
    *
    * @private
    * @param {Event} event Event which are provided by hook.
-   * @param {WalkontableCellCoords} coords Coords of the selected cell.
+   * @param {CellCoords} coords Coords of the selected cell.
    */
   onAfterOnCellMouseDown(event, coords) {
     if (coords.row > -1) {
@@ -672,6 +672,6 @@ class ColumnSorting extends BasePlugin {
   }
 }
 
-export {ColumnSorting};
-
 registerPlugin('columnSorting', ColumnSorting);
+
+export default ColumnSorting;

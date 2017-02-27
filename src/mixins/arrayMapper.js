@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import {arrayEach, arrayReduce, arrayMap, arrayMax} from './../helpers/array';
 import {defineGetter} from './../helpers/object';
 import {rangeEach} from './../helpers/number';
@@ -146,7 +145,4 @@ defineGetter(arrayMapper, 'MIXIN_NAME', MIXIN_NAME, {
   enumerable: false,
 });
 
-export {arrayMapper};
-
-// For tests only!
-Handsontable.utils.arrayMapper = arrayMapper;
+export default arrayMapper;

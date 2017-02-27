@@ -1,4 +1,4 @@
-export function freezeColumnItem(manualColumnFreezePlugin) {
+export default function freezeColumnItem(manualColumnFreezePlugin) {
   return {
     key: 'freeze_column',
     name: 'Freeze this column',

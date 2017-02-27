@@ -1,4 +1,3 @@
-import Handsontable from './../../../browser';
 import {
   getScrollbarWidth,
   getScrollTop,
@@ -8,14 +7,14 @@ import {
   outerWidth,
 } from './../../../helpers/dom/element';
 import {objectEach} from './../../../helpers/object';
-import {EventManager} from './../../../eventManager';
-import {WalkontableViewportColumnsCalculator} from './calculator/viewportColumns';
-import {WalkontableViewportRowsCalculator} from './calculator/viewportRows';
+import EventManager from './../../../eventManager';
+import ViewportColumnsCalculator from './calculator/viewportColumns';
+import ViewportRowsCalculator from './calculator/viewportRows';
 
 /**
- * @class WalkontableViewport
+ * @class Viewport
  */
-class WalkontableViewport {
+class Viewport {
   /**
    * @param wotInstance
    */
@@ -285,7 +284,7 @@ class WalkontableViewport {
    *  - rowsRenderCalculator (before draw, to qualify rows for rendering)
    *  - rowsVisibleCalculator (after draw, to measure which rows are actually visible)
    *
-   * @returns {WalkontableViewportRowsCalculator}
+   * @returns {ViewportRowsCalculator}
    */
   createRowsCalculator(visible = false) {
     let height;
@@ -330,7 +329,7 @@ class WalkontableViewport {
       scrollbarHeight = getScrollbarWidth();
     }
 
-    return new WalkontableViewportRowsCalculator(
+    return new ViewportRowsCalculator(
       height,
       pos,
       this.wot.getSetting('totalRows'),
@@ -348,7 +347,7 @@ class WalkontableViewport {
    *  - columnsRenderCalculator (before draw, to qualify columns for rendering)
    *  - columnsVisibleCalculator (after draw, to measure which columns are actually visible)
    *
-   * @returns {WalkontableViewportRowsCalculator}
+   * @returns {ViewportRowsCalculator}
    */
   createColumnsCalculator(visible = false) {
     let width = this.getViewportWidth();
@@ -373,7 +372,7 @@ class WalkontableViewport {
       width -= getScrollbarWidth();
     }
 
-    return new WalkontableViewportColumnsCalculator(
+    return new ViewportColumnsCalculator(
       width,
       pos,
       this.wot.getSetting('totalColumns'),
@@ -492,6 +491,4 @@ class WalkontableViewport {
   }
 }
 
-export {WalkontableViewport};
-
-window.WalkontableViewport = WalkontableViewport;
+export default Viewport;

@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import {
     addClass,
     getCaretPosition,
@@ -13,9 +12,9 @@ import {
     hasVerticalScrollbar,
     hasHorizontalScrollbar
 } from './../helpers/dom/element';
-import autoResize from 'autoResize';
-import {BaseEditor} from './_baseEditor';
-import {eventManager as eventManagerObject} from './../eventManager';
+import autoResize from './../../lib/autoResize/autoResize';
+import BaseEditor, {EditorState} from './_baseEditor';
+import EventManager from './../eventManager';
 import {getEditor, registerEditor} from './../editors';
 import {KEY_CODES} from './../helpers/unicode';
 import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
@@ -31,7 +30,7 @@ var TextEditor = BaseEditor.prototype.extend();
 TextEditor.prototype.init = function() {
   var that = this;
   this.createElements();
-  this.eventManager = eventManagerObject(this);
+  this.eventManager = new EventManager(this);
   this.bindEvents();
   this.autoResize = autoResize();
 
@@ -247,7 +246,7 @@ TextEditor.prototype.refreshValue = function() {
 };
 
 TextEditor.prototype.refreshDimensions = function() {
-  if (this.state !== Handsontable.EditorState.EDITING) {
+  if (this.state !== EditorState.EDITING) {
     return;
   }
   this.TD = this.getEditedCell();
@@ -383,6 +382,6 @@ TextEditor.prototype.destroy = function() {
   this.eventManager.destroy();
 };
 
-export {TextEditor};
-
 registerEditor('text', TextEditor);
+
+export default TextEditor;

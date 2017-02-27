@@ -1,4 +1,3 @@
-
 /**
  * Checks if value of n is a numeric one
  * http://jsperf.com/isnan-vs-isnumeric/4

@@ -1,10 +1,6 @@
-import Handsontable from './../../browser';
-import {eventManager as eventManagerObject} from './../../eventManager';
+import Hooks from './../../pluginHooks';
+import EventManager from './../../eventManager';
 import {registerPlugin} from './../../plugins';
-
-export {DragToScroll};
-
-Handsontable.plugins.DragToScroll = DragToScroll;
 
 /**
  * @description
@@ -92,9 +88,9 @@ var setupListening = function(instance) {
   instance.dragToScrollListening = true;
 };
 
-Handsontable.hooks.add('afterInit', function() {
+Hooks.getSingleton().add('afterInit', function() {
   var instance = this;
-  var eventManager = eventManagerObject(this);
+  var eventManager = new EventManager(this);
 
   eventManager.addEventListener(document, 'mouseup', function() {
     instance.dragToScrollListening = false;
@@ -107,16 +103,16 @@ Handsontable.hooks.add('afterInit', function() {
   });
 });
 
-Handsontable.hooks.add('afterDestroy', function() {
-  eventManagerObject(this).clear();
+Hooks.getSingleton().add('afterDestroy', function() {
+  (new EventManager(this)).clear();
 });
 
-Handsontable.hooks.add('afterOnCellMouseDown', function() {
+Hooks.getSingleton().add('afterOnCellMouseDown', function() {
   setupListening(this);
 });
 
-Handsontable.hooks.add('afterOnCellCornerMouseDown', function() {
+Hooks.getSingleton().add('afterOnCellCornerMouseDown', function() {
   setupListening(this);
 });
 
-Handsontable.plugins.DragToScroll = DragToScroll;
+export default DragToScroll;

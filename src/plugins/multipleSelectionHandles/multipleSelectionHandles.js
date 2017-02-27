@@ -1,9 +1,10 @@
-import Handsontable from './../../browser';
+import Hooks from './../../pluginHooks';
 import {getWindowScrollTop, hasClass, getWindowScrollLeft} from './../../helpers/dom/element';
 import {isMobileBrowser} from './../../helpers/browser';
 import BasePlugin from './../_base';
-import {EventManager} from './../../eventManager';
+import EventManager from './../../eventManager';
 import {registerPlugin} from './../../plugins';
+import {CellCoords} from 'walkontable';
 
 /**
  * @private
@@ -206,21 +207,21 @@ class MultipleSelectionHandles extends BasePlugin {
           case 'NW-SE':
             if (draggedHandle == 'topLeft') {
               newCoords = {
-                start: new WalkontableCellCoords(currentTouch.row, selectedRange.highlight.col),
-                end: new WalkontableCellCoords(bottomLeftCorner.row, currentTouch.col)
+                start: new CellCoords(currentTouch.row, selectedRange.highlight.col),
+                end: new CellCoords(bottomLeftCorner.row, currentTouch.col)
               };
             } else {
               newCoords = {
-                start: new WalkontableCellCoords(selectedRange.highlight.row, currentTouch.col),
-                end: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col)
+                start: new CellCoords(selectedRange.highlight.row, currentTouch.col),
+                end: new CellCoords(currentTouch.row, topLeftCorner.col)
               };
             }
             break;
           case 'SE-NW':
             if (draggedHandle == 'bottomRight') {
               newCoords = {
-                start: new WalkontableCellCoords(bottomRightCorner.row, currentTouch.col),
-                end: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col)
+                start: new CellCoords(bottomRightCorner.row, currentTouch.col),
+                end: new CellCoords(currentTouch.row, topLeftCorner.col)
               };
             }
             break;
@@ -277,13 +278,13 @@ class MultipleSelectionHandles extends BasePlugin {
           case 'NW-SE':
             if (draggedHandle == 'bottomRight') {
               newCoords = {
-                start: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col),
-                end: new WalkontableCellCoords(bottomLeftCorner.row, currentTouch.col)
+                start: new CellCoords(currentTouch.row, topLeftCorner.col),
+                end: new CellCoords(bottomLeftCorner.row, currentTouch.col)
               };
             } else {
               newCoords = {
-                start: new WalkontableCellCoords(topLeftCorner.row, currentTouch.col),
-                end: new WalkontableCellCoords(currentTouch.row, bottomRightCorner.col)
+                start: new CellCoords(topLeftCorner.row, currentTouch.col),
+                end: new CellCoords(currentTouch.row, bottomRightCorner.col)
               };
             }
             break;
@@ -293,21 +294,21 @@ class MultipleSelectionHandles extends BasePlugin {
           case 'SW-NE':
             if (draggedHandle == 'topLeft') {
               newCoords = {
-                start: new WalkontableCellCoords(selectedRange.highlight.row, currentTouch.col),
-                end: new WalkontableCellCoords(currentTouch.row, bottomRightCorner.col)
+                start: new CellCoords(selectedRange.highlight.row, currentTouch.col),
+                end: new CellCoords(currentTouch.row, bottomRightCorner.col)
               };
             } else {
               newCoords = {
-                start: new WalkontableCellCoords(currentTouch.row, topLeftCorner.col),
-                end: new WalkontableCellCoords(topLeftCorner.row, currentTouch.col)
+                start: new CellCoords(currentTouch.row, topLeftCorner.col),
+                end: new CellCoords(topLeftCorner.row, currentTouch.col)
               };
             }
             break;
           case 'SE-NW':
             if (draggedHandle == 'bottomRight') {
               newCoords = {
-                start: new WalkontableCellCoords(currentTouch.row, topRightCorner.col),
-                end: new WalkontableCellCoords(topLeftCorner.row, currentTouch.col)
+                start: new CellCoords(currentTouch.row, topRightCorner.col),
+                end: new CellCoords(topLeftCorner.row, currentTouch.col)
               };
             } else if (draggedHandle == 'topLeft') {
               newCoords = {
@@ -354,6 +355,6 @@ class MultipleSelectionHandles extends BasePlugin {
   }
 }
 
-export {MultipleSelectionHandles};
-
 registerPlugin('multipleSelectionHandles', MultipleSelectionHandles);
+
+export default MultipleSelectionHandles;

@@ -1,4 +1,3 @@
-
 import {
   addClass,
   getScrollbarWidth,
@@ -11,18 +10,18 @@ import {
   setOverlayPosition,
   resetCssTransform
 } from './../../../../helpers/dom/element';
-import {WalkontableOverlay} from './_base';
+import Overlay from './_base';
 
 /**
- * @class WalkontableLeftOverlay
+ * @class LeftOverlay
  */
-class WalkontableLeftOverlay extends WalkontableOverlay {
+class LeftOverlay extends Overlay {
   /**
    * @param {Walkontable} wotInstance
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(WalkontableOverlay.CLONE_LEFT);
+    this.clone = this.makeClone(Overlay.CLONE_LEFT);
   }
 
   /**
@@ -300,8 +299,6 @@ class WalkontableLeftOverlay extends WalkontableOverlay {
   }
 }
 
-export {WalkontableLeftOverlay};
+Overlay.registerOverlay(Overlay.CLONE_LEFT, LeftOverlay);
 
-window.WalkontableLeftOverlay = WalkontableLeftOverlay;
-
-WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_LEFT, WalkontableLeftOverlay);
+export default LeftOverlay;

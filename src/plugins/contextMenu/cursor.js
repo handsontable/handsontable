@@ -1,4 +1,3 @@
-import Handsontable from './../../browser';
 import {getWindowScrollLeft, getWindowScrollTop} from './../../helpers/dom/element';
 import {pageX, pageY} from './../../helpers/dom/event';
 
@@ -107,8 +106,4 @@ class Cursor {
   }
 }
 
-export {Cursor};
-
-// temp for tests only!
-Handsontable.plugins.utils = Handsontable.plugins.utils || {};
-Handsontable.plugins.utils.Cursor = Cursor;
+export default Cursor;

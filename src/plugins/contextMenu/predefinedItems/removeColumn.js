@@ -2,7 +2,7 @@ import {getValidSelection} from './../utils';
 
 export const KEY = 'remove_col';
 
-export function removeColumnItem() {
+export default function removeColumnItem() {
   return {
     key: KEY,
     name: 'Remove column',

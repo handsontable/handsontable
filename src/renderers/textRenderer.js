@@ -43,6 +43,6 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
   }
 }
 
-export {textRenderer};
-
 registerRenderer('text', textRenderer);
+
+export default textRenderer;

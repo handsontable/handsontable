@@ -1,4 +1,3 @@
-
 import {arrayEach} from './array';
 
 export const KEY_CODES = {

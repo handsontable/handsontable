@@ -2,7 +2,7 @@ import {checkSelectionConsistency, markLabelAsSelected} from './../utils';
 
 export const KEY = 'make_read_only';
 
-export function readOnlyItem() {
+export default function readOnlyItem() {
   return {
     key: KEY,
     name: function() {

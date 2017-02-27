@@ -1,6 +1,6 @@
 export const KEY = 'redo';
 
-export function redoItem() {
+export default function redoItem() {
   return {
     key: KEY,
     name: 'Redo',

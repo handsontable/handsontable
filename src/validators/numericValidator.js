@@ -1,5 +1,3 @@
-import Handsontable from './../browser';
-
 /**
  * Numeric cell validator
  *
@@ -8,7 +6,7 @@ import Handsontable from './../browser';
  * @param {*} value - Value of edited cell
  * @param {*} callback - Callback called with validation result
  */
-Handsontable.NumericValidator = function(value, callback) {
+function NumericValidator(value, callback) {
   if (value == null) {
     value = '';
   }
@@ -22,3 +20,5 @@ Handsontable.NumericValidator = function(value, callback) {
     callback(/^-?\d*(\.|\,)?\d*$/.test(value));
   }
 };
+
+export default NumericValidator;

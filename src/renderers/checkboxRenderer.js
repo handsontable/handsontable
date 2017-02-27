@@ -1,6 +1,6 @@
 import {empty, addClass, hasClass} from './../helpers/dom/element';
 import {equalsIgnoreCase} from './../helpers/string';
-import {EventManager} from './../eventManager';
+import EventManager from './../eventManager';
 import {getRenderer, registerRenderer} from './../renderers';
 import {isKey} from './../helpers/unicode';
 import {partial} from './../helpers/function';
@@ -346,5 +346,6 @@ function isCheckboxInput(element) {
   return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';
 }
 
-export {checkboxRenderer};
 registerRenderer('checkbox', checkboxRenderer);
+
+export default checkboxRenderer;

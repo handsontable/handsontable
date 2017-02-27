@@ -1,7 +1,6 @@
-import Handsontable from './../../browser';
 import BasePlugin from './../_base.js';
 import {addClass, hasClass, removeClass, outerWidth} from './../../helpers/dom/element';
-import {eventManager as eventManagerObject} from './../../eventManager';
+import EventManager from './../../eventManager';
 import {pageX, pageY} from './../../helpers/dom/event';
 import {arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
@@ -34,7 +33,7 @@ class ManualRowResize extends BasePlugin {
     this.startOffset = null;
     this.handle = document.createElement('DIV');
     this.guide = document.createElement('DIV');
-    this.eventManager = eventManagerObject(this);
+    this.eventManager = new EventManager(this);
     this.pressed = null;
     this.dblclick = 0;
     this.autoresizeTimeout = null;
@@ -76,8 +75,8 @@ class ManualRowResize extends BasePlugin {
 
     this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
 
-    Handsontable.hooks.register('beforeRowResize');
-    Handsontable.hooks.register('afterRowResize');
+    // Handsontable.hooks.register('beforeRowResize');
+    // Handsontable.hooks.register('afterRowResize');
 
     this.bindEvents();
 
@@ -132,7 +131,7 @@ class ManualRowResize extends BasePlugin {
    */
   setupHandlePosition(TH) {
     this.currentTH = TH;
-    let row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns WalkontableCellCoords
+    let row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns CellCoords
     let headerWidth = outerWidth(this.currentTH);
 
     if (row >= 0) { // if not col header
@@ -450,6 +449,6 @@ class ManualRowResize extends BasePlugin {
 
 }
 
-export {ManualRowResize};
-
 registerPlugin('manualRowResize', ManualRowResize);
+
+export default ManualRowResize;

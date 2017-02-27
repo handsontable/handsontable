@@ -1,7 +1,7 @@
 import {addClass, hasClass, empty} from './../helpers/dom/element';
-import {eventManager as eventManagerObject} from './../eventManager';
+import EventManager from './../eventManager';
 import {getRenderer, registerRenderer} from './../renderers';
-import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cell/coords';
+import {CellCoords} from 'walkontable';
 
 var clonableWRAPPER = document.createElement('DIV');
 clonableWRAPPER.className = 'htAutocompleteWrapper';
@@ -51,12 +51,12 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
   }
 
   if (!instance.acArrowListener) {
-    var eventManager = eventManagerObject(instance);
+    var eventManager = new EventManager(instance);
 
     //not very elegant but easy and fast
     instance.acArrowListener = function(event) {
       if (hasClass(event.target, 'htAutocompleteArrow')) {
-        instance.view.wt.getSetting('onCellDblClick', null, new WalkontableCellCoords(row, col), TD);
+        instance.view.wt.getSetting('onCellDblClick', null, new CellCoords(row, col), TD);
       }
     };
 
@@ -69,6 +69,6 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
   }
 }
 
-export {autocompleteRenderer};
-
 registerRenderer('autocomplete', autocompleteRenderer);
+
+export default autocompleteRenderer;

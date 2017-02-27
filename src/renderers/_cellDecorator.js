@@ -32,6 +32,6 @@ function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
   }
 }
 
-export {cellDecorator};
-
 registerRenderer('base', cellDecorator);
+
+export default cellDecorator;

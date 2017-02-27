@@ -1,4 +1,4 @@
-import Handsontable from './../../browser';
+import Core from './../../core';
 import {
   addClass,
   empty,
@@ -8,13 +8,13 @@ import {
   removeClass,
 } from './../../helpers/dom/element';
 import {arrayEach, arrayFilter, arrayReduce} from './../../helpers/array';
-import {Cursor} from './cursor';
-import {EventManager} from './../../eventManager';
+import Cursor from './cursor';
+import EventManager from './../../eventManager';
 import {mixin} from './../../helpers/object';
 import {debounce} from './../../helpers/function';
 import {filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
-import {localHooks} from './../../mixins/localHooks';
+import localHooks from './../../mixins/localHooks';
 import {SEPARATOR} from './predefinedItems';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 
@@ -125,7 +125,7 @@ class Menu {
     };
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
-    this.hotMenu = new Handsontable.Core(this.container, settings);
+    this.hotMenu = new Core(this.container, settings);
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
     this.hotMenu.init();
     this.hotMenu.listen();
@@ -671,4 +671,4 @@ class Menu {
 
 mixin(Menu, localHooks);
 
-export {Menu};
+export default Menu;

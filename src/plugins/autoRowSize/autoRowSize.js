@@ -2,11 +2,11 @@ import BasePlugin from './../_base';
 import {arrayEach, arrayFilter} from './../../helpers/array';
 import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/feature';
 import {isVisible} from './../../helpers/dom/element';
-import {GhostTable} from './../../utils/ghostTable';
+import GhostTable from './../../utils/ghostTable';
 import {isObject, objectEach} from './../../helpers/object';
 import {valueAccordingPercent, rangeEach} from './../../helpers/number';
 import {registerPlugin} from './../../plugins';
-import {SamplesGenerator} from './../../utils/samplesGenerator';
+import SamplesGenerator from './../../utils/samplesGenerator';
 import {isPercentValue} from './../../helpers/string';
 
 /**
@@ -485,6 +485,6 @@ class AutoRowSize extends BasePlugin {
   }
 }
 
-export {AutoRowSize};
-
 registerPlugin('autoRowSize', AutoRowSize);
+
+export default AutoRowSize;

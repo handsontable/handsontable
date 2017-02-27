@@ -185,4 +185,4 @@ class CommentEditor {
   }
 }
 
-export {CommentEditor};
+export default CommentEditor;

@@ -1,4 +1,3 @@
-import Handsontable from './../../browser';
 import {
   addClass,
   closest,
@@ -15,12 +14,14 @@ import {
 import {
   debounce
 } from './../../helpers/function';
-import {EventManager} from './../../eventManager';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
-import {registerPlugin} from './../../plugins';
+import EventManager from './../../eventManager';
+import {CellCoords} from 'walkontable';
+import {registerPlugin, getPlugin} from './../../plugins';
 import BasePlugin from './../_base';
-import {CommentEditor} from './commentEditor';
+import CommentEditor from './commentEditor';
 import {checkSelectionConsistency, markLabelAsSelected} from './../contextMenu/utils';
+
+import './comments.css';
 
 const privatePool = new WeakMap();
 const META_COMMENT = 'comment';
@@ -253,7 +254,7 @@ class Comments extends BasePlugin {
    */
   setCommentAtCell(row, col, value) {
     this.setRange({
-      from: new WalkontableCellCoords(row, col)
+      from: new CellCoords(row, col)
     });
     this.setComment(value);
   }
@@ -286,7 +287,7 @@ class Comments extends BasePlugin {
    */
   removeCommentAtCell(row, col, forceRender = true) {
     this.setRange({
-      from: new WalkontableCellCoords(row, col)
+      from: new CellCoords(row, col)
     });
     this.removeComment(forceRender);
   }
@@ -341,7 +342,7 @@ class Comments extends BasePlugin {
    */
   showAtCell(row, col) {
     this.setRange({
-      from: new WalkontableCellCoords(row, col)
+      from: new CellCoords(row, col)
     });
 
     return this.show();
@@ -509,7 +510,7 @@ class Comments extends BasePlugin {
       if (this.targetIsCellWithComment(event)) {
         let coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
         let range = {
-          from: new WalkontableCellCoords(coordinates.row, coordinates.col)
+          from: new CellCoords(coordinates.row, coordinates.col)
         };
 
         this.setRange(range);
@@ -655,7 +656,7 @@ class Comments extends BasePlugin {
    */
   addToContextMenu(defaultOptions) {
     defaultOptions.items.push(
-      Handsontable.plugins.ContextMenu.SEPARATOR,
+      getPlugin(this.hot, 'contextMenu').constructor.SEPARATOR,
       {
         key: 'commentsAddEdit',
         name: () => {
@@ -727,6 +728,6 @@ class Comments extends BasePlugin {
   }
 }
 
-export {Comments};
-
 registerPlugin('comments', Comments);
+
+export default Comments;

@@ -2,7 +2,7 @@ import {getValidSelection} from './../utils';
 
 export const KEY = 'row_below';
 
-export function rowBelowItem() {
+export default function rowBelowItem() {
   return {
     key: KEY,
     name: 'Insert row below',
