@@ -915,13 +915,13 @@ const REGISTERED_HOOKS = [
    *
    * @example
    * ```js
-   * // To disregard a single change, remove it from array using changes.splice(i, 1).
+   * // To disregard a single row, remove it from array using data.splice(i, 1).
    * ...
    * new Handsontable(document.getElementById('example'), {
-   *   beforeCut: function(changes, coords) {
-   *     // changes -> [[1, 2, 3], [4, 5, 6]]
-   *     changes.splice(0, 1);
-   *     // changes -> [[4, 5, 6]]
+   *   beforeCut: function(data, coords) {
+   *     // data -> [[1, 2, 3], [4, 5, 6]]
+   *     data.splice(0, 1);
+   *     // data -> [[4, 5, 6]]
    *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
    *   }
    * });
@@ -930,7 +930,7 @@ const REGISTERED_HOOKS = [
    * // To cancel cutting out, return false from the callback.
    * ...
    * new Handsontable(document.getElementById('example'), {
-   *   beforeCut: function(changes, coords) {
+   *   beforeCut: function(data, coords) {
    *     return false;
    *   }
    * });
@@ -962,13 +962,13 @@ const REGISTERED_HOOKS = [
    *
    * @example
    * ```js
-   * // To disregard a single change, remove it from array using changes.splice(i, 1).
+   * // To disregard a single row, remove it from array using data.splice(i, 1).
    * ...
    * new Handsontable(document.getElementById('example'), {
-   *   beforeCopy: function(changes, coords) {
-   *     // changes -> [[1, 2, 3], [4, 5, 6]]
-   *     changes.splice(0, 1);
-   *     // changes -> [[4, 5, 6]]
+   *   beforeCopy: function(data, coords) {
+   *     // data -> [[1, 2, 3], [4, 5, 6]]
+   *     data.splice(0, 1);
+   *     // data -> [[4, 5, 6]]
    *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
    *   }
    * });
@@ -977,7 +977,7 @@ const REGISTERED_HOOKS = [
    * // To cancel copying, return false from the callback.
    * ...
    * new Handsontable(document.getElementById('example'), {
-   *   beforeCopy: function(changes, coords) {
+   *   beforeCopy: function(data, coords) {
    *     return false;
    *   }
    * });
@@ -1009,13 +1009,13 @@ const REGISTERED_HOOKS = [
    *
    * @example
    * ```js
-   * // To disregard a single change, remove it from array using changes.splice(i, 1).
+   * // To disregard a single row, remove it from array using data.splice(i, 1).
    * ...
    * new Handsontable(document.getElementById('example'), {
-   *   beforePaste: function(changes, coords) {
-   *     // changes -> [[1, 2, 3], [4, 5, 6]]
-   *     changes.splice(0, 1);
-   *     // changes -> [[4, 5, 6]]
+   *   beforePaste: function(data, coords) {
+   *     // data -> [[1, 2, 3], [4, 5, 6]]
+   *     data.splice(0, 1);
+   *     // data -> [[4, 5, 6]]
    *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
    *   }
    * });
@@ -1024,7 +1024,7 @@ const REGISTERED_HOOKS = [
    * // To cancel pasting, return false from the callback.
    * ...
    * new Handsontable(document.getElementById('example'), {
-   *   beforePaste: function(changes, coords) {
+   *   beforePaste: function(data, coords) {
    *     return false;
    *   }
    * });
