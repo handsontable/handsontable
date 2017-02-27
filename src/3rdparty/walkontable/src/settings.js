@@ -70,6 +70,7 @@ class WalkontableSettings {
       //callbacks
       onCellMouseDown: null,
       onCellMouseOver: null,
+      onCellMouseOut: null,
       onCellMouseUp: null,
 
       //    onCellMouseOut: null,

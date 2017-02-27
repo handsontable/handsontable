@@ -111,6 +111,7 @@ class ManualColumnMove extends BasePlugin {
     this.addHook('beforeRemoveCol', (index, amount) => this.onBeforeRemoveCol(index, amount));
     this.addHook('afterRemoveCol', (index, amount) => this.onAfterRemoveCol(index, amount));
     this.addHook('afterCreateCol', (index, amount) => this.onAfterCreateCol(index, amount));
+    this.addHook('afterLoadData', (firstTime) => this.onAfterLoadData(firstTime));
     this.addHook('unmodifyCol', (column) => this.onUnmodifyCol(column));
 
     this.registerEvents();
@@ -400,6 +401,37 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
+   * This method checks arrayMap from columnsMapper and updates the columnsMapper if it's necessary.
+   *
+   * @private
+   */
+  updateColumnsMapper() {
+    let countCols = this.hot.countSourceCols();
+    let columnsMapperLen = this.columnsMapper._arrayMap.length;
+
+    if (columnsMapperLen === 0) {
+      this.columnsMapper.createMap(countCols || this.hot.getSettings().startCols);
+
+    } else if (columnsMapperLen < countCols) {
+      let diff = countCols - columnsMapperLen;
+
+      this.columnsMapper.insertItems(columnsMapperLen, diff);
+
+    } else if (columnsMapperLen > countCols) {
+      let maxIndex = countCols - 1;
+      let columnsToRemove = [];
+
+      arrayEach(this.columnsMapper._arrayMap, (value, index, array) => {
+        if (value > maxIndex) {
+          columnsToRemove.push(index);
+        }
+      });
+
+      this.columnsMapper.removeItems(columnsToRemove);
+    }
+  }
+
+  /**
    * Bind the events used by the plugin.
    *
    * @private
@@ -637,6 +669,16 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
+   * `afterLoadData` hook callback.
+   *
+   * @private
+   * @param {Boolean} firstTime True if that was loading data during the initialization.
+   */
+  onAfterLoadData(firstTime) {
+    this.updateColumnsMapper();
+  }
+
+  /**
    * 'modifyRow' hook callback.
    *
    * @private
@@ -662,9 +704,8 @@ class ManualColumnMove extends BasePlugin {
    */
   onUnmodifyCol(column) {
     let indexInMapper = this.columnsMapper.getIndexByValue(column);
-    column = indexInMapper === null ? column : indexInMapper;
 
-    return column;
+    return indexInMapper === null ? column : indexInMapper;
   }
 
   /**
@@ -673,30 +714,7 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   onAfterPluginsInitialized() {
-    let countCols = this.hot.countCols();
-    let columnsMapperLen = this.columnsMapper._arrayMap.length;
-
-    if (columnsMapperLen === 0) {
-      this.columnsMapper.createMap(this.hot.countSourceCols() || this.hot.getSettings().startCols);
-
-    } else if (columnsMapperLen < countCols) {
-      let diff = countCols - columnsMapperLen;
-
-      this.columnsMapper.insertItems(columnsMapperLen, diff);
-
-    } else if (columnsMapperLen > countCols) {
-      let maxIndex = countCols - 1;
-      let columnsToRemove = [];
-
-      arrayEach(this.columnsMapper._arrayMap, (value, index, array) => {
-        if (value > maxIndex) {
-          columnsToRemove.push(index);
-        }
-      });
-
-      this.columnsMapper.removeItems(columnsToRemove);
-    }
-
+    this.updateColumnsMapper();
     this.initialSettings();
     this.backlight.build();
     this.guideline.build();
