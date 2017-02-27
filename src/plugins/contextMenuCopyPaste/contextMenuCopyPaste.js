@@ -124,6 +124,7 @@ class ContextMenuCopyPaste extends BasePlugin {
         key: 'paste',
         name: 'Paste',
         callback: function() {
+          this.copyPaste.setCopyable();
           this.copyPaste.triggerPaste();
         },
         disabled: function() {

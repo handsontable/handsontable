@@ -49,12 +49,12 @@ function CopyPastePlugin(instance) {
       return;
     }
 
-    let beforeCutData = instance.runHooks('beforeCut', rangedData, _this.copyableRanges);
+    let allowCuttingOut = !!instance.runHooks('beforeCut', rangedData, _this.copyableRanges);
 
-    if (beforeCutData) {
+    if (allowCuttingOut) {
       instance.copyPaste.copyPasteInstance.copyable(SheetClip.stringify(rangedData));
       instance.selection.empty();
-      instance.runHooks('afterCut', beforeCutData, _this.copyableRanges);
+      instance.runHooks('afterCut', rangedData, _this.copyableRanges);
 
     } else {
       instance.copyPaste.copyPasteInstance.copyable('');
@@ -72,11 +72,11 @@ function CopyPastePlugin(instance) {
       return;
     }
 
-    let beforeCopyData = instance.runHooks('beforeCopy', rangedData, _this.copyableRanges);
+    let allowCopying = !!instance.runHooks('beforeCopy', rangedData, _this.copyableRanges);
 
-    if (beforeCopyData) {
+    if (allowCopying) {
       instance.copyPaste.copyPasteInstance.copyable(SheetClip.stringify(rangedData));
-      instance.runHooks('afterCopy', beforeCopyData, _this.copyableRanges);
+      instance.runHooks('afterCopy', rangedData, _this.copyableRanges);
 
     } else {
       instance.copyPaste.copyPasteInstance.copyable('');
@@ -139,11 +139,11 @@ function CopyPastePlugin(instance) {
       }
     });
 
-    let preventPasting = instance.runHooks('beforePaste', inputArray, [areaStart.row, areaStart.col, areaEnd.row, areaEnd.col]) === false;
+    let allowPasting = !!instance.runHooks('beforePaste', inputArray, _this.copyableRanges);
 
-    if (!preventPasting) {
+    if (allowPasting) {
       instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', instance.getSettings().pasteMode);
-      instance.runHooks('afterPaste', inputArray, [areaStart.row, areaStart.col, areaEnd.row, areaEnd.col]);
+      instance.runHooks('afterPaste', inputArray, _this.copyableRanges);
     }
   }
 

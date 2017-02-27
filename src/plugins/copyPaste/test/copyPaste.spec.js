@@ -377,8 +377,28 @@ describe('CopyPaste', function () {
       expect(afterCopySpy).toHaveBeenCalledWith([['A1']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
     });
 
-    xit("should call beforePaste and afterPaste during copying operation", function () {
-      // Unfortunately, simulation of key combination (`CTRL+V') via JS is blocked in browser, because of security reasons.
+    it("should call beforePaste and afterPaste during copying operation", function (done) {
+      var beforePasteSpy = jasmine.createSpy('beforePaste');
+      var afterPasteSpy = jasmine.createSpy('afterPaste');
+
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        beforePaste: beforePasteSpy,
+        afterPaste: afterPasteSpy
+      });
+
+      selectCell(0, 0);
+      keyDown('ctrl');
+      hot.copyPaste.triggerPaste(null, 'Kia');
+
+      setTimeout(function() {
+        expect(beforePasteSpy.calls.count()).toEqual(1);
+        expect(beforePasteSpy).toHaveBeenCalledWith([['Kia']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+
+        expect(afterPasteSpy.calls.count()).toEqual(1);
+        expect(afterPasteSpy).toHaveBeenCalledWith([['Kia']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+        done();
+      }, 60);
     });
 
     it("should be possible to block cutting out", function () {
@@ -415,8 +435,25 @@ describe('CopyPaste', function () {
 
       expect(afterCopySpy.calls.count()).toEqual(0);
     });
-    xit("should be possible to block pasting", function () {
-      // Unfortunately, simulation of key combination (`CTRL+V') via JS is blocked in browser, because of security reasons.
+    it("should be possible to block pasting", function (done) {
+      var afterPasteSpy = jasmine.createSpy('afterPaste');
+
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        beforePaste() {
+          return false;
+        },
+        afterPaste: afterPasteSpy
+      });
+
+      selectCell(0, 0);
+      keyDown('ctrl');
+      hot.copyPaste.triggerPaste(null, 'Kia');
+
+      setTimeout(function() {
+        expect(afterPasteSpy.calls.count()).toEqual(0);
+        done();
+      }, 60);
     });
   });
 });
