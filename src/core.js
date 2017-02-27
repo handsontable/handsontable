@@ -1623,6 +1623,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       } else {
         if (Handsontable.hooks.getRegistered().indexOf(i) > -1) {
           if (isFunction(settings[i]) || Array.isArray(settings[i])) {
+
+            settings[i].initialHook = true;
+
             instance.addHook(i, settings[i]);
           }
 
