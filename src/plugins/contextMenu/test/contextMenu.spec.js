@@ -1928,6 +1928,187 @@ describe('ContextMenu', function () {
         expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
       });
 
+      it("should scroll down, when user hits ARROW_DOWN for item in menu below the viewport", function () {
+        var hot = handsontable({
+          height: 100,
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1'
+              },
+              item2: {
+                name: 'Item2'
+              },
+              item3: {
+                name: 'Item3'
+              },
+              item4: {
+                name: 'Item4'
+              },
+              item5: {
+                name: 'Item5'
+              },
+              item6: {
+                name: 'Item6'
+              },
+              item7: {
+                name: 'Item7'
+              },
+              item8: {
+                name: 'Item8'
+              },
+              item9: {
+                name: 'Item9'
+              },
+              item10: {
+                name: 'Item10'
+              },
+              item11: {
+                name: 'Item11'
+              },
+              item12: {
+                name: 'Item12'
+              },
+              item13: {
+                name: 'Item13'
+              },
+              item14: {
+                name: 'Item14'
+              },
+              item15: {
+                name: 'Item15'
+              },
+              item16: {
+                name: 'Item16'
+              },
+              item17: {
+                name: 'Item17'
+              },
+              item18: {
+                name: 'Item18'
+              },
+              item19: {
+                name: 'Item19'
+              },
+              item20: {
+                name: 'Item20'
+              },
+              item21: {
+                name: 'Item21'
+              },
+              item22: {
+                name: 'Item22'
+              },
+              item23: {
+                name: 'Item23'
+              },
+              item24: {
+                name: 'Item24'
+              },
+              item25: {
+                name: 'Item25'
+              },
+              item26: {
+                name: 'Item26'
+              },
+              item27: {
+                name: 'Item27'
+              },
+              item28: {
+                name: 'Item28'
+              },
+              item29: {
+                name: 'Item29'
+              },
+              item30: {
+                name: 'Item30'
+              },
+              item31: {
+                name: 'Item31'
+              },
+              item32: {
+                name: 'Item32'
+              },
+              item33: {
+                name: 'Item33'
+              },
+              item34: {
+                name: 'Item34'
+              },
+              item35: {
+                name: 'Item35'
+              },
+              item36: {
+                name: 'Item36'
+              },
+              item37: {
+                name: 'Item37'
+              },
+              item38: {
+                name: 'Item38'
+              },
+              item39: {
+                name: 'Item39'
+              },
+              item40: {
+                name: 'Item40'
+              }
+            }
+          }
+        }), scrollHeight;
+
+        contextMenu();
+
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+        keyDownUp('arrow_down');
+
+        if (typeof window.scrollY !== 'undefined') {
+          scrollHeight = window.scrollY;
+        } else {
+          scrollHeight = document.documentElement.scrollTop;
+        }
+
+        expect(scrollHeight).not.toBe(0);
+      });
+
       it("should select the first NOT DISABLED item in menu, when user hits ARROW_DOWN", function () {
         var hot = handsontable({
           contextMenu: {
@@ -2501,14 +2682,53 @@ describe('ContextMenu', function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(1000, 5),
         contextMenu: true,
-      });
+      }), scrollHeight;
 
       hot.selectCell(100, 0);
       contextMenu();
       window.scrollTo(0, 0);
       $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').simulate('mouseenter');
 
-      expect(window.scrollY || document.documentElement.scrollTop).toBe(0);
+      if (typeof window.scrollY !== 'undefined') {
+        scrollHeight = window.scrollY;
+      } else {
+        scrollHeight = document.documentElement.scrollTop;
+      }
+
+      expect(scrollHeight).toBe(0);
+    });
+
+    it('should not scroll window position after fireing click on menu', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1000, 5),
+        contextMenu: {
+          items: {
+            item1: {
+              name: 'Item1'
+            },
+            sep1: Handsontable.plugins.ContextMenu.SEPARATOR,
+            item2: {
+              name: 'Item2'
+            },
+            item3: {
+              name: 'Item3'
+            }
+          }
+        }
+      }), scrollHeight;
+
+      hot.selectCell(100, 0);
+      contextMenu();
+      window.scrollTo(0, 0);
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown');
+
+      if (typeof window.scrollY !== 'undefined') {
+        scrollHeight = window.scrollY;
+      } else {
+        scrollHeight = document.documentElement.scrollTop;
+      }
+
+      expect(scrollHeight).toBe(0);
     });
   });
 

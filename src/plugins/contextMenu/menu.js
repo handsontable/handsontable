@@ -39,6 +39,8 @@ class Menu {
     this.parentMenu = this.options.parent || null;
     this.menuItems = null;
     this.origOutsideClickDeselects = null;
+    this.keyEvent = false;
+
     this.offset = {
       above: 0,
       below: 0,
@@ -130,6 +132,7 @@ class Menu {
     this.hot.getSettings().outsideClickDeselects = false;
     this.hotMenu = new Handsontable.Core(this.container, settings);
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
+    this.hotMenu.addHook('afterSelection', (r, c, r2, c2, preventScrolling) => this.onAfterSelection(r, c, r2, c2, preventScrolling));
     this.hotMenu.init();
     this.hotMenu.listen();
     this.blockMainTableCallbacks();
@@ -562,6 +565,7 @@ class Menu {
   onBeforeKeyDown(event) {
     let selection = this.hotMenu.getSelected();
     let stopEvent = false;
+    this.keyEvent = true;
 
     switch (event.keyCode) {
       case KEY_CODES.ESCAPE:
@@ -625,6 +629,8 @@ class Menu {
       event.preventDefault();
       stopImmediatePropagation(event);
     }
+
+    this.keyEvent = false;
   }
 
   /**
@@ -645,6 +651,21 @@ class Menu {
     holderStyle.width = currentHiderWidth + 22 + 'px';
     holderStyle.height = realHeight + 4 + 'px';
     hiderStyle.height = holderStyle.height;
+  }
+
+  /**
+   * On after selection listener.
+   *
+   * @param {Number} r Selection start row index.
+   * @param {Number} c Selection start column index.
+   * @param {Number} r2 Selection end row index.
+   * @param {Number} c2 Selection end column index.
+   * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+   */
+  onAfterSelection(r, c, r2, c2, preventScrolling) {
+    if (this.keyEvent === false) {
+      preventScrolling.value = true;
+    }
   }
 
   /**
