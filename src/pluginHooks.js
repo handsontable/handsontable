@@ -912,6 +912,30 @@ const REGISTERED_HOOKS = [
    * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                       which will be cut out.
    * @returns {*} If returns `false` then operation of the cutting out is cancelled.
+   *
+   * @example
+   * ```js
+   * // To disregard a single change, remove it from array using changes.splice(i, 1).
+   * ...
+   * new Handsontable(document.getElementById('example'), {
+   *   beforeCut: function(changes, coords) {
+   *     // changes -> [[1, 2, 3], [4, 5, 6]]
+   *     changes.splice(0, 1);
+   *     // changes -> [[4, 5, 6]]
+   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   }
+   * });
+   * ...
+   *
+   * // To cancel cutting out, return false from the callback.
+   * ...
+   * new Handsontable(document.getElementById('example'), {
+   *   beforeCut: function(changes, coords) {
+   *     return false;
+   *   }
+   * });
+   * ...
+   * ```
    */
   'beforeCut',
 
@@ -935,6 +959,30 @@ const REGISTERED_HOOKS = [
    * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                       which will copied.
    * @returns {*} If returns `false` then copying is cancelled.
+   *
+   * @example
+   * ```js
+   * // To disregard a single change, remove it from array using changes.splice(i, 1).
+   * ...
+   * new Handsontable(document.getElementById('example'), {
+   *   beforeCopy: function(changes, coords) {
+   *     // changes -> [[1, 2, 3], [4, 5, 6]]
+   *     changes.splice(0, 1);
+   *     // changes -> [[4, 5, 6]]
+   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   }
+   * });
+   * ...
+   *
+   * // To cancel copying, return false from the callback.
+   * ...
+   * new Handsontable(document.getElementById('example'), {
+   *   beforeCopy: function(changes, coords) {
+   *     return false;
+   *   }
+   * });
+   * ...
+   * ```
    */
   'beforeCopy',
 
@@ -958,6 +1006,30 @@ const REGISTERED_HOOKS = [
    * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                       where changes will be inserted.
    * @returns {*} If returns `false` then pasting is cancelled.
+   *
+   * @example
+   * ```js
+   * // To disregard a single change, remove it from array using changes.splice(i, 1).
+   * ...
+   * new Handsontable(document.getElementById('example'), {
+   *   beforePaste: function(changes, coords) {
+   *     // changes -> [[1, 2, 3], [4, 5, 6]]
+   *     changes.splice(0, 1);
+   *     // changes -> [[4, 5, 6]]
+   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   }
+   * });
+   * ...
+   *
+   * // To cancel pasting, return false from the callback.
+   * ...
+   * new Handsontable(document.getElementById('example'), {
+   *   beforePaste: function(changes, coords) {
+   *     return false;
+   *   }
+   * });
+   * ...
+   * ```
    */
   'beforePaste',
 
