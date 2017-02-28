@@ -42,7 +42,7 @@ class CommandExecutor {
    */
   execute(command, ...params) {
     if (typeof command === 'string') {
-      command = findCommand(command);
+      command = this.findCommand(command);
     }
     if (command.disabled === true) {
       return;
@@ -64,24 +64,24 @@ class CommandExecutor {
     params.unshift(command.key);
     arrayEach(callbacks, (callback) => callback.apply(this.hot, params));
   }
-}
 
-function findCommand(commandName) {
-  let commandSplit = commandName.split(':');
-  commandName = commandSplit[0];
+  findCommand(commandName) {
+    let commandSplit = commandName.split(':');
+    commandName = commandSplit[0];
 
-  let subCommandName = commandSplit.length > 1 ? commandSplit[commandSplit.length - 1] : null;
-  let command = this.commands[commandName];
+    let subCommandName = commandSplit.length > 1 ? commandSplit[commandSplit.length - 1] : null;
+    let command = this.commands[commandName];
 
-  if (!command) {
-    throw new Error(`Menu command '${commandName}' not exists.`);
+    if (!command) {
+      throw new Error(`Menu command '${commandName}' not exists.`);
+    }
+    if (subCommandName && command.submenu) {
+      let commands = commandSplit.slice(1);
+      command = findSubCommand(commands, command.submenu.items, commandSplit.slice(0, 2));
+    }
+
+    return command;
   }
-  if (subCommandName && command.submenu) {
-    let commands = commandSplit.slice(1);
-    command = findSubCommand(commands, command.submenu.items, commandSplit.slice(0, 2));
-  }
-
-  return command;
 }
 
 function findSubCommand(commands, items, keys) {
