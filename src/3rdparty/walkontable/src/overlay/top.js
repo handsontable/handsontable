@@ -290,6 +290,8 @@ class WalkontableTopOverlay extends WalkontableOverlay {
         border.appear(corners);
       }
     }
+
+    this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
   }
 
   /**
