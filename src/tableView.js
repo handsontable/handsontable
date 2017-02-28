@@ -399,11 +399,17 @@ function TableView(instance) {
       Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
       that.activeWt = that.wt;
     },
-    /*onCellMouseOut: function (/*event, coords, TD* /) {
-     if (isMouseDown && that.settings.fragmentSelection === 'single') {
-     clearTextSelection(); //otherwise text selection blinks during multiple cells selection
-     }
-     },*/
+    onCellMouseOut: function(event, coords, TD, wt) {
+      that.activeWt = wt;
+      Handsontable.hooks.run(instance, 'beforeOnCellMouseOut', event, coords, TD);
+
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
+
+      Handsontable.hooks.run(instance, 'afterOnCellMouseOut', event, coords, TD);
+      that.activeWt = that.wt;
+    },
     onCellMouseOver: function(event, coords, TD, wt) {
       let blockCalculations = {
         row: false,

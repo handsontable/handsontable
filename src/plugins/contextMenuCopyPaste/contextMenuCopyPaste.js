@@ -103,7 +103,7 @@ class ContextMenuCopyPaste extends BasePlugin {
    */
   getCopyValue() {
     this.hot.copyPaste.setCopyableText();
-
+    this.hot.copyPaste.copyPasteInstance.triggerCopy();
     return this.hot.copyPaste.copyPasteInstance.elTextarea.value;
   }
 
