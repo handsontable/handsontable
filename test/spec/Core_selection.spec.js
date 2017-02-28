@@ -1242,4 +1242,65 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
       expect(scrollHeight).not.toBe(0);
     });
   });
+
+  describe("redrawing selection", function () {
+    it("should redraw selection when option `colHeaders` is set and user scrolled #4011", function (done) {
+      var hot = handsontable({
+        startRows: 20,
+        startCols: 20,
+        colHeaders: true,
+        rowHeaders: true,
+        width: 400,
+        height: 200
+      }), cellVerticalPosition;
+      var borderOffsetInPixels = 1, topBorder;
+
+      selectCell(5, 5);
+      hot.view.wt.wtOverlays.topOverlay.scrollTo(2);
+
+      setTimeout(function () {
+        cellVerticalPosition = hot.getCell(5, 5).offsetTop;
+        topBorder = $(".wtBorder.current")[0];
+        expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+        hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
+      }, 100);
+
+      setTimeout(function () {
+        cellVerticalPosition = hot.getCell(5, 5).offsetTop;
+        topBorder = $(".wtBorder.current")[0];
+        expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+        done();
+      }, 200);
+    });
+
+    it("should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled #4011", function (done) {
+      var hot = handsontable({
+        fixedColumnsLeft: 2,
+        startRows: 20,
+        startCols: 20,
+        colHeaders: true,
+        rowHeaders: true,
+        width: 400,
+        height: 200
+      }), cellVerticalPosition;
+      var borderOffsetInPixels = 1, topBorder;
+
+      selectCell(1, 0);
+      hot.view.wt.wtOverlays.topOverlay.scrollTo(5);
+
+      setTimeout(function () {
+        cellVerticalPosition = hot.getCell(1, 0).offsetTop;
+        topBorder = $(".wtBorder.current")[0];
+        expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+        hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
+      }, 100);
+
+      setTimeout(function () {
+        cellVerticalPosition = hot.getCell(1, 0).offsetTop;
+        topBorder = $(".wtBorder.current")[0];
+        expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+        done();
+      }, 200);
+    });
+  });
 });

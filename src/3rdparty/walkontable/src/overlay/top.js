@@ -274,6 +274,27 @@ class WalkontableTopOverlay extends WalkontableOverlay {
   }
 
   /**
+   * Redrawing current selection
+   */
+  redrawCurrentSelection() {
+    const selections = this.wot.selections;
+    const currentSelection = selections && selections.current;
+
+    if (currentSelection && currentSelection.cellRange) {
+      const border = currentSelection.getBorder(this.wot);
+
+      if (border) {
+        const corners = currentSelection.getCorners();
+
+        border.disappear();
+        border.appear(corners);
+      }
+    }
+
+    this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
+  }
+
+  /**
    * Adds css classes to hide the header border's header (cell-selection border hiding issue)
    *
    * @param {Number} position Header Y position if trimming container is window or scroll top if not
@@ -296,8 +317,13 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       } else {
         removeClass(masterParent, 'innerBorderTop');
       }
+
       if (!previousState && position || previousState && !position) {
         this.wot.wtOverlays.adjustElementsSize();
+
+        // cell borders should be positioned once again,
+        // because we added / removed 1px border from table header
+        this.redrawCurrentSelection();
       }
     }
 
