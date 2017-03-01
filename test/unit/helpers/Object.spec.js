@@ -8,12 +8,12 @@ import {
   createObjectPropListener,
 } from 'handsontable/helpers/object';
 
-describe('Object helper', function () {
+describe('Object helper', function() {
   //
   // Handsontable.helper.isObjectEquals
   //
   describe('isObjectEquals', function() {
-    it("should returns true on equal objects", function () {
+    it('should returns true on equal objects', function() {
       expect(isObjectEquals({}, {})).toBe(true);
       expect(isObjectEquals({test: 1}, {test: 1})).toBe(true);
       expect(isObjectEquals({test: {test2: [{}]}}, {test: {test2: [{}]}})).toBe(true);
@@ -23,7 +23,7 @@ describe('Object helper', function () {
       expect(isObjectEquals([{test: 1}], [{test: 1}])).toBe(true);
     });
 
-    it("should returns false for not equal objects", function () {
+    it('should returns false for not equal objects', function() {
       expect(isObjectEquals({}, [])).toBe(false);
 
       expect(isObjectEquals({test: 2}, {test: 1})).toBe(false);
@@ -38,7 +38,7 @@ describe('Object helper', function () {
   // Handsontable.helper.duckSchema
   //
   describe('duckSchema', function() {
-    it("should returns valid schema object", function () {
+    it('should returns valid schema object', function() {
       expect(duckSchema({})).toEqual({});
       expect(duckSchema({test: 1})).toEqual({test: null});
       expect(duckSchema({test: 'foo'})).toEqual({test: null});
@@ -48,7 +48,7 @@ describe('Object helper', function () {
       expect(duckSchema({test: [1, 2, 3]})).toEqual({test: []});
     });
 
-    it("should returns valid schema object (deeply)", function () {
+    it('should returns valid schema object (deeply)', function() {
       expect(duckSchema({test: {a: {b: 11}}})).toEqual({test: {a: {b: null}}});
       expect(duckSchema({test: {a: {b: []}}})).toEqual({test: {a: {b: []}}});
       expect(duckSchema({test: {a: {b: [{q: 1, w: 2}]}}})).toEqual({test: {a: {b: [{q: null, w: null}]}}});
@@ -59,7 +59,7 @@ describe('Object helper', function () {
   // Handsontable.helper.mixin
   //
   describe('mixin', function() {
-    it("should mix base object from one object", function () {
+    it('should mix base object from one object', function() {
       var Base = function() {};
       var MixinFoo = {
         local: 'value',
@@ -90,7 +90,7 @@ describe('Object helper', function () {
       expect(instance.local).toBe(initialObject);
     });
 
-    it("should mix base object from multiple objects", function () {
+    it('should mix base object from multiple objects', function() {
       var Base = function() {};
       var MixinFoo = {
         local: 'value',
@@ -123,7 +123,7 @@ describe('Object helper', function () {
       expect(instance.getTest()).toEqual(MixinBar.test);
     });
 
-    it("mixed object shouldn\'t interfere with properties from another mixed objects", function () {
+    it('mixed object should not interfere with properties from another mixed objects', function() {
       var Base = function() {};
       var Base1 = function() {};
       var MixinFoo = {
@@ -150,7 +150,7 @@ describe('Object helper', function () {
   // Handsontable.helper.clone
   //
   describe('clone', function() {
-    it("should returns cloned object", function () {
+    it('should returns cloned object', function() {
       var function1 = function() {};
       var object1 = {};
       var object2 = {
@@ -173,8 +173,8 @@ describe('Object helper', function () {
   //
   // Handsontable.helper.deepExtend
   //
-  describe('deepExtend', function () {
-    it('should extend an object with all the properties of another object (recursively)', function () {
+  describe('deepExtend', function() {
+    it('should extend an object with all the properties of another object (recursively)', function() {
       var baseObject = {
         test: 'one',
         anotherTest: ['one, two']
@@ -221,7 +221,7 @@ describe('Object helper', function () {
   //
   // Handsontable.helper.deepObjectSize
   //
-  describe('deepObjectSize', function () {
+  describe('deepObjectSize', function() {
     it('should return false if a variable is not an object', function() {
       var toCount = [
         1,
@@ -256,7 +256,7 @@ describe('Object helper', function () {
   // Handsontable.helper.createObjectPropListener
   //
   describe('createObjectPropListener', function() {
-    it("should returns object listener and listen default property", function () {
+    it('should returns object listener and listen default property', function() {
       var propListener = createObjectPropListener('foo');
 
       expect(propListener.isTouched()).toBe(false);
@@ -274,7 +274,7 @@ describe('Object helper', function () {
       expect(propListener.test).toBe('bar');
     });
 
-    it("should returns object listener and listen defined by user property", function () {
+    it('should returns object listener and listen defined by user property', function() {
       var propListener = createObjectPropListener('foo', 'me');
 
       expect(propListener.isTouched()).toBe(false);
@@ -293,7 +293,7 @@ describe('Object helper', function () {
       expect(propListener.me).toBe('bar');
     });
 
-    it("should detect change value to undefined", function () {
+    it('should detect change value to undefined', function() {
       var propListener = createObjectPropListener('foo');
 
       propListener.value = void 0;

@@ -1,20 +1,20 @@
-describe('settings', function () {
-  describe('editor', function () {
+describe('settings', function() {
+  describe('editor', function() {
     var id = 'testContainer';
 
-    beforeEach(function () {
+    beforeEach(function() {
       this.$container = $('<div id="' + id + '"></div>').appendTo('body');
     });
 
-    afterEach(function () {
+    afterEach(function() {
       if (this.$container) {
         destroy();
         this.$container.remove();
       }
     });
 
-    describe('defined in constructor', function () {
-      it('should use text editor by default', function () {
+    describe('defined in constructor', function() {
+      it('should use text editor by default', function() {
         var textEditorPrototype = Handsontable.editors.TextEditor.prototype;
 
         spyOn(textEditorPrototype, 'init').and.callThrough();
@@ -23,7 +23,7 @@ describe('settings', function () {
         expect(textEditorPrototype.init).toHaveBeenCalled();
       });
 
-      it('should use editor from predefined string', function () {
+      it('should use editor from predefined string', function() {
         var textEditorPrototype = Handsontable.editors.TextEditor.prototype;
         var checkboxEditorPrototype = Handsontable.editors.CheckboxEditor.prototype;
 
@@ -41,14 +41,14 @@ describe('settings', function () {
         expect(checkboxEditorPrototype.init).toHaveBeenCalled();
       });
 
-      it('should use editor from predefined string when columns is a function', function () {
+      it('should use editor from predefined string when columns is a function', function() {
         var textEditorPrototype = Handsontable.editors.TextEditor.prototype;
         var checkboxEditorPrototype = Handsontable.editors.CheckboxEditor.prototype;
 
         spyOn(textEditorPrototype, 'init');
         spyOn(checkboxEditorPrototype, 'init');
         handsontable({
-          columns: function (column) {
+          columns: function(column) {
             return column === 0 ? {editor: 'checkbox'} : null;
           }
         });
@@ -57,11 +57,11 @@ describe('settings', function () {
         expect(checkboxEditorPrototype.init).toHaveBeenCalled();
       });
 
-      it('should use editor class passed directly', function () {
+      it('should use editor class passed directly', function() {
         var customEditor = jasmine.createSpy('customEditor');
 
-        customEditor.and.callFake(function(){
-          this.prepare = function(){};
+        customEditor.and.callFake(function() {
+          this.prepare = function() {};
         });
 
         handsontable({
@@ -76,15 +76,15 @@ describe('settings', function () {
         expect(customEditor).toHaveBeenCalled();
       });
 
-      it('should use editor class passed directly when columns is a function', function () {
+      it('should use editor class passed directly when columns is a function', function() {
         var customEditor = jasmine.createSpy('customEditor');
 
-        customEditor.and.callFake(function(){
-          this.prepare = function(){};
+        customEditor.and.callFake(function() {
+          this.prepare = function() {};
         });
 
         handsontable({
-          columns: function (column) {
+          columns: function(column) {
             return column === 0 ? {editor: customEditor} : null;
           }
         });
@@ -93,10 +93,10 @@ describe('settings', function () {
         expect(customEditor).toHaveBeenCalled();
       });
 
-      it('should use editor from custom string', function () {
+      it('should use editor from custom string', function() {
         var customEditor = jasmine.createSpy('customEditor');
-        customEditor.and.callFake(function(){
-          this.prepare = function(){};
+        customEditor.and.callFake(function() {
+          this.prepare = function() {};
         });
 
         Handsontable.editors.registerEditor('myEditor', customEditor);
@@ -113,17 +113,17 @@ describe('settings', function () {
         expect(customEditor).toHaveBeenCalled();
       });
 
-      it('should use editor from custom string when columns is a function', function () {
+      it('should use editor from custom string when columns is a function', function() {
         var customEditor = jasmine.createSpy('customEditor');
 
-        customEditor.and.callFake(function(){
-          this.prepare = function(){};
+        customEditor.and.callFake(function() {
+          this.prepare = function() {};
         });
 
         Handsontable.editors.registerEditor('myEditor', customEditor);
 
         handsontable({
-          columns: function (column) {
+          columns: function(column) {
             return column === 0 ? {editor: 'myEditor'} : null;
           },
         });

@@ -1,8 +1,8 @@
 import {RecordTranslator, registerIdentity, getTranslator} from 'handsontable/utils/recordTranslator';
 import Handsontable from 'handsontable';
 
-describe('RecordTranslator', function () {
-  it('should translate to visual row using hook system', function () {
+describe('RecordTranslator', function() {
+  it('should translate to visual row using hook system', function() {
     var hotMock = {
       runHooks: jasmine.createSpy().and.returnValue(54),
     };
@@ -12,7 +12,7 @@ describe('RecordTranslator', function () {
     expect(hotMock.runHooks).toHaveBeenCalledWith('unmodifyRow', 12);
   });
 
-  it('should translate to visual column using hook system', function () {
+  it('should translate to visual column using hook system', function() {
     var hotMock = {
       runHooks: jasmine.createSpy().and.returnValue(54),
     };
@@ -22,7 +22,7 @@ describe('RecordTranslator', function () {
     expect(hotMock.runHooks).toHaveBeenCalledWith('unmodifyCol', 12);
   });
 
-  it('should translate to visual coordinates (as an object)', function () {
+  it('should translate to visual coordinates (as an object)', function() {
     var t = new RecordTranslator();
 
     spyOn(t, 'toVisualRow').and.returnValue(6);
@@ -31,7 +31,7 @@ describe('RecordTranslator', function () {
     expect(t.toVisual({row: 3, column: 4})).toEqual({row: 6, column: 12});
   });
 
-  it('should translate to visual coordinates (as an array)', function () {
+  it('should translate to visual coordinates (as an array)', function() {
     var t = new RecordTranslator();
 
     spyOn(t, 'toVisualRow').and.returnValue(6);
@@ -40,7 +40,7 @@ describe('RecordTranslator', function () {
     expect(t.toVisual(3, 4)).toEqual([6, 12]);
   });
 
-  it('should translate to physical row using hook system', function () {
+  it('should translate to physical row using hook system', function() {
     var hotMock = {
       runHooks: jasmine.createSpy().and.returnValue(54),
     };
@@ -50,7 +50,7 @@ describe('RecordTranslator', function () {
     expect(hotMock.runHooks).toHaveBeenCalledWith('modifyRow', 12);
   });
 
-  it('should translate to physical column using hook system', function () {
+  it('should translate to physical column using hook system', function() {
     var hotMock = {
       runHooks: jasmine.createSpy().and.returnValue(54),
     };
@@ -60,7 +60,7 @@ describe('RecordTranslator', function () {
     expect(hotMock.runHooks).toHaveBeenCalledWith('modifyCol', 12);
   });
 
-  it('should translate to physical coordinates (as an object)', function () {
+  it('should translate to physical coordinates (as an object)', function() {
     var t = new RecordTranslator();
 
     spyOn(t, 'toPhysicalRow').and.returnValue(6);
@@ -69,7 +69,7 @@ describe('RecordTranslator', function () {
     expect(t.toPhysical({row: 3, column: 4})).toEqual({row: 6, column: 12});
   });
 
-  it('should translate to physical coordinates (as an array)', function () {
+  it('should translate to physical coordinates (as an array)', function() {
     var t = new RecordTranslator();
 
     spyOn(t, 'toPhysicalRow').and.returnValue(6);
@@ -78,7 +78,7 @@ describe('RecordTranslator', function () {
     expect(t.toPhysical(3, 4)).toEqual([6, 12]);
   });
 
-  it('should always return the same instance of RecordTranslator for Handsontable instance', function () {
+  it('should always return the same instance of RecordTranslator for Handsontable instance', function() {
     var hot = new Handsontable(document.createElement('div'));
 
     var translator = getTranslator(hot);
@@ -86,13 +86,13 @@ describe('RecordTranslator', function () {
     expect(translator === getTranslator(hot)).toBe(true);
   });
 
-  it('should throw error when identifier was not registered while retrieving translator', function () {
+  it('should throw error when identifier was not registered while retrieving translator', function() {
     expect(function() {
       getTranslator({});
     }).toThrow();
   });
 
-  it('should always return the same instance of RecordTranslator for custom identifier', function () {
+  it('should always return the same instance of RecordTranslator for custom identifier', function() {
     var hot = new Handsontable(document.createElement('div'));
     var customIdentifier = {};
 

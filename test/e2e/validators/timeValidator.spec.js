@@ -1,27 +1,27 @@
-describe('timeValidator', function () {
+describe('timeValidator', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfObjects = function () {
+  var arrayOfObjects = function() {
     return [
-      {time: "4:10:05 am", name: "Ted", lastName: "Right"},
-      {time: "17:15:25", name: "Frank", lastName: "Honest"},
-      {time: "14:65:45 am", name: "Joan", lastName: "Well"},
-      {time: "33:25:05", name: "Sid", lastName: "Strong"}
+      {time: '4:10:05 am', name: 'Ted', lastName: 'Right'},
+      {time: '17:15:25', name: 'Frank', lastName: 'Honest'},
+      {time: '14:65:45 am', name: 'Joan', lastName: 'Well'},
+      {time: '33:25:05', name: 'Sid', lastName: 'Strong'}
     ];
   };
 
-  it("should validate an empty string (default behavior)", function (done) {
+  it('should validate an empty string (default behavior)', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -36,13 +36,13 @@ describe('timeValidator', function () {
 
     setDataAtCell(0, 0, '');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'time', undefined, undefined);
       done();
     }, 100);
   });
 
-  it("should not positively validate a non-date format", function (done) {
+  it('should not positively validate a non-date format', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -57,13 +57,13 @@ describe('timeValidator', function () {
 
     setDataAtCell(0, 0, 'nd');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(false, 'nd', 0, 'time', undefined, undefined);
       done();
     }, 100);
   });
 
-  it("should not positively validate a incorrect time string", function (done) {
+  it('should not positively validate a incorrect time string', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -78,13 +78,13 @@ describe('timeValidator', function () {
 
     setDataAtCell(0, 0, '30:10:25');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(false, '30:10:25', 0, 'time', undefined, undefined);
       done();
     }, 100);
   });
 
-  it("should not positively validate a time string in not default format", function (done) {
+  it('should not positively validate a time string in not default format', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -99,13 +99,13 @@ describe('timeValidator', function () {
 
     setDataAtCell(1, 0, '20:20:01');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(false, '20:20:01', 1, 'time', undefined, undefined);
       done();
     }, 100);
   });
 
-  it("should not positively validate a time string in wrong format (if custom format is provided)", function (done) {
+  it('should not positively validate a time string in wrong format (if custom format is provided)', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -120,13 +120,13 @@ describe('timeValidator', function () {
 
     setDataAtCell(1, 0, '5:10:15 am');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(false, '5:10:15 am', 1, 'time', undefined, undefined);
       done();
     }, 100);
   });
 
-  it("should positively validate a date string in correct format (if custom format is provided)", function (done) {
+  it('should positively validate a date string in correct format (if custom format is provided)', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -141,14 +141,14 @@ describe('timeValidator', function () {
 
     setDataAtCell(1, 0, '16:32:03');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(true, '16:32:03', 1, 'time', undefined, undefined);
       done();
     }, 100);
   });
 
-  describe("allowEmpty", function() {
-    it("should not validate an empty string when allowEmpty is set as `false`", function (done) {
+  describe('allowEmpty', function() {
+    it('should not validate an empty string when allowEmpty is set as `false`', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -163,13 +163,13 @@ describe('timeValidator', function () {
 
       setDataAtCell(1, 0, '');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'time', undefined, undefined);
         done();
       }, 100);
     });
 
-    it("should not validate `null` when allowEmpty is set as `false`", function (done) {
+    it('should not validate `null` when allowEmpty is set as `false`', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -184,13 +184,13 @@ describe('timeValidator', function () {
 
       setDataAtCell(1, 0, null);
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'time', undefined, undefined);
         done();
       }, 100);
     });
 
-    it("should not validate `undefined` when allowEmpty is set as `false`", function (done) {
+    it('should not validate `undefined` when allowEmpty is set as `false`', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -205,21 +205,21 @@ describe('timeValidator', function () {
 
       setDataAtCell(1, 0, void 0);
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 1, 'time', undefined, undefined);
         done();
       }, 100);
     });
   });
 
-  describe("correctFormat", function () {
-    it("should not make any changes to entered string if correctFormat is not set", function (done) {
+  describe('correctFormat', function() {
+    it('should not make any changes to entered string if correctFormat is not set', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: "h:mm:ss a"},
+          {data: 'time', type: 'time', timeFormat: 'h:mm:ss a'},
           {data: 'name'},
           {data: 'lastName'}
         ],
@@ -228,19 +228,19 @@ describe('timeValidator', function () {
 
       setDataAtCell(1, 0, '13:00:00');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, '13:00:00', 1, 'time', undefined, undefined);
         done();
       }, 100);
     });
 
-    it("should not make any changes to entered string if correctFormat is set to false", function (done) {
+    it('should not make any changes to entered string if correctFormat is set to false', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: "h:mm:ss a", correctFormat: false},
+          {data: 'time', type: 'time', timeFormat: 'h:mm:ss a', correctFormat: false},
           {data: 'name'},
           {data: 'lastName'}
         ],
@@ -249,19 +249,19 @@ describe('timeValidator', function () {
 
       setDataAtCell(1, 0, '13:00:00');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, '13:00:00', 1, 'time', undefined, undefined);
         done();
       }, 100);
-    })
+    });
 
-    it("should rewrite the string to the correct format if a time-string in different format is provided", function (done) {
+    it('should rewrite the string to the correct format if a time-string in different format is provided', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: "h:mm:ss a", correctFormat: true},
+          {data: 'time', type: 'time', timeFormat: 'h:mm:ss a', correctFormat: true},
           {data: 'lastName'}
         ],
         afterValidate: onAfterValidate
@@ -269,23 +269,23 @@ describe('timeValidator', function () {
 
       setDataAtCell(1, 0, '16:35:01');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(true, '16:35:01', 1, 'time', undefined, undefined);
       }, 100);
 
-      setTimeout(function () {
-        expect(getDataAtCell(1, 0)).toEqual("4:35:01 pm");
+      setTimeout(function() {
+        expect(getDataAtCell(1, 0)).toEqual('4:35:01 pm');
         done();
       }, 130);
     });
 
-    it("should rewrite the string to the correct format if a time in micro-timestamp format is provided", function (done) {
+    it('should rewrite the string to the correct format if a time in micro-timestamp format is provided', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: "HH:mm:ss", correctFormat: true},
+          {data: 'time', type: 'time', timeFormat: 'HH:mm:ss', correctFormat: true},
           {data: 'lastName'}
         ],
         afterValidate: onAfterValidate
@@ -295,26 +295,26 @@ describe('timeValidator', function () {
 
       setDataAtCell(1, 0, currentDateTime.getTime()); // timestamp in milliseconds
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(true, currentDateTime.getTime(), 1, 'time', undefined, undefined);
       }, 100);
 
-      setTimeout(function () {
+      setTimeout(function() {
         var addLeadingZero = function(number) {
           return number < 10 ? '0' + number : number;
         };
-        expect(getDataAtCell(1, 0)).toEqual(addLeadingZero(currentDateTime.getHours()) + ':' + addLeadingZero(currentDateTime.getMinutes()) +':' + addLeadingZero(currentDateTime.getSeconds()));
+        expect(getDataAtCell(1, 0)).toEqual(addLeadingZero(currentDateTime.getHours()) + ':' + addLeadingZero(currentDateTime.getMinutes()) + ':' + addLeadingZero(currentDateTime.getSeconds()));
         done();
       }, 130);
     });
 
-    it("should rewrite the string to the correct format if a time in ISO8601 format is provided", function (done) {
+    it('should rewrite the string to the correct format if a time in ISO8601 format is provided', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: "HH:mm:ss", correctFormat: true},
+          {data: 'time', type: 'time', timeFormat: 'HH:mm:ss', correctFormat: true},
           {data: 'lastName'}
         ],
         afterValidate: onAfterValidate
@@ -324,26 +324,27 @@ describe('timeValidator', function () {
 
       setDataAtCell(1, 0, currentDateTime.toISOString()); // ISO-formatted datetime, sth like '2016-02-19T12:40:04.983Z'
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(true, currentDateTime.toISOString(), 1, 'time', undefined, undefined);
       }, 100);
 
-      setTimeout(function () {
+      setTimeout(function() {
         var addLeadingZero = function(number) {
           return number < 10 ? '0' + number : number;
         };
-        expect(getDataAtCell(1, 0)).toEqual(addLeadingZero(currentDateTime.getHours()) + ':' + addLeadingZero(currentDateTime.getMinutes()) +':' + addLeadingZero(currentDateTime.getSeconds()));
+
+        expect(getDataAtCell(1, 0)).toEqual(addLeadingZero(currentDateTime.getHours()) + ':' + addLeadingZero(currentDateTime.getMinutes()) + ':' + addLeadingZero(currentDateTime.getSeconds()));
         done();
       }, 130);
     });
 
-    it("should rewrite one and two-digit number to the correct format at hours", function (done) {
+    it('should rewrite one and two-digit number to the correct format at hours', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: "hh:mm:ss a", correctFormat: true},
+          {data: 'time', type: 'time', timeFormat: 'hh:mm:ss a', correctFormat: true},
           {data: 'lastName'}
         ],
         afterValidate: onAfterValidate
@@ -351,23 +352,23 @@ describe('timeValidator', function () {
 
       setDataAtCell(1, 0, '19');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(true, '19', 1, 'time', undefined, undefined);
       }, 100);
 
-      setTimeout(function () {
-        expect(getDataAtCell(1, 0)).toEqual("07:00:00 pm");
+      setTimeout(function() {
+        expect(getDataAtCell(1, 0)).toEqual('07:00:00 pm');
         done();
       }, 130);
     });
 
-    it("should rewrite one and two-digit number to the correct format at minutes", function (done) {
+    it('should rewrite one and two-digit number to the correct format at minutes', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: "mm:ss", correctFormat: true},
+          {data: 'time', type: 'time', timeFormat: 'mm:ss', correctFormat: true},
           {data: 'lastName'}
         ],
         afterValidate: onAfterValidate
@@ -375,23 +376,23 @@ describe('timeValidator', function () {
 
       setDataAtCell(1, 0, '57');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(true, '57', 1, 'time', undefined, undefined);
       }, 100);
 
-      setTimeout(function () {
-        expect(getDataAtCell(1, 0)).toEqual("57:00");
+      setTimeout(function() {
+        expect(getDataAtCell(1, 0)).toEqual('57:00');
         done();
       }, 130);
     });
 
-    it("should not try to correct format of non-date strings", function (done) {
+    it('should not try to correct format of non-date strings', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: "HH:mm:ss", correctFormat: true},
+          {data: 'time', type: 'time', timeFormat: 'HH:mm:ss', correctFormat: true},
           {data: 'name'},
           {data: 'lastName'}
         ],
@@ -400,7 +401,7 @@ describe('timeValidator', function () {
 
       setDataAtCell(1, 0, 'test non-time string');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-time string', 1, 'time', undefined, undefined);
         done();
       }, 100);

@@ -1,12 +1,12 @@
-describe('manualColumnMove', function () {
+describe('manualColumnMove', function() {
   var id = 'testContainer';
   var arrayOfArrays = Handsontable.helper.createSpreadsheetData(30, 30);
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();

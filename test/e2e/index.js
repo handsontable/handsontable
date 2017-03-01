@@ -1,8 +1,10 @@
-var req = require.context('.', true, /\.spec\.js$/);
-// var req = require.context('./../plugins/**', true, /\.spec\.js$/);
-
-req.keys().forEach(function(key) {
+[
+  require.context('.', true, /\.spec\.js$/),
+  require.context('./../../src/plugins', true, /\.e2e\.js$/),
+].forEach(function(req) {
+  req.keys().forEach(function(key) {
     req(key);
+  });
 });
 
 require('./MemoryLeakTest');

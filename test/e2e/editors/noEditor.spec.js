@@ -1,18 +1,18 @@
-describe('noEditor', function () {
+describe('noEditor', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '" style="width: 300px; height: 200px; overflow: auto"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('shouldn\'t begin editing when enterBeginsEditing equals true', function () {
+  it('shouldn\'t begin editing when enterBeginsEditing equals true', function() {
     var
       selection;
 
@@ -28,7 +28,7 @@ describe('noEditor', function () {
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('shouldn\'t move down after editing', function () {
+  it('shouldn\'t move down after editing', function() {
     var
       selection;
 
@@ -43,7 +43,7 @@ describe('noEditor', function () {
     expect(selection).toEqual([2, 2, 2, 2]);
   });
 
-  it('shouldn\'t move down when enterBeginsEditing equals false', function () {
+  it('shouldn\'t move down when enterBeginsEditing equals false', function() {
     var
       selection;
 
@@ -59,18 +59,18 @@ describe('noEditor', function () {
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('shouldn\'t render any value in editor', function () {
+  it('shouldn\'t render any value in editor', function() {
     handsontable({
       editor: false
     });
-    setDataAtCell(2, 2, "string");
+    setDataAtCell(2, 2, 'string');
     selectCell(2, 2);
     keyDown('enter');
 
     expect(keyProxy().length).toEqual(0);
   });
 
-  it('shouldn\'t open editor after hitting F2', function () {
+  it('shouldn\'t open editor after hitting F2', function() {
     handsontable({
       editor: false
     });
@@ -83,7 +83,7 @@ describe('noEditor', function () {
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('shouldn\'t open editor after hitting CapsLock', function () {
+  it('shouldn\'t open editor after hitting CapsLock', function() {
     handsontable({
       editor: false
     });
@@ -96,7 +96,7 @@ describe('noEditor', function () {
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('shouldn\'t open editor after double clicking on a cell', function (done) {
+  it('shouldn\'t open editor after double clicking on a cell', function(done) {
     var
       hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 2),
@@ -108,19 +108,19 @@ describe('noEditor', function () {
     clicks = 0;
     window.scrollTo(0, cell.offset().top);
 
-    setTimeout(function () {
+    setTimeout(function() {
       mouseDown(cell);
       mouseUp(cell);
       clicks++;
     }, 0);
 
-    setTimeout(function () {
+    setTimeout(function() {
       mouseDown(cell);
       mouseUp(cell);
       clicks++;
     }, 100);
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(clicks).toBe(2);
       expect(hot.getActiveEditor()).toBe(undefined);
       expect(isEditorVisible()).toBe(false);
@@ -128,7 +128,7 @@ describe('noEditor', function () {
     }, 200);
   });
 
-  it("shouldn\'t open editor after pressing a printable character", function () {
+  it('should not open editor after pressing a printable character', function() {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       editor: false
@@ -142,7 +142,7 @@ describe('noEditor', function () {
     expect(isEditorVisible()).toBe(false);
   });
 
-  it("shouldn\'t open editor after pressing a printable character with shift key", function () {
+  it('should not open editor after pressing a printable character with shift key', function() {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       editor: false
@@ -156,7 +156,7 @@ describe('noEditor', function () {
     expect(isEditorVisible()).toBe(false);
   });
 
-  it("shouldn\'t not open editor after hitting ALT", function () {
+  it('should not not open editor after hitting ALT', function() {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       editor: false

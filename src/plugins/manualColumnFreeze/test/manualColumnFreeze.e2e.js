@@ -1,19 +1,19 @@
-describe("manualColumnFreeze", function () {
+describe('manualColumnFreeze', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  describe("freezeColumn", function () {
-    it("should increase fixedColumnsLeft setting", function () {
+  describe('freezeColumn', function() {
+    it('should increase fixedColumnsLeft setting', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true
@@ -24,7 +24,7 @@ describe("manualColumnFreeze", function () {
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
     });
 
-    it("should freeze (make fixed) the column provided as an argument", function () {
+    it('should freeze (make fixed) the column provided as an argument', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true
@@ -39,8 +39,8 @@ describe("manualColumnFreeze", function () {
     });
   });
 
-  describe("unfreezeColumn", function () {
-    it("should decrease fixedColumnsLeft setting", function () {
+  describe('unfreezeColumn', function() {
+    it('should decrease fixedColumnsLeft setting', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -52,7 +52,7 @@ describe("manualColumnFreeze", function () {
       expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
     });
 
-    it("should unfreeze (make non-fixed) the column provided as an argument", function () {
+    it('should unfreeze (make non-fixed) the column provided as an argument', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -71,9 +71,9 @@ describe("manualColumnFreeze", function () {
     });
   });
 
-  describe("functionality", function () {
+  describe('functionality', function() {
 
-    it("should add a 'freeze this column' context menu entry for non-fixed columns", function () {
+    it('should add a \'freeze this column\' context menu entry for non-fixed columns', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -83,15 +83,15 @@ describe("manualColumnFreeze", function () {
       selectCell(1, 1);
       contextMenu();
 
-      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
-        return $(this).text() === "Freeze this column";
+      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+        return $(this).text() === 'Freeze this column';
 
       });
 
       expect(freezeEntry.size()).toEqual(1);
     });
 
-    it("should add a 'unfreeze this column' context menu entry for fixed columns", function () {
+    it('should add a \'unfreeze this column\' context menu entry for fixed columns', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -102,15 +102,15 @@ describe("manualColumnFreeze", function () {
       selectCell(1, 1);
       contextMenu();
 
-      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
-        return $(this).text() === "Unfreeze this column";
+      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+        return $(this).text() === 'Unfreeze this column';
 
       });
 
       expect(freezeEntry.size()).toEqual(1);
     });
 
-    it("should fix the desired column after clicking the 'freeze this column' context menu entry", function () {
+    it('should fix the desired column after clicking the \'freeze this column\' context menu entry', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -124,22 +124,22 @@ describe("manualColumnFreeze", function () {
 
       contextMenu();
 
-      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
-        if ($(this).text() === "Freeze this column") {
+      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+        if ($(this).text() === 'Freeze this column') {
           return true;
         }
         return false;
       });
 
       expect(freezeEntry.size()).toEqual(1);
-      freezeEntry.eq(0).simulate("mousedown");
+      freezeEntry.eq(0).simulate('mousedown');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
       expect(hot.getDataAtCell(1, 1)).toEqual(dataAtCell);
 
     });
 
-    it("should unfix the desired column (and revert it to it's original position) after clicking the 'unfreeze this column' context menu entry", function () {
+    it('should unfix the desired column (and revert it to it\'s original position) after clicking the \'unfreeze this column\' context menu entry', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -150,50 +150,50 @@ describe("manualColumnFreeze", function () {
       });
 
       var dataAtCell = hot.getDataAtCell(1, 0);
-      expect(dataAtCell).toEqual("A2");
+      expect(dataAtCell).toEqual('A2');
       dataAtCell = hot.getDataAtCell(1, 1);
-      expect(dataAtCell).toEqual("C2");
+      expect(dataAtCell).toEqual('C2');
       dataAtCell = hot.getDataAtCell(1, 2);
-      expect(dataAtCell).toEqual("F2");
+      expect(dataAtCell).toEqual('F2');
 
       selectCell(1, 1);
       contextMenu();
 
-      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
-        return $(this).text() === "Unfreeze this column";
+      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+        return $(this).text() === 'Unfreeze this column';
 
       });
-      freezeEntry.eq(0).simulate("mousedown");
+      freezeEntry.eq(0).simulate('mousedown');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
       dataAtCell = hot.getDataAtCell(1, 0);
-      expect(dataAtCell).toEqual("A2");
+      expect(dataAtCell).toEqual('A2');
       dataAtCell = hot.getDataAtCell(1, 1);
-      expect(dataAtCell).toEqual("F2");
+      expect(dataAtCell).toEqual('F2');
       dataAtCell = hot.getDataAtCell(1, 2);
-      expect(dataAtCell).toEqual("C2");
+      expect(dataAtCell).toEqual('C2');
 
       selectCell(1, 1);
       contextMenu();
 
-      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
-        if ($(this).text() === "Unfreeze this column") {
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+        if ($(this).text() === 'Unfreeze this column') {
           return true;
         }
         return false;
       });
-      freezeEntry.eq(0).simulate("mousedown");
+      freezeEntry.eq(0).simulate('mousedown');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
       dataAtCell = hot.getDataAtCell(1, 0);
-      expect(dataAtCell).toEqual("A2");
+      expect(dataAtCell).toEqual('A2');
       dataAtCell = hot.getDataAtCell(1, 1);
-      expect(dataAtCell).toEqual("C2");
+      expect(dataAtCell).toEqual('C2');
       dataAtCell = hot.getDataAtCell(1, 2);
-      expect(dataAtCell).toEqual("D2");
+      expect(dataAtCell).toEqual('D2');
 
       dataAtCell = hot.getDataAtCell(1, 5);
-      expect(dataAtCell).toEqual("F2");
+      expect(dataAtCell).toEqual('F2');
 
       // Use the modified columns position.
       hot.updateSettings({
@@ -205,27 +205,27 @@ describe("manualColumnFreeze", function () {
 
       selectCell(1, 2);
       contextMenu();
-      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
-        return $(this).text() === "Freeze this column";
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+        return $(this).text() === 'Freeze this column';
       });
 
-      freezeEntry.eq(0).simulate("mousedown");
+      freezeEntry.eq(0).simulate('mousedown');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
       dataAtCell = hot.getDataAtCell(1, 0);
-      expect(dataAtCell).toEqual("F2");
+      expect(dataAtCell).toEqual('F2');
 
       selectCell(1, 0);
       contextMenu();
-      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find("div").filter(function () {
-        return $(this).text() === "Unfreeze this column";
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+        return $(this).text() === 'Unfreeze this column';
       });
 
-      freezeEntry.eq(0).simulate("mousedown");
+      freezeEntry.eq(0).simulate('mousedown');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
       dataAtCell = hot.getDataAtCell(1, 2);
-      expect(dataAtCell).toEqual("F2");
+      expect(dataAtCell).toEqual('F2');
     });
   });
 

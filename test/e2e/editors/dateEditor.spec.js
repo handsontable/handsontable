@@ -1,28 +1,28 @@
-describe('DateEditor', function () {
+describe('DateEditor', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  function getDates(){
+  function getDates() {
     return [
-      ["01/14/2006"],
-      ["12/01/2008"],
-      ["11/19/2011"],
-      ["02/02/2004"],
-      ["07/24/2011"]
+      ['01/14/2006'],
+      ['12/01/2008'],
+      ['11/19/2011'],
+      ['02/02/2004'],
+      ['07/24/2011']
     ];
   }
 
-  it("should display Pikday calendar", function () {
+  it('should display Pikday calendar', function() {
     handsontable({
       data: getDates(),
       columns: [
@@ -40,7 +40,7 @@ describe('DateEditor', function () {
     expect($('.pika-single').is(':visible')).toBe(true);
   });
 
-  it("should pass date picker config object to Pikday", function () {
+  it('should pass date picker config object to Pikday', function() {
     var onOpenSpy = jasmine.createSpy('open');
     var onCloseSpy = jasmine.createSpy('close');
     var hot = handsontable({
@@ -56,10 +56,10 @@ describe('DateEditor', function () {
             bound: true, // read only - shouldn't overwrite
             i18n: {
               previousMonth: 'Poprzedni',
-              nextMonth     : 'Następny',
-              months        : ['January','February','March','April','May','June','July','August','September','October','November','December'],
-              weekdays      : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-              weekdaysShort : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+              nextMonth: 'Następny',
+              months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+              weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+              weekdaysShort: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
             },
             onOpen: onOpenSpy,
             onClose: onCloseSpy
@@ -85,7 +85,7 @@ describe('DateEditor', function () {
     expect(onCloseSpy).toHaveBeenCalled();
   });
 
-  it("should remove any HTML connected with Pikaday Calendar", function () {
+  it('should remove any HTML connected with Pikaday Calendar', function() {
     handsontable({
       data: getDates(),
       columns: [
@@ -107,7 +107,7 @@ describe('DateEditor', function () {
     expect($('.pika-single').length).toBe(0);
   });
 
-  it("should select date corresponding to cell value", function () {
+  it('should select date corresponding to cell value', function() {
     handsontable({
       data: getDates(),
       columns: [
@@ -128,7 +128,7 @@ describe('DateEditor', function () {
     expect($('.pika-single').find('.pika-table .is-selected').text()).toMatch(date.getDate().toString());
   });
 
-  it("should save new date after clicked on calendar", function (done) {
+  it('should save new date after clicked on calendar', function(done) {
     handsontable({
       data: getDates(),
       columns: [
@@ -146,13 +146,13 @@ describe('DateEditor', function () {
 
     mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
       done();
     }, 150);
   });
 
-  it("should display fill handle after selected date on calendar", function (done) {
+  it('should display fill handle after selected date on calendar', function(done) {
     handsontable({
       data: getDates(),
       columns: [
@@ -170,14 +170,14 @@ describe('DateEditor', function () {
 
     mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
       expect($('.htBorders .current.corner').is(':visible')).toBe(true);
       done();
     }, 150);
   });
 
-  it("should setup in settings and display defaultDate on calendar", function (done) {
+  it('should setup in settings and display defaultDate on calendar', function(done) {
     handsontable({
       data: getDates(),
       minSpareRows: 1,
@@ -203,13 +203,13 @@ describe('DateEditor', function () {
 
     keyDown('enter');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(getDataAtCell(5, 0)).toMatch('01/01/1900');
       done();
     }, 150);
   });
 
-  it("should close calendar after picking new date", function () {
+  it('should close calendar after picking new date', function() {
     handsontable({
       data: getDates(),
       columns: [
@@ -230,7 +230,7 @@ describe('DateEditor', function () {
     expect($('.pika-single').is(':visible')).toBe(false);
   });
 
-  it("should enable to input any value in textarea", function (done) {
+  it('should enable to input any value in textarea', function(done) {
     var hot = handsontable({
       data: getDates(),
       columns: [
@@ -255,13 +255,13 @@ describe('DateEditor', function () {
 
     editor.finishEditing();
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(getDataAtCell(0, 0)).toEqual('foo');
       done();
     }, 30);
   });
 
-  it("should restore original when edited and pressed ESC ", function (done) {
+  it('should restore original when edited and pressed ESC ', function(done) {
     var hot = handsontable({
       data: getDates(),
       columns: [
@@ -287,13 +287,13 @@ describe('DateEditor', function () {
 
     editor.finishEditing();
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(getDataAtCell(0, 0)).toEqual('01/14/2006');
       done();
     }, 30);
   });
 
-  it("should display a calendar based on a current date, even if a date in a wrong format was entered previously", function (done) {
+  it('should display a calendar based on a current date, even if a date in a wrong format was entered previously', function(done) {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       columns: [
@@ -304,10 +304,10 @@ describe('DateEditor', function () {
     }),
       resultDate;
 
-    setDataAtCell(4,1, '15-11-11');
+    setDataAtCell(4, 1, '15-11-11');
 
-    setTimeout(function () {
-      selectCell(5,1);
+    setTimeout(function() {
+      selectCell(5, 1);
       keyDown('enter');
 
       expect($('.pika-single').is(':visible')).toBe(true);
@@ -315,8 +315,8 @@ describe('DateEditor', function () {
       mouseDown($('.pika-single').find('.pika-table tbody tr:eq(3) td:eq(3) button'));
     }, 150);
 
-    setTimeout(function () {
-      resultDate = getDataAtCell(5,1);
+    setTimeout(function() {
+      resultDate = getDataAtCell(5, 1);
 
       expect(moment(resultDate).year()).toEqual(moment().year());
       expect(moment(resultDate).month()).toEqual(moment().month());
@@ -324,7 +324,7 @@ describe('DateEditor', function () {
     }, 300);
   });
 
-  it("should display Pikaday Calendar bottom of the selected cell", function() {
+  it('should display Pikaday Calendar bottom of the selected cell', function() {
     var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 2),
         columns: [
@@ -346,7 +346,7 @@ describe('DateEditor', function () {
     expect(cellOffset.left).toBeCloseTo(datePickerOffset.left, 0);
   });
 
-  it("should display Pikaday Calendar bottom of the selected cell when table have scrolls", function() {
+  it('should display Pikaday Calendar bottom of the selected cell when table have scrolls', function() {
     var container = $('#testContainer');
 
     container[0].style.height = '300px';
@@ -379,7 +379,7 @@ describe('DateEditor', function () {
     expect(cellOffset.left).toBeCloseTo(datePickerOffset.left, 0);
   });
 
-  it("should not modify the edited date and time, when opening the editor", function() {
+  it('should not modify the edited date and time, when opening the editor', function() {
     var hot = handsontable({
         data: [['02/02/2015 8:00 AM']],
         columns: [
@@ -396,7 +396,7 @@ describe('DateEditor', function () {
       cellValue;
 
     // setDataAtCell(0, 0, '02/02/2015 8:00 AM');
-    cellValue = getDataAtCell(0,0);
+    cellValue = getDataAtCell(0, 0);
 
     selectCell(0, 0);
     keyDown('enter');

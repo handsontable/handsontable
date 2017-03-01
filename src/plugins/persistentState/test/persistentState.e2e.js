@@ -1,11 +1,11 @@
-describe('persistentState', function () {
+describe('persistentState', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -14,7 +14,7 @@ describe('persistentState', function () {
     window.localStorage.clear();
   });
 
-  it("should save data, when persistentStateSave is run", function () {
+  it('should save data, when persistentStateSave is run', function() {
     var hot = handsontable({
       persistentState: true
     });
@@ -27,11 +27,10 @@ describe('persistentState', function () {
 
     var storedData = JSON.parse(rawStoredData);
 
-    expect(storedData).toEqual(100)
-
+    expect(storedData).toEqual(100);
   });
 
-  it("should NOT save data, when persistentStateSave is run, if plugin is not enabled", function () {
+  it('should NOT save data, when persistentStateSave is run, if plugin is not enabled', function() {
     var hot = handsontable({
       persistentState: false
     });
@@ -44,7 +43,7 @@ describe('persistentState', function () {
 
   });
 
-  it("should load data, when persistentStateLoad is run", function () {
+  it('should load data, when persistentStateLoad is run', function() {
     var hot = handsontable({
       persistentState: true
     });
@@ -58,7 +57,7 @@ describe('persistentState', function () {
 
   });
 
-  it("should NOT load data, when persistentStateLoad is run, if plugin is not enabled", function () {
+  it('should NOT load data, when persistentStateLoad is run, if plugin is not enabled', function() {
     var hot = handsontable({
       persistentState: false
     });
@@ -73,7 +72,7 @@ describe('persistentState', function () {
 
   });
 
-  it("should clear the data under the given key, when persistentStateReset is run", function () {
+  it('should clear the data under the given key, when persistentStateReset is run', function() {
     var hot = handsontable({
       persistentState: true
     });
@@ -91,11 +90,9 @@ describe('persistentState', function () {
     hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toBeUndefined();
-
-
   });
 
-  it("should NOT clear the data under the given key, when persistentStateReset is run", function () {
+  it('should NOT clear the data under the given key, when persistentStateReset is run', function() {
     var hot = handsontable({
       persistentState: false
     });
@@ -110,7 +107,7 @@ describe('persistentState', function () {
 
   });
 
-  it("should clear all data, when persistentStateReset is run without specifying a key to reset", function () {
+  it('should clear all data, when persistentStateReset is run without specifying a key to reset', function() {
     var hot = handsontable({
       persistentState: true
     });
@@ -146,11 +143,9 @@ describe('persistentState', function () {
     expect(storedData[0].value).toBeUndefined();
     expect(storedData[1].value).toBeUndefined();
     expect(storedData[2].value).toBeUndefined();
-
-
   });
 
-  it("should allow to DISABLE plugin with updateSettings", function () {
+  it('should allow to DISABLE plugin with updateSettings', function() {
     var hot = handsontable({
       persistentState: true
     });
@@ -173,7 +168,7 @@ describe('persistentState', function () {
 
   });
 
-  it("should allow to ENABLE plugin with updateSettings", function () {
+  it('should allow to ENABLE plugin with updateSettings', function() {
     var hot = handsontable({
       persistentState: false
     });

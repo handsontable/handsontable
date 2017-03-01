@@ -1,26 +1,26 @@
-describe('SelectEditor', function () {
+describe('SelectEditor', function() {
 
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it("should display select", function () {
-     handsontable({
-       columns: [
-         {
-           editor: 'select'
-         }
-       ]
-     });
+  it('should display select', function() {
+    handsontable({
+      columns: [
+        {
+          editor: 'select'
+        }
+      ]
+    });
 
     selectCell(0, 0);
 
@@ -36,17 +36,17 @@ describe('SelectEditor', function () {
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
 
-  it("should display and correctly reposition select editor while scrolling", function (done) {
-     var hot = handsontable({
-       width: 200,
-       height: 200,
-       data: Handsontable.helper.createSpreadsheetData(100, 100),
-       columns: [
-         {
-           editor: 'select'
-         }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {editor: 'select'}
-       ]
-     });
+  it('should display and correctly reposition select editor while scrolling', function(done) {
+    var hot = handsontable({
+      width: 200,
+      height: 200,
+      data: Handsontable.helper.createSpreadsheetData(100, 100),
+      columns: [
+        {
+          editor: 'select'
+        }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {editor: 'select'}
+      ]
+    });
     var mainHolder = hot.view.wt.wtTable.holder;
 
     selectCell(0, 0);
@@ -57,14 +57,14 @@ describe('SelectEditor', function () {
     mainHolder.scrollLeft = 20;
     var editor = $('.htSelectEditor');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(editor.css('top')).toEqual('-10px');
       expect(editor.css('left')).toEqual('-20px');
       done();
     }, 200);
   });
 
-  it("should populate select with given options (array)", function () {
+  it('should populate select with given options (array)', function() {
     var options = [
       'Misubishi', 'Chevrolet', 'Lamborgini'
     ];
@@ -95,11 +95,11 @@ describe('SelectEditor', function () {
     expect($options.eq(2).html()).toMatch(options[2]);
   });
 
-  it("should populate select with given options (object)", function () {
+  it('should populate select with given options (object)', function() {
     var options = {
-      'mit' : 'Misubishi',
-      'che' : 'Chevrolet',
-      'lam' : 'Lamborgini'
+      mit: 'Misubishi',
+      che: 'Chevrolet',
+      lam: 'Lamborgini'
     };
 
     handsontable({
@@ -120,15 +120,15 @@ describe('SelectEditor', function () {
     var $options = editor.find('option');
 
     expect($options.eq(0).val()).toMatch('mit');
-    expect($options.eq(0).html()).toMatch(options['mit']);
+    expect($options.eq(0).html()).toMatch(options.mit);
     expect($options.eq(1).val()).toMatch('che');
-    expect($options.eq(1).html()).toMatch(options['che']);
+    expect($options.eq(1).html()).toMatch(options.che);
     expect($options.eq(2).val()).toMatch('lam');
-    expect($options.eq(2).html()).toMatch(options['lam']);
+    expect($options.eq(2).html()).toMatch(options.lam);
   });
 
-  it("should populate select with given options (function:array)", function () {
-    var options = function () {
+  it('should populate select with given options (function:array)', function() {
+    var options = function() {
       return [
         'Misubishi', 'Chevrolet', 'Lamborgini'
       ];
@@ -160,13 +160,13 @@ describe('SelectEditor', function () {
     expect($options.eq(2).html()).toMatch(options()[2]);
   });
 
-  it("should populate select with given options (function:object)", function () {
-    var options = function () {
+  it('should populate select with given options (function:object)', function() {
+    var options = function() {
       return {
-        'mit' : 'Misubishi',
-        'che' : 'Chevrolet',
-        'lam' : 'Lamborgini'
-      }
+        mit: 'Misubishi',
+        che: 'Chevrolet',
+        lam: 'Lamborgini'
+      };
     };
 
     handsontable({
@@ -187,14 +187,14 @@ describe('SelectEditor', function () {
     var $options = editor.find('option');
 
     expect($options.eq(0).val()).toMatch('mit');
-    expect($options.eq(0).html()).toMatch(options()['mit']);
+    expect($options.eq(0).html()).toMatch(options().mit);
     expect($options.eq(1).val()).toMatch('che');
-    expect($options.eq(1).html()).toMatch(options()['che']);
+    expect($options.eq(1).html()).toMatch(options().che);
     expect($options.eq(2).val()).toMatch('lam');
-    expect($options.eq(2).html()).toMatch(options()['lam']);
+    expect($options.eq(2).html()).toMatch(options().lam);
   });
 
-  it("should mark option matching cell value as selected", function () {
+  it('should mark option matching cell value as selected', function() {
     var options = [
       'Misubishi', 'Chevrolet', 'Lamborgini'
     ];
@@ -238,9 +238,9 @@ describe('SelectEditor', function () {
     keyDown('enter');
   });
 
-  it("should not prevent the default event action when select is clicked", function () {
+  it('should not prevent the default event action when select is clicked', function() {
 
-    var options = function () {
+    var options = function() {
       return [
         'Misubishi', 'Chevrolet', 'Lamborgini'
       ];

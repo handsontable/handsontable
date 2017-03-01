@@ -330,7 +330,7 @@ describe('Comments', function() {
         colHeaders: true,
         contextMenu: true,
         comments: true,
-        columns: function () {
+        columns: function() {
           return {
             comment: {
               value: 'test'
@@ -345,7 +345,7 @@ describe('Comments', function() {
       selectCell(1, 1);
       contextMenu();
 
-      var deleteCommentButton = $('.htItemWrapper').filter(function () {
+      var deleteCommentButton = $('.htItemWrapper').filter(function() {
         return $(this).text() === 'Delete comment';
       })[0];
 
@@ -357,7 +357,7 @@ describe('Comments', function() {
     // Don't work in PhantomJS
     // It will work probably when #3961 will be fixed
 
-    xit('should trigger `afterSetCellMeta` callback after editing comment by context menu', function (done) {
+    xit('should trigger `afterSetCellMeta` callback after editing comment by context menu', function(done) {
       var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
       var rows = 10, columns = 10;
 
@@ -367,7 +367,7 @@ describe('Comments', function() {
         colHeaders: true,
         contextMenu: true,
         comments: true,
-        columns: function () {
+        columns: function() {
           return {
             comment: {
               value: 'test'
@@ -380,20 +380,20 @@ describe('Comments', function() {
       selectCell(0, 0);
       contextMenu();
 
-      var editCommentButton = $('.htItemWrapper').filter(function () {
+      var editCommentButton = $('.htItemWrapper').filter(function() {
         return $(this).text() === 'Edit comment';
       })[0];
 
       $(editCommentButton).simulate('mousedown');
 
-      setTimeout(function () {
+      setTimeout(function() {
         $('.htCommentTextArea').val('Edited comment');
 
         // changing focus
 
         $('body').simulate('mousedown');
 
-        setTimeout(function () {
+        setTimeout(function() {
           expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', {value: 'Edited comment'}, undefined, undefined);
           done();
         }, 100);

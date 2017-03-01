@@ -1,10 +1,7 @@
-describe('WalkontableBorder', function () {
-  var $table,
-    $container,
-    $wrapper,
-    debug = false;
+describe('WalkontableBorder', function() {
+  var $table, $container, $wrapper, debug = false;
 
-  beforeEach(function () {
+  beforeEach(function() {
     $container = $('<div></div>');
     $wrapper = $('<div></div>');
     $container.width(100).height(200);
@@ -15,14 +12,14 @@ describe('WalkontableBorder', function () {
     createDataArray();
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (!debug) {
       $('.wtHolder').remove();
     }
     $container.remove();
   });
 
-  it("should add/remove border to selection when cell is clicked", function () {
+  it('should add/remove border to selection when cell is clicked', function() {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -36,7 +33,7 @@ describe('WalkontableBorder', function () {
           }
         })
       ],
-      onCellMouseDown: function (event, coords, TD) {
+      onCellMouseDown: function(event, coords, TD) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
@@ -84,7 +81,7 @@ describe('WalkontableBorder', function () {
     expect($left.position().left).toBe(49);
   });
 
-  it("should add/remove corner to selection when cell is clicked", function () {
+  it('should add/remove corner to selection when cell is clicked', function() {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -95,14 +92,14 @@ describe('WalkontableBorder', function () {
           border: {
             width: 2,
             color: 'green',
-            cornerVisible: function () {
+            cornerVisible: function() {
               return true;
             }
           }
         }),
         new WalkontableSelection({})
       ],
-      onCellMouseDown: function (event, coords, TD) {
+      onCellMouseDown: function(event, coords, TD) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
@@ -130,7 +127,7 @@ describe('WalkontableBorder', function () {
     expect($corner.position().left).toBe(95);
   });
 
-  it("should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)", function () {
+  it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', function() {
     $container.css({
       overflow: 'hidden',
       width: '200px'
@@ -145,14 +142,14 @@ describe('WalkontableBorder', function () {
           border: {
             width: 2,
             color: 'green',
-            cornerVisible: function () {
+            cornerVisible: function() {
               return true;
             }
           }
         }),
         new WalkontableSelection({})
       ],
-      onCellMouseDown: function (event, coords, TD) {
+      onCellMouseDown: function(event, coords, TD) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();

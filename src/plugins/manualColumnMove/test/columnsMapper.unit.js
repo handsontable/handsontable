@@ -1,28 +1,30 @@
-describe('manualRowMove', function () {
-  describe('rowsMapper', function () {
-    it('should set manualRowMove plugin while constructing', function() {
-      var manualRowMoveMock = {};
-      var mapper = new Handsontable.utils.ManualRowMoveRowsMapper(manualRowMoveMock);
+import ColumnsMapper from 'handsontable/plugins/manualColumnMove/columnsMapper';
 
-      expect(mapper.manualRowMove).toBe(manualRowMoveMock);
+describe('manualColumnMove', function() {
+  describe('columnsMapper', function() {
+    it('should set manualColumnMove plugin while constructing', function() {
+      var manualColumnMoveMock = {};
+      var mapper = new ColumnsMapper(manualColumnMoveMock);
+
+      expect(mapper.manualColumnMove).toBe(manualColumnMoveMock);
     });
 
     it('should be mixed with arrayMapper object', function() {
-      expect(Handsontable.utils.ManualRowMoveRowsMapper.MIXINS).toEqual(['arrayMapper']);
+      expect(ColumnsMapper.MIXINS).toEqual(['arrayMapper']);
     });
 
     it('should destroy array after calling destroy method', function() {
-      var mapper = new Handsontable.utils.ManualRowMoveRowsMapper();
+      var mapper = new ColumnsMapper();
 
       expect(mapper._arrayMap).toEqual([]);
 
       mapper.destroy();
 
-      expect(mapper._arrayMap).toBe(null);;
+      expect(mapper._arrayMap).toBe(null);
     });
 
     it('should create map with pairs index->value', function() {
-      var mapper = new Handsontable.utils.ManualRowMoveRowsMapper();
+      var mapper = new ColumnsMapper();
       mapper.createMap(6);
 
       expect(mapper._arrayMap[0]).toBe(0);
@@ -34,10 +36,10 @@ describe('manualRowMove', function () {
     });
 
     it('should change order after move action', function() {
-      var mapper = new Handsontable.utils.ManualRowMoveRowsMapper();
+      var mapper = new ColumnsMapper();
       mapper.createMap(6);
 
-      mapper.moveRow(1, 0);
+      mapper.moveColumn(1, 0);
       mapper.clearNull();
 
       expect(mapper._arrayMap[0]).toBe(1);
@@ -49,12 +51,12 @@ describe('manualRowMove', function () {
     });
 
     it('should clean from null values', function() {
-      var mapper = new Handsontable.utils.ManualRowMoveRowsMapper();
+      var mapper = new ColumnsMapper();
       mapper.createMap(6);
 
-      mapper.moveRow(1, 6);
-      mapper.moveRow(2, 7);
-      mapper.moveRow(4, 8);
+      mapper.moveColumn(1, 6);
+      mapper.moveColumn(2, 7);
+      mapper.moveColumn(4, 8);
 
       mapper.clearNull();
 

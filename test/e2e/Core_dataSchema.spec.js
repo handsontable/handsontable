@@ -1,18 +1,18 @@
-describe('Core_dataSchema', function () {
+describe('Core_dataSchema', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as object)', function () {
+  it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as object)', function() {
     var schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
       hot = handsontable({
         data: [],
@@ -21,9 +21,9 @@ describe('Core_dataSchema', function () {
         minCols: 4,
         colHeaders: ['ID', 'First Name', 'Last Name'],
         columns: [
-          {data: "id"},
-          {data: "name.first"},
-          {data: "name.last"}
+          {data: 'id'},
+          {data: 'name.first'},
+          {data: 'name.last'}
         ],
         minSpareRows: 1
       });
@@ -31,7 +31,7 @@ describe('Core_dataSchema', function () {
     expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
   });
 
-  it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as object) when columns is a function', function () {
+  it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as object) when columns is a function', function() {
     var schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
       hot = handsontable({
         data: [],
@@ -63,7 +63,7 @@ describe('Core_dataSchema', function () {
     expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
   });
 
-  it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as function)', function () {
+  it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as function)', function() {
     var schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
       hot = handsontable({
         data: [],
@@ -74,16 +74,16 @@ describe('Core_dataSchema', function () {
         minCols: 4,
         colHeaders: ['ID', 'First Name', 'Last Name'],
         columns: [
-          {data: "id"},
-          {data: "name.first"},
-          {data: "name.last"}
+          {data: 'id'},
+          {data: 'name.first'},
+          {data: 'name.last'}
         ],
         minSpareRows: 1
       });
     expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
   });
 
-  it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as function) when columns is a function', function () {
+  it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as function) when columns is a function', function() {
     var schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
       hot = handsontable({
         data: [],
@@ -116,8 +116,7 @@ describe('Core_dataSchema', function () {
     expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
   });
 
-
-  it('should be equal to `hot.getSchema()` when dataSchema is generated based on data structure', function () {
+  it('should be equal to `hot.getSchema()` when dataSchema is generated based on data structure', function() {
     var hot = handsontable({
         data: [
           {id: 1, name: {first: 'Alan', last: 'Pakoli'}, cars: [{brand: 'Ford'}]}
@@ -126,9 +125,9 @@ describe('Core_dataSchema', function () {
         minCols: 4,
         colHeaders: ['ID', 'First Name', 'Last Name'],
         columns: [
-          {data: "id"},
-          {data: "name.first"},
-          {data: "name.last"}
+          {data: 'id'},
+          {data: 'name.first'},
+          {data: 'name.last'}
         ],
         minSpareRows: 1
       });
@@ -137,7 +136,7 @@ describe('Core_dataSchema', function () {
       toEqual(JSON.stringify({id: null, name: {first: null, last: null}, cars: [{brand: null}]}));
   });
 
-  it('should be equal to `hot.getSchema()` when dataSchema is generated based on data structure when columns is a function', function () {
+  it('should be equal to `hot.getSchema()` when dataSchema is generated based on data structure when columns is a function', function() {
     var hot = handsontable({
       data: [
         {id: 1, name: {first: 'Alan', last: 'Pakoli'}, cars: [{brand: 'Ford'}]}
@@ -170,7 +169,7 @@ describe('Core_dataSchema', function () {
     toEqual(JSON.stringify({id: null, name: {first: null, last: null}, cars: [{brand: null}]}));
   });
 
-  it('should create new row from dataSchema', function () {
+  it('should create new row from dataSchema', function() {
     handsontable({
       data: [],
       dataSchema: {id: null, name: {first: null, last: null}, address: null},
@@ -178,10 +177,10 @@ describe('Core_dataSchema', function () {
       minCols: 4,
       colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
       columns: [
-        {data: "id"},
-        {data: "name.first"},
-        {data: "name.last"},
-        {data: "address"}
+        {data: 'id'},
+        {data: 'name.first'},
+        {data: 'name.last'},
+        {data: 'address'}
       ],
       minSpareRows: 1
     });
@@ -194,7 +193,7 @@ describe('Core_dataSchema', function () {
     expect(getSourceData()[0].name.first).toEqual('Ted');
   });
 
-  it('should create new row from dataSchema when columns is a function', function () {
+  it('should create new row from dataSchema when columns is a function', function() {
     handsontable({
       data: [],
       dataSchema: {id: null, name: {first: null, last: null}, address: null},
@@ -233,13 +232,13 @@ describe('Core_dataSchema', function () {
     expect(getSourceData()[0].name.first).toEqual('Ted');
   });
 
-  it('should create new row from dataSchema (functional)', function () {
+  it('should create new row from dataSchema (functional)', function() {
     handsontable({
       data: [],
-      dataSchema: function (index) {
-        return {id: 1000 + index, name: {first: null, last: null}, address: null}
+      dataSchema: function(index) {
+        return {id: 1000 + index, name: {first: null, last: null}, address: null};
       },
-      isEmptyRow: function (r) {
+      isEmptyRow: function(r) {
         var row = this.getSourceData()[r];
 
         return (row.name.first === null || row.name.first === '') &&
@@ -250,10 +249,10 @@ describe('Core_dataSchema', function () {
       minCols: 4,
       colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
       columns: [
-        {data: "id"},
-        {data: "name.first"},
-        {data: "name.last"},
-        {data: "address"}
+        {data: 'id'},
+        {data: 'name.first'},
+        {data: 'name.last'},
+        {data: 'address'}
       ],
       minSpareRows: 1
     });
@@ -275,13 +274,13 @@ describe('Core_dataSchema', function () {
     expect(countRows()).toEqual(6); //row should be added by keepEmptyRows
   });
 
-  it('should create new row from dataSchema (functional) when columns is a function', function () {
+  it('should create new row from dataSchema (functional) when columns is a function', function() {
     handsontable({
       data: [],
-      dataSchema: function (index) {
-        return {id: 1000 + index, name: {first: null, last: null}, address: null}
+      dataSchema: function(index) {
+        return {id: 1000 + index, name: {first: null, last: null}, address: null};
       },
-      isEmptyRow: function (r) {
+      isEmptyRow: function(r) {
         var row = this.getSourceData()[r];
 
         return (row.name.first === null || row.name.first === '') &&
@@ -332,7 +331,7 @@ describe('Core_dataSchema', function () {
     expect(countRows()).toEqual(6); //row should be added by keepEmptyRows
   });
 
-  it("should translate prop to col, when prop is a function", function () {
+  it('should translate prop to col, when prop is a function', function() {
     var idAccessor = createAccessorForProperty('id');
     var nameAccessor = createAccessorForProperty('name');
 
@@ -366,7 +365,7 @@ describe('Core_dataSchema', function () {
     expect(hot.propToCol(nameAccessor)).toEqual(1);
   });
 
-  it("should translate prop to col, when prop and columns is a function", function () {
+  it('should translate prop to col, when prop and columns is a function', function() {
     var idAccessor = createAccessorForProperty('id');
     var nameAccessor = createAccessorForProperty('name');
 
@@ -407,7 +406,7 @@ describe('Core_dataSchema', function () {
     expect(hot.propToCol(nameAccessor)).toEqual(1);
   });
 
-  it('should create new row data matched to dataSchema (data type as `array`)', function () {
+  it('should create new row data matched to dataSchema (data type as `array`)', function() {
     var spy = jasmine.createSpy();
     var hot = handsontable({
       data: [[{id: 1}]],
@@ -430,7 +429,7 @@ describe('Core_dataSchema', function () {
     expect(spy.calls.argsFor(1)[5]).toEqual({id: 1});
   });
 
-  it('should create new row data matched to dataSchema (data type as `array`) when columns is a function', function () {
+  it('should create new row data matched to dataSchema (data type as `array`) when columns is a function', function() {
     var spy = jasmine.createSpy();
     var hot = handsontable({
       data: [[{id: 1}]],
@@ -482,7 +481,7 @@ describe('Core_dataSchema', function () {
     var hot = handsontable({
       startCols: 2,
       minSpareRows: 4,
-      dataSchema: function () {
+      dataSchema: function() {
         return {id: null, name: null, surname: null};
       },
     });

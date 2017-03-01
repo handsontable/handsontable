@@ -1,11 +1,11 @@
-describe("ContextMenuCopyPaste", function () {
+describe('ContextMenuCopyPaste', function() {
   var id = 'testContainer';
 
-  if (typeof navigator.mimeTypes['application/x-shockwave-flash'] === "undefined") {
+  if (typeof navigator.mimeTypes['application/x-shockwave-flash'] === 'undefined') {
     navigator.mimeTypes['application/x-shockwave-flash'] = {}; //mock Adobe Flash plugin so that contextMenuCopyPaste.js does not throw an error in PhantomJS
   }
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
 
     var wrapper = $('<div></div>').css({
@@ -17,7 +17,7 @@ describe("ContextMenuCopyPaste", function () {
     this.$wrapper = this.$container.wrap(wrapper).parent();
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -25,10 +25,10 @@ describe("ContextMenuCopyPaste", function () {
     this.$wrapper.remove();
 
     $('head').find('script[src*=ZeroClipboard]').remove();
-    delete ZeroClipboard;
+    delete window.ZeroClipboard;
   });
 
-  it("should add Copy and Paste context menu options at the beginning by default", function () {
+  it('should add Copy and Paste context menu options at the beginning by default', function() {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
@@ -36,7 +36,7 @@ describe("ContextMenuCopyPaste", function () {
       minSpareRows: 1,
       contextMenu: true,
       contextMenuCopyPaste: {
-        swfPath: "../../demo/swf/ZeroClipboard.swf"
+        swfPath: '../../demo/swf/ZeroClipboard.swf'
       }
     });
 
@@ -44,19 +44,19 @@ describe("ContextMenuCopyPaste", function () {
 
     contextMenu();
 
-    var $contextMenuEntries = $('.htContextMenu .ht_master .htCore tbody').find('td')
-      , $copyButton = $contextMenuEntries.find('div').filter(function () {
-        return (/Copy/i).test($(this).text())
-      }).parents('td')
-      , $pasteButton = $contextMenuEntries.find('div').filter(function () {
-        return (/Paste/i).test($(this).text())
-      }).parents('td');
+    var $contextMenuEntries = $('.htContextMenu .ht_master .htCore tbody').find('td');
+    var $copyButton = $contextMenuEntries.find('div').filter(function() {
+      return (/Copy/i).test($(this).text());
+    }).parents('td');
+    var $pasteButton = $contextMenuEntries.find('div').filter(function() {
+      return (/Paste/i).test($(this).text());
+    }).parents('td');
 
     expect($contextMenuEntries.index($copyButton)).toEqual(0);
     expect($contextMenuEntries.index($pasteButton)).toEqual(1);
   });
 
-  it("should add Copy and Paste context menu options at the provided index", function () {
+  it('should add Copy and Paste context menu options at the provided index', function() {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
@@ -64,7 +64,7 @@ describe("ContextMenuCopyPaste", function () {
       minSpareRows: 1,
       contextMenu: ['row_above', 'copy', 'paste', 'row_below'],
       contextMenuCopyPaste: {
-        swfPath: "../../demo/swf/ZeroClipboard.swf"
+        swfPath: '../../demo/swf/ZeroClipboard.swf'
       }
     });
 
@@ -72,19 +72,19 @@ describe("ContextMenuCopyPaste", function () {
 
     contextMenu();
 
-    var $contextMenuEntries = $('.htContextMenu .ht_master .htCore tbody').find('td')
-      , $copyButton = $contextMenuEntries.find('div').filter(function () {
-        return (/Copy/i).test($(this).text())
-      }).parents('td')
-      , $pasteButton = $contextMenuEntries.find('div').filter(function () {
-        return (/Paste/i).test($(this).text())
-      }).parents('td');
+    var $contextMenuEntries = $('.htContextMenu .ht_master .htCore tbody').find('td');
+    var $copyButton = $contextMenuEntries.find('div').filter(function() {
+      return (/Copy/i).test($(this).text());
+    }).parents('td');
+    var $pasteButton = $contextMenuEntries.find('div').filter(function() {
+      return (/Paste/i).test($(this).text());
+    }).parents('td');
 
     expect($contextMenuEntries.not('[class*=htSeparator]').index($copyButton)).toEqual(1);
     expect($contextMenuEntries.not('[class*=htSeparator]').index($pasteButton)).toEqual(2);
   });
 
-  it("should disable `Copy` and `Paste` items when context menu was triggered from corner header", function () {
+  it('should disable `Copy` and `Paste` items when context menu was triggered from corner header', function() {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
@@ -92,7 +92,7 @@ describe("ContextMenuCopyPaste", function () {
       minSpareRows: 1,
       contextMenu: true,
       contextMenuCopyPaste: {
-        swfPath: "../../demo/swf/ZeroClipboard.swf"
+        swfPath: '../../demo/swf/ZeroClipboard.swf'
       }
     });
 
@@ -114,7 +114,7 @@ describe("ContextMenuCopyPaste", function () {
   });
 
   // see https://github.com/handsontable/handsontable/issues/3140
-  it("should not throwing error when ContextMenu plugin is disabled", function () {
+  it('should not throwing error when ContextMenu plugin is disabled', function() {
     var spy = jasmine.createSpy();
     var prevError = window.onerror;
 
@@ -129,7 +129,7 @@ describe("ContextMenuCopyPaste", function () {
       minSpareRows: 1,
       contextMenu: true,
       contextMenuCopyPaste: {
-        swfPath: "../../demo/swf/ZeroClipboard.swf"
+        swfPath: '../../demo/swf/ZeroClipboard.swf'
       }
     });
 

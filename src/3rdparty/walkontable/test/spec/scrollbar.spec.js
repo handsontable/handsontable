@@ -1,11 +1,8 @@
-describe('WalkontableScrollbar', function () {
-  var $table
-    , $container
-    , $wrapper
-    , debug = false;
+describe('WalkontableScrollbar', function() {
+  var $table, $container, $wrapper, debug = false;
 
-  beforeEach(function () {
-    $wrapper = $('<div></div>').css({'overflow': 'hidden'});
+  beforeEach(function() {
+    $wrapper = $('<div></div>').css({overflow: 'hidden'});
     $container = $('<div></div>');
     $table = $('<table></table>'); //create a table that is not attached to document
     $wrapper.append($container);
@@ -14,14 +11,14 @@ describe('WalkontableScrollbar', function () {
     createDataArray();
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (!debug) {
       $('.wtHolder').remove();
     }
     $wrapper.remove();
   });
 
-  it("should table in DIV.wtHolder that contains 2 scrollbars", function () {
+  it('should table in DIV.wtHolder that contains 2 scrollbars', function() {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -33,7 +30,7 @@ describe('WalkontableScrollbar', function () {
     expect($table.parents('.wtHolder').length).toEqual(1);
   });
 
-  it("scrolling should have no effect when totalRows is smaller than height", function () {
+  it('scrolling should have no effect when totalRows is smaller than height', function() {
     this.data.splice(5, this.data.length - 5);
 
     try {
@@ -54,6 +51,4 @@ describe('WalkontableScrollbar', function () {
       expect(e).toBeUndefined();
     }
   });
-
-
 });

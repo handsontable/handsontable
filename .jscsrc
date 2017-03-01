@@ -73,5 +73,6 @@
   "requireSemicolons": true,
   "validateQuoteMarks": "'",
   "validateIndentation": 2,
-  "disallowNotOperatorsInConditionals": true
+  "disallowNotOperatorsInConditionals": true,
+  "excludeFiles": ["test/dist/**", "test/lib/**", "src/3rdparty/walkontable/test/lib/**"]
 }

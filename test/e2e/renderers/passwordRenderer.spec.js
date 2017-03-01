@@ -1,18 +1,18 @@
-describe('passwordRenderer', function () {
+describe('passwordRenderer', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it("should render strings as a sequence of asterisks", function () {
+  it('should render strings as a sequence of asterisks', function() {
     handsontable({
       data: [
         ['Joe'],
@@ -33,7 +33,7 @@ describe('passwordRenderer', function () {
     expect(getRenderedValue(3, 0)).toMatch(/^[*]+$/ig);
   });
 
-  it("should render numbers as a sequence of asterisks ", function () {
+  it('should render numbers as a sequence of asterisks ', function() {
     handsontable({
       data: [
         [1],
@@ -54,7 +54,7 @@ describe('passwordRenderer', function () {
     expect(getRenderedValue(3, 0)).toMatch(/^[*]+$/ig);
   });
 
-  it("should be possible to set passwordRenderer with column 'type' parameter", function () {
+  it('should be possible to set passwordRenderer with column \'type\' parameter', function() {
     handsontable({
       data: [
         ['Joe'],
@@ -75,7 +75,7 @@ describe('passwordRenderer', function () {
     expect(getRenderedValue(3, 0)).toMatch(/^[*]+$/ig);
   });
 
-  it("should be possible to set passwordRenderer using alias 'password'", function () {
+  it('should be possible to set passwordRenderer using alias \'password\'', function() {
     handsontable({
       data: [
         ['Joe'],
@@ -96,7 +96,7 @@ describe('passwordRenderer', function () {
     expect(getRenderedValue(3, 0)).toMatch(/^[*]+$/ig);
   });
 
-  it("should render strings as a sequence of asterisks, of width matching the original value width", function () {
+  it('should render strings as a sequence of asterisks, of width matching the original value width', function() {
     handsontable({
       data: [
         ['Joe'],
@@ -117,7 +117,7 @@ describe('passwordRenderer', function () {
     expect(getRenderedValue(3, 0).length).toEqual(getDataAtCell(3, 0).length);
   });
 
-  it("should render strings as a sequence of asterisks, of fixed width", function () {
+  it('should render strings as a sequence of asterisks, of fixed width', function() {
     handsontable({
       data: [
         ['Joe'],
@@ -139,7 +139,7 @@ describe('passwordRenderer', function () {
     expect(getRenderedValue(3, 0).length).toEqual(10);
   });
 
-  it("should render strings as a sequence of custom symbols", function () {
+  it('should render strings as a sequence of custom symbols', function() {
     handsontable({
       data: [
         [1, 'Joe'],

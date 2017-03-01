@@ -1,19 +1,19 @@
-describe('manualRowResize', function () {
+describe('manualRowResize', function() {
   var id = 'test';
   var defaultRowHeight = 22;
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it("should change row heights at init", function () {
+  it('should change row heights at init', function() {
     handsontable({
       rowHeaders: true,
       manualRowResize: [50, 40, 100]
@@ -24,14 +24,14 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 2)).toEqual(100);
   });
 
-  it("should be enabled after specifying it in updateSettings config", function () {
+  it('should be enabled after specifying it in updateSettings config', function() {
     var hot = handsontable({
       data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"}
+        {id: 1, name: 'Ted', lastName: 'Right'},
+        {id: 2, name: 'Frank', lastName: 'Honest'},
+        {id: 3, name: 'Joan', lastName: 'Well'},
+        {id: 4, name: 'Sid', lastName: 'Strong'},
+        {id: 5, name: 'Jane', lastName: 'Neat'}
       ],
       rowHeaders: true
     });
@@ -43,7 +43,7 @@ describe('manualRowResize', function () {
     expect($('.manualRowResizer').size()).toBeGreaterThan(0);
   });
 
-  it("should change the default row height with updateSettings", function () {
+  it('should change the default row height with updateSettings', function() {
     handsontable({
       manualRowResize: true
     });
@@ -61,7 +61,7 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 2)).toEqual(80);
   });
 
-  it("should change the row height with updateSettings", function () {
+  it('should change the row height with updateSettings', function() {
     handsontable({
       manualRowResize: [60, 50, 80]
     });
@@ -79,7 +79,7 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 2)).toEqual(100);
   });
 
-  it("should not change the row height when `true` is passing", function () {
+  it('should not change the row height when `true` is passing', function() {
     handsontable({
       manualRowResize: [60, 50, 80]
     });
@@ -97,7 +97,7 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 2)).toEqual(80);
   });
 
-  it("should change the row height to defaults when undefined is passed", function () {
+  it('should change the row height to defaults when undefined is passed', function() {
     handsontable({
       manualRowResize: [60, 50, 80]
     });
@@ -115,7 +115,7 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight + 1); // + Single border
   });
 
-  it("should reset row height", function () {
+  it('should reset row height', function() {
     handsontable({
       manualRowResize: true
     });
@@ -133,7 +133,7 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight + 1);
   });
 
-  it("should trigger afterRowResize event after row height changes", function () {
+  it('should trigger afterRowResize event after row height changes', function() {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -150,7 +150,7 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 0)).toEqual(101);
   });
 
-  it("should not trigger afterRowResize event if row height does not change (delta = 0)", function () {
+  it('should not trigger afterRowResize event if row height does not change (delta = 0)', function() {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -167,7 +167,7 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
   });
 
-  it("should not trigger afterRowResize event after if row height does not change (no mousemove event)", function () {
+  it('should not trigger afterRowResize event after if row height does not change (no mousemove event)', function() {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -185,8 +185,7 @@ describe('manualRowResize', function () {
     var $resizer = this.$container.find('.manualRowResizer');
     var resizerPosition = $resizer.position();
 
-//    var mouseDownEvent = new $.Event('mousedown', {pageY: resizerPosition.top});
-    $resizer.simulate('mousedown',{
+    $resizer.simulate('mousedown', {
       clientY: resizerPosition.top
     });
 
@@ -196,7 +195,7 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
   });
 
-  it("should trigger an afterRowResize after row size changes, after double click", function (done) {
+  it('should trigger an afterRowResize after row size changes, after double click', function(done) {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -215,17 +214,17 @@ describe('manualRowResize', function () {
     var $resizer = this.$container.find('.manualRowResizer');
     var resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown',{
+    $resizer.simulate('mousedown', {
       clientY: resizerPosition.top
     });
     $resizer.simulate('mouseup');
 
-    $resizer.simulate('mousedown',{
+    $resizer.simulate('mousedown', {
       clientY:resizerPosition.top
     });
     $resizer.simulate('mouseup');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(afterRowResizeCallback.calls.count()).toEqual(1);
       expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(2);
       expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(defaultRowHeight + 1);
@@ -233,7 +232,7 @@ describe('manualRowResize', function () {
       done();
     }, 1000);
   });
-  it("should not trigger afterRowResize event after if row height does not change (no dblclick event)", function () {
+  it('should not trigger afterRowResize event after if row height does not change (no dblclick event)', function() {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -251,7 +250,7 @@ describe('manualRowResize', function () {
     var $resizer = this.$container.find('.manualRowResizer');
     var resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown',{
+    $resizer.simulate('mousedown', {
       clientY:resizerPosition.top
     });
     $resizer.simulate('mouseup');
@@ -259,7 +258,7 @@ describe('manualRowResize', function () {
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
   });
-  it("should display the resize handle in the correct place after the table has been scrolled", function () {
+  it('should display the resize handle in the correct place after the table has been scrolled', function() {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 20),
       rowHeaders: true,
@@ -271,9 +270,9 @@ describe('manualRowResize', function () {
     var mainHolder = hot.view.wt.wtTable.holder;
 
     var $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-    $rowHeader.simulate("mouseover");
+    $rowHeader.simulate('mouseover');
     var $handle = this.$container.find('.manualRowResizer');
-    $handle[0].style.background = "red";
+    $handle[0].style.background = 'red';
 
     expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
     expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
@@ -282,12 +281,12 @@ describe('manualRowResize', function () {
     $(mainHolder).scroll();
 
     $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-    $rowHeader.simulate("mouseover");
+    $rowHeader.simulate('mouseover');
     expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
     expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
   });
 
-  it("should autosize selected rows after double click on handler", function (done) {
+  it('should autosize selected rows after double click on handler', function(done) {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(9, 9),
       rowHeaders: true,
@@ -305,14 +304,14 @@ describe('manualRowResize', function () {
     this.$container.find('.ht_clone_left tbody tr:eq(3) th:eq(0)').simulate('mousemove');
     this.$container.find('.ht_clone_left tbody tr:eq(3) th:eq(0)').simulate('mouseup');
 
-    setTimeout(function () {
-      $resizer.simulate('mousedown',{clientY: resizerPosition.top});
+    setTimeout(function() {
+      $resizer.simulate('mousedown', {clientY: resizerPosition.top});
       $resizer.simulate('mouseup');
-      $resizer.simulate('mousedown',{clientY: resizerPosition.top});
+      $resizer.simulate('mousedown', {clientY: resizerPosition.top});
       $resizer.simulate('mouseup');
     }, 600);
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(rowHeight(spec().$container, 1)).toBeAroundValue(24);
       expect(rowHeight(spec().$container, 2)).toBeAroundValue(24);
       expect(rowHeight(spec().$container, 3)).toBeAroundValue(24);
@@ -320,7 +319,7 @@ describe('manualRowResize', function () {
     }, 1600);
   });
 
-  it("should resize (expanding and narrowing) selected rows", function(done) {
+  it('should resize (expanding and narrowing) selected rows', function(done) {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       rowHeaders: true,
@@ -330,7 +329,7 @@ describe('manualRowResize', function () {
     resizeRow(2, 60);
 
     var $rowsHeaders = this.$container.find('.ht_clone_left tr th');
-    this.$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)').simulate("mouseover");
+    this.$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)').simulate('mouseover');
 
     $rowsHeaders.eq(1).simulate('mousedown');
     $rowsHeaders.eq(2).simulate('mouseover');
@@ -341,9 +340,9 @@ describe('manualRowResize', function () {
     var $resizer = this.$container.find('.manualRowResizer');
     var resizerPosition = $resizer.position();
 
-    setTimeout(function () {
-      $resizer.simulate('mousedown',{clientY: resizerPosition.top});
-      $resizer.simulate('mousemove',{clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 80});
+    setTimeout(function() {
+      $resizer.simulate('mousedown', {clientY: resizerPosition.top});
+      $resizer.simulate('mousemove', {clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 80});
       $resizer.simulate('mouseup');
 
       expect($rowsHeaders.eq(1).height()).toEqual(80);
@@ -351,9 +350,9 @@ describe('manualRowResize', function () {
       expect($rowsHeaders.eq(3).height()).toEqual(80);
     }, 600);
 
-    setTimeout(function () {
-      $resizer.simulate('mousedown',{clientY: resizerPosition.top});
-      $resizer.simulate('mousemove',{clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35});
+    setTimeout(function() {
+      $resizer.simulate('mousedown', {clientY: resizerPosition.top});
+      $resizer.simulate('mousemove', {clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35});
       $resizer.simulate('mouseup');
 
       expect($rowsHeaders.eq(1).height()).toEqual(35);
@@ -367,11 +366,11 @@ describe('manualRowResize', function () {
     it('should display the resize handle in the proper position and with a proper size', function() {
       var hot = handsontable({
         data: [
-          {id: 1, name: "Ted", lastName: "Right"},
-          {id: 2, name: "Frank", lastName: "Honest"},
-          {id: 3, name: "Joan", lastName: "Well"},
-          {id: 4, name: "Sid", lastName: "Strong"},
-          {id: 5, name: "Jane", lastName: "Neat"}
+          {id: 1, name: 'Ted', lastName: 'Right'},
+          {id: 2, name: 'Frank', lastName: 'Honest'},
+          {id: 3, name: 'Joan', lastName: 'Well'},
+          {id: 4, name: 'Sid', lastName: 'Strong'},
+          {id: 5, name: 'Jane', lastName: 'Neat'}
         ],
         rowHeaders: true,
         manualRowResize: true

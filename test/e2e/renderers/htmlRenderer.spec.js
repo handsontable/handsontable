@@ -1,18 +1,18 @@
-describe('HTMLRenderer', function () {
+describe('HTMLRenderer', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '" style="width: 300px; height: 200px;"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should not fill empty rows with null values', function () {
+  it('should not fill empty rows with null values', function() {
     handsontable({
       data: [['a', 'b', 'c', 'd', 'e', 'f']],
       colHeaders: true,

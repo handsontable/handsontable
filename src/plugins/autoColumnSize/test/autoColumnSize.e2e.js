@@ -1,24 +1,24 @@
-describe('AutoColumnSize', function () {
+describe('AutoColumnSize', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfObjects = function () {
+  var arrayOfObjects = function() {
     return [
-      {id: "Short", name: "Somewhat long", lastName: "The very very very longest one", nestedData: [{id: 1000}]}
+      {id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one', nestedData: [{id: 1000}]}
     ];
   };
 
-  it('should apply auto size by default', function () {
+  it('should apply auto size by default', function() {
     handsontable({
       data: arrayOfObjects()
     });
@@ -31,7 +31,7 @@ describe('AutoColumnSize', function () {
     expect(width1).toBeLessThan(width2);
   });
 
-  it('should update column width after update value in cell (array of objects)', function () {
+  it('should update column width after update value in cell (array of objects)', function() {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -54,7 +54,7 @@ describe('AutoColumnSize', function () {
     expect([216, 229, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
   });
 
-  it('should correctly detect column widths with colHeaders', function () {
+  it('should correctly detect column widths with colHeaders', function() {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -68,7 +68,7 @@ describe('AutoColumnSize', function () {
     expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
   });
 
-  it('should correctly detect column widths after update colHeaders when headers were passed as an array', function () {
+  it('should correctly detect column widths after update colHeaders when headers were passed as an array', function() {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -87,7 +87,7 @@ describe('AutoColumnSize', function () {
     expect([226, 235, 263, 270]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
   });
 
-  it('should correctly detect column widths after update colHeaders when headers were passed as a string', function () {
+  it('should correctly detect column widths after update colHeaders when headers were passed as a string', function() {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -106,7 +106,7 @@ describe('AutoColumnSize', function () {
     expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
   });
 
-  it('should correctly detect column widths after update colHeaders when headers were passed as a function', function () {
+  it('should correctly detect column widths after update colHeaders when headers were passed as a function', function() {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -129,7 +129,7 @@ describe('AutoColumnSize', function () {
     expect([226, 235, 263, 270]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
   });
 
-  it('should correctly detect column width with colHeaders and the useHeaders option set to false (not taking the header widths into calculation)', function () {
+  it('should correctly detect column width with colHeaders and the useHeaders option set to false (not taking the header widths into calculation)', function() {
     handsontable({
       data: [
         {id: 'ab'}
@@ -146,7 +146,7 @@ describe('AutoColumnSize', function () {
     expect(colWidth(this.$container, 0)).toBe(50);
   });
 
-  it('should correctly detect column width with columns.title', function () {
+  it('should correctly detect column width with columns.title', function() {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -158,7 +158,7 @@ describe('AutoColumnSize', function () {
     expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
   });
 
-  it('should correctly detect column widths after update columns.title', function () {
+  it('should correctly detect column widths after update columns.title', function() {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -177,7 +177,7 @@ describe('AutoColumnSize', function () {
   });
 
   // https://github.com/handsontable/handsontable/issues/2684
-  it('should correctly detect column width when table is hidden on init (display: none)', function (done) {
+  it('should correctly detect column width when table is hidden on init (display: none)', function(done) {
     this.$container.css('display', 'none');
     var hot = handsontable({
       data: arrayOfObjects(),
@@ -185,7 +185,7 @@ describe('AutoColumnSize', function () {
       colHeaders: ['Identifier', 'First Name']
     });
 
-    setTimeout(function () {
+    setTimeout(function() {
       spec().$container.css('display', 'block');
       hot.render();
 
@@ -194,7 +194,7 @@ describe('AutoColumnSize', function () {
     }, 200);
   });
 
-  it('should keep last columns width unchanged if all rows was removed', function () {
+  it('should keep last columns width unchanged if all rows was removed', function() {
     var hot = handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -216,7 +216,7 @@ describe('AutoColumnSize', function () {
     expect([216, 229, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
   });
 
-  it('should be possible to disable plugin using updateSettings', function () {
+  it('should be possible to disable plugin using updateSettings', function() {
     handsontable({
       data: arrayOfObjects()
     });
@@ -241,7 +241,7 @@ describe('AutoColumnSize', function () {
     expect(width1).toEqual(width2);
   });
 
-  it('should apply disabling/enabling plugin using updateSettings, only to a particular HOT instance', function () {
+  it('should apply disabling/enabling plugin using updateSettings, only to a particular HOT instance', function() {
     this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
 
     handsontable({
@@ -294,7 +294,7 @@ describe('AutoColumnSize', function () {
     this.$container2.remove();
   });
 
-  it('should be possible to enable plugin using updateSettings', function () {
+  it('should be possible to enable plugin using updateSettings', function() {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: false
@@ -320,7 +320,7 @@ describe('AutoColumnSize', function () {
     expect(width1).toBeLessThan(width2);
   });
 
-  it('should consider CSS style of each instance separately', function () {
+  it('should consider CSS style of each instance separately', function() {
     var $style = $('<style>.big .htCore td {font-size: 40px; line-height: 1.1;}</style>').appendTo('head');
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
       data: arrayOfObjects()
@@ -349,7 +349,7 @@ describe('AutoColumnSize', function () {
     $container2.remove();
   });
 
-  it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', function () {
+  it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', function() {
     var $style = $('<style>.htCore.big-table td {font-size: 32px}</style>').appendTo('head');
 
     handsontable({
@@ -366,7 +366,7 @@ describe('AutoColumnSize', function () {
     $style.remove();
   });
 
-  it('should destroy temporary element', function () {
+  it('should destroy temporary element', function() {
     handsontable({
       autoColumnSize: true
     });
@@ -374,7 +374,7 @@ describe('AutoColumnSize', function () {
     expect(document.querySelector('.htAutoSize')).toBe(null);
   });
 
-  it('should not trigger autoColumnSize when column width is defined (through colWidths)', function () {
+  it('should not trigger autoColumnSize when column width is defined (through colWidths)', function() {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -389,7 +389,7 @@ describe('AutoColumnSize', function () {
     expect(colWidth(this.$container, 0)).toBe(70);
   });
 
-  it('should not trigger autoColumnSize when column width is defined (through columns.width)', function () {
+  it('should not trigger autoColumnSize when column width is defined (through columns.width)', function() {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -409,9 +409,9 @@ describe('AutoColumnSize', function () {
     expect(colWidth(this.$container, 0)).toBe(70);
   });
 
-  it('should consider renderer that uses conditional formatting for specific row & column index', function () {
+  it('should consider renderer that uses conditional formatting for specific row & column index', function() {
     var data = arrayOfObjects();
-    data.push({id: "2", name: "Rocket Man", lastName: "In a tin can"});
+    data.push({id: '2', name: 'Rocket Man', lastName: 'In a tin can'});
     handsontable({
       data: data,
       columns: [
@@ -419,11 +419,11 @@ describe('AutoColumnSize', function () {
         {data: 'name'}
       ],
       autoColumnSize: true,
-      renderer: function (instance, td, row, col, prop, value, cellProperties) {
+      renderer: function(instance, td, row, col, prop, value, cellProperties) {
         //taken from demo/renderers.html
         Handsontable.renderers.TextRenderer.apply(this, arguments);
         if (row === 1 && col === 0) {
-          td.style.padding = "100px";
+          td.style.padding = '100px';
         }
       }
     });
@@ -431,7 +431,7 @@ describe('AutoColumnSize', function () {
     expect(colWidth(this.$container, 0)).toBeGreaterThan(colWidth(this.$container, 1));
   });
 
-  it('should\'t serialize value if it is array (nested data sources)', function () {
+  it('should\'t serialize value if it is array (nested data sources)', function() {
     var spy = jasmine.createSpy('renderer');
 
     handsontable({

@@ -1,11 +1,11 @@
-describe('AutoRowSize', function () {
+describe('AutoRowSize', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -14,20 +14,20 @@ describe('AutoRowSize', function () {
 
   function arrayOfObjects() {
     return [
-      {id: "Short"},
-      {id: "Somewhat\nlong"},
-      {id: "The\nvery\nvery\nvery\nlongest one"}
+      {id: 'Short'},
+      {id: 'Somewhat\nlong'},
+      {id: 'The\nvery\nvery\nvery\nlongest one'}
     ];
   }
   function arrayOfObjects2() {
     return [
-      {id: "Short", name: "Somewhat long"},
-      {id: "Somewhat long", name: "The very very longest one"},
-      {id: "The very very very longest one", name: "Short"}
+      {id: 'Short', name: 'Somewhat long'},
+      {id: 'Somewhat long', name: 'The very very longest one'},
+      {id: 'The very very very longest one', name: 'Short'}
     ];
   }
 
-  it('should apply auto size by default', function () {
+  it('should apply auto size by default', function() {
     handsontable({
       data: arrayOfObjects()
     });
@@ -40,8 +40,8 @@ describe('AutoRowSize', function () {
     expect(height1).toBeLessThan(height2);
   });
 
-  it('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (long text in row) #4000', function (done) {
-    var row = ["This is very long text which will break this cell text into two lines"];
+  it('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (long text in row) #4000', function(done) {
+    var row = ['This is very long text which will break this cell text into two lines'];
     var data = [];
     var nrOfRows = 200;
     var columnWidth = 100;
@@ -52,7 +52,7 @@ describe('AutoRowSize', function () {
 
     handsontable({
       data: data,
-      colWidths: function () {
+      colWidths: function() {
         return columnWidth;
       },
       autoRowSize: true
@@ -60,14 +60,14 @@ describe('AutoRowSize', function () {
 
     var oldHeight = spec().$container[0].scrollHeight;
 
-    setTimeout(function () {
+    setTimeout(function() {
       var newHeight = spec().$container[0].scrollHeight;
       expect(oldHeight).toBeLessThan(newHeight);
       done();
     }, 200);
   });
 
-  describe('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (`table td` element height set by CSS) #4000', function () {
+  describe('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (`table td` element height set by CSS) #4000', function() {
     var cellHeightInPx = 100;
     var nrOfRows = null;
     var nrOfColumns = 200, style;
@@ -75,7 +75,7 @@ describe('AutoRowSize', function () {
     var SYNC_CALCULATION_LIMIT = Handsontable.plugins.AutoRowSize.SYNC_CALCULATION_LIMIT;
     var CALCULATION_STEP = Handsontable.plugins.AutoRowSize.CALCULATION_STEP;
 
-    beforeEach(function () {
+    beforeEach(function() {
       if (!this.$container) {
         this.$container = $('<div id="' + id + '"></div>').appendTo('body');
       }
@@ -95,7 +95,7 @@ describe('AutoRowSize', function () {
       $(head).append(style);
     });
 
-    afterEach(function () {
+    afterEach(function() {
       if (this.$container) {
         destroy();
         this.$container.remove();
@@ -106,7 +106,7 @@ describe('AutoRowSize', function () {
       }
     });
 
-    it('(SYNC_CALCULATION_LIMIT - 1 rows)', function (done) {
+    it('(SYNC_CALCULATION_LIMIT - 1 rows)', function(done) {
       nrOfRows = SYNC_CALCULATION_LIMIT - 1;
 
       handsontable({
@@ -114,7 +114,7 @@ describe('AutoRowSize', function () {
         autoRowSize: true
       });
 
-      setTimeout(function () {
+      setTimeout(function() {
         var newHeight = spec().$container[0].scrollHeight;
 
         expect(newHeight).toEqual(((cellHeightInPx + 1) * nrOfRows + 1));
@@ -122,7 +122,7 @@ describe('AutoRowSize', function () {
       }, 200);
     });
 
-    it('(SYNC_CALCULATION_LIMIT + 1 rows)', function (done) {
+    it('(SYNC_CALCULATION_LIMIT + 1 rows)', function(done) {
       nrOfRows = SYNC_CALCULATION_LIMIT + 1;
 
       handsontable({
@@ -130,7 +130,7 @@ describe('AutoRowSize', function () {
         autoRowSize: true
       });
 
-      setTimeout(function () {
+      setTimeout(function() {
         var newHeight = spec().$container[0].scrollHeight;
 
         expect(newHeight).toEqual(((cellHeightInPx + 1) * nrOfRows + 1));
@@ -138,8 +138,7 @@ describe('AutoRowSize', function () {
       }, 200);
     });
 
-
-    it('(SYNC_CALCULATION_LIMIT + CALCULATION_STEP - 1 rows)', function (done) {
+    it('(SYNC_CALCULATION_LIMIT + CALCULATION_STEP - 1 rows)', function(done) {
 
       nrOfRows = SYNC_CALCULATION_LIMIT + CALCULATION_STEP - 1;
 
@@ -148,7 +147,7 @@ describe('AutoRowSize', function () {
         autoRowSize: true
       });
 
-      setTimeout(function () {
+      setTimeout(function() {
         var newHeight = spec().$container[0].scrollHeight;
 
         expect(newHeight).toEqual(((cellHeightInPx + 1) * nrOfRows + 1));
@@ -156,7 +155,7 @@ describe('AutoRowSize', function () {
       }, 200);
     });
 
-    it('(SYNC_CALCULATION_LIMIT + CALCULATION_STEP + 1 rows)', function (done) {
+    it('(SYNC_CALCULATION_LIMIT + CALCULATION_STEP + 1 rows)', function(done) {
 
       nrOfRows = SYNC_CALCULATION_LIMIT + CALCULATION_STEP + 1;
 
@@ -165,7 +164,7 @@ describe('AutoRowSize', function () {
         autoRowSize: true
       });
 
-      setTimeout(function () {
+      setTimeout(function() {
         var newHeight = spec().$container[0].scrollHeight;
 
         expect(newHeight).toEqual(((cellHeightInPx + 1) * nrOfRows + 1));
@@ -174,7 +173,7 @@ describe('AutoRowSize', function () {
     });
   });
 
-  it('should correctly detect row height when table is hidden on init (display: none)', function (done) {
+  it('should correctly detect row height when table is hidden on init (display: none)', function(done) {
     this.$container.css('display', 'none');
     var hot = handsontable({
       data: arrayOfObjects(),
@@ -182,7 +181,7 @@ describe('AutoRowSize', function () {
       autoRowSize: true
     });
 
-    setTimeout(function () {
+    setTimeout(function() {
       spec().$container.css('display', 'block');
       hot.render();
 
@@ -193,7 +192,7 @@ describe('AutoRowSize', function () {
     }, 200);
   });
 
-  it('should be possible to disable plugin using updateSettings', function () {
+  it('should be possible to disable plugin using updateSettings', function() {
     var hot = handsontable({
       data: arrayOfObjects()
     });
@@ -215,7 +214,7 @@ describe('AutoRowSize', function () {
     expect(height4).toBeGreaterThan(height0);
   });
 
-  it('should be possible to enable plugin using updateSettings', function () {
+  it('should be possible to enable plugin using updateSettings', function() {
     handsontable({
       data: arrayOfObjects(),
       autoRowSize: false
@@ -241,7 +240,7 @@ describe('AutoRowSize', function () {
     expect(height1).toBeLessThan(height2);
   });
 
-  it('should consider CSS style of each instance separately', function () {
+  it('should consider CSS style of each instance separately', function() {
     var $style = $('<style>.big .htCore td {font-size: 40px;line-height: 1.1}</style>').appendTo('head');
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
       data: arrayOfObjects(),
@@ -276,7 +275,7 @@ describe('AutoRowSize', function () {
     $container2.remove();
   });
 
-  it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', function () {
+  it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', function() {
     var $style = $('<style>.htCore.big-table td {font-size: 32px;line-height: 1.1}</style>').appendTo('head');
 
     var hot = handsontable({
@@ -293,7 +292,7 @@ describe('AutoRowSize', function () {
     $style.remove();
   });
 
-  it('should not trigger autoColumnSize when column width is defined (through colWidths)', function () {
+  it('should not trigger autoColumnSize when column width is defined (through colWidths)', function() {
     var hot = handsontable({
       data: arrayOfObjects(),
       autoRowSize: true,
@@ -309,7 +308,7 @@ describe('AutoRowSize', function () {
   });
 
   // Currently columns.height is not supported
-  xit('should not trigger autoRowSize when column height is defined (through columns.height)', function () {
+  xit('should not trigger autoRowSize when column height is defined (through columns.height)', function() {
     var hot = handsontable({
       data: arrayOfObjects(),
       autoRowSize: true,
@@ -329,9 +328,9 @@ describe('AutoRowSize', function () {
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(69); // -1px of cell border
   });
 
-  it('should consider renderer that uses conditional formatting for specific row & column index', function () {
+  it('should consider renderer that uses conditional formatting for specific row & column index', function() {
     var data = arrayOfObjects();
-    data.push({id: "2", name: "Rocket Man", lastName: "In a tin can"});
+    data.push({id: '2', name: 'Rocket Man', lastName: 'In a tin can'});
 
     var hot = handsontable({
       data: data,
@@ -340,12 +339,12 @@ describe('AutoRowSize', function () {
         {data: 'name'}
       ],
       autoRowSize: true,
-      renderer: function (instance, td, row, col, prop, value, cellProperties) {
+      renderer: function(instance, td, row, col, prop, value, cellProperties) {
         // taken from demo/renderers.html
         Handsontable.renderers.TextRenderer.apply(this, arguments);
 
         if (row === 1 && col === 0) {
-          td.style.padding = "100px";
+          td.style.padding = '100px';
         }
       }
     });
@@ -353,7 +352,7 @@ describe('AutoRowSize', function () {
     expect(parseInt(hot.getCell(1, 0).style.height || 0)).toBe(242);
   });
 
-  it('should destroy temporary element', function () {
+  it('should destroy temporary element', function() {
     handsontable({
       autoRowSize: true
     });
@@ -361,7 +360,7 @@ describe('AutoRowSize', function () {
     expect(document.querySelector('.htAutoSize')).toBe(null);
   });
 
-  it('should recalculate heights after column resize', function () {
+  it('should recalculate heights after column resize', function() {
     var hot = handsontable({
       data: arrayOfObjects2(),
       colWidths: 250,
@@ -394,7 +393,7 @@ describe('AutoRowSize', function () {
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(42);
   });
 
-  it('should recalculate heights after column moved', function () {
+  it('should recalculate heights after column moved', function() {
     var hot = handsontable({
       data: arrayOfObjects2(),
       colWidths: [250, 50],
@@ -418,7 +417,7 @@ describe('AutoRowSize', function () {
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(126);
   });
 
-  it('should recalculate heights with manualRowResize when changing text to multiline', function () {
+  it('should recalculate heights with manualRowResize when changing text to multiline', function() {
     var hot = handsontable({
       data: arrayOfObjects2(),
       colWidths: 250,
@@ -439,7 +438,7 @@ describe('AutoRowSize', function () {
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBeInArray([22, 42]);
   });
 
-  it('should recalculate heights after moved row', function () {
+  it('should recalculate heights after moved row', function() {
     var hot = handsontable({
       data: arrayOfObjects2(),
       colWidths: 250,

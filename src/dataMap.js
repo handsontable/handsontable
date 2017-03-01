@@ -1,4 +1,4 @@
-import SheetClip from './../lib/SheetClip/SheetClip';
+import SheetClip from 'sheetclip';
 import {cellMethodLookupFactory} from './helpers/data';
 import {columnFactory} from './helpers/setting';
 import {createObjectPropListener, duckSchema, deepExtend, deepClone, isObject, deepObjectSize} from './helpers/object';
@@ -18,7 +18,6 @@ import Hooks from './pluginHooks';
  * @param {*} GridSettings Grid settings
  * @util
  * @class DataMap
- * @dependencies SheetClip
  */
 function DataMap(instance, priv, GridSettings) {
   this.instance = instance;

@@ -1,10 +1,7 @@
-describe('preventOverflow option', function () {
-  var $table
-    , $container
-    , $wrapper
-    , debug = false;
+describe('preventOverflow option', function() {
+  var $table, $container, $wrapper, debug = false;
 
-  beforeEach(function () {
+  beforeEach(function() {
     $wrapper = $('<div></div>').css({position: 'relative'});
     $wrapper.width(500).height(201);
     $container = $('<div></div>');
@@ -15,14 +12,14 @@ describe('preventOverflow option', function () {
     createDataArray(100, 100);
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (!debug) {
       $('.wtHolder').remove();
     }
     $wrapper.remove();
   });
 
-  it("should set overflow to `auto` for master table when `horizontal` value is passed", function () {
+  it('should set overflow to `auto` for master table when `horizontal` value is passed', function() {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -38,13 +35,13 @@ describe('preventOverflow option', function () {
     expect($table.parents('.ht_master').css('overflow')).toBe('visible');
   });
 
-  it("should set overflow-x to `auto` for top clone when `horizontal` value is passed", function () {
+  it('should set overflow-x to `auto` for top clone when `horizontal` value is passed', function() {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      columnHeaders: [function (column, TH) {
+      columnHeaders: [function(column, TH) {
         TH.innerHTML = column + 1;
       }],
       preventOverflow: function() {

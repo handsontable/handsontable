@@ -1,4 +1,4 @@
-var spec = function () {
+var spec = function() {
   return currentSpec;
 };
 
@@ -6,10 +6,13 @@ function createDataArray(rows, cols) {
   spec().data = [];
   rows = typeof rows === 'number' ? rows : 100;
   cols = typeof cols === 'number' ? cols : 4;
+
   for (var i = 0; i < rows; i++) {
     var row = [];
+
     if (cols > 0) {
       row.push(i);
+
       for (var j = 0; j < cols - 1; j++) {
         row.push(String.fromCharCode(65 + j % 20).toLowerCase() + (j / 20 | 0 || ''));  // | 0 is parseInt - see http://jsperf.com/math-floor-vs-math-round-vs-parseint/18
       }
@@ -32,31 +35,31 @@ function getTotalColumns() {
 
 var currentSpec;
 
-beforeEach(function () {
+beforeEach(function() {
   currentSpec = this;
 
   var matchers = {
-    toBeInArray: function () {
+    toBeInArray: function() {
       return {
-        compare: function (actual, expected) {
+        compare: function(actual, expected) {
           return {
             pass: Array.isArray(expected) && expected.indexOf(actual) > -1
           };
         }
       };
     },
-    toBeFunction: function () {
+    toBeFunction: function() {
       return {
-        compare: function (actual, expected) {
+        compare: function(actual, expected) {
           return {
             pass: typeof actual === 'function'
           };
         }
       };
     },
-    toBeAroundValue: function () {
+    toBeAroundValue: function() {
       return {
-        compare: function (actual, expected, diff) {
+        compare: function(actual, expected, diff) {
           diff = diff || 1;
 
           var pass = actual >= expected - diff && actual <= expected + diff;
@@ -78,8 +81,8 @@ beforeEach(function () {
   jasmine.addMatchers(matchers);
 });
 
-afterEach(function () {
-  window.scrollTo(0, 0)
+afterEach(function() {
+  window.scrollTo(0, 0);
 });
 
 function getTableWidth(elem) {
@@ -87,22 +90,24 @@ function getTableWidth(elem) {
 };
 
 function range(from, to) {
-  if (!arguments.length){
+  if (!arguments.length) {
     return [];
   }
 
-  if (arguments.length == 1){
+  if (arguments.length == 1) {
     to = from;
     from = 0;
   }
 
-  if (to > from){
+  if (to > from) {
     from = [to, to = from][0]; //one-liner for swapping two values
   }
 
   var result = [];
 
-  while (to++ < from) result.push(to);
+  while (to++ < from) {
+    result.push(to);
+  }
 
   return result;
 };
@@ -113,10 +118,18 @@ function range(from, to) {
  * @returns {object} modified instance
  */
 function shimSelectionProperties(instance) {
-  if(instance.selections[0]) instance.selections.current = instance.selections[0];
-  if(instance.selections[1]) instance.selections.area = instance.selections[1];
-  if(instance.selections[2]) instance.selections.highlight = instance.selections[2];
-  if(instance.selections[3]) instance.selections.fill = instance.selections[3];
+  if (instance.selections[0]) {
+    instance.selections.current = instance.selections[0];
+  }
+  if (instance.selections[1]) {
+    instance.selections.area = instance.selections[1];
+  }
+  if (instance.selections[2]) {
+    instance.selections.highlight = instance.selections[2];
+  }
+  if (instance.selections[3]) {
+    instance.selections.fill = instance.selections[3];
+  }
 
   return instance;
 }

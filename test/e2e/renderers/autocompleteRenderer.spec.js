@@ -1,18 +1,18 @@
-describe('AutocompleteRenderer', function () {
+describe('AutocompleteRenderer', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should contain down arrow glyph', function (done) {
+  it('should contain down arrow glyph', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -21,16 +21,16 @@ describe('AutocompleteRenderer', function () {
     });
     setDataAtCell(2, 2, 'string');
 
-    setTimeout(function () {
+    setTimeout(function() {
       var html = getCell(2, 2).innerHTML;
-      
+
       expect(html).toContain('string');
       expect(html).toContain('\u25BC');
       done();
     }, 100);
   });
 
-  it("should open cell editor after clicking on arrow glyph", function () {
+  it('should open cell editor after clicking on arrow glyph', function() {
     var hot = handsontable({
       type: 'autocomplete'
     });
@@ -44,7 +44,7 @@ describe('AutocompleteRenderer', function () {
     expect(hot.getActiveEditor().isOpened()).toBe(true);
   });
 
-  it("should open cell editor after clicking on arrow glyph, after the table has been destroyed and reinitialized (#1367)", function () {
+  it('should open cell editor after clicking on arrow glyph, after the table has been destroyed and reinitialized (#1367)', function() {
     var hot = handsontable({
       type: 'autocomplete'
     });
@@ -56,7 +56,6 @@ describe('AutocompleteRenderer', function () {
     });
 
     selectCell(0, 0);
-
 
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 

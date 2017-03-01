@@ -1,18 +1,18 @@
-describe('Core.getCellsMeta', function () {
+describe('Core.getCellsMeta', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should return all initialized cells meta as flatten array', function () {
+  it('should return all initialized cells meta as flatten array', function() {
     handsontable();
 
     var metas = getCellsMeta();

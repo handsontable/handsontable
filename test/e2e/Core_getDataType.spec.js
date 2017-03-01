@@ -1,27 +1,27 @@
-describe('Core_getDataType', function () {
+describe('Core_getDataType', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfArrays = function () {
+  var arrayOfArrays = function() {
     return [
-      ["", "Kia", "Nissan", "Toyota", "Honda"],
-      ["2008", 10, 11, 12, 13],
-      ["2009", 20, 11, 14, 13],
-      ["2010", 30, 15, 12, 13]
+      ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+      ['2008', 10, 11, 12, 13],
+      ['2009', 20, 11, 14, 13],
+      ['2010', 30, 15, 12, 13]
     ];
   };
 
-  it('should return data type at specyfied range (default type)', function () {
+  it('should return data type at specyfied range (default type)', function() {
     handsontable({
       data: arrayOfArrays()
     });
@@ -30,7 +30,7 @@ describe('Core_getDataType', function () {
     expect(getDataType(0, 0, 1, 1)).toEqual('text');
   });
 
-  it('should return data type at specyfied range (type defined in columns)', function () {
+  it('should return data type at specyfied range (type defined in columns)', function() {
     handsontable({
       data: arrayOfArrays(),
       columns: [
@@ -50,7 +50,7 @@ describe('Core_getDataType', function () {
     expect(getDataType(3, 4, 3, 4)).toEqual('dropdown');
   });
 
-  it('should return data type at specyfied range (type defined in columns) when columns is a function', function () {
+  it('should return data type at specyfied range (type defined in columns) when columns is a function', function() {
     handsontable({
       data: arrayOfArrays(),
       columns: function(column) {
@@ -87,7 +87,7 @@ describe('Core_getDataType', function () {
     expect(getDataType(3, 4, 3, 4)).toEqual('dropdown');
   });
 
-  it('should return data type at specyfied range (type defined in cells)', function () {
+  it('should return data type at specyfied range (type defined in cells)', function() {
     handsontable({
       data: arrayOfArrays(),
       cells: function(row, column) {

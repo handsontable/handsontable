@@ -1,93 +1,93 @@
-describe('Core_loadData', function () {
+describe('Core_loadData', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfArrays = function () {
+  var arrayOfArrays = function() {
     return [
-      ["", "Kia", "Nissan", "Toyota", "Honda"],
-      ["2008", 10, 11, 12, 13],
-      ["2009", 20, 11, 14, 13],
-      ["2010", 30, 15, 12, 13]
+      ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+      ['2008', 10, 11, 12, 13],
+      ['2009', 20, 11, 14, 13],
+      ['2010', 30, 15, 12, 13]
     ];
   };
 
-  var arrayOfObjects = function () {
+  var arrayOfObjects = function() {
     return [
-      {id: 1, name: "Ted", lastName: "Right"},
-      {id: 2, name: "Frank", lastName: "Honest"},
-      {id: 3, name: "Joan", lastName: "Well"},
-      {id: 4, name: "Sid", lastName: "Strong"},
-      {id: 5, name: "Jane", lastName: "Neat"},
-      {id: 6, name: "Chuck", lastName: "Jackson"},
-      {id: 7, name: "Meg", lastName: "Jansen"},
-      {id: 8, name: "Rob", lastName: "Norris"},
-      {id: 9, name: "Sean", lastName: "O'Hara"},
-      {id: 10, name: "Eve", lastName: "Branson"}
+      {id: 1, name: 'Ted', lastName: 'Right'},
+      {id: 2, name: 'Frank', lastName: 'Honest'},
+      {id: 3, name: 'Joan', lastName: 'Well'},
+      {id: 4, name: 'Sid', lastName: 'Strong'},
+      {id: 5, name: 'Jane', lastName: 'Neat'},
+      {id: 6, name: 'Chuck', lastName: 'Jackson'},
+      {id: 7, name: 'Meg', lastName: 'Jansen'},
+      {id: 8, name: 'Rob', lastName: 'Norris'},
+      {id: 9, name: 'Sean', lastName: 'O\'Hara'},
+      {id: 10, name: 'Eve', lastName: 'Branson'}
     ];
   };
 
-  var arrayOfNestedObjects = function () {
+  var arrayOfNestedObjects = function() {
     return [
       {
         id: 1,
         name: {
-          first: "Ted",
-          last: "Right"
+          first: 'Ted',
+          last: 'Right'
         },
         'full.street': 'Street I',
       },
       {
         id: 2,
         name: {
-          first: "Frank",
-          last: "Honest"
+          first: 'Frank',
+          last: 'Honest'
         },
         'full.street': 'Street II',
       },
       {
         id: 3,
         name: {
-          first: "Joan",
-          last: "Well"
+          first: 'Joan',
+          last: 'Well'
         },
         'full.street': 'Street III',
       }
-    ]
+    ];
   };
 
   var htmlData = [
     ['<b>H&M</b>']
   ];
 
-  it('should allow array of arrays', function () {
+  it('should allow array of arrays', function() {
     handsontable();
     loadData(arrayOfArrays());
-    expect(getDataAtCell(0, 2)).toEqual("Nissan");
+    expect(getDataAtCell(0, 2)).toEqual('Nissan');
   });
 
-  it('should allow array of objects', function () {
+  it('should allow array of objects', function() {
     handsontable({
       columns: [
-        {data: "id"},
-        {data: "lastName"},
-        {data: "name"}
+        {data: 'id'},
+        {data: 'lastName'},
+        {data: 'name'}
       ]
     });
     loadData(arrayOfObjects());
-    expect(getDataAtCell(0, 2)).toEqual("Ted");
+    expect(getDataAtCell(0, 2)).toEqual('Ted');
   });
 
-  it('should allow array of objects when columns as a function', function () {
+  it('should allow array of objects when columns as a function', function() {
     handsontable({
       columns: function(column) {
         var colMeta = {};
@@ -106,26 +106,26 @@ describe('Core_loadData', function () {
       }
     });
     loadData(arrayOfObjects());
-    expect(getDataAtCell(0, 2)).toEqual("Ted");
+    expect(getDataAtCell(0, 2)).toEqual('Ted');
   });
 
-  it('should allow array of nested objects', function () {
+  it('should allow array of nested objects', function() {
     handsontable({
       data: arrayOfNestedObjects(),
       colHeaders: true,
       columns: [
-        {data: "id"},
-        {data: "name.last"},
-        {data: "name.first"},
-        {data: "full.street"},
+        {data: 'id'},
+        {data: 'name.last'},
+        {data: 'name.first'},
+        {data: 'full.street'},
       ]
     });
-    expect(getDataAtCell(0, 2)).toEqual("Ted");
-    expect(getDataAtCell(1, 3)).toEqual("Street II");
-    expect(getDataAtRowProp(2, 'full.street')).toEqual("Street III");
+    expect(getDataAtCell(0, 2)).toEqual('Ted');
+    expect(getDataAtCell(1, 3)).toEqual('Street II');
+    expect(getDataAtRowProp(2, 'full.street')).toEqual('Street III');
   });
 
-  it('should allow array of nested objects when columns as a function', function () {
+  it('should allow array of nested objects when columns as a function', function() {
     handsontable({
       data: arrayOfNestedObjects(),
       colHeaders: true,
@@ -147,24 +147,24 @@ describe('Core_loadData', function () {
         return colMeta;
       }
     });
-    expect(getDataAtCell(0, 2)).toEqual("Ted");
-    expect(getDataAtCell(1, 3)).toEqual("Street II");
-    expect(getDataAtRowProp(2, 'full.street')).toEqual("Street III");
+    expect(getDataAtCell(0, 2)).toEqual('Ted');
+    expect(getDataAtCell(1, 3)).toEqual('Street II');
+    expect(getDataAtRowProp(2, 'full.street')).toEqual('Street III');
   });
 
-  it('should figure out default column names for array of nested objects', function () {
+  it('should figure out default column names for array of nested objects', function() {
     handsontable({
       data: arrayOfNestedObjects(),
       colHeaders: true
     });
-    expect(getDataAtCell(0, 2)).toEqual("Right");
+    expect(getDataAtCell(0, 2)).toEqual('Right');
   });
 
-  it('should trigger onChange callback when loaded array of arrays', function () {
+  it('should trigger onChange callback when loaded array of arrays', function() {
     var called = false;
 
     handsontable({
-      afterChange: function (changes, source) {
+      afterChange: function(changes, source) {
         if (source === 'loadData') {
           called = true;
         }
@@ -175,11 +175,11 @@ describe('Core_loadData', function () {
     expect(called).toEqual(true);
   });
 
-  it('should trigger onChange callback when loaded array of objects', function () {
+  it('should trigger onChange callback when loaded array of objects', function() {
     var called = false;
 
     handsontable({
-      afterChange: function (changes, source) {
+      afterChange: function(changes, source) {
         if (source === 'loadData') {
           called = true;
         }
@@ -190,11 +190,11 @@ describe('Core_loadData', function () {
     expect(called).toEqual(true);
   });
 
-  it('should trigger onChange callback when loaded array of nested objects', function () {
+  it('should trigger onChange callback when loaded array of nested objects', function() {
     var called = false;
 
     handsontable({
-      afterChange: function (changes, source) {
+      afterChange: function(changes, source) {
         if (source === 'loadData') {
           called = true;
         }
@@ -205,7 +205,7 @@ describe('Core_loadData', function () {
     expect(called).toEqual(true);
   });
 
-  it('should create new rows for array of arrays (and respect minRows)', function () {
+  it('should create new rows for array of arrays (and respect minRows)', function() {
     handsontable({
       minRows: 20, //minRows should be respected
       data: arrayOfArrays()
@@ -214,7 +214,7 @@ describe('Core_loadData', function () {
     expect(countRows()).toEqual(20); //TODO why this must be checked after render?
   });
 
-  it('should create new rows for array of nested objects (and respect minRows)', function () {
+  it('should create new rows for array of nested objects (and respect minRows)', function() {
     handsontable({
       minRows: 20, //minRows should be respected
       data: arrayOfNestedObjects()
@@ -223,14 +223,14 @@ describe('Core_loadData', function () {
     expect(countRows()).toEqual(20); //TODO why this must be checked after render?
   });
 
-  it('HTML special chars should be escaped by default', function () {
+  it('HTML special chars should be escaped by default', function() {
     handsontable();
     loadData(htmlData);
 
     expect(getCell(0, 0).innerHTML).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
   });
 
-  it('should create as many rows as needed by array of objects', function () {
+  it('should create as many rows as needed by array of objects', function() {
     handsontable({
       minRows: 6,
       data: arrayOfObjects()
@@ -240,7 +240,7 @@ describe('Core_loadData', function () {
   });
 
   //https://github.com/handsontable/handsontable/pull/233
-  it('should not invoke the cells callback multiple times with the same row/col (without overlays)', function () {
+  it('should not invoke the cells callback multiple times with the same row/col (without overlays)', function() {
     var cellsSpy = jasmine.createSpy('cellsSpy');
 
     handsontable({
@@ -253,7 +253,7 @@ describe('Core_loadData', function () {
     expect(cellsSpy.calls.count()).toEqual(43);
   });
 
-  it('should not invoke the cells callback multiple times with the same row/col (with overlays)', function () {
+  it('should not invoke the cells callback multiple times with the same row/col (with overlays)', function() {
     var cellsSpy = jasmine.createSpy('cellsSpy');
 
     handsontable({
@@ -268,24 +268,24 @@ describe('Core_loadData', function () {
     expect(cellsSpy.calls.count()).toEqual(56);
   });
 
-  it('should remove grid rows if new data source has less of them', function () {
+  it('should remove grid rows if new data source has less of them', function() {
     var data1 = [
-      ["a"],
-      ["b"],
-      ["c"],
-      ["d"],
-      ["e"],
-      ["f"],
-      ["g"],
-      ["h"]
+      ['a'],
+      ['b'],
+      ['c'],
+      ['d'],
+      ['e'],
+      ['f'],
+      ['g'],
+      ['h']
     ];
 
     var data2 = [
-      ["a"],
-      ["b"],
-      ["c"],
-      ["d"],
-      ["e"]
+      ['a'],
+      ['b'],
+      ['c'],
+      ['d'],
+      ['e']
     ];
 
     handsontable({
@@ -300,23 +300,23 @@ describe('Core_loadData', function () {
     expect(getSelected()).toEqual([4, 0, 4, 0]);
   });
 
-  it('should remove grid rows if new data source has less of them (with minSpareRows)', function () {
+  it('should remove grid rows if new data source has less of them (with minSpareRows)', function() {
     var data1 = [
-      ["a"],
-      ["b"],
-      ["c"],
-      ["d"],
-      ["e"],
-      ["f"],
-      ["g"],
-      ["h"]
+      ['a'],
+      ['b'],
+      ['c'],
+      ['d'],
+      ['e'],
+      ['f'],
+      ['g'],
+      ['h']
     ];
     var data2 = [
-      ["a"],
-      ["b"],
-      ["c"],
-      ["d"],
-      ["e"]
+      ['a'],
+      ['b'],
+      ['c'],
+      ['d'],
+      ['e']
     ];
 
     handsontable({
@@ -333,16 +333,16 @@ describe('Core_loadData', function () {
     expect(getSelected()).toEqual([5, 0, 5, 0]);
   });
 
-  it('loading empty data should remove all rows', function () {
+  it('loading empty data should remove all rows', function() {
     var data1 = [
-      ["a"],
-      ["b"],
-      ["c"],
-      ["d"],
-      ["e"],
-      ["f"],
-      ["g"],
-      ["h"]
+      ['a'],
+      ['b'],
+      ['c'],
+      ['d'],
+      ['e'],
+      ['f'],
+      ['g'],
+      ['h']
     ];
 
     var data2 = [];
@@ -359,7 +359,7 @@ describe('Core_loadData', function () {
     expect(getSelected()).toBe(void 0);
   });
 
-  it('should only have as many columns as in settings', function () {
+  it('should only have as many columns as in settings', function() {
     var data1 = arrayOfArrays();
 
     handsontable({
@@ -373,7 +373,7 @@ describe('Core_loadData', function () {
     expect(countCols()).toBe(2);
   });
 
-  it('should only have as many columns as in settings when columns is a function', function () {
+  it('should only have as many columns as in settings when columns is a function', function() {
     var data1 = arrayOfArrays();
 
     handsontable({
@@ -384,7 +384,7 @@ describe('Core_loadData', function () {
         };
 
         if ([1, 3].indexOf(column) < 0) {
-          colMeta = null
+          colMeta = null;
         }
 
         return colMeta;
@@ -394,12 +394,12 @@ describe('Core_loadData', function () {
     expect(countCols()).toBe(2);
   });
 
-  it('should throw error when trying to load a string (constructor)', function () {
+  it('should throw error when trying to load a string (constructor)', function() {
     var errors = 0;
 
     try {
       handsontable({
-        data: "string"
+        data: 'string'
       });
     }
     catch (e) {
@@ -409,12 +409,12 @@ describe('Core_loadData', function () {
     expect(errors).toBe(1);
   });
 
-  it('should throw error when trying to load a string (loadData)', function () {
+  it('should throw error when trying to load a string (loadData)', function() {
     var errors = 0;
 
     try {
       handsontable();
-      loadData("string");
+      loadData('string');
     }
     catch (e) {
       errors++;
@@ -423,7 +423,7 @@ describe('Core_loadData', function () {
     expect(errors).toBe(1);
   });
 
-  it('should load Backbone Collection as data source', function () {
+  it('should load Backbone Collection as data source', function() {
     // code borrowed from demo/backbone.js
 
     var CarModel = Backbone.Model.extend({});
@@ -431,27 +431,27 @@ describe('Core_loadData', function () {
     var CarCollection = Backbone.Collection.extend({
       model: CarModel,
       // Backbone.Collection doesn't support `splice`, yet! Easy to add.
-      splice: hacked_splice
+      splice: hackedSplice
     });
     var cars = new CarCollection();
 
     cars.add([
-      {make: "Dodge", model: "Ram", year: 2012, weight: 6811},
-      {make: "Toyota", model: "Camry", year: 2012, weight: 3190},
-      {make: "Smart", model: "Fortwo", year: 2012, weight: 1808}
+      {make: 'Dodge', model: 'Ram', year: 2012, weight: 6811},
+      {make: 'Toyota', model: 'Camry', year: 2012, weight: 3190},
+      {make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808}
     ]);
 
     handsontable({
       data: cars,
       columns: [
-        attr("make"),
-        attr("model"),
-        attr("year")
+        attr('make'),
+        attr('model'),
+        attr('year')
       ]
     });
 
     // use the "good" Collection methods to emulate Array.splice
-    function hacked_splice(index, howMany /* model1, ... modelN */) {
+    function hackedSplice(index, howMany /* model1, ... modelN */) {
       var args = _.toArray(arguments).slice(2).concat({at: index}),
         removed = this.models.slice(index, index + howMany);
       this.remove(removed).add.apply(this, args);
@@ -462,18 +462,20 @@ describe('Core_loadData', function () {
     // normally, you'd get these from the server with .fetch()
     function attr(attr) {
       // this lets us remember `attr` for when when it is get/set
-      return {data: function (car, value) {
-        if (_.isUndefined(value)) {
-          return car.get(attr);
+      return {
+        data: function(car, value) {
+          if (_.isUndefined(value)) {
+            return car.get(attr);
+          }
+          car.set(attr, value);
         }
-        car.set(attr, value);
-      }};
+      };
     }
 
     expect(countRows()).toBe(3);
   });
 
-  it('should load Backbone Collection as data source when columns is a function', function () {
+  it('should load Backbone Collection as data source when columns is a function', function() {
     // code borrowed from demo/backbone.js
 
     var CarModel = Backbone.Model.extend({});
@@ -481,14 +483,14 @@ describe('Core_loadData', function () {
     var CarCollection = Backbone.Collection.extend({
       model: CarModel,
       // Backbone.Collection doesn't support `splice`, yet! Easy to add.
-      splice: hacked_splice
+      splice: hackedSplice
     });
     var cars = new CarCollection();
 
     cars.add([
-      {make: "Dodge", model: "Ram", year: 2012, weight: 6811},
-      {make: "Toyota", model: "Camry", year: 2012, weight: 3190},
-      {make: "Smart", model: "Fortwo", year: 2012, weight: 1808}
+      {make: 'Dodge', model: 'Ram', year: 2012, weight: 6811},
+      {make: 'Toyota', model: 'Camry', year: 2012, weight: 3190},
+      {make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808}
     ]);
 
     handsontable({
@@ -497,11 +499,11 @@ describe('Core_loadData', function () {
         var colMeta = null;
 
         if (column === 0) {
-          colMeta = attr("make");
+          colMeta = attr('make');
         } else if (column === 1) {
-          colMeta = attr("model");
+          colMeta = attr('model');
         } else if (column === 2) {
-          colMeta = attr("year");
+          colMeta = attr('year');
         }
 
         return colMeta;
@@ -509,7 +511,7 @@ describe('Core_loadData', function () {
     });
 
     // use the "good" Collection methods to emulate Array.splice
-    function hacked_splice(index, howMany /* model1, ... modelN */) {
+    function hackedSplice(index, howMany /* model1, ... modelN */) {
       var args = _.toArray(arguments).slice(2).concat({at: index}),
         removed = this.models.slice(index, index + howMany);
       this.remove(removed).add.apply(this, args);
@@ -520,31 +522,34 @@ describe('Core_loadData', function () {
     // normally, you'd get these from the server with .fetch()
     function attr(attr) {
       // this lets us remember `attr` for when when it is get/set
-      return {data: function (car, value) {
-        if (_.isUndefined(value)) {
-          return car.get(attr);
+      return {
+        data: function(car, value) {
+          if (_.isUndefined(value)) {
+            return car.get(attr);
+          }
+
+          car.set(attr, value);
         }
-        car.set(attr, value);
-      }};
+      };
     }
 
     expect(countRows()).toBe(3);
   });
 
-  it('should clear cell properties after loadData', function () {
+  it('should clear cell properties after loadData', function() {
     handsontable();
     loadData(arrayOfArrays());
 
     getCellMeta(0, 0).foo = 'bar';
 
-    expect(getCellMeta(0, 0).foo).toEqual("bar");
+    expect(getCellMeta(0, 0).foo).toEqual('bar');
 
     loadData(arrayOfArrays());
 
     expect(getCellMeta(0, 0).foo).toBeUndefined();
   });
 
-  it('should clear cell properties after loadData, but before rendering new data', function () {
+  it('should clear cell properties after loadData, but before rendering new data', function() {
     handsontable();
     loadData(arrayOfArrays());
 
@@ -561,10 +566,10 @@ describe('Core_loadData', function () {
 
   // https://github.com/handsontable/handsontable/issues/1700
   // can't edit anything after starting editing cell with no nested object
-  it('should correct behave with cell with no nested object data source corresponding to column mapping', function () {
+  it('should correct behave with cell with no nested object data source corresponding to column mapping', function() {
 
     var objectData = [
-      {id: 1, user: {name: {first: "Ted", last: "Right"}}},
+      {id: 1, user: {name: {first: 'Ted', last: 'Right'}}},
       {id: 2, user: {name: {}}},
       {id: 3}
     ];
@@ -589,10 +594,10 @@ describe('Core_loadData', function () {
     expect(objectData[2].user.name.first).toEqual('Barry');
   });
 
-  it('should correct behave with cell with no nested object data source corresponding to column mapping when columns is a function', function () {
+  it('should correct behave with cell with no nested object data source corresponding to column mapping when columns is a function', function() {
 
     var objectData = [
-      {id: 1, user: {name: {first: "Ted", last: "Right"}}},
+      {id: 1, user: {name: {first: 'Ted', last: 'Right'}}},
       {id: 2, user: {name: {}}},
       {id: 3}
     ];
@@ -603,10 +608,11 @@ describe('Core_loadData', function () {
         var colMeta = null;
 
         if (column === 0) {
-          colMeta = {data: 'id'}
+          colMeta = {data: 'id'};
 
         } else if (column === 1) {
           colMeta = {data: 'user.name.first'};
+
         } else if (column === 2) {
           colMeta = {data: 'user.name.last'};
         }

@@ -1,25 +1,25 @@
-describe('RowHeader', function () {
+describe('RowHeader', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should not show row headers by default', function () {
+  it('should not show row headers by default', function() {
     var that = this;
     handsontable();
 
     expect(that.$container.find('tbody th').length).toEqual(0);
   });
 
-  it('should show row headers if true', function () {
+  it('should show row headers if true', function() {
     var that = this;
     handsontable({
       rowHeaders: true
@@ -28,7 +28,7 @@ describe('RowHeader', function () {
     expect(that.$container.find('tbody th').length).toBeGreaterThan(0);
   });
 
-  it('should show row headers numbered 1-10 by default', function () {
+  it('should show row headers numbered 1-10 by default', function() {
     var that = this;
     var startRows = 5;
     handsontable({
@@ -45,7 +45,7 @@ describe('RowHeader', function () {
     expect($.trim(ths.eq(4).text())).toEqual('5');
   });
 
-  it('should show row headers with custom label', function () {
+  it('should show row headers with custom label', function() {
     var that = this;
     var startRows = 5;
     handsontable({
@@ -62,7 +62,7 @@ describe('RowHeader', function () {
     expect($.trim(ths.eq(4).text())).toEqual('5');
   });
 
-  it('should not show row headers if false', function () {
+  it('should not show row headers if false', function() {
     var that = this;
     handsontable({
       rowHeaders: false
@@ -71,7 +71,7 @@ describe('RowHeader', function () {
     expect(getLeftClone().find('tbody th').length).toEqual(0);
   });
 
-  it('should hide rows headers after updateSetting', function(){
+  it('should hide rows headers after updateSetting', function() {
     var hot  = handsontable({
       startRows: 5,
       rowHeaders: true
@@ -87,7 +87,7 @@ describe('RowHeader', function () {
     expect(getHtCore().find('tbody th').length).toEqual(0);
   });
 
-  it('should show rows headers after updateSettings', function(){
+  it('should show rows headers after updateSettings', function() {
     var hot  = handsontable({
       startRows: 5,
       rowHeaders: false
@@ -104,7 +104,7 @@ describe('RowHeader', function () {
     expect(getLeftClone().find('tbody th').length).toEqual(5);
   });
 
-  it('should show/hide rows headers after multiple updateSettings', function(){
+  it('should show/hide rows headers after multiple updateSettings', function() {
     var hot  = handsontable({
       startRows: 5,
       rowHeaders: false
@@ -135,7 +135,7 @@ describe('RowHeader', function () {
     expect(getLeftClone().width()).toBeGreaterThan(0);
   });
 
-  it('should show new rows headers after updateSettings', function(){
+  it('should show new rows headers after updateSettings', function() {
     var hot  = handsontable({
       startCols: 3,
       rowHeaders: ['A', 'B', 'C']

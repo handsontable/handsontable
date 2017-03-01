@@ -1,22 +1,22 @@
-describe('Core_selection', function () {
+describe('Core_selection', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should call onSelection callback', function () {
+  it('should call onSelection callback', function() {
     var output = null;
 
     handsontable({
-      afterSelection: function (r, c) {
+      afterSelection: function(r, c) {
         output = [r, c];
       }
     });
@@ -26,11 +26,11 @@ describe('Core_selection', function () {
     expect(output[1]).toEqual(2);
   });
 
-  it('should trigger selection event', function () {
+  it('should trigger selection event', function() {
     var output = null;
 
     handsontable();
-    Handsontable.hooks.add('afterSelection', function (r, c) {
+    Handsontable.hooks.add('afterSelection', function(r, c) {
       output = [r, c];
     });
     selectCell(1, 2);
@@ -39,11 +39,11 @@ describe('Core_selection', function () {
     expect(output[1]).toEqual(2);
   });
 
-  it('this.rootElement should point to handsontable rootElement (onSelection)', function () {
+  it('this.rootElement should point to handsontable rootElement (onSelection)', function() {
     var output = null;
 
     handsontable({
-      afterSelection: function () {
+      afterSelection: function() {
         output = this.rootElement;
       }
     });
@@ -52,11 +52,11 @@ describe('Core_selection', function () {
     expect(output).toEqual(this.$container[0]);
   });
 
-  it('this.rootElement should point to handsontable rootElement (onSelectionByProp)', function () {
+  it('this.rootElement should point to handsontable rootElement (onSelectionByProp)', function() {
     var output = null;
 
     handsontable({
-      afterSelectionByProp: function () {
+      afterSelectionByProp: function() {
         output = this.rootElement;
       }
     });
@@ -65,22 +65,22 @@ describe('Core_selection', function () {
     expect(output).toEqual(this.$container[0]);
   });
 
-  it('should focus external textarea when clicked during editing', function () {
+  it('should focus external textarea when clicked during editing', function() {
     var textarea = $('<input type="text">').prependTo($('body'));
 
     handsontable();
     selectCell(0, 0);
 
     keyDown('enter');
-//    $("html").triggerHandler('mouseup');
-    $("html").simulate('mouseup');
+    // $("html").triggerHandler('mouseup');
+    $('html').simulate('mouseup');
     textarea.focus();
 
     expect(document.activeElement).toBe(textarea[0]);
     textarea.remove();
   });
 
-  it('should deselect currently selected cell', function () {
+  it('should deselect currently selected cell', function() {
     handsontable();
     selectCell(0, 0);
 
@@ -89,7 +89,7 @@ describe('Core_selection', function () {
     expect(getSelected()).toBeUndefined();
   });
 
-  it('should not deselect the currently selected cell after clicking on a scrollbar', function () {
+  it('should not deselect the currently selected cell after clicking on a scrollbar', function() {
     var hot = handsontable({
       outsideClickDeselects: false,
       minRows: 20,
@@ -102,10 +102,10 @@ describe('Core_selection', function () {
     var holderBoundingBox = hot.view.wt.wtTable.holder.getBoundingClientRect(),
       verticalScrollbarCoords = {
         x: holderBoundingBox.left + holderBoundingBox.width - 3,
-        y: holderBoundingBox.top + ( holderBoundingBox.height / 2 )
+        y: holderBoundingBox.top + (holderBoundingBox.height / 2)
       },
       horizontalScrollbarCoords = {
-        x: holderBoundingBox.left + ( holderBoundingBox.width / 2 ),
+        x: holderBoundingBox.left + (holderBoundingBox.width / 2),
         y: holderBoundingBox.top + holderBoundingBox.height - 3
       };
 
@@ -124,18 +124,18 @@ describe('Core_selection', function () {
     expect(getSelected()).toEqual([0, 0, 0, 0]);
   });
 
-  it('should not deselect currently selected cell', function () {
+  it('should not deselect currently selected cell', function() {
     handsontable({
       outsideClickDeselects: false
     });
     selectCell(0, 0);
 
-    $("html").simulate('mousedown');
+    $('html').simulate('mousedown');
 
     expect(getSelected()).toEqual([0, 0, 0, 0]);
   });
 
-  it('should allow to focus on external input and hold current selection informations', function () {
+  it('should allow to focus on external input and hold current selection informations', function() {
     var textarea = $('<input id="test_textarea" type="text">').prependTo($('body'));
 
     handsontable({
@@ -151,7 +151,7 @@ describe('Core_selection', function () {
     textarea.remove();
   });
 
-  it('should allow to type in external input while holding current selection information', function () {
+  it('should allow to type in external input while holding current selection information', function() {
     var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
     var keyPressed;
     handsontable({
@@ -163,21 +163,18 @@ describe('Core_selection', function () {
     textarea.simulate('mousedown');
     textarea.simulate('mouseup');
 
-    textarea.on('keydown', function (event) {
+    textarea.on('keydown', function(event) {
       keyPressed = event.keyCode;
     });
 
-    var LETTER_a_KEY = 97;
-//    var event = $.Event('keydown');
-//    event.keyCode = LETTER_a_KEY;
+    var LETTER_A_KEY = 97;
 
-//    $(document.activeElement).trigger(event);
-    $(document.activeElement).simulate('keydown',{
-      keyCode: LETTER_a_KEY
+    $(document.activeElement).simulate('keydown', {
+      keyCode: LETTER_A_KEY
     });
 
     //textarea should receive the event and be an active element
-    expect(keyPressed).toEqual(LETTER_a_KEY);
+    expect(keyPressed).toEqual(LETTER_A_KEY);
     expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
     //should preserve selection, close editor and save changes
@@ -187,7 +184,7 @@ describe('Core_selection', function () {
     textarea.remove();
   });
 
-  it('should allow to type in external input after opening cell editor', function () {
+  it('should allow to type in external input after opening cell editor', function() {
     var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
     var keyPressed;
     handsontable({
@@ -201,20 +198,18 @@ describe('Core_selection', function () {
     textarea.simulate('mousedown');
     textarea.simulate('mouseup');
 
-    textarea.on('keydown', function (event) {
+    textarea.on('keydown', function(event) {
       keyPressed = event.keyCode;
     });
 
-    var LETTER_a_KEY = 97;
-//    var event = $.Event('keydown');
-//    event.keyCode = LETTER_a_KEY;
+    var LETTER_A_KEY = 97;
 
-    $(document.activeElement).simulate('keydown',{
-      keyCode: LETTER_a_KEY
+    $(document.activeElement).simulate('keydown', {
+      keyCode: LETTER_A_KEY
     });
 
     //textarea should receive the event and be an active element
-    expect(keyPressed).toEqual(LETTER_a_KEY);
+    expect(keyPressed).toEqual(LETTER_A_KEY);
     expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
     //should preserve selection, close editor and save changes
@@ -228,7 +223,7 @@ describe('Core_selection', function () {
     var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
     var keyPressed;
     handsontable({
-      outsideClickDeselects: function() { return true }
+      outsideClickDeselects: () => true,
     });
     selectCell(0, 0);
     keyDown('enter');
@@ -238,20 +233,18 @@ describe('Core_selection', function () {
     textarea.simulate('mousedown');
     textarea.simulate('mouseup');
 
-    textarea.on('keydown', function (event) {
+    textarea.on('keydown', function(event) {
       keyPressed = event.keyCode;
     });
 
-    var LETTER_a_KEY = 97;
-//    var event = $.Event('keydown');
-//    event.keyCode = LETTER_a_KEY;
+    var LETTER_A_KEY = 97;
 
-    $(document.activeElement).simulate('keydown',{
-      keyCode: LETTER_a_KEY
+    $(document.activeElement).simulate('keydown', {
+      keyCode: LETTER_A_KEY
     });
 
     //textarea should receive the event and be an active element
-    expect(keyPressed).toEqual(LETTER_a_KEY);
+    expect(keyPressed).toEqual(LETTER_A_KEY);
     expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
     //should NOT preserve selection
@@ -261,11 +254,11 @@ describe('Core_selection', function () {
     textarea.remove();
   });
 
-it('should not deselect on outside click if outsideClickDeselects is a function that returns false', function() {
+  it('should not deselect on outside click if outsideClickDeselects is a function that returns false', function() {
     var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
     var keyPressed;
     handsontable({
-      outsideClickDeselects: function() { return false }
+      outsideClickDeselects: () => false,
     });
     selectCell(0, 0);
     keyDown('enter');
@@ -275,20 +268,18 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     textarea.simulate('mousedown');
     textarea.simulate('mouseup');
 
-    textarea.on('keydown', function (event) {
+    textarea.on('keydown', function(event) {
       keyPressed = event.keyCode;
     });
 
-    var LETTER_a_KEY = 97;
-//    var event = $.Event('keydown');
-//    event.keyCode = LETTER_a_KEY;
+    var LETTER_A_KEY = 97;
 
-    $(document.activeElement).simulate('keydown',{
-      keyCode: LETTER_a_KEY
+    $(document.activeElement).simulate('keydown', {
+      keyCode: LETTER_A_KEY
     });
 
     //textarea should receive the event and be an active element
-    expect(keyPressed).toEqual(LETTER_a_KEY);
+    expect(keyPressed).toEqual(LETTER_A_KEY);
     expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
     //should preserve selection, close editor and save changes
@@ -298,7 +289,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     textarea.remove();
   });
 
-  it('should fix start range if provided is out of bounds (to the left)', function () {
+  it('should fix start range if provided is out of bounds (to the left)', function() {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -309,7 +300,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([0, 0, 0, 0]);
   });
 
-  it('should fix start range if provided is out of bounds (to the top)', function () {
+  it('should fix start range if provided is out of bounds (to the top)', function() {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -320,7 +311,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([0, 0, 0, 0]);
   });
 
-  it('should fix start range if provided is out of bounds (to the right)', function () {
+  it('should fix start range if provided is out of bounds (to the right)', function() {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -331,7 +322,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([0, 4, 0, 4]);
   });
 
-  it('should fix start range if provided is out of bounds (to the bottom)', function () {
+  it('should fix start range if provided is out of bounds (to the bottom)', function() {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -342,7 +333,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([4, 0, 4, 0]);
   });
 
-  it('should fix end range if provided is out of bounds (to the left)', function () {
+  it('should fix end range if provided is out of bounds (to the left)', function() {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -354,7 +345,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([0, 1, 0, 0]);
   });
 
-  it('should fix end range if provided is out of bounds (to the top)', function () {
+  it('should fix end range if provided is out of bounds (to the top)', function() {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -366,7 +357,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([1, 0, 0, 0]);
   });
 
-  it('should fix end range if provided is out of bounds (to the right)', function () {
+  it('should fix end range if provided is out of bounds (to the right)', function() {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -378,7 +369,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([0, 3, 0, 4]);
   });
 
-  it('should fix end range if provided is out of bounds (to the bottom)', function () {
+  it('should fix end range if provided is out of bounds (to the bottom)', function() {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -391,7 +382,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([3, 0, 4, 0]);
   });
 
-  it('should select multiple cells', function () {
+  it('should select multiple cells', function() {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -401,16 +392,16 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([3, 0, 4, 1]);
   });
 
-  it('should call onSelectionEnd as many times as onSelection when `selectCell` is called', function () {
-    var tick = 0
-      , tickEnd = 0;
+  it('should call onSelectionEnd as many times as onSelection when `selectCell` is called', function() {
+    var tick = 0, tickEnd = 0;
+
     handsontable({
       startRows: 5,
       startCols: 5,
-      afterSelection: function () {
+      afterSelection: function() {
         tick++;
       },
-      afterSelectionEnd: function () {
+      afterSelectionEnd: function() {
         tickEnd++;
       }
     });
@@ -421,12 +412,12 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(tickEnd).toEqual(2);
   });
 
-  it('should call onSelectionEnd when user finishes selection by releasing SHIFT key (3 times)', function () {
+  it('should call onSelectionEnd when user finishes selection by releasing SHIFT key (3 times)', function() {
     var tick = 0;
     handsontable({
       startRows: 5,
       startCols: 5,
-      afterSelectionEnd: function () {
+      afterSelectionEnd: function() {
         tick++;
       }
     });
@@ -439,12 +430,12 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(tick).toEqual(4);
   });
 
-  it('should call onSelectionEnd when user finishes selection by releasing SHIFT key (1 time)', function () {
+  it('should call onSelectionEnd when user finishes selection by releasing SHIFT key (1 time)', function() {
     var tick = 0;
     handsontable({
       startRows: 5,
       startCols: 5,
-      afterSelectionEnd: function () {
+      afterSelectionEnd: function() {
         tick++;
       }
     });
@@ -457,7 +448,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(tick).toEqual(2);
   });
 
-  it('should select columns by click on header with SHIFT key', function () {
+  it('should select columns by click on header with SHIFT key', function() {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -474,7 +465,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
 
   });
 
-  it('should select rows by click on header with SHIFT key', function () {
+  it('should select rows by click on header with SHIFT key', function() {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -491,7 +482,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
 
   });
 
-  it('should select columns by click on header with SHIFT key', function () {
+  it('should select columns by click on header with SHIFT key', function() {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -508,7 +499,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
 
   });
 
-  it('should change selection after click on row header with SHIFT key', function () {
+  it('should change selection after click on row header with SHIFT key', function() {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -524,7 +515,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
 
   });
 
-  it('should change selection after click on column header with SHIFT key', function () {
+  it('should change selection after click on column header with SHIFT key', function() {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -537,19 +528,17 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
 
     expect(getSelected()).toEqual([0, 1, 4, 4]);
-
   });
 
-
-  it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', function () {
+  it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', function() {
     var tick = 0, tickEnd = 0;
     handsontable({
       startRows: 5,
       startCols: 5,
-      afterSelection: function () {
+      afterSelection: function() {
         tick++;
       },
-      afterSelectionEnd: function () {
+      afterSelectionEnd: function() {
         tickEnd++;
       }
     });
@@ -558,7 +547,6 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     this.$container.find('tr:eq(0) td:eq(1)').simulate('mouseover');
     this.$container.find('tr:eq(1) td:eq(3)').simulate('mouseover');
 
-
     this.$container.find('tr:eq(1) td:eq(3)').simulate('mouseup');
 
     expect(getSelected()).toEqual([0, 0, 1, 3]);
@@ -566,7 +554,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(tickEnd).toEqual(1);
   });
 
-  it('should properly select columns, when the user moves the cursor over column headers across two overlays', function () {
+  it('should properly select columns, when the user moves the cursor over column headers across two overlays', function() {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -583,7 +571,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([0, 1, 4, 1]);
   });
 
-  it('should move focus to selected cell', function () {
+  it('should move focus to selected cell', function() {
     var $input = $('<input>').appendTo(document.body);
     handsontable({
       startRows: 5,
@@ -597,8 +585,8 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     $input.remove();
   });
 
-  //This test should cover the #893 case, but it always passes. It seems like the keydown event (with CTRL key pressed) isn't delivered.
-  it("should not move focus from outside elements on CTRL keydown event, when no cell is selected", function () {
+  // This test should cover the #893 case, but it always passes. It seems like the keydown event (with CTRL key pressed) isn't delivered.
+  it('should not move focus from outside elements on CTRL keydown event, when no cell is selected', function() {
     var $input = $('<input type="text"/>');
     $('body').append($input);
 
@@ -612,19 +600,17 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
 
     expect(document.activeElement.nodeName).toBe('INPUT');
 
-//    var keyDownEvent = $.Event('keydown', {ctrlKey: true, metaKey: true});
-//    $input.trigger(keyDownEvent);
+    // var keyDownEvent = $.Event('keydown', {ctrlKey: true, metaKey: true});
+    // $input.trigger(keyDownEvent);
 
-    $input.simulate('keydown',{ctrlKey: true, metaKey: true});
+    $input.simulate('keydown', {ctrlKey: true, metaKey: true});
 
     expect(document.activeElement.nodeName).toBe('INPUT');
 
     $input.remove();
-
-
   });
 
-  it("should select the entire column after column header is clicked", function(){
+  it('should select the entire column after column header is clicked', function() {
     var hot = handsontable({
       width: 200,
       height: 100,
@@ -641,7 +627,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
-  it("should add classname after select column", function(){
+  it('should add classname after select column', function() {
     var hot = handsontable({
       width: 200,
       height: 100,
@@ -655,7 +641,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(this.$container.hasClass('ht__selection--columns')).toBeTruthy();
   });
 
-  it("should select the entire column after column header is clicked (in fixed rows/cols corner)", function(){
+  it('should select the entire column after column header is clicked (in fixed rows/cols corner)', function() {
     var hot = handsontable({
       width: 200,
       height: 100,
@@ -675,7 +661,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
-  it("should select the entire fixed column after column header is clicked, after scroll horizontally", function(){
+  it('should select the entire fixed column after column header is clicked, after scroll horizontally', function() {
     var hot = handsontable({
       width: 200,
       height: 100,
@@ -698,7 +684,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
-  it("should set the selection end to the first visible row, when dragging the selection from a cell to a column header", function (done) {
+  it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', function(done) {
     var hot = handsontable({
       width: 200,
       height: 200,
@@ -713,18 +699,18 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
 
     hot.render();
 
-    setTimeout(function () {
-      $(getCell(12,11)).simulate('mousedown');
+    setTimeout(function() {
+      $(getCell(12, 11)).simulate('mousedown');
       spec().$container.find('.ht_clone_top thead th:eq(2)').simulate('mouseover');
     }, 30);
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(getSelected()).toEqual([12, 11, 10, 11]);
       done();
     }, 60);
   });
 
-  it("should set the selection end to the first visible column, when dragging the selection from a cell to a row header", function (done) {
+  it('should set the selection end to the first visible column, when dragging the selection from a cell to a row header', function(done) {
     var hot = handsontable({
       width: 200,
       height: 200,
@@ -739,20 +725,20 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
 
     hot.render();
 
-    setTimeout(function () {
-      $(getCell(12,11)).simulate('mousedown');
+    setTimeout(function() {
+      $(getCell(12, 11)).simulate('mousedown');
       spec().$container.find('.ht_clone_left tbody th:eq(12)').simulate('mouseover');
     }, 30);
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(getSelected()).toEqual([12, 11, 12, 10]);
       done();
     }, 60);
   });
 
-  it("should allow to scroll the table when a whole column is selected and table is longer than it's container", function (done) {
+  it('should allow to scroll the table when a whole column is selected and table is longer than it\'s container', function(done) {
     var errCount = 0;
-    $(window).on("error.selectionTest", function () {
+    $(window).on('error.selectionTest', function() {
       errCount++;
     });
 
@@ -777,15 +763,15 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
 
     mainHolder.scrollTop = 120;
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(errCount).toEqual(0); // expect no errors to be thrown
 
-      $(window).off("error.selectionTest");
+      $(window).off('error.selectionTest');
       done();
     }, 100);
   });
 
-  it("should scroll to the end of the selection, when selecting cells using the keyboard", function () {
+  it('should scroll to the end of the selection, when selecting cells using the keyboard', function() {
     var hot = handsontable({
       height: 300,
       width: 300,
@@ -837,7 +823,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
 
   });
 
-  it("should select the entire row after row header is clicked", function(){
+  it('should select the entire row after row header is clicked', function() {
     var hot = handsontable({
       startRows: 5,
       startCols: 5,
@@ -853,7 +839,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
-  it("should add classname after select row", function(){
+  it('should add classname after select row', function() {
     var hot = handsontable({
       width: 200,
       height: 100,
@@ -867,7 +853,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(this.$container.hasClass('ht__selection--rows')).toBeTruthy();
   });
 
-  it("should select the entire row of a partially fixed table after row header is clicked", function(){
+  it('should select the entire row of a partially fixed table after row header is clicked', function() {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -883,34 +869,34 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([2, 0, 2, 4]);
   });
 
-  it("should select a cell in a newly added row after automatic row adding, triggered by editing a cell in the last row with minSpareRows > 0, " +
-    "unless editing happened within the fixed bottom rows", function (done) {
+  it('should select a cell in a newly added row after automatic row adding, triggered by editing a cell in the last row with minSpareRows > 0, ' +
+    'unless editing happened within the fixed bottom rows', function(done) {
     var hot = handsontable({
       startRows: 5,
       startCols: 2,
       minSpareRows: 1
     });
 
-    setTimeout(function () {
-      selectCell(4,0);
+    setTimeout(function() {
+      selectCell(4, 0);
       keyDownUp('enter');
     }, 10);
 
-    setTimeout(function () {
+    setTimeout(function() {
       keyDownUp('enter');
     }, 100);
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(countRows()).toEqual(6);
       expect(getSelected()).toEqual([5,0,5,0]);
     }, 200);
 
-    setTimeout(function () {
+    setTimeout(function() {
       done();
     }, 250);
   });
 
-  it("should change selected coords by modifying coords object via `modifyTransformStart` hook", function(){
+  it('should change selected coords by modifying coords object via `modifyTransformStart` hook', function() {
     var hot = handsontable({
       startRows: 5,
       startCols: 5
@@ -926,7 +912,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([2, 1, 2, 1]);
   });
 
-  it("should change selected coords by modifying coords object via `modifyTransformEnd` hook", function(){
+  it('should change selected coords by modifying coords object via `modifyTransformEnd` hook', function() {
     var hot = handsontable({
       startRows: 5,
       startCols: 5
@@ -942,7 +928,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(getSelected()).toEqual([0, 0, 2, 2]);
   });
 
-  it('should indicate is coords is out of bounds via `afterModifyTransformStart` hook', function () {
+  it(`should indicate is coords is out of bounds via \`afterModifyTransformStart\` hook`, function() {
     var spy = jasmine.createSpy();
 
     var hot = handsontable({
@@ -979,7 +965,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(spy.calls.mostRecent().args[2]).toBe(0);
   });
 
-  it('should indicate is coords is out of bounds via `afterModifyTransformEnd` hook', function () {
+  it(`should indicate is coords is out of bounds via \`afterModifyTransformEnd\` hook`, function() {
     var spy = jasmine.createSpy();
 
     var hot = handsontable({
@@ -1016,7 +1002,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(spy.calls.mostRecent().args[2]).toBe(0);
   });
 
-  it('should change selection after left mouse button on one of selected cell', function () {
+  it('should change selection after left mouse button on one of selected cell', function() {
     var hot = handsontable({
       startRows: 5,
       startCols: 5
@@ -1036,7 +1022,7 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(hot.getSelected()).toEqual([3, 1, 3, 1]);
   });
 
-  it("should select the first row after corner header is clicked", function(){
+  it('should select the first row after corner header is clicked', function() {
     var hot = handsontable({
       startRows: 5,
       startCols: 5,

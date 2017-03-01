@@ -194,7 +194,7 @@ export function curry(func) {
       }
 
       return result;
-    }
+    };
   }
 
   return given([]);
@@ -237,7 +237,7 @@ export function curryRight(func) {
       }
 
       return result;
-    }
+    };
   }
 
   return given([]);

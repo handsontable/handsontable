@@ -1,28 +1,28 @@
-describe('WalkontableEvent', function () {
-  var $table
-    , debug = false;
+describe('WalkontableEvent', function() {
+  var $table, debug = false;
 
-  beforeEach(function () {
+  beforeEach(function() {
     $table = $('<table></table>'); //create a table that is not attached to document
     $table.appendTo('body');
     createDataArray();
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (!debug) {
       $('.wtHolder').remove();
     }
   });
 
-  it("should call `onCellMouseDown` callback", function () {
-    var myCoords = null
-      , myTD = null
-      , wt = new Walkontable({
+  it('should call `onCellMouseDown` callback', function() {
+    var
+      myCoords = null,
+      myTD = null,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        onCellMouseDown: function (event, coords, TD) {
+        onCellMouseDown: function(event, coords, TD) {
           myCoords = coords;
           myTD = TD;
         }
@@ -36,21 +36,21 @@ describe('WalkontableEvent', function () {
     expect(myTD).toEqual($td[0]);
   });
 
-  it("should call `onCellMouseOver` callback", function () {
-    var myCoords = null
-      , myTD = null
-      , wt = new Walkontable({
+  it('should call `onCellMouseOver` callback', function() {
+    var
+      myCoords = null,
+      myTD = null,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        onCellMouseOver: function (event, coords, TD) {
+        onCellMouseOver: function(event, coords, TD) {
           myCoords = coords;
           myTD = TD;
         }
       });
     wt.draw();
-
 
     var $td = $table.find('tbody tr:eq(1) td:eq(1)');
     $td.simulate('mouseover');
@@ -59,7 +59,7 @@ describe('WalkontableEvent', function () {
     expect(myTD).toEqual($td[0]);
   });
 
-  it("should call `onCellMouseOver` callback with correctly passed TD element when cell contains another table", function () {
+  it('should call `onCellMouseOver` callback with correctly passed TD element when cell contains another table', function() {
     var fn = jasmine.createSpy();
     var wt = new Walkontable({
       table: $table[0],
@@ -81,15 +81,16 @@ describe('WalkontableEvent', function () {
     expect(fn.calls.argsFor(0)[2]).toBe(outerTD[0]);
   });
 
-  it("should call `onCellDblClick` callback", function () {
-    var myCoords = null
-      , myTD = null
-      , wt = new Walkontable({
+  it('should call `onCellDblClick` callback', function() {
+    var
+      myCoords = null,
+      myTD = null,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        onCellDblClick: function (event, coords, TD) {
+        onCellDblClick: function(event, coords, TD) {
           myCoords = coords;
           myTD = TD;
         }
@@ -105,10 +106,11 @@ describe('WalkontableEvent', function () {
     expect(myTD).toEqual($td[0]);
   });
 
-  it("should call `onCellDblClick` callback, even when it is set only after first click", function () {
-    var myCoords = null
-      , myTD = null
-      , wt = new Walkontable({
+  it('should call `onCellDblClick` callback, even when it is set only after first click', function() {
+    var
+      myCoords = null,
+      myTD = null,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
@@ -120,7 +122,7 @@ describe('WalkontableEvent', function () {
     $td.simulate('mousedown');
     $td.simulate('mouseup');
     $td.simulate('mousedown');
-    wt.update('onCellDblClick', function (event, coords, TD) {
+    wt.update('onCellDblClick', function(event, coords, TD) {
       myCoords = coords;
       myTD = TD;
     });
@@ -129,18 +131,19 @@ describe('WalkontableEvent', function () {
     expect(myTD).toEqual($td[0]);
   });
 
-  it("should call `onCellMouseDown` callback when clicked on TH", function () {
-    var called = false
-      , wt = new Walkontable({
+  it('should call `onCellMouseDown` callback when clicked on TH', function() {
+    var
+      called = false,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        columnHeaders: [function (col, TH) {
+        columnHeaders: [function(col, TH) {
           TH.innerHTML = col + 1;
         }],
-        onCellMouseDown: function (event, coords, TD) {
-          called = true
+        onCellMouseDown: function(event, coords, TD) {
+          called = true;
         }
       });
     wt.draw();
@@ -151,9 +154,9 @@ describe('WalkontableEvent', function () {
     expect(called).toEqual(true);
   });
 
-  it("should not call `onCellMouseDown` callback when clicked on the focusable element (column headers)", function () {
+  it('should not call `onCellMouseDown` callback when clicked on the focusable element (column headers)', function() {
     var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(function(opt) {
-      return "<option value='" + opt + "'>" + opt + "</option>"
+      return '<option value="' + opt + '">' + opt + '</option>';
     }).join('');
     var called = false;
     var wt = new Walkontable({
@@ -161,11 +164,11 @@ describe('WalkontableEvent', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      columnHeaders: [function (col, TH) {
-        TH.innerHTML = '#' + col + '<select>' + opt + '</select>'
+      columnHeaders: [function(col, TH) {
+        TH.innerHTML = '#' + col + '<select>' + opt + '</select>';
       }],
-      onCellMouseDown: function (event, coords, TD) {
-        called = true
+      onCellMouseDown: function(event, coords, TD) {
+        called = true;
       }
     });
     wt.draw();
@@ -178,9 +181,9 @@ describe('WalkontableEvent', function () {
     expect(called).toBe(false);
   });
 
-  it("should not call `onCellMouseDown` callback when clicked on the focusable element (cell renderer)", function () {
+  it('should not call `onCellMouseDown` callback when clicked on the focusable element (cell renderer)', function() {
     var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(function(opt) {
-      return "<option value='" + opt + "'>" + opt + "</option>"
+      return '<option value="' + opt + '">' + opt + '</option>';
     }).join('');
     var called = false;
     var wt = new Walkontable({
@@ -188,11 +191,11 @@ describe('WalkontableEvent', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      cellRenderer: function (row, column, TD) {
+      cellRenderer: function(row, column, TD) {
         TD.innerHTML = '<select>' + opt + '</select>';
       },
-      onCellMouseDown: function (event, coords, TD) {
-        called = true
+      onCellMouseDown: function(event, coords, TD) {
+        called = true;
       }
     });
     wt.draw();
@@ -205,17 +208,18 @@ describe('WalkontableEvent', function () {
     expect(called).toBe(false);
   });
 
-  it("should call `onCellMouseOver` callback when clicked on TH", function () {
-    var called
-      , wt = new Walkontable({
+  it('should call `onCellMouseOver` callback when clicked on TH', function() {
+    var
+      called = false,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        columnHeaders: [function (col, TH) {
+        columnHeaders: [function(col, TH) {
           TH.innerHTML = col + 1;
         }],
-        onCellMouseOver: function (event, coords, TD) {
+        onCellMouseOver: function(event, coords, TD) {
           called = coords;
         }
       });
@@ -227,18 +231,19 @@ describe('WalkontableEvent', function () {
     expect(called.col).toEqual(0);
   });
 
-  it("should call `onCellDblClick` callback when clicked on TH", function () {
-    var called = false
-      , wt = new Walkontable({
+  it('should call `onCellDblClick` callback when clicked on TH', function() {
+    var
+      called = false,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        columnHeaders: [function (col, TH) {
+        columnHeaders: [function(col, TH) {
           TH.innerHTML = col + 1;
         }],
-        onCellDblClick: function (event, coords, TD) {
-          called = true
+        onCellDblClick: function(event, coords, TD) {
+          called = true;
         }
       });
     wt.draw();
@@ -253,15 +258,16 @@ describe('WalkontableEvent', function () {
     expect(called).toEqual(true);
   });
 
-  it("should not call `onCellDblClick` callback when right-clicked", function () {
-    var called = false
-      , wt = new Walkontable({
+  it('should not call `onCellDblClick` callback when right-clicked', function() {
+    var
+      called = false,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        onCellDblClick: function (event, coords, TD) {
-          called = true
+        onCellDblClick: function(event, coords, TD) {
+          called = true;
         }
       });
     wt.draw();
@@ -269,25 +275,26 @@ describe('WalkontableEvent', function () {
     var $td = $table.find('tbody tr:first td:first');
     var options = {
       button: 2
-      };
+    };
 
-    $td.simulate('mousedown',options);
-    $td.simulate('mouseup',options);
-    $td.simulate('mousedown',options);
-    $td.simulate('mouseup',options);
+    $td.simulate('mousedown', options);
+    $td.simulate('mouseup', options);
+    $td.simulate('mousedown', options);
+    $td.simulate('mouseup', options);
 
     expect(called).toEqual(false);
   });
 
-  it("should not call `onCellDblClick` when first mouse up came from mouse drag", function () {
-    var called = false
-      , wt = new Walkontable({
+  it('should not call `onCellDblClick` when first mouse up came from mouse drag', function() {
+    var
+      called = false,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        onCellDblClick: function (event, coords, TD) {
-          called = true
+        onCellDblClick: function(event, coords, TD) {
+          called = true;
         }
       });
     wt.draw();
@@ -303,10 +310,11 @@ describe('WalkontableEvent', function () {
     expect(called).toEqual(false);
   });
 
-  it("border click should call `onCellMouseDown` callback", function () {
-    var myCoords = null
-      , myTD = null
-      , wt = new Walkontable({
+  it('border click should call `onCellMouseDown` callback', function() {
+    var
+      myCoords = null,
+      myTD = null,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
@@ -321,7 +329,7 @@ describe('WalkontableEvent', function () {
             }
           })
         ],
-        onCellMouseDown: function (event, coords, TD) {
+        onCellMouseDown: function(event, coords, TD) {
           myCoords = coords;
           myTD = TD;
         }
@@ -339,10 +347,11 @@ describe('WalkontableEvent', function () {
     expect(myTD).toEqual($td[0]);
   });
 
-  it("border click should call `onCellDblClick` callback", function () {
-    var myCoords = null
-      , myTD = null
-      , wt = new Walkontable({
+  it('border click should call `onCellDblClick` callback', function() {
+    var
+      myCoords = null,
+      myTD = null,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
@@ -357,7 +366,7 @@ describe('WalkontableEvent', function () {
             }
           })
         ],
-        onCellDblClick: function (event, coords, TD) {
+        onCellDblClick: function(event, coords, TD) {
           myCoords = coords;
           myTD = TD;
         }
@@ -380,9 +389,10 @@ describe('WalkontableEvent', function () {
 
   //corner
 
-  it("should call `onCellCornerMouseDown` callback", function () {
-    var clicked = false
-      , wt = new Walkontable({
+  it('should call `onCellCornerMouseDown` callback', function() {
+    var
+      clicked = false,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
@@ -397,7 +407,7 @@ describe('WalkontableEvent', function () {
             }
           })
         ],
-        onCellCornerMouseDown: function (event) {
+        onCellCornerMouseDown: function(event) {
           clicked = true;
         }
       });
@@ -411,9 +421,10 @@ describe('WalkontableEvent', function () {
     expect(clicked).toEqual(true);
   });
 
-  it("should call `onCellCornerDblClick` callback, even when it is set only after first click", function () {
-    var clicked = false
-      , wt = new Walkontable({
+  it('should call `onCellCornerDblClick` callback, even when it is set only after first click', function() {
+    var
+      clicked = false,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
@@ -438,7 +449,7 @@ describe('WalkontableEvent', function () {
     $td.simulate('mousedown');
     $td.simulate('mouseup');
     $td.simulate('mousedown');
-    wt.update('onCellCornerDblClick', function (event) {
+    wt.update('onCellCornerDblClick', function(event) {
       clicked = true;
     });
     $td.simulate('mouseup');
@@ -446,14 +457,15 @@ describe('WalkontableEvent', function () {
     expect(clicked).toEqual(true);
   });
 
-  it("should call `onDraw` callback after render", function () {
-    var count = 0
-      , wt = new Walkontable({
+  it('should call `onDraw` callback after render', function() {
+    var
+      count = 0,
+      wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        onDraw: function () {
+        onDraw: function() {
           count++;
         }
       });

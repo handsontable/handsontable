@@ -1,11 +1,8 @@
-describe('WalkontableCore', function () {
-  var $table
-    , $container
-    , $wrapper
-    , debug = false;
+describe('WalkontableCore', function() {
+  var $table, $container, $wrapper, debug = false;
 
-  beforeEach(function () {
-    $wrapper = $('<div></div>').css({'overflow': 'hidden'});
+  beforeEach(function() {
+    $wrapper = $('<div></div>').css({overflow: 'hidden'});
     $container = $('<div></div>');
     $table = $('<table></table>'); //create a table that is not attached to document
     $wrapper.append($container);
@@ -14,7 +11,7 @@ describe('WalkontableCore', function () {
     createDataArray(100, 4);
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (!debug) {
       $('.wtHolder').remove();
     }
@@ -22,7 +19,7 @@ describe('WalkontableCore', function () {
     $wrapper.remove();
   });
 
-  it("first row should have the same text as in data source", function () {
+  it('first row should have the same text as in data source', function() {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -35,7 +32,7 @@ describe('WalkontableCore', function () {
     expect(TDs[1].innerHTML).toBe('a');
   });
 
-  it("should bootstrap table if empty TABLE is given", function () {
+  it('should bootstrap table if empty TABLE is given', function() {
     $wrapper.width(200).height(200);
 
     var wt = new Walkontable({
@@ -50,7 +47,7 @@ describe('WalkontableCore', function () {
     expect($table.find('td').length).toBe(400);
   });
 
-  it("should bootstrap column headers if THEAD is given", function () {
+  it('should bootstrap column headers if THEAD is given', function() {
     $table.remove();
     $table = $('<table><thead><tr><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead></table>');
     $table.appendTo('body');
@@ -60,7 +57,7 @@ describe('WalkontableCore', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function (row, TH) {
+      rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
       }]
     });
@@ -70,7 +67,7 @@ describe('WalkontableCore', function () {
     expect($table.find('tbody tr:first td').length).toBe(4);
   });
 
-  it("should figure out how many columns to display if width param given", function () {
+  it('should figure out how many columns to display if width param given', function() {
     $wrapper.width(100);
 
     var wt = new Walkontable({
@@ -83,7 +80,7 @@ describe('WalkontableCore', function () {
     expect($table.find('tbody tr:first td').length).toBe(2);
   });
 
-  it("should not render table that is removed from DOM", function () {
+  it('should not render table that is removed from DOM', function() {
     $wrapper.remove();
     var wt = new Walkontable({
       table: $table[0],
@@ -96,7 +93,7 @@ describe('WalkontableCore', function () {
     expect(wt.drawInterrupted).toBe(true);
   });
 
-  it("should not render table that is `display: none`", function () {
+  it('should not render table that is `display: none`', function() {
     var $div = $('<div style="display: none"></div>').appendTo('body');
     $div.append($table);
 
@@ -113,7 +110,7 @@ describe('WalkontableCore', function () {
     $div.remove();
   });
 
-  it("should render empty table (limited height)", function () {
+  it('should render empty table (limited height)', function() {
     createDataArray(0, 5);
 
     var wt = new Walkontable({
@@ -124,12 +121,12 @@ describe('WalkontableCore', function () {
     });
     wt.draw();
 
-    expect(function () {
+    expect(function() {
       wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
     }).not.toThrow();
   });
 
-  it("should render empty table (unlimited height)", function () {
+  it('should render empty table (unlimited height)', function() {
     createDataArray(0, 5);
 
     var wt = new Walkontable({
@@ -140,29 +137,12 @@ describe('WalkontableCore', function () {
     });
     wt.draw();
 
-    expect(function () {
+    expect(function() {
       wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
     }).not.toThrow();
   });
 
-  it("should render empty then filled table (limited height)", function () {
-    createDataArray(0, 5);
-
-    var wt = new Walkontable({
-      table: $table[0],
-      data: getData,
-      totalRows: getTotalRows,
-      totalColumns: getTotalColumns
-    });
-    wt.draw();
-    createDataArray(1, 5);
-
-    expect(function () {
-      wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
-    }).not.toThrow();
-  });
-
-  it("should render empty then filled table (unlimited height)", function () {
+  it('should render empty then filled table (limited height)', function() {
     createDataArray(0, 5);
 
     var wt = new Walkontable({
@@ -174,12 +154,29 @@ describe('WalkontableCore', function () {
     wt.draw();
     createDataArray(1, 5);
 
-    expect(function () {
+    expect(function() {
       wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
     }).not.toThrow();
   });
 
-  it("should render table with rows but no columns", function () {
+  it('should render empty then filled table (unlimited height)', function() {
+    createDataArray(0, 5);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+    wt.draw();
+    createDataArray(1, 5);
+
+    expect(function() {
+      wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+    }).not.toThrow();
+  });
+
+  it('should render table with rows but no columns', function() {
     createDataArray(5, 0);
 
     var wt = new Walkontable({

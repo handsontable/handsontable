@@ -12,7 +12,7 @@ import {
     hasVerticalScrollbar,
     hasHorizontalScrollbar
 } from './../helpers/dom/element';
-import autoResize from './../../lib/autoResize/autoResize';
+import autoResize from 'autoresize';
 import BaseEditor, {EditorState} from './_baseEditor';
 import EventManager from './../eventManager';
 import {getEditor, registerEditor} from './../editors';

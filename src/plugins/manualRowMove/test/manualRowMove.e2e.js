@@ -1,31 +1,31 @@
-describe('manualRowMove', function () {
+describe('manualRowMove', function() {
   var id = 'testContainer';
   var arrayOfObjects = [
-    {id: 1, name: "Ted", lastName: "Right"},
-    {id: 2, name: "Frank", lastName: "Honest"},
-    {id: 3, name: "Joan", lastName: "Well"},
-    {id: 4, name: "Sid", lastName: "Strong"},
-    {id: 5, name: "Jane", lastName: "Neat"},
-    {id: 6, name: "Chuck", lastName: "Jackson"},
-    {id: 7, name: "Meg", lastName: "Jansen"},
-    {id: 8, name: "Rob", lastName: "Norris"},
-    {id: 9, name: "Sean", lastName: "O'Hara"},
-    {id: 10, name: "Eve", lastName: "Branson"}
+    {id: 1, name: 'Ted', lastName: 'Right'},
+    {id: 2, name: 'Frank', lastName: 'Honest'},
+    {id: 3, name: 'Joan', lastName: 'Well'},
+    {id: 4, name: 'Sid', lastName: 'Strong'},
+    {id: 5, name: 'Jane', lastName: 'Neat'},
+    {id: 6, name: 'Chuck', lastName: 'Jackson'},
+    {id: 7, name: 'Meg', lastName: 'Jansen'},
+    {id: 8, name: 'Rob', lastName: 'Norris'},
+    {id: 9, name: 'Sean', lastName: 'O\'Hara'},
+    {id: 10, name: 'Eve', lastName: 'Branson'}
   ];
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  describe('init', function () {
-    it('should change row order at init', function () {
+  describe('init', function() {
+    it('should change row order at init', function() {
       handsontable({
         data: arrayOfObjects,
         manualRowMove: [1, 2, 0]
@@ -38,7 +38,7 @@ describe('manualRowMove', function () {
   });
 
   describe('updateSettings', function() {
-    it("should be enabled after specifying it in updateSettings config", function () {
+    it('should be enabled after specifying it in updateSettings config', function() {
       handsontable({
         data: arrayOfObjects,
         rowHeaders: true
@@ -54,7 +54,7 @@ describe('manualRowMove', function () {
       expect(this.$container.hasClass('after-selection--rows')).toBeGreaterThan(0);
     });
 
-    it('should change the default row order with updateSettings', function () {
+    it('should change the default row order with updateSettings', function() {
       handsontable({
         data: arrayOfObjects,
         manualRowMove: true
@@ -73,7 +73,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
     });
 
-    it('should change row order with updateSettings', function () {
+    it('should change row order with updateSettings', function() {
       handsontable({
         data: arrayOfObjects,
         manualRowMove: [1, 2, 0]
@@ -92,7 +92,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
     });
 
-    it('should reset row order with updateSettings when undefined is passed', function () {
+    it('should reset row order with updateSettings when undefined is passed', function() {
       handsontable({
         data: arrayOfObjects,
         manualRowMove: [1, 2, 0]
@@ -111,7 +111,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     });
 
-    it('should not change row order with updateSettings when `true` is passed', function () {
+    it('should not change row order with updateSettings when `true` is passed', function() {
       handsontable({
         data: arrayOfObjects,
         manualRowMove: [1, 2, 0]
@@ -132,7 +132,7 @@ describe('manualRowMove', function () {
   });
 
   describe('loadData', function() {
-    it("should increase numbers of rows if it is necessary", function () {
+    it('should increase numbers of rows if it is necessary', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         manualRowMove: true
@@ -143,7 +143,7 @@ describe('manualRowMove', function () {
       expect(countRows()).toEqual(10);
       expect(hot.getPlugin('manualRowMove').rowsMapper.__arrayMap.length).toEqual(10);
     });
-    it("should decrease numbers of rows if it is necessary", function () {
+    it('should decrease numbers of rows if it is necessary', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         manualRowMove: true
@@ -157,7 +157,7 @@ describe('manualRowMove', function () {
   });
 
   describe('moving', function() {
-    it('should move row by API', function () {
+    it('should move row by API', function() {
       var hot = handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
@@ -176,7 +176,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
     });
 
-    it('should move many rows by API', function () {
+    it('should move many rows by API', function() {
       var hot = handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
@@ -195,7 +195,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('9');
     });
 
-    it('should trigger an beforeRowMove event before row move', function () {
+    it('should trigger an beforeRowMove event before row move', function() {
       var beforeMoveRowCallback = jasmine.createSpy('beforeMoveRowCallback');
 
       var hot = handsontable({
@@ -219,7 +219,7 @@ describe('manualRowMove', function () {
       expect(beforeMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
     });
 
-    it('should trigger an afterRowMove event after row move', function () {
+    it('should trigger an afterRowMove event after row move', function() {
       var afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
       this.$container.height(150);
@@ -245,7 +245,7 @@ describe('manualRowMove', function () {
       expect(afterMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
     });
 
-    it("should move the second row to the first row", function () {
+    it('should move the second row to the first row', function() {
       var hot = handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
@@ -270,7 +270,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     });
 
-    it("should move the second row to the third row", function () {
+    it('should move the second row to the third row', function() {
       handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
@@ -295,7 +295,7 @@ describe('manualRowMove', function () {
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
     });
 
-    it("should not move row if it's not needed", function () {
+    it('should not move row if it\'s not needed', function() {
       var cache = [];
 
       handsontable({
@@ -317,7 +317,7 @@ describe('manualRowMove', function () {
       expect(cache.length).toEqual(0);
     });
 
-    it('should properly scrolling viewport if mouse is over part-visible cell', function (done) {
+    it('should properly scrolling viewport if mouse is over part-visible cell', function(done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         colHeaders: true,
@@ -332,7 +332,7 @@ describe('manualRowMove', function () {
 
       hot.selectCell(19, 0);
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(hot.view.wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
 
         var $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
@@ -345,18 +345,18 @@ describe('manualRowMove', function () {
         $rowsHeaders.eq(8).simulate('mouseup');
       }, 50);
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(hot.view.wt.wtTable.getFirstVisibleRow()).toBeLessThan(8);
         done();
       }, 150);
     });
 
-    it("moving row should keep cell meta created using cells function", function () {
+    it('moving row should keep cell meta created using cells function', function() {
       var hot = handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true,
-        cells: function (row, col) {
+        cells: function(row, col) {
           if (row == 1 && col == 0) {
             this.readOnly = true;
           }
@@ -365,15 +365,15 @@ describe('manualRowMove', function () {
 
       var htCore = getHtCore();
 
-      expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+      expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
 
       hot.getPlugin('manualRowMove').moveRow(1, 3);
       hot.render();
 
-      expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+      expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
     });
 
-    it("moving row should keep cell meta created using cell array", function () {
+    it('moving row should keep cell meta created using cell array', function() {
       var hot = handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
@@ -385,16 +385,17 @@ describe('manualRowMove', function () {
 
       var htCore = getHtCore();
 
-      expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+      expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
 
       hot.getPlugin('manualRowMove').moveRow(3, 1);
       hot.render();
 
-      expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf("htDimmed")).toBeGreaterThan(-1);
+      expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
     });
   });
+
   describe('undoRedo', function() {
-    it('should back changes', function () {
+    it('should back changes', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         rowHeaders: true,
@@ -410,7 +411,7 @@ describe('manualRowMove', function () {
       expect(hot.getDataAtCell(1, 0)).toBe('A2');
     });
 
-    it('should revert changes', function () {
+    it('should revert changes', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         rowHeaders: true,
@@ -429,5 +430,5 @@ describe('manualRowMove', function () {
 
       expect(hot.getDataAtCell(3, 0)).toBe('A2');
     });
-  })
+  });
 });

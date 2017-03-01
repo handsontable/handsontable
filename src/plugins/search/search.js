@@ -133,3 +133,5 @@ function init() {
 
 Hooks.getSingleton().add('afterInit', init);
 Hooks.getSingleton().add('afterUpdateSettings', init);
+
+export default Search;

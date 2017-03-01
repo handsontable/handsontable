@@ -1,18 +1,18 @@
-describe('Core.toVisualRow', function () {
+describe('Core.toVisualRow', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should return valid visual row index', function () {
+  it('should return valid visual row index', function() {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       unmodifyRow: function(row) {

@@ -5,6 +5,7 @@
  * @returns {boolean}
  */
 export function isNumeric(n) {
+  // jscs:disable
   var t = typeof n;
 
   return t == 'number' ? !isNaN(n) && isFinite(n) :

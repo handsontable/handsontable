@@ -1,18 +1,18 @@
-describe('Core_removeCellMeta', function () {
+describe('Core_removeCellMeta', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should remove meta for cell', function () {
+  it('should remove meta for cell', function() {
     handsontable({
       data: [
         [1, 2, 3, 4],
@@ -29,12 +29,10 @@ describe('Core_removeCellMeta', function () {
       }
     };
 
-    setCellMeta(0,0,'borders', border);
-    expect(getCellMeta(0,0).borders).toEqual(border);
+    setCellMeta(0, 0, 'borders', border);
+    expect(getCellMeta(0, 0).borders).toEqual(border);
 
-    removeCellMeta(0,0,'borders');
-    expect(getCellMeta(0,0).borders).toBeUndefined();
+    removeCellMeta(0, 0, 'borders');
+    expect(getCellMeta(0, 0).borders).toBeUndefined();
   });
-
-
 });

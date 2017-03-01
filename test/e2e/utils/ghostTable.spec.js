@@ -1,15 +1,15 @@
-describe('GhostTable', function () {
+describe('GhostTable', function() {
 
   var hotSettings = {
     data: [['A', '1', 'A\nB\nC'], ['B', '2', 'A-----B-------C'], ['C', '3', 'A---\n--B-------C']]
   };
   var gt;
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -21,7 +21,7 @@ describe('GhostTable', function () {
   });
 
   describe('row', function() {
-    it('should throw exception if we try to add column after added row', function () {
+    it('should throw exception if we try to add column after added row', function() {
       var hot = handsontable(hotSettings);
       var exception = false;
       var samples = new Map();
@@ -38,7 +38,7 @@ describe('GhostTable', function () {
       expect(exception).toBe(true);
     });
 
-    it('should create container element only for first row', function () {
+    it('should create container element only for first row', function() {
       var hot = handsontable(hotSettings);
       var samples = new Map();
       gt = new Handsontable.__GhostTable(hot);
@@ -55,7 +55,7 @@ describe('GhostTable', function () {
       expect(gt.createContainer.calls.mostRecent().args).toEqual(['handsontable']);
     });
 
-    it('should add row to rows collection after call `addRow` method', function () {
+    it('should add row to rows collection after call `addRow` method', function() {
       var hot = handsontable(hotSettings);
       var samples = new Map();
       gt = new Handsontable.__GhostTable(hot);
@@ -87,7 +87,7 @@ describe('GhostTable', function () {
       expect(gt.rows[1].table.querySelector('tbody > tr > td').innerHTML).toBe('Bar');
     });
 
-    it('should get valid heights', function () {
+    it('should get valid heights', function() {
       var hot = handsontable(hotSettings);
       var heightSpy = jasmine.createSpy();
       var samples = new Map();
@@ -120,7 +120,7 @@ describe('GhostTable', function () {
   });
 
   describe('column', function() {
-    it('should throw exception if we try to add row after added column', function () {
+    it('should throw exception if we try to add row after added column', function() {
       var hot = handsontable(hotSettings);
       var exception = false;
       var samples = new Map();
@@ -137,7 +137,7 @@ describe('GhostTable', function () {
       expect(exception).toBe(true);
     });
 
-    it('should create container element only for first column', function () {
+    it('should create container element only for first column', function() {
       var hot = handsontable(hotSettings);
       var samples = new Map();
       gt = new Handsontable.__GhostTable(hot);
@@ -154,7 +154,7 @@ describe('GhostTable', function () {
       expect(gt.createContainer.calls.mostRecent().args).toEqual(['handsontable']);
     });
 
-    it('should add column to columns collection after call `addColumn` method', function () {
+    it('should add column to columns collection after call `addColumn` method', function() {
       var hot = handsontable(hotSettings);
       var samples = new Map();
       gt = new Handsontable.__GhostTable(hot);
@@ -188,7 +188,7 @@ describe('GhostTable', function () {
       expect(gt.columns[1].table.querySelector('tbody > tr > td').innerHTML).toBe('Bar');
     });
 
-    it('should get valid widths', function () {
+    it('should get valid widths', function() {
       var hot = handsontable(hotSettings);
       var widthSpy = jasmine.createSpy();
       var samples = new Map();
@@ -220,7 +220,7 @@ describe('GhostTable', function () {
     });
   });
 
-  it('should reset internal state after call `clean` method', function () {
+  it('should reset internal state after call `clean` method', function() {
     var hot = handsontable(hotSettings);
     var samples = new Map();
     gt = new Handsontable.__GhostTable(hot);
@@ -244,7 +244,7 @@ describe('GhostTable', function () {
     expect(document.querySelector('.htGhostTable')).toBe(null);
   });
 
-  it('should be detected as vertical if at least one row is added', function () {
+  it('should be detected as vertical if at least one row is added', function() {
     var hot = handsontable(hotSettings);
     var samples = new Map();
     var gt = new Handsontable.__GhostTable(hot);
@@ -255,7 +255,7 @@ describe('GhostTable', function () {
     expect(gt.isHorizontal()).toBe(false);
   });
 
-  it('should be detected as horizontal if at least one column is added', function () {
+  it('should be detected as horizontal if at least one column is added', function() {
     var hot = handsontable(hotSettings);
     var samples = new Map();
     var gt = new Handsontable.__GhostTable(hot);

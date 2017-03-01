@@ -1,18 +1,18 @@
-describe('manualColumnResize', function () {
+describe('manualColumnResize', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it("should change column widths at init", function () {
+  it('should change column widths at init', function() {
     handsontable({
       manualColumnResize: [100, 150, 180]
     });
@@ -22,14 +22,14 @@ describe('manualColumnResize', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(180);
   });
 
-  it("should be enabled after specifying it in updateSettings config", function () {
+  it('should be enabled after specifying it in updateSettings config', function() {
     var hot = handsontable({
       data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
-        {id: 3, name: "Joan", lastName: "Well"},
-        {id: 4, name: "Sid", lastName: "Strong"},
-        {id: 5, name: "Jane", lastName: "Neat"}
+        {id: 1, name: 'Ted', lastName: 'Right'},
+        {id: 2, name: 'Frank', lastName: 'Honest'},
+        {id: 3, name: 'Joan', lastName: 'Well'},
+        {id: 4, name: 'Sid', lastName: 'Strong'},
+        {id: 5, name: 'Jane', lastName: 'Neat'}
       ],
       colHeaders: true
     });
@@ -41,7 +41,7 @@ describe('manualColumnResize', function () {
     expect($('.manualColumnResizer').size()).toBeGreaterThan(0);
   });
 
-  it("should change the default column widths with updateSettings", function () {
+  it('should change the default column widths with updateSettings', function() {
     handsontable({
       manualColumnResize: true
     });
@@ -59,7 +59,7 @@ describe('manualColumnResize', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(80);
   });
 
-  it("should change column widths with updateSettings", function () {
+  it('should change column widths with updateSettings', function() {
     handsontable({
       manualColumnResize: [100, 150, 180]
     });
@@ -77,7 +77,7 @@ describe('manualColumnResize', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(80);
   });
 
-  it("should reset column widths when undefined is passed", function () {
+  it('should reset column widths when undefined is passed', function() {
     handsontable({
       manualColumnResize: [100, 150, 180]
     });
@@ -95,7 +95,7 @@ describe('manualColumnResize', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(50);
   });
 
-  it("should not reset column widths when `true` is passed", function () {
+  it('should not reset column widths when `true` is passed', function() {
     handsontable({
       manualColumnResize: [100, 150, 180]
     });
@@ -113,7 +113,7 @@ describe('manualColumnResize', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(180);
   });
 
-  it("should resize (narrowing) appropriate columns, even when stretchH `all` is enabled", function () {
+  it('should resize (narrowing) appropriate columns, even when stretchH `all` is enabled', function() {
     this.$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -132,7 +132,7 @@ describe('manualColumnResize', function () {
     expect($columnHeaders.eq(4).width()).toBe(211);
   });
 
-  it("should resize (extending) appropriate columns, even when stretchH `all` is enabled", function () {
+  it('should resize (extending) appropriate columns, even when stretchH `all` is enabled', function() {
     this.$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -151,7 +151,7 @@ describe('manualColumnResize', function () {
     expect($columnHeaders.eq(4).width()).toBe(128);
   });
 
-  it("should resize (narrowing) selected columns", function(done) {
+  it('should resize (narrowing) selected columns', function(done) {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -160,7 +160,7 @@ describe('manualColumnResize', function () {
 
     var $columnHeaders = this.$container.find('thead tr:eq(0) th');
     var $colHeader = this.$container.find('thead tr:eq(0) th:eq(1)');
-    $colHeader.simulate("mouseover");
+    $colHeader.simulate('mouseover');
 
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
@@ -171,11 +171,11 @@ describe('manualColumnResize', function () {
     this.$container.find('tr:eq(0) th:eq(3)').simulate('mousemove');
     this.$container.find('tr:eq(0) th:eq(3)').simulate('mouseup');
 
-    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
-    $resizer.simulate('mousemove',{clientX: this.$container.find('tr:eq(0) th:eq(1)').position().left + 29});
+    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousemove', {clientX: this.$container.find('tr:eq(0) th:eq(1)').position().left + 29});
     $resizer.simulate('mouseup');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect($columnHeaders.eq(1).width()).toBe(33);
       expect($columnHeaders.eq(2).width()).toBe(34);
       expect($columnHeaders.eq(3).width()).toBe(34);
@@ -183,7 +183,7 @@ describe('manualColumnResize', function () {
     }, 1000);
   });
 
-  it("should resize (expanding) selected columns", function(done) {
+  it('should resize (expanding) selected columns', function(done) {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -192,7 +192,7 @@ describe('manualColumnResize', function () {
 
     var $columnHeaders = this.$container.find('thead tr:eq(0) th');
     var $colHeader = this.$container.find('thead tr:eq(0) th:eq(1)');
-    $colHeader.simulate("mouseover");
+    $colHeader.simulate('mouseover');
 
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
@@ -203,11 +203,11 @@ describe('manualColumnResize', function () {
     this.$container.find('tr:eq(0) th:eq(3)').simulate('mousemove');
     this.$container.find('tr:eq(0) th:eq(3)').simulate('mouseup');
 
-    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
-    $resizer.simulate('mousemove',{clientX: this.$container.find('tr:eq(0) th:eq(1)').position().left + 150});
+    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousemove', {clientX: this.$container.find('tr:eq(0) th:eq(1)').position().left + 150});
     $resizer.simulate('mouseup');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect($columnHeaders.eq(1).width()).toBe(154);
       expect($columnHeaders.eq(2).width()).toBe(155);
       expect($columnHeaders.eq(3).width()).toBe(155);
@@ -215,7 +215,7 @@ describe('manualColumnResize', function () {
     }, 1000);
   });
 
-  it("should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`", function (done) {
+  it('should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`', function(done) {
     this.$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -240,13 +240,13 @@ describe('manualColumnResize', function () {
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
-    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect($columnHeaders.eq(0).width()).toBe(180);
       expect($columnHeaders.eq(1).width()).toBe(181);
       expect($columnHeaders.eq(2).width()).toBe(181);
@@ -256,7 +256,7 @@ describe('manualColumnResize', function () {
     }, 1000);
   });
 
-  it("should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`", function (done) {
+  it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', function(done) {
     this.$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -287,7 +287,7 @@ describe('manualColumnResize', function () {
     $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect($columnHeaders.eq(0).width()).toBeAroundValue(19);
       expect($columnHeaders.eq(1).width()).toBe(48);
       expect($columnHeaders.eq(2).width()).toBe(49);
@@ -297,9 +297,9 @@ describe('manualColumnResize', function () {
     }, 1000);
   });
 
-  it("should resize appropriate columns, even if the column order was changed with manualColumnMove plugin", function () {
+  it('should resize appropriate columns, even if the column order was changed with manualColumnMove plugin', function() {
     handsontable({
-      colHeaders: ["First", "Second", "Third"],
+      colHeaders: ['First', 'Second', 'Third'],
       manualColumnMove: [2, 1, 0, 3],
       manualColumnResize: true
     });
@@ -307,8 +307,8 @@ describe('manualColumnResize', function () {
     var $columnHeaders = this.$container.find('thead tr:eq(0) th');
     var initialColumnWidths = [];
 
-    $columnHeaders.each(function(){
-       initialColumnWidths.push($(this).width());
+    $columnHeaders.each(function() {
+      initialColumnWidths.push($(this).width());
     });
 
     resizeColumn.call(this, 0, 100);
@@ -319,12 +319,12 @@ describe('manualColumnResize', function () {
     expect($resizedTh.outerWidth()).toEqual(100);
 
     //Sizes of remaining columns should stay the same
-    for(var i = 1; i < $columnHeaders.length; i++){
+    for (var i = 1; i < $columnHeaders.length; i++) {
       expect($columnHeaders.eq(i).width()).toEqual(initialColumnWidths[i]);
     }
   });
 
-  it("should trigger an afterColumnResize event after column size changes", function () {
+  it('should trigger an afterColumnResize event after column size changes', function() {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
@@ -342,7 +342,7 @@ describe('manualColumnResize', function () {
     expect(colWidth(this.$container, 0)).toEqual(100);
   });
 
-  it("should not trigger an afterColumnResize event if column size does not change (mouseMove event width delta = 0)", function () {
+  it('should not trigger an afterColumnResize event if column size does not change (mouseMove event width delta = 0)', function() {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
@@ -360,7 +360,7 @@ describe('manualColumnResize', function () {
     expect(colWidth(this.$container, 0)).toEqual(50);
   });
 
-  it("should not trigger an afterColumnResize event if column size does not change (no mouseMove event)", function () {
+  it('should not trigger an afterColumnResize event if column size does not change (no mouseMove event)', function() {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
@@ -378,14 +378,14 @@ describe('manualColumnResize', function () {
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
     expect(colWidth(this.$container, 0)).toEqual(50);
   });
 
-  it("should trigger an afterColumnResize after column size changes, after double click", function (done) {
+  it('should trigger an afterColumnResize after column size changes, after double click', function(done) {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
@@ -404,13 +404,13 @@ describe('manualColumnResize', function () {
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
-    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(afterColumnResizeCallback.calls.count()).toEqual(1);
       expect(afterColumnResizeCallback.calls.argsFor(0)[0]).toEqual(0);
       // All modern browsers returns width = 25px, but IE8 seems to compute width differently and returns 24px
@@ -420,7 +420,7 @@ describe('manualColumnResize', function () {
     }, 1000);
   });
 
-  it("should autosize column after double click (when initial width is not defined)", function (done) {
+  it('should autosize column after double click (when initial width is not defined)', function(done) {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
@@ -437,19 +437,19 @@ describe('manualColumnResize', function () {
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
-    $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
       done();
     }, 1000);
   });
 
-  it("should autosize selected columns after double click on handler", function (done) {
+  it('should autosize selected columns after double click on handler', function(done) {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(9, 9),
       colHeaders: true,
@@ -467,15 +467,14 @@ describe('manualColumnResize', function () {
     var $resizer = spec().$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
-    setTimeout(function () {
-      //   $resizer.simulate('mousedown',{clientX: resizerPosition.left});
-      $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+    setTimeout(function() {
+      $resizer.simulate('mousedown', {clientX: resizerPosition.left});
       $resizer.simulate('mouseup');
-      $resizer.simulate('mousedown',{clientX: resizerPosition.left});
+      $resizer.simulate('mousedown', {clientX: resizerPosition.left});
       $resizer.simulate('mouseup');
     }, 600);
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(colWidth(spec().$container, 1)).toBeAroundValue(32, 2);
       expect(colWidth(spec().$container, 2)).toBeAroundValue(32, 2);
       expect(colWidth(spec().$container, 3)).toBeAroundValue(32, 2);
@@ -483,14 +482,14 @@ describe('manualColumnResize', function () {
     }, 1200);
   });
 
-  it("should adjust resize handles position after table size changed", function(){
+  it('should adjust resize handles position after table size changed', function() {
     var maxed = false;
 
     handsontable({
       colHeaders: true,
       manualColumnResize: true,
       stretchH: 'all',
-      width: function () {
+      width: function() {
         return maxed ? 614 : 200;
       }
     });
@@ -514,7 +513,7 @@ describe('manualColumnResize', function () {
     expect(handleBox.left + handleBox.width).toEqual(thBox.left + thBox.width - 1);
   });
 
-  it("should display the resize handle in the correct place after the table has been scrolled", function () {
+  it('should display the resize handle in the correct place after the table has been scrolled', function() {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -526,9 +525,9 @@ describe('manualColumnResize', function () {
     var mainHolder = hot.view.wt.wtTable.holder;
 
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
-    $colHeader.simulate("mouseover");
+    $colHeader.simulate('mouseover');
     var $handle = this.$container.find('.manualColumnResizer');
-    $handle[0].style.background = "red";
+    $handle[0].style.background = 'red';
 
     expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
     expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
@@ -537,7 +536,7 @@ describe('manualColumnResize', function () {
     hot.render();
 
     $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(3)');
-    $colHeader.simulate("mouseover");
+    $colHeader.simulate('mouseover');
     expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
     expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
   });
@@ -546,11 +545,11 @@ describe('manualColumnResize', function () {
     it('should display the resize handle in the proper position and with a proper size', function() {
       var hot = handsontable({
         data: [
-          {id: 1, name: "Ted", lastName: "Right"},
-          {id: 2, name: "Frank", lastName: "Honest"},
-          {id: 3, name: "Joan", lastName: "Well"},
-          {id: 4, name: "Sid", lastName: "Strong"},
-          {id: 5, name: "Jane", lastName: "Neat"}
+          {id: 1, name: 'Ted', lastName: 'Right'},
+          {id: 2, name: 'Frank', lastName: 'Honest'},
+          {id: 3, name: 'Joan', lastName: 'Well'},
+          {id: 4, name: 'Sid', lastName: 'Strong'},
+          {id: 5, name: 'Jane', lastName: 'Neat'}
         ],
         colHeaders: true,
         manualColumnResize: true

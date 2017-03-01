@@ -429,7 +429,7 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
   }
 
   defaultOptions.items.push({
-    name: '--------',
+    name: '---------',
   });
   defaultOptions.items.push({
     key: 'borders',

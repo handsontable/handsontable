@@ -1,18 +1,18 @@
-describe('PasswordEditor', function () {
+describe('PasswordEditor', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '" style="width: 300px; height: 300px;"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it("should display editor as password field", function () {
+  it('should display editor as password field', function() {
     handsontable({
       data: [
         ['Joe'],
@@ -37,7 +37,7 @@ describe('PasswordEditor', function () {
 
   });
 
-  it("should set passwordEditor using 'password' alias", function () {
+  it('should set passwordEditor using \'password\' alias', function() {
     handsontable({
       data: [
         ['Joe'],
@@ -62,7 +62,7 @@ describe('PasswordEditor', function () {
 
   });
 
-  it("should set passwordEditor using column type 'password' ", function () {
+  it('should set passwordEditor using column type \'password\' ', function() {
     handsontable({
       data: [
         ['Joe'],
@@ -88,7 +88,7 @@ describe('PasswordEditor', function () {
 
   });
 
-  it("should save values typed in passwordEditor", function () {
+  it('should save values typed in passwordEditor', function() {
     handsontable({
       data: [
         ['Joe'],
@@ -110,7 +110,6 @@ describe('PasswordEditor', function () {
 
     keyDown('enter');
 
-
     var editorHolder = $('.handsontableInputHolder');
     var editor = editorHolder.find('.handsontableInput');
 
@@ -124,7 +123,5 @@ describe('PasswordEditor', function () {
 
     expect(getDataAtCell(0, 0)).toMatch('Edgar');
     expect(getRenderedValue(0, 0)).toMatch('Edgar');
-
   });
-
 });

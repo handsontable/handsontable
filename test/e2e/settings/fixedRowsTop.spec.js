@@ -1,20 +1,20 @@
-describe('settings', function () {
-  describe('fixedRowsTop', function () {
+describe('settings', function() {
+  describe('fixedRowsTop', function() {
     var id = 'testContainer';
 
-    beforeEach(function () {
+    beforeEach(function() {
       this.$container = $('<div id="' + id + '"></div>').appendTo('body');
     });
 
-    afterEach(function () {
+    afterEach(function() {
       if (this.$container) {
         destroy();
         this.$container.remove();
       }
     });
 
-    describe('defined in constructor', function () {
-      it('should show rows headers', function () {
+    describe('defined in constructor', function() {
+      it('should show rows headers', function() {
         handsontable({
           fixedRowsTop: 3
         });
@@ -22,7 +22,7 @@ describe('settings', function () {
         expect(getTopClone().find('tbody tr').length).toEqual(3);
       });
 
-      it('should show rows headers when headers are enabled', function () {
+      it('should show rows headers when headers are enabled', function() {
         handsontable({
           rowHeaders: true,
           colHeaders: true,
@@ -34,8 +34,8 @@ describe('settings', function () {
       });
     });
 
-    describe('defined in updateSettings', function () {
-      it('should increase fixed rows', function () {
+    describe('defined in updateSettings', function() {
+      it('should increase fixed rows', function() {
         handsontable({
           fixedRowsTop: 2
         });
@@ -47,7 +47,7 @@ describe('settings', function () {
         expect(getTopClone().find('tbody tr').length).toEqual(4);
       });
 
-      it('should decrease fixed rows', function () {
+      it('should decrease fixed rows', function() {
         handsontable({
           fixedRowsTop: 4
         });
@@ -59,7 +59,7 @@ describe('settings', function () {
         expect(getTopClone().find('tbody tr').length).toEqual(2);
       });
 
-      it('should create fixed rows when they are disabled eariler', function () {
+      it('should create fixed rows when they are disabled eariler', function() {
         handsontable({
           fixedRowsTop: 0
         });
@@ -71,7 +71,7 @@ describe('settings', function () {
         expect(getTopClone().find('tbody tr').length).toEqual(2);
       });
 
-      it('should disable fixed rows', function () {
+      it('should disable fixed rows', function() {
         handsontable({
           fixedRowsTop: 2
         });
@@ -84,7 +84,7 @@ describe('settings', function () {
         expect(getLeftClone().height()).toBe(0);
       });
 
-      it('should not throw errors while scrolling vertically when fixed rows was set', function (done) {
+      it('should not throw errors while scrolling vertically when fixed rows was set', function(done) {
         var spy = jasmine.createSpyObj('error', ['test']);
         var prevError = window.onerror;
 
@@ -102,11 +102,11 @@ describe('settings', function () {
           fixedRowsTop: 2
         });
 
-        setTimeout(function () {
+        setTimeout(function() {
           hot.scrollViewportTo(30, 30);
         }, 100);
 
-        setTimeout(function () {
+        setTimeout(function() {
           expect(spy.test.calls.count()).toBe(0);
 
           done();

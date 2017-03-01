@@ -1,26 +1,26 @@
-describe('CellDecorator', function () {
+describe('CellDecorator', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfObjects = function () {
+  var arrayOfObjects = function() {
     return [
-      {id: 1, name: "Ted", lastName: "Right"},
-      {id: 2, name: "Frank", lastName: "Honest"},
-      {id: 3, name: "Joan", lastName: "Well"}
+      {id: 1, name: 'Ted', lastName: 'Right'},
+      {id: 2, name: 'Frank', lastName: 'Honest'},
+      {id: 3, name: 'Joan', lastName: 'Well'}
     ];
   };
 
-  it('should add an appropriate class name to every cell, if wordWrap=false is set to the whole table', function () {
+  it('should add an appropriate class name to every cell, if wordWrap=false is set to the whole table', function() {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -41,7 +41,7 @@ describe('CellDecorator', function () {
     }
   });
 
-  it('should add an appropriate class name to every cell in a column, if wordWrap=false is set to the column settings', function () {
+  it('should add an appropriate class name to every cell in a column, if wordWrap=false is set to the column settings', function() {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -63,7 +63,7 @@ describe('CellDecorator', function () {
     }
   });
 
-  it('should add an appropriate class to a cell, if wordWrap=false is set to a single cell', function () {
+  it('should add an appropriate class to a cell, if wordWrap=false is set to a single cell', function() {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -82,7 +82,7 @@ describe('CellDecorator', function () {
 
   });
 
-  it('should set "white-space" css parameter to "nowrap" if htNoWrap class is added to a cell', function () {
+  it('should set "white-space" css parameter to "nowrap" if htNoWrap class is added to a cell', function() {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -92,16 +92,15 @@ describe('CellDecorator', function () {
       ]
     });
 
-    expect(window.getComputedStyle(getCell(1, 1)).whiteSpace).not.toEqual("nowrap");
+    expect(window.getComputedStyle(getCell(1, 1)).whiteSpace).not.toEqual('nowrap');
 
     getCellMeta(1, 1).wordWrap = false;
     render();
 
-    expect(window.getComputedStyle(getCell(1, 1)).whiteSpace).toEqual("nowrap");
+    expect(window.getComputedStyle(getCell(1, 1)).whiteSpace).toEqual('nowrap');
   });
 
-
-  it('should not add cell `htInvalid` class when trying to add not proper value', function (done) {
+  it('should not add cell `htInvalid` class when trying to add not proper value', function(done) {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [

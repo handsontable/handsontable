@@ -30,6 +30,10 @@ module.exports.create = function create() {
     resolve: {
       alias: {
         walkontable: path.resolve(__dirname, '../src/3rdparty/walkontable/src/'),
+        autoresize: path.resolve(__dirname, '../lib/autoResize/autoResize.js'),
+        copypaste: path.resolve(__dirname, '../lib/copyPaste/copyPaste.js'),
+        jsonpatch: path.resolve(__dirname, '../lib/jsonpatch/json-patch-duplex.js'),
+        sheetclip: path.resolve(__dirname, '../lib/SheetClip/SheetClip.js'),
       }
     },
     module: {

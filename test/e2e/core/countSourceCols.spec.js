@@ -1,21 +1,21 @@
-describe('Core.countSourceCols', function () {
+describe('Core.countSourceCols', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should return properly index from ', function () {
+  it('should return properly index from ', function() {
     var hot = handsontable({
       data: [['','','','','','','','','','','','','','','']],
-      columns: function (column) {
+      columns: function(column) {
         return [1, 5, 9].indexOf(column) > -1 ? {} : null;
       }
     });

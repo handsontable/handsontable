@@ -6,12 +6,12 @@ import LinkedList, {NodeStructure} from 'handsontable/utils/dataStructures/linke
  * Link to repository: https://github.com/mgechev/javascript-algorithms
  */
 
-describe('Node', function () {
-  it('should be a constructor function', function () {
+describe('Node', function() {
+  it('should be a constructor function', function() {
     expect(typeof NodeStructure).toBe('function');
   });
 
-  it('should construct properly', function () {
+  it('should construct properly', function() {
     var node = new NodeStructure('data');
 
     expect(node.data).toBe('data');
@@ -20,12 +20,12 @@ describe('Node', function () {
   });
 });
 
-describe('Linked List', function () {
-  it('should be a constructor function', function () {
+describe('Linked List', function() {
+  it('should be a constructor function', function() {
     expect(typeof LinkedList).toBe('function');
   });
 
-  it('should push properly', function () {
+  it('should push properly', function() {
     var linkedList = new LinkedList();
 
     linkedList.push(1);
@@ -42,7 +42,7 @@ describe('Linked List', function () {
     expect(linkedList.last.data).toBe(5);
   });
 
-  it('should pop properly', function () {
+  it('should pop properly', function() {
     var linkedList = new LinkedList();
 
     linkedList.push(1);
@@ -58,7 +58,7 @@ describe('Linked List', function () {
     expect(linkedList.pop().data).toBe(1);
   });
 
-  it('should shift properly', function () {
+  it('should shift properly', function() {
     var linkedList = new LinkedList();
 
     linkedList.push(1);
@@ -74,7 +74,7 @@ describe('Linked List', function () {
     expect(linkedList.shift().data).toBe(5);
   });
 
-  it('should reverse properly', function () {
+  it('should reverse properly', function() {
     var linkedList = new LinkedList();
 
     linkedList.push(1);
@@ -91,7 +91,7 @@ describe('Linked List', function () {
     expect(linkedList.shift().data).toBe(1);
   });
 
-  it('should recursive reverse properly', function () {
+  it('should recursive reverse properly', function() {
     var linkedList = new LinkedList();
 
     linkedList.push(1);
@@ -108,7 +108,7 @@ describe('Linked List', function () {
     expect(linkedList.shift().data).toBe(1);
   });
 
-  it('should unshift properly', function () {
+  it('should unshift properly', function() {
     var linkedList = new LinkedList();
 
     linkedList.push(1);
@@ -126,7 +126,7 @@ describe('Linked List', function () {
     expect(linkedList.shift().data).toBe(5);
   });
 
-  it('should properly check for existing cycle', function () {
+  it('should properly check for existing cycle', function() {
     var linkedList = new LinkedList();
     var last = new NodeStructure(2);
     var first = new NodeStructure(1);
@@ -140,7 +140,7 @@ describe('Linked List', function () {
     expect(linkedList.hasCycle()).toBe(true);
   });
 
-  it('should properly check for non existing cycle', function () {
+  it('should properly check for non existing cycle', function() {
     var linkedList = new LinkedList();
 
     linkedList.push(1);
@@ -152,7 +152,7 @@ describe('Linked List', function () {
     expect(linkedList.hasCycle()).toBe(false);
   });
 
-  it('should inorder properly', function () {
+  it('should inorder properly', function() {
     var linkedList = new LinkedList();
 
     linkedList.push(1);
@@ -163,7 +163,7 @@ describe('Linked List', function () {
 
     var pushedValue = 1;
 
-    function callback(node){
+    function callback(node) {
       expect(node.data).toBe(pushedValue++);
     }
 

@@ -47,7 +47,6 @@ export function cancelAnimationFrame(id) {
   _cancelAnimationFrame.call(window, id);
 }
 
-
 export function isTouchSupported() {
   return ('ontouchstart' in window);
 }
@@ -62,7 +61,6 @@ export function isWebComponentSupportedNatively() {
 
   return test.createShadowRoot && test.createShadowRoot.toString().match(/\[native code\]/) ? true : false;
 }
-
 
 var _hasCaptionProblem;
 

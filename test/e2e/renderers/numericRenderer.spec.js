@@ -1,77 +1,77 @@
-describe('NumericRenderer', function () {
+describe('NumericRenderer', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should render formatted number', function (done) {
+  it('should render formatted number', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      cells: function () {
+      cells: function() {
         return {
           type: 'numeric',
           format: '$0,0.00'
-        }
+        };
       },
       afterValidate: onAfterValidate
     });
     setDataAtCell(2, 2, '1000.234');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(getCell(2, 2).innerHTML).toEqual('$1,000.23');
       done();
     }, 200);
   });
 
-  it('should render signed number', function (done) {
+  it('should render signed number', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      cells: function () {
+      cells: function() {
         return {
           type: 'numeric',
           format: '$0,0.00'
-        }
+        };
       },
       afterValidate: onAfterValidate
     });
 
     setDataAtCell(2, 2, '-1000.234');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(getCell(2, 2).innerHTML).toEqual('-$1,000.23');
       done();
     }, 200);
   });
 
-  it('should try to render string as numeral', function (done) {
+  it('should try to render string as numeral', function(done) {
     handsontable({
-      cells: function () {
+      cells: function() {
         return {
           type: 'numeric',
           format: '$0,0.00'
-        }
+        };
       },
     });
 
     setDataAtCell(2, 2, '123 simple test');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(getCell(2, 2).innerHTML).toEqual('$123.00');
       done();
     }, 100);
   });
 
-  it('should add class names `htNumeric` and `htRight` to the cell if it renders a number', function () {
+  it('should add class names `htNumeric` and `htRight` to the cell if it renders a number', function() {
     var DIV = document.createElement('DIV');
     var instance = new Handsontable(DIV, {});
     var TD = document.createElement('TD');
@@ -81,7 +81,7 @@ describe('NumericRenderer', function () {
     instance.destroy();
   });
 
-  it('should add class names `htNumeric` and `htRight` to the cell if it renders a numeric string', function () {
+  it('should add class names `htNumeric` and `htRight` to the cell if it renders a numeric string', function() {
     var DIV = document.createElement('DIV');
     var instance = new Handsontable(DIV, {});
     var TD = document.createElement('TD');
@@ -91,7 +91,7 @@ describe('NumericRenderer', function () {
     instance.destroy();
   });
 
-  it('should not add class name `htNumeric` to the cell if it renders a text', function () {
+  it('should not add class name `htNumeric` to the cell if it renders a text', function() {
     var DIV = document.createElement('DIV');
     var instance = new Handsontable(DIV, {});
     var TD = document.createElement('TD');
@@ -101,7 +101,7 @@ describe('NumericRenderer', function () {
     instance.destroy();
   });
 
-  it('should add class name `htDimmed` to a read only cell', function () {
+  it('should add class name `htDimmed` to a read only cell', function() {
     var DIV = document.createElement('DIV');
     var instance = new Handsontable(DIV, {});
     var TD = document.createElement('TD');
@@ -110,17 +110,17 @@ describe('NumericRenderer', function () {
     instance.destroy();
   });
 
-  describe('NumericRenderer with ContextMenu', function () {
-    it('should change class name from default `htRight` to `htLeft` after set align in contextMenu', function (done) {
+  describe('NumericRenderer with ContextMenu', function() {
+    it('should change class name from default `htRight` to `htLeft` after set align in contextMenu', function(done) {
       handsontable({
         startRows: 1,
         startCols: 1,
         contextMenu: ['alignment'],
-        cells: function () {
+        cells: function() {
           return {
             type: 'numeric',
             format: '$0,0.00'
-          }
+          };
         },
         height: 100
       });
@@ -134,7 +134,7 @@ describe('NumericRenderer', function () {
 
       menu.simulate('mouseover');
 
-      setTimeout(function () {
+      setTimeout(function() {
         var contextSubMenu = $('.htContextMenuSub_' + menu.text()).find('tbody td').eq(0);
 
         contextSubMenu.simulate('mousedown');

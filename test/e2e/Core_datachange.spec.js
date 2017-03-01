@@ -1,95 +1,95 @@
-describe('Core_datachange', function () {
+describe('Core_datachange', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should call onChange callback', function () {
+  it('should call onChange callback', function() {
     var output = null;
 
     handsontable({
-      afterChange: function (changes) {
+      afterChange: function(changes) {
         output = changes;
       }
     });
-    setDataAtCell(1, 2, "test");
+    setDataAtCell(1, 2, 'test');
 
     expect(output[0][0]).toEqual(1);
     expect(output[0][1]).toEqual(2);
     expect(output[0][2]).toEqual(null);
-    expect(output[0][3]).toEqual("test");
+    expect(output[0][3]).toEqual('test');
   });
 
-  it('should use custom source for datachange', function () {
+  it('should use custom source for datachange', function() {
     var output = null,
         src    = null;
 
     handsontable({
-      afterChange: function (changes, source) {
+      afterChange: function(changes, source) {
         output = changes;
         src = source;
       }
     });
-    setDataAtCell(1, 2, "abc", "test");
+    setDataAtCell(1, 2, 'abc', 'test');
 
-    expect(output[0][3]).toEqual("abc");
-    expect(src).toEqual("test");
+    expect(output[0][3]).toEqual('abc');
+    expect(src).toEqual('test');
   });
 
-  it('should use custom source for datachange with array', function () {
+  it('should use custom source for datachange with array', function() {
     var output = null,
         src    = null;
 
     handsontable({
-      afterChange: function (changes, source) {
+      afterChange: function(changes, source) {
         output = changes;
         src = source;
       }
     });
-    setDataAtCell([[1, 2, "abc"]], "test");
+    setDataAtCell([[1, 2, 'abc']], 'test');
 
-    expect(output[0][3]).toEqual("abc");
-    expect(src).toEqual("test");
+    expect(output[0][3]).toEqual('abc');
+    expect(src).toEqual('test');
   });
 
-  it('should trigger datachange event', function () {
+  it('should trigger datachange event', function() {
     var output = null;
 
     handsontable();
-    Handsontable.hooks.add("afterChange", function (changes) {
+    Handsontable.hooks.add('afterChange', function(changes) {
       output = changes;
     });
-    setDataAtCell(1, 2, "test");
+    setDataAtCell(1, 2, 'test');
 
     expect(output[0][0]).toEqual(1);
     expect(output[0][1]).toEqual(2);
     expect(output[0][2]).toEqual(null);
-    expect(output[0][3]).toEqual("test");
+    expect(output[0][3]).toEqual('test');
   });
 
-  it('this.rootElement should point to handsontable rootElement', function () {
+  it('this.rootElement should point to handsontable rootElement', function() {
     var output = null;
     var $container = this.$container;
 
     handsontable({
-      afterChange: function () {
+      afterChange: function() {
         output = this.rootElement;
       }
     });
-    setDataAtCell(0, 0, "test");
+    setDataAtCell(0, 0, 'test');
 
     expect(output).toEqual($container[0]);
   });
 
-  it('onChange should be triggered after data is rendered to DOM (init)', function () {
+  it('onChange should be triggered after data is rendered to DOM (init)', function() {
     var output = null;
     var $container = this.$container;
 
@@ -97,7 +97,7 @@ describe('Core_datachange', function () {
       data: [
         ['Joe Red']
       ],
-      afterChange: function (changes, source) {
+      afterChange: function(changes, source) {
         if (source === 'loadData') {
           output = $container.find('table.htCore tbody td:first').html();
         }
@@ -107,7 +107,7 @@ describe('Core_datachange', function () {
     expect(output).toEqual('Joe Red');
   });
 
-  it('onChange should be triggered after data is rendered to DOM (setDataAtCell)', function () {
+  it('onChange should be triggered after data is rendered to DOM (setDataAtCell)', function() {
     var output = null;
     var $container = this.$container;
 
@@ -115,7 +115,7 @@ describe('Core_datachange', function () {
       data: [
         ['Joe Red']
       ],
-      afterChange: function (changes, source) {
+      afterChange: function(changes, source) {
         if (source === 'edit') {
           output = $container.find('table.htCore tbody td:first').html();
         }
@@ -126,7 +126,7 @@ describe('Core_datachange', function () {
     expect(output).toEqual('Alice Red');
   });
 
-  it('onChange event object should contain documented keys and values when triggered by edit', function () {
+  it('onChange event object should contain documented keys and values when triggered by edit', function() {
     var sampleData = [
       {
         col1: 'a',
@@ -138,13 +138,13 @@ describe('Core_datachange', function () {
 
     handsontable({
       data: sampleData,
-      afterChange: function (changes, source) {
-        if ('edit' == source) {
+      afterChange: function(changes, source) {
+        if (source === 'edit') {
           event = changes.shift();
         }
       }
     });
-    setDataAtCell(0, 0, "test");
+    setDataAtCell(0, 0, 'test');
 
     expect(event[0]).toEqual(0);
     expect(event[1]).toEqual('col1');
@@ -152,14 +152,14 @@ describe('Core_datachange', function () {
     expect(event[3]).toEqual('test');
   });
 
-  it('source parameter should be `edit` when cell value is changed through editor', function () {
+  it('source parameter should be `edit` when cell value is changed through editor', function() {
     var sources = [];
 
     handsontable({
       data: [
         ['Joe Red']
       ],
-      afterChange: function (changes, source) {
+      afterChange: function(changes, source) {
         sources.push(source);
       }
     });

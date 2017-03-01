@@ -1,21 +1,21 @@
-describe('Core_reCreate', function () {
+describe('Core_reCreate', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should correctly re-render corner header when there is multiline content', function () {
+  it('should correctly re-render corner header when there is multiline content', function() {
     var settings = {
       rowHeaders: true,
-      colHeaders: function (col) {
+      colHeaders: function(col) {
         return 'Column<br>' + col;
       }
     };

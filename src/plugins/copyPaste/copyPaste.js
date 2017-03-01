@@ -1,5 +1,5 @@
-import copyPaste from './../../../lib/copyPaste/copyPaste';
-import SheetClip from './../../../lib/SheetClip/SheetClip';
+import copyPaste from 'copypaste';
+import SheetClip from 'sheetclip';
 import Hooks from './../../pluginHooks';
 import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
 import {arrayEach} from './../../helpers/array';
@@ -25,7 +25,6 @@ Hooks.getSingleton().register('modifyCopyableRange');
  * ```
  * @class CopyPaste
  * @plugin CopyPaste
- * @dependencies copyPaste SheetClip
  */
 function CopyPastePlugin(instance) {
   var _this = this;

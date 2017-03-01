@@ -146,7 +146,7 @@ describe('Core_populateFromArray', function() {
       called++;
     });
 
-    populateFromArray(0, 0, [['test','test2'],['test3','test4']], 1, 1, 'Autofill.fill', 'overwrite');
+    populateFromArray(0, 0, [['test', 'test2'],['test3', 'test4']], 1, 1, 'Autofill.fill', 'overwrite');
 
     expect(called).toEqual(4);
   });

@@ -1,11 +1,8 @@
-describe('WalkontableSelection', function () {
-  var $table
-    , $container
-    , $wrapper
-    , debug = false;
+describe('WalkontableSelection', function() {
+  var $table, $container, $wrapper, debug = false;
 
-  beforeEach(function () {
-    $wrapper = $('<div></div>').css({'overflow': 'hidden'});
+  beforeEach(function() {
+    $wrapper = $('<div></div>').css({overflow: 'hidden'});
     $wrapper.width(100).height(200);
     $container = $('<div></div>');
     $table = $('<table></table>'); //create a table that is not attached to document
@@ -15,14 +12,14 @@ describe('WalkontableSelection', function () {
     createDataArray();
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (!debug) {
       $('.wtHolder').remove();
     }
     $wrapper.remove();
   });
 
-  it("should add/remove class to selection when cell is clicked", function () {
+  it('should add/remove class to selection when cell is clicked', function() {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -33,7 +30,7 @@ describe('WalkontableSelection', function () {
           className: 'current'
         })
       ],
-      onCellMouseDown: function (event, coords, TD) {
+      onCellMouseDown: function(event, coords, TD) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
@@ -52,7 +49,7 @@ describe('WalkontableSelection', function () {
     expect($td2.hasClass('current')).toEqual(true);
   });
 
-  it("should add class to selection on all overlays", function () {
+  it('should add class to selection on all overlays', function() {
     $wrapper.width(300).height(300);
 
     this.data = Handsontable.helper.createSpreadsheetData(10, 10);
@@ -85,11 +82,11 @@ describe('WalkontableSelection', function () {
     var tds = $wrapper.find('td:contains(B2), td:contains(B3), td:contains(C2), td:contains(C3)');
     expect(tds.length).toBeGreaterThan(4);
     for (var i = 0, ilen = tds.length; i < ilen; i++) {
-      expect(tds[i].className).toContain("area");
+      expect(tds[i].className).toContain('area');
     }
   });
 
-  it("should not add class to selection until it is rerendered", function () {
+  it('should not add class to selection until it is rerendered', function() {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -112,7 +109,7 @@ describe('WalkontableSelection', function () {
     expect($td1.hasClass('current')).toEqual(true);
   });
 
-  it("should add/remove border to selection when cell is clicked", function (done) {
+  it('should add/remove border to selection when cell is clicked', function(done) {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -127,7 +124,7 @@ describe('WalkontableSelection', function () {
           }
         })
       ],
-      onCellMouseDown: function (event, coords, TD) {
+      onCellMouseDown: function(event, coords, TD) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
@@ -136,7 +133,7 @@ describe('WalkontableSelection', function () {
     shimSelectionProperties(wt);
     wt.draw();
 
-    setTimeout(function () {
+    setTimeout(function() {
       var $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
       var $td2 = $table.find('tbody tr:eq(2) td:eq(1)');
       var $top = $(wt.selections.current.getBorder(wt).top); //cheat... get border for ht_master
@@ -155,7 +152,7 @@ describe('WalkontableSelection', function () {
     }, 1500);
   });
 
-  it("should add a selection that is outside of the viewport", function () {
+  it('should add a selection that is outside of the viewport', function() {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -178,7 +175,7 @@ describe('WalkontableSelection', function () {
     expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(0, 0));
   });
 
-  it("should not scroll the viewport after selection is cleared", function () {
+  it('should not scroll the viewport after selection is cleared', function() {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -208,7 +205,7 @@ describe('WalkontableSelection', function () {
     expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);
   });
 
-  it("should clear a selection that has more than one cell", function () {
+  it('should clear a selection that has more than one cell', function() {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -234,7 +231,7 @@ describe('WalkontableSelection', function () {
     expect(wt.selections.current.cellRange).toEqual(null);
   });
 
-  it("should highlight cells in selected row & column", function () {
+  it('should highlight cells in selected row & column', function() {
     $wrapper.width(300);
 
     var wt = new Walkontable({
@@ -260,7 +257,7 @@ describe('WalkontableSelection', function () {
     expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.getRenderedRowsCount() * 2 - 2);
   });
 
-  it("should highlight cells in selected row & column, when same class is shared between 2 selection definitions", function () {
+  it('should highlight cells in selected row & column, when same class is shared between 2 selection definitions', function() {
     $wrapper.width(300);
 
     var wt = new Walkontable({
@@ -289,7 +286,7 @@ describe('WalkontableSelection', function () {
     expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.getRenderedRowsCount() - 1);
   });
 
-  it("should remove highlight when selection is deselected", function () {
+  it('should remove highlight when selection is deselected', function() {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -316,7 +313,7 @@ describe('WalkontableSelection', function () {
     expect($table.find('.highlightColumn').length).toEqual(0);
   });
 
-  it("should add/remove appropriate class to the row/column headers of selected cells", function() {
+  it('should add/remove appropriate class to the row/column headers of selected cells', function() {
     $wrapper.width(300);
 
     var wt = new Walkontable({
@@ -324,10 +321,10 @@ describe('WalkontableSelection', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function (row, TH) {
+      rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
       }],
-      columnHeaders: [function (row, TH) {
+      columnHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
       }],
       selections: [
@@ -359,8 +356,8 @@ describe('WalkontableSelection', function () {
     expect(getTableLeftClone().find('.highlightColumn').length).toEqual(0);
     expect(getTableLeftClone().find('.highlightRow').length).toEqual(2);
 
-    var $colHeaders = $table.find("thead tr:first-child th"),
-        $rowHeaders = $table.find("tbody tr th:first-child");
+    var $colHeaders = $table.find('thead tr:first-child th'),
+        $rowHeaders = $table.find('tbody tr th:first-child');
 
     expect($colHeaders.eq(2).hasClass('highlightColumn')).toBe(true);
     expect($colHeaders.eq(3).hasClass('highlightColumn')).toBe(true);
@@ -379,8 +376,8 @@ describe('WalkontableSelection', function () {
     expect(getTableLeftClone().find('.highlightRow').length).toEqual(0);
   });
 
-  describe("replace", function() {
-    it("should replace range from property and return true", function() {
+  describe('replace', function() {
+    it('should replace range from property and return true', function() {
       var wt = new Walkontable({
         table: $table[0],
         data: getData,

@@ -1,47 +1,47 @@
-describe('Core_keepEmptyRows', function () {
+describe('Core_keepEmptyRows', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfNestedObjects = function () {
+  var arrayOfNestedObjects = function() {
     return [
       {id: 1, name: {
-        first: "Ted",
-        last: "Right"
-      }, address: "Street Name", zip: "80410", city: "City Name"},
+        first: 'Ted',
+        last: 'Right'
+      }, address: 'Street Name', zip: '80410', city: 'City Name'},
       {id: 2, name: {
-        first: "Frank",
-        last: "Honest"
-      }, address: "Street Name", zip: "80410", city: "City Name"},
+        first: 'Frank',
+        last: 'Honest'
+      }, address: 'Street Name', zip: '80410', city: 'City Name'},
       {id: 3, name: {
-        first: "Joan",
-        last: "Well"
-      }, address: "Street Name", zip: "80410", city: "City Name"}
-    ]
+        first: 'Joan',
+        last: 'Well'
+      }, address: 'Street Name', zip: '80410', city: 'City Name'}
+    ];
   };
 
-  it('should remove columns if needed', function () {
+  it('should remove columns if needed', function() {
     handsontable({
       data: arrayOfNestedObjects(),
       columns: [
-        {data: "id"},
-        {data: "name.first"}
+        {data: 'id'},
+        {data: 'name.first'}
       ]
     });
 
     expect(this.$container.find('tbody tr:first td').length).toEqual(2);
   });
 
-  it('should remove columns if needed when columns is a function', function () {
+  it('should remove columns if needed when columns is a function', function() {
     handsontable({
       data: arrayOfNestedObjects(),
       columns: function(column) {
@@ -64,23 +64,23 @@ describe('Core_keepEmptyRows', function () {
     expect(this.$container.find('tbody tr:first td').length).toEqual(2);
   });
 
-  it('should create columns if needed', function () {
+  it('should create columns if needed', function() {
     handsontable({
       data: arrayOfNestedObjects(),
       columns: [
-        {data: "id"},
-        {data: "name.first"},
-        {data: "name.last"},
-        {data: "address"},
-        {data: "zip"},
-        {data: "city"}
+        {data: 'id'},
+        {data: 'name.first'},
+        {data: 'name.last'},
+        {data: 'address'},
+        {data: 'zip'},
+        {data: 'city'}
       ]
     });
 
     expect(this.$container.find('tbody tr:first td').length).toEqual(6);
   });
 
-  it('should create columns if needed when columns is a function', function () {
+  it('should create columns if needed when columns is a function', function() {
     handsontable({
       data: arrayOfNestedObjects(),
       columns: function(column) {
@@ -114,11 +114,11 @@ describe('Core_keepEmptyRows', function () {
     expect(this.$container.find('tbody tr:first td').length).toEqual(6);
   });
 
-  it('should create spare cols and rows on init (array data source)', function () {
+  it('should create spare cols and rows on init (array data source)', function() {
     handsontable({
       data: [
-        ["one", "two"],
-        ["three", "four"]
+        ['one', 'two'],
+        ['three', 'four']
       ],
       minCols: 4,
       minRows: 4,
@@ -129,7 +129,7 @@ describe('Core_keepEmptyRows', function () {
     expect(countCells()).toEqual(36);
   });
 
-  it('should create spare cols and rows on init (object data source)', function () {
+  it('should create spare cols and rows on init (object data source)', function() {
     handsontable({
       data: arrayOfNestedObjects(),
       minRows: 4,
@@ -141,10 +141,10 @@ describe('Core_keepEmptyRows', function () {
     expect(this.$container.find('tbody tr:first td:last').text()).toEqual('City Name');
   });
 
-  it('should create new row when last cell in last row is edited', function () {
+  it('should create new row when last cell in last row is edited', function() {
     var data = [
-      ["one", "two"],
-      ["three", "four"]
+      ['one', 'two'],
+      ['three', 'four']
     ];
 
     handsontable({
@@ -153,15 +153,15 @@ describe('Core_keepEmptyRows', function () {
       minCols: 4,
       minSpareRows: 1
     });
-    setDataAtCell(3, 3, "test");
+    setDataAtCell(3, 3, 'test');
 
     expect(data.length).toEqual(5);
   });
 
-  it('should create new col when last cell in last row is edited', function () {
+  it('should create new col when last cell in last row is edited', function() {
     var data = [
-      ["one", "two"],
-      ["three", "four"]
+      ['one', 'two'],
+      ['three', 'four']
     ];
 
     handsontable({
@@ -170,19 +170,19 @@ describe('Core_keepEmptyRows', function () {
       minCols: 4,
       minSpareCols: 1
     });
-    setDataAtCell(3, 3, "test");
+    setDataAtCell(3, 3, 'test');
 
     expect(countCols()).toEqual(5);
   });
 
-  it('should create new row when last cell in last row is edited by autocomplete', function (done) {
+  it('should create new row when last cell in last row is edited by autocomplete', function(done) {
     var data = [
-          {id: 1, color: "orange" }
+          {id: 1, color: 'orange' }
         ];
 
     var syncSources = jasmine.createSpy('syncSources');
 
-    syncSources.and.callFake(function (query, process) {
+    syncSources.and.callFake(function(query, process) {
       process(['red', 'dark-yellow', 'yellow', 'light-yellow', 'black']);
     });
 
@@ -192,9 +192,9 @@ describe('Core_keepEmptyRows', function () {
       colHeaders: true,
       minSpareRows: 1,
       columns: [
-        {data: "id", type: 'text'},
+        {data: 'id', type: 'text'},
         {
-          data: "color",
+          data: 'color',
           editor: 'autocomplete',
           source: syncSources
         }
@@ -204,7 +204,7 @@ describe('Core_keepEmptyRows', function () {
     selectCell(1, 1);
     keyDownUp('enter');
 
-    setTimeout(function () {
+    setTimeout(function() {
       keyDown('arrow_down');
       keyDownUp('enter');
 
@@ -213,14 +213,14 @@ describe('Core_keepEmptyRows', function () {
     }, 200);
   });
 
-  it('should create new row when last cell in last row is edited by autocomplete when columns is a function', function (done) {
+  it('should create new row when last cell in last row is edited by autocomplete when columns is a function', function(done) {
     var data = [
-      {id: 1, color: "orange" }
+      {id: 1, color: 'orange' }
     ];
 
     var syncSources = jasmine.createSpy('syncSources');
 
-    syncSources.and.callFake(function (query, process) {
+    syncSources.and.callFake(function(query, process) {
       process(['red', 'dark-yellow', 'yellow', 'light-yellow', 'black']);
     });
 
@@ -252,7 +252,7 @@ describe('Core_keepEmptyRows', function () {
     selectCell(1, 1);
     keyDownUp('enter');
 
-    setTimeout(function () {
+    setTimeout(function() {
       keyDown('arrow_down');
       keyDownUp('enter');
 
@@ -261,33 +261,33 @@ describe('Core_keepEmptyRows', function () {
     }, 200);
   });
 
-  it('should not create more rows that maxRows', function () {
+  it('should not create more rows that maxRows', function() {
     handsontable({
       startRows: 4,
       maxRows: 6,
       minSpareRows: 1
     });
-    setDataAtCell(3, 0, "test");
-    setDataAtCell(4, 0, "test");
-    setDataAtCell(5, 0, "test");
+    setDataAtCell(3, 0, 'test');
+    setDataAtCell(4, 0, 'test');
+    setDataAtCell(5, 0, 'test');
 
     expect(countRows()).toEqual(6);
   });
 
-  it('should not create more cols that maxCols', function () {
+  it('should not create more cols that maxCols', function() {
     handsontable({
       startCols: 4,
       maxCols: 6,
       minSpareCols: 1
     });
-    setDataAtCell(0, 3, "test");
-    setDataAtCell(0, 4, "test");
-    setDataAtCell(0, 5, "test");
+    setDataAtCell(0, 3, 'test');
+    setDataAtCell(0, 4, 'test');
+    setDataAtCell(0, 5, 'test');
 
     expect(countCols()).toEqual(6);
   });
 
-  it('should ignore minCols if columns is set', function () {
+  it('should ignore minCols if columns is set', function() {
     handsontable({
       startCols: 1,
       minCols: 6,
@@ -300,7 +300,7 @@ describe('Core_keepEmptyRows', function () {
     expect(countCols()).toEqual(2);
   });
 
-  it('should ignore minCols if columns is set when columns is a function', function () {
+  it('should ignore minCols if columns is set when columns is a function', function() {
     handsontable({
       startCols: 1,
       minCols: 6,
@@ -318,7 +318,7 @@ describe('Core_keepEmptyRows', function () {
     expect(countCols()).toEqual(1);
   });
 
-  it('columns should have priority over startCols', function () {
+  it('columns should have priority over startCols', function() {
     handsontable({
       startCols: 3,
       minCols: 6,
@@ -331,7 +331,7 @@ describe('Core_keepEmptyRows', function () {
     expect(countCols()).toEqual(2);
   });
 
-  it('columns should have priority over startCols when columns is a function', function () {
+  it('columns should have priority over startCols when columns is a function', function() {
     handsontable({
       startCols: 3,
       minCols: 6,

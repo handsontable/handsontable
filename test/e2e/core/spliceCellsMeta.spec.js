@@ -1,18 +1,18 @@
-describe('Core.spliceCellsMeta', function () {
+describe('Core.spliceCellsMeta', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should splice the cell meta array analogously to the native `splice` method', function () {
+  it('should splice the cell meta array analogously to the native `splice` method', function() {
     handsontable();
 
     var allMeta = getCellsMeta();

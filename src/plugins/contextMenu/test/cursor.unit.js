@@ -1,5 +1,7 @@
-describe('ContextMenu', function () {
-  describe('Cursor', function () {
+import Cursor from 'handsontable/plugins/contextMenu/cursor';
+
+describe('ContextMenu', function() {
+  describe('Cursor', function() {
     it('should initialize internal properties on construct (object literal)', function() {
       var coords = {
         top: 10,
@@ -7,7 +9,7 @@ describe('ContextMenu', function () {
         width: 100,
         height: 200
       };
-      var cursor = new Handsontable.plugins.utils.Cursor(coords);
+      var cursor = new Cursor(coords);
 
       expect(cursor.top).toBe(coords.top);
       expect(cursor.topRelative).toBeLessThan(coords.top + 1);
@@ -26,7 +28,7 @@ describe('ContextMenu', function () {
         width: 100,
         height: 200
       };
-      var cursor = new Handsontable.plugins.utils.Cursor(coords);
+      var cursor = new Cursor(coords);
       var fakeElement = {
         offsetHeight: 9
       };
@@ -49,7 +51,7 @@ describe('ContextMenu', function () {
         width: 100,
         height: 200
       };
-      var cursor = new Handsontable.plugins.utils.Cursor(coords);
+      var cursor = new Cursor(coords);
       var fakeElement = {
         offsetHeight: 9
       };
@@ -73,7 +75,7 @@ describe('ContextMenu', function () {
         width: 30,
         height: 200
       };
-      var cursor = new Handsontable.plugins.utils.Cursor(coords);
+      var cursor = new Cursor(coords);
       var fakeElement = {
         offsetWidth: 9
       };
@@ -97,7 +99,7 @@ describe('ContextMenu', function () {
         width: 100,
         height: 200
       };
-      var cursor = new Handsontable.plugins.utils.Cursor(coords);
+      var cursor = new Cursor(coords);
       var fakeElement = {
         offsetWidth: 9
       };

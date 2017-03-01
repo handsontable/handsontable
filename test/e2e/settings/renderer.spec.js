@@ -1,20 +1,20 @@
-describe('settings', function () {
-  describe('renderer', function () {
+describe('settings', function() {
+  describe('renderer', function() {
     var id = 'testContainer';
 
-    beforeEach(function () {
+    beforeEach(function() {
       this.$container = $('<div id="' + id + '"></div>').appendTo('body');
     });
 
-    afterEach(function () {
+    afterEach(function() {
       if (this.$container) {
         destroy();
         this.$container.remove();
       }
     });
 
-    describe('defined in constructor', function () {
-      it('should use text renderer by default', function () {
+    describe('defined in constructor', function() {
+      it('should use text renderer by default', function() {
         var originalTextRenderer = Handsontable.cellTypes.text.renderer;
 
         spyOn(Handsontable.cellTypes.text, 'renderer');
@@ -26,7 +26,7 @@ describe('settings', function () {
         Handsontable.renderers.registerRenderer('text', originalTextRenderer);
       });
 
-      it('should use renderer from predefined string', function () {
+      it('should use renderer from predefined string', function() {
         var originalTextRenderer = Handsontable.renderers.TextRenderer;
         spyOn(Handsontable.renderers, 'TextRenderer');
         Handsontable.renderers.registerRenderer('text', Handsontable.renderers.TextRenderer);
@@ -49,7 +49,7 @@ describe('settings', function () {
         Handsontable.renderers.registerRenderer('checkbox', originalCheckboxRenderer);
       });
 
-      it('should use renderer from predefined string when columns is a function', function () {
+      it('should use renderer from predefined string when columns is a function', function() {
         var originalTextRenderer = Handsontable.renderers.TextRenderer;
 
         spyOn(Handsontable.renderers, 'TextRenderer');
@@ -60,7 +60,7 @@ describe('settings', function () {
         Handsontable.renderers.registerRenderer('checkbox', Handsontable.renderers.CheckboxRenderer);
 
         handsontable({
-          columns: function (column) {
+          columns: function(column) {
             return column === 0 ? {renderer: 'checkbox'} : null;
           }
         });
@@ -71,7 +71,7 @@ describe('settings', function () {
         Handsontable.renderers.registerRenderer('checkbox', originalCheckboxRenderer);
       });
 
-      it('should use renderer from custom function', function () {
+      it('should use renderer from custom function', function() {
         var called = false;
 
         function myRenderer() {
@@ -89,7 +89,7 @@ describe('settings', function () {
         expect(called).toBe(true);
       });
 
-      it('should use renderer from custom function when columns is a function', function () {
+      it('should use renderer from custom function when columns is a function', function() {
         var called = false;
 
         function myRenderer() {
@@ -97,7 +97,7 @@ describe('settings', function () {
         }
 
         handsontable({
-          columns: function (column) {
+          columns: function(column) {
             return column === 0 ? {renderer: myRenderer} : null;
           }
         });
@@ -105,7 +105,7 @@ describe('settings', function () {
         expect(called).toBe(true);
       });
 
-      it('should use renderer from custom string', function () {
+      it('should use renderer from custom string', function() {
         var myRenderer = jasmine.createSpy('myRenderer');
 
         Handsontable.renderers.registerRenderer('myRenderer', myRenderer);
@@ -121,13 +121,13 @@ describe('settings', function () {
         expect(myRenderer).toHaveBeenCalled();
       });
 
-      it('should use renderer from custom string when columns is a function', function () {
+      it('should use renderer from custom string when columns is a function', function() {
         var myRenderer = jasmine.createSpy('myRenderer');
 
         Handsontable.renderers.registerRenderer('myRenderer', myRenderer);
 
         handsontable({
-          columns: function (column) {
+          columns: function(column) {
             return column === 0 ? {renderer: 'myRenderer'} : null;
           }
         });
@@ -136,11 +136,11 @@ describe('settings', function () {
       });
     });
 
-    it("should call renderer with cellProperties.row, cellProperties.col matching row and col arguments", function () {
+    it('should call renderer with cellProperties.row, cellProperties.col matching row and col arguments', function() {
       var rendererSpy = jasmine.createSpy('rendererSpy').and.callThrough();
       var cellPropertiesCache = [];
 
-      rendererSpy.and.callFake(function (instance, TD, row, col, prop, value, cellProperties) {
+      rendererSpy.and.callFake(function(instance, TD, row, col, prop, value, cellProperties) {
         cellPropertiesCache.push({
           row: cellProperties.row,
           col: cellProperties.col
@@ -151,7 +151,7 @@ describe('settings', function () {
         renderer: rendererSpy
       });
 
-      for (var i = 0, len = rendererSpy.calls.count(); i < len; i++){
+      for (var i = 0, len = rendererSpy.calls.count(); i < len; i++) {
         var args = rendererSpy.calls.argsFor(i);
         var row = args[2];
         var col = args[3];
@@ -160,14 +160,13 @@ describe('settings', function () {
         expect(row).toEqual(cellProperties.row);
         expect(col).toEqual(cellProperties.col);
       }
-
     });
 
-    it("should call cells function before passing cellProperties to renderer", function () {
+    it('should call cells function before passing cellProperties to renderer', function() {
       var rendererSpy = jasmine.createSpy('rendererSpy').and.callThrough();
       var cellPropertiesCache = [];
 
-      rendererSpy.and.callFake(function (instance, TD, row, col, prop, value, cellProperties) {
+      rendererSpy.and.callFake(function(instance, TD, row, col, prop, value, cellProperties) {
         cellPropertiesCache.push({
           cellsRow: cellProperties.cellsRow,
           cellsCol: cellProperties.cellsCol
@@ -176,15 +175,15 @@ describe('settings', function () {
 
       handsontable({
         renderer: rendererSpy,
-        cells: function (row, col) {
+        cells: function(row, col) {
           return {
             cellsRow: row,
             cellsCol: col
-          }
+          };
         }
       });
 
-      for (var i = 0, len = rendererSpy.calls.count(); i < len; i++){
+      for (var i = 0, len = rendererSpy.calls.count(); i < len; i++) {
         var args = rendererSpy.calls.argsFor(i);
         var row = args[2];
         var col = args[3];

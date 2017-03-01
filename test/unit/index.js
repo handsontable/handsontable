@@ -1,5 +1,8 @@
-var req = require.context('.', true, /\.spec\.js$/);
-
-req.keys().forEach(function(key) {
+[
+  require.context('.', true, /\.spec\.js$/),
+  require.context('./../../src/plugins', true, /\.unit\.js$/),
+].forEach(function(req) {
+  req.keys().forEach(function(key) {
     req(key);
+  });
 });

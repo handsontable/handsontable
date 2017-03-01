@@ -1,27 +1,27 @@
-describe('Core_copy', function () {
+describe('Core_copy', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfArrays = function () {
+  var arrayOfArrays = function() {
     return [
-      ["", "Kia", "Nissan", "Toyota", "Honda"],
-      ["2008", 10, 11, 12, 13],
-      ["2009", 20, 11, 14, 13],
-      ["2010", 30, 15, 12, 13]
+      ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+      ['2008', 10, 11, 12, 13],
+      ['2009', 20, 11, 14, 13],
+      ['2010', 30, 15, 12, 13]
     ];
   };
 
-  it('should set copyable text until copyRowsLimit is reached', function () {
+  it('should set copyable text until copyRowsLimit is reached', function() {
     handsontable({
       data: arrayOfArrays(),
       copyRowsLimit: 2
@@ -34,7 +34,7 @@ describe('Core_copy', function () {
     expect($('textarea.copyPaste').val()).toEqual('\tKia\tNissan\tToyota\tHonda\n2008\t10\t11\t12\t13\n');
   });
 
-  it('should set copyable text until copyColsLimit is reached', function () {
+  it('should set copyable text until copyColsLimit is reached', function() {
     handsontable({
       data: arrayOfArrays(),
       copyColsLimit: 2
@@ -47,14 +47,14 @@ describe('Core_copy', function () {
     expect($('textarea.copyPaste').val()).toEqual('\tKia\n2008\t10\n2009\t20\n2010\t30\n');
   });
 
-  it('should call onCopyLimit callback when copy limit was reached', function () {
+  it('should call onCopyLimit callback when copy limit was reached', function() {
     var result;
 
     handsontable({
       data: arrayOfArrays(),
       copyRowsLimit: 2,
       copyColsLimit: 2,
-      afterCopyLimit: function (selectedRowsCount, selectedColsCount, copyRowsLimit, copyColsLimit) {
+      afterCopyLimit: function(selectedRowsCount, selectedColsCount, copyRowsLimit, copyColsLimit) {
         result = [selectedRowsCount, selectedColsCount, copyRowsLimit, copyColsLimit];
       }
     });
@@ -64,7 +64,7 @@ describe('Core_copy', function () {
     expect(result).toEqual([4, 5, 2, 2]);
   });
 
-  it('ctrl+x should cut selected data', function (done) {
+  it('ctrl+x should cut selected data', function(done) {
     var hot = handsontable({
       data: arrayOfArrays()
     });
@@ -72,7 +72,7 @@ describe('Core_copy', function () {
     selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
     keyDownUp('ctrl+x');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(hot.getDataAtCell(0, 0)).toEqual('');
       expect(hot.getDataAtCell(1, 1)).toEqual('');
       expect(hot.getDataAtCell(2, 2)).toEqual('');
@@ -80,7 +80,7 @@ describe('Core_copy', function () {
     }, 300);
   });
 
-  it('ctrl+v should paste copied data to selected range', function (done) {
+  it('ctrl+v should paste copied data to selected range', function(done) {
     var hot = handsontable({
       data: arrayOfArrays()
     });
@@ -89,7 +89,7 @@ describe('Core_copy', function () {
     selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
     keyDownUp('ctrl+v');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(hot.getDataAtCell(0, 0)).toEqual('');
       expect(hot.getDataAtCell(0, 1)).toEqual('Kia');
       expect(hot.getDataAtCell(0, 2)).toEqual('Nissan');

@@ -1,34 +1,34 @@
 describe('settings', function() {
   describe('columns', function() {
     var id = 'testContainer';
-    var arrayOfArrays = function () {
+    var arrayOfArrays = function() {
       return [
-        ["", "Kia", "Nissan", "Toyota", "Honda"],
-        ["2008", 10, 11, 12, 13],
-        ["2009", 20, 11, 14, 13],
-        ["2010", 30, 15, 12, 13]
+        ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+        ['2008', 10, 11, 12, 13],
+        ['2009', 20, 11, 14, 13],
+        ['2010', 30, 15, 12, 13]
       ];
     };
-    var arrayOfObjects = function () {
+    var arrayOfObjects = function() {
       return [
-        {id: 1, name: "Ted", lastName: "Right", date: "01/01/2015"},
-        {id: 2, name: "Frank", lastName: "Honest", date: "01/01/15"},
-        {id: 3, name: "Joan", lastName: "Well", date: "41/01/2015"},
-        {id: 4, name: "Sid", lastName: "Strong", date: "01/51/2015"},
-        {id: 5, name: "Jane", lastName: "Neat", date: "01/01/2015"},
-        {id: 6, name: "Chuck", lastName: "Jackson", date: "01/01/15"},
-        {id: 7, name: "Meg", lastName: "Jansen", date: "41/01/2015"},
-        {id: 8, name: "Rob", lastName: "Norris", date: "01/51/2015"},
-        {id: 9, name: "Sean", lastName: "O'Hara", date: "01/01/2015"},
-        {id: 10, name: "Eve", lastName: "Branson", date: "01/01/15"}
+        {id: 1, name: 'Ted', lastName: 'Right', date: '01/01/2015'},
+        {id: 2, name: 'Frank', lastName: 'Honest', date: '01/01/15'},
+        {id: 3, name: 'Joan', lastName: 'Well', date: '41/01/2015'},
+        {id: 4, name: 'Sid', lastName: 'Strong', date: '01/51/2015'},
+        {id: 5, name: 'Jane', lastName: 'Neat', date: '01/01/2015'},
+        {id: 6, name: 'Chuck', lastName: 'Jackson', date: '01/01/15'},
+        {id: 7, name: 'Meg', lastName: 'Jansen', date: '41/01/2015'},
+        {id: 8, name: 'Rob', lastName: 'Norris', date: '01/51/2015'},
+        {id: 9, name: 'Sean', lastName: 'O\'Hara', date: '01/01/2015'},
+        {id: 10, name: 'Eve', lastName: 'Branson', date: '01/01/15'}
       ];
     };
 
-    beforeEach(function () {
+    beforeEach(function() {
       this.$container = $('<div id="' + id + '"></div>').appendTo('body');
     });
 
-    afterEach(function () {
+    afterEach(function() {
       if (this.$container) {
         destroy();
         this.$container.remove();
@@ -36,7 +36,7 @@ describe('settings', function() {
     });
 
     describe('as an array of objects', function() {
-      it('should not throw exception when passed columns array is empty (data source as array of arrays)', function () {
+      it('should not throw exception when passed columns array is empty (data source as array of arrays)', function() {
         var hot = handsontable({
           data: arrayOfArrays(),
           columns: [
@@ -46,7 +46,7 @@ describe('settings', function() {
           ]
         });
 
-        expect(function () {
+        expect(function() {
           hot.updateSettings({columns: []});
         }).not.toThrow();
       });
@@ -72,7 +72,7 @@ describe('settings', function() {
         it('should render only these columns which are not `null`', function() {
           var hot = handsontable({
             data: arrayOfArrays(),
-            columns: function (column) {
+            columns: function(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
             }
           });
@@ -83,7 +83,7 @@ describe('settings', function() {
         it('should properly bind default data when is not defined (data source as array of arrays)', function() {
           var hot = handsontable({
             data: arrayOfArrays(),
-            columns: function (column) {
+            columns: function(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
             }
           });
@@ -95,7 +95,7 @@ describe('settings', function() {
         it('should properly bind default data when is not defined (data source as array of objects)', function() {
           var hot = handsontable({
             data: arrayOfObjects(),
-            columns: function (column) {
+            columns: function(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
             }
           });
@@ -107,7 +107,7 @@ describe('settings', function() {
         it('should properly bind defined data (data source as array of arrays)', function() {
           var hot = handsontable({
             data: arrayOfArrays(),
-            columns: function (column) {
+            columns: function(column) {
               return [1, 2].indexOf(column) > -1 ? {data: column + 1} : null;
             }
           });
@@ -119,10 +119,10 @@ describe('settings', function() {
         it('should properly bind defined data (data source as array of objects)', function() {
           var hot = handsontable({
             data: arrayOfObjects(),
-            columns: function (column) {
+            columns: function(column) {
               var keys = ['id', 'name', 'lastName'];
 
-              return [1, 2].indexOf(column) > -1 ? {data: keys[column -1]} : null;
+              return [1, 2].indexOf(column) > -1 ? {data: keys[column - 1]} : null;
             }
           });
 
@@ -132,16 +132,16 @@ describe('settings', function() {
       });
 
       describe('updateSettings', function() {
-        it('should not throw exception when passed columns function without return anything (data source as array of arrays) when columns is a function', function () {
+        it('should not throw exception when passed columns function without return anything (data source as array of arrays) when columns is a function', function() {
           var hot = handsontable({
             data: arrayOfArrays(),
-            columns: function (column) {
+            columns: function(column) {
               return [0, 1, 2].indexOf(column) > -1 ? {data: column} : null;
             }
           });
 
-          expect(function () {
-            hot.updateSettings({columns: function () {}});
+          expect(function() {
+            hot.updateSettings({columns: function() {}});
           }).not.toThrow();
         });
 
@@ -219,7 +219,7 @@ describe('settings', function() {
 
           setDataAtCell(0, 0, '');
 
-          setTimeout(function () {
+          setTimeout(function() {
             expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date', undefined, undefined);
             done();
           }, 100);

@@ -1,11 +1,11 @@
-describe('autocompleteValidator', function () {
+describe('autocompleteValidator', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -36,12 +36,12 @@ describe('autocompleteValidator', function () {
             strict: true
           }
         ],
-        afterValidate : onAfterValidate
+        afterValidate: onAfterValidate
       });
 
       setDataAtCell(0, 0, '');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 0, undefined, undefined);
         done();
       }, 100);
@@ -71,12 +71,12 @@ describe('autocompleteValidator', function () {
           }
         ],
         allowEmpty: true,
-        afterValidate : onAfterValidate
+        afterValidate: onAfterValidate
       });
 
       setDataAtCell(0, 0, '');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 0, undefined, undefined);
         done();
       }, 100);
@@ -106,12 +106,12 @@ describe('autocompleteValidator', function () {
           }
         ],
         allowEmpty: false,
-        afterValidate : onAfterValidate
+        afterValidate: onAfterValidate
       });
 
       setDataAtCell(0, 0, '');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, '', 0, 0, undefined, undefined);
         done();
       }, 100);
@@ -141,14 +141,14 @@ describe('autocompleteValidator', function () {
             strict: true
           }
         ],
-        afterValidate : onAfterValidate
+        afterValidate: onAfterValidate
       });
 
       setDataAtCell(0, 0, '');
       setDataAtCell(0, 1, '');
       setDataAtCell(0, 2, '');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate.calls.argsFor(0)).toEqual([true, '', 0, 0, undefined, undefined]);
         expect(onAfterValidate.calls.argsFor(1)).toEqual([false, '', 0, 1, undefined, undefined]);
         expect(onAfterValidate.calls.argsFor(2)).toEqual([true, '', 0, 2, undefined, undefined]);
@@ -180,14 +180,14 @@ describe('autocompleteValidator', function () {
           }
         ],
         allowEmpty: false,
-        afterValidate : onAfterValidate
+        afterValidate: onAfterValidate
       });
 
       setDataAtCell(0, 0, null);
       setDataAtCell(0, 1, void 0);
       setDataAtCell(0, 2, '');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate.calls.argsFor(0)).toEqual([false, null, 0, 0, undefined, undefined]);
         expect(onAfterValidate.calls.argsFor(1)).toEqual([false, void 0, 0, 1, undefined, undefined]);
         expect(onAfterValidate.calls.argsFor(2)).toEqual([false, '', 0, 2, undefined, undefined]);
@@ -209,12 +209,12 @@ describe('autocompleteValidator', function () {
             strict: true
           }
         ],
-        afterValidate : onAfterValidate
+        afterValidate: onAfterValidate
       });
 
       setDataAtCell(0, 0, 'Some');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, 'Some', 0, 0, undefined, undefined);
         done();
       }, 100);

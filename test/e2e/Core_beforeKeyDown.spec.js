@@ -1,58 +1,58 @@
-describe('Core_beforeKeyDown', function () {
+describe('Core_beforeKeyDown', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should run beforeKeyDown hook', function () {
+  it('should run beforeKeyDown hook', function() {
     var called = false;
 
     handsontable({
-      data : [[1,2,3,4,5],[1,2,3,4,5]],
-      beforeKeyDown: function (event) {
+      data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
+      beforeKeyDown: function(event) {
         called = true;
       }
     });
-    selectCell(0,0);
+    selectCell(0, 0);
 
     keyDown('arrow_right');
 
     expect(called).toEqual(true);
   });
 
-  it('should run afterDocumentKeyDown and beforeKeyDown hook', function () {
+  it('should run afterDocumentKeyDown and beforeKeyDown hook', function() {
     var called = [];
 
     handsontable({
-      data : [[1,2,3,4,5],[1,2,3,4,5]],
-      afterDocumentKeyDown: function () {
-        called.push("afterDocumentKeyDown");
+      data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
+      afterDocumentKeyDown: function() {
+        called.push('afterDocumentKeyDown');
       },
-      beforeKeyDown: function () {
-        called.push("beforeKeyDown");
+      beforeKeyDown: function() {
+        called.push('beforeKeyDown');
       }
     });
-    selectCell(0,0);
+    selectCell(0, 0);
 
     keyDown('arrow_right');
 
-    expect(called).toEqual(["afterDocumentKeyDown", "beforeKeyDown"]);
+    expect(called).toEqual(['afterDocumentKeyDown', 'beforeKeyDown']);
   });
 
-  it('should prevent hook from running default action', function () {
+  it('should prevent hook from running default action', function() {
     var called = false;
 
     handsontable({
-      data : [[1,2,3,4,5],[1,2,3,4,5]],
-      beforeKeyDown: function (event) {
+      data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
+      beforeKeyDown: function(event) {
 
         event = serveImmediatePropagation(event);
 
@@ -60,20 +60,20 @@ describe('Core_beforeKeyDown', function () {
         called = true;
       }
     });
-    selectCell(0,0);
+    selectCell(0, 0);
 
     keyDown('arrow_right');
 
-    expect(getSelected()).toEqual([0,0,0,0]);
-    expect(getSelected()).not.toEqual([0,1,0,1]);
+    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getSelected()).not.toEqual([0, 1, 0, 1]);
   });
 
-  it('should overwrite default behavior of delete key, but not this of right arrow', function () {
+  it('should overwrite default behavior of delete key, but not this of right arrow', function() {
     var called = 0;
 
     handsontable({
-      data : [[1,2,3,4,5],[1,2,3,4,5]],
-      beforeKeyDown: function (event) {
+      data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
+      beforeKeyDown: function(event) {
         if (event.keyCode === 8) {
           event.stopImmediatePropagation();
           getInstance().alter('insert_row', 1, 1);
@@ -83,30 +83,29 @@ describe('Core_beforeKeyDown', function () {
       }
     });
 
-    selectCell(0,0);
+    selectCell(0, 0);
 
     keyDown('backspace');
     keyDown('arrow_right');
 
     expect(getData().length).toEqual(3);
-    expect(getSelected()).toEqual([0,1,0,1]);
+    expect(getSelected()).toEqual([0, 1, 0, 1]);
   });
 
-  it('should run beforeKeyDown hook in cell editor handler', function () {
+  it('should run beforeKeyDown hook in cell editor handler', function() {
     var called = 0;
 
     handsontable({
-      data : [[1,2,3,4,5],[1,2,3,4,5]],
-      beforeKeyDown: function (event) {
+      data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
+      beforeKeyDown: function(event) {
         called++;
       }
     });
-    selectCell(0,0);
+    selectCell(0, 0);
 
     keyDown('enter');
     keyDown('enter');
 
     expect(called).toEqual(2);
   });
-
 });

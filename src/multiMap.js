@@ -1,6 +1,3 @@
-// TODO: Global expose for tests
-// window.MultiMap = MultiMap;
-
 function MultiMap() {
   var map = {
     arrayMap: [],

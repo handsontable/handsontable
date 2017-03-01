@@ -20,9 +20,9 @@ describe('Function helper', function() {
         return proxy(function() {
           return this;
         }, context)();
-      }
+      };
       var object = {};
-      var func = function(){};
+      var func = function() {};
 
       expect(proxied(1).valueOf()).toBe(1);
       expect(proxied('foo').valueOf()).toBe('foo');
@@ -46,14 +46,14 @@ describe('Function helper', function() {
 
       expect(spy.calls.count()).toBe(1);
 
-      setTimeout(function () {
+      setTimeout(function() {
         throttled();
         throttled();
 
         expect(spy.calls.count()).toBe(1);
       }, 100);
 
-      setTimeout(function () {
+      setTimeout(function() {
         throttled();
         throttled();
         throttled();
@@ -63,7 +63,7 @@ describe('Function helper', function() {
 
       }, 400);
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(spy.calls.count()).toBe(4);
         done();
       }, 900);
@@ -86,14 +86,14 @@ describe('Function helper', function() {
 
       expect(spy.calls.count()).toBe(5);
 
-      setTimeout(function () {
+      setTimeout(function() {
         throttled();
         throttled();
 
         expect(spy.calls.count()).toBe(6);
       }, 100);
 
-      setTimeout(function () {
+      setTimeout(function() {
         throttled();
         throttled();
         throttled();
@@ -102,7 +102,7 @@ describe('Function helper', function() {
         expect(spy.calls.count()).toBe(8);
       }, 400);
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(spy.calls.count()).toBe(9);
         done();
       }, 900);
@@ -125,14 +125,14 @@ describe('Function helper', function() {
 
       expect(spy.calls.count()).toBe(0);
 
-      setTimeout(function () {
+      setTimeout(function() {
         debounced();
         debounced();
 
         expect(spy.calls.count()).toBe(0);
       }, 100);
 
-      setTimeout(function () {
+      setTimeout(function() {
         debounced();
         debounced();
         debounced();
@@ -141,7 +141,7 @@ describe('Function helper', function() {
         expect(spy.calls.count()).toBe(1);
       }, 400);
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(spy.calls.count()).toBe(2);
         done();
       }, 900);
@@ -155,10 +155,10 @@ describe('Function helper', function() {
     it('should returns new function with piped all passed functions', function() {
       var spy1 = jasmine.createSpyObj('spy', ['test1', 'test2', 'test3', 'test4']);
 
-      spy1.test1.and.callFake(function(a) { return a + 1 });
-      spy1.test2.and.callFake(function(a) { return a + 1 });
-      spy1.test3.and.callFake(function(a) { return a + 1 });
-      spy1.test4.and.callFake(function(a) { return a + 1 });
+      spy1.test1.and.callFake((a) => a + 1);
+      spy1.test2.and.callFake((a) => a + 1);
+      spy1.test3.and.callFake((a) => a + 1);
+      spy1.test4.and.callFake((a) => a + 1);
 
       var piped = pipe(spy1.test1, spy1.test2, spy1.test3, spy1.test4);
 
@@ -179,7 +179,7 @@ describe('Function helper', function() {
     it('should returns new function with cached arguments', function() {
       var spy1 = jasmine.createSpyObj('spy', ['test1', 'test2', 'test3', 'test4']);
 
-      spy1.test1.and.callFake(function(a, b, c) { return (a + b) + c });
+      spy1.test1.and.callFake((a, b, c) => (a + b) + c);
 
       var partialized = partial(spy1.test1, 1, 2);
 
@@ -200,7 +200,7 @@ describe('Function helper', function() {
   //
   describe('curry', function() {
     it('should returns new function with cached arguments (collecting arguments from the left to the right)', function() {
-      var fn = function(a, b, c) { return (a + b) + c };
+      var fn = (a, b, c) => (a + b) + c;
 
       var curried = curry(fn);
 
@@ -215,7 +215,7 @@ describe('Function helper', function() {
   //
   describe('curryRight', function() {
     it('should returns new function with cached arguments (collecting arguments from the right to the left)', function() {
-      var fn = function(a, b, c) { return (a + b) + c };
+      var fn = (a, b, c) => (a + b) + c;
 
       var curried = curryRight(fn);
 

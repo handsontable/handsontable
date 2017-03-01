@@ -7,12 +7,12 @@ import {
   stripTags,
 } from 'handsontable/helpers/string';
 
-describe('String helper', function () {
+describe('String helper', function() {
   //
   // Handsontable.helper.equalsIgnoreCase
   //
   describe('equalsIgnoreCase', function() {
-    it("should correct equals strings", function () {
+    it('should correct equals strings', function() {
       expect(equalsIgnoreCase()).toEqual(false);
       expect(equalsIgnoreCase('', '')).toEqual(true);
       expect(equalsIgnoreCase('True', 'TRUE', 'TrUe', true)).toEqual(true);
@@ -27,7 +27,7 @@ describe('String helper', function () {
   // Handsontable.helper.startsWith
   //
   describe('startsWith', function() {
-    it("should properly recognize whether a string begins with the characters", function() {
+    it('should properly recognize whether a string begins with the characters', function() {
       expect(startsWith('', '')).toBe(true);
       expect(startsWith('Base string', '')).toBe(true);
       expect(startsWith('Base string', 'B')).toBe(true);
@@ -45,7 +45,7 @@ describe('String helper', function () {
   // Handsontable.helper.endsWith
   //
   describe('endsWith', function() {
-    it("should properly recognize whether a string ends with the characters", function() {
+    it('should properly recognize whether a string ends with the characters', function() {
       expect(endsWith('', '')).toBe(true);
       expect(endsWith('Base string', '')).toBe(true);
       expect(endsWith('Base string', 'g')).toBe(true);
@@ -63,7 +63,7 @@ describe('String helper', function () {
   // Handsontable.helper.substitute
   //
   describe('substitute', function() {
-    it("should properly substitute string to specified values", function() {
+    it('should properly substitute string to specified values', function() {
       var vars = {
         zero: 0,
         empty: '',
@@ -85,7 +85,7 @@ describe('String helper', function () {
   // Handsontable.helper.padStart
   //
   describe('padStart', function() {
-    it("should properly add leading chars at the begining of the string", function() {
+    it('should properly add leading chars at the begining of the string', function() {
       expect(padStart('x', 5, 'ab')).toBe('ababx');
       expect(padStart('x', 4, 'abcde')).toBe('abcx');
       expect(padStart('abcd', 2, 'z')).toBe('abcd');
@@ -99,7 +99,7 @@ describe('String helper', function () {
   // Handsontable.helper.stripTags
   //
   describe('stripTags', function() {
-    it("should strip any HTML tags from the string", function() {
+    it('should strip any HTML tags from the string', function() {
       expect(stripTags('')).toBe('');
       expect(stripTags('<i>foo</i>')).toBe('foo');
       expect(stripTags('<script>alert()</script>')).toBe('alert()');

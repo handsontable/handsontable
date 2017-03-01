@@ -1,5 +1,5 @@
 import BasePlugin from './../_base';
-import jsonpatch from './../../../lib/jsonpatch/json-patch-duplex';
+import jsonpatch from 'jsonpatch';
 import DataObserver from './dataObserver';
 import {arrayEach} from './../../helpers/array';
 import {registerPlugin} from './../../plugins';

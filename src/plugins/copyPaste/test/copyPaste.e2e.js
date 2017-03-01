@@ -1,18 +1,18 @@
-describe('CopyPaste', function () {
+describe('CopyPaste', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it("should remove additional new line from copied text (only safari)", function () {
+  it('should remove additional new line from copied text (only safari)', function() {
     var getData = jasmine.createSpy().and.returnValue('a\nb\n\n');
     var preventDefault = jasmine.createSpy();
     var hot = handsontable();
@@ -34,7 +34,7 @@ describe('CopyPaste', function () {
     }
   });
 
-  it("should allow blocking cutting cells by stopping the immediate propagation", function(done) {
+  it('should allow blocking cutting cells by stopping the immediate propagation', function(done) {
     var onCut = jasmine.createSpy();
     var hot = handsontable({
       data: [
@@ -53,21 +53,21 @@ describe('CopyPaste', function () {
     selectCell(0, 0);
     keyDown('ctrl+x');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onCut).not.toHaveBeenCalled();
       done();
     }, 100);
   });
 
-  describe("enabling/disabing plugin", function () {
-    it("should enable copyPaste by default", function () {
+  describe('enabling/disabing plugin', function() {
+    it('should enable copyPaste by default', function() {
 
       var hot = handsontable();
 
       expect(hot.copyPaste).toBeDefined();
     });
 
-    it("should create copyPaste div if enabled", function () {
+    it('should create copyPaste div if enabled', function() {
       expect($('#CopyPasteDiv').length).toEqual(0);
 
       var hot = handsontable();
@@ -78,7 +78,7 @@ describe('CopyPaste', function () {
       expect($('#CopyPasteDiv').length).toEqual(1);
     });
 
-    it("should not create copyPaste div if disabled", function () {
+    it('should not create copyPaste div if disabled', function() {
       expect($('#CopyPasteDiv').length).toEqual(0);
 
       var hot = handsontable({
@@ -91,7 +91,7 @@ describe('CopyPaste', function () {
       expect($('#CopyPasteDiv').length).toEqual(0);
     });
 
-    it("should not create copyPaste property if plugin is disabled", function () {
+    it('should not create copyPaste property if plugin is disabled', function() {
       var hot = handsontable({
         copyPaste: false
       });
@@ -99,7 +99,7 @@ describe('CopyPaste', function () {
       expect(hot.copyPaste).toBeUndefined();
     });
 
-    it("should enable/disable plugin using updateSettings", function () {
+    it('should enable/disable plugin using updateSettings', function() {
       var hot = handsontable();
 
       expect(hot.copyPaste).toBeDefined();
@@ -111,7 +111,7 @@ describe('CopyPaste', function () {
       expect(hot.copyPaste).toBe(null);
     });
 
-    it("should remove copyPaste div if plugin has been disabled using updateSetting", function () {
+    it('should remove copyPaste div if plugin has been disabled using updateSetting', function() {
       expect($('#CopyPasteDiv').length).toEqual(0);
 
       var hot = handsontable();
@@ -134,8 +134,8 @@ describe('CopyPaste', function () {
     });
   });
 
-  describe("setting values copyable", function () {
-    it("should set copyable text when selecting a single cell and hitting ctrl", function () {
+  describe('setting values copyable', function() {
+    it('should set copyable text when selecting a single cell and hitting ctrl', function() {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2)
       });
@@ -150,7 +150,7 @@ describe('CopyPaste', function () {
       expect(copyPasteTextarea.val()).toEqual('A1\n');
     });
 
-    it("should set copyable text when selecting a single cell and hitting left command", function () {
+    it('should set copyable text when selecting a single cell and hitting left command', function() {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2)
       });
@@ -165,7 +165,7 @@ describe('CopyPaste', function () {
       expect(copyPasteTextarea.val()).toEqual('A1\n');
     });
 
-    it("should set copyable text when selecting a single cell and hitting right command", function () {
+    it('should set copyable text when selecting a single cell and hitting right command', function() {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2)
       });
@@ -180,7 +180,7 @@ describe('CopyPaste', function () {
       expect(copyPasteTextarea.val()).toEqual('A1\n');
     });
 
-    it("should set copyable text when selecting multiple cells and hitting ctrl", function () {
+    it('should set copyable text when selecting multiple cells and hitting ctrl', function() {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2)
       });
@@ -195,7 +195,7 @@ describe('CopyPaste', function () {
       expect(copyPasteTextarea.val()).toEqual('A1\nA2\n');
     });
 
-    it("should set copyable text when selecting all cells with CTRL+A", function (done) {
+    it('should set copyable text when selecting all cells with CTRL+A', function(done) {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2)
       });
@@ -208,14 +208,14 @@ describe('CopyPaste', function () {
 
       $(document.activeElement).simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.A, ctrlKey: true});
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(getSelected()).toEqual([0, 0, 1, 1]);
         expect(copyPasteTextarea.val()).toEqual('A1\tB1\nA2\tB2\n');
         done();
       }, 10);
     });
 
-    it("should not throw error when no cell is selected (#1221)", function () {
+    it('should not throw error when no cell is selected (#1221)', function() {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2)
       });
@@ -223,10 +223,7 @@ describe('CopyPaste', function () {
       selectCell(0, 0);
       deselectCell();
 
-      function keydownCtrl(){
-//        $(document).trigger($.Event('keydown', {
-//          keyCode: Handsontable.helper.keyCode.COMMAND_LEFT
-//        }));
+      function keydownCtrl() {
         $(document).simulate('keydown', {
           keyCode: Handsontable.helper.KEY_CODES.COMMAND_LEFT
         });
@@ -236,7 +233,7 @@ describe('CopyPaste', function () {
       expect(keydownCtrl).not.toThrow();
     });
 
-    it("should set copyable text when selecting a single cell with specified type and hitting ctrl (#1300)", function () {
+    it('should set copyable text when selecting a single cell with specified type and hitting ctrl (#1300)', function() {
       handsontable({
         data: [['A', 1], ['B', 2]],
         columns: [
@@ -259,7 +256,7 @@ describe('CopyPaste', function () {
       expect(copyPasteTextarea.val()).toEqual('A\t1\nB\t2\n');
     });
 
-    it("should set copyable text when selecting a single cell with editor type as false (#2574)", function () {
+    it('should set copyable text when selecting a single cell with editor type as false (#2574)', function() {
       handsontable({
         data: [['A', 1], ['B', 2]],
         columns: [
@@ -282,20 +279,19 @@ describe('CopyPaste', function () {
       expect(copyPasteTextarea.val()).toEqual('2\n');
     });
 
-
-    describe("working with multiple tables", function () {
-      beforeEach(function () {
+    describe('working with multiple tables', function() {
+      beforeEach(function() {
         this.$container2 = $('<div id="' + id + '2"></div>').appendTo('body');
       });
 
-      afterEach(function () {
+      afterEach(function() {
         if (this.$container2) {
           this.$container2.handsontable('destroy');
           this.$container2.remove();
         }
       });
 
-      it("should disable copyPaste only in particular table", function () {
+      it('should disable copyPaste only in particular table', function() {
         var hot1 = handsontable();
         var hot2 = this.$container2.handsontable({
           copyPaste: false
@@ -305,14 +301,14 @@ describe('CopyPaste', function () {
         expect(hot2.copyPaste).toBeUndefined();
       });
 
-      it("should create only one CopyPasteDiv regardless of the number of tables", function () {
+      it('should create only one CopyPasteDiv regardless of the number of tables', function() {
         var hot1 = handsontable();
         var hot2 = this.$container2.handsontable();
 
         expect($('#CopyPasteDiv').length).toEqual(1);
       });
 
-      it("should leave CopyPasteDiv as long as at least one table has copyPaste enabled", function () {
+      it('should leave CopyPasteDiv as long as at least one table has copyPaste enabled', function() {
         var hot1 = handsontable();
         var hot2 = this.$container2.handsontable().handsontable('getInstance');
 

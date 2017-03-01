@@ -3,12 +3,12 @@ import {
   rangeEachReverse,
 } from 'handsontable/helpers/number';
 
-describe('Number helper', function () {
+describe('Number helper', function() {
   //
   // Handsontable.helper.rangeEach
   //
   describe('rangeEach', function() {
-    it("should iterate increasingly, when `from` and `to` arguments are passed and `from` number is lower then `to`", function () {
+    it('should iterate increasingly, when `from` and `to` arguments are passed and `from` number is lower then `to`', function() {
       var spy = jasmine.createSpy();
 
       rangeEach(-1, 2, spy);
@@ -20,7 +20,7 @@ describe('Number helper', function () {
       expect(spy.calls.argsFor(3)).toEqual([2]);
     });
 
-    it("should iterate only once, when `from` and `to` arguments are equal", function () {
+    it('should iterate only once, when `from` and `to` arguments are equal', function() {
       var spy = jasmine.createSpy();
 
       rangeEach(10, 10, spy);
@@ -29,7 +29,7 @@ describe('Number helper', function () {
       expect(spy.calls.argsFor(0)).toEqual([10]);
     });
 
-    it("should iterate only once, when `from` and `to` arguments are equal and from value is zero", function () {
+    it('should iterate only once, when `from` and `to` arguments are equal and from value is zero', function() {
       var spy = jasmine.createSpy();
 
       rangeEach(0, spy);
@@ -38,7 +38,7 @@ describe('Number helper', function () {
       expect(spy.calls.argsFor(0)).toEqual([0]);
     });
 
-    it("should iterate increasingly from 0, when only `from` argument is passed", function () {
+    it('should iterate increasingly from 0, when only `from` argument is passed', function() {
       var spy = jasmine.createSpy();
 
       rangeEach(4, spy);
@@ -48,7 +48,7 @@ describe('Number helper', function () {
       expect(spy.calls.argsFor(4)).toEqual([4]);
     });
 
-    it("shouldn\'t iterate decreasingly, when `from` and `to` arguments are passed and `from` number is higher then `to`", function () {
+    it('should not iterate decreasingly, when `from` and `to` arguments are passed and `from` number is higher then `to`', function() {
       var spy = jasmine.createSpy();
 
       rangeEach(1, -3, spy);
@@ -61,7 +61,7 @@ describe('Number helper', function () {
   // Handsontable.helper.rangeEachReverse
   //
   describe('rangeEachReverse', function() {
-    it("should iterate decreasingly, when `from` and `to` arguments are passed and `from` number is higher then `to`", function () {
+    it('should iterate decreasingly, when `from` and `to` arguments are passed and `from` number is higher then `to`', function() {
       var spy = jasmine.createSpy();
 
       rangeEachReverse(2, -1, spy);
@@ -73,7 +73,7 @@ describe('Number helper', function () {
       expect(spy.calls.argsFor(3)).toEqual([-1]);
     });
 
-    it("should iterate only once, when `from` and `to` arguments are equal", function () {
+    it('should iterate only once, when `from` and `to` arguments are equal', function() {
       var spy = jasmine.createSpy();
 
       rangeEachReverse(10, 10, spy);
@@ -82,7 +82,7 @@ describe('Number helper', function () {
       expect(spy.calls.argsFor(0)).toEqual([10]);
     });
 
-    it("should iterate only once, when `from` and `to` arguments are equal and from value is zero", function () {
+    it('should iterate only once, when `from` and `to` arguments are equal and from value is zero', function() {
       var spy = jasmine.createSpy();
 
       rangeEachReverse(0, spy);
@@ -91,7 +91,7 @@ describe('Number helper', function () {
       expect(spy.calls.argsFor(0)).toEqual([0]);
     });
 
-    it("should iterate decreasingly to 0, when only `from` argument is passed", function () {
+    it('should iterate decreasingly to 0, when only `from` argument is passed', function() {
       var spy = jasmine.createSpy();
 
       rangeEachReverse(4, spy);
@@ -101,7 +101,7 @@ describe('Number helper', function () {
       expect(spy.calls.argsFor(4)).toEqual([0]);
     });
 
-    it("shouldn\'t iterate increasingly, when `from` and `to` arguments are passed and `from` number is higher then `to`", function () {
+    it('should not iterate increasingly, when `from` and `to` arguments are passed and `from` number is higher then `to`', function() {
       var spy = jasmine.createSpy();
 
       rangeEachReverse(1, 5, spy);

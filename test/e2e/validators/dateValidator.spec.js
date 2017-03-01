@@ -1,27 +1,27 @@
-describe('dateValidator', function () {
+describe('dateValidator', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfObjects = function () {
+  var arrayOfObjects = function() {
     return [
-      {date: "01/01/2015", name: "Ted", lastName: "Right"},
-      {date: "01/01/15", name: "Frank", lastName: "Honest"},
-      {date: "41/01/2015", name: "Joan", lastName: "Well"},
-      {date: "01/51/2015", name: "Sid", lastName: "Strong"}
+      {date: '01/01/2015', name: 'Ted', lastName: 'Right'},
+      {date: '01/01/15', name: 'Frank', lastName: 'Honest'},
+      {date: '41/01/2015', name: 'Joan', lastName: 'Well'},
+      {date: '01/51/2015', name: 'Sid', lastName: 'Strong'}
     ];
   };
 
-  it("should validate an empty string (default behavior)", function (done) {
+  it('should validate an empty string (default behavior)', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -36,19 +36,19 @@ describe('dateValidator', function () {
 
     setDataAtCell(0, 0, '');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date', undefined, undefined);
       done();
     }, 100);
   });
 
-  it("should rewrite an ISO 8601 string to the correct format if a date-string in different format is provided", function (done) {
+  it('should rewrite an ISO 8601 string to the correct format if a date-string in different format is provided', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date', dateFormat: "MM/DD/YYYY", correctFormat: true},
+        {data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true},
         {data: 'lastName'}
       ],
       afterValidate: onAfterValidate
@@ -56,17 +56,17 @@ describe('dateValidator', function () {
 
     setDataAtCell(1, 0, '2016-03-18');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(true, '2016-03-18', 1, 'date', undefined, undefined);
     }, 100);
 
-    setTimeout(function () {
-      expect(getDataAtCell(1, 0)).toEqual("03/18/2016");
+    setTimeout(function() {
+      expect(getDataAtCell(1, 0)).toEqual('03/18/2016');
       done();
     }, 130);
   });
 
-  it("should not positively validate a non-date string", function (done) {
+  it('should not positively validate a non-date string', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -81,13 +81,13 @@ describe('dateValidator', function () {
 
     setDataAtCell(0, 0, 'wat');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(false, 'wat', 0, 'date', undefined, undefined);
       done();
     }, 100);
   });
 
-  it("should not positively validate a incorrect date string", function (done) {
+  it('should not positively validate a incorrect date string', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -102,13 +102,13 @@ describe('dateValidator', function () {
 
     setDataAtCell(0, 0, '33/01/2014');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(false, '33/01/2014', 0, 'date', undefined, undefined);
       done();
     }, 100);
   });
 
-  it("should not positively validate a date string in wrong format", function (done) {
+  it('should not positively validate a date string in wrong format', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -123,13 +123,13 @@ describe('dateValidator', function () {
 
     setDataAtCell(1, 0, '01/01/15');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/15', 1, 'date', undefined, undefined);
       done();
     }, 100);
   });
 
-  it("should not positively validate a date string in wrong format (if custom format is provided)", function (done) {
+  it('should not positively validate a date string in wrong format (if custom format is provided)', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -144,13 +144,13 @@ describe('dateValidator', function () {
 
     setDataAtCell(1, 0, '01/01/2015');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/2015', 1, 'date', undefined, undefined);
       done();
     }, 100);
   });
 
-  it("should positively validate a date string in correct format", function (done) {
+  it('should positively validate a date string in correct format', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -165,13 +165,13 @@ describe('dateValidator', function () {
 
     setDataAtCell(1, 0, '01/01/2015');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(true, '01/01/2015', 1, 'date', undefined, undefined);
       done();
     }, 100);
   });
 
-  it("should positively validate a date string in correct format (if custom format is provided)", function (done) {
+  it('should positively validate a date string in correct format (if custom format is provided)', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -186,14 +186,14 @@ describe('dateValidator', function () {
 
     setDataAtCell(1, 0, '23/03/15');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(true, '23/03/15', 1, 'date', undefined, undefined);
       done();
     }, 100);
   });
 
-  describe("allowEmpty", function() {
-    it("should not validate an empty string when allowEmpty is set as `false`", function (done) {
+  describe('allowEmpty', function() {
+    it('should not validate an empty string when allowEmpty is set as `false`', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -208,13 +208,13 @@ describe('dateValidator', function () {
 
       setDataAtCell(1, 0, '');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'date', undefined, undefined);
         done();
       }, 100);
     });
 
-    it("should not validate `null` when allowEmpty is set as `false`", function (done) {
+    it('should not validate `null` when allowEmpty is set as `false`', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -229,13 +229,13 @@ describe('dateValidator', function () {
 
       setDataAtCell(1, 0, null);
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'date', undefined, undefined);
         done();
       }, 100);
     });
 
-    it("should not validate `undefined` when allowEmpty is set as `false`", function (done) {
+    it('should not validate `undefined` when allowEmpty is set as `false`', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -250,21 +250,21 @@ describe('dateValidator', function () {
 
       setDataAtCell(1, 0, void 0);
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 1, 'date', undefined, undefined);
         done();
       }, 100);
     });
   });
 
-  describe("correctFormat", function() {
-    it("should not make any changes to entered string if correctFormat is not set", function (done) {
+  describe('correctFormat', function() {
+    it('should not make any changes to entered string if correctFormat is not set', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: "MM/DD/YY"},
+          {data: 'date', type: 'date', dateFormat: 'MM/DD/YY'},
           {data: 'name'},
           {data: 'lastName'}
         ],
@@ -273,19 +273,19 @@ describe('dateValidator', function () {
 
       setDataAtCell(1, 0, '11/23/2013');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, '11/23/2013', 1, 'date', undefined, undefined);
         done();
       }, 100);
     });
 
-    it("should not make any changes to entered string if correctFormat is set to false", function (done) {
+    it('should not make any changes to entered string if correctFormat is set to false', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: "MM/DD/YY", correctFormat: false},
+          {data: 'date', type: 'date', dateFormat: 'MM/DD/YY', correctFormat: false},
           {data: 'name'},
           {data: 'lastName'}
         ],
@@ -294,19 +294,19 @@ describe('dateValidator', function () {
 
       setDataAtCell(1, 0, '11/23/2013');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, '11/23/2013', 1, 'date', undefined, undefined);
         done();
       }, 100);
     });
 
-    it("should rewrite the string to the correct format if a date-string in different format is provided", function (done) {
+    it('should rewrite the string to the correct format if a date-string in different format is provided', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: "MM/DD/YYYY", correctFormat: true},
+          {data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true},
           {data: 'lastName'}
         ],
         afterValidate: onAfterValidate
@@ -314,23 +314,23 @@ describe('dateValidator', function () {
 
       setDataAtCell(1, 0, '1/10/15');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(true, '1/10/15', 1, 'date', undefined, undefined);
       }, 100);
 
-      setTimeout(function () {
-        expect(getDataAtCell(1, 0)).toEqual("01/10/2015");
+      setTimeout(function() {
+        expect(getDataAtCell(1, 0)).toEqual('01/10/2015');
         done();
       }, 130);
     });
 
-    it("should rewrite the string to the correct format if a date-string in different format is provided (for non-default format)", function (done) {
+    it('should rewrite the string to the correct format if a date-string in different format is provided (for non-default format)', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: "DD.MM.YYYY", correctFormat: true},
+          {data: 'date', type: 'date', dateFormat: 'DD.MM.YYYY', correctFormat: true},
           {data: 'lastName'}
         ],
         afterValidate: onAfterValidate
@@ -338,23 +338,23 @@ describe('dateValidator', function () {
 
       setDataAtCell(1, 0, '5.3.2016');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(true, '5.3.2016', 1, 'date', undefined, undefined);
       }, 100);
 
-      setTimeout(function () {
-        expect(getDataAtCell(1, 0)).toEqual("05.03.2016");
+      setTimeout(function() {
+        expect(getDataAtCell(1, 0)).toEqual('05.03.2016');
         done();
       }, 130);
     });
 
-    it("should not try to correct format of non-date strings", function (done) {
+    it('should not try to correct format of non-date strings', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: "DD/MM/YY", correctFormat: true},
+          {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', correctFormat: true},
           {data: 'name'},
           {data: 'lastName'}
         ],
@@ -363,7 +363,7 @@ describe('dateValidator', function () {
 
       setDataAtCell(1, 0, 'test non-date string');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-date string', 1, 'date', undefined, undefined);
         done();
       }, 100);

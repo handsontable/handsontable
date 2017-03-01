@@ -1,24 +1,24 @@
-describe('Core_listen', function () {
+describe('Core_listen', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should listen to changes when cell is selected', function () {
+  it('should listen to changes when cell is selected', function() {
     var hot = handsontable();
     hot.selectCell(0, 0);
     expect(hot.isListening()).toEqual(true);
   });
 
-  it('should\'t listen to changes when cell is selected via `selectCell` when `changeListener` argument is `false`', function () {
+  it('should\'t listen to changes when cell is selected via `selectCell` when `changeListener` argument is `false`', function() {
     var hot = handsontable();
 
     hot.unlisten();
@@ -30,7 +30,7 @@ describe('Core_listen', function () {
     expect(hot.isListening()).toEqual(false);
   });
 
-  it('should unlisten changes', function () {
+  it('should unlisten changes', function() {
     var hot = handsontable();
     hot.selectCell(0, 0);
     expect(hot.isListening()).toEqual(true);
@@ -38,7 +38,7 @@ describe('Core_listen', function () {
     expect(hot.isListening()).toEqual(false);
   });
 
-  it('should listen to changes, when called after unlisten', function () {
+  it('should listen to changes, when called after unlisten', function() {
     var hot = handsontable();
     hot.selectCell(0, 0);
     hot.unlisten();
@@ -46,7 +46,7 @@ describe('Core_listen', function () {
     expect(hot.isListening()).toEqual(true);
   });
 
-  it('when second instance is created, first should unlisten automatically', function () {
+  it('when second instance is created, first should unlisten automatically', function() {
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
     $container1.handsontable('selectCell', 0, 0);
     var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
@@ -61,7 +61,7 @@ describe('Core_listen', function () {
     $container2.remove();
   });
 
-  it('when listen is called on first instance, second should unlisten automatically', function () {
+  it('when listen is called on first instance, second should unlisten automatically', function() {
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
     $container1.handsontable('selectCell', 0, 0);
     var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();

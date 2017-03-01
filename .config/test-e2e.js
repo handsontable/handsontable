@@ -34,6 +34,7 @@ module.exports.create = function create() {
           '../dist/handsontable.css',
         ],
         externalJsFiles: [
+          '../test/helpers/phantom-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
           '../dist/numbro/numbro.js',
@@ -44,7 +45,7 @@ module.exports.create = function create() {
           '../demo/js/backbone/lodash.underscore.js',
           '../demo/js/backbone/backbone.js',
           'helpers/SpecHelper.js',
-          '../dist/handsontable.js',
+          '../dist/handsontable.js', // <--- TODO: Add tests for handsontable.full.min.js also
         ],
       })
     );

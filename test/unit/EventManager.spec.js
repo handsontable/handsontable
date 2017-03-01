@@ -1,7 +1,7 @@
 import EventManager from 'handsontable/eventManager';
 
-describe('EventManager', function () {
-  it('should add/remove/clear event for multiple instances', function () {
+describe('EventManager', function() {
+  it('should add/remove/clear event for multiple instances', function() {
     var instance = {
       subinstance: {}
     };
@@ -12,19 +12,19 @@ describe('EventManager', function () {
 
     expect(instance.eventListeners.length).toEqual(0);
 
-    var test = function () {};
-    var test2 = function () {};
+    var test = function() {};
+    var test2 = function() {};
 
-    eM0.addEventListener(window,'click',test, true);
-    eM1.addEventListener(window,'mousedown',test);
-    eM2.addEventListener(window,'mouseup', test,false);
-    eM2.addEventListener(window,'click', test2);
+    eM0.addEventListener(window, 'click', test, true);
+    eM1.addEventListener(window, 'mousedown', test);
+    eM2.addEventListener(window, 'mouseup', test, false);
+    eM2.addEventListener(window, 'click', test2);
 
     expect(instance.eventListeners.length).toEqual(1);
     expect(instance.subinstance.eventListeners.length).toEqual(1);
     expect(instance2.eventListeners.length).toEqual(2);
 
-    eM0.removeEventListener(window,'click',test,true);
+    eM0.removeEventListener(window, 'click', test, true);
     expect(instance.eventListeners.length).toEqual(0);
 
     eM1.removeEventListener(window);
@@ -37,7 +37,7 @@ describe('EventManager', function () {
     expect(instance2.eventListeners.length).toEqual(0);
   });
 
-  it('should detect event when fired from hot-table (web component)', function () {
+  it('should detect event when fired from hot-table (web component)', function() {
     // skip if browser not support Shadow DOM natively
     if (!document.createElement('div').createShadowRoot) {
       // Fix for "no exceptations" warnings
@@ -71,7 +71,7 @@ describe('EventManager', function () {
     EventManager.isHotTableEnv = false;
   });
 
-  it('should clear all events', function () {
+  it('should clear all events', function() {
     var instance = {};
     var em = new EventManager(instance);
 
@@ -93,7 +93,7 @@ describe('EventManager', function () {
     expect(test1.calls.count()).toEqual(2);
   });
 
-  it('should destroy instance', function () {
+  it('should destroy instance', function() {
     var instance = {};
     var em = new EventManager(instance);
 
@@ -117,7 +117,7 @@ describe('EventManager', function () {
     expect(instance.eventListeners.length).toBe(0);
   });
 
-  it('should fire event', function () {
+  it('should fire event', function() {
     var instance = {};
     var em = new EventManager(instance);
 
@@ -140,7 +140,7 @@ describe('EventManager', function () {
     em.clear(window, 'click');
   });
 
-  it('should remove event by calling function returned from addEvent', function () {
+  it('should remove event by calling function returned from addEvent', function() {
     var instance = {};
     var em = new EventManager(instance);
 
@@ -157,5 +157,4 @@ describe('EventManager', function () {
     expect(test.calls.count()).toEqual(1);
     expect(instance.eventListeners.length).toEqual(0);
   });
-
 });

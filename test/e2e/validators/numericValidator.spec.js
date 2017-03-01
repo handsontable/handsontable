@@ -1,33 +1,33 @@
-describe('numericValidator', function () {
+describe('numericValidator', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfObjects = function () {
+  var arrayOfObjects = function() {
     return [
-      {id: 1, name: "Ted", lastName: "Right"},
-      {id: 2, name: "Frank", lastName: "Honest"},
-      {id: 3, name: "Joan", lastName: "Well"},
-      {id: 4, name: "Sid", lastName: "Strong"},
-      {id: 5, name: "Jane", lastName: "Neat"},
-      {id: 6, name: "Chuck", lastName: "Jackson"},
-      {id: 7, name: "Meg", lastName: "Jansen"},
-      {id: 8, name: "Rob", lastName: "Norris"},
-      {id: 9, name: "Sean", lastName: "O'Hara"},
-      {id: 10, name: "Eve", lastName: "Branson"}
+      {id: 1, name: 'Ted', lastName: 'Right'},
+      {id: 2, name: 'Frank', lastName: 'Honest'},
+      {id: 3, name: 'Joan', lastName: 'Well'},
+      {id: 4, name: 'Sid', lastName: 'Strong'},
+      {id: 5, name: 'Jane', lastName: 'Neat'},
+      {id: 6, name: 'Chuck', lastName: 'Jackson'},
+      {id: 7, name: 'Meg', lastName: 'Jansen'},
+      {id: 8, name: 'Rob', lastName: 'Norris'},
+      {id: 9, name: 'Sean', lastName: 'O\'Hara'},
+      {id: 10, name: 'Eve', lastName: 'Branson'}
     ];
   };
 
-  it('should validate an empty string (default behavior)', function (done) {
+  it('should validate an empty string (default behavior)', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -37,18 +37,18 @@ describe('numericValidator', function () {
         {data: 'name'},
         {data: 'lastName'}
       ],
-      afterValidate : onAfterValidate
+      afterValidate: onAfterValidate
     });
 
     setDataAtCell(2, 0, '');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(true, '', 2, 'id', undefined, undefined);
       done();
     }, 100);
   });
 
-  it('should not validate non numeric string', function (done) {
+  it('should not validate non numeric string', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -58,18 +58,18 @@ describe('numericValidator', function () {
         {data: 'name'},
         {data: 'lastName'}
       ],
-      afterValidate : onAfterValidate
+      afterValidate: onAfterValidate
     });
 
     setDataAtCell(2, 0, 'test');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id', undefined, undefined);
       done();
     }, 100);
   });
 
-  it('should validate numeric string', function (done) {
+  it('should validate numeric string', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -79,18 +79,18 @@ describe('numericValidator', function () {
         {data: 'name'},
         {data: 'lastName'}
       ],
-      afterValidate : onAfterValidate
+      afterValidate: onAfterValidate
     });
 
     setDataAtCell(2, 0, '123');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id', undefined, undefined);
       done();
     }, 100);
   });
 
-  it('should validate signed numeric string', function (done) {
+  it('should validate signed numeric string', function(done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -100,19 +100,19 @@ describe('numericValidator', function () {
         {data: 'name'},
         {data: 'lastName'}
       ],
-      afterValidate : onAfterValidate
+      afterValidate: onAfterValidate
     });
 
     setDataAtCell(2, 0, '-123');
 
-    setTimeout(function () {
+    setTimeout(function() {
       expect(onAfterValidate).toHaveBeenCalledWith(true, -123, 2, 'id', undefined, undefined);
       done();
     }, 100);
   });
 
-  describe("allowEmpty", function() {
-    it('should not validate an empty string when allowEmpty is set as `false`', function (done) {
+  describe('allowEmpty', function() {
+    it('should not validate an empty string when allowEmpty is set as `false`', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -122,18 +122,18 @@ describe('numericValidator', function () {
           {data: 'name'},
           {data: 'lastName'}
         ],
-        afterValidate : onAfterValidate
+        afterValidate: onAfterValidate
       });
 
       setDataAtCell(2, 0, '');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, '', 2, 'id', undefined, undefined);
         done();
       }, 100);
     });
 
-    it('should not validate `null` when allowEmpty is set as `false`', function (done) {
+    it('should not validate `null` when allowEmpty is set as `false`', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -143,18 +143,18 @@ describe('numericValidator', function () {
           {data: 'name'},
           {data: 'lastName'}
         ],
-        afterValidate : onAfterValidate
+        afterValidate: onAfterValidate
       });
 
       setDataAtCell(2, 0, null);
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, null, 2, 'id', undefined, undefined);
         done();
       }, 100);
     });
 
-    it('should not validate `undefined` when allowEmpty is set as `false`', function (done) {
+    it('should not validate `undefined` when allowEmpty is set as `false`', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -164,18 +164,18 @@ describe('numericValidator', function () {
           {data: 'name'},
           {data: 'lastName'}
         ],
-        afterValidate : onAfterValidate
+        afterValidate: onAfterValidate
       });
 
       setDataAtCell(2, 0, void 0);
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 2, 'id', undefined, undefined);
         done();
       }, 100);
     });
 
-    it('should validate 0 when allowEmpty is set as `false`', function (done) {
+    it('should validate 0 when allowEmpty is set as `false`', function(done) {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -185,23 +185,23 @@ describe('numericValidator', function () {
           {data: 'name'},
           {data: 'lastName'}
         ],
-        afterValidate : onAfterValidate
+        afterValidate: onAfterValidate
       });
 
       setDataAtCell(2, 0, 0);
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(onAfterValidate).toHaveBeenCalledWith(true, 0, 2, 'id', undefined, undefined);
         done();
       }, 100);
     });
 
-    it('should add / remove `htInvalid` class properly when validating non-numeric data', function (done) {
+    it('should add / remove `htInvalid` class properly when validating non-numeric data', function(done) {
       var hot = handsontable({
         data: [
-          {id: 1, name: "Ted", salary: 10000},
-          {id: 2, name: "Frank", salary: '5300'},
-          {id: 3, name: "Joan", salary: 'non-numeric value'}
+          {id: 1, name: 'Ted', salary: 10000},
+          {id: 2, name: 'Frank', salary: '5300'},
+          {id: 3, name: 'Joan', salary: 'non-numeric value'}
         ],
         columns: [
           {data: 'id'},
@@ -212,14 +212,14 @@ describe('numericValidator', function () {
 
       hot.validateCells();
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect($(getCell(1, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
         expect($(getCell(2, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
 
         setDataAtCell(2, 2, 8000);
       }, 200);
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect($(getCell(2, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
         done();
       }, 400);

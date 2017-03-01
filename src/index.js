@@ -13,7 +13,6 @@ Handsontable.Core = Core;
 import './css/handsontable.css';
 import './css/mobile.handsontable.css';
 
-import './../lib/es6collections/es6collections';
 import './renderers/_cellDecorator';
 import './../plugins/jqueryHandsontable';
 import {getListenersCounter} from './eventManager';
@@ -78,10 +77,10 @@ const DOM = [
 
 Handsontable.helper = {};
 Handsontable.dom = {};
-// legacy support
+// Legacy support.
 Handsontable.Dom = Handsontable.dom;
 
-// fill general helpers
+// Fill general helpers.
 arrayHelpers.arrayEach(HELPERS, (helper) => {
   arrayHelpers.arrayEach(Object.getOwnPropertyNames(helper), (key) => {
     if (key.charAt(0) !== '_') {
@@ -90,7 +89,7 @@ arrayHelpers.arrayEach(HELPERS, (helper) => {
   });
 });
 
-// fill dom helpers
+// Fill DOM helpers.
 arrayHelpers.arrayEach(DOM, (helper) => {
   arrayHelpers.arrayEach(Object.getOwnPropertyNames(helper), (key) => {
     if (key.charAt(0) !== '_') {
@@ -99,7 +98,7 @@ arrayHelpers.arrayEach(DOM, (helper) => {
   });
 });
 
-// Export cell types
+// Export cell types.
 import cellTypes from './cellTypes';
 
 Handsontable.cellTypes = {};
@@ -108,7 +107,7 @@ arrayHelpers.arrayEach(Object.getOwnPropertyNames(cellTypes), (key) => {
   Handsontable.cellTypes[key] = cellTypes[key];
 });
 
-// Export all editors to the Handsontable object
+// Export all editors to the Handsontable object.
 import {getRegisteredEditorNames, registerEditor, getEditor, getEditorConstructor} from './editors';
 
 Handsontable.editors = {};
@@ -120,7 +119,7 @@ arrayHelpers.arrayEach(getRegisteredEditorNames(), (editorName) => {
 Handsontable.editors.registerEditor = registerEditor;
 Handsontable.editors.getEditor = getEditor;
 
-// Export all renderers to the Handsontable object
+// Export all renderers to the Handsontable object.
 import {getRegisteredRendererNames, getRenderer, registerRenderer} from './renderers';
 
 Handsontable.renderers = {};
@@ -137,7 +136,7 @@ arrayHelpers.arrayEach(getRegisteredRendererNames(), (rendererName) => {
 Handsontable.renderers.registerRenderer = registerRenderer;
 Handsontable.renderers.getRenderer = getRenderer;
 
-// Export all plugins to the Handsontable object
+// Export all plugins to the Handsontable object.
 import * as plugins from './plugins/index'; // <---- TODO: Move plugins to webpack as import from external
 import {registerPlugin} from './plugins';
 

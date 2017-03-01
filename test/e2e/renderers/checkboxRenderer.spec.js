@@ -1,22 +1,22 @@
-describe('CheckboxRenderer', function () {
+describe('CheckboxRenderer', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '" style="width: 300px; height: 200px;"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should render values as checkboxes', function () {
+  it('should render values as checkboxes', function() {
     handsontable({
-      data:  [[true],[false],[true]],
+      data: [[true],[false],[true]],
       columns: [
-        { type: 'checkbox' }
+        {type: 'checkbox' }
       ]
     });
 
@@ -25,11 +25,11 @@ describe('CheckboxRenderer', function () {
     expect($(getRenderedValue(2, 0)).is(':checkbox')).toBe(true);
   });
 
-  it('should render check checkboxes for cell which value is true', function () {
+  it('should render check checkboxes for cell which value is true', function() {
     handsontable({
-      data  :  [[true],[false],[true]],
-      columns : [
-        { type: 'checkbox' }
+      data:  [[true],[false],[true]],
+      columns: [
+        {type: 'checkbox' }
       ]
     });
 
@@ -38,10 +38,10 @@ describe('CheckboxRenderer', function () {
     expect($(getRenderedContent(2, 0)).prop('checked')).toBe(true);
   });
 
-  it('should use templates to check appropriate checkboxes', function () {
+  it('should use templates to check appropriate checkboxes', function() {
     handsontable({
-      data  :  [['yes'],['no'],['yes']],
-      columns : [
+      data:  [['yes'],['no'],['yes']],
+      columns: [
         {
           type: 'checkbox',
           checkedTemplate: 'yes',
@@ -55,7 +55,7 @@ describe('CheckboxRenderer', function () {
     expect($(getRenderedContent(2, 0)).prop('checked')).toBe(true);
   });
 
-  it('should select cell after checkbox click', function () {
+  it('should select cell after checkbox click', function() {
     var hot = handsontable({
       data: [[true],[false],[true]],
       columns: [
@@ -70,7 +70,7 @@ describe('CheckboxRenderer', function () {
     expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
   });
 
-  it('should select cell after label click', function () {
+  it('should select cell after label click', function() {
     var hot = handsontable({
       data: [[true],[false],[true]],
       columns: [
@@ -85,11 +85,11 @@ describe('CheckboxRenderer', function () {
     expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
   });
 
-  it('should reverse selection in checkboxes', function () {
+  it('should reverse selection in checkboxes', function() {
     handsontable({
-      data  :  [[true],[false],[true]],
-      columns : [
-        { type: 'checkbox' }
+      data: [[true],[false],[true]],
+      columns: [
+        {type: 'checkbox' }
       ]
     });
 
@@ -100,11 +100,11 @@ describe('CheckboxRenderer', function () {
     expect(getData()).toEqual([[false],[true],[false]]);
   });
 
-  it('shouldn\'t uncheck checkboxes', function () {
+  it('shouldn\'t uncheck checkboxes', function() {
     handsontable({
-      data  :  [[true],[true],[true]],
-      columns : [
-        { type: 'checkbox', readOnly : true }
+      data: [[true],[true],[true]],
+      columns: [
+        {type: 'checkbox', readOnly: true}
       ]
     });
 
@@ -113,11 +113,11 @@ describe('CheckboxRenderer', function () {
     expect(getData()).toEqual([[true],[true],[true]]);
   });
 
-  it("should check single box after hitting space", function () {
+  it('should check single box after hitting space', function() {
     handsontable({
-      data  :  [[true],[true],[true]],
-      columns : [
-        { type: 'checkbox'}
+      data: [[true],[true],[true]],
+      columns: [
+        {type: 'checkbox'}
       ]
     });
 
@@ -133,10 +133,10 @@ describe('CheckboxRenderer', function () {
 
     selectCell(0, 0);
 
-//    this.$container.find(':checkbox').eq(0).simulate('click');
-//    this.$container.simulate('keydown',{
-//      keyCode: 32
-//    });
+    //  this.$container.find(':checkbox').eq(0).simulate('click');
+    //  this.$container.simulate('keydown',{
+    //    keyCode: 32
+    //  });
     keyDown('space');
 
     checkboxes = this.$container.find(':checkbox');
@@ -149,11 +149,11 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it("should not check single box after hitting space, if cell is readOnly", function () {
+  it('should not check single box after hitting space, if cell is readOnly', function() {
     handsontable({
-      data  :  [[true],[true],[true]],
-      columns : [
-        { type: 'checkbox', readOnly: true}
+      data:  [[true],[true],[true]],
+      columns: [
+        {type: 'checkbox', readOnly: true}
       ]
     });
 
@@ -180,7 +180,7 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback).not.toHaveBeenCalled();
   });
 
-  it("should not check single box after hitting space, if last column is readOnly (#3562)", function () {
+  it('should not check single box after hitting space, if last column is readOnly (#3562)', function() {
     handsontable({
       data: [[true, true],[false, false],[true, true]],
       columns: [
@@ -212,8 +212,7 @@ describe('CheckboxRenderer', function () {
     expect(getData()).toEqual([[false, true],[true, false],[true, true]]);
   });
 
-
-  it("should change checkboxes values properly when data contains null or/and undefined", function () {
+  it('should change checkboxes values properly when data contains null or/and undefined', function() {
     handsontable({
       data: [[null], [undefined]],
       colHeaders: true,
@@ -235,7 +234,7 @@ describe('CheckboxRenderer', function () {
     expect(getDataAtCol(0)).toEqual([false, false]);
   });
 
-  it("should change checkboxes values for cells below the viewport (hot initialized by startRows) #4037", function () {
+  it('should change checkboxes values for cells below the viewport (hot initialized by startRows) #4037', function() {
     handsontable({
       startRows: 200,
       colHeaders: true,
@@ -252,11 +251,11 @@ describe('CheckboxRenderer', function () {
     expect(getDataAtCell(199, 0)).toEqual(true);
   });
 
-  it("should reverse checkboxes state after hitting space, when multiple cells are selected", function () {
+  it('should reverse checkboxes state after hitting space, when multiple cells are selected', function() {
     var hot = handsontable({
-      data  :  [[true],[false],[true]],
-      columns : [
-        { type: 'checkbox'}
+      data:  [[true],[false],[true]],
+      columns: [
+        {type: 'checkbox'}
       ]
     });
 
@@ -284,11 +283,11 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false], [1, 0, false, true], [2, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it("should reverse checkboxes state after hitting space, when multiple cells are selected and selStart > selEnd", function () {
+  it('should reverse checkboxes state after hitting space, when multiple cells are selected and selStart > selEnd', function() {
     handsontable({
-      data  :  [[true],[false],[true]],
-      columns : [
-        { type: 'checkbox'}
+      data: [[true],[false],[true]],
+      columns: [
+        {type: 'checkbox'}
       ]
     });
 
@@ -316,12 +315,12 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false], [1, 0, false, true], [2, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it("should open cell editors of cell that does not have checkboxRenderer (#1199)", function () {
+  it('should open cell editors of cell that does not have checkboxRenderer (#1199)', function() {
     var hot = handsontable({
-      data  :  [[true, 'B0'],[true, 'B1'],[true, 'B2']],
-      columns : [
-        { type: 'checkbox'},
-        { type: 'text'}
+      data: [[true, 'B0'],[true, 'B1'],[true, 'B2']],
+      columns: [
+        {type: 'checkbox'},
+        {type: 'text'}
       ]
     });
 
@@ -334,7 +333,7 @@ describe('CheckboxRenderer', function () {
     expect(hot.getActiveEditor().isOpened()).toBe(true);
   });
 
-  it("double click on checkbox cell should invert the value", function () {
+  it('double click on checkbox cell should invert the value', function() {
     handsontable({
       data: [
         [true],
@@ -342,7 +341,7 @@ describe('CheckboxRenderer', function () {
         [true]
       ],
       columns: [
-        { type: 'checkbox'}
+        {type: 'checkbox'}
       ]
     });
 
@@ -358,11 +357,11 @@ describe('CheckboxRenderer', function () {
     expect(getDataAtCell(0, 0)).toBe(false);
   });
 
-  it("should change checkbox state from checked to unchecked after hitting ENTER", function () {
+  it('should change checkbox state from checked to unchecked after hitting ENTER', function() {
     handsontable({
-      data  :  [[true],[true],[true]],
-      columns : [
-        { type: 'checkbox'}
+      data: [[true],[true],[true]],
+      columns: [
+        {type: 'checkbox'}
       ]
     });
 
@@ -390,10 +389,10 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it("should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates", function () {
+  it('should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates', function() {
     handsontable({
-      data  :  [['yes'],['yes'],['no']],
-      columns : [
+      data: [['yes'],['yes'],['no']],
+      columns: [
         {
           type: 'checkbox',
           checkedTemplate: 'yes',
@@ -426,10 +425,10 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'yes', 'no']], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it("should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates in numeric format", function () {
+  it('should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates in numeric format', function() {
     handsontable({
-      data  :  [[1],[1],[0]],
-      columns : [
+      data: [[1],[1],[0]],
+      columns: [
         {
           type: 'checkbox',
           checkedTemplate: 1,
@@ -462,10 +461,10 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 1, 0]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it("should change checkbox state to unchecked after hitting DELETE", function () {
+  it('should change checkbox state to unchecked after hitting DELETE', function() {
     handsontable({
-      data  :  [[true], [false], [true]],
-      columns : [
+      data:  [[true], [false], [true]],
+      columns: [
         { type: 'checkbox'}
       ]
     });
@@ -496,10 +495,10 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it("should change checkbox state to unchecked after hitting BACKSPACE", function () {
+  it('should change checkbox notte to unchecked after hitting BACKSPACE', function() {
     handsontable({
-      data  :  [[true], [false], [true]],
-      columns : [
+      data:  [[true], [false], [true]],
+      columns: [
         { type: 'checkbox'}
       ]
     });
@@ -530,7 +529,7 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it("should change checkbox state to unchecked after hitting DELETE (from #bad-value# state)", function () {
+  it('should change  notkbox state to unchecked after hitting DELETE (from #bad-value# state)', function() {
     handsontable({
       data: [['foo'], ['bar']],
       columns: [
@@ -557,7 +556,7 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it("should change checkbox state to unchecked after hitting BACKSPACE (from #bad-value# state)", function () {
+  it('should change checkbox  note to unchecked after hitting BACKSPACE (from #bad-value# state)', function() {
     handsontable({
       data: [['foo'], ['bar']],
       columns: [
@@ -584,7 +583,7 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it("shouldn't change checkbox state after hitting other keys then DELETE or BACKSPACE (from #bad-value# state)", function () {
+  it('shouldn\'t change checkbo notate after hitting other keys then DELETE or BACKSPACE (from #bad-value# state)', function() {
     handsontable({
       data: [['foo'], ['bar']],
       columns: [
@@ -608,7 +607,7 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback.calls.count()).toEqual(0);
   });
 
-  it("shouldn't change checkbox state after hitting other keys then SPACE, ENTER, DELETE or BACKSPACE", function () {
+  it('should not change checkbox state after hitting other keys then SPACE, ENTER, DELETE or BACKSPACE', function() {
     handsontable({
       data: [[false], [true], [true]],
       columns: [
@@ -631,7 +630,7 @@ describe('CheckboxRenderer', function () {
     expect(afterChangeCallback.calls.count()).toEqual(1);
   });
 
-  it("should add label on the beginning of a checkbox element", function () {
+  it('should add label on the beginning of a checkbox element', function() {
     handsontable({
       data: [{checked: true, label: 'myLabel'}, {checked: false, label: 'myLabel'}],
       columns: [
@@ -651,7 +650,7 @@ describe('CheckboxRenderer', function () {
     expect(getCell(0, 0).querySelector('label').firstChild.textContent).toEqual('myLabel');
   });
 
-  it("should add label on the end of a checkbox element", function () {
+  it('should add label on the end of a checkbox element', function() {
     handsontable({
       data: [{checked: true, label: 'myLabel'}, {checked: false, label: 'myLabel'}],
       columns: [
@@ -671,7 +670,7 @@ describe('CheckboxRenderer', function () {
     expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
   });
 
-  it("shouldn\'t add label when value is incorrect (#bad-value)", function () {
+  it('should not add label when value is incorrect (#bad-value)', function() {
     handsontable({
       data: [{checked: 1, label: 'myLabel'}, {checked: 0, label: 'myLabel'}],
       columns: [
@@ -682,7 +681,7 @@ describe('CheckboxRenderer', function () {
     expect(getCell(0, 0).querySelector('label')).toBe(null);
   });
 
-  it("by default should add label on the end of a checkbox element", function () {
+  it('by default should add label on the end of a checkbox element', function() {
     handsontable({
       data: [{checked: true, label: {test: 'Baz'}}, {checked: false, label: {test: 'Baz'}}],
       columns: [
@@ -693,7 +692,7 @@ describe('CheckboxRenderer', function () {
     expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('Baz');
   });
 
-  it("should add label with text filled from `value` label setting (passed as string)", function () {
+  it('should add label with text filled from `value` label setting (passed as string)', function() {
     handsontable({
       data: [{checked: true}, {checked: false}],
       columns: [
@@ -704,7 +703,7 @@ describe('CheckboxRenderer', function () {
     expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
   });
 
-  it("should add label with text filled from `value` label setting (passed as function)", function () {
+  it('should add label with text filled from `value` label setting (passed as function)', function() {
     var labelFunction = jasmine.createSpy();
 
     labelFunction.and.returnValue('myLabel');
@@ -723,16 +722,16 @@ describe('CheckboxRenderer', function () {
     expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
   });
 
-  describe('CheckboxRenderer with ContextMenu', function () {
-    it('should add class name `htRight` after set align in contextMenu', function (done) {
+  describe('CheckboxRenderer with ContextMenu', function() {
+    it('should add class name `htRight` after set align in contextMenu', function(done) {
       handsontable({
         startRows: 1,
         startCols: 1,
         contextMenu: ['alignment'],
-        cells: function () {
+        cells: function() {
           return {
             type: 'checkbox'
-          }
+          };
         },
         height: 100
       });
@@ -745,7 +744,7 @@ describe('CheckboxRenderer', function () {
 
       menu.simulate('mouseover');
 
-      setTimeout(function () {
+      setTimeout(function() {
         var contextSubMenu = $('.htContextMenuSub_' + menu.text()).find('tbody td').eq(2);
         contextSubMenu.simulate('mousedown');
         contextSubMenu.simulate('mouseup');

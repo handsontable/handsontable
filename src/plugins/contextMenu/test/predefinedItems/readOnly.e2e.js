@@ -1,18 +1,18 @@
-describe('ContextMenuReadOnly', function () {
+describe('ContextMenuReadOnly', function() {
   var id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should trigger `afterSetCellMeta` callback after changing cell to read only by context menu', function () {
+  it('should trigger `afterSetCellMeta` callback after changing cell to read only by context menu', function() {
     var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
     var rows = 5, columns = 5;
 
@@ -27,7 +27,7 @@ describe('ContextMenuReadOnly', function () {
     selectCell(2, 3);
     contextMenu();
 
-    var changeToReadOnluButton = $('.htItemWrapper').filter(function () {
+    var changeToReadOnluButton = $('.htItemWrapper').filter(function() {
       return $(this).text() === 'Read only';
     })[0];
 
