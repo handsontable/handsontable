@@ -57,6 +57,7 @@
     "babel-cli": "^6.23.0",
     "babel-core": "^6.23.0",
     "babel-eslint": "^7.0.0",
+    "babel-jest": "^19.0.0",
     "babel-loader": "^6.3.2",
     "babel-plugin-check-es2015-constants": "^6.22.0",
     "babel-plugin-transform-es2015-arrow-functions": "^6.22.0",

@@ -2,9 +2,14 @@
 .grunt
 .idea
 _SpecRunner.html
+test/E2ERunner.html
+test/UnitRunner.html
+test/dist/
 cars.sqlite
 dev*.html
 npm-debug.log
 
 !dist/README.md
 node_modules/
+commonjs/
+es/
