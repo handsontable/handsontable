@@ -513,7 +513,7 @@ class Menu {
    */
   createContainer(name = null) {
     if (name) {
-      name = name.replace(/ /g, '_');
+      name = name.replace(/[^A-z0-9]/g, '_');
       name = this.options.className + 'Sub_' + name;
     }
     let container;
