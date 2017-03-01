@@ -30,7 +30,7 @@
     "build:umd": "cross-env BABEL_ENV=commonjs NODE_ENV=development webpack babel-polyfill src/index.js",
     "watch": "cross-env BABEL_ENV=commonjs NODE_ENV=watch webpack src/index.js --watch",
     "release": "generate-release",
-    "prepublish": "npm run clean && npm run build:commonjs && npm run build:es && check-es3-syntax commonjs/ dist/ --kill --print"
+    "prepublish": "npm run clean && npm run build:commonjs && npm run build:es"
   },
   "keywords": [
     "data",
@@ -79,6 +79,7 @@
     "babel-plugin-transform-es3-member-expression-literals": "^6.22.0",
     "babel-plugin-transform-es3-property-literals": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.22.0",
+    "babel-polyfill": "^6.23.0",
     "babel-register": "^6.23.0",
     "check-es3-syntax-cli": "^0.1.1",
     "cross-env": "^3.1.4",
