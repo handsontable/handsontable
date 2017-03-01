@@ -1,5 +1,5 @@
 import AutoColumnSize from './autoColumnSize/autoColumnSize';
-import AutoFill from './autoFill/autoFill';
+import AutoFill from './autofill/autofill';
 import AutoRowSize from './autoRowSize/autoRowSize';
 import ColumnSorting from './columnSorting/columnSorting';
 import Comments from './comments/comments';
