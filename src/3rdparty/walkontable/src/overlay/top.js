@@ -274,23 +274,31 @@ class WalkontableTopOverlay extends WalkontableOverlay {
   }
 
   /**
-   * Redrawing current selection
+   * Redraw borders of selection
+   *
+   * @param {WalkontableSelection} selection Selection for redraw
    */
-  redrawCurrentSelection() {
-    const selections = this.wot.selections;
-    const currentSelection = selections && selections.current;
-
-    if (currentSelection && currentSelection.cellRange) {
-      const border = currentSelection.getBorder(this.wot);
+  redrawSelectionBorders(selection) {
+    if (selection && selection.cellRange) {
+      const border = selection.getBorder(this.wot);
 
       if (border) {
-        const corners = currentSelection.getCorners();
-
+        const corners = selection.getCorners();
         border.disappear();
         border.appear(corners);
       }
     }
+  }
 
+  /**
+   * Redrawing borders of all selections
+   */
+  redrawAllSelectionsBorders() {
+    const selections = this.wot.selections;
+
+    this.redrawSelectionBorders(selections.current);
+    this.redrawSelectionBorders(selections.area);
+    this.redrawSelectionBorders(selections.fill);
     this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
   }
 
@@ -323,7 +331,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
 
         // cell borders should be positioned once again,
         // because we added / removed 1px border from table header
-        this.redrawCurrentSelection();
+        this.redrawAllSelectionsBorders();
       }
     }
 

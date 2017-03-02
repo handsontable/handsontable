@@ -837,82 +837,34 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
 
   });
 
-  describe('selectedHeader', function () {
-    it("should select the entire row after row header is clicked", function(){
-      var hot = handsontable({
-        startRows: 5,
-        startCols: 5,
-        colHeaders: true,
-        rowHeaders: true
-      });
-
-      this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
-
-      expect(getSelected()).toEqual([1, 0, 1, 4]);
-      expect(hot.selection.selectedHeader.rows).toBe(true);
-      expect(hot.selection.selectedHeader.cols).toBe(false);
-      expect(hot.selection.selectedHeader.corner).toBe(false);
+  it("should select the entire row after row header is clicked", function(){
+    var hot = handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true
     });
 
-    it("should properly change flag of the selected column if it's necessary", function(){
-      var hot = handsontable({
-        startRows: 5,
-        startCols: 5,
-        colHeaders: true,
-        rowHeaders: true
-      });
+    this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
 
-      this.$container.find('thead th:eq(1)').simulate('mousedown');
-      this.$container.find('thead th:eq(1)').simulate('mouseup');
+    expect(getSelected()).toEqual([1, 0, 1, 4]);
+    expect(hot.selection.selectedHeader.rows).toBe(true);
+    expect(hot.selection.selectedHeader.cols).toBe(false);
+    expect(hot.selection.selectedHeader.corner).toBe(false);
+  });
 
-      expect(hot.selection.selectedHeader.cols).toBe(true);
-      keyDownUp('arrow_right');
-      expect(hot.selection.selectedHeader.cols).toBe(false);
-
-      this.$container.find('thead th:eq(1)').simulate('mousedown');
-      this.$container.find('thead th:eq(1)').simulate('mouseup');
-
-      expect(hot.selection.selectedHeader.cols).toBe(true);
-      keyDownUp('shift+arrow_up');
-      expect(hot.selection.selectedHeader.cols).toBe(false);
+  it("should add classname after select row", function(){
+    var hot = handsontable({
+      width: 200,
+      height: 100,
+      startRows: 50,
+      startCols: 5,
+      rowHeaders: true
     });
 
-    it("should properly change flag of the selected row if it's necessary", function(){
-      var hot = handsontable({
-        startRows: 5,
-        startCols: 5,
-        colHeaders: true,
-        rowHeaders: true
-      });
+    this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
 
-      this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
-      this.$container.find('tr:eq(2) th:eq(0)').simulate('mouseup');
-
-      expect(hot.selection.selectedHeader.rows).toBe(true);
-      keyDownUp('arrow_up');
-      expect(hot.selection.selectedHeader.rows).toBe(false);
-
-      this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
-      this.$container.find('tr:eq(2) th:eq(0)').simulate('mouseup');
-
-      expect(hot.selection.selectedHeader.rows).toBe(true);
-      keyDownUp('shift+arrow_left');
-      expect(hot.selection.selectedHeader.rows).toBe(false);
-    });
-
-    it("should add classname after select row", function(){
-      var hot = handsontable({
-        width: 200,
-        height: 100,
-        startRows: 50,
-        startCols: 5,
-        rowHeaders: true
-      });
-
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-
-      expect(this.$container.hasClass('ht__selection--rows')).toBeTruthy();
-    });
+    expect(this.$container.hasClass('ht__selection--rows')).toBeTruthy();
   });
 
   it("should select the entire row of a partially fixed table after row header is clicked", function(){
@@ -1100,207 +1052,63 @@ it('should not deselect on outside click if outsideClickDeselects is a function 
     expect(hot.selection.selectedHeader.corner).toBe(true);
   });
 
-  describe("selection scrolling", function () {
-    it("should scroll after selection if needed (by default)", function () {
-      var hot = handsontable({
-        startRows: 200,
-        startCols: 5
-      }), scrollHeight;
 
-      selectCell(100, 0);
+  it("should redraw selection when option `colHeaders` is set and user scrolled", function (done) {
+    var hot = handsontable({
+      startRows: 20,
+      startCols: 20,
+      colHeaders: true,
+      rowHeaders: true,
+      width: 400,
+      height: 200
+    }), cellVerticalPosition;
+    var borderOffsetInPixels = 1, topBorder;
 
-      if (typeof window.scrollY !== 'undefined') {
-        scrollHeight = window.scrollY;
-      } else {
-        scrollHeight = document.documentElement.scrollTop;
-      }
+    selectCell(5, 5);
+    hot.view.wt.wtOverlays.topOverlay.scrollTo(2);
 
-      expect(scrollHeight).not.toBe(0);
-    });
+    setTimeout(function () {
+      cellVerticalPosition = hot.getCell(5, 5).offsetTop;
+      topBorder = $(".wtBorder.current")[0];
+      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+      hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
+    }, 100);
 
-    it("should prevent scrolling after selection when using corresponding `afterSelection` listener " +
-      "(setting value of callback `preventScrolling` argument inside)", function () {
-      var hot = handsontable({
-        startRows: 200,
-        startCols: 5,
-        afterSelection: function (r, c, r2, c2, preventScrolling) {
-          preventScrolling.value = true;
-        }
-      }), scrollHeight;
-
-      selectCell(100, 0);
-
-      if (typeof window.scrollY !== 'undefined') {
-        scrollHeight = window.scrollY;
-      } else {
-        scrollHeight = document.documentElement.scrollTop;
-      }
-
-      expect(scrollHeight).toBe(0);
-    });
-
-    it("should prevent scrolling after selection when using corresponding `afterSelectionByProp` listener " +
-      "(setting value of callback `preventScrolling` argument inside)", function () {
-      var hot = handsontable({
-        startRows: 200,
-        startCols: 5,
-        afterSelectionByProp: function (r, c, r2, c2, preventScrolling) {
-          preventScrolling.value = true;
-        }
-      }), scrollHeight;
-
-      selectCell(100, 0);
-
-      if (typeof window.scrollY !== 'undefined') {
-        scrollHeight = window.scrollY;
-      } else {
-        scrollHeight = document.documentElement.scrollTop;
-      }
-
-      expect(scrollHeight).toBe(0);
-    });
-
-    it("should not prevent scrolling after selection when using corresponding `afterSelection` listener " +
-      "(setting value of callback `preventScrolling` argument inside)", function () {
-      var hot = handsontable({
-        startRows: 200,
-        startCols: 5,
-        afterSelection: function (r, c, r2, c2, preventScrolling) {
-          preventScrolling.value = false;
-        }
-      }), scrollHeight;
-
-      selectCell(100, 0);
-
-      if (typeof window.scrollY !== 'undefined') {
-        scrollHeight = window.scrollY;
-      } else {
-        scrollHeight = document.documentElement.scrollTop;
-      }
-
-      expect(scrollHeight).not.toBe(0);
-    });
-
-    it("should not prevent scrolling after selection when using corresponding `afterSelectionByProp` listener " +
-      "(setting value of callback `preventScrolling` argument inside)", function () {
-      var hot = handsontable({
-        startRows: 200,
-        startCols: 5,
-        afterSelectionByProp: function (r, c, r2, c2, preventScrolling) {
-          preventScrolling.value = false;
-        }
-      }), scrollHeight;
-
-      selectCell(100, 0);
-
-      if (typeof window.scrollY !== 'undefined') {
-        scrollHeight = window.scrollY;
-      } else {
-        scrollHeight = document.documentElement.scrollTop;
-      }
-
-      expect(scrollHeight).not.toBe(0);
-    });
-
-    it("should allow to change prevention of scrolling after selection, " +
-      "when changing `afterSelection` listener by `updateSetting`", function () {
-      var hot = handsontable({
-        startRows: 200,
-        startCols: 5,
-      }), scrollHeight;
-
-      updateSettings({
-        afterSelection: function (r, c, r2, c2, preventScrolling) {
-          preventScrolling.value = true;
-        }
-      });
-
-      selectCell(100, 0);
-
-      if (typeof window.scrollY !== 'undefined') {
-        scrollHeight = window.scrollY;
-      } else {
-        scrollHeight = document.documentElement.scrollTop;
-      }
-
-      expect(scrollHeight).toBe(0);
-
-      updateSettings({
-        afterSelection: function (r, c, r2, c2, preventScrolling) {
-          preventScrolling.value = false;
-        }
-      });
-
-      selectCell(100, 0);
-
-      if (typeof window.scrollY !== 'undefined') {
-        scrollHeight = window.scrollY;
-      } else {
-        scrollHeight = document.documentElement.scrollTop;
-      }
-
-      expect(scrollHeight).not.toBe(0);
-    });
+    setTimeout(function () {
+      cellVerticalPosition = hot.getCell(5, 5).offsetTop;
+      topBorder = $(".wtBorder.current")[0];
+      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+      done();
+    }, 200);
   });
 
-  describe("redrawing selection", function () {
-    it("should redraw selection when option `colHeaders` is set and user scrolled #4011", function (done) {
-      var hot = handsontable({
-        startRows: 20,
-        startCols: 20,
-        colHeaders: true,
-        rowHeaders: true,
-        width: 400,
-        height: 200
-      }), cellVerticalPosition;
-      var borderOffsetInPixels = 1, topBorder;
+  it("should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled", function (done) {
+    var hot = handsontable({
+      fixedColumnsLeft: 2,
+      startRows: 20,
+      startCols: 20,
+      colHeaders: true,
+      rowHeaders: true,
+      width: 400,
+      height: 200
+    }), cellVerticalPosition;
+    var borderOffsetInPixels = 1, topBorder;
 
-      selectCell(5, 5);
-      hot.view.wt.wtOverlays.topOverlay.scrollTo(2);
+    selectCell(1, 0);
+    hot.view.wt.wtOverlays.topOverlay.scrollTo(5);
 
-      setTimeout(function () {
-        cellVerticalPosition = hot.getCell(5, 5).offsetTop;
-        topBorder = $(".wtBorder.current")[0];
-        expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-        hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
-      }, 100);
+    setTimeout(function () {
+      cellVerticalPosition = hot.getCell(1, 0).offsetTop;
+      topBorder = $(".wtBorder.current")[0];
+      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+      hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
+    }, 100);
 
-      setTimeout(function () {
-        cellVerticalPosition = hot.getCell(5, 5).offsetTop;
-        topBorder = $(".wtBorder.current")[0];
-        expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-        done();
-      }, 200);
-    });
-
-    it("should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled #4011", function (done) {
-      var hot = handsontable({
-        fixedColumnsLeft: 2,
-        startRows: 20,
-        startCols: 20,
-        colHeaders: true,
-        rowHeaders: true,
-        width: 400,
-        height: 200
-      }), cellVerticalPosition;
-      var borderOffsetInPixels = 1, topBorder;
-
-      selectCell(1, 0);
-      hot.view.wt.wtOverlays.topOverlay.scrollTo(5);
-
-      setTimeout(function () {
-        cellVerticalPosition = hot.getCell(1, 0).offsetTop;
-        topBorder = $(".wtBorder.current")[0];
-        expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-        hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
-      }, 100);
-
-      setTimeout(function () {
-        cellVerticalPosition = hot.getCell(1, 0).offsetTop;
-        topBorder = $(".wtBorder.current")[0];
-        expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-        done();
-      }, 200);
-    });
+    setTimeout(function () {
+      cellVerticalPosition = hot.getCell(1, 0).offsetTop;
+      topBorder = $(".wtBorder.current")[0];
+      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+      done();
+    }, 200);
   });
 });
