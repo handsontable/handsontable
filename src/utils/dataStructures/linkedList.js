@@ -15,10 +15,6 @@ import Handsontable from './../../browser';
  * @util
  */
 class NodeStructure {
-  /**
-   * @constructor
-   * @param {Object} data Data of the node.
-   */
   constructor(data) {
     /**
      * Data of the node.
@@ -41,13 +37,10 @@ class NodeStructure {
 /**
  * Linked list.
  *
- * @class NodeStructure
+ * @class LinkedList
  * @util
  */
 class LinkedList {
-  /**
-   * @constructor
-   */
   constructor() {
     this.first = null;
     this.last = null;

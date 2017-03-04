@@ -1,4 +1,3 @@
-
 /**
  * @description
  * Handsontable events are the common interface that function in 2 ways: as __callbacks__ and as __hooks__.
@@ -314,6 +313,17 @@ const REGISTERED_HOOKS = [
   'afterOnCellMouseOver',
 
   /**
+   * Callback fired after leaving a cell or row/column header with the mouse cursor.
+   *
+   * @event Hooks#afterOnCellMouseOver
+   * @since 0.31.1
+   * @param {Object} event `mouseout` event object.
+   * @param {Object} coords Leaved cell's coordinate object.
+   * @param {Element} TD Cell's TD (or TH) element.
+   */
+  'afterOnCellMouseOut',
+
+  /**
    * Callback is fired when one or more columns are removed.
    *
    * @event Hooks#afterRemoveCol
@@ -392,6 +402,17 @@ const REGISTERED_HOOKS = [
    * @param {Number} c Selection start column index.
    * @param {Number} r2 Selection end row index.
    * @param {Number} c2 Selection end column index.
+   * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+   *    * @example
+   * ```js
+   * handsontable({
+   *   afterSelection: function (r, c, r2, c2, preventScrolling) {
+   *     // setting if prevent scrolling after selection
+   *
+   *     preventScrolling.value = true;
+   *   }
+   * })
+   * ```
    */
   'afterSelection',
 
@@ -403,6 +424,17 @@ const REGISTERED_HOOKS = [
    * @param {String} p Selection start data source object property name.
    * @param {Number} r2 Selection end row index.
    * @param {String} p2 Selection end data source object property name.
+   * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+   *    * @example
+   * ```js
+   * handsontable({
+   *   afterSelectionByProp: function (r, c, r2, c2, preventScrolling) {
+   *     // setting if prevent scrolling after selection
+   *
+   *     preventScrolling.value = true;
+   *   }
+   * })
+   * ```
    */
   'afterSelectionByProp',
 
@@ -642,6 +674,17 @@ const REGISTERED_HOOKS = [
   'beforeOnCellMouseOver',
 
   /**
+   * Fired after the user moved cursor out from a cell, but before all the calculations related with it.
+   *
+   * @event Hooks#beforeOnCellMouseOut
+   * @since 0.31.1
+   * @param {Event} event The `mouseout` event object.
+   * @param {WalkontableCellCoords} coords WalkontableCellCoords object containing the coordinates of the leaved cell.
+   * @param {Element} TD TD element.
+   */
+  'beforeOnCellMouseOut',
+
+  /**
    * Callback is fired when one or more columns are about to be removed.
    *
    * @event Hooks#beforeRemoveCol
@@ -751,7 +794,7 @@ const REGISTERED_HOOKS = [
    * @since 0.23.0
    * @param {Number} col Column index.
    */
-    'unmodifyCol',
+  'unmodifyCol',
 
   /**
    * Fired when a row index is about to be de-modified by a callback function.
@@ -902,6 +945,147 @@ const REGISTERED_HOOKS = [
    * @param {Array} copyableRanges Array of objects defining copyable cells.
    */
   'modifyCopyableRange',
+
+  /**
+   * Called before copying the values into clipboard and before clearing values of the selected cells.
+   *
+   * @event Hooks#beforeCut
+   * @since 0.31.1
+   * @param {Array} data An array of arrays which contains data to cut.
+   * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
+   *                       which will be cut out.
+   * @returns {*} If returns `false` then operation of the cutting out is cancelled.
+   *
+   * @example
+   * ```js
+   * // To disregard a single row, remove it from array using data.splice(i, 1).
+   * ...
+   * new Handsontable(document.getElementById('example'), {
+   *   beforeCut: function(data, coords) {
+   *     // data -> [[1, 2, 3], [4, 5, 6]]
+   *     data.splice(0, 1);
+   *     // data -> [[4, 5, 6]]
+   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   }
+   * });
+   * ...
+   *
+   * // To cancel cutting out, return false from the callback.
+   * ...
+   * new Handsontable(document.getElementById('example'), {
+   *   beforeCut: function(data, coords) {
+   *     return false;
+   *   }
+   * });
+   * ...
+   * ```
+   */
+  'beforeCut',
+
+  /**
+   * Fired after data are cutted out from the table.
+   *
+   * @event Hooks#afterCut
+   * @since 0.31.1
+   * @param {Array} data An array of arrays which contains the cutted out data.
+   * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
+   *                       which was cut out.
+   */
+  'afterCut',
+
+  /**
+   * Fired before values are copied into clipboard.
+   *
+   * @event Hooks#beforeCopy
+   * @since 0.31.1
+   * @param {Array} data An array of arrays which contains data to copied.
+   * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
+   *                       which will copied.
+   * @returns {*} If returns `false` then copying is cancelled.
+   *
+   * @example
+   * ```js
+   * // To disregard a single row, remove it from array using data.splice(i, 1).
+   * ...
+   * new Handsontable(document.getElementById('example'), {
+   *   beforeCopy: function(data, coords) {
+   *     // data -> [[1, 2, 3], [4, 5, 6]]
+   *     data.splice(0, 1);
+   *     // data -> [[4, 5, 6]]
+   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   }
+   * });
+   * ...
+   *
+   * // To cancel copying, return false from the callback.
+   * ...
+   * new Handsontable(document.getElementById('example'), {
+   *   beforeCopy: function(data, coords) {
+   *     return false;
+   *   }
+   * });
+   * ...
+   * ```
+   */
+  'beforeCopy',
+
+  /**
+   * Fired after data are pasted into table.
+   *
+   * @event Hooks#afterCopy
+   * @since 0.31.1
+   * @param {Array} data An array of arrays which contains the copied data.
+   * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
+   *                       which was copied.
+   */
+  'afterCopy',
+
+  /**
+   * Fired before values are pasted into table.
+   *
+   * @event Hooks#beforePaste
+   * @since 0.31.1
+   * @param {Array} data An array of arrays which contains data to paste.
+   * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
+   *                       where changes will be inserted.
+   * @returns {*} If returns `false` then pasting is cancelled.
+   *
+   * @example
+   * ```js
+   * // To disregard a single row, remove it from array using data.splice(i, 1).
+   * ...
+   * new Handsontable(document.getElementById('example'), {
+   *   beforePaste: function(data, coords) {
+   *     // data -> [[1, 2, 3], [4, 5, 6]]
+   *     data.splice(0, 1);
+   *     // data -> [[4, 5, 6]]
+   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   }
+   * });
+   * ...
+   *
+   * // To cancel pasting, return false from the callback.
+   * ...
+   * new Handsontable(document.getElementById('example'), {
+   *   beforePaste: function(data, coords) {
+   *     return false;
+   *   }
+   * });
+   * ...
+   * ```
+   */
+  'beforePaste',
+
+  /**
+   * Fired after values are pasted into table.
+   *
+   * @event Hooks#afterePaste
+   * @since 0.31.1
+   * @param {Array} data An array of arrays which contains the pasted data.
+   * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
+   *                       where changes was inserted.
+   */
+  'afterPaste',
 
   /**
    * Fired before change order of the logical indexes.
@@ -1381,7 +1565,22 @@ class Hooks {
 
       if (bucket[key].indexOf(callback) === -1) {
         // only add a hook if it has not already been added (adding the same hook twice is now silently ignored)
-        bucket[key].push(callback);
+        let foundInitialHook = false;
+
+        if (callback.initialHook) {
+          arrayEach(bucket[key], (cb, i) => {
+            if (cb.initialHook) {
+              bucket[key][i] = callback;
+              foundInitialHook = true;
+
+              return false;
+            }
+          });
+        }
+
+        if (!foundInitialHook) {
+          bucket[key].push(callback);
+        }
       }
     }
 

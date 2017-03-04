@@ -1,15 +1,12 @@
 import Handsontable from './../../browser';
 import moment from 'moment';
 import {
-    addClass,
-    closest,
-    hasClass,
-    index,
-    removeClass,
+  addClass,
+  hasClass,
+  removeClass,
 } from './../../helpers/dom/element';
-import {arrayEach, arrayMap, arrayReduce} from './../../helpers/array';
+import {arrayMap, arrayReduce} from './../../helpers/array';
 import {isEmpty} from './../../helpers/mixed';
-import {eventManager as eventManagerObject} from './../../eventManager';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
 import {mergeSort} from './../../utils/sortingAlgorithms/mergeSort';
@@ -37,7 +34,8 @@ Handsontable.hooks.register('afterColumnSort');
  * // as a object with initial order (sort ascending column at index 2)
  * columnSorting: {
  *  column: 2,
- *  sortOrder: true // true = ascending, false = descending, undefined = original order
+ *  sortOrder: true, // true = ascending, false = descending, undefined = original order
+ *  sortEmptyCells: true // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
  * }
  * ...
  * ```
@@ -49,6 +47,7 @@ class ColumnSorting extends BasePlugin {
     super(hotInstance);
     this.sortIndicators = [];
     this.lastSortedColumn = null;
+    this.sortEmptyCells = false;
   }
 
   /**
@@ -67,6 +66,9 @@ class ColumnSorting extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
+    this.setPluginOptions();
+
     const _this = this;
     this.hot.sortIndex = [];
 
@@ -241,11 +243,11 @@ class ColumnSorting extends BasePlugin {
     let _this = this;
 
     this.hot._registerTimeout(
-        setTimeout(function() {
-          _this.hot.updateSettings({
-            observeChanges: true
-          });
-        }, 0));
+      setTimeout(function() {
+        _this.hot.updateSettings({
+          observeChanges: true
+        });
+      }, 0));
   }
 
   /**
@@ -272,12 +274,22 @@ class ColumnSorting extends BasePlugin {
         if (isEmpty(b[1])) {
           return 0;
         }
+
+        if (columnMeta.columnSorting.sortEmptyCells) {
+          return sortOrder ? -1 : 1;
+        }
+
         return 1;
       }
       if (isEmpty(b[1])) {
         if (isEmpty(a[1])) {
           return 0;
         }
+
+        if (columnMeta.columnSorting.sortEmptyCells) {
+          return sortOrder ? 1 : -1;
+        }
+
         return -1;
       }
 
@@ -318,6 +330,11 @@ class ColumnSorting extends BasePlugin {
         if (isEmpty(b[1])) {
           return 0;
         }
+
+        if (columnMeta.columnSorting.sortEmptyCells) {
+          return sortOrder ? -1 : 1;
+        }
+
         return 1;
       }
 
@@ -325,6 +342,11 @@ class ColumnSorting extends BasePlugin {
         if (isEmpty(a[1])) {
           return 0;
         }
+
+        if (columnMeta.columnSorting.sortEmptyCells) {
+          return sortOrder ? 1 : -1;
+        }
+
         return -1;
       }
 
@@ -362,9 +384,19 @@ class ColumnSorting extends BasePlugin {
       const parsedB = parseFloat(b[1]);
 
       // Watch out when changing this part of code!
-      // Check below returns 0 when comparing empty string, null, undefined (as expected)
+      // Check below returns 0 (as expected) when comparing empty string, null, undefined
       if (parsedA === parsedB || (isNaN(parsedA) && isNaN(parsedB))) {
         return 0;
+      }
+
+      if (columnMeta.columnSorting.sortEmptyCells) {
+        if (isEmpty(a[1])) {
+          return sortOrder ? -1 : 1;
+        }
+
+        if (isEmpty(b[1])) {
+          return sortOrder ? 1 : -1;
+        }
       }
 
       if (isNaN(parsedA)) {
@@ -396,14 +428,17 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    let colMeta,
-        sortFunction;
+    const colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
+    const emptyRows = this.hot.countEmptyRows();
+    let sortFunction;
+    let nrOfRows;
 
     this.hot.sortingEnabled = false; // this is required by translateRow plugin hook
     this.hot.sortIndex.length = 0;
 
-    let nrOfRows;
-    const emptyRows = this.hot.countEmptyRows();
+    if (typeof colMeta.columnSorting.sortEmptyCells === 'undefined') {
+      colMeta.columnSorting = {sortEmptyCells: this.sortEmptyCells};
+    }
 
     if (this.hot.getSettings().maxRows === Number.POSITIVE_INFINITY) {
       nrOfRows = this.hot.countRows() - this.hot.getSettings().minSpareRows;
@@ -414,8 +449,6 @@ class ColumnSorting extends BasePlugin {
     for (let i = 0, ilen = nrOfRows; i < ilen; i++) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
     }
-
-    colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
 
     if (colMeta.sortFunction) {
       sortFunction = colMeta.sortFunction;
@@ -596,6 +629,22 @@ class ColumnSorting extends BasePlugin {
     });
 
     this.saveSortingState();
+  }
+
+  /**
+   * Set options by passed settings
+   *
+   * @private
+   */
+  setPluginOptions() {
+    const columnSorting = this.hot.getSettings().columnSorting;
+
+    if (typeof columnSorting === 'object') {
+      this.sortEmptyCells = columnSorting.sortEmptyCells || false;
+
+    } else {
+      this.sortEmptyCells = false;
+    }
   }
 
   /**

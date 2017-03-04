@@ -109,6 +109,7 @@ class ManualRowMove extends BasePlugin {
     this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
+    this.addHook('afterLoadData', (firstTime) => this.onAfterLoadData(firstTime));
     this.addHook('beforeColumnSort', (column, order) => this.onBeforeColumnSort(column, order));
     this.addHook('unmodifyRow', (row) => this.onUnmodifyRow(row));
 
@@ -410,6 +411,37 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
+   * This method checks arrayMap from rowsMapper and updates the rowsMapper if it's necessary.
+   *
+   * @private
+   */
+  updateRowsMapper() {
+    let countRows = this.hot.countSourceRows();
+    let rowsMapperLen = this.rowsMapper._arrayMap.length;
+
+    if (rowsMapperLen === 0) {
+      this.rowsMapper.createMap(countRows || this.hot.getSettings().startRows);
+
+    }  else if (rowsMapperLen < countRows) {
+      let diff = countRows - rowsMapperLen;
+
+      this.rowsMapper.insertItems(rowsMapperLen, diff);
+
+    } else if (rowsMapperLen > countRows) {
+      let maxIndex = countRows - 1;
+      let rowsToRemove = [];
+
+      arrayEach(this.rowsMapper._arrayMap, (value, index, array) => {
+        if (value > maxIndex) {
+          rowsToRemove.push(index);
+        }
+      });
+
+      this.rowsMapper.removeItems(rowsToRemove);
+    }
+  }
+
+  /**
    * Bind the events used by the plugin.
    *
    * @private
@@ -565,6 +597,8 @@ class ManualRowMove extends BasePlugin {
    */
   onMouseUp() {
     let priv = privatePool.get(this);
+    let target = priv.target.row;
+    let rowsLen = priv.rowsToMove.length;
 
     priv.pressed = false;
     priv.backlightHeight = 0;
@@ -574,11 +608,11 @@ class ManualRowMove extends BasePlugin {
     if (this.hot.selection.selectedHeader.rows) {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
-    if (priv.rowsToMove.length < 1) {
+
+    if (rowsLen < 1 || target === void 0 || priv.rowsToMove.indexOf(target) > -1 ||
+        (priv.rowsToMove[rowsLen - 1] === target - 1)) {
       return;
     }
-
-    let target = priv.target.row;
 
     this.moveRows(priv.rowsToMove, target);
 
@@ -587,7 +621,7 @@ class ManualRowMove extends BasePlugin {
 
     if (!priv.disallowMoving) {
       let selectionStart = this.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
-      let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[priv.rowsToMove.length - 1]);
+      let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[rowsLen - 1]);
       this.changeSelection(selectionStart, selectionEnd);
     }
 
@@ -650,6 +684,16 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
+   * `afterLoadData` hook callback.
+   *
+   * @private
+   * @param {Boolean} firstTime True if that was loading data during the initialization.
+   */
+  onAfterLoadData(firstTime) {
+    this.updateRowsMapper();
+  }
+
+  /**
    * 'modifyRow' hook callback.
    *
    * @private
@@ -658,7 +702,8 @@ class ManualRowMove extends BasePlugin {
    */
   onModifyRow(row, source) {
     if (source !== this.pluginName) {
-      row = this.rowsMapper.getValueByIndex(row);
+      let rowInMapper = this.rowsMapper.getValueByIndex(row);
+      row = rowInMapper === null ? row : rowInMapper;
     }
 
     return row;
@@ -672,7 +717,9 @@ class ManualRowMove extends BasePlugin {
    * @returns {Number} Logical row index.
    */
   onUnmodifyRow(row) {
-    return this.rowsMapper.getIndexByValue(row);
+    let indexInMapper = this.rowsMapper.getIndexByValue(row);
+
+    return indexInMapper === null ? row : indexInMapper;
   }
 
   /**
@@ -681,9 +728,7 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   onAfterPluginsInitialized() {
-    if (this.rowsMapper._arrayMap.length === 0) {
-      this.rowsMapper.createMap(this.hot.countSourceRows() || this.hot.getSettings().startRows);
-    }
+    this.updateRowsMapper();
     this.initialSettings();
     this.backlight.build();
     this.guideline.build();

@@ -519,6 +519,129 @@ describe('PluginHooks', function () {
     expect(i).toEqual(1);
   });
 
+  it('should mark the hook callbacks added with Handsontable initialization', function() {
+    var fn = function(){};
+    var fn2 = function(){};
+
+    var hot = handsontable({
+      afterChange: fn
+    });
+
+    hot.addHook('afterChange', fn2);
+
+    expect(fn.initialHook).toEqual(true);
+    expect(fn2.initialHook).toEqual(void 0);
+  });
+
+  it('should mark the hook callbacks added using the updateSettings method', function() {
+    var fn = function(){};
+    var fn2 = function(){};
+
+    var hot = handsontable();
+
+    hot.updateSettings({
+      afterChange: fn
+    });
+
+    hot.addHook('afterChange', fn2);
+
+    expect(fn.initialHook).toEqual(true);
+    expect(fn2.initialHook).toEqual(void 0);
+  });
+
+
+  it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method (when there was a hook already declared in the initialization)', function() {
+    var fn = function(){};
+    var fn2 = function(){};
+
+    var hot = handsontable({
+      afterGetCellMeta: fn
+    });
+
+    var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
+
+    hot.updateSettings({
+      afterGetCellMeta: function() {
+        var a = 'another function';
+      }
+    });
+
+    hot.updateSettings({
+      afterGetCellMeta: function() {
+        var a = 'yet another function';
+      }
+    });
+
+    hot.updateSettings({
+      afterGetCellMeta: fn2
+    });
+
+    expect(hot.pluginHookBucket.afterGetCellMeta.length).toEqual(initialCallbackCount);
+  });
+
+  it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method', function() {
+    var fn = function(){};
+    var fn2 = function(){};
+
+    var hot = handsontable();
+
+    hot.addHook('afterGetCellMeta', function() {return 'doesn\'t matter 1'});
+    hot.addHook('afterGetCellMeta', function() {return 'doesn\'t matter 2'});
+    hot.addHook('afterGetCellMeta', function() {return 'doesn\'t matter 3'});
+
+    hot.updateSettings({
+      afterGetCellMeta: fn
+    });
+
+    var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
+
+    hot.updateSettings({
+      afterGetCellMeta: function() {
+        var a = 'another function';
+      }
+    });
+
+    hot.updateSettings({
+      afterGetCellMeta: function() {
+        var a = 'yet another function';
+      }
+    });
+
+    hot.updateSettings({
+      afterGetCellMeta: fn2
+    });
+
+    expect(hot.pluginHookBucket.afterGetCellMeta.length).toEqual(initialCallbackCount);
+  });
+
+  it('should NOT replace existing hook callbacks, if the\'re added using the addHook method', function() {
+    var fn = function(){};
+    var fn2 = function(){};
+
+    var hot = handsontable();
+
+    hot.updateSettings({
+      afterGetCellMeta: fn
+    });
+
+    var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
+
+    hot.addHook('afterGetCellMeta', function() {
+      var a = 'another function';
+    });
+
+    hot.addHook('afterGetCellMeta', function() {
+      var a = 'yet another function';
+    });
+
+    hot.addHook('afterGetCellMeta', fn2);
+
+    // should not add this one, as it's a duplicate
+    hot.addHook('afterGetCellMeta', fn);
+
+    expect(hot.pluginHookBucket.afterGetCellMeta.length).toEqual(initialCallbackCount + 3);
+  });
+
   describe("controlling handler queue execution", function () {
     it("should execute all handlers if none of them hasn't skipped", function () {
 
