@@ -63,7 +63,7 @@ describe('Core_getDataAt*', function () {
         data: arrayOfObjects(),
         columns: [
           {
-            data: "details.paymentDetails.flat",
+            data: "details.paymentde.flat",
           }
         ]
       });
@@ -135,7 +135,7 @@ describe('Core_getDataAt*', function () {
         modifyData: spy,
       });
 
-      expect(spy.calls.count()).toBe(10); // call for all cells
+      expect(spy.calls.count()).toBe(15); // call for all cells
       expect(spy.calls.argsFor(2)[0]).toBe(0);
       expect(spy.calls.argsFor(2)[1]).toBe(2);
       expect(spy.calls.argsFor(2)[2].value).toBe('Nannie Patel');
