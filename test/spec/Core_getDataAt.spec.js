@@ -41,8 +41,35 @@ describe('Core_getDataAt*', function () {
           "city": "New York"
         },
       },
+      {
+        "id.a.b.c": 2,
+        "id": 2,
+        "name": "Julius Cesar",
+        "address": "Plate road",
+        "details": {
+          "city": "Rome",
+          "paymentDetails": null,
+          "addressDetails": {
+            "houseNo": "3b",
+            "flat": "4",
+          }
+        },
+      },
     ];
   };
+
+  it ('should not crash if there is a null link of a dot notated string', function () {
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {
+            data: "details.paymentde.flat",
+          }
+        ]
+      });
+
+      expect(getDataAtRowProp(2, 'details.NON_EXISTANT_LINK.flat')).toEqual(null);
+  });
 
   it('should return data at specified row', function () {
     handsontable({
@@ -108,7 +135,7 @@ describe('Core_getDataAt*', function () {
         modifyData: spy,
       });
 
-      expect(spy.calls.count()).toBe(10); // call for all cells
+      expect(spy.calls.count()).toBe(15); // call for all cells
       expect(spy.calls.argsFor(2)[0]).toBe(0);
       expect(spy.calls.argsFor(2)[1]).toBe(2);
       expect(spy.calls.argsFor(2)[2].value).toBe('Nannie Patel');
