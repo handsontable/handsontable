@@ -8,7 +8,7 @@ import {isMobileBrowser} from './helpers/browser';
 import {DataMap} from './dataMap';
 import {EditorManager} from './editorManager';
 import {eventManager as eventManagerObject} from './eventManager';
-import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize} from './helpers/object';
+import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize, createObjectPropListener} from './helpers/object';
 import {arrayFlatten, arrayMap} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
@@ -664,19 +664,25 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         instance.view.wt.selections.highlight.add(priv.selRange.to);
       }
 
+      const preventScrolling = createObjectPropListener('value');
+
       // trigger handlers
       Handsontable.hooks.run(instance, 'afterSelection',
-          priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col);
+        priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col, preventScrolling);
       Handsontable.hooks.run(instance, 'afterSelectionByProp',
-          priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
+        priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col), preventScrolling);
 
       if ((priv.selRange.from.row === 0 && priv.selRange.to.row === instance.countRows() - 1 && instance.countRows() > 1) ||
-          (priv.selRange.from.col === 0 && priv.selRange.to.col === instance.countCols() - 1 && instance.countCols() > 1)) {
+        (priv.selRange.from.col === 0 && priv.selRange.to.col === instance.countCols() - 1 && instance.countCols() > 1)) {
         isHeaderSelected = true;
       }
 
       if (coords.row < 0 || coords.col < 0) {
         areCoordsPositive = false;
+      }
+
+      if (preventScrolling.isTouched()) {
+        scrollToCell = !preventScrolling.value;
       }
 
       if (scrollToCell !== false && !isHeaderSelected && areCoordsPositive) {
@@ -686,6 +692,22 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           instance.view.scrollViewport(coords);
         }
       }
+
+      if (selection.selectedHeader.rows && selection.selectedHeader.cols) {
+        addClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+
+      } else if (selection.selectedHeader.rows) {
+        removeClass(instance.rootElement, 'ht__selection--columns');
+        addClass(instance.rootElement, 'ht__selection--rows');
+
+      } else if (selection.selectedHeader.cols) {
+        removeClass(instance.rootElement, 'ht__selection--rows');
+        addClass(instance.rootElement, 'ht__selection--columns');
+
+      } else {
+        removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+      }
+
       selection.refreshBorders(null, keepEditorOpened);
     },
 
@@ -879,6 +901,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (!priv.settings.multiSelect) {
         return;
       }
+      selection.setSelectedHeaders(true, true, true);
       selection.setRangeStart(new WalkontableCellCoords(0, 0));
       selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, instance.countCols() - 1), false);
     },
@@ -1606,6 +1629,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       } else {
         if (Handsontable.hooks.getRegistered().indexOf(i) > -1) {
           if (isFunction(settings[i]) || Array.isArray(settings[i])) {
+
+            settings[i].initialHook = true;
+
             instance.addHook(i, settings[i]);
           }
 
@@ -1631,8 +1657,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     clen = instance.countCols();
 
+    const columnSetting = settings.columns || GridSettings.prototype.columns;
+
     // Init columns constructors configuration
-    if (settings.columns && isFunction(settings.columns)) {
+    if (columnSetting && isFunction(columnSetting)) {
       clen = instance.countSourceCols();
       columnsAsFunc = true;
     }
@@ -1647,7 +1675,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       let column;
 
       for (i = 0, j = 0; i < clen; i++) {
-        if (columnsAsFunc && !settings.columns(i)) {
+        if (columnsAsFunc && !columnSetting(i)) {
           continue;
         }
         priv.columnSettings[j] = columnFactory(GridSettings, priv.columnsSettingConflicts);
@@ -1656,12 +1684,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         proto = priv.columnSettings[j].prototype;
 
         // Use settings provided by user
-        if (GridSettings.prototype.columns) {
+        if (columnSetting) {
           if (columnsAsFunc) {
-            column = GridSettings.prototype.columns(i);
+            column = columnSetting(i);
 
           } else {
-            column = GridSettings.prototype.columns[j];
+            column = columnSetting[j];
           }
 
           if (column) {

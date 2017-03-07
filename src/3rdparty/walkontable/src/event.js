@@ -142,19 +142,19 @@ function WalkontableEvent(instance) {
     }
   };
 
-  /*  var lastMouseOut;
-   var onMouseOut = function (event) {
-   if (that.instance.hasSetting('onCellMouseOut')) {
-   var TABLE = that.instance.wtTable.TABLE;
-   var TD = closest(event.target, ['TD', 'TH'], TABLE);
-   if (TD && TD !== lastMouseOut && isChildOf(TD, TABLE)) {
-   lastMouseOut = TD;
-   if (TD.nodeName === 'TD') {
-   that.instance.getSetting('onCellMouseOut', event, that.instance.wtTable.getCoords(TD), TD);
-   }
-   }
-   }
-   };*/
+  var onMouseOut = function(event) {
+    var table, lastTD, nextTD;
+
+    if (that.instance.hasSetting('onCellMouseOut')) {
+      table = that.instance.wtTable.TABLE;
+      lastTD = closestDown(event.realTarget, ['TD', 'TH'], table);
+      nextTD = closestDown(event.relatedTarget, ['TD', 'TH'], table);
+
+      if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
+        that.instance.getSetting('onCellMouseOut', event, that.instance.wtTable.getCoords(lastTD), lastTD, that.instance);
+      }
+    }
+  };
 
   var onMouseUp = function(event) {
     if (event.button !== 2) { //if not right mouse button
@@ -198,6 +198,7 @@ function WalkontableEvent(instance) {
 
   eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
+  eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseout', onMouseOut);
   eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
 
   // check if full HOT instance, or detached WOT AND run on mobile device

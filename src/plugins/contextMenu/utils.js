@@ -84,19 +84,19 @@ export function getAlignmentClasses(range, callback) {
   return classes;
 }
 
-export function align(range, type, alignment, cellDescriptor) {
+export function align(range, type, alignment, cellDescriptor, propertySetter) {
   if (range.from.row == range.to.row && range.from.col == range.to.col) {
-    applyAlignClassName(range.from.row, range.from.col, type, alignment, cellDescriptor);
+    applyAlignClassName(range.from.row, range.from.col, type, alignment, cellDescriptor, propertySetter);
   } else {
     for (let row = range.from.row; row <= range.to.row; row++) {
       for (let col = range.from.col; col <= range.to.col; col++) {
-        applyAlignClassName(row, col, type, alignment, cellDescriptor);
+        applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter);
       }
     }
   }
 }
 
-function applyAlignClassName(row, col, type, alignment, cellDescriptor) {
+function applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter) {
   let cellMeta = cellDescriptor(row, col);
   let className = alignment;
 
@@ -107,7 +107,8 @@ function applyAlignClassName(row, col, type, alignment, cellDescriptor) {
       className = prepareHorizontalAlignClass(cellMeta.className, alignment);
     }
   }
-  cellMeta.className = className;
+
+  propertySetter(row, col, 'className', className);
 }
 
 export function checkSelectionConsistency(range, comparator) {

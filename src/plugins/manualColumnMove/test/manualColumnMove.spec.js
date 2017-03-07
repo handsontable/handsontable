@@ -171,6 +171,31 @@ describe('manualColumnMove', function () {
     });
   });
 
+  describe('loadData', function() {
+    it("should increase numbers of columns if it is necessary", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualColumnMove: true
+      });
+
+      hot.loadData(Handsontable.helper.createSpreadsheetData(10, 10));
+
+      expect(countRows()).toEqual(10);
+      expect(hot.getPlugin('manualColumnMove').columnsMapper.__arrayMap.length).toEqual(10);
+    });
+    it("should decrease numbers of columns if it is necessary", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualColumnMove: true
+      });
+
+      hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+
+      expect(countRows()).toEqual(2);
+      expect(hot.getPlugin('manualColumnMove').columnsMapper.__arrayMap.length).toEqual(2);
+    });
+  });
+
   describe('moving', function() {
     it('should move column by API', function () {
       var hot = handsontable({
