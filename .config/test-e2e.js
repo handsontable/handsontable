@@ -1,3 +1,8 @@
+/**
+ * Config responsible for building End-to-End test files (`test/dist/`):
+ *  - e2e.entry.js
+ *  - helpers.entry.js
+ */
 var configFactory = require('./base');
 var JasmineHtml = require('./plugin/jasmine-html');
 var path = require('path');

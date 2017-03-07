@@ -1,3 +1,8 @@
+/**
+ * Config responsible for building unit test files (`test/dist/`):
+ *  - unit.entry.js
+ *  - helpers.entry.js
+ */
 var configFactory = require('./base');
 var JasmineHtml = require('./plugin/jasmine-html');
 var path = require('path');

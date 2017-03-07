@@ -1,3 +1,7 @@
+/**
+ * Config responsible for building Walkontable (`src/3rdparty/walkontable/dist/`):
+ *  - walkontable.js
+ */
 var configFactory = require('./base');
 var JasmineHtml = require('./plugin/jasmine-html');
 var path = require('path');

@@ -1,3 +1,8 @@
+/**
+ * Config responsible for building Walkontable test files (`src/3rdparty/walkontable/test/dist/`):
+ *  - specs.entry.js
+ *  - helpers.entry.js
+ */
 var configFactory = require('./base');
 var JasmineHtml = require('./plugin/jasmine-html');
 var path = require('path');

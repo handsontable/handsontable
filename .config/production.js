@@ -1,3 +1,10 @@
+/**
+ * Config responsible for building Handsontable `dist/` files:
+ *  - handsontable.min.js
+ *  - handsontable.min.css
+ *  - handsontable.full.min.js
+ *  - handsontable.full.min.css
+ */
 var configFactory = require('./development');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
