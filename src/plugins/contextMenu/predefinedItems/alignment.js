@@ -37,7 +37,8 @@ export function alignmentItem() {
             let alignment = 'htLeft';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
@@ -67,7 +68,8 @@ export function alignmentItem() {
             let alignment = 'htCenter';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
@@ -97,7 +99,8 @@ export function alignmentItem() {
             let alignment = 'htRight';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
@@ -127,7 +130,8 @@ export function alignmentItem() {
             let alignment = 'htJustify';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
@@ -159,7 +163,8 @@ export function alignmentItem() {
             let alignment = 'htTop';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
@@ -189,7 +194,8 @@ export function alignmentItem() {
             let alignment = 'htMiddle';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
@@ -219,7 +225,8 @@ export function alignmentItem() {
             let alignment = 'htBottom';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false

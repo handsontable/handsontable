@@ -81,6 +81,53 @@ describe('WalkontableEvent', function () {
     expect(fn.calls.argsFor(0)[2]).toBe(outerTD[0]);
   });
 
+  it("should call `onCellMouseOut` callback", function () {
+    var myCoords = null
+      , myTD = null
+      , wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      onCellMouseOut: function (event, coords, TD) {
+        myCoords = coords;
+        myTD = TD;
+      }
+    });
+    wt.draw();
+
+
+    var $td = $table.find('tbody tr:eq(1) td:eq(1)');
+    $td.simulate('mouseover');
+    $td.simulate('mouseout');
+
+    expect(myCoords).toEqual(new WalkontableCellCoords(1, 1));
+    expect(myTD).toEqual($td[0]);
+  });
+
+  it("should call `onCellMouseOut` callback with correctly passed TD element when cell contains another table", function () {
+    var fn = jasmine.createSpy();
+    var wt = new Walkontable({
+      table: $table[0],
+      data: [['<table style="width: 50px;"><tr><td class="test">TEST</td></tr></table>']],
+      totalRows: 1,
+      totalColumns: 1,
+      onCellMouseOut: fn,
+      cellRenderer: function(row, column, TD) {
+        TD.innerHTML = wt.wtSettings.getSetting('data', row, column);
+      },
+    });
+    wt.draw();
+
+    var outerTD = $table.find('tbody td:not(td.test)');
+    var innerTD = $table.find('tbody td.test');
+
+    innerTD.simulate('mouseover');
+    innerTD.simulate('mouseout');
+
+    expect(fn.calls.argsFor(0)[2]).toBe(outerTD[0]);
+  });
+
   it("should call `onCellDblClick` callback", function () {
     var myCoords = null
       , myTD = null

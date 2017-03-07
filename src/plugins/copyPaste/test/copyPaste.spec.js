@@ -332,4 +332,128 @@ describe('CopyPaste', function () {
       });
     });
   });
+
+  describe('hooks', function() {
+    it("should call beforeCut and afterCut during cutting out operation", function () {
+      var beforeCutSpy = jasmine.createSpy('beforeCut');
+      var afterCutSpy = jasmine.createSpy('afterCut');
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        beforeCut: beforeCutSpy,
+        afterCut: afterCutSpy
+      });
+
+      selectCell(0, 0);
+
+      keyDown('ctrl');
+      keyDown('ctrl+x');
+
+      expect(beforeCutSpy.calls.count()).toEqual(1);
+      expect(beforeCutSpy).toHaveBeenCalledWith([['A1']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+
+      expect(afterCutSpy.calls.count()).toEqual(1);
+      expect(afterCutSpy).toHaveBeenCalledWith([['A1']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+    });
+
+    it("should call beforeCopy and afterCopy during copying operation", function () {
+      var beforeCopySpy = jasmine.createSpy('beforeCopy');
+      var afterCopySpy = jasmine.createSpy('afterCopy');
+
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        beforeCopy: beforeCopySpy,
+        afterCopy: afterCopySpy
+      });
+
+      selectCell(0, 0);
+
+      keyDown('ctrl');
+      keyDown('ctrl+c');
+
+      expect(beforeCopySpy.calls.count()).toEqual(1);
+      expect(beforeCopySpy).toHaveBeenCalledWith([['A1']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+
+      expect(afterCopySpy.calls.count()).toEqual(1);
+      expect(afterCopySpy).toHaveBeenCalledWith([['A1']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+    });
+
+    it("should call beforePaste and afterPaste during copying operation", function (done) {
+      var beforePasteSpy = jasmine.createSpy('beforePaste');
+      var afterPasteSpy = jasmine.createSpy('afterPaste');
+
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        beforePaste: beforePasteSpy,
+        afterPaste: afterPasteSpy
+      });
+
+      selectCell(0, 0);
+      keyDown('ctrl');
+      hot.copyPaste.triggerPaste(null, 'Kia');
+
+      setTimeout(function() {
+        expect(beforePasteSpy.calls.count()).toEqual(1);
+        expect(beforePasteSpy).toHaveBeenCalledWith([['Kia']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+
+        expect(afterPasteSpy.calls.count()).toEqual(1);
+        expect(afterPasteSpy).toHaveBeenCalledWith([['Kia']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
+        done();
+      }, 60);
+    });
+
+    it("should be possible to block cutting out", function () {
+      var afterCutSpy = jasmine.createSpy('afterCut');
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        beforeCut() {
+          return false;
+        },
+        afterCut: afterCutSpy
+      });
+
+      selectCell(0, 0);
+
+      keyDown('ctrl');
+      keyDown('ctrl+x');
+
+      expect(afterCutSpy.calls.count()).toEqual(0);
+    });
+    it("should be possible to block copying", function () {
+      var afterCopySpy = jasmine.createSpy('afterCopy');
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        beforeCopy() {
+          return false;
+        },
+        afterCopy: afterCopySpy
+      });
+
+      selectCell(0, 0);
+
+      keyDown('ctrl');
+      keyDown('ctrl+c');
+
+      expect(afterCopySpy.calls.count()).toEqual(0);
+    });
+    it("should be possible to block pasting", function (done) {
+      var afterPasteSpy = jasmine.createSpy('afterPaste');
+
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        beforePaste() {
+          return false;
+        },
+        afterPaste: afterPasteSpy
+      });
+
+      selectCell(0, 0);
+      keyDown('ctrl');
+      hot.copyPaste.triggerPaste(null, 'Kia');
+
+      setTimeout(function() {
+        expect(afterPasteSpy.calls.count()).toEqual(0);
+        done();
+      }, 60);
+    });
+  });
 });

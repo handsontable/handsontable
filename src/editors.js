@@ -33,6 +33,10 @@ function RegisteredEditor(editorClass) {
 
     return instances[hotInstance.guid];
   };
+
+  Handsontable.hooks.add('afterDestroy', function() {
+    instances = {};
+  });
 }
 
 /**
