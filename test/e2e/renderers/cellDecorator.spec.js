@@ -1,8 +1,8 @@
-describe('CellDecorator', function() {
+describe('CellDecorator', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -20,7 +20,7 @@ describe('CellDecorator', function() {
     ];
   };
 
-  it('should add an appropriate class name to every cell, if wordWrap=false is set to the whole table', function() {
+  it('should add an appropriate class name to every cell, if wordWrap=false is set to the whole table', () => {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -34,14 +34,14 @@ describe('CellDecorator', function() {
     var cols = countCols(),
       rows = countRows();
 
-    for (var i = 0; i < cols; i++) {
-      for (var j = 0; j < rows; j++) {
+    for (let i = 0; i < cols; i++) {
+      for (let j = 0; j < rows; j++) {
         expect($(getCell(i, j)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(true);
       }
     }
   });
 
-  it('should add an appropriate class name to every cell in a column, if wordWrap=false is set to the column settings', function() {
+  it('should add an appropriate class name to every cell in a column, if wordWrap=false is set to the column settings', () => {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -53,17 +53,17 @@ describe('CellDecorator', function() {
 
     var rows = countRows();
 
-    for (var i = 0; i < rows; i++) {
+    for (let i = 0; i < rows; i++) {
       expect($(getCell(i, 1)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(true);
     }
 
-    for (var i = 0; i < rows; i++) {
+    for (let i = 0; i < rows; i++) {
       expect($(getCell(i, 0)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(false); // no class added to other columns
       expect($(getCell(i, 2)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(false);
     }
   });
 
-  it('should add an appropriate class to a cell, if wordWrap=false is set to a single cell', function() {
+  it('should add an appropriate class to a cell, if wordWrap=false is set to a single cell', () => {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -82,7 +82,7 @@ describe('CellDecorator', function() {
 
   });
 
-  it('should set "white-space" css parameter to "nowrap" if htNoWrap class is added to a cell', function() {
+  it('should set "white-space" css parameter to "nowrap" if htNoWrap class is added to a cell', () => {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -100,7 +100,7 @@ describe('CellDecorator', function() {
     expect(window.getComputedStyle(getCell(1, 1)).whiteSpace).toEqual('nowrap');
   });
 
-  it('should not add cell `htInvalid` class when trying to add not proper value', function(done) {
+  it('should not add cell `htInvalid` class when trying to add not proper value', (done) => {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -112,7 +112,7 @@ describe('CellDecorator', function() {
 
     setDataAtCell(0, 2, 'non-numeric value');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
       done();
     }, 200);

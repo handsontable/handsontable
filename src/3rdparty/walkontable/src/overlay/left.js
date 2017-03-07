@@ -30,7 +30,7 @@ class LeftOverlay extends Overlay {
    * @returns {Boolean}
    */
   shouldBeRendered() {
-    return this.wot.getSetting('fixedColumnsLeft') || this.wot.getSetting('rowHeaders').length ? true : false;
+    return !!(this.wot.getSetting('fixedColumnsLeft') || this.wot.getSetting('rowHeaders').length);
   }
 
   /**
@@ -61,7 +61,7 @@ class LeftOverlay extends Overlay {
         finalLeft = 0;
       }
       headerPosition = finalLeft;
-      finalLeft = finalLeft + 'px';
+      finalLeft += 'px';
 
       setOverlayPosition(overlayRoot, finalLeft, finalTop);
 
@@ -148,7 +148,7 @@ class LeftOverlay extends Overlay {
 
       height = Math.min(height, innerHeight(this.wot.wtTable.wtRootElement));
 
-      overlayRootStyle.height = height + 'px';
+      overlayRootStyle.height = `${height}px`;
 
     } else {
       overlayRootStyle.height = '';
@@ -157,7 +157,7 @@ class LeftOverlay extends Overlay {
     this.clone.wtTable.holder.style.height = overlayRootStyle.height;
 
     tableWidth = outerWidth(this.clone.wtTable.TABLE);
-    overlayRootStyle.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
+    overlayRootStyle.width = `${tableWidth === 0 ? tableWidth : tableWidth + 4}px`;
   }
 
   /**
@@ -172,7 +172,7 @@ class LeftOverlay extends Overlay {
     if (scrollbarWidth === 0) {
       scrollbarWidth = 30;
     }
-    this.clone.wtTable.holder.style.width = parseInt(this.clone.wtTable.holder.parentNode.style.width, 10) + scrollbarWidth + 'px';
+    this.clone.wtTable.holder.style.width = `${parseInt(this.clone.wtTable.holder.parentNode.style.width, 10) + scrollbarWidth}px`;
   }
 
   /**
@@ -185,7 +185,7 @@ class LeftOverlay extends Overlay {
       this.adjustElementsSize();
     }
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
-      this.spreader.style.left = this.wot.wtViewport.columnsRenderCalculator.startPosition + 'px';
+      this.spreader.style.left = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
     } else if (total === 0) {
       this.spreader.style.left = '0';
@@ -205,7 +205,7 @@ class LeftOverlay extends Overlay {
    */
   syncOverlayOffset() {
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-      this.clone.wtTable.spreader.style.top = this.wot.wtViewport.rowsRenderCalculator.startPosition + 'px';
+      this.clone.wtTable.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
     } else {
       this.clone.wtTable.spreader.style.top = '';

@@ -1,8 +1,8 @@
-describe('Core_navigation', function() {
+describe('Core_navigation', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + `"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('Core_navigation', function() {
     }
   });
 
-  it('should move to the next cell', function() {
+  it('should move to the next cell', () => {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -24,7 +24,7 @@ describe('Core_navigation', function() {
     expect(getSelected()).toEqual([0, 1, 0, 1]);
   });
 
-  it('should move to the previous cell', function() {
+  it('should move to the previous cell', () => {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -36,7 +36,7 @@ describe('Core_navigation', function() {
     expect(getSelected()).toEqual([1, 1, 1, 1]);
   });
 
-  it('should move to the cell above', function() {
+  it('should move to the cell above', () => {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -48,7 +48,7 @@ describe('Core_navigation', function() {
     expect(getSelected()).toEqual([0, 2, 0, 2]);
   });
 
-  it('should move to the cell below', function() {
+  it('should move to the cell below', () => {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -60,8 +60,8 @@ describe('Core_navigation', function() {
     expect(getSelected()).toEqual([2, 2, 2, 2]);
   });
 
-  describe('autoWrap disabled', function() {
-    it('should NOT move to the next cell, if already at the last cell in row', function() {
+  describe('autoWrap disabled', () => {
+    it('should NOT move to the next cell, if already at the last cell in row', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -74,7 +74,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([0, 4, 0, 4]);
     });
 
-    it('should NOT move to the previous cell, if already at the first cell in row', function() {
+    it('should NOT move to the previous cell, if already at the first cell in row', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -87,7 +87,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([1, 0, 1, 0]);
     });
 
-    it('should NOT move to the cell below, if already at the last cell in column', function() {
+    it('should NOT move to the cell below, if already at the last cell in column', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -100,7 +100,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([4, 0, 4, 0]);
     });
 
-    it('should NOT move to the cell above, if already at the first cell in column', function() {
+    it('should NOT move to the cell above, if already at the first cell in column', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -115,8 +115,8 @@ describe('Core_navigation', function() {
 
   });
 
-  describe('autoWrap enabled', function() {
-    it('should move to the first cell of the next row, if already at the last cell in row', function() {
+  describe('autoWrap enabled', () => {
+    it('should move to the first cell of the next row, if already at the last cell in row', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -129,7 +129,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([1, 0, 1, 0]);
     });
 
-    it('should move to the first cell of the previous row, if already at the first cell in row', function() {
+    it('should move to the first cell of the previous row, if already at the first cell in row', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -142,7 +142,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([0, 4, 0, 4]);
     });
 
-    it('should move to the first cell of the next column, if already at the last cell in column', function() {
+    it('should move to the first cell of the next column, if already at the last cell in column', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -155,7 +155,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([0, 2, 0, 2]);
     });
 
-    it('should move to the last cell of the previous column, if already at the first cell in column', function() {
+    it('should move to the last cell of the previous column, if already at the first cell in column', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -168,7 +168,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([4, 0, 4, 0]);
     });
 
-    it('should move to the first cell of the first row, after trying to get to the next cell in row, being already at the last cell in table', function() {
+    it('should move to the first cell of the first row, after trying to get to the next cell in row, being already at the last cell in table', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -181,7 +181,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([0, 0, 0, 0]);
     });
 
-    it('should move to the first cell of the first row, after trying to get to the next cell in column, being already at the last cell in table', function() {
+    it('should move to the first cell of the first row, after trying to get to the next cell in column, being already at the last cell in table', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -194,7 +194,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([0, 0, 0, 0]);
     });
 
-    it('should move to the last cell of the last row, after trying to get to the previous cell in row, being already at the first cell in table', function() {
+    it('should move to the last cell of the last row, after trying to get to the previous cell in row, being already at the first cell in table', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -207,7 +207,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([4, 4, 4, 4]);
     });
 
-    it('should move to the last cell of the last row, after trying to get to the previous cell in column, being already at the first cell in table', function() {
+    it('should move to the last cell of the last row, after trying to get to the previous cell in column, being already at the first cell in table', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -220,7 +220,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([4, 4, 4, 4]);
     });
 
-    it('should traverse whole table by constantly selecting next cell in row', function() {
+    it('should traverse whole table by constantly selecting next cell in row', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -239,7 +239,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([0, 0, 0, 0]);
     });
 
-    it('should traverse whole table by constantly selecting previous cell in row', function() {
+    it('should traverse whole table by constantly selecting previous cell in row', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -258,7 +258,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([4, 4, 4, 4]);
     });
 
-    it('should traverse whole table by constantly selecting next cell in column', function() {
+    it('should traverse whole table by constantly selecting next cell in column', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -277,7 +277,7 @@ describe('Core_navigation', function() {
       expect(getSelected()).toEqual([0, 0, 0, 0]);
     });
 
-    it('should traverse whole table by constantly selecting previous cell in column', function() {
+    it('should traverse whole table by constantly selecting previous cell in column', () => {
       handsontable({
         startRows: 5,
         startCols: 5,

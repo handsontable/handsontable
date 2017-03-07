@@ -139,7 +139,9 @@ class Selection {
     let renderedRows = wotInstance.wtTable.getRenderedRowsCount();
     let renderedColumns = wotInstance.wtTable.getRenderedColumnsCount();
     let corners = this.getCorners();
-    let sourceRow, sourceCol, TH;
+    let sourceRow,
+      sourceCol,
+      TH;
 
     for (let column = 0; column < renderedColumns; column++) {
       sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column);

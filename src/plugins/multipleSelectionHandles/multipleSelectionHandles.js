@@ -4,7 +4,7 @@ import {isMobileBrowser} from './../../helpers/browser';
 import BasePlugin from './../_base';
 import EventManager from './../../eventManager';
 import {registerPlugin} from './../../plugins';
-import {CellCoords} from 'walkontable';
+import {CellCoords} from './../../3rdparty/walkontable/src';
 
 /**
  * @private
@@ -82,7 +82,7 @@ class MultipleSelectionHandles extends BasePlugin {
       }
     }
 
-    this.eventManager.addEventListener(this.hot.rootElement, 'touchstart', function(event) {
+    this.eventManager.addEventListener(this.hot.rootElement, 'touchstart', (event) => {
       let selectedRange;
 
       if (hasClass(event.target, 'topLeftSelectionHandle-HitArea')) {
@@ -115,7 +115,7 @@ class MultipleSelectionHandles extends BasePlugin {
       }
     });
 
-    this.eventManager.addEventListener(this.hot.rootElement, 'touchend', function(event) {
+    this.eventManager.addEventListener(this.hot.rootElement, 'touchend', (event) => {
       if (hasClass(event.target, 'topLeftSelectionHandle-HitArea')) {
         removeFromDragged.call(_this, 'topLeft');
 
@@ -134,7 +134,7 @@ class MultipleSelectionHandles extends BasePlugin {
       }
     });
 
-    this.eventManager.addEventListener(this.hot.rootElement, 'touchmove', function(event) {
+    this.eventManager.addEventListener(this.hot.rootElement, 'touchmove', (event) => {
       let scrollTop = getWindowScrollTop(),
         scrollLeft = getWindowScrollLeft(),
         endTarget,
@@ -225,8 +225,8 @@ class MultipleSelectionHandles extends BasePlugin {
               };
             }
             break;
-          //case 'SW-NE':
-          //  break;
+          default:
+            break;
         }
         break;
       case 'NW-SE':
@@ -271,6 +271,8 @@ class MultipleSelectionHandles extends BasePlugin {
               newCoords.end = currentTouch;
             }
             break;
+          default:
+            break;
         }
         break;
       case 'SW-NE':
@@ -288,7 +290,7 @@ class MultipleSelectionHandles extends BasePlugin {
               };
             }
             break;
-          //case 'NE-SW':
+          // case 'NE-SW':
           //
           //  break;
           case 'SW-NE':
@@ -317,6 +319,8 @@ class MultipleSelectionHandles extends BasePlugin {
               };
             }
             break;
+          default:
+            break;
         }
         break;
       case 'SE-NW':
@@ -338,7 +342,11 @@ class MultipleSelectionHandles extends BasePlugin {
               };
             }
             break;
+          default:
+            break;
         }
+        break;
+      default:
         break;
     }
 

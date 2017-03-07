@@ -1,7 +1,7 @@
 import EventManager from 'handsontable/eventManager';
 
-describe('EventManager', function() {
-  it('should add/remove/clear event for multiple instances', function() {
+describe('EventManager', () => {
+  it('should add/remove/clear event for multiple instances', () => {
     var instance = {
       subinstance: {}
     };
@@ -37,7 +37,7 @@ describe('EventManager', function() {
     expect(instance2.eventListeners.length).toEqual(0);
   });
 
-  it('should detect event when fired from hot-table (web component)', function() {
+  it('should detect event when fired from hot-table (web component)', () => {
     // skip if browser not support Shadow DOM natively
     if (!document.createElement('div').createShadowRoot) {
       // Fix for "no exceptations" warnings
@@ -71,7 +71,7 @@ describe('EventManager', function() {
     EventManager.isHotTableEnv = false;
   });
 
-  it('should clear all events', function() {
+  it('should clear all events', () => {
     var instance = {};
     var em = new EventManager(instance);
 
@@ -93,7 +93,7 @@ describe('EventManager', function() {
     expect(test1.calls.count()).toEqual(2);
   });
 
-  it('should destroy instance', function() {
+  it('should destroy instance', () => {
     var instance = {};
     var em = new EventManager(instance);
 
@@ -117,7 +117,7 @@ describe('EventManager', function() {
     expect(instance.eventListeners.length).toBe(0);
   });
 
-  it('should fire event', function() {
+  it('should fire event', () => {
     var instance = {};
     var em = new EventManager(instance);
 
@@ -140,7 +140,7 @@ describe('EventManager', function() {
     em.clear(window, 'click');
   });
 
-  it('should remove event by calling function returned from addEvent', function() {
+  it('should remove event by calling function returned from addEvent', () => {
     var instance = {};
     var em = new EventManager(instance);
 

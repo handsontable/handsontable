@@ -1,8 +1,8 @@
-describe('Core_render', function() {
+describe('Core_render', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -28,7 +28,7 @@ describe('Core_render', function() {
       minCols: 4,
       minSpareRows: 4,
       minSpareCols: 4,
-      cells: function() {
+      cells() {
         return {
           renderer: greenCell
         };
@@ -48,7 +48,7 @@ describe('Core_render', function() {
     ];
 
     handsontable({
-      data: data,
+      data,
       minRows: 4,
       minCols: 4,
       minSpareRows: 4,
@@ -63,14 +63,14 @@ describe('Core_render', function() {
     expect(this.$container.find('.wtBorder.current').width()).toBeGreaterThan($td.width());
   });
 
-  it('should not render table twice', function() {
+  it('should not render table twice', () => {
     var counter = 0;
 
     handsontable({
       data: [
         ['Joe Red']
       ],
-      afterRender: function() {
+      afterRender() {
         counter++;
       }
     });
@@ -84,7 +84,7 @@ describe('Core_render', function() {
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
-      afterRenderer: function(td, row, col, prop, value, cellProperties) {
+      afterRenderer(td, row, col, prop, value, cellProperties) {
         td.innerHTML = 'Changed by plugin';
 
         if (!cellProperties) {
@@ -104,7 +104,7 @@ describe('Core_render', function() {
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
-      beforeRenderer: function(td, row, col, prop, value, cellProperties) {
+      beforeRenderer(td, row, col, prop, value, cellProperties) {
         td.innerHTML = 'Changed by plugin';
         lastCellProperties = cellProperties;
       }
@@ -116,15 +116,15 @@ describe('Core_render', function() {
     expect(lastCellProperties.col).toEqual(4);
   });
 
-  it('should reflect changes applied in beforeRenderer into afterRenderer', function() {
+  it('should reflect changes applied in beforeRenderer into afterRenderer', () => {
     var afterRenderer = jasmine.createSpy();
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
-      beforeRenderer: function(td, row, col, prop, value, cellProperties) {
+      beforeRenderer(td, row, col, prop, value, cellProperties) {
         cellProperties.foo = 'bar';
       },
-      afterRenderer: afterRenderer,
+      afterRenderer,
     });
 
     expect(afterRenderer.calls.count()).toBe(10);

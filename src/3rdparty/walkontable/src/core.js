@@ -24,7 +24,7 @@ class Walkontable {
     let originalHeaders = [];
 
     // this is the namespace for global events
-    this.guid = 'wt_' + randomString();
+    this.guid = `wt_${randomString()}`;
 
     // bootstrap from settings
     if (settings.cloneSource) {
@@ -222,9 +222,9 @@ class Walkontable {
 
     objectEach(toExport, (optionType, key) => {
       if (optionType.indexOf('array') > -1 && this.getSetting(key).length) {
-        newClassNames.push('ht' + toUpperCaseFirst(key));
+        newClassNames.push(`ht${toUpperCaseFirst(key)}`);
       }
-      allClassNames.push('ht' + toUpperCaseFirst(key));
+      allClassNames.push(`ht${toUpperCaseFirst(key)}`);
     });
     removeClass(this.wtTable.wtRootElement.parentNode, allClassNames);
     addClass(this.wtTable.wtRootElement.parentNode, newClassNames);

@@ -1,9 +1,9 @@
-describe('Search plugin', function() {
+describe('Search plugin', () => {
 
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -13,8 +13,8 @@ describe('Search plugin', function() {
     }
   });
 
-  describe('enabling/disabling plugin', function() {
-    it('should expose `search` object when plugin is enabled', function() {
+  describe('enabling/disabling plugin', () => {
+    it('should expose `search` object when plugin is enabled', () => {
 
       var hot = handsontable({
         search: true
@@ -23,7 +23,7 @@ describe('Search plugin', function() {
       expect(hot.search).toBeDefined();
     });
 
-    it('should NOT expose `search` object when plugin is disabled', function() {
+    it('should NOT expose `search` object when plugin is disabled', () => {
       var hot = handsontable({
         search: false
       });
@@ -31,13 +31,13 @@ describe('Search plugin', function() {
       expect(hot.search).not.toBeDefined();
     });
 
-    it('plugin should be disabled by default', function() {
+    it('plugin should be disabled by default', () => {
       var hot = handsontable();
 
       expect(hot.search).not.toBeDefined();
     });
 
-    it('should disable plugin using updateSettings', function() {
+    it('should disable plugin using updateSettings', () => {
       var hot = handsontable({
         search: true
       });
@@ -51,7 +51,7 @@ describe('Search plugin', function() {
       expect(hot.search).not.toBeDefined();
     });
 
-    it('should enable plugin using updateSettings', function() {
+    it('should enable plugin using updateSettings', () => {
       var hot = handsontable({
         search: false
       });
@@ -66,12 +66,12 @@ describe('Search plugin', function() {
     });
   });
 
-  describe('query method', function() {
-    afterEach(function() {
+  describe('query method', () => {
+    afterEach(() => {
       Handsontable.plugins.Search.global.setDefaultQueryMethod(Handsontable.plugins.Search.DEFAULT_QUERY_METHOD);
     });
 
-    it('should use the default query method if no queryMethod is passed to query function', function() {
+    it('should use the default query method if no queryMethod is passed to query function', () => {
       spyOn(Handsontable.plugins.Search, 'DEFAULT_QUERY_METHOD');
 
       var defaultQueryMethod = Handsontable.plugins.Search.DEFAULT_QUERY_METHOD;
@@ -88,7 +88,7 @@ describe('Search plugin', function() {
       expect(defaultQueryMethod.calls.count()).toEqual(25);
     });
 
-    it('should use the custom default query method if no queryMethod is passed to query function', function() {
+    it('should use the custom default query method if no queryMethod is passed to query function', () => {
       var customDefaultQueryMethod = jasmine.createSpy('customDefaultQueryMethod');
 
       var hot = handsontable({
@@ -103,7 +103,7 @@ describe('Search plugin', function() {
       expect(customDefaultQueryMethod.calls.count()).toEqual(25);
     });
 
-    it('should use the query method from the constructor if no queryMethod is passed to query function', function() {
+    it('should use the query method from the constructor if no queryMethod is passed to query function', () => {
       var customQueryMethod = jasmine.createSpy('customDefaultQueryMethod');
 
       var hot = handsontable({
@@ -118,7 +118,7 @@ describe('Search plugin', function() {
       expect(customQueryMethod.calls.count()).toEqual(25);
     });
 
-    it('should use method passed to query function', function() {
+    it('should use method passed to query function', () => {
       var customQueryMethod = jasmine.createSpy('customQueryMethod');
 
       var hot = handsontable({
@@ -132,9 +132,9 @@ describe('Search plugin', function() {
     });
   });
 
-  describe('default query method', function() {
+  describe('default query method', () => {
 
-    it('should use query method to find phrase', function() {
+    it('should use query method to find phrase', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: true
@@ -151,7 +151,7 @@ describe('Search plugin', function() {
       }
     });
 
-    it('default query method should be case insensitive', function() {
+    it('default query method should be case insensitive', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: true
@@ -166,7 +166,7 @@ describe('Search plugin', function() {
       expect(searchResult.length).toEqual(5);
     });
 
-    it('default query method should work with numeric values', function() {
+    it('default query method should work with numeric values', () => {
       var hot = handsontable({
         data: [
           [1, 2],
@@ -180,7 +180,7 @@ describe('Search plugin', function() {
       expect(searchResult.length).toEqual(2);
     });
 
-    it('default query method should interpret query as string, not regex', function() {
+    it('default query method should interpret query as string, not regex', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: true
@@ -191,7 +191,7 @@ describe('Search plugin', function() {
       expect(searchResult.length).toEqual(0);
     });
 
-    it('default query method should always return false if query string is empty', function() {
+    it('default query method should always return false if query string is empty', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: true
@@ -201,12 +201,12 @@ describe('Search plugin', function() {
 
       expect(searchResult.length).toEqual(5);
 
-      var searchResult = hot.search.query('');
+      searchResult = hot.search.query('');
 
       expect(searchResult.length).toEqual(0);
     });
 
-    it('default query method should always return false if no query string has been specified', function() {
+    it('default query method should always return false if no query string has been specified', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: true
@@ -216,12 +216,12 @@ describe('Search plugin', function() {
 
       expect(searchResult.length).toEqual(5);
 
-      var searchResult = hot.search.query();
+      searchResult = hot.search.query();
 
       expect(searchResult.length).toEqual(0);
     });
 
-    it('default query method should always return false if no query string is not a string', function() {
+    it('default query method should always return false if no query string is not a string', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: true
@@ -231,18 +231,18 @@ describe('Search plugin', function() {
 
       expect(searchResult.length).toEqual(5);
 
-      var searchResult = hot.search.query([1, 2, 3]);
+      searchResult = hot.search.query([1, 2, 3]);
 
       expect(searchResult.length).toEqual(0);
     });
   });
 
-  describe('search callback', function() {
-    afterEach(function() {
+  describe('search callback', () => {
+    afterEach(() => {
       Handsontable.plugins.Search.global.setDefaultCallback(Handsontable.plugins.Search.DEFAULT_CALLBACK);
     });
 
-    it('should invoke default callback for each cell', function() {
+    it('should invoke default callback for each cell', () => {
       spyOn(Handsontable.plugins.Search, 'DEFAULT_CALLBACK');
 
       var defaultCallback = Handsontable.plugins.Search.DEFAULT_CALLBACK;
@@ -259,7 +259,7 @@ describe('Search plugin', function() {
       expect(defaultCallback.calls.count()).toEqual(25);
     });
 
-    it('should change the default callback', function() {
+    it('should change the default callback', () => {
       spyOn(Handsontable.plugins.Search, 'DEFAULT_CALLBACK');
 
       var hot = handsontable({
@@ -276,7 +276,7 @@ describe('Search plugin', function() {
       expect(defaultCallback.calls.count()).toEqual(25);
     });
 
-    it('should invoke callback passed in constructor', function() {
+    it('should invoke callback passed in constructor', () => {
       var searchCallback = jasmine.createSpy('searchCallback');
 
       var hot = handsontable({
@@ -291,7 +291,7 @@ describe('Search plugin', function() {
       expect(searchCallback.calls.count()).toEqual(25);
     });
 
-    it('should invoke custom callback for each cell which has been tested', function() {
+    it('should invoke custom callback for each cell which has been tested', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: true
@@ -305,7 +305,7 @@ describe('Search plugin', function() {
 
       for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++) {
         for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++) {
-          var callArgs = searchCallback.calls.argsFor(rowIndex * 5 + colIndex);
+          var callArgs = searchCallback.calls.argsFor((rowIndex * 5) + colIndex);
           expect(callArgs[0]).toEqual(hot);
           expect(callArgs[1]).toEqual(rowIndex);
           expect(callArgs[2]).toEqual(colIndex);
@@ -321,8 +321,8 @@ describe('Search plugin', function() {
     });
   });
 
-  describe('default search callback', function() {
-    it('should add isSearchResult = true, to cell properties of all matched cells', function() {
+  describe('default search callback', () => {
+    it('should add isSearchResult = true, to cell properties of all matched cells', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: true
@@ -344,8 +344,8 @@ describe('Search plugin', function() {
     });
   });
 
-  describe('search result decorator', function() {
-    it('should add default search result class to cells which mach the query', function() {
+  describe('search result decorator', () => {
+    it('should add default search result class to cells which mach the query', () => {
 
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -369,7 +369,7 @@ describe('Search plugin', function() {
       }
     });
 
-    it('should add custom search result class to cells which mach the query', function() {
+    it('should add custom search result class to cells which mach the query', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: {
@@ -395,8 +395,8 @@ describe('Search plugin', function() {
     });
   });
 
-  describe('HOT properties compatibility', function() {
-    it('should work properly when the last row is empty', function() { // connected with https://github.com/handsontable/handsontable/issues/1606
+  describe('HOT properties compatibility', () => {
+    it('should work properly when the last row is empty', () => { // connected with https://github.com/handsontable/handsontable/issues/1606
       var hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
           colHeaders: true,
@@ -408,7 +408,7 @@ describe('Search plugin', function() {
       try {
         hot.search.query('A');
       } catch (err) {
-        var errorThrown = true;
+        errorThrown = true;
       }
 
       expect(errorThrown).toBe(false);

@@ -60,7 +60,8 @@ class LinkedList {
     const node = new NodeStructure(data);
 
     if (this.first === null) {
-      this.first = this.last = node;
+      this.first = node;
+      this.last = node;
 
     } else {
       const temp = this.last;
@@ -80,7 +81,8 @@ class LinkedList {
     const node = new NodeStructure(data);
 
     if (this.first === null) {
-      this.first = this.last = node;
+      this.first = node;
+      this.last = node;
 
     } else {
       const temp = this.first;

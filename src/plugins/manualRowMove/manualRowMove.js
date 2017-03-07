@@ -8,7 +8,7 @@ import {registerPlugin} from './../../plugins';
 import RowsMapper from './rowsMapper';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
-import {CellCoords} from 'walkontable';
+import {CellCoords} from './../../3rdparty/walkontable/src';
 
 import './manualRowMove.css';
 
@@ -367,7 +367,7 @@ class ManualRowMove extends BasePlugin {
       tdOffsetTop += wtTable.holder.scrollTop;
     }
 
-    //todo: fixedRowsBottom
+    // todo: fixedRowsBottom
     // if (this.isFixedRowBottom(coords.row)) {
     //
     // }
@@ -376,7 +376,7 @@ class ManualRowMove extends BasePlugin {
       // if hover on colHeader
       priv.target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
 
-    } else if (TD.offsetHeight / 2 + tdOffsetTop <= mouseOffsetTop) {
+    } else if ((TD.offsetHeight / 2) + tdOffsetTop <= mouseOffsetTop) {
       // if hover on lower part of TD
       priv.target.row = coords.row + 1;
       // unfortunately first row is bigger than rest
@@ -429,7 +429,7 @@ class ManualRowMove extends BasePlugin {
     if (rowsMapperLen === 0) {
       this.rowsMapper.createMap(countRows || this.hot.getSettings().startRows);
 
-    }  else if (rowsMapperLen < countRows) {
+    } else if (rowsMapperLen < countRows) {
       let diff = countRows - rowsMapperLen;
 
       this.rowsMapper.insertItems(rowsMapperLen, diff);
@@ -525,7 +525,7 @@ class ManualRowMove extends BasePlugin {
       let leftPos = wtTable.holder.scrollLeft + wtTable.getColumnWidth(-1);
 
       this.backlight.setPosition(null, leftPos);
-      this.backlight.setSize(wtTable.hider.offsetWidth - leftPos,  this.getRowsHeight(start, end + 1));
+      this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end + 1));
       this.backlight.setOffset((this.getRowsHeight(start, coords.row) + event.layerY) * -1, null);
 
       addClass(this.hot.rootElement, CSS_ON_MOVING);

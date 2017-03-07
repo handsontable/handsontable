@@ -1,8 +1,8 @@
-describe('AutocompleteRenderer', function() {
+describe('AutocompleteRenderer', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('AutocompleteRenderer', function() {
     }
   });
 
-  it('should contain down arrow glyph', function(done) {
+  it('should contain down arrow glyph', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -21,7 +21,7 @@ describe('AutocompleteRenderer', function() {
     });
     setDataAtCell(2, 2, 'string');
 
-    setTimeout(function() {
+    setTimeout(() => {
       var html = getCell(2, 2).innerHTML;
 
       expect(html).toContain('string');
@@ -30,7 +30,7 @@ describe('AutocompleteRenderer', function() {
     }, 100);
   });
 
-  it('should open cell editor after clicking on arrow glyph', function() {
+  it('should open cell editor after clicking on arrow glyph', () => {
     var hot = handsontable({
       type: 'autocomplete'
     });
@@ -44,7 +44,7 @@ describe('AutocompleteRenderer', function() {
     expect(hot.getActiveEditor().isOpened()).toBe(true);
   });
 
-  it('should open cell editor after clicking on arrow glyph, after the table has been destroyed and reinitialized (#1367)', function() {
+  it('should open cell editor after clicking on arrow glyph, after the table has been destroyed and reinitialized (#1367)', () => {
     var hot = handsontable({
       type: 'autocomplete'
     });

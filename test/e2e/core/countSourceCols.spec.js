@@ -1,8 +1,8 @@
-describe('Core.countSourceCols', function() {
+describe('Core.countSourceCols', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,10 +12,10 @@ describe('Core.countSourceCols', function() {
     }
   });
 
-  it('should return properly index from ', function() {
+  it('should return properly index from ', () => {
     var hot = handsontable({
-      data: [['','','','','','','','','','','','','','','']],
-      columns: function(column) {
+      data: [['', '', '', '', '', '', '', '', '', '', '', '', '', '', '']],
+      columns(column) {
         return [1, 5, 9].indexOf(column) > -1 ? {} : null;
       }
     });

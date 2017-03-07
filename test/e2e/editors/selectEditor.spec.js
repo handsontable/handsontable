@@ -1,9 +1,9 @@
-describe('SelectEditor', function() {
+describe('SelectEditor', () => {
 
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -13,7 +13,7 @@ describe('SelectEditor', function() {
     }
   });
 
-  it('should display select', function() {
+  it('should display select', () => {
     handsontable({
       columns: [
         {
@@ -36,7 +36,7 @@ describe('SelectEditor', function() {
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
 
-  it('should display and correctly reposition select editor while scrolling', function(done) {
+  it('should display and correctly reposition select editor while scrolling', (done) => {
     var hot = handsontable({
       width: 200,
       height: 200,
@@ -57,14 +57,14 @@ describe('SelectEditor', function() {
     mainHolder.scrollLeft = 20;
     var editor = $('.htSelectEditor');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(editor.css('top')).toEqual('-10px');
       expect(editor.css('left')).toEqual('-20px');
       done();
     }, 200);
   });
 
-  it('should populate select with given options (array)', function() {
+  it('should populate select with given options (array)', () => {
     var options = [
       'Misubishi', 'Chevrolet', 'Lamborgini'
     ];
@@ -95,7 +95,7 @@ describe('SelectEditor', function() {
     expect($options.eq(2).html()).toMatch(options[2]);
   });
 
-  it('should populate select with given options (object)', function() {
+  it('should populate select with given options (object)', () => {
     var options = {
       mit: 'Misubishi',
       che: 'Chevrolet',
@@ -127,7 +127,7 @@ describe('SelectEditor', function() {
     expect($options.eq(2).html()).toMatch(options.lam);
   });
 
-  it('should populate select with given options (function:array)', function() {
+  it('should populate select with given options (function:array)', () => {
     var options = function() {
       return [
         'Misubishi', 'Chevrolet', 'Lamborgini'
@@ -160,7 +160,7 @@ describe('SelectEditor', function() {
     expect($options.eq(2).html()).toMatch(options()[2]);
   });
 
-  it('should populate select with given options (function:object)', function() {
+  it('should populate select with given options (function:object)', () => {
     var options = function() {
       return {
         mit: 'Misubishi',
@@ -194,7 +194,7 @@ describe('SelectEditor', function() {
     expect($options.eq(2).html()).toMatch(options().lam);
   });
 
-  it('should mark option matching cell value as selected', function() {
+  it('should mark option matching cell value as selected', () => {
     var options = [
       'Misubishi', 'Chevrolet', 'Lamborgini'
     ];
@@ -238,7 +238,7 @@ describe('SelectEditor', function() {
     keyDown('enter');
   });
 
-  it('should not prevent the default event action when select is clicked', function() {
+  it('should not prevent the default event action when select is clicked', () => {
 
     var options = function() {
       return [

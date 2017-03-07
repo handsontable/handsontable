@@ -1,4 +1,4 @@
-import jsonpatch from 'jsonpatch';
+import jsonpatch from './../../../lib/jsonpatch/json-patch-duplex';
 import localHooks from '../../mixins/localHooks';
 import {mixin} from '../../helpers/object';
 import {cleanPatches} from './utils';

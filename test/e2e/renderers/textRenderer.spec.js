@@ -1,8 +1,8 @@
-describe('TextRenderer', function() {
+describe('TextRenderer', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,50 +12,50 @@ describe('TextRenderer', function() {
     }
   });
 
-  it('should render string', function() {
+  it('should render string', () => {
     handsontable();
     setDataAtCell(2, 2, 'string');
 
     expect(getCell(2, 2).innerHTML).toEqual('string');
   });
 
-  it('should render number', function() {
+  it('should render number', () => {
     handsontable();
     setDataAtCell(2, 2, 13);
 
     expect(getCell(2, 2).innerHTML).toEqual('13');
   });
 
-  it('should render boolean true', function() {
+  it('should render boolean true', () => {
     handsontable();
     setDataAtCell(2, 2, true);
 
     expect(getCell(2, 2).innerHTML).toEqual('true');
   });
 
-  it('should render boolean false', function() {
+  it('should render boolean false', () => {
     handsontable();
     setDataAtCell(2, 2, false);
 
     expect(getCell(2, 2).innerHTML).toEqual('false');
   });
 
-  it('should render null', function() {
+  it('should render null', () => {
     handsontable();
     setDataAtCell(2, 2, null);
 
     expect(getCell(2, 2).innerHTML).toEqual('');
   });
 
-  it('should render undefined', function() {
+  it('should render undefined', () => {
     handsontable();
-    setDataAtCell(2, 2, (function() {
-    })());
+    /* eslint-disable wrap-iife */
+    setDataAtCell(2, 2, (function() {})());
 
     expect(getCell(2, 2).innerHTML).toEqual('');
   });
 
-  it('should add class name `htDimmed` to a read only cell', function() {
+  it('should add class name `htDimmed` to a read only cell', () => {
     var DIV = document.createElement('DIV');
     var instance = new Handsontable.Core(DIV, {});
 
@@ -67,7 +67,7 @@ describe('TextRenderer', function() {
     instance.destroy();
   });
 
-  it('should render a multiline string', function() {
+  it('should render a multiline string', () => {
     handsontable();
     setDataAtCell(1, 2, 'a b');
     setDataAtCell(2, 2, 'a\nb');
@@ -75,7 +75,7 @@ describe('TextRenderer', function() {
     expect($(getCell(2, 2)).height()).toBeGreaterThan($(getCell(1, 2)).height());
   });
 
-  it('should wrap text when column width is limited', function() {
+  it('should wrap text when column width is limited', () => {
     handsontable({
       colWidths: [100]
     });

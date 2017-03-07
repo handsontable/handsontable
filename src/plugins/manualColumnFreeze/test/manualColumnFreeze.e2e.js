@@ -1,8 +1,8 @@
-describe('manualColumnFreeze', function() {
+describe('manualColumnFreeze', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,8 +12,8 @@ describe('manualColumnFreeze', function() {
     }
   });
 
-  describe('freezeColumn', function() {
-    it('should increase fixedColumnsLeft setting', function() {
+  describe('freezeColumn', () => {
+    it('should increase fixedColumnsLeft setting', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true
@@ -24,7 +24,7 @@ describe('manualColumnFreeze', function() {
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
     });
 
-    it('should freeze (make fixed) the column provided as an argument', function() {
+    it('should freeze (make fixed) the column provided as an argument', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true
@@ -39,8 +39,8 @@ describe('manualColumnFreeze', function() {
     });
   });
 
-  describe('unfreezeColumn', function() {
-    it('should decrease fixedColumnsLeft setting', function() {
+  describe('unfreezeColumn', () => {
+    it('should decrease fixedColumnsLeft setting', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -52,7 +52,7 @@ describe('manualColumnFreeze', function() {
       expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
     });
 
-    it('should unfreeze (make non-fixed) the column provided as an argument', function() {
+    it('should unfreeze (make non-fixed) the column provided as an argument', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -71,9 +71,9 @@ describe('manualColumnFreeze', function() {
     });
   });
 
-  describe('functionality', function() {
+  describe('functionality', () => {
 
-    it('should add a \'freeze this column\' context menu entry for non-fixed columns', function() {
+    it('should add a \'freeze this column\' context menu entry for non-fixed columns', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -91,7 +91,7 @@ describe('manualColumnFreeze', function() {
       expect(freezeEntry.size()).toEqual(1);
     });
 
-    it('should add a \'unfreeze this column\' context menu entry for fixed columns', function() {
+    it('should add a \'unfreeze this column\' context menu entry for fixed columns', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -110,7 +110,7 @@ describe('manualColumnFreeze', function() {
       expect(freezeEntry.size()).toEqual(1);
     });
 
-    it('should fix the desired column after clicking the \'freeze this column\' context menu entry', function() {
+    it('should fix the desired column after clicking the \'freeze this column\' context menu entry', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -139,7 +139,7 @@ describe('manualColumnFreeze', function() {
 
     });
 
-    it('should unfix the desired column (and revert it to it\'s original position) after clicking the \'unfreeze this column\' context menu entry', function() {
+    it('should unfix the desired column (and revert it to it\'s original position) after clicking the \'unfreeze this column\' context menu entry', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,

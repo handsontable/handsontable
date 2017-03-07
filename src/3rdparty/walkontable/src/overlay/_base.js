@@ -186,12 +186,12 @@ class Overlay {
    */
   makeClone(direction) {
     if (Overlay.CLONE_TYPES.indexOf(direction) === -1) {
-      throw new Error('Clone type "' + direction + '" is not supported.');
+      throw new Error(`Clone type "${direction}" is not supported.`);
     }
     let clone = document.createElement('DIV');
     let clonedTable = document.createElement('TABLE');
 
-    clone.className = 'ht_clone_' + direction + ' handsontable';
+    clone.className = `ht_clone_${direction} handsontable`;
     clone.style.position = 'absolute';
     clone.style.top = 0;
     clone.style.left = 0;

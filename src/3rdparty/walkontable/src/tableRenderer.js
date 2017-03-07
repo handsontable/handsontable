@@ -83,7 +83,7 @@ class TableRenderer {
       // adjust column widths according to user widths settings
       this.renderColumnHeaders();
 
-      //Render table rows
+      // Render table rows
       this.renderRows(totalRows, rowsToRender, columnsToRender);
 
       if (!this.wtTable.isWorkingOnClone()) {
@@ -119,7 +119,7 @@ class TableRenderer {
       }
 
       if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
-        //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
+        // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
         this.wot.wtViewport.containerWidth = null;
 
         let firstRendered = this.wtTable.getFirstRenderedColumn();
@@ -135,7 +135,7 @@ class TableRenderer {
 
             width = width == null ? defaultColumnWidth : width;
 
-            this.COLGROUP.childNodes[i].style.width = width + 'px';
+            this.COLGROUP.childNodes[i].style.width = `${width}px`;
           }
         }
 
@@ -143,7 +143,7 @@ class TableRenderer {
           let width = this.wtTable.getStretchedColumnWidth(i);
           let renderedIndex = this.columnFilter.sourceToRendered(i);
 
-          this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width + 'px';
+          this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = `${width}px`;
         }
       }
 
@@ -170,7 +170,8 @@ class TableRenderer {
    * @param {Number} columnsToRender
    */
   renderRows(totalRows, rowsToRender, columnsToRender) {
-    let lastTD, TR;
+    let lastTD,
+      TR;
     let visibleRowIndex = 0;
     let sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     let isWorkingOnClone = this.wtTable.isWorkingOnClone();
@@ -209,7 +210,7 @@ class TableRenderer {
         if (height) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top
           height--;
-          TR.firstChild.style.height = height + 'px';
+          TR.firstChild.style.height = `${height}px`;
         } else {
           TR.firstChild.style.height = '';
         }
@@ -307,7 +308,7 @@ class TableRenderer {
         if (!children[i] || children[i].childNodes.length === 0) {
           return;
         }
-        children[i].childNodes[0].style.height = oversizedColumnHeaders[i] + 'px';
+        children[i].childNodes[0].style.height = `${oversizedColumnHeaders[i]}px`;
       }
     }
   }
@@ -333,6 +334,7 @@ class TableRenderer {
       currentHeader = this.wot.wtTable.getColumnHeader(sourceColIndex, level);
 
       if (!currentHeader) {
+        /* eslint-disable no-continue */
         continue;
       }
       currentHeaderHeight = innerHeight(currentHeader);
@@ -372,7 +374,7 @@ class TableRenderer {
       if (visibleColIndex === 0) {
         TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(sourceColIndex)];
       } else {
-        TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
+        TD = TD.nextSibling; // http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
       // If the number of headers has been reduced, we need to replace excess TH with TD
       if (TD.nodeName == 'TH') {
@@ -411,14 +413,14 @@ class TableRenderer {
 
         width = width == null ? defaultColumnWidth : width;
 
-        this.COLGROUP.childNodes[i].style.width = width + 'px';
+        this.COLGROUP.childNodes[i].style.width = `${width}px`;
       }
     }
 
     for (let renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
       let width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
 
-      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
+      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = `${width}px`;
     }
   }
 

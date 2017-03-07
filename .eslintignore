@@ -3,6 +3,7 @@ src/3rdparty/walkontable/test/lib/*
 Gruntfile.js
 dist/*
 lib/*
-test/*
-!test/unit/*
-!test/e2e/*
+src/3rdparty/walkontable/test/dist/*
+src/3rdparty/walkontable/dist/*
+test/lib/*
+test/dist/*

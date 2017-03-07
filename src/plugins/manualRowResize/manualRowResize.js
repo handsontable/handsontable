@@ -1,4 +1,4 @@
-import BasePlugin from './../_base.js';
+import BasePlugin from './../_base';
 import {addClass, hasClass, removeClass, outerWidth} from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
 import {pageX, pageY} from './../../helpers/dom/event';
@@ -162,9 +162,9 @@ class ManualRowResize extends BasePlugin {
 
       this.startOffset = box.top - 6;
       this.startHeight = parseInt(box.height, 10);
-      this.handle.style.left = box.left + 'px';
-      this.handle.style.top = this.startOffset + this.startHeight + 'px';
-      this.handle.style.width = headerWidth + 'px';
+      this.handle.style.left = `${box.left}px`;
+      this.handle.style.top = `${this.startOffset + this.startHeight}px`;
+      this.handle.style.width = `${headerWidth}px`;
       this.hot.rootElement.appendChild(this.handle);
     }
   }
@@ -173,7 +173,7 @@ class ManualRowResize extends BasePlugin {
    * Refresh the resize handle position.
    */
   refreshHandlePosition() {
-    this.handle.style.top = this.startOffset + this.currentHeight + 'px';
+    this.handle.style.top = `${this.startOffset + this.currentHeight}px`;
   }
 
   /**
@@ -187,8 +187,8 @@ class ManualRowResize extends BasePlugin {
     addClass(this.guide, 'active');
 
     this.guide.style.top = this.handle.style.top;
-    this.guide.style.left = handleRightPosition + 'px';
-    this.guide.style.width = (maximumVisibleElementWidth - handleWidth) + 'px';
+    this.guide.style.left = `${handleRightPosition}px`;
+    this.guide.style.width = `${maximumVisibleElementWidth - handleWidth}px`;
     this.hot.rootElement.appendChild(this.guide);
   }
 
@@ -237,9 +237,9 @@ class ManualRowResize extends BasePlugin {
     if (element.tagName != 'TABLE') {
       if (element.tagName == 'TH') {
         return element;
-      } else {
-        return this.getTHFromTargetElement(element.parentNode);
       }
+      return this.getTHFromTargetElement(element.parentNode);
+
     }
 
     return null;

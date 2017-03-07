@@ -7,15 +7,15 @@ export default function rowAboveItem() {
     key: KEY,
     name: 'Insert row above',
 
-    callback: function(key, selection) {
+    callback(key, selection) {
       this.alter('insert_row', selection.start.row, 1, 'ContextMenu.rowAbove');
     },
-    disabled: function() {
+    disabled() {
       let selected = getValidSelection(this);
 
       return !selected || this.selection.selectedHeader.cols || this.countRows() >= this.getSettings().maxRows;
     },
-    hidden: function() {
+    hidden() {
       return !this.getSettings().allowInsertRow;
     }
   };

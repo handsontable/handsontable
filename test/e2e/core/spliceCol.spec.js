@@ -1,8 +1,8 @@
-describe('Core.spliceCol', function() {
+describe('Core.spliceCol', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('Core.spliceCol', function() {
     }
   });
 
-  it('should remove from the second column three rows starting from the beginning', function() {
+  it('should remove from the second column three rows starting from the beginning', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
@@ -27,7 +27,7 @@ describe('Core.spliceCol', function() {
     expect(hot.getDataAtRow(4)).toEqual(['A5', null, 'C5', 'D5', 'E5']);
   });
 
-  it('should remove from the third column three rows starting from the second row', function() {
+  it('should remove from the third column three rows starting from the second row', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
@@ -42,7 +42,7 @@ describe('Core.spliceCol', function() {
     expect(hot.getDataAtRow(4)).toEqual(['A5', 'B5', null, 'D5', 'E5']);
   });
 
-  it('should replace and append new rows in the second column starting from the second row', function() {
+  it('should replace and append new rows in the second column starting from the second row', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
@@ -59,7 +59,7 @@ describe('Core.spliceCol', function() {
     expect(hot.getDataAtRow(6)).toEqual([null, 'B5', null, null, null]);
   });
 
-  it('should trigger beforeChange and afterChange hook with proper arguments', function() {
+  it('should trigger beforeChange and afterChange hook with proper arguments', () => {
     var spyAfter = jasmine.createSpy('after');
     var spyBefore = jasmine.createSpy('before');
     var hot = handsontable({
@@ -76,7 +76,7 @@ describe('Core.spliceCol', function() {
     expect(spyAfter.calls.argsFor(1)[1]).toBe('spliceCol');
   });
 
-  it('should trigger beforeCreateRow and afterCreateRow hook with proper arguments', function() {
+  it('should trigger beforeCreateRow and afterCreateRow hook with proper arguments', () => {
     var spyAfter = jasmine.createSpy('after');
     var spyBefore = jasmine.createSpy('before');
     var hot = handsontable({

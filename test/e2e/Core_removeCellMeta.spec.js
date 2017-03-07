@@ -1,8 +1,8 @@
-describe('Core_removeCellMeta', function() {
+describe('Core_removeCellMeta', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('Core_removeCellMeta', function() {
     }
   });
 
-  it('should remove meta for cell', function() {
+  it('should remove meta for cell', () => {
     handsontable({
       data: [
         [1, 2, 3, 4],
@@ -21,10 +21,10 @@ describe('Core_removeCellMeta', function() {
       ]
     });
     var border = {
-      top:{
+      top: {
 
       },
-      left:{
+      left: {
 
       }
     };

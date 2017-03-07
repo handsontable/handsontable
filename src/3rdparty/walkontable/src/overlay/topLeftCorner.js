@@ -25,8 +25,8 @@ class TopLeftCornerOverlay extends Overlay {
    * @returns {Boolean}
    */
   shouldBeRendered() {
-    return (this.wot.getSetting('fixedRowsTop') || this.wot.getSetting('columnHeaders').length) &&
-        (this.wot.getSetting('fixedColumnsLeft') || this.wot.getSetting('rowHeaders').length) ? true : false;
+    return !!((this.wot.getSetting('fixedRowsTop') || this.wot.getSetting('columnHeaders').length) &&
+        (this.wot.getSetting('fixedColumnsLeft') || this.wot.getSetting('rowHeaders').length));
   }
 
   /**
@@ -55,21 +55,21 @@ class TopLeftCornerOverlay extends Overlay {
 
       if (!preventOverflow || preventOverflow === 'vertical') {
         if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
-          finalLeft = -left + 'px';
+          finalLeft = `${-left}px`;
         }
       }
 
       if (!preventOverflow || preventOverflow === 'horizontal') {
         if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
-          finalTop = -top + 'px';
+          finalTop = `${-top}px`;
         }
       }
       setOverlayPosition(overlayRoot, finalLeft, finalTop);
     } else {
       resetCssTransform(overlayRoot);
     }
-    overlayRoot.style.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
-    overlayRoot.style.width = (tableWidth === 0 ? tableWidth : tableWidth + 4) + 'px';
+    overlayRoot.style.height = `${tableHeight === 0 ? tableHeight : tableHeight + 4}px`;
+    overlayRoot.style.width = `${tableWidth === 0 ? tableWidth : tableWidth + 4}px`;
   }
 }
 

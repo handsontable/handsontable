@@ -1,8 +1,8 @@
-describe('Core_destroy', function() {
+describe('Core_destroy', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -19,17 +19,17 @@ describe('Core_destroy', function() {
     expect(this.$container.html()).toEqual('');
   });
 
-  it('should remove events from the root element, document element and window', function() {
+  it('should remove events from the root element, document element and window', () => {
     var x = handsontable();
 
     expect(x.eventListeners.length > 0).toBeTruthy();
     destroy();
     expect(x.eventListeners).toBeNull();
-    $(document.documentElement).off('.copypaste'); //remove copypaste.js listeners, which are not removed by destroy (because copypaste is a singleton for whole page)
+    $(document.documentElement).off('.copypaste'); // remove copypaste.js listeners, which are not removed by destroy (because copypaste is a singleton for whole page)
   });
 
-  it('should NOT remove events from document element and window for other Handsontable instances on the page', function() {
-    //test based on Core_selectionSpec.js (should deselect currently selected cell)
+  it('should NOT remove events from document element and window for other Handsontable instances on the page', () => {
+    // test based on Core_selectionSpec.js (should deselect currently selected cell)
     handsontable();
 
     var $tmp = $('<div id="tmp"></div>').appendTo(document.body);

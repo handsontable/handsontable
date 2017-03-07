@@ -2,12 +2,12 @@ import {
   getComparisonFunction,
 } from 'handsontable/helpers/feature';
 
-describe('Feature helper', function() {
+describe('Feature helper', () => {
   //
   // Handsontable.helper.getComparisonFunction
   //
-  describe('getComparisonFunction', function() {
-    it('should correct equals strings', function() {
+  describe('getComparisonFunction', () => {
+    it('should correct equals strings', () => {
       var comparisonFunction = getComparisonFunction();
 
       expect(comparisonFunction('a', 'b')).toBe(-1);

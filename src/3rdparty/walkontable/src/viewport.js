@@ -71,7 +71,7 @@ class Viewport {
       return outerWidth(this.instance.wtTable.wtRootElement);
     }
 
-    if (Handsontable.freezeOverlays) {
+    if (this.wot.getSetting('freezeOverlays')) {
       width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
     } else {
       width = Math.min(this.getContainerFillWidth(), docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
@@ -98,10 +98,10 @@ class Viewport {
     if (stretchSetting === 'none' || !stretchSetting) {
       // if no stretching is used, return the maximum used workspace width
       return Math.max(width, outerWidth(this.instance.wtTable.TABLE));
-    } else {
-      // if stretching is used, return the actual container width, so the columns can fit inside it
-      return width;
     }
+      // if stretching is used, return the actual container width, so the columns can fit inside it
+    return width;
+
   }
 
   /**
@@ -181,7 +181,7 @@ class Viewport {
   getWorkspaceActualWidth() {
     return outerWidth(this.wot.wtTable.TABLE) ||
       outerWidth(this.wot.wtTable.TBODY) ||
-      outerWidth(this.wot.wtTable.THEAD); //IE8 reports 0 as <table> offsetWidth;
+      outerWidth(this.wot.wtTable.THEAD); // IE8 reports 0 as <table> offsetWidth;
   }
 
   /**
@@ -333,9 +333,7 @@ class Viewport {
       height,
       pos,
       this.wot.getSetting('totalRows'),
-      (sourceRow) => {
-        return this.wot.wtTable.getRowHeight(sourceRow);
-      },
+      (sourceRow) => this.wot.wtTable.getRowHeight(sourceRow),
       visible ? null : this.wot.wtSettings.settings.viewportRowCalculatorOverride,
       visible,
       scrollbarHeight
@@ -376,9 +374,7 @@ class Viewport {
       width,
       pos,
       this.wot.getSetting('totalColumns'),
-      (sourceCol) => {
-        return this.wot.wtTable.getColumnWidth(sourceCol);
-      },
+      (sourceCol) => this.wot.wtTable.getColumnWidth(sourceCol),
       visible ? null : this.wot.wtSettings.settings.viewportColumnCalculatorOverride,
       visible,
       this.wot.getSetting('stretchH'),
@@ -445,9 +441,9 @@ class Viewport {
           proposedRowsVisibleCalculator.endRow < this.wot.getSetting('totalRows') - 1)) {
         return false;
 
-      } else {
-        return true;
       }
+      return true;
+
     }
 
     return false;
@@ -473,9 +469,9 @@ class Viewport {
           proposedColumnsVisibleCalculator.endColumn < this.wot.getSetting('totalColumns') - 1)) {
         return false;
 
-      } else {
-        return true;
       }
+      return true;
+
     }
 
     return false;
@@ -485,7 +481,7 @@ class Viewport {
    * Resets values in keys of the hasOversizedColumnHeadersMarked object after updateSettings.
    */
   resetHasOversizedColumnHeadersMarked() {
-    objectEach(this.hasOversizedColumnHeadersMarked, function(value, key, object) {
+    objectEach(this.hasOversizedColumnHeadersMarked, (value, key, object) => {
       object[key] = void 0;
     });
   }

@@ -1,4 +1,4 @@
-import {CellCoords} from 'walkontable';
+import {CellCoords} from './3rdparty/walkontable/src';
 import {KEY_CODES, isMetaKey, isCtrlKey} from './helpers/unicode';
 import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './helpers/dom/event';
 import {getEditor} from './editors';
@@ -61,7 +61,8 @@ function EditorManager(instance, priv, selection) {
   }
 
   function onKeyDown(event) {
-    var ctrlDown, rangeModifier;
+    var ctrlDown,
+      rangeModifier;
 
     if (!instance.isListening()) {
       return;
@@ -92,7 +93,6 @@ function EditorManager(instance, priv, selection) {
     rangeModifier = event.shiftKey ? selection.setRangeEnd : selection.setRangeStart;
 
     switch (event.keyCode) {
-
       case KEY_CODES.A:
         if (!_this.isEditorOpened() && ctrlDown) {
           selection.selectAll();
@@ -182,16 +182,14 @@ function EditorManager(instance, priv, selection) {
           }
           moveSelectionAfterEnter(event.shiftKey);
 
-        } else {
-          if (instance.getSettings().enterBeginsEditing) {
-            _this.openEditor(null, event);
+        } else if (instance.getSettings().enterBeginsEditing) {
+          _this.openEditor(null, event);
 
-            if (activeEditor) {
-              activeEditor.enableFullEditMode();
-            }
-          } else {
-            moveSelectionAfterEnter(event.shiftKey);
+          if (activeEditor) {
+            activeEditor.enableFullEditMode();
           }
+        } else {
+          moveSelectionAfterEnter(event.shiftKey);
         }
         event.preventDefault(); // don't add newline to field
         stopImmediatePropagation(event); // required by HandsontableEditor
@@ -235,13 +233,15 @@ function EditorManager(instance, priv, selection) {
         event.preventDefault(); // don't page down the window
         stopPropagation(event);
         break;
+      default:
+        break;
     }
   }
 
   function init() {
     instance.addHook('afterDocumentKeyDown', onKeyDown);
 
-    eventManager.addEventListener(document.documentElement, 'keydown', function(event) {
+    eventManager.addEventListener(document.documentElement, 'keydown', (event) => {
       if (!destroyed) {
         instance.runHooks('afterDocumentKeyDown', event);
       }
@@ -259,7 +259,7 @@ function EditorManager(instance, priv, selection) {
     }
     instance.view.wt.update('onCellDblClick', onDblClick);
 
-    instance.addHook('afterDestroy', function() {
+    instance.addHook('afterDestroy', () => {
       destroyed = true;
     });
   }
@@ -293,10 +293,16 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    */
   this.prepareEditor = function() {
-    var row, col, prop, td, originalValue, cellProperties, editorClass;
+    var row,
+      col,
+      prop,
+      td,
+      originalValue,
+      cellProperties,
+      editorClass;
 
     if (activeEditor && activeEditor.isWaiting()) {
-      this.closeEditor(false, false, function(dataSaved) {
+      this.closeEditor(false, false, (dataSaved) => {
         if (dataSaved) {
           _this.prepareEditor();
         }
@@ -365,10 +371,9 @@ function EditorManager(instance, priv, selection) {
   this.closeEditor = function(restoreOriginalValue, ctrlDown, callback) {
     if (activeEditor) {
       activeEditor.finishEditing(restoreOriginalValue, ctrlDown, callback);
-    } else {
-      if (callback) {
-        callback(false);
-      }
+
+    } else if (callback) {
+      callback(false);
     }
   };
 

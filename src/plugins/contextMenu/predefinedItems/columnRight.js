@@ -7,10 +7,10 @@ export default function columnRightItem() {
     key: KEY,
     name: 'Insert column on the right',
 
-    callback: function(key, selection) {
+    callback(key, selection) {
       this.alter('insert_col', selection.end.col + 1, 1, 'ContextMenu.columnRight');
     },
-    disabled: function() {
+    disabled() {
       let selected = getValidSelection(this);
 
       if (!selected) {
@@ -25,7 +25,7 @@ export default function columnRightItem() {
 
       return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
     },
-    hidden: function() {
+    hidden() {
       return !this.getSettings().allowInsertColumn;
     }
   };

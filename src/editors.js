@@ -8,7 +8,8 @@ var
   registeredEditorClasses = new WeakMap();
 
 function RegisteredEditor(editorClass) {
-  var Clazz, instances;
+  var Clazz,
+    instances;
 
   instances = {};
   Clazz = editorClass;
@@ -64,7 +65,7 @@ function getEditor(editorName, hotInstance) {
   }
 
   if (!editor) {
-    throw Error('No editor registered under name "' + editorName + '"');
+    throw Error(`No editor registered under name "${editorName}"`);
   }
 
   return editor.getInstance(hotInstance);
@@ -87,7 +88,7 @@ function getEditorConstructor(editorName) {
   }
 
   if (!editor) {
-    throw Error('No editor registered under name "' + editorName + '"');
+    throw Error(`No editor registered under name "${editorName}"`);
   }
 
   return editor.getConstructor();
@@ -98,7 +99,7 @@ function getEditorConstructor(editorName) {
  * @returns {Boolean}
  */
 function hasEditor(editorName) {
-  return registeredEditorNames[editorName] ? true : false;
+  return !!registeredEditorNames[editorName];
 }
 
 /**

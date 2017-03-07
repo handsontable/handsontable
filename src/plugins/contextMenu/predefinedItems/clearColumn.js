@@ -7,14 +7,14 @@ export default function clearColumnItem() {
     key: KEY,
     name: 'Clear column',
 
-    callback: function(key, selection) {
+    callback(key, selection) {
       let column = selection.start.col;
 
       if (this.countRows()) {
         this.populateFromArray(0, column, [[null]], Math.max(selection.start.row, selection.end.row), column, 'ContextMenu.clearColumn');
       }
     },
-    disabled: function() {
+    disabled() {
       let selected = getValidSelection(this);
 
       if (!selected) {

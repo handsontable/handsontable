@@ -1,4 +1,5 @@
 import {arrayEach} from './../../helpers/array';
+import {hasOwnProperty} from './../../helpers/object';
 
 /**
  * Command executor for ContextMenu.
@@ -58,7 +59,7 @@ class CommandExecutor {
     if (typeof command.disabled == 'function' && command.disabled.call(this.hot) === true) {
       return;
     }
-    if (command.hasOwnProperty('submenu')) {
+    if (hasOwnProperty(command, 'submenu')) {
       return;
     }
     let callbacks = [];

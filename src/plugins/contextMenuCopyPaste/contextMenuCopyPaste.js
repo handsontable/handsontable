@@ -1,5 +1,5 @@
-import BasePlugin from './../_base';
 import ZeroClipboard from 'zeroclipboard';
+import BasePlugin from './../_base';
 import {removeClass} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
 import EventManager from './../../eventManager';
@@ -63,7 +63,7 @@ class ContextMenuCopyPaste extends BasePlugin {
       console.error('To be able to use the Copy/Paste feature from the context menu, you need to manually include ZeroClipboard.js file to your website.');
     }
     try {
-      /* jshint -W031 */
+      /* eslint-disable no-new */
       new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
     } catch (exception) {
       if (typeof navigator.mimeTypes['application/x-shockwave-flash'] == 'undefined') {
@@ -115,21 +115,21 @@ class ContextMenuCopyPaste extends BasePlugin {
    */
   onAfterContextMenuDefaultOptions(defaultOptions) {
     defaultOptions.items.unshift({
-        key: 'copy',
-        name: 'Copy',
-        disabled: function() {
-          return this.selection.selectedHeader.corner;
-        },
-      }, {
-        key: 'paste',
-        name: 'Paste',
-        callback: function() {
-          this.copyPaste.triggerPaste();
-        },
-        disabled: function() {
-          return this.selection.selectedHeader.corner;
-        },
+      key: 'copy',
+      name: 'Copy',
+      disabled() {
+        return this.selection.selectedHeader.corner;
       },
+    }, {
+      key: 'paste',
+      name: 'Paste',
+      callback() {
+        this.copyPaste.triggerPaste();
+      },
+      disabled() {
+        return this.selection.selectedHeader.corner;
+      },
+    },
       {name: SEPARATOR}
     );
   }

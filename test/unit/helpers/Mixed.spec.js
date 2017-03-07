@@ -5,99 +5,99 @@ import {
   isEmpty,
 } from 'handsontable/helpers/mixed';
 
-describe('Mixed helper', function() {
-  describe('stringify', function() {
-    it('should convert properly `null` to `string`', function() {
+describe('Mixed helper', () => {
+  describe('stringify', () => {
+    it('should convert properly `null` to `string`', () => {
       var toConvert = null;
 
       expect(stringify(toConvert)).toBe('');
     });
 
-    it('should convert properly `boolean` to `string`', function() {
+    it('should convert properly `boolean` to `string`', () => {
       var toConvert = true;
 
       expect(stringify(toConvert)).toBe('true');
     });
 
-    it('should convert properly `number` to `string`', function() {
+    it('should convert properly `number` to `string`', () => {
       var toConvert = 1;
 
       expect(stringify(toConvert)).toBe('1');
     });
 
-    it('should convert properly `string` to `string`', function() {
+    it('should convert properly `string` to `string`', () => {
       var toConvert = '2';
 
       expect(stringify(toConvert)).toBe('2');
     });
 
-    it('should convert properly `object` to `string`', function() {
+    it('should convert properly `object` to `string`', () => {
       var toConvert = {id: null};
 
       expect(stringify(toConvert)).toBe('[object Object]');
     });
 
-    it('should convert properly `array` to `string`', function() {
+    it('should convert properly `array` to `string`', () => {
       var toConvert = ['One', 'Two', 3];
 
       expect(stringify(toConvert)).toBe('One,Two,3');
     });
 
-    it('should convert properly `RegExp` to `string`', function() {
+    it('should convert properly `RegExp` to `string`', () => {
       var toConvert = /^\d$/;
 
       expect(stringify(toConvert)).toBe('/^\\d$/');
     });
 
-    it('should convert properly `function` to `string`', function() {
+    it('should convert properly `function` to `string`', () => {
       var toConvert = function() {};
 
       expect(stringify(toConvert)).toMatch(/function/i);
     });
 
-    it('should convert properly `undefined` to `string`', function() {
+    it('should convert properly `undefined` to `string`', () => {
       var toConvert;
 
       expect(stringify(toConvert)).toBe('');
     });
   });
 
-  describe('isDefined', function() {
-    it('should return true when a variable is defined', function() {
+  describe('isDefined', () => {
+    it('should return true when a variable is defined', () => {
       var toCheck = [];
 
       expect(isDefined(toCheck)).toBeTruthy();
     });
 
-    it('should return false when a variable is not defined', function() {
+    it('should return false when a variable is not defined', () => {
       var toCheck;
 
       expect(isDefined(toCheck)).toBeFalsy();
     });
   });
 
-  describe('isUndefined', function() {
-    it('should check if a variable is defined', function() {
+  describe('isUndefined', () => {
+    it('should check if a variable is defined', () => {
       var toCheck;
 
       expect(isUndefined(toCheck)).toBeTruthy();
     });
 
-    it('should return false when a variable is not defined', function() {
+    it('should return false when a variable is not defined', () => {
       var toCheck = [];
 
       expect(isUndefined(toCheck)).toBeFalsy();
     });
   });
 
-  describe('isEmpty', function() {
-    it('should check if a variable is null, empty string or undefined', function() {
+  describe('isEmpty', () => {
+    it('should check if a variable is null, empty string or undefined', () => {
       expect(isEmpty(undefined)).toBeTruthy();
       expect(isEmpty('')).toBeTruthy();
       expect(isEmpty(null)).toBeTruthy();
     });
 
-    it('should return false when a variable isn\'t null, empty string or undefined', function() {
+    it('should return false when a variable isn\'t null, empty string or undefined', () => {
       expect(isEmpty(NaN)).toBeFalsy();
       expect(isEmpty(0)).toBeFalsy();
       expect(isEmpty('a')).toBeFalsy();

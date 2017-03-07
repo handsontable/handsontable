@@ -28,9 +28,9 @@ const defaultCompareFunction = function(a, b) {
   } else if (firstValue < secondValue) {
     return -1;
 
-  } else {
-    return 1;
   }
+  return 1;
+
 };
 
 /**

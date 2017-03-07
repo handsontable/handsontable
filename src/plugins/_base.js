@@ -83,7 +83,9 @@ class BasePlugin {
    * @param {Function} callback
    */
   addHook(name, callback) {
-    const hooks = privatePool.get(this).hooks[name] = (privatePool.get(this).hooks[name] || []);
+    privatePool.get(this).hooks[name] = (privatePool.get(this).hooks[name] || []);
+
+    const hooks = privatePool.get(this).hooks[name];
 
     this.hot.addHook(name, callback);
     hooks.push(callback);

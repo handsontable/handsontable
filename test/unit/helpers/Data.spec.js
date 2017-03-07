@@ -3,12 +3,12 @@ import {
   spreadsheetColumnIndex,
 } from 'handsontable/helpers/data';
 
-describe('Data helper', function() {
+describe('Data helper', () => {
   //
   // Handsontable.helper.spreadsheetColumnLabel
   //
-  describe('spreadsheetColumnLabel', function() {
-    it('should return valid column names based on provided column index', function() {
+  describe('spreadsheetColumnLabel', () => {
+    it('should return valid column names based on provided column index', () => {
       expect(spreadsheetColumnLabel()).toBe('');
       expect(spreadsheetColumnLabel(0)).toBe('A');
       expect(spreadsheetColumnLabel(11)).toBe('L');
@@ -20,8 +20,8 @@ describe('Data helper', function() {
   //
   // Handsontable.helper.spreadsheetColumnIndex
   //
-  describe('spreadsheetColumnIndex', function() {
-    it('should return valid column indexes based on provided column name', function() {
+  describe('spreadsheetColumnIndex', () => {
+    it('should return valid column indexes based on provided column name', () => {
       expect(spreadsheetColumnIndex('')).toBe(-1);
       expect(spreadsheetColumnIndex('A')).toBe(0);
       expect(spreadsheetColumnIndex('L')).toBe(11);

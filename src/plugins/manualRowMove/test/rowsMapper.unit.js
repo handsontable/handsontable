@@ -1,29 +1,29 @@
 import RowsMapper from 'handsontable/plugins/manualRowMove/rowsMapper';
 
-describe('manualRowMove', function() {
-  describe('rowsMapper', function() {
-    it('should set manualRowMove plugin while constructing', function() {
+describe('manualRowMove', () => {
+  describe('rowsMapper', () => {
+    it('should set manualRowMove plugin while constructing', () => {
       var manualRowMoveMock = {};
       var mapper = new RowsMapper(manualRowMoveMock);
 
       expect(mapper.manualRowMove).toBe(manualRowMoveMock);
     });
 
-    it('should be mixed with arrayMapper object', function() {
+    it('should be mixed with arrayMapper object', () => {
       expect(RowsMapper.MIXINS).toEqual(['arrayMapper']);
     });
 
-    it('should destroy array after calling destroy method', function() {
+    it('should destroy array after calling destroy method', () => {
       var mapper = new RowsMapper();
 
       expect(mapper._arrayMap).toEqual([]);
 
       mapper.destroy();
 
-      expect(mapper._arrayMap).toBe(null);;
+      expect(mapper._arrayMap).toBe(null); ;
     });
 
-    it('should create map with pairs index->value', function() {
+    it('should create map with pairs index->value', () => {
       var mapper = new RowsMapper();
       mapper.createMap(6);
 
@@ -35,7 +35,7 @@ describe('manualRowMove', function() {
       expect(mapper._arrayMap[5]).toBe(5);
     });
 
-    it('should change order after move action', function() {
+    it('should change order after move action', () => {
       var mapper = new RowsMapper();
       mapper.createMap(6);
 
@@ -50,7 +50,7 @@ describe('manualRowMove', function() {
       expect(mapper._arrayMap[5]).toBe(5);
     });
 
-    it('should clean from null values', function() {
+    it('should clean from null values', () => {
       var mapper = new RowsMapper();
       mapper.createMap(6);
 

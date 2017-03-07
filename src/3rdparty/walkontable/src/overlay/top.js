@@ -30,7 +30,7 @@ class TopOverlay extends Overlay {
    * @returns {Boolean}
    */
   shouldBeRendered() {
-    return this.wot.getSetting('fixedRowsTop') || this.wot.getSetting('columnHeaders').length ? true : false;
+    return !!(this.wot.getSetting('fixedRowsTop') || this.wot.getSetting('columnHeaders').length);
   }
 
   /**
@@ -61,7 +61,7 @@ class TopOverlay extends Overlay {
         finalTop = 0;
       }
       headerPosition = finalTop;
-      finalTop = finalTop + 'px';
+      finalTop += 'px';
 
       setOverlayPosition(overlayRoot, finalLeft, finalTop);
 
@@ -151,7 +151,7 @@ class TopOverlay extends Overlay {
 
       width = Math.min(width, innerWidth(this.wot.wtTable.wtRootElement));
 
-      overlayRootStyle.width = width + 'px';
+      overlayRootStyle.width = `${width}px`;
 
     } else {
       overlayRootStyle.width = '';
@@ -160,7 +160,7 @@ class TopOverlay extends Overlay {
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
     tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    overlayRootStyle.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
+    overlayRootStyle.height = `${tableHeight === 0 ? tableHeight : tableHeight + 4}px`;
   }
 
   /**
@@ -175,7 +175,7 @@ class TopOverlay extends Overlay {
     if (scrollbarWidth === 0) {
       scrollbarWidth = 30;
     }
-    this.clone.wtTable.holder.style.height = parseInt(this.clone.wtTable.holder.parentNode.style.height, 10) + scrollbarWidth + 'px';
+    this.clone.wtTable.holder.style.height = `${parseInt(this.clone.wtTable.holder.parentNode.style.height, 10) + scrollbarWidth}px`;
   }
 
   /**
@@ -188,7 +188,7 @@ class TopOverlay extends Overlay {
       this.adjustElementsSize();
     }
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-      this.spreader.style.top = this.wot.wtViewport.rowsRenderCalculator.startPosition + 'px';
+      this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
     } else if (total === 0) {
       // can happen if there are 0 rows
@@ -209,7 +209,7 @@ class TopOverlay extends Overlay {
    */
   syncOverlayOffset() {
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
-      this.clone.wtTable.spreader.style.left = this.wot.wtViewport.columnsRenderCalculator.startPosition + 'px';
+      this.clone.wtTable.spreader.style.left = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
     } else {
       this.clone.wtTable.spreader.style.left = '';
@@ -259,9 +259,9 @@ class TopOverlay extends Overlay {
     if (this.mainTableScrollableElement === window) {
       return this.wot.wtTable.holderOffset.top;
 
-    } else {
-      return 0;
     }
+    return 0;
+
   }
 
   /**

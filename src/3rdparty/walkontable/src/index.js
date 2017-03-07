@@ -40,6 +40,7 @@ export {
 
   Border,
   Walkontable as default,
+  Walkontable as Core,
   Event,
   Overlays,
   Scroll,

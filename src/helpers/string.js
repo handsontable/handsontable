@@ -101,7 +101,7 @@ export function randomString() {
  * @returns {Boolean}
  */
 export function isPercentValue(value) {
-  return /^([0-9][0-9]?\%$)|(^100\%$)/.test(value);
+  return /^([0-9][0-9]?%$)|(^100%$)/.test(value);
 }
 
 /**
@@ -113,7 +113,7 @@ export function isPercentValue(value) {
  * @returns {String}
  */
 export function substitute(template, variables = {}) {
-  return (template + '').replace(/(?:\\)?\[([^\[\]]+)]/g, function(match, name) {
+  return (`${template}`).replace(/(?:\\)?\[([^[\]]+)]/g, (match, name) => {
     if (match.charAt(0) === '\\') {
       return match.substr(1, match.length - 1);
     }
@@ -132,7 +132,7 @@ export function substitute(template, variables = {}) {
  * @returns {String}
  */
 export function padStart(string, maxLength, fillString = ' ') {
-  string = string + '';
+  string += '';
 
   if (string.length >= maxLength) {
     return string;
@@ -156,7 +156,7 @@ export function padStart(string, maxLength, fillString = ' ') {
   return truncatedString + string;
 };
 
-const STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|\/][^>]*>/gi;
+const STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|/][^>]*>/gi;
 
 /**
  * Strip any HTML tag from the string.
@@ -165,7 +165,7 @@ const STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|\/][^>]*>/gi;
  * @return {String}
  */
 export function stripTags(string) {
-  string = string + '';
+  string += '';
 
   return string.replace(STRIP_TAGS_REGEX, '');
 }

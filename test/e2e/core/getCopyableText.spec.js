@@ -1,8 +1,8 @@
-describe('Core.getCopyableText', function() {
+describe('Core.getCopyableText', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('Core.getCopyableText', function() {
     }
   });
 
-  it('should return copyable string when `copyable` option is enabled', function() {
+  it('should return copyable string when `copyable` option is enabled', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       copyable: true
@@ -22,7 +22,7 @@ describe('Core.getCopyableText', function() {
     expect(getCopyableText(0, 0, 1, 2)).toBe('A1\tB1\tC1\nA2\tB2\tC2\n');
   });
 
-  it('should return empty string as copyable data when `copyable` option is disabled', function() {
+  it('should return empty string as copyable data when `copyable` option is disabled', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       copyable: false

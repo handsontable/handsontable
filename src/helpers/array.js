@@ -225,6 +225,7 @@ export function arrayUnique(array) {
  */
 
 export function arrayIncludes(array, searchElement, fromIndex) {
+  /* eslint-disable no-bitwise */
   if (array == null) {
     throw new TypeError('"array" is null or not defined');
   }

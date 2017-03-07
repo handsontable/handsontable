@@ -1,8 +1,8 @@
-describe('PasswordEditor', function() {
+describe('PasswordEditor', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '" style="width: 300px; height: 300px;"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}" style="width: 300px; height: 300px;"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('PasswordEditor', function() {
     }
   });
 
-  it('should display editor as password field', function() {
+  it('should display editor as password field', () => {
     handsontable({
       data: [
         ['Joe'],
@@ -37,7 +37,7 @@ describe('PasswordEditor', function() {
 
   });
 
-  it('should set passwordEditor using \'password\' alias', function() {
+  it('should set passwordEditor using \'password\' alias', () => {
     handsontable({
       data: [
         ['Joe'],
@@ -62,7 +62,7 @@ describe('PasswordEditor', function() {
 
   });
 
-  it('should set passwordEditor using column type \'password\' ', function() {
+  it('should set passwordEditor using column type \'password\' ', () => {
     handsontable({
       data: [
         ['Joe'],
@@ -88,7 +88,7 @@ describe('PasswordEditor', function() {
 
   });
 
-  it('should save values typed in passwordEditor', function() {
+  it('should save values typed in passwordEditor', () => {
     handsontable({
       data: [
         ['Joe'],
@@ -117,7 +117,7 @@ describe('PasswordEditor', function() {
 
     editor.val('Edgar');
 
-    selectCell(1, 0); //closes editor and saves current value
+    selectCell(1, 0); // closes editor and saves current value
 
     expect(editorHolder.is(':visible')).toBe(false);
 

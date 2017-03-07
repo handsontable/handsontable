@@ -1,9 +1,9 @@
-describe('settings', function() {
-  describe('colWidths', function() {
+describe('settings', () => {
+  describe('colWidths', () => {
     var id = 'testContainer';
 
     beforeEach(function() {
-      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
     afterEach(function() {
@@ -13,7 +13,7 @@ describe('settings', function() {
       }
     });
 
-    describe('defined in constructor', function() {
+    describe('defined in constructor', () => {
       it('should consider colWidths provided as number', function() {
         handsontable({
           colWidths: 123
@@ -48,7 +48,7 @@ describe('settings', function() {
 
       it('should consider colWidth provided as function that returns number', function() {
         handsontable({
-          colWidths: function(index) {
+          colWidths(index) {
             if (index === 0) {
               return 123;
             }
@@ -61,7 +61,7 @@ describe('settings', function() {
 
       it('should consider colWidth provided as function that returns string', function() {
         handsontable({
-          colWidths: function(index) {
+          colWidths(index) {
             if (index === 0) {
               return '123';
             }
@@ -73,7 +73,7 @@ describe('settings', function() {
       });
     });
 
-    describe('defined in updateSettings', function() {
+    describe('defined in updateSettings', () => {
       it('should consider colWidths provided as number', function() {
         handsontable();
         updateSettings({
@@ -113,7 +113,7 @@ describe('settings', function() {
       it('should consider colWidth provided as function that returns number', function() {
         handsontable();
         updateSettings({
-          colWidths: function(index) {
+          colWidths(index) {
             if (index === 0) {
               return 123;
             }
@@ -127,7 +127,7 @@ describe('settings', function() {
       it('should consider colWidth provided as function that returns string', function() {
         handsontable();
         updateSettings({
-          colWidths: function(index) {
+          colWidths(index) {
             if (index === 0) {
               return '123';
             }
@@ -139,7 +139,7 @@ describe('settings', function() {
       });
     });
 
-    describe('defined in columns', function() {
+    describe('defined in columns', () => {
       it('should consider width provided as number', function() {
         handsontable({
           columns: [
@@ -192,7 +192,7 @@ describe('settings', function() {
         handsontable({
           columns: [
             {
-              width: function(index) {
+              width(index) {
                 if (index === 0) {
                   return 123;
                 }
@@ -209,7 +209,7 @@ describe('settings', function() {
         handsontable({
           columns: [
             {
-              width: function(index) {
+              width(index) {
                 if (index === 0) {
                   return '123';
                 }
@@ -223,10 +223,10 @@ describe('settings', function() {
       });
     });
 
-    describe('defined in cells', function() {
+    describe('defined in cells', () => {
       it('should consider width provided as number', function() {
         handsontable({
-          cells: function(row, col) {
+          cells(row, col) {
             if (col === 0) {
               this.width = 123;
             }
@@ -238,7 +238,7 @@ describe('settings', function() {
 
       it('should consider width provided as string', function() {
         handsontable({
-          cells: function(row, col) {
+          cells(row, col) {
             if (col === 0) {
               this.width = '123';
             }

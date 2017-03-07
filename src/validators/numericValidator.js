@@ -17,7 +17,7 @@ function NumericValidator(value, callback) {
     callback(false);
 
   } else {
-    callback(/^-?\d*(\.|\,)?\d*$/.test(value));
+    callback(/^-?\d*(\.|,)?\d*$/.test(value));
   }
 };
 

@@ -29,7 +29,7 @@ function TimeValidator(value, callback) {
   let twoDigitValue = /^\d{1,2}$/.test(value);
 
   if (twoDigitValue) {
-    value = value + ':00';
+    value += ':00';
   }
 
   let date = moment(value, STRICT_FORMATS, true).isValid() ? moment(value) : moment(value, timeFormat);

@@ -10,12 +10,12 @@ import {
   isFunction,
 } from 'handsontable/helpers/function';
 
-describe('Function helper', function() {
+describe('Function helper', () => {
   //
   // Handsontable.helper.proxy
   //
-  describe('proxy', function() {
-    it('should returns new function with corrected binded context', function() {
+  describe('proxy', () => {
+    it('should returns new function with corrected binded context', () => {
       var proxied = function(context) {
         return proxy(function() {
           return this;
@@ -33,8 +33,8 @@ describe('Function helper', function() {
   //
   // Handsontable.helper.throttle
   //
-  describe('throttle', function() {
-    it('should returns new function with applied throttling functionality', function(done) {
+  describe('throttle', () => {
+    it('should returns new function with applied throttling functionality', (done) => {
       var spy = jasmine.createSpy();
       var throttled = throttle(spy, 200);
 
@@ -46,14 +46,14 @@ describe('Function helper', function() {
 
       expect(spy.calls.count()).toBe(1);
 
-      setTimeout(function() {
+      setTimeout(() => {
         throttled();
         throttled();
 
         expect(spy.calls.count()).toBe(1);
       }, 100);
 
-      setTimeout(function() {
+      setTimeout(() => {
         throttled();
         throttled();
         throttled();
@@ -63,7 +63,7 @@ describe('Function helper', function() {
 
       }, 400);
 
-      setTimeout(function() {
+      setTimeout(() => {
         expect(spy.calls.count()).toBe(4);
         done();
       }, 900);
@@ -73,8 +73,8 @@ describe('Function helper', function() {
   //
   // Handsontable.helper.throttleAfterHits
   //
-  describe('throttleAfterHits', function() {
-    it('should returns new function with applied throttling functionality', function(done) {
+  describe('throttleAfterHits', () => {
+    it('should returns new function with applied throttling functionality', (done) => {
       var spy = jasmine.createSpy();
       var throttled = throttleAfterHits(spy, 200, 5);
 
@@ -86,14 +86,14 @@ describe('Function helper', function() {
 
       expect(spy.calls.count()).toBe(5);
 
-      setTimeout(function() {
+      setTimeout(() => {
         throttled();
         throttled();
 
         expect(spy.calls.count()).toBe(6);
       }, 100);
 
-      setTimeout(function() {
+      setTimeout(() => {
         throttled();
         throttled();
         throttled();
@@ -102,7 +102,7 @@ describe('Function helper', function() {
         expect(spy.calls.count()).toBe(8);
       }, 400);
 
-      setTimeout(function() {
+      setTimeout(() => {
         expect(spy.calls.count()).toBe(9);
         done();
       }, 900);
@@ -112,8 +112,8 @@ describe('Function helper', function() {
   //
   // Handsontable.helper.debounce
   //
-  describe('debounce', function() {
-    it('should returns new function with applied debouncing functionality', function(done) {
+  describe('debounce', () => {
+    it('should returns new function with applied debouncing functionality', (done) => {
       var spy = jasmine.createSpy();
       var debounced = debounce(spy, 200);
 
@@ -125,14 +125,14 @@ describe('Function helper', function() {
 
       expect(spy.calls.count()).toBe(0);
 
-      setTimeout(function() {
+      setTimeout(() => {
         debounced();
         debounced();
 
         expect(spy.calls.count()).toBe(0);
       }, 100);
 
-      setTimeout(function() {
+      setTimeout(() => {
         debounced();
         debounced();
         debounced();
@@ -141,7 +141,7 @@ describe('Function helper', function() {
         expect(spy.calls.count()).toBe(1);
       }, 400);
 
-      setTimeout(function() {
+      setTimeout(() => {
         expect(spy.calls.count()).toBe(2);
         done();
       }, 900);
@@ -151,8 +151,8 @@ describe('Function helper', function() {
   //
   // Handsontable.helper.pipe
   //
-  describe('pipe', function() {
-    it('should returns new function with piped all passed functions', function() {
+  describe('pipe', () => {
+    it('should returns new function with piped all passed functions', () => {
       var spy1 = jasmine.createSpyObj('spy', ['test1', 'test2', 'test3', 'test4']);
 
       spy1.test1.and.callFake((a) => a + 1);
@@ -175,8 +175,8 @@ describe('Function helper', function() {
   //
   // Handsontable.helper.partial
   //
-  describe('partial', function() {
-    it('should returns new function with cached arguments', function() {
+  describe('partial', () => {
+    it('should returns new function with cached arguments', () => {
       var spy1 = jasmine.createSpyObj('spy', ['test1', 'test2', 'test3', 'test4']);
 
       spy1.test1.and.callFake((a, b, c) => (a + b) + c);
@@ -198,8 +198,8 @@ describe('Function helper', function() {
   //
   // Handsontable.helper.curry
   //
-  describe('curry', function() {
-    it('should returns new function with cached arguments (collecting arguments from the left to the right)', function() {
+  describe('curry', () => {
+    it('should returns new function with cached arguments (collecting arguments from the left to the right)', () => {
       var fn = (a, b, c) => (a + b) + c;
 
       var curried = curry(fn);
@@ -213,8 +213,8 @@ describe('Function helper', function() {
   //
   // Handsontable.helper.curryRight
   //
-  describe('curryRight', function() {
-    it('should returns new function with cached arguments (collecting arguments from the right to the left)', function() {
+  describe('curryRight', () => {
+    it('should returns new function with cached arguments (collecting arguments from the right to the left)', () => {
       var fn = (a, b, c) => (a + b) + c;
 
       var curried = curryRight(fn);
@@ -229,11 +229,11 @@ describe('Function helper', function() {
   //
   // Handsontable.helper.isFunction
   //
-  describe('isFunction', function() {
-    it('should correctly detect function', function() {
+  describe('isFunction', () => {
+    it('should correctly detect function', () => {
       var toCheck = [
         function() {},
-        {id: function() {}},
+        {id() {}},
         1,
         'text',
         /^\d+$/,
@@ -245,7 +245,7 @@ describe('Function helper', function() {
       expect(isFunction(toCheck[0])).toBeTruthy();
       expect(isFunction(toCheck[1].id)).toBeTruthy();
       expect(isFunction(namedFunc)).toBeTruthy();
-      expect(isFunction(function() {})).toBeTruthy();
+      expect(isFunction(() => {})).toBeTruthy();
 
       expect(isFunction(toCheck)).toBeFalsy();
       expect(isFunction(toCheck[1])).toBeFalsy();

@@ -23,7 +23,9 @@ function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
   let hash = '';
 
-  rangeEach(hashLength - 1, () => hash += hashSymbol);
+  rangeEach(hashLength - 1, () => {
+    hash += hashSymbol;
+  });
   fastInnerHTML(TD, hash);
 }
 

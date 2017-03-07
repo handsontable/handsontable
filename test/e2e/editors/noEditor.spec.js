@@ -1,8 +1,8 @@
-describe('noEditor', function() {
+describe('noEditor', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '" style="width: 300px; height: 200px; overflow: auto"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('noEditor', function() {
     }
   });
 
-  it('shouldn\'t begin editing when enterBeginsEditing equals true', function() {
+  it('shouldn\'t begin editing when enterBeginsEditing equals true', () => {
     var
       selection;
 
@@ -28,7 +28,7 @@ describe('noEditor', function() {
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('shouldn\'t move down after editing', function() {
+  it('shouldn\'t move down after editing', () => {
     var
       selection;
 
@@ -43,7 +43,7 @@ describe('noEditor', function() {
     expect(selection).toEqual([2, 2, 2, 2]);
   });
 
-  it('shouldn\'t move down when enterBeginsEditing equals false', function() {
+  it('shouldn\'t move down when enterBeginsEditing equals false', () => {
     var
       selection;
 
@@ -59,7 +59,7 @@ describe('noEditor', function() {
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('shouldn\'t render any value in editor', function() {
+  it('shouldn\'t render any value in editor', () => {
     handsontable({
       editor: false
     });
@@ -70,7 +70,7 @@ describe('noEditor', function() {
     expect(keyProxy().length).toEqual(0);
   });
 
-  it('shouldn\'t open editor after hitting F2', function() {
+  it('shouldn\'t open editor after hitting F2', () => {
     handsontable({
       editor: false
     });
@@ -83,7 +83,7 @@ describe('noEditor', function() {
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('shouldn\'t open editor after hitting CapsLock', function() {
+  it('shouldn\'t open editor after hitting CapsLock', () => {
     handsontable({
       editor: false
     });
@@ -96,31 +96,29 @@ describe('noEditor', function() {
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('shouldn\'t open editor after double clicking on a cell', function(done) {
-    var
-      hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
-        editor: false
-      }),
-      cell, clicks = 0;
+  it('shouldn\'t open editor after double clicking on a cell', (done) => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      editor: false
+    });
 
-    cell = $(getCell(0, 0));
-    clicks = 0;
+    const cell = $(getCell(0, 0));
+    let clicks = 0;
     window.scrollTo(0, cell.offset().top);
 
-    setTimeout(function() {
+    setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
       clicks++;
     }, 0);
 
-    setTimeout(function() {
+    setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
       clicks++;
     }, 100);
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(clicks).toBe(2);
       expect(hot.getActiveEditor()).toBe(undefined);
       expect(isEditorVisible()).toBe(false);
@@ -156,7 +154,7 @@ describe('noEditor', function() {
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should not not open editor after hitting ALT', function() {
+  it('should not not open editor after hitting ALT', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       editor: false

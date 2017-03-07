@@ -1,11 +1,11 @@
-import {CellCoords} from 'walkontable';
+import {CellCoords} from './../3rdparty/walkontable/src';
 import {registerEditor} from './../editors';
 import {stringify} from './../helpers/mixed';
 
 export const EditorState = {
-  VIRGIN: 'STATE_VIRGIN', //before editing
+  VIRGIN: 'STATE_VIRGIN', // before editing
   EDITING: 'STATE_EDITING',
-  WAITING: 'STATE_WAITING', //waiting for async validation
+  WAITING: 'STATE_WAITING', // waiting for async validation
   FINISHED: 'STATE_FINISHED'
 };
 
@@ -58,7 +58,7 @@ BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
   if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
     document.activeElement.blur();
 
-  } else if (invalidActiveElement) { //IE
+  } else if (invalidActiveElement) { // IE
     document.body.focus();
   }
 
@@ -85,7 +85,8 @@ BaseEditor.prototype.extend = function() {
 };
 
 BaseEditor.prototype.saveValue = function(value, ctrlDown) {
-  let selection, tmp;
+  let selection;
+  let tmp;
 
   // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
   if (ctrlDown) {
@@ -151,7 +152,7 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
   }
 
   if (this.state == EditorState.VIRGIN) {
-    this.instance._registerTimeout(setTimeout(function() {
+    this.instance._registerTimeout(setTimeout(() => {
       _this._fireCallbacks(true);
     }, 0));
 
@@ -183,7 +184,7 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
     this.saveValue(val, ctrlDown);
 
     if (this.instance.getCellValidator(this.cellProperties)) {
-      this.instance.addHookOnce('postAfterValidate', function(result) {
+      this.instance.addHookOnce('postAfterValidate', (result) => {
         _this.state = EditorState.FINISHED;
         _this.discardEditor(result);
       });
@@ -260,10 +261,8 @@ BaseEditor.prototype.checkEditorSection = function() {
     } else {
       section = 'bottom';
     }
-  } else {
-    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
-      section = 'left';
-    }
+  } else if (this.col < this.instance.getSettings().fixedColumnsLeft) {
+    section = 'left';
   }
 
   return section;

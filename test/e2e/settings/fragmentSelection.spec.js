@@ -1,9 +1,9 @@
-describe('settings', function() {
-  describe('fragmentSelection', function() {
+describe('settings', () => {
+  describe('fragmentSelection', () => {
     var id = 'testContainer';
 
     beforeEach(function() {
-      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
     afterEach(function() {
@@ -18,15 +18,16 @@ describe('settings', function() {
      * @returns {*}
      */
     function getSelected() {
+      /* eslint-disable no-else-return */
       var text = '';
 
-      //IE8
+      // IE8
       if (window.getSelection && window.getSelection().toString() && $(window.getSelection()).attr('type') != 'Caret') {
         text = window.getSelection();
 
         return text.toString();
 
-      } else { //standards
+      } else { // standards
         var selection = document.selection && document.selection.createRange();
 
         if (!(typeof selection === 'undefined') && selection.text && selection.text.toString()) {
@@ -46,9 +47,11 @@ describe('settings', function() {
      * @param siblings
      */
     function selectElementText(fromEl, siblings) {
-      var doc = window.document, sel, range;
+      var doc = window.document;
+      var sel;
+      var range;
 
-      if (window.getSelection && doc.createRange) { //standards
+      if (window.getSelection && doc.createRange) { // standards
         sel = window.getSelection();
         range = doc.createRange();
         range.setStartBefore(fromEl, 0);
@@ -59,7 +62,7 @@ describe('settings', function() {
         range.setEndAfter(fromEl, 0);
         sel.removeAllRanges();
         sel.addRange(range);
-      } else if (doc.body.createTextRange) { //IE8
+      } else if (doc.body.createTextRange) { // IE8
         range = doc.body.createTextRange();
         range.moveToElementText(fromEl);
         range.moveEnd('word', siblings + 1);
@@ -67,7 +70,7 @@ describe('settings', function() {
       }
     }
 
-    describe('constructor', function() {
+    describe('constructor', () => {
       it('should disallow fragmentSelection when set to false', function() {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
@@ -93,7 +96,7 @@ describe('settings', function() {
         mouseUp(this.$container.find('tr:eq(0) td:eq(3)'));
 
         var sel = getSelected();
-        sel = sel.replace(/\s/g, ''); //tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
+        sel = sel.replace(/\s/g, ''); // tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
         expect(sel).toEqual('B1C1D1');
       });
 
@@ -158,7 +161,7 @@ describe('settings', function() {
       });
     });
 
-    describe('dynamic', function() {
+    describe('dynamic', () => {
       it('should disallow fragmentSelection when set to false', function() {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
@@ -186,7 +189,7 @@ describe('settings', function() {
         mouseUp(this.$container.find('tr:eq(0) td:eq(3)'));
 
         var sel = getSelected();
-        sel = sel.replace(/\s/g, ''); //tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
+        sel = sel.replace(/\s/g, ''); // tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
         expect(sel).toEqual('B1C1D1');
       });
     });

@@ -259,7 +259,7 @@ class Table {
       this.columnFilter = new ColumnFilter(startColumn, this.wot.getSetting('totalColumns'), rowHeaders);
 
       this.alignOverlaysWithTrimmingContainer();
-      this._doDraw(); //creates calculator after draw
+      this._doDraw(); // creates calculator after draw
     }
     this.refreshSelections(fastDraw);
 
@@ -295,7 +295,7 @@ class Table {
   }
 
   removeClassFromCells(className) {
-    const nodes = this.TABLE.querySelectorAll('.' + className);
+    const nodes = this.TABLE.querySelectorAll(`.${className}`);
 
     for (let i = 0, len = nodes.length; i < len; i++) {
       removeClass(nodes[i], className);
@@ -408,12 +408,11 @@ class Table {
         row -= CONTAINER.childNodes.length;
       }
 
+    } else if (CONTAINER === this.THEAD) {
+      row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
+
     } else {
-      if (CONTAINER === this.THEAD) {
-        row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
-      } else {
-        row = this.rowFilter.renderedToSource(row);
-      }
+      row = this.rowFilter.renderedToSource(row);
     }
 
     if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, TD) || overlayContainsElement(Overlay.CLONE_LEFT, TD)) {

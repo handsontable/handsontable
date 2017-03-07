@@ -1,15 +1,15 @@
 import {isLeftClick, isRightClick} from 'handsontable/helpers/dom/event';
 
-describe('DomEvent helper', function() {
+describe('DomEvent helper', () => {
   //
   // Handsontable.dom.isLeftClick
   //
-  describe('isLeftClick', function() {
-    it('should return true for valid mouse events', function() {
+  describe('isLeftClick', () => {
+    it('should return true for valid mouse events', () => {
       expect(isLeftClick({button: 0})).toBe(true);
     });
 
-    it('should return false for invalid mouse events', function() {
+    it('should return false for invalid mouse events', () => {
       expect(isLeftClick({button: '0'})).toBe(false);
       expect(isLeftClick({button: 1})).toBe(false);
       expect(isLeftClick({button: 2})).toBe(false);
@@ -22,12 +22,12 @@ describe('DomEvent helper', function() {
   //
   // Handsontable.dom.isRightClick
   //
-  describe('isRightClick', function() {
-    it('should return true for valid mouse events', function() {
+  describe('isRightClick', () => {
+    it('should return true for valid mouse events', () => {
       expect(isRightClick({button: 2})).toBe(true);
     });
 
-    it('should return false for invalid mouse events', function() {
+    it('should return false for invalid mouse events', () => {
       expect(isRightClick({button: '0'})).toBe(false);
       expect(isRightClick({button: 1})).toBe(false);
       expect(isRightClick({button: -2})).toBe(false);

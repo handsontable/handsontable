@@ -1,4 +1,5 @@
 import {fastInnerText} from './../../../helpers/dom/element';
+import {hasOwnProperty} from './../../../helpers/object';
 
 /**
  * @class Settings
@@ -24,24 +25,25 @@ class Settings {
       stretchH: 'none', // values: all, last, none
       currentRowClassName: null,
       currentColumnClassName: null,
-      preventOverflow: function() {
+      preventOverflow() {
         return false;
       },
 
-      //data source
+      // data source
       data: void 0,
+      freezeOverlays: false,
       fixedColumnsLeft: 0,
       fixedRowsTop: 0,
       fixedRowsBottom: 0,
       minSpareRows: 0,
 
       // this must be array of functions: [function (row, TH) {}]
-      rowHeaders: function() {
+      rowHeaders() {
         return [];
       },
 
       // this must be array of functions: [function (column, TH) {}]
-      columnHeaders: function() {
+      columnHeaders() {
         return [];
       },
       totalRows: void 0,
@@ -53,11 +55,11 @@ class Settings {
       },
 
       // columnWidth: 50,
-      columnWidth: function(col) {
-        return; //return undefined means use default size for the rendered cell content
+      columnWidth(col) {
+         // return undefined means use default size for the rendered cell content
       },
-      rowHeight: function(row) {
-        return; //return undefined means use default size for the rendered cell content
+      rowHeight(row) {
+         // return undefined means use default size for the rendered cell content
       },
       defaultRowHeight: 23,
       defaultColumnWidth: 50,
@@ -66,7 +68,7 @@ class Settings {
       viewportRowCalculatorOverride: null,
       viewportColumnCalculatorOverride: null,
 
-      //callbacks
+      // callbacks
       onCellMouseDown: null,
       onCellMouseOver: null,
       onCellMouseUp: null,
@@ -85,7 +87,7 @@ class Settings {
       onBeforeStretchingColumnWidth: (width) => width,
       onModifyRowHeaderWidth: null,
 
-      //constants
+      // constants
       scrollbarWidth: 10,
       scrollbarHeight: 10,
 
@@ -100,12 +102,12 @@ class Settings {
     this.settings = {};
 
     for (let i in this.defaults) {
-      if (this.defaults.hasOwnProperty(i)) {
+      if (hasOwnProperty(this.defaults, i)) {
         if (settings[i] !== void 0) {
           this.settings[i] = settings[i];
 
         } else if (this.defaults[i] === void 0) {
-          throw new Error('A required setting "' + i + '" was not provided');
+          throw new Error(`A required setting "${i}" was not provided`);
 
         } else {
           this.settings[i] = this.defaults[i];
@@ -122,13 +124,13 @@ class Settings {
    * @returns {Walkontable}
    */
   update(settings, value) {
-    if (value === void 0) { //settings is object
+    if (value === void 0) { // settings is object
       for (let i in settings) {
-        if (settings.hasOwnProperty(i)) {
+        if (hasOwnProperty(settings, i)) {
           this.settings[i] = settings[i];
         }
       }
-    } else { //if value is defined then settings is the key
+    } else { // if value is defined then settings is the key
       this.settings[settings] = value;
     }
     return this.wot;
@@ -153,9 +155,9 @@ class Settings {
       // perhaps this can be removed, it is only used in tests
       return this.settings[key][param1];
 
-    } else {
-      return this.settings[key];
     }
+
+    return this.settings[key];
   }
 
   /**

@@ -8,10 +8,6 @@ const CSS_CLASSNAME = 'ht__manualColumnMove--backlight';
  * @util
  */
 class BacklightUI extends BaseUI {
-  constructor(hotInstance) {
-    super(hotInstance);
-  }
-
   /**
    * Custom className on build process.
    */

@@ -6,10 +6,10 @@ export default function columnLeftItem() {
   return {
     key: KEY,
     name: 'Insert column on the left',
-    callback: function(key, selection) {
+    callback(key, selection) {
       this.alter('insert_col', selection.start.col, 1, 'ContextMenu.columnLeft');
     },
-    disabled: function() {
+    disabled() {
       let selected = getValidSelection(this);
 
       if (!selected) {
@@ -24,7 +24,7 @@ export default function columnLeftItem() {
 
       return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
     },
-    hidden: function() {
+    hidden() {
       return !this.getSettings().allowInsertColumn;
     }
   };

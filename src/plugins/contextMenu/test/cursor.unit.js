@@ -1,8 +1,8 @@
 import Cursor from 'handsontable/plugins/contextMenu/cursor';
 
-describe('ContextMenu', function() {
-  describe('Cursor', function() {
-    it('should initialize internal properties on construct (object literal)', function() {
+describe('ContextMenu', () => {
+  describe('Cursor', () => {
+    it('should initialize internal properties on construct (object literal)', () => {
       var coords = {
         top: 10,
         left: 50,
@@ -21,7 +21,7 @@ describe('ContextMenu', function() {
       expect(cursor.cellWidth).toBe(coords.width);
     });
 
-    it('should returns boolean value related to if element fits above the cursor', function() {
+    it('should returns boolean value related to if element fits above the cursor', () => {
       var coords = {
         top: 10,
         left: 50,
@@ -44,7 +44,7 @@ describe('ContextMenu', function() {
       expect(cursor.fitsAbove(fakeElement)).toBe(false);
     });
 
-    it('should returns boolean value related to if element fits below the cursor', function() {
+    it('should returns boolean value related to if element fits below the cursor', () => {
       var coords = {
         top: 10,
         left: 50,
@@ -68,7 +68,7 @@ describe('ContextMenu', function() {
       expect(cursor.fitsBelow(fakeElement, viewportHeight)).toBe(false);
     });
 
-    it('should returns boolean value related to if element fits on the right of the cursor', function() {
+    it('should returns boolean value related to if element fits on the right of the cursor', () => {
       var coords = {
         top: 10,
         left: 20,
@@ -92,7 +92,7 @@ describe('ContextMenu', function() {
       expect(cursor.fitsOnRight(fakeElement, viewportWidth)).toBe(false);
     });
 
-    it('should returns boolean value related to if element fits on the left of the cursor', function() {
+    it('should returns boolean value related to if element fits on the left of the cursor', () => {
       var coords = {
         top: 10,
         left: 50,

@@ -1,8 +1,8 @@
-describe('Core_selection', function() {
+describe('Core_selection', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,11 +12,11 @@ describe('Core_selection', function() {
     }
   });
 
-  it('should call onSelection callback', function() {
+  it('should call onSelection callback', () => {
     var output = null;
 
     handsontable({
-      afterSelection: function(r, c) {
+      afterSelection(r, c) {
         output = [r, c];
       }
     });
@@ -26,11 +26,11 @@ describe('Core_selection', function() {
     expect(output[1]).toEqual(2);
   });
 
-  it('should trigger selection event', function() {
+  it('should trigger selection event', () => {
     var output = null;
 
     handsontable();
-    Handsontable.hooks.add('afterSelection', function(r, c) {
+    Handsontable.hooks.add('afterSelection', (r, c) => {
       output = [r, c];
     });
     selectCell(1, 2);
@@ -43,7 +43,7 @@ describe('Core_selection', function() {
     var output = null;
 
     handsontable({
-      afterSelection: function() {
+      afterSelection() {
         output = this.rootElement;
       }
     });
@@ -56,7 +56,7 @@ describe('Core_selection', function() {
     var output = null;
 
     handsontable({
-      afterSelectionByProp: function() {
+      afterSelectionByProp() {
         output = this.rootElement;
       }
     });
@@ -65,7 +65,7 @@ describe('Core_selection', function() {
     expect(output).toEqual(this.$container[0]);
   });
 
-  it('should focus external textarea when clicked during editing', function() {
+  it('should focus external textarea when clicked during editing', () => {
     var textarea = $('<input type="text">').prependTo($('body'));
 
     handsontable();
@@ -80,7 +80,7 @@ describe('Core_selection', function() {
     textarea.remove();
   });
 
-  it('should deselect currently selected cell', function() {
+  it('should deselect currently selected cell', () => {
     handsontable();
     selectCell(0, 0);
 
@@ -89,7 +89,7 @@ describe('Core_selection', function() {
     expect(getSelected()).toBeUndefined();
   });
 
-  it('should not deselect the currently selected cell after clicking on a scrollbar', function() {
+  it('should not deselect the currently selected cell after clicking on a scrollbar', () => {
     var hot = handsontable({
       outsideClickDeselects: false,
       minRows: 20,
@@ -124,7 +124,7 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([0, 0, 0, 0]);
   });
 
-  it('should not deselect currently selected cell', function() {
+  it('should not deselect currently selected cell', () => {
     handsontable({
       outsideClickDeselects: false
     });
@@ -135,7 +135,7 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([0, 0, 0, 0]);
   });
 
-  it('should allow to focus on external input and hold current selection informations', function() {
+  it('should allow to focus on external input and hold current selection informations', () => {
     var textarea = $('<input id="test_textarea" type="text">').prependTo($('body'));
 
     handsontable({
@@ -151,7 +151,7 @@ describe('Core_selection', function() {
     textarea.remove();
   });
 
-  it('should allow to type in external input while holding current selection information', function() {
+  it('should allow to type in external input while holding current selection information', () => {
     var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
     var keyPressed;
     handsontable({
@@ -163,7 +163,7 @@ describe('Core_selection', function() {
     textarea.simulate('mousedown');
     textarea.simulate('mouseup');
 
-    textarea.on('keydown', function(event) {
+    textarea.on('keydown', (event) => {
       keyPressed = event.keyCode;
     });
 
@@ -173,18 +173,18 @@ describe('Core_selection', function() {
       keyCode: LETTER_A_KEY
     });
 
-    //textarea should receive the event and be an active element
+    // textarea should receive the event and be an active element
     expect(keyPressed).toEqual(LETTER_A_KEY);
     expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
-    //should preserve selection, close editor and save changes
+    // should preserve selection, close editor and save changes
     expect(getSelected()).toEqual([0, 0, 0, 0]);
     expect(getDataAtCell(0, 0)).toBeNull();
 
     textarea.remove();
   });
 
-  it('should allow to type in external input after opening cell editor', function() {
+  it('should allow to type in external input after opening cell editor', () => {
     var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
     var keyPressed;
     handsontable({
@@ -198,7 +198,7 @@ describe('Core_selection', function() {
     textarea.simulate('mousedown');
     textarea.simulate('mouseup');
 
-    textarea.on('keydown', function(event) {
+    textarea.on('keydown', (event) => {
       keyPressed = event.keyCode;
     });
 
@@ -208,18 +208,18 @@ describe('Core_selection', function() {
       keyCode: LETTER_A_KEY
     });
 
-    //textarea should receive the event and be an active element
+    // textarea should receive the event and be an active element
     expect(keyPressed).toEqual(LETTER_A_KEY);
     expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
-    //should preserve selection, close editor and save changes
+    // should preserve selection, close editor and save changes
     expect(getSelected()).toEqual([0, 0, 0, 0]);
     expect(getDataAtCell(0, 0)).toEqual('Foo');
 
     textarea.remove();
   });
 
-  it('should deselect on outside click if outsideClickDeselects is a function that returns true', function() {
+  it('should deselect on outside click if outsideClickDeselects is a function that returns true', () => {
     var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
     var keyPressed;
     handsontable({
@@ -233,7 +233,7 @@ describe('Core_selection', function() {
     textarea.simulate('mousedown');
     textarea.simulate('mouseup');
 
-    textarea.on('keydown', function(event) {
+    textarea.on('keydown', (event) => {
       keyPressed = event.keyCode;
     });
 
@@ -243,18 +243,18 @@ describe('Core_selection', function() {
       keyCode: LETTER_A_KEY
     });
 
-    //textarea should receive the event and be an active element
+    // textarea should receive the event and be an active element
     expect(keyPressed).toEqual(LETTER_A_KEY);
     expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
-    //should NOT preserve selection
+    // should NOT preserve selection
     expect(getSelected()).toEqual(undefined);
     expect(getDataAtCell(0, 0)).toEqual('Foo');
 
     textarea.remove();
   });
 
-  it('should not deselect on outside click if outsideClickDeselects is a function that returns false', function() {
+  it('should not deselect on outside click if outsideClickDeselects is a function that returns false', () => {
     var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
     var keyPressed;
     handsontable({
@@ -268,7 +268,7 @@ describe('Core_selection', function() {
     textarea.simulate('mousedown');
     textarea.simulate('mouseup');
 
-    textarea.on('keydown', function(event) {
+    textarea.on('keydown', (event) => {
       keyPressed = event.keyCode;
     });
 
@@ -278,18 +278,18 @@ describe('Core_selection', function() {
       keyCode: LETTER_A_KEY
     });
 
-    //textarea should receive the event and be an active element
+    // textarea should receive the event and be an active element
     expect(keyPressed).toEqual(LETTER_A_KEY);
     expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
-    //should preserve selection, close editor and save changes
+    // should preserve selection, close editor and save changes
     expect(getSelected()).toEqual([0, 0, 0, 0]);
     expect(getDataAtCell(0, 0)).toEqual('Foo');
 
     textarea.remove();
   });
 
-  it('should fix start range if provided is out of bounds (to the left)', function() {
+  it('should fix start range if provided is out of bounds (to the left)', () => {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -300,7 +300,7 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([0, 0, 0, 0]);
   });
 
-  it('should fix start range if provided is out of bounds (to the top)', function() {
+  it('should fix start range if provided is out of bounds (to the top)', () => {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -311,7 +311,7 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([0, 0, 0, 0]);
   });
 
-  it('should fix start range if provided is out of bounds (to the right)', function() {
+  it('should fix start range if provided is out of bounds (to the right)', () => {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -322,7 +322,7 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([0, 4, 0, 4]);
   });
 
-  it('should fix start range if provided is out of bounds (to the bottom)', function() {
+  it('should fix start range if provided is out of bounds (to the bottom)', () => {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -333,7 +333,7 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([4, 0, 4, 0]);
   });
 
-  it('should fix end range if provided is out of bounds (to the left)', function() {
+  it('should fix end range if provided is out of bounds (to the left)', () => {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -345,7 +345,7 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([0, 1, 0, 0]);
   });
 
-  it('should fix end range if provided is out of bounds (to the top)', function() {
+  it('should fix end range if provided is out of bounds (to the top)', () => {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -357,7 +357,7 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([1, 0, 0, 0]);
   });
 
-  it('should fix end range if provided is out of bounds (to the right)', function() {
+  it('should fix end range if provided is out of bounds (to the right)', () => {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -369,7 +369,7 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([0, 3, 0, 4]);
   });
 
-  it('should fix end range if provided is out of bounds (to the bottom)', function() {
+  it('should fix end range if provided is out of bounds (to the bottom)', () => {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -382,7 +382,7 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([3, 0, 4, 0]);
   });
 
-  it('should select multiple cells', function() {
+  it('should select multiple cells', () => {
     handsontable({
       startRows: 5,
       startCols: 5
@@ -392,16 +392,17 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([3, 0, 4, 1]);
   });
 
-  it('should call onSelectionEnd as many times as onSelection when `selectCell` is called', function() {
-    var tick = 0, tickEnd = 0;
+  it('should call onSelectionEnd as many times as onSelection when `selectCell` is called', () => {
+    var tick = 0,
+      tickEnd = 0;
 
     handsontable({
       startRows: 5,
       startCols: 5,
-      afterSelection: function() {
+      afterSelection() {
         tick++;
       },
-      afterSelectionEnd: function() {
+      afterSelectionEnd() {
         tickEnd++;
       }
     });
@@ -412,37 +413,37 @@ describe('Core_selection', function() {
     expect(tickEnd).toEqual(2);
   });
 
-  it('should call onSelectionEnd when user finishes selection by releasing SHIFT key (3 times)', function() {
+  it('should call onSelectionEnd when user finishes selection by releasing SHIFT key (3 times)', () => {
     var tick = 0;
     handsontable({
       startRows: 5,
       startCols: 5,
-      afterSelectionEnd: function() {
+      afterSelectionEnd() {
         tick++;
       }
     });
-    selectCell(3, 0); //makes tick++
-    keyDownUp('shift+arrow_down'); //makes tick++
-    keyDownUp('shift+arrow_down'); //makes tick++
-    keyDownUp('shift+arrow_down'); //makes tick++
+    selectCell(3, 0); // makes tick++
+    keyDownUp('shift+arrow_down'); // makes tick++
+    keyDownUp('shift+arrow_down'); // makes tick++
+    keyDownUp('shift+arrow_down'); // makes tick++
 
     expect(getSelected()).toEqual([3, 0, 4, 0]);
     expect(tick).toEqual(4);
   });
 
-  it('should call onSelectionEnd when user finishes selection by releasing SHIFT key (1 time)', function() {
+  it('should call onSelectionEnd when user finishes selection by releasing SHIFT key (1 time)', () => {
     var tick = 0;
     handsontable({
       startRows: 5,
       startCols: 5,
-      afterSelectionEnd: function() {
+      afterSelectionEnd() {
         tick++;
       }
     });
-    selectCell(3, 0); //makes tick++
+    selectCell(3, 0); // makes tick++
     keyDown('shift+arrow_down');
     keyDown('shift+arrow_down');
-    keyDownUp('shift+arrow_down'); //makes tick++
+    keyDownUp('shift+arrow_down'); // makes tick++
 
     expect(getSelected()).toEqual([3, 0, 4, 0]);
     expect(tick).toEqual(2);
@@ -531,14 +532,15 @@ describe('Core_selection', function() {
   });
 
   it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', function() {
-    var tick = 0, tickEnd = 0;
+    var tick = 0,
+      tickEnd = 0;
     handsontable({
       startRows: 5,
       startCols: 5,
-      afterSelection: function() {
+      afterSelection() {
         tick++;
       },
-      afterSelectionEnd: function() {
+      afterSelectionEnd() {
         tickEnd++;
       }
     });
@@ -571,7 +573,7 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([0, 1, 4, 1]);
   });
 
-  it('should move focus to selected cell', function() {
+  it('should move focus to selected cell', () => {
     var $input = $('<input>').appendTo(document.body);
     handsontable({
       startRows: 5,
@@ -586,7 +588,7 @@ describe('Core_selection', function() {
   });
 
   // This test should cover the #893 case, but it always passes. It seems like the keydown event (with CTRL key pressed) isn't delivered.
-  it('should not move focus from outside elements on CTRL keydown event, when no cell is selected', function() {
+  it('should not move focus from outside elements on CTRL keydown event, when no cell is selected', () => {
     var $input = $('<input type="text"/>');
     $('body').append($input);
 
@@ -684,7 +686,7 @@ describe('Core_selection', function() {
     expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
-  it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', function(done) {
+  it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', (done) => {
     var hot = handsontable({
       width: 200,
       height: 200,
@@ -699,18 +701,18 @@ describe('Core_selection', function() {
 
     hot.render();
 
-    setTimeout(function() {
+    setTimeout(() => {
       $(getCell(12, 11)).simulate('mousedown');
       spec().$container.find('.ht_clone_top thead th:eq(2)').simulate('mouseover');
     }, 30);
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getSelected()).toEqual([12, 11, 10, 11]);
       done();
     }, 60);
   });
 
-  it('should set the selection end to the first visible column, when dragging the selection from a cell to a row header', function(done) {
+  it('should set the selection end to the first visible column, when dragging the selection from a cell to a row header', (done) => {
     var hot = handsontable({
       width: 200,
       height: 200,
@@ -725,12 +727,12 @@ describe('Core_selection', function() {
 
     hot.render();
 
-    setTimeout(function() {
+    setTimeout(() => {
       $(getCell(12, 11)).simulate('mousedown');
       spec().$container.find('.ht_clone_left tbody th:eq(12)').simulate('mouseover');
     }, 30);
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getSelected()).toEqual([12, 11, 12, 10]);
       done();
     }, 60);
@@ -738,7 +740,7 @@ describe('Core_selection', function() {
 
   it('should allow to scroll the table when a whole column is selected and table is longer than it\'s container', function(done) {
     var errCount = 0;
-    $(window).on('error.selectionTest', function() {
+    $(window).on('error.selectionTest', () => {
       errCount++;
     });
 
@@ -763,7 +765,7 @@ describe('Core_selection', function() {
 
     mainHolder.scrollTop = 120;
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(errCount).toEqual(0); // expect no errors to be thrown
 
       $(window).off('error.selectionTest');
@@ -771,7 +773,7 @@ describe('Core_selection', function() {
     }, 100);
   });
 
-  it('should scroll to the end of the selection, when selecting cells using the keyboard', function() {
+  it('should scroll to the end of the selection, when selecting cells using the keyboard', () => {
     var hot = handsontable({
       height: 300,
       width: 300,
@@ -870,40 +872,40 @@ describe('Core_selection', function() {
   });
 
   it('should select a cell in a newly added row after automatic row adding, triggered by editing a cell in the last row with minSpareRows > 0, ' +
-    'unless editing happened within the fixed bottom rows', function(done) {
+    'unless editing happened within the fixed bottom rows', (done) => {
     var hot = handsontable({
       startRows: 5,
       startCols: 2,
       minSpareRows: 1
     });
 
-    setTimeout(function() {
+    setTimeout(() => {
       selectCell(4, 0);
       keyDownUp('enter');
     }, 10);
 
-    setTimeout(function() {
+    setTimeout(() => {
       keyDownUp('enter');
     }, 100);
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(countRows()).toEqual(6);
-      expect(getSelected()).toEqual([5,0,5,0]);
+      expect(getSelected()).toEqual([5, 0, 5, 0]);
     }, 200);
 
-    setTimeout(function() {
+    setTimeout(() => {
       done();
     }, 250);
   });
 
-  it('should change selected coords by modifying coords object via `modifyTransformStart` hook', function() {
+  it('should change selected coords by modifying coords object via `modifyTransformStart` hook', () => {
     var hot = handsontable({
       startRows: 5,
       startCols: 5
     });
     selectCell(0, 0);
 
-    hot.addHook('modifyTransformStart', function(coords) {
+    hot.addHook('modifyTransformStart', (coords) => {
       coords.col += 1;
       coords.row += 1;
     });
@@ -912,14 +914,14 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([2, 1, 2, 1]);
   });
 
-  it('should change selected coords by modifying coords object via `modifyTransformEnd` hook', function() {
+  it('should change selected coords by modifying coords object via `modifyTransformEnd` hook', () => {
     var hot = handsontable({
       startRows: 5,
       startCols: 5
     });
     selectCell(0, 0);
 
-    hot.addHook('modifyTransformEnd', function(coords) {
+    hot.addHook('modifyTransformEnd', (coords) => {
       coords.col += 2;
       coords.row += 1;
     });
@@ -928,7 +930,7 @@ describe('Core_selection', function() {
     expect(getSelected()).toEqual([0, 0, 2, 2]);
   });
 
-  it(`should indicate is coords is out of bounds via \`afterModifyTransformStart\` hook`, function() {
+  it('should indicate is coords is out of bounds via `afterModifyTransformStart` hook', () => {
     var spy = jasmine.createSpy();
 
     var hot = handsontable({
@@ -965,7 +967,7 @@ describe('Core_selection', function() {
     expect(spy.calls.mostRecent().args[2]).toBe(0);
   });
 
-  it(`should indicate is coords is out of bounds via \`afterModifyTransformEnd\` hook`, function() {
+  it('should indicate is coords is out of bounds via `afterModifyTransformEnd` hook', () => {
     var spy = jasmine.createSpy();
 
     var hot = handsontable({
@@ -1002,7 +1004,7 @@ describe('Core_selection', function() {
     expect(spy.calls.mostRecent().args[2]).toBe(0);
   });
 
-  it('should change selection after left mouse button on one of selected cell', function() {
+  it('should change selection after left mouse button on one of selected cell', () => {
     var hot = handsontable({
       startRows: 5,
       startCols: 5

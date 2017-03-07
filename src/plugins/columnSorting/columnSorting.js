@@ -6,6 +6,7 @@ import {
 } from './../../helpers/dom/element';
 import {arrayMap, arrayReduce} from './../../helpers/array';
 import {isEmpty} from './../../helpers/mixed';
+import {hasOwnProperty} from './../../helpers/object';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
 import mergeSort from './../../utils/sortingAlgorithms/mergeSort';
@@ -75,7 +76,7 @@ class ColumnSorting extends BasePlugin {
     this.hot.sort = function() {
       let args = Array.prototype.slice.call(arguments);
 
-      return _this.sortByColumn.apply(_this, args);
+      return _this.sortByColumn(...args);
     };
 
     if (typeof this.hot.getSettings().observeChanges === 'undefined') {
@@ -90,10 +91,10 @@ class ColumnSorting extends BasePlugin {
     this.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterCreateRow', function() {
-      _this.afterCreateRow.apply(_this, arguments);
+      _this.afterCreateRow(...arguments);
     });
     this.addHook('afterRemoveRow', function() {
-      _this.afterRemoveRow.apply(_this, arguments);
+      _this.afterRemoveRow(...arguments);
     });
     this.addHook('afterInit', () => this.sortBySettings());
     this.addHook('afterLoadData', () => {
@@ -206,7 +207,7 @@ class ColumnSorting extends BasePlugin {
       sortingState.sortOrder = this.hot.sortOrder;
     }
 
-    if (sortingState.hasOwnProperty('sortColumn') || sortingState.hasOwnProperty('sortOrder')) {
+    if (hasOwnProperty(sortingState, 'sortColumn') || hasOwnProperty(sortingState, 'sortOrder')) {
       this.hot.runHooks('persistentStateSave', 'columnSorting', sortingState);
     }
 
@@ -243,7 +244,7 @@ class ColumnSorting extends BasePlugin {
     let _this = this;
 
     this.hot._registerTimeout(
-      setTimeout(function() {
+      setTimeout(() => {
         _this.hot.updateSettings({
           observeChanges: true
         });
@@ -534,7 +535,7 @@ class ColumnSorting extends BasePlugin {
     let colspan = TH.getAttribute('colspan');
     let TRs = TH.parentNode.parentNode.childNodes;
     let headerLevel = Array.prototype.indexOf.call(TRs, TH.parentNode);
-    headerLevel = headerLevel - TRs.length;
+    headerLevel -= TRs.length;
 
     if (!headerLink) {
       return;
@@ -579,13 +580,13 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    for (var i = 0; i < this.hot.sortIndex.length; i++) {
+    for (let i = 0; i < this.hot.sortIndex.length; i++) {
       if (this.hot.sortIndex[i][0] >= index) {
         this.hot.sortIndex[i][0] += amount;
       }
     }
 
-    for (var i = 0; i < amount; i++) {
+    for (let i = 0; i < amount; i++) {
       this.hot.sortIndex.splice(index + i, 0, [index + i, this.hot.getSourceData()[index + i][this.hot.sortColumn + this.hot.colOffset()]]);
     }
 

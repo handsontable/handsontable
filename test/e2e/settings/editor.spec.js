@@ -1,9 +1,9 @@
-describe('settings', function() {
-  describe('editor', function() {
+describe('settings', () => {
+  describe('editor', () => {
     var id = 'testContainer';
 
     beforeEach(function() {
-      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
     afterEach(function() {
@@ -13,8 +13,8 @@ describe('settings', function() {
       }
     });
 
-    describe('defined in constructor', function() {
-      it('should use text editor by default', function() {
+    describe('defined in constructor', () => {
+      it('should use text editor by default', () => {
         var textEditorPrototype = Handsontable.editors.TextEditor.prototype;
 
         spyOn(textEditorPrototype, 'init').and.callThrough();
@@ -23,7 +23,7 @@ describe('settings', function() {
         expect(textEditorPrototype.init).toHaveBeenCalled();
       });
 
-      it('should use editor from predefined string', function() {
+      it('should use editor from predefined string', () => {
         var textEditorPrototype = Handsontable.editors.TextEditor.prototype;
         var checkboxEditorPrototype = Handsontable.editors.CheckboxEditor.prototype;
 
@@ -41,14 +41,14 @@ describe('settings', function() {
         expect(checkboxEditorPrototype.init).toHaveBeenCalled();
       });
 
-      it('should use editor from predefined string when columns is a function', function() {
+      it('should use editor from predefined string when columns is a function', () => {
         var textEditorPrototype = Handsontable.editors.TextEditor.prototype;
         var checkboxEditorPrototype = Handsontable.editors.CheckboxEditor.prototype;
 
         spyOn(textEditorPrototype, 'init');
         spyOn(checkboxEditorPrototype, 'init');
         handsontable({
-          columns: function(column) {
+          columns(column) {
             return column === 0 ? {editor: 'checkbox'} : null;
           }
         });
@@ -57,7 +57,7 @@ describe('settings', function() {
         expect(checkboxEditorPrototype.init).toHaveBeenCalled();
       });
 
-      it('should use editor class passed directly', function() {
+      it('should use editor class passed directly', () => {
         var customEditor = jasmine.createSpy('customEditor');
 
         customEditor.and.callFake(function() {
@@ -76,7 +76,7 @@ describe('settings', function() {
         expect(customEditor).toHaveBeenCalled();
       });
 
-      it('should use editor class passed directly when columns is a function', function() {
+      it('should use editor class passed directly when columns is a function', () => {
         var customEditor = jasmine.createSpy('customEditor');
 
         customEditor.and.callFake(function() {
@@ -84,7 +84,7 @@ describe('settings', function() {
         });
 
         handsontable({
-          columns: function(column) {
+          columns(column) {
             return column === 0 ? {editor: customEditor} : null;
           }
         });
@@ -93,7 +93,7 @@ describe('settings', function() {
         expect(customEditor).toHaveBeenCalled();
       });
 
-      it('should use editor from custom string', function() {
+      it('should use editor from custom string', () => {
         var customEditor = jasmine.createSpy('customEditor');
         customEditor.and.callFake(function() {
           this.prepare = function() {};
@@ -113,7 +113,7 @@ describe('settings', function() {
         expect(customEditor).toHaveBeenCalled();
       });
 
-      it('should use editor from custom string when columns is a function', function() {
+      it('should use editor from custom string when columns is a function', () => {
         var customEditor = jasmine.createSpy('customEditor');
 
         customEditor.and.callFake(function() {
@@ -123,7 +123,7 @@ describe('settings', function() {
         Handsontable.editors.registerEditor('myEditor', customEditor);
 
         handsontable({
-          columns: function(column) {
+          columns(column) {
             return column === 0 ? {editor: 'myEditor'} : null;
           },
         });

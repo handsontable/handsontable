@@ -1,9 +1,9 @@
-describe('settings', function() {
-  describe('maxRows', function() {
+describe('settings', () => {
+  describe('maxRows', () => {
     var id = 'testContainer';
 
     beforeEach(function() {
-      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
     afterEach(function() {
@@ -13,9 +13,9 @@ describe('settings', function() {
       }
     });
 
-    describe('works on init', function() {
+    describe('works on init', () => {
       var trimmingTest = function(config, result) {
-        it('should show data properly when maxRows is set to ' + (config.desc || config.maxRows), function() {
+        it(`should show data properly when maxRows is set to ${config.desc || config.maxRows}`, () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(config.rows, config.columns),
             maxRows: config.maxRows
@@ -38,9 +38,9 @@ describe('settings', function() {
       trimmingTest({rows: 10, columns: 10, maxRows: Infinity}, {expectedSourceRows: 10, expectedDataRows: 10});
     });
 
-    describe('update settings works', function() {
+    describe('update settings works', () => {
       var trimmingTest = function(config, maxRowsToExpectedRows) {
-        it(config.desc, function() {
+        it(config.desc, () => {
 
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(config.rows, config.columns)
@@ -58,9 +58,10 @@ describe('settings', function() {
         });
       };
 
-      var rows = 10, columns = 10;
+      var rows = 10;
+      var columns = 10;
 
-      trimmingTest({ desc: 'should show data properly after maxRows is updated to numerical values', rows: rows, columns: columns },
+      trimmingTest({ desc: 'should show data properly after maxRows is updated to numerical values', rows, columns },
         [
           // [-Infinity, 0],
           // [-2, 0],

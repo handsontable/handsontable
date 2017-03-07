@@ -1,12 +1,12 @@
-describe('ContextMenuCopyPaste', function() {
+describe('ContextMenuCopyPaste', () => {
   var id = 'testContainer';
 
   if (typeof navigator.mimeTypes['application/x-shockwave-flash'] === 'undefined') {
-    navigator.mimeTypes['application/x-shockwave-flash'] = {}; //mock Adobe Flash plugin so that contextMenuCopyPaste.js does not throw an error in PhantomJS
+    navigator.mimeTypes['application/x-shockwave-flash'] = {}; // mock Adobe Flash plugin so that contextMenuCopyPaste.js does not throw an error in PhantomJS
   }
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
 
     var wrapper = $('<div></div>').css({
       width: 400,
@@ -28,7 +28,7 @@ describe('ContextMenuCopyPaste', function() {
     delete window.ZeroClipboard;
   });
 
-  it('should add Copy and Paste context menu options at the beginning by default', function() {
+  it('should add Copy and Paste context menu options at the beginning by default', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
@@ -56,7 +56,7 @@ describe('ContextMenuCopyPaste', function() {
     expect($contextMenuEntries.index($pasteButton)).toEqual(1);
   });
 
-  it('should add Copy and Paste context menu options at the provided index', function() {
+  it('should add Copy and Paste context menu options at the provided index', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
@@ -84,7 +84,7 @@ describe('ContextMenuCopyPaste', function() {
     expect($contextMenuEntries.not('[class*=htSeparator]').index($pasteButton)).toEqual(2);
   });
 
-  it('should disable `Copy` and `Paste` items when context menu was triggered from corner header', function() {
+  it('should disable `Copy` and `Paste` items when context menu was triggered from corner header', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
@@ -114,7 +114,7 @@ describe('ContextMenuCopyPaste', function() {
   });
 
   // see https://github.com/handsontable/handsontable/issues/3140
-  it('should not throwing error when ContextMenu plugin is disabled', function() {
+  it('should not throwing error when ContextMenu plugin is disabled', () => {
     var spy = jasmine.createSpy();
     var prevError = window.onerror;
 

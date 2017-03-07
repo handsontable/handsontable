@@ -72,32 +72,32 @@ Search.global = (function() {
   var defaultSearchResultClass = Search.DEFAULT_SEARCH_RESULT_CLASS;
 
   return {
-    getDefaultCallback: function() {
+    getDefaultCallback() {
       return defaultCallback;
     },
 
-    setDefaultCallback: function(newDefaultCallback) {
+    setDefaultCallback(newDefaultCallback) {
       defaultCallback = newDefaultCallback;
     },
 
-    getDefaultQueryMethod: function() {
+    getDefaultQueryMethod() {
       return defaultQueryMethod;
     },
 
-    setDefaultQueryMethod: function(newDefaultQueryMethod) {
+    setDefaultQueryMethod(newDefaultQueryMethod) {
       defaultQueryMethod = newDefaultQueryMethod;
     },
 
-    getDefaultSearchResultClass: function() {
+    getDefaultSearchResultClass() {
       return defaultSearchResultClass;
     },
 
-    setDefaultSearchResultClass: function(newSearchResultClass) {
+    setDefaultSearchResultClass(newSearchResultClass) {
       defaultSearchResultClass = newSearchResultClass;
     }
   };
 
-})();
+}());
 
 function SearchCellDecorator(instance, TD, row, col, prop, value, cellProperties) {
   var searchResultClass = (cellProperties.search !== null && typeof cellProperties.search == 'object' &&
@@ -118,9 +118,7 @@ registerRenderer('base', function(instance, TD, row, col, prop, value, cellPrope
 });
 
 function init() {
-  /* jshint ignore:start */
   var instance = this;
-  /* jshint ignore:end */
 
   var pluginEnabled = !!instance.getSettings().search;
 

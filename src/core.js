@@ -7,7 +7,7 @@ import {isMobileBrowser} from './helpers/browser';
 import DataMap from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
-import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize} from './helpers/object';
+import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize, hasOwnProperty} from './helpers/object';
 import {arrayFlatten, arrayMap} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
@@ -17,7 +17,7 @@ import TableView from './tableView';
 import DataSource from './dataSource';
 import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
 import {getTranslator} from './utils/recordTranslator';
-import {CellCoords, CellRange, ViewportColumnsCalculator} from 'walkontable';
+import {CellCoords, CellRange, ViewportColumnsCalculator} from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
 import cellTypes from './cellTypes';
@@ -55,15 +55,15 @@ let activeGuid = null;
  */
 export default function Core(rootElement, userSettings) {
   var priv,
-      datamap,
-      dataSource,
-      grid,
-      selection,
-      editorManager,
-      instance = this,
-      GridSettings = function() {
-      },
-      eventManager = new EventManager(instance);
+    datamap,
+    dataSource,
+    grid,
+    selection,
+    editorManager,
+    instance = this,
+    GridSettings = function() {
+    },
+    eventManager = new EventManager(instance);
 
   extend(GridSettings.prototype, DefaultSettings.prototype); // create grid settings as a copy of default settings
   extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
@@ -78,7 +78,7 @@ export default function Core(rootElement, userSettings) {
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
-  this.guid = 'ht_' + randomString(); // this is the namespace for global events
+  this.guid = `ht_${randomString()}`; // this is the namespace for global events
 
   const recordTranslator = getTranslator(instance);
 
@@ -111,7 +111,7 @@ export default function Core(rootElement, userSettings) {
      * @param {String} [source] Optional. Source of hook runner.
      * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
-    alter: function(action, index, amount, source, keepEmptyRows) {
+    alter(action, index, amount, source, keepEmptyRows) {
       var delta;
 
       amount = amount || 1;
@@ -132,9 +132,10 @@ export default function Core(rootElement, userSettings) {
         let spliceArgs = arrayMap(new Array(count), () => valueFactory());
 
         spliceArgs.unshift(index, 0);
-        data.splice.apply(data, spliceArgs);
+        data.splice(...spliceArgs);
       }
 
+      /* eslint-disable no-case-declarations */
       switch (action) {
         case 'insert_row':
 
@@ -151,7 +152,7 @@ export default function Core(rootElement, userSettings) {
 
           if (delta) {
             if (selection.isSelected() && priv.selRange.from.row >= index) {
-              priv.selRange.from.row = priv.selRange.from.row + delta;
+              priv.selRange.from.row += delta;
               selection.transformEnd(delta, 0); // will call render() internally
             } else {
               selection.refreshBorders(); // it will call render and prepare methods
@@ -172,11 +173,11 @@ export default function Core(rootElement, userSettings) {
             if (Array.isArray(instance.getSettings().colHeaders)) {
               var spliceArray = [index, 0];
               spliceArray.length += delta; // inserts empty (undefined) elements at the end of an array
-              Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); //inserts empty (undefined) elements into the colHeader array
+              Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
             }
 
             if (selection.isSelected() && priv.selRange.from.col >= index) {
-              priv.selRange.from.col = priv.selRange.from.col + delta;
+              priv.selRange.from.col += delta;
               selection.transformEnd(0, delta); // will call render() internally
             } else {
               selection.refreshBorders(); // it will call render and prepare methods
@@ -231,7 +232,7 @@ export default function Core(rootElement, userSettings) {
 
           break;
         default:
-          throw new Error('There is no such action "' + action + '"');
+          throw new Error(`There is no such action "${action}"`);
       }
 
       if (!keepEmptyRows) {
@@ -242,7 +243,7 @@ export default function Core(rootElement, userSettings) {
     /**
      * Makes sure there are empty rows at the bottom of the table
      */
-    adjustRowsAndCols: function() {
+    adjustRowsAndCols() {
       if (priv.settings.minRows) {
         // should I add empty rows to data source to meet minRows?
         let rows = instance.countRows();
@@ -354,8 +355,13 @@ export default function Core(rootElement, userSettings) {
      * @param {Array} deltas The deltas array.
      * @returns {Object|undefined} ending td in pasted area (only if any cell was changed).
      */
-    populateFromArray: function(start, input, end, source, method, direction, deltas) {
-      var r, rlen, c, clen, setData = [], current = {};
+    populateFromArray(start, input, end, source, method, direction, deltas) {
+      var r,
+        rlen,
+        c,
+        clen,
+        setData = [],
+        current = {};
 
       rlen = input.length;
 
@@ -364,15 +370,15 @@ export default function Core(rootElement, userSettings) {
       }
 
       var repeatCol,
-          repeatRow,
-          cmax,
-          rmax,
-          baseEnd = {
-            row: end === null ? null : end.row,
-            col: end === null ? null : end.col
-          };
+        repeatRow,
+        cmax,
+        rmax,
+        baseEnd = {
+          row: end === null ? null : end.row,
+          col: end === null ? null : end.col
+        };
 
-      /* jshint ignore:start */
+      /* eslint-disable no-case-declarations */
       // insert data with specified pasteMode method
       switch (method) {
         case 'shift_down' :
@@ -385,10 +391,10 @@ export default function Core(rootElement, userSettings) {
                 input[c].push(input[c][r % rlen]);
               }
               input[c].unshift(start.col + c, start.row, 0);
-              instance.spliceCol.apply(instance, input[c]);
+              instance.spliceCol(...input[c]);
             } else {
               input[c % clen][0] = start.col + c;
-              instance.spliceCol.apply(instance, input[c % clen]);
+              instance.spliceCol(...input[c % clen]);
             }
           }
           break;
@@ -402,10 +408,10 @@ export default function Core(rootElement, userSettings) {
                 input[r].push(input[r][c % clen]);
               }
               input[r].unshift(start.row + r, start.col, 0);
-              instance.spliceRow.apply(instance, input[r]);
+              instance.spliceRow(...input[r]);
             } else {
               input[r % rlen][0] = start.row + r;
-              instance.spliceRow.apply(instance, input[r % rlen]);
+              instance.spliceRow(...input[r % rlen]);
             }
           }
           break;
@@ -464,6 +470,7 @@ export default function Core(rootElement, userSettings) {
               skippedRow++;
               current.row++;
               rlen++;
+              /* eslint-disable no-continue */
               continue;
             }
             skippedColumn = 0;
@@ -484,6 +491,7 @@ export default function Core(rootElement, userSettings) {
               }
               if (cellMeta.readOnly) {
                 current.col++;
+                /* eslint-disable no-continue */
                 continue;
               }
               let logicalColumn = c - skippedColumn;
@@ -509,7 +517,7 @@ export default function Core(rootElement, userSettings) {
                   let orgValueSchema = duckSchema(orgValue[0] || orgValue);
                   let valueSchema = duckSchema(value[0] || value);
 
-                  /* jshint -W073 */
+                  /* eslint-disable max-depth */
                   if (isObjectEquals(orgValueSchema, valueSchema)) {
                     value = deepClone(value);
                   } else {
@@ -531,10 +539,10 @@ export default function Core(rootElement, userSettings) {
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
           break;
       }
-      /* jshint ignore:end */
     },
   };
 
+  /* eslint-disable no-multi-assign */
   this.selection = selection = { // this public assignment is only temporary
     inProgress: false,
 
@@ -548,7 +556,7 @@ export default function Core(rootElement, userSettings) {
      * @param {Boolean} [cols=false]
      * @param {Boolean} [corner=false]
      */
-    setSelectedHeaders: function(rows = false, cols = false, corner = false) {
+    setSelectedHeaders(rows = false, cols = false, corner = false) {
       instance.selection.selectedHeader.rows = rows;
       instance.selection.selectedHeader.cols = cols;
       instance.selection.selectedHeader.corner = corner;
@@ -557,14 +565,14 @@ export default function Core(rootElement, userSettings) {
     /**
      * Sets inProgress to `true`. This enables onSelectionEnd and onSelectionEndByProp to function as desired.
      */
-    begin: function() {
+    begin() {
       instance.selection.inProgress = true;
     },
 
     /**
      * Sets inProgress to `false`. Triggers onSelectionEnd and onSelectionEndByProp.
      */
-    finish: function() {
+    finish() {
       var sel = instance.getSelected();
       instance.runHooks('afterSelectionEnd', sel[0], sel[1], sel[2], sel[3]);
       instance.runHooks('afterSelectionEndByProp', sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
@@ -574,7 +582,7 @@ export default function Core(rootElement, userSettings) {
     /**
      * @returns {Boolean}
      */
-    isInProgress: function() {
+    isInProgress() {
       return instance.selection.inProgress;
     },
 
@@ -584,7 +592,7 @@ export default function Core(rootElement, userSettings) {
      * @param {CellCoords} coords
      * @param keepEditorOpened
      */
-    setRangeStart: function(coords, keepEditorOpened) {
+    setRangeStart(coords, keepEditorOpened) {
       instance.runHooks('beforeSetRangeStart', coords);
       priv.selRange = new CellRange(coords, coords, coords);
       selection.setRangeEnd(coords, null, keepEditorOpened);
@@ -596,7 +604,7 @@ export default function Core(rootElement, userSettings) {
      * @param {CellCoords} coords
      * @param keepEditorOpened
      */
-    setRangeStartOnly: function(coords) {
+    setRangeStartOnly(coords) {
       instance.runHooks('beforeSetRangeStartOnly', coords);
       priv.selRange = new CellRange(coords, coords, coords);
     },
@@ -608,13 +616,13 @@ export default function Core(rootElement, userSettings) {
      * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to range end
      * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range
      */
-    setRangeEnd: function(coords, scrollToCell, keepEditorOpened) {
+    setRangeEnd(coords, scrollToCell, keepEditorOpened) {
       if (priv.selRange === null) {
         return;
       }
       var disableVisualSelection,
-          isHeaderSelected = false,
-          areCoordsPositive = true;
+        isHeaderSelected = false,
+        areCoordsPositive = true;
 
       var firstVisibleRow = instance.view.wt.wtTable.getFirstVisibleRow();
       var firstVisibleColumn = instance.view.wt.wtTable.getFirstVisibleColumn();
@@ -695,7 +703,7 @@ export default function Core(rootElement, userSettings) {
      * @param {Boolean} [revertOriginal]
      * @param {Boolean} [keepEditor]
      */
-    refreshBorders: function(revertOriginal, keepEditor) {
+    refreshBorders(revertOriginal, keepEditor) {
       if (!keepEditor) {
         editorManager.destroyEditor(revertOriginal);
       }
@@ -711,10 +719,10 @@ export default function Core(rootElement, userSettings) {
      *
      * @returns {Boolean}
      */
-    isMultiple: function() {
+    isMultiple() {
       var
-          isMultiple = !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row),
-          modifier = instance.runHooks('afterIsMultipleSelection', isMultiple);
+        isMultiple = !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row),
+        modifier = instance.runHooks('afterIsMultipleSelection', isMultiple);
 
       if (isMultiple) {
         return modifier;
@@ -724,7 +732,7 @@ export default function Core(rootElement, userSettings) {
     /**
      * Selects cell relative to current cell (if possible).
      */
-    transformStart: function(rowDelta, colDelta, force, keepEditorOpened) {
+    transformStart(rowDelta, colDelta, force, keepEditorOpened) {
       var delta = new CellCoords(rowDelta, colDelta),
         rowTransformDir = 0,
         colTransformDir = 0,
@@ -738,7 +746,6 @@ export default function Core(rootElement, userSettings) {
       totalCols = instance.countCols();
       fixedRowsBottom = instance.getSettings().fixedRowsBottom;
 
-      /* jshint ignore:start */
       if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
         if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
           instance.alter('insert_row', totalRows);
@@ -766,7 +773,6 @@ export default function Core(rootElement, userSettings) {
         delta.row = priv.selRange.highlight.row + delta.row == 0 ? totalRows - 1 : -1;
         delta.col = totalCols - 1;
       }
-      /* jshint ignore:end */
 
       coords = new CellCoords(priv.selRange.highlight.row + delta.row, priv.selRange.highlight.col + delta.col);
 
@@ -794,13 +800,13 @@ export default function Core(rootElement, userSettings) {
     /**
      * Sets selection end cell relative to current selection end cell (if possible).
      */
-    transformEnd: function(rowDelta, colDelta) {
+    transformEnd(rowDelta, colDelta) {
       var delta = new CellCoords(rowDelta, colDelta),
-          rowTransformDir = 0,
-          colTransformDir = 0,
-          totalRows,
-          totalCols,
-          coords;
+        rowTransformDir = 0,
+        colTransformDir = 0,
+        totalRows,
+        totalCols,
+        coords;
 
       instance.runHooks('modifyTransformEnd', delta);
 
@@ -834,7 +840,7 @@ export default function Core(rootElement, userSettings) {
      *
      * @returns {Boolean}
      */
-    isSelected: function() {
+    isSelected() {
       return (priv.selRange !== null);
     },
 
@@ -844,7 +850,7 @@ export default function Core(rootElement, userSettings) {
      * @param {CellCoords} coords
      * @returns {Boolean}
      */
-    inInSelection: function(coords) {
+    inInSelection(coords) {
       if (!selection.isSelected()) {
         return false;
       }
@@ -855,7 +861,7 @@ export default function Core(rootElement, userSettings) {
     /**
      * Deselects all selected cells
      */
-    deselect: function() {
+    deselect() {
       if (!selection.isSelected()) {
         return;
       }
@@ -875,7 +881,7 @@ export default function Core(rootElement, userSettings) {
     /**
      * Select all cells
      */
-    selectAll: function() {
+    selectAll() {
       if (!priv.settings.multiSelect) {
         return;
       }
@@ -886,13 +892,15 @@ export default function Core(rootElement, userSettings) {
     /**
      * Deletes data from selected cells
      */
-    empty: function() {
+    empty() {
       if (!selection.isSelected()) {
         return;
       }
       var topLeft = priv.selRange.getTopLeftCorner();
       var bottomRight = priv.selRange.getBottomRightCorner();
-      var r, c, changes = [];
+      var r,
+        c,
+        changes = [];
 
       for (r = topLeft.row; r <= bottomRight.row; r++) {
         for (c = topLeft.col; c <= bottomRight.col; c++) {
@@ -936,23 +944,21 @@ export default function Core(rootElement, userSettings) {
     return {
       validatorsInQueue: 0,
       valid: true,
-      addValidatorToQueue: function() {
+      addValidatorToQueue() {
         this.validatorsInQueue++;
         resolved = false;
       },
-      removeValidatorFormQueue: function() {
+      removeValidatorFormQueue() {
         this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
         this.checkIfQueueIsEmpty();
       },
-      onQueueEmpty: function(valid) {
+      onQueueEmpty(valid) {
       },
-      checkIfQueueIsEmpty: function() {
-        /* jshint ignore:start */
+      checkIfQueueIsEmpty() {
         if (this.validatorsInQueue == 0 && resolved == false) {
           resolved = true;
           this.onQueueEmpty(this.valid);
         }
-        /* jshint ignore:end */
       }
     };
   }
@@ -971,15 +977,17 @@ export default function Core(rootElement, userSettings) {
         var cellProperties = instance.getCellMeta(row, col);
 
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3]) || cellProperties.format)) {
+          if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3]) || cellProperties.format)) {
             var len = changes[i][3].length;
+
             if (isUndefined(cellProperties.language)) {
               numbro.culture('en-US');
-            }
-            // this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
-            else if (changes[i][3].indexOf('.') === len - 3 && changes[i][3].indexOf(',') === -1) {
+
+            } else if (changes[i][3].indexOf('.') === len - 3 && changes[i][3].indexOf(',') === -1) {
+              // this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
               numbro.culture('en-US');
             } else {
+
               numbro.culture(cellProperties.language);
             }
 
@@ -995,7 +1003,7 @@ export default function Core(rootElement, userSettings) {
           }
         }
 
-        /* jshint ignore:start */
+        /* eslint-disable no-loop-func */
         if (instance.getCellValidator(cellProperties)) {
           waitingForValidator.addValidatorToQueue();
           instance.validateCell(changes[i][3], cellProperties, (function(i, cellProperties) {
@@ -1012,9 +1020,8 @@ export default function Core(rootElement, userSettings) {
               }
               waitingForValidator.removeValidatorFormQueue();
             };
-          })(i, cellProperties), source);
+          }(i, cellProperties)), source);
         }
-        /* jshint ignore:end */
       }
     }
     waitingForValidator.checkIfQueueIsEmpty();
@@ -1050,15 +1057,17 @@ export default function Core(rootElement, userSettings) {
       return;
     }
 
-    for (; 0 <= i; i--) {
+    for (; i >= 0; i--) {
       let skipThisChange = false;
 
       if (changes[i] === null) {
         changes.splice(i, 1);
+        /* eslint-disable no-continue */
         continue;
       }
 
       if (changes[i][2] == null && changes[i][3] == null) {
+        /* eslint-disable no-continue */
         continue;
       }
 
@@ -1074,6 +1083,7 @@ export default function Core(rootElement, userSettings) {
       }
 
       if (skipThisChange) {
+        /* eslint-disable no-continue */
         continue;
       }
 
@@ -1105,8 +1115,8 @@ export default function Core(rootElement, userSettings) {
 
     function done(valid) {
       var col = cellProperties.visualCol,
-          row = cellProperties.visualRow,
-          td = instance.getCell(row, col, true);
+        row = cellProperties.visualRow,
+        td = instance.getCell(row, col, true);
 
       if (td && td.nodeName != 'TH') {
         instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
@@ -1119,7 +1129,7 @@ export default function Core(rootElement, userSettings) {
         return function(value, callback) {
           callback(validator.test(value));
         };
-      })(validator);
+      }(validator));
     }
 
     if (isFunction(validator)) {
@@ -1127,8 +1137,8 @@ export default function Core(rootElement, userSettings) {
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
       // To provide consistent behaviour, validation should be always asynchronous
-      instance._registerTimeout(setTimeout(function() {
-        validator.call(cellProperties, value, function(valid) {
+      instance._registerTimeout(setTimeout(() => {
+        validator.call(cellProperties, value, (valid) => {
           valid = instance.runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
           cellProperties.valid = valid;
 
@@ -1139,7 +1149,7 @@ export default function Core(rootElement, userSettings) {
 
     } else {
       // resolve callback even if validator function was not found
-      instance._registerTimeout(setTimeout(function() {
+      instance._registerTimeout(setTimeout(() => {
         cellProperties.valid = true;
         done(cellProperties.valid);
       }, 0));
@@ -1149,11 +1159,11 @@ export default function Core(rootElement, userSettings) {
   function setDataInputToArray(row, propOrCol, value) {
     if (typeof row === 'object') { // is it an array of changes
       return row;
-    } else {
-      return [
-        [row, propOrCol, value]
-      ];
     }
+    return [
+        [row, propOrCol, value]
+    ];
+
   }
 
   /**
@@ -1172,11 +1182,11 @@ export default function Core(rootElement, userSettings) {
    */
   this.setDataAtCell = function(row, col, value, source) {
     var
-        input = setDataInputToArray(row, col, value),
-        i,
-        ilen,
-        changes = [],
-        prop;
+      input = setDataInputToArray(row, col, value),
+      i,
+      ilen,
+      changes = [],
+      prop;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       if (typeof input[i] !== 'object') {
@@ -1200,7 +1210,7 @@ export default function Core(rootElement, userSettings) {
 
     instance.runHooks('afterSetDataAtCell', changes, source);
 
-    validateChanges(changes, source, function() {
+    validateChanges(changes, source, () => {
       applyChanges(changes, source);
     });
   };
@@ -1220,9 +1230,9 @@ export default function Core(rootElement, userSettings) {
    */
   this.setDataAtRowProp = function(row, prop, value, source) {
     var input = setDataInputToArray(row, prop, value),
-        i,
-        ilen,
-        changes = [];
+      i,
+      ilen,
+      changes = [];
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       changes.push([
@@ -1239,7 +1249,7 @@ export default function Core(rootElement, userSettings) {
 
     instance.runHooks('afterSetDataAtRowProp', changes, source);
 
-    validateChanges(changes, source, function() {
+    validateChanges(changes, source, () => {
       applyChanges(changes, source);
     });
   };
@@ -1338,8 +1348,8 @@ export default function Core(rootElement, userSettings) {
    * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
    * @param {*} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
    */
-  this.spliceCol = function(col, index, amount/*, elements... */) {
-    return datamap.spliceCol.apply(datamap, arguments);
+  this.spliceCol = function(col, index, amount/* , elements... */) {
+    return datamap.spliceCol(...arguments);
   };
 
   /**
@@ -1359,8 +1369,8 @@ export default function Core(rootElement, userSettings) {
    * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
    * @param {*} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
    */
-  this.spliceRow = function(row, index, amount/*, elements... */) {
-    return datamap.spliceRow.apply(datamap, arguments);
+  this.spliceRow = function(row, index, amount/* , elements... */) {
+    return datamap.spliceRow(...arguments);
   };
 
   /**
@@ -1463,7 +1473,7 @@ export default function Core(rootElement, userSettings) {
       }
 
     } else {
-      throw new Error('loadData only accepts array of objects or array of arrays (' + typeof data + ' given)');
+      throw new Error(`loadData only accepts array of objects or array of arrays (${typeof data} given)`);
     }
 
     priv.isPopulated = false;
@@ -1516,9 +1526,9 @@ export default function Core(rootElement, userSettings) {
   this.getData = function(r, c, r2, c2) {
     if (isUndefined(r)) {
       return datamap.getAll();
-    } else {
-      return datamap.getRange(new CellCoords(r, c), new CellCoords(r2, c2), datamap.DESTINATION_RENDERER);
     }
+    return datamap.getRange(new CellCoords(r, c), new CellCoords(r2, c2), datamap.DESTINATION_RENDERER);
+
   };
 
   /**
@@ -1601,20 +1611,16 @@ export default function Core(rootElement, userSettings) {
 
     for (i in settings) {
       if (i === 'data') {
+        /* eslint-disable no-continue */
         continue; // loadData will be triggered later
 
-      } else {
-        if (Hooks.getSingleton().getRegistered().indexOf(i) > -1) {
-          if (isFunction(settings[i]) || Array.isArray(settings[i])) {
-            instance.addHook(i, settings[i]);
-          }
-
-        } else {
-          // Update settings
-          if (!init && settings.hasOwnProperty(i)) {
-            GridSettings.prototype[i] = settings[i];
-          }
+      } else if (Hooks.getSingleton().getRegistered().indexOf(i) > -1) {
+        if (isFunction(settings[i]) || Array.isArray(settings[i])) {
+          instance.addHook(i, settings[i]);
         }
+
+      } else if (!init && hasOwnProperty(settings, i)) { // Update settings
+        GridSettings.prototype[i] = settings[i];
       }
     }
 
@@ -1648,6 +1654,7 @@ export default function Core(rootElement, userSettings) {
 
       for (i = 0, j = 0; i < clen; i++) {
         if (columnsAsFunc && !settings.columns(i)) {
+          /* eslint-disable no-continue */
           continue;
         }
         priv.columnSettings[j] = columnFactory(GridSettings, priv.columnsSettingConflicts);
@@ -1676,7 +1683,7 @@ export default function Core(rootElement, userSettings) {
 
     if (isDefined(settings.cell)) {
       for (let key in settings.cell) {
-        if (settings.cell.hasOwnProperty(key)) {
+        if (hasOwnProperty(settings.cell, key)) {
           let cell = settings.cell[key];
 
           instance.setCellMetaObject(cell.row, cell.col, cell);
@@ -1725,7 +1732,7 @@ export default function Core(rootElement, userSettings) {
       }
 
     } else if (height !== void 0) {
-      instance.rootElement.style.height = height + 'px';
+      instance.rootElement.style.height = `${height}px`;
       instance.rootElement.style.overflow = 'hidden';
     }
 
@@ -1736,7 +1743,7 @@ export default function Core(rootElement, userSettings) {
         width = width();
       }
 
-      instance.rootElement.style.width = width + 'px';
+      instance.rootElement.style.width = `${width}px`;
     }
 
     if (!init) {
@@ -1782,25 +1789,26 @@ export default function Core(rootElement, userSettings) {
   };
 
   function expandType(obj) {
-    if (!obj.hasOwnProperty('type')) {
+    if (!hasOwnProperty(obj, 'type')) {
       // ignore obj.prototype.type
       return;
     }
 
-    var type, expandedType = {};
+    var type,
+      expandedType = {};
 
     if (typeof obj.type === 'object') {
       type = obj.type;
     } else if (typeof obj.type === 'string') {
       type = cellTypes[obj.type];
       if (type === void 0) {
-        throw new Error('You declared cell type "' + obj.type +
-            '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
+        throw new Error(`You declared cell type "${obj.type
+            }" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes`);
       }
     }
 
     for (var i in type) {
-      if (type.hasOwnProperty(i) && !obj.hasOwnProperty(i)) {
+      if (hasOwnProperty(type, i) && !hasOwnProperty(obj, i)) {
         expandedType[i] = type[i];
       }
     }
@@ -2016,7 +2024,7 @@ export default function Core(rootElement, userSettings) {
    */
   this.getDataAtCol = function(col) {
     var out = [];
-    return out.concat.apply(out, datamap.getRange(
+    return out.concat(...datamap.getRange(
         new CellCoords(0, col), new CellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
   };
 
@@ -2032,14 +2040,14 @@ export default function Core(rootElement, userSettings) {
    */
   this.getDataAtProp = function(prop) {
     var out = [],
-        range;
+      range;
 
     range = datamap.getRange(
         new CellCoords(0, datamap.propToCol(prop)),
         new CellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)),
         datamap.DESTINATION_RENDERER);
 
-    return out.concat.apply(out, range);
+    return out.concat(...range);
   };
 
   /**
@@ -2215,11 +2223,9 @@ export default function Core(rootElement, userSettings) {
    */
   this.removeCellMeta = function(row, col, key) {
     var cellMeta = instance.getCellMeta(row, col);
-    /* jshint ignore:start */
     if (cellMeta[key] != undefined) {
       delete priv.cellSettings[row][col][key];
     }
-    /* jshint ignore:end */
   };
 
   /**
@@ -2247,7 +2253,7 @@ export default function Core(rootElement, userSettings) {
   this.setCellMetaObject = function(row, col, prop) {
     if (typeof prop === 'object') {
       for (var key in prop) {
-        if (prop.hasOwnProperty(key)) {
+        if (hasOwnProperty(prop, key)) {
           var value = prop[key];
           this.setCellMeta(row, col, key, value);
         }
@@ -2303,7 +2309,7 @@ export default function Core(rootElement, userSettings) {
    */
   this.getCellMeta = function(row, col) {
     var prop = datamap.colToProp(col),
-        cellProperties;
+      cellProperties;
 
     let visualRow = row;
     let visualCol = col;
@@ -2424,7 +2430,6 @@ export default function Core(rootElement, userSettings) {
       waitingForValidator.onQueueEmpty = callback;
     }
 
-    /* jshint ignore:start */
     let i = instance.countRows() - 1;
 
     while (i >= 0) {
@@ -2433,7 +2438,7 @@ export default function Core(rootElement, userSettings) {
       while (j >= 0) {
         waitingForValidator.addValidatorToQueue();
 
-        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), function(result) {
+        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), (result) => {
           if (typeof result !== 'boolean') {
             throw new Error('Validation error: result is not boolean');
           }
@@ -2446,7 +2451,6 @@ export default function Core(rootElement, userSettings) {
       }
       i--;
     }
-    /* jshint ignore:end */
     waitingForValidator.checkIfQueueIsEmpty();
   };
 
@@ -2607,6 +2611,8 @@ export default function Core(rootElement, userSettings) {
         case 'function':
           width = width(col);
           break;
+        default:
+          break;
       }
       if (typeof width === 'string') {
         width = parseInt(width, 10);
@@ -2664,6 +2670,8 @@ export default function Core(rootElement, userSettings) {
 
         case 'function':
           height = height(row);
+          break;
+        default:
           break;
       }
       if (typeof height === 'string') {
@@ -2779,11 +2787,8 @@ export default function Core(rootElement, userSettings) {
         dataLen = priv.settings.columns.length;
       }
 
-    } else {
-      if (instance.dataType === 'object' || instance.dataType === 'function') {
-        dataLen = datamap.colToPropCache.length;
-
-      }
+    } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+      dataLen = datamap.colToPropCache.length;
     }
 
     return dataLen;
@@ -2867,8 +2872,8 @@ export default function Core(rootElement, userSettings) {
    */
   this.countEmptyRows = function(ending) {
     var i = instance.countRows() - 1,
-        empty = 0,
-        row;
+      empty = 0,
+      row;
 
     while (i >= 0) {
       row = instance.runHooks('modifyRow', i);
@@ -2899,7 +2904,7 @@ export default function Core(rootElement, userSettings) {
       return 0;
     }
     var i = instance.countCols() - 1,
-        empty = 0;
+      empty = 0;
 
     while (i >= 0) {
       if (instance.isEmptyCol(i)) {
@@ -3003,13 +3008,13 @@ export default function Core(rootElement, userSettings) {
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell) {
-    /* jshint ignore:start */
     arguments[1] = datamap.propToCol(arguments[1]);
+
     if (isDefined(arguments[3])) {
       arguments[3] = datamap.propToCol(arguments[3]);
     }
-    return instance.selectCell.apply(instance, arguments);
-    /* jshint ignore:end */
+
+    return instance.selectCell(...arguments);
   };
 
   /**
@@ -3089,14 +3094,14 @@ export default function Core(rootElement, userSettings) {
     Hooks.getSingleton().destroy(instance);
 
     for (var i in instance) {
-      if (instance.hasOwnProperty(i)) {
+      if (hasOwnProperty(instance, i)) {
         // replace instance methods with post mortem
         if (isFunction(instance[i])) {
           instance[i] = postMortem;
-        }
-        // replace instance properties with null (restores memory)
-        // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
-        else if (i !== 'guid') {
+
+        } else if (i !== 'guid') {
+          // replace instance properties with null (restores memory)
+          // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
           instance[i] = null;
         }
       }

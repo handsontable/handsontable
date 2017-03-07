@@ -1,8 +1,8 @@
-describe('Core_beforechange', function() {
+describe('Core_beforechange', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -16,7 +16,7 @@ describe('Core_beforechange', function() {
     var output = null;
 
     handsontable({
-      beforeChange: function() {
+      beforeChange() {
         output = this.rootElement;
       }
     });
@@ -25,15 +25,15 @@ describe('Core_beforechange', function() {
     expect(output).toEqual(this.$container[0]);
   });
 
-  it('should remove change from stack', function() {
+  it('should remove change from stack', () => {
     var output = null;
 
     handsontable({
       data: [['a', 'b'], ['c', 'd']],
-      beforeChange: function(changes) {
+      beforeChange(changes) {
         changes[1] = null;
       },
-      afterChange: function(changes) {
+      afterChange(changes) {
         output = changes;
       }
     });
@@ -45,12 +45,12 @@ describe('Core_beforechange', function() {
     expect(output).toEqual([[0, 0, 'a', 'test'], [1, 1, 'd', 'test']]);
   });
 
-  it('should drop all changes when beforeChange return false', function() {
+  it('should drop all changes when beforeChange return false', () => {
     var fired = false;
 
     handsontable({
       data: [['a', 'b'], ['c', 'd']],
-      beforeChange: function(changes) {
+      beforeChange(changes) {
         fired = true;
         return false;
       }
@@ -67,7 +67,7 @@ describe('Core_beforechange', function() {
       var called = false;
 
       handsontable({
-        beforeChange: function(changes) {
+        beforeChange(changes) {
           if (changes[0][2] === 'test' && changes[0][3] === '') {
             called = true;
           }
@@ -83,7 +83,7 @@ describe('Core_beforechange', function() {
     };
   }
 
-  it('should be called on Delete key', beforechangeOnKeyFactory(46)); //46 = Delete key
+  it('should be called on Delete key', beforechangeOnKeyFactory(46)); // 46 = Delete key
 
-  it('should be called on Backspace key', beforechangeOnKeyFactory(8)); //8 = Backspace key
+  it('should be called on Backspace key', beforechangeOnKeyFactory(8)); // 8 = Backspace key
 });

@@ -1,5 +1,5 @@
-describe('settings', function() {
-  describe('columns', function() {
+describe('settings', () => {
+  describe('columns', () => {
     var id = 'testContainer';
     var arrayOfArrays = function() {
       return [
@@ -25,7 +25,7 @@ describe('settings', function() {
     };
 
     beforeEach(function() {
-      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
     afterEach(function() {
@@ -35,8 +35,8 @@ describe('settings', function() {
       }
     });
 
-    describe('as an array of objects', function() {
-      it('should not throw exception when passed columns array is empty (data source as array of arrays)', function() {
+    describe('as an array of objects', () => {
+      it('should not throw exception when passed columns array is empty (data source as array of arrays)', () => {
         var hot = handsontable({
           data: arrayOfArrays(),
           columns: [
@@ -46,12 +46,12 @@ describe('settings', function() {
           ]
         });
 
-        expect(function() {
+        expect(() => {
           hot.updateSettings({columns: []});
         }).not.toThrow();
       });
 
-      it('should not throw exception when passed columns array is empty (data source as array of objects)', function() {
+      it('should not throw exception when passed columns array is empty (data source as array of objects)', () => {
         var hot = handsontable({
           data: arrayOfObjects(),
           columns: [
@@ -61,18 +61,18 @@ describe('settings', function() {
           ],
         });
 
-        expect(function() {
+        expect(() => {
           hot.updateSettings({columns: []});
         }).not.toThrow();
       });
     });
 
-    describe('as a function', function() {
-      describe('init', function() {
-        it('should render only these columns which are not `null`', function() {
+    describe('as a function', () => {
+      describe('init', () => {
+        it('should render only these columns which are not `null`', () => {
           var hot = handsontable({
             data: arrayOfArrays(),
-            columns: function(column) {
+            columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
             }
           });
@@ -80,10 +80,10 @@ describe('settings', function() {
           expect(hot.getData()[0].length).toEqual(2);
         });
 
-        it('should properly bind default data when is not defined (data source as array of arrays)', function() {
+        it('should properly bind default data when is not defined (data source as array of arrays)', () => {
           var hot = handsontable({
             data: arrayOfArrays(),
-            columns: function(column) {
+            columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
             }
           });
@@ -92,10 +92,10 @@ describe('settings', function() {
           expect(hot.getDataAtCell(0, 1)).toEqual('Kia');
         });
 
-        it('should properly bind default data when is not defined (data source as array of objects)', function() {
+        it('should properly bind default data when is not defined (data source as array of objects)', () => {
           var hot = handsontable({
             data: arrayOfObjects(),
-            columns: function(column) {
+            columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
             }
           });
@@ -104,10 +104,10 @@ describe('settings', function() {
           expect(hot.getDataAtCell(0, 1)).toEqual(null);
         });
 
-        it('should properly bind defined data (data source as array of arrays)', function() {
+        it('should properly bind defined data (data source as array of arrays)', () => {
           var hot = handsontable({
             data: arrayOfArrays(),
-            columns: function(column) {
+            columns(column) {
               return [1, 2].indexOf(column) > -1 ? {data: column + 1} : null;
             }
           });
@@ -116,10 +116,10 @@ describe('settings', function() {
           expect(hot.getDataAtCell(0, 1)).toEqual('Toyota');
         });
 
-        it('should properly bind defined data (data source as array of objects)', function() {
+        it('should properly bind defined data (data source as array of objects)', () => {
           var hot = handsontable({
             data: arrayOfObjects(),
-            columns: function(column) {
+            columns(column) {
               var keys = ['id', 'name', 'lastName'];
 
               return [1, 2].indexOf(column) > -1 ? {data: keys[column - 1]} : null;
@@ -131,38 +131,38 @@ describe('settings', function() {
         });
       });
 
-      describe('updateSettings', function() {
-        it('should not throw exception when passed columns function without return anything (data source as array of arrays) when columns is a function', function() {
+      describe('updateSettings', () => {
+        it('should not throw exception when passed columns function without return anything (data source as array of arrays) when columns is a function', () => {
           var hot = handsontable({
             data: arrayOfArrays(),
-            columns: function(column) {
+            columns(column) {
               return [0, 1, 2].indexOf(column) > -1 ? {data: column} : null;
             }
           });
 
-          expect(function() {
-            hot.updateSettings({columns: function() {}});
+          expect(() => {
+            hot.updateSettings({columns() {}});
           }).not.toThrow();
         });
 
-        it('should not throw exception when passed columns function without return anything (data source as array of objects) when columns is a function', function() {
+        it('should not throw exception when passed columns function without return anything (data source as array of objects) when columns is a function', () => {
           var hot = handsontable({
             data: arrayOfObjects(),
-            columns: function(column) {
+            columns(column) {
               var keys = ['id', 'name', 'lasName'];
 
-              return [0,1,2].indexOf(column) > -1 ? {data: keys[column]} : null;
+              return [0, 1, 2].indexOf(column) > -1 ? {data: keys[column]} : null;
             }
           });
 
-          expect(function() {
-            hot.updateSettings({columns: function() {}});
+          expect(() => {
+            hot.updateSettings({columns() {}});
           }).not.toThrow();
         });
       });
 
-      describe('editors', function() {
-        it('should properly bind defined editors', function() {
+      describe('editors', () => {
+        it('should properly bind defined editors', () => {
           handsontable({
             data: [
               ['Joe'],
@@ -170,7 +170,7 @@ describe('settings', function() {
               ['Margaret'],
               ['Jerry']
             ],
-            columns: function(column) {
+            columns(column) {
               return column === 0 ? { editor: Handsontable.editors.PasswordEditor } : null;
             }
           });
@@ -185,11 +185,11 @@ describe('settings', function() {
         });
       });
 
-      describe('renderers', function() {
-        it('should properly bind defined renderer', function() {
+      describe('renderers', () => {
+        it('should properly bind defined renderer', () => {
           handsontable({
-            data:  [[true],[false],[true]],
-            columns: function(column) {
+            data: [[true], [false], [true]],
+            columns(column) {
               return column === 0 ? { type: 'checkbox' } : null;
             }
           });
@@ -200,13 +200,13 @@ describe('settings', function() {
         });
       });
 
-      describe('validators', function() {
-        it('should properly bind defined validator', function(done) {
+      describe('validators', () => {
+        it('should properly bind defined validator', (done) => {
           var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
           handsontable({
             data: arrayOfObjects(),
-            columns: function(column) {
+            columns(column) {
               var settings = [
                 {data: 'date', type: 'date'},
                 {data: 'name'},
@@ -219,7 +219,7 @@ describe('settings', function() {
 
           setDataAtCell(0, 0, '');
 
-          setTimeout(function() {
+          setTimeout(() => {
             expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date', undefined, undefined);
             done();
           }, 100);

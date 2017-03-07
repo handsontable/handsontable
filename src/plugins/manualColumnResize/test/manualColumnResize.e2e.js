@@ -1,8 +1,8 @@
-describe('manualColumnResize', function() {
+describe('manualColumnResize', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -175,7 +175,7 @@ describe('manualColumnResize', function() {
     $resizer.simulate('mousemove', {clientX: this.$container.find('tr:eq(0) th:eq(1)').position().left + 29});
     $resizer.simulate('mouseup');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect($columnHeaders.eq(1).width()).toBe(33);
       expect($columnHeaders.eq(2).width()).toBe(34);
       expect($columnHeaders.eq(3).width()).toBe(34);
@@ -207,7 +207,7 @@ describe('manualColumnResize', function() {
     $resizer.simulate('mousemove', {clientX: this.$container.find('tr:eq(0) th:eq(1)').position().left + 150});
     $resizer.simulate('mouseup');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect($columnHeaders.eq(1).width()).toBe(154);
       expect($columnHeaders.eq(2).width()).toBe(155);
       expect($columnHeaders.eq(3).width()).toBe(155);
@@ -246,7 +246,7 @@ describe('manualColumnResize', function() {
     $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect($columnHeaders.eq(0).width()).toBe(180);
       expect($columnHeaders.eq(1).width()).toBe(181);
       expect($columnHeaders.eq(2).width()).toBe(181);
@@ -287,7 +287,7 @@ describe('manualColumnResize', function() {
     $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect($columnHeaders.eq(0).width()).toBeAroundValue(19);
       expect($columnHeaders.eq(1).width()).toBe(48);
       expect($columnHeaders.eq(2).width()).toBe(49);
@@ -318,7 +318,7 @@ describe('manualColumnResize', function() {
     expect($resizedTh.text()).toEqual('Third');
     expect($resizedTh.outerWidth()).toEqual(100);
 
-    //Sizes of remaining columns should stay the same
+    // Sizes of remaining columns should stay the same
     for (var i = 1; i < $columnHeaders.length; i++) {
       expect($columnHeaders.eq(i).width()).toEqual(initialColumnWidths[i]);
     }
@@ -410,7 +410,7 @@ describe('manualColumnResize', function() {
     $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(afterColumnResizeCallback.calls.count()).toEqual(1);
       expect(afterColumnResizeCallback.calls.argsFor(0)[0]).toEqual(0);
       // All modern browsers returns width = 25px, but IE8 seems to compute width differently and returns 24px
@@ -443,7 +443,7 @@ describe('manualColumnResize', function() {
     $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
       done();
     }, 1000);
@@ -467,14 +467,14 @@ describe('manualColumnResize', function() {
     var $resizer = spec().$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
-    setTimeout(function() {
+    setTimeout(() => {
       $resizer.simulate('mousedown', {clientX: resizerPosition.left});
       $resizer.simulate('mouseup');
       $resizer.simulate('mousedown', {clientX: resizerPosition.left});
       $resizer.simulate('mouseup');
     }, 600);
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(colWidth(spec().$container, 1)).toBeAroundValue(32, 2);
       expect(colWidth(spec().$container, 2)).toBeAroundValue(32, 2);
       expect(colWidth(spec().$container, 3)).toBeAroundValue(32, 2);
@@ -489,7 +489,7 @@ describe('manualColumnResize', function() {
       colHeaders: true,
       manualColumnResize: true,
       stretchH: 'all',
-      width: function() {
+      width() {
         return maxed ? 614 : 200;
       }
     });
@@ -541,7 +541,7 @@ describe('manualColumnResize', function() {
     expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
   });
 
-  describe('handle and guide', function() {
+  describe('handle and guide', () => {
     it('should display the resize handle in the proper position and with a proper size', function() {
       var hot = handsontable({
         data: [

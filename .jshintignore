@@ -1,8 +1,0 @@
-node_modules
-src/3rdparty/walkontable/test/lib/*
-Gruntfile.js
-dist/*
-lib/*
-test/*
-!test/unit/*
-!test/e2e/*

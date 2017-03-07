@@ -1,8 +1,8 @@
-describe('Public API', function() {
+describe('Public API', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,16 +12,16 @@ describe('Public API', function() {
     }
   });
 
-  describe('Plugins', function() {
-    it('should expose static method for registering external plugins', function() {
+  describe('Plugins', () => {
+    it('should expose static method for registering external plugins', () => {
       expect(Handsontable.plugins.registerPlugin).toBeFunction();
     });
 
-    it('should expose BasePlugin class', function() {
+    it('should expose BasePlugin class', () => {
       expect(Handsontable.plugins.BasePlugin).toBeFunction();
     });
 
-    it('should expose all registered plugin classes', function() {
+    it('should expose all registered plugin classes', () => {
       expect(Handsontable.plugins.AutoColumnSize).toBeFunction();
       expect(Handsontable.plugins.AutoRowSize).toBeFunction();
       expect(Handsontable.plugins.ColumnSorting).toBeFunction();
@@ -37,16 +37,16 @@ describe('Public API', function() {
     });
   });
 
-  describe('Editors', function() {
-    it('should expose static method for registering external editors', function() {
+  describe('Editors', () => {
+    it('should expose static method for registering external editors', () => {
       expect(Handsontable.editors.registerEditor).toBeFunction();
     });
 
-    it('should expose BaseEditor class', function() {
+    it('should expose BaseEditor class', () => {
       expect(Handsontable.editors.BaseEditor).toBeFunction();
     });
 
-    it('should expose all registered editor classes', function() {
+    it('should expose all registered editor classes', () => {
       expect(Handsontable.editors.AutocompleteEditor).toBeFunction();
       expect(Handsontable.editors.CheckboxEditor).toBeFunction();
       expect(Handsontable.editors.DateEditor).toBeFunction();

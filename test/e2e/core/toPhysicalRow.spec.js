@@ -1,8 +1,8 @@
-describe('Core.toPhysicalRow', function() {
+describe('Core.toPhysicalRow', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,10 +12,10 @@ describe('Core.toPhysicalRow', function() {
     }
   });
 
-  it('should return valid physical row index', function() {
+  it('should return valid physical row index', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
-      modifyRow: function(row) {
+      modifyRow(row) {
         return row + 3;
       }
     });

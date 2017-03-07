@@ -1,9 +1,9 @@
-describe('manualColumnMove', function() {
+describe('manualColumnMove', () => {
   var id = 'testContainer';
   var arrayOfArrays = Handsontable.helper.createSpreadsheetData(30, 30);
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -13,7 +13,7 @@ describe('manualColumnMove', function() {
     }
   });
 
-  describe('UI', function() {
+  describe('UI', () => {
     it('should append UI elements to wtHider after click on row header', function() {
       var hot = handsontable({
         data: arrayOfArrays.slice(),
@@ -89,12 +89,12 @@ describe('manualColumnMove', function() {
     it('should set properly width for the backlight element when stretchH is enabled and column order was changed', function() {
       var hot = handsontable({
         data: [
-          {id: 1, flag: 'EUR', currencyCode: 'EUR', currency: 'Euro',	level: 0.9033, units: 'EUR / USD', asOf: '08/19/2015', onedChng: 0.0026},
+          {id: 1, flag: 'EUR', currencyCode: 'EUR', currency: 'Euro', level: 0.9033, units: 'EUR / USD', asOf: '08/19/2015', onedChng: 0.0026},
         ],
         width: 600,
         colHeaders: true,
         stretchH: 'all',
-        manualColumnMove: [2,4,6,3,1,0],
+        manualColumnMove: [2, 4, 6, 3, 1, 0],
         columns: [
           { data: 'id', type: 'numeric', width: 40 },
           { data: 'currencyCode', type: 'text' },

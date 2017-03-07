@@ -1,4 +1,4 @@
-describe('manualRowMove', function() {
+describe('manualRowMove', () => {
   var id = 'testContainer';
   var arrayOfObjects = [
     {id: 1, name: 'Ted', lastName: 'Right'},
@@ -14,7 +14,7 @@ describe('manualRowMove', function() {
   ];
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -24,7 +24,7 @@ describe('manualRowMove', function() {
     }
   });
 
-  describe('init', function() {
+  describe('init', () => {
     it('should change row order at init', function() {
       handsontable({
         data: arrayOfObjects,
@@ -37,7 +37,7 @@ describe('manualRowMove', function() {
     });
   });
 
-  describe('updateSettings', function() {
+  describe('updateSettings', () => {
     it('should be enabled after specifying it in updateSettings config', function() {
       handsontable({
         data: arrayOfObjects,
@@ -131,8 +131,8 @@ describe('manualRowMove', function() {
     });
   });
 
-  describe('loadData', function() {
-    it('should increase numbers of rows if it is necessary', function() {
+  describe('loadData', () => {
+    it('should increase numbers of rows if it is necessary', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         manualRowMove: true
@@ -143,7 +143,7 @@ describe('manualRowMove', function() {
       expect(countRows()).toEqual(10);
       expect(hot.getPlugin('manualRowMove').rowsMapper.__arrayMap.length).toEqual(10);
     });
-    it('should decrease numbers of rows if it is necessary', function() {
+    it('should decrease numbers of rows if it is necessary', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         manualRowMove: true
@@ -156,7 +156,7 @@ describe('manualRowMove', function() {
     });
   });
 
-  describe('moving', function() {
+  describe('moving', () => {
     it('should move row by API', function() {
       var hot = handsontable({
         data: arrayOfObjects,
@@ -209,7 +209,7 @@ describe('manualRowMove', function() {
       expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
-      hot.getPlugin('manualRowMove').moveRows([8,9,7], 0);
+      hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
       hot.render();
 
       expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('9');
@@ -317,7 +317,7 @@ describe('manualRowMove', function() {
       expect(cache.length).toEqual(0);
     });
 
-    it('should properly scrolling viewport if mouse is over part-visible cell', function(done) {
+    it('should properly scrolling viewport if mouse is over part-visible cell', (done) => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         colHeaders: true,
@@ -332,7 +332,7 @@ describe('manualRowMove', function() {
 
       hot.selectCell(19, 0);
 
-      setTimeout(function() {
+      setTimeout(() => {
         expect(hot.view.wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
 
         var $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
@@ -345,18 +345,18 @@ describe('manualRowMove', function() {
         $rowsHeaders.eq(8).simulate('mouseup');
       }, 50);
 
-      setTimeout(function() {
+      setTimeout(() => {
         expect(hot.view.wt.wtTable.getFirstVisibleRow()).toBeLessThan(8);
         done();
       }, 150);
     });
 
-    it('moving row should keep cell meta created using cells function', function() {
+    it('moving row should keep cell meta created using cells function', () => {
       var hot = handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true,
-        cells: function(row, col) {
+        cells(row, col) {
           if (row == 1 && col == 0) {
             this.readOnly = true;
           }
@@ -373,7 +373,7 @@ describe('manualRowMove', function() {
       expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
     });
 
-    it('moving row should keep cell meta created using cell array', function() {
+    it('moving row should keep cell meta created using cell array', () => {
       var hot = handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
@@ -394,8 +394,8 @@ describe('manualRowMove', function() {
     });
   });
 
-  describe('undoRedo', function() {
-    it('should back changes', function() {
+  describe('undoRedo', () => {
+    it('should back changes', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         rowHeaders: true,
@@ -411,7 +411,7 @@ describe('manualRowMove', function() {
       expect(hot.getDataAtCell(1, 0)).toBe('A2');
     });
 
-    it('should revert changes', function() {
+    it('should revert changes', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         rowHeaders: true,

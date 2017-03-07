@@ -1,8 +1,8 @@
-describe('RowHeader', function() {
+describe('RowHeader', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -32,7 +32,7 @@ describe('RowHeader', function() {
     var that = this;
     var startRows = 5;
     handsontable({
-      startRows: startRows,
+      startRows,
       rowHeaders: true
     });
 
@@ -49,7 +49,7 @@ describe('RowHeader', function() {
     var that = this;
     var startRows = 5;
     handsontable({
-      startRows: startRows,
+      startRows,
       rowHeaders: ['First', 'Second', 'Third']
     });
 
@@ -71,8 +71,8 @@ describe('RowHeader', function() {
     expect(getLeftClone().find('tbody th').length).toEqual(0);
   });
 
-  it('should hide rows headers after updateSetting', function() {
-    var hot  = handsontable({
+  it('should hide rows headers after updateSetting', () => {
+    var hot = handsontable({
       startRows: 5,
       rowHeaders: true
     });
@@ -87,8 +87,8 @@ describe('RowHeader', function() {
     expect(getHtCore().find('tbody th').length).toEqual(0);
   });
 
-  it('should show rows headers after updateSettings', function() {
-    var hot  = handsontable({
+  it('should show rows headers after updateSettings', () => {
+    var hot = handsontable({
       startRows: 5,
       rowHeaders: false
     });
@@ -104,8 +104,8 @@ describe('RowHeader', function() {
     expect(getLeftClone().find('tbody th').length).toEqual(5);
   });
 
-  it('should show/hide rows headers after multiple updateSettings', function() {
-    var hot  = handsontable({
+  it('should show/hide rows headers after multiple updateSettings', () => {
+    var hot = handsontable({
       startRows: 5,
       rowHeaders: false
     });
@@ -135,8 +135,8 @@ describe('RowHeader', function() {
     expect(getLeftClone().width()).toBeGreaterThan(0);
   });
 
-  it('should show new rows headers after updateSettings', function() {
-    var hot  = handsontable({
+  it('should show new rows headers after updateSettings', () => {
+    var hot = handsontable({
       startCols: 3,
       rowHeaders: ['A', 'B', 'C']
     });
@@ -173,8 +173,8 @@ describe('RowHeader', function() {
       startCols: 3,
       rowHeaders: true,
       rowHeaderWidth: [66, 96],
-      afterGetRowHeaderRenderers: function(array) {
-        array.push(function(index, TH) {
+      afterGetRowHeaderRenderers(array) {
+        array.push((index, TH) => {
           TH.innerHTML = '';
 
           var div = document.createElement('div');

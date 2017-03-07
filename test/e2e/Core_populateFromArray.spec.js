@@ -1,8 +1,8 @@
-describe('Core_populateFromArray', function() {
+describe('Core_populateFromArray', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -21,40 +21,40 @@ describe('Core_populateFromArray', function() {
     ];
   };
 
-  it('should call onChange callback', function() {
+  it('should call onChange callback', () => {
     var output = null;
 
     handsontable({
       data: arrayOfArrays(),
-      afterChange: function(changes) {
+      afterChange(changes) {
         output = changes;
       }
     });
-    populateFromArray(0, 0, [['test','test'],['test','test']], 1, 1);
+    populateFromArray(0, 0, [['test', 'test'], ['test', 'test']], 1, 1);
 
-    expect(output).toEqual([[0,0,'','test'],[0,1,'Kia','test'],[1,0,'2008','test'],[1,1,10,'test']]);
+    expect(output).toEqual([[0, 0, '', 'test'], [0, 1, 'Kia', 'test'], [1, 0, '2008', 'test'], [1, 1, 10, 'test']]);
   });
 
-  it('should populate single value for whole selection', function() {
+  it('should populate single value for whole selection', () => {
     var output = null;
 
     handsontable({
       data: arrayOfArrays(),
-      afterChange: function(changes) {
+      afterChange(changes) {
         output = changes;
       }
     });
     populateFromArray(0, 0, [['test']], 3, 0);
 
-    expect(output).toEqual([[0,0,'','test'],[1,0,'2008','test'],[2,0,'2009','test'],[3,0,'2010','test']]);
+    expect(output).toEqual([[0, 0, '', 'test'], [1, 0, '2008', 'test'], [2, 0, '2009', 'test'], [3, 0, '2010', 'test']]);
   });
 
-  it('should populate value for whole selection only if populated data isn\'t an array', function() {
+  it('should populate value for whole selection only if populated data isn\'t an array', () => {
     var output = null;
 
     handsontable({
       data: arrayOfArrays(),
-      afterChange: function(changes) {
+      afterChange(changes) {
         output = changes;
       }
     });
@@ -63,12 +63,12 @@ describe('Core_populateFromArray', function() {
     expect(output).toEqual([[0, 0, '', 'test'], [2, 0, '2009', 'test']]);
   });
 
-  it('should populate value for whole selection only if populated data isn\'t an object', function() {
+  it('should populate value for whole selection only if populated data isn\'t an object', () => {
     var output = null;
 
     handsontable({
       data: arrayOfArrays(),
-      afterChange: function(changes) {
+      afterChange(changes) {
         output = changes;
       }
     });
@@ -77,12 +77,12 @@ describe('Core_populateFromArray', function() {
     expect(output).toEqual([[0, 0, '', 'test'], [2, 0, '2009', 'test']]);
   });
 
-  it('shouldn\'t populate value if original value doesn\'t have the same data structure', function() {
+  it('shouldn\'t populate value if original value doesn\'t have the same data structure', () => {
     var output = null;
 
     handsontable({
       data: arrayOfArrays(),
-      afterChange: function(changes) {
+      afterChange(changes) {
         output = changes;
       }
     });
@@ -91,17 +91,17 @@ describe('Core_populateFromArray', function() {
     expect(output).toEqual([[1, 3, 12, 'test'], [1, 4, 13, 'test']]);
   });
 
-  it('should shift values down', function() {
+  it('should shift values down', () => {
     var output = null;
 
     handsontable({
       data: arrayOfArrays(),
-      afterChange: function(changes) {
+      afterChange(changes) {
         output = changes;
       },
       minSpareRows: 1
     });
-    populateFromArray(0, 0, [['test','test2'],['test3','test4']], 2, 2, null, 'shift_down');
+    populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_down');
 
     expect(getData()).toEqual([
       ['test', 'test2', 'test', 'Toyota', 'Honda', 'Mix'],
@@ -115,17 +115,17 @@ describe('Core_populateFromArray', function() {
     ]);
   });
 
-  it('should shift values right', function() {
+  it('should shift values right', () => {
     var output = null;
 
     handsontable({
       data: arrayOfArrays(),
-      afterChange: function(changes) {
+      afterChange(changes) {
         output = changes;
       },
       minSpareCols: 1
     });
-    populateFromArray(0, 0, [['test','test2'],['test3','test4']], 2, 2, null, 'shift_right');
+    populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_right');
 
     expect(getData()).toEqual([
       ['test', 'test2', 'test', '', 'Kia', 'Nissan', 'Toyota', 'Honda', 'Mix', null],
@@ -135,51 +135,49 @@ describe('Core_populateFromArray', function() {
     ]);
   });
 
-  it('should run beforeAutofillInsidePopulate hook for each inserted value', function() {
+  it('should run beforeAutofillInsidePopulate hook for each inserted value', () => {
     var called = 0;
 
     var hot = handsontable({
       data: arrayOfArrays()
     });
 
-    hot.addHook('beforeAutofillInsidePopulate', function(index) {
+    hot.addHook('beforeAutofillInsidePopulate', (index) => {
       called++;
     });
 
-    populateFromArray(0, 0, [['test', 'test2'],['test3', 'test4']], 1, 1, 'Autofill.fill', 'overwrite');
+    populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 1, 1, 'Autofill.fill', 'overwrite');
 
     expect(called).toEqual(4);
   });
 
-  it('should run beforeAutofillInsidePopulate hook and could change cell data before insert if returned object with value property', function() {
+  it('should run beforeAutofillInsidePopulate hook and could change cell data before insert if returned object with value property', () => {
 
     var hot = handsontable({
       data: arrayOfArrays()
     });
 
-    hot.addHook('beforeAutofillInsidePopulate', function(index) {
-      return {
-        value: 'my_test'
-      };
-    });
+    hot.addHook('beforeAutofillInsidePopulate', (index) => ({
+      value: 'my_test'
+    }));
 
-    populateFromArray(0, 0, [['test','test2'],['test3','test4']], 1, 1, 'Autofill.fill', 'overwrite');
+    populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 1, 1, 'Autofill.fill', 'overwrite');
 
     expect(getDataAtCell(0, 0)).toEqual('my_test');
   });
 
-  it('should populate 1 row from 2 selected rows', function() {
+  it('should populate 1 row from 2 selected rows', () => {
     var hot = handsontable({
       data: arrayOfArrays()
     });
 
-    populateFromArray(2, 0, [['A1'],['A2']], 2, 0, 'autofill', null, 'down', [[0]]);
+    populateFromArray(2, 0, [['A1'], ['A2']], 2, 0, 'autofill', null, 'down', [[0]]);
 
     expect(getDataAtCell(2, 0)).toEqual('A1');
     expect(getDataAtCell(3, 0)).toEqual('2010');
   });
 
-  it('should populate 1 column from 2 selected columns`', function() {
+  it('should populate 1 column from 2 selected columns`', () => {
     var hot = handsontable({
       data: arrayOfArrays()
     });

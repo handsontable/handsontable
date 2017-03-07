@@ -68,7 +68,7 @@ export const TimeCell = {
 
 export const HandsontableCell = {
   editor: getEditorConstructor('handsontable'),
-  //displays small gray arrow on right side of the cell
+  // displays small gray arrow on right side of the cell
   renderer: getRenderer('autocomplete'),
 };
 
@@ -80,12 +80,12 @@ export const PasswordCell = {
 
 export const DropdownCell = {
   editor: getEditorConstructor('dropdown'),
-  //displays small gray arrow on right side of the cell
+  // displays small gray arrow on right side of the cell
   renderer: getRenderer('autocomplete'),
   validator: AutocompleteValidator,
 };
 
-//here setup the friendly aliases that are used by cellProperties.renderer and cellProperties.editor
+// here setup the friendly aliases that are used by cellProperties.renderer and cellProperties.editor
 export const cellLookup = {
   validator: {
     numeric: NumericValidator,
@@ -93,7 +93,7 @@ export const cellLookup = {
   }
 };
 
-//here setup the friendly aliases that are used by cellProperties.type
+// here setup the friendly aliases that are used by cellProperties.type
 const cellTypes = {
   text: TextCell,
   date: DateCell,

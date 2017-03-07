@@ -1,8 +1,8 @@
-describe('persistentState', function() {
+describe('persistentState', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -14,14 +14,14 @@ describe('persistentState', function() {
     window.localStorage.clear();
   });
 
-  it('should save data, when persistentStateSave is run', function() {
+  it('should save data, when persistentStateSave is run', () => {
     var hot = handsontable({
       persistentState: true
     });
 
     hot.runHooks('persistentStateSave', 'testData', 100);
 
-    var rawStoredData = window.localStorage[id + '_testData'];
+    var rawStoredData = window.localStorage[`${id}_testData`];
 
     expect(rawStoredData).toBeDefined();
 
@@ -30,20 +30,20 @@ describe('persistentState', function() {
     expect(storedData).toEqual(100);
   });
 
-  it('should NOT save data, when persistentStateSave is run, if plugin is not enabled', function() {
+  it('should NOT save data, when persistentStateSave is run, if plugin is not enabled', () => {
     var hot = handsontable({
       persistentState: false
     });
 
     hot.runHooks('persistentStateSave', 'testData', 100);
 
-    var rawStoredData = window.localStorage[id + '_testData'];
+    var rawStoredData = window.localStorage[`${id}_testData`];
 
     expect(rawStoredData).toBeUndefined();
 
   });
 
-  it('should load data, when persistentStateLoad is run', function() {
+  it('should load data, when persistentStateLoad is run', () => {
     var hot = handsontable({
       persistentState: true
     });
@@ -57,13 +57,13 @@ describe('persistentState', function() {
 
   });
 
-  it('should NOT load data, when persistentStateLoad is run, if plugin is not enabled', function() {
+  it('should NOT load data, when persistentStateLoad is run, if plugin is not enabled', () => {
     var hot = handsontable({
       persistentState: false
     });
 
-    //We have to manually save data, as persistentStateSave won't work when the plugin is disabled
-    window.localStorage[id + '_testData'] = JSON.stringify(100);
+    // We have to manually save data, as persistentStateSave won't work when the plugin is disabled
+    window.localStorage[`${id}_testData`] = JSON.stringify(100);
 
     var storedData = {};
     hot.runHooks('persistentStateLoad', 'testData', storedData);
@@ -72,7 +72,7 @@ describe('persistentState', function() {
 
   });
 
-  it('should clear the data under the given key, when persistentStateReset is run', function() {
+  it('should clear the data under the given key, when persistentStateReset is run', () => {
     var hot = handsontable({
       persistentState: true
     });
@@ -92,22 +92,22 @@ describe('persistentState', function() {
     expect(storedData.value).toBeUndefined();
   });
 
-  it('should NOT clear the data under the given key, when persistentStateReset is run', function() {
+  it('should NOT clear the data under the given key, when persistentStateReset is run', () => {
     var hot = handsontable({
       persistentState: false
     });
 
-    //We have to manually save data, as persistentStateSave won't work when the plugin is disabled
-    window.localStorage[id + '_testData'] = JSON.stringify(100);
+    // We have to manually save data, as persistentStateSave won't work when the plugin is disabled
+    window.localStorage[`${id}_testData`] = JSON.stringify(100);
 
     var storedData = {};
     hot.runHooks('persistentStateReset', 'testData');
 
-    expect(JSON.parse(window.localStorage[id + '_testData'])).toEqual(100);
+    expect(JSON.parse(window.localStorage[`${id}_testData`])).toEqual(100);
 
   });
 
-  it('should clear all data, when persistentStateReset is run without specifying a key to reset', function() {
+  it('should clear all data, when persistentStateReset is run without specifying a key to reset', () => {
     var hot = handsontable({
       persistentState: true
     });
@@ -145,7 +145,7 @@ describe('persistentState', function() {
     expect(storedData[2].value).toBeUndefined();
   });
 
-  it('should allow to DISABLE plugin with updateSettings', function() {
+  it('should allow to DISABLE plugin with updateSettings', () => {
     var hot = handsontable({
       persistentState: true
     });
@@ -168,7 +168,7 @@ describe('persistentState', function() {
 
   });
 
-  it('should allow to ENABLE plugin with updateSettings', function() {
+  it('should allow to ENABLE plugin with updateSettings', () => {
     var hot = handsontable({
       persistentState: false
     });

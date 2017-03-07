@@ -1,8 +1,8 @@
-describe('Core_splice', function() {
+describe('Core_splice', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -29,7 +29,7 @@ describe('Core_splice', function() {
       });
 
       expect(spliceCol(1, 0, 2)).toEqual(['Kia', 10]);
-      expect(getData(0, 1, 3, 1)).toEqual([[20],[30],[null],[null]]);
+      expect(getData(0, 1, 3, 1)).toEqual([[20], [30], [null], [null]]);
     });
 
     it('should insert data into specified col', () => {
@@ -39,7 +39,7 @@ describe('Core_splice', function() {
       });
 
       expect(spliceCol(1, 1, 0, 'test', 'test', 'test')).toEqual([]);
-      expect(getData(0, 1, 6, 1)).toEqual([['Kia'],['test'],['test'],['test'],[10],[20],[30]]);
+      expect(getData(0, 1, 6, 1)).toEqual([['Kia'], ['test'], ['test'], ['test'], [10], [20], [30]]);
     });
 
     it('should remove and insert data into specified col', () => {
@@ -49,7 +49,7 @@ describe('Core_splice', function() {
       });
 
       expect(spliceCol(1, 0, 2, 'test', 'test', 'test')).toEqual(['Kia', 10]);
-      expect(getData(0, 1, 4, 1)).toEqual([['test'],['test'],['test'],[20],[30]]);
+      expect(getData(0, 1, 4, 1)).toEqual([['test'], ['test'], ['test'], [20], [30]]);
     });
   });
 

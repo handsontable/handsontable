@@ -29,6 +29,7 @@
     }
   },
   "ignore": [
-    "src/**/*.spec.js"
+    "src/3rdparty/walkontable/dist/*",
+    "src/3rdparty/walkontable/test/dist/*"
   ]
 }

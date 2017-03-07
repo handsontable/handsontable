@@ -2,9 +2,9 @@ import {
   getNormalizedDate,
 } from 'handsontable/helpers/date';
 
-describe('Date helper', function() {
-  describe('getNormalizedDate', function() {
-    it('should return a proper date object, with time set to 00:00, when providing it with a date-only string', function() {
+describe('Date helper', () => {
+  describe('getNormalizedDate', () => {
+    it('should return a proper date object, with time set to 00:00, when providing it with a date-only string', () => {
       var date1 = getNormalizedDate('2016-02-02');
       var date2 = getNormalizedDate('2016/02/02');
       var date3 = getNormalizedDate('02/02/2016');

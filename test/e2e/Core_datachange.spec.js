@@ -1,8 +1,8 @@
-describe('Core_datachange', function() {
+describe('Core_datachange', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,11 +12,11 @@ describe('Core_datachange', function() {
     }
   });
 
-  it('should call onChange callback', function() {
+  it('should call onChange callback', () => {
     var output = null;
 
     handsontable({
-      afterChange: function(changes) {
+      afterChange(changes) {
         output = changes;
       }
     });
@@ -28,12 +28,12 @@ describe('Core_datachange', function() {
     expect(output[0][3]).toEqual('test');
   });
 
-  it('should use custom source for datachange', function() {
+  it('should use custom source for datachange', () => {
     var output = null,
-        src    = null;
+      src = null;
 
     handsontable({
-      afterChange: function(changes, source) {
+      afterChange(changes, source) {
         output = changes;
         src = source;
       }
@@ -44,12 +44,12 @@ describe('Core_datachange', function() {
     expect(src).toEqual('test');
   });
 
-  it('should use custom source for datachange with array', function() {
+  it('should use custom source for datachange with array', () => {
     var output = null,
-        src    = null;
+      src = null;
 
     handsontable({
-      afterChange: function(changes, source) {
+      afterChange(changes, source) {
         output = changes;
         src = source;
       }
@@ -60,11 +60,11 @@ describe('Core_datachange', function() {
     expect(src).toEqual('test');
   });
 
-  it('should trigger datachange event', function() {
+  it('should trigger datachange event', () => {
     var output = null;
 
     handsontable();
-    Handsontable.hooks.add('afterChange', function(changes) {
+    Handsontable.hooks.add('afterChange', (changes) => {
       output = changes;
     });
     setDataAtCell(1, 2, 'test');
@@ -80,7 +80,7 @@ describe('Core_datachange', function() {
     var $container = this.$container;
 
     handsontable({
-      afterChange: function() {
+      afterChange() {
         output = this.rootElement;
       }
     });
@@ -97,7 +97,7 @@ describe('Core_datachange', function() {
       data: [
         ['Joe Red']
       ],
-      afterChange: function(changes, source) {
+      afterChange(changes, source) {
         if (source === 'loadData') {
           output = $container.find('table.htCore tbody td:first').html();
         }
@@ -115,7 +115,7 @@ describe('Core_datachange', function() {
       data: [
         ['Joe Red']
       ],
-      afterChange: function(changes, source) {
+      afterChange(changes, source) {
         if (source === 'edit') {
           output = $container.find('table.htCore tbody td:first').html();
         }
@@ -126,7 +126,7 @@ describe('Core_datachange', function() {
     expect(output).toEqual('Alice Red');
   });
 
-  it('onChange event object should contain documented keys and values when triggered by edit', function() {
+  it('onChange event object should contain documented keys and values when triggered by edit', () => {
     var sampleData = [
       {
         col1: 'a',
@@ -138,7 +138,7 @@ describe('Core_datachange', function() {
 
     handsontable({
       data: sampleData,
-      afterChange: function(changes, source) {
+      afterChange(changes, source) {
         if (source === 'edit') {
           event = changes.shift();
         }
@@ -152,14 +152,14 @@ describe('Core_datachange', function() {
     expect(event[3]).toEqual('test');
   });
 
-  it('source parameter should be `edit` when cell value is changed through editor', function() {
+  it('source parameter should be `edit` when cell value is changed through editor', () => {
     var sources = [];
 
     handsontable({
       data: [
         ['Joe Red']
       ],
-      afterChange: function(changes, source) {
+      afterChange(changes, source) {
         sources.push(source);
       }
     });
@@ -169,7 +169,7 @@ describe('Core_datachange', function() {
     document.activeElement.value = 'Ted';
     keyDown('enter');
 
-    expect(sources).toEqual(['loadData', 'edit']); //loadData is always the first source
+    expect(sources).toEqual(['loadData', 'edit']); // loadData is always the first source
   });
 
 });

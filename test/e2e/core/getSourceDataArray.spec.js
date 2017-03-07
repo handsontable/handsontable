@@ -1,8 +1,8 @@
-describe('Core.getSourceDataArray', function() {
+describe('Core.getSourceDataArray', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('Core.getSourceDataArray', function() {
     }
   });
 
-  it('should return data as an array when provided data was an array of arrays', function() {
+  it('should return data as an array when provided data was an array of arrays', () => {
     handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
       copyable: true
@@ -22,7 +22,7 @@ describe('Core.getSourceDataArray', function() {
     expect(getSourceDataArray(0, 1, 1, 2)).toEqual([[2, 3], ['b', 'c']]);
   });
 
-  it('should return data as an array when provided data was an array of objects', function() {
+  it('should return data as an array when provided data was an array of objects', () => {
     handsontable({
       data: [{a: 1, b: 2, c: 3}, {a: 'a', b: 'b', c: 'c'}],
       copyable: true

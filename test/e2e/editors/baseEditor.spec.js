@@ -1,8 +1,8 @@
-describe('BaseEditor', function() {
+describe('BaseEditor', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '" style="width: 300px; height: 200px; overflow: auto"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,8 +12,8 @@ describe('BaseEditor', function() {
     }
   });
 
-  describe('ctrl + enter when editor is active', function() {
-    it('should populate value from the currently active cell to every cell in the selected range', function() {
+  describe('ctrl + enter when editor is active', () => {
+    it('should populate value from the currently active cell to every cell in the selected range', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(6, 6)
       });
@@ -72,7 +72,7 @@ describe('BaseEditor', function() {
     });
   });
 
-  it('should exported all editors into Handsontable.editors object', function() {
+  it('should exported all editors into Handsontable.editors object', () => {
     expect(Handsontable.editors.AutocompleteEditor).toBeDefined();
     expect(Handsontable.editors.BaseEditor).toBeDefined();
     expect(Handsontable.editors.CheckboxEditor).toBeDefined();

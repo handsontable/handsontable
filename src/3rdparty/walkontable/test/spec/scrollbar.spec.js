@@ -1,25 +1,28 @@
-describe('WalkontableScrollbar', function() {
-  var $table, $container, $wrapper, debug = false;
+describe('WalkontableScrollbar', () => {
+  var $table,
+    $container,
+    $wrapper,
+    debug = false;
 
-  beforeEach(function() {
+  beforeEach(() => {
     $wrapper = $('<div></div>').css({overflow: 'hidden'});
     $container = $('<div></div>');
-    $table = $('<table></table>'); //create a table that is not attached to document
+    $table = $('<table></table>'); // create a table that is not attached to document
     $wrapper.append($container);
     $container.append($table);
     $wrapper.appendTo('body');
     createDataArray();
   });
 
-  afterEach(function() {
+  afterEach(() => {
     if (!debug) {
       $('.wtHolder').remove();
     }
     $wrapper.remove();
   });
 
-  it('should table in DIV.wtHolder that contains 2 scrollbars', function() {
-    var wt = new Walkontable({
+  it('should table in DIV.wtHolder that contains 2 scrollbars', () => {
+    var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -34,7 +37,7 @@ describe('WalkontableScrollbar', function() {
     this.data.splice(5, this.data.length - 5);
 
     try {
-      var wt = new Walkontable({
+      var wt = new Walkontable.Core({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
@@ -46,8 +49,7 @@ describe('WalkontableScrollbar', function() {
       expect(wt.getViewport()[0]).toEqual(0);
       wt.wtOverlays.topOverlay.onScroll(-1);
       expect(wt.getViewport()[0]).toEqual(0);
-    }
-    catch (e) {
+    } catch (e) {
       expect(e).toBeUndefined();
     }
   });

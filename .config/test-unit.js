@@ -13,19 +13,28 @@ module.exports.create = function create() {
 
   config.forEach(function(c) {
     c.devtool = 'cheap-module-source-map';
-    c.output = {};
-    c.output.filename = 'unit.js';
-    c.output.path = path.resolve(__dirname, '..', 'test', 'dist'),
-    c.resolve.alias.handsontable = path.resolve(__dirname, '..', 'src');
+    c.target = 'web';
+    c.output = {
+      libraryTarget: 'var',
+      filename: '[name].entry.js',
+      path: path.resolve(__dirname, '../test/dist'),
+    };
+    c.resolve.alias.handsontable = path.resolve(__dirname, '../src');
 
     c.module.rules.unshift({
       test: [/\.css$/,],
-      loader: path.resolve(__dirname, 'loader', 'empty-loader.js'),
+      loader: path.resolve(__dirname, 'loader/empty-loader.js'),
     });
+
+    c.externals = [
+      {
+        window: 'window',
+      },
+    ];
 
     c.plugins.push(
       new JasmineHtml({
-        filename: path.resolve(__dirname, '..', 'test', 'UnitRunner.html'),
+        filename: path.resolve(__dirname, '../test/UnitRunner.html'),
         externalCssFiles: [],
         externalJsFiles: [],
       })

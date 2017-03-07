@@ -1,8 +1,8 @@
-describe('Core_count', function() {
+describe('Core_count', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -10,8 +10,8 @@ describe('Core_count', function() {
     this.$container.remove();
   });
 
-  describe('countVisibleRows', function() {
-    it('should return number of visible rows', function() {
+  describe('countVisibleRows', () => {
+    it('should return number of visible rows', () => {
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         height: 100,
@@ -30,8 +30,8 @@ describe('Core_count', function() {
     });
   });
 
-  describe('countRenderedRows', function() {
-    it('should return number of rendered rows', function() {
+  describe('countRenderedRows', () => {
+    it('should return number of rendered rows', () => {
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         height: 100,
@@ -40,7 +40,7 @@ describe('Core_count', function() {
       expect(instance.countRenderedRows()).toEqual(5);
     });
 
-    it('should return number of rendered rows, including rows rendered becausee of viewportRowRenderingOffset', function() {
+    it('should return number of rendered rows, including rows rendered becausee of viewportRowRenderingOffset', () => {
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 10),
         height: 100,
@@ -59,8 +59,8 @@ describe('Core_count', function() {
     });
   });
 
-  describe('countVisibleCols', function() {
-    it('should return number of visible columns', function() {
+  describe('countVisibleCols', () => {
+    it('should return number of visible columns', () => {
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         width: 100

@@ -1,5 +1,5 @@
-import copyPaste from 'copypaste';
-import SheetClip from 'sheetclip';
+import copyPaste from './../../../lib/copyPaste/copyPaste';
+import SheetClip from './../../../lib/SheetClip/SheetClip';
 import Hooks from './../../pluginHooks';
 import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
 import {arrayEach} from './../../helpers/array';
@@ -8,7 +8,7 @@ import {stopImmediatePropagation, isImmediatePropagationStopped} from './../../h
 import {getSelectionText} from './../../helpers/dom/element';
 import {proxy} from './../../helpers/function';
 import {registerPlugin} from './../../plugins';
-import {CellCoords, CellRange} from 'walkontable';
+import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
 
 Hooks.getSingleton().register('afterCopyLimit');
 Hooks.getSingleton().register('modifyCopyableRange');
@@ -87,11 +87,11 @@ function CopyPastePlugin(instance) {
 
           if (nextChange) {
             if (!isSelRowAreaCoverInputValue) {
-              offset.row = offset.row + Math.max(nextChange[0] - change[0] - 1, 0);
+              offset.row += Math.max(nextChange[0] - change[0] - 1, 0);
             }
             if (!isSelColAreaCoverInputValue && change[1] > highestColumnIndex) {
               highestColumnIndex = change[1];
-              offset.col = offset.col + Math.max(nextChange[1] - change[1] - 1, 0);
+              offset.col += Math.max(nextChange[1] - change[1] - 1, 0);
             }
           }
         });
@@ -184,8 +184,8 @@ function CopyPastePlugin(instance) {
     var copyableRanges = [];
 
     copyableRanges.push({
-      startRow: startRow,
-      startCol: startCol,
+      startRow,
+      startCol,
       endRow: finalEndRow,
       endCol: finalEndCol
     });

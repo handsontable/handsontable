@@ -8,7 +8,7 @@ import {registerPlugin} from './../../plugins';
 import ColumnsMapper from './columnsMapper';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
-import {CellCoords} from 'walkontable';
+import {CellCoords} from './../../3rdparty/walkontable/src';
 
 import './manualColumnMove.css';
 
@@ -354,7 +354,7 @@ class ManualColumnMove extends BasePlugin {
         priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
       }
 
-    } else if ((priv.target.TD.offsetWidth / 2 + tdOffsetLeft) <= mouseOffsetLeft) {
+    } else if (((priv.target.TD.offsetWidth / 2) + tdOffsetLeft) <= mouseOffsetLeft) {
       let newCoordsCol = priv.coordsColumn >= priv.countCols ? priv.countCols - 1 : priv.coordsColumn;
       // if hover on right part of TD
       priv.target.col = newCoordsCol + 1;
@@ -399,7 +399,7 @@ class ManualColumnMove extends BasePlugin {
       guidelineLeft = 1;
 
     } else if (scrollableElement.scrollX !== void 0 && priv.coordsColumn < priv.fixedColumns) {
-      guidelineLeft = guidelineLeft - ((priv.rootElementOffset <= scrollableElement.scrollX) ? priv.rootElementOffset : 0);
+      guidelineLeft -= ((priv.rootElementOffset <= scrollableElement.scrollX) ? priv.rootElementOffset : 0);
     }
 
     this.backlight.setPosition(null, backlightLeft);

@@ -15,7 +15,7 @@ import {
   debounce
 } from './../../helpers/function';
 import EventManager from './../../eventManager';
-import {CellCoords} from 'walkontable';
+import {CellCoords} from './../../3rdparty/walkontable/src';
 import {registerPlugin, getPlugin} from './../../plugins';
 import BasePlugin from './../_base';
 import CommentEditor from './commentEditor';
@@ -207,7 +207,7 @@ class Comments extends BasePlugin {
   targetIsCellWithComment(event) {
     const closestCell = closest(event.target, 'TD', 'TBODY');
 
-    return closestCell && hasClass(closestCell, 'htCommentCell') && closest(closestCell, [this.hot.rootElement]) ? true : false;
+    return !!(closestCell && hasClass(closestCell, 'htCommentCell') && closest(closestCell, [this.hot.rootElement]));
   }
 
   /**
@@ -376,11 +376,11 @@ class Comments extends BasePlugin {
     let cellLeftOffset = cellOffset.left;
 
     if (this.hot.view.wt.wtViewport.hasVerticalScroll() && scrollableElement !== window) {
-      cellTopOffset = cellTopOffset - this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
+      cellTopOffset -= this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
     }
 
     if (this.hot.view.wt.wtViewport.hasHorizontalScroll() && scrollableElement !== window) {
-      cellLeftOffset = cellLeftOffset - this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
+      cellLeftOffset -= this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
     }
 
     let x = cellLeftOffset + lastColWidth;
@@ -532,7 +532,7 @@ class Comments extends BasePlugin {
     this.mouseDown = false;
   }
 
-  /***
+  /** *
    * The `afterRenderer` hook callback..
    *
    * @private
@@ -659,27 +659,23 @@ class Comments extends BasePlugin {
       getPlugin(this.hot, 'contextMenu').constructor.SEPARATOR,
       {
         key: 'commentsAddEdit',
-        name: () => {
-          return this.checkSelectionCommentsConsistency() ? 'Edit comment' : 'Add comment';
-        },
+        name: () => (this.checkSelectionCommentsConsistency() ? 'Edit comment' : 'Add comment'),
         callback: () => this.onContextMenuAddComment(),
-        disabled: function() {
-          return this.getSelected() && !this.selection.selectedHeader.corner ? false : true;
+        disabled() {
+          return !(this.getSelected() && !this.selection.selectedHeader.corner);
         }
       },
       {
         key: 'commentsRemove',
-        name: function() {
+        name() {
           return 'Delete comment';
         },
         callback: (key, selection) => this.onContextMenuRemoveComment(selection),
-        disabled: () => {
-          return this.hot.selection.selectedHeader.corner;
-        }
+        disabled: () => this.hot.selection.selectedHeader.corner
       },
       {
         key: 'commentsReadOnly',
-        name: function() {
+        name() {
           let label = 'Read only comment';
           let hasProperty = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
             let readOnlyProperty = this.getCellMeta(row, col)[META_COMMENT];
@@ -699,9 +695,7 @@ class Comments extends BasePlugin {
           return label;
         },
         callback: (key, selection) => this.onContextMenuMakeReadOnly(selection),
-        disabled: () => {
-          return this.hot.selection.selectedHeader.corner || !this.checkSelectionCommentsConsistency();
-        }
+        disabled: () => this.hot.selection.selectedHeader.corner || !this.checkSelectionCommentsConsistency()
       }
     );
   }

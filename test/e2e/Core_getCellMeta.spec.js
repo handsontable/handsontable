@@ -1,8 +1,8 @@
-describe('Core_getCellMeta', function() {
+describe('Core_getCellMeta', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,11 +12,11 @@ describe('Core_getCellMeta', function() {
     }
   });
 
-  it('should not allow manual editing of a read only cell', function() {
+  it('should not allow manual editing of a read only cell', () => {
     var allCellsReadOnly = false;
 
     handsontable({
-      cells: function() {
+      cells() {
         return {readOnly: allCellsReadOnly};
       }
     });
@@ -28,11 +28,11 @@ describe('Core_getCellMeta', function() {
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('should allow manual editing of cell that is no longer read only', function() {
+  it('should allow manual editing of cell that is no longer read only', () => {
     var allCellsReadOnly = true;
 
     handsontable({
-      cells: function() {
+      cells() {
         return {readOnly: allCellsReadOnly};
       }
     });
@@ -44,10 +44,10 @@ describe('Core_getCellMeta', function() {
     expect(isEditorVisible()).toEqual(true);
   });
 
-  it('should move the selection to the cell below, when hitting the ENTER key on a read-only cell', function() {
+  it('should move the selection to the cell below, when hitting the ENTER key on a read-only cell', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
-      cells: function() {
+      cells() {
         return {readOnly: true};
       }
     });
@@ -59,12 +59,12 @@ describe('Core_getCellMeta', function() {
 
   });
 
-  it('should use default cell editor for a cell that has declared only cell renderer', function() {
+  it('should use default cell editor for a cell that has declared only cell renderer', () => {
     handsontable({
-      cells: function() {
+      cells() {
         return {
-          renderer: function(instance, td, row, col, prop, value, cellProperties) {
-            //taken from demo/renderers.html
+          renderer(instance, td, row, col, prop, value, cellProperties) {
+            // taken from demo/renderers.html
             Handsontable.renderers.TextRenderer.apply(this, arguments);
             $(td).css({
               background: 'yellow'
@@ -81,19 +81,19 @@ describe('Core_getCellMeta', function() {
     expect(getDataAtCell(2, 2)).toEqual('new value');
   });
 
-  it('should allow to use type and renderer in `flat` notation', function() {
+  it('should allow to use type and renderer in `flat` notation', () => {
     handsontable({
       data: [
         [1, 2, 3, 4],
         [5, 6, 7, 8],
         [0, 9, 8, 7]
       ],
-      cells: function(row, col) {
+      cells(row, col) {
         if (row === 2 && col === 2) {
           return {
             type: 'checkbox',
-            renderer: function(instance, td, row, col, prop, value, cellProperties) {
-              //taken from demo/renderers.html
+            renderer(instance, td, row, col, prop, value, cellProperties) {
+              // taken from demo/renderers.html
               Handsontable.renderers.TextRenderer.apply(this, arguments);
 
               td.style.backgroundColor = 'yellow';
@@ -107,11 +107,13 @@ describe('Core_getCellMeta', function() {
     expect(getCell(1, 1).style.backgroundColor).toEqual('');
   });
 
-  it('this in cells should point to cellProperties', function() {
-    var called = 0, _row, _this;
+  it('this in cells should point to cellProperties', () => {
+    var called = 0,
+      _row,
+      _this;
 
     handsontable({
-      cells: function(row, col, prop) {
+      cells(row, col, prop) {
         called++;
         _row = row;
         _this = this;
@@ -133,7 +135,7 @@ describe('Core_getCellMeta', function() {
         ['B']
       ],
       minSpareRows: 1,
-      cells: function(row, col, prop) {
+      cells(row, col, prop) {
         var cellProperties = {};
 
         if (getSourceData()[row][col] === 'A') {
@@ -153,7 +155,7 @@ describe('Core_getCellMeta', function() {
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('B');
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
-    //Column sorting changes the order of displayed rows while keeping table data unchanged
+    // Column sorting changes the order of displayed rows while keeping table data unchanged
     updateSettings({
       columnSorting: {
         column: 0,

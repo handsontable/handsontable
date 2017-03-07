@@ -5,7 +5,7 @@
  * @returns {boolean}
  */
 export function isNumeric(n) {
-  // jscs:disable
+  /* eslint-disable */
   var t = typeof n;
 
   return t == 'number' ? !isNaN(n) && isFinite(n) :
@@ -68,7 +68,7 @@ export function rangeEachReverse(rangeFrom, rangeTo, iteratee) {
  */
 export function valueAccordingPercent(value, percent) {
   percent = parseInt(percent.toString().replace('%', ''), 10);
-  percent = parseInt(value * percent / 100);
+  percent = parseInt(value * percent / 100, 10);
 
   return percent;
 }

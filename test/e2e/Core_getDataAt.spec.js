@@ -1,8 +1,8 @@
-describe('Core_getDataAt*', function() {
+describe('Core_getDataAt*', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -44,7 +44,7 @@ describe('Core_getDataAt*', function() {
     ];
   };
 
-  it('should return data at specified row', function() {
+  it('should return data at specified row', () => {
     handsontable({
       data: arrayOfArrays()
     });
@@ -52,7 +52,7 @@ describe('Core_getDataAt*', function() {
     expect(getDataAtRow(0)).toEqual(['', 'Kia', 'Nissan', 'Toyota', 'Honda']);
   });
 
-  it('should return data at specified col', function() {
+  it('should return data at specified col', () => {
     handsontable({
       data: arrayOfArrays()
     });
@@ -60,8 +60,8 @@ describe('Core_getDataAt*', function() {
     expect(getDataAtCol(1)).toEqual(['Kia', 10, 20, 30]);
   });
 
-  describe('Core_getDataAtRowProp', function() {
-    it('should return data at specified column', function() {
+  describe('Core_getDataAtRowProp', () => {
+    it('should return data at specified column', () => {
       handsontable({
         data: arrayOfObjects()
       });
@@ -73,8 +73,8 @@ describe('Core_getDataAt*', function() {
     });
   });
 
-  describe('`modifyData` hook', function() {
-    it('should be fired with specified arguments on every `set`, `get` operation (array of arrays)', function() {
+  describe('`modifyData` hook', () => {
+    it('should be fired with specified arguments on every `set`, `get` operation (array of arrays)', () => {
       var spy = jasmine.createSpy();
 
       handsontable({
@@ -99,7 +99,7 @@ describe('Core_getDataAt*', function() {
       expect(spy.calls.argsFor(0)[3]).toBe('set');
     });
 
-    it('should be fired with specified arguments on every `set`, `get` operation (array of objects)', function() {
+    it('should be fired with specified arguments on every `set`, `get` operation (array of objects)', () => {
       var spy = jasmine.createSpy();
 
       handsontable({
@@ -124,10 +124,10 @@ describe('Core_getDataAt*', function() {
       expect(spy.calls.argsFor(0)[3]).toBe('set');
     });
 
-    it('should overwrite value while loading data', function() {
+    it('should overwrite value while loading data', () => {
       handsontable({
         data: arrayOfArrays(),
-        modifyData: function(row, column, valueHolder, ioMode) {
+        modifyData(row, column, valueHolder, ioMode) {
           if (ioMode === 'get' && row === 1 && column === 2) {
             valueHolder.value = 'foo';
           }
@@ -138,10 +138,10 @@ describe('Core_getDataAt*', function() {
       expect(getSourceDataAtCell(1, 2)).toBe(11);
     });
 
-    it('should overwrite value while saving data', function() {
+    it('should overwrite value while saving data', () => {
       handsontable({
         data: arrayOfArrays(),
-        modifyData: function(row, column, valueHolder, ioMode) {
+        modifyData(row, column, valueHolder, ioMode) {
           if (ioMode === 'set' && row === 1 && column === 2) {
             valueHolder.value = 'foo';
           }

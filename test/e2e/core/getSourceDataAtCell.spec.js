@@ -1,8 +1,8 @@
-describe('Core.getSourceDataAtCell', function() {
+describe('Core.getSourceDataAtCell', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('Core.getSourceDataAtCell', function() {
     }
   });
 
-  it('should return null when is call without arguments', function() {
+  it('should return null when is call without arguments', () => {
     handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
     });
@@ -20,7 +20,7 @@ describe('Core.getSourceDataAtCell', function() {
     expect(getSourceDataAtCell()).toBeNull();
   });
 
-  it('should return cell value when provided data was an array of arrays', function() {
+  it('should return cell value when provided data was an array of arrays', () => {
     handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
     });
@@ -28,7 +28,7 @@ describe('Core.getSourceDataAtCell', function() {
     expect(getSourceDataAtCell(1, 1)).toEqual('b');
   });
 
-  it('should return cell value when provided data was an array of objects', function() {
+  it('should return cell value when provided data was an array of objects', () => {
     handsontable({
       data: [{a: 1, b: 2, c: 3}, {a: 'a', b: 'b', c: 'c'}],
       copyable: true
@@ -37,7 +37,7 @@ describe('Core.getSourceDataAtCell', function() {
     expect(getSourceDataAtCell(1, 'b')).toEqual('b');
   });
 
-  it('should return cell value when provided data was an array of objects (nested structure)', function() {
+  it('should return cell value when provided data was an array of objects (nested structure)', () => {
     handsontable({
       data: [{a: 1, b: {a: 21, b: 22}, c: 3}, {a: 'a', b: {a: 'ba', b: 'bb'}, c: 'c'}],
       columns: [
@@ -51,7 +51,7 @@ describe('Core.getSourceDataAtCell', function() {
     expect(getSourceDataAtCell(1, 'b.b')).toEqual('bb');
   });
 
-  it('should return cell value when data is provided by dataSchema', function() {
+  it('should return cell value when data is provided by dataSchema', () => {
     handsontable({
       data: [
         model({id: 1, name: 'Ted Right', address: ''}),
@@ -78,7 +78,7 @@ describe('Core.getSourceDataAtCell', function() {
         };
 
       for (var i in opts) {
-        if (opts.hasOwnProperty(i)) {
+        if (Object.prototype.hasOwnProperty.call(opts, i)) {
           _priv[i] = opts[i];
         }
       }
@@ -104,8 +104,8 @@ describe('Core.getSourceDataAtCell', function() {
     expect(getSourceDataAtCell(1, 1)).toEqual('Frank Honest');
   });
 
-  describe('`modifyRowData` hook', function() {
-    it('should be possible to change data for row on the fly ', function() {
+  describe('`modifyRowData` hook', () => {
+    it('should be possible to change data for row on the fly ', () => {
       handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
@@ -113,7 +113,7 @@ describe('Core.getSourceDataAtCell', function() {
           ['2009', 20, 11, 14, 13],
           ['2010', 30, 15, 12, 13]
         ],
-        modifyRowData: function(row) {
+        modifyRowData(row) {
           var newDataset = [];
 
           if (row === 1) {

@@ -7,14 +7,14 @@ export default function alignmentItem() {
   return {
     key: KEY,
     name: 'Alignment',
-    disabled: function() {
-      return this.getSelectedRange() && !this.selection.selectedHeader.corner ? false : true;
+    disabled() {
+      return !(this.getSelectedRange() && !this.selection.selectedHeader.corner);
     },
     submenu: {
       items: [
         {
           key: `${KEY}:left`,
-          name: function() {
+          name() {
             let label = 'Left';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -30,7 +30,7 @@ export default function alignmentItem() {
 
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'horizontal';
@@ -44,7 +44,7 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:center`,
-          name: function() {
+          name() {
             let label = 'Center';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -60,7 +60,7 @@ export default function alignmentItem() {
 
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'horizontal';
@@ -74,7 +74,7 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:right`,
-          name: function() {
+          name() {
             let label = 'Right';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -90,7 +90,7 @@ export default function alignmentItem() {
 
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'horizontal';
@@ -104,7 +104,7 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:justify`,
-          name: function() {
+          name() {
             let label = 'Justify';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -120,7 +120,7 @@ export default function alignmentItem() {
 
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'horizontal';
@@ -137,7 +137,7 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:top`,
-          name: function() {
+          name() {
             let label = 'Top';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -152,7 +152,7 @@ export default function alignmentItem() {
             }
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'vertical';
@@ -166,7 +166,7 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:middle`,
-          name: function() {
+          name() {
             let label = 'Middle';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -182,7 +182,7 @@ export default function alignmentItem() {
 
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'vertical';
@@ -196,7 +196,7 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:bottom`,
-          name: function() {
+          name() {
             let label = 'Bottom';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -212,7 +212,7 @@ export default function alignmentItem() {
 
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'vertical';

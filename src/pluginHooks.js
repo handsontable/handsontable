@@ -1,3 +1,6 @@
+import {arrayEach} from './helpers/array';
+import {objectEach} from './helpers/object';
+
 /**
  * @description
  * Handsontable events are the common interface that function in 2 ways: as __callbacks__ and as __hooks__.
@@ -750,7 +753,7 @@ const REGISTERED_HOOKS = [
    * @since 0.23.0
    * @param {Number} col Column index.
    */
-    'unmodifyCol',
+  'unmodifyCol',
 
   /**
    * Fired when a row index is about to be de-modified by a callback function.
@@ -1282,9 +1285,6 @@ const REGISTERED_HOOKS = [
   'afterBeginEditing'
 ];
 
-import {arrayEach} from './helpers/array';
-import {objectEach} from './helpers/object';
-
 class Hooks {
   static getSingleton() {
     return globalSingleton;
@@ -1453,7 +1453,7 @@ class Hooks {
   has(key, context = null) {
     let bucket = this.getBucket(context);
 
-    return bucket[key] !== void 0 && bucket[key].length ? true : false;
+    return !!(bucket[key] !== void 0 && bucket[key].length);
   }
 
   /**
@@ -1486,6 +1486,7 @@ class Hooks {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
         while (++index < length) {
           if (!globalHandlers[index] || globalHandlers[index].skip) {
+            /* eslint-disable no-continue */
             continue;
           }
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
@@ -1509,6 +1510,7 @@ class Hooks {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
         while (++index < length) {
           if (!localHandlers[index] || localHandlers[index].skip) {
+            /* eslint-disable no-continue */
             continue;
           }
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture

@@ -1,8 +1,8 @@
-describe('Core.isEmpty*', function() {
+describe('Core.isEmpty*', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,47 +12,47 @@ describe('Core.isEmpty*', function() {
     }
   });
 
-  describe('isEmptyRow', function() {
-    it('should be empty row', function() {
+  describe('isEmptyRow', () => {
+    it('should be empty row', () => {
       handsontable();
       var hot = getInstance();
       expect(hot.isEmptyRow(0)).toEqual(true);
     });
 
-    it('should not be empty row', function() {
+    it('should not be empty row', () => {
       handsontable();
       setDataAtCell(0, 0, 'test');
       var hot = getInstance();
       expect(hot.isEmptyRow(0)).toEqual(false);
     });
 
-    it('should bind this to instance', function() {
+    it('should bind this to instance', () => {
       handsontable();
       var hot = getInstance();
       var check = hot.isEmptyRow;
-      expect(check(0)).toEqual(true); //this may be change in future when we switch to define isEmptyCol in prototype
+      expect(check(0)).toEqual(true); // this may be change in future when we switch to define isEmptyCol in prototype
     });
   });
 
-  describe('isEmptyCol', function() {
-    it('should be empty row', function() {
+  describe('isEmptyCol', () => {
+    it('should be empty row', () => {
       handsontable();
       var hot = getInstance();
       expect(hot.isEmptyCol(0)).toEqual(true);
     });
 
-    it('should not be empty row', function() {
+    it('should not be empty row', () => {
       handsontable();
       setDataAtCell(0, 0, 'test');
       var hot = getInstance();
       expect(hot.isEmptyCol(0)).toEqual(false);
     });
 
-    it('should bind this to instance', function() {
+    it('should bind this to instance', () => {
       handsontable();
       var hot = getInstance();
       var check = hot.isEmptyCol;
-      expect(check(0)).toEqual(true); //this may be change in future when we switch to define isEmptyCol in prototype
+      expect(check(0)).toEqual(true); // this may be change in future when we switch to define isEmptyCol in prototype
     });
   });
 });

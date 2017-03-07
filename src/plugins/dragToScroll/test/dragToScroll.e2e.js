@@ -1,4 +1,4 @@
-describe('DragToScroll', function() {
+describe('DragToScroll', () => {
   function createBoundaries() {
     return {
       top: 100,
@@ -13,8 +13,8 @@ describe('DragToScroll', function() {
 
   dragToScroll.setBoundaries(createBoundaries());
 
-  it('exact top, exact left should be in boundaries', function() {
-    dragToScroll.setCallback(function(scrollX, scrollY) {
+  it('exact top, exact left should be in boundaries', () => {
+    dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(0);
       expect(scrollY).toEqual(0);
     });
@@ -22,8 +22,8 @@ describe('DragToScroll', function() {
     dragToScroll.check(100, 100);
   });
 
-  it('exact bottom, exact right should be in boundaries', function() {
-    dragToScroll.setCallback(function(scrollX, scrollY) {
+  it('exact bottom, exact right should be in boundaries', () => {
+    dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(0);
       expect(scrollY).toEqual(0);
     });
@@ -31,8 +31,8 @@ describe('DragToScroll', function() {
     dragToScroll.check(1000, 1000);
   });
 
-  it('less than top, less than left should be out in "top" direction', function() {
-    dragToScroll.setCallback(function(scrollX, scrollY) {
+  it('less than top, less than left should be out in "top" direction', () => {
+    dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(-1);
       expect(scrollY).toEqual(-1);
     });
@@ -40,8 +40,8 @@ describe('DragToScroll', function() {
     dragToScroll.check(99, 99);
   });
 
-  it('exact top, less than left should be out in "left" direction', function() {
-    dragToScroll.setCallback(function(scrollX, scrollY) {
+  it('exact top, less than left should be out in "left" direction', () => {
+    dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(-1);
       expect(scrollY).toEqual(0);
     });
@@ -49,8 +49,8 @@ describe('DragToScroll', function() {
     dragToScroll.check(99, 100);
   });
 
-  it('less than top, more than right should be out in "top" direction', function() {
-    dragToScroll.setCallback(function(scrollX, scrollY) {
+  it('less than top, more than right should be out in "top" direction', () => {
+    dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(1);
       expect(scrollY).toEqual(-1);
     });
@@ -58,8 +58,8 @@ describe('DragToScroll', function() {
     dragToScroll.check(1001, 99);
   });
 
-  it('more than bottom, more than right should be out in "bottom" direction', function() {
-    dragToScroll.setCallback(function(scrollX, scrollY) {
+  it('more than bottom, more than right should be out in "bottom" direction', () => {
+    dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(1);
       expect(scrollY).toEqual(1);
     });
@@ -67,8 +67,8 @@ describe('DragToScroll', function() {
     dragToScroll.check(1001, 1001);
   });
 
-  it('exact bottom, more than right should be out in "right" direction', function() {
-    dragToScroll.setCallback(function(scrollX, scrollY) {
+  it('exact bottom, more than right should be out in "right" direction', () => {
+    dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(1);
       expect(scrollY).toEqual(0);
     });
@@ -76,8 +76,8 @@ describe('DragToScroll', function() {
     dragToScroll.check(1001, 1000);
   });
 
-  it('more than bottom, less than left should be out in "bottom" direction', function() {
-    dragToScroll.setCallback(function(scrollX, scrollY) {
+  it('more than bottom, less than left should be out in "bottom" direction', () => {
+    dragToScroll.setCallback((scrollX, scrollY) => {
       expect(scrollX).toEqual(-1);
       expect(scrollY).toEqual(1);
     });

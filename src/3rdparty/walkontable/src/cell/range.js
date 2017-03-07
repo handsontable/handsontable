@@ -220,6 +220,8 @@ class CellRange {
       case 'SW-NE':
         [this.from, this.to] = [this.getBottomLeftCorner(), this.getTopRightCorner()];
         break;
+      default:
+        break;
     }
   }
 

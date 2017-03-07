@@ -1,8 +1,8 @@
-describe('manualRowMove', function() {
+describe('manualRowMove', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('manualRowMove', function() {
     }
   });
 
-  describe('UI', function() {
+  describe('UI', () => {
     it('should append UI elements to wtHider after click on row header', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),

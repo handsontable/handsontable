@@ -55,9 +55,7 @@ class RowsMapper {
    * Clearing arrayMap from `null` entries.
    */
   clearNull() {
-    this._arrayMap = arrayFilter(this._arrayMap, (i) => {
-      return i !== null;
-    });
+    this._arrayMap = arrayFilter(this._arrayMap, (i) => i !== null);
   }
 }
 

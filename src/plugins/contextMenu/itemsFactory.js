@@ -99,7 +99,7 @@ function getItems(pattern = null, defaultPattern = [], items = {}) {
         return;
       }
       if (!item) {
-        item = {name, key: key + ''};
+        item = {name, key: `${key}`};
       }
       if (isObject(name)) {
         extend(item, name);

@@ -4,7 +4,7 @@ import {arrayIncludes} from './../../helpers/array';
 import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
 import {registerPlugin} from './../../plugins';
-import {CellCoords} from 'walkontable';
+import {CellCoords} from './../../3rdparty/walkontable/src';
 import {getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting} from './utils';
 
 Hooks.getSingleton().register('modifyAutofillRange');
@@ -207,7 +207,7 @@ class Autofill extends BasePlugin {
    * @returns {Array}
    */
 
-  getCoordsOfDragAndDropBorders (coordsOfSelection) {
+  getCoordsOfDragAndDropBorders(coordsOfSelection) {
     const topLeftCorner = this.hot.getSelectedRange().getTopLeftCorner();
     const bottomRightCorner = this.hot.getSelectedRange().getBottomRightCorner();
     let coords;
@@ -283,9 +283,9 @@ class Autofill extends BasePlugin {
     if (this.hot.selection.isMultiple()) {
       return this.hot.view.wt.selections.area.getCorners();
 
-    } else {
-      return this.hot.view.wt.selections.current.getCorners();
     }
+    return this.hot.view.wt.selections.current.getCorners();
+
   }
 
   /**
@@ -327,7 +327,7 @@ class Autofill extends BasePlugin {
    * @param {Array} selectStartArea selection area from which we start to create more comprehensive selection.
    * @param {Number} rowIndex
    */
-  addSelectionFromStartAreaToSpecificRowIndex (selectStartArea, rowIndex) {
+  addSelectionFromStartAreaToSpecificRowIndex(selectStartArea, rowIndex) {
     this.hot.view.wt.selections.fill.clear();
     this.hot.view.wt.selections.fill.add(new CellCoords(
       selectStartArea[0],
@@ -369,11 +369,11 @@ class Autofill extends BasePlugin {
     if (lastFilledInRowIndex === -1) {
       return false;
 
-    } else {
-      this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
-
-      return true;
     }
+    this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
+
+    return true;
+
   }
 
   /**

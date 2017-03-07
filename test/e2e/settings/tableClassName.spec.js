@@ -1,9 +1,9 @@
-describe('settings', function() {
-  describe('tableClassName', function() {
+describe('settings', () => {
+  describe('tableClassName', () => {
     var id = 'testContainer';
 
     beforeEach(function() {
-      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
     afterEach(function() {
@@ -13,7 +13,7 @@ describe('settings', function() {
       }
     });
 
-    it('should add class name every table element inside handsontable wrapper element (as string, without overlays)', function() {
+    it('should add class name every table element inside handsontable wrapper element (as string, without overlays)', () => {
       var hot = handsontable({
         colHeaders: false,
         rowHeaders: false,
@@ -26,7 +26,7 @@ describe('settings', function() {
       expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
     });
 
-    it('should add class name every table element inside handsontable wrapper element (as string, with overlays)', function() {
+    it('should add class name every table element inside handsontable wrapper element (as string, with overlays)', () => {
       var hot = handsontable({
         colHeaders: true,
         rowHeaders: true,
@@ -38,7 +38,7 @@ describe('settings', function() {
       expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
     });
 
-    it('should add class name every table element inside handsontable wrapper element (as string with spaces, without overlays)', function() {
+    it('should add class name every table element inside handsontable wrapper element (as string with spaces, without overlays)', () => {
       var hot = handsontable({
         colHeaders: false,
         rowHeaders: false,
@@ -52,7 +52,7 @@ describe('settings', function() {
       expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.bar').length)).toBeGreaterThan(-1);
     });
 
-    it('should add class name every table element inside handsontable wrapper element (as string with spaces, with overlays)', function() {
+    it('should add class name every table element inside handsontable wrapper element (as string with spaces, with overlays)', () => {
       var hot = handsontable({
         colHeaders: true,
         rowHeaders: true,
@@ -65,7 +65,7 @@ describe('settings', function() {
       expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.bar').length)).toBeGreaterThan(-1);
     });
 
-    it('should add class name every table element inside handsontable wrapper element (as array, without overlays)', function() {
+    it('should add class name every table element inside handsontable wrapper element (as array, without overlays)', () => {
       var hot = handsontable({
         colHeaders: false,
         rowHeaders: false,
@@ -79,7 +79,7 @@ describe('settings', function() {
       expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.baz').length)).toBeGreaterThan(-1);
     });
 
-    it('should add class name every table element inside handsontable wrapper element (as array, with overlays)', function() {
+    it('should add class name every table element inside handsontable wrapper element (as array, with overlays)', () => {
       var hot = handsontable({
         colHeaders: true,
         rowHeaders: true,

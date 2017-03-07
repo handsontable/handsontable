@@ -212,7 +212,7 @@ class Overlays {
 
     if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
       // This is necessary?
-      //eventManager.addEventListener(window, 'scroll', (event) => this.refreshAll(event));
+      // eventManager.addEventListener(window, 'scroll', (event) => this.refreshAll(event));
       listenersToRegister.push([window, 'wheel', (event) => {
         let overlay;
         let deltaY = event.wheelDeltaY || event.deltaY;
@@ -330,8 +330,8 @@ class Overlays {
 
     // Fix for extremely slow header scrolling with a mousewheel on Firefox
     if (event.deltaMode === 1) {
-      deltaY = deltaY * 120;
-      deltaX = deltaX * 120;
+      deltaY *= 120;
+      deltaX *= 120;
     }
 
     while (tempElem != document && tempElem != null) {
@@ -461,16 +461,13 @@ class Overlays {
       if (this.pendingScrollCallbacks.master.top > 0) {
         this.pendingScrollCallbacks.master.top--;
 
-      } else {
-        if (leftOverlay && leftOverlay.scrollTop !== tempScrollValue) {
-
-          if (fakeScrollValue == null) {
-            this.pendingScrollCallbacks.left.top++;
-          }
-
-          leftOverlay.scrollTop = tempScrollValue;
-          delegatedScroll = (masterVertical !== window);
+      } else if (leftOverlay && leftOverlay.scrollTop !== tempScrollValue) {
+        if (fakeScrollValue == null) {
+          this.pendingScrollCallbacks.left.top++;
         }
+
+        leftOverlay.scrollTop = tempScrollValue;
+        delegatedScroll = (masterVertical !== window);
       }
 
     } else if (target === bottomOverlay) {
@@ -704,8 +701,8 @@ class Overlays {
     let headerColumnSize = this.wot.wtViewport.getColumnHeaderHeight();
     let hiderStyle = this.wot.wtTable.hider.style;
 
-    hiderStyle.width = (headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)) + 'px';
-    hiderStyle.height = (headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1) + 'px';
+    hiderStyle.width = `${headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)}px`;
+    hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1}px`;
 
     this.topOverlay.adjustElementsSize(force);
     this.leftOverlay.adjustElementsSize(force);

@@ -1,6 +1,6 @@
 import MultiMap from 'handsontable/multiMap';
 
-describe('MultiMap', function() {
+describe('MultiMap', () => {
 
   beforeEach(function() {
     this.multiMap = new MultiMap();
@@ -59,7 +59,7 @@ describe('MultiMap', function() {
     expect(this.multiMap.get(keyRegexp2)).toBeUndefined();
   });
 
-  it('should not use boolean as key', function() {
+  it('should not use boolean as key', () => {
     var tryToSetBooleanKey = function() {
       this.multiMap.set(false, 'bar');
     };
@@ -67,7 +67,7 @@ describe('MultiMap', function() {
     expect(tryToSetBooleanKey).toThrow();
   });
 
-  it('should not set null as key', function() {
+  it('should not set null as key', () => {
     var tryToSetNullKey = function() {
       this.multiMap.set(null, 'bar');
     };
@@ -75,7 +75,7 @@ describe('MultiMap', function() {
     expect(tryToSetNullKey).toThrow();
   });
 
-  it('should not set undefined as key', function() {
+  it('should not set undefined as key', () => {
     var tryToSetUndefinedKey = function() {
       this.multiMap.set(undefined, 'bar');
     };
@@ -83,7 +83,7 @@ describe('MultiMap', function() {
     expect(tryToSetUndefinedKey).toThrow();
   });
 
-  it('should not set NaN as key', function() {
+  it('should not set NaN as key', () => {
     var tryToSetNaNKey = function() {
       this.multiMap.set(NaN, 'bar');
     };

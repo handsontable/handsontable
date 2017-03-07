@@ -13,28 +13,38 @@ module.exports.create = function create() {
 
   config.forEach(function(c) {
     c.devtool = 'cheap-module-source-map';
-    c.output = {};
-    c.output.filename = 'e2e.js';
-    c.output.path = path.resolve(__dirname, '..', 'test', 'dist'),
-    c.resolve.alias.handsontable = path.resolve(__dirname, '..', 'src');
+    c.target = 'web';
+    c.output = {
+      libraryTarget: 'var',
+      filename: '[name].entry.js',
+      path: path.resolve(__dirname, '../test/dist'),
+    };
+    c.resolve.alias.handsontable = path.resolve(__dirname, '../src');
 
     c.module.rules.unshift({
       test: [
          // Disable loading css files from pikaday module
         /pikaday\/css/,
       ],
-      loader: path.resolve(__dirname, 'loader', 'empty-loader.js'),
+      loader: path.resolve(__dirname, 'loader/empty-loader.js'),
     });
+
+    c.externals = [
+      {
+        window: 'window',
+      },
+    ];
 
     c.plugins.push(
       new JasmineHtml({
-        filename: path.resolve(__dirname, '..', 'test', 'E2ERunner.html'),
+        filename: path.resolve(__dirname, '../test/E2ERunner.html'),
+        baseJasminePath: '../',
         externalCssFiles: [
           'lib/normalize.css',
           '../dist/handsontable.css',
         ],
         externalJsFiles: [
-          '../test/helpers/phantom-reporter.js',
+          '../test/lib/phantom-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
           '../dist/numbro/numbro.js',
@@ -44,7 +54,6 @@ module.exports.create = function create() {
           '../dist/zeroclipboard/ZeroClipboard.js',
           '../demo/js/backbone/lodash.underscore.js',
           '../demo/js/backbone/backbone.js',
-          'helpers/SpecHelper.js',
           '../dist/handsontable.js', // <--- TODO: Add tests for handsontable.full.min.js also
         ],
       })

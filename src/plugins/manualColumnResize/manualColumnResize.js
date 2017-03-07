@@ -168,9 +168,9 @@ class ManualColumnResize extends BasePlugin {
 
       this.startOffset = box.left - 6;
       this.startWidth = parseInt(box.width, 10);
-      this.handle.style.top = box.top + 'px';
-      this.handle.style.left = this.startOffset + this.startWidth + 'px';
-      this.handle.style.height = headerHeight + 'px';
+      this.handle.style.top = `${box.top}px`;
+      this.handle.style.left = `${this.startOffset + this.startWidth}px`;
+      this.handle.style.height = `${headerHeight}px`;
       this.hot.rootElement.appendChild(this.handle);
     }
   }
@@ -179,7 +179,7 @@ class ManualColumnResize extends BasePlugin {
    * Refresh the resize handle position.
    */
   refreshHandlePosition() {
-    this.handle.style.left = this.startOffset + this.currentWidth + 'px';
+    this.handle.style.left = `${this.startOffset + this.currentWidth}px`;
   }
 
   /**
@@ -193,9 +193,9 @@ class ManualColumnResize extends BasePlugin {
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
 
-    this.guide.style.top = handleBottomPosition + 'px';
+    this.guide.style.top = `${handleBottomPosition}px`;
     this.guide.style.left = this.handle.style.left;
-    this.guide.style.height = (maximumVisibleElementHeight - handleHeight) + 'px';
+    this.guide.style.height = `${maximumVisibleElementHeight - handleHeight}px`;
     this.hot.rootElement.appendChild(this.guide);
   }
 
@@ -244,9 +244,9 @@ class ManualColumnResize extends BasePlugin {
     if (element.tagName != 'TABLE') {
       if (element.tagName == 'TH') {
         return element;
-      } else {
-        return this.getTHFromTargetElement(element.parentNode);
       }
+      return this.getTHFromTargetElement(element.parentNode);
+
     }
 
     return null;

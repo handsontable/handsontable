@@ -1,8 +1,8 @@
-describe('ContextMenuReadOnly', function() {
+describe('ContextMenuReadOnly', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,9 +12,10 @@ describe('ContextMenuReadOnly', function() {
     }
   });
 
-  it('should trigger `afterSetCellMeta` callback after changing cell to read only by context menu', function() {
+  it('should trigger `afterSetCellMeta` callback after changing cell to read only by context menu', () => {
     var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
-    var rows = 5, columns = 5;
+    var rows = 5,
+      columns = 5;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(rows, columns),

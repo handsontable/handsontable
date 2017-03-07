@@ -5,10 +5,10 @@ export default function redoItem() {
     key: KEY,
     name: 'Redo',
 
-    callback: function() {
+    callback() {
       this.redo();
     },
-    disabled: function() {
+    disabled() {
       return this.undoRedo && !this.undoRedo.isRedoAvailable();
     }
   };

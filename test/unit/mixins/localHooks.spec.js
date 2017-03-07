@@ -1,11 +1,11 @@
 import localHooks from 'handsontable/mixins/localHooks';
 
-describe('localHooks mixin', function() {
-  it('should have empty collection on init', function() {
+describe('localHooks mixin', () => {
+  it('should have empty collection on init', () => {
     expect(localHooks._localHooks).toEqual(jasmine.any(Object));
   });
 
-  it('should add local hook to the hooks collection', function() {
+  it('should add local hook to the hooks collection', () => {
     var callback = function() {};
     var callback1 = function() {};
     var callback2 = function() {};
@@ -23,7 +23,7 @@ describe('localHooks mixin', function() {
     expect(localHooks._localHooks.myHook1[0]).toBe(callback2);
   });
 
-  it('should run local hooks registered in collection', function() {
+  it('should run local hooks registered in collection', () => {
     var callback = jasmine.createSpy();
     var callback1 = jasmine.createSpy();
     var callback2 = jasmine.createSpy();
@@ -42,7 +42,7 @@ describe('localHooks mixin', function() {
     expect(callback2).toHaveBeenCalledWith('foo', 'bar', [1, 2]);
   });
 
-  it('should clear all registered hooks from collection', function() {
+  it('should clear all registered hooks from collection', () => {
     var callback = jasmine.createSpy();
     var callback1 = jasmine.createSpy();
     var callback2 = jasmine.createSpy();

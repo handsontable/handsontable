@@ -1,8 +1,8 @@
-describe('ColHeader', function() {
+describe('ColHeader', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -33,7 +33,7 @@ describe('ColHeader', function() {
     var startCols = 5;
 
     handsontable({
-      startCols: startCols,
+      startCols,
       colHeaders: true
     });
 
@@ -51,7 +51,7 @@ describe('ColHeader', function() {
     var startCols = 5;
 
     handsontable({
-      startCols: startCols,
+      startCols,
       colHeaders: true,
       columns: [{}, {}, {}, {}, {}]
     });
@@ -70,9 +70,9 @@ describe('ColHeader', function() {
     var startCols = 5;
 
     handsontable({
-      startCols: startCols,
+      startCols,
       colHeaders: true,
-      columns: function(column) {
+      columns(column) {
         return {};
       }
     });
@@ -90,7 +90,7 @@ describe('ColHeader', function() {
     var that = this;
     var startCols = 5;
     handsontable({
-      startCols: startCols,
+      startCols,
       colHeaders: ['First', 'Second', 'Third']
     });
 
@@ -112,7 +112,7 @@ describe('ColHeader', function() {
     expect(that.$container.find('th.htColHeader').length).toEqual(0);
   });
 
-  it('should hide columns headers after updateSettings', function() {
+  it('should hide columns headers after updateSettings', () => {
     var hot = handsontable({
       startCols: 5,
       colHeaders: true
@@ -129,7 +129,7 @@ describe('ColHeader', function() {
     expect(getTopClone().width()).toEqual(0);
   });
 
-  it('should show/hide columns headers after updateSettings', function() {
+  it('should show/hide columns headers after updateSettings', () => {
     var hot = handsontable({
       startCols: 5,
       colHeaders: true
@@ -160,7 +160,7 @@ describe('ColHeader', function() {
     expect(getTopClone().width()).toEqual(0);
   });
 
-  it('should show columns headers after updateSettings', function() {
+  it('should show columns headers after updateSettings', () => {
     var hot = handsontable({
       startCols: 5,
       colHeaders: false
@@ -177,7 +177,7 @@ describe('ColHeader', function() {
     expect(getTopClone().find('thead th').length).toEqual(5);
   });
 
-  it('should show new columns headers after updateSettings', function() {
+  it('should show new columns headers after updateSettings', () => {
     var hot = handsontable({
       startCols: 3,
       colHeaders: ['A', 'B', 'C']
@@ -198,16 +198,17 @@ describe('ColHeader', function() {
 
   });
 
-  it('should be possible to define colHeaders with a function', function() {
+  it('should be possible to define colHeaders with a function', () => {
     var hot = handsontable({
       startCols: 2,
-      colHeaders: function(col) {
+      colHeaders(col) {
         switch (col) {
           case 0:
             return 'One';
-
           case 1:
             return 'Two';
+          default:
+            break;
         }
       }
     });
@@ -218,7 +219,7 @@ describe('ColHeader', function() {
     expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
   });
 
-  it('should be possible to set HTML in colHeaders', function() {
+  it('should be possible to set HTML in colHeaders', () => {
     var hot = handsontable({
       startCols: 2,
       colHeaders: ['One <input type="checkbox">', 'Two <input type="checkbox">']
@@ -230,7 +231,7 @@ describe('ColHeader', function() {
     expect(htCore.find('thead th:eq(1) input[type=checkbox]').length).toEqual(1);
   });
 
-  it('should be possible to set colHeaders when columns array is present', function() {
+  it('should be possible to set colHeaders when columns array is present', () => {
     var hot = handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
@@ -246,11 +247,11 @@ describe('ColHeader', function() {
     expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
   });
 
-  it('should be possible to set colHeaders when columns function is present', function() {
+  it('should be possible to set colHeaders when columns function is present', () => {
     var hot = handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
-      columns: function(column) {
+      columns(column) {
         var colMeta = {type: 'text'};
 
         if ([0, 1].indexOf(column) < 0) {
@@ -267,7 +268,7 @@ describe('ColHeader', function() {
     expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
   });
 
-  it('should be possible to set colHeaders using columns title property', function() {
+  it('should be possible to set colHeaders using columns title property', () => {
     var hot = handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
@@ -283,11 +284,11 @@ describe('ColHeader', function() {
     expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
   });
 
-  it('should be possible to set colHeaders using columns title property when columns is a function', function() {
+  it('should be possible to set colHeaders using columns title property when columns is a function', () => {
     var hot = handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
-      columns: function(column) {
+      columns(column) {
         var colMeta = {type: 'text'};
 
         if (column === 0) {
@@ -307,7 +308,7 @@ describe('ColHeader', function() {
     expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
   });
 
-  it('should resize all the column headers in the overlays, according to the other overlays\' height', function() {
+  it('should resize all the column headers in the overlays, according to the other overlays\' height', () => {
     var hot = handsontable({
       startCols: 5,
       colHeaders: ['a', 'a', 'a', 'a<BR>a', 'a'],
@@ -337,8 +338,8 @@ describe('ColHeader', function() {
       startCols: 3,
       colHeaders: true,
       columnHeaderHeight: [45, 65],
-      afterGetColumnHeaderRenderers: function(array) {
-        array.push(function(index, TH) {
+      afterGetColumnHeaderRenderers(array) {
+        array.push((index, TH) => {
           TH.innerHTML = '';
 
           var div = document.createElement('div');

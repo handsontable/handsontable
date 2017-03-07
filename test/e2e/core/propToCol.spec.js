@@ -1,8 +1,8 @@
-describe('Core.propToCol', function() {
+describe('Core.propToCol', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('Core.propToCol', function() {
     }
   });
 
-  it('should return valid index for newly added column when manualColumnMove is enabled', function() {
+  it('should return valid index for newly added column when manualColumnMove is enabled', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       manualColumnMove: true,

@@ -6,7 +6,7 @@ import {arrayMap} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
 import {inherit, deepClone} from './../../helpers/object';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
-import {CellCoords} from 'walkontable';
+import {CellCoords} from './../../3rdparty/walkontable/src';
 
 /**
  * @description
@@ -29,13 +29,13 @@ function UndoRedo(instance) {
   this.undoneActions = [];
   this.ignoreNewActions = false;
 
-  instance.addHook('afterChange', function(changes, source) {
+  instance.addHook('afterChange', (changes, source) => {
     if (changes && source !== 'UndoRedo.undo' && source !== 'UndoRedo.redo') {
       plugin.done(new UndoRedo.ChangeAction(changes));
     }
   });
 
-  instance.addHook('afterCreateRow', function(index, amount, source) {
+  instance.addHook('afterCreateRow', (index, amount, source) => {
     if (source === 'UndoRedo.undo' || source === 'UndoRedo.undo' || source === 'auto') {
       return;
     }
@@ -44,7 +44,7 @@ function UndoRedo(instance) {
     plugin.done(action);
   });
 
-  instance.addHook('beforeRemoveRow', function(index, amount, logicRows, source) {
+  instance.addHook('beforeRemoveRow', (index, amount, logicRows, source) => {
     if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
       return;
     }
@@ -58,7 +58,7 @@ function UndoRedo(instance) {
     plugin.done(new UndoRedo.RemoveRowAction(index, removedData));
   });
 
-  instance.addHook('afterCreateCol', function(index, amount, source) {
+  instance.addHook('afterCreateCol', (index, amount, source) => {
     if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
       return;
     }
@@ -66,7 +66,7 @@ function UndoRedo(instance) {
     plugin.done(new UndoRedo.CreateColumnAction(index, amount));
   });
 
-  instance.addHook('beforeRemoveCol', function(index, amount, logicColumns, source) {
+  instance.addHook('beforeRemoveCol', (index, amount, logicColumns, source) => {
     if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
       return;
     }
@@ -107,16 +107,16 @@ function UndoRedo(instance) {
     plugin.done(action);
   });
 
-  instance.addHook('beforeCellAlignment', function(stateBefore, range, type, alignment) {
+  instance.addHook('beforeCellAlignment', (stateBefore, range, type, alignment) => {
     let action = new UndoRedo.CellAlignmentAction(stateBefore, range, type, alignment);
     plugin.done(action);
   });
 
-  instance.addHook('beforeFilter', function(formulaStacks) {
+  instance.addHook('beforeFilter', (formulaStacks) => {
     plugin.done(new UndoRedo.FiltersAction(formulaStacks));
   });
 
-  instance.addHook('beforeRowMove', function(movedRows, target) {
+  instance.addHook('beforeRowMove', (movedRows, target) => {
     if (movedRows === false) {
       return;
     }
@@ -152,7 +152,7 @@ UndoRedo.prototype.undo = function() {
 
     this.ignoreNewActions = true;
     let that = this;
-    action.undo(this.instance, function() {
+    action.undo(this.instance, () => {
       that.ignoreNewActions = false;
       that.undoneActions.push(action);
     });
@@ -181,7 +181,7 @@ UndoRedo.prototype.redo = function() {
 
     this.ignoreNewActions = true;
     let that = this;
-    action.redo(this.instance, function() {
+    action.redo(this.instance, () => {
       that.ignoreNewActions = false;
       that.doneActions.push(action);
     });
@@ -250,14 +250,16 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
   instance.setDataAtRowProp(data, null, null, 'UndoRedo.undo');
 
   for (let i = 0, len = data.length; i < len; i++) {
-    if (instance.getSettings().minSpareRows && data[i][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() && emptyRowsAtTheEnd == instance.getSettings().minSpareRows) {
+    if (instance.getSettings().minSpareRows && data[i][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
+        emptyRowsAtTheEnd == instance.getSettings().minSpareRows) {
 
       instance.alter('remove_row', parseInt(data[i][0] + 1, 10), instance.getSettings().minSpareRows);
       instance.undoRedo.doneActions.pop();
 
     }
 
-    if (instance.getSettings().minSpareCols && data[i][1] + 1 + instance.getSettings().minSpareCols === instance.countCols() && emptyColsAtTheEnd == instance.getSettings().minSpareCols) {
+    if (instance.getSettings().minSpareCols && data[i][1] + 1 + instance.getSettings().minSpareCols === instance.countCols() &&
+        emptyColsAtTheEnd == instance.getSettings().minSpareCols) {
 
       instance.alter('remove_col', parseInt(data[i][1] + 1, 10), instance.getSettings().minSpareCols);
       instance.undoRedo.doneActions.pop();
@@ -358,9 +360,7 @@ inherit(UndoRedo.RemoveColumnAction, UndoRedo.Action);
 UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) {
   let row;
   let ascendingIndexes = this.indexes.slice(0).sort();
-  let sortByIndexes = (elem, j, arr) => {
-    return arr[this.indexes.indexOf(ascendingIndexes[j])];
-  };
+  let sortByIndexes = (elem, j, arr) => arr[this.indexes.indexOf(ascendingIndexes[j])];
 
   let sortedData = [];
   rangeEach(this.data.length - 1, (i) => {
@@ -443,7 +443,7 @@ UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback)
     return;
   }
   instance.selectCell(this.range.from.row, this.range.from.col, this.range.to.row, this.range.to.col);
-  instance.getPlugin('contextMenu').executeCommand('alignment:' + this.alignment.replace('ht', '').toLowerCase());
+  instance.getPlugin('contextMenu').executeCommand(`alignment:${this.alignment.replace('ht', '').toLowerCase()}`);
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
@@ -534,15 +534,13 @@ function init() {
       instance.addHook('beforeKeyDown', onBeforeKeyDown);
       instance.addHook('afterChange', onAfterChange);
     }
-  } else {
-    if (instance.undoRedo) {
-      delete instance.undoRedo;
+  } else if (instance.undoRedo) {
+    delete instance.undoRedo;
 
-      removeExposedUndoRedoMethods(instance);
+    removeExposedUndoRedoMethods(instance);
 
-      instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-      instance.removeHook('afterChange', onAfterChange);
-    }
+    instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+    instance.removeHook('afterChange', onAfterChange);
   }
 }
 
@@ -552,7 +550,7 @@ function onBeforeKeyDown(event) {
   let ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
   if (ctrlDown) {
-    if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
+    if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { // CTRL + Y or CTRL + SHIFT + Z
       instance.undoRedo.redo();
       stopImmediatePropagation(event);
     } else if (event.keyCode === 90) { // CTRL + Z

@@ -8,10 +8,6 @@ const CSS_CLASSNAME = 'ht__manualRowMove--guideline';
  * @util
  */
 class GuidelineUI extends BaseUI {
-  constructor(hotInstance) {
-    super(hotInstance);
-  }
-
   /**
    * Custom className on build process.
    */

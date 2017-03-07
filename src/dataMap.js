@@ -1,7 +1,7 @@
-import SheetClip from 'sheetclip';
+import SheetClip from './../lib/SheetClip/SheetClip.js';
 import {cellMethodLookupFactory} from './helpers/data';
 import {columnFactory} from './helpers/setting';
-import {createObjectPropListener, duckSchema, deepExtend, deepClone, isObject, deepObjectSize} from './helpers/object';
+import {createObjectPropListener, duckSchema, deepExtend, deepClone, isObject, deepObjectSize, hasOwnProperty} from './helpers/object';
 import {extendArray, to2dArray} from './helpers/array';
 import Interval from './utils/interval';
 import {rangeEach} from './helpers/number';
@@ -57,14 +57,15 @@ DataMap.prototype.recursiveDuckSchema = function(object) {
  * @returns {Number}
  */
 DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
-  var prop, i;
+  var prop,
+    i;
   if (typeof lastCol === 'undefined') {
     lastCol = 0;
     parent = '';
   }
   if (typeof schema === 'object' && !Array.isArray(schema)) {
     for (i in schema) {
-      if (schema.hasOwnProperty(i)) {
+      if (hasOwnProperty(schema, i)) {
         if (schema[i] === null) {
           prop = parent + i;
           this.colToPropCache.push(prop);
@@ -72,7 +73,7 @@ DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
 
           lastCol++;
         } else {
-          lastCol = this.recursiveDuckColumns(schema[i], lastCol, i + '.');
+          lastCol = this.recursiveDuckColumns(schema[i], lastCol, `${i}.`);
         }
       }
     }
@@ -184,7 +185,8 @@ DataMap.prototype.getSchema = function() {
  * @returns {Number} Returns number of created rows.
  */
 DataMap.prototype.createRow = function(index, amount, source) {
-  var row, colCount = this.instance.countCols(),
+  var row,
+    colCount = this.instance.countCols(),
     numberOfCreatedRows = 0,
     currentIndex;
 
@@ -208,7 +210,7 @@ DataMap.prototype.createRow = function(index, amount, source) {
 
       } else {
         row = [];
-        /* jshint loopfunc:true */
+        /* eslint-disable no-loop-func */
         rangeEach(colCount - 1, () => row.push(null));
       }
 
@@ -254,7 +256,8 @@ DataMap.prototype.createCol = function(index, amount, source) {
   }
   var rlen = this.instance.countSourceRows(),
     data = this.dataSource,
-    constructor, numberOfCreatedCols = 0,
+    constructor,
+    numberOfCreatedCols = 0,
     currentIndex;
 
   if (!amount) {
@@ -287,7 +290,7 @@ DataMap.prototype.createCol = function(index, amount, source) {
       this.priv.columnSettings.push(constructor);
 
     } else {
-      for (var r = 0; r < rlen; r++) {
+      for (let r = 0; r < rlen; r++) {
         data[r].splice(currentIndex, 0, null);
       }
       // Add new column constructor at given index
@@ -370,7 +373,7 @@ DataMap.prototype.removeCol = function(index, amount, source) {
   index = (this.instance.countCols() + index) % this.instance.countCols();
 
   let logicColumns = this.physicalColumnsToLogical(index, amount);
-  let descendingLogicColumns = logicColumns.slice(0).sort(function(a, b) {return b - a;});
+  let descendingLogicColumns = logicColumns.slice(0).sort((a, b) => b - a);
   let actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', index, amount, logicColumns, source);
 
   if (actionWasNotCancelled === false) {
@@ -417,8 +420,8 @@ DataMap.prototype.removeCol = function(index, amount, source) {
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
  * @returns {Array} Returns removed portion of columns
  */
-DataMap.prototype.spliceCol = function(col, index, amount/*, elements...*/) {
-  var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : [];
+DataMap.prototype.spliceCol = function(col, index, amount/* , elements...*/) {
+  var elements = arguments.length >= 4 ? [].slice.call(arguments, 3) : [];
 
   var colData = this.instance.getDataAtCol(col);
   var removed = colData.slice(index, index + amount);
@@ -444,8 +447,8 @@ DataMap.prototype.spliceCol = function(col, index, amount/*, elements...*/) {
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
  * @returns {Array} Returns removed portion of rows
  */
-DataMap.prototype.spliceRow = function(row, index, amount/*, elements...*/) {
-  var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : [];
+DataMap.prototype.spliceRow = function(row, index, amount/* , elements...*/) {
+  var elements = arguments.length >= 4 ? [].slice.call(arguments, 3) : [];
 
   var rowData = this.instance.getSourceDataAtRow(row);
   var removed = rowData.slice(index, index + amount);
@@ -489,9 +492,7 @@ DataMap.prototype.filterData = function(index, amount) {
   let continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, logicRows);
 
   if (continueSplicing !== false) {
-    let newData = this.dataSource.filter(function(row, index) {
-      return logicRows.indexOf(index) == -1;
-    });
+    let newData = this.dataSource.filter((row, index) => logicRows.indexOf(index) == -1);
 
     return newData;
   }
@@ -516,7 +517,7 @@ DataMap.prototype.get = function(row, prop) {
   let value = null;
 
   // try to get value under property `prop` (includes dot)
-  if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
+  if (dataRow && dataRow.hasOwnProperty && hasOwnProperty(dataRow, prop)) {
     value = dataRow[prop];
 
   } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
@@ -610,7 +611,7 @@ DataMap.prototype.set = function(row, prop, value, source) {
   }
 
   // try to set value under property `prop` (includes dot)
-  if (dataRow && dataRow.hasOwnProperty && dataRow.hasOwnProperty(prop)) {
+  if (dataRow && dataRow.hasOwnProperty && hasOwnProperty(dataRow, prop)) {
     dataRow[prop] = value;
 
   } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
@@ -712,7 +713,8 @@ DataMap.prototype.clearLengthCache = function() {
  * @returns {Number}
  */
 DataMap.prototype.getLength = function() {
-  let maxRows, maxRowsFromSettings = this.instance.getSettings().maxRows;
+  let maxRows,
+    maxRowsFromSettings = this.instance.getSettings().maxRows;
 
   if (maxRowsFromSettings < 0 || maxRowsFromSettings === 0) {
     maxRows = 0;
@@ -789,7 +791,11 @@ DataMap.prototype.getAll = function() {
  * @returns {Array}
  */
 DataMap.prototype.getRange = function(start, end, destination) {
-  var r, rlen, c, clen, output = [],
+  var r,
+    rlen,
+    c,
+    clen,
+    output = [],
     row;
 
   var getFn = destination === this.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;

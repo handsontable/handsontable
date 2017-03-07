@@ -1,5 +1,3 @@
-import {stringify} from './../helpers/mixed';
-
 /**
  * Autocomplete cell validator.
  *
@@ -39,14 +37,14 @@ export default AutocompleteValidator;
  * @param {Function} callback - Callback called with validation result
  */
 function process(value, callback) {
-  var originalVal  = value;
+  var originalVal = value;
 
   return function(source) {
     var found = false;
 
     for (var s = 0, slen = source.length; s < slen; s++) {
       if (originalVal === source[s]) {
-        found = true; //perfect match
+        found = true; // perfect match
         break;
       }
     }

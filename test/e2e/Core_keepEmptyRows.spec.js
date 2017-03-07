@@ -1,8 +1,8 @@
-describe('Core_keepEmptyRows', function() {
+describe('Core_keepEmptyRows', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -14,18 +14,30 @@ describe('Core_keepEmptyRows', function() {
 
   var arrayOfNestedObjects = function() {
     return [
-      {id: 1, name: {
-        first: 'Ted',
-        last: 'Right'
-      }, address: 'Street Name', zip: '80410', city: 'City Name'},
-      {id: 2, name: {
-        first: 'Frank',
-        last: 'Honest'
-      }, address: 'Street Name', zip: '80410', city: 'City Name'},
-      {id: 3, name: {
-        first: 'Joan',
-        last: 'Well'
-      }, address: 'Street Name', zip: '80410', city: 'City Name'}
+      {id: 1,
+        name: {
+          first: 'Ted',
+          last: 'Right'
+        },
+        address: 'Street Name',
+        zip: '80410',
+        city: 'City Name'},
+      {id: 2,
+        name: {
+          first: 'Frank',
+          last: 'Honest'
+        },
+        address: 'Street Name',
+        zip: '80410',
+        city: 'City Name'},
+      {id: 3,
+        name: {
+          first: 'Joan',
+          last: 'Well'
+        },
+        address: 'Street Name',
+        zip: '80410',
+        city: 'City Name'}
     ];
   };
 
@@ -44,7 +56,7 @@ describe('Core_keepEmptyRows', function() {
   it('should remove columns if needed when columns is a function', function() {
     handsontable({
       data: arrayOfNestedObjects(),
-      columns: function(column) {
+      columns(column) {
         var colMeta = {};
 
         if (column === 0) {
@@ -83,7 +95,7 @@ describe('Core_keepEmptyRows', function() {
   it('should create columns if needed when columns is a function', function() {
     handsontable({
       data: arrayOfNestedObjects(),
-      columns: function(column) {
+      columns(column) {
         var colMeta = {};
 
         if (column === 0) {
@@ -114,7 +126,7 @@ describe('Core_keepEmptyRows', function() {
     expect(this.$container.find('tbody tr:first td').length).toEqual(6);
   });
 
-  it('should create spare cols and rows on init (array data source)', function() {
+  it('should create spare cols and rows on init (array data source)', () => {
     handsontable({
       data: [
         ['one', 'two'],
@@ -137,18 +149,18 @@ describe('Core_keepEmptyRows', function() {
     });
 
     expect(countRows()).toEqual(4);
-    expect(countCols()).toEqual(6); //because arrayOfNestedObjects has 6 nested properites and they should be figured out if dataSchema/columns is not given
+    expect(countCols()).toEqual(6); // because arrayOfNestedObjects has 6 nested properites and they should be figured out if dataSchema/columns is not given
     expect(this.$container.find('tbody tr:first td:last').text()).toEqual('City Name');
   });
 
-  it('should create new row when last cell in last row is edited', function() {
+  it('should create new row when last cell in last row is edited', () => {
     var data = [
       ['one', 'two'],
       ['three', 'four']
     ];
 
     handsontable({
-      data: data,
+      data,
       minRows: 4,
       minCols: 4,
       minSpareRows: 1
@@ -158,14 +170,14 @@ describe('Core_keepEmptyRows', function() {
     expect(data.length).toEqual(5);
   });
 
-  it('should create new col when last cell in last row is edited', function() {
+  it('should create new col when last cell in last row is edited', () => {
     var data = [
       ['one', 'two'],
       ['three', 'four']
     ];
 
     handsontable({
-      data: data,
+      data,
       minRows: 4,
       minCols: 4,
       minSpareCols: 1
@@ -175,19 +187,19 @@ describe('Core_keepEmptyRows', function() {
     expect(countCols()).toEqual(5);
   });
 
-  it('should create new row when last cell in last row is edited by autocomplete', function(done) {
+  it('should create new row when last cell in last row is edited by autocomplete', (done) => {
     var data = [
           {id: 1, color: 'orange' }
-        ];
+    ];
 
     var syncSources = jasmine.createSpy('syncSources');
 
-    syncSources.and.callFake(function(query, process) {
+    syncSources.and.callFake((query, process) => {
       process(['red', 'dark-yellow', 'yellow', 'light-yellow', 'black']);
     });
 
     handsontable({
-      data: data,
+      data,
       startRows: 5,
       colHeaders: true,
       minSpareRows: 1,
@@ -204,7 +216,7 @@ describe('Core_keepEmptyRows', function() {
     selectCell(1, 1);
     keyDownUp('enter');
 
-    setTimeout(function() {
+    setTimeout(() => {
       keyDown('arrow_down');
       keyDownUp('enter');
 
@@ -213,23 +225,23 @@ describe('Core_keepEmptyRows', function() {
     }, 200);
   });
 
-  it('should create new row when last cell in last row is edited by autocomplete when columns is a function', function(done) {
+  it('should create new row when last cell in last row is edited by autocomplete when columns is a function', (done) => {
     var data = [
       {id: 1, color: 'orange' }
     ];
 
     var syncSources = jasmine.createSpy('syncSources');
 
-    syncSources.and.callFake(function(query, process) {
+    syncSources.and.callFake((query, process) => {
       process(['red', 'dark-yellow', 'yellow', 'light-yellow', 'black']);
     });
 
     handsontable({
-      data: data,
+      data,
       startRows: 5,
       colHeaders: true,
       minSpareRows: 1,
-      columns: function(column) {
+      columns(column) {
         var colMeta = {};
 
         if (column === 0) {
@@ -252,7 +264,7 @@ describe('Core_keepEmptyRows', function() {
     selectCell(1, 1);
     keyDownUp('enter');
 
-    setTimeout(function() {
+    setTimeout(() => {
       keyDown('arrow_down');
       keyDownUp('enter');
 
@@ -261,7 +273,7 @@ describe('Core_keepEmptyRows', function() {
     }, 200);
   });
 
-  it('should not create more rows that maxRows', function() {
+  it('should not create more rows that maxRows', () => {
     handsontable({
       startRows: 4,
       maxRows: 6,
@@ -274,7 +286,7 @@ describe('Core_keepEmptyRows', function() {
     expect(countRows()).toEqual(6);
   });
 
-  it('should not create more cols that maxCols', function() {
+  it('should not create more cols that maxCols', () => {
     handsontable({
       startCols: 4,
       maxCols: 6,
@@ -287,7 +299,7 @@ describe('Core_keepEmptyRows', function() {
     expect(countCols()).toEqual(6);
   });
 
-  it('should ignore minCols if columns is set', function() {
+  it('should ignore minCols if columns is set', () => {
     handsontable({
       startCols: 1,
       minCols: 6,
@@ -300,11 +312,11 @@ describe('Core_keepEmptyRows', function() {
     expect(countCols()).toEqual(2);
   });
 
-  it('should ignore minCols if columns is set when columns is a function', function() {
+  it('should ignore minCols if columns is set when columns is a function', () => {
     handsontable({
       startCols: 1,
       minCols: 6,
-      columns: function(column) {
+      columns(column) {
         var colMeta = {};
 
         if ([0, 1].indexOf(column) < 0) {
@@ -318,7 +330,7 @@ describe('Core_keepEmptyRows', function() {
     expect(countCols()).toEqual(1);
   });
 
-  it('columns should have priority over startCols', function() {
+  it('columns should have priority over startCols', () => {
     handsontable({
       startCols: 3,
       minCols: 6,
@@ -331,11 +343,11 @@ describe('Core_keepEmptyRows', function() {
     expect(countCols()).toEqual(2);
   });
 
-  it('columns should have priority over startCols when columns is a function', function() {
+  it('columns should have priority over startCols when columns is a function', () => {
     handsontable({
       startCols: 3,
       minCols: 6,
-      columns: function(column) {
+      columns(column) {
         var colMeta = {};
 
         if ([0, 1].indexOf(column) < 0) {

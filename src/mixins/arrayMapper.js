@@ -19,6 +19,7 @@ const arrayMapper = {
   getValueByIndex(index) {
     let value;
 
+    /* eslint-disable no-cond-assign */
     return (value = this._arrayMap[index]) === void 0 ? null : value;
   },
 
@@ -31,6 +32,7 @@ const arrayMapper = {
   getIndexByValue(value) {
     let index;
 
+    /* eslint-disable no-cond-assign */
     return (index = this._arrayMap.indexOf(value)) === -1 ? null : index;
   },
 

@@ -1,9 +1,9 @@
-describe('manualRowResize', function() {
+describe('manualRowResize', () => {
   var id = 'test';
   var defaultRowHeight = 22;
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -220,11 +220,11 @@ describe('manualRowResize', function() {
     $resizer.simulate('mouseup');
 
     $resizer.simulate('mousedown', {
-      clientY:resizerPosition.top
+      clientY: resizerPosition.top
     });
     $resizer.simulate('mouseup');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(afterRowResizeCallback.calls.count()).toEqual(1);
       expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(2);
       expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(defaultRowHeight + 1);
@@ -251,7 +251,7 @@ describe('manualRowResize', function() {
     var resizerPosition = $resizer.position();
 
     $resizer.simulate('mousedown', {
-      clientY:resizerPosition.top
+      clientY: resizerPosition.top
     });
     $resizer.simulate('mouseup');
 
@@ -304,14 +304,14 @@ describe('manualRowResize', function() {
     this.$container.find('.ht_clone_left tbody tr:eq(3) th:eq(0)').simulate('mousemove');
     this.$container.find('.ht_clone_left tbody tr:eq(3) th:eq(0)').simulate('mouseup');
 
-    setTimeout(function() {
+    setTimeout(() => {
       $resizer.simulate('mousedown', {clientY: resizerPosition.top});
       $resizer.simulate('mouseup');
       $resizer.simulate('mousedown', {clientY: resizerPosition.top});
       $resizer.simulate('mouseup');
     }, 600);
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(rowHeight(spec().$container, 1)).toBeAroundValue(24);
       expect(rowHeight(spec().$container, 2)).toBeAroundValue(24);
       expect(rowHeight(spec().$container, 3)).toBeAroundValue(24);
@@ -340,7 +340,7 @@ describe('manualRowResize', function() {
     var $resizer = this.$container.find('.manualRowResizer');
     var resizerPosition = $resizer.position();
 
-    setTimeout(function() {
+    setTimeout(() => {
       $resizer.simulate('mousedown', {clientY: resizerPosition.top});
       $resizer.simulate('mousemove', {clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 80});
       $resizer.simulate('mouseup');
@@ -350,7 +350,7 @@ describe('manualRowResize', function() {
       expect($rowsHeaders.eq(3).height()).toEqual(80);
     }, 600);
 
-    setTimeout(function() {
+    setTimeout(() => {
       $resizer.simulate('mousedown', {clientY: resizerPosition.top});
       $resizer.simulate('mousemove', {clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35});
       $resizer.simulate('mouseup');
@@ -362,7 +362,7 @@ describe('manualRowResize', function() {
     }, 1800);
   });
 
-  describe('handle and guide', function() {
+  describe('handle and guide', () => {
     it('should display the resize handle in the proper position and with a proper size', function() {
       var hot = handsontable({
         data: [

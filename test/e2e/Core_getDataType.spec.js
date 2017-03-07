@@ -1,8 +1,8 @@
-describe('Core_getDataType', function() {
+describe('Core_getDataType', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -21,7 +21,7 @@ describe('Core_getDataType', function() {
     ];
   };
 
-  it('should return data type at specyfied range (default type)', function() {
+  it('should return data type at specyfied range (default type)', () => {
     handsontable({
       data: arrayOfArrays()
     });
@@ -30,7 +30,7 @@ describe('Core_getDataType', function() {
     expect(getDataType(0, 0, 1, 1)).toEqual('text');
   });
 
-  it('should return data type at specyfied range (type defined in columns)', function() {
+  it('should return data type at specyfied range (type defined in columns)', () => {
     handsontable({
       data: arrayOfArrays(),
       columns: [
@@ -50,10 +50,10 @@ describe('Core_getDataType', function() {
     expect(getDataType(3, 4, 3, 4)).toEqual('dropdown');
   });
 
-  it('should return data type at specyfied range (type defined in columns) when columns is a function', function() {
+  it('should return data type at specyfied range (type defined in columns) when columns is a function', () => {
     handsontable({
       data: arrayOfArrays(),
-      columns: function(column) {
+      columns(column) {
         var colMeta = {};
 
         if (column === 0) {
@@ -87,10 +87,10 @@ describe('Core_getDataType', function() {
     expect(getDataType(3, 4, 3, 4)).toEqual('dropdown');
   });
 
-  it('should return data type at specyfied range (type defined in cells)', function() {
+  it('should return data type at specyfied range (type defined in cells)', () => {
     handsontable({
       data: arrayOfArrays(),
-      cells: function(row, column) {
+      cells(row, column) {
         var cellMeta = {};
 
         if (row === 1 && column === 1) {

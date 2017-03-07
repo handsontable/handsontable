@@ -1,8 +1,8 @@
-describe('NumericEditor', function() {
+describe('NumericEditor', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -27,7 +27,7 @@ describe('NumericEditor', function() {
     ];
   };
 
-  it('should convert numeric value to number (object data source)', function(done) {
+  it('should convert numeric value to number (object data source)', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -46,14 +46,14 @@ describe('NumericEditor', function() {
 
     destroyEditor();
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(typeof getDataAtCell(2, 0)).toEqual('number');
       expect(getDataAtCell(2, 0)).toEqual(999);
       done();
     }, 100);
   });
 
-  it('should apply changes to editor after validation', function(done) {
+  it('should apply changes to editor after validation', (done) => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -64,22 +64,26 @@ describe('NumericEditor', function() {
     selectCell(0, 0);
     keyDown('delete');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getActiveEditor().originalValue).toEqual('');
       done();
     }, 100);
   });
 
-  it('should allow custom validator', function(done) {
+  it('should allow custom validator', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       allowInvalid: false,
       columns: [
-        {data: 'id', type: 'numeric', validator: function(val, cb) {
-          cb(parseInt(val, 10) > 100);
-        }},
+        {
+          data: 'id',
+          type: 'numeric',
+          validator(val, cb) {
+            cb(parseInt(val, 10) > 100);
+          }
+        },
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -92,8 +96,8 @@ describe('NumericEditor', function() {
 
     destroyEditor();
 
-    setTimeout(function() {
-      expect(getDataAtCell(2, 0)).not.toEqual(99); //should be ignored
+    setTimeout(() => {
+      expect(getDataAtCell(2, 0)).not.toEqual(99); // should be ignored
 
       document.activeElement.value = '999';
 
@@ -101,13 +105,13 @@ describe('NumericEditor', function() {
       destroyEditor();
     }, 100);
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getDataAtCell(2, 0)).toEqual(999);
       done();
     }, 200);
   });
 
-  it('should convert string in format \'XX.XX\' to a float with the same value', function(done) {
+  it('should convert string in format \'XX.XX\' to a float with the same value', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -128,13 +132,13 @@ describe('NumericEditor', function() {
     onAfterValidate.calls.reset();
     destroyEditor();
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getDataAtCell(2, 0)).toEqual(parseFloat(99.99));
       done();
     }, 100);
   });
 
-  it('should convert string in format \'XX.XX\' to a float when passing float without leading zero', function(done) {
+  it('should convert string in format \'XX.XX\' to a float when passing float without leading zero', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -155,13 +159,14 @@ describe('NumericEditor', function() {
     onAfterValidate.calls.reset();
     destroyEditor();
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getDataAtCell(2, 0)).toEqual(parseFloat(0.74));
       done();
     }, 100);
   });
 
-  it('should convert string in format \'XX,XX\' (with comma as separator) to a float with the same value if the numeric locale specifies comma as the precision delimiter (language=de)', function(done) {
+  it('should convert string in format \'XX,XX\' (with comma as separator) to a float with the same value if the numeric locale ' +
+     'specifies comma as the precision delimiter (language=de)', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -182,13 +187,14 @@ describe('NumericEditor', function() {
     onAfterValidate.calls.reset();
     destroyEditor();
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getDataAtCell(2, 0)).toEqual(parseFloat(99.99));
       done();
     }, 100);
   });
 
-  it('should display a string in a format \'$X,XXX.XX\' when using language=en, appropriate format in column settings and \'XXXX.XX\' as an input string', function(done) {
+  it('should display a string in a format \'$X,XXX.XX\' when using language=en, appropriate format in column settings and \'XXXX.XX\' as ' +
+     'an input string', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -209,13 +215,14 @@ describe('NumericEditor', function() {
     onAfterValidate.calls.reset();
     destroyEditor();
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getCell(2, 0).innerHTML).toEqual('$2,456.22');
       done();
     }, 100);
   });
 
-  it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an input string (that comes from manual input)', function(done) {
+  it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
+     'input string (that comes from manual input)', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -236,13 +243,14 @@ describe('NumericEditor', function() {
     onAfterValidate.calls.reset();
     destroyEditor();
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
       done();
     }, 100);
   });
 
-  it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX.XX\' as an input string (that comes from paste)', function(done) {
+  it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX.XX\' as an ' +
+     'input string (that comes from paste)', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -263,13 +271,13 @@ describe('NumericEditor', function() {
     onAfterValidate.calls.reset();
     destroyEditor();
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
       done();
     }, 100);
   });
 
-  it('should not validate input values in different formats than \'XX.XX\' and \'XX,XX\'', function(done) {
+  it('should not validate input values in different formats than \'XX.XX\' and \'XX,XX\'', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -295,33 +303,33 @@ describe('NumericEditor', function() {
 
     manuallySetValueTo('22.22');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(false); // should validate alright
       manuallySetValueTo('2,000,000.22');
     }, 100);
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(true);
       manuallySetValueTo('11,11');
     }, 200);
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(false); // should validate alright
       manuallySetValueTo('one thounsand');
     }, 300);
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(true);
       manuallySetValueTo('99d99');
     }, 400);
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(true);
       done();
     }, 500);
   });
 
-  it('should paste formatted data if source cell has format', function(done) {
+  it('should paste formatted data if source cell has format', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -342,13 +350,14 @@ describe('NumericEditor', function() {
     onAfterValidate.calls.reset();
     destroyEditor();
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getCell(2, 0).innerHTML).toEqual('123,00 €');
       done();
     }, 100);
   });
 
-  it('should display a string in a format \'X XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an input string and ignore not needed zeros at the end', function(done) {
+  it('should display a string in a format \'X XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
+     'input string and ignore not needed zeros at the end', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -386,7 +395,7 @@ describe('NumericEditor', function() {
 
     manuallySetValueTo('2456,220');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
 
       deselectCell();
@@ -394,13 +403,13 @@ describe('NumericEditor', function() {
       manuallySetValueTo('2456.220');
     }, 100);
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getCell(2, 3).innerHTML).toEqual('$2,456.22');
       done();
     }, 200);
   });
 
-  it('should mark text as invalid without removing', function(done) {
+  it('should mark text as invalid without removing', (done) => {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -412,13 +421,13 @@ describe('NumericEditor', function() {
 
     hot.setDataAtCell(0, 0, 'abc');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(hot.getDataAtCell(0, 0)).toEqual('abc');
       done();
     }, 200);
   });
 
-  it('should not throw error on closing editor when column data is defined as \'length\'', function() {
+  it('should not throw error on closing editor when column data is defined as \'length\'', () => {
     hot = handsontable({
       data: [
         {length: 4},
@@ -437,12 +446,12 @@ describe('NumericEditor', function() {
     keyDown('enter');
     document.activeElement.value = '999';
 
-    expect(function() {
+    expect(() => {
       destroyEditor();
     }).not.toThrow();
   });
 
-  describe('Cell corner is showed properly when changing focused cells #3877', function() {
+  describe('Cell corner is showed properly when changing focused cells #3877', () => {
     var isFocusedCellDisplayingCornerTest = function(settings) {
       var moveFromRow = settings.moveFromRow;
       var moveFromCol = settings.moveFromCol;
@@ -455,7 +464,7 @@ describe('NumericEditor', function() {
       keyDown('enter');
       selectCell(moveToRow, moveToCol);
 
-      setTimeout(function() {
+      setTimeout(() => {
         expect($corner.css('display')).toEqual('block');
         doneFunc();
       }, 100);

@@ -1,8 +1,8 @@
-describe('settings', function() {
+describe('settings', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('settings', function() {
     }
   });
 
-  describe('currentHeaderClassName', function() {
+  describe('currentHeaderClassName', () => {
     it('should apply default currentHeaderClassName to cells in row where there is a selection', function() {
       handsontable({
         rowHeaders: true,

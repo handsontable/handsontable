@@ -1,8 +1,8 @@
-describe('Core_setDataAtCell', function() {
+describe('Core_setDataAtCell', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -14,25 +14,28 @@ describe('Core_setDataAtCell', function() {
 
   var arrayOfNestedObjects = function() {
     return [
-      {id: 1, name: {
-        first: 'Ted',
-        last: 'Right'
-      }},
-      {id: 2, name: {
-        first: 'Frank',
-        last: 'Honest'
-      }},
-      {id: 3, name: {
-        first: 'Joan',
-        last: 'Well'
-      }}
+      {id: 1,
+        name: {
+          first: 'Ted',
+          last: 'Right'
+        }},
+      {id: 2,
+        name: {
+          first: 'Frank',
+          last: 'Honest'
+        }},
+      {id: 3,
+        name: {
+          first: 'Joan',
+          last: 'Well'
+        }}
     ];
   };
 
   var htmlText = 'Ben & Jerry\'s';
 
-  it('HTML special chars should be preserved in data map but escaped in DOM', function() {
-    //https://github.com/handsontable/handsontable/issues/147
+  it('HTML special chars should be preserved in data map but escaped in DOM', () => {
+    // https://github.com/handsontable/handsontable/issues/147
     handsontable();
     var td = setDataAtCell(0, 0, htmlText);
     selectCell(0, 0);
@@ -43,13 +46,13 @@ describe('Core_setDataAtCell', function() {
     expect(getDataAtCell(0, 0)).toEqual(htmlText);
   });
 
-  it('should correctly paste string that contains "quotes"', function(done) {
-    //https://github.com/handsontable/handsontable/issues/205
+  it('should correctly paste string that contains "quotes"', (done) => {
+    // https://github.com/handsontable/handsontable/issues/205
     handsontable({});
     selectCell(0, 0);
     triggerPaste('1\nThis is a "test" and a test\n2');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getDataAtCell(0, 0)).toEqual('1');
       expect(getDataAtCell(1, 0)).toEqual('This is a "test" and a test');
       expect(getDataAtCell(2, 0)).toEqual('2');
@@ -57,8 +60,8 @@ describe('Core_setDataAtCell', function() {
     }, 200);
   });
 
-  it('should correctly paste string when dataSchema is used', function(done) {
-    //https://github.com/handsontable/handsontable/issues/237
+  it('should correctly paste string when dataSchema is used', (done) => {
+    // https://github.com/handsontable/handsontable/issues/237
     handsontable({
       colHeaders: true,
       dataSchema: {
@@ -70,7 +73,7 @@ describe('Core_setDataAtCell', function() {
     selectCell(0, 0);
     triggerPaste('1\tTest\t2');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(getDataAtCell(0, 0)).toEqual('1');
       expect(getDataAtCell(0, 1)).toEqual('Test');
       expect(getDataAtCell(0, 2)).toEqual('2');
@@ -78,7 +81,7 @@ describe('Core_setDataAtCell', function() {
     }, 200);
   });
 
-  it('should paste not more rows than maxRows', function(done) {
+  it('should paste not more rows than maxRows', (done) => {
     handsontable({
       minSpareRows: 1,
       minRows: 5,
@@ -87,14 +90,14 @@ describe('Core_setDataAtCell', function() {
     selectCell(4, 0);
     triggerPaste('1\n2\n3\n4\n5\n6\n7\n8\n9\n10');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(countRows()).toEqual(10);
       expect(getDataAtCell(9, 0)).toEqual('6');
       done();
     }, 200);
   });
 
-  it('should paste not more cols than maxCols', function(done) {
+  it('should paste not more cols than maxCols', (done) => {
     handsontable({
       minSpareCols: 1,
       minCols: 5,
@@ -103,14 +106,14 @@ describe('Core_setDataAtCell', function() {
     selectCell(0, 4);
     triggerPaste('1\t2\t3\t4\t5\t6\t7\t8\t9\t10');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(countCols()).toEqual(10);
       expect(getDataAtCell(0, 9)).toEqual('6');
       done();
     }, 200);
   });
 
-  it('should paste not more rows & cols than maxRows & maxCols', function(done) {
+  it('should paste not more rows & cols than maxRows & maxCols', (done) => {
     handsontable({
       minSpareRows: 1,
       minSpareCols: 1,
@@ -122,7 +125,7 @@ describe('Core_setDataAtCell', function() {
     selectCell(4, 4);
     triggerPaste('1\t2\t3\n4\t5\t6\n7\t8\t9');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(countRows()).toEqual(6);
       expect(countCols()).toEqual(6);
       expect(getDataAtCell(5, 5)).toEqual('5');
@@ -130,8 +133,8 @@ describe('Core_setDataAtCell', function() {
     }, 200);
   });
 
-  //https://github.com/handsontable/handsontable/issues/250
-  it('should create new rows when pasting into grid with object data source', function(done) {
+  // https://github.com/handsontable/handsontable/issues/250
+  it('should create new rows when pasting into grid with object data source', (done) => {
     handsontable({
       data: arrayOfNestedObjects(),
       colHeaders: true,
@@ -145,15 +148,15 @@ describe('Core_setDataAtCell', function() {
     selectCell(3, 0);
     triggerPaste('a\tb\tc\nd\te\tf\ng\th\ti');
 
-    setTimeout(function() {
+    setTimeout(() => {
       expect(countRows()).toEqual(7);
       expect(getDataAtCell(5, 2)).toEqual('i');
       done();
     }, 200);
   });
 
-  //https://handsontable.com/demo/datasources.html
-  it('should work with functional data source', function() {
+  // https://handsontable.com/demo/datasources.html
+  it('should work with functional data source', () => {
     handsontable({
       data: [
         model({id: 1, name: 'Ted Right', address: ''}),
@@ -203,11 +206,12 @@ describe('Core_setDataAtCell', function() {
     expect(getDataAtCell(1, 1)).toEqual('Something Else');
   });
 
-  it('should accept changes array as 1st param and source as 2nd param', function() {
-    var callCount = 0, lastSource = '';
+  it('should accept changes array as 1st param and source as 2nd param', () => {
+    var callCount = 0,
+      lastSource = '';
 
     handsontable({
-      afterChange: function(changes, source) {
+      afterChange(changes, source) {
         callCount++;
         lastSource = source;
       }
@@ -218,12 +222,12 @@ describe('Core_setDataAtCell', function() {
     expect(lastSource).toEqual('customSource');
   });
 
-  it('should trigger `afterSetDataAtCell` hook with applied changes', function() {
+  it('should trigger `afterSetDataAtCell` hook with applied changes', () => {
     var _changes;
     var _source;
 
     handsontable({
-      afterSetDataAtCell: function(changes, source) {
+      afterSetDataAtCell(changes, source) {
         _changes = changes;
         _source = source;
       }
@@ -236,10 +240,10 @@ describe('Core_setDataAtCell', function() {
     expect(getDataAtCell(0, 0)).toEqual('foo bar');
   });
 
-  it('should modify value on the fly using `afterSetDataAtCell` hook', function() {
+  it('should modify value on the fly using `afterSetDataAtCell` hook', () => {
     handsontable({
       data: [['a', 'b', 'c'], [1, 2, 3]],
-      afterSetDataAtCell: function(changes, source) {
+      afterSetDataAtCell(changes, source) {
         if (changes[0][3] === 'foo bar') {
           changes[0][3] = 'bar';
         }
@@ -257,13 +261,13 @@ describe('Core_setDataAtCell', function() {
     expect(getData()).toEqual([['bar', 'b', 'c'], [1, 2, 33]]);
   });
 
-  it('should trigger `afterSetDataAtRowProp` hook with applied changes', function() {
+  it('should trigger `afterSetDataAtRowProp` hook with applied changes', () => {
     var _changes;
     var _source;
 
     handsontable({
       columns: [{data: 'name'}, {data: 'id'}],
-      afterSetDataAtRowProp: function(changes, source) {
+      afterSetDataAtRowProp(changes, source) {
         _changes = changes;
         _source = source;
       }
@@ -276,11 +280,11 @@ describe('Core_setDataAtCell', function() {
     expect(getDataAtCell(0, 0)).toBe('foo bar');
   });
 
-  it('should modify value on the fly using `afterSetDataAtRowProp` hook', function() {
+  it('should modify value on the fly using `afterSetDataAtRowProp` hook', () => {
     handsontable({
       data: [{name: 'a', id: 1}, {name: 'b', id: 2}, {name: 'c', id: 3}],
       columns: [{data: 'name'}, {data: 'id'}],
-      afterSetDataAtRowProp: function(changes, source) {
+      afterSetDataAtRowProp(changes, source) {
         if (changes[0][3] === 'foo bar') {
           changes[0][3] = 'bar';
         }

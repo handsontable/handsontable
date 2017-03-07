@@ -696,8 +696,11 @@ DefaultSettings.prototype = {
    * @param {Number} row
    * @returns {Boolean}
    */
-  isEmptyRow: function(row) {
-    var col, colLen, value, meta;
+  isEmptyRow(row) {
+    var col,
+      colLen,
+      value,
+      meta;
 
     for (col = 0, colLen = this.countCols(); col < colLen; col++) {
       value = this.getDataAtCell(row, col);
@@ -722,8 +725,10 @@ DefaultSettings.prototype = {
    * @param {Number} col
    * @returns {Boolean}
    */
-  isEmptyCol: function(col) {
-    var row, rowLen, value;
+  isEmptyCol(col) {
+    var row,
+      rowLen,
+      value;
 
     for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
       value = this.getDataAtCell(row, col);

@@ -1,8 +1,8 @@
-describe('manualColumnMove', function() {
+describe('manualColumnMove', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('manualColumnMove', function() {
     }
   });
 
-  describe('init', function() {
+  describe('init', () => {
     it('should change column order at init', function() {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -25,7 +25,7 @@ describe('manualColumnMove', function() {
     });
   });
 
-  describe('persistentState', function() {
+  describe('persistentState', () => {
     it('should load data from cache after initialization of new Handsontable instance', function(done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -41,7 +41,7 @@ describe('manualColumnMove', function() {
 
       hot.destroy();
       this.$container.remove();
-      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -53,7 +53,7 @@ describe('manualColumnMove', function() {
       done();
     });
 
-    it('should work with updateSettings properly', function() {
+    it('should work with updateSettings properly', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: true,
@@ -71,7 +71,7 @@ describe('manualColumnMove', function() {
     });
   });
 
-  describe('updateSettings', function() {
+  describe('updateSettings', () => {
     it('should be enabled after specifying it in updateSettings config', function() {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -171,7 +171,7 @@ describe('manualColumnMove', function() {
     });
   });
 
-  describe('moving', function() {
+  describe('moving', () => {
     it('should move column by API', function() {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -224,7 +224,7 @@ describe('manualColumnMove', function() {
       expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
 
-      hot.getPlugin('manualColumnMove').moveColumns([8,9,7], 0);
+      hot.getPlugin('manualColumnMove').moveColumns([8, 9, 7], 0);
       hot.render();
 
       expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('I1');
@@ -310,7 +310,7 @@ describe('manualColumnMove', function() {
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
     });
 
-    it('should properly scrolling viewport if mouse is over part-visible cell', function(done) {
+    it('should properly scrolling viewport if mouse is over part-visible cell', (done) => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 20),
         colHeaders: true,
@@ -323,7 +323,7 @@ describe('manualColumnMove', function() {
 
       hot.selectCell(0, 19);
 
-      setTimeout(function() {
+      setTimeout(() => {
         expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBeGreaterThan(8);
 
         var $rowsHeaders = spec().$container.find('.ht_clone_top tr th');
@@ -336,18 +336,18 @@ describe('manualColumnMove', function() {
         $rowsHeaders.eq(1).simulate('mouseup');
       }, 50);
 
-      setTimeout(function() {
+      setTimeout(() => {
         expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBeLessThan(9);
         done();
       }, 150);
     });
 
-    it('moving column should keep cell meta created using cells function', function() {
+    it('moving column should keep cell meta created using cells function', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true,
-        cells: function(row, col) {
+        cells(row, col) {
           if (row == 1 && col == 0) {
             this.readOnly = true;
           }
@@ -364,7 +364,7 @@ describe('manualColumnMove', function() {
       expect(htCore.find('tbody tr:eq(1) td:eq(2)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
     });
 
-    it('moving column should keep cell meta created using cell array', function() {
+    it('moving column should keep cell meta created using cell array', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -385,8 +385,8 @@ describe('manualColumnMove', function() {
     });
   });
 
-  describe('copy-paste', function() {
-    it('should create new columns is are needed', function() {
+  describe('copy-paste', () => {
+    it('should create new columns is are needed', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -406,8 +406,8 @@ describe('manualColumnMove', function() {
     });
   });
 
-  describe('undoRedo', function() {
-    xit('should back changes', function() {
+  describe('undoRedo', () => {
+    xit('should back changes', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -423,7 +423,7 @@ describe('manualColumnMove', function() {
       expect(hot.getDataAtCell(1, 3)).toBe('D2');
     });
 
-    xit('should revert changes', function() {
+    xit('should revert changes', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,

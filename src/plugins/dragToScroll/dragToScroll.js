@@ -39,18 +39,18 @@ DragToScroll.prototype.check = function(x, y) {
   var diffY = 0;
 
   if (y < this.boundaries.top) {
-    //y is less than top
+    // y is less than top
     diffY = y - this.boundaries.top;
   } else if (y > this.boundaries.bottom) {
-    //y is more than bottom
+    // y is more than bottom
     diffY = y - this.boundaries.bottom;
   }
 
   if (x < this.boundaries.left) {
-    //x is less than left
+    // x is less than left
     diffX = x - this.boundaries.left;
   } else if (x > this.boundaries.right) {
-    //x is more than right
+    // x is more than right
     diffX = x - this.boundaries.right;
   }
 
@@ -62,16 +62,16 @@ var instance;
 
 var setupListening = function(instance) {
   instance.dragToScrollListening = false;
-  var scrollHandler = instance.view.wt.wtTable.holder; //native scroll
+  var scrollHandler = instance.view.wt.wtTable.holder; // native scroll
   dragToScroll = new DragToScroll();
   if (scrollHandler === window) {
-    //not much we can do currently
+    // not much we can do currently
     return;
-  } else {
-    dragToScroll.setBoundaries(scrollHandler.getBoundingClientRect());
   }
+  dragToScroll.setBoundaries(scrollHandler.getBoundingClientRect());
 
-  dragToScroll.setCallback(function(scrollX, scrollY) {
+
+  dragToScroll.setCallback((scrollX, scrollY) => {
     if (scrollX < 0) {
       scrollHandler.scrollLeft -= 50;
     } else if (scrollX > 0) {
@@ -92,11 +92,11 @@ Hooks.getSingleton().add('afterInit', function() {
   var instance = this;
   var eventManager = new EventManager(this);
 
-  eventManager.addEventListener(document, 'mouseup', function() {
+  eventManager.addEventListener(document, 'mouseup', () => {
     instance.dragToScrollListening = false;
   });
 
-  eventManager.addEventListener(document, 'mousemove', function(event) {
+  eventManager.addEventListener(document, 'mousemove', (event) => {
     if (instance.dragToScrollListening) {
       dragToScroll.check(event.clientX, event.clientY);
     }

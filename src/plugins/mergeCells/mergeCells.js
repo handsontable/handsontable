@@ -1,7 +1,7 @@
 import Hooks from './../../pluginHooks';
 import {registerPlugin} from './../../plugins';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
-import {CellCoords, CellRange, Table} from 'walkontable';
+import {CellCoords, CellRange, Table} from './../../3rdparty/walkontable/src';
 
 function CellInfoCollection() {
   var collection = [];
@@ -58,7 +58,7 @@ function MergeCells(mergeCellsSetting) {
  * @param cellRange (CellRange)
  */
 MergeCells.prototype.canMergeRange = function(cellRange) {
-  //is more than one cell selected
+  // is more than one cell selected
   return !cellRange.isSingle();
 };
 
@@ -67,7 +67,7 @@ MergeCells.prototype.mergeRange = function(cellRange) {
     return;
   }
 
-  //normalize top left corner
+  // normalize top left corner
   var topLeft = cellRange.getTopLeftCorner();
   var bottomRight = cellRange.getBottomRightCorner();
 
@@ -83,10 +83,10 @@ MergeCells.prototype.mergeRange = function(cellRange) {
 MergeCells.prototype.mergeOrUnmergeSelection = function(cellRange) {
   var info = this.mergedCellInfoCollection.getInfo(cellRange.from.row, cellRange.from.col);
   if (info) {
-    //unmerge
+    // unmerge
     this.unmergeSelection(cellRange.from);
   } else {
-    //merge
+    // merge
     this.mergeSelection(cellRange);
   }
 };
@@ -121,18 +121,20 @@ MergeCells.prototype.applySpanProperties = function(TD, row, col) {
 
 MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delta) {
   var sameRowspan = function(merged, coords) {
-    if (coords.row >= merged.row && coords.row <= (merged.row + merged.rowspan - 1)) {
-      return true;
-    }
-    return false;
-  }, sameColspan = function(merged, coords) {
-    if (coords.col >= merged.col && coords.col <= (merged.col + merged.colspan - 1)) {
-      return true;
-    }
-    return false;
-  }, getNextPosition = function(newDelta) {
-    return new CellCoords(currentSelectedRange.to.row + newDelta.row, currentSelectedRange.to.col + newDelta.col);
-  };
+      if (coords.row >= merged.row && coords.row <= (merged.row + merged.rowspan - 1)) {
+        return true;
+      }
+      return false;
+    },
+    sameColspan = function(merged, coords) {
+      if (coords.col >= merged.col && coords.col <= (merged.col + merged.colspan - 1)) {
+        return true;
+      }
+      return false;
+    },
+    getNextPosition = function(newDelta) {
+      return new CellCoords(currentSelectedRange.to.row + newDelta.row, currentSelectedRange.to.col + newDelta.col);
+    };
 
   var newDelta = {
     row: delta.row,
@@ -140,6 +142,8 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
   };
 
   if (hook == 'modifyTransformStart') {
+    /* eslint-disable block-scoped-var */
+    var nextPosition;
 
     if (!this.lastDesiredCoords) {
       this.lastDesiredCoords = new CellCoords(null, null);
@@ -159,9 +163,9 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
     }
 
     if (mergedParent) { // only merge selected
-      var mergeTopLeft = new CellCoords(mergedParent.row, mergedParent.col),
-        mergeBottomRight = new CellCoords(mergedParent.row + mergedParent.rowspan - 1, mergedParent.col + mergedParent.colspan - 1),
-        mergeRange = new CellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
+      let mergeTopLeft = new CellCoords(mergedParent.row, mergedParent.col);
+      let mergeBottomRight = new CellCoords(mergedParent.row + mergedParent.rowspan - 1, mergedParent.col + mergedParent.colspan - 1);
+      let mergeRange = new CellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
 
       if (!mergeRange.includes(this.lastDesiredCoords)) {
         this.lastDesiredCoords = new CellCoords(null, null); // reset outdated version of lastDesiredCoords
@@ -172,7 +176,7 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
 
       if (delta.row > 0) { // moving down
         newDelta.row = mergedParent.row + mergedParent.rowspan - 1 - currentPosition.row + delta.row;
-      } else if (delta.row < 0) { //moving up
+      } else if (delta.row < 0) { // moving up
         newDelta.row = currentPosition.row - mergedParent.row + delta.row;
       }
       if (delta.col > 0) { // moving right
@@ -182,9 +186,9 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
       }
     }
 
-    var nextPosition = new CellCoords(currentSelectedRange.highlight.row + newDelta.row,
-        currentSelectedRange.highlight.col + newDelta.col),
-      nextParentIsMerged = this.mergedCellInfoCollection.getInfo(nextPosition.row, nextPosition.col);
+    nextPosition = new CellCoords(currentSelectedRange.highlight.row + newDelta.row, currentSelectedRange.highlight.col + newDelta.col);
+
+    var nextParentIsMerged = this.mergedCellInfoCollection.getInfo(nextPosition.row, nextPosition.col);
 
     if (nextParentIsMerged) { // skipping the invisible cells in the merge range
       this.lastDesiredCoords = nextPosition;
@@ -194,12 +198,12 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
       };
     }
   } else if (hook == 'modifyTransformEnd') {
-    for (var i = 0, mergesLength = this.mergedCellInfoCollection.length; i < mergesLength; i++) {
-      var currentMerge = this.mergedCellInfoCollection[i],
-        mergeTopLeft = new CellCoords(currentMerge.row, currentMerge.col),
-        mergeBottomRight = new CellCoords(currentMerge.row + currentMerge.rowspan - 1, currentMerge.col + currentMerge.colspan - 1),
-        mergedRange = new CellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight),
-        sharedBorders = currentSelectedRange.getBordersSharedWith(mergedRange);
+    for (let i = 0, mergesLength = this.mergedCellInfoCollection.length; i < mergesLength; i++) {
+      let currentMerge = this.mergedCellInfoCollection[i];
+      let mergeTopLeft = new CellCoords(currentMerge.row, currentMerge.col);
+      let mergeBottomRight = new CellCoords(currentMerge.row + currentMerge.rowspan - 1, currentMerge.col + currentMerge.colspan - 1);
+      let mergedRange = new CellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
+      let sharedBorders = currentSelectedRange.getBordersSharedWith(mergedRange);
 
       if (mergedRange.isEqual(currentSelectedRange)) { // only the merged range is selected
         currentSelectedRange.setDirection('NW-SE');
@@ -221,7 +225,8 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
         }
       }
 
-      var nextPosition = getNextPosition(newDelta),
+      nextPosition = getNextPosition(newDelta);
+      var
         withinRowspan = sameRowspan(currentMerge, nextPosition),
         withinColspan = sameColspan(currentMerge, nextPosition);
 
@@ -273,6 +278,8 @@ MergeCells.prototype.shiftCollection = function(direction, index, count) {
       shiftVector[1] -= 1;
 
       break;
+    default:
+      break;
   }
 
   for (var i = 0; i < this.mergedCellInfoCollection.length; i++) {
@@ -282,14 +289,10 @@ MergeCells.prototype.shiftCollection = function(direction, index, count) {
       if (index <= currentMerge.col) {
         currentMerge.col += shiftVector[0];
       }
-    } else {
-      if (index <= currentMerge.row) {
-        currentMerge.row += shiftVector[1];
-      }
+    } else if (index <= currentMerge.row) {
+      currentMerge.row += shiftVector[1];
     }
-
   }
-
 };
 
 var beforeInit = function() {
@@ -339,11 +342,8 @@ var afterUpdateSettings = function() {
       instance.mergeCells = new MergeCells(mergeCellsSetting);
     }
 
-  } else {
-    // it doesn't actually turn off the plugin, just resets the settings. Need to refactor.
-    if (instance.mergeCells) {
-      instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
-    }
+  } else if (instance.mergeCells) { // it doesn't actually turn off the plugin, just resets the settings. Need to refactor.
+    instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
   }
 };
 
@@ -355,7 +355,7 @@ var onBeforeKeyDown = function(event) {
   var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
   if (ctrlDown) {
-    if (event.keyCode === 77) { //CTRL + M
+    if (event.keyCode === 77) { // CTRL + M
       this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
       this.render();
       stopImmediatePropagation(event);
@@ -371,20 +371,20 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
   defaultOptions.items.push({name: '---------'});
   defaultOptions.items.push({
     key: 'mergeCells',
-    name: function() {
+    name() {
       var sel = this.getSelected();
       var info = this.mergeCells.mergedCellInfoCollection.getInfo(sel[0], sel[1]);
       if (info) {
         return 'Unmerge cells';
-      } else {
-        return 'Merge cells';
       }
+      return 'Merge cells';
+
     },
-    callback: function() {
+    callback() {
       this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
       this.render();
     },
-    disabled: function() {
+    disabled() {
       return this.selection.selectedHeader.corner;
     },
   });
@@ -404,7 +404,7 @@ var modifyTransformFactory = function(hook) {
       this.mergeCells.modifyTransform(hook, currentSelectedRange, delta);
 
       if (hook === 'modifyTransformEnd') {
-        //sanitize "from" (core.js will sanitize to)
+        // sanitize "from" (core.js will sanitize to)
         var totalRows = this.countRows();
         var totalCols = this.countCols();
         if (currentSelectedRange.from.row < 0) {
@@ -429,11 +429,11 @@ var modifyTransformFactory = function(hook) {
  */
 var beforeSetRangeEnd = function(coords) {
 
-  this.lastDesiredCoords = null; //unset lastDesiredCoords when selection is changed with mouse
+  this.lastDesiredCoords = null; // unset lastDesiredCoords when selection is changed with mouse
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
     var selRange = this.getSelectedRange();
-    selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); //clone in case we will modify its reference
+    selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
     selRange.to = coords;
 
     var rangeExpanded = false;
@@ -511,7 +511,7 @@ var afterViewportRowCalculatorOverride = function(calc) {
       if (mergeParent) {
         if (mergeParent.row < calc.startRow) {
           calc.startRow = mergeParent.row;
-          return afterViewportRowCalculatorOverride.call(this, calc); //recursively search upwards
+          return afterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
         }
       }
       mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(calc.endRow, c);
@@ -519,7 +519,7 @@ var afterViewportRowCalculatorOverride = function(calc) {
         var mergeEnd = mergeParent.row + mergeParent.rowspan - 1;
         if (mergeEnd > calc.endRow) {
           calc.endRow = mergeEnd;
-          return afterViewportRowCalculatorOverride.call(this, calc); //recursively search upwards
+          return afterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
         }
       }
     }
@@ -537,7 +537,7 @@ var afterViewportColumnCalculatorOverride = function(calc) {
       if (mergeParent) {
         if (mergeParent.col < calc.startColumn) {
           calc.startColumn = mergeParent.col;
-          return afterViewportColumnCalculatorOverride.call(this, calc); //recursively search upwards
+          return afterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
         }
       }
       mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(r, calc.endColumn);
@@ -545,7 +545,7 @@ var afterViewportColumnCalculatorOverride = function(calc) {
         var mergeEnd = mergeParent.col + mergeParent.colspan - 1;
         if (mergeEnd > calc.endColumn) {
           calc.endColumn = mergeEnd;
-          return afterViewportColumnCalculatorOverride.call(this, calc); //recursively search upwards
+          return afterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
         }
       }
     }

@@ -48,7 +48,7 @@ export function prepareVerticalAlignClass(className, alignment) {
     .replace('htBottom', '')
     .replace('  ', '');
 
-  className += ' ' + alignment;
+  className += ` ${alignment}`;
 
   return className;
 }
@@ -64,7 +64,7 @@ export function prepareHorizontalAlignClass(className, alignment) {
     .replace('htJustify', '')
     .replace('  ', '');
 
-  className += ' ' + alignment;
+  className += ` ${alignment}`;
 
   return className;
 }
@@ -114,7 +114,7 @@ export function checkSelectionConsistency(range, comparator) {
   let result = false;
 
   if (range) {
-    range.forAll(function(row, col) {
+    range.forAll((row, col) => {
       if (comparator(row, col)) {
         result = true;
 
@@ -128,7 +128,7 @@ export function checkSelectionConsistency(range, comparator) {
 
 export function markLabelAsSelected(label) {
   // workaround for https://github.com/handsontable/handsontable/issues/1946
-  return '<span class="selected">' + String.fromCharCode(10003) + '</span>' + label;
+  return `<span class="selected">${String.fromCharCode(10003)}</span>${label}`;
 }
 
 export function isItemHidden(item, instance) {

@@ -1,4 +1,4 @@
-/**
+ /**
  * This file is used to test only Handsontable End-to-End tests.
  */
 var JasmineConsoleReporter = require('jasmine-console-reporter');
@@ -6,7 +6,18 @@ var JasmineConsoleReporter = require('jasmine-console-reporter');
 module.exports = function(grunt) {
   grunt.initConfig({});
 
-  grunt.registerTask('test', 'End-to-End tests using generated bundle from dist/* directory using headless browser - phantomjs.', function() {
+  grunt.registerTask('test-handsontable', ['phantomjs-handsontable']);
+  grunt.registerTask('test-walkontable', ['phantomjs-walkontable']);
+
+  grunt.registerTask('phantomjs-handsontable', function() {
+    spawnPhantomJS('test/E2ERunner.html', this.async());
+  });
+
+  grunt.registerTask('phantomjs-walkontable', function() {
+    spawnPhantomJS('src/3rdparty/walkontable/test/SpecRunner.html', this.async());
+  });
+
+  function spawnPhantomJS(url, done) {
     var phantomjs = require('grunt-lib-phantomjs').init(grunt);
     var reporter = new JasmineConsoleReporter({
       colors: 1,
@@ -52,9 +63,7 @@ module.exports = function(grunt) {
       phantomjs.halt();
     });
 
-    var done = this.async();
-
-    phantomjs.spawn('test/E2ERunner.html', {
+    phantomjs.spawn(url, {
       options: {
         timeout: 10000,
         page: {
@@ -65,5 +74,5 @@ module.exports = function(grunt) {
         done(err);
       }
     });
-  });
+  }
 };

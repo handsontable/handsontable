@@ -1,8 +1,8 @@
-describe('Core_setCellMeta', function() {
+describe('Core_setCellMeta', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,12 +12,12 @@ describe('Core_setCellMeta', function() {
     }
   });
 
-  it('should set correct meta className for cell', function() {
+  it('should set correct meta className for cell', () => {
 
     var className = 'htCenter htMiddle';
 
     handsontable({
-      afterCellMetaReset: function() {
+      afterCellMetaReset() {
         this.setCellMeta(0, 0, 'className', className);
       }
     });
@@ -79,15 +79,15 @@ describe('Core_setCellMeta', function() {
     expect(this.$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[0]);
   });
 
-  it('should call afterSetCellMeta plugin hook', function() {
+  it('should call afterSetCellMeta plugin hook', () => {
     var className = 'htCenter htMiddle';
     var res = {};
 
     handsontable({
-      afterCellMetaReset: function() {
+      afterCellMetaReset() {
         this.setCellMeta(0, 1, 'className', className);
       },
-      afterSetCellMeta: function(row, col, key, val) {
+      afterSetCellMeta(row, col, key, val) {
         res.row = row;
         res.col = col;
         res.key = key;

@@ -115,8 +115,8 @@ class ViewportRowsCalculator {
       }
     }
 
-    //If the estimation has reached the last row and there is still some space available in the viewport,
-    //we need to render in reverse in order to fill the whole viewport with rows
+    // If the estimation has reached the last row and there is still some space available in the viewport,
+    // we need to render in reverse in order to fill the whole viewport with rows
     if (this.endRow === totalRows - 1 && needReverse) {
       this.startRow = this.endRow;
 

@@ -1,8 +1,8 @@
-describe('AutoColumnSize', function() {
+describe('AutoColumnSize', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -120,7 +120,7 @@ describe('AutoColumnSize', function() {
     expect([50, 51, 53]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
 
     updateSettings({
-      colHeaders: function(index) {
+      colHeaders(index) {
         return index === 0 ? 'Identifier Longer text' : 'Identifier Longer and longer text';
       },
     });
@@ -185,7 +185,7 @@ describe('AutoColumnSize', function() {
       colHeaders: ['Identifier', 'First Name']
     });
 
-    setTimeout(function() {
+    setTimeout(() => {
       spec().$container.css('display', 'block');
       hot.render();
 
@@ -242,7 +242,7 @@ describe('AutoColumnSize', function() {
   });
 
   it('should apply disabling/enabling plugin using updateSettings, only to a particular HOT instance', function() {
-    this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
+    this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
     handsontable({
       data: arrayOfObjects()
@@ -320,7 +320,7 @@ describe('AutoColumnSize', function() {
     expect(width1).toBeLessThan(width2);
   });
 
-  it('should consider CSS style of each instance separately', function() {
+  it('should consider CSS style of each instance separately', () => {
     var $style = $('<style>.big .htCore td {font-size: 40px; line-height: 1.1;}</style>').appendTo('head');
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
       data: arrayOfObjects()
@@ -366,7 +366,7 @@ describe('AutoColumnSize', function() {
     $style.remove();
   });
 
-  it('should destroy temporary element', function() {
+  it('should destroy temporary element', () => {
     handsontable({
       autoColumnSize: true
     });
@@ -413,14 +413,14 @@ describe('AutoColumnSize', function() {
     var data = arrayOfObjects();
     data.push({id: '2', name: 'Rocket Man', lastName: 'In a tin can'});
     handsontable({
-      data: data,
+      data,
       columns: [
         {data: 'id'},
         {data: 'name'}
       ],
       autoColumnSize: true,
-      renderer: function(instance, td, row, col, prop, value, cellProperties) {
-        //taken from demo/renderers.html
+      renderer(instance, td, row, col, prop, value, cellProperties) {
+        // taken from demo/renderers.html
         Handsontable.renderers.TextRenderer.apply(this, arguments);
         if (row === 1 && col === 0) {
           td.style.padding = '100px';
@@ -431,7 +431,7 @@ describe('AutoColumnSize', function() {
     expect(colWidth(this.$container, 0)).toBeGreaterThan(colWidth(this.$container, 1));
   });
 
-  it('should\'t serialize value if it is array (nested data sources)', function() {
+  it('should\'t serialize value if it is array (nested data sources)', () => {
     var spy = jasmine.createSpy('renderer');
 
     handsontable({

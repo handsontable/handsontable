@@ -1,8 +1,8 @@
-describe('Core.getCellMetaAtRow', function() {
+describe('Core.getCellMetaAtRow', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('Core.getCellMetaAtRow', function() {
     }
   });
 
-  it('should return a row of cell meta in a form of an array', function() {
+  it('should return a row of cell meta in a form of an array', () => {
     handsontable();
 
     var rowOfMeta = getCellMetaAtRow(0);

@@ -1,6 +1,6 @@
 import {isObject} from './../../helpers/object';
 import {isDefined} from './../../helpers/mixed';
-import {CellCoords} from 'walkontable';
+import {CellCoords} from './../../3rdparty/walkontable/src';
 
 export const DIRECTIONS = {
   horizontal: 'horizontal',
@@ -58,7 +58,9 @@ export function getDeltas(start, end, data, direction) {
  * @returns {{direction: String, start: CellCoords, end: CellCoords}}
  */
 export function getDragDirectionAndRange(startSelection, endSelection) {
-  let startOfDragCoords, endOfDragCoords, directionOfDrag;
+  let startOfDragCoords,
+    endOfDragCoords,
+    directionOfDrag;
 
   if (endSelection[0] === startSelection[0] && endSelection[1] < startSelection[1]) {
     directionOfDrag = 'left';

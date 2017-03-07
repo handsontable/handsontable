@@ -1,8 +1,8 @@
-describe('Core.toVisualColumn', function() {
+describe('Core.toVisualColumn', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,10 +12,10 @@ describe('Core.toVisualColumn', function() {
     }
   });
 
-  it('should return valid visual row index', function() {
+  it('should return valid visual row index', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
-      unmodifyCol: function(column) {
+      unmodifyCol(column) {
         return column + 3;
       }
     });

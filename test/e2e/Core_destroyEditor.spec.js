@@ -1,8 +1,8 @@
-describe('Core_destroyEditor', function() {
+describe('Core_destroyEditor', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -12,7 +12,7 @@ describe('Core_destroyEditor', function() {
     }
   });
 
-  it('editor should not be visible', function() {
+  it('editor should not be visible', () => {
     handsontable();
     selectCell(1, 1);
 
@@ -22,7 +22,7 @@ describe('Core_destroyEditor', function() {
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('value should be saved', function() {
+  it('value should be saved', () => {
     handsontable();
     selectCell(1, 1);
 
@@ -33,7 +33,7 @@ describe('Core_destroyEditor', function() {
     expect(getDataAtCell(1, 1)).toEqual('Ted');
   });
 
-  it('cell should be selected', function() {
+  it('cell should be selected', () => {
     handsontable();
     selectCell(1, 1);
 
@@ -43,7 +43,7 @@ describe('Core_destroyEditor', function() {
     expect(getSelected()).toEqual([1, 1, 1, 1]);
   });
 
-  it('should revert original value when param set to true', function() {
+  it('should revert original value when param set to true', () => {
     handsontable();
     selectCell(1, 1);
 

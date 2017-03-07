@@ -32,6 +32,13 @@ class TouchScroll extends BasePlugin {
      * @default false
      */
     this.lockedCollection = false;
+    /**
+     * Flag which determines if walkontable should freeze overlays while scrolling.
+     *
+     * @type {Boolean}
+     * @default false
+     */
+    this.freezeOverlays = false;
   }
 
   /**
@@ -136,7 +143,7 @@ class TouchScroll extends BasePlugin {
    * @private
    */
   onBeforeTouchScroll() {
-    // Handsontable.freezeOverlays = true;
+    this.freezeOverlays = true;
 
     arrayEach(this.clones, (clone) => {
       addClass(clone, 'hide-tween');
@@ -149,7 +156,7 @@ class TouchScroll extends BasePlugin {
    * @private
    */
   onAfterMomentumScroll() {
-    // Handsontable.freezeOverlays = false;
+    this.freezeOverlays = false;
 
     arrayEach(this.clones, (clone) => {
       removeClass(clone, 'hide-tween');
@@ -171,6 +178,6 @@ class TouchScroll extends BasePlugin {
   }
 }
 
-export default TouchScroll;
-
 registerPlugin('touchScroll', TouchScroll);
+
+export default TouchScroll;

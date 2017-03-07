@@ -1,9 +1,9 @@
-describe('settings', function() {
-  describe('fixedColumnsLeft', function() {
+describe('settings', () => {
+  describe('fixedColumnsLeft', () => {
     var id = 'testContainer';
 
     beforeEach(function() {
-      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
     afterEach(function() {
@@ -13,8 +13,8 @@ describe('settings', function() {
       }
     });
 
-    describe('defined in constructor', function() {
-      it('should show columns headers', function() {
+    describe('defined in constructor', () => {
+      it('should show columns headers', () => {
         handsontable({
           fixedColumnsLeft: 3
         });
@@ -22,7 +22,7 @@ describe('settings', function() {
         expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(3);
       });
 
-      it('should show columns headers when headers are enabled', function() {
+      it('should show columns headers when headers are enabled', () => {
         handsontable({
           rowHeaders: true,
           colHeaders: true,
@@ -34,8 +34,8 @@ describe('settings', function() {
       });
     });
 
-    describe('defined in updateSettings', function() {
-      it('should increase fixed columns', function() {
+    describe('defined in updateSettings', () => {
+      it('should increase fixed columns', () => {
         handsontable({
           fixedColumnsLeft: 2
         });
@@ -47,7 +47,7 @@ describe('settings', function() {
         expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(4);
       });
 
-      it('should decrease fixed columns', function() {
+      it('should decrease fixed columns', () => {
         handsontable({
           fixedColumnsLeft: 4
         });
@@ -59,7 +59,7 @@ describe('settings', function() {
         expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(2);
       });
 
-      it('should create fixed columns when they are disabled eariler', function() {
+      it('should create fixed columns when they are disabled eariler', () => {
         handsontable({
           fixedColumnsLeft: 0
         });
@@ -71,7 +71,7 @@ describe('settings', function() {
         expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(2);
       });
 
-      it('should disable fixed columns', function() {
+      it('should disable fixed columns', () => {
         handsontable({
           fixedColumnsLeft: 2
         });
@@ -84,7 +84,7 @@ describe('settings', function() {
         expect(getLeftClone().width()).toBe(0);
       });
 
-      it('should not throw errors while scrolling horizontally when fixed columns was set', function(done) {
+      it('should not throw errors while scrolling horizontally when fixed columns was set', (done) => {
         var spy = jasmine.createSpyObj('error', ['test']);
         var prevError = window.onerror;
 
@@ -102,11 +102,11 @@ describe('settings', function() {
           fixedColumnsLeft: 2
         });
 
-        setTimeout(function() {
+        setTimeout(() => {
           hot.scrollViewportTo(30, 30);
         }, 100);
 
-        setTimeout(function() {
+        setTimeout(() => {
           expect(spy.test.calls.count()).toBe(0);
 
           done();
