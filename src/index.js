@@ -29,7 +29,7 @@ import cellTypes from './cellTypes';
 import DefaultSettings from './defaultSettings';
 
 function Handsontable(rootElement, userSettings) {
-  let instance = new Core(rootElement, userSettings || {});
+  const instance = new Core(rootElement, userSettings || {});
 
   instance.init();
 
@@ -44,7 +44,7 @@ Handsontable.buildDate = __HOT_BUILD_DATE__;
 Handsontable.packageName = __HOT_PACKAGE_NAME__;
 Handsontable.version = __HOT_VERSION__;
 
-let baseVersion = __HOT_BASE_VERSION__;
+const baseVersion = __HOT_BASE_VERSION__;
 
 if (baseVersion) {
   Handsontable.baseVersion = baseVersion;
@@ -79,8 +79,6 @@ const DOM = [
 
 Handsontable.helper = {};
 Handsontable.dom = {};
-// Legacy support.
-// Handsontable.Dom = Handsontable.dom;
 
 // Fill general helpers.
 arrayHelpers.arrayEach(HELPERS, (helper) => {
