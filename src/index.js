@@ -26,6 +26,7 @@ import {getRegisteredRendererNames, getRenderer, registerRenderer} from './rende
 import * as plugins from './plugins/index'; // <---- TODO: Move plugins to webpack as import from external (autodetect)
 import {registerPlugin} from './plugins';
 import cellTypes from './cellTypes';
+import DefaultSettings from './defaultSettings';
 
 function Handsontable(rootElement, userSettings) {
   let instance = new Core(rootElement, userSettings || {});
@@ -36,6 +37,7 @@ function Handsontable(rootElement, userSettings) {
 }
 
 Handsontable.Core = Core;
+Handsontable.DefaultSettings = DefaultSettings;
 Handsontable.getListenersCounter = getListenersCounter;
 
 Handsontable.buildDate = __HOT_BUILD_DATE__;
