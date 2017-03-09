@@ -296,7 +296,10 @@ export function deepObjectSize(object) {
   if (!isObject(object)) {
     return 0;
   }
+  let recursMax = 10;
   let recursObjLen = function(obj) {
+    if (!recursMax) return 0;
+    recursMax--;
     let result = 0;
 
     if (isObject(obj)) {
@@ -307,6 +310,7 @@ export function deepObjectSize(object) {
       result++;
     }
 
+    recursMax++;
     return result;
   };
 
