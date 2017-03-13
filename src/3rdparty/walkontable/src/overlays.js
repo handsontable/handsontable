@@ -334,7 +334,7 @@ class WalkontableOverlays {
     }
 
     while (tempElem != document && tempElem != null) {
-      if (tempElem.className.indexOf('wtHolder') > -1) {
+      if (tempElem.getAttribute('class') && tempElem.getAttribute('class').indexOf('wtHolder') > -1) {
         parentHolder = tempElem;
         break;
       }
