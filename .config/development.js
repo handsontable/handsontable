@@ -22,6 +22,8 @@ module.exports.create = function create() {
 
   configBase.forEach(function(c) {
     c.output.filename = PACKAGE_NAME + '.js';
+
+    c.devtool = 'cheap-module-source-map';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css files)
     c.externals = {
       numbro: {
@@ -51,7 +53,7 @@ module.exports.create = function create() {
     };
     c.module.rules.unshift({
       test: [
-         // Disable loading css files from pikaday module
+        // Disable loading css files from pikaday module
         /pikaday\/css/,
       ],
       loader: path.resolve(__dirname, 'loader/empty-loader.js'),
@@ -68,5 +70,5 @@ module.exports.create = function create() {
     );
   });
 
-  return [].concat(configBase, configFull);
+  return [].concat(configBase);
 }

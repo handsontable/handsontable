@@ -1,5 +1,5 @@
 /**
- * Config responsible for building End-to-End test files (`test/dist/`):
+ * Config responsible for building End-to-End test files (bundled into `test/dist/`):
  *  - e2e.entry.js
  *  - helpers.entry.js
  */
@@ -52,13 +52,13 @@ module.exports.create = function create() {
           '../test/lib/phantom-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
+          'lib/lodash.underscore.js',
+          'lib/backbone.js',
           '../dist/numbro/numbro.js',
           '../dist/numbro/languages.js',
           '../dist/moment/moment.js',
           '../dist/pikaday/pikaday.js',
           '../dist/zeroclipboard/ZeroClipboard.js',
-          '../demo/js/backbone/lodash.underscore.js',
-          '../demo/js/backbone/backbone.js',
           '../dist/handsontable.js', // <--- TODO: Add tests for handsontable.full.min.js also
         ],
       })

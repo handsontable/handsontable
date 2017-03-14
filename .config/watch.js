@@ -1,5 +1,5 @@
 /**
- * Config responsible for building Handsontable `dist/` files:
+ * Config responsible for building Handsontable `dist/` files with enabled watching mode:
  *  - handsontable.js
  *  - handsontable.css
  */

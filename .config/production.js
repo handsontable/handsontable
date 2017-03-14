@@ -1,5 +1,5 @@
 /**
- * Config responsible for building Handsontable `dist/` files:
+ * Config responsible for building Handsontable `dist/` minified files:
  *  - handsontable.min.js
  *  - handsontable.min.css
  *  - handsontable.full.min.js

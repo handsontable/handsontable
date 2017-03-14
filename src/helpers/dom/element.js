@@ -688,7 +688,7 @@ export function getStyle(element, prop) {
     computedStyle = getComputedStyle(element);
 
     if (computedStyle[prop] !== '' && computedStyle[prop] !== void 0) {
-
+      return computedStyle[prop];
     }
   }
 }

@@ -95,13 +95,13 @@ class Overlays {
       this.topOverlay = Overlay.createOverlay(Overlay.CLONE_TOP, this.wot);
     }
 
-    if (typeof WalkontableBottomOverlay === 'undefined') {
+    if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM)) {
       this.bottomOverlay = {
         needFullRender: false,
         updateStateOfRendering: () => false,
       };
     }
-    if (typeof WalkontableBottomLeftCornerOverlay === 'undefined') {
+    if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       this.bottomLeftCornerOverlay = {
         needFullRender: false,
         updateStateOfRendering: () => false,

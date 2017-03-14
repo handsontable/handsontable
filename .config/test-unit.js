@@ -1,5 +1,5 @@
 /**
- * Config responsible for building unit test files (`test/dist/`):
+ * Config responsible for building unit test files (bundled into `test/dist/`):
  *  - unit.entry.js
  *  - helpers.entry.js
  */

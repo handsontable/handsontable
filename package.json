@@ -18,7 +18,7 @@
   "scripts": {
     "clean": "rimraf commonjs es coverage",
     "lint": "eslint src test",
-    "test": "npm run lint && npm run test:walkontable && npm run test:unit && npm run test:e2e",
+    "test": "npm run lint && npm run test:unit && npm run test:walkontable && npm run test:e2e",
     "test:walkontable": "npm run build:walkontable && npm run test:walkontable.dump && grunt test-walkontable",
     "test:e2e": "npm run build:umd && npm run test:e2e.dump && grunt test-handsontable",
     "test:unit": "cross-env BABEL_ENV=commonjs jest",
@@ -28,9 +28,9 @@
     "build": "npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd.min",
     "build:commonjs": "cross-env BABEL_ENV=commonjs babel src --out-dir commonjs",
     "build:es": "cross-env BABEL_ENV=es babel src --out-dir es",
-    "build:umd.min": "cross-env BABEL_ENV=commonjs NODE_ENV=production webpack babel-polyfill src/index.js",
-    "build:umd": "cross-env BABEL_ENV=commonjs NODE_ENV=development webpack babel-polyfill src/index.js",
-    "build:walkontable": "cross-env BABEL_ENV=commonjs NODE_ENV=walkontable webpack babel-polyfill src/3rdparty/walkontable/src/index.js",
+    "build:umd": "cross-env BABEL_ENV=commonjs NODE_ENV=development webpack babel-polyfill ./src/index.js",
+    "build:umd.min": "cross-env BABEL_ENV=commonjs NODE_ENV=production webpack babel-polyfill ./src/index.js",
+    "build:walkontable": "cross-env BABEL_ENV=commonjs NODE_ENV=walkontable webpack babel-polyfill ./src/3rdparty/walkontable/src/index.js",
     "watch": "cross-env BABEL_ENV=commonjs NODE_ENV=watch webpack src/index.js --watch",
     "release": "generate-release",
     "prepublish": "npm run clean && npm run build:commonjs && npm run build:es"
@@ -83,7 +83,9 @@
     "babel-plugin-transform-es3-member-expression-literals": "^6.22.0",
     "babel-plugin-transform-es3-property-literals": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.22.0",
+    "babel-plugin-transform-require-ignore": "^0.0.2",
     "babel-polyfill": "^6.23.0",
+    "babel-preset-env": "^1.2.1",
     "babel-register": "^6.23.0",
     "check-es3-syntax-cli": "^0.1.1",
     "cross-env": "^3.1.4",
@@ -107,9 +109,10 @@
   "license": "MIT",
   "jest": {
     "roots": [
-      "./test/unit"
+      "./test/unit",
+      "./src/plugins"
     ],
-    "testRegex": "(\\.spec\\.js)$",
+    "testRegex": "(\\.spec\\.js)|(\\.unit\\.js)$",
     "testPathIgnorePatterns": [
       "<rootDir>/node_modules/",
       "<rootDir>/test/unit/index.js"
@@ -117,10 +120,6 @@
     "moduleNameMapper": {
       "^handsontable(.*)$": "<rootDir>/src$1",
       "^walkontable(.*)$": "<rootDir>/src/3rdparty/walkontable/src$1",
-      "^autoresize(.*)$": "<rootDir>/lib/autoResize/autoResize.js",
-      "^copypaste(.*)$": "<rootDir>/lib/copyPaste/copyPaste.js",
-      "^jsonpatch(.*)$": "<rootDir>/lib/jsonpatch/json-patch-duplex.js",
-      "^sheetclip(.*)$": "<rootDir>/lib/SheetClip/SheetClip.js",
       "\\.css$": "<rootDir>/test/__mocks__/styleMock.js"
     },
     "globals": {

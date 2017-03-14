@@ -88,7 +88,7 @@ class Overlay {
   }
 
   /**
-   * Create new instance of overlay type
+   * Create new instance of overlay type.
    *
    * @param {String} type Overlay type, one of the CLONE_TYPES value
    * @param {Walkontable} wot Walkontable instance
@@ -98,7 +98,17 @@ class Overlay {
   }
 
   /**
-   * Checks if overlay object (`overlay`) is instance of overlay type (`type`)
+   * Check if specified overlay was registered.
+   *
+   * @param {String} type Overlay type, one of the CLONE_TYPES value
+   * @returns {Boolean}
+   */
+  static hasOverlay(type) {
+    return registeredOverlays[type] !== void 0;
+  }
+
+  /**
+   * Checks if overlay object (`overlay`) is instance of overlay type (`type`).
    *
    * @param {Overlay} overlay Overlay object
    * @param {String} type Overlay type, one of the CLONE_TYPES value
