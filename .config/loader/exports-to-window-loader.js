@@ -1,5 +1,5 @@
 var loaderUtils = require('loader-utils');
-var FOOTER = '/*** EXPORTS FROM exports-window-loader ***/\n';
+var FOOTER = '/*** EXPORTS FROM exports-to-window-loader ***/\n';
 var alreadyExported = {};
 
 module.exports = function(content, sourceMap) {

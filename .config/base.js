@@ -41,7 +41,7 @@ module.exports.create = function create() {
         },
         {
           test: [
-             // Disable loading languages from numbro and moment into final bundle
+            // Disable loading languages from numbro and moment into final bundle
             /numbro\/languages/,
             /moment\/locale/,
           ],
