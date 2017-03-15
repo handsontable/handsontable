@@ -5,11 +5,11 @@
  *  - handsontable.full.js
  *  - handsontable.full.css
  */
-var configFactory = require('./base');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 var path = require('path');
 var webpack = require('webpack');
+var configFactory = require('./base');
 
 var env = process.env.NODE_ENV;
 var PACKAGE_NAME = configFactory.PACKAGE_NAME;
@@ -70,5 +70,5 @@ module.exports.create = function create() {
     );
   });
 
-  return [].concat(configBase);
+  return [].concat(configBase, configFull);
 }

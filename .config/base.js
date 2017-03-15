@@ -56,7 +56,7 @@ module.exports.create = function create() {
           options: {
             cacheDirectory: true,
           },
-        }
+        },
       ]
     },
     plugins: [
@@ -68,7 +68,7 @@ module.exports.create = function create() {
         '__HOT_PACKAGE_NAME__': JSON.stringify(PACKAGE_NAME),
         '__HOT_BUILD_DATE__': JSON.stringify(BUILD_DATE),
         '__HOT_BASE_VERSION__': JSON.stringify(BASE_VERSION),
-      })
+      }),
     ],
   };
 

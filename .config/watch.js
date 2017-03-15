@@ -3,10 +3,10 @@
  *  - handsontable.js
  *  - handsontable.css
  */
-var configFactory = require('./base');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var path = require('path');
 var webpack = require('webpack');
+var configFactory = require('./base');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 var env = process.env.NODE_ENV;
 var PACKAGE_NAME = configFactory.PACKAGE_NAME;

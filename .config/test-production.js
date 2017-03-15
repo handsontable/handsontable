@@ -1,11 +1,12 @@
 /**
- * Config responsible for building End-to-End test files (bundled into `test/dist/`):
+ * Config responsible for building End-to-End test files (bundled into `test/dist/`). These tests testing `*.full.min.js` files:
  *  - e2e.entry.js
  *  - helpers.entry.js
  */
+var HtmlWebpackPlugin = require('html-webpack-plugin');
 var path = require('path');
 var webpack = require('webpack');
-var configFactory = require('./base');
+var configFactory = require('./test-e2e');
 var JasmineHtml = require('./plugin/jasmine-html');
 
 var env = process.env.NODE_ENV;
@@ -17,28 +18,10 @@ module.exports.create = function create() {
   var config = configFactory.create();
 
   config.forEach(function(c) {
-    c.devtool = 'cheap-module-source-map';
-    c.target = 'web';
-    c.output = {
-      libraryTarget: 'var',
-      filename: '[name].entry.js',
-      path: path.resolve(__dirname, '../test/dist'),
-    };
-    c.resolve.alias.handsontable = path.resolve(__dirname, '../src');
-
-    c.module.rules.unshift({
-      test: [
-         // Disable loading css files from pikaday module
-        /pikaday\/css/,
-      ],
-      loader: path.resolve(__dirname, 'loader/empty-loader.js'),
+    // Remove all 'JasmineHtml' instances
+    c.plugins = c.plugins.filter(function(plugin) {
+      return !(plugin instanceof HtmlWebpackPlugin);
     });
-
-    c.externals = [
-      {
-        window: 'window',
-      },
-    ];
 
     c.plugins.push(
       new JasmineHtml({
@@ -46,7 +29,7 @@ module.exports.create = function create() {
         baseJasminePath: '../',
         externalCssFiles: [
           'lib/normalize.css',
-          '../dist/handsontable.css',
+          '../dist/handsontable.full.min.css',
         ],
         externalJsFiles: [
           '../test/lib/phantom-reporter.js',
@@ -54,12 +37,8 @@ module.exports.create = function create() {
           'lib/jquery.simulate.js',
           'lib/lodash.underscore.js',
           'lib/backbone.js',
-          '../dist/numbro/numbro.js',
+          '../dist/handsontable.full.min.js',
           '../dist/numbro/languages.js',
-          '../dist/moment/moment.js',
-          '../dist/pikaday/pikaday.js',
-          '../dist/zeroclipboard/ZeroClipboard.js',
-          '../dist/handsontable.js',
         ],
       })
     );

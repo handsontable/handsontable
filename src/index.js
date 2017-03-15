@@ -38,7 +38,7 @@ function Handsontable(rootElement, userSettings) {
 
 Handsontable.Core = Core;
 Handsontable.DefaultSettings = DefaultSettings;
-Handsontable.getListenersCounter = getListenersCounter;
+Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
 
 Handsontable.buildDate = __HOT_BUILD_DATE__;
 Handsontable.packageName = __HOT_PACKAGE_NAME__;
