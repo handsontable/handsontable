@@ -65,6 +65,29 @@ module.exports.create = function create() {
 
   configFull.forEach(function(c) {
     c.output.filename = PACKAGE_NAME + '.full.js';
+    c.module.rules.unshift({
+      test: /numbro/,
+      use: [
+        {
+          loader: path.resolve(__dirname, 'loader/export-to-window-loader.js'),
+          options: {
+            numbro: 'numbro',
+          }
+        }
+      ]
+    });
+    c.module.rules.unshift({
+      test: /moment/,
+      use: [
+        {
+          loader: path.resolve(__dirname, 'loader/export-to-window-loader.js'),
+          options: {
+            moment: 'moment',
+          }
+        }
+      ]
+    });
+
     c.plugins.push(
       new ExtractTextPlugin(PACKAGE_NAME + '.full.css')
     );
