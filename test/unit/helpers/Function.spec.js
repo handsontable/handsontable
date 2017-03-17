@@ -1,5 +1,4 @@
 import {
-  proxy,
   throttle,
   throttleAfterHits,
   debounce,
@@ -11,25 +10,6 @@ import {
 } from 'handsontable/helpers/function';
 
 describe('Function helper', () => {
-  //
-  // Handsontable.helper.proxy
-  //
-  describe('proxy', () => {
-    it('should returns new function with corrected binded context', () => {
-      var proxied = function(context) {
-        return proxy(function() {
-          return this;
-        }, context)();
-      };
-      var object = {};
-      var func = function() {};
-
-      expect(proxied(1).valueOf()).toBe(1);
-      expect(proxied('foo').valueOf()).toBe('foo');
-      expect(proxied(func)).toBe(func);
-    });
-  });
-
   //
   // Handsontable.helper.throttle
   //

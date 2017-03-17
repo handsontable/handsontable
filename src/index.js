@@ -1,3 +1,5 @@
+import 'babel-polyfill';
+
 import './css/handsontable.css';
 import './css/mobile.handsontable.css';
 

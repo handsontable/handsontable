@@ -12,53 +12,6 @@ export function toUpperCaseFirst(string) {
 }
 
 /**
- * Checks if given prefix matches to the string.
- *
- * @param {String} string String to check.
- * @param {String} string Needle to search.
- * @returns {Boolean}
- */
-export function startsWith(string, needle) {
-  let result = true;
-
-  rangeEach(needle.length - 1, (index) => {
-    if (string.charAt(index) !== needle.charAt(index)) {
-      result = false;
-
-      return false;
-    }
-  });
-
-  return result;
-}
-
-/**
- * Checks if given postfix matches to the string.
- *
- * @param {String} string String to check.
- * @param {String} string Needle to search.
- * @returns {Boolean}
- */
-export function endsWith(string, needle) {
-  let result = true;
-  let needleLength = needle.length - 1;
-  let stringLength = string.length - 1;
-
-  rangeEach(needleLength, (index) => {
-    let stringIndex = stringLength - index;
-    let needleIndex = needleLength - index;
-
-    if (string.charAt(stringIndex) !== needle.charAt(needleIndex)) {
-      result = false;
-
-      return false;
-    }
-  });
-
-  return result;
-}
-
-/**
  * Compare strings case insensitively.
  *
  * @param {...String} strings Strings to compare.
@@ -121,40 +74,6 @@ export function substitute(template, variables = {}) {
     return variables[name] === void 0 ? '' : variables[name];
   });
 }
-
-/**
- * Pad a string to a certain length with another string.
- *
- * @param {String} string The input string.
- * @param {Number} maxLength If the value of `maxLength` is negative, less than, or equal to the length of the input string,
- *                           no padding takes place.
- * @param {String} fillString String to be fill.
- * @returns {String}
- */
-export function padStart(string, maxLength, fillString = ' ') {
-  string += '';
-
-  if (string.length >= maxLength) {
-    return string;
-  }
-  fillString = String(fillString);
-
-  let fillStringLength = fillString.length;
-
-  if (!fillStringLength) {
-    fillString = ' ';
-  }
-  let fillLen = maxLength - string.length;
-  let timesToRepeat = Math.ceil(fillLen / fillString.length);
-  let truncatedString = '';
-
-  rangeEach(timesToRepeat, (index) => {
-    truncatedString += fillString;
-  });
-  truncatedString = truncatedString.slice(0, fillLen);
-
-  return truncatedString + string;
-};
 
 const STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|/][^>]*>/gi;
 

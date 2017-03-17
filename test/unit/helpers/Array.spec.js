@@ -5,7 +5,6 @@ import {
   arrayMap,
   arrayMin,
   arrayMax,
-  arrayIncludes,
 } from 'handsontable/helpers/array';
 
 describe('Array helper', () => {
@@ -82,53 +81,6 @@ describe('Array helper', () => {
       expect(arrayMax(['b', 'a', 'A', 'z', 'Z', '1'])).toBe('z');
       expect(arrayMax(['b', 'a', 'A', 'Z', '1'])).toBe('b');
       expect(arrayMax(['a', 'A', 'Z', '1'])).toBe('a');
-    });
-  });
-
-  //
-  // Handsontable.helper.arrayIncludes
-  //
-  describe('arrayIncludes', () => {
-    it('should returns proper value for array of numbers', () => {
-      // Examples from: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
-      expect(arrayIncludes([1, 2, 3], 2)).toBe(true);
-      expect(arrayIncludes([1, 2, 3], 4)).toBe(false);
-      expect(arrayIncludes([1, 2, 3], 3, 3)).toBe(false);
-      expect(arrayIncludes([1, 2, 3], 3, -1)).toBe(true);
-    });
-
-    it('should returns proper value for array of strings', () => {
-      expect(arrayIncludes(['a', 'b', 'c'], 'b')).toBe(true);
-      expect(arrayIncludes(['a', 'b', 'c'], 'd')).toBe(false);
-      expect(arrayIncludes(['a', 'b', 'c'], 'c', 3)).toBe(false);
-      expect(arrayIncludes(['a', 'b', 'c'], 'c', -1)).toBe(true);
-    });
-
-    it('should returns proper value for array when working with `undefined`', () => {
-      expect(arrayIncludes([], undefined)).toBe(false);
-      expect(arrayIncludes([0], undefined)).toBe(false);
-      expect(arrayIncludes(['a'], undefined)).toBe(false);
-      expect(arrayIncludes([null], undefined)).toBe(false);
-      expect(arrayIncludes([undefined], undefined)).toBe(true);
-      expect(arrayIncludes([0, undefined], undefined)).toBe(true);
-    });
-
-    it('should returns proper value for array when working with `null`', () => {
-      expect(arrayIncludes([], null)).toBe(false);
-      expect(arrayIncludes([0], null)).toBe(false);
-      expect(arrayIncludes(['a'], null)).toBe(false);
-      expect(arrayIncludes([null], null)).toBe(true);
-      expect(arrayIncludes([NaN], null)).toBe(false);
-      expect(arrayIncludes([0, null], null)).toBe(true);
-    });
-
-    xit('should returns proper value for array when working with `NaN`', () => {
-      expect(arrayIncludes([], NaN)).toBe(false);
-      expect(arrayIncludes([0], NaN)).toBe(false);
-      expect(arrayIncludes(['a'], NaN)).toBe(false);
-      expect(arrayIncludes([null], NaN)).toBe(false);
-      expect(arrayIncludes([NaN], NaN)).toBe(true);
-      expect(arrayIncludes([0, NaN], NaN)).toBe(true);
     });
   });
 });

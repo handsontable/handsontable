@@ -207,31 +207,6 @@ export function isObject(obj) {
   return Object.prototype.toString.call(obj) == '[object Object]';
 }
 
-export function getPrototypeOf(obj) {
-  var prototype;
-
-  /* eslint-disable no-proto */
-  if (typeof obj.__proto__ == 'object') {
-    prototype = obj.__proto__;
-  } else {
-    var oldConstructor,
-      constructor = obj.constructor;
-
-    if (typeof obj.constructor == 'function') {
-      oldConstructor = constructor;
-
-      if (delete obj.constructor) {
-        constructor = obj.constructor; // get real constructor
-        obj.constructor = oldConstructor; // restore constructor
-      }
-    }
-
-    prototype = constructor ? constructor.prototype : null; // needed for IE
-  }
-
-  return prototype;
-}
-
 export function defineGetter(object, property, value, options) {
   options.value = value;
   options.writable = options.writable !== false;

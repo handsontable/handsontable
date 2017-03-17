@@ -6,7 +6,6 @@ import {arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
 import {stopImmediatePropagation, isImmediatePropagationStopped} from './../../helpers/dom/event';
 import {getSelectionText} from './../../helpers/dom/element';
-import {proxy} from './../../helpers/function';
 import {registerPlugin} from './../../plugins';
 import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
 
@@ -127,7 +126,7 @@ function CopyPastePlugin(instance) {
     let ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (event.keyCode == KEY_CODES.A && ctrlDown) {
-      instance._registerTimeout(setTimeout(proxy(_this.setCopyableText, _this), 0));
+      instance._registerTimeout(setTimeout(_this.setCopyableText.bind(_this), 0));
     }
   }
 
@@ -147,19 +146,19 @@ function CopyPastePlugin(instance) {
     instance.removeHook('beforeKeyDown', onBeforeKeyDown);
   };
 
-  instance.addHook('afterDestroy', proxy(this.destroy, this));
+  instance.addHook('afterDestroy', this.destroy.bind(this));
 
   /**
    * @function triggerPaste
    * @memberof CopyPaste#
    */
-  this.triggerPaste = proxy(this.copyPasteInstance.triggerPaste, this.copyPasteInstance);
+  this.triggerPaste = this.copyPasteInstance.triggerPaste.bind(this.copyPasteInstance);
 
   /**
    * @function triggerCut
    * @memberof CopyPaste#
    */
-  this.triggerCut = proxy(this.copyPasteInstance.triggerCut, this.copyPasteInstance);
+  this.triggerCut = this.copyPasteInstance.triggerCut.bind(this.copyPasteInstance);
 
   /**
    * Prepares copyable text in the invisible textarea.

@@ -1,6 +1,5 @@
 import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
-import {arrayIncludes} from './../../helpers/array';
 import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
 import {registerPlugin} from './../../plugins';
@@ -212,11 +211,11 @@ class Autofill extends BasePlugin {
     const bottomRightCorner = this.hot.getSelectedRange().getBottomRightCorner();
     let coords;
 
-    if (arrayIncludes(this.directions, DIRECTIONS.vertical) &&
+    if (this.directions.includes(DIRECTIONS.vertical) &&
       (bottomRightCorner.row < coordsOfSelection.row || topLeftCorner.row > coordsOfSelection.row)) {
       coords = new CellCoords(coordsOfSelection.row, bottomRightCorner.col);
 
-    } else if (arrayIncludes(this.directions, DIRECTIONS.horizontal)) {
+    } else if (this.directions.includes(DIRECTIONS.horizontal)) {
       coords = new CellCoords(bottomRightCorner.row, coordsOfSelection.col);
 
     } else {

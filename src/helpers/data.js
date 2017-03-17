@@ -1,5 +1,5 @@
 import cellTypes from './../cellTypes';
-import {getPrototypeOf, hasOwnProperty} from './object';
+import {hasOwnProperty} from './object';
 
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
@@ -179,7 +179,7 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
         }
       }
 
-      return getMethodFromProperties(getPrototypeOf(properties));
+      return getMethodFromProperties(Object.getPrototypeOf(properties));
 
     }(typeof row == 'number' ? this.getCellMeta(row, col) : row));
   };
