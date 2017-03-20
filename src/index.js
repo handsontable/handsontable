@@ -25,7 +25,7 @@ import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
 import {getRegisteredEditorNames, registerEditor, getEditor, getEditorConstructor} from './editors';
 import {getRegisteredRendererNames, getRenderer, registerRenderer} from './renderers';
-import * as plugins from './plugins/index'; // <---- TODO: Move plugins to webpack as import from external (autodetect)
+import * as plugins from './plugins/index';
 import {registerPlugin} from './plugins';
 import cellTypes from './cellTypes';
 import DefaultSettings from './defaultSettings';
