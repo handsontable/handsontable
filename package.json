@@ -90,6 +90,7 @@
     "babel-preset-env": "^1.2.1",
     "babel-register": "^6.23.0",
     "check-es3-syntax-cli": "^0.1.1",
+    "copy-webpack-plugin": "^4.0.1",
     "cross-env": "^3.1.4",
     "css-loader": "^0.26.1",
     "eslint": "^3.15.0",
