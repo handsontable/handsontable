@@ -50,10 +50,7 @@
     "prefer-template": 1,
     "space-infix-ops": 2,
     "vars-on-top": 0,
-    "linebreak-style": [
-      2,
-      "windows"
-    ],
+    "linebreak-style": 0,
     "camelcase": [
       2,
       {
