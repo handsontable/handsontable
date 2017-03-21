@@ -25,7 +25,7 @@
     "test:unit": "cross-env BABEL_ENV=commonjs jest",
     "test:walkontable.dump": "cross-env BABEL_ENV=commonjs NODE_ENV=test-walkontable webpack helpers=./src/3rdparty/walkontable/test/helpers/index.js specs=./src/3rdparty/walkontable/test/spec/index.js",
     "test:production.dump": "cross-env BABEL_ENV=commonjs NODE_ENV=test-production webpack helpers=./test/helpers/index.js e2e=./test/e2e/index.js",
-    "test:e2e.dump": "cross-env BABEL_ENV=commonjs NODE_ENV=test-e2e webpack helpers=./test/helpers/index.js e2e=./test/e2e/index.js",
+    "test:e2e.dump": "cross-env BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e webpack helpers=./test/helpers/index.js e2e=./test/e2e/index.js",
     "test:unit.dump": "cross-env BABEL_ENV=commonjs NODE_ENV=test-unit webpack helpers=./test/helpers/index.js unit=./test/unit/index.js",
     "build": "npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd.min",
     "build:commonjs": "cross-env BABEL_ENV=commonjs_dist babel src --out-dir commonjs",

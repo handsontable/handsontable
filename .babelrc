@@ -51,6 +51,7 @@
         "web.timers"
       ],
       "modules": false,
+      "debug": false,
       "useBuiltIns": true
     }]
   ],
@@ -67,6 +68,16 @@
       "plugins": [
         ["transform-es2015-modules-commonjs", {"loose": true}],
         ["babel-plugin-transform-require-ignore", {"extensions": [".css"]}]
+      ]
+    },
+    "commonjs_e2e": {
+      "plugins": [
+        ["transform-es2015-modules-commonjs", {"loose": true}],
+        ["./.config/babel/forbidden-imports-plugin", {
+          "allowedModules": [
+            "window", "./common", "./MemoryLeakTest"
+          ]
+        }]
       ]
     },
     "es": {
