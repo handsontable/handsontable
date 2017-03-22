@@ -25,6 +25,7 @@ class DateEditor extends TextEditor {
     this.datePicker = null;
     this.datePickerStyle = null;
     this.defaultDateFormat = 'DD/MM/YYYY';
+    this.defaultDateFormatStrict = true;
     this.isCellEdited = false;
     this.parentDestroyed = false;
 
@@ -143,6 +144,7 @@ class DateEditor extends TextEditor {
 
     let offset = this.TD.getBoundingClientRect();
     let dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
+    let dateFormatStrict = this.cellProperties.dateFormatStrict || this.defaultDateFormatStrict;
     let datePickerConfig = this.$datePicker.config();
     let dateStr;
     let isMouseDown = this.instance.view.isMouseDown();
@@ -157,7 +159,7 @@ class DateEditor extends TextEditor {
     if (this.originalValue) {
       dateStr = this.originalValue;
 
-      if (moment(dateStr, dateFormat, true).isValid()) {
+d      if (moment(dateStr, dateFormat, dateFormatStrict).isValid()) {
         this.$datePicker.setMoment(moment(dateStr, dateFormat), true);
       }
 
@@ -176,7 +178,7 @@ class DateEditor extends TextEditor {
 
         datePickerConfig.defaultDate = dateStr;
 
-        if (moment(dateStr, dateFormat, true).isValid()) {
+        if (moment(dateStr, dateFormat, dateFormatStrict).isValid()) {
           this.$datePicker.setMoment(moment(dateStr, dateFormat), true);
         }
 
