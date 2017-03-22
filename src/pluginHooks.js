@@ -1,3 +1,6 @@
+import {arrayEach} from './helpers/array';
+import {objectEach} from './helpers/object';
+
 /**
  * @description
  * Handsontable events are the common interface that function in 2 ways: as __callbacks__ and as __hooks__.
@@ -657,7 +660,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeOnCellMouseDown
    * @param {Event} event The `mousedown` event object.
-   * @param {WalkontableCellCoords} coords WalkontableCellCoords object containing the coordinates of the clicked cell.
+   * @param {CellCoords} coords CellCoords object containing the coordinates of the clicked cell.
    * @param {Element} TD TD element.
    */
   'beforeOnCellMouseDown',
@@ -667,7 +670,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeOnCellMouseOver
    * @param {Event} event The `mouseover` event object.
-   * @param {WalkontableCellCoords} coords WalkontableCellCoords object containing the coordinates of the clicked cell.
+   * @param {CellCoords} coords CellCoords object containing the coordinates of the clicked cell.
    * @param {Element} TD TD element.
    * @param {Object} blockCalculations Contain keys 'row' and 'column' with boolean value.
    */
@@ -717,7 +720,7 @@ const REGISTERED_HOOKS = [
    * Callback fired before setting range is started.
    *
    * @event Hooks#beforeSetRangeStart
-   * @param {Array} coords WalkontableCellCoords array.
+   * @param {Array} coords CellCoords array.
    */
   'beforeSetRangeStart',
 
@@ -725,7 +728,7 @@ const REGISTERED_HOOKS = [
    * Callback fired before setting range is ended.
    *
    * @event Hooks#beforeSetRangeEnd
-   * @param {Array} coords WalkontableCellCoords array.
+   * @param {Array} coords CellCoords array.
    */
   'beforeSetRangeEnd',
 
@@ -1282,7 +1285,7 @@ const REGISTERED_HOOKS = [
    * Fired when the start of the selection is being modified. (e.g. moving the selection with the arrow keys).
    *
    * @event Hooks#modifyTransformStart
-   * @param {WalkontableCellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
+   * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
    */
   'modifyTransformStart',
 
@@ -1290,7 +1293,7 @@ const REGISTERED_HOOKS = [
    * Fired when the end of the selection is being modified. (e.g. moving the selection with the arrow keys).
    *
    * @event Hooks#modifyTransformEnd
-   * @param {WalkontableCellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
+   * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
    */
   'modifyTransformEnd',
 
@@ -1298,7 +1301,7 @@ const REGISTERED_HOOKS = [
    * Fired after the start of the selection is being modified. (e.g. moving the selection with the arrow keys).
    *
    * @event Hooks#afterModifyTransformStart
-   * @param {WalkontableCellCoords} coords Coords of the freshly selected cell.
+   * @param {CellCoords} coords Coords of the freshly selected cell.
    * @param {Number} rowTransformDir `-1` if trying to select a cell with a negative row index. `0` otherwise.
    * @param {Number} colTransformDir `-1` if trying to select a cell with a negative column index. `0` otherwise.
    */
@@ -1308,7 +1311,7 @@ const REGISTERED_HOOKS = [
    * Fired after the end of the selection is being modified. (e.g. moving the selection with the arrow keys).
    *
    * @event Hooks#afterModifyTransformEnd
-   * @param {WalkontableCellCoords} coords Coords of the freshly selected cell.
+   * @param {CellCoords} coords Coords of the freshly selected cell.
    * @param {Number} rowTransformDir `-1` if trying to select a cell with a negative row index. `0` otherwise.
    * @param {Number} colTransformDir `-1` if trying to select a cell with a negative column index. `0` otherwise.
    */
@@ -1467,10 +1470,11 @@ const REGISTERED_HOOKS = [
   'afterBeginEditing'
 ];
 
-import {arrayEach} from './helpers/array';
-import {objectEach} from './helpers/object';
-
 class Hooks {
+  static getSingleton() {
+    return globalSingleton;
+  }
+
   /**
    *
    */
@@ -1649,7 +1653,7 @@ class Hooks {
   has(key, context = null) {
     let bucket = this.getBucket(context);
 
-    return bucket[key] !== void 0 && bucket[key].length ? true : false;
+    return !!(bucket[key] !== void 0 && bucket[key].length);
   }
 
   /**
@@ -1682,6 +1686,7 @@ class Hooks {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
         while (++index < length) {
           if (!globalHandlers[index] || globalHandlers[index].skip) {
+            /* eslint-disable no-continue */
             continue;
           }
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
@@ -1705,6 +1710,7 @@ class Hooks {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
         while (++index < length) {
           if (!localHandlers[index] || localHandlers[index].skip) {
+            /* eslint-disable no-continue */
             continue;
           }
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
@@ -1818,4 +1824,6 @@ class Hooks {
   }
 }
 
-export {Hooks};
+const globalSingleton = new Hooks();
+
+export default Hooks;

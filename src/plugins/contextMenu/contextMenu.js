@@ -1,14 +1,13 @@
-import Handsontable from './../../browser';
 import BasePlugin from './../_base';
+import Hooks from './../../pluginHooks';
 import {arrayEach} from './../../helpers/array';
-import {CommandExecutor} from './commandExecutor';
-import {EventManager} from './../../eventManager';
-import {hasClass} from './../../helpers/dom/element';
-import {ItemsFactory} from './itemsFactory';
-import {Menu} from './menu';
+import CommandExecutor from './commandExecutor';
+import EventManager from './../../eventManager';
+import ItemsFactory from './itemsFactory';
+import Menu from './menu';
 import {registerPlugin} from './../../plugins';
 import {stopPropagation, pageX, pageY} from './../../helpers/dom/event';
-import {getWindowScrollLeft, getWindowScrollTop} from './../../helpers/dom/element';
+import {getWindowScrollLeft, getWindowScrollTop, hasClass} from './../../helpers/dom/element';
 import {
   ROW_ABOVE,
   ROW_BELOW,
@@ -22,6 +21,13 @@ import {
   ALIGNMENT,
   SEPARATOR
 } from './predefinedItems';
+
+import './contextMenu.css';
+
+Hooks.getSingleton().register('afterContextMenuDefaultOptions');
+Hooks.getSingleton().register('afterContextMenuShow');
+Hooks.getSingleton().register('afterContextMenuHide');
+Hooks.getSingleton().register('afterContextMenuExecute');
 
 /**
  * @description
@@ -44,7 +50,7 @@ import {
  * contextMenu: true
  * ...
  * // as a array
- * contextMenu: ['row_above', 'row_below', '--------', 'undo', 'redo']
+ * contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo']
  * ...
  * ```
  *
@@ -201,7 +207,7 @@ class ContextMenu extends BasePlugin {
 
     // ContextMenu is not detected HotTableEnv correctly because is injected outside hot-table
     this.menu.hotMenu.isHotTableEnv = this.hot.isHotTableEnv;
-    Handsontable.eventManager.isHotTableEnv = this.hot.isHotTableEnv;
+    // Handsontable.eventManager.isHotTableEnv = this.hot.isHotTableEnv;
   }
 
   /**
@@ -314,11 +320,6 @@ ContextMenu.SEPARATOR = {
   name: SEPARATOR
 };
 
-Handsontable.hooks.register('afterContextMenuDefaultOptions');
-Handsontable.hooks.register('afterContextMenuShow');
-Handsontable.hooks.register('afterContextMenuHide');
-Handsontable.hooks.register('afterContextMenuExecute');
-
-export {ContextMenu};
-
 registerPlugin('contextMenu', ContextMenu);
+
+export default ContextMenu;

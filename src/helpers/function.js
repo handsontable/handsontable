@@ -11,19 +11,6 @@ export function isFunction(func) {
 }
 
 /**
- * Returns new function that, when called, has new context (`this` keyword).
- *
- * @param func Function to proxy.
- * @param context Value passed as the `this` to the function.
- * @returns {Function}
- */
-export function proxy(func, context) {
-  return function() {
-    return func.apply(context, arguments);
-  };
-}
-
-/**
  * Creates throttle function that enforces a maximum number of times a function (`func`) can be called over time (`wait`).
  *
  * @param {Function} func Function to invoke.
@@ -194,7 +181,7 @@ export function curry(func) {
       }
 
       return result;
-    }
+    };
   }
 
   return given([]);
@@ -237,7 +224,7 @@ export function curryRight(func) {
       }
 
       return result;
-    }
+    };
   }
 
   return given([]);

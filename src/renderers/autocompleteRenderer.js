@@ -1,7 +1,7 @@
 import {addClass, hasClass, empty} from './../helpers/dom/element';
-import {eventManager as eventManagerObject} from './../eventManager';
+import EventManager from './../eventManager';
 import {getRenderer, registerRenderer} from './../renderers';
-import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cell/coords';
+import {CellCoords} from './../3rdparty/walkontable/src';
 
 var clonableWRAPPER = document.createElement('DIV');
 clonableWRAPPER.className = 'htAutocompleteWrapper';
@@ -32,8 +32,8 @@ var wrapTdContentWithWrapper = function(TD, WRAPPER) {
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
 function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  var WRAPPER = clonableWRAPPER.cloneNode(true); //this is faster than createElement
-  var ARROW = clonableARROW.cloneNode(true); //this is faster than createElement
+  var WRAPPER = clonableWRAPPER.cloneNode(true); // this is faster than createElement
+  var ARROW = clonableARROW.cloneNode(true); // this is faster than createElement
 
   if (cellProperties.allowHtml) {
     getRenderer('html').apply(this, arguments);
@@ -44,31 +44,31 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
   TD.appendChild(ARROW);
   addClass(TD, 'htAutocomplete');
 
-  if (!TD.firstChild) { //http://jsperf.com/empty-node-if-needed
-    //otherwise empty fields appear borderless in demo/renderers.html (IE)
+  if (!TD.firstChild) { // http://jsperf.com/empty-node-if-needed
+    // otherwise empty fields appear borderless in demo/renderers.html (IE)
     TD.appendChild(document.createTextNode(String.fromCharCode(160))); // workaround for https://github.com/handsontable/handsontable/issues/1946
-    //this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
+    // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
 
   if (!instance.acArrowListener) {
-    var eventManager = eventManagerObject(instance);
+    var eventManager = new EventManager(instance);
 
-    //not very elegant but easy and fast
+    // not very elegant but easy and fast
     instance.acArrowListener = function(event) {
       if (hasClass(event.target, 'htAutocompleteArrow')) {
-        instance.view.wt.getSetting('onCellDblClick', null, new WalkontableCellCoords(row, col), TD);
+        instance.view.wt.getSetting('onCellDblClick', null, new CellCoords(row, col), TD);
       }
     };
 
     eventManager.addEventListener(instance.rootElement, 'mousedown', instance.acArrowListener);
 
-    //We need to unbind the listener after the table has been destroyed
-    instance.addHookOnce('afterDestroy', function() {
+    // We need to unbind the listener after the table has been destroyed
+    instance.addHookOnce('afterDestroy', () => {
       eventManager.destroy();
     });
   }
 }
 
-export {autocompleteRenderer};
-
 registerRenderer('autocomplete', autocompleteRenderer);
+
+export default autocompleteRenderer;

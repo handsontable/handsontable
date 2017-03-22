@@ -1,4 +1,4 @@
-import {BaseUI} from './_base';
+import BaseUI from './_base';
 import {addClass} from './../../../helpers/dom/element';
 
 const CSS_CLASSNAME = 'ht__manualColumnMove--guideline';
@@ -8,10 +8,6 @@ const CSS_CLASSNAME = 'ht__manualColumnMove--guideline';
  * @util
  */
 class GuidelineUI extends BaseUI {
-  constructor(hotInstance) {
-    super(hotInstance);
-  }
-
   /**
    * Custom className on build process.
    */
@@ -22,4 +18,4 @@ class GuidelineUI extends BaseUI {
   }
 }
 
-export {GuidelineUI};
+export default GuidelineUI;

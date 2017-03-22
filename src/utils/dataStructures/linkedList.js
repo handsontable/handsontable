@@ -1,5 +1,3 @@
-import Handsontable from './../../browser';
-
 /**
  * Refactored implementation of LinkedList (part of javascript-algorithms project) by Github users:
  * mgechev, AndriiHeonia, Microfed and Jakeh (part of javascript-algorithms project - all project contributors
@@ -55,7 +53,8 @@ class LinkedList {
     const node = new NodeStructure(data);
 
     if (this.first === null) {
-      this.first = this.last = node;
+      this.first = node;
+      this.last = node;
 
     } else {
       const temp = this.last;
@@ -75,7 +74,8 @@ class LinkedList {
     const node = new NodeStructure(data);
 
     if (this.first === null) {
-      this.first = this.last = node;
+      this.first = node;
+      this.last = node;
 
     } else {
       const temp = this.first;
@@ -258,8 +258,5 @@ class LinkedList {
   };
 };
 
-export {NodeStructure, LinkedList};
-
-// temp for tests only!
-Handsontable.utils.NodeStructure = NodeStructure;
-Handsontable.utils.LinkedList = LinkedList;
+export {NodeStructure};
+export default LinkedList;

@@ -43,6 +43,6 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
   getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
 }
 
-export {numericRenderer};
-
 registerRenderer('numeric', numericRenderer);
+
+export default numericRenderer;

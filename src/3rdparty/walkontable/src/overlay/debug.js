@@ -1,21 +1,20 @@
-
 import {addClass} from './../../../../helpers/dom/element';
-import {WalkontableOverlay} from './_base';
+import Overlay from './_base';
 
 /**
  * A overlay that renders ALL available rows & columns positioned on top of the original Walkontable instance and all other overlays.
  * Used for debugging purposes to see if the other overlays (that render only part of the rows & columns) are positioned correctly
  *
- * @class WalkontableDebugOverlay
+ * @class DebugOverlay
  */
-class WalkontableDebugOverlay extends WalkontableOverlay {
+class DebugOverlay extends Overlay {
   /**
    * @param {Walkontable} wotInstance
    */
   constructor(wotInstance) {
     super(wotInstance);
 
-    this.clone = this.makeClone(WalkontableOverlay.CLONE_DEBUG);
+    this.clone = this.makeClone(Overlay.CLONE_DEBUG);
     this.clone.wtTable.holder.style.opacity = 0.4;
     this.clone.wtTable.holder.style.textShadow = '0 0 2px #ff0000';
 
@@ -23,8 +22,6 @@ class WalkontableDebugOverlay extends WalkontableOverlay {
   }
 }
 
-export {WalkontableDebugOverlay};
+Overlay.registerOverlay(Overlay.CLONE_DEBUG, DebugOverlay);
 
-window.WalkontableDebugOverlay = WalkontableDebugOverlay;
-
-WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_DEBUG, WalkontableDebugOverlay);
+export default DebugOverlay;

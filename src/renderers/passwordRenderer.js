@@ -1,5 +1,6 @@
 import {fastInnerHTML} from './../helpers/dom/element';
 import {getRenderer, registerRenderer} from './../renderers';
+import {rangeEach} from './../helpers/number';
 
 /**
  * @private
@@ -17,15 +18,17 @@ function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
   value = TD.innerHTML;
 
-  var hash;
-  var hashLength = cellProperties.hashLength || value.length;
-  var hashSymbol = cellProperties.hashSymbol || '*';
+  const hashLength = cellProperties.hashLength || value.length;
+  const hashSymbol = cellProperties.hashSymbol || '*';
 
-  for (hash = ''; hash.split(hashSymbol).length - 1 < hashLength; hash += hashSymbol) {} // jscs:ignore disallowEmptyBlocks
+  let hash = '';
 
+  rangeEach(hashLength - 1, () => {
+    hash += hashSymbol;
+  });
   fastInnerHTML(TD, hash);
 }
 
-export {passwordRenderer};
-
 registerRenderer('password', passwordRenderer);
+
+export default passwordRenderer;

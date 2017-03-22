@@ -1,11 +1,10 @@
-import Handsontable from './../../browser';
 import BasePlugin from './../_base';
-import jsonpatch from 'jsonpatch';
-import {DataObserver} from './dataObserver';
+import jsonpatch from './../../../lib/jsonpatch/json-patch-duplex';
+import DataObserver from './dataObserver';
 import {arrayEach} from './../../helpers/array';
 import {registerPlugin} from './../../plugins';
 
-Handsontable.hooks.register('afterChangesObserved');
+// Handsontable.hooks.register('afterChangesObserved');
 
 /**
  * @plugin ObserveChanges
@@ -186,6 +185,6 @@ class ObserveChanges extends BasePlugin {
   }
 }
 
-export {ObserveChanges};
+export default ObserveChanges;
 
 registerPlugin('observeChanges', ObserveChanges);

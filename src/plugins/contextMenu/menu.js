@@ -1,4 +1,4 @@
-import Handsontable from './../../browser';
+import Core from './../../core';
 import {
   addClass,
   empty,
@@ -8,13 +8,13 @@ import {
   removeClass,
 } from './../../helpers/dom/element';
 import {arrayEach, arrayFilter, arrayReduce} from './../../helpers/array';
-import {Cursor} from './cursor';
-import {EventManager} from './../../eventManager';
-import {mixin} from './../../helpers/object';
+import Cursor from './cursor';
+import EventManager from './../../eventManager';
+import {mixin, hasOwnProperty} from './../../helpers/object';
 import {debounce} from './../../helpers/function';
 import {filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
-import {localHooks} from './../../mixins/localHooks';
+import localHooks from './../../mixins/localHooks';
 import {SEPARATOR} from './predefinedItems';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 
@@ -124,13 +124,11 @@ class Menu {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: (row) => {
-        return filteredItems[row].name === SEPARATOR ? 1 : 23;
-      }
+      rowHeights: (row) => (filteredItems[row].name === SEPARATOR ? 1 : 23)
     };
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
-    this.hotMenu = new Handsontable.Core(this.container, settings);
+    this.hotMenu = new Core(this.container, settings);
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
     this.hotMenu.addHook('afterSelection', (r, c, r2, c2, preventScrolling) => this.onAfterSelection(r, c, r2, c2, preventScrolling));
     this.hotMenu.init();
@@ -325,7 +323,7 @@ class Menu {
     if (this.isSubMenu()) {
       top = cursor.top + cursor.cellHeight - this.container.offsetHeight + 3;
     }
-    this.container.style.top = top + 'px';
+    this.container.style.top = `${top}px`;
   }
 
   /**
@@ -339,7 +337,7 @@ class Menu {
     if (this.isSubMenu()) {
       top = cursor.top - 1;
     }
-    this.container.style.top = top + 'px';
+    this.container.style.top = `${top}px`;
   }
 
   /**
@@ -356,7 +354,7 @@ class Menu {
       left = this.offset.right + 1 + cursor.left;
     }
 
-    this.container.style.left = left + 'px';
+    this.container.style.left = `${left}px`;
   }
 
   /**
@@ -367,7 +365,7 @@ class Menu {
   setPositionOnLeftOfCursor(cursor) {
     let left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth() + 4;
 
-    this.container.style.left = left + 'px';
+    this.container.style.left = `${left}px`;
   }
 
   /**
@@ -446,18 +444,10 @@ class Menu {
     let item = hot.getSourceDataAtRow(row);
     let wrapper = document.createElement('div');
 
-    let isSubMenu = (item) => {
-      return item.hasOwnProperty('submenu');
-    };
-    let itemIsSeparator = (item) => {
-      return new RegExp(SEPARATOR, 'i').test(item.name);
-    };
-    let itemIsDisabled = (item) => {
-      return item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(this.hot) === true);
-    };
-    let itemIsSelectionDisabled = (item) => {
-      return item.disableSelection;
-    };
+    let isSubMenu = (item) => hasOwnProperty(item, 'submenu');
+    let itemIsSeparator = (item) => new RegExp(SEPARATOR, 'i').test(item.name);
+    let itemIsDisabled = (item) => item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(this.hot) === true);
+    let itemIsSelectionDisabled = (item) => item.disableSelection;
 
     if (typeof value === 'function') {
       value = value.call(this.hot);
@@ -514,18 +504,18 @@ class Menu {
   createContainer(name = null) {
     if (name) {
       name = name.replace(/[^A-z0-9]/g, '_');
-      name = this.options.className + 'Sub_' + name;
+      name = `${this.options.className}Sub_${name}`;
     }
     let container;
 
     if (name) {
-      container = document.querySelector('.' + this.options.className + '.' + name);
+      container = document.querySelector(`.${this.options.className}.${name}`);
     } else {
-      container = document.querySelector('.' + this.options.className);
+      container = document.querySelector(`.${this.options.className}`);
     }
     if (!container) {
       container = document.createElement('div');
-      addClass(container, 'htMenu ' + this.options.className);
+      addClass(container, `htMenu ${this.options.className}`);
 
       if (name) {
         addClass(container, name);
@@ -624,6 +614,8 @@ class Menu {
           stopEvent = true;
         }
         break;
+      default:
+        break;
     }
     if (stopEvent) {
       event.preventDefault();
@@ -644,12 +636,10 @@ class Menu {
     const holderStyle = this.hotMenu.view.wt.wtTable.holder.style;
     let currentHiderWidth = parseInt(hiderStyle.width, 10);
 
-    let realHeight = arrayReduce(data, (accumulator, value) => {
-      return accumulator + (value.name === SEPARATOR ? 1 : 26);
-    }, 0);
+    let realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
 
-    holderStyle.width = currentHiderWidth + 22 + 'px';
-    holderStyle.height = realHeight + 4 + 'px';
+    holderStyle.width = `${currentHiderWidth + 22}px`;
+    holderStyle.height = `${realHeight + 4}px`;
     hiderStyle.height = holderStyle.height;
   }
 
@@ -695,4 +685,4 @@ class Menu {
 
 mixin(Menu, localHooks);
 
-export {Menu};
+export default Menu;
