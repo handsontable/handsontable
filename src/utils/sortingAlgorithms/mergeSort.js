@@ -1,5 +1,4 @@
-import {LinkedList} from '../dataStructures/linkedList';
-import Handsontable from './../../browser';
+import LinkedList from '../dataStructures/linkedList';
 
 /**
  * Refactored implementation of mergeSort (part of javascript-algorithms project) by Github users:
@@ -29,9 +28,9 @@ const defaultCompareFunction = function(a, b) {
   } else if (firstValue < secondValue) {
     return -1;
 
-  } else {
-    return 1;
   }
+  return 1;
+
 };
 
 /**
@@ -44,7 +43,7 @@ const defaultCompareFunction = function(a, b) {
  * @param {Number} endIndex Right side of the subarray.
  * @returns {Array} Array with sorted subarray.
  */
-export function mergeSort(array, compareFunction = defaultCompareFunction, startIndex = 0, endIndex = array.length) {
+export default function mergeSort(array, compareFunction = defaultCompareFunction, startIndex = 0, endIndex = array.length) {
   if (Math.abs(endIndex - startIndex) <= 1) {
     return [];
   }
@@ -67,7 +66,7 @@ export function mergeSort(array, compareFunction = defaultCompareFunction, start
  * @param {Number} endIndex end - 1 is the end of the second array.
  * @returns {Array} The array with sorted subarray.
  */
-function merge(array, compareFunction, startIndex, middleIndex, endIndex) {
+export function merge(array, compareFunction, startIndex, middleIndex, endIndex) {
   const leftElements = new LinkedList();
   const rightElements = new LinkedList();
   const leftSize = middleIndex - startIndex;
@@ -109,6 +108,3 @@ function merge(array, compareFunction, startIndex, middleIndex, endIndex) {
 
   return array;
 };
-
-// temp for tests only!
-Handsontable.utils.mergeSort = mergeSort;

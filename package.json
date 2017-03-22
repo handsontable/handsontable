@@ -9,9 +9,33 @@
   "bugs": {
     "url": "https://github.com/handsontable/handsontable/issues"
   },
-  "main": "./dist/handsontable.js",
   "author": "Handsoncode <hello@handsontable.com>",
   "version": "0.31.1",
+  "browser": "dist/handsontable.js",
+  "main": "commonjs/index.js",
+  "module": "es/index.js",
+  "jsnext:main": "es/index.js",
+  "scripts": {
+    "clean": "rimraf commonjs es coverage",
+    "lint": "eslint src test",
+    "test": "npm run lint && npm run test:unit && npm run test:walkontable && npm run test:e2e && npm run test:production",
+    "test:walkontable": "npm run build:walkontable && npm run test:walkontable.dump && grunt test-walkontable",
+    "test:production": "npm run build:umd.min && npm run test:production.dump && grunt test-handsontable",
+    "test:e2e": "npm run build:umd && npm run test:e2e.dump && grunt test-handsontable",
+    "test:unit": "cross-env BABEL_ENV=commonjs jest --testPathPattern=$npm_config_testPathPattern",
+    "test:walkontable.dump": "cross-env BABEL_ENV=commonjs NODE_ENV=test-walkontable webpack --progress --hide-modules helpers=./src/3rdparty/walkontable/test/helpers/index.js specs=./src/3rdparty/walkontable/test/spec/index.js",
+    "test:production.dump": "cross-env BABEL_ENV=commonjs NODE_ENV=test-production webpack --progress --hide-modules helpers=./test/helpers/index.js e2e=./test/e2e/index.js",
+    "test:e2e.dump": "cross-env BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e webpack --env.testPathPattern=$npm_config_testpathpattern --progress --hide-modules helpers=./test/helpers/index.js e2e=./test/e2e/index.js",
+    "test:unit.dump": "cross-env BABEL_ENV=commonjs NODE_ENV=test-unit webpack --progress --hide-modules helpers=./test/helpers/index.js unit=./test/unit/index.js",
+    "build": "npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd.min",
+    "build:commonjs": "cross-env BABEL_ENV=commonjs_dist babel src --out-dir commonjs",
+    "build:es": "cross-env BABEL_ENV=es babel src --out-dir es",
+    "build:umd": "cross-env BABEL_ENV=commonjs NODE_ENV=development webpack --progress --hide-modules ./src/index.js",
+    "build:umd.min": "cross-env BABEL_ENV=commonjs NODE_ENV=production webpack --progress --hide-modules ./src/index.js",
+    "build:walkontable": "cross-env BABEL_ENV=commonjs NODE_ENV=walkontable webpack --progress --hide-modules ./src/3rdparty/walkontable/src/index.js",
+    "watch": "cross-env BABEL_ENV=commonjs NODE_ENV=watch webpack src/index.js --watch",
+    "prepublish": "npm run clean && npm run build:commonjs && npm run build:es"
+  },
   "keywords": [
     "data",
     "grid",
@@ -34,69 +58,78 @@
     "zeroclipboard": "^2.2.0"
   },
   "devDependencies": {
-    "grunt": ">=0.4.0",
-    "grunt-contrib-jasmine": "^1.0.3",
-    "grunt-contrib-jshint": "^1.0.0",
-    "grunt-jscs": "^3.0.1",
-    "hot-builder": "^0.5.2"
-  },
-  "scripts": {
-    "build": "./node_modules/.bin/grunt build",
-    "build:dev": "./node_modules/.bin/grunt build-dev",
-    "build:custom": "./node_modules/.bin/grunt build-custom",
-    "test": "./node_modules/.bin/grunt test"
+    "babel-cli": "^6.23.0",
+    "babel-core": "^6.23.0",
+    "babel-eslint": "^7.2.0",
+    "babel-jest": "^19.0.0",
+    "babel-loader": "^6.4.1",
+    "babel-plugin-check-es2015-constants": "^6.22.0",
+    "babel-plugin-transform-es2015-arrow-functions": "^6.22.0",
+    "babel-plugin-transform-es2015-block-scoped-functions": "^6.22.0",
+    "babel-plugin-transform-es2015-block-scoping": "^6.22.0",
+    "babel-plugin-transform-es2015-classes": "^6.22.0",
+    "babel-plugin-transform-es2015-computed-properties": "^6.22.0",
+    "babel-plugin-transform-es2015-destructuring": "^6.22.0",
+    "babel-plugin-transform-es2015-for-of": "^6.22.0",
+    "babel-plugin-transform-es2015-function-name": "^6.22.0",
+    "babel-plugin-transform-es2015-literals": "^6.22.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.22.0",
+    "babel-plugin-transform-es2015-object-super": "^6.22.0",
+    "babel-plugin-transform-es2015-parameters": "^6.22.0",
+    "babel-plugin-transform-es2015-shorthand-properties": "^6.22.0",
+    "babel-plugin-transform-es2015-spread": "^6.22.0",
+    "babel-plugin-transform-es2015-sticky-regex": "^6.22.0",
+    "babel-plugin-transform-es2015-template-literals": "^6.22.0",
+    "babel-plugin-transform-es2015-unicode-regex": "^6.22.0",
+    "babel-plugin-transform-es3-member-expression-literals": "^6.22.0",
+    "babel-plugin-transform-es3-property-literals": "^6.22.0",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "babel-plugin-transform-require-ignore": "^0.1.0",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-env": "^1.2.2",
+    "babel-register": "^6.23.0",
+    "check-es3-syntax-cli": "^0.2.0",
+    "copy-webpack-plugin": "^4.0.1",
+    "cross-env": "^3.1.4",
+    "css-loader": "^0.27.3",
+    "eslint": "^3.18.0",
+    "eslint-config-airbnb-base": "^11.1.0",
+    "eslint-plugin-import": "^2.2.0",
+    "extract-text-webpack-plugin": "^2.0.0",
+    "glob": "^7.1.1",
+    "grunt": "^1.0.1",
+    "grunt-lib-phantomjs": "^1.1.0",
+    "html-webpack-plugin": "^2.28.0",
+    "jasmine-console-reporter": "^1.2.7",
+    "jasmine-core": "^2.5.2",
+    "jest": "^19.0.0",
+    "loader-utils": "^1.1.0",
+    "optimize-css-assets-webpack-plugin": "^1.3.0",
+    "rimraf": "^2.5.4",
+    "style-loader": "^0.15.0",
+    "webpack": "^2.2.1"
   },
   "license": "MIT",
-  "builderDependencies": {
-    "moment": {
-      "include": [
-        "moment.js"
-      ],
-      "copyable": [
-        "moment.js",
-        "locale",
-        "LICENSE"
-      ],
-      "global": "moment"
+  "jest": {
+    "roots": [
+      "./test/unit",
+      "./src/plugins"
+    ],
+    "testRegex": "(\\.spec\\.js)|(\\.unit\\.js)$",
+    "testPathIgnorePatterns": [
+      "<rootDir>/node_modules/",
+      "<rootDir>/test/unit/index.js"
+    ],
+    "moduleNameMapper": {
+      "^handsontable(.*)$": "<rootDir>/src$1",
+      "^walkontable(.*)$": "<rootDir>/src/3rdparty/walkontable/src$1",
+      "\\.css$": "<rootDir>/test/__mocks__/styleMock.js"
     },
-    "numbro": {
-      "include": [
-        "dist/numbro.js"
-      ],
-      "ignore": [
-        "dist/languages.js"
-      ],
-      "copyable": [
-        "dist/numbro.js",
-        "dist/languages.js",
-        "dist/languages",
-        "LICENSE",
-        "LICENSE-Numeraljs"
-      ],
-      "global": "numbro"
-    },
-    "pikaday": {
-      "include": [
-        "pikaday.js",
-        "css/pikaday.css"
-      ],
-      "copyable": [
-        "pikaday.js",
-        "css/pikaday.css",
-        "LICENSE"
-      ],
-      "global": "Pikaday"
-    },
-    "zeroclipboard": {
-      "include": [
-        "dist/ZeroClipboard.js"
-      ],
-      "copyable": [
-        "dist/ZeroClipboard.js",
-        "dist/ZeroClipboard.swf",
-        "LICENSE"
-      ],
-      "global": "ZeroClipboard"
+    "globals": {
+      "__HOT_BUILD_DATE__": "",
+      "__HOT_PACKAGE_NAME__": "",
+      "__HOT_VERSION__": "",
+      "__HOT_BASE_VERSION__": ""
     }
   }
 }

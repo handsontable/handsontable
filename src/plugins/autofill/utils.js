@@ -1,5 +1,6 @@
 import {isObject} from './../../helpers/object';
 import {isDefined} from './../../helpers/mixed';
+import {CellCoords} from './../../3rdparty/walkontable/src';
 
 export const DIRECTIONS = {
   horizontal: 'horizontal',
@@ -9,8 +10,8 @@ export const DIRECTIONS = {
 /**
  * Get deltas array.
  *
- * @param {WalkontableCellCoords} start
- * @param {WalkontableCellCoords} end
+ * @param {CellCoords} start
+ * @param {CellCoords} end
  * @param {Array} data
  * @param {String} direction
  * @returns {Array}
@@ -54,35 +55,37 @@ export function getDeltas(start, end, data, direction) {
  *
  * @param {Array} startSelection
  * @param {Array} endSelection
- * @returns {{direction: String, start: WalkontableCellCoords, end: WalkontableCellCoords}}
+ * @returns {{direction: String, start: CellCoords, end: CellCoords}}
  */
 export function getDragDirectionAndRange(startSelection, endSelection) {
-  let startOfDragCoords, endOfDragCoords, directionOfDrag;
+  let startOfDragCoords,
+    endOfDragCoords,
+    directionOfDrag;
 
   if (endSelection[0] === startSelection[0] && endSelection[1] < startSelection[1]) {
     directionOfDrag = 'left';
 
-    startOfDragCoords = new WalkontableCellCoords(endSelection[0], endSelection[1]);
-    endOfDragCoords = new WalkontableCellCoords(endSelection[2], startSelection[1] - 1);
+    startOfDragCoords = new CellCoords(endSelection[0], endSelection[1]);
+    endOfDragCoords = new CellCoords(endSelection[2], startSelection[1] - 1);
 
   } else if (endSelection[0] === startSelection[0] && endSelection[3] > startSelection[3]) {
     directionOfDrag = 'right';
 
-    startOfDragCoords = new WalkontableCellCoords(endSelection[0], startSelection[3] + 1);
-    endOfDragCoords = new WalkontableCellCoords(endSelection[2], endSelection[3]);
+    startOfDragCoords = new CellCoords(endSelection[0], startSelection[3] + 1);
+    endOfDragCoords = new CellCoords(endSelection[2], endSelection[3]);
 
   } else if (endSelection[0] < startSelection[0] && endSelection[1] === startSelection[1]) {
     directionOfDrag = 'up';
 
-    startOfDragCoords = new WalkontableCellCoords(endSelection[0], endSelection[1]);
-    endOfDragCoords = new WalkontableCellCoords(startSelection[0] - 1, endSelection[3]);
+    startOfDragCoords = new CellCoords(endSelection[0], endSelection[1]);
+    endOfDragCoords = new CellCoords(startSelection[0] - 1, endSelection[3]);
 
   } else if (endSelection[2] > startSelection[2] &&
     endSelection[1] === startSelection[1]) {
     directionOfDrag = 'down';
 
-    startOfDragCoords = new WalkontableCellCoords(startSelection[2] + 1, endSelection[1]);
-    endOfDragCoords = new WalkontableCellCoords(endSelection[2], endSelection[3]);
+    startOfDragCoords = new CellCoords(startSelection[2] + 1, endSelection[1]);
+    endOfDragCoords = new CellCoords(endSelection[2], endSelection[3]);
   }
 
   return {

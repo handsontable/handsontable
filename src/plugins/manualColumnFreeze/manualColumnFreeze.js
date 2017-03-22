@@ -1,10 +1,10 @@
-import Handsontable from './../../browser';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
 import {arrayEach} from './../../helpers/array';
+import freezeColumnItem from './contextMenuItem/freezeColumn';
+import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 
-import {freezeColumnItem} from './contextMenuItem/freezeColumn';
-import {unfreezeColumnItem} from './contextMenuItem/unfreezeColumn';
+import './manualColumnFreeze.css';
 
 const privatePool = new WeakMap();
 /**
@@ -188,7 +188,7 @@ class ManualColumnFreeze extends BasePlugin {
    */
   addContextMenuEntry(options) {
     options.items.push(
-      Handsontable.plugins.ContextMenu.SEPARATOR,
+      {name: '---------'},
       freezeColumnItem(this),
       unfreezeColumnItem(this)
     );
@@ -247,6 +247,6 @@ class ManualColumnFreeze extends BasePlugin {
 
 }
 
-export {ManualColumnFreeze};
-
 registerPlugin('manualColumnFreeze', ManualColumnFreeze);
+
+export default ManualColumnFreeze;

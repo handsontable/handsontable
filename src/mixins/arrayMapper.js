@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import {arrayEach, arrayReduce, arrayMap, arrayMax} from './../helpers/array';
 import {defineGetter} from './../helpers/object';
 import {rangeEach} from './../helpers/number';
@@ -20,6 +19,7 @@ const arrayMapper = {
   getValueByIndex(index) {
     let value;
 
+    /* eslint-disable no-cond-assign */
     return (value = this._arrayMap[index]) === void 0 ? null : value;
   },
 
@@ -32,6 +32,7 @@ const arrayMapper = {
   getIndexByValue(value) {
     let index;
 
+    /* eslint-disable no-cond-assign */
     return (index = this._arrayMap.indexOf(value)) === -1 ? null : index;
   },
 
@@ -146,7 +147,4 @@ defineGetter(arrayMapper, 'MIXIN_NAME', MIXIN_NAME, {
   enumerable: false,
 });
 
-export {arrayMapper};
-
-// For tests only!
-Handsontable.utils.arrayMapper = arrayMapper;
+export default arrayMapper;

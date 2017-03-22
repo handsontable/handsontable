@@ -1,4 +1,4 @@
-import {BaseUI} from './_base';
+import BaseUI from './_base';
 import {addClass} from './../../../helpers/dom/element';
 
 const CSS_CLASSNAME = 'ht__manualColumnMove--backlight';
@@ -8,10 +8,6 @@ const CSS_CLASSNAME = 'ht__manualColumnMove--backlight';
  * @util
  */
 class BacklightUI extends BaseUI {
-  constructor(hotInstance) {
-    super(hotInstance);
-  }
-
   /**
    * Custom className on build process.
    */
@@ -22,4 +18,4 @@ class BacklightUI extends BaseUI {
   }
 }
 
-export {BacklightUI};
+export default BacklightUI;

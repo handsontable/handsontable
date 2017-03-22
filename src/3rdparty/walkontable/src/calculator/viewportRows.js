@@ -1,13 +1,12 @@
-
 const privatePool = new WeakMap();
 
 /**
  * Calculates indexes of rows to render OR rows that are visible.
  * To redo the calculation, you need to create a new calculator.
  *
- * @class WalkontableViewportRowsCalculator
+ * @class ViewportRowsCalculator
  */
-class WalkontableViewportRowsCalculator {
+class ViewportRowsCalculator {
   /**
    * Default row height
    *
@@ -84,13 +83,14 @@ class WalkontableViewportRowsCalculator {
     let totalRows = priv.totalRows;
     let viewportHeight = priv.viewportHeight;
     let horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
+    let rowHeight;
 
     // Calculate the number (start and end index) of rows needed
     for (let i = 0; i < totalRows; i++) {
-      let rowHeight = rowHeightFn(i);
+      rowHeight = rowHeightFn(i);
 
       if (rowHeight === undefined) {
-        rowHeight = WalkontableViewportRowsCalculator.DEFAULT_HEIGHT;
+        rowHeight = ViewportRowsCalculator.DEFAULT_HEIGHT;
       }
       if (sum <= scrollOffset && !onlyFullyVisible) {
         this.startRow = i;
@@ -115,8 +115,8 @@ class WalkontableViewportRowsCalculator {
       }
     }
 
-    //If the estimation has reached the last row and there is still some space available in the viewport,
-    //we need to render in reverse in order to fill the whole viewport with rows
+    // If the estimation has reached the last row and there is still some space available in the viewport,
+    // we need to render in reverse in order to fill the whole viewport with rows
     if (this.endRow === totalRows - 1 && needReverse) {
       this.startRow = this.endRow;
 
@@ -147,6 +147,4 @@ class WalkontableViewportRowsCalculator {
   }
 }
 
-export {WalkontableViewportRowsCalculator};
-
-window.WalkontableViewportRowsCalculator = WalkontableViewportRowsCalculator;
+export default ViewportRowsCalculator;

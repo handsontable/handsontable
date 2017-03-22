@@ -1,7 +1,6 @@
-import Handsontable from './../../browser';
-import BasePlugin from './../_base.js';
+import BasePlugin from './../_base';
 import {addClass, hasClass, removeClass, outerWidth} from './../../helpers/dom/element';
-import {eventManager as eventManagerObject} from './../../eventManager';
+import EventManager from './../../eventManager';
 import {pageX, pageY} from './../../helpers/dom/event';
 import {arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
@@ -34,7 +33,7 @@ class ManualRowResize extends BasePlugin {
     this.startOffset = null;
     this.handle = document.createElement('DIV');
     this.guide = document.createElement('DIV');
-    this.eventManager = eventManagerObject(this);
+    this.eventManager = new EventManager(this);
     this.pressed = null;
     this.dblclick = 0;
     this.autoresizeTimeout = null;
@@ -76,8 +75,8 @@ class ManualRowResize extends BasePlugin {
 
     this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
 
-    Handsontable.hooks.register('beforeRowResize');
-    Handsontable.hooks.register('afterRowResize');
+    // Handsontable.hooks.register('beforeRowResize');
+    // Handsontable.hooks.register('afterRowResize');
 
     this.bindEvents();
 
@@ -132,7 +131,7 @@ class ManualRowResize extends BasePlugin {
    */
   setupHandlePosition(TH) {
     this.currentTH = TH;
-    let row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns WalkontableCellCoords
+    let row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns CellCoords
     let headerWidth = outerWidth(this.currentTH);
 
     if (row >= 0) { // if not col header
@@ -163,9 +162,9 @@ class ManualRowResize extends BasePlugin {
 
       this.startOffset = box.top - 6;
       this.startHeight = parseInt(box.height, 10);
-      this.handle.style.left = box.left + 'px';
-      this.handle.style.top = this.startOffset + this.startHeight + 'px';
-      this.handle.style.width = headerWidth + 'px';
+      this.handle.style.left = `${box.left}px`;
+      this.handle.style.top = `${this.startOffset + this.startHeight}px`;
+      this.handle.style.width = `${headerWidth}px`;
       this.hot.rootElement.appendChild(this.handle);
     }
   }
@@ -174,7 +173,7 @@ class ManualRowResize extends BasePlugin {
    * Refresh the resize handle position.
    */
   refreshHandlePosition() {
-    this.handle.style.top = this.startOffset + this.currentHeight + 'px';
+    this.handle.style.top = `${this.startOffset + this.currentHeight}px`;
   }
 
   /**
@@ -188,8 +187,8 @@ class ManualRowResize extends BasePlugin {
     addClass(this.guide, 'active');
 
     this.guide.style.top = this.handle.style.top;
-    this.guide.style.left = handleRightPosition + 'px';
-    this.guide.style.width = (maximumVisibleElementWidth - handleWidth) + 'px';
+    this.guide.style.left = `${handleRightPosition}px`;
+    this.guide.style.width = `${maximumVisibleElementWidth - handleWidth}px`;
     this.hot.rootElement.appendChild(this.guide);
   }
 
@@ -238,9 +237,9 @@ class ManualRowResize extends BasePlugin {
     if (element.tagName != 'TABLE') {
       if (element.tagName == 'TH') {
         return element;
-      } else {
-        return this.getTHFromTargetElement(element.parentNode);
       }
+      return this.getTHFromTargetElement(element.parentNode);
+
     }
 
     return null;
@@ -450,6 +449,6 @@ class ManualRowResize extends BasePlugin {
 
 }
 
-export {ManualRowResize};
-
 registerPlugin('manualRowResize', ManualRowResize);
+
+export default ManualRowResize;

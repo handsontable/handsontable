@@ -1,5 +1,3 @@
-import Handsontable from './../../browser';
-
 /**
  * @class Stack
  * @util
@@ -60,7 +58,4 @@ class Stack {
   }
 }
 
-export {Stack};
-
-// temp for tests only!
-Handsontable.utils.Stack = Stack;
+export default Stack;

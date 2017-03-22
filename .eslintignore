@@ -1,0 +1,9 @@
+node_modules
+src/3rdparty/walkontable/test/lib/*
+Gruntfile.js
+dist/*
+lib/*
+src/3rdparty/walkontable/test/dist/*
+src/3rdparty/walkontable/dist/*
+test/lib/*
+test/dist/*

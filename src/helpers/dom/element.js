@@ -184,11 +184,10 @@ export function index(element) {
   var i = 0;
 
   if (element.previousSibling) {
-    /* jshint ignore:start */
+    /* eslint-disable no-cond-assign */
     while (element = element.previousSibling) {
       ++i;
     }
-    /* jshint ignore:end */
   }
 
   return i;
@@ -202,15 +201,18 @@ export function index(element) {
  * @returns {boolean}
  */
 export function overlayContainsElement(overlayType, element) {
-  let overlayElement = document.querySelector('.ht_clone_' + overlayType);
+  let overlayElement = document.querySelector(`.ht_clone_${overlayType}`);
   return overlayElement ? overlayElement.contains(element) : null;
 }
 
-var classListSupport = document.documentElement.classList ? true : false;
-var _hasClass, _addClass, _removeClass;
+var classListSupport = !!document.documentElement.classList;
+var _hasClass,
+  _addClass,
+  _removeClass;
 
 function filterEmptyClassNames(classNames) {
-  var len = 0, result = [];
+  var len = 0,
+    result = [];
 
   if (!classNames || !classNames.length) {
     return result;
@@ -280,12 +282,12 @@ if (classListSupport) {
 
 } else {
   var createClassNameRegExp = function createClassNameRegExp(className) {
-    return new RegExp('(\\s|^)' + className + '(\\s|$)');
+    return new RegExp(`(\\s|^)${className}(\\s|$)`);
   };
 
   _hasClass = function _hasClass(element, className) {
     // http://snipplr.com/view/3561/addclass-removeclass-hasclass/
-    return element.className.match(createClassNameRegExp(className)) ? true : false;
+    return !!element.className.match(createClassNameRegExp(className));
   };
 
   _addClass = function _addClass(element, className) {
@@ -301,7 +303,7 @@ if (classListSupport) {
     } else {
       while (className && className[len]) {
         if (!createClassNameRegExp(className[len]).test(_className)) {
-          _className += ' ' + className[len];
+          _className += ` ${className[len]}`;
         }
         len++;
       }
@@ -382,14 +384,13 @@ export function removeTextNodes(element, parent) {
 //
 export function empty(element) {
   var child;
-  /* jshint ignore:start */
+  /* eslint-disable no-cond-assign */
   while (child = element.lastChild) {
     element.removeChild(child);
   }
-  /* jshint ignore:end */
 }
 
-export var HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
+export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
 
 /**
  * Insert content into element trying avoid innerHTML method.
@@ -408,7 +409,7 @@ export function fastInnerHTML(element, content) {
  * @return {void}
  */
 
-var textContextSupport = document.createTextNode('test').textContent ? true : false;
+var textContextSupport = !!document.createTextNode('test').textContent;
 
 export function fastInnerText(element, content) {
   var child = element.firstChild;
@@ -424,7 +425,7 @@ export function fastInnerText(element, content) {
       child.data = content;
     }
   } else {
-    //slow lane - empty element and insert a text node
+    // slow lane - empty element and insert a text node
     empty(element);
     element.appendChild(document.createTextNode(content));
   }
@@ -438,24 +439,24 @@ export function fastInnerText(element, content) {
 export function isVisible(elem) {
   var next = elem;
 
-  while (polymerUnwrap(next) !== document.documentElement) { //until <html> reached
-    if (next === null) { //parent detached from DOM
+  while (polymerUnwrap(next) !== document.documentElement) { // until <html> reached
+    if (next === null) { // parent detached from DOM
       return false;
     } else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      if (next.host) { //this is Web Components Shadow DOM
-        //see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
-        //according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
-        if (next.host.impl) { //Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
+      if (next.host) { // this is Web Components Shadow DOM
+        // see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
+        // according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
+        if (next.host.impl) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
           return isVisible(next.host.impl);
 
-        } else if (next.host) { //Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
+        } else if (next.host) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
           return isVisible(next.host);
 
-        } else {
-          throw new Error('Lost in Web Components world');
         }
+        throw new Error('Lost in Web Components world');
+
       } else {
-        return false; //this is a node detached from document in IE8
+        return false; // this is a node detached from document in IE8
       }
     } else if (next.style.display === 'none') {
       return false;
@@ -495,7 +496,7 @@ export function offset(elem) {
   offsetTop = elem.offsetTop;
   lastElem = elem;
 
-  /* jshint ignore:start */
+  /* eslint-disable no-cond-assign */
   while (elem = elem.offsetParent) {
     // from my observation, document.body always has scrollLeft/scrollTop == 0
     if (elem === document.body) {
@@ -505,11 +506,10 @@ export function offset(elem) {
     offsetTop += elem.offsetTop;
     lastElem = elem;
   }
-  /* jshint ignore:end */
 
-  //slow - http://jsperf.com/offset-vs-getboundingclientrect/6
+  // slow - http://jsperf.com/offset-vs-getboundingclientrect/6
   if (lastElem && lastElem.style.position === 'fixed') {
-    //if(lastElem !== document.body) { //faster but does gives false positive in Firefox
+    // if(lastElem !== document.body) { //faster but does gives false positive in Firefox
     offsetLeft += window.pageXOffset || docElem.scrollLeft;
     offsetTop += window.pageYOffset || docElem.scrollTop;
   }
@@ -528,7 +528,7 @@ export function offset(elem) {
 export function getWindowScrollTop() {
   var res = window.scrollY;
 
-  if (res === void 0) { //IE8-11
+  if (res === void 0) { // IE8-11
     res = document.documentElement.scrollTop;
   }
 
@@ -543,7 +543,7 @@ export function getWindowScrollTop() {
 export function getWindowScrollLeft() {
   var res = window.scrollX;
 
-  if (res === void 0) { //IE8-11
+  if (res === void 0) { // IE8-11
     res = document.documentElement.scrollLeft;
   }
 
@@ -559,9 +559,9 @@ export function getWindowScrollLeft() {
 export function getScrollTop(element) {
   if (element === window) {
     return getWindowScrollTop();
-  } else {
-    return element.scrollTop;
   }
+  return element.scrollTop;
+
 }
 
 /**
@@ -573,9 +573,8 @@ export function getScrollTop(element) {
 export function getScrollLeft(element) {
   if (element === window) {
     return getWindowScrollLeft();
-  } else {
-    return element.scrollLeft;
   }
+  return element.scrollLeft;
 }
 
 /**
@@ -587,7 +586,9 @@ export function getScrollLeft(element) {
 export function getScrollableElement(element) {
   var el = element.parentNode,
     props = ['auto', 'scroll'],
-    overflow, overflowX, overflowY,
+    overflow,
+    overflowX,
+    overflowY,
     computedStyle = '',
     computedOverflow = '',
     computedOverflowY = '',
@@ -657,16 +658,18 @@ export function getTrimmingContainer(base) {
  * Returns a style property for the provided element. (Be it an inline or external style).
  *
  * @param {HTMLElement} element
- * @param {string} prop Wanted property
- * @returns {string} Element's style property
+ * @param {String} prop Wanted property
+ * @returns {String|undefined} Element's style property
  */
 export function getStyle(element, prop) {
+  /* eslint-disable */
   if (!element) {
     return;
 
   } else if (element === window) {
     if (prop === 'width') {
       return window.innerWidth + 'px';
+
     } else if (prop === 'height') {
       return window.innerHeight + 'px';
     }
@@ -674,17 +677,19 @@ export function getStyle(element, prop) {
     return;
   }
 
-  var styleProp = element.style[prop],
+  var
+    styleProp = element.style[prop],
     computedStyle;
+
   if (styleProp !== '' && styleProp !== void 0) {
     return styleProp;
 
   } else {
     computedStyle = getComputedStyle(element);
+
     if (computedStyle[prop] !== '' && computedStyle[prop] !== void 0) {
       return computedStyle[prop];
     }
-    return void 0;
   }
 }
 
@@ -710,22 +715,23 @@ export function outerWidth(element) {
 
 /**
  * Returns the element's outer height
+ *
  * @param elem
  * @returns {number} Element's outer height
  */
 export function outerHeight(elem) {
   if (hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
-    //fixes problem with Firefox ignoring <caption> in TABLE.offsetHeight
-    //jQuery (1.10.1) still has this unsolved
-    //may be better to just switch to getBoundingClientRect
-    //http://bililite.com/blog/2009/03/27/finding-the-size-of-a-table/
-    //http://lists.w3.org/Archives/Public/www-style/2009Oct/0089.html
-    //http://bugs.jquery.com/ticket/2196
-    //http://lists.w3.org/Archives/Public/www-style/2009Oct/0140.html#start140
+    // fixes problem with Firefox ignoring <caption> in TABLE.offsetHeight
+    // jQuery (1.10.1) still has this unsolved
+    // may be better to just switch to getBoundingClientRect
+    // http://bililite.com/blog/2009/03/27/finding-the-size-of-a-table/
+    // http://lists.w3.org/Archives/Public/www-style/2009Oct/0089.html
+    // http://bugs.jquery.com/ticket/2196
+    // http://lists.w3.org/Archives/Public/www-style/2009Oct/0140.html#start140
     return elem.offsetHeight + elem.firstChild.offsetHeight;
-  } else {
-    return elem.offsetHeight;
   }
+
+  return elem.offsetHeight;
 }
 
 /**
@@ -803,7 +809,7 @@ export function getSelectionEndPosition(el) {
   if (el.selectionEnd) {
     return el.selectionEnd;
 
-  } else if (document.selection) { //IE8
+  } else if (document.selection) { // IE8
     let r = document.selection.createRange();
 
     if (r == null) {
@@ -813,6 +819,8 @@ export function getSelectionEndPosition(el) {
 
     return re.text.indexOf(r.text) + r.text.length;
   }
+
+  return 0;
 }
 
 /**
@@ -856,7 +864,7 @@ export function setCaretPosition(element, pos, endPos) {
       element.setSelectionRange(pos, endPos);
       elementParent.style.display = parentDisplayValue;
     }
-  } else if (element.createTextRange) { //IE8
+  } else if (element.createTextRange) { // IE8
     var range = element.createTextRange();
     range.collapse(true);
     range.moveEnd('character', endPos);
@@ -867,7 +875,7 @@ export function setCaretPosition(element, pos, endPos) {
 
 var cachedScrollbarWidth;
 
-//http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
+// http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 function walkontableCalculateScrollbarWidth() {
   var inner = document.createElement('div');
   inner.style.height = '200px';
@@ -938,7 +946,6 @@ export function setOverlayPosition(overlayElem, left, top) {
     overlayElem.style.top = top;
     overlayElem.style.left = left;
   } else if (isSafari()) {
-    /* jshint sub:true */
     overlayElem.style['-webkit-transform'] = 'translate3d(' + left + ',' + top + ',0)';
   } else {
     overlayElem.style.transform = 'translate3d(' + left + ',' + top + ',0)';
@@ -948,7 +955,6 @@ export function setOverlayPosition(overlayElem, left, top) {
 export function getCssTransform(element) {
   var transform;
 
-  /* jshint sub:true */
   if (element.style.transform && (transform = element.style.transform) !== '') {
     return ['transform', transform];
 

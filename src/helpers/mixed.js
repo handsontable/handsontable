@@ -6,25 +6,26 @@
  * @returns {String}
  */
 export function stringify(value) {
+  let result;
+
   switch (typeof value) {
     case 'string':
     case 'number':
-      return value + '';
+      result = `${value}`;
+      break;
 
     case 'object':
-      if (value === null) {
-        return '';
-
-      } else {
-        return value.toString();
-      }
+      result = value === null ? '' : value.toString();
       break;
     case 'undefined':
-      return '';
-
+      result = '';
+      break;
     default:
-      return value.toString();
+      result = value.toString();
+      break;
   }
+
+  return result;
 }
 
 /**

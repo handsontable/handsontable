@@ -1,11 +1,13 @@
 import BasePlugin from './../_base';
-import Handsontable from './../../browser';
-import {arrayIncludes} from './../../helpers/array';
+import Hooks from './../../pluginHooks';
 import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
-import {eventManager as eventManagerObject} from './../../eventManager';
+import EventManager from './../../eventManager';
 import {registerPlugin} from './../../plugins';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
+import {CellCoords} from './../../3rdparty/walkontable/src';
 import {getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting} from './utils';
+
+Hooks.getSingleton().register('modifyAutofillRange');
+Hooks.getSingleton().register('beforeAutofill');
 
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
 const INTERVAL_FOR_ADDING_ROW = 200;
@@ -32,7 +34,7 @@ class Autofill extends BasePlugin {
      *
      * @type {EventManager}
      */
-    this.eventManager = eventManagerObject(this);
+    this.eventManager = new EventManager(this);
     /**
      * Specifies if adding new row started.
      *
@@ -182,8 +184,8 @@ class Autofill extends BasePlugin {
    * Reduce the selection area if the handle was dragged outside of the table or on headers.
    *
    * @private
-   * @param {WalkontableCellCoords} coords indexes of selection corners.
-   * @returns {WalkontableCellCoords}
+   * @param {CellCoords} coords indexes of selection corners.
+   * @returns {CellCoords}
    */
   reduceSelectionAreaIfNeeded(coords) {
     if (coords.row < 0) {
@@ -200,21 +202,21 @@ class Autofill extends BasePlugin {
    * Get the coordinates of the drag & drop borders.
    *
    * @private
-   * @param {WalkontableCellCoords} coordsOfSelection `WalkontableCellCoords` coord object.
+   * @param {CellCoords} coordsOfSelection `CellCoords` coord object.
    * @returns {Array}
    */
 
-  getCoordsOfDragAndDropBorders (coordsOfSelection) {
+  getCoordsOfDragAndDropBorders(coordsOfSelection) {
     const topLeftCorner = this.hot.getSelectedRange().getTopLeftCorner();
     const bottomRightCorner = this.hot.getSelectedRange().getBottomRightCorner();
     let coords;
 
-    if (arrayIncludes(this.directions, DIRECTIONS.vertical) &&
+    if (this.directions.includes(DIRECTIONS.vertical) &&
       (bottomRightCorner.row < coordsOfSelection.row || topLeftCorner.row > coordsOfSelection.row)) {
-      coords = new WalkontableCellCoords(coordsOfSelection.row, bottomRightCorner.col);
+      coords = new CellCoords(coordsOfSelection.row, bottomRightCorner.col);
 
-    } else if (arrayIncludes(this.directions, DIRECTIONS.horizontal)) {
-      coords = new WalkontableCellCoords(bottomRightCorner.row, coordsOfSelection.col);
+    } else if (this.directions.includes(DIRECTIONS.horizontal)) {
+      coords = new CellCoords(bottomRightCorner.row, coordsOfSelection.col);
 
     } else {
       // wrong direction
@@ -228,7 +230,7 @@ class Autofill extends BasePlugin {
    * Show the fill border.
    *
    * @private
-   * @param {WalkontableCellCoords} coordsOfSelection `WalkontableCellCoords` coord object.
+   * @param {CellCoords} coordsOfSelection `CellCoords` coord object.
    */
   showBorder(coordsOfSelection) {
     const coordsOfDragAndDropBorders = this.getCoordsOfDragAndDropBorders(coordsOfSelection);
@@ -280,9 +282,9 @@ class Autofill extends BasePlugin {
     if (this.hot.selection.isMultiple()) {
       return this.hot.view.wt.selections.area.getCorners();
 
-    } else {
-      return this.hot.view.wt.selections.current.getCorners();
     }
+    return this.hot.view.wt.selections.current.getCorners();
+
   }
 
   /**
@@ -324,13 +326,13 @@ class Autofill extends BasePlugin {
    * @param {Array} selectStartArea selection area from which we start to create more comprehensive selection.
    * @param {Number} rowIndex
    */
-  addSelectionFromStartAreaToSpecificRowIndex (selectStartArea, rowIndex) {
+  addSelectionFromStartAreaToSpecificRowIndex(selectStartArea, rowIndex) {
     this.hot.view.wt.selections.fill.clear();
-    this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(
+    this.hot.view.wt.selections.fill.add(new CellCoords(
       selectStartArea[0],
       selectStartArea[1])
     );
-    this.hot.view.wt.selections.fill.add(new WalkontableCellCoords(
+    this.hot.view.wt.selections.fill.add(new CellCoords(
       rowIndex,
       selectStartArea[3])
     );
@@ -343,11 +345,11 @@ class Autofill extends BasePlugin {
    * @param {Array} cornersOfArea
    */
   setSelection(cornersOfArea) {
-    this.hot.selection.setRangeStart(new WalkontableCellCoords(
+    this.hot.selection.setRangeStart(new CellCoords(
       cornersOfArea[0],
       cornersOfArea[1])
     );
-    this.hot.selection.setRangeEnd(new WalkontableCellCoords(
+    this.hot.selection.setRangeEnd(new CellCoords(
       cornersOfArea[2],
       cornersOfArea[3])
     );
@@ -366,11 +368,11 @@ class Autofill extends BasePlugin {
     if (lastFilledInRowIndex === -1) {
       return false;
 
-    } else {
-      this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
-
-      return true;
     }
+    this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
+
+    return true;
+
   }
 
   /**
@@ -388,7 +390,7 @@ class Autofill extends BasePlugin {
    * Redraw borders.
    *
    * @private
-   * @param {WalkontableCellCoords} coords `WalkontableCellCoords` coord object.
+   * @param {CellCoords} coords `CellCoords` coord object.
    */
   redrawBorders(coords) {
     this.hot.view.wt.selections.fill.clear();
@@ -451,7 +453,7 @@ class Autofill extends BasePlugin {
    * On before cell mouse over listener.
    *
    * @private
-   * @param {WalkontableCellCoords} coords `WalkontableCellCoords` coord object.
+   * @param {CellCoords} coords `CellCoords` coord object.
    */
   onBeforeCellMouseOver(coords) {
     if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
@@ -529,8 +531,6 @@ class Autofill extends BasePlugin {
   }
 }
 
-export {Autofill};
-
 registerPlugin('autofill', Autofill);
-Handsontable.hooks.register('modifyAutofillRange');
-Handsontable.hooks.register('beforeAutofill');
+
+export default Autofill;
