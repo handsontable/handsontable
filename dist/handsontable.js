@@ -4510,9 +4510,9 @@ var domHelpers = ($__helpers_47_dom_47_element__ = _dereq_("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = _dereq_("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, dateHelpers, featureHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Tue Mar 07 2017 13:32:36 GMT+0100 (CET)';
+Handsontable.buildDate = 'Wed Mar 22 2017 13:06:10 GMT+0100 (CET)';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.31.1';
+Handsontable.version = '0.31.2';
 var baseVersion = '@@baseVersion';
 if (!/^@@/.test(baseVersion)) {
   Handsontable.baseVersion = baseVersion;
@@ -6676,6 +6676,7 @@ function DataMap(instance, priv, GridSettings) {
   this.instance.addHook('skipLengthCache', (function(delay) {
     return $__9.onSkipLengthCache(delay);
   }));
+  this.onSkipLengthCache(500);
 }
 DataMap.prototype.DESTINATION_RENDERER = 1;
 DataMap.prototype.DESTINATION_CLIPBOARD_GENERATOR = 2;
@@ -15480,7 +15481,7 @@ var $Menu = Menu;
   createContainer: function() {
     var name = arguments[0] !== (void 0) ? arguments[0] : null;
     if (name) {
-      name = name.replace(/ /g, '_');
+      name = name.replace(/[^A-z0-9]/g, '_');
       name = this.options.className + 'Sub_' + name;
     }
     var container;
