@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Config responsible for building Walkontable (bundled into `src/3rdparty/walkontable/dist/`):
  *  - walkontable.js
@@ -13,7 +15,7 @@ var wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
 
 module.exports.PACKAGE_NAME = PACKAGE_NAME;
 
-module.exports.create = function create() {
+module.exports.create = function create(envArgs) {
   var config = {
     devtool: 'cheap-module-source-map',
     output: {

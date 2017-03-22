@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Config responsible for building Handsontable `dist/` minified files:
  *  - handsontable.min.js
@@ -16,8 +18,8 @@ var PACKAGE_NAME = configFactory.PACKAGE_NAME;
 
 module.exports.PACKAGE_NAME = PACKAGE_NAME;
 
-module.exports.create = function create() {
-  var config = configFactory.create();
+module.exports.create = function create(envArgs) {
+  var config = configFactory.create(envArgs);
 
   // Add uglifyJs plugin for each configuration
   config.forEach(function(c) {

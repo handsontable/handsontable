@@ -13,8 +13,8 @@ var PACKAGE_NAME = configFactory.PACKAGE_NAME;
 
 module.exports.PACKAGE_NAME = PACKAGE_NAME;
 
-module.exports.create = function create() {
-  var config = configFactory.create();
+module.exports.create = function create(envArgs) {
+  var config = configFactory.create(envArgs);
 
   config.forEach(function(c) {
     c.devtool = 'cheap-module-source-map';

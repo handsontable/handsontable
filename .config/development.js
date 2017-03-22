@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Config responsible for building Handsontable `dist/` files:
  *  - handsontable.js
@@ -16,9 +18,9 @@ var PACKAGE_NAME = configFactory.PACKAGE_NAME;
 
 module.exports.PACKAGE_NAME = PACKAGE_NAME;
 
-module.exports.create = function create() {
-  var configBase = configFactory.create();
-  var configFull = configFactory.create();
+module.exports.create = function create(envArgs) {
+  var configBase = configFactory.create(envArgs);
+  var configFull = configFactory.create(envArgs);
 
   configBase.forEach(function(c) {
     c.output.filename = PACKAGE_NAME + '.js';
