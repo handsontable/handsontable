@@ -1,12 +1,13 @@
 import 'babel-polyfill';
 
+import './css/bootstrap.css';
 import './css/handsontable.css';
 import './css/mobile.handsontable.css';
 
 import Core from './core';
 import './renderers/_cellDecorator';
-import './../plugins/jqueryHandsontable';
-import {getListenersCounter} from './eventManager';
+import jQueryWrapper from './helpers/wrappers/jquery';
+import EventManager, {getListenersCounter} from './eventManager';
 import Hooks from './pluginHooks';
 import GhostTable from './utils/ghostTable';
 import * as arrayHelpers from './helpers/array';
@@ -38,8 +39,11 @@ function Handsontable(rootElement, userSettings) {
   return instance;
 }
 
+jQueryWrapper(jQueryWrapper);
+
 Handsontable.Core = Core;
 Handsontable.DefaultSettings = DefaultSettings;
+Handsontable.EventManager = EventManager;
 Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
 
 Handsontable.buildDate = __HOT_BUILD_DATE__;

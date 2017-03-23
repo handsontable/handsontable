@@ -18,7 +18,6 @@
   <script data-jsfiddle="common" src="../dist/handsontable.js"></script>
 
   <link data-jsfiddle="common" rel="stylesheet" type="text/css" href="bootstrap/v3/css/bootstrap.css">
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../plugins/bootstrap/handsontable.bootstrap.css">
 
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/handsontable.css">
 
@@ -91,9 +90,9 @@
 
               <p>This page demonstrate example of using Handsontable with Twitter Bootstrap.</p>
 
-              <p>Please note that you should reset some of Bootstrap styles. You can use file <a
+              <p><strike>Please note that you should reset some of Bootstrap styles. You can use file <a
                 href="https://github.com/handsontable/handsontable/blob/master/plugins/bootstrap/handsontable.bootstrap.css">plugins/bootstrap/handsontable.bootstrap.css</a>
-                for that purpose.</p>
+                for that purpose.</strike></p>
 
               <p class="options">
                 <label><input data-type="table-bordered" type="checkbox"/> table-bordered </label>
@@ -153,15 +152,15 @@
                 });
                 table = document.querySelector('table');
 
-                Handsontable.Dom.addClass(table, 'table');
+                Handsontable.dom.addClass(table, 'table');
 
                 for (var i = 0, len = options.length; i < len; i++) {
-                  Handsontable.Dom.addEvent(options[i], 'click', function () {
+                  Handsontable.dom.addEvent(options[i], 'click', function () {
                     if (this.checked) {
-                      Handsontable.Dom.addClass(table, this.getAttribute('data-type'))
+                      Handsontable.dom.addClass(table, this.getAttribute('data-type'))
                     }
                     else {
-                      Handsontable.Dom.removeClass(table, this.getAttribute('data-type'))
+                      Handsontable.dom.removeClass(table, this.getAttribute('data-type'))
                     }
                   });
                 }
@@ -231,11 +230,11 @@
                 for (i = 0, len = table2.length; i < len; i++) {
                   var tableInstance = table2[i];
                   var isMaster = !!findAncestor(tableInstance, 'ht_master');
-                  Handsontable.Dom.addClass(tableInstance, 'table');
-                  Handsontable.Dom.addClass(tableInstance, 'table-hover');
-                  Handsontable.Dom.addClass(tableInstance, 'table-striped');
+                  Handsontable.dom.addClass(tableInstance, 'table');
+                  Handsontable.dom.addClass(tableInstance, 'table-hover');
+                  Handsontable.dom.addClass(tableInstance, 'table-striped');
                   if (isMaster) {
-                    Handsontable.Dom.addClass(tableInstance, 'table-bordered');
+                    Handsontable.dom.addClass(tableInstance, 'table-bordered');
                   }
                 }
               </script>
