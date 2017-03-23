@@ -39,7 +39,7 @@ function Handsontable(rootElement, userSettings) {
   return instance;
 }
 
-jQueryWrapper(jQueryWrapper);
+jQueryWrapper(Handsontable);
 
 Handsontable.Core = Core;
 Handsontable.DefaultSettings = DefaultSettings;
