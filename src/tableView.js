@@ -284,7 +284,7 @@ function TableView(instance) {
     hideBorderOnMouseDownOver() {
       return that.settings.fragmentSelection;
     },
-    onCellMouseDown(event, coords, TD, wt) {
+    onCellMouseDown: function(event, coords, TD, wt) {
       let blockCalculations = {
         row: false,
         column: false,
@@ -403,10 +403,10 @@ function TableView(instance) {
         return;
       }
 
-      instance.runHooks('afterOnCellMouseDown', event, coords, TD);
+      instance.runHooks('afterOnCellMouseOut', event, coords, TD);
       that.activeWt = that.wt;
     },
-    onCellMouseOver(event, coords, TD, wt) {
+    onCellMouseOver: function(event, coords, TD, wt) {
       let blockCalculations = {
         row: false,
         column: false,
