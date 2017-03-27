@@ -136,6 +136,15 @@ arrayHelpers.arrayEach(getRegisteredRendererNames(), (rendererName) => {
 Handsontable.renderers.registerRenderer = registerRenderer;
 Handsontable.renderers.getRenderer = getRenderer;
 
+// Export all registered validators from the Handsontable.
+Handsontable.validators = {};
+
+arrayHelpers.arrayEach(Object.getOwnPropertyNames(cellTypes), (key) => {
+  if (cellTypes[key].validator) {
+    Handsontable.validators[`${stringHelpers.toUpperCaseFirst(key)}Validator`] = cellTypes[key].validator;
+  }
+});
+
 // Export all registered plugins from the Handsontable.
 Handsontable.plugins = {};
 
