@@ -40,7 +40,7 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
     readOnly: true,
     fillHandle: false,
     afterOnCellMouseDown(_, coords) {
-      var value = this.getSourceData(coords.row, coords.col)
+      var value = this.getSourceData(coords.row, coords.col);
 
       // if the value is undefined then it means we don't want to set the value
       if (value !== void 0) {
