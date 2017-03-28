@@ -133,16 +133,16 @@ AutocompleteEditor.prototype.close = function() {
 AutocompleteEditor.prototype.queryChoices = function(query) {
   this.query = query;
 
-  const {source, filter, filteringCaseSensitive, allowHtml} = this.cellProperties;
+  const {source, allowHtml, forceParsing} = this.cellProperties;
   const stripTagsEach = (choices) => arrayMap(choices, (choice) => stripTags(choice));
 
   if (typeof source == 'function') {
     source.call(this.cellProperties, query, (choices) => {
-      this.updateChoicesList(allowHtml ? choices : stripTagsEach(choices));
+      this.updateChoicesList((allowHtml || forceParsing) ? choices : stripTagsEach(choices));
     });
 
   } else if (Array.isArray(source)) {
-    this.updateChoicesList(allowHtml ? source : stripTagsEach(source));
+    this.updateChoicesList((allowHtml || forceParsing) ? source : stripTagsEach(source));
 
   } else {
     this.updateChoicesList([]);
