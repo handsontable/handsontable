@@ -97,7 +97,8 @@ DataMap.prototype.createMap = function() {
   let columns = this.instance.getSettings().columns;
 
   if (columns) {
-    let columnsLen = columns.length;
+    const maxCols = this.instance.getSettings().maxCols;
+    let columnsLen = Math.min(maxCols, columns.length);
     let filteredIndex = 0;
     let columnsAsFunc = false;
     let schemaLen = deepObjectSize(schema);
@@ -760,12 +761,12 @@ DataMap.prototype.getLength = function() {
  * @returns {Array}
  */
 DataMap.prototype.getAll = function() {
-  let start = {
+  const start = {
     row: 0,
     col: 0,
   };
 
-  let maxRows = this.instance.getSettings().maxRows;
+  const maxRows = this.instance.getSettings().maxRows;
 
   if (maxRows === 0) {
     return [];
@@ -799,10 +800,16 @@ DataMap.prototype.getRange = function(start, end, destination) {
     output = [],
     row;
 
+  const maxCols = this.instance.getSettings().maxCols;
+
+  if (maxCols === 0) {
+    return [];
+  }
+
   var getFn = destination === this.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
 
   rlen = Math.max(start.row, end.row);
-  clen = Math.max(start.col, end.col);
+  clen = Math.min(Math.max(maxCols - 1, 0), Math.max(start.col, end.col));
 
   for (r = Math.min(start.row, end.row); r <= rlen; r++) {
     row = [];

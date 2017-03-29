@@ -366,7 +366,7 @@ DefaultSettings.prototype = {
   maxRows: Infinity,
 
   /**
-   * Maximum number of cols.
+   * Maximum number of cols. If set to a value lower than the initial col count, the data will be trimmed to the provided value as the number of cols.
    *
    * @type {Number}
    * @default Infinity

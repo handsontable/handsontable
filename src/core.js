@@ -280,7 +280,7 @@ export default function Core(rootElement, userSettings) {
         }
         // should I add empty cols to meet minSpareCols?
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' &&
-            emptyCols < priv.settings.minSpareCols) {
+          emptyCols < priv.settings.minSpareCols) {
           for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
             datamap.createCol(instance.countCols(), 1, 'auto');
           }
@@ -450,8 +450,8 @@ export default function Core(rootElement, userSettings) {
           }
           for (r = 0; r < rlen; r++) {
             if ((end && current.row > end.row && rowSelectionLength > rowInputLength) ||
-                (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) ||
-                (current.row >= priv.settings.maxRows)) {
+              (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) ||
+              (current.row >= priv.settings.maxRows)) {
               break;
             }
             let logicalRow = r - skippedRow;
@@ -477,8 +477,8 @@ export default function Core(rootElement, userSettings) {
 
             for (c = 0; c < clen; c++) {
               if ((end && current.col > end.col && colSelectionLength > colInputLength) ||
-                  (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) ||
-                  (current.col >= priv.settings.maxCols)) {
+                (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) ||
+                (current.col >= priv.settings.maxCols)) {
                 break;
               }
               cellMeta = instance.getCellMeta(current.row, current.col);
@@ -653,15 +653,15 @@ export default function Core(rootElement, userSettings) {
       }
 
       if (disableVisualSelection === false ||
-          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('current') === -1) {
+        Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('current') === -1) {
         instance.view.wt.selections.current.add(priv.selRange.highlight);
       }
       // set up area selection
       instance.view.wt.selections.area.clear();
 
       if ((disableVisualSelection === false ||
-          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) &&
-          selection.isMultiple()) {
+        Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) &&
+        selection.isMultiple()) {
         instance.view.wt.selections.area.add(priv.selRange.from);
         instance.view.wt.selections.area.add(priv.selRange.to);
       }
@@ -999,7 +999,7 @@ export default function Core(rootElement, userSettings) {
 
         var cellProperties = instance.getCellMeta(row, col);
 
-        if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
+        if ((cellProperties.type === 'numeric' || cellProperties.forceParsing === 'numeric') && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3]) || cellProperties.format)) {
             var len = changes[i][3].length;
 
@@ -1184,7 +1184,7 @@ export default function Core(rootElement, userSettings) {
       return row;
     }
     return [
-        [row, propOrCol, value]
+      [row, propOrCol, value]
     ];
 
   }
@@ -1829,7 +1829,7 @@ export default function Core(rootElement, userSettings) {
       type = cellTypes[obj.type];
       if (type === void 0) {
         throw new Error(`You declared cell type "${obj.type
-            }" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes`);
+          }" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes`);
       }
     }
 
@@ -2051,7 +2051,7 @@ export default function Core(rootElement, userSettings) {
   this.getDataAtCol = function(col) {
     var out = [];
     return out.concat(...datamap.getRange(
-        new CellCoords(0, col), new CellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
+      new CellCoords(0, col), new CellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
   };
 
   /**
@@ -2069,9 +2069,9 @@ export default function Core(rootElement, userSettings) {
       range;
 
     range = datamap.getRange(
-        new CellCoords(0, datamap.propToCol(prop)),
-        new CellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)),
-        datamap.DESTINATION_RENDERER);
+      new CellCoords(0, datamap.propToCol(prop)),
+      new CellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)),
+      datamap.DESTINATION_RENDERER);
 
     return out.concat(...range);
   };
@@ -2173,13 +2173,13 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getDataAtRow
    * @param {Number} row Row index.
-   * @returns {Array} Array of row's cell data.
+   * @returns {Array} Array of row's cell data.git fl
    * @since 0.9-beta2
    */
   this.getDataAtRow = function(row) {
     var data = datamap.getRange(new CellCoords(row, 0), new CellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER);
 
-    return data[0];
+    return data[0] || [];
   };
 
   /**
@@ -2780,6 +2780,7 @@ export default function Core(rootElement, userSettings) {
    * @returns {Number} Total number of columns.
    */
   this.countCols = function() {
+    const maxCols = this.getSettings().maxCols;
     let dataHasLength = false;
     let dataLen = 0;
 
@@ -2817,7 +2818,7 @@ export default function Core(rootElement, userSettings) {
       dataLen = datamap.colToPropCache.length;
     }
 
-    return dataLen;
+    return Math.min(maxCols, dataLen);
   };
 
   /**
