@@ -2090,6 +2090,291 @@ describe('UndoRedo', () => {
         });
       });
     });
+
+    describe('Nested object data', () => {
+
+      function createNestedObjectData() {
+        return [
+          {name: {first: 'Timothy', last: 'Dalton'}, year: 1986},
+          {name: {first: 'Sean', last: 'Connery'}, year: 1962},
+          {name: {first: 'Roger', last: 'Moore'}, year: 1973}
+        ];
+      }
+
+      describe('undo', () => {
+        it('should undo single change', () => {
+          handsontable({
+            data: createNestedObjectData()
+          });
+          var HOT = getInstance();
+
+          setDataAtCell(0, 0, 'Pearce');
+          expect(getDataAtCell(0, 0)).toBe('Pearce');
+
+          HOT.undo();
+          expect(getDataAtCell(0, 0)).toBe('Timothy');
+        });
+
+        it('should undo removal of single row', () => {
+          var HOT = handsontable({
+            data: createNestedObjectData().slice(0, 2)
+          });
+
+          expect(countRows()).toEqual(2);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+          expect(getDataAtRowProp(1, 'name.first')).toEqual('Sean');
+          expect(getDataAtRowProp(1, 'name.last')).toEqual('Connery');
+          expect(getDataAtRowProp(1, 'year')).toEqual(1962);
+
+          alter('remove_row');
+
+          expect(countRows()).toEqual(1);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+          expect(getDataAtRowProp(1, 'name.first')).toBeNull();
+          expect(getDataAtRowProp(1, 'name.last')).toBeNull();
+          expect(getDataAtRowProp(1, 'year')).toBeNull();
+
+          HOT.undo();
+
+          expect(countRows()).toEqual(2);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+          expect(getDataAtRowProp(1, 'name.first')).toEqual('Sean');
+          expect(getDataAtRowProp(1, 'name.last')).toEqual('Connery');
+          expect(getDataAtRowProp(1, 'year')).toEqual(1962);
+        });
+
+        it('should undo removal of multiple rows', () => {
+          var HOT = handsontable({
+            data: createNestedObjectData()
+          });
+
+          expect(countRows()).toEqual(3);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+          expect(getDataAtRowProp(1, 'name.first')).toEqual('Sean');
+          expect(getDataAtRowProp(1, 'name.last')).toEqual('Connery');
+          expect(getDataAtRowProp(1, 'year')).toEqual(1962);
+          expect(getDataAtRowProp(2, 'name.first')).toEqual('Roger');
+          expect(getDataAtRowProp(2, 'name.last')).toEqual('Moore');
+          expect(getDataAtRowProp(2, 'year')).toEqual(1973);
+
+          alter('remove_row', 1, 2);
+
+          expect(countRows()).toEqual(1);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(1, 'name.first')).toBeNull();
+          expect(getDataAtRowProp(1, 'name.last')).toBeNull();
+          expect(getDataAtRowProp(1, 'year')).toBeNull();
+          expect(getDataAtRowProp(2, 'name.first')).toBeNull();
+          expect(getDataAtRowProp(2, 'name.last')).toBeNull();
+          expect(getDataAtRowProp(2, 'year')).toBeNull();
+
+          HOT.undo();
+
+          expect(countRows()).toEqual(3);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+          expect(getDataAtRowProp(1, 'name.first')).toEqual('Sean');
+          expect(getDataAtRowProp(1, 'name.last')).toEqual('Connery');
+          expect(getDataAtRowProp(1, 'year')).toEqual(1962);
+          expect(getDataAtRowProp(2, 'name.first')).toEqual('Roger');
+          expect(getDataAtRowProp(2, 'name.last')).toEqual('Moore');
+          expect(getDataAtRowProp(2, 'year')).toEqual(1973);
+        });
+
+        it('should undo removal of hidden columns', () => {
+          var HOT = handsontable({
+            data: createNestedObjectData().slice(0, 1),
+            colHeaders: true,
+            columns: [
+              {data: 'name.first'},
+              {data: 'name.last'},
+            ]
+          });
+
+          expect(countRows()).toEqual(1);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+
+          alter('remove_row');
+
+          expect(countRows()).toEqual(0);
+          expect(getDataAtRowProp(0, 'name.first')).toBeNull();
+          expect(getDataAtRowProp(0, 'name.last')).toBeNull();
+          expect(getDataAtRowProp(0, 'year')).toBeNull();
+
+          HOT.undo();
+
+          expect(countRows()).toEqual(1);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+        });
+      });
+
+      describe('redo', () => {
+        it('should redo single change', () => {
+          handsontable({
+            data: createNestedObjectData()
+          });
+          var HOT = getInstance();
+
+          setDataAtCell(0, 0, 'Pearce');
+          expect(getDataAtCell(0, 0)).toBe('Pearce');
+
+          HOT.undo();
+          expect(getDataAtCell(0, 0)).toBe('Timothy');
+
+          HOT.redo();
+          expect(getDataAtCell(0, 0)).toBe('Pearce');
+        });
+
+        it('should redo removal of single row', () => {
+          var HOT = handsontable({
+            data: createNestedObjectData().slice(0, 2)
+          });
+
+          expect(countRows()).toEqual(2);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+          expect(getDataAtRowProp(1, 'name.first')).toEqual('Sean');
+          expect(getDataAtRowProp(1, 'name.last')).toEqual('Connery');
+          expect(getDataAtRowProp(1, 'year')).toEqual(1962);
+
+          alter('remove_row');
+
+          expect(countRows()).toEqual(1);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+          expect(getDataAtRowProp(1, 'name.first')).toBeNull();
+          expect(getDataAtRowProp(1, 'name.last')).toBeNull();
+          expect(getDataAtRowProp(1, 'year')).toBeNull();
+
+          HOT.undo();
+
+          expect(countRows()).toEqual(2);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+          expect(getDataAtRowProp(1, 'name.first')).toEqual('Sean');
+          expect(getDataAtRowProp(1, 'name.last')).toEqual('Connery');
+          expect(getDataAtRowProp(1, 'year')).toEqual(1962);
+
+          HOT.redo();
+
+          expect(countRows()).toEqual(1);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+          expect(getDataAtRowProp(1, 'name.first')).toBeNull();
+          expect(getDataAtRowProp(1, 'name.last')).toBeNull();
+          expect(getDataAtRowProp(1, 'year')).toBeNull();
+        });
+
+        it('should redo removal of multiple rows', () => {
+          var HOT = handsontable({
+            data: createNestedObjectData()
+          });
+
+          expect(countRows()).toEqual(3);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+          expect(getDataAtRowProp(1, 'name.first')).toEqual('Sean');
+          expect(getDataAtRowProp(1, 'name.last')).toEqual('Connery');
+          expect(getDataAtRowProp(1, 'year')).toEqual(1962);
+          expect(getDataAtRowProp(2, 'name.first')).toEqual('Roger');
+          expect(getDataAtRowProp(2, 'name.last')).toEqual('Moore');
+          expect(getDataAtRowProp(2, 'year')).toEqual(1973);
+
+          alter('remove_row', 1, 2);
+
+          expect(countRows()).toEqual(1);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(1, 'name.first')).toBeNull();
+          expect(getDataAtRowProp(1, 'name.last')).toBeNull();
+          expect(getDataAtRowProp(1, 'year')).toBeNull();
+          expect(getDataAtRowProp(2, 'name.first')).toBeNull();
+          expect(getDataAtRowProp(2, 'name.last')).toBeNull();
+          expect(getDataAtRowProp(2, 'year')).toBeNull();
+
+          HOT.undo();
+
+          expect(countRows()).toEqual(3);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+          expect(getDataAtRowProp(1, 'name.first')).toEqual('Sean');
+          expect(getDataAtRowProp(1, 'name.last')).toEqual('Connery');
+          expect(getDataAtRowProp(1, 'year')).toEqual(1962);
+          expect(getDataAtRowProp(2, 'name.first')).toEqual('Roger');
+          expect(getDataAtRowProp(2, 'name.last')).toEqual('Moore');
+          expect(getDataAtRowProp(2, 'year')).toEqual(1973);
+
+          HOT.redo();
+
+          expect(countRows()).toEqual(1);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(1, 'name.first')).toBeNull();
+          expect(getDataAtRowProp(1, 'name.last')).toBeNull();
+          expect(getDataAtRowProp(1, 'year')).toBeNull();
+          expect(getDataAtRowProp(2, 'name.first')).toBeNull();
+          expect(getDataAtRowProp(2, 'name.last')).toBeNull();
+          expect(getDataAtRowProp(2, 'year')).toBeNull();
+        });
+
+        it('should redo removal of hidden columns', () => {
+          var HOT = handsontable({
+            data: createNestedObjectData().slice(0, 1),
+            colHeaders: true,
+            columns: [
+              {data: 'name.first'},
+              {data: 'name.last'},
+            ]
+          });
+
+          expect(countRows()).toEqual(1);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+
+          alter('remove_row');
+
+          expect(countRows()).toEqual(0);
+          expect(getDataAtRowProp(0, 'name.first')).toBeNull();
+          expect(getDataAtRowProp(0, 'name.last')).toBeNull();
+          expect(getDataAtRowProp(0, 'year')).toBeNull();
+
+          HOT.undo();
+
+          expect(countRows()).toEqual(1);
+          expect(getDataAtRowProp(0, 'name.first')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'name.last')).toEqual('Dalton');
+          expect(getDataAtRowProp(0, 'year')).toEqual(1986);
+
+          HOT.redo();
+
+          expect(countRows()).toEqual(0);
+          expect(getDataAtRowProp(0, 'name.first')).toBeNull();
+          expect(getDataAtRowProp(0, 'name.last')).toBeNull();
+          expect(getDataAtRowProp(0, 'year')).toBeNull();
+        });
+      });
+    });
   });
 
   describe('plugin features', () => {
