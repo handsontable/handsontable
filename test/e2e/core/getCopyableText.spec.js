@@ -18,8 +18,8 @@ describe('Core.getCopyableText', () => {
       copyable: true
     });
 
-    expect(getCopyableText(0, 0)).toBe('A1\n');
-    expect(getCopyableText(0, 0, 1, 2)).toBe('A1\tB1\tC1\nA2\tB2\tC2\n');
+    expect(getCopyableText(0, 0)).toBe('A1');
+    expect(getCopyableText(0, 0, 1, 2)).toBe('A1\tB1\tC1\nA2\tB2\tC2');
   });
 
   it('should return empty string as copyable data when `copyable` option is disabled', () => {
@@ -28,7 +28,7 @@ describe('Core.getCopyableText', () => {
       copyable: false
     });
 
-    expect(getCopyableText(0, 0)).toBe('\n');
-    expect(getCopyableText(0, 0, 1, 2)).toBe('\t\t\n\t\t\n');
+    expect(getCopyableText(0, 0)).toBe('');
+    expect(getCopyableText(0, 0, 1, 2)).toBe('\t\t\n\t\t');
   });
 });
