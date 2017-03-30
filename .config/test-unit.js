@@ -42,6 +42,7 @@ module.exports.create = function create(envArgs) {
     c.plugins.push(
       new JasmineHtml({
         filename: path.resolve(__dirname, '../test/UnitRunner.html'),
+        baseJasminePath: '../',
         externalCssFiles: [],
         externalJsFiles: [],
       })
