@@ -111,7 +111,7 @@ function ajax(url, method, params, callback) {
 
   function bindDumpButton() {
 
-    Handsontable.Dom.addEvent(document.body, 'click', function (e) {
+    Handsontable.dom.addEvent(document.body, 'click', function (e) {
 
       var element = e.target || e.srcElement;
 
@@ -125,7 +125,7 @@ function ajax(url, method, params, callback) {
   }
 
   function bindFiddleButton() {
-    Handsontable.Dom.addEvent(document.body, 'click', function (e) {
+    Handsontable.dom.addEvent(document.body, 'click', function (e) {
       var element = e.target || e.srcElement;
 
       if (element.className == "jsFiddleLink") {
@@ -377,7 +377,7 @@ function ajax(url, method, params, callback) {
 
     function bindMenuEvents(menu) {
       //collapseAll(menu, true);
-      //Handsontable.Dom.addEvent(menu, 'click', function (ev) {
+      //Handsontable.dom.addEvent(menu, 'click', function (ev) {
       //  var element = ev.target || ev.srcElement;
       //
       //  if (element.nodeName == "H3") {

@@ -1,4 +1,6 @@
-/* table */
+/**
+ * Fix for bootstrap styles
+ */
 .handsontable .table th, .handsontable .table td {
   border-top: none;
 }

@@ -6,8 +6,8 @@ To help us merge your Pull Request, please make sure you follow these points:
 
 1. Please make your fix on a separate branch. This makes merging much easier.
 2. Always make the target of your pull request the `develop` branch, not `master`
-3. Do not edit files in `dist/` directory (e.g: `handsontable.js`, `handsontable.css`, `handsontable.full.js`, `handsontable.full.css`). Instead, try to edit files inside the `src/` directory and then use `grunt` to make a build. More information about this on wiki page [Building](https://github.com/handsontable/handsontable/wiki/Building).
-4. **Very important:** For any change that you make, **please try to also add a test case(s)** in `tests/jasmine/spec/` or `src/3rdparty/walkontable/test/jasmine/spec/`. This helps us understand the issue and make sure that it will stay fixed forever. See [Testing](https://github.com/handsontable/handsontable/wiki/Testing)
+3. Do not edit files in `dist/` directory (e.g: `handsontable.js`, `handsontable.css`, `handsontable.full.js`, `handsontable.full.css`). Instead, try to edit files inside the `src/` directory and then use `npm run build` to make a build. More information about this on wiki page [Building](https://docs.handsontable.com/tutorial-custom-build.html).
+4. **Very important:** For any change that you make, **please try to also add a test case(s)** in `test/e2e/` (for End-to-End tests), `test/unit/` or `src/3rdparty/walkontable/test/spec/`. This helps us understand the issue and make sure that it will stay fixed forever. See [Testing](http://docs.handsontable.com/tutorial-testing.html)
 5. **Very important:** Please review our [coding style](https://github.com/handsontable/handsontable/wiki/Coding-style) for instructions on how to maintain a fork and submit patches.
 6. Describe the problem in the Pull Request description (of course you would do it, why do I mention that?)
 
