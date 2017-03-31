@@ -33,12 +33,10 @@ function run(commands, commandToTrigger, spawnOpts) {
   if (commandToTrigger) {
     child.stdout.on('data', function(data) {
       if (triggeredChild) {
-        console.log('KILL TRIGGERED COMMAND', triggeredChild.pid);
         treeKill(triggeredChild.pid);
       }
       if (!delayedTrigger) {
         delayedTrigger = debounce(function() {
-          console.log('RUN TRIGGER');
           triggeredChild = run(commandToTrigger);
         }, 1000);
       }
@@ -52,7 +50,6 @@ function run(commands, commandToTrigger, spawnOpts) {
   if (commandToTrigger) {
     ['SIGINT', 'SIGTERM'].forEach(function(signal) {
       process.on(signal, function() {
-        console.log('KILL', signal, child.pid);
         treeKill(child.pid, signal);
       });
     });
