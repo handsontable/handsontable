@@ -1579,6 +1579,44 @@ describe('ContextMenu', function () {
   });
 
   describe("custom options", function () {
+    it("should be possible to open submenu without errors when item name contain non-alphanumeric chars", function(done) {
+      var hot = handsontable({
+        contextMenu: {
+          items: {
+            cust1: {
+              name: 'Custom/Item+1',
+              submenu: {
+                items: [
+                  {
+                    name: "Custom subitem"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        height: 100
+      });
+
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0);
+      var className = '.htContextMenuSub_' + item.text().replace(/[^A-z0-9]/g, '_');
+
+      item.simulate('mouseover');
+
+      var contextSubMenu = $(className).find('tbody td');
+
+      expect(contextSubMenu.length).toEqual(0);
+
+      setTimeout(function () {
+        var contextSubMenu = $(className);
+
+        expect(contextSubMenu.length).toEqual(1);
+        done();
+      }, 350); // menu opens after 300ms
+    });
+
     it("should have custom items list", function () {
 
       var callback1 = jasmine.createSpy('callback1');
