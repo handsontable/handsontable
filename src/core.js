@@ -422,7 +422,6 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           };
           let skippedRow = 0;
           let skippedColumn = 0;
-          let pushData = true;
           let cellMeta;
 
           let getInputValue = function getInputValue(row, col = null) {
@@ -501,29 +500,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                   value = isUndefined(result.value) ? value : result.value;
                 }
               }
-              if (value !== null && typeof value === 'object') {
-                if (orgValue === null || typeof orgValue !== 'object') {
-                  pushData = false;
-
-                } else {
-                  let orgValueSchema = duckSchema(orgValue[0] || orgValue);
-                  let valueSchema = duckSchema(value[0] || value);
-
-                  /* jshint -W073 */
-                  if (isObjectEquals(orgValueSchema, valueSchema)) {
-                    value = deepClone(value);
-                  } else {
-                    pushData = false;
-                  }
-                }
-
-              } else if (orgValue !== null && typeof orgValue === 'object') {
-                pushData = false;
-              }
-              if (pushData) {
-                setData.push([current.row, current.col, value]);
-              }
-              pushData = true;
+              setData.push([current.row, current.col, value]);
               current.col++;
             }
             current.row++;
