@@ -35,23 +35,14 @@ class CommandExecutor {
   }
 
   /**
-   * Execute command by its name.
+   * Execute command or command by its name.
    *
-   * @param {String} commandName Command id.
+   * @param {Object} or {String} command or Command id.
    * @param {*} params Arguments passed to command task.
    */
-  execute(commandName, ...params) {
-    let commandSplit = commandName.split(':');
-    commandName = commandSplit[0];
-
-    let subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
-    let command = this.commands[commandName];
-
-    if (!command) {
-      throw new Error(`Menu command '${commandName}' not exists.`);
-    }
-    if (subCommandName && command.submenu) {
-      command = findSubCommand(subCommandName, command.submenu.items);
+  execute(command, ...params) {
+    if (typeof command === 'string') {
+      command = this.findCommand(command);
     }
     if (command.disabled === true) {
       return;
@@ -70,25 +61,44 @@ class CommandExecutor {
     if (typeof this.commonCallback === 'function') {
       callbacks.push(this.commonCallback);
     }
-    params.unshift(commandSplit.join(':'));
+    params.unshift(command.key);
     arrayEach(callbacks, (callback) => callback.apply(this.hot, params));
+  }
+
+  findCommand(commandName) {
+    let commandSplit = commandName.split(':');
+    commandName = commandSplit[0];
+
+    let subCommandName = commandSplit.length > 1 ? commandSplit[commandSplit.length - 1] : null;
+    let command = this.commands[commandName];
+
+    if (!command) {
+      throw new Error(`Menu command '${commandName}' not exists.`);
+    }
+    if (subCommandName && command.submenu) {
+      let commands = commandSplit.slice(1);
+      command = findSubCommand(commands, command.submenu.items, commandSplit.slice(0, 2));
+    }
+
+    return command;
   }
 }
 
-function findSubCommand(subCommandName, subCommands) {
+function findSubCommand(commands, items, keys) {
   let command;
-
-  arrayEach(subCommands, (cmd) => {
-    let cmds = cmd.key ? cmd.key.split(':') : null;
-
-    if (Array.isArray(cmds) && cmds[1] === subCommandName) {
-      command = cmd;
-
+  arrayEach(items, (item) => {
+    if (item.key === keys.join(':')) {
+      command = item;
       return false;
     }
   });
-
-  return command;
+  if (commands.length > 1) {
+    commands.shift();
+    keys.push(commands[0]);
+    return findSubCommand(commands, command.submenu.items, keys);
+  } else {
+    return command;
+  }
 }
 
 export {CommandExecutor};
