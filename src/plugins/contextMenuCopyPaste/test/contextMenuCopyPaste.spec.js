@@ -28,7 +28,7 @@ describe("ContextMenuCopyPaste", function () {
     delete ZeroClipboard;
   });
 
-  it("should add Copy and Paste context menu options at the beginning by default", function () {
+  it("should add Cut, Copy and Paste context menu options at the beginning by default", function () {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
@@ -45,6 +45,9 @@ describe("ContextMenuCopyPaste", function () {
     contextMenu();
 
     var $contextMenuEntries = $('.htContextMenu .ht_master .htCore tbody').find('td')
+      , $cutButton = $contextMenuEntries.find('div').filter(function () {
+        return (/Cut/i).test($(this).text())
+      }).parents('td')
       , $copyButton = $contextMenuEntries.find('div').filter(function () {
         return (/Copy/i).test($(this).text())
       }).parents('td')
@@ -52,17 +55,18 @@ describe("ContextMenuCopyPaste", function () {
         return (/Paste/i).test($(this).text())
       }).parents('td');
 
-    expect($contextMenuEntries.index($copyButton)).toEqual(0);
-    expect($contextMenuEntries.index($pasteButton)).toEqual(1);
+    expect($contextMenuEntries.index($cutButton)).toEqual(0);
+    expect($contextMenuEntries.index($copyButton)).toEqual(1);
+    expect($contextMenuEntries.index($pasteButton)).toEqual(2);
   });
 
-  it("should add Copy and Paste context menu options at the provided index", function () {
+  it("should add Cut, Copy and Paste context menu options at the provided index", function () {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
       colHeaders: true,
       minSpareRows: 1,
-      contextMenu: ['row_above', 'copy', 'paste', 'row_below'],
+      contextMenu: ['row_above', 'copy', 'paste', 'cut', 'row_below'],
       contextMenuCopyPaste: {
         swfPath: "../../demo/swf/ZeroClipboard.swf"
       }
@@ -73,6 +77,9 @@ describe("ContextMenuCopyPaste", function () {
     contextMenu();
 
     var $contextMenuEntries = $('.htContextMenu .ht_master .htCore tbody').find('td')
+      , $cutButton = $contextMenuEntries.find('div').filter(function () {
+        return (/Cut/i).test($(this).text())
+      }).parents('td')
       , $copyButton = $contextMenuEntries.find('div').filter(function () {
         return (/Copy/i).test($(this).text())
       }).parents('td')
@@ -80,11 +87,12 @@ describe("ContextMenuCopyPaste", function () {
         return (/Paste/i).test($(this).text())
       }).parents('td');
 
+    expect($contextMenuEntries.not('[class*=htSeparator]').index($cutButton)).toEqual(3);
     expect($contextMenuEntries.not('[class*=htSeparator]').index($copyButton)).toEqual(1);
     expect($contextMenuEntries.not('[class*=htSeparator]').index($pasteButton)).toEqual(2);
   });
 
-  it("should disable `Copy` and `Paste` items when context menu was triggered from corner header", function () {
+  it("should disable `Cut`, `Copy` and `Paste` items when context menu was triggered from corner header", function () {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
@@ -100,6 +108,7 @@ describe("ContextMenuCopyPaste", function () {
     contextMenu();
 
     expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
+      'Cut',
       'Copy',
       'Paste',
       'Insert column on the left',

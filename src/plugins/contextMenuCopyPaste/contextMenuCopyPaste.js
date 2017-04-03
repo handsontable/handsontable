@@ -115,6 +115,12 @@ class ContextMenuCopyPaste extends BasePlugin {
    */
   onAfterContextMenuDefaultOptions(defaultOptions) {
     defaultOptions.items.unshift({
+        key: 'cut',
+        name: 'Cut',
+        disabled: function() {
+          return this.selection.selectedHeader.corner;
+        },
+      }, {
         key: 'copy',
         name: 'Copy',
         disabled: function() {
@@ -145,7 +151,7 @@ class ContextMenuCopyPaste extends BasePlugin {
 
     // find position of 'copy' option.
     arrayEach(data, (item, index) => {
-      if (item.key === 'copy') {
+      if (item.key === 'copy' || item.key === 'cut') {
         let zeroClipboardInstance = new ZeroClipboard(contextMenu.menu.hotMenu.getCell(index, 0));
 
         zeroClipboardInstance.off();
@@ -154,6 +160,10 @@ class ContextMenuCopyPaste extends BasePlugin {
 
           clipboard.setData('text/plain', this.getCopyValue());
           this.hot.getSettings().outsideClickDeselects = this.outsideClickDeselectsCache;
+
+          if (item.key === 'cut') {
+            this.hot.selection.empty();
+          }
         });
 
         return false;
