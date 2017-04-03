@@ -207,6 +207,7 @@ SelectEditor.prototype.refreshDimensions = function() {
 
   selectStyle.height = height + 'px';
   selectStyle.minWidth = width + 'px';
+  selectStyle.maxWidth = width + 'px';
   selectStyle.top = editTop + 'px';
   selectStyle.left = editLeft + 'px';
   selectStyle.margin = '0px';
