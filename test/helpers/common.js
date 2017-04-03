@@ -1,5 +1,9 @@
-export function spec() {
-  return currentSpec;
+export function sleep(delay = 100) {
+  return Promise.resolve({
+    then: function(resolve) {
+      setTimeout(resolve, delay);
+    }
+  });
 };
 
 export function hot() {
@@ -14,64 +18,6 @@ export function handsontable(options) {
 
   return currentSpec.$container.data('handsontable');
 };
-
-var currentSpec;
-
-beforeEach(function() {
-  currentSpec = this;
-
-  var matchers = {
-    toBeInArray() {
-      return {
-        compare(actual, expected) {
-          return {
-            pass: Array.isArray(expected) && expected.indexOf(actual) > -1
-          };
-        }
-      };
-    },
-    toBeFunction() {
-      return {
-        compare(actual, expected) {
-          return {
-            pass: typeof actual === 'function'
-          };
-        }
-      };
-    },
-    toBeAroundValue() {
-      return {
-        compare(actual, expected, diff) {
-          diff = diff || 1;
-
-          var pass = actual >= expected - diff && actual <= expected + diff;
-          var message = `Expected ${actual} to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
-
-          if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
-          }
-
-          return {
-            pass,
-            message
-          };
-        }
-      };
-    }
-  };
-
-  jasmine.addMatchers(matchers);
-
-  if (document.activeElement && document.activeElement != document.body) {
-    document.activeElement.blur();
-  } else if (!document.activeElement) { // IE
-    document.body.focus();
-  }
-});
-
-afterEach(() => {
-  window.scrollTo(0, 0);
-});
 
 /**
  * As for v. 0.11 the only scrolling method is native scroll, which creates copies of main htCore table inside of the container.

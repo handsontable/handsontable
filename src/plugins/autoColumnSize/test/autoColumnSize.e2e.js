@@ -177,21 +177,20 @@ describe('AutoColumnSize', () => {
   });
 
   // https://github.com/handsontable/handsontable/issues/2684
-  it('should correctly detect column width when table is hidden on init (display: none)', function(done) {
-    this.$container.css('display', 'none');
+  it('should correctly detect column width when table is hidden on init (display: none)', async () => {
+    spec().$container.css('display', 'none');
     var hot = handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       colHeaders: ['Identifier', 'First Name']
     });
 
-    setTimeout(() => {
-      spec().$container.css('display', 'block');
-      hot.render();
+    await sleep(200);
 
-      expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
-      done();
-    }, 200);
+    spec().$container.css('display', 'block');
+    hot.render();
+
+    expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
   });
 
   it('should keep last columns width unchanged if all rows was removed', function() {
