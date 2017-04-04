@@ -128,6 +128,9 @@ class DateEditor extends TextEditor {
       if (value !== void 0) {
         this.setValue(value);
       }
+    } else if (this.cellProperties && this.cellProperties.dateAutoFormat === true) {
+      let dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
+      this.setValue(moment(this.getValue(), dateFormat).format(Array.isArray(dateFormat) ? dateFormat[0] : dateFormat));
     }
     this.hideDatepicker();
     super.finishEditing(isCancelled, ctrlDown);
@@ -152,7 +155,7 @@ class DateEditor extends TextEditor {
     this.datePickerStyle.left = (window.pageXOffset + offset.left) + 'px';
 
     this.$datePicker._onInputFocus = function() {};
-    datePickerConfig.format = dateFormat;
+    datePickerConfig.format = Array.isArray(dateFormat) ? dateFormat[0] : dateFormat;
 
     if (this.originalValue) {
       dateStr = this.originalValue;
@@ -225,7 +228,8 @@ class DateEditor extends TextEditor {
     options.reposition = options.reposition || false;
     options.onSelect = (dateStr) => {
       if (!isNaN(dateStr.getTime())) {
-        dateStr = moment(dateStr).format(this.cellProperties.dateFormat || this.defaultDateFormat);
+        let dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
+        dateStr = moment(dateStr).format(Array.isArray(dateFormat) ? dateFormat[0] : dateFormat);
       }
       this.setValue(dateStr);
       this.hideDatepicker();
