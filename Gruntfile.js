@@ -26,6 +26,7 @@ module.exports = function(grunt) {
       listStyle: 'flat',
       activity: true,
     });
+    var errorCount = 0;
 
     // jasmine-reporter handlers.
     phantomjs.on('jasmine.jasmineStarted', function(msg) {
@@ -45,6 +46,9 @@ module.exports = function(grunt) {
       reporter.suiteDone.apply(reporter, arguments);
     });
     phantomjs.on('jasmine.specDone', function(msg) {
+      if (msg.failedExpectations.length) {
+        errorCount += msg.failedExpectations.length;
+      }
       reporter.specDone.apply(reporter, arguments);
     });
 
@@ -71,7 +75,7 @@ module.exports = function(grunt) {
         },
       },
       done: function(err) {
-        done(err);
+        done(err || errorCount === 0);
       }
     });
   }
