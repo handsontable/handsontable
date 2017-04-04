@@ -22,7 +22,7 @@
     "test:walkontable": "npm run build:walkontable && npm run test:walkontable.dump && grunt test-walkontable",
     "test:production": "npm run build:umd.min && npm run test:production.dump && grunt test-handsontable",
     "test:e2e": "npm run build:umd && npm run test:e2e.dump && grunt test-handsontable",
-    "test:e2e.watch": "./.config/bin/trigger-on-stdout-change.js \"concurrently --raw --kill-others 'npm run build:umd -- --watch' 'npm run test:e2e.dump --testPathPattern=$npm_config_testPathPattern -- --watch'\" \"grunt test-handsontable\"",
+    "test:e2e.watch": "node ./.config/bin/trigger-on-stdout-change.js \"concurrently --raw --kill-others 'npm run build:umd -- --watch' 'npm run test:e2e.dump --testPathPattern=$npm_config_testPathPattern -- --watch'\" \"grunt test-handsontable\"",
     "test:unit": "cross-env BABEL_ENV=commonjs jest --testPathPattern=$npm_config_testPathPattern",
     "test:unit.watch": "cross-env BABEL_ENV=commonjs jest --testPathPattern=$npm_config_testPathPattern --watch",
     "test:walkontable.dump": "cross-env BABEL_ENV=commonjs_e2e NODE_ENV=test-walkontable webpack --hide-modules helpers=./src/3rdparty/walkontable/test/helpers/index.js specs=./src/3rdparty/walkontable/test/spec/index.js",

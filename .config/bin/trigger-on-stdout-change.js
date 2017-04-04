@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 var treeKill = require('tree-kill');
 var spawnCommand = require('spawn-command');
 var supportsColor = require('supports-color');
