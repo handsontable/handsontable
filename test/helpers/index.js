@@ -1,17 +1,22 @@
 /* eslint-disable import/no-unresolved */
 import window from 'window';
 import * as common from './common';
+import * as jasmine from './jasmine';
+
+const exportToWindow = (helpersHolder) => {
+  Object.keys(helpersHolder).forEach((key) => {
+    if (key === '__esModule') {
+      return;
+    }
+
+    if (window[key] !== void 0) {
+      throw Error(`Cannot export "${key}" helper because this name is already assigned.`);
+    }
+
+    window[key] = helpersHolder[key];
+  });
+};
 
 // Export all helpers to the window.
-Object.keys(common).forEach((key) => {
-  window[key] = common[key];
-});
-
-// [
-//   require.context('./../../src/plugins', true, /^\.\/.*\/helpers\/index\.js$/),
-// ].forEach((req) => {
-//   req.keys().forEach((key) => {
-//     console.log(key);
-//     req(key);
-//   });
-// });
+exportToWindow(common);
+exportToWindow(jasmine);
