@@ -616,6 +616,155 @@ describe('AutocompleteEditor', () => {
       }, 200);
     });
 
+    it('should not change value type from `numeric` to `string` after mouse click suggestion - ' +
+      'test no. 1 #4143', (done) => {
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: [1, 2, 3, 4, 5, 11, 14]
+          }
+        ]
+      });
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      setTimeout(() => {
+        autocomplete().find('tbody td:eq(0)').simulate('mousedown');
+
+        expect(typeof getDataAtCell(0, 0)).toEqual('number');
+        done();
+      }, 200);
+    });
+
+    it('should not change value type from `numeric` to `string` after mouse click on suggestion - ' +
+      'test no. 2 #4143', (done) => {
+      const syncSources = jasmine.createSpy('syncSources');
+      const source = [1, 2, 3, 4, 5, 11, 14];
+
+      syncSources.and.callFake((query, process) => {
+        process(source);
+      });
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources
+          }
+        ]
+      });
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      setTimeout(() => {
+        autocomplete().find('tbody td:eq(0)').simulate('mousedown');
+
+        expect(typeof getDataAtCell(0, 0)).toEqual('number');
+        done();
+      }, 200);
+    });
+
+    it('should call `afterChange` hook with proper value types - test no. 1 #4143', (done) => {
+      let changesInside;
+      let sourceInside;
+
+      const afterChange = (changes, source) => {
+        if (source !== 'loadData') {
+          changesInside = changes;
+          sourceInside = source;
+        }
+      };
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: [1, 2, 3, 4, 5, 11, 14]
+          }
+        ],
+        afterChange
+      });
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      setTimeout(() => {
+        autocomplete().find('tbody td:eq(1)').simulate('mousedown');
+
+        expect(changesInside[0]).toEqual([0, 0, null, 2]);
+        done();
+      }, 200);
+    });
+
+    it('should call `afterChange` hook with proper value types - test no. 2 #4143', (done) => {
+      let changesInside;
+      let sourceInside;
+
+      const afterChange = (changes, source) => {
+        if (source !== 'loadData') {
+          changesInside = changes;
+          sourceInside = source;
+        }
+      };
+
+      const syncSources = jasmine.createSpy('syncSources');
+      const source = [1, 2, 3, 4, 5, 11, 14];
+
+      syncSources.and.callFake((query, process) => {
+        process(source);
+      });
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources
+          }
+        ],
+        afterChange
+      });
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      setTimeout(() => {
+        autocomplete().find('tbody td:eq(1)').simulate('mousedown');
+
+        expect(changesInside[0]).toEqual([0, 0, null, 2]);
+        done();
+      }, 200);
+    });
+
+    it('should not change value type from `numeric` to `string` when written down value from set of suggestions #4143', (done) => {
+      const syncSources = jasmine.createSpy('syncSources');
+      const source = [1, 2, 3, 4, 5, 11, 14];
+
+      syncSources.and.callFake((query, process) => {
+        process(source);
+      });
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources
+          }
+        ]
+      });
+      selectCell(0, 0);
+      keyDownUp('enter');
+      keyDownUp('backspace');
+      document.activeElement.value = '1';
+      $(document.activeElement).simulate('keyup');
+
+      setTimeout(() => {
+        keyDownUp('enter');
+        expect(getDataAtCell(0, 0)).toEqual(1);
+
+        done();
+      }, 200);
+    });
+
     it('should destroy editor when value change with Enter on suggestion', (done) => {
       var syncSources = jasmine.createSpy('syncSources');
 

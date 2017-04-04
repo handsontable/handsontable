@@ -999,7 +999,7 @@ export default function Core(rootElement, userSettings) {
 
         var cellProperties = instance.getCellMeta(row, col);
 
-        if ((cellProperties.type === 'numeric' || cellProperties.forceParsing === 'numeric') && typeof changes[i][3] === 'string') {
+        if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3]) || cellProperties.format)) {
             var len = changes[i][3].length;
 

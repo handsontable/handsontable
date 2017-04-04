@@ -1,7 +1,7 @@
 import {KEY_CODES, isPrintableChar} from './../helpers/unicode';
-import {stringify} from './../helpers/mixed';
+import {stringify, isDefined} from './../helpers/mixed';
 import {stripTags} from './../helpers/string';
-import {pivot, arrayFilter, arrayMap} from './../helpers/array';
+import {pivot, arrayMap} from './../helpers/array';
 import {
   addClass,
   getCaretPosition,
@@ -26,9 +26,23 @@ const AutocompleteEditor = HandsontableEditor.prototype.extend();
  */
 AutocompleteEditor.prototype.init = function() {
   HandsontableEditor.prototype.init.apply(this, arguments);
-
   this.query = null;
-  this.choices = [];
+  this.strippedChoices = [];
+  this.rawChoices = [];
+};
+
+AutocompleteEditor.prototype.getValue = function() {
+  const selectedValue = this.rawChoices.find((value) => {
+    const strippedValue = this.stripValueIfNeeded(value);
+
+    return strippedValue === this.TEXTAREA.value;
+  });
+
+  if (isDefined(selectedValue)) {
+    return selectedValue;
+  }
+
+  return this.TEXTAREA.value;
 };
 
 AutocompleteEditor.prototype.createElements = function() {
@@ -132,17 +146,17 @@ AutocompleteEditor.prototype.close = function() {
 };
 AutocompleteEditor.prototype.queryChoices = function(query) {
   this.query = query;
-
-  const {source, allowHtml, forceParsing} = this.cellProperties;
-  const stripTagsEach = (choices) => arrayMap(choices, (choice) => stripTags(choice));
+  const source = this.cellProperties.source;
 
   if (typeof source == 'function') {
     source.call(this.cellProperties, query, (choices) => {
-      this.updateChoicesList((allowHtml || forceParsing) ? choices : stripTagsEach(choices));
+      this.rawChoices = choices;
+      this.updateChoicesList(this.stripValuesIfNeeded(choices));
     });
 
   } else if (Array.isArray(source)) {
-    this.updateChoicesList((allowHtml || forceParsing) ? source : stripTagsEach(source));
+    this.rawChoices = source;
+    this.updateChoicesList(this.stripValuesIfNeeded(source));
 
   } else {
     this.updateChoicesList([]);
@@ -156,10 +170,13 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
   let filterSetting = this.cellProperties.filter;
   let orderByRelevance = null;
   let highlightIndex = null;
-  let flipped = null;
 
   if (sortByRelevanceSetting) {
-    orderByRelevance = AutocompleteEditor.sortByRelevance(this.getValue(), choices, this.cellProperties.filteringCaseSensitive);
+    orderByRelevance = AutocompleteEditor.sortByRelevance(
+      this.stripValueIfNeeded(this.getValue()),
+      choices,
+      this.cellProperties.filteringCaseSensitive
+    );
   }
   let orderByRelevanceLength = Array.isArray(orderByRelevance) ? orderByRelevance.length : 0;
 
@@ -185,7 +202,7 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
     choices = sorted;
   }
 
-  this.choices = choices;
+  this.strippedChoices = choices;
   this.htEditor.loadData(pivot([choices]));
 
   this.updateDropdownHeight();
@@ -388,7 +405,20 @@ AutocompleteEditor.prototype.getDropdownHeight = function() {
   let firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
   let visibleRows = this.cellProperties.visibleRows;
 
-  return this.choices.length >= visibleRows ? (visibleRows * firstRowHeight) : (this.choices.length * firstRowHeight) + 8;
+  return this.strippedChoices.length >= visibleRows ? (visibleRows * firstRowHeight) : (this.strippedChoices.length * firstRowHeight) + 8;
+};
+
+AutocompleteEditor.prototype.stripValueIfNeeded = function (value) {
+  return this.stripValuesIfNeeded([value])[0];
+};
+
+AutocompleteEditor.prototype.stripValuesIfNeeded = function (values) {
+  const {allowHtml} = this.cellProperties;
+
+  const stringifiedValues = arrayMap(values, (value) => stringify(value));
+  const strippedValues = arrayMap(stringifiedValues, (value) => (allowHtml ? value : stripTags(value)));
+
+  return strippedValues;
 };
 
 AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
