@@ -239,26 +239,5 @@ describe('settings', () => {
         });
       });
     });
-
-    describe('when `colHeaders` and `rowHeaders` properties were set', () => {
-      it('should show headers properly when `maxCols` is updated to value 0', () => {
-        handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
-          maxCols: 3,
-          colHeaders: true,
-          rowHeaders: true
-        });
-
-        updateSettings({
-          maxCols: 0
-        });
-
-        // expect(hasColHeaders()).toEqual(false);
-        // expect(getColHeader()).toEqual([]);
-
-        expect(hasRowHeaders()).toEqual(true);
-        expect(getRowHeader()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-      });
-    });
   });
 });
