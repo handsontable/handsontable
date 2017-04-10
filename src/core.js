@@ -2179,7 +2179,7 @@ export default function Core(rootElement, userSettings) {
   this.getDataAtRow = function(row) {
     var data = datamap.getRange(new CellCoords(row, 0), new CellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER);
 
-    return data[0];
+    return data[0] || [];
   };
 
   /**
@@ -2780,6 +2780,7 @@ export default function Core(rootElement, userSettings) {
    * @returns {Number} Total number of columns.
    */
   this.countCols = function() {
+    const maxCols = this.getSettings().maxCols;
     let dataHasLength = false;
     let dataLen = 0;
 
@@ -2817,7 +2818,7 @@ export default function Core(rootElement, userSettings) {
       dataLen = datamap.colToPropCache.length;
     }
 
-    return dataLen;
+    return Math.min(maxCols, dataLen);
   };
 
   /**
