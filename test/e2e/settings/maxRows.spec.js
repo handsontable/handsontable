@@ -1,6 +1,6 @@
 describe('settings', () => {
   describe('maxRows', () => {
-    var id = 'testContainer';
+    const id = 'testContainer';
 
     beforeEach(function() {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -14,72 +14,165 @@ describe('settings', () => {
     });
 
     describe('works on init', () => {
-      var trimmingTest = function(config, result) {
-        it(`should show data properly when maxRows is set to ${config.desc || config.maxRows}`, () => {
-          handsontable({
-            data: Handsontable.helper.createSpreadsheetData(config.rows, config.columns),
-            maxRows: config.maxRows
-          });
-
-          expect(getSourceData().length).toEqual(result.expectedSourceRows);
-          expect(getData().length).toEqual(result.expectedDataRows);
+      it('should show data properly when `maxRows` is set to 0', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          maxRows: 0
         });
-      };
 
-      // Can be tested when config will parsed // wszymanski, 19.12.2016
+        expect(getSourceDataAtCol(0).length).toEqual(10);
+        expect(countSourceRows()).toEqual(10);
+        expect(getData().length).toEqual(0);
+        expect(getDataAtCol(0)).toEqual([]);
+        expect(countRows()).toEqual(0);
+        expect(countEmptyRows()).toEqual(0);
+        expect(getDataAtRow(0)).toEqual([]);
+        expect(getDataAtRow(1)).toEqual([]);
+      });
 
-      // trimmingTest({rows: 10, columns: 10, maxRows: undefined}, {expectedSourceRows: 10, expectedDataRows: 10});
-      // trimmingTest({rows: 10, columns: 10, maxRows: null}, {expectedSourceRows: 10, expectedDataRows: 10});
-      // trimmingTest({rows: 10, columns: 10, maxRows: NaN}, {expectedSourceRows: 10, expectedDataRows: 10});
-      // trimmingTest({rows: 10, columns: 10, maxRows: -Infinity}, {expectedSourceRows: 10, expectedDataRows: 0});
-      // trimmingTest({desc: '< 0', rows: 10, columns: 10, maxRows: -1}, {expectedSourceRows: 10, expectedDataRows: 0});
-      trimmingTest({rows: 10, columns: 10, maxRows: 0}, {expectedSourceRows: 10, expectedDataRows: 0});
-      trimmingTest({desc: '> 0', rows: 10, columns: 10, maxRows: 5}, {expectedSourceRows: 10, expectedDataRows: 5});
-      trimmingTest({rows: 10, columns: 10, maxRows: Infinity}, {expectedSourceRows: 10, expectedDataRows: 10});
+      it('should show data properly when `maxRows` is set to value > 0', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          maxRows: 5
+        });
+
+        expect(getSourceDataAtCol(0).length).toEqual(10);
+        expect(countSourceRows()).toEqual(10);
+        expect(getData().length).toEqual(5);
+        expect(getDataAtCol(0).length).toEqual(5);
+        expect(countRows()).toEqual(5);
+        expect(countEmptyRows()).toEqual(0);
+        expect(getDataAtRow(6)).toEqual([]);
+      });
+
+      it('should show data properly when `maxRows` is set to infinity value', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          maxRows: Infinity
+        });
+
+        expect(getSourceDataAtCol(0).length).toEqual(10);
+        expect(countSourceRows()).toEqual(10);
+        expect(getData().length).toEqual(10);
+        expect(getDataAtCol(0).length).toEqual(10);
+        expect(countRows()).toEqual(10);
+        expect(countEmptyRows()).toEqual(0);
+        expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+      });
     });
 
     describe('update settings works', () => {
-      var trimmingTest = function(config, maxRowsToExpectedRows) {
-        it(config.desc, () => {
-
-          handsontable({
-            data: Handsontable.helper.createSpreadsheetData(config.rows, config.columns)
-          });
-
-          expect(getData().length).toEqual(getSourceData().length);
-
-          for (var i = 0; i < maxRowsToExpectedRows.length; i += 1) {
-            updateSettings({
-              maxRows: maxRowsToExpectedRows[i][0]
-            });
-
-            expect(getData().length).toEqual(maxRowsToExpectedRows[i][1]);
-          }
+      it('should show data properly after maxRows is updated to 0', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10)
         });
-      };
 
-      var rows = 10;
-      var columns = 10;
+        updateSettings({
+          maxRows: 0
+        });
 
-      trimmingTest({ desc: 'should show data properly after maxRows is updated to numerical values', rows, columns },
-        [
-          // [-Infinity, 0],
-          // [-2, 0],
-          [0, 0],
-          [2, 2],
-          [Infinity, rows]
-        ]
-      );
+        expect(getSourceDataAtCol(0).length).toEqual(10);
+        expect(countSourceRows()).toEqual(10);
+        expect(getData().length).toEqual(0);
+        expect(getDataAtCol(0)).toEqual([]);
+        expect(countRows()).toEqual(0);
+        expect(countEmptyRows()).toEqual(0);
+        expect(getDataAtRow(0)).toEqual([]);
+        expect(getDataAtRow(1)).toEqual([]);
+      });
 
-      // Can be tested when config will parsed // wszymanski, 19.12.2016
+      it('should show data properly after maxRows is updated to value > 0 -> test no. 1', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10)
+        });
 
-      // trimmingTest({ desc: 'should show data properly after maxRows is updated to non-numerical values', rows: rows, columns: columns},
-      //   [
-      //     [undefined, rows],
-      //     [null, rows],
-      //     [NaN, rows]
-      //   ]
-      // );
+        updateSettings({
+          maxRows: 2
+        });
+
+        expect(getSourceDataAtCol(0).length).toEqual(10);
+        expect(countSourceRows()).toEqual(10);
+        expect(getData().length).toEqual(2);
+        expect(getDataAtCol(0).length).toEqual(2);
+        expect(countRows()).toEqual(2);
+        expect(countEmptyRows()).toEqual(0);
+        expect(getDataAtRow(3)).toEqual([]);
+      });
+
+      it('should show data properly after maxRows is updated to value > 0 -> test no. 2', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          maxRows: 5
+        });
+
+        updateSettings({
+          maxRows: 2
+        });
+
+        expect(getSourceDataAtCol(0).length).toEqual(10);
+        expect(countSourceRows()).toEqual(10);
+        expect(getData().length).toEqual(2);
+        expect(getDataAtCol(0).length).toEqual(2);
+        expect(countRows()).toEqual(2);
+        expect(countEmptyRows()).toEqual(0);
+        expect(getDataAtRow(3)).toEqual([]);
+      });
+
+      it('should show data properly after maxRows is updated to value > 0 -> test no. 3', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          maxRows: 2
+        });
+
+        updateSettings({
+          maxRows: 5
+        });
+
+        expect(getSourceDataAtCol(0).length).toEqual(10);
+        expect(countSourceRows()).toEqual(10);
+        expect(getData().length).toEqual(5);
+        expect(getDataAtCol(0).length).toEqual(5);
+        expect(countRows()).toEqual(5);
+        expect(countEmptyRows()).toEqual(0);
+        expect(getDataAtRow(6)).toEqual([]);
+      });
+
+      it('should show data properly after maxRows is updated to infinity value -> test no. 1', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10)
+        });
+
+        updateSettings({
+          maxRows: Infinity
+        });
+
+        expect(getSourceDataAtCol(0).length).toEqual(10);
+        expect(countSourceRows()).toEqual(10);
+        expect(getData().length).toEqual(10);
+        expect(getDataAtCol(0).length).toEqual(10);
+        expect(countRows()).toEqual(10);
+        expect(countEmptyRows()).toEqual(0);
+        expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+      });
+
+      it('should show data properly after maxRows is updated to infinity value -> test no. 2', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          maxRows: 2
+        });
+
+        updateSettings({
+          maxRows: Infinity
+        });
+
+        expect(getSourceDataAtCol(0).length).toEqual(10);
+        expect(countSourceRows()).toEqual(10);
+        expect(getData().length).toEqual(10);
+        expect(getDataAtCol(0).length).toEqual(10);
+        expect(countRows()).toEqual(10);
+        expect(countEmptyRows()).toEqual(0);
+        expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+      });
     });
   });
 });
