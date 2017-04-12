@@ -63,6 +63,8 @@ module.exports.create = function create(envArgs) {
         ],
       })
     );
+
+    c.node.global = true;
   });
 
   return [].concat(config);

@@ -6,7 +6,6 @@ import {cleanPatches} from './utils';
 /**
  * @class DataObserver
  * @plugin ObserveChanges
- * @dependencies jsonpatch
  */
 class DataObserver {
   constructor(observedData) {
