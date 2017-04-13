@@ -20,6 +20,7 @@ module.exports.BUILD_DATE = BUILD_DATE;
 module.exports.BASE_VERSION = BASE_VERSION;
 
 licenseBody += '\nVersion: ' + PACKAGE_VERSION;
+licenseBody += '\nDate: ' + BUILD_DATE;
 
 module.exports.create = function create(envArgs) {
   var config = {
