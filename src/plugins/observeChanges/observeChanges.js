@@ -8,7 +8,6 @@ import {registerPlugin} from './../../plugins';
 
 /**
  * @plugin ObserveChanges
- * @dependencies jsonpatch
  *
  * @description
  * This plugin allows to observe data source changes.
