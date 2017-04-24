@@ -96,9 +96,8 @@ function findSubCommand(commands, items, keys) {
     commands.shift();
     keys.push(commands[0]);
     return findSubCommand(commands, command.submenu.items, keys);
-  } else {
-    return command;
   }
+  return command;
 }
 
 export default CommandExecutor;
