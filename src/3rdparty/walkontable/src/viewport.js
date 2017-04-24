@@ -1,4 +1,3 @@
-import Handsontable from './../../../browser';
 import {
   getScrollbarWidth,
   getScrollTop,
@@ -7,14 +6,15 @@ import {
   outerHeight,
   outerWidth,
 } from './../../../helpers/dom/element';
-import {EventManager} from './../../../eventManager';
-import {WalkontableViewportColumnsCalculator} from './calculator/viewportColumns';
-import {WalkontableViewportRowsCalculator} from './calculator/viewportRows';
+import {objectEach} from './../../../helpers/object';
+import EventManager from './../../../eventManager';
+import ViewportColumnsCalculator from './calculator/viewportColumns';
+import ViewportRowsCalculator from './calculator/viewportRows';
 
 /**
- * @class WalkontableViewport
+ * @class Viewport
  */
-class WalkontableViewport {
+class Viewport {
   /**
    * @param wotInstance
    */
@@ -71,7 +71,7 @@ class WalkontableViewport {
       return outerWidth(this.instance.wtTable.wtRootElement);
     }
 
-    if (Handsontable.freezeOverlays) {
+    if (this.wot.getSetting('freezeOverlays')) {
       width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
     } else {
       width = Math.min(this.getContainerFillWidth(), docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
@@ -98,10 +98,10 @@ class WalkontableViewport {
     if (stretchSetting === 'none' || !stretchSetting) {
       // if no stretching is used, return the maximum used workspace width
       return Math.max(width, outerWidth(this.instance.wtTable.TABLE));
-    } else {
-      // if stretching is used, return the actual container width, so the columns can fit inside it
-      return width;
     }
+      // if stretching is used, return the actual container width, so the columns can fit inside it
+    return width;
+
   }
 
   /**
@@ -181,7 +181,7 @@ class WalkontableViewport {
   getWorkspaceActualWidth() {
     return outerWidth(this.wot.wtTable.TABLE) ||
       outerWidth(this.wot.wtTable.TBODY) ||
-      outerWidth(this.wot.wtTable.THEAD); //IE8 reports 0 as <table> offsetWidth;
+      outerWidth(this.wot.wtTable.THEAD); // IE8 reports 0 as <table> offsetWidth;
   }
 
   /**
@@ -284,7 +284,7 @@ class WalkontableViewport {
    *  - rowsRenderCalculator (before draw, to qualify rows for rendering)
    *  - rowsVisibleCalculator (after draw, to measure which rows are actually visible)
    *
-   * @returns {WalkontableViewportRowsCalculator}
+   * @returns {ViewportRowsCalculator}
    */
   createRowsCalculator(visible = false) {
     let height;
@@ -329,13 +329,11 @@ class WalkontableViewport {
       scrollbarHeight = getScrollbarWidth();
     }
 
-    return new WalkontableViewportRowsCalculator(
+    return new ViewportRowsCalculator(
       height,
       pos,
       this.wot.getSetting('totalRows'),
-      (sourceRow) => {
-        return this.wot.wtTable.getRowHeight(sourceRow);
-      },
+      (sourceRow) => this.wot.wtTable.getRowHeight(sourceRow),
       visible ? null : this.wot.wtSettings.settings.viewportRowCalculatorOverride,
       visible,
       scrollbarHeight
@@ -347,7 +345,7 @@ class WalkontableViewport {
    *  - columnsRenderCalculator (before draw, to qualify columns for rendering)
    *  - columnsVisibleCalculator (after draw, to measure which columns are actually visible)
    *
-   * @returns {WalkontableViewportRowsCalculator}
+   * @returns {ViewportRowsCalculator}
    */
   createColumnsCalculator(visible = false) {
     let width = this.getViewportWidth();
@@ -372,13 +370,11 @@ class WalkontableViewport {
       width -= getScrollbarWidth();
     }
 
-    return new WalkontableViewportColumnsCalculator(
+    return new ViewportColumnsCalculator(
       width,
       pos,
       this.wot.getSetting('totalColumns'),
-      (sourceCol) => {
-        return this.wot.wtTable.getColumnWidth(sourceCol);
-      },
+      (sourceCol) => this.wot.wtTable.getColumnWidth(sourceCol),
       visible ? null : this.wot.wtSettings.settings.viewportColumnCalculatorOverride,
       visible,
       this.wot.getSetting('stretchH'),
@@ -445,9 +441,9 @@ class WalkontableViewport {
           proposedRowsVisibleCalculator.endRow < this.wot.getSetting('totalRows') - 1)) {
         return false;
 
-      } else {
-        return true;
       }
+      return true;
+
     }
 
     return false;
@@ -473,15 +469,22 @@ class WalkontableViewport {
           proposedColumnsVisibleCalculator.endColumn < this.wot.getSetting('totalColumns') - 1)) {
         return false;
 
-      } else {
-        return true;
       }
+      return true;
+
     }
 
     return false;
   }
+
+  /**
+   * Resets values in keys of the hasOversizedColumnHeadersMarked object after updateSettings.
+   */
+  resetHasOversizedColumnHeadersMarked() {
+    objectEach(this.hasOversizedColumnHeadersMarked, (value, key, object) => {
+      object[key] = void 0;
+    });
+  }
 }
 
-export {WalkontableViewport};
-
-window.WalkontableViewport = WalkontableViewport;
+export default Viewport;

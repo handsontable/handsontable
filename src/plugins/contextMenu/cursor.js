@@ -1,4 +1,3 @@
-import Handsontable from './../../browser';
 import {getWindowScrollLeft, getWindowScrollTop} from './../../helpers/dom/element';
 import {pageX, pageY} from './../../helpers/dom/event';
 
@@ -12,13 +11,15 @@ class Cursor {
   constructor(object) {
     let windowScrollTop = getWindowScrollTop();
     let windowScrollLeft = getWindowScrollLeft();
-    let top, topRelative;
-    let left, leftRelative;
-    let cellHeight, cellWidth;
+    let top,
+      topRelative;
+    let left,
+      leftRelative;
+    let cellHeight,
+      cellWidth;
 
     this.type = this.getSourceType(object);
 
-    /* jshint -W020 */
     if (this.type === 'literal') {
       top = parseInt(object.top, 10);
       left = parseInt(object.left, 10);
@@ -26,8 +27,8 @@ class Cursor {
       cellWidth = object.width || 0;
       topRelative = top;
       leftRelative = left;
-      top = top + windowScrollTop;
-      left = left + windowScrollLeft;
+      top += windowScrollTop;
+      left += windowScrollLeft;
 
     } else if (this.type === 'event') {
       top = parseInt(pageY(object), 10);
@@ -107,8 +108,4 @@ class Cursor {
   }
 }
 
-export {Cursor};
-
-// temp for tests only!
-Handsontable.plugins.utils = Handsontable.plugins.utils || {};
-Handsontable.plugins.utils.Cursor = Cursor;
+export default Cursor;

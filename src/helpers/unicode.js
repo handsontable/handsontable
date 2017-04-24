@@ -1,4 +1,3 @@
-
 import {arrayEach} from './array';
 
 export const KEY_CODES = {
@@ -53,13 +52,13 @@ export const KEY_CODES = {
  * @returns {Boolean}
  */
 export function isPrintableChar(keyCode) {
-  return ((keyCode == 32) || //space
-      (keyCode >= 48 && keyCode <= 57) || //0-9
-      (keyCode >= 96 && keyCode <= 111) || //numpad
-      (keyCode >= 186 && keyCode <= 192) || //;=,-./`
-      (keyCode >= 219 && keyCode <= 222) || //[]{}\|"'
-      keyCode >= 226 || //special chars (229 for Asian chars)
-      (keyCode >= 65 && keyCode <= 90)); //a-z
+  return ((keyCode == 32) || // space
+      (keyCode >= 48 && keyCode <= 57) || // 0-9
+      (keyCode >= 96 && keyCode <= 111) || // numpad
+      (keyCode >= 186 && keyCode <= 192) || // ;=,-./`
+      (keyCode >= 219 && keyCode <= 222) || // []{}\|"'
+      keyCode >= 226 || // special chars (229 for Asian chars)
+      (keyCode >= 65 && keyCode <= 90)); // a-z
 }
 
 /**
@@ -118,7 +117,7 @@ export function isKey(keyCode, baseCode) {
   let keys = baseCode.split('|');
   let result = false;
 
-  arrayEach(keys, function(key) {
+  arrayEach(keys, (key) => {
     if (keyCode === KEY_CODES[key]) {
       result = true;
 

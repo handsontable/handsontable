@@ -1,4 +1,3 @@
-import Handsontable from './../../browser';
 import {
   addClass,
   closest,
@@ -10,17 +9,19 @@ import {
   getScrollableElement
 } from './../../helpers/dom/element';
 import {
-  deepExtend
+  deepClone, deepExtend
 } from './../../helpers/object';
 import {
   debounce
 } from './../../helpers/function';
-import {EventManager} from './../../eventManager';
-import {WalkontableCellCoords} from './../../3rdparty/walkontable/src/cell/coords';
-import {registerPlugin} from './../../plugins';
+import EventManager from './../../eventManager';
+import {CellCoords} from './../../3rdparty/walkontable/src';
+import {registerPlugin, getPlugin} from './../../plugins';
 import BasePlugin from './../_base';
-import {CommentEditor} from './commentEditor';
+import CommentEditor from './commentEditor';
 import {checkSelectionConsistency, markLabelAsSelected} from './../contextMenu/utils';
+
+import './comments.css';
 
 const privatePool = new WeakMap();
 const META_COMMENT = 'comment';
@@ -184,7 +185,7 @@ class Comments extends BasePlugin {
    * Set current cell range to be able to use general methods like {@link Comments#setComment},
    * {@link Comments#removeComment}, {@link Comments#show}.
    *
-   * @param {Object} range Object with `row` and `col` properties.
+   * @param {Object} range Object with `from` and `to` properties, each with `row` and `col` properties.
    */
   setRange(range) {
     this.range = range;
@@ -206,7 +207,7 @@ class Comments extends BasePlugin {
   targetIsCellWithComment(event) {
     const closestCell = closest(event.target, 'TD', 'TBODY');
 
-    return closestCell && hasClass(closestCell, 'htCommentCell') && closest(closestCell, [this.hot.rootElement]) ? true : false;
+    return !!(closestCell && hasClass(closestCell, 'htCommentCell') && closest(closestCell, [this.hot.rootElement]));
   }
 
   /**
@@ -240,7 +241,7 @@ class Comments extends BasePlugin {
     let row = this.range.from.row;
     let col = this.range.from.col;
 
-    this.hot.setCellMeta(row, col, META_COMMENT, {[META_COMMENT_VALUE]: comment});
+    this.updateCommentMeta(row, col, {[META_COMMENT_VALUE]: comment});
     this.hot.render();
   }
 
@@ -253,7 +254,7 @@ class Comments extends BasePlugin {
    */
   setCommentAtCell(row, col, value) {
     this.setRange({
-      from: new WalkontableCellCoords(row, col)
+      from: new CellCoords(row, col)
     });
     this.setComment(value);
   }
@@ -286,7 +287,7 @@ class Comments extends BasePlugin {
    */
   removeCommentAtCell(row, col, forceRender = true) {
     this.setRange({
-      from: new WalkontableCellCoords(row, col)
+      from: new CellCoords(row, col)
     });
     this.removeComment(forceRender);
   }
@@ -295,7 +296,10 @@ class Comments extends BasePlugin {
    * Get comment from a cell at the predefined range.
    */
   getComment() {
+    const row = this.range.from.row;
+    const column = this.range.from.col;
 
+    return this.getCommentMeta(row, column, META_COMMENT_VALUE);
   }
 
   /**
@@ -305,7 +309,7 @@ class Comments extends BasePlugin {
    * @param {Number} column Column index.
    */
   getCommentAtCell(row, column) {
-
+    return this.getCommentMeta(row, column, META_COMMENT_VALUE);
   }
 
   /**
@@ -338,7 +342,7 @@ class Comments extends BasePlugin {
    */
   showAtCell(row, col) {
     this.setRange({
-      from: new WalkontableCellCoords(row, col)
+      from: new CellCoords(row, col)
     });
 
     return this.show();
@@ -372,11 +376,11 @@ class Comments extends BasePlugin {
     let cellLeftOffset = cellOffset.left;
 
     if (this.hot.view.wt.wtViewport.hasVerticalScroll() && scrollableElement !== window) {
-      cellTopOffset = cellTopOffset - this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
+      cellTopOffset -= this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
     }
 
     if (this.hot.view.wt.wtViewport.hasHorizontalScroll() && scrollableElement !== window) {
-      cellLeftOffset = cellLeftOffset - this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
+      cellLeftOffset -= this.hot.view.wt.wtOverlays.leftOverlay.getScrollPosition();
     }
 
     let x = cellLeftOffset + lastColWidth;
@@ -426,12 +430,17 @@ class Comments extends BasePlugin {
    * @param {Object} metaObject Object defining all the comment-related meta information.
    */
   updateCommentMeta(row, column, metaObject) {
-    const cellMeta = this.hot.getCellMeta(row, column);
-    let newObj = {
-      [META_COMMENT]: metaObject
-    };
+    const oldComment = this.hot.getCellMeta(row, column)[META_COMMENT];
+    let newComment;
 
-    deepExtend(cellMeta, newObj);
+    if (oldComment) {
+      newComment = deepClone(oldComment);
+      deepExtend(newComment, metaObject);
+    } else {
+      newComment = metaObject;
+    }
+
+    this.hot.setCellMeta(row, column, META_COMMENT, newComment);
   }
 
   /**
@@ -501,7 +510,7 @@ class Comments extends BasePlugin {
       if (this.targetIsCellWithComment(event)) {
         let coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
         let range = {
-          from: new WalkontableCellCoords(coordinates.row, coordinates.col)
+          from: new CellCoords(coordinates.row, coordinates.col)
         };
 
         this.setRange(range);
@@ -523,7 +532,7 @@ class Comments extends BasePlugin {
     this.mouseDown = false;
   }
 
-  /***
+  /** *
    * The `afterRenderer` hook callback..
    *
    * @private
@@ -647,30 +656,26 @@ class Comments extends BasePlugin {
    */
   addToContextMenu(defaultOptions) {
     defaultOptions.items.push(
-      Handsontable.plugins.ContextMenu.SEPARATOR,
+      getPlugin(this.hot, 'contextMenu').constructor.SEPARATOR,
       {
         key: 'commentsAddEdit',
-        name: () => {
-          return this.checkSelectionCommentsConsistency() ? 'Edit comment' : 'Add comment';
-        },
+        name: () => (this.checkSelectionCommentsConsistency() ? 'Edit comment' : 'Add comment'),
         callback: () => this.onContextMenuAddComment(),
-        disabled: function() {
-          return this.getSelected() && !this.selection.selectedHeader.corner ? false : true;
+        disabled() {
+          return !(this.getSelected() && !this.selection.selectedHeader.corner);
         }
       },
       {
         key: 'commentsRemove',
-        name: function() {
+        name() {
           return 'Delete comment';
         },
         callback: (key, selection) => this.onContextMenuRemoveComment(selection),
-        disabled: () => {
-          return this.hot.selection.selectedHeader.corner;
-        }
+        disabled: () => this.hot.selection.selectedHeader.corner
       },
       {
         key: 'commentsReadOnly',
-        name: function() {
+        name() {
           let label = 'Read only comment';
           let hasProperty = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
             let readOnlyProperty = this.getCellMeta(row, col)[META_COMMENT];
@@ -690,9 +695,7 @@ class Comments extends BasePlugin {
           return label;
         },
         callback: (key, selection) => this.onContextMenuMakeReadOnly(selection),
-        disabled: () => {
-          return this.hot.selection.selectedHeader.corner || !this.checkSelectionCommentsConsistency();
-        }
+        disabled: () => this.hot.selection.selectedHeader.corner || !this.checkSelectionCommentsConsistency()
       }
     );
   }
@@ -719,6 +722,6 @@ class Comments extends BasePlugin {
   }
 }
 
-export {Comments};
-
 registerPlugin('comments', Comments);
+
+export default Comments;

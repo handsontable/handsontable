@@ -6,25 +6,26 @@
  * @returns {String}
  */
 export function stringify(value) {
+  let result;
+
   switch (typeof value) {
     case 'string':
     case 'number':
-      return value + '';
+      result = `${value}`;
+      break;
 
     case 'object':
-      if (value === null) {
-        return '';
-
-      } else {
-        return value.toString();
-      }
+      result = value === null ? '' : value.toString();
       break;
     case 'undefined':
-      return '';
-
+      result = '';
+      break;
     default:
-      return value.toString();
+      result = value.toString();
+      break;
   }
+
+  return result;
 }
 
 /**
@@ -40,9 +41,18 @@ export function isDefined(variable) {
 /**
  * Checks if given variable is undefined.
  *
- * @param variable Variable to check.
+ * @param {*} variable Variable to check.
  * @returns {Boolean}
  */
 export function isUndefined(variable) {
   return typeof variable === 'undefined';
+}
+
+/**
+ * Check if given variable is null, empty string or undefined
+ * @param {*} variable Variable to check.
+ * @returns {Boolean}
+ */
+export function isEmpty(variable) {
+  return variable === null || variable === '' || isUndefined(variable);
 }

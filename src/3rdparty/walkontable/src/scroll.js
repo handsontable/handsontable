@@ -8,9 +8,9 @@ import {
 import {rangeEach, rangeEachReverse} from './../../../helpers/number';
 
 /**
- * @class WalkontableScroll
+ * @class Scroll
  */
-class WalkontableScroll {
+class Scroll {
   /**
    * @param {Walkontable} wotInstance
    */
@@ -24,7 +24,7 @@ class WalkontableScroll {
   /**
    * Scrolls viewport to a cell by minimum number of cells
    *
-   * @param {WalkontableCellCoords} coords
+   * @param {CellCoords} coords
    */
   scrollViewport(coords) {
     if (!this.wot.drawn) {
@@ -262,6 +262,4 @@ class WalkontableScroll {
   }
 }
 
-export {WalkontableScroll};
-
-window.WalkontableScroll = WalkontableScroll;
+export default Scroll;

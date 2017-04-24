@@ -1,16 +1,16 @@
 import {objectEach} from './../../helpers/object';
-import {alignmentItem, KEY as ALIGNMENT} from './predefinedItems/alignment';
-import {clearColumnItem, KEY as CLEAR_COLUMN} from './predefinedItems/clearColumn';
-import {columnLeftItem, KEY as COLUMN_LEFT} from './predefinedItems/columnLeft';
-import {columnRightItem, KEY as COLUMN_RIGHT} from './predefinedItems/columnRight';
-import {readOnlyItem, KEY as READ_ONLY} from './predefinedItems/readOnly';
-import {redoItem, KEY as REDO} from './predefinedItems/redo';
-import {removeColumnItem, KEY as REMOVE_COLUMN} from './predefinedItems/removeColumn';
-import {removeRowItem, KEY as REMOVE_ROW} from './predefinedItems/removeRow';
-import {rowAboveItem, KEY as ROW_ABOVE} from './predefinedItems/rowAbove';
-import {rowBelowItem, KEY as ROW_BELOW} from './predefinedItems/rowBelow';
-import {separatorItem, KEY as SEPARATOR} from './predefinedItems/separator';
-import {undoItem, KEY as UNDO} from './predefinedItems/undo';
+import alignmentItem, {KEY as ALIGNMENT} from './predefinedItems/alignment';
+import clearColumnItem, {KEY as CLEAR_COLUMN} from './predefinedItems/clearColumn';
+import columnLeftItem, {KEY as COLUMN_LEFT} from './predefinedItems/columnLeft';
+import columnRightItem, {KEY as COLUMN_RIGHT} from './predefinedItems/columnRight';
+import readOnlyItem, {KEY as READ_ONLY} from './predefinedItems/readOnly';
+import redoItem, {KEY as REDO} from './predefinedItems/redo';
+import removeColumnItem, {KEY as REMOVE_COLUMN} from './predefinedItems/removeColumn';
+import removeRowItem, {KEY as REMOVE_ROW} from './predefinedItems/removeRow';
+import rowAboveItem, {KEY as ROW_ABOVE} from './predefinedItems/rowAbove';
+import rowBelowItem, {KEY as ROW_BELOW} from './predefinedItems/rowBelow';
+import separatorItem, {KEY as SEPARATOR} from './predefinedItems/separator';
+import undoItem, {KEY as UNDO} from './predefinedItems/undo';
 
 export {KEY as ALIGNMENT} from './predefinedItems/alignment';
 export {KEY as CLEAR_COLUMN} from './predefinedItems/clearColumn';
@@ -53,7 +53,9 @@ const _predefinedItems = {
 export function predefinedItems() {
   const items = {};
 
-  objectEach(_predefinedItems, (itemFactory, key) => items[key] = itemFactory());
+  objectEach(_predefinedItems, (itemFactory, key) => {
+    items[key] = itemFactory();
+  });
 
   return items;
 }

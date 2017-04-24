@@ -10,18 +10,18 @@ import {
   setOverlayPosition,
   resetCssTransform
 } from './../../../../helpers/dom/element';
-import {WalkontableOverlay} from './_base';
+import Overlay from './_base';
 
 /**
- * @class WalkontableTopOverlay
+ * @class TopOverlay
  */
-class WalkontableTopOverlay extends WalkontableOverlay {
+class TopOverlay extends Overlay {
   /**
    * @param {Walkontable} wotInstance
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(WalkontableOverlay.CLONE_TOP);
+    this.clone = this.makeClone(Overlay.CLONE_TOP);
   }
 
   /**
@@ -30,7 +30,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
    * @returns {Boolean}
    */
   shouldBeRendered() {
-    return this.wot.getSetting('fixedRowsTop') || this.wot.getSetting('columnHeaders').length ? true : false;
+    return !!(this.wot.getSetting('fixedRowsTop') || this.wot.getSetting('columnHeaders').length);
   }
 
   /**
@@ -61,7 +61,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
         finalTop = 0;
       }
       headerPosition = finalTop;
-      finalTop = finalTop + 'px';
+      finalTop += 'px';
 
       setOverlayPosition(overlayRoot, finalLeft, finalTop);
 
@@ -151,7 +151,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
 
       width = Math.min(width, innerWidth(this.wot.wtTable.wtRootElement));
 
-      overlayRootStyle.width = width + 'px';
+      overlayRootStyle.width = `${width}px`;
 
     } else {
       overlayRootStyle.width = '';
@@ -160,7 +160,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
     tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    overlayRootStyle.height = (tableHeight === 0 ? tableHeight : tableHeight + 4) + 'px';
+    overlayRootStyle.height = `${tableHeight === 0 ? tableHeight : tableHeight + 4}px`;
   }
 
   /**
@@ -175,7 +175,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     if (scrollbarWidth === 0) {
       scrollbarWidth = 30;
     }
-    this.clone.wtTable.holder.style.height = parseInt(this.clone.wtTable.holder.parentNode.style.height, 10) + scrollbarWidth + 'px';
+    this.clone.wtTable.holder.style.height = `${parseInt(this.clone.wtTable.holder.parentNode.style.height, 10) + scrollbarWidth}px`;
   }
 
   /**
@@ -188,7 +188,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       this.adjustElementsSize();
     }
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-      this.spreader.style.top = this.wot.wtViewport.rowsRenderCalculator.startPosition + 'px';
+      this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
     } else if (total === 0) {
       // can happen if there are 0 rows
@@ -209,7 +209,7 @@ class WalkontableTopOverlay extends WalkontableOverlay {
    */
   syncOverlayOffset() {
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
-      this.clone.wtTable.spreader.style.left = this.wot.wtViewport.columnsRenderCalculator.startPosition + 'px';
+      this.clone.wtTable.spreader.style.left = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
     } else {
       this.clone.wtTable.spreader.style.left = '';
@@ -259,9 +259,9 @@ class WalkontableTopOverlay extends WalkontableOverlay {
     if (this.mainTableScrollableElement === window) {
       return this.wot.wtTable.holderOffset.top;
 
-    } else {
-      return 0;
     }
+    return 0;
+
   }
 
   /**
@@ -271,6 +271,35 @@ class WalkontableTopOverlay extends WalkontableOverlay {
    */
   getScrollPosition() {
     return getScrollTop(this.mainTableScrollableElement);
+  }
+
+  /**
+   * Redraw borders of selection
+   *
+   * @param {WalkontableSelection} selection Selection for redraw
+   */
+  redrawSelectionBorders(selection) {
+    if (selection && selection.cellRange) {
+      const border = selection.getBorder(this.wot);
+
+      if (border) {
+        const corners = selection.getCorners();
+        border.disappear();
+        border.appear(corners);
+      }
+    }
+  }
+
+  /**
+   * Redrawing borders of all selections
+   */
+  redrawAllSelectionsBorders() {
+    const selections = this.wot.selections;
+
+    this.redrawSelectionBorders(selections.current);
+    this.redrawSelectionBorders(selections.area);
+    this.redrawSelectionBorders(selections.fill);
+    this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
   }
 
   /**
@@ -296,8 +325,13 @@ class WalkontableTopOverlay extends WalkontableOverlay {
       } else {
         removeClass(masterParent, 'innerBorderTop');
       }
+
       if (!previousState && position || previousState && !position) {
         this.wot.wtOverlays.adjustElementsSize();
+
+        // cell borders should be positioned once again,
+        // because we added / removed 1px border from table header
+        this.redrawAllSelectionsBorders();
       }
     }
 
@@ -314,8 +348,6 @@ class WalkontableTopOverlay extends WalkontableOverlay {
   }
 }
 
-export {WalkontableTopOverlay};
+Overlay.registerOverlay(Overlay.CLONE_TOP, TopOverlay);
 
-window.WalkontableTopOverlay = WalkontableTopOverlay;
-
-WalkontableOverlay.registerOverlay(WalkontableOverlay.CLONE_TOP, WalkontableTopOverlay);
+export default TopOverlay;

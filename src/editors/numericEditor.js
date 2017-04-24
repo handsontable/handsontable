@@ -1,6 +1,6 @@
 import numbro from 'numbro';
 import {registerEditor} from './../editors';
-import {TextEditor} from './textEditor';
+import TextEditor from './textEditor';
 
 /**
  * @private
@@ -18,12 +18,12 @@ class NumericEditor extends TextEditor {
         numbro.culture(this.cellProperties.language);
       }
       let decimalDelimiter = numbro.cultureData().delimiters.decimal;
-      initialValue = ('' + this.originalValue).replace('.', decimalDelimiter);
+      initialValue = (`${this.originalValue}`).replace('.', decimalDelimiter);
     }
     super.beginEditing(initialValue);
   }
 }
 
-export {NumericEditor};
-
 registerEditor('numeric', NumericEditor);
+
+export default NumericEditor;

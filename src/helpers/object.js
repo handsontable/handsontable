@@ -1,4 +1,3 @@
-
 import {arrayEach} from './array';
 
 /**
@@ -15,7 +14,7 @@ export function duckSchema(object) {
   } else {
     schema = {};
 
-    objectEach(object, function(value, key) {
+    objectEach(object, (value, key) => {
       if (key === '__children') {
         return;
       }
@@ -63,7 +62,7 @@ export function inherit(Child, Parent) {
  * @param {Object} extension An object containing additional properties to merge into the target.
  */
 export function extend(target, extension) {
-  objectEach(extension, function(value, key) {
+  objectEach(extension, (value, key) => {
     target[key] = value;
   });
 
@@ -77,7 +76,7 @@ export function extend(target, extension) {
  * @param {Object} extension An object containing additional properties to merge into the target.
  */
 export function deepExtend(target, extension) {
-  objectEach(extension, function(value, key) {
+  objectEach(extension, (value, key) => {
     if (extension[key] && typeof extension[key] === 'object') {
       if (!target[key]) {
         if (Array.isArray(extension[key])) {
@@ -150,7 +149,7 @@ export function mixin(Base, ...mixins) {
 
       } else {
         let getter = function _getter(propertyName, initialValue) {
-          propertyName = '_' + propertyName;
+          propertyName = `_${propertyName}`;
 
           let initValue = (value) => {
             if (Array.isArray(value) || isObject(value)) {
@@ -169,7 +168,7 @@ export function mixin(Base, ...mixins) {
           };
         };
         let setter = function _setter(propertyName) {
-          propertyName = '_' + propertyName;
+          propertyName = `_${propertyName}`;
 
           return function(value) {
             this[propertyName] = value;
@@ -208,32 +207,6 @@ export function isObject(obj) {
   return Object.prototype.toString.call(obj) == '[object Object]';
 }
 
-export function getPrototypeOf(obj) {
-  var prototype;
-
-  /* jshint ignore:start */
-  if (typeof obj.__proto__ == 'object') {
-    prototype = obj.__proto__;
-  } else {
-    var oldConstructor,
-      constructor = obj.constructor;
-
-    if (typeof obj.constructor == 'function') {
-      oldConstructor = constructor;
-
-      if (delete obj.constructor) {
-        constructor = obj.constructor; // get real constructor
-        obj.constructor = oldConstructor; // restore constructor
-      }
-    }
-
-    prototype = constructor ? constructor.prototype : null; // needed for IE
-  }
-  /* jshint ignore:end */
-
-  return prototype;
-}
-
 export function defineGetter(object, property, value, options) {
   options.value = value;
   options.writable = options.writable !== false;
@@ -252,7 +225,7 @@ export function defineGetter(object, property, value, options) {
  */
 export function objectEach(object, iteratee) {
   for (let key in object) {
-    if (!object.hasOwnProperty || (object.hasOwnProperty && object.hasOwnProperty(key))) {
+    if (!object.hasOwnProperty || (object.hasOwnProperty && Object.prototype.hasOwnProperty.call(object, key))) {
       if (iteratee(object[key], key, object) === false) {
         break;
       }
@@ -331,10 +304,10 @@ export function createObjectPropListener(defaultValue, propertyToListen = 'value
   };
 
   Object.defineProperty(holder, propertyToListen, {
-    get: function() {
+    get() {
       return this[privateProperty];
     },
-    set: function(value) {
+    set(value) {
       this._touched = true;
       this[privateProperty] = value;
     },
@@ -343,4 +316,14 @@ export function createObjectPropListener(defaultValue, propertyToListen = 'value
   });
 
   return holder;
+}
+
+/**
+ * Check if at specified `key` there is any value for `object`.
+ *
+ * @param {Object} object Object to search value at specyfic key.
+ * @param {String} key String key to check.
+ */
+export function hasOwnProperty(object, key) {
+  return Object.prototype.hasOwnProperty.call(object, key);
 }

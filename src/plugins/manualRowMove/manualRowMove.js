@@ -1,13 +1,20 @@
 import BasePlugin from './../_base.js';
-import Handsontable from './../../browser';
+import Hooks from './../../pluginHooks';
 import {arrayEach} from './../../helpers/array';
 import {addClass, removeClass, offset} from './../../helpers/dom/element';
 import {rangeEach} from './../../helpers/number';
-import {eventManager as eventManagerObject} from './../../eventManager';
+import EventManager from './../../eventManager';
 import {registerPlugin} from './../../plugins';
-import {RowsMapper} from './rowsMapper';
-import {BacklightUI} from './ui/backlight';
-import {GuidelineUI} from './ui/guideline';
+import RowsMapper from './rowsMapper';
+import BacklightUI from './ui/backlight';
+import GuidelineUI from './ui/guideline';
+import {CellCoords} from './../../3rdparty/walkontable/src';
+
+import './manualRowMove.css';
+
+Hooks.getSingleton().register('beforeRowMove');
+Hooks.getSingleton().register('afterRowMove');
+Hooks.getSingleton().register('unmodifyRow');
 
 const privatePool = new WeakMap();
 const CSS_PLUGIN = 'ht__manualRowMove';
@@ -70,7 +77,7 @@ class ManualRowMove extends BasePlugin {
      *
      * @type {Object}
      */
-    this.eventManager = eventManagerObject(this);
+    this.eventManager = new EventManager(this);
     /**
      * Backlight UI object.
      *
@@ -109,6 +116,7 @@ class ManualRowMove extends BasePlugin {
     this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
+    this.addHook('afterLoadData', (firstTime) => this.onAfterLoadData(firstTime));
     this.addHook('beforeColumnSort', (column, order) => this.onBeforeColumnSort(column, order));
     this.addHook('unmodifyRow', (row) => this.onUnmodifyRow(row));
 
@@ -207,8 +215,8 @@ class ManualRowMove extends BasePlugin {
     let selection = this.hot.selection;
     let lastColIndex = this.hot.countCols() - 1;
 
-    selection.setRangeStartOnly(new WalkontableCellCoords(startRow, 0));
-    selection.setRangeEnd(new WalkontableCellCoords(endRow, lastColIndex), false);
+    selection.setRangeStartOnly(new CellCoords(startRow, 0));
+    selection.setRangeEnd(new CellCoords(endRow, lastColIndex), false);
   }
 
   /**
@@ -279,7 +287,7 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   persistentStateSave() {
-    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualRowMove', this.rowsMapper._arrayMap);
+    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.rowsMapper._arrayMap);
   }
 
   /**
@@ -291,7 +299,7 @@ class ManualRowMove extends BasePlugin {
   persistentStateLoad() {
     let storedState = {};
 
-    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualRowMove', storedState);
+    this.hot.runHooks('persistentStateLoad', 'manualRowMove', storedState);
 
     return storedState.value ? storedState.value : [];
   }
@@ -359,7 +367,7 @@ class ManualRowMove extends BasePlugin {
       tdOffsetTop += wtTable.holder.scrollTop;
     }
 
-    //todo: fixedRowsBottom
+    // todo: fixedRowsBottom
     // if (this.isFixedRowBottom(coords.row)) {
     //
     // }
@@ -368,7 +376,7 @@ class ManualRowMove extends BasePlugin {
       // if hover on colHeader
       priv.target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
 
-    } else if (TD.offsetHeight / 2 + tdOffsetTop <= mouseOffsetTop) {
+    } else if ((TD.offsetHeight / 2) + tdOffsetTop <= mouseOffsetTop) {
       // if hover on lower part of TD
       priv.target.row = coords.row + 1;
       // unfortunately first row is bigger than rest
@@ -410,6 +418,37 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
+   * This method checks arrayMap from rowsMapper and updates the rowsMapper if it's necessary.
+   *
+   * @private
+   */
+  updateRowsMapper() {
+    let countRows = this.hot.countSourceRows();
+    let rowsMapperLen = this.rowsMapper._arrayMap.length;
+
+    if (rowsMapperLen === 0) {
+      this.rowsMapper.createMap(countRows || this.hot.getSettings().startRows);
+
+    } else if (rowsMapperLen < countRows) {
+      let diff = countRows - rowsMapperLen;
+
+      this.rowsMapper.insertItems(rowsMapperLen, diff);
+
+    } else if (rowsMapperLen > countRows) {
+      let maxIndex = countRows - 1;
+      let rowsToRemove = [];
+
+      arrayEach(this.rowsMapper._arrayMap, (value, index, array) => {
+        if (value > maxIndex) {
+          rowsToRemove.push(index);
+        }
+      });
+
+      this.rowsMapper.removeItems(rowsToRemove);
+    }
+  }
+
+  /**
    * Bind the events used by the plugin.
    *
    * @private
@@ -446,7 +485,7 @@ class ManualRowMove extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event
-   * @param {WalkontableCellCoords} coords
+   * @param {CellCoords} coords
    * @param {HTMLElement} TD
    * @param {Object} blockCalculations
    */
@@ -486,7 +525,7 @@ class ManualRowMove extends BasePlugin {
       let leftPos = wtTable.holder.scrollLeft + wtTable.getColumnWidth(-1);
 
       this.backlight.setPosition(null, leftPos);
-      this.backlight.setSize(wtTable.hider.offsetWidth - leftPos,  this.getRowsHeight(start, end + 1));
+      this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end + 1));
       this.backlight.setOffset((this.getRowsHeight(start, coords.row) + event.layerY) * -1, null);
 
       addClass(this.hot.rootElement, CSS_ON_MOVING);
@@ -532,7 +571,7 @@ class ManualRowMove extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event `mouseover` event properties.
-   * @param {WalkontableCellCoords} coords Cell coordinates where was fired event.
+   * @param {CellCoords} coords Cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
    * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
@@ -565,6 +604,8 @@ class ManualRowMove extends BasePlugin {
    */
   onMouseUp() {
     let priv = privatePool.get(this);
+    let target = priv.target.row;
+    let rowsLen = priv.rowsToMove.length;
 
     priv.pressed = false;
     priv.backlightHeight = 0;
@@ -574,11 +615,11 @@ class ManualRowMove extends BasePlugin {
     if (this.hot.selection.selectedHeader.rows) {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
-    if (priv.rowsToMove.length < 1) {
+
+    if (rowsLen < 1 || target === void 0 || priv.rowsToMove.indexOf(target) > -1 ||
+        (priv.rowsToMove[rowsLen - 1] === target - 1)) {
       return;
     }
-
-    let target = priv.target.row;
 
     this.moveRows(priv.rowsToMove, target);
 
@@ -587,7 +628,7 @@ class ManualRowMove extends BasePlugin {
 
     if (!priv.disallowMoving) {
       let selectionStart = this.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
-      let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[priv.rowsToMove.length - 1]);
+      let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[rowsLen - 1]);
       this.changeSelection(selectionStart, selectionEnd);
     }
 
@@ -650,6 +691,16 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
+   * `afterLoadData` hook callback.
+   *
+   * @private
+   * @param {Boolean} firstTime True if that was loading data during the initialization.
+   */
+  onAfterLoadData(firstTime) {
+    this.updateRowsMapper();
+  }
+
+  /**
    * 'modifyRow' hook callback.
    *
    * @private
@@ -658,7 +709,8 @@ class ManualRowMove extends BasePlugin {
    */
   onModifyRow(row, source) {
     if (source !== this.pluginName) {
-      row = this.rowsMapper.getValueByIndex(row);
+      let rowInMapper = this.rowsMapper.getValueByIndex(row);
+      row = rowInMapper === null ? row : rowInMapper;
     }
 
     return row;
@@ -672,7 +724,9 @@ class ManualRowMove extends BasePlugin {
    * @returns {Number} Logical row index.
    */
   onUnmodifyRow(row) {
-    return this.rowsMapper.getIndexByValue(row);
+    let indexInMapper = this.rowsMapper.getIndexByValue(row);
+
+    return indexInMapper === null ? row : indexInMapper;
   }
 
   /**
@@ -681,9 +735,7 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   onAfterPluginsInitialized() {
-    if (this.rowsMapper._arrayMap.length === 0) {
-      this.rowsMapper.createMap(this.hot.countSourceRows() || this.hot.getSettings().startRows);
-    }
+    this.updateRowsMapper();
     this.initialSettings();
     this.backlight.build();
     this.guideline.build();
@@ -700,9 +752,6 @@ class ManualRowMove extends BasePlugin {
   }
 }
 
-export {ManualRowMove};
-
 registerPlugin('ManualRowMove', ManualRowMove);
-Handsontable.hooks.register('beforeRowMove');
-Handsontable.hooks.register('afterRowMove');
-Handsontable.hooks.register('unmodifyRow');
+
+export default ManualRowMove;

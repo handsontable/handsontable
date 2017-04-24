@@ -1,23 +1,16 @@
 /**
  * Utility to register editors and common namespace for keeping reference to all editor classes
  */
-
-import Handsontable from './browser';
 import {toUpperCaseFirst} from './helpers/string';
-
-export {registerEditor, getEditor, hasEditor, getEditorConstructor};
+import Hooks from './pluginHooks';
 
 var
   registeredEditorNames = {},
   registeredEditorClasses = new WeakMap();
 
-// support for older versions of Handsontable
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.registerEditor = registerEditor;
-Handsontable.editors.getEditor = getEditor;
-
 function RegisteredEditor(editorClass) {
-  var Clazz, instances;
+  var Clazz,
+    instances;
 
   instances = {};
   Clazz = editorClass;
@@ -33,6 +26,10 @@ function RegisteredEditor(editorClass) {
 
     return instances[hotInstance.guid];
   };
+
+  Hooks.getSingleton().add('afterDestroy', function() {
+    instances = {};
+  });
 }
 
 /**
@@ -45,7 +42,6 @@ function registerEditor(editorName, editorClass) {
 
   if (typeof editorName === 'string') {
     registeredEditorNames[editorName] = editor;
-    Handsontable.editors[toUpperCaseFirst(editorName) + 'Editor'] = editorClass;
   }
   registeredEditorClasses.set(editorClass, editor);
 }
@@ -60,13 +56,13 @@ function registerEditor(editorName, editorClass) {
 function getEditor(editorName, hotInstance) {
   var editor;
 
-  if (typeof editorName == 'function') {
+  if (typeof editorName === 'function') {
     if (!(registeredEditorClasses.get(editorName))) {
       registerEditor(null, editorName);
     }
     editor = registeredEditorClasses.get(editorName);
 
-  } else if (typeof editorName == 'string') {
+  } else if (typeof editorName === 'string') {
     editor = registeredEditorNames[editorName];
 
   } else {
@@ -74,7 +70,7 @@ function getEditor(editorName, hotInstance) {
   }
 
   if (!editor) {
-    throw Error('No editor registered under name "' + editorName + '"');
+    throw Error(`No editor registered under name "${editorName}"`);
   }
 
   return editor.getInstance(hotInstance);
@@ -89,7 +85,7 @@ function getEditor(editorName, hotInstance) {
 function getEditorConstructor(editorName) {
   var editor;
 
-  if (typeof editorName == 'string') {
+  if (typeof editorName === 'string') {
     editor = registeredEditorNames[editorName];
 
   } else {
@@ -97,7 +93,7 @@ function getEditorConstructor(editorName) {
   }
 
   if (!editor) {
-    throw Error('No editor registered under name "' + editorName + '"');
+    throw Error(`No editor registered under name "${editorName}"`);
   }
 
   return editor.getConstructor();
@@ -108,5 +104,16 @@ function getEditorConstructor(editorName) {
  * @returns {Boolean}
  */
 function hasEditor(editorName) {
-  return registeredEditorNames[editorName] ? true : false;
+  return !!registeredEditorNames[editorName];
 }
+
+/**
+ * Get list of registered editor names.
+ *
+ * @return {Array} Returns an array of registered editor names.
+ */
+function getRegisteredEditorNames() {
+  return Object.keys(registeredEditorNames);
+}
+
+export {registerEditor, getEditor, hasEditor, getEditorConstructor, getRegisteredEditorNames};

@@ -1,6 +1,6 @@
 export const KEY = '---------';
 
-export function separatorItem() {
+export default function separatorItem() {
   return {
     name: KEY
   };
