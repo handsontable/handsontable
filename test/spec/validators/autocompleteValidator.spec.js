@@ -195,4 +195,29 @@ describe('autocompleteValidator', function () {
       }, 100);
     });
   });
+  describe('strict mode', function() {
+    it('sshould validate negatively when chars have different size', function(done) {
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      var hot = handsontable({
+        data: [
+          ['some', 'sample', 'data'],
+        ],
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['some', 'sample', 'data'],
+            strict: true
+          }
+        ],
+        afterValidate : onAfterValidate
+      });
+
+      setDataAtCell(0, 0, 'Some');
+
+      setTimeout(function () {
+        expect(onAfterValidate).toHaveBeenCalledWith(false, 'Some', 0, 0, undefined, undefined);
+        done();
+      }, 100);
+    });
+  });
 });

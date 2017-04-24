@@ -94,4 +94,57 @@ describe('Array helper', function() {
       expect(arrayMax(['a', 'A', 'Z', '1'])).toBe('a');
     });
   });
+
+  //
+  // Handsontable.helper.arrayIncludes
+  //
+  describe('arrayIncludes', function() {
+    it('should returns proper value for array of numbers', function () {
+      // Examples from: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
+
+      var arrayIncludes = Handsontable.helper.arrayIncludes;
+      expect(arrayIncludes([1, 2, 3], 2)).toBe(true);
+      expect(arrayIncludes([1, 2, 3], 4)).toBe(false);
+      expect(arrayIncludes([1, 2, 3], 3, 3)).toBe(false);
+      expect(arrayIncludes([1, 2, 3], 3, -1)).toBe(true);
+    });
+
+    it('should returns proper value for array of strings', function () {
+      var arrayIncludes = Handsontable.helper.arrayIncludes;
+      expect(arrayIncludes(['a', 'b', 'c'], 'b')).toBe(true);
+      expect(arrayIncludes(['a', 'b', 'c'], 'd')).toBe(false);
+      expect(arrayIncludes(['a', 'b', 'c'], 'c', 3)).toBe(false);
+      expect(arrayIncludes(['a', 'b', 'c'], 'c', -1)).toBe(true);
+    });
+
+    it('should returns proper value for array when working with `undefined`', function () {
+      var arrayIncludes = Handsontable.helper.arrayIncludes;
+      expect(arrayIncludes([], undefined)).toBe(false);
+      expect(arrayIncludes([0], undefined)).toBe(false);
+      expect(arrayIncludes(['a'], undefined)).toBe(false);
+      expect(arrayIncludes([null], undefined)).toBe(false);
+      expect(arrayIncludes([undefined], undefined)).toBe(true);
+      expect(arrayIncludes([0, undefined], undefined)).toBe(true);
+    });
+
+    it('should returns proper value for array when working with `null`', function () {
+      var arrayIncludes = Handsontable.helper.arrayIncludes;
+      expect(arrayIncludes([], null)).toBe(false);
+      expect(arrayIncludes([0], null)).toBe(false);
+      expect(arrayIncludes(['a'], null)).toBe(false);
+      expect(arrayIncludes([null], null)).toBe(true);
+      expect(arrayIncludes([NaN], null)).toBe(false);
+      expect(arrayIncludes([0, null], null)).toBe(true);
+    });
+
+    xit('should returns proper value for array when working with `NaN`', function () {
+      var arrayIncludes = Handsontable.helper.arrayIncludes;
+      expect(arrayIncludes([], NaN)).toBe(false);
+      expect(arrayIncludes([0], NaN)).toBe(false);
+      expect(arrayIncludes(['a'], NaN)).toBe(false);
+      expect(arrayIncludes([null], NaN)).toBe(false);
+      expect(arrayIncludes([NaN], NaN)).toBe(true);
+      expect(arrayIncludes([0, NaN], NaN)).toBe(true);
+    });
+  });
 });

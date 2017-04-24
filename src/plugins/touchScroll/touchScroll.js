@@ -1,7 +1,9 @@
 import Handsontable from './../../browser';
 import {addClass, removeClass} from './../../helpers/dom/element';
+import {arrayEach} from './../../helpers/array';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
+import {isTouchSupported} from './../../helpers/feature';
 
 /**
  * @private
@@ -12,107 +14,160 @@ class TouchScroll extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
 
-    this.hot.addHook('afterInit', () => this.afterInit());
-    this.hot.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
+    /**
+     * Collection of scrollbars to update.
+     *
+     * @type {Array}
+     */
     this.scrollbars = [];
+    /**
+     * Collection of overlays to update.
+     *
+     * @type {Array}
+     */
     this.clones = [];
+    /**
+     * Flag which determines if collection of overlays should be refilled on every table render.
+     *
+     * @type {Boolean}
+     * @default false
+     */
+    this.lockedCollection = false;
   }
 
   /**
-   * Initialize plugin
+   * Check if plugin is enabled.
+   *
+   * @returns {Boolean}
    */
-  afterInit() {
-    this.registerEvents();
-    this.onAfterUpdateSettings();
-  }
-
-  onAfterUpdateSettings() {
-    var _this = this;
-
-    // Wait for the overlays to render and update their .needFullRender property
-    this.hot.addHookOnce('afterRender', function() {
-      let wtOverlays = _this.hot.view.wt.wtOverlays;
-
-      _this.scrollbars = [];
-      _this.scrollbars.push(wtOverlays.topOverlay);
-
-      if (wtOverlays.bottomOverlay.clone) {
-        _this.scrollbars.push(wtOverlays.bottomOverlay);
-      }
-      _this.scrollbars.push(wtOverlays.leftOverlay);
-
-      if (wtOverlays.topLeftCornerOverlay) {
-        _this.scrollbars.push(wtOverlays.topLeftCornerOverlay);
-      }
-
-      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
-        _this.scrollbars.push(wtOverlays.bottomLeftCornerOverlay);
-      }
-
-      _this.clones = [];
-
-      if (wtOverlays.topOverlay.needFullRender) {
-        _this.clones.push(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
-      }
-      if (wtOverlays.bottomOverlay.needFullRender) {
-        _this.clones.push(wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
-      }
-      if (wtOverlays.leftOverlay.needFullRender) {
-        _this.clones.push(wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
-      }
-      if (wtOverlays.topLeftCornerOverlay) {
-        _this.clones.push(wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
-      }
-      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
-        _this.clones.push(wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
-      }
-    });
+  isEnabled() {
+    return isTouchSupported();
   }
 
   /**
-   * Register all necessary events
+   * Enable the plugin.
+   */
+  enablePlugin() {
+    if (this.enabled) {
+      return;
+    }
+
+    this.addHook('afterRender', () => this.onAfterRender());
+    this.registerEvents();
+
+    super.enablePlugin();
+  }
+
+  /**
+   * Updates the plugin to use the latest options you have specified.
+   */
+  updatePlugin() {
+    this.lockedCollection = false;
+
+    super.updatePlugin();
+  }
+
+  /**
+   * Disable plugin for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
+  }
+
+  /**
+   * Register all necessary events.
+   *
+   * @private
    */
   registerEvents() {
-    this.hot.addHook('beforeTouchScroll', () => this.onBeforeTouchScroll());
-    this.hot.addHook('afterMomentumScroll', () => this.onAfterMomentumScroll());
+    this.addHook('beforeTouchScroll', () => this.onBeforeTouchScroll());
+    this.addHook('afterMomentumScroll', () => this.onAfterMomentumScroll());
   }
 
   /**
-   * Touch scroll listener
+   * After render listener.
+   *
+   * @private
+   */
+  onAfterRender() {
+    if (this.lockedCollection) {
+      return;
+    }
+
+    const {topOverlay, bottomOverlay, leftOverlay, topLeftCornerOverlay, bottomLeftCornerOverlay} = this.hot.view.wt.wtOverlays;
+
+    this.lockedCollection = true;
+    this.scrollbars.length = 0;
+    this.scrollbars.push(topOverlay);
+
+    if (bottomOverlay.clone) {
+      this.scrollbars.push(bottomOverlay);
+    }
+    this.scrollbars.push(leftOverlay);
+
+    if (topLeftCornerOverlay) {
+      this.scrollbars.push(topLeftCornerOverlay);
+    }
+    if (bottomLeftCornerOverlay && bottomLeftCornerOverlay.clone) {
+      this.scrollbars.push(bottomLeftCornerOverlay);
+    }
+
+    this.clones.length = 0;
+
+    if (topOverlay.needFullRender) {
+      this.clones.push(topOverlay.clone.wtTable.holder.parentNode);
+    }
+    if (bottomOverlay.needFullRender) {
+      this.clones.push(bottomOverlay.clone.wtTable.holder.parentNode);
+    }
+    if (leftOverlay.needFullRender) {
+      this.clones.push(leftOverlay.clone.wtTable.holder.parentNode);
+    }
+    if (topLeftCornerOverlay) {
+      this.clones.push(topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+    }
+    if (bottomLeftCornerOverlay && bottomLeftCornerOverlay.clone) {
+      this.clones.push(bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
+    }
+  }
+
+  /**
+   * Touch scroll listener.
+   *
+   * @private
    */
   onBeforeTouchScroll() {
     Handsontable.freezeOverlays = true;
 
-    for (let i = 0, cloneCount = this.clones.length; i < cloneCount; i++) {
-      addClass(this.clones[i], 'hide-tween');
-    }
+    arrayEach(this.clones, (clone) => {
+      addClass(clone, 'hide-tween');
+    });
   }
 
   /**
-   * After momentum scroll listener
+   * After momentum scroll listener.
+   *
+   * @private
    */
   onAfterMomentumScroll() {
     Handsontable.freezeOverlays = false;
-    var _that = this;
 
-    for (let i = 0, cloneCount = this.clones.length; i < cloneCount; i++) {
-      removeClass(this.clones[i], 'hide-tween');
-    }
+    arrayEach(this.clones, (clone) => {
+      removeClass(clone, 'hide-tween');
+      addClass(clone, 'show-tween');
+    });
 
-    for (let i = 0, cloneCount = this.clones.length; i < cloneCount; i++) {
-      addClass(this.clones[i], 'show-tween');
-    }
-
-    setTimeout(function() {
-      for (let i = 0, cloneCount = _that.clones.length; i < cloneCount; i++) {
-        removeClass(_that.clones[i], 'show-tween');
-      }
+    setTimeout(() => {
+      arrayEach(this.clones, (clone) => {
+        removeClass(clone, 'show-tween');
+      });
     }, 400);
 
-    for (let i = 0, cloneCount = this.scrollbars.length; i < cloneCount; i++) {
-      this.scrollbars[i].refresh();
-      this.scrollbars[i].resetFixedPosition();
-    }
+    arrayEach(this.scrollbars, (scrollbar) => {
+      scrollbar.refresh();
+      scrollbar.resetFixedPosition();
+    });
+
     this.hot.view.wt.wtOverlays.syncScrollWithMaster();
   }
 }
@@ -120,4 +175,3 @@ class TouchScroll extends BasePlugin {
 export {TouchScroll};
 
 registerPlugin('touchScroll', TouchScroll);
-

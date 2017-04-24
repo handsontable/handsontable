@@ -508,4 +508,118 @@ describe('Core_updateSettings', function () {
 
     expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
   });
+
+  it("should change colHeader's row height if is needed", function() {
+    var hot = handsontable({
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    var rowHeights = [];
+
+    rowHeights.push(this.$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
+    updateSettings({
+      colHeaders: ['A<br/>A']
+    });
+
+    rowHeights.push(this.$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
+
+    expect(rowHeights[0]).toBeLessThan(rowHeights[1]);
+  });
+
+  it("should not overwrite properties (created by columns defined as function) of cells below the viewport " +
+    "by updateSettings #4029", function() {
+    var rows = 50;
+    var columns = 2;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(columns, rows),
+      columns: function (col) {
+        var colProp = {
+          data: 'prop' + col,
+          readOnly: true
+        };
+
+        if (col === 1) {
+          colProp.type = 'checkbox';
+        }
+
+        return colProp;
+      }
+    });
+
+    updateSettings({});
+    expect(getCellMeta(rows, 0).readOnly).toEqual(true);
+    expect(getCellMeta(rows, 1).type).toEqual('checkbox');
+
+    rows = 100;
+
+    updateSettings({data: Handsontable.helper.createSpreadsheetObjectData(columns, rows)});
+    expect(getCellMeta(rows, 0).readOnly).toEqual(true);
+    expect(getCellMeta(rows, 1).type).toEqual('checkbox');
+
+    updateSettings({
+      columns: function (col) {
+        var colProp = {
+          data: 'prop' + col,
+          type: 'numeric'
+        };
+
+        return colProp;
+      }
+    });
+    expect(getCellMeta(0, 1).type).toEqual('numeric');
+    expect(getCellMeta(0, 1).readOnly).toEqual(false);
+    expect(getCellMeta(rows, 1).type).toEqual('numeric');
+    expect(getCellMeta(rows, 1).readOnly).toEqual(false);
+  });
+
+  it("should not overwrite properties (created by columns defined as array) of cells below the viewport " +
+    "by updateSettings #4029", function() {
+    var rows = 50;
+    var columns = 2;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(columns, rows),
+      columns: [
+        {
+          type: 'numeric',
+          format: '0,0.00 $'
+        },
+        {
+          type: 'text',
+          readOnly: true
+        }
+      ]
+    });
+
+    updateSettings({});
+    expect(getCellMeta(rows, 0).type).toEqual('numeric');
+    expect(getCellMeta(rows, 1).readOnly).toEqual(true);
+
+    rows = 100;
+
+    updateSettings({data: Handsontable.helper.createSpreadsheetObjectData(columns, rows)});
+    expect(getCellMeta(rows, 0).type).toEqual('numeric');
+    expect(getCellMeta(rows, 1).readOnly).toEqual(true);
+
+    updateSettings({
+      columns: [
+        {
+          type: 'text',
+          readOnly: true
+        },
+        {
+          type: 'numeric',
+          format: '0,0.00 $'
+        }
+      ]
+    });
+    expect(getCellMeta(0, 0).type).toEqual('text');
+    expect(getCellMeta(0, 0).readOnly).toEqual(true);
+    expect(getCellMeta(0, 1).type).toEqual('numeric');
+    expect(getCellMeta(0, 1).readOnly).toEqual(false);
+    expect(getCellMeta(rows, 0).type).toEqual('text');
+    expect(getCellMeta(rows, 1).type).toEqual('numeric');
+  });
 });

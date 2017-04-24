@@ -25,6 +25,52 @@ describe('manualColumnMove', function () {
     });
   });
 
+  describe('persistentState', function() {
+    it('should load data from cache after initialization of new Handsontable instance', function (done) {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true,
+        persistentState: true
+      });
+
+      var dataAt0_2Cell = getDataAtCell(0, 2);
+      var manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
+
+      manualColumnMovePlugin.moveColumn(2, 0);
+      manualColumnMovePlugin.persistentStateSave();
+
+      hot.destroy();
+      this.$container.remove();
+      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true,
+        persistentState: true
+      });
+
+      expect(getDataAtCell(0, 0)).toEqual(dataAt0_2Cell);
+      done();
+    });
+
+    it('should work with updateSettings properly', function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true,
+        persistentState: true
+      });
+
+      var dataAt0_2Cell = getDataAtCell(0, 2);
+      var manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
+
+      manualColumnMovePlugin.moveColumn(2, 0);
+      manualColumnMovePlugin.persistentStateSave();
+
+      updateSettings({});
+      expect(getDataAtCell(0, 0)).toEqual(dataAt0_2Cell);
+    });
+  });
+
   describe('updateSettings', function() {
     it("should be enabled after specifying it in updateSettings config", function () {
       handsontable({
@@ -122,6 +168,31 @@ describe('manualColumnMove', function () {
       expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+    });
+  });
+
+  describe('loadData', function() {
+    it("should increase numbers of columns if it is necessary", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualColumnMove: true
+      });
+
+      hot.loadData(Handsontable.helper.createSpreadsheetData(10, 10));
+
+      expect(countRows()).toEqual(10);
+      expect(hot.getPlugin('manualColumnMove').columnsMapper.__arrayMap.length).toEqual(10);
+    });
+    it("should decrease numbers of columns if it is necessary", function () {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualColumnMove: true
+      });
+
+      hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+
+      expect(countRows()).toEqual(2);
+      expect(hot.getPlugin('manualColumnMove').columnsMapper.__arrayMap.length).toEqual(2);
     });
   });
 
@@ -354,7 +425,7 @@ describe('manualColumnMove', function () {
       ];
 
       // unfortunately couse of security rules, we can't simulate native mechanism (e.g. CTRL+C -> CTRL+V)
-      hot.setDataAtCell(changesSet, void 0, void 0, 'paste');
+      hot.setDataAtCell(changesSet, void 0, void 0, 'CopyPaste.paste');
       expect(hot.countCols()).toEqual(8)
     })
   });

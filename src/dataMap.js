@@ -38,6 +38,7 @@ function DataMap(instance, priv, GridSettings) {
   this.interval = Interval.create(() => this.clearLengthCache(), '15fps');
 
   this.instance.addHook('skipLengthCache', (delay) => this.onSkipLengthCache(delay));
+  this.onSkipLengthCache(500);
 }
 
 DataMap.prototype.DESTINATION_RENDERER = 1;

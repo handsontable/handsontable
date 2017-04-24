@@ -95,4 +95,24 @@ describe('Mixed helper', function() {
       expect(isUndefined(toCheck)).toBeFalsy();
     });
   });
+
+  describe('isEmpty', function() {
+    it('should check if a variable is null, empty string or undefined', function() {
+      var isEmpty = Handsontable.helper.isEmpty;
+
+      expect(isEmpty(undefined)).toBeTruthy();
+      expect(isEmpty('')).toBeTruthy();
+      expect(isEmpty(null)).toBeTruthy();
+    });
+
+    it('should return false when a variable isn\'t null, empty string or undefined', function() {
+      var isEmpty = Handsontable.helper.isEmpty;
+
+      expect(isEmpty(NaN)).toBeFalsy();
+      expect(isEmpty(0)).toBeFalsy();
+      expect(isEmpty('a')).toBeFalsy();
+      expect(isEmpty([])).toBeFalsy();
+      expect(isEmpty({})).toBeFalsy();
+    });
+  });
 });

@@ -100,5 +100,4 @@ describe('Core_setCellMeta', function () {
     expect(res.key).toEqual("className");
     expect(res.val).toEqual(className);
   });
-
 });

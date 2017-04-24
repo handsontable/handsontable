@@ -8,7 +8,7 @@ import {isMobileBrowser} from './helpers/browser';
 import {DataMap} from './dataMap';
 import {EditorManager} from './editorManager';
 import {eventManager as eventManagerObject} from './eventManager';
-import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize} from './helpers/object';
+import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize, createObjectPropListener} from './helpers/object';
 import {arrayFlatten, arrayMap} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
@@ -138,9 +138,14 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       switch (action) {
         case 'insert_row':
 
-          if (instance.getSettings().maxRows === instance.countSourceRows()) {
+          const numberOfSourceRows = instance.countSourceRows();
+
+          if (instance.getSettings().maxRows === numberOfSourceRows) {
             return;
           }
+
+          index = (isDefined(index)) ? index : numberOfSourceRows;
+
           delta = datamap.createRow(index, amount, source);
           spliceWith(priv.cellSettings, index, amount, 'array');
 
@@ -455,7 +460,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
             current.col = start.col;
             cellMeta = instance.getCellMeta(current.row, current.col);
 
-            if ((source === 'paste' || source === 'autofill') && cellMeta.skipRowOnPaste) {
+            if ((source === 'CopyPaste.paste' || source === 'Autofill.autofill') && cellMeta.skipRowOnPaste) {
               skippedRow++;
               current.row++;
               rlen++;
@@ -471,7 +476,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               }
               cellMeta = instance.getCellMeta(current.row, current.col);
 
-              if ((source === 'paste' || source === 'autofill') && cellMeta.skipColumnOnPaste) {
+              if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipColumnOnPaste) {
                 skippedColumn++;
                 current.col++;
                 clen++;
@@ -489,7 +494,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
                 col: logicalColumn
               };
 
-              if (source === 'autofill') {
+              if (source === 'Autofill.fill') {
                 let result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
 
                 if (result) {
@@ -659,19 +664,25 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         instance.view.wt.selections.highlight.add(priv.selRange.to);
       }
 
+      const preventScrolling = createObjectPropListener('value');
+
       // trigger handlers
       Handsontable.hooks.run(instance, 'afterSelection',
-          priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col);
+        priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col, preventScrolling);
       Handsontable.hooks.run(instance, 'afterSelectionByProp',
-          priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
+        priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col), preventScrolling);
 
       if ((priv.selRange.from.row === 0 && priv.selRange.to.row === instance.countRows() - 1 && instance.countRows() > 1) ||
-          (priv.selRange.from.col === 0 && priv.selRange.to.col === instance.countCols() - 1 && instance.countCols() > 1)) {
+        (priv.selRange.from.col === 0 && priv.selRange.to.col === instance.countCols() - 1 && instance.countCols() > 1)) {
         isHeaderSelected = true;
       }
 
       if (coords.row < 0 || coords.col < 0) {
         areCoordsPositive = false;
+      }
+
+      if (preventScrolling.isTouched()) {
+        scrollToCell = !preventScrolling.value;
       }
 
       if (scrollToCell !== false && !isHeaderSelected && areCoordsPositive) {
@@ -681,6 +692,22 @@ Handsontable.Core = function Core(rootElement, userSettings) {
           instance.view.scrollViewport(coords);
         }
       }
+
+      if (selection.selectedHeader.rows && selection.selectedHeader.cols) {
+        addClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+
+      } else if (selection.selectedHeader.rows) {
+        removeClass(instance.rootElement, 'ht__selection--columns');
+        addClass(instance.rootElement, 'ht__selection--rows');
+
+      } else if (selection.selectedHeader.cols) {
+        removeClass(instance.rootElement, 'ht__selection--rows');
+        addClass(instance.rootElement, 'ht__selection--columns');
+
+      } else {
+        removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+      }
+
       selection.refreshBorders(null, keepEditorOpened);
     },
 
@@ -874,6 +901,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       if (!priv.settings.multiSelect) {
         return;
       }
+      selection.setSelectedHeaders(true, true, true);
       selection.setRangeStart(new WalkontableCellCoords(0, 0));
       selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, instance.countCols() - 1), false);
     },
@@ -985,7 +1013,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               changes[i][3] = parseFloat(changes[i][3]);
 
             } else {
-              changes[i][3] = numbro().unformat(changes[i][3]);
+              changes[i][3] = numbro().unformat(changes[i][3]) || changes[i][3];
             }
           }
         }
@@ -1001,6 +1029,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
               if (result === false && cellProperties.allowInvalid === false) {
                 changes.splice(i, 1);         // cancel the change
                 cellProperties.valid = true;  // we cancelled the change, so cell value is still valid
+                const cell = instance.getCell(cellProperties.row, cellProperties.col);
+                removeClass(cell, instance.getSettings().invalidCellClassName);
                 --i;
               }
               waitingForValidator.removeValidatorFormQueue();
@@ -1057,7 +1087,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       if (priv.settings.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
-          let numberOfCreatedRows = datamap.createRow();
+          let numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
 
           if (numberOfCreatedRows === 0) {
             skipThisChange = true;
@@ -1072,7 +1102,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
       if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
-          datamap.createCol();
+          datamap.createCol(void 0, void 0, source);
         }
       }
 
@@ -1085,6 +1115,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     selection.refreshBorders(null, true);
     instance.view.wt.wtOverlays.adjustElementsSize();
     Handsontable.hooks.run(instance, 'afterChange', changes, source || 'edit');
+
+    let activeEditor = instance.getActiveEditor();
+
+    if (activeEditor && isDefined(activeEditor.refreshValue)) {
+      activeEditor.refreshValue();
+    }
   }
 
   this.validateCell = function(value, cellProperties, callback, source) {
@@ -1593,6 +1629,9 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       } else {
         if (Handsontable.hooks.getRegistered().indexOf(i) > -1) {
           if (isFunction(settings[i]) || Array.isArray(settings[i])) {
+
+            settings[i].initialHook = true;
+
             instance.addHook(i, settings[i]);
           }
 
@@ -1618,8 +1657,10 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     clen = instance.countCols();
 
+    const columnSetting = settings.columns || GridSettings.prototype.columns;
+
     // Init columns constructors configuration
-    if (settings.columns && isFunction(settings.columns)) {
+    if (columnSetting && isFunction(columnSetting)) {
       clen = instance.countSourceCols();
       columnsAsFunc = true;
     }
@@ -1634,7 +1675,7 @@ Handsontable.Core = function Core(rootElement, userSettings) {
       let column;
 
       for (i = 0, j = 0; i < clen; i++) {
-        if (columnsAsFunc && !settings.columns(i)) {
+        if (columnsAsFunc && !columnSetting(i)) {
           continue;
         }
         priv.columnSettings[j] = columnFactory(GridSettings, priv.columnsSettingConflicts);
@@ -1643,12 +1684,12 @@ Handsontable.Core = function Core(rootElement, userSettings) {
         proto = priv.columnSettings[j].prototype;
 
         // Use settings provided by user
-        if (GridSettings.prototype.columns) {
+        if (columnSetting) {
           if (columnsAsFunc) {
-            column = GridSettings.prototype.columns(i);
+            column = columnSetting(i);
 
           } else {
-            column = GridSettings.prototype.columns[j];
+            column = columnSetting[j];
           }
 
           if (column) {
@@ -1728,6 +1769,11 @@ Handsontable.Core = function Core(rootElement, userSettings) {
 
     if (!init) {
       datamap.clearLengthCache(); // force clear cache length on updateSettings() #3416
+
+      if (instance.view) {
+        instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
+      }
+
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
     }
 
@@ -2205,6 +2251,18 @@ Handsontable.Core = function Core(rootElement, userSettings) {
   };
 
   /**
+   * Remove one or more rows from the cell meta object.
+   *
+   * @since 0.30.0
+   * @param {Number} index An integer that specifies at what position to add/remove items, Use negative values to specify the position from the end of the array.
+   * @param {Number} deleteAmount The number of items to be removed. If set to 0, no items will be removed.
+   * @param {Array} items The new items to be added to the array.
+   */
+  this.spliceCellsMeta = function(index, deleteAmount, ...items) {
+    priv.cellSettings.splice(index, deleteAmount, ...items);
+  };
+
+  /**
    * Set cell meta data object defined by `prop` to the corresponding params `row` and `col`.
    *
    * @memberof Core#
@@ -2238,6 +2296,8 @@ Handsontable.Core = function Core(rootElement, userSettings) {
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row, col, key, val) {
+    [row, col] = recordTranslator.toPhysical(row, col);
+
     if (!priv.cellSettings[row]) {
       priv.cellSettings[row] = [];
     }
@@ -2313,6 +2373,19 @@ Handsontable.Core = function Core(rootElement, userSettings) {
     Handsontable.hooks.run(instance, 'afterGetCellMeta', row, col, cellProperties);
 
     return cellProperties;
+  };
+
+  /**
+   * Returns a row off the cell meta array.
+   *
+   * @memberof Core#
+   * @function getCellMetaAtRow
+   * @since 0.30.0
+   * @param {Number} row Index of the row to return cell meta for.
+   * @returns {Array}
+   */
+  this.getCellMetaAtRow = function(row) {
+    return priv.cellSettings[row];
   };
 
   /**
@@ -3543,7 +3616,7 @@ DefaultSettings.prototype = {
    * @example
    * ```js
    * ...
-   * comments: [{row: 1, col: 1, comment: "Test comment"}],
+   * comments: [{row: 1, col: 1, comment: {value: "Test comment"}}],
    * ...
    * ```
    */
@@ -3991,8 +4064,9 @@ DefaultSettings.prototype = {
 
   /**
    * If set to `true`, Handsontable will accept values that were marked as invalid by the cell `validator`.
-   * It will result with *invalid* cells being treated as *valid*.
-   * If set to `false`, Handsontable will *not* accept the invalid values.
+   * It will result with *invalid* cells being treated as *valid* (will save the *invalid* value into the Handsontable data source).
+   * If set to `false`, Handsontable will *not* accept the invalid values and won't allow the user to close the editor.
+   * This option will be particularly useful when used with the Autocomplete's `strict` mode.
    *
    * @type {Boolean}
    * @default true
@@ -4358,7 +4432,8 @@ DefaultSettings.prototype = {
    * // as a object with initial order (sort ascending column at index 2)
    * columnSorting: {
    *   column: 2,
-   *   sortOrder: true // true = ascending, false = descending, undefined = original order
+   *   sortOrder: true, // true = ascending, false = descending, undefined = original order
+   *   sortEmptyCells: true // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
    * }
    * ...
    * ```
@@ -4889,9 +4964,10 @@ DefaultSettings.prototype = {
   defaultDate: void 0,
 
   /**
-   * If typed `true` value entered into the cell must match to the autocomplete source. Otherwise, cell won't pass the validation.
+   * If set to `true`, the value entered into the cell must match (case-sensitive) the autocomplete source. Otherwise, cell won't pass the validation.
+   * When filtering the autocomplete source list, the editor will be working in case-insensitive mode.
    *
-   * Option desired for `'autocomplete'`-typed cells.
+   * Option desired for `autocomplete`-typed cells.
    *
    * @example
    * ```js

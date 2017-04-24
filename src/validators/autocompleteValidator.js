@@ -39,7 +39,6 @@ Handsontable.AutocompleteValidator = function(value, callback) {
  */
 function process(value, callback) {
   var originalVal  = value;
-  var lowercaseVal = typeof originalVal === 'string' ? originalVal.toLowerCase() : null;
 
   return function(source) {
     var found = false;
@@ -47,11 +46,6 @@ function process(value, callback) {
     for (var s = 0, slen = source.length; s < slen; s++) {
       if (originalVal === source[s]) {
         found = true; //perfect match
-        break;
-
-      } else if (lowercaseVal === stringify(source[s]).toLowerCase()) {
-        // changes[i][3] = source[s]; //good match, fix the case << TODO?
-        found = true;
         break;
       }
     }
