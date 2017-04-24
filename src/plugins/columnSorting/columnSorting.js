@@ -580,13 +580,13 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    for (var i = 0; i < this.hot.sortIndex.length; i++) {
+    for (let i = 0; i < this.hot.sortIndex.length; i++) {
       if (this.hot.sortIndex[i][0] >= index) {
         this.hot.sortIndex[i][0] += amount;
       }
     }
 
-    for (var i = 0; i < amount; i++) {
+    for (let i = 0; i < amount; i++) {
       this.hot.sortIndex.splice(index + i, 0, [index + i, this.hot.getSourceData()[index + i][this.hot.sortColumn + this.hot.colOffset()]]);
     }
 
