@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import moment from 'moment';
 import {getNormalizedDate} from '../helpers/date';
 import {getEditor} from './../editors';
@@ -12,7 +11,7 @@ import {getEditor} from './../editors';
  * @param {*} value - Value of edited cell
  * @param {Function} callback - Callback called with validation result
  */
-Handsontable.DateValidator = function(value, callback) {
+function DateValidator(value, callback) {
   let valid = true;
   let dateEditor = getEditor('date', this.instance);
 
@@ -37,8 +36,10 @@ Handsontable.DateValidator = function(value, callback) {
   if (isValidDate && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
       let correctedValue = correctFormat(value, this.dateFormat);
+      let row = this.instance.runHooks('unmodifyRow', this.row);
+      let column = this.instance.runHooks('unmodifyCol', this.col);
 
-      this.instance.setDataAtCell(this.row, this.col, correctedValue, 'dateValidator');
+      this.instance.setDataAtCell(row, column, correctedValue, 'dateValidator');
       valid = true;
     } else {
       valid = false;
@@ -47,6 +48,8 @@ Handsontable.DateValidator = function(value, callback) {
 
   callback(valid);
 };
+
+export default DateValidator;
 
 /**
  * Format the given string using moment.js' format feature
@@ -72,4 +75,3 @@ let correctFormat = function correctFormat(value, dateFormat) {
 
   return date.format(dateFormat);
 };
-

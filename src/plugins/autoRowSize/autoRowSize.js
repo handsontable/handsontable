@@ -2,11 +2,11 @@ import BasePlugin from './../_base';
 import {arrayEach, arrayFilter} from './../../helpers/array';
 import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/feature';
 import {isVisible} from './../../helpers/dom/element';
-import {GhostTable} from './../../utils/ghostTable';
-import {isObject, objectEach} from './../../helpers/object';
+import GhostTable from './../../utils/ghostTable';
+import {isObject, objectEach, hasOwnProperty} from './../../helpers/object';
 import {valueAccordingPercent, rangeEach} from './../../helpers/number';
 import {registerPlugin} from './../../plugins';
-import {SamplesGenerator} from './../../utils/samplesGenerator';
+import SamplesGenerator from './../../utils/samplesGenerator';
 import {isPercentValue} from './../../helpers/string';
 
 /**
@@ -96,9 +96,9 @@ class AutoRowSize extends BasePlugin {
       } else if (row === -1) {
         return this.hot.getColHeader(col);
 
-      } else {
-        return null;
       }
+      return null;
+
     });
     /**
      * `true` if only the first calculation was performed.
@@ -182,11 +182,15 @@ class AutoRowSize extends BasePlugin {
       if (force || this.heights[row] === void 0) {
         const samples = this.samplesGenerator.generateRowSamples(row, colRange);
 
-        samples.forEach((sample, row) => this.ghostTable.addRow(row, sample));
+        samples.forEach((sample, row) => {
+          this.ghostTable.addRow(row, sample);
+        });
       }
     });
     if (this.ghostTable.rows.length) {
-      this.ghostTable.getHeights((row, height) => this.heights[row] = height);
+      this.ghostTable.getHeights((row, height) => {
+        this.heights[row] = height;
+      });
       this.ghostTable.clean();
     }
   }
@@ -239,6 +243,7 @@ class AutoRowSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
+      this.hot.view.wt.wtOverlays.adjustElementsSize(false);
     }
   }
 
@@ -249,8 +254,8 @@ class AutoRowSize extends BasePlugin {
    */
   setSamplingOptions() {
     let setting = this.hot.getSettings().autoRowSize;
-    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
-    let allowSampleDuplicates = setting && setting.hasOwnProperty('allowSampleDuplicates') ? this.hot.getSettings().autoRowSize.allowSampleDuplicates : void 0;
+    let samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
+    let allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ? this.hot.getSettings().autoRowSize.allowSampleDuplicates : void 0;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -277,6 +282,7 @@ class AutoRowSize extends BasePlugin {
    * @returns {Number}
    */
   getSyncCalculationLimit() {
+    /* eslint-disable no-bitwise */
     let limit = AutoRowSize.SYNC_CALCULATION_LIMIT;
     let rowsLimit = this.hot.countRows() - 1;
 
@@ -287,7 +293,7 @@ class AutoRowSize extends BasePlugin {
         limit = valueAccordingPercent(rowsLimit, limit);
       } else {
         // Force to Number
-        limit = limit >> 0;
+        limit >>= 0;
       }
     }
 
@@ -373,14 +379,16 @@ class AutoRowSize extends BasePlugin {
     if (typeof range === 'number') {
       range = {from: range, to: range};
     }
-    rangeEach(Math.min(range.from, range.to), Math.max(range.from, range.to), (row) => this.heights[row] = void 0);
+    rangeEach(Math.min(range.from, range.to), Math.max(range.from, range.to), (row) => {
+      this.heights[row] = void 0;
+    });
   }
 
   /**
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return arrayFilter(this.heights, (item) => (item === void 0)).length ? true : false;
+    return !!arrayFilter(this.heights, (item) => (item === void 0)).length;
   }
 
   /**
@@ -484,6 +492,6 @@ class AutoRowSize extends BasePlugin {
   }
 }
 
-export {AutoRowSize};
-
 registerPlugin('autoRowSize', AutoRowSize);
+
+export default AutoRowSize;

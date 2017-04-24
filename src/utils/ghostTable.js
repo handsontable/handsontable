@@ -1,9 +1,5 @@
-import Handsontable from './../browser';
 import {addClass, outerHeight, outerWidth} from './../helpers/dom/element';
 import {arrayEach} from './../helpers/array';
-import {objectEach} from './../helpers/object';
-import {rangeEach} from './../helpers/number';
-import {stringify} from './../helpers/mixed';
 
 /**
  * @class GhostTable
@@ -72,7 +68,7 @@ class GhostTable {
     if (!this.rows.length) {
       this.container = this.createContainer(this.hot.rootElement.className);
     }
-    const rowObject = {row: row};
+    const rowObject = {row};
     this.rows.push(rowObject);
 
     this.samples = samples;
@@ -202,9 +198,9 @@ class GhostTable {
   getSetting(name) {
     if (this.settings) {
       return this.settings[name];
-    } else {
-      return null;
     }
+    return null;
+
   }
 
   /**
@@ -368,7 +364,7 @@ class GhostTable {
     const d = document;
     const col = d.createElement('col');
 
-    col.style.width = this.hot.view.wt.wtTable.getStretchedColumnWidth(column) + 'px';
+    col.style.width = `${this.hot.view.wt.wtTable.getStretchedColumnWidth(column)}px`;
 
     return col;
   }
@@ -421,7 +417,7 @@ class GhostTable {
     const fragment = d.createDocumentFragment();
     const container = d.createElement('div');
 
-    className = 'htGhostTable htAutoSize ' + className.trim();
+    className = `htGhostTable htAutoSize ${className.trim()}`;
     addClass(container, className);
     fragment.appendChild(container);
 
@@ -434,7 +430,7 @@ class GhostTable {
    * @returns {Boolean}
    */
   isVertical() {
-    return this.rows.length && !this.columns.length ? true : false;
+    return !!(this.rows.length && !this.columns.length);
   }
 
   /**
@@ -443,11 +439,8 @@ class GhostTable {
    * @returns {Boolean}
    */
   isHorizontal() {
-    return this.columns.length && !this.rows.length ? true : false;
+    return !!(this.columns.length && !this.rows.length);
   }
 }
 
-export {GhostTable};
-
-// temp for tests only!
-Handsontable.utils.GhostTable = GhostTable;
+export default GhostTable;

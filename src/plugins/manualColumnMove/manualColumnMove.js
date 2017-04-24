@@ -1,13 +1,20 @@
 import BasePlugin from './../_base.js';
-import Handsontable from './../../browser';
+import Hooks from './../../pluginHooks';
 import {arrayEach} from './../../helpers/array';
 import {addClass, removeClass, offset} from './../../helpers/dom/element';
 import {rangeEach} from './../../helpers/number';
-import {eventManager as eventManagerObject} from './../../eventManager';
+import EventManager from './../../eventManager';
 import {registerPlugin} from './../../plugins';
-import {ColumnsMapper} from './columnsMapper';
-import {BacklightUI} from './ui/backlight';
-import {GuidelineUI} from './ui/guideline';
+import ColumnsMapper from './columnsMapper';
+import BacklightUI from './ui/backlight';
+import GuidelineUI from './ui/guideline';
+import {CellCoords} from './../../3rdparty/walkontable/src';
+
+import './manualColumnMove.css';
+
+Hooks.getSingleton().register('beforeColumnMove');
+Hooks.getSingleton().register('afterColumnMove');
+Hooks.getSingleton().register('unmodifyCol');
 
 const privatePool = new WeakMap();
 const CSS_PLUGIN = 'ht__manualColumnMove';
@@ -72,7 +79,7 @@ class ManualColumnMove extends BasePlugin {
      *
      * @type {Object}
      */
-    this.eventManager = eventManagerObject(this);
+    this.eventManager = new EventManager(this);
     /**
      * Backlight UI object.
      *
@@ -111,6 +118,7 @@ class ManualColumnMove extends BasePlugin {
     this.addHook('beforeRemoveCol', (index, amount) => this.onBeforeRemoveCol(index, amount));
     this.addHook('afterRemoveCol', (index, amount) => this.onAfterRemoveCol(index, amount));
     this.addHook('afterCreateCol', (index, amount) => this.onAfterCreateCol(index, amount));
+    this.addHook('afterLoadData', (firstTime) => this.onAfterLoadData(firstTime));
     this.addHook('unmodifyCol', (column) => this.onUnmodifyCol(column));
 
     this.registerEvents();
@@ -208,8 +216,8 @@ class ManualColumnMove extends BasePlugin {
     let selection = this.hot.selection;
     let lastRowIndex = this.hot.countRows() - 1;
 
-    selection.setRangeStartOnly(new WalkontableCellCoords(0, startColumn));
-    selection.setRangeEnd(new WalkontableCellCoords(lastRowIndex, endColumn), false);
+    selection.setRangeStartOnly(new CellCoords(0, startColumn));
+    selection.setRangeEnd(new CellCoords(lastRowIndex, endColumn), false);
   }
 
   /**
@@ -250,11 +258,7 @@ class ManualColumnMove extends BasePlugin {
       this.moveColumns(pluginSettings, 0);
 
     } else if (pluginSettings !== void 0) {
-      let persistentState = this.persistentStateLoad();
-
-      if (persistentState.length) {
-        this.moveColumns(persistentState, 0);
-      }
+      this.persistentStateLoad();
     }
   }
 
@@ -275,21 +279,22 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   persistentStateSave() {
-    Handsontable.hooks.run(this.hot, 'persistentStateSave', 'manualColumnMove', this.columnsMapper._arrayMap);
+    this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.columnsMapper._arrayMap);
   }
 
   /**
    * Load the manual column positions from the persistent state.
    *
    * @private
-   * @returns {Array} Stored state.
    */
   persistentStateLoad() {
     let storedState = {};
 
-    Handsontable.hooks.run(this.hot, 'persistentStateLoad', 'manualColumnsMove', storedState);
+    this.hot.runHooks('persistentStateLoad', 'manualColumnMove', storedState);
 
-    return storedState.value ? storedState.value : [];
+    if (storedState.value) {
+      this.columnsMapper._arrayMap = storedState.value;
+    }
   }
 
   /**
@@ -350,7 +355,7 @@ class ManualColumnMove extends BasePlugin {
         priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
       }
 
-    } else if ((priv.target.TD.offsetWidth / 2 + tdOffsetLeft) <= mouseOffsetLeft) {
+    } else if (((priv.target.TD.offsetWidth / 2) + tdOffsetLeft) <= mouseOffsetLeft) {
       let newCoordsCol = priv.coordsColumn >= priv.countCols ? priv.countCols - 1 : priv.coordsColumn;
       // if hover on right part of TD
       priv.target.col = newCoordsCol + 1;
@@ -395,11 +400,42 @@ class ManualColumnMove extends BasePlugin {
       guidelineLeft = 1;
 
     } else if (scrollableElement.scrollX !== void 0 && priv.coordsColumn < priv.fixedColumns) {
-      guidelineLeft = guidelineLeft - ((priv.rootElementOffset <= scrollableElement.scrollX) ? priv.rootElementOffset : 0);
+      guidelineLeft -= ((priv.rootElementOffset <= scrollableElement.scrollX) ? priv.rootElementOffset : 0);
     }
 
     this.backlight.setPosition(null, backlightLeft);
     this.guideline.setPosition(null, guidelineLeft);
+  }
+
+  /**
+   * This method checks arrayMap from columnsMapper and updates the columnsMapper if it's necessary.
+   *
+   * @private
+   */
+  updateColumnsMapper() {
+    let countCols = this.hot.countSourceCols();
+    let columnsMapperLen = this.columnsMapper._arrayMap.length;
+
+    if (columnsMapperLen === 0) {
+      this.columnsMapper.createMap(countCols || this.hot.getSettings().startCols);
+
+    } else if (columnsMapperLen < countCols) {
+      let diff = countCols - columnsMapperLen;
+
+      this.columnsMapper.insertItems(columnsMapperLen, diff);
+
+    } else if (columnsMapperLen > countCols) {
+      let maxIndex = countCols - 1;
+      let columnsToRemove = [];
+
+      arrayEach(this.columnsMapper._arrayMap, (value, index, array) => {
+        if (value > maxIndex) {
+          columnsToRemove.push(index);
+        }
+      });
+
+      this.columnsMapper.removeItems(columnsToRemove);
+    }
   }
 
   /**
@@ -426,7 +462,7 @@ class ManualColumnMove extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event
-   * @param {WalkontableCellCoords} coords
+   * @param {CellCoords} coords
    * @param {HTMLElement} TD
    * @param {Object} blockCalculations
    */
@@ -523,7 +559,7 @@ class ManualColumnMove extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event `mouseover` event properties.
-   * @param {WalkontableCellCoords} coords Cell coordinates where was fired event.
+   * @param {CellCoords} coords Cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
    * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
@@ -640,6 +676,16 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
+   * `afterLoadData` hook callback.
+   *
+   * @private
+   * @param {Boolean} firstTime True if that was loading data during the initialization.
+   */
+  onAfterLoadData(firstTime) {
+    this.updateColumnsMapper();
+  }
+
+  /**
    * 'modifyRow' hook callback.
    *
    * @private
@@ -665,9 +711,8 @@ class ManualColumnMove extends BasePlugin {
    */
   onUnmodifyCol(column) {
     let indexInMapper = this.columnsMapper.getIndexByValue(column);
-    column = indexInMapper === null ? column : indexInMapper;
 
-    return column;
+    return indexInMapper === null ? column : indexInMapper;
   }
 
   /**
@@ -676,30 +721,7 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   onAfterPluginsInitialized() {
-    let countCols = this.hot.countCols();
-    let columnsMapperLen = this.columnsMapper._arrayMap.length;
-
-    if (columnsMapperLen === 0) {
-      this.columnsMapper.createMap(this.hot.countSourceCols() || this.hot.getSettings().startCols);
-
-    } else if (columnsMapperLen < countCols) {
-      let diff = countCols - columnsMapperLen;
-
-      this.columnsMapper.insertItems(columnsMapperLen, diff);
-
-    } else if (columnsMapperLen > countCols) {
-      let maxIndex = countCols - 1;
-      let columnsToRemove = [];
-
-      arrayEach(this.columnsMapper._arrayMap, (value, index, array) => {
-        if (value > maxIndex) {
-          columnsToRemove.push(index);
-        }
-      });
-
-      this.columnsMapper.removeItems(columnsToRemove);
-    }
-
+    this.updateColumnsMapper();
     this.initialSettings();
     this.backlight.build();
     this.guideline.build();
@@ -716,9 +738,6 @@ class ManualColumnMove extends BasePlugin {
   }
 }
 
-export {ManualColumnMove};
-
 registerPlugin('ManualColumnMove', ManualColumnMove);
-Handsontable.hooks.register('beforeColumnMove');
-Handsontable.hooks.register('afterColumnMove');
-Handsontable.hooks.register('unmodifyCol');
+
+export default ManualColumnMove;

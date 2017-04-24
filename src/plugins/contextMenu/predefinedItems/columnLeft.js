@@ -2,14 +2,14 @@ import {getValidSelection} from './../utils';
 
 export const KEY = 'col_left';
 
-export function columnLeftItem() {
+export default function columnLeftItem() {
   return {
     key: KEY,
     name: 'Insert column on the left',
-    callback: function(key, selection) {
-      this.alter('insert_col', selection.start.col);
+    callback(key, selection) {
+      this.alter('insert_col', selection.start.col, 1, 'ContextMenu.columnLeft');
     },
-    disabled: function() {
+    disabled() {
       let selected = getValidSelection(this);
 
       if (!selected) {
@@ -24,7 +24,7 @@ export function columnLeftItem() {
 
       return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
     },
-    hidden: function() {
+    hidden() {
       return !this.getSettings().allowInsertColumn;
     }
   };

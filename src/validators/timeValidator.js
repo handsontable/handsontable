@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import moment from 'moment';
 
 // Formats which are correctly parsed to time (supported by momentjs)
@@ -17,7 +16,7 @@ const STRICT_FORMATS = [
  * @param {*} value - Value of edited cell
  * @param {Function} callback - Callback called with validation result
  */
-Handsontable.TimeValidator = function(value, callback) {
+function TimeValidator(value, callback) {
   let valid = true;
   let timeFormat = this.timeFormat || 'h:mm:ss a';
 
@@ -30,7 +29,7 @@ Handsontable.TimeValidator = function(value, callback) {
   let twoDigitValue = /^\d{1,2}$/.test(value);
 
   if (twoDigitValue) {
-    value = value + ':00';
+    value += ':00';
   }
 
   let date = moment(value, STRICT_FORMATS, true).isValid() ? moment(value) : moment(value, timeFormat);
@@ -51,10 +50,11 @@ Handsontable.TimeValidator = function(value, callback) {
   }
   if (isValidTime && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
-
       let correctedValue = date.format(timeFormat);
+      let row = this.instance.runHooks('unmodifyRow', this.row);
+      let column = this.instance.runHooks('unmodifyCol', this.col);
 
-      this.instance.setDataAtCell(this.row, this.col, correctedValue, 'timeValidator');
+      this.instance.setDataAtCell(row, column, correctedValue, 'timeValidator');
       valid = true;
     } else {
       valid = false;
@@ -63,3 +63,5 @@ Handsontable.TimeValidator = function(value, callback) {
 
   callback(valid);
 };
+
+export default TimeValidator;

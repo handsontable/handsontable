@@ -1,4 +1,3 @@
-
 export function to2dArray(arr) {
   var i = 0,
     ilen = arr.length;

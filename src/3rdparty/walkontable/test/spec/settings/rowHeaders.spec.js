@@ -1,29 +1,29 @@
-describe('rowHeaders option', function () {
-  var $table
-    , $container
-    , $wrapper
-    , debug = false;
+describe('rowHeaders option', () => {
+  var $table,
+    $container,
+    $wrapper,
+    debug = false;
 
-  beforeEach(function () {
-    $wrapper = $('<div></div>').css({'overflow': 'hidden', 'position': 'relative'});
+  beforeEach(() => {
+    $wrapper = $('<div></div>').css({overflow: 'hidden', position: 'relative'});
     $wrapper.width(500).height(201);
     $container = $('<div></div>');
-    $table = $('<table></table>'); //create a table that is not attached to document
+    $table = $('<table></table>'); // create a table that is not attached to document
     $wrapper.append($container);
     $container.append($table);
     $wrapper.appendTo('body');
     createDataArray();
   });
 
-  afterEach(function () {
+  afterEach(() => {
     if (!debug) {
       $('.wtHolder').remove();
     }
     $wrapper.remove();
   });
 
-  it("shouldn\'t add class `htRowHeader` when row headers are disabled", function () {
-    var wt = new Walkontable({
+  it('should not add class `htRowHeader` when row headers are disabled', () => {
+    var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -34,13 +34,13 @@ describe('rowHeaders option', function () {
     expect($wrapper.hasClass('htRowHeaders')).toBe(false);
   });
 
-  it("should add class `htRowHeader` when row headers are enabled", function () {
-    var wt = new Walkontable({
+  it('should add class `htRowHeader` when row headers are enabled', () => {
+    var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function (row, TH) {
+      rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
       }]
     });
@@ -49,13 +49,13 @@ describe('rowHeaders option', function () {
     expect($wrapper.hasClass('htRowHeaders')).toBe(true);
   });
 
-  it("should create table row headers", function () {
-    var wt = new Walkontable({
+  it('should create table row headers', () => {
+    var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function (row, TH) {
+      rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
       }]
     });
@@ -72,40 +72,40 @@ describe('rowHeaders option', function () {
     expect($wrapper.find('.ht_master tbody tr').length).toBe(9);
   });
 
-  it("should generate headers from function", function () {
-    var wt = new Walkontable({
+  it('should generate headers from function', () => {
+    var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function (row, TH) {
+      rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
       }]
     });
 
     wt.draw();
     var potentialRowCount = 9;
-    expect($table.find('tbody td').length).toBe(potentialRowCount * wt.wtTable.getRenderedColumnsCount()); //displayed cells
-    expect($table.find('tbody th').length).toBe(potentialRowCount); //9*1=9 displayed row headers
-    expect($table.find('tbody tr:first th').length).toBe(1); //only one th per row
-    expect($table.find('tbody tr:first th')[0].innerHTML).toBe('1'); //this should be the first row header
+    expect($table.find('tbody td').length).toBe(potentialRowCount * wt.wtTable.getRenderedColumnsCount()); // displayed cells
+    expect($table.find('tbody th').length).toBe(potentialRowCount); // 9*1=9 displayed row headers
+    expect($table.find('tbody tr:first th').length).toBe(1); // only one th per row
+    expect($table.find('tbody tr:first th')[0].innerHTML).toBe('1'); // this should be the first row header
   });
 
-  it("should add 'rowHeader' class to row header column", function () {
-    var wt = new Walkontable({
+  it('should add \'rowHeader\' class to row header column', () => {
+    var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function (row, TH) {
+      rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
       }],
-      columnHeaders: [function (col, TH) {
+      columnHeaders: [function(col, TH) {
         TH.innerHTML = col + 1;
       }]
     });
     wt.draw();
-    
+
     expect($table.find('col:first').hasClass('rowHeader')).toBe(true);
   });
 });

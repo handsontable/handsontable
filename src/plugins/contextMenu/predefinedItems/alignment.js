@@ -3,18 +3,18 @@ import {KEY as SEPARATOR} from './separator';
 
 export const KEY = 'alignment';
 
-export function alignmentItem() {
+export default function alignmentItem() {
   return {
     key: KEY,
     name: 'Alignment',
-    disabled: function() {
-      return this.getSelectedRange() && !this.selection.selectedHeader.corner ? false : true;
+    disabled() {
+      return !(this.getSelectedRange() && !this.selection.selectedHeader.corner);
     },
     submenu: {
       items: [
         {
           key: `${KEY}:left`,
-          name: function() {
+          name() {
             let label = 'Left';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -30,21 +30,22 @@ export function alignmentItem() {
 
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'horizontal';
             let alignment = 'htLeft';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
         },
         {
           key: `${KEY}:center`,
-          name: function() {
+          name() {
             let label = 'Center';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -60,21 +61,22 @@ export function alignmentItem() {
 
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'horizontal';
             let alignment = 'htCenter';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
         },
         {
           key: `${KEY}:right`,
-          name: function() {
+          name() {
             let label = 'Right';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -90,21 +92,22 @@ export function alignmentItem() {
 
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'horizontal';
             let alignment = 'htRight';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
         },
         {
           key: `${KEY}:justify`,
-          name: function() {
+          name() {
             let label = 'Justify';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -120,14 +123,15 @@ export function alignmentItem() {
 
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'horizontal';
             let alignment = 'htJustify';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
@@ -137,7 +141,7 @@ export function alignmentItem() {
         },
         {
           key: `${KEY}:top`,
-          name: function() {
+          name() {
             let label = 'Top';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -152,21 +156,22 @@ export function alignmentItem() {
             }
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'vertical';
             let alignment = 'htTop';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
         },
         {
           key: `${KEY}:middle`,
-          name: function() {
+          name() {
             let label = 'Middle';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -182,21 +187,22 @@ export function alignmentItem() {
 
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'vertical';
             let alignment = 'htMiddle';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
         },
         {
           key: `${KEY}:bottom`,
-          name: function() {
+          name() {
             let label = 'Bottom';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
@@ -212,14 +218,15 @@ export function alignmentItem() {
 
             return label;
           },
-          callback: function() {
+          callback() {
             let range = this.getSelectedRange();
             let stateBefore = getAlignmentClasses(range, (row, col) => this.getCellMeta(row, col).className);
             let type = 'vertical';
             let alignment = 'htBottom';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col));
+            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
+                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false

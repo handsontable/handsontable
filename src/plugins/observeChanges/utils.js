@@ -38,7 +38,7 @@ export function cleanPatches(patches) {
    * Removing or adding column will produce one patch for each table row.
    * Leaves only one patch for each column add/remove operation.
    */
-  patches = arrayFilter(patches, function(patch) {
+  patches = arrayFilter(patches, (patch) => {
     if (['add', 'remove'].indexOf(patch.op) !== -1 && !isNaN(patch.col)) {
       if (newOrRemovedColumns.indexOf(patch.col) !== -1) {
         return false;

@@ -1,0 +1,477 @@
+describe('Handsontable.Dom', () => {
+
+  describe('offset', () => {
+    var $window = $(window),
+      $forceScrollbar = $('<div id="forceScrollbar"></div>').css({
+        position: 'absolute',
+        height: '4000px',
+        width: '4000px',
+        top: 0,
+        left: 0
+      });
+
+    beforeEach(function() {
+      $forceScrollbar.appendTo(document.body);
+      this.$div = $('<div id="test"></div>').appendTo($forceScrollbar);
+      this.div = this.$div[0];
+    });
+
+    afterEach(function() {
+      this.$div.remove();
+      $forceScrollbar.remove();
+    });
+
+    describe('top', () => {
+      it('should return offset top with position absolute', function() {
+        this.$div.css({position: 'absolute', top: 200});
+
+        expect(Handsontable.dom.offset(this.div).top).toEqual(200);
+      });
+
+      it('should return offset top with position absolute & scrolled window', function() {
+        this.$div.css({position: 'absolute', top: 200});
+        $window.scrollTop(1900);
+
+        expect(Handsontable.dom.offset(this.div).top).toEqual(200);
+
+        $window.scrollTop(0);
+      });
+
+      it('should return offset top with position fixed', function() {
+        this.$div.css({position: 'fixed', top: 200});
+
+        expect(Handsontable.dom.offset(this.div).top).toEqual(200);
+      });
+
+      it('should return offset top with position fixed & scrolled window', function() {
+        this.$div.css({position: 'fixed', top: 200});
+        $window.scrollTop(1900);
+
+        expect(Handsontable.dom.offset(this.div).top).toEqual(2100); // this is the same jQuery offset returns
+
+        $window.scrollTop(0);
+      });
+    });
+
+    describe('left', () => {
+      it('should return offset left with position absolute', function() {
+        this.$div.css({position: 'absolute', left: 200});
+
+        expect(Handsontable.dom.offset(this.div).left).toEqual(200);
+      });
+
+      it('should return offset left with position absolute & scrolled window', function() {
+        this.$div.css({position: 'absolute', left: 200});
+        $window.scrollLeft(1900);
+
+        expect(Handsontable.dom.offset(this.div).left).toEqual(200);
+
+        $window.scrollLeft(0);
+      });
+
+      it('should return offset left with position fixed', function() {
+        this.$div.css({position: 'fixed', left: 200});
+
+        expect(Handsontable.dom.offset(this.div).left).toEqual(200);
+      });
+
+      it('should return offset left with position fixed & scrolled window', function() {
+        this.$div.css({position: 'fixed', left: 200});
+        $window.scrollLeft(1900);
+
+        expect(Handsontable.dom.offset(this.div).left).toEqual(2100); // this is the same jQuery offset returns
+
+        $window.scrollLeft(0);
+      });
+    });
+  });
+
+  describe('isVisible', () => {
+    it('should return true for appended table', () => {
+      var $table = $('<table></table>').appendTo('body');
+
+      expect(Handsontable.dom.isVisible($table[0])).toBe(true);
+
+      $table.remove();
+    });
+
+    it('should return false for not appended table', () => {
+      var $table = $('<table></table>');
+
+      expect(Handsontable.dom.isVisible($table[0])).toBe(false);
+
+      $table.remove();
+    });
+
+    it('should return false for table with `display: none`', () => {
+      var $table = $('<table style="display: none"></table>').appendTo('body');
+
+      expect(Handsontable.dom.isVisible($table[0])).toBe(false);
+
+      $table.remove();
+    });
+
+    it('should return false for table with parent `display: none`', () => {
+      var $div = $('<div style="display: none"></div>').appendTo('body');
+      var $table = $('<table></table>').appendTo($div);
+
+      expect(Handsontable.dom.isVisible($table[0])).toBe(false);
+
+      $table.remove();
+    });
+
+    it('should return false for something detached from DOM', () => {
+      var $table = $('<table><tr><td></td></tr></table>').appendTo('body');
+
+      var TD = $table.find('td')[0];
+      var TR = TD.parentNode;
+      expect(Handsontable.dom.isVisible(TD)).toBe(true);
+      TR.parentNode.removeChild(TR);
+      expect(Handsontable.dom.isVisible(TD)).toBe(false);
+
+      $table.remove();
+    });
+  });
+
+  describe('outerHeight', () => {
+    it('should return correct outerHeight for table', () => {
+      var $table = $('<table style="border-width: 0;"><tbody><tr><td style="border: 1px solid black"><div style="height: 30px">test</div></td>' +
+                     '</tr></tbody></table>').appendTo('body');
+
+      expect(Handsontable.dom.outerHeight($table[0])).toBe(38); // this is according to current stylesheet
+      expect($table.outerHeight()).toBe(38); // jQuery check to confirm
+
+      $table.remove();
+    });
+
+    it('should return correct outerHeight for table (with caption)', () => {
+      var $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0"><div style="height: 30px">caption</div></caption><tbody>' +
+                     '<tr><td style="border: 1px solid black"><div style="height: 30px">test</div></td></tr></tbody></table>').appendTo('body');
+
+      expect(Handsontable.dom.outerHeight($table[0])).toBe(68); // this is according to current stylesheet
+
+      $table.remove();
+    });
+  });
+
+  it('should return correct offset for table cell (table with caption)', () => {
+    var $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0"><div style="height: 30px">caption</div></caption><tbody>' +
+                   '<tr><td style="border: 1px solid black"><div style="height: 30px">test</div></td></tr></tbody></table>').appendTo('body');
+
+    var tableOffset = Handsontable.dom.offset($table[0]);
+    var tdOffset = Handsontable.dom.offset($table.find('td')[0]);
+
+    expect(parseInt(tdOffset.left - tableOffset.left, 10)).toBeAroundValue(2); // this is according to current stylesheet
+    expect(parseInt(tdOffset.top - tableOffset.top, 10)).toBeAroundValue(32); // this is according to current stylesheet
+
+    $table.remove();
+  });
+
+  it('should return font size', () => {
+    var $html = $('<style>.bigText{font: 12px serif;}</style><div class="bigText"><span id="testable"></span></div>').appendTo('body');
+
+    var span = document.getElementById('testable');
+    var compStyle = Handsontable.dom.getComputedStyle(span);
+
+    expect(compStyle.fontSize).toBe('12px');
+
+    $html.remove();
+  });
+
+  it('should return top border width', () => {
+    var $html = $('<style>.redBorder{border: 10px solid red;}</style><div class="redBorder" id="testable"></div>').appendTo('body');
+
+    var div = document.getElementById('testable');
+    var compStyle = Handsontable.dom.getComputedStyle(div);
+
+    expect(compStyle.borderTopWidth).toBe('10px');
+
+    $html.remove();
+  });
+
+  it('should insert HTML properly', () => {
+    var $html = $('<div id="testable"></div>').appendTo('body');
+    var text = '<span>test<br>test</span>';
+    var div = document.getElementById('testable');
+
+    Handsontable.dom.fastInnerHTML(div, text);
+    Handsontable.dom.fastInnerHTML(div, text);
+
+    expect(div.childNodes[0].childNodes.length).toEqual(3);
+
+    $html.remove();
+  });
+
+  it('should set the immediatePropagation properties properly for given event', () => {
+    var event = document.createEvent('MouseEvents');
+    event.initMouseEvent('mousedown', true, true, window, null, null, null, null, null, null, null, null, null, null, null);
+
+    Handsontable.dom.stopImmediatePropagation(event);
+
+    expect(event.isImmediatePropagationEnabled).toBe(false);
+
+    expect(Handsontable.dom.isImmediatePropagationStopped(event)).toBe(true);
+  });
+
+  describe('getScrollableElement', () => {
+    it('should return scrollable element with \'scroll\' value of \'overflow\', \'overflowX\' or \'overflowY\' property', () => {
+      var $html = $([
+        '<div style="overflow: scroll"><span class="overflow"></span></div>',
+        '<div style="overflow-x: scroll"><span class="overflowX"></span></div>',
+        '<div style="overflow-y: scroll"><span class="overflowY"></span></div>'
+      ].join('')).appendTo('body');
+
+      expect(Handsontable.dom.getScrollableElement($html.find('.overflow')[0])).toBe($html[0]);
+      expect(Handsontable.dom.getScrollableElement($html.find('.overflowX')[0])).toBe($html[1]);
+      expect(Handsontable.dom.getScrollableElement($html.find('.overflowY')[0])).toBe($html[2]);
+
+      $html.remove();
+    });
+
+    it('should return scrollable element with \'auto\' value of \'overflow\' or \'overflowY\' property', () => {
+      var $html = $([
+        '<div style="overflow: auto; height: 50px;"><div class="knob" style="height: 100px"></div></div>',
+        '<div style="overflow-y: auto; height: 50px;"><div class="knob" style="height: 100px"></div></div>',
+        '<div style="overflow-y: auto; height: 50px;">',
+        '<div>',
+        '<div class="knob" style="height: 100px;"></div>',
+        '</div>',
+        '</div>'
+      ].join('')).appendTo('body');
+
+      expect(Handsontable.dom.getScrollableElement($html.find('.knob')[0])).toBe($html[0]);
+      expect(Handsontable.dom.getScrollableElement($html.find('.knob')[1])).toBe($html[1]);
+      expect(Handsontable.dom.getScrollableElement($html.find('.knob')[2])).toBe($html[2]);
+
+      $html.remove();
+    });
+
+    it('should return scrollable element with \'auto\' value of \'overflow\' or \'overflowX\' property', () => {
+      var $html = $([
+        '<div style="overflow: auto; width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>',
+        '<div style="overflow-x: auto; width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>',
+        '<div style="overflow-x: auto; width: 50px; height: 10px">',
+        '<div>',
+        '<div class="knob" style="width: 100px; height: 5px"></div>',
+        '</div>',
+        '</div>'
+      ].join('')).appendTo('body');
+
+      expect(Handsontable.dom.getScrollableElement($html.find('.knob')[0])).toBe($html[0]);
+      expect(Handsontable.dom.getScrollableElement($html.find('.knob')[1])).toBe($html[1]);
+      expect(Handsontable.dom.getScrollableElement($html.find('.knob')[2])).toBe($html[2]);
+
+      $html.remove();
+    });
+
+    it('should return window object as scrollable element', () => {
+      var $html = $([
+        '<div style="overflow: hidden; width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>',
+        '<div style="width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>'
+      ].join('')).appendTo('body');
+
+      expect(Handsontable.dom.getScrollableElement($html.find('.knob')[0])).toBe(window);
+      expect(Handsontable.dom.getScrollableElement($html.find('.knob')[1])).toBe(window);
+
+      $html.remove();
+    });
+  });
+
+  //
+  // Handsontable.dom.isChildOfWebComponentTable
+  //
+  describe('isChildOfWebComponentTable', () => {
+    it('should return correct Boolean value depending on whether an element exists in `hot-table` or not', () => {
+      // skip if browser not support Shadow DOM natively
+      if (!document.createElement('div').createShadowRoot) {
+        // Fix for "no exceptations" warnings
+        expect(true).toBe(true);
+
+        return;
+      }
+      var hotTable = document.createElement('hot-table');
+      var outsideDiv = document.createElement('div');
+
+      expect(Handsontable.dom.isChildOfWebComponentTable(hotTable)).toBe(true);
+      expect(Handsontable.dom.isChildOfWebComponentTable(outsideDiv)).toBe(false);
+
+      var hotTableDiv = document.createElement('div');
+      hotTable.appendChild(hotTableDiv);
+
+      expect(Handsontable.dom.isChildOfWebComponentTable(hotTableDiv)).toBe(true);
+
+      var fragment = document.createDocumentFragment();
+
+      expect(Handsontable.dom.isChildOfWebComponentTable(fragment)).toBe(false);
+
+      var myElement = document.createElement('my-element');
+
+      expect(Handsontable.dom.isChildOfWebComponentTable(myElement)).toBe(false);
+
+      var shadowRoot = myElement.createShadowRoot();
+      var insideDiv = shadowRoot.appendChild(document.createElement('div'));
+      hotTable.createShadowRoot().appendChild(myElement);
+
+      expect(Handsontable.dom.isChildOfWebComponentTable(myElement)).toBe(true);
+      expect(Handsontable.dom.isChildOfWebComponentTable(insideDiv)).toBe(true);
+    });
+  });
+
+  //
+  // Handsontable.dom.polymerWrap
+  //
+  describe('polymerWrap', () => {
+    it('should wrap element into polymer wrapper if exists', () => {
+      expect(Handsontable.dom.polymerWrap(1)).toBe(1);
+
+      window.wrap = function() { return 'wrapped'; };
+      window.Polymer = {};
+
+      expect(Handsontable.dom.polymerWrap(1)).toBe('wrapped');
+
+      // Test https://github.com/handsontable/handsontable/issues/2283
+      window.wrap = document.createElement('div');
+
+      expect(Handsontable.dom.polymerWrap(1)).toBe(1);
+
+      delete window.wrap;
+      delete window.Polymer;
+    });
+  });
+
+  //
+  // Handsontable.dom.polymerUnwrap
+  //
+  describe('polymerUnwrap', () => {
+    it('should unwrap element from polymer wrapper if exists', () => {
+      expect(Handsontable.dom.polymerUnwrap('wrapped')).toBe('wrapped');
+
+      window.unwrap = function() { return 1; };
+      window.Polymer = {};
+
+      expect(Handsontable.dom.polymerUnwrap('wrapped')).toBe(1);
+
+      window.unwrap = document.createElement('div');
+
+      expect(Handsontable.dom.polymerUnwrap('wrapped')).toBe('wrapped');
+
+      delete window.unwrap;
+      delete window.Polymer;
+    });
+  });
+
+  //
+  // Handsontable.dom.addClass
+  //
+  describe('addClass', () => {
+    it('should add class names as string to an element', () => {
+      var element = document.createElement('div');
+
+      expect(element.className).toBe('');
+
+      Handsontable.dom.addClass(element, 'test');
+
+      expect(element.className).toBe('test');
+
+      Handsontable.dom.addClass(element, 'test test1 test2');
+
+      expect(element.className).toBe('test test1 test2');
+
+      Handsontable.dom.addClass(element, 'test3');
+
+      expect(element.className).toBe('test test1 test2 test3');
+
+      Handsontable.dom.addClass(element, '');
+
+      expect(element.className).toBe('test test1 test2 test3');
+    });
+
+    it('should add class names as array to an element', () => {
+      var element = document.createElement('div');
+
+      expect(element.className).toBe('');
+
+      Handsontable.dom.addClass(element, ['test']);
+
+      expect(element.className).toBe('test');
+
+      Handsontable.dom.addClass(element, ['test1', 'test2', 'test3']);
+
+      expect(element.className).toBe('test test1 test2 test3');
+
+      Handsontable.dom.addClass(element, 'test4');
+
+      expect(element.className).toBe('test test1 test2 test3 test4');
+
+      Handsontable.dom.addClass(element, '');
+
+      expect(element.className).toBe('test test1 test2 test3 test4');
+    });
+  });
+
+  //
+  // Handsontable.dom.removeClass
+  //
+  describe('removeClass', () => {
+    it('should remove class names as string from an element', () => {
+      var element = document.createElement('div');
+
+      element.className = 'test test1 test2 test3 test4';
+
+      Handsontable.dom.removeClass(element, 'not-exists');
+
+      expect(element.className).toBe('test test1 test2 test3 test4');
+
+      Handsontable.dom.removeClass(element, 'test');
+
+      expect(element.className).toBe('test1 test2 test3 test4');
+
+      Handsontable.dom.removeClass(element, 'test test1 test4');
+
+      expect(element.className).toBe('test2 test3');
+
+      Handsontable.dom.removeClass(element, '');
+
+      expect(element.className).toBe('test2 test3');
+    });
+
+    it('should remove class names as array from an element', () => {
+      var element = document.createElement('div');
+
+      element.className = 'test test1 test2 test3 test4';
+
+      Handsontable.dom.removeClass(element, ['not-exists']);
+
+      expect(element.className).toBe('test test1 test2 test3 test4');
+
+      Handsontable.dom.removeClass(element, ['test']);
+
+      expect(element.className).toBe('test1 test2 test3 test4');
+
+      Handsontable.dom.removeClass(element, ['test', 'test1', 'test4']);
+
+      expect(element.className).toBe('test2 test3');
+
+      Handsontable.dom.removeClass(element, ['test', '', '']);
+
+      expect(element.className).toBe('test2 test3');
+    });
+  });
+
+  //
+  // Handsontable.dom.hasClass
+  //
+  describe('hasClass', () => {
+    it('should checks if an element has passed class name', () => {
+      var element = document.createElement('div');
+
+      element.className = 'test test1 test2 test3 test4';
+
+      expect(Handsontable.dom.hasClass(element, 'not-exists')).toBe(false);
+      expect(Handsontable.dom.hasClass(element, 'test3')).toBe(true);
+      expect(Handsontable.dom.hasClass(element, 'test')).toBe(true);
+      expect(Handsontable.dom.hasClass(element, '')).toBe(false);
+    });
+  });
+
+});

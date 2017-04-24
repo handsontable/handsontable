@@ -1,17 +1,16 @@
-import Handsontable from './../../browser';
+import Hooks from './../../pluginHooks';
 import {registerPlugin} from './../../plugins';
-
-export {HandsontablePersistentState};
+import {hasOwnProperty} from './../../helpers/object';
 
 function Storage(prefix) {
   var savedKeys;
 
   var saveSavedKeys = function() {
-    window.localStorage[prefix + '__' + 'persistentStateKeys'] = JSON.stringify(savedKeys);
+    window.localStorage[`${prefix}__persistentStateKeys`] = JSON.stringify(savedKeys);
   };
 
   var loadSavedKeys = function() {
-    var keysJSON = window.localStorage[prefix + '__' + 'persistentStateKeys'];
+    var keysJSON = window.localStorage[`${prefix}__persistentStateKeys`];
     var keys = typeof keysJSON == 'string' ? JSON.parse(keysJSON) : void 0;
     savedKeys = keys ? keys : [];
   };
@@ -24,7 +23,7 @@ function Storage(prefix) {
   loadSavedKeys();
 
   this.saveValue = function(key, value) {
-    window.localStorage[prefix + '_' + key] = JSON.stringify(value);
+    window.localStorage[`${prefix}_${key}`] = JSON.stringify(value);
     if (savedKeys.indexOf(key) == -1) {
       savedKeys.push(key);
       saveSavedKeys();
@@ -36,18 +35,18 @@ function Storage(prefix) {
 
     key = typeof key === 'undefined' ? defaultValue : key;
 
-    var value = window.localStorage[prefix + '_' + key];
+    var value = window.localStorage[`${prefix}_${key}`];
 
     return typeof value == 'undefined' ? void 0 : JSON.parse(value);
   };
 
   this.reset = function(key) {
-    window.localStorage.removeItem(prefix + '_' + key);
+    window.localStorage.removeItem(`${prefix}_${key}`);
   };
 
   this.resetAll = function() {
     for (var index = 0; index < savedKeys.length; index++) {
-      window.localStorage.removeItem(prefix + '_' + savedKeys[index]);
+      window.localStorage.removeItem(`${prefix}_${savedKeys[index]}`);
     }
 
     clearSavedKeys();
@@ -113,8 +112,8 @@ function HandsontablePersistentState() {
   };
 
   for (var hookName in hooks) {
-    if (hooks.hasOwnProperty(hookName)) {
-      Handsontable.hooks.register(hookName);
+    if (hasOwnProperty(hooks, hookName)) {
+      Hooks.getSingleton().register(hookName);
     }
   }
 
@@ -122,7 +121,7 @@ function HandsontablePersistentState() {
     var instance = this;
 
     for (var hookName in hooks) {
-      if (hooks.hasOwnProperty(hookName)) {
+      if (hasOwnProperty(hooks, hookName)) {
         instance.addHook(hookName, hooks[hookName]);
       }
     }
@@ -132,7 +131,7 @@ function HandsontablePersistentState() {
     var instance = this;
 
     for (var hookName in hooks) {
-      if (hooks.hasOwnProperty(hookName)) {
+      if (hasOwnProperty(hooks, hookName)) {
         instance.removeHook(hookName, hooks[hookName]);
       }
     }
@@ -140,5 +139,8 @@ function HandsontablePersistentState() {
 }
 
 var htPersistentState = new HandsontablePersistentState();
-Handsontable.hooks.add('beforeInit', htPersistentState.init);
-Handsontable.hooks.add('afterUpdateSettings', htPersistentState.init);
+
+Hooks.getSingleton().add('beforeInit', htPersistentState.init);
+Hooks.getSingleton().add('afterUpdateSettings', htPersistentState.init);
+
+export default HandsontablePersistentState;

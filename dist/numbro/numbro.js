@@ -1,6 +1,6 @@
 /*!
  * numbro.js
- * version : 1.9.3
+ * version : 1.10.1
  * author : Företagsplatsen AB
  * license : MIT
  * http://www.foretagsplatsen.se
@@ -14,7 +14,7 @@
     ************************************/
 
     var numbro,
-        VERSION = '1.9.3',
+        VERSION = '1.10.1',
         binarySuffixes = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'],
         decimalSuffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
         bytes = {
@@ -75,6 +75,11 @@
     // Numbro prototype object
     function Numbro(number) {
         this._value = number;
+    }
+
+    function numberLength(number) {
+        if (number === 0) { return 1; }
+        return Math.floor(Math.log(Math.abs(number)) / Math.LN10) + 1;
     }
 
     function zeroes(count) {
@@ -472,7 +477,6 @@
             forcedNeg = false,
             neg = false,
             indexOpenP,
-            size,
             indexMinus,
             paren = '',
             minlen,
@@ -498,7 +502,7 @@
             prefix = '';
         }
 
-        if (format.indexOf('}') === format.length - 1) {
+        if (format.indexOf('}') === format.length - 1 && format.length) {
             var start = format.indexOf('{');
             if (start === -1) {
                 throw Error('Format should also contain a "{"');
@@ -551,30 +555,16 @@
                 format = format.replace('a', '');
             }
 
-            totalLength = Math.floor(Math.log(abs) / Math.LN10) + 1;
-
+            totalLength = numberLength(value);
             minimumPrecision = totalLength % 3;
             minimumPrecision = minimumPrecision === 0 ? 3 : minimumPrecision;
 
             if (intPrecision && abs !== 0) {
-
-                length = Math.floor(Math.log(abs) / Math.LN10) + 1 - intPrecision;
-
                 pow = 3 * ~~((Math.min(intPrecision, totalLength) - minimumPrecision) / 3);
-
                 abs = abs / Math.pow(10, pow);
-
-                if (format.indexOf('.') === -1 && intPrecision > 3) {
-                    format += '[.]';
-
-                    size = length === 0 ? 0 : 3 * ~~(length / 3) - length;
-                    size = size < 0 ? size + 3 : size;
-
-                    format += zeroes(size);
-                }
             }
 
-            if (Math.floor(Math.log(Math.abs(value)) / Math.LN10) + 1 !== intPrecision) {
+            if (totalLength !== intPrecision) {
                 if (abs >= Math.pow(10, 12) && !abbrForce || abbrT) {
                     // trillion
                     abbr = abbr + cultures[currentCulture].abbreviations.trillion;
@@ -592,6 +582,12 @@
                     abbr = abbr + cultures[currentCulture].abbreviations.thousand;
                     value = value / Math.pow(10, 3);
                 }
+            }
+
+            length = numberLength(value);
+            if (intPrecision && length < intPrecision && format.indexOf('.') === -1) {
+                format += '[.]';
+                format += zeroes(intPrecision - length);
             }
         }
 
@@ -638,13 +634,18 @@
             format = format.replace('[.]', '.');
         }
 
-        w = value.toString().split('.')[0];
         precision = format.split('.')[1];
         thousands = format.indexOf(',');
 
         if (precision) {
+            var dSplit = [];
+
             if (precision.indexOf('*') !== -1) {
-                d = toFixed(value, value.toString().split('.')[1].length, roundingFunction);
+                d = value.toString();
+                dSplit = d.split('.');
+                if (dSplit.length > 1) {
+                    d = toFixed(value, dSplit[1].length, roundingFunction);
+                }
             } else {
                 if (precision.indexOf('[') > -1) {
                     precision = precision.replace(']', '');
@@ -656,11 +657,12 @@
                 }
             }
 
-            w = d.split('.')[0];
+            dSplit = d.split('.');
+            w = dSplit[0];
 
-            if (d.split('.')[1].length) {
+            if (dSplit.length > 1 && dSplit[1].length) {
                 var p = sep ? abbr + sep : cultures[currentCulture].delimiters.decimal;
-                d = p + d.split('.')[1];
+                d = p + dSplit[1];
             } else {
                 d = '';
             }
@@ -717,10 +719,10 @@
     numbro = function(input) {
         if (numbro.isNumbro(input)) {
             input = input.value();
-        } else if (input === 0 || typeof input === 'undefined') {
-            input = 0;
-        } else if (!Number(input)) {
+        } else if (typeof input === 'string' || typeof input === 'number') {
             input = numbro.fn.unformat(input);
+        } else {
+            input = NaN;
         }
 
         return new Numbro(Number(input));
@@ -1049,7 +1051,7 @@
             (process.browser === undefined) &&
             process.title &&
             (
-                process.title.indexOf('node') === 0 ||
+                process.title.indexOf('node') !== -1 ||
                 process.title.indexOf('meteor-tool') > 0 ||
                 process.title === 'grunt' ||
                 process.title === 'gulp'

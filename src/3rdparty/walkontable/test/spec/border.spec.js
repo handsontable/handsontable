@@ -1,10 +1,10 @@
-describe('WalkontableBorder', function () {
+describe('WalkontableBorder', () => {
   var $table,
     $container,
     $wrapper,
     debug = false;
 
-  beforeEach(function () {
+  beforeEach(() => {
     $container = $('<div></div>');
     $wrapper = $('<div></div>');
     $container.width(100).height(200);
@@ -15,28 +15,28 @@ describe('WalkontableBorder', function () {
     createDataArray();
   });
 
-  afterEach(function () {
+  afterEach(() => {
     if (!debug) {
       $('.wtHolder').remove();
     }
     $container.remove();
   });
 
-  it("should add/remove border to selection when cell is clicked", function () {
-    var wt = new Walkontable({
+  it('should add/remove border to selection when cell is clicked', () => {
+    var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: 5,
       totalColumns: 5,
       selections: [
-        new WalkontableSelection({
+        new Walkontable.Selection({
           border: {
             width: 1,
             color: 'red'
           }
         })
       ],
-      onCellMouseDown: function (event, coords, TD) {
+      onCellMouseDown(event, coords, TD) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
@@ -84,25 +84,25 @@ describe('WalkontableBorder', function () {
     expect($left.position().left).toBe(49);
   });
 
-  it("should add/remove corner to selection when cell is clicked", function () {
-    var wt = new Walkontable({
+  it('should add/remove corner to selection when cell is clicked', () => {
+    var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: 5,
       totalColumns: 5,
       selections: [
-        new WalkontableSelection({
+        new Walkontable.Selection({
           border: {
             width: 2,
             color: 'green',
-            cornerVisible: function () {
+            cornerVisible() {
               return true;
             }
           }
         }),
-        new WalkontableSelection({})
+        new Walkontable.Selection({})
       ],
-      onCellMouseDown: function (event, coords, TD) {
+      onCellMouseDown(event, coords, TD) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
@@ -130,29 +130,29 @@ describe('WalkontableBorder', function () {
     expect($corner.position().left).toBe(95);
   });
 
-  it("should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)", function () {
+  it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', () => {
     $container.css({
       overflow: 'hidden',
       width: '200px'
     });
-    var wt = new Walkontable({
+    var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: 5,
       totalColumns: 4,
       selections: [
-        new WalkontableSelection({
+        new Walkontable.Selection({
           border: {
             width: 2,
             color: 'green',
-            cornerVisible: function () {
+            cornerVisible() {
               return true;
             }
           }
         }),
-        new WalkontableSelection({})
+        new Walkontable.Selection({})
       ],
-      onCellMouseDown: function (event, coords, TD) {
+      onCellMouseDown(event, coords, TD) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();

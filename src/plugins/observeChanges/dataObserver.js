@@ -1,12 +1,11 @@
-import jsonpatch from 'jsonpatch';
-import {localHooks} from '../../mixins/localHooks';
+import jsonpatch from './../../../lib/jsonpatch/json-patch-duplex';
+import localHooks from '../../mixins/localHooks';
 import {mixin} from '../../helpers/object';
 import {cleanPatches} from './utils';
 
 /**
  * @class DataObserver
  * @plugin ObserveChanges
- * @dependencies jsonpatch
  */
 class DataObserver {
   constructor(observedData) {
@@ -91,4 +90,4 @@ class DataObserver {
 
 mixin(DataObserver, localHooks);
 
-export {DataObserver};
+export default DataObserver;

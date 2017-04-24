@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import {requestAnimationFrame, cancelAnimationFrame} from './../helpers/feature';
 
 /**
@@ -102,15 +101,12 @@ class Interval {
   }
 }
 
-export {Interval};
+export default Interval;
 
-function parseDelay(delay) {
+export function parseDelay(delay) {
   if (typeof delay === 'string' && /fps$/.test(delay)) {
     delay = 1000 / parseInt(delay.replace('fps', '') || 0, 10);
   }
 
   return delay;
 }
-
-// temp for tests only!
-Handsontable.utils.Interval = Interval;

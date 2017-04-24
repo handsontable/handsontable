@@ -1,4 +1,3 @@
-
 import {
   addClass,
   empty,
@@ -7,13 +6,14 @@ import {
   innerHeight,
   outerWidth
 } from './../../../helpers/dom/element';
+import Overlay from './overlay/_base';
 
 let performanceWarningAppeared = false;
 
 /**
- * @class WalkontableTableRenderer
+ * @class TableRenderer
  */
-class WalkontableTableRenderer {
+class TableRenderer {
   /**
    * @param {WalkontableTable} wtTable
    */
@@ -67,8 +67,8 @@ class WalkontableTableRenderer {
     let workspaceWidth;
     let adjusted = false;
 
-    if (WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM) ||
-        WalkontableOverlay.isOverlayTypeOf(this.wot.cloneOverlay, WalkontableOverlay.CLONE_BOTTOM_LEFT_CORNER)) {
+    if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM) ||
+        Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
 
       // do NOT render headers on the bottom or bottom-left corner overlay
       this.columnHeaders = [];
@@ -83,7 +83,7 @@ class WalkontableTableRenderer {
       // adjust column widths according to user widths settings
       this.renderColumnHeaders();
 
-      //Render table rows
+      // Render table rows
       this.renderRows(totalRows, rowsToRender, columnsToRender);
 
       if (!this.wtTable.isWorkingOnClone()) {
@@ -101,7 +101,7 @@ class WalkontableTableRenderer {
     }
     this.removeRedundantRows(rowsToRender);
 
-    if (!this.wtTable.isWorkingOnClone() || this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM)) {
+    if (!this.wtTable.isWorkingOnClone() || this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
       this.markOversizedRows();
     }
     if (!this.wtTable.isWorkingOnClone()) {
@@ -119,7 +119,7 @@ class WalkontableTableRenderer {
       }
 
       if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
-        //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
+        // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
         this.wot.wtViewport.containerWidth = null;
 
         let firstRendered = this.wtTable.getFirstRenderedColumn();
@@ -135,7 +135,7 @@ class WalkontableTableRenderer {
 
             width = width == null ? defaultColumnWidth : width;
 
-            this.COLGROUP.childNodes[i].style.width = width + 'px';
+            this.COLGROUP.childNodes[i].style.width = `${width}px`;
           }
         }
 
@@ -143,13 +143,13 @@ class WalkontableTableRenderer {
           let width = this.wtTable.getStretchedColumnWidth(i);
           let renderedIndex = this.columnFilter.sourceToRendered(i);
 
-          this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = width + 'px';
+          this.COLGROUP.childNodes[renderedIndex + this.rowHeaderCount].style.width = `${width}px`;
         }
       }
 
       this.wot.getSetting('onDraw', true);
 
-    } else if (this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM)) {
+    } else if (this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
       this.wot.cloneSource.wtOverlays.adjustElementsSize();
     }
   }
@@ -170,7 +170,8 @@ class WalkontableTableRenderer {
    * @param {Number} columnsToRender
    */
   renderRows(totalRows, rowsToRender, columnsToRender) {
-    let lastTD, TR;
+    let lastTD,
+      TR;
     let visibleRowIndex = 0;
     let sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     let isWorkingOnClone = this.wtTable.isWorkingOnClone();
@@ -196,7 +197,7 @@ class WalkontableTableRenderer {
 
       if (!isWorkingOnClone ||
           // Necessary to refresh oversized row heights after editing cell in overlays
-          this.wot.isOverlayName(WalkontableOverlay.CLONE_BOTTOM)) {
+          this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
         // Reset the oversized row cache for this row
         this.resetOversizedRow(sourceRowIndex);
       }
@@ -209,7 +210,7 @@ class WalkontableTableRenderer {
         if (height) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top
           height--;
-          TR.firstChild.style.height = height + 'px';
+          TR.firstChild.style.height = `${height}px`;
         } else {
           TR.firstChild.style.height = '';
         }
@@ -307,7 +308,7 @@ class WalkontableTableRenderer {
         if (!children[i] || children[i].childNodes.length === 0) {
           return;
         }
-        children[i].childNodes[0].style.height = oversizedColumnHeaders[i] + 'px';
+        children[i].childNodes[0].style.height = `${oversizedColumnHeaders[i]}px`;
       }
     }
   }
@@ -333,6 +334,7 @@ class WalkontableTableRenderer {
       currentHeader = this.wot.wtTable.getColumnHeader(sourceColIndex, level);
 
       if (!currentHeader) {
+        /* eslint-disable no-continue */
         continue;
       }
       currentHeaderHeight = innerHeight(currentHeader);
@@ -372,7 +374,7 @@ class WalkontableTableRenderer {
       if (visibleColIndex === 0) {
         TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(sourceColIndex)];
       } else {
-        TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
+        TD = TD.nextSibling; // http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
       // If the number of headers has been reduced, we need to replace excess TH with TD
       if (TD.nodeName == 'TH') {
@@ -411,14 +413,14 @@ class WalkontableTableRenderer {
 
         width = width == null ? defaultColumnWidth : width;
 
-        this.COLGROUP.childNodes[i].style.width = width + 'px';
+        this.COLGROUP.childNodes[i].style.width = `${width}px`;
       }
     }
 
     for (let renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
       let width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
 
-      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = width + 'px';
+      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = `${width}px`;
     }
   }
 
@@ -656,6 +658,4 @@ function replaceThWithTd(TH, TR) {
   return TD;
 }
 
-export {WalkontableTableRenderer};
-
-window.WalkontableTableRenderer = WalkontableTableRenderer;
+export default TableRenderer;

@@ -1,6 +1,6 @@
-import Handsontable from './../browser';
-import {getEditor, registerEditor, getEditorConstructor} from './../editors';
-import {AutocompleteEditor} from './autocompleteEditor';
+import {registerEditor, getEditorConstructor} from './../editors';
+import AutocompleteEditor from './autocompleteEditor';
+import Hooks from './../pluginHooks';
 
 /**
  * @private
@@ -16,10 +16,10 @@ class DropdownEditor extends AutocompleteEditor {
   }
 }
 
-Handsontable.hooks.add('beforeValidate', function(value, row, col, source) {
+Hooks.getSingleton().add('beforeValidate', function(value, row, col, source) {
   let cellMeta = this.getCellMeta(row, this.propToCol(col));
 
-  if (cellMeta.editor === Handsontable.editors.DropdownEditor) {
+  if (cellMeta.editor === getEditorConstructor('dropdown')) {
     if (cellMeta.strict === void 0) {
       cellMeta.filter = false;
       cellMeta.strict = true;
@@ -27,6 +27,6 @@ Handsontable.hooks.add('beforeValidate', function(value, row, col, source) {
   }
 });
 
-export {DropdownEditor};
-
 registerEditor('dropdown', DropdownEditor);
+
+export default DropdownEditor;

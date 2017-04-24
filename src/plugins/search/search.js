@@ -1,4 +1,4 @@
-import Handsontable from './../../browser';
+import Hooks from './../../pluginHooks';
 import {addClass, removeClass} from './../../helpers/dom/element';
 import {registerRenderer, getRenderer} from './../../renderers';
 
@@ -6,18 +6,18 @@ import {registerRenderer, getRenderer} from './../../renderers';
  * @private
  * @plugin Search
  */
-Handsontable.Search = function Search(instance) {
+function Search(instance) {
   this.query = function(queryStr, callback, queryMethod) {
     var rowCount = instance.countRows();
     var colCount = instance.countCols();
     var queryResult = [];
 
     if (!callback) {
-      callback = Handsontable.Search.global.getDefaultCallback();
+      callback = Search.global.getDefaultCallback();
     }
 
     if (!queryMethod) {
-      queryMethod = Handsontable.Search.global.getDefaultQueryMethod();
+      queryMethod = Search.global.getDefaultQueryMethod();
     }
 
     for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
@@ -48,11 +48,11 @@ Handsontable.Search = function Search(instance) {
   };
 };
 
-Handsontable.Search.DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
+Search.DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
   instance.getCellMeta(row, col).isSearchResult = testResult;
 };
 
-Handsontable.Search.DEFAULT_QUERY_METHOD = function(query, value) {
+Search.DEFAULT_QUERY_METHOD = function(query, value) {
   if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length === 0) {
     return false;
   }
@@ -63,45 +63,45 @@ Handsontable.Search.DEFAULT_QUERY_METHOD = function(query, value) {
   return value.toString().toLowerCase().indexOf(query.toLowerCase()) != -1;
 };
 
-Handsontable.Search.DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
+Search.DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
-Handsontable.Search.global = (function() {
+Search.global = (function() {
 
-  var defaultCallback = Handsontable.Search.DEFAULT_CALLBACK;
-  var defaultQueryMethod = Handsontable.Search.DEFAULT_QUERY_METHOD;
-  var defaultSearchResultClass = Handsontable.Search.DEFAULT_SEARCH_RESULT_CLASS;
+  var defaultCallback = Search.DEFAULT_CALLBACK;
+  var defaultQueryMethod = Search.DEFAULT_QUERY_METHOD;
+  var defaultSearchResultClass = Search.DEFAULT_SEARCH_RESULT_CLASS;
 
   return {
-    getDefaultCallback: function() {
+    getDefaultCallback() {
       return defaultCallback;
     },
 
-    setDefaultCallback: function(newDefaultCallback) {
+    setDefaultCallback(newDefaultCallback) {
       defaultCallback = newDefaultCallback;
     },
 
-    getDefaultQueryMethod: function() {
+    getDefaultQueryMethod() {
       return defaultQueryMethod;
     },
 
-    setDefaultQueryMethod: function(newDefaultQueryMethod) {
+    setDefaultQueryMethod(newDefaultQueryMethod) {
       defaultQueryMethod = newDefaultQueryMethod;
     },
 
-    getDefaultSearchResultClass: function() {
+    getDefaultSearchResultClass() {
       return defaultSearchResultClass;
     },
 
-    setDefaultSearchResultClass: function(newSearchResultClass) {
+    setDefaultSearchResultClass(newSearchResultClass) {
       defaultSearchResultClass = newSearchResultClass;
     }
   };
 
-})();
+}());
 
-Handsontable.SearchCellDecorator = function(instance, TD, row, col, prop, value, cellProperties) {
+function SearchCellDecorator(instance, TD, row, col, prop, value, cellProperties) {
   var searchResultClass = (cellProperties.search !== null && typeof cellProperties.search == 'object' &&
-      cellProperties.search.searchResultClass) || Handsontable.Search.global.getDefaultSearchResultClass();
+      cellProperties.search.searchResultClass) || Search.global.getDefaultSearchResultClass();
 
   if (cellProperties.isSearchResult) {
     addClass(TD, searchResultClass);
@@ -114,22 +114,22 @@ var originalBaseRenderer = getRenderer('base');
 
 registerRenderer('base', function(instance, TD, row, col, prop, value, cellProperties) {
   originalBaseRenderer.apply(this, arguments);
-  Handsontable.SearchCellDecorator.apply(this, arguments);
+  SearchCellDecorator.apply(this, arguments);
 });
 
 function init() {
-  /* jshint ignore:start */
   var instance = this;
-  /* jshint ignore:end */
 
   var pluginEnabled = !!instance.getSettings().search;
 
   if (pluginEnabled) {
-    instance.search = new Handsontable.Search(instance);
+    instance.search = new Search(instance);
   } else {
     delete instance.search;
   }
 }
 
-Handsontable.hooks.add('afterInit', init);
-Handsontable.hooks.add('afterUpdateSettings', init);
+Hooks.getSingleton().add('afterInit', init);
+Hooks.getSingleton().add('afterUpdateSettings', init);
+
+export default Search;

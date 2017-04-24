@@ -1,15 +1,13 @@
-import Handsontable from './../../browser';
 import BasePlugin from './../_base';
-import jsonpatch from 'jsonpatch';
-import {DataObserver} from './dataObserver';
+import jsonpatch from './../../../lib/jsonpatch/json-patch-duplex';
+import DataObserver from './dataObserver';
 import {arrayEach} from './../../helpers/array';
 import {registerPlugin} from './../../plugins';
 
-Handsontable.hooks.register('afterChangesObserved');
+// Handsontable.hooks.register('afterChangesObserved');
 
 /**
  * @plugin ObserveChanges
- * @dependencies jsonpatch
  *
  * @description
  * This plugin allows to observe data source changes.
@@ -91,23 +89,24 @@ class ObserveChanges extends BasePlugin {
    */
   onDataChange(patches) {
     if (!this.observer.isPaused()) {
+      const sourceName = `${this.pluginName}.change`;
       const actions = {
         add: (patch) => {
           if (isNaN(patch.col)) {
-            this.hot.runHooks('afterCreateRow', patch.row);
+            this.hot.runHooks('afterCreateRow', patch.row, 1, sourceName);
           } else {
-            this.hot.runHooks('afterCreateCol', patch.col);
+            this.hot.runHooks('afterCreateCol', patch.col, 1, sourceName);
           }
         },
         remove: (patch) => {
           if (isNaN(patch.col)) {
-            this.hot.runHooks('afterRemoveRow', patch.row, 1);
+            this.hot.runHooks('afterRemoveRow', patch.row, 1, sourceName);
           } else {
-            this.hot.runHooks('afterRemoveCol', patch.col, 1);
+            this.hot.runHooks('afterRemoveCol', patch.col, 1, sourceName);
           }
         },
         replace: (patch) => {
-          this.hot.runHooks('afterChange', [patch.row, patch.col, null, patch.value], 'external');
+          this.hot.runHooks('afterChange', [patch.row, patch.col, null, patch.value], sourceName);
         },
       };
 
@@ -185,6 +184,6 @@ class ObserveChanges extends BasePlugin {
   }
 }
 
-export {ObserveChanges};
+export default ObserveChanges;
 
 registerPlugin('observeChanges', ObserveChanges);
