@@ -580,7 +580,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    for (let i = 0; i < this.hot.sortIndex.length; i++) {
+    for (var i = 0; i < this.hot.sortIndex.length; i++) {
       if (this.hot.sortIndex[i][0] >= index) {
         this.hot.sortIndex[i][0] += amount;
       }
