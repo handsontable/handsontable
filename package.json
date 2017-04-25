@@ -85,7 +85,7 @@
     "grunt-lib-phantomjs": "^1.1.0",
     "html-webpack-plugin": "^2.28.0",
     "jasmine-co": "^1.2.2",
-    "jasmine-core": "^2.5.2",
+    "jasmine-core": "2.5.2",
     "jasmine-terminal-reporter": "^1.0.3",
     "jest": "^19.0.0",
     "loader-utils": "^1.1.0",
