@@ -55,7 +55,7 @@ describe('MergeCells', () => {
       expect(TD.getAttribute('colspan')).toBe('2');
     });
 
-    it('should allow resetting the merged cells by changing it to \'true\'', () => {
+    it('should allow resetting the merged cells by changing it to an empty array', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
         mergeCells: [
@@ -67,7 +67,7 @@ describe('MergeCells', () => {
       expect(TD.getAttribute('colspan')).toBe('2');
 
       updateSettings({
-        mergeCells: true
+        mergeCells: []
       });
 
       TD = hot.rootElement.querySelector('td');
@@ -395,8 +395,11 @@ describe('MergeCells', () => {
 
       hot.alter('insert_col', 3, 2);
 
-      expect(hot.mergeCells.mergedCellInfoCollection[0].col).toEqual(1);
-      expect(hot.mergeCells.mergedCellInfoCollection[1].col).toEqual(6);
+      let plugin = hot.getPlugin('mergeCells');
+      let collectionContainer = plugin.collectionContainer.collections;
+
+      expect(collectionContainer[0].col).toEqual(1);
+      expect(collectionContainer[1].col).toEqual(7);
     });
 
     it('should shift the merged cells left, when removing a column on the left side of them', () => {
@@ -412,12 +415,15 @@ describe('MergeCells', () => {
 
       hot.alter('remove_col', 3, 2);
 
-      expect(hot.mergeCells.mergedCellInfoCollection[0].col).toEqual(1);
-      expect(hot.mergeCells.mergedCellInfoCollection[1].col).toEqual(4);
+      let plugin = hot.getPlugin('mergeCells');
+      let collectionContainer = plugin.collectionContainer.collections;
+
+      expect(collectionContainer[0].col).toEqual(1);
+      expect(collectionContainer[1].col).toEqual(3);
 
     });
 
-    it('should shift the merged cells down, when inserting a row above them', () => {
+    it('should shift the merged cells down, when inserting rows above them', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
@@ -430,11 +436,14 @@ describe('MergeCells', () => {
 
       hot.alter('insert_row', 3, 2);
 
-      expect(hot.mergeCells.mergedCellInfoCollection[0].row).toEqual(1);
-      expect(hot.mergeCells.mergedCellInfoCollection[1].row).toEqual(6);
+      let plugin = hot.getPlugin('mergeCells');
+      let collectionContainer = plugin.collectionContainer.collections;
+
+      expect(collectionContainer[0].row).toEqual(1);
+      expect(collectionContainer[1].row).toEqual(7);
     });
 
-    it('should shift the merged cells down, when inserting a row above them', () => {
+    it('should shift the merged cells up, when removing rows above them', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
@@ -447,8 +456,11 @@ describe('MergeCells', () => {
 
       hot.alter('remove_row', 3, 2);
 
-      expect(hot.mergeCells.mergedCellInfoCollection[0].row).toEqual(1);
-      expect(hot.mergeCells.mergedCellInfoCollection[1].row).toEqual(4);
+      let plugin = hot.getPlugin('mergeCells');
+      let collectionContainer = plugin.collectionContainer.collections;
+
+      expect(collectionContainer[0].row).toEqual(1);
+      expect(collectionContainer[1].row).toEqual(3);
     });
   });
 
