@@ -47,7 +47,7 @@ declare namespace cellTypes {
   }
 
   interface Password {
-    copyable: false;
+    copyable: boolean;
     editor: editors.Password;
     renderer: renderers.Password;
   }
@@ -89,7 +89,7 @@ declare namespace editors {
     isOpened(): boolean;
     isWaiting(): boolean;
     open(): void;
-    prepare(row?: number, col?: number, prop?: string | number, TD?: HTMLElement, originalValue?: any, cellProperties?: object): void;
+    prepare(row: number, col: number, prop: string | number, TD: HTMLElement, originalValue: any, cellProperties: object): void;
     saveValue(val?: any, ctrlDown?: boolean): void;
     setValue(newValue?: any): void;
   }
@@ -372,12 +372,12 @@ declare namespace plugins {
   }
 
   interface GhostTable {
-    columns: any[];
-    container: HTMLElement | void;
+    columns: number[];
+    container: HTMLElement | null;
     hot: hot.Core;
     injected: boolean;
-    rows: any[];
-    samples: object | void;
+    rows: object[];
+    samples: object | null;
     settings: object;
 
     addRow(row: number, samples: object): void;
@@ -419,11 +419,11 @@ declare namespace plugins {
     hotMenu: hot.Core;
     hotSubMenus: object;
     keyEvent: boolean;
-    menuItems: any[] | void;
+    menuItems: any[] | null;
     offset: object;
     options: object;
     origOutsideClickDeselects: boolean | (() => void);
-    parentMenu: Menu | void;
+    parentMenu: Menu | null;
 
     close(closeParent?: boolean): void;
     closeSubMenu(row: number): void;
@@ -448,10 +448,10 @@ declare namespace plugins {
   }
 
   interface SamplesGenerator {
-    allowDuplicates: boolean | void;
-    customSampleCount: boolean | void;
+    allowDuplicates: boolean | null;
+    customSampleCount: boolean | null;
     dataFactory: () => void;
-    samples: object | void;
+    samples: object | null;
 
     generateColumnSamples(colRange: object, rowRange: object): object;
     generateRowSamples(rowRange: object | number, colRange: object): object;
@@ -524,7 +524,7 @@ declare namespace plugins {
   interface Autofill extends Base {
     addingStarted: boolean;
     autoInsertRow: boolean;
-    directions: any[];
+    directions: string[];
     eventManager: EventManager;
     handleDraggedCells: boolean;
     mouseDownOnCellCorner: boolean;
@@ -646,11 +646,11 @@ declare namespace plugins {
 
   interface DragToScroll extends Base {
     boundaries: object | void;
-    callback: Function | void;
+    callback: (() => void) | void;
 
     check(x: number, y: number): void;
     setBoundaries(boundaries: object): void;
-    setCallback(callback: Function): void;
+    setCallback(callback: () => void): void;
   }
 
   type SeparatorObject = {
@@ -977,7 +977,7 @@ declare namespace plugins {
   }
 
   interface ManualColumnResize extends Base {
-    autoresizeTimeout: Function | void;
+    autoresizeTimeout: (() => void) | void;
     currentCol: number | void;
     currentTH: HTMLElement | void;
     currentWidth: number | void;
@@ -1018,7 +1018,7 @@ declare namespace plugins {
   }
 
   interface ManualRowResize extends Base {
-    autoresizeTimeout: Function | void;
+    autoresizeTimeout: (() => void) | void;
     currentRow: number | void;
     currentTH: HTMLElement | void;
     currentWidth: number | void;
@@ -1077,7 +1077,7 @@ declare namespace plugins {
     fillTheRemainingColspans(): void;
     getColspan(row: number, column: number): number;
     getNestedParent(level: number, column: number): any;
-    headerRendererFactory(headerRow: number): Function;
+    headerRendererFactory(headerRow: number): () => void;
     levelToRowCoords(level: number): number;
     rowCoordsToLevel(row: number): number;
     setupColspanArray(): void;
@@ -1217,9 +1217,9 @@ declare namespace hot {
     defaultDate?: string;
     disableVisualSelection?: boolean | string | any[];
     dropdownMenu?: boolean | object | any[]; // pro
-    editor?: string|Function|boolean;
+    editor?: string | (() => void) | boolean;
     enterBeginsEditing?: boolean;
-    enterMoves?: object | Function;
+    enterMoves?: object | (() => void);
     fillHandle?: boolean | string | object;
     filter?: boolean;
     filteringCaseSensitive?: boolean;
@@ -1231,7 +1231,7 @@ declare namespace hot {
     fragmentSelection?: boolean | string;
     ganttChart?: object; // pro
     headerTooltips?: boolean | object; // pro
-    height?: number | Function;
+    height?: number | (() => void);
     hiddenColumns?: boolean | object; // pro
     hiddenRows?: boolean | object; // pro
     invalidCellClassName?: string;
@@ -1265,17 +1265,17 @@ declare namespace hot {
     readOnly?: boolean;
     readOnlyCellClassName?: string;
     renderAllRows?: boolean;
-    renderer?: string | Function;
-    rowHeaders?: boolean | any[] | Function;
+    renderer?: string | (() => void);
+    rowHeaders?: boolean | any[] | (() => void);
     rowHeaderWidth?: number | any[];
-    rowHeights?: any[] | Function | number | string;
+    rowHeights?: any[] | (() => void) | number | string;
     search?: boolean;
     selectOptions?: any[];
     skipColumnOnPaste?: boolean;
     sortByRelevance?: boolean;
-    sortFunction?: Function;
+    sortFunction?: () => void;
     sortIndicator?: boolean;
-    source?: any[] | Function;
+    source?: any[] | (() => void);
     startCols?: number;
     startRows?: number;
     stretchH?: string;
@@ -1289,11 +1289,11 @@ declare namespace hot {
     type?: string;
     uncheckedTemplate?: boolean | string;
     undo?: boolean;
-    validator?: Function | RegExp;
+    validator?: (() => void) | RegExp;
     viewportColumnRenderingOffset?: number | string;
     viewportRowRenderingOffset?: number | string;
     visibleRows?: number;
-    width?: number | Function;
+    width?: number | (() => void);
     wordWrap?: boolean;
   }
 
@@ -1466,9 +1466,10 @@ declare namespace hot {
     TextRenderer: renderers.Text;
   }
 
-  interface Core {
-    addHook(key: string, callback: Function | any[]): void;
-    addHookOnce(key: string, callback: Function | any[]): void;
+  class Core {
+    constructor(element: Element, options: hot.DefaultSettings);
+    addHook(key: string, callback: (() => void) | any[]): void;
+    addHookOnce(key: string, callback: (() => void) | any[]): void;
     alter(action: string, index: number, amount?: number, source?: string, keepEmptyRows?: boolean): void;
     clear(): void;
     colOffset(): number;
@@ -1491,7 +1492,7 @@ declare namespace hot {
     getCellEditor(row: number, col: number): object;
     getCellMeta(row: number, col: number): object;
     getCellMetaAtRow(row: number): any[];
-    getCellRenderer(row: number, col: number): Function;
+    getCellRenderer(row: number, col: number): () => void;
     getCellValidator(row: number, col: number): any;
     getColHeader(col?: number): any[] | string;
     getColWidth(col: number): number;
@@ -1530,7 +1531,7 @@ declare namespace hot {
     populateFromArray(row: number, col: number, input: any[], endRow?: number, endCol?: number, source?: string, method?: string, direction?: string, deltas?: any[]): any;
     propToCol(prop: string | number): number;
     removeCellMeta(row: number, col: number, key: string): void;
-    removeHook(key: string, callback: Function): void;
+    removeHook(key: string, callback: () => void): void;
     render(): void;
     rowOffset(): number;
     runHooks(key: string, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
@@ -1549,7 +1550,7 @@ declare namespace hot {
     toVisualRow(row: number): number;
     unlisten(): void;
     updateSettings(settings: object, init: boolean): void;
-    validateCells(callback: Function): void;
+    validateCells(callback: () => void): void;
   }
 
   interface Helper {
@@ -1616,9 +1617,9 @@ declare namespace hot {
     createObjectPropListener(defaultValue?: any, propertyToListen?: string): object,
     createSpreadsheetData(rows?: number, columns?: number): any[],
     createSpreadsheetObjectData(rows?: number, colCount?: number): any[],
-    curry(func: Function): Function,
-    curryRight(func: Function): Function,
-    debounce(func: Function, wait?: number): Function,
+    curry(func: () => void): () => void,
+    curryRight(func: () => void): () => void,
+    debounce(func: () => void, wait?: number): () => void,
     deepClone(obj: object): object,
     deepExtend(target: object, extension: object): void,
     deepObjectSize(object: object): number,
@@ -1656,21 +1657,21 @@ declare namespace hot {
     mixin(Base: object, ...mixins: object[]): object,
     objectEach(object: object, iteratee: (value: any, key: any, object: object) => void): object,
     padStart(string: string, maxLength: number, fillString?: string): string,
-    partial(func: Function, ...params: any[]): Function,
-    pipe(...functions: Function[]): Function,
+    partial(func: () => void, ...params: any[]): () => void,
+    pipe(...functions: (() => void)[]): () => void,
     pivot(arr: any[]): any[],
     randomString(): string,
     rangeEach(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void,
     rangeEachReverse(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void,
-    requestAnimationFrame(callback: Function): number,
+    requestAnimationFrame(callback: () => void): number,
     spreadsheetColumnIndex(label: string): number,
     spreadsheetColumnLabel(index: number): string,
     startsWith(string: string, needle: string): boolean,
     stringify(value: any): string,
     stripTags(string: string): string,
     substitute(template: string, variables?: object): string,
-    throttle(func: Function, wait?: number): Function,
-    throttleAfterHits(func: Function, wait?: number, hits?: number): Function,
+    throttle(func: () => void, wait?: number): () => void,
+    throttleAfterHits(func: () => void, wait?: number, hits?: number): () => void,
     to2dArray(arr: any[]): void,
     toUpperCaseFirst(string: string): string,
     translateRowsToColumns(input: any[]): any[],
@@ -1680,7 +1681,7 @@ declare namespace hot {
   interface Dom {
     HTML_CHARACTERS: RegExp,
     addClass: (element: HTMLElement, className: string | any[]) => void;
-    addEvent: (element: HTMLElement, event: string, callback: Function) => void;
+    addEvent: (element: HTMLElement, event: string, callback: () => void) => void;
     closest: (element: HTMLElement, nodes: any[], until?: HTMLElement) => HTMLElement | void;
     closestDown: (element: HTMLElement, nodes: any[], until?: HTMLElement) => HTMLElement | void;
     empty: (element: HTMLElement) => void;
@@ -1723,7 +1724,7 @@ declare namespace hot {
     polymerUnwrap: (element: HTMLElement) => any | void;
     polymerWrap: (element: HTMLElement) => any | void;
     removeClass: (element: HTMLElement, className: string | any[]) => void;
-    removeEvent: (element: HTMLElement, event: string, callback: Function) => void;
+    removeEvent: (element: HTMLElement, event: string, callback: () => void) => void;
     removeTextNodes: (element: HTMLElement, parent: HTMLElement) => void;
     resetCssTransform: (element: HTMLElement) => void;
     setCaretPosition: (element: HTMLElement, pos: number, endPos: number) => void;
@@ -1795,18 +1796,21 @@ declare namespace hot {
 
 }
 
-export let Handsontable: {
-  new (element: HTMLElement, options: hot.DefaultSettings): hot.Core;
+declare class Handsontable extends hot.Core {
+  //new (element: HTMLElement, options: hot.DefaultSettings): hot.Core;
 
-  baseVersion: string;
-  buildDate: string;
-  cellTypes: hot.CellTypes;
-  Core: hot.Core;
-  dom: hot.Dom;
-  editors: hot.Editors;
-  helper: hot.Helper;
-  hooks: hot.Hooks;
-  plugins: hot.Plugins;
-  renderers: hot.Renderers;
-  version: string;
-};
+  static baseVersion: string;
+  static buildDate: string;
+  static cellTypes: hot.CellTypes;
+  static Core: hot.Core;
+  static dom: hot.Dom;
+  static editors: hot.Editors;
+  static helper: hot.Helper;
+  static hooks: hot.Hooks;
+  static plugins: hot.Plugins;
+  static renderers: hot.Renderers;
+  static version: string;
+}
+
+export = Handsontable;
+export as namespace Handsontable;

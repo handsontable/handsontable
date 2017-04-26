@@ -1,7 +1,5 @@
 /// <reference path="../../handsontable.d.ts" />
 
-import {Handsontable} from "../../handsontable";
-
 var elem = document.createElement('div');
 var hot = new Handsontable(elem, {
   allowEmpty: true,
