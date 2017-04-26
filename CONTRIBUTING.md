@@ -2,7 +2,7 @@
 
 Your contributions to this project are very welcome. If you want to fix a bug or propose a new feature, you can open a new Pull Request but first make sure it follows these general rules:
 
-1. Sign this [Contributor License Agreement](https://docs.google.com/forms/d/1sNbsA7MGelGNxsBRvBoY3swq7YEMYhXNpR7NPk4tWPo) to allow us to publish your changes to the code.
+1. Sign this [Contributor License Agreement](https://goo.gl/forms/yuutGuN0RjsikVpM2) to allow us to publish your changes to the code.
 2. Make your changes on a separate branch. This will speed up the merging process.
 3. Always make the target of your pull request the `develop` branch, not `master`.
 4. Do not edit files in `dist/` directory (e.g: `handsontable.js`, `handsontable.css`, `handsontable.full.js`, `handsontable.full.css`). Instead, edit files inside the `src/` directory and then use `npm run build` to make a build. More information about this you can find [here](https://docs.handsontable.com/tutorial-custom-build.html).
