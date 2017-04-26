@@ -1,1174 +1,1174 @@
-declare namespace wot {
-  interface CellCoords {
-    col: number,
-    row: number
-  }
-  interface CellRange {
-    highlight: CellCoords;
-    from: CellCoords;
-    to: CellCoords;
-  }
-}
-
-declare namespace cellTypes {
-  interface Autocomplete {
-    editor: editors.Autocomplete;
-    renderer: renderers.Autocomplete;
-    validator: (value: any, callback: () => void) => boolean;
+declare namespace _Handsontable {
+  namespace wot {
+    interface CellCoords {
+      col: number,
+      row: number
+    }
+    interface CellRange {
+      highlight: CellCoords;
+      from: CellCoords;
+      to: CellCoords;
+    }
   }
 
-  interface Checkbox {
-    editor: editors.Checkbox;
-    renderer: renderers.Checkbox;
+  namespace cellTypes {
+    interface Autocomplete {
+      editor: editors.Autocomplete;
+      renderer: renderers.Autocomplete;
+      validator: (value: any, callback: () => void) => boolean;
+    }
+
+    interface Checkbox {
+      editor: editors.Checkbox;
+      renderer: renderers.Checkbox;
+    }
+
+    interface Date {
+      editor: editors.Date;
+      renderer: renderers.Autocomplete;
+      validator: (value: any, callback: () => void) => boolean;
+    }
+
+    interface Dropdown {
+      editor: editors.Dropdown;
+      renderer: renderers.Autocomplete;
+      validator: (value: any, callback: () => void) => boolean;
+    }
+
+    interface Handsontable {
+      editor: editors.Handsontable;
+      renderer: renderers.Autocomplete;
+    }
+
+    interface Numeric {
+      dataType: string;
+      editor: editors.Numeric;
+      renderer: renderers.Numeric;
+      validator: (value: any, callback: () => void) => boolean;
+    }
+
+    interface Password {
+      copyable: boolean;
+      editor: editors.Password;
+      renderer: renderers.Password;
+    }
+
+    interface Text {
+      editor: editors.Text;
+      renderer: renderers.Text;
+    }
+
+    interface Time {
+      editor: editors.Text;
+      renderer: renderers.Text;
+      validator: (value: any, callback: () => void) => boolean;
+    }
   }
 
-  interface Date {
-    editor: editors.Date;
-    renderer: renderers.Autocomplete;
-    validator: (value: any, callback: () => void) => boolean;
-  }
+  namespace editors {
+    class Base {
+      instance: Core;
+      row: number;
+      col: number;
+      prop: string | number;
+      TD: HTMLElement;
+      cellProperties: object;
 
-  interface Dropdown {
-    editor: editors.Dropdown;
-    renderer: renderers.Autocomplete;
-    validator: (value: any, callback: () => void) => boolean;
-  }
+      constructor (hotInstance: Core, row: number, col: number, prop: string | number, TD: HTMLElement, cellProperties: object)
 
-  interface Handsontable {
-    editor: editors.Handsontable;
-    renderer: renderers.Autocomplete;
-  }
+      beginEditing(initialValue?: string): void;
+      cancelChanges(): void;
+      checkEditorSection(): void;
+      close(): void;
+      discardEditor(validationResult?: boolean): void;
+      enableFullEditMode(): void;
+      extend(): void;
+      finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
+      getValue(): void;
+      init(): void;
+      isInFullEditMode(): void;
+      isOpened(): boolean;
+      isWaiting(): boolean;
+      open(): void;
+      prepare(row: number, col: number, prop: string | number, TD: HTMLElement, originalValue: any, cellProperties: object): void;
+      saveValue(val?: any, ctrlDown?: boolean): void;
+      setValue(newValue?: any): void;
+    }
 
-  interface Numeric {
-    dataType: string;
-    editor: editors.Numeric;
-    renderer: renderers.Numeric;
-    validator: (value: any, callback: () => void) => boolean;
-  }
+    class Checkbox extends Base { }
 
-  interface Password {
-    copyable: boolean;
-    editor: editors.Password;
-    renderer: renderers.Password;
-  }
+    class Mobile extends Base {
+      hideCellPointer(): void;
+      onBeforeKeyDown(event?: Event): void;
+      prepareAndSave(): void;
+      scrollToView(): void;
+      updateEditorData(): void;
+      updateEditorPosition(x?: number, y?: number): void;
+      valueChanged(): void;
+    }
 
-  interface Text {
-    editor: editors.Text;
-    renderer: renderers.Text;
-  }
+    class Select extends Base {
+      focus(): void;
+      getEditedCell(): void;
+      prepareOptions(optionsToPrepare?: object | any[]): void;
+      refreshDimensions(): void;
+      refreshValue(): void;
+      registerHooks(): void;
+    }
 
-  interface Time {
-    editor: editors.Text;
-    renderer: renderers.Text;
-    validator: (value: any, callback: () => void) => boolean;
-  }
-}
+    class Text extends Base {
+      bindEvents(): void;
+      close(tdOutside?: HTMLElement): void;
+      createElements(): void;
+      destroy(): void;
+      focus(): void;
+      getEditedCell(): void;
+      refreshDimensions(): void;
+      refreshValue():void;
+    }
 
-declare namespace editors {
-  class Base {
-    instance: hot.Core;
-    row: number;
-    col: number;
-    prop: string | number;
-    TD: HTMLElement;
-    cellProperties: object;
+    class Date extends Text {
+      close(): void;
+      destroyElements(): void;
+      finishEditing(isCancelled?: boolean, ctrlDown?: boolean): void;
+      getDatePickerConfig(): object;
+      hideDatepicker(): void;
+      open(event?: Event): void;
+      showDatepicker(event?: Event): void;
+    }
 
-    constructor (hotInstance: hot.Core, row: number, col: number, prop: string | number, TD: HTMLElement, cellProperties: object)
+    class Handsontable extends Text {
+      assignHooks(): void;
+      beginEditing(initialValue?: any): void;
+      close(): void;
+      finishEditing(isCancelled?: boolean, ctrlDown?: boolean): void;
+      focus(): void;
+      open(): void;
+    }
 
-    beginEditing(initialValue?: string): void;
-    cancelChanges(): void;
-    checkEditorSection(): void;
-    close(): void;
-    discardEditor(validationResult?: boolean): void;
-    enableFullEditMode(): void;
-    extend(): void;
-    finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
-    getValue(): void;
-    init(): void;
-    isInFullEditMode(): void;
-    isOpened(): boolean;
-    isWaiting(): boolean;
-    open(): void;
-    prepare(row: number, col: number, prop: string | number, TD: HTMLElement, originalValue: any, cellProperties: object): void;
-    saveValue(val?: any, ctrlDown?: boolean): void;
-    setValue(newValue?: any): void;
-  }
+    class Numeric extends Text { }
 
-  class Checkbox extends Base { }
+    class Password extends Text { }
 
-  class Mobile extends Base {
-    hideCellPointer(): void;
-    onBeforeKeyDown(event?: Event): void;
-    prepareAndSave(): void;
-    scrollToView(): void;
-    updateEditorData(): void;
-    updateEditorPosition(x?: number, y?: number): void;
-    valueChanged(): void;
-  }
+    class Autocomplete extends Handsontable {
+      allowKeyEventPropagation(keyCode?: number): void;
+      finishEditing(restoreOriginalValue?: boolean): void;
+      flipDropdown(dropdownHeight?: number): void;
+      flipDropdownIfNeeded(): void;
+      getDropdownHeight(): void;
+      highlightBestMatchingChoice(index?: number): void;
+      limitDropdownIfNeeded(spaceAvailable?: number, dropdownHeight?: number): void;
+      queryChoices(query?: any): void;
+      sortByRelevance(value?: any, choices?: any[], caseSensitive?: boolean): any[];
+      setDropdownHeight(height?: number): void;
+      updateChoicesList(choices?: any[]): void;
+      unflipDropdown(): void;
+      updateDropdownHeight(): void;
+    }
 
-  class Select extends Base {
-    focus(): void;
-    getEditedCell(): void;
-    prepareOptions(optionsToPrepare?: object | any[]): void;
-    refreshDimensions(): void;
-    refreshValue(): void;
-    registerHooks(): void;
-  }
+    class Dropdown extends Autocomplete { }
 
-  class Text extends Base {
-    bindEvents(): void;
-    close(tdOutside?: HTMLElement): void;
-    createElements(): void;
-    destroy(): void;
-    focus(): void;
-    getEditedCell(): void;
-    refreshDimensions(): void;
-    refreshValue():void;
-  }
-
-  class Date extends Text {
-    close(): void;
-    destroyElements(): void;
-    finishEditing(isCancelled?: boolean, ctrlDown?: boolean): void;
-    getDatePickerConfig(): object;
-    hideDatepicker(): void;
-    open(event?: Event): void;
-    showDatepicker(event?: Event): void;
-  }
-
-  class Handsontable extends Text {
-    assignHooks(): void;
-    beginEditing(initialValue?: any): void;
-    close(): void;
-    finishEditing(isCancelled?: boolean, ctrlDown?: boolean): void;
-    focus(): void;
-    open(): void;
-  }
-
-  class Numeric extends Text { }
-
-  class Password extends Text { }
-
-  class Autocomplete extends Handsontable {
-    allowKeyEventPropagation(keyCode?: number): void;
-    finishEditing(restoreOriginalValue?: boolean): void;
-    flipDropdown(dropdownHeight?: number): void;
-    flipDropdownIfNeeded(): void;
-    getDropdownHeight(): void;
-    highlightBestMatchingChoice(index?: number): void;
-    limitDropdownIfNeeded(spaceAvailable?: number, dropdownHeight?: number): void;
-    queryChoices(query?: any): void;
-    sortByRelevance(value?: any, choices?: any[], caseSensitive?: boolean): any[];
-    setDropdownHeight(height?: number): void;
-    updateChoicesList(choices?: any[]): void;
-    unflipDropdown(): void;
-    updateDropdownHeight(): void;
-  }
-
-  class Dropdown extends Autocomplete { }
-
-  class CommentEditor {
-    editor: HTMLElement;
-    editorStyle: CSSStyleDeclaration;
-    hidden: boolean;
-
-    setPosition(x: number, y: number): void;
-    setSize(width: number, height: number): void;
-    resetSize(): void;
-    setReadOnlyState(state: boolean): void;
-    show(): void;
-    hide(): void;
-    isVisible(): void;
-    setValue(value?: string): void;
-    getValue(): string;
-    isFocused(): boolean;
-    focus(): void;
-    createEditor(): HTMLElement;
-    getInputElement(): HTMLElement;
-    destroy(): void;
-  }
-}
-
-declare namespace plugins {
-
-  // utils for Filters
-  namespace FiltersPlugin {
-    interface BaseComponent {
-      elements: any[];
+    class CommentEditor {
+      editor: HTMLElement;
+      editorStyle: CSSStyleDeclaration;
       hidden: boolean;
 
-      destroy(): boolean;
-      hide(): void;
-      isHidden(): boolean;
-      reset(): void;
+      setPosition(x: number, y: number): void;
+      setSize(width: number, height: number): void;
+      resetSize(): void;
+      setReadOnlyState(state: boolean): void;
       show(): void;
-    }
-    interface ActionBarComponent extends BaseComponent {
-      getMenuItemDescriptor(): object;
-      accept(): void;
-      cancel(): void;
-    }
-    interface ConditionComponent extends BaseComponent {
-      getInputElement(index?: number): InputUI;
-      getInputElements(): any[];
-      getMenuItemDescriptor(): object;
-      getSelectElement(): SelectUI;
-      getState(): object;
-      setState(value: object): void;
-      updateState(stateInfo: object): void;
-    }
-    interface ValueComponent extends BaseComponent {
-      getMenuItemDescriptor(): object;
-      getMultipleSelectElement(): MultipleSelectUI;
-      getState(): object;
-      setState(value: object): void;
-      updateState(stateInfo: object): void;
-    }
-
-    interface BaseUI {
-      buildState: boolean;
-      eventManager: EventManager;
-      hot: hot.Core;
-      options: object;
-
-      build(): void;
-      destroy(): void;
-      element(): Element;
+      hide(): void;
+      isVisible(): void;
+      setValue(value?: string): void;
+      getValue(): string;
+      isFocused(): boolean;
       focus(): void;
-      getValue(): any;
-      hide(): void;
-      isBuilt(): boolean;
-      reset(): void;
-      setValue(value: any): any;
-      show(): void;
-      update(): void;
-    }
-    interface InputUI extends BaseUI { }
-    interface MultipleSelectUI extends BaseUI {
-      clearAllUI: BaseUI;
-      items: any[];
-      itemsBox: hot.Core;
-      searchInput: InputUI;
-      selectAllUI: BaseUI;
-
-      getItems(): void;
-      getValue(): any[];
-      isSelectedAllValues(): boolean;
-      setItems(items: any[]): void;
-    }
-    interface SelectUI extends BaseUI {
-      menu: Menu | void;
-      items: any[];
-
-      setItems(items: any[]): void;
-      openOptions(): void;
-      closeOptions(): void;
-    }
-
-    interface FormulaCollection {
-      formulas: object;
-      orderStack: any[];
-
-      addFormula(column: number, formulaDefinition: object): void;
-      clean(): void;
-      clearFormulas(column: number): void;
+      createEditor(): HTMLElement;
+      getInputElement(): HTMLElement;
       destroy(): void;
-      exportAllFormulas(): any[];
-      getFormulas(column: number): any[];
-      hasFormulas(column: number, name: string): boolean;
-      isEmpty(): boolean;
-      isMatch(value: object, column: number): boolean;
-      isMatchInFormulas(formulas: any[], value: object): boolean;
-      importAllFormulas(formulas: any[]): void;
+    }
+  }
+
+  namespace plugins {
+
+    // utils for Filters
+    namespace FiltersPlugin {
+      interface BaseComponent {
+        elements: any[];
+        hidden: boolean;
+
+        destroy(): boolean;
+        hide(): void;
+        isHidden(): boolean;
+        reset(): void;
+        show(): void;
+      }
+      interface ActionBarComponent extends BaseComponent {
+        getMenuItemDescriptor(): object;
+        accept(): void;
+        cancel(): void;
+      }
+      interface ConditionComponent extends BaseComponent {
+        getInputElement(index?: number): InputUI;
+        getInputElements(): any[];
+        getMenuItemDescriptor(): object;
+        getSelectElement(): SelectUI;
+        getState(): object;
+        setState(value: object): void;
+        updateState(stateInfo: object): void;
+      }
+      interface ValueComponent extends BaseComponent {
+        getMenuItemDescriptor(): object;
+        getMultipleSelectElement(): MultipleSelectUI;
+        getState(): object;
+        setState(value: object): void;
+        updateState(stateInfo: object): void;
+      }
+
+      interface BaseUI {
+        buildState: boolean;
+        eventManager: EventManager;
+        hot: Core;
+        options: object;
+
+        build(): void;
+        destroy(): void;
+        element(): Element;
+        focus(): void;
+        getValue(): any;
+        hide(): void;
+        isBuilt(): boolean;
+        reset(): void;
+        setValue(value: any): any;
+        show(): void;
+        update(): void;
+      }
+      interface InputUI extends BaseUI { }
+      interface MultipleSelectUI extends BaseUI {
+        clearAllUI: BaseUI;
+        items: any[];
+        itemsBox: Core;
+        searchInput: InputUI;
+        selectAllUI: BaseUI;
+
+        getItems(): void;
+        getValue(): any[];
+        isSelectedAllValues(): boolean;
+        setItems(items: any[]): void;
+      }
+      interface SelectUI extends BaseUI {
+        menu: Menu | void;
+        items: any[];
+
+        setItems(items: any[]): void;
+        openOptions(): void;
+        closeOptions(): void;
+      }
+
+      interface FormulaCollection {
+        formulas: object;
+        orderStack: any[];
+
+        addFormula(column: number, formulaDefinition: object): void;
+        clean(): void;
+        clearFormulas(column: number): void;
+        destroy(): void;
+        exportAllFormulas(): any[];
+        getFormulas(column: number): any[];
+        hasFormulas(column: number, name: string): boolean;
+        isEmpty(): boolean;
+        isMatch(value: object, column: number): boolean;
+        isMatchInFormulas(formulas: any[], value: object): boolean;
+        importAllFormulas(formulas: any[]): void;
+        removeFormulas(column: number): void;
+      }
+
+      interface FormulaUpdateObserver {
+        changes: any[];
+        columnDataFactory: (column: number) => any[];
+        formulaCollection: FormulaCollection;
+        grouping: boolean;
+        latestEditedColumnPosition: number;
+        latestOrderStack: any[];
+
+        destroy(): void;
+        flush(): void;
+        groupChanges(): void;
+        updateStatesAtColumn(column: number, formulaArgsChange: object): void;
+      }
+    }
+
+    interface BindStrategy {
+      klass: () => void;
+      strategy: string | void;
+
+      clearMap(): void;
+      createMap(length: number): void;
+      createRow(params: any): void;
+      destroy(): void;
+      removeRow(params: any): void;
+      setStrategy(name: string): void;
+      translate(params: any): void;
+    }
+
+    interface CommandExecutor {
+      hot: Core;
+      commands: object;
+      commonCallback: (() => void) | void;
+
+      registerCommand(name: string, commandDescriptor: object): void;
+      setCommonCallback(callback: () => void): void;
+      execute(commandName: string, ...params: any[]): void;
+    }
+
+    interface Cursor {
+      cellHeight: number;
+      cellWidth: number;
+      left: number;
+      leftRelative: number;
+      scrollLeft: number;
+      scrollTop: number;
+      top: number;
+      topRelative: number;
+      type: string;
+
+      fitsAbove(element: HTMLElement): boolean;
+      fitsBelow(element: HTMLElement, viewportHeight?: number): boolean;
+      fitsOnLeft(element: HTMLElement): boolean;
+      fitsOnRight(element: HTMLElement, viewportHeight?: number): boolean;
+      getSourceType(object: any): string;
+    }
+
+    interface Endpoints {
+      plugin: plugins.ColumnSummary;
+      hot: Core;
+      endpoints: any[];
+      settings: object | (() => void);
+      settingsType: string;
+      currentEndpoint: object | void;
+
+      assignSetting(settings: object, endpoint: object, name: string, defaultValue: any): void;
+      getAllEndpoints(): any[];
+      getEndpoint(index: number): object;
+      parseSettings(settings: any[]): void;
+      refreshAllEndpoints(init: boolean): void;
+      refreshChangedEndpoints(changes: any[]): void;
+      refreshEndpoint(endpoint: object): void;
+      resetAllEndpoints(endpoints: any[], useOffset?: boolean): void;
+      resetEndpointValue(endpoint: object, useOffset?: boolean): void;
+      setEndpointValue(endpoint: object, source: string, render?: boolean): void;
+    }
+
+    interface EventManager {
+      context?: object;
+
+      addEventListener(element: Element, eventName: string, callback: () => void): () => void;
+      removeEventListener(element: Element, eventName: string, callback: () => void): void;
+      clearEvents(): void;
+      clear(): void;
+      destroy(): void;
+      fireEvent(element: Element, eventName: string): void;
+      extendEvent(context: object, event: Event): any;
+    }
+
+    interface GhostTable {
+      columns: number[];
+      container: HTMLElement | null;
+      hot: Core;
+      injected: boolean;
+      rows: object[];
+      samples: object | null;
+      settings: object;
+
+      addRow(row: number, samples: object): void;
+      addColumn(column: number, samples: object): void;
+      addColumnHeadersRow(samples: object): void;
+      clean(): void;
+      createCol(column: number): DocumentFragment;
+      createColElement(column: number): HTMLElement;
+      createColGroupsCol(): DocumentFragment;
+      createColumnHeadersRow(): DocumentFragment;
+      createContainer(className?: string): object;
+      createRow(row: number): DocumentFragment;
+      createTable(className?: string): object;
+      getHeights(callback: (row: number, height: number) => void): void;
+      getWidths(callback: (row: number, height: number) => void): void;
+      getSettings(): object | void;
+      getSetting(name: string): boolean | void;
+      injectTable(parent?: HTMLElement | void): void;
+      isHorizontal(): boolean;
+      isVertical(): boolean;
+      removeTable(): void;
+      setSettings(settings: object): void;
+      setSetting(name: string, value: any): void;
+    }
+
+    interface ItemsFactory {
+      defaultOrderPattern: any[] | void;
+      hot: Core;
+      predefinedItems: object;
+
+      getItems(pattern?: any[] | object | boolean): any[];
+      setPredefinedItems(predefinedItems: any[]): void;
+    }
+
+    interface Menu {
+      container: HTMLElement;
+      eventManager: EventManager;
+      hot: Core;
+      hotMenu: Core;
+      hotSubMenus: object;
+      keyEvent: boolean;
+      menuItems: any[] | null;
+      offset: object;
+      options: object;
+      origOutsideClickDeselects: boolean | (() => void);
+      parentMenu: Menu | null;
+
+      close(closeParent?: boolean): void;
+      closeSubMenu(row: number): void;
+      closeAllSubMenus(): void;
+      destroy(): void;
+      executeCommand(event: Event): void;
+      isOpened(): boolean;
+      isSubMenu(): boolean;
+      open(): void;
+      openSubMenu(row: number): Menu | boolean;
+      setMenuItems(menuItems: any[]): void;
+      setOffset(area: string, offset?: number): void;
+      selectLastCell(): void;
+      selectFirstCell(): void;
+      selectPrevCell(row: number, col: number): void;
+      selectNextCell(row: number, col: number): void;
+      setPosition(coords: Event | object): void;
+      setPositionAboveCursor(cursor: Cursor): void;
+      setPositionBelowCursor(cursor: Cursor): void;
+      setPositionOnLeftOfCursor(cursor: Cursor): void;
+      setPositionOnRightOfCursor(cursor: Cursor): void;
+    }
+
+    interface SamplesGenerator {
+      allowDuplicates: boolean | null;
+      customSampleCount: boolean | null;
+      dataFactory: () => void;
+      samples: object | null;
+
+      generateColumnSamples(colRange: object, rowRange: object): object;
+      generateRowSamples(rowRange: object | number, colRange: object): object;
+      generateSamples(type: string, range: object, specifierRange: object | number): object;
+      generateSample(type: string, range: object, specifierValue: number): object
+      getSampleCount(): number;
+      setAllowDuplicates(allowDuplicates: boolean): void;
+      setSampleCount(sampleCount: number): void;
+    }
+
+    class Base {
+      pluginName: string;
+      pluginsInitializedCallback: any[];
+      isPluginsReady: boolean;
+      enabled: boolean;
+      initialized: boolean;
+
+      constructor(hotInstance?: Core);
+
+      addHook(name: string, callback: () => void): void;
+      callOnPluginsReady(callback: () => void): void;
+      clearHooks(): void;
+      destroy(): void;
+      disablePlugin(): void;
+      enablePlugin(): void;
+      init(): void;
+      removeHook(name: string): void;
+    }
+
+    interface AutoColumnSize extends Base {
+      firstCalculation: boolean;
+      ghostTable: GhostTable;
+      inProgress: boolean;
+      sampleGenerator: SamplesGenerator;
+      widths: any[];
+
+      calculateAllColumnsWidth(rowRange?: number | object): void;
+      calculateColumnsWidth(colRange?: number | object, rowRange?: number | object, force?: boolean): void;
+      clearCache(columns?: any[]): void;
+      findColumnsWhereHeaderWasChanged(): any[];
+      getColumnWidth(col: number, defaultWidth?: number, keepMinimum?: boolean): number;
+      getFirstVisibleColumn(): number;
+      getLastVisibleColumn(): number;
+      getSyncCalculationLimit(): number;
+      isNeedRecalculate(): boolean;
+      recalculateAllColumnsWidth(): void;
+    }
+
+    interface AutoRowSize extends Base {
+      firstCalculation: boolean;
+      heights: any[];
+      ghostTable: GhostTable;
+      inProgress: boolean;
+      sampleGenerator: SamplesGenerator;
+
+      calculateAllRowsHeight(colRange?: number | object): void;
+      calculateRowsHeight(rowRange?: number | object, colRange?: number | object, force?: boolean): void;
+      clearCache(): void;
+      clearCacheByRange(range: number | object): void;
+      findColumnsWhereHeaderWasChanged(): any[];
+      getColumnHeaderHeight(): number | void;
+      getFirstVisibleRow(): number;
+      getLastVisibleRow(): number;
+      getRowHeight(col: number, defaultHeight?: number): number;
+      getSyncCalculationLimit(): number;
+      isNeedRecalculate(): boolean;
+      recalculateAllRowsHeight(): void;
+    }
+
+    interface Autofill extends Base {
+      addingStarted: boolean;
+      autoInsertRow: boolean;
+      directions: string[];
+      eventManager: EventManager;
+      handleDraggedCells: boolean;
+      mouseDownOnCellCorner: boolean;
+      mouseDragOutside: boolean;
+    }
+
+    interface BindRowsWithHeaders extends Base {
+      bindStrategy: BindStrategy;
+      removeRows: any[];
+    }
+
+    interface CollapsibleColumns extends Base {
+      buttonEnabledList: object;
+      collapsedSections: object;
+      columnHeaderLevelCount: number;
+      eventManager: EventManager;
+      hiddenColumnsPlugin: object;
+      nestedHeadersPlugin: object;
+      settings: boolean | any[];
+
+      checkDependencies(): void;
+      collapseAll(): void;
+      collapseSection(coords: object): void;
+      expandAll(): void;
+      expandSection(coords: object): void;
+      generateIndicator(col: number, TH: HTMLElement): HTMLElement;
+      markSectionAs(state: string, row: number, column: number, recursive: boolean): void;
+      meetsDependencies(): boolean;
+      parseSettings(): void;
+      toggleAllCollapsibleSections(action: string): void;
+      toggleCollapsibleSection(coords: object, action: string): void;
+    }
+
+    interface ColumnSorting extends Base {
+      lastSortedColumn: number;
+      sortEmptyCells: boolean;
+      sortIndicators: any[];
+
+      dateSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => boolean;
+      defaultSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => boolean;
+      enableObserveChangesPlugin(): void;
+      getColHeader(col: number, TH: HTMLElement): void;
+      isSorted(): boolean;
+      loadSortingState(): any;
+      numericSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => boolean;
+      saveSortingState(): void;
+      setSortingColumn(col: number, order: boolean | void): void;
+      sort(): void;
+      sortBySettings(): void;
+      sortByColumn(col: number, order: boolean | void): void;
+      translateRow(row: number): number;
+      untranslateRow(row: number): number;
+      updateOrderClass(): void;
+      updateSortIndicator(): void;
+    }
+
+    interface ColumnSummary extends Base {
+      endpoints: Endpoints | void;
+
+      calculate(endpoint: Endpoints): void;
+      calculateAverage(endpoint: Endpoints): number;
+      calculateMinMax(endpoint: Endpoints, type: string): number;
+      calculateSum(endpoint: Endpoints): void;
+      countEmpty(rowRange: any[], col: number): number;
+      countEntries(endpoint: Endpoints): number;
+      getCellValue(row: number, col: number): string;
+      getPartialMinMax(rowRange: any[], col: number, type: string): number;
+      getPartialSum(rowRange: any[], col: number): number;
+    }
+
+    type CommentsRangeObject = {
+      from: wot.CellCoords,
+      to?: wot.CellCoords
+    }
+    interface Comments extends Base {
+      contextMenuEvent: boolean;
+      displayDelay: number;
+      editor: editors.CommentEditor;
+      eventManager: EventManager;
+      mouseDown: boolean;
+      range: CommentsRangeObject;
+      timer: any;
+
+      clearRange(): void;
+      getComment(): object;
+      getCommentMeta(row: number, column: number, property: string): any;
+      hide(): void;
+      refreshEditor(force?: boolean): void;
+      removeComment(forceRender?: boolean): void;
+      removeCommentAtCell(row: number, col: number, forceRender?: boolean): void;
+      setComment(value: string): void;
+      setCommentAtCell(row: number, col: number, value: string): void;
+      setRange(range: CommentsRangeObject): void;
+      show(): boolean;
+      showAtCell(row: number, col: number): boolean;
+      targetIsCellWithComment(event: Event): boolean;
+      targetIsCommentTextArea(event: Event): boolean;
+      updateCommentMeta(row: number, column: number, metaObject: object): void;
+    }
+
+    interface ContextMenu extends Base {
+      eventManager: EventManager;
+      commandExecutor: CommandExecutor;
+      itemsFactory: ItemsFactory | void;
+      menu: Menu | void;
+
+      close(): void;
+      executeCommand(commandName: string, ...params: any[]): void;
+      open(event: Event): void;
+    }
+
+    interface ContextMenuCopyPaste extends Base {
+      eventManager: EventManager;
+      outsideClickDeselectsCache: boolean | void;
+      swfPath: string | void;
+
+      getCopyValue(): string;
+    }
+
+    interface DragToScroll extends Base {
+      boundaries: object | void;
+      callback: (() => void) | void;
+
+      check(x: number, y: number): void;
+      setBoundaries(boundaries: object): void;
+      setCallback(callback: () => void): void;
+    }
+
+    type SeparatorObject = {
+      name: string;
+    }
+    interface DropdownMenu extends Base {
+      eventManager: EventManager;
+      commandExecutor: CommandExecutor;
+      itemsFactory: ItemsFactory | void;
+      menu: Menu | void;
+      SEPARATOR: SeparatorObject
+
+      close(): void;
+      executeCommand(commandName: string, ...params: any[]): void;
+      open(event: Event): void;
+    }
+
+    interface ExportFile extends Base {
+      downloadFile(format: string, options: object): void;
+      exportAsString(format: string, options?: object): string;
+      exportAsBlob(format: string, options?: object): Blob;
+    }
+
+    interface Filters extends Base {
+      actionBarComponent: FiltersPlugin.ActionBarComponent | void;
+      dropdownMenuPlugin: DropdownMenu | void;
+      eventManager: EventManager;
+      conditionComponent: FiltersPlugin.ConditionComponent | void;
+      formulaCollection: FiltersPlugin.FormulaCollection | void;
+      formulaUpdateObserver: FiltersPlugin.FormulaUpdateObserver | void;
+      lastSelectedColumn?: number | void;
+      trimRowsPlugin: TrimRows | void;
+      valueComponent: FiltersPlugin.ValueComponent | void;
+
+      addFormula(column: number, name: string, args: any[]): void;
+      clearColumnSelection(): void;
+      clearFormulas(column?: number | void): void;
+      getDataMapAtColumn(column: number): any[];
+      getSelectedColumn(): number | void;
+      filter(): void;
       removeFormulas(column: number): void;
     }
 
-    interface FormulaUpdateObserver {
-      changes: any[];
-      columnDataFactory: (column: number) => any[];
-      formulaCollection: FormulaCollection;
-      grouping: boolean;
-      latestEditedColumnPosition: number;
-      latestOrderStack: any[];
+    interface RecordTranslator {
+      hot: Core;
+
+      toPhysical(row: number | object, column?: number): object | any[];
+      toPhysicalColumn(column: number): number;
+      toPhysicalRow(row: number): number;
+      toVisual(row: number | object, column?: number): object | any[];
+      toVisualColumn(column: number): number;
+      toVisualRow(row: number): number;
+    }
+
+    interface DataProvider {
+      changes: object;
+      hot: Core;
+      t: RecordTranslator;
+
+      clearChanges(): void;
+      collectChanges(row: number, column: number, value: any): void;
+      destroy(): void;
+      getDataAtCell(row: number, column: number): any;
+      getDataByRange(row1: number, column1: number, row2: number, column2: number): any[];
+      getRawDataAtCell(row: number, column: number): any;
+      getRawDataByRange(row1: number, column1: number, row2: number, column2: number): any[];
+      getSourceDataByRange(row1: number, column1: number, row2: number, column2: number): any[];
+      getSourceDataAtCell(row: number, column: number): any;
+      isInDataRange(row: number, column: number): boolean;
+      updateSourceData(row: number, column: number, value: any): void;
+    }
+
+    interface AlterManager {
+      sheet: Sheet;
+      hot: Core;
+      dataProvider: DataProvider;
+      matrix: Matrix;
+
+      prepareAlter(action: string, args: any): void;
+      triggerAlter(action: string, args: any): void;
+      destroy(): void;
+    }
+
+    interface Matrix {
+      t: RecordTranslator;
+      data: any[];
+      cellReferences: any[];
+
+      getCellAt(row: number, column: number): CellValue | void;
+      getOutOfDateCells(): any[];
+      add(cellValue: CellValue | object): void;
+      remove(cellValue: CellValue | object| any[]): void;
+      getDependencies(cellCoord: object): void;
+      registerCellRef(cellReference: CellReference | object): void;
+      removeCellRefsAtRange(start: object, end: object): any[];
+      reset(): void;
+    }
+
+    interface BaseCell {
+      columnAbsolute: boolean;
+      columnOffset: number;
+      rowAbsolute: boolean;
+      rowOffset: number;
+
+      isEqual(cell: BaseCell): boolean;
+      toString(): string;
+      translateTo(rowOffset: number, columnOffset: number): void;
+    }
+    interface CellReference extends BaseCell { }
+
+    interface CellValue extends BaseCell {
+      error: string | void;
+      precedents: any[];
+      state: string;
+      value: any;
+
+      addPrecedent(cellReference: CellReference): void;
+      clearPrecedents(): void;
+      getError(): string | void;
+      getPrecedents(): any[];
+      getValue(): any;
+      hasError(): boolean;
+      hasPrecedent(cellReference: CellReference): boolean;
+      hasPrecedents(): boolean;
+      isState(state: number): boolean;
+      removePrecedent(cellReference: CellReference): void;
+      setError(error: string): void;
+      setState(state: number): void;
+      setValue(value: any): void;
+    }
+    type Parser = {};
+    interface Sheet {
+      alterManager: AlterManager
+      dataProvider: DataProvider;
+      hot: Core;
+      matrix: Matrix;
+      parser: Parser;
+      t: RecordTranslator;
+
+      applyChanges(row: number, column: number, newValue: any): void;
+      destroy(): void;
+      getCellAt(row: number, column: number): CellValue | void;
+      getCellDependencies(row: number, column: number): any[];
+      getVariable(name: string): any;
+      parseExpression(cellValue: CellValue | object, formula: string): void;
+      recalculate(): void;
+      recalculateFull(): void;
+      recalculateOptimized(): void;
+      setVariable(name: string, value: any): void;
+    }
+
+    interface Stack {
+      items: any[];
+
+      isEmpty(): boolean;
+      peek(): any;
+      pop(): any;
+      push(items: any): void;
+      size(): number;
+
+    }
+
+    interface UndoRedoSnapshot {
+      sheet: Sheet;
+      stack: Stack;
 
       destroy(): void;
-      flush(): void;
-      groupChanges(): void;
-      updateStatesAtColumn(column: number, formulaArgsChange: object): void;
+      restore(): void;
+      save(axis: string, index: number, amount: number): void;
+    }
+
+    interface Formulas extends Base {
+      dataProvider: DataProvider;
+      eventManager: EventManager;
+      sheet: Sheet;
+      undoRedoSnapshot: UndoRedoSnapshot;
+
+      getCellValue(row: number, column: number): any;
+      getVariable(name: string): any;
+      hasComputedCellValue(row: number, column: number): boolean;
+      recalculate(): void;
+      recalculateFull(): void;
+      recalculateOptimized(): void;
+      setVariable(name: string, value: any): void;
+    }
+
+    interface GanttChart extends Base {
+      colorData: object;
+      currentYear: number | void;
+      dateCalculator: object | void;
+      dataFeed: object | void;
+      hotSource: Core | void;
+      initialSettings: object | void;
+      monthHeadersArray: any[];
+      monthList: any[];
+      nestedHeadersPlugin: NestedHeaders | void;
+      overallWeekSectionCount: number | void;
+      rangeBarMeta: object | void;
+      rangeBars: object;
+      rangeList: object;
+      settings: object;
+      weekHeadersArray: any[];
+
+      addRangeBar(row: number, startDate: Date | string, endDate: Date | string, additionalData: object): boolean | any[];
+      applyRangeBarMetaCache(): void;
+      cacheRangeBarMeta(row: number, col: number, key: string, value: any | any[]): void;
+      checkDependencies(): void;
+      getRangeBarCoordinates(row: number): object;
+      getRangeBarData(row: number, column: number): object | boolean;
+      renderRangeBar(row: number, startDateColumn: number, endDateColumn: number, additionalData: object): void;
+      removeRangeBarByDate(row: number, startDate: Date | string): void;
+      removeRangeBarByColumn(row: number, startDateColumn: number): void;
+      removeAllRangeBars(): void;
+      setRangeBarColors(rows: object): void;
+      setYear(year: number): void;
+      uniformBackgroundRenderer(instance: Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: string | number, cellProperties: object): void;
+      unrenderRangeBar(row: number, startDateColumn: number, endDateColumn: number): void;
+      updateRangeBarData(row: number, column: number, data: object): void;
+    }
+
+    interface HeaderTooltips extends Base {
+      settings: boolean | object;
+
+      parseSettings(): void;
+    }
+
+    interface HiddenColumns extends Base {
+      hiddenColumns: boolean | any[];
+      lastSelectedColumn: number;
+      settings: object | void;
+
+      isHidden(column: number, isLogicIndex?: boolean): boolean;
+      hideColumn(column: number): void;
+      hideColumns(columns: any[]): void;
+      showColumn(column: number): void;
+      showColumns(columns: any[]): void;
+    }
+
+    interface HiddenRows extends Base {
+      hiddenRows: boolean | any[];
+      lastSelectedRow: number;
+      settings: object | void;
+
+      isHidden(row: number, isLogicIndex?: boolean): boolean;
+      hideRow(row: number): void;
+      hideRows(rows: any[]): void;
+      showRow(row: number): void;
+      showRows(rows: any[]): void;
+    }
+
+    interface ManualColumnFreeze extends Base {
+      frozenColumnsBasePositions: any[];
+      manualColumnMovePlugin: ManualColumnMove;
+
+      freezeColumn(column: number): void;
+      unfreezeColumn(column: number): void;
+    }
+
+    interface arrayMapper {
+      getValueByIndex(index: number): any;
+      getIndexByValue(value: any): number;
+      insertItems(index: number, amount?: number): any[];
+      removeItems(index: number, amount?: number): any[];
+      shiftItems(index: number, amount?: number): void;
+      unshiftItems(index: number, amount?: number): void;
+    }
+
+    interface MoveColumnsMapper extends arrayMapper {
+      manualColumnMove: ManualColumnMove;
+
+      clearNull(): void;
+      createMap(length?: number): void;
+      destroy(): void;
+      moveColumn(from: number, to: number): void;
+    }
+
+    interface MoveRowsMapper extends arrayMapper {
+      manualRowMove: ManualRowMove;
+
+      clearNull(): void;
+      createMap(length?: number): void;
+      destroy(): void;
+      moveColumn(from: number, to: number): void;
+    }
+
+    interface TrimRowsMapper extends arrayMapper {
+      trimRows: TrimRows;
+
+      createMap(length?: number): void;
+      destroy(): void;
+    }
+
+    namespace moveUI {
+      interface BaseUI {
+        hot: Core;
+        state: number;
+
+        appendTo(wrapper: HTMLElement): void;
+        build(): void;
+        destroy(): void;
+        getOffset(): object;
+        getPosition(): object;
+        getSize(): object;
+        isAppended(): boolean;
+        isBuilt(): boolean;
+        setOffset(top: number, left: number): void;
+        setPosition(top: number, left: number): void;
+        setSize(width: number, height: number): void;
+      }
+
+      interface BacklightUI extends BaseUI { }
+      interface GuidelineUI extends BaseUI { }
+    }
+
+    interface ManualColumnMove extends Base {
+      backlight: moveUI.BacklightUI;
+      columnsMapper: MoveColumnsMapper;
+      eventManager: EventManager;
+      guideline: moveUI.GuidelineUI;
+      removedColumns: any[];
+
+      moveColumn(column: number, target: number): void;
+      moveColumns(columns: number[], target: number): void;
+    }
+
+    interface ManualColumnResize extends Base {
+      autoresizeTimeout: (() => void) | void;
+      currentCol: number | void;
+      currentTH: HTMLElement | void;
+      currentWidth: number | void;
+      dblclick: number;
+      eventManager: EventManager;
+      guide: HTMLElement;
+      handle: HTMLElement;
+      manualColumnWidths: any[];
+      newSize: number | void;
+      pressed: Core | void;
+      selectedCols: any[];
+      startOffset: number | void;
+      startWidth: number | void;
+      startY: number | void;
+
+      checkIfColumnHeader(element: HTMLElement): boolean;
+      clearManualSize(column: number): void;
+      getTHFromTargetElement(element: HTMLElement): HTMLElement;
+      hideHandleAndGuide(): void;
+      loadManualColumnWidths(): void;
+      refreshGuidePosition(): void;
+      refreshHandlePosition(): void;
+      saveManualColumnWidths(): void;
+      setManualSize(column: number, width: number): number;
+      setupGuidePosition(): void;
+      setupHandlePosition(TH: HTMLElement): boolean | void;
+    }
+
+    interface ManualRowMove extends Base {
+      backlight: moveUI.BacklightUI;
+      eventManager: EventManager;
+      guideline: moveUI.GuidelineUI;
+      removedRows: any[];
+      rowsMapper: MoveRowsMapper;
+
+      moveRow(row: number, target: number): void;
+      moveRows(rows: number[], target: number): void;
+    }
+
+    interface ManualRowResize extends Base {
+      autoresizeTimeout: (() => void) | void;
+      currentRow: number | void;
+      currentTH: HTMLElement | void;
+      currentWidth: number | void;
+      dblclick: number;
+      eventManager: EventManager;
+      guide: HTMLElement;
+      handle: HTMLElement;
+      manualRowHeights: any[];
+      newSize: number | void;
+      pressed: Core | void;
+      selectedRows: any[];
+      startOffset: number | void;
+      startWidth: number | void;
+      startY: number | void;
+
+      checkIfRowHeader(element: HTMLElement): boolean;
+      clearManualSize(column: number): void;
+      getTHFromTargetElement(element: HTMLElement): HTMLElement;
+      hideHandleAndGuide(): void;
+      loadManualRowHeights(): void;
+      refreshGuidePosition(): void;
+      refreshHandlePosition(): void;
+      saveManualRowHeights(): void;
+      setManualSize(column: number, width: number): number;
+      setupGuidePosition(): void;
+      setupHandlePosition(TH: HTMLElement): boolean | void;
+    }
+
+    interface MultipleSelectionHandles extends Base {
+      dragged: any[];
+      eventManager: EventManager;
+      lastSetCell: HTMLElement | void;
+
+      getCurrentRangeCoords(selectedRange: wot.CellRange, currentTouch: wot.CellCoords, touchStartDirection: string, currentDirection: string, draggedHandle: string): object;
+      isDragged(): boolean;
+    }
+
+    interface GhostTableNestedHeaders {
+      container: any;
+      nestedHeaders: NestedHeaders;
+      widthsCache: any[];
+
+      clear(): void;
+    }
+
+    interface NestedHeaders extends Base {
+      colspanArray: any[];
+      columnHeaderLevelCount: number;
+      ghostTable: GhostTableNestedHeaders;
+      settings: any[];
+
+      checkForFixedColumnsCollision(): void;
+      checkForOverlappingHeaders(): void;
+      getChildHeaders(row: number, column: number): any[];
+      fillColspanArrayWithDummies(colspan: number, level: number): void;
+      fillTheRemainingColspans(): void;
+      getColspan(row: number, column: number): number;
+      getNestedParent(level: number, column: number): any;
+      headerRendererFactory(headerRow: number): () => void;
+      levelToRowCoords(level: number): number;
+      rowCoordsToLevel(row: number): number;
+      setupColspanArray(): void;
+    }
+
+    interface DataManager {
+      cache: object;
+      data: object;
+      hot: Core;
+      parentReference: any; //WeakMap
+      plugin: NestedRows;
+
+      addChild(parent: object, element?: object): void;
+      addChildAtIndex(parent: object, index: number, element?: object, globalIndex?: number): void;
+      addSibling(index: number, where?: string): void;
+      countAllRows(): number;
+      countChildren(parent: object | number): number;
+      detachFromParent(elements: object | any[], forceRender?: boolean): void;
+      getDataObject(row: number): any | void;
+      getRowIndex(rowObj: object): number | void;
+      getRowIndexWithinParent(row: number | object): number;
+      getRowLevel(row: number): number | void;
+      getRowParent(row: number | object): object | void;
+      hasChildren(row: number | object): boolean;
+      isParent(row: number | object): boolean;
+      moveRow(fromIndex: number, toIndex: number): void;
+      rewriteCache(): void;
+    }
+
+    interface NestedRows extends Base {
+      bindRowsWithHeadersPlugin: BindRowsWithHeaders | void;
+      dataManager: DataManager | void;
+      headersUI: object | void;
+      sourceData: object | void;
+      trimRowsPlugin: TrimRows | void;
+    }
+
+    interface DataObserver {
+      observedData: any[];
+      observer: object;
+      paused: boolean;
+
+      destroy(): void;
+      isPaused(): boolean;
+      pause(): void;
+      resume(): void;
+      setObservedData(observedData: any): void;
+    }
+    interface ObserveChanges extends Base {
+      observer: DataObserver | void;
+    }
+
+    interface TouchScroll extends Base {
+      clones: any[];
+      lockedCollection: boolean;
+      scrollbars: any[];
+    }
+
+    interface TrimRows extends Base {
+      trimmedRows: any[];
+      removedRows: any[];
+      rowsMapper: TrimRowsMapper;
+
+      isTrimmed(row: number): boolean;
+      trimRow(row: number): void;
+      trimRows(rows: number[]): void;
+      untrimAll(): void;
+      untrimRow(row: number): void;
+      untrimRows(rows: number[]): void;
     }
   }
 
-  interface BindStrategy {
-    klass: () => void;
-    strategy: string | void;
-
-    clearMap(): void;
-    createMap(length: number): void;
-    createRow(params: any): void;
-    destroy(): void;
-    removeRow(params: any): void;
-    setStrategy(name: string): void;
-    translate(params: any): void;
-  }
-
-  interface CommandExecutor {
-    hot: hot.Core;
-    commands: object;
-    commonCallback: (() => void) | void;
-
-    registerCommand(name: string, commandDescriptor: object): void;
-    setCommonCallback(callback: () => void): void;
-    execute(commandName: string, ...params: any[]): void;
-  }
-
-  interface Cursor {
-    cellHeight: number;
-    cellWidth: number;
-    left: number;
-    leftRelative: number;
-    scrollLeft: number;
-    scrollTop: number;
-    top: number;
-    topRelative: number;
-    type: string;
-
-    fitsAbove(element: HTMLElement): boolean;
-    fitsBelow(element: HTMLElement, viewportHeight?: number): boolean;
-    fitsOnLeft(element: HTMLElement): boolean;
-    fitsOnRight(element: HTMLElement, viewportHeight?: number): boolean;
-    getSourceType(object: any): string;
-  }
-
-  interface Endpoints {
-    plugin: plugins.ColumnSummary;
-    hot: hot.Core;
-    endpoints: any[];
-    settings: object | (() => void);
-    settingsType: string;
-    currentEndpoint: object | void;
-
-    assignSetting(settings: object, endpoint: object, name: string, defaultValue: any): void;
-    getAllEndpoints(): any[];
-    getEndpoint(index: number): object;
-    parseSettings(settings: any[]): void;
-    refreshAllEndpoints(init: boolean): void;
-    refreshChangedEndpoints(changes: any[]): void;
-    refreshEndpoint(endpoint: object): void;
-    resetAllEndpoints(endpoints: any[], useOffset?: boolean): void;
-    resetEndpointValue(endpoint: object, useOffset?: boolean): void;
-    setEndpointValue(endpoint: object, source: string, render?: boolean): void;
-  }
-
-  interface EventManager {
-    context?: object;
-
-    addEventListener(element: Element, eventName: string, callback: () => void): () => void;
-    removeEventListener(element: Element, eventName: string, callback: () => void): void;
-    clearEvents(): void;
-    clear(): void;
-    destroy(): void;
-    fireEvent(element: Element, eventName: string): void;
-    extendEvent(context: object, event: Event): any;
-  }
-
-  interface GhostTable {
-    columns: number[];
-    container: HTMLElement | null;
-    hot: hot.Core;
-    injected: boolean;
-    rows: object[];
-    samples: object | null;
-    settings: object;
-
-    addRow(row: number, samples: object): void;
-    addColumn(column: number, samples: object): void;
-    addColumnHeadersRow(samples: object): void;
-    clean(): void;
-    createCol(column: number): DocumentFragment;
-    createColElement(column: number): HTMLElement;
-    createColGroupsCol(): DocumentFragment;
-    createColumnHeadersRow(): DocumentFragment;
-    createContainer(className?: string): object;
-    createRow(row: number): DocumentFragment;
-    createTable(className?: string): object;
-    getHeights(callback: (row: number, height: number) => void): void;
-    getWidths(callback: (row: number, height: number) => void): void;
-    getSettings(): object | void;
-    getSetting(name: string): boolean | void;
-    injectTable(parent?: HTMLElement | void): void;
-    isHorizontal(): boolean;
-    isVertical(): boolean;
-    removeTable(): void;
-    setSettings(settings: object): void;
-    setSetting(name: string, value: any): void;
-  }
-
-  interface ItemsFactory {
-    defaultOrderPattern: any[] | void;
-    hot: hot.Core;
-    predefinedItems: object;
-
-    getItems(pattern?: any[] | object | boolean): any[];
-    setPredefinedItems(predefinedItems: any[]): void;
-  }
-
-  interface Menu {
-    container: HTMLElement;
-    eventManager: EventManager;
-    hot: hot.Core;
-    hotMenu: hot.Core;
-    hotSubMenus: object;
-    keyEvent: boolean;
-    menuItems: any[] | null;
-    offset: object;
-    options: object;
-    origOutsideClickDeselects: boolean | (() => void);
-    parentMenu: Menu | null;
-
-    close(closeParent?: boolean): void;
-    closeSubMenu(row: number): void;
-    closeAllSubMenus(): void;
-    destroy(): void;
-    executeCommand(event: Event): void;
-    isOpened(): boolean;
-    isSubMenu(): boolean;
-    open(): void;
-    openSubMenu(row: number): Menu | boolean;
-    setMenuItems(menuItems: any[]): void;
-    setOffset(area: string, offset?: number): void;
-    selectLastCell(): void;
-    selectFirstCell(): void;
-    selectPrevCell(row: number, col: number): void;
-    selectNextCell(row: number, col: number): void;
-    setPosition(coords: Event | object): void;
-    setPositionAboveCursor(cursor: Cursor): void;
-    setPositionBelowCursor(cursor: Cursor): void;
-    setPositionOnLeftOfCursor(cursor: Cursor): void;
-    setPositionOnRightOfCursor(cursor: Cursor): void;
-  }
-
-  interface SamplesGenerator {
-    allowDuplicates: boolean | null;
-    customSampleCount: boolean | null;
-    dataFactory: () => void;
-    samples: object | null;
-
-    generateColumnSamples(colRange: object, rowRange: object): object;
-    generateRowSamples(rowRange: object | number, colRange: object): object;
-    generateSamples(type: string, range: object, specifierRange: object | number): object;
-    generateSample(type: string, range: object, specifierValue: number): object
-    getSampleCount(): number;
-    setAllowDuplicates(allowDuplicates: boolean): void;
-    setSampleCount(sampleCount: number): void;
-  }
-
-  class Base {
-    pluginName: string;
-    pluginsInitializedCallback: any[];
-    isPluginsReady: boolean;
-    enabled: boolean;
-    initialized: boolean;
-
-    constructor(hotInstance?: hot.Core);
-
-    addHook(name: string, callback: () => void): void;
-    callOnPluginsReady(callback: () => void): void;
-    clearHooks(): void;
-    destroy(): void;
-    disablePlugin(): void;
-    enablePlugin(): void;
-    init(): void;
-    removeHook(name: string): void;
-  }
-
-  interface AutoColumnSize extends Base {
-    firstCalculation: boolean;
-    ghostTable: GhostTable;
-    inProgress: boolean;
-    sampleGenerator: SamplesGenerator;
-    widths: any[];
-
-    calculateAllColumnsWidth(rowRange?: number | object): void;
-    calculateColumnsWidth(colRange?: number | object, rowRange?: number | object, force?: boolean): void;
-    clearCache(columns?: any[]): void;
-    findColumnsWhereHeaderWasChanged(): any[];
-    getColumnWidth(col: number, defaultWidth?: number, keepMinimum?: boolean): number;
-    getFirstVisibleColumn(): number;
-    getLastVisibleColumn(): number;
-    getSyncCalculationLimit(): number;
-    isNeedRecalculate(): boolean;
-    recalculateAllColumnsWidth(): void;
-  }
-
-  interface AutoRowSize extends Base {
-    firstCalculation: boolean;
-    heights: any[];
-    ghostTable: GhostTable;
-    inProgress: boolean;
-    sampleGenerator: SamplesGenerator;
-
-    calculateAllRowsHeight(colRange?: number | object): void;
-    calculateRowsHeight(rowRange?: number | object, colRange?: number | object, force?: boolean): void;
-    clearCache(): void;
-    clearCacheByRange(range: number | object): void;
-    findColumnsWhereHeaderWasChanged(): any[];
-    getColumnHeaderHeight(): number | void;
-    getFirstVisibleRow(): number;
-    getLastVisibleRow(): number;
-    getRowHeight(col: number, defaultHeight?: number): number;
-    getSyncCalculationLimit(): number;
-    isNeedRecalculate(): boolean;
-    recalculateAllRowsHeight(): void;
-  }
-
-  interface Autofill extends Base {
-    addingStarted: boolean;
-    autoInsertRow: boolean;
-    directions: string[];
-    eventManager: EventManager;
-    handleDraggedCells: boolean;
-    mouseDownOnCellCorner: boolean;
-    mouseDragOutside: boolean;
-  }
-
-  interface BindRowsWithHeaders extends Base {
-    bindStrategy: BindStrategy;
-    removeRows: any[];
-  }
-
-  interface CollapsibleColumns extends Base {
-    buttonEnabledList: object;
-    collapsedSections: object;
-    columnHeaderLevelCount: number;
-    eventManager: EventManager;
-    hiddenColumnsPlugin: object;
-    nestedHeadersPlugin: object;
-    settings: boolean | any[];
-
-    checkDependencies(): void;
-    collapseAll(): void;
-    collapseSection(coords: object): void;
-    expandAll(): void;
-    expandSection(coords: object): void;
-    generateIndicator(col: number, TH: HTMLElement): HTMLElement;
-    markSectionAs(state: string, row: number, column: number, recursive: boolean): void;
-    meetsDependencies(): boolean;
-    parseSettings(): void;
-    toggleAllCollapsibleSections(action: string): void;
-    toggleCollapsibleSection(coords: object, action: string): void;
-  }
-
-  interface ColumnSorting extends Base {
-    lastSortedColumn: number;
-    sortEmptyCells: boolean;
-    sortIndicators: any[];
-
-    dateSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => boolean;
-    defaultSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => boolean;
-    enableObserveChangesPlugin(): void;
-    getColHeader(col: number, TH: HTMLElement): void;
-    isSorted(): boolean;
-    loadSortingState(): any;
-    numericSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => boolean;
-    saveSortingState(): void;
-    setSortingColumn(col: number, order: boolean | void): void;
-    sort(): void;
-    sortBySettings(): void;
-    sortByColumn(col: number, order: boolean | void): void;
-    translateRow(row: number): number;
-    untranslateRow(row: number): number;
-    updateOrderClass(): void;
-    updateSortIndicator(): void;
-  }
-
-  interface ColumnSummary extends Base {
-    endpoints: Endpoints | void;
-
-    calculate(endpoint: Endpoints): void;
-    calculateAverage(endpoint: Endpoints): number;
-    calculateMinMax(endpoint: Endpoints, type: string): number;
-    calculateSum(endpoint: Endpoints): void;
-    countEmpty(rowRange: any[], col: number): number;
-    countEntries(endpoint: Endpoints): number;
-    getCellValue(row: number, col: number): string;
-    getPartialMinMax(rowRange: any[], col: number, type: string): number;
-    getPartialSum(rowRange: any[], col: number): number;
-  }
-
-  type CommentsRangeObject = {
-    from: wot.CellCoords,
-    to?: wot.CellCoords
-  }
-  interface Comments extends Base {
-    contextMenuEvent: boolean;
-    displayDelay: number;
-    editor: editors.CommentEditor;
-    eventManager: EventManager;
-    mouseDown: boolean;
-    range: CommentsRangeObject;
-    timer: any;
-
-    clearRange(): void;
-    getComment(): object;
-    getCommentMeta(row: number, column: number, property: string): any;
-    hide(): void;
-    refreshEditor(force?: boolean): void;
-    removeComment(forceRender?: boolean): void;
-    removeCommentAtCell(row: number, col: number, forceRender?: boolean): void;
-    setComment(value: string): void;
-    setCommentAtCell(row: number, col: number, value: string): void;
-    setRange(range: CommentsRangeObject): void;
-    show(): boolean;
-    showAtCell(row: number, col: number): boolean;
-    targetIsCellWithComment(event: Event): boolean;
-    targetIsCommentTextArea(event: Event): boolean;
-    updateCommentMeta(row: number, column: number, metaObject: object): void;
-  }
-
-  interface ContextMenu extends Base {
-    eventManager: EventManager;
-    commandExecutor: CommandExecutor;
-    itemsFactory: ItemsFactory | void;
-    menu: Menu | void;
-
-    close(): void;
-    executeCommand(commandName: string, ...params: any[]): void;
-    open(event: Event): void;
-  }
-
-  interface ContextMenuCopyPaste extends Base {
-    eventManager: EventManager;
-    outsideClickDeselectsCache: boolean | void;
-    swfPath: string | void;
-
-    getCopyValue(): string;
-  }
-
-  interface DragToScroll extends Base {
-    boundaries: object | void;
-    callback: (() => void) | void;
-
-    check(x: number, y: number): void;
-    setBoundaries(boundaries: object): void;
-    setCallback(callback: () => void): void;
-  }
-
-  type SeparatorObject = {
-    name: string;
-  }
-  interface DropdownMenu extends Base {
-    eventManager: EventManager;
-    commandExecutor: CommandExecutor;
-    itemsFactory: ItemsFactory | void;
-    menu: Menu | void;
-    SEPARATOR: SeparatorObject
-
-    close(): void;
-    executeCommand(commandName: string, ...params: any[]): void;
-    open(event: Event): void;
-  }
-
-  interface ExportFile extends Base {
-    downloadFile(format: string, options: object): void;
-    exportAsString(format: string, options?: object): string;
-    exportAsBlob(format: string, options?: object): Blob;
-  }
-
-  interface Filters extends Base {
-    actionBarComponent: FiltersPlugin.ActionBarComponent | void;
-    dropdownMenuPlugin: DropdownMenu | void;
-    eventManager: EventManager;
-    conditionComponent: FiltersPlugin.ConditionComponent | void;
-    formulaCollection: FiltersPlugin.FormulaCollection | void;
-    formulaUpdateObserver: FiltersPlugin.FormulaUpdateObserver | void;
-    lastSelectedColumn?: number | void;
-    trimRowsPlugin: TrimRows | void;
-    valueComponent: FiltersPlugin.ValueComponent | void;
-
-    addFormula(column: number, name: string, args: any[]): void;
-    clearColumnSelection(): void;
-    clearFormulas(column?: number | void): void;
-    getDataMapAtColumn(column: number): any[];
-    getSelectedColumn(): number | void;
-    filter(): void;
-    removeFormulas(column: number): void;
-  }
-
-  interface RecordTranslator {
-    hot: hot.Core;
-
-    toPhysical(row: number | object, column?: number): object | any[];
-    toPhysicalColumn(column: number): number;
-    toPhysicalRow(row: number): number;
-    toVisual(row: number | object, column?: number): object | any[];
-    toVisualColumn(column: number): number;
-    toVisualRow(row: number): number;
-  }
-
-  interface DataProvider {
-    changes: object;
-    hot: hot.Core;
-    t: RecordTranslator;
-
-    clearChanges(): void;
-    collectChanges(row: number, column: number, value: any): void;
-    destroy(): void;
-    getDataAtCell(row: number, column: number): any;
-    getDataByRange(row1: number, column1: number, row2: number, column2: number): any[];
-    getRawDataAtCell(row: number, column: number): any;
-    getRawDataByRange(row1: number, column1: number, row2: number, column2: number): any[];
-    getSourceDataByRange(row1: number, column1: number, row2: number, column2: number): any[];
-    getSourceDataAtCell(row: number, column: number): any;
-    isInDataRange(row: number, column: number): boolean;
-    updateSourceData(row: number, column: number, value: any): void;
-  }
-
-  interface AlterManager {
-    sheet: Sheet;
-    hot: hot.Core;
-    dataProvider: DataProvider;
-    matrix: Matrix;
-
-    prepareAlter(action: string, args: any): void;
-    triggerAlter(action: string, args: any): void;
-    destroy(): void;
-  }
-
-  interface Matrix {
-    t: RecordTranslator;
-    data: any[];
-    cellReferences: any[];
-
-    getCellAt(row: number, column: number): CellValue | void;
-    getOutOfDateCells(): any[];
-    add(cellValue: CellValue | object): void;
-    remove(cellValue: CellValue | object| any[]): void;
-    getDependencies(cellCoord: object): void;
-    registerCellRef(cellReference: CellReference | object): void;
-    removeCellRefsAtRange(start: object, end: object): any[];
-    reset(): void;
-  }
-
-  interface BaseCell {
-    columnAbsolute: boolean;
-    columnOffset: number;
-    rowAbsolute: boolean;
-    rowOffset: number;
-
-    isEqual(cell: BaseCell): boolean;
-    toString(): string;
-    translateTo(rowOffset: number, columnOffset: number): void;
-  }
-  interface CellReference extends BaseCell { }
-
-  interface CellValue extends BaseCell {
-    error: string | void;
-    precedents: any[];
-    state: string;
-    value: any;
-
-    addPrecedent(cellReference: CellReference): void;
-    clearPrecedents(): void;
-    getError(): string | void;
-    getPrecedents(): any[];
-    getValue(): any;
-    hasError(): boolean;
-    hasPrecedent(cellReference: CellReference): boolean;
-    hasPrecedents(): boolean;
-    isState(state: number): boolean;
-    removePrecedent(cellReference: CellReference): void;
-    setError(error: string): void;
-    setState(state: number): void;
-    setValue(value: any): void;
-  }
-  type Parser = {};
-  interface Sheet {
-    alterManager: AlterManager
-    dataProvider: DataProvider;
-    hot: hot.Core;
-    matrix: Matrix;
-    parser: Parser;
-    t: RecordTranslator;
-
-    applyChanges(row: number, column: number, newValue: any): void;
-    destroy(): void;
-    getCellAt(row: number, column: number): CellValue | void;
-    getCellDependencies(row: number, column: number): any[];
-    getVariable(name: string): any;
-    parseExpression(cellValue: CellValue | object, formula: string): void;
-    recalculate(): void;
-    recalculateFull(): void;
-    recalculateOptimized(): void;
-    setVariable(name: string, value: any): void;
-  }
-
-  interface Stack {
-    items: any[];
-
-    isEmpty(): boolean;
-    peek(): any;
-    pop(): any;
-    push(items: any): void;
-    size(): number;
-
-  }
-
-  interface UndoRedoSnapshot {
-    sheet: Sheet;
-    stack: Stack;
-
-    destroy(): void;
-    restore(): void;
-    save(axis: string, index: number, amount: number): void;
-  }
-
-  interface Formulas extends Base {
-    dataProvider: DataProvider;
-    eventManager: EventManager;
-    sheet: Sheet;
-    undoRedoSnapshot: UndoRedoSnapshot;
-
-    getCellValue(row: number, column: number): any;
-    getVariable(name: string): any;
-    hasComputedCellValue(row: number, column: number): boolean;
-    recalculate(): void;
-    recalculateFull(): void;
-    recalculateOptimized(): void;
-    setVariable(name: string, value: any): void;
-  }
-
-  interface GanttChart extends Base {
-    colorData: object;
-    currentYear: number | void;
-    dateCalculator: object | void;
-    dataFeed: object | void;
-    hotSource: hot.Core | void;
-    initialSettings: object | void;
-    monthHeadersArray: any[];
-    monthList: any[];
-    nestedHeadersPlugin: NestedHeaders | void;
-    overallWeekSectionCount: number | void;
-    rangeBarMeta: object | void;
-    rangeBars: object;
-    rangeList: object;
-    settings: object;
-    weekHeadersArray: any[];
-
-    addRangeBar(row: number, startDate: Date | string, endDate: Date | string, additionalData: object): boolean | any[];
-    applyRangeBarMetaCache(): void;
-    cacheRangeBarMeta(row: number, col: number, key: string, value: any | any[]): void;
-    checkDependencies(): void;
-    getRangeBarCoordinates(row: number): object;
-    getRangeBarData(row: number, column: number): object | boolean;
-    renderRangeBar(row: number, startDateColumn: number, endDateColumn: number, additionalData: object): void;
-    removeRangeBarByDate(row: number, startDate: Date | string): void;
-    removeRangeBarByColumn(row: number, startDateColumn: number): void;
-    removeAllRangeBars(): void;
-    setRangeBarColors(rows: object): void;
-    setYear(year: number): void;
-    uniformBackgroundRenderer(instance: hot.Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: string | number, cellProperties: object): void;
-    unrenderRangeBar(row: number, startDateColumn: number, endDateColumn: number): void;
-    updateRangeBarData(row: number, column: number, data: object): void;
-  }
-
-  interface HeaderTooltips extends Base {
-    settings: boolean | object;
-
-    parseSettings(): void;
-  }
-
-  interface HiddenColumns extends Base {
-    hiddenColumns: boolean | any[];
-    lastSelectedColumn: number;
-    settings: object | void;
-
-    isHidden(column: number, isLogicIndex?: boolean): boolean;
-    hideColumn(column: number): void;
-    hideColumns(columns: any[]): void;
-    showColumn(column: number): void;
-    showColumns(columns: any[]): void;
-  }
-
-  interface HiddenRows extends Base {
-    hiddenRows: boolean | any[];
-    lastSelectedRow: number;
-    settings: object | void;
-
-    isHidden(row: number, isLogicIndex?: boolean): boolean;
-    hideRow(row: number): void;
-    hideRows(rows: any[]): void;
-    showRow(row: number): void;
-    showRows(rows: any[]): void;
-  }
-
-  interface ManualColumnFreeze extends Base {
-    frozenColumnsBasePositions: any[];
-    manualColumnMovePlugin: ManualColumnMove;
-
-    freezeColumn(column: number): void;
-    unfreezeColumn(column: number): void;
-  }
-
-  interface arrayMapper {
-    getValueByIndex(index: number): any;
-    getIndexByValue(value: any): number;
-    insertItems(index: number, amount?: number): any[];
-    removeItems(index: number, amount?: number): any[];
-    shiftItems(index: number, amount?: number): void;
-    unshiftItems(index: number, amount?: number): void;
-  }
-
-  interface MoveColumnsMapper extends arrayMapper {
-    manualColumnMove: ManualColumnMove;
-
-    clearNull(): void;
-    createMap(length?: number): void;
-    destroy(): void;
-    moveColumn(from: number, to: number): void;
-  }
-
-  interface MoveRowsMapper extends arrayMapper {
-    manualRowMove: ManualRowMove;
-
-    clearNull(): void;
-    createMap(length?: number): void;
-    destroy(): void;
-    moveColumn(from: number, to: number): void;
-  }
-
-  interface TrimRowsMapper extends arrayMapper {
-    trimRows: TrimRows;
-
-    createMap(length?: number): void;
-    destroy(): void;
-  }
-
-  namespace moveUI {
-    interface BaseUI {
-      hot: hot.Core;
-      state: number;
-
-      appendTo(wrapper: HTMLElement): void;
-      build(): void;
-      destroy(): void;
-      getOffset(): object;
-      getPosition(): object;
-      getSize(): object;
-      isAppended(): boolean;
-      isBuilt(): boolean;
-      setOffset(top: number, left: number): void;
-      setPosition(top: number, left: number): void;
-      setSize(width: number, height: number): void;
+  namespace renderers {
+    interface Base {
+      (instance: Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: any, cellProperties: GridSettings): HTMLElement;
     }
 
-    interface BacklightUI extends BaseUI { }
-    interface GuidelineUI extends BaseUI { }
+    interface Autocomplete extends Base { }
+
+    interface Checkbox extends Base { }
+
+    interface Html extends Base { }
+
+    interface Numeric extends Base { }
+
+    interface Password extends Base { }
+
+    interface Text extends Base { }
   }
 
-  interface ManualColumnMove extends Base {
-    backlight: moveUI.BacklightUI;
-    columnsMapper: MoveColumnsMapper;
-    eventManager: EventManager;
-    guideline: moveUI.GuidelineUI;
-    removedColumns: any[];
-
-    moveColumn(column: number, target: number): void;
-    moveColumns(columns: number[], target: number): void;
-  }
-
-  interface ManualColumnResize extends Base {
-    autoresizeTimeout: (() => void) | void;
-    currentCol: number | void;
-    currentTH: HTMLElement | void;
-    currentWidth: number | void;
-    dblclick: number;
-    eventManager: EventManager;
-    guide: HTMLElement;
-    handle: HTMLElement;
-    manualColumnWidths: any[];
-    newSize: number | void;
-    pressed: hot.Core | void;
-    selectedCols: any[];
-    startOffset: number | void;
-    startWidth: number | void;
-    startY: number | void;
-
-    checkIfColumnHeader(element: HTMLElement): boolean;
-    clearManualSize(column: number): void;
-    getTHFromTargetElement(element: HTMLElement): HTMLElement;
-    hideHandleAndGuide(): void;
-    loadManualColumnWidths(): void;
-    refreshGuidePosition(): void;
-    refreshHandlePosition(): void;
-    saveManualColumnWidths(): void;
-    setManualSize(column: number, width: number): number;
-    setupGuidePosition(): void;
-    setupHandlePosition(TH: HTMLElement): boolean | void;
-  }
-
-  interface ManualRowMove extends Base {
-    backlight: moveUI.BacklightUI;
-    eventManager: EventManager;
-    guideline: moveUI.GuidelineUI;
-    removedRows: any[];
-    rowsMapper: MoveRowsMapper;
-
-    moveRow(row: number, target: number): void;
-    moveRows(rows: number[], target: number): void;
-  }
-
-  interface ManualRowResize extends Base {
-    autoresizeTimeout: (() => void) | void;
-    currentRow: number | void;
-    currentTH: HTMLElement | void;
-    currentWidth: number | void;
-    dblclick: number;
-    eventManager: EventManager;
-    guide: HTMLElement;
-    handle: HTMLElement;
-    manualRowHeights: any[];
-    newSize: number | void;
-    pressed: hot.Core | void;
-    selectedRows: any[];
-    startOffset: number | void;
-    startWidth: number | void;
-    startY: number | void;
-
-    checkIfRowHeader(element: HTMLElement): boolean;
-    clearManualSize(column: number): void;
-    getTHFromTargetElement(element: HTMLElement): HTMLElement;
-    hideHandleAndGuide(): void;
-    loadManualRowHeights(): void;
-    refreshGuidePosition(): void;
-    refreshHandlePosition(): void;
-    saveManualRowHeights(): void;
-    setManualSize(column: number, width: number): number;
-    setupGuidePosition(): void;
-    setupHandlePosition(TH: HTMLElement): boolean | void;
-  }
-
-  interface MultipleSelectionHandles extends Base {
-    dragged: any[];
-    eventManager: EventManager;
-    lastSetCell: HTMLElement | void;
-
-    getCurrentRangeCoords(selectedRange: wot.CellRange, currentTouch: wot.CellCoords, touchStartDirection: string, currentDirection: string, draggedHandle: string): object;
-    isDragged(): boolean;
-  }
-
-  interface GhostTableNestedHeaders {
-    container: any;
-    nestedHeaders: NestedHeaders;
-    widthsCache: any[];
-
-    clear(): void;
-  }
-
-  interface NestedHeaders extends Base {
-    colspanArray: any[];
-    columnHeaderLevelCount: number;
-    ghostTable: GhostTableNestedHeaders;
-    settings: any[];
-
-    checkForFixedColumnsCollision(): void;
-    checkForOverlappingHeaders(): void;
-    getChildHeaders(row: number, column: number): any[];
-    fillColspanArrayWithDummies(colspan: number, level: number): void;
-    fillTheRemainingColspans(): void;
-    getColspan(row: number, column: number): number;
-    getNestedParent(level: number, column: number): any;
-    headerRendererFactory(headerRow: number): () => void;
-    levelToRowCoords(level: number): number;
-    rowCoordsToLevel(row: number): number;
-    setupColspanArray(): void;
-  }
-
-  interface DataManager {
-    cache: object;
-    data: object;
-    hot: hot.Core;
-    parentReference: any; //WeakMap
-    plugin: NestedRows;
-
-    addChild(parent: object, element?: object): void;
-    addChildAtIndex(parent: object, index: number, element?: object, globalIndex?: number): void;
-    addSibling(index: number, where?: string): void;
-    countAllRows(): number;
-    countChildren(parent: object | number): number;
-    detachFromParent(elements: object | any[], forceRender?: boolean): void;
-    getDataObject(row: number): any | void;
-    getRowIndex(rowObj: object): number | void;
-    getRowIndexWithinParent(row: number | object): number;
-    getRowLevel(row: number): number | void;
-    getRowParent(row: number | object): object | void;
-    hasChildren(row: number | object): boolean;
-    isParent(row: number | object): boolean;
-    moveRow(fromIndex: number, toIndex: number): void;
-    rewriteCache(): void;
-  }
-
-  interface NestedRows extends Base {
-    bindRowsWithHeadersPlugin: BindRowsWithHeaders | void;
-    dataManager: DataManager | void;
-    headersUI: object | void;
-    sourceData: object | void;
-    trimRowsPlugin: TrimRows | void;
-  }
-
-  interface DataObserver {
-    observedData: any[];
-    observer: object;
-    paused: boolean;
-
-    destroy(): void;
-    isPaused(): boolean;
-    pause(): void;
-    resume(): void;
-    setObservedData(observedData: any): void;
-  }
-  interface ObserveChanges extends Base {
-    observer: DataObserver | void;
-  }
-
-  interface TouchScroll extends Base {
-    clones: any[];
-    lockedCollection: boolean;
-    scrollbars: any[];
-  }
-
-  interface TrimRows extends Base {
-    trimmedRows: any[];
-    removedRows: any[];
-    rowsMapper: TrimRowsMapper;
-
-    isTrimmed(row: number): boolean;
-    trimRow(row: number): void;
-    trimRows(rows: number[]): void;
-    untrimAll(): void;
-    untrimRow(row: number): void;
-    untrimRows(rows: number[]): void;
-  }
-}
-
-declare namespace renderers {
-  interface Base {
-    (instance: hot.Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: any, cellProperties: hot.GridSettings): HTMLElement;
-  }
-
-  interface Autocomplete extends Base { }
-
-  interface Checkbox extends Base { }
-
-  interface Html extends Base { }
-
-  interface Numeric extends Base { }
-
-  interface Password extends Base { }
-
-  interface Text extends Base { }
-}
-
-declare namespace hot {
   interface DefaultSettings extends GridSettings { }
   interface DefaultSettings extends Hooks { }
 
@@ -1467,7 +1467,7 @@ declare namespace hot {
   }
 
   class Core {
-    constructor(element: Element, options: hot.DefaultSettings);
+    constructor(element: Element, options: DefaultSettings);
     addHook(key: string, callback: (() => void) | any[]): void;
     addHookOnce(key: string, callback: (() => void) | any[]): void;
     alter(action: string, index: number, amount?: number, source?: string, keepEmptyRows?: boolean): void;
@@ -1793,24 +1793,18 @@ declare namespace hot {
       items: any;
     }
   }
-
 }
 
-declare class Handsontable extends hot.Core {
-  //new (element: HTMLElement, options: hot.DefaultSettings): hot.Core;
-
+export default class Handsontable extends _Handsontable.Core {
   static baseVersion: string;
   static buildDate: string;
-  static cellTypes: hot.CellTypes;
-  static Core: hot.Core;
-  static dom: hot.Dom;
-  static editors: hot.Editors;
-  static helper: hot.Helper;
-  static hooks: hot.Hooks;
-  static plugins: hot.Plugins;
-  static renderers: hot.Renderers;
+  static cellTypes: _Handsontable.CellTypes;
+  static Core: _Handsontable.Core;
+  static dom: _Handsontable.Dom;
+  static editors: _Handsontable.Editors;
+  static helper: _Handsontable.Helper;
+  static hooks: _Handsontable.Hooks;
+  static plugins: _Handsontable.Plugins;
+  static renderers: _Handsontable.Renderers;
   static version: string;
 }
-
-export = Handsontable;
-export as namespace Handsontable;
