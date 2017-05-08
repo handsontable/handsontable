@@ -1377,8 +1377,6 @@ describe('ContextMenu', () => {
         }
       }
     });
-
-
   });
 
   describe('disabling actions', () => {
@@ -2653,7 +2651,6 @@ describe('ContextMenu', () => {
 
       hot1.selectCell(0, 0);
       contextMenu();
-
 
       expect(hot1.countRows()).toEqual(5);
       expect(hot2.countRows()).toEqual(5);

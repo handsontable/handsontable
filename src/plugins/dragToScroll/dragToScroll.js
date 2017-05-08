@@ -64,13 +64,13 @@ var setupListening = function(instance) {
   instance.dragToScrollListening = false;
   var scrollHandler = instance.view.wt.wtTable.holder; // native scroll
   dragToScroll = new DragToScroll();
+
   if (scrollHandler === window) {
     // not much we can do currently
     return;
   }
+
   dragToScroll.setBoundaries(scrollHandler.getBoundingClientRect());
-
-
   dragToScroll.setCallback((scrollX, scrollY) => {
     if (scrollX < 0) {
       scrollHandler.scrollLeft -= 50;

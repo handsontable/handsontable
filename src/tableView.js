@@ -542,7 +542,6 @@ function TableView(instance) {
   this.activeWt = this.wt;
 
   if (!isChrome() && !isSafari()) {
-
     this.eventManager.addEventListener(instance.rootElement, 'wheel', (event) => {
       event.preventDefault();
 
@@ -551,7 +550,6 @@ function TableView(instance) {
 
       let deltaY = event.wheelDeltaY || event.deltaY;
       let deltaX = event.wheelDeltaX || event.deltaX;
-
 
       switch (event.deltaMode) {
         case 0:
@@ -567,7 +565,6 @@ function TableView(instance) {
         default:
           break;
       }
-
     });
   }
 
