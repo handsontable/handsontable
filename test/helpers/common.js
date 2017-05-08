@@ -418,10 +418,10 @@ export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
 export const updateSettings = handsontableMethodFactory('updateSettings');
+export const countSourceRows = handsontableMethodFactory('countSourceRows');
 export const countSourceCols = handsontableMethodFactory('countSourceCols');
+export const countEmptyRows = handsontableMethodFactory('countEmptyRows');
 export const countEmptyCols = handsontableMethodFactory('countEmptyCols');
-export const hasColHeaders = handsontableMethodFactory('hasColHeaders');
-export const hasRowHeaders = handsontableMethodFactory('hasRowHeaders');
 
 /**
  * Returns column width for HOT container

@@ -766,14 +766,8 @@ DataMap.prototype.getAll = function() {
     col: 0,
   };
 
-  const maxRows = this.instance.getSettings().maxRows;
-
-  if (maxRows === 0) {
-    return [];
-  }
-
   let end = {
-    row: Math.min(Math.max(maxRows - 1, 0), Math.max(this.instance.countSourceRows() - 1, 0)),
+    row: Math.max(this.instance.countSourceRows() - 1, 0),
     col: Math.max(this.instance.countCols() - 1, 0),
   };
 
@@ -800,15 +794,16 @@ DataMap.prototype.getRange = function(start, end, destination) {
     output = [],
     row;
 
+  const maxRows = this.instance.getSettings().maxRows;
   const maxCols = this.instance.getSettings().maxCols;
 
-  if (maxCols === 0) {
+  if (maxRows === 0 || maxCols === 0) {
     return [];
   }
 
   var getFn = destination === this.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
 
-  rlen = Math.max(start.row, end.row);
+  rlen = Math.min(Math.max(maxRows - 1, 0), Math.max(start.row, end.row));
   clen = Math.min(Math.max(maxCols - 1, 0), Math.max(start.col, end.col));
 
   for (r = Math.min(start.row, end.row); r <= rlen; r++) {
