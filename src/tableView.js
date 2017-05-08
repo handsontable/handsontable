@@ -3,13 +3,14 @@ import {
   empty,
   fastInnerHTML,
   fastInnerText,
+  getComputedStyle,
   getScrollbarWidth,
   hasClass,
   isChildOf,
   isInput,
-  isOutsideInput,
-  removeClass
+  isOutsideInput
 } from './helpers/dom/element';
+import {isChrome, isSafari} from './helpers/browser';
 import EventManager from './eventManager';
 import {stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick} from './helpers/dom/event';
 import Walkontable, {CellCoords, Selection} from './3rdparty/walkontable/src';
@@ -33,7 +34,6 @@ function TableView(instance) {
   }
 
   addClass(instance.rootElement, 'handsontable');
-  // instance.rootElement.addClass('handsontable');
 
   var table = document.createElement('TABLE');
   addClass(table, 'htCore');
@@ -540,6 +540,33 @@ function TableView(instance) {
 
   this.wt = new Walkontable(walkontableConfig);
   this.activeWt = this.wt;
+
+  if (!isChrome() && !isSafari()) {
+    this.eventManager.addEventListener(instance.rootElement, 'wheel', (event) => {
+      event.preventDefault();
+
+      const lineHeight = parseInt(getComputedStyle(document.body)['font-size'], 10);
+      const holder = hot.view.wt.wtOverlays.scrollableElement;
+
+      let deltaY = event.wheelDeltaY || event.deltaY;
+      let deltaX = event.wheelDeltaX || event.deltaX;
+
+      switch (event.deltaMode) {
+        case 0:
+          holder.scrollLeft += deltaX;
+          holder.scrollTop += deltaY;
+          break;
+
+        case 1:
+          holder.scrollLeft += deltaX * lineHeight;
+          holder.scrollTop += deltaY * lineHeight;
+          break;
+
+        default:
+          break;
+      }
+    });
+  }
 
   this.eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', function(event) {
     // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar

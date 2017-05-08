@@ -23,7 +23,12 @@
     "no-irregular-whitespace": 2,
     "no-mixed-spaces-and-tabs": 2,
     "no-multi-str": 2,
-    "no-multiple-empty-lines": 2,
+    "no-multiple-empty-lines": [
+      2,
+      {
+        "max": 1
+      }
+    ],
     "no-new": 2,
     "no-param-reassign": 0,
     "no-plusplus": 0,

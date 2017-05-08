@@ -1040,7 +1040,6 @@ describe('Core_selection', () => {
     expect(hot.selection.selectedHeader.corner).toBe(true);
   });
 
-
   it('should redraw selection when option `colHeaders` is set and user scrolled', function (done) {
     var hot = handsontable({
       startRows: 20,
