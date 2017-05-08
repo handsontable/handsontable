@@ -6,6 +6,7 @@
       },
       "exclude": [
         "transform-regenerator",
+        "es6.typed.array-buffer",
         "es6.typed.data-view",
         "es6.typed.int8-array",
         "es6.typed.uint8-array",
@@ -77,6 +78,7 @@
             "browsers": ["last 3 versions", "Chrome >= 41", "Firefox >= 34", "Explorer >= 9", "Safari >= 9"]
           },
           "exclude": [
+            "es6.typed.array-buffer",
             "es6.typed.data-view",
             "es6.typed.int8-array",
             "es6.typed.uint8-array",

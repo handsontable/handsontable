@@ -20,6 +20,7 @@ module.exports.BUILD_DATE = BUILD_DATE;
 module.exports.BASE_VERSION = BASE_VERSION;
 
 licenseBody += '\nVersion: ' + PACKAGE_VERSION;
+licenseBody += '\nDate: ' + BUILD_DATE;
 
 module.exports.create = function create(envArgs) {
   var config = {
@@ -78,6 +79,12 @@ module.exports.create = function create(envArgs) {
         '__ENV_ARGS__': JSON.stringify(envArgs),
       }),
     ],
+    node: {
+      global: false,
+      process: false,
+      Buffer: false,
+      setImmediate: false,
+    },
   };
 
   return [config];
