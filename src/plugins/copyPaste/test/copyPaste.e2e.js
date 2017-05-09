@@ -147,7 +147,7 @@ describe('CopyPaste', () => {
       selectCell(0, 0);
       keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A1\n');
+      expect(copyPasteTextarea.val()).toEqual('A1');
     });
 
     it('should set copyable text when selecting a single cell and hitting left command', () => {
@@ -162,7 +162,7 @@ describe('CopyPaste', () => {
       selectCell(0, 0);
       keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A1\n');
+      expect(copyPasteTextarea.val()).toEqual('A1');
     });
 
     it('should set copyable text when selecting a single cell and hitting right command', () => {
@@ -177,7 +177,7 @@ describe('CopyPaste', () => {
       selectCell(0, 0);
       keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_RIGHT);
 
-      expect(copyPasteTextarea.val()).toEqual('A1\n');
+      expect(copyPasteTextarea.val()).toEqual('A1');
     });
 
     it('should set copyable text when selecting multiple cells and hitting ctrl', () => {
@@ -192,7 +192,7 @@ describe('CopyPaste', () => {
       selectCell(0, 0, 1, 0);
       keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A1\nA2\n');
+      expect(copyPasteTextarea.val()).toEqual('A1\nA2');
     });
 
     it('should set copyable text when selecting all cells with CTRL+A', (done) => {
@@ -210,7 +210,7 @@ describe('CopyPaste', () => {
 
       setTimeout(() => {
         expect(getSelected()).toEqual([0, 0, 1, 1]);
-        expect(copyPasteTextarea.val()).toEqual('A1\tB1\nA2\tB2\n');
+        expect(copyPasteTextarea.val()).toEqual('A1\tB1\nA2\tB2');
         done();
       }, 10);
     });
@@ -253,7 +253,7 @@ describe('CopyPaste', () => {
       selectCell(0, 0, 1, 1);
       keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A\t1\nB\t2\n');
+      expect(copyPasteTextarea.val()).toEqual('A\t1\nB\t2');
     });
 
     it('should set copyable text when selecting a single cell with editor type as false (#2574)', () => {
@@ -276,7 +276,7 @@ describe('CopyPaste', () => {
       selectCell(1, 1, 1, 1);
       keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('2\n');
+      expect(copyPasteTextarea.val()).toEqual('2');
     });
 
     describe('working with multiple tables', () => {
