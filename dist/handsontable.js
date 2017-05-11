@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 0.31.2
- * Date: Tue May 09 2017 14:39:20 GMT+0200 (CEST)
+ * Version: 0.32.0-beta1
+ * Date: Thu May 11 2017 09:52:50 GMT+0200 (CEST)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -27138,7 +27138,7 @@ DataMap.prototype.createMap = function () {
 DataMap.prototype.colToProp = function (col) {
   col = this.instance.runHooks('modifyCol', col);
 
-  if (this.colToPropCache && typeof this.colToPropCache[col] !== 'undefined') {
+  if (!isNaN(col) && this.colToPropCache && typeof this.colToPropCache[col] !== 'undefined') {
     return this.colToPropCache[col];
   }
 
@@ -30002,9 +30002,9 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "2017-05-09T12:39:20.535Z";
+Handsontable.buildDate = "2017-05-11T07:52:50.067Z";
 Handsontable.packageName = "handsontable";
-Handsontable.version = "0.31.2";
+Handsontable.version = "0.32.0-beta1";
 
 var baseVersion = undefined;
 
