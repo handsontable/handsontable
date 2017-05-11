@@ -136,7 +136,7 @@ DataMap.prototype.createMap = function() {
 DataMap.prototype.colToProp = function(col) {
   col = this.instance.runHooks('modifyCol', col);
 
-  if (this.colToPropCache && typeof this.colToPropCache[col] !== 'undefined') {
+  if (!isNaN(col) && this.colToPropCache && typeof this.colToPropCache[col] !== 'undefined') {
     return this.colToPropCache[col];
   }
 
