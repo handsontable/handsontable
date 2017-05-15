@@ -5,20 +5,43 @@ import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {CellCoords, CellRange, Table} from './../../3rdparty/walkontable/src';
 import CollectionContainer from './cellCollection/collectionContainer';
 
+const privatePool = new WeakMap();
+
 /**
- * TODO: docs
  * @plugin MergeCells
  * @class MergeCells
+ * @dependencies ContextMenu
+ *
+ * @description Plugin, which allows merging cells in the table (using the initial configuration, API or context menu).
+ *
+ * @example
+ *
+ * ```js
+ * ...
+ * let hot = new Handsontable(document.getElementById('example'), {
+ *  data: getData(),
+ *  mergeCells: [
+ *    {row: 0, col: 3, rowspan: 3, colspan: 3},
+ *    {row: 2, col: 6, rowspan: 2, colspan: 2},
+ *    {row: 4, col: 8, rowspan: 3, colspan: 3}
+ *  ],
+ * ...
+ * ```
  */
 class MergeCells extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
 
-    //TODO: docs
-    this.collectionContainer = null;
+    privatePool.set(this, {
+      lastDesiredCoords: null
+    });
 
-    //TODO: docs
-    this.lastDesiredCoords = null;
+    /**
+     * A container for all the merged cells collections.
+     *
+     * @type {CollectionContainer}
+     */
+    this.collectionContainer = null;
   }
 
 
@@ -32,21 +55,22 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
+   * Enable the plugin.
    */
   enablePlugin() {
     if (this.enabled) {
       return;
     }
 
-    this.generateFromSettings(this.hot.getSettings().mergeCells);
+    this.collectionContainer = new CollectionContainer(this.hot);
+
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('beforeKeyDown', (...args) => this.onBeforeKeyDown(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.onModifyTransformEnd(...args));
     this.addHook('beforeSetRangeEnd', (...args) => this.onBeforeSetRangeEnd(...args));
     this.addHook('beforeDrawBorders', (...args) => this.onBeforeDrawAreaBorders(...args));
-    this.addHook('afterIsMultipleSelection', (...args) => this.isMultipleSelection(...args));
+    this.addHook('afterIsMultipleSelection', (...args) => this.onAfterIsMultipleSelection(...args));
     this.addHook('afterRenderer', (...args) => this.onAfterRenderer(...args));
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.addMergeActionsToContextMenu(...args));
     this.addHook('afterGetCellMeta', (...args) => this.onAfterGetCellMeta(...args));
@@ -62,7 +86,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
+   * Disable the plugin.
    */
   disablePlugin() {
     this.clearCollections();
@@ -70,11 +94,11 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
+   * Update the plugin (after using the `updateSettings` method)
    */
   updatePlugin() {
     const settings = this.hot.getSettings().mergeCells;
-    debugger;
+
     if (settings.constructor === Array) {
       this.clearCollections();
       this.generateFromSettings(settings);
@@ -82,12 +106,11 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * @param settings
+   * Generate the collection container from the settings provided to the plugin.
+   *
+   * @param {Array|Boolean} settings The settings provided to the plugin.
    */
   generateFromSettings(settings) {
-    this.collectionContainer = new CollectionContainer();
-
     if (Array.isArray(settings)) {
       for (let i = 0; i < settings.length; i++) {
         this.collectionContainer.add(settings[i]);
@@ -96,7 +119,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
+   * Clear the collections from the collection container.
    */
   clearCollections() {
     const collections = this.collectionContainer.collections;
@@ -116,8 +139,9 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * @param cellRange (CellRange)
+   * Returns `true` if a range is mergeable.
+   *
+   * @param {CellRange} cellRange Cell range to test.
    */
   canMergeRange(cellRange) {
     // is more than one cell selected
@@ -125,8 +149,9 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * @param cellRange
+   * Merge cells in the provided cell range.
+   *
+   * @param {CellRange} cellRange Cell range to merge.
    */
   mergeRange(cellRange) {
     if (!this.canMergeRange(cellRange)) {
@@ -148,28 +173,38 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * @param cellRange
+   * Merge the selection provided as a cell range.
+   *
+   * @param {CellRange} [cellRange] Selection cell range.
    */
   mergeSelection(cellRange) {
+    if (!cellRange) {
+      cellRange = this.getSelectedRange();
+    }
+
     this.mergeRange(cellRange);
   }
 
   /**
-   * TODO: docs
-   * @param cellRange
+   * Unmerge the selection provided as a cell range.
+   *
+   * @param {CellRange} [cellRange] Selection cell range.
    */
   unmergeSelection(cellRange) {
+    if (!cellRange) {
+      cellRange = this.getSelectedRange();
+    }
     const collection = this.collectionContainer.get(cellRange.row, cellRange.col);
 
     this.collectionContainer.remove(collection.row, collection.col);
   }
 
   /**
-   * TODO: docs (is this function needed?)
-   * @param cellRange
+   * Merge or unmerge, based on the cell range provided as `cellRange`.
+   *
+   * @param {CellRange} cellRange The cell range to merge or unmerged.
    */
-  mergeOrUnmergeSelection(cellRange) {
+  toggleMerge(cellRange) {
     const collection = this.collectionContainer.get(cellRange.from.row, cellRange.from.col);
 
     if (collection) {
@@ -182,10 +217,12 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * @param direction
-   * @param index
-   * @param count
+   * Shift the collection in the direction and by an offset defined in the arguments.
+   *
+   * @private
+   * @param {String} direction `right`, `left`, `up` or `down`.
+   * @param {Number} index Index where the change, which caused the shifting took place.
+   * @param {Number} count Number of rows/columns added/removed in the preceding action.
    */
   shiftCollection(direction, index, count) {
     const shiftVector = [0, 0];
@@ -213,7 +250,7 @@ class MergeCells extends BasePlugin {
 
     for (let i = 0, collectionLength = this.collectionContainer.collections.length; i < collectionLength; i++) {
       let currentMerge = this.collectionContainer.collections[i];
-      this.processMergedSection(currentMerge, shiftVector, index);
+      this.processCollection(currentMerge, shiftVector, index);
     }
 
     for (let i = 0; i < this.collectionContainer.collections.length; i++) {
@@ -226,23 +263,26 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * @param mergeInfo
-   * @param shiftVector
-   * @param indexOfChange
-   * @returns {boolean}
+   * Processes the merged collection (in terms of modifying the position and size of the collection).
+   *
+   * @private
+   * @param {Collection} mergeInfo Object containing the collection information.
+   * @param {Array} shiftVector 2-element array containing the information on the shifting in the `x` and `y` axis.
+   * @param {Number} indexOfChange Index of the preceding change.
+   * @returns {Boolean} Returns `false` if the whole collection was removed.
    */
-  processMergedSection(mergeInfo, shiftVector, indexOfChange) {
+  processCollection(mergeInfo, shiftVector, indexOfChange) {
     const shiftValue = shiftVector[0] || shiftVector[1];
     const shiftedIndex = indexOfChange + Math.abs(shiftVector[0] || shiftVector[1]) - 1;
     const SPAN = shiftVector[0] ? 'colspan' : 'rowspan';
     const INDEX = shiftVector[0] ? 'col' : 'row';
+    // const expandFunction = shiftVector[0] ? mergeInfo.expandHorizontally : mergeInfo.expandVertically;
     const changeStart = Math.min(indexOfChange, shiftedIndex);
     const changeEnd = Math.max(indexOfChange, shiftedIndex);
     const mergeStart = mergeInfo[INDEX];
     const mergeEnd = mergeInfo[INDEX] + mergeInfo[SPAN] - 1;
 
-    if (mergeStart >= indexOfChange) {
+    if (mergeStart > indexOfChange) {
       mergeInfo[INDEX] += shiftValue;
     }
 
@@ -280,33 +320,117 @@ class MergeCells extends BasePlugin {
         mergeInfo[SPAN] -= removedPart;
       }
     }
+
+    return true;
   }
 
   /**
-   * TODO: docs
+   * Apply the `colspan`/`rowspan` properties.
+   *
+   * @private
+   * @param {HTMLElement} TD The soon-to-be-modified cell.
+   * @param {Number} row Row index.
+   * @param {Number} col Column index.
    */
-  sanitizeRange(range) {
-    const totalRows = this.hot.countRows();
-    const totalCols = this.hot.countCols();
+  applySpanProperties(TD, row, col) {
+    // TODO: maybe move to dom?
+    let info = this.collectionContainer.get(row, col);
 
-    if (range.from.row < 0) {
-      range.from.row = 0;
-    } else if (range.from.row > 0 && range.from.row >= totalRows) {
-      range.from.row = range.from - 1;
-    }
+    if (info) {
+      if (info.row === row && info.col === col) {
+        TD.setAttribute('rowspan', info.rowspan.toString());
+        TD.setAttribute('colspan', info.colspan.toString());
+      } else {
+        TD.removeAttribute('rowspan');
+        TD.removeAttribute('colspan');
 
-    if (range.from.col < 0) {
-      range.from.col = 0;
-    } else if (range.from.col > 0 && range.from.col >= totalCols) {
-      range.from.col = totalCols - 1;
+        TD.style.display = 'none';
+      }
+    } else {
+      TD.removeAttribute('rowspan');
+      TD.removeAttribute('colspan');
     }
   }
 
+  /**
+   * `afterInit` hook callback.
+   *
+   * @private
+   */
+  onAfterInit() {
+    this.generateFromSettings(this.hot.getSettings().mergeCells);
+    this.hot.render();
+
+    // TODO: maybe try to remove this and use a hook-ish solution?
+    if (this.isEnabled()) {
+      let plugin = this;
+      /**
+       * Monkey patch Table.prototype.getCell to return TD for merged cell parent if asked for TD of a cell that is
+       * invisible due to the merge. This is not the cleanest solution but there is a test case for it (merged cells scroll) so feel free to refactor it!
+       */
+      this.hot.view.wt.wtTable.getCell = function(coords) {
+        const mergeParent = plugin.collectionContainer.get(coords.row, coords.col);
+
+        if (mergeParent) {
+          coords = mergeParent;
+        }
+        return Table.prototype.getCell.call(this, coords);
+      };
+    }
+  }
 
   /**
-   * TODO: docs
+   * `beforeKeyDown` hook callback.
+   *
+   * @private
+   * @param {KeyboardEvent} event The `keydown` event object.
+   */
+  onBeforeKeyDown(event) {
+    const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+
+    if (ctrlDown) {
+      if (event.keyCode === 77) { // CTRL + M
+
+        this.toggleMerge(this.hot.getSelectedRange());
+
+        this.hot.render();
+        stopImmediatePropagation(event);
+      }
+    }
+  }
+
+  /**
+   * Modify the information on whether the current selection contains multiple cells. The `afterIsMultipleSelection` hook callback.
+   *
+   * @private
+   * @param {Boolean} isMultiple
+   * @returns {Boolean}
+   */
+  onAfterIsMultipleSelection(isMultiple) {
+    if (isMultiple) {
+      let mergedCells = this.collectionContainer.collections,
+        selectionRange = this.hot.getSelectedRange();
+
+      for (let group in mergedCells) {
+        if (selectionRange.highlight.row === mergedCells[group].row &&
+          selectionRange.highlight.col === mergedCells[group].col &&
+          selectionRange.to.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
+          selectionRange.to.col === mergedCells[group].col + mergedCells[group].colspan - 1) {
+          return false;
+        }
+      }
+    }
+    return isMultiple;
+  }
+
+  /**
+   * `modifyTransformStart` hook callback.
+   *
+   * @private
+   * @param {Object} delta The transformation delta.
    */
   onModifyTransformStart(delta) {
+    const priv = privatePool.get(this);
     const currentlySelectedRange = this.hot.getSelectedRange();
     let newDelta = {
       row: delta.row,
@@ -316,8 +440,8 @@ class MergeCells extends BasePlugin {
     let currentPosition = new CellCoords(currentlySelectedRange.highlight.row, currentlySelectedRange.highlight.col);
     let mergedParent = this.collectionContainer.get(currentPosition.row, currentPosition.col);
 
-    if (!this.lastDesiredCoords) {
-      this.lastDesiredCoords = new CellCoords(null, null);
+    if (!priv.lastDesiredCoords) {
+      priv.lastDesiredCoords = new CellCoords(null, null);
     }
 
     if (mergedParent) { // only merge selected
@@ -325,13 +449,12 @@ class MergeCells extends BasePlugin {
       let mergeBottomRight = new CellCoords(mergedParent.row + mergedParent.rowspan - 1, mergedParent.col + mergedParent.colspan - 1);
       let mergeRange = new CellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
 
-      // TODO: what does it do?
-      if (!mergeRange.includes(this.lastDesiredCoords)) {
-        this.lastDesiredCoords = new CellCoords(null, null); // reset outdated version of lastDesiredCoords
+      if (!mergeRange.includes(priv.lastDesiredCoords)) {
+        priv.lastDesiredCoords = new CellCoords(null, null); // reset outdated version of lastDesiredCoords
       }
 
-      newDelta.row = this.lastDesiredCoords.row ? this.lastDesiredCoords.row - currentPosition.row : newDelta.row;
-      newDelta.col = this.lastDesiredCoords.col ? this.lastDesiredCoords.col - currentPosition.col : newDelta.col;
+      newDelta.row = priv.lastDesiredCoords.row ? priv.lastDesiredCoords.row - currentPosition.row : newDelta.row;
+      newDelta.col = priv.lastDesiredCoords.col ? priv.lastDesiredCoords.col - currentPosition.col : newDelta.col;
 
       if (delta.row > 0) { // moving down
         newDelta.row = mergedParent.row + mergedParent.rowspan - 1 - currentPosition.row + delta.row;
@@ -350,7 +473,7 @@ class MergeCells extends BasePlugin {
     let nextParentIsMerged = this.collectionContainer.get(nextPosition.row, nextPosition.col);
 
     if (nextParentIsMerged) { // skipping the invisible cells in the merge range
-      this.lastDesiredCoords = nextPosition;
+      priv.lastDesiredCoords = nextPosition;
       newDelta = {
         row: nextParentIsMerged.row - currentPosition.row,
         col: nextParentIsMerged.col - currentPosition.col
@@ -366,10 +489,10 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * @param hook
-   * @param currentlySelectedRange
-   * @param delta
+   * `modifyTransformEnd` hook callback.
+   *
+   * @private
+   * @param {Object} delta The transformation delta.
    */
   onModifyTransformEnd(delta) {
     const currentlySelectedRange = this.hot.getSelectedRange();
@@ -378,7 +501,7 @@ class MergeCells extends BasePlugin {
       col: delta.col,
     };
     let nextPosition = null;
-    let currentPosition = new CellCoords(currentlySelectedRange.highlight.row, currentlySelectedRange.highlight.col);
+    // let currentPosition = new CellCoords(currentlySelectedRange.highlight.row, currentlySelectedRange.highlight.col);
 
     for (let i = 0, mergesLength = this.collectionContainer.collections.length; i < mergesLength; i++) {
       let currentMerge = this.collectionContainer.collections[i];
@@ -389,8 +512,9 @@ class MergeCells extends BasePlugin {
 
       if (mergedRange.isEqual(currentlySelectedRange)) { // only the merged range is selected
         currentlySelectedRange.setDirection('NW-SE');
+
       } else if (sharedBorders.length > 0) {
-        var mergeHighlighted = (currentlySelectedRange.highlight.isEqual(mergedRange.from));
+        let mergeHighlighted = (currentlySelectedRange.highlight.isEqual(mergedRange.from));
 
         if (sharedBorders.indexOf('top') > -1) { // if range shares a border with the merged section, change range direction accordingly
           if (currentlySelectedRange.to.isSouthEastOf(mergedRange.from) && mergeHighlighted) {
@@ -440,100 +564,10 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * @param isMultiple
-   * @returns {*}
-   */
-  isMultipleSelection(isMultiple) {
-    if (isMultiple) {
-      let mergedCells = this.collectionContainer.collections,
-        selectionRange = this.hot.getSelectedRange();
-
-      for (let group in mergedCells) {
-        if (selectionRange.highlight.row === mergedCells[group].row &&
-          selectionRange.highlight.col === mergedCells[group].col &&
-          selectionRange.to.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
-          selectionRange.to.col === mergedCells[group].col + mergedCells[group].colspan - 1) {
-          return false;
-        }
-      }
-    }
-    return isMultiple;
-  }
-
-  /**
-   * TODO: docs
-   * @param TD
-   * @param row
-   * @param col
-   */
-  applySpanProperties(TD, row, col) {
-    let info = this.collectionContainer.get(row, col);
-
-    if (info) {
-      if (info.row === row && info.col === col) {
-        TD.setAttribute('rowspan', info.rowspan);
-        TD.setAttribute('colspan', info.colspan);
-      } else {
-        TD.removeAttribute('rowspan');
-        TD.removeAttribute('colspan');
-
-        TD.style.display = 'none';
-      }
-    } else {
-      TD.removeAttribute('rowspan');
-      TD.removeAttribute('colspan');
-    }
-  }
-
-  // TODO: delete this comment, hook callbacks below:
-
-
-  /**
-   * TODO: docs
-   */
-  onAfterInit() {
-    // TODO: maybe try to remove this and use a hook-ish solution?
-    if (this.isEnabled()) {
-      let plugin = this;
-      /**
-       * Monkey patch Table.prototype.getCell to return TD for merged cell parent if asked for TD of a cell that is
-       * invisible due to the merge. This is not the cleanest solution but there is a test case for it (merged cells scroll) so feel free to refactor it!
-       */
-      this.hot.view.wt.wtTable.getCell = function(coords) {
-        const mergeParent = plugin.collectionContainer.get(coords.row, coords.col);
-
-        if (mergeParent) {
-          coords = mergeParent;
-        }
-        return Table.prototype.getCell.call(this, coords);
-      };
-    }
-  }
-
-  /**
-   * TODO: docs
-   * @param event
-   */
-  onBeforeKeyDown(event) {
-    const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
-
-    if (ctrlDown) {
-      if (event.keyCode === 77) { // CTRL + M
-
-        //TODO: rename method to `toggleSth` maybe
-        this.mergeOrUnmergeSelection(this.hot.getSelectedRange());
-
-        this.hot.render();
-        stopImmediatePropagation(event);
-      }
-    }
-  }
-
-  /**
-   * TODO: docs
-   * @param defaultOptions
-   * @returns {*}
+   * `afterContextMenuDefaultOptions` hook callback.
+   *
+   * @private
+   * @param {Object} defaultOptions The default context menu options.
    */
   addMergeActionsToContextMenu(defaultOptions) {
     const plugin = this;
@@ -552,7 +586,7 @@ class MergeCells extends BasePlugin {
 
       },
       callback() {
-        plugin.mergeOrUnmergeSelection(this.getSelectedRange());
+        plugin.toggleMerge(this.getSelectedRange());
         this.render();
       },
       disabled() {
@@ -562,22 +596,26 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * @param TD
-   * @param row
-   * @param col
-   * @param prop
-   * @param value
-   * @param cellProperties
+   * `afterRenderer` hook callback.
+   *
+   * @private
+   * @param {HTMLElement} TD The cell to be modified.
+   * @param {Number} row Row index.
+   * @param {Number} col Column index.
+   * @param {String|Number} prop The prop for the current coordinates.
+   * @param {String|Number} value The cell value.
+   * @param {Object} cellProperties The current cell properties.
    */
   onAfterRenderer(TD, row, col, prop, value, cellProperties) {
     this.applySpanProperties(TD, row, col);
   }
 
   /**
-   * TODO: docs
+   * `beforeSetRangeEnd` hook callback.
    * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell
-   * @param coords
+   *
+   * @private
+   * @param {Object} coords Cell coords.
    */
   onBeforeSetRangeEnd(coords) {
     let selRange = this.hot.getSelectedRange();
@@ -591,7 +629,11 @@ class MergeCells extends BasePlugin {
       for (let i = 0, ilen = this.collectionContainer.collections.length; i < ilen; i++) {
         let cellInfo = this.collectionContainer.collections[i];
         let mergedCellTopLeft = new CellCoords(cellInfo.row, cellInfo.col);
-        let mergedCellBottomRight = new CellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
+        let bottomRightCoords = {
+          row: Math.min(cellInfo.row + cellInfo.rowspan - 1, this.hot.countRows() - 1),
+          column: Math.min(cellInfo.col + cellInfo.colspan - 1, this.hot.countCols() - 1)
+        };
+        let mergedCellBottomRight = new CellCoords(bottomRightCoords.row, bottomRightCoords.column);
 
         let mergedCellRange = new CellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
         if (selRange.expandByRange(mergedCellRange)) {
@@ -605,10 +647,11 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * Returns correct coordinates for merged start / end cells in selection for area borders
-   * @param corners
-   * @param className
+   * Returns correct coordinates for merged start / end cells in selection for area borders. `beforeDrawAreaBorders` hook callback.
+   *
+   * @private
+   * @param {Array} corners The area corners.
+   * @param {String} className The area className.
    */
   onBeforeDrawAreaBorders(corners, className) {
     if (className && className === 'area') {
@@ -637,10 +680,12 @@ class MergeCells extends BasePlugin {
 
 
   /**
-   * TODO: docs
-   * @param row
-   * @param col
-   * @param cellProperties
+   * The `afterGetCellMeta` hook callback.
+   *
+   * @private
+   * @param {Number} row Row index.
+   * @param {Number} col Column index.
+   * @param {Object} cellProperties The cell properties object.
    */
   onAfterGetCellMeta(row, col, cellProperties) {
     let mergeParent = this.collectionContainer.get(row, col);
@@ -650,9 +695,10 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * @param calc
-   * @returns {*}
+   * `afterViewportRowCalculatorOverride` hook callback.
+   *
+   * @private
+   * @param {Object} calc The row calculator object.
    */
   onAfterViewportRowCalculatorOverride(calc) {
     let colCount = this.hot.countCols();
@@ -677,9 +723,10 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * @param calc
-   * @returns {*}
+   * `afterViewportColumnCalculatorOverride` hook callback.
+   *
+   * @private
+   * @param {Object} calc The column calculator object.
    */
   onAfterViewportColumnCalculatorOverride(calc) {
     let rowCount = this.hot.countRows();
@@ -705,11 +752,15 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * @param select
-   * @param drag
+   * The `modifyAutofillRange` hook callback.
+   *
+   * @private
+   * @param {Array} select The selection information.
+   * @param {Array} drag The drag area coordinates.
    */
   onModifyAutofillRange(select, drag) {
+    // TODO: check if works properly.
+
     if (this.hot.selection.isMultiple()) {
       return;
     }
@@ -724,36 +775,50 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * TODO: docs
-   * @param col
-   * @param count
+   * `afterCreateCol` hook callback.
+   *
+   * @private
+   * @param {Number} column Column index.
+   * @param {Number} count Number of created columns.
    */
-  onAfterCreateCol(col, count) {
-    this.shiftCollection('right', col, count);
+  onAfterCreateCol(column, count) {
+    this.shiftCollection('right', column, count);
   }
 
   /**
-   * TODO: docs
-   * @param col
-   * @param count
+   * `afterRemoveCol` hook callback.
+   *
+   * @private
+   * @param {Number} column Column index.
+   * @param {Number} count Number of removed columns.
+   * @param {String} source Source of change.
    */
-  onAfterRemoveCol(col, count) {
-    this.shiftCollection('left', col, count);
+  onAfterRemoveCol(column, count, source) {
+    this.shiftCollection('left', column, count);
   }
 
   /**
-   * TODO: docs
-   * @param row
-   * @param count
+   * `afterCreateRow` hook callback.
+   *
+   * @private
+   * @param {Number} row Row index.
+   * @param {Number} count Number of created rows.
+   * @param {String} source Source of change.
    */
-  onAfterCreateRow(row, count) {
+  onAfterCreateRow(row, count, source) {
+    if (source === 'auto') {
+      return;
+    }
+
     this.shiftCollection('down', row, count);
   }
 
   /**
-   * TODO: docs
-   * @param row
-   * @param count
+   * `afterRemoveRow` hook callback.
+   *
+   * @private
+   * @param {Number} row Row index.
+   * @param {Number} count Number of removed rows.
    */
   onAfterRemoveRow(row, count) {
     this.shiftCollection('up', row, count);
@@ -763,7 +828,3 @@ class MergeCells extends BasePlugin {
 registerPlugin('mergeCells', MergeCells);
 
 export default MergeCells;
-
-
-
-

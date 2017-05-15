@@ -768,9 +768,9 @@ export default function Core(rootElement, userSettings) {
       totalCols = instance.countCols();
       fixedRowsBottom = instance.getSettings().fixedRowsBottom;
 
-      if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
+      if (priv.selRange.highlight.row + delta.row > totalRows - 1) {
         if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
-          instance.alter('insert_row', totalRows);
+          instance.alter('insert_row', totalRows, 1, 'auto');
           totalRows = instance.countRows();
 
         } else if (priv.settings.autoWrapCol) {

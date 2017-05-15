@@ -7,8 +7,19 @@ import Collection from './collection';
  * @plugin MergeCells
  */
 class CollectionContainer {
-  constructor() {
+  constructor(hotInstance) {
+    /**
+     * Array of merged collections.
+     *
+     * @type {Array}
+     */
     this.collections = [];
+    /**
+     * The Handsontable instance.
+     *
+     * @type {Handsontable}
+     */
+    this.hot = hotInstance;
   }
 
   /**
@@ -35,7 +46,10 @@ class CollectionContainer {
   }
 
   /**
-   * TODO: docs
+   * Get a merged collection containing the provided range.
+   *
+   * @param {CellRange} range The range to search collections for.
+   * @return {Collection|Boolean}
    */
   getByRange(range) {
     const collections = this.collections;
@@ -53,8 +67,10 @@ class CollectionContainer {
   }
 
   /**
-   * TODO: docs
-   * @param range
+   * Get a merged collection contained in the provided range.
+   *
+   * @param {CellRange} range The range to search collections in.
+   * @return {Collection|Boolean}
    */
   getWithinRange(range) {
     const collections = this.collections;
@@ -87,6 +103,11 @@ class CollectionContainer {
 
     if (!this.get(row, column)) {
       const newCollection = new Collection(row, column, rowspan, colspan);
+
+      if (this.hot) {
+        newCollection.normalize(this.hot);
+      }
+
       collections.push(newCollection);
 
       return newCollection;
