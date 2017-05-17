@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 0.32.0-beta1
- * Date: Thu May 11 2017 09:52:50 GMT+0200 (CEST)
+ * Date: Wed May 17 2017 14:42:22 GMT+0200 (CEST)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -35942,7 +35942,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "2017-05-11T07:52:50.067Z";
+Handsontable.buildDate = "2017-05-17T12:42:22.284Z";
 Handsontable.packageName = "handsontable";
 Handsontable.version = "0.32.0-beta1";
 

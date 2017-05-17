@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 0.32.0-beta1
- * Date: Thu May 11 2017 09:52:50 GMT+0200 (CEST)
+ * Date: Wed May 17 2017 14:42:22 GMT+0200 (CEST)
  */
 /**
  * Fix for bootstrap styles
@@ -38,7 +38,7 @@
 }
 
 .handsontable td {
-  background-color: inherit !important;
+  background-color: inherit;
 }
 
 .table caption + thead tr:first-child th,
