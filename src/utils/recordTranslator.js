@@ -1,4 +1,4 @@
-import Handsontable from './../browser';
+import Core from './../core';
 import {isObject} from './../helpers/object';
 
 /**
@@ -97,6 +97,8 @@ class RecordTranslator {
   }
 }
 
+export {RecordTranslator};
+
 const identities = new WeakMap();
 const translatorSingletons = new WeakMap();
 
@@ -107,7 +109,7 @@ export function registerIdentity(identity, hot) {
 export function getTranslator(identity) {
   let singleton;
 
-  if (!(identity instanceof Handsontable.Core)) {
+  if (!(identity instanceof Core)) {
     if (!identities.has(identity)) {
       throw Error('Record translator was not registered for this object identity');
     }
@@ -123,7 +125,3 @@ export function getTranslator(identity) {
 
   return singleton;
 }
-
-// temp for tests only!
-Handsontable.utils.RecordTranslator = RecordTranslator;
-Handsontable.utils.RecordTranslatorUtils = {registerIdentity, getTranslator};

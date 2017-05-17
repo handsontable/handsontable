@@ -40,7 +40,7 @@ class DataSource {
    * @returns {Array}
    */
   getData(toArray = false) {
-    let result =  this.data;
+    let result = this.data;
 
     if (toArray) {
       result = this.getByRange(
@@ -207,4 +207,4 @@ class DataSource {
   }
 }
 
-export {DataSource};
+export default DataSource;

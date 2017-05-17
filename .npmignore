@@ -1,10 +1,12 @@
 .DS_Store
 .grunt
+.config
 .github
 .idea
 _SpecRunner.html
 cars.sqlite
 dev.html
+webpack.config.js
 
 !dist/README.md
 node_modules/

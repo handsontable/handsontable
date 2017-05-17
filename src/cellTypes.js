@@ -6,104 +6,104 @@ import {isMobileBrowser} from './helpers/browser';
 import {getEditorConstructor} from './editors';
 import {getRenderer} from './renderers';
 
-import {AutocompleteEditor} from './editors/autocompleteEditor';
-import {CheckboxEditor} from './editors/checkboxEditor';
-import {DateEditor} from './editors/dateEditor';
-import {DropdownEditor} from './editors/dropdownEditor';
-import {HandsontableEditor} from './editors/handsontableEditor';
-import {MobileTextEditor} from './editors/mobileTextEditor';
-import {NumericEditor} from './editors/numericEditor';
-import {PasswordEditor} from './editors/passwordEditor';
-import {SelectEditor} from './editors/selectEditor';
-import {TextEditor} from './editors/textEditor';
+import AutocompleteEditor from './editors/autocompleteEditor';
+import CheckboxEditor from './editors/checkboxEditor';
+import DateEditor from './editors/dateEditor';
+import DropdownEditor from './editors/dropdownEditor';
+import HandsontableEditor from './editors/handsontableEditor';
+import MobileTextEditor from './editors/mobileTextEditor';
+import NumericEditor from './editors/numericEditor';
+import PasswordEditor from './editors/passwordEditor';
+import SelectEditor from './editors/selectEditor';
+import TextEditor from './editors/textEditor';
 
-import {AutocompleteRenderer} from './renderers/autocompleteRenderer';
-import {CheckboxRenderer} from './renderers/checkboxRenderer';
-import {HtmlRenderer} from './renderers/htmlRenderer';
-import {NumericRenderer} from './renderers/numericRenderer';
-import {PasswordRenderer} from './renderers/passwordRenderer';
-import {TextRenderer} from './renderers/textRenderer';
+import AutocompleteRenderer from './renderers/autocompleteRenderer';
+import CheckboxRenderer from './renderers/checkboxRenderer';
+import HtmlRenderer from './renderers/htmlRenderer';
+import NumericRenderer from './renderers/numericRenderer';
+import PasswordRenderer from './renderers/passwordRenderer';
+import TextRenderer from './renderers/textRenderer';
 
-import {AutocompleteValidator} from './validators/autocompleteValidator';
-import {DateValidator} from './validators/dateValidator';
-import {TimeValidator} from './validators/timeValidator';
-import {NumericValidator} from './validators/numericValidator';
+import AutocompleteValidator from './validators/autocompleteValidator';
+import DateValidator from './validators/dateValidator';
+import TimeValidator from './validators/timeValidator';
+import NumericValidator from './validators/numericValidator';
 
-import Handsontable from './browser';
-
-Handsontable.AutocompleteCell = {
+export const AutocompleteCell = {
   editor: getEditorConstructor('autocomplete'),
   renderer: getRenderer('autocomplete'),
-  validator: Handsontable.AutocompleteValidator,
+  validator: AutocompleteValidator,
 };
 
-Handsontable.CheckboxCell = {
+export const CheckboxCell = {
   editor: getEditorConstructor('checkbox'),
   renderer: getRenderer('checkbox'),
 };
 
-Handsontable.TextCell = {
+export const TextCell = {
   editor: isMobileBrowser() ? getEditorConstructor('mobile') : getEditorConstructor('text'),
   renderer: getRenderer('text'),
 };
 
-Handsontable.NumericCell = {
+export const NumericCell = {
   editor: getEditorConstructor('numeric'),
   renderer: getRenderer('numeric'),
-  validator: Handsontable.NumericValidator,
+  validator: NumericValidator,
   dataType: 'number',
 };
 
-Handsontable.DateCell = {
+export const DateCell = {
   editor: getEditorConstructor('date'),
-  validator: Handsontable.DateValidator,
+  validator: DateValidator,
   // displays small gray arrow on right side of the cell
   renderer: getRenderer('autocomplete'),
 };
 
-Handsontable.TimeCell = {
+export const TimeCell = {
   editor: getEditorConstructor('text'),
-  validator: Handsontable.TimeValidator,
+  validator: TimeValidator,
   // displays small gray arrow on right side of the cell
   renderer: getRenderer('text'),
 };
 
-Handsontable.HandsontableCell = {
+export const HandsontableCell = {
   editor: getEditorConstructor('handsontable'),
-  //displays small gray arrow on right side of the cell
+  // displays small gray arrow on right side of the cell
   renderer: getRenderer('autocomplete'),
 };
 
-Handsontable.PasswordCell = {
+export const PasswordCell = {
   editor: getEditorConstructor('password'),
   renderer: getRenderer('password'),
   copyable: false,
 };
 
-Handsontable.DropdownCell = {
+export const DropdownCell = {
   editor: getEditorConstructor('dropdown'),
-  //displays small gray arrow on right side of the cell
+  // displays small gray arrow on right side of the cell
   renderer: getRenderer('autocomplete'),
-  validator: Handsontable.AutocompleteValidator,
+  validator: AutocompleteValidator,
 };
 
-//here setup the friendly aliases that are used by cellProperties.type
-Handsontable.cellTypes = {
-  text: Handsontable.TextCell,
-  date: Handsontable.DateCell,
-  time: Handsontable.TimeCell,
-  numeric: Handsontable.NumericCell,
-  checkbox: Handsontable.CheckboxCell,
-  autocomplete: Handsontable.AutocompleteCell,
-  handsontable: Handsontable.HandsontableCell,
-  password: Handsontable.PasswordCell,
-  dropdown: Handsontable.DropdownCell,
-};
-
-//here setup the friendly aliases that are used by cellProperties.renderer and cellProperties.editor
-Handsontable.cellLookup = {
+// here setup the friendly aliases that are used by cellProperties.renderer and cellProperties.editor
+export const cellLookup = {
   validator: {
-    numeric: Handsontable.NumericValidator,
-    autocomplete: Handsontable.AutocompleteValidator,
+    numeric: NumericValidator,
+    autocomplete: AutocompleteValidator,
   }
 };
+
+// here setup the friendly aliases that are used by cellProperties.type
+const cellTypes = {
+  text: TextCell,
+  date: DateCell,
+  time: TimeCell,
+  numeric: NumericCell,
+  checkbox: CheckboxCell,
+  autocomplete: AutocompleteCell,
+  handsontable: HandsontableCell,
+  password: PasswordCell,
+  dropdown: DropdownCell,
+};
+
+export default cellTypes;

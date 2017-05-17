@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import {defineGetter, objectEach} from './../helpers/object';
 import {arrayEach} from './../helpers/array';
 import {registerIdentity, getTranslator} from './../utils/recordTranslator';
@@ -84,7 +83,9 @@ class BasePlugin {
    * @param {Function} callback
    */
   addHook(name, callback) {
-    const hooks = privatePool.get(this).hooks[name] = (privatePool.get(this).hooks[name] || []);
+    privatePool.get(this).hooks[name] = (privatePool.get(this).hooks[name] || []);
+
+    const hooks = privatePool.get(this).hooks[name];
 
     this.hot.addHook(name, callback);
     hooks.push(callback);
@@ -184,5 +185,3 @@ class BasePlugin {
 }
 
 export default BasePlugin;
-
-Handsontable.plugins.BasePlugin = BasePlugin;

@@ -1,15 +1,9 @@
 /**
  * Utility to register renderers and common namespace for keeping reference to all renderers classes
  */
-import Handsontable from './browser';
 import {toUpperCaseFirst} from './helpers/string';
 
 var registeredRenderers = {};
-
-// support for older versions of Handsontable
-Handsontable.renderers = Handsontable.renderers || {};
-Handsontable.renderers.registerRenderer = registerRenderer;
-Handsontable.renderers.getRenderer = getRenderer;
 
 /**
  * Registers renderer under given name
@@ -17,19 +11,7 @@ Handsontable.renderers.getRenderer = getRenderer;
  * @param {Function} rendererFunction
  */
 function registerRenderer(rendererName, rendererFunction) {
-  var registerName;
-
   registeredRenderers[rendererName] = rendererFunction;
-
-  registerName = toUpperCaseFirst(rendererName) + 'Renderer';
-  // support for older versions of Handsontable
-  Handsontable.renderers[registerName] = rendererFunction;
-  Handsontable[registerName] = rendererFunction;
-
-  // support for older versions of Handsontable
-  if (rendererName === 'base') {
-    Handsontable.renderers.cellDecorator = rendererFunction;
-  }
 }
 
 /**
@@ -46,7 +28,7 @@ function getRenderer(rendererName) {
   }
 
   if (!(rendererName in registeredRenderers)) {
-    throw Error('No editor registered under name "' + rendererName + '"');
+    throw Error(`No editor registered under name "${rendererName}"`);
   }
 
   return registeredRenderers[rendererName];
@@ -60,4 +42,13 @@ function hasRenderer(rendererName) {
   return rendererName in registeredRenderers;
 }
 
-export {registerRenderer, getRenderer, hasRenderer};
+/**
+ * Get list of registered renderer names.
+ *
+ * @return {Array} Returns an array of registered renderer names.
+ */
+function getRegisteredRendererNames() {
+  return Object.keys(registeredRenderers);
+}
+
+export {registerRenderer, getRenderer, hasRenderer, getRegisteredRendererNames};

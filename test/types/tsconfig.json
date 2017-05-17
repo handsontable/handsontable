@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "module": "commonjs",
+    "noEmit": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": false,
+    "forceConsistentCasingInFileNames": true
+  },
+  "files": [
+    "../../handsontable.d.ts",
+    "./handsontable-tests.ts"
+  ]
+}

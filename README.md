@@ -17,7 +17,7 @@ We have seen Handsontable being used in many different, sometimes completely une
 - Financial analysis
 
 ## Installation
-There are many ways to install Handsontable but we suggest using npm or Bower.
+There are many ways to install Handsontable but we suggest using one of available package managers.
 
 ```
 npm install handsontable --save
@@ -92,7 +92,7 @@ var hot = new Handsontable(container, {
 - [Known limitations](http://docs.handsontable.com/tutorial-known-limitations.html)
 
 ## Commercial version
-[Handsontable Pro](https://handsontable.com/pricing.html) is our premium spreadsheet solution packed with business-ready features. It comes with [forum support](https://forum.handsontable.com), where you can find the answers to common questions as well as talk directly with our core team members.
+[Handsontable Pro](https://handsontable.com/pricing.html) is a commercial spreadsheet solution packed with additional, business-ready features. It comes with a dedicated support and a [forum support](https://forum.handsontable.com), where you can find the answers to common questions.
 
 | Pro Feature                 | Description                                                                            	|
 |---------------------------	|----------------------------------------------------------------------------------------	|

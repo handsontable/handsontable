@@ -1,11 +1,10 @@
-
 /**
- * WalkontableCellCoords holds cell coordinates (row, column) and few method to validate them and
+ * CellCoords holds cell coordinates (row, column) and few method to validate them and
  * retrieve as an array or an object
  *
- * @class WalkontableCellCoords
+ * @class CellCoords
  */
-class WalkontableCellCoords {
+class CellCoords {
   /**
    * @param {Number} row Row index
    * @param {Number} col Column index
@@ -43,7 +42,7 @@ class WalkontableCellCoords {
   /**
    * Checks if this cell coords are the same as cell coords given as a parameter
    *
-   * @param {WalkontableCellCoords} cellCoords
+   * @param {CellCoords} cellCoords
    * @returns {Boolean}
    */
   isEqual(cellCoords) {
@@ -95,6 +94,4 @@ class WalkontableCellCoords {
   }
 }
 
-export {WalkontableCellCoords};
-
-window.WalkontableCellCoords = WalkontableCellCoords;
+export default CellCoords;

@@ -1,8 +1,7 @@
-
 /**
- * @class WalkontableColumnFilter
+ * @class ColumnFilter
  */
-class WalkontableColumnFilter {
+class ColumnFilter {
   /**
    * @param {Number} offset
    * @param {Number} total
@@ -79,6 +78,4 @@ class WalkontableColumnFilter {
   }
 }
 
-export {WalkontableColumnFilter};
-
-window.WalkontableColumnFilter = WalkontableColumnFilter;
+export default ColumnFilter;

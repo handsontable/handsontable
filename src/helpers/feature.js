@@ -5,15 +5,15 @@ let _requestAnimationFrame = window.requestAnimationFrame;
 let _cancelAnimationFrame = window.cancelAnimationFrame;
 
 for (let x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
-  _requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-  _cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+  _requestAnimationFrame = window[`${vendors[x]}RequestAnimationFrame`];
+  _cancelAnimationFrame = window[`${vendors[x]}CancelAnimationFrame`] || window[`${vendors[x]}CancelRequestAnimationFrame`];
 }
 
 if (!_requestAnimationFrame) {
   _requestAnimationFrame = function(callback) {
     let currTime = new Date().getTime();
     let timeToCall = Math.max(0, 16 - (currTime - lastTime));
-    let id = window.setTimeout(function() {
+    let id = window.setTimeout(() => {
       callback(currTime + timeToCall);
     }, timeToCall);
     lastTime = currTime + timeToCall;
@@ -47,7 +47,6 @@ export function cancelAnimationFrame(id) {
   _cancelAnimationFrame.call(window, id);
 }
 
-
 export function isTouchSupported() {
   return ('ontouchstart' in window);
 }
@@ -60,9 +59,8 @@ export function isTouchSupported() {
 export function isWebComponentSupportedNatively() {
   var test = document.createElement('div');
 
-  return test.createShadowRoot && test.createShadowRoot.toString().match(/\[native code\]/) ? true : false;
+  return !!(test.createShadowRoot && test.createShadowRoot.toString().match(/\[native code\]/));
 }
-
 
 var _hasCaptionProblem;
 
@@ -84,7 +82,7 @@ function detectCaptionProblem() {
   TABLE.insertBefore(CAPTION, TBODY);
 
   document.body.appendChild(TABLE);
-  _hasCaptionProblem = (TABLE.offsetHeight < 2 * TABLE.lastChild.offsetHeight); //boolean
+  _hasCaptionProblem = (TABLE.offsetHeight < 2 * TABLE.lastChild.offsetHeight); // boolean
   document.body.removeChild(TABLE);
 }
 
@@ -114,7 +112,7 @@ export function getComparisonFunction(language, options = {}) {
     comparisonFunction = new Intl.Collator(language, options).compare;
 
   } else if (typeof String.prototype.localeCompare === 'function') {
-    comparisonFunction = (a, b) => (a + '').localeCompare(b);
+    comparisonFunction = (a, b) => (`${a}`).localeCompare(b);
 
   } else {
     comparisonFunction = (a, b) => {
