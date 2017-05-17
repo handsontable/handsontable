@@ -174,7 +174,7 @@
             resetState = document.querySelector('.reset-state');
             stateLoaded = document.querySelector('.state-loaded');
 
-            Handsontable.Dom.addEvent(resetState, 'click', function() {
+            Handsontable.dom.addEvent(resetState, 'click', function() {
               hot.runHooks('persistentStateReset');
               hot.updateSettings({
                 columnSorting: true,

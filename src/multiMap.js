@@ -1,9 +1,3 @@
-
-export {MultiMap};
-
-// TODO: Global expose for tests
-window.MultiMap = MultiMap;
-
 function MultiMap() {
   var map = {
     arrayMap: [],
@@ -11,7 +5,7 @@ function MultiMap() {
   };
 
   return {
-    get: function(key) {
+    get(key) {
       if (canBeAnArrayMapKey(key)) {
         return map.arrayMap[key];
       } else if (canBeAWeakMapKey(key)) {
@@ -19,7 +13,7 @@ function MultiMap() {
       }
     },
 
-    set: function(key, value) {
+    set(key, value) {
       if (canBeAnArrayMapKey(key)) {
         map.arrayMap[key] = value;
       } else if (canBeAWeakMapKey(key)) {
@@ -29,7 +23,7 @@ function MultiMap() {
       }
     },
 
-    delete: function(key) {
+    delete(key) {
       if (canBeAnArrayMapKey(key)) {
         delete map.arrayMap[key];
       } else if (canBeAWeakMapKey(key)) {
@@ -47,6 +41,9 @@ function MultiMap() {
   }
 
   function isNaNSymbol(obj) {
+    /* eslint-disable no-self-compare */
     return obj !== obj; // NaN === NaN is always false
   }
 }
+
+export default MultiMap;

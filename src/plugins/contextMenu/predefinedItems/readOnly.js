@@ -2,10 +2,10 @@ import {checkSelectionConsistency, markLabelAsSelected} from './../utils';
 
 export const KEY = 'make_read_only';
 
-export function readOnlyItem() {
+export default function readOnlyItem() {
   return {
     key: KEY,
-    name: function() {
+    name() {
       let label = 'Read only';
       let atLeastOneReadOnly = checkSelectionConsistency(this.getSelectedRange(), (row, col) => this.getCellMeta(row, col).readOnly);
 
@@ -15,17 +15,17 @@ export function readOnlyItem() {
 
       return label;
     },
-    callback: function() {
+    callback() {
       let range = this.getSelectedRange();
       let atLeastOneReadOnly = checkSelectionConsistency(range, (row, col) => this.getCellMeta(row, col).readOnly);
 
       range.forAll((row, col) => {
-        this.setCellMeta(row, col, 'readOnly', atLeastOneReadOnly ? false : true);
+        this.setCellMeta(row, col, 'readOnly', !atLeastOneReadOnly);
       });
       this.render();
     },
-    disabled: function() {
-      return this.getSelectedRange() && !this.selection.selectedHeader.corner ? false : true;
+    disabled() {
+      return !(this.getSelectedRange() && !this.selection.selectedHeader.corner);
     }
   };
 }

@@ -163,4 +163,4 @@ class BaseUI {
   }
 }
 
-export {BaseUI};
+export default BaseUI;

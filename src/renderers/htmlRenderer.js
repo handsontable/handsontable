@@ -22,6 +22,6 @@ function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
   fastInnerHTML(TD, value);
 }
 
-export {htmlRenderer};
-
 registerRenderer('html', htmlRenderer);
+
+export default htmlRenderer;

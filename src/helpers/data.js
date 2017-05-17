@@ -1,5 +1,5 @@
-import Handsontable from './../browser';
-import {getPrototypeOf} from './object';
+import cellTypes from './../cellTypes';
+import {hasOwnProperty} from './object';
 
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
@@ -51,7 +51,9 @@ export function spreadsheetColumnIndex(label) {
  * @returns {Array}
  */
 export function createSpreadsheetData(rows = 100, columns = 4) {
-  var _rows = [], i, j;
+  var _rows = [],
+    i,
+    j;
 
   for (i = 0; i < rows; i++) {
     var row = [];
@@ -73,13 +75,15 @@ export function createSpreadsheetData(rows = 100, columns = 4) {
  * @returns {Array}
  */
 export function createSpreadsheetObjectData(rows = 100, colCount = 4) {
-  var _rows = [], i, j;
+  var _rows = [],
+    i,
+    j;
 
   for (i = 0; i < rows; i++) {
     var row = {};
 
     for (j = 0; j < colCount; j++) {
-      row['prop' + j] = spreadsheetColumnLabel(j) + (i + 1);
+      row[`prop${j}`] = spreadsheetColumnLabel(j) + (i + 1);
     }
     _rows.push(row);
   }
@@ -110,7 +114,12 @@ export function createEmptySpreadsheetData(rows, columns) {
 }
 
 export function translateRowsToColumns(input) {
-  var i, ilen, j, jlen, output = [], olen = 0;
+  var i,
+    ilen,
+    j,
+    jlen,
+    output = [],
+    olen = 0;
 
   for (i = 0, ilen = input.length; i < ilen; i++) {
     for (j = 0, jlen = input[i].length; j < jlen; j++) {
@@ -152,10 +161,10 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
       if (!properties) {
         return; // method not found
 
-      } else if (properties.hasOwnProperty(methodName) && properties[methodName] !== void 0) { //check if it is own and is not empty
-        return properties[methodName];  //method defined directly
+      } else if (hasOwnProperty(properties, methodName) && properties[methodName] !== void 0) { // check if it is own and is not empty
+        return properties[methodName];  // method defined directly
 
-      } else if (properties.hasOwnProperty('type') && properties.type) { //check if it is own and is not empty
+      } else if (hasOwnProperty(properties, 'type') && properties.type) { // check if it is own and is not empty
         var type;
 
         if (typeof properties.type != 'string') {
@@ -163,23 +172,23 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
         }
         type = translateTypeNameToObject(properties.type);
 
-        if (type.hasOwnProperty(methodName)) {
-          return type[methodName]; //method defined in type.
+        if (hasOwnProperty(type, methodName)) {
+          return type[methodName]; // method defined in type.
         } else if (allowUndefined) {
-          return; //method does not defined in type (eg. validator), returns undefined
+          return; // method does not defined in type (eg. validator), returns undefined
         }
       }
 
-      return getMethodFromProperties(getPrototypeOf(properties));
+      return getMethodFromProperties(Object.getPrototypeOf(properties));
 
-    })(typeof row == 'number' ? this.getCellMeta(row, col) : row);
+    }(typeof row == 'number' ? this.getCellMeta(row, col) : row));
   };
 
   function translateTypeNameToObject(typeName) {
-    var type = Handsontable.cellTypes[typeName];
+    var type = cellTypes[typeName];
 
     if (typeof type == 'undefined') {
-      throw new Error('You declared cell type "' + typeName + '" as a string that is not mapped to a known object. ' +
+      throw new Error(`You declared cell type "${typeName}" as a string that is not mapped to a known object. ` +
         'Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
     }
 

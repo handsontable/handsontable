@@ -1,6 +1,6 @@
 import {empty, addClass, hasClass} from './../helpers/dom/element';
 import {equalsIgnoreCase} from './../helpers/string';
-import {EventManager} from './../eventManager';
+import EventManager from './../eventManager';
 import {getRenderer, registerRenderer} from './../renderers';
 import {isKey} from './../helpers/unicode';
 import {partial} from './../helpers/function';
@@ -99,7 +99,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     const isKeyCode = partial(isKey, event.keyCode);
 
     if (isKeyCode(`${toggleKeys}|${switchOffKeys}`) && !isImmediatePropagationStopped(event)) {
-      eachSelectedCheckboxCell(function() {
+      eachSelectedCheckboxCell(() => {
         stopImmediatePropagation(event);
         event.preventDefault();
       });
@@ -137,6 +137,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
           return;
         }
 
+        /* eslint-disable no-continue */
         if (cellProperties.readOnly === true) {
           continue;
         }
@@ -317,18 +318,10 @@ function onChange(event, instance) {
     let newCheckboxValue = null;
 
     if (event.target.checked) {
-      if (cellProperties.checkedTemplate === void 0) {
-        newCheckboxValue = true;
-      } else {
-        newCheckboxValue = cellProperties.checkedTemplate;
-      }
+      newCheckboxValue = cellProperties.uncheckedTemplate === void 0 ? true : cellProperties.checkedTemplate;
 
     } else {
-      if (cellProperties.uncheckedTemplate === void 0) {
-        newCheckboxValue = false;
-      } else {
-        newCheckboxValue = cellProperties.uncheckedTemplate;
-      }
+      newCheckboxValue = cellProperties.uncheckedTemplate === void 0 ? false : cellProperties.uncheckedTemplate;
     }
 
     instance.setDataAtCell(row, col, newCheckboxValue);
@@ -346,5 +339,6 @@ function isCheckboxInput(element) {
   return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';
 }
 
-export {checkboxRenderer};
 registerRenderer('checkbox', checkboxRenderer);
+
+export default checkboxRenderer;

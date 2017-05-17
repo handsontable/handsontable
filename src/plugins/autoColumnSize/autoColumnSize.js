@@ -2,13 +2,13 @@ import BasePlugin from './../_base';
 import {arrayEach, arrayFilter, arrayReduce, arrayMap} from './../../helpers/array';
 import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/feature';
 import {isVisible} from './../../helpers/dom/element';
-import {GhostTable} from './../../utils/ghostTable';
-import {isObject, objectEach} from './../../helpers/object';
+import GhostTable from './../../utils/ghostTable';
+import {isObject, objectEach, hasOwnProperty} from './../../helpers/object';
 import {valueAccordingPercent, rangeEach} from './../../helpers/number';
 import {registerPlugin} from './../../plugins';
-import {SamplesGenerator} from './../../utils/samplesGenerator';
+import SamplesGenerator from './../../utils/samplesGenerator';
 import {isPercentValue} from './../../helpers/string';
-import {WalkontableViewportColumnsCalculator} from './../../3rdparty/walkontable/src/calculator/viewportColumns';
+import {ViewportColumnsCalculator} from './../../3rdparty/walkontable/src';
 
 const privatePool = new WeakMap();
 
@@ -191,7 +191,9 @@ class AutoColumnSize extends BasePlugin {
     });
 
     if (this.ghostTable.columns.length) {
-      this.ghostTable.getWidths((col, width) => this.widths[col] = width);
+      this.ghostTable.getWidths((col, width) => {
+        this.widths[col] = width;
+      });
       this.ghostTable.clean();
     }
   }
@@ -259,8 +261,8 @@ class AutoColumnSize extends BasePlugin {
    */
   setSamplingOptions() {
     let setting = this.hot.getSettings().autoColumnSize;
-    let samplingRatio = setting && setting.hasOwnProperty('samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
-    let allowSampleDuplicates = setting && setting.hasOwnProperty('allowSampleDuplicates') ? this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
+    let samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
+    let allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ? this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -287,6 +289,7 @@ class AutoColumnSize extends BasePlugin {
    * @returns {Number}
    */
   getSyncCalculationLimit() {
+    /* eslint-disable no-bitwise */
     let limit = AutoColumnSize.SYNC_CALCULATION_LIMIT;
     let colsLimit = this.hot.countCols() - 1;
 
@@ -297,7 +300,7 @@ class AutoColumnSize extends BasePlugin {
         limit = valueAccordingPercent(colsLimit, limit);
       } else {
         // Force to Number
-        limit = limit >> 0;
+        limit >>= 0;
       }
     }
 
@@ -319,7 +322,7 @@ class AutoColumnSize extends BasePlugin {
       width = this.widths[col];
 
       if (keepMinimum && typeof width === 'number') {
-        width = Math.max(width, WalkontableViewportColumnsCalculator.DEFAULT_WIDTH);
+        width = Math.max(width, ViewportColumnsCalculator.DEFAULT_WIDTH);
       }
     }
 
@@ -397,7 +400,9 @@ class AutoColumnSize extends BasePlugin {
    */
   clearCache(columns = []) {
     if (columns.length) {
-      arrayEach(columns, (physicalIndex) => this.widths[physicalIndex] = void 0);
+      arrayEach(columns, (physicalIndex) => {
+        this.widths[physicalIndex] = void 0;
+      });
     } else {
       this.widths.length = 0;
     }
@@ -409,7 +414,7 @@ class AutoColumnSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return arrayFilter(this.widths, (item) => (item === void 0)).length ? true : false;
+    return !!arrayFilter(this.widths, (item) => (item === void 0)).length;
   }
 
   /**
@@ -499,6 +504,6 @@ class AutoColumnSize extends BasePlugin {
   }
 }
 
-export {AutoColumnSize};
-
 registerPlugin('autoColumnSize', AutoColumnSize);
+
+export default AutoColumnSize;

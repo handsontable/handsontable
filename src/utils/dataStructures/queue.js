@@ -1,5 +1,3 @@
-import Handsontable from './../../browser';
-
 /**
  * @class Queue
  * @util
@@ -60,7 +58,4 @@ class Queue {
   }
 }
 
-export {Queue};
-
-// temp for tests only!
-Handsontable.utils.Queue = Queue;
+export default Queue;

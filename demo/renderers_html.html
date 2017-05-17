@@ -179,11 +179,11 @@
             img = document.createElement('IMG');
             img.src = value;
 
-            Handsontable.Dom.addEvent(img, 'mousedown', function (e){
+            Handsontable.dom.addEvent(img, 'mousedown', function (e){
               e.preventDefault(); // prevent selection quirk
             });
 
-            Handsontable.Dom.empty(td);
+            Handsontable.dom.empty(td);
             td.appendChild(img);
           }
           else {
@@ -269,13 +269,13 @@
             return td;
           }
 
-          Handsontable.Dom.addEvent(container, 'mousedown', function (event) {
+          Handsontable.dom.addEvent(container, 'mousedown', function (event) {
             if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
               event.stopPropagation();
             }
           });
 
-          Handsontable.Dom.addEvent(container, 'mouseup', function (event) {
+          Handsontable.dom.addEvent(container, 'mouseup', function (event) {
             if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
               isChecked = !event.target.checked;
               hot2.render();
@@ -401,7 +401,7 @@
 
             addButtonMenuEvent(button, menu);
 
-            Handsontable.Dom.addEvent(menu, 'click', function (event) {
+            Handsontable.dom.addEvent(menu, 'click', function (event) {
               if (event.target.nodeName == 'LI') {
                 setColumnType(col, event.target.data['colType'], instance);
               }
@@ -423,7 +423,7 @@
         });
 
         function addButtonMenuEvent(button, menu) {
-          Handsontable.Dom.addEvent(button, 'click', function (event) {
+          Handsontable.dom.addEvent(button, 'click', function (event) {
             var changeTypeMenu, position, removeMenu;
 
             document.body.appendChild(menu);
@@ -449,8 +449,8 @@
                 }
               }
             };
-            Handsontable.Dom.removeEvent(document, 'click', removeMenu);
-            Handsontable.Dom.addEvent(document, 'click', removeMenu);
+            Handsontable.dom.removeEvent(document, 'click', removeMenu);
+            Handsontable.dom.addEvent(document, 'click', removeMenu);
           });
         }
 

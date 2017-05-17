@@ -1,34 +1,34 @@
-describe('preventOverflow option', function () {
-  var $table
-    , $container
-    , $wrapper
-    , debug = false;
+describe('preventOverflow option', () => {
+  var $table,
+    $container,
+    $wrapper,
+    debug = false;
 
-  beforeEach(function () {
+  beforeEach(() => {
     $wrapper = $('<div></div>').css({position: 'relative'});
     $wrapper.width(500).height(201);
     $container = $('<div></div>');
-    $table = $('<table></table>'); //create a table that is not attached to document
+    $table = $('<table></table>'); // create a table that is not attached to document
     $wrapper.append($container);
     $container.append($table);
     $wrapper.appendTo('body');
     createDataArray(100, 100);
   });
 
-  afterEach(function () {
+  afterEach(() => {
     if (!debug) {
       $('.wtHolder').remove();
     }
     $wrapper.remove();
   });
 
-  it("should set overflow to `auto` for master table when `horizontal` value is passed", function () {
-    var wt = new Walkontable({
+  it('should set overflow to `auto` for master table when `horizontal` value is passed', () => {
+    var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      preventOverflow: function() {
+      preventOverflow() {
         return 'horizontal';
       }
     });
@@ -38,16 +38,16 @@ describe('preventOverflow option', function () {
     expect($table.parents('.ht_master').css('overflow')).toBe('visible');
   });
 
-  it("should set overflow-x to `auto` for top clone when `horizontal` value is passed", function () {
-    var wt = new Walkontable({
+  it('should set overflow-x to `auto` for top clone when `horizontal` value is passed', () => {
+    var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      columnHeaders: [function (column, TH) {
+      columnHeaders: [function(column, TH) {
         TH.innerHTML = column + 1;
       }],
-      preventOverflow: function() {
+      preventOverflow() {
         return 'horizontal';
       }
     });

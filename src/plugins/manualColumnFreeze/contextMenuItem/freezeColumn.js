@@ -1,8 +1,8 @@
-export function freezeColumnItem(manualColumnFreezePlugin) {
+export default function freezeColumnItem(manualColumnFreezePlugin) {
   return {
     key: 'freeze_column',
     name: 'Freeze this column',
-    callback: function() {
+    callback() {
       let selectedColumn = this.getSelectedRange().from.col;
 
       manualColumnFreezePlugin.freezeColumn(selectedColumn);
@@ -10,7 +10,7 @@ export function freezeColumnItem(manualColumnFreezePlugin) {
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
     },
-    hidden: function() {
+    hidden() {
       let selection = this.getSelectedRange();
       let hide = false;
 

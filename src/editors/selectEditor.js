@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import {
   addClass,
   empty,
@@ -14,9 +13,9 @@ import {
 import {stopImmediatePropagation} from './../helpers/dom/event';
 import {KEY_CODES} from './../helpers/unicode';
 import {getEditor, registerEditor} from './../editors';
-import {BaseEditor} from './_baseEditor';
+import BaseEditor, {EditorState} from './_baseEditor';
 
-var SelectEditor = BaseEditor.prototype.extend();
+const SelectEditor = BaseEditor.prototype.extend();
 
 /**
  * @private
@@ -53,7 +52,7 @@ SelectEditor.prototype.prepare = function() {
   empty(this.select);
 
   for (var option in options) {
-    if (options.hasOwnProperty(option)) {
+    if (Object.prototype.hasOwnProperty.call(options, option)) {
       var optionElement = document.createElement('OPTION');
       optionElement.value = option;
       fastInnerHTML(optionElement, options[option]);
@@ -109,6 +108,8 @@ var onBeforeKeyDown = function(event) {
       stopImmediatePropagation(event);
       event.preventDefault();
       break;
+    default:
+      break;
   }
 };
 
@@ -138,7 +139,7 @@ SelectEditor.prototype.refreshValue = function() {
 };
 
 SelectEditor.prototype.refreshDimensions = function() {
-  if (this.state !== Handsontable.EditorState.EDITING) {
+  if (this.state !== EditorState.EDITING) {
     return;
   }
   this.TD = this.getEditedCell();
@@ -180,6 +181,8 @@ SelectEditor.prototype.refreshDimensions = function() {
     case 'bottom':
       cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
       break;
+    default:
+      break;
   }
   if (this.instance.getSelected()[0] === 0) {
     editTop += 1;
@@ -205,10 +208,10 @@ SelectEditor.prototype.refreshDimensions = function() {
     width -= 1;
   }
 
-  selectStyle.height = height + 'px';
-  selectStyle.minWidth = width + 'px';
-  selectStyle.top = editTop + 'px';
-  selectStyle.left = editLeft + 'px';
+  selectStyle.height = `${height}px`;
+  selectStyle.minWidth = `${width}px`;
+  selectStyle.top = `${editTop}px`;
+  selectStyle.left = `${editLeft}px`;
   selectStyle.margin = '0px';
 };
 
@@ -247,7 +250,6 @@ SelectEditor.prototype.getEditedCell = function() {
   return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
 };
 
-export {SelectEditor};
-
 registerEditor('select', SelectEditor);
 
+export default SelectEditor;

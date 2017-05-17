@@ -39,8 +39,8 @@ class CommentEditor {
    * @param {Number} y Y position (in pixels).
    */
   setPosition(x, y) {
-    this.editorStyle.left = x + 'px';
-    this.editorStyle.top = y + 'px';
+    this.editorStyle.left = `${x}px`;
+    this.editorStyle.top = `${y}px`;
   }
 
   /**
@@ -53,8 +53,8 @@ class CommentEditor {
     if (width && height) {
       const input = this.getInputElement();
 
-      input.style.width = width + 'px';
-      input.style.height = height + 'px';
+      input.style.width = `${width}px`;
+      input.style.height = `${height}px`;
     }
   }
 
@@ -145,7 +145,7 @@ class CommentEditor {
    * @returns {HTMLElement}
    */
   createEditor() {
-    let container = document.querySelector('.' + CommentEditor.CLASS_EDITOR_CONTAINER);
+    let container = document.querySelector(`.${CommentEditor.CLASS_EDITOR_CONTAINER}`);
     let editor;
     let textArea;
 
@@ -172,7 +172,7 @@ class CommentEditor {
    * @returns {HTMLElement}
    */
   getInputElement() {
-    return this.editor.querySelector('.' + CommentEditor.CLASS_INPUT);
+    return this.editor.querySelector(`.${CommentEditor.CLASS_INPUT}`);
   }
 
   /**
@@ -185,4 +185,4 @@ class CommentEditor {
   }
 }
 
-export {CommentEditor};
+export default CommentEditor;

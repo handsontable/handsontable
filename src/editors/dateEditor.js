@@ -1,13 +1,13 @@
-import Handsontable from './../browser';
+import moment from 'moment';
+import Pikaday from 'pikaday';
+import 'pikaday/css/pikaday.css';
 import {addClass, outerHeight} from './../helpers/dom/element';
 import {deepExtend} from './../helpers/object';
-import {EventManager} from './../eventManager';
+import EventManager from './../eventManager';
 import {getEditor, registerEditor} from './../editors';
 import {isMetaKey} from './../helpers/unicode';
 import {stopPropagation} from './../helpers/dom/event';
-import {TextEditor} from './textEditor';
-import moment from 'moment';
-import Pikaday from 'pikaday';
+import TextEditor from './textEditor';
 
 /**
  * @private
@@ -21,14 +21,11 @@ class DateEditor extends TextEditor {
    * @private
    */
   constructor(hotInstance) {
-    this.$datePicker = null;
-    this.datePicker = null;
-    this.datePickerStyle = null;
+    super(hotInstance);
+
     this.defaultDateFormat = 'DD/MM/YYYY';
     this.isCellEdited = false;
     this.parentDestroyed = false;
-
-    super(hotInstance);
   }
 
   init() {
@@ -148,8 +145,8 @@ class DateEditor extends TextEditor {
     let isMouseDown = this.instance.view.isMouseDown();
     let isMeta = event ? isMetaKey(event.keyCode) : false;
 
-    this.datePickerStyle.top = (window.pageYOffset + offset.top + outerHeight(this.TD)) + 'px';
-    this.datePickerStyle.left = (window.pageXOffset + offset.left) + 'px';
+    this.datePickerStyle.top = `${window.pageYOffset + offset.top + outerHeight(this.TD)}px`;
+    this.datePickerStyle.left = `${window.pageXOffset + offset.left}px`;
 
     this.$datePicker._onInputFocus = function() {};
     datePickerConfig.format = dateFormat;
@@ -170,24 +167,22 @@ class DateEditor extends TextEditor {
         this.setValue('');
       }
 
-    } else {
-      if (this.cellProperties.defaultDate) {
-        dateStr = this.cellProperties.defaultDate;
+    } else if (this.cellProperties.defaultDate) {
+      dateStr = this.cellProperties.defaultDate;
 
-        datePickerConfig.defaultDate = dateStr;
+      datePickerConfig.defaultDate = dateStr;
 
-        if (moment(dateStr, dateFormat, true).isValid()) {
-          this.$datePicker.setMoment(moment(dateStr, dateFormat), true);
-        }
-
-        if (!isMeta && !isMouseDown) {
-          this.setValue('');
-        }
-      } else {
-        // if a default date is not defined, set a soft-default-date: display the current day and month in the
-        // datepicker, but don't fill the editor input
-        this.$datePicker.gotoToday();
+      if (moment(dateStr, dateFormat, true).isValid()) {
+        this.$datePicker.setMoment(moment(dateStr, dateFormat), true);
       }
+
+      if (!isMeta && !isMouseDown) {
+        this.setValue('');
+      }
+    } else {
+      // if a default date is not defined, set a soft-default-date: display the current day and month in the
+      // datepicker, but don't fill the editor input
+      this.$datePicker.gotoToday();
     }
 
     this.datePickerStyle.display = 'block';
@@ -247,9 +242,6 @@ class DateEditor extends TextEditor {
   }
 }
 
-export {DateEditor};
-
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.DateEditor = DateEditor;
-
 registerEditor('date', DateEditor);
+
+export default DateEditor;

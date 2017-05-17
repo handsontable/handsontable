@@ -1,8 +1,8 @@
-export function unfreezeColumnItem(manualColumnFreezePlugin) {
+export default function unfreezeColumnItem(manualColumnFreezePlugin) {
   return {
     key: 'unfreeze_column',
     name: 'Unfreeze this column',
-    callback: function() {
+    callback() {
       let selectedColumn = this.getSelectedRange().from.col;
 
       manualColumnFreezePlugin.unfreezeColumn(selectedColumn);
@@ -10,7 +10,7 @@ export function unfreezeColumnItem(manualColumnFreezePlugin) {
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
     },
-    hidden: function() {
+    hidden() {
       let selection = this.getSelectedRange();
       let hide = false;
 

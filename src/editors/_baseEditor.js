@@ -1,22 +1,17 @@
-import Handsontable from './../browser';
+import {CellCoords} from './../3rdparty/walkontable/src';
+import {registerEditor} from './../editors';
 import {stringify} from './../helpers/mixed';
-import {WalkontableCellCoords} from './../3rdparty/walkontable/src/cell/coords';
 
-export {BaseEditor};
-
-Handsontable.editors = Handsontable.editors || {};
-Handsontable.editors.BaseEditor = BaseEditor;
-
-Handsontable.EditorState = {
-  VIRGIN: 'STATE_VIRGIN', //before editing
+export const EditorState = {
+  VIRGIN: 'STATE_VIRGIN', // before editing
   EDITING: 'STATE_EDITING',
-  WAITING: 'STATE_WAITING', //waiting for async validation
+  WAITING: 'STATE_WAITING', // waiting for async validation
   FINISHED: 'STATE_FINISHED'
 };
 
 function BaseEditor(instance) {
   this.instance = instance;
-  this.state = Handsontable.EditorState.VIRGIN;
+  this.state = EditorState.VIRGIN;
 
   this._opened = false;
   this._fullEditMode = false;
@@ -63,11 +58,11 @@ BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
   if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
     document.activeElement.blur();
 
-  } else if (invalidActiveElement) { //IE
+  } else if (invalidActiveElement) { // IE
     document.body.focus();
   }
 
-  this.state = Handsontable.EditorState.VIRGIN;
+  this.state = EditorState.VIRGIN;
 };
 
 BaseEditor.prototype.extend = function() {
@@ -90,7 +85,8 @@ BaseEditor.prototype.extend = function() {
 };
 
 BaseEditor.prototype.saveValue = function(value, ctrlDown) {
-  let selection, tmp;
+  let selection;
+  let tmp;
 
   // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
   if (ctrlDown) {
@@ -114,12 +110,12 @@ BaseEditor.prototype.saveValue = function(value, ctrlDown) {
 };
 
 BaseEditor.prototype.beginEditing = function(initialValue, event) {
-  if (this.state != Handsontable.EditorState.VIRGIN) {
+  if (this.state != EditorState.VIRGIN) {
     return;
   }
-  this.instance.view.scrollViewport(new WalkontableCellCoords(this.row, this.col));
+  this.instance.view.scrollViewport(new CellCoords(this.row, this.col));
   this.instance.view.render();
-  this.state = Handsontable.EditorState.EDITING;
+  this.state = EditorState.EDITING;
 
   initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
   this.setValue(stringify(initialValue));
@@ -155,15 +151,15 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
     return;
   }
 
-  if (this.state == Handsontable.EditorState.VIRGIN) {
-    this.instance._registerTimeout(setTimeout(function() {
+  if (this.state == EditorState.VIRGIN) {
+    this.instance._registerTimeout(setTimeout(() => {
       _this._fireCallbacks(true);
     }, 0));
 
     return;
   }
 
-  if (this.state == Handsontable.EditorState.EDITING) {
+  if (this.state == EditorState.EDITING) {
     if (restoreOriginalValue) {
       this.cancelChanges();
       this.instance.view.render();
@@ -184,42 +180,42 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
       ];
     }
 
-    this.state = Handsontable.EditorState.WAITING;
+    this.state = EditorState.WAITING;
     this.saveValue(val, ctrlDown);
 
     if (this.instance.getCellValidator(this.cellProperties)) {
-      this.instance.addHookOnce('postAfterValidate', function(result) {
-        _this.state = Handsontable.EditorState.FINISHED;
+      this.instance.addHookOnce('postAfterValidate', (result) => {
+        _this.state = EditorState.FINISHED;
         _this.discardEditor(result);
       });
     } else {
-      this.state = Handsontable.EditorState.FINISHED;
+      this.state = EditorState.FINISHED;
       this.discardEditor(true);
     }
   }
 };
 
 BaseEditor.prototype.cancelChanges = function() {
-  this.state = Handsontable.EditorState.FINISHED;
+  this.state = EditorState.FINISHED;
   this.discardEditor();
 };
 
 BaseEditor.prototype.discardEditor = function(result) {
-  if (this.state !== Handsontable.EditorState.FINISHED) {
+  if (this.state !== EditorState.FINISHED) {
     return;
   }
   // validator was defined and failed
   if (result === false && this.cellProperties.allowInvalid !== true) {
     this.instance.selectCell(this.row, this.col);
     this.focus();
-    this.state = Handsontable.EditorState.EDITING;
+    this.state = EditorState.EDITING;
     this._fireCallbacks(false);
 
   } else {
     this.close();
     this._opened = false;
     this._fullEditMode = false;
-    this.state = Handsontable.EditorState.VIRGIN;
+    this.state = EditorState.VIRGIN;
     this._fireCallbacks(true);
   }
 };
@@ -246,7 +242,7 @@ BaseEditor.prototype.isOpened = function() {
 };
 
 BaseEditor.prototype.isWaiting = function() {
-  return this.state === Handsontable.EditorState.WAITING;
+  return this.state === EditorState.WAITING;
 };
 
 BaseEditor.prototype.checkEditorSection = function() {
@@ -265,11 +261,13 @@ BaseEditor.prototype.checkEditorSection = function() {
     } else {
       section = 'bottom';
     }
-  } else {
-    if (this.col < this.instance.getSettings().fixedColumnsLeft) {
-      section = 'left';
-    }
+  } else if (this.col < this.instance.getSettings().fixedColumnsLeft) {
+    section = 'left';
   }
 
   return section;
 };
+
+registerEditor('base', BaseEditor);
+
+export default BaseEditor;

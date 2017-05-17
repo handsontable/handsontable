@@ -129,7 +129,7 @@
                   }
                 });
 
-                Handsontable.Dom.addEvent(load, 'click', function() {
+                Handsontable.dom.addEvent(load, 'click', function() {
                   ajax('json/load.json', 'GET', '', function(res) {
                     var data = JSON.parse(res.response);
 
@@ -138,7 +138,7 @@
                   });
                 });
 
-                Handsontable.Dom.addEvent(save, 'click', function() {
+                Handsontable.dom.addEvent(save, 'click', function() {
                   // save all cell's data
                   ajax('json/save.json', 'GET', JSON.stringify({data: hot.getData()}), function (res) {
                     var response = JSON.parse(res.response);
@@ -152,7 +152,7 @@
                   });
                 });
 
-                Handsontable.Dom.addEvent(autosave, 'click', function() {
+                Handsontable.dom.addEvent(autosave, 'click', function() {
                   if (autosave.checked) {
                     exampleConsole.innerText = 'Changes will be autosaved';
                   }

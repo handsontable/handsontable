@@ -1,7 +1,7 @@
 /**
  * Utility to register plugins and common namespace for keeping reference to all plugins classes
  */
-import Handsontable from './browser';
+import Hooks from './pluginHooks';
 import {objectEach} from './helpers/object';
 import {toUpperCaseFirst} from './helpers/string';
 
@@ -16,9 +16,7 @@ const registeredPlugins = new WeakMap();
 function registerPlugin(pluginName, PluginClass) {
   pluginName = toUpperCaseFirst(pluginName);
 
-  Handsontable.plugins[pluginName] = PluginClass;
-
-  Handsontable.hooks.add('construct', function() {
+  Hooks.getSingleton().add('construct', function() {
     let holder;
 
     if (!registeredPlugins.has(this)) {
@@ -30,7 +28,7 @@ function registerPlugin(pluginName, PluginClass) {
       holder[pluginName] = new PluginClass(this);
     }
   });
-  Handsontable.hooks.add('afterDestroy', function() {
+  Hooks.getSingleton().add('afterDestroy', function() {
     if (registeredPlugins.has(this)) {
       let pluginsHolder = registeredPlugins.get(this);
 

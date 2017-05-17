@@ -1,4 +1,3 @@
-import Handsontable from './../browser';
 import {
     addClass,
     getCaretPosition,
@@ -13,14 +12,14 @@ import {
     hasVerticalScrollbar,
     hasHorizontalScrollbar
 } from './../helpers/dom/element';
-import autoResize from 'autoResize';
-import {BaseEditor} from './_baseEditor';
-import {eventManager as eventManagerObject} from './../eventManager';
+import autoResize from './../../lib/autoResize/autoResize';
+import BaseEditor, {EditorState} from './_baseEditor';
+import EventManager from './../eventManager';
 import {getEditor, registerEditor} from './../editors';
 import {KEY_CODES} from './../helpers/unicode';
 import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
 
-var TextEditor = BaseEditor.prototype.extend();
+const TextEditor = BaseEditor.prototype.extend();
 
 /**
  * @private
@@ -31,11 +30,11 @@ var TextEditor = BaseEditor.prototype.extend();
 TextEditor.prototype.init = function() {
   var that = this;
   this.createElements();
-  this.eventManager = eventManagerObject(this);
+  this.eventManager = new EventManager(this);
   this.bindEvents();
   this.autoResize = autoResize();
 
-  this.instance.addHook('afterDestroy', function() {
+  this.instance.addHook('afterDestroy', () => {
     that.destroy();
   });
 };
@@ -49,9 +48,10 @@ TextEditor.prototype.setValue = function(newValue) {
 };
 
 var onBeforeKeyDown = function onBeforeKeyDown(event) {
-  var instance = this,
-      that = instance.getActiveEditor(),
-      ctrlDown;
+  var
+    instance = this,
+    that = instance.getActiveEditor(),
+    ctrlDown;
 
   // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
   ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
@@ -99,17 +99,18 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
       if ((ctrlDown && !isMultipleSelection) || event.altKey) { // if ctrl+enter or alt+enter, add new line
         if (that.isOpened()) {
-          var caretPosition = getCaretPosition(that.TEXTAREA),
-              value = that.getValue();
+          var
+            caretPosition = getCaretPosition(that.TEXTAREA),
+            value = that.getValue();
 
-          var newValue = value.slice(0, caretPosition) + '\n' + value.slice(caretPosition);
+          var newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
 
           that.setValue(newValue);
 
           setCaretPosition(that.TEXTAREA, caretPosition + 1);
 
         } else {
-          that.beginEditing(that.originalValue + '\n');
+          that.beginEditing(`${that.originalValue}\n`);
         }
         stopImmediatePropagation(event);
       }
@@ -130,6 +131,8 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
     case KEY_CODES.HOME:
     case KEY_CODES.END:
       stopImmediatePropagation(event); // backspace, delete, home, end should only work locally when cell is edited (not in table context)
+      break;
+    default:
       break;
   }
 
@@ -184,14 +187,15 @@ TextEditor.prototype.createElements = function() {
   this.instance.rootElement.appendChild(this.TEXTAREA_PARENT);
 
   var that = this;
-  this.instance._registerTimeout(setTimeout(function() {
+  this.instance._registerTimeout(setTimeout(() => {
     that.refreshDimensions();
   }, 0));
 };
 
 TextEditor.prototype.getEditedCell = function() {
-  var editorSection = this.checkEditorSection(),
-      editedCell;
+  var
+    editorSection = this.checkEditorSection(),
+    editedCell;
 
   switch (editorSection) {
     case 'top':
@@ -247,7 +251,7 @@ TextEditor.prototype.refreshValue = function() {
 };
 
 TextEditor.prototype.refreshDimensions = function() {
-  if (this.state !== Handsontable.EditorState.EDITING) {
+  if (this.state !== EditorState.EDITING) {
     return;
   }
   this.TD = this.getEditedCell();
@@ -258,22 +262,23 @@ TextEditor.prototype.refreshDimensions = function() {
 
     return;
   }
-  var currentOffset = offset(this.TD),
-      containerOffset = offset(this.instance.rootElement),
-      scrollableContainer = getScrollableElement(this.TD),
-      totalRowsCount = this.instance.countRows(),
+  var
+    currentOffset = offset(this.TD),
+    containerOffset = offset(this.instance.rootElement),
+    scrollableContainer = getScrollableElement(this.TD),
+    totalRowsCount = this.instance.countRows(),
 
     // If colHeaders is disabled, cells in the first row have border-top
-      editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1,
-      editTop = currentOffset.top - containerOffset.top - editTopModifier - (scrollableContainer.scrollTop || 0),
-      editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
+    editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1,
+    editTop = currentOffset.top - containerOffset.top - editTopModifier - (scrollableContainer.scrollTop || 0),
+    editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
 
-      settings = this.instance.getSettings(),
-      rowHeadersCount = this.instance.hasRowHeaders(),
-      colHeadersCount = this.instance.hasColHeaders(),
-      editorSection = this.checkEditorSection(),
-      backgroundColor = this.TD.style.backgroundColor,
-      cssTransformOffset;
+    settings = this.instance.getSettings(),
+    rowHeadersCount = this.instance.hasRowHeaders(),
+    colHeadersCount = this.instance.hasColHeaders(),
+    editorSection = this.checkEditorSection(),
+    backgroundColor = this.TD.style.backgroundColor,
+    cssTransformOffset;
 
   // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
   switch (editorSection) {
@@ -292,6 +297,8 @@ TextEditor.prototype.refreshDimensions = function() {
     case 'bottom':
       cssTransformOffset = getCssTransform(this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
       break;
+    default:
+      break;
   }
 
   if (colHeadersCount && this.instance.getSelected()[0] === 0 ||
@@ -309,8 +316,8 @@ TextEditor.prototype.refreshDimensions = function() {
     resetCssTransform(this.TEXTAREA_PARENT);
   }
 
-  this.textareaParentStyle.top = editTop + 'px';
-  this.textareaParentStyle.left = editLeft + 'px';
+  this.textareaParentStyle.top = `${editTop}px`;
+  this.textareaParentStyle.left = `${editLeft}px`;
 
   let firstRowOffset = this.instance.view.wt.wtViewport.rowsRenderCalculator.startPosition;
   let firstColumnOffset = this.instance.view.wt.wtViewport.columnsRenderCalculator.startPosition;
@@ -337,9 +344,9 @@ TextEditor.prototype.refreshDimensions = function() {
 
   this.autoResize.init(this.TEXTAREA, {
     minHeight: Math.min(height, maxHeight),
-    maxHeight: maxHeight, // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+    maxHeight, // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
     minWidth: Math.min(width, maxWidth),
-    maxWidth: maxWidth // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+    maxWidth // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
   }, true);
 
   this.textareaParentStyle.display = 'block';
@@ -348,33 +355,33 @@ TextEditor.prototype.refreshDimensions = function() {
 TextEditor.prototype.bindEvents = function() {
   var editor = this;
 
-  this.eventManager.addEventListener(this.TEXTAREA, 'cut', function(event) {
+  this.eventManager.addEventListener(this.TEXTAREA, 'cut', (event) => {
     stopPropagation(event);
   });
 
-  this.eventManager.addEventListener(this.TEXTAREA, 'paste', function(event) {
+  this.eventManager.addEventListener(this.TEXTAREA, 'paste', (event) => {
     stopPropagation(event);
   });
 
-  this.instance.addHook('afterScrollHorizontally', function() {
+  this.instance.addHook('afterScrollHorizontally', () => {
     editor.refreshDimensions();
   });
 
-  this.instance.addHook('afterScrollVertically', function() {
+  this.instance.addHook('afterScrollVertically', () => {
     editor.refreshDimensions();
   });
 
-  this.instance.addHook('afterColumnResize', function() {
+  this.instance.addHook('afterColumnResize', () => {
     editor.refreshDimensions();
     editor.focus();
   });
 
-  this.instance.addHook('afterRowResize', function() {
+  this.instance.addHook('afterRowResize', () => {
     editor.refreshDimensions();
     editor.focus();
   });
 
-  this.instance.addHook('afterDestroy', function() {
+  this.instance.addHook('afterDestroy', () => {
     editor.eventManager.destroy();
   });
 };
@@ -383,6 +390,6 @@ TextEditor.prototype.destroy = function() {
   this.eventManager.destroy();
 };
 
-export {TextEditor};
-
 registerEditor('text', TextEditor);
+
+export default TextEditor;

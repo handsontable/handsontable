@@ -123,15 +123,15 @@
             });
             hot.loadData(data);
 
-            Handsontable.Dom.addEvent(selectFirst, 'click', function () {
+            Handsontable.dom.addEvent(selectFirst, 'click', function () {
               hot.selectCell(0,0);
             });
-            Handsontable.Dom.addEvent(rowHeaders, 'click', function () {
+            Handsontable.dom.addEvent(rowHeaders, 'click', function () {
               hot.updateSettings({
                 rowHeaders: this.checked
               });
             });
-            Handsontable.Dom.addEvent(colHeaders, 'click', function () {
+            Handsontable.dom.addEvent(colHeaders, 'click', function () {
               hot.updateSettings({
                 colHeaders: this.checked
               });
