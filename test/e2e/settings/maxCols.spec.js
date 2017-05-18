@@ -82,23 +82,6 @@ describe('settings', () => {
           expect(getDataAtCol(3)).toEqual([]);
         });
       });
-
-      describe('when `colHeaders` and `rowHeaders` properties were set', () => {
-        it('should show headers properly', () => {
-          handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
-            maxCols: 0,
-            colHeaders: true,
-            rowHeaders: true
-          });
-
-          // expect(hasColHeaders()).toEqual(false);
-          // expect(getColHeader()).toEqual([]);
-
-          expect(hasRowHeaders()).toEqual(true);
-          expect(getRowHeader()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-        });
-      });
     });
 
     describe('update settings works', () => {

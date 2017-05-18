@@ -388,14 +388,18 @@ class Table {
   }
 
   /**
-   * Returns cell coords object for a given TD
+   * Returns cell coords object for a given TD (or a child element of a TD element).
    *
-   * @param {HTMLTableCellElement} TD
-   * @returns {CellCoords}
+   * @param {HTMLTableCellElement} TD A cell DOM element (or a child of one).
+   * @returns {CellCoords|null} The coordinates of the provided TD element (or the closest TD element) or null, if the provided element is not applicable.
    */
   getCoords(TD) {
     if (TD.nodeName !== 'TD' && TD.nodeName !== 'TH') {
       TD = closest(TD, ['TD', 'TH']);
+    }
+
+    if (TD === null) {
+      return null;
     }
 
     const TR = TD.parentNode;

@@ -31,7 +31,7 @@ describe('Core_copy', () => {
     keyDownUp('ctrl');
 
     // should prepare 2 rows for copying
-    expect($('textarea.copyPaste').val()).toEqual('\tKia\tNissan\tToyota\tHonda\n2008\t10\t11\t12\t13\n');
+    expect($('textarea.copyPaste').val()).toEqual('\tKia\tNissan\tToyota\tHonda\n2008\t10\t11\t12\t13');
   });
 
   it('should set copyable text until copyColsLimit is reached', () => {
@@ -44,7 +44,7 @@ describe('Core_copy', () => {
     keyDownUp('ctrl');
 
     // should prepare 2 columns for copying
-    expect($('textarea.copyPaste').val()).toEqual('\tKia\n2008\t10\n2009\t20\n2010\t30\n');
+    expect($('textarea.copyPaste').val()).toEqual('\tKia\n2008\t10\n2009\t20\n2010\t30');
   });
 
   it('should call onCopyLimit callback when copy limit was reached', () => {
@@ -83,7 +83,7 @@ describe('Core_copy', () => {
     const hot = handsontable({
       data: arrayOfArrays()
     });
-    $('textarea.copyPaste').val('\tKia\tNissan\tToyota\tHonda\n2008\t10\t11\t12\t13\n');
+    $('textarea.copyPaste').val('\tKia\tNissan\tToyota\tHonda\n2008\t10\t11\t12\t13');
 
     selectCell(0, 0, countRows() - 1, countCols() - 1); // selectAll
     keyDownUp('ctrl+v');

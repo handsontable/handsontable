@@ -59,54 +59,10 @@ function Event(instance) {
 
   var longTouchTimeout;
 
-  // /**
-  // * Update touch event target - if user taps on resize handle 'hit area', update the target to the cell itself
-  // * @param event
-  // */
-  /*
-   var adjustTapTarget = function (event) {
-   var currentSelection
-   , properTarget;
-
-   if(hasClass(event.target,'SelectionHandle')) {
-   if(that.instance.selections[0].cellRange) {
-   currentSelection = that.instance.selections[0].cellRange.highlight;
-
-   properTarget = that.instance.getCell(currentSelection, true);
-   }
-   }
-
-   if(properTarget) {
-   Object.defineProperty(event,'target',{
-   value: properTarget
-   });
-   }
-
-   return event;
-   };*/
-
   var onTouchStart = function(event) {
     var container = this;
 
     eventManager.addEventListener(this, 'touchmove', onTouchMove);
-
-    // this.addEventListener("touchmove", onTouchMove, false);
-
-    // touch-and-hold event
-    // longTouchTimeout = setTimeout(function () {
-    //  if(!that.instance.touchMoving) {
-    //    that.instance.longTouch = true;
-    //
-    //    var targetCoords = offset(event.target);
-    //    var contextMenuEvent = new MouseEvent('contextmenu', {
-    //      clientX: targetCoords.left + event.target.offsetWidth,
-    //      clientY: targetCoords.top + event.target.offsetHeight,
-    //      button: 2
-    //    });
-    //
-    //    that.instance.wtTable.holder.parentNode.parentNode.dispatchEvent(contextMenuEvent);
-    //  }
-    // },200);
 
     // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
     that.checkIfTouchMove = setTimeout(() => {
@@ -114,16 +70,11 @@ function Event(instance) {
         that.instance.touchMoving = void 0;
 
         eventManager.removeEventListener('touchmove', onTouchMove, false);
-
-
       }
-        // event = adjustTapTarget(event);
 
       onMouseDown(event);
 
     }, 30);
-
-    // eventManager.removeEventListener(that.instance.wtTable.holder, "mousedown", onMouseDown);
   };
 
   var onMouseOver = function(event) {

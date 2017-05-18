@@ -10,7 +10,7 @@
 }
 
 .handsontable td {
-  background-color: inherit !important;
+  background-color: inherit;
 }
 
 .table caption + thead tr:first-child th,

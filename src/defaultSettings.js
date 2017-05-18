@@ -247,6 +247,9 @@ DefaultSettings.prototype = {
    * Any constructor or column option may be overwritten for a particular cell (row/column combination)
    * using the `cells` property in the Handsontable constructor.
    *
+   * __Note:__ Parameters `row` and `col` always represent __physical indexes__. Example below show how to execute
+   * operations based on the __visual__ representation of Handsontable.
+   *
    * @type {Function}
    * @default undefined
    * @example
@@ -254,8 +257,10 @@ DefaultSettings.prototype = {
    * ...
    * cells: function (row, col, prop) {
    *   var cellProperties = {};
+   *   var visualRowIndex = this.instance.toVisualRow(row);
+   *   var visualColIndex = this.instance.toVisualColumn(col);
    *
-   *   if (row === 0 && col === 0) {
+   *   if (visualRowIndex === 0 && visualColIndex === 0) {
    *     cellProperties.readOnly = true;
    *   }
    *
