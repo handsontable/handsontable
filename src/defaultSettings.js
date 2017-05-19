@@ -567,34 +567,6 @@ DefaultSettings.prototype = {
   autoWrapCol: false,
 
   /**
-   * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
-   *
-   * @type {Number}
-   * @default 1000
-   */
-  copyRowsLimit: 1000,
-
-  /**
-   * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
-   *
-   * @type {Number}
-   * @default 1000
-   */
-  copyColsLimit: 1000,
-
-  /**
-   * @description
-   * Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior.
-   * * Default value `"overwrite"` will paste clipboard value over current selection.
-   * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
-   * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
-   *
-   * @type {String}
-   * @default 'overwrite'
-   */
-  pasteMode: 'overwrite',
-
-  /**
    * @description
    * Turns on saving the state of column sorting, column positions and column sizes in local storage.
    *
@@ -1072,22 +1044,6 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Defines new actions copy/paste for context menu. This functionality is dependent on ZeroClipboard from which you
-   * should pass the swf file path under `swfPath` object key.
-   *
-   * @example
-   * ```js
-   * ...
-   * contextMenuCopyPaste: {swfPath: '[path to file]'}
-   * ...
-   * ```
-   *
-   * @type {Object}
-   */
-  contextMenuCopyPaste: void 0,
-
-  /**
-   * @description
    * Disable or enable the copy/paste functionality.
    *
    * @example
@@ -1098,9 +1054,9 @@ DefaultSettings.prototype = {
    * ```
    *
    * @type {Boolean}
-   * @default undefined
+   * @default true
    */
-  copyPaste: void 0,
+  copyPaste: true,
 
   /**
    * If `true`, undo/redo functionality is enabled.

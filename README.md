@@ -50,7 +50,7 @@ var handsontable = require('handsontable');
 ```
 To bundle Handsontable with [Browserify](http://browserify.org) you must specify the module names of all required modules:
 
-`browserify main.js -o bundle.js -r moment -r pikaday -r zeroclipboard -r numbro`
+`browserify main.js -o bundle.js -r moment -r pikaday -r numbro`
 
 ## Basic usage
 Assuming you have already installed Handsontable, add an empty `<div>` element that will be turned into a spreadsheet:

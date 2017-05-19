@@ -19,7 +19,7 @@ module.exports.create = function create(envArgs) {
   var config = configFactory.create(envArgs);
 
   config.forEach(function(c) {
-    c.devtool = '#cheap-module-eval-source-map';
+    c.devtool = 'eval';
     c.output.filename = PACKAGE_NAME + '.js';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css)
     c.externals = {
@@ -40,12 +40,6 @@ module.exports.create = function create(envArgs) {
         commonjs2: 'pikaday',
         commonjs: 'pikaday',
         amd: 'pikaday',
-      },
-      zeroclipboard: {
-        root: 'ZeroClipboard',
-        commonjs2: 'zeroclipboard',
-        commonjs: 'zeroclipboard',
-        amd: 'zeroclipboard',
       }
     };
     c.module.rules.unshift({
