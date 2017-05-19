@@ -2302,6 +2302,10 @@ export default function Core(rootElement, userSettings) {
   this.setCellMeta = function(row, col, key, val) {
     [row, col] = recordTranslator.toPhysical(row, col);
 
+    if (!priv.columnSettings[col]) {
+      priv.columnSettings[col] = columnFactory(GridSettings, priv.columnsSettingConflicts);
+    }
+
     if (!priv.cellSettings[row]) {
       priv.cellSettings[row] = [];
     }
