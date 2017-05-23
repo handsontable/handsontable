@@ -12,7 +12,6 @@ import {
 } from './../helpers/dom/element';
 import {stopImmediatePropagation} from './../helpers/dom/event';
 import {KEY_CODES} from './../helpers/unicode';
-import {getEditor, registerEditor} from './../editors';
 import BaseEditor, {EditorState} from './_baseEditor';
 
 const SelectEditor = BaseEditor.prototype.extend();
@@ -249,7 +248,5 @@ SelectEditor.prototype.getEditedCell = function() {
 
   return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
 };
-
-registerEditor('select', SelectEditor);
 
 export default SelectEditor;

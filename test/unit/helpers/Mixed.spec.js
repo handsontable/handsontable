@@ -3,6 +3,7 @@ import {
   isDefined,
   isUndefined,
   isEmpty,
+  isRegExp,
 } from 'handsontable/helpers/mixed';
 
 describe('Mixed helper', () => {
@@ -103,6 +104,21 @@ describe('Mixed helper', () => {
       expect(isEmpty('a')).toBeFalsy();
       expect(isEmpty([])).toBeFalsy();
       expect(isEmpty({})).toBeFalsy();
+    });
+  });
+
+  describe('isRegExp', () => {
+    it('should check if a variable is a valid regular expression', () => {
+      expect(isRegExp(undefined)).toBeFalsy();
+      expect(isRegExp('')).toBeFalsy();
+      expect(isRegExp(null)).toBeFalsy();
+      expect(isRegExp(0)).toBeFalsy();
+      expect(isRegExp(1)).toBeFalsy();
+      expect(isRegExp('foo')).toBeFalsy();
+      expect(isRegExp({a: /\d+/})).toBeFalsy();
+
+      expect(isRegExp(/\d+/)).toBeTruthy();
+      expect(isRegExp(new RegExp('d+'))).toBeTruthy();
     });
   });
 });

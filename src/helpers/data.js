@@ -1,4 +1,4 @@
-import cellTypes from './../cellTypes';
+import {getCellType} from './../cellTypes';
 import {hasOwnProperty} from './object';
 
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -170,7 +170,7 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
         if (typeof properties.type != 'string') {
           throw new Error('Cell type must be a string ');
         }
-        type = translateTypeNameToObject(properties.type);
+        type = getCellType(properties.type);
 
         if (hasOwnProperty(type, methodName)) {
           return type[methodName]; // method defined in type.
@@ -183,15 +183,4 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
 
     }(typeof row == 'number' ? this.getCellMeta(row, col) : row));
   };
-
-  function translateTypeNameToObject(typeName) {
-    var type = cellTypes[typeName];
-
-    if (typeof type == 'undefined') {
-      throw new Error(`You declared cell type "${typeName}" as a string that is not mapped to a known object. ` +
-        'Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
-    }
-
-    return type;
-  }
 }

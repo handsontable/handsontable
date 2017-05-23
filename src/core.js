@@ -2,7 +2,7 @@ import numbro from 'numbro';
 import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
 import {columnFactory} from './helpers/setting';
 import {isFunction} from './helpers/function';
-import {isDefined, isUndefined} from './helpers/mixed';
+import {isDefined, isUndefined, isRegExp} from './helpers/mixed';
 import {isMobileBrowser} from './helpers/browser';
 import DataMap from './dataMap';
 import EditorManager from './editorManager';
@@ -11,6 +11,7 @@ import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize,
 import {arrayFlatten, arrayMap} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
+import {getValidator} from './validators';
 import {randomString} from './helpers/string';
 import {rangeEach} from './helpers/number';
 import TableView from './tableView';
@@ -20,7 +21,7 @@ import {getTranslator} from './utils/recordTranslator';
 import {CellCoords, CellRange, ViewportColumnsCalculator} from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
-import cellTypes from './cellTypes';
+import {getCellType} from './cellTypes';
 
 let activeGuid = null;
 
@@ -1147,7 +1148,7 @@ export default function Core(rootElement, userSettings) {
       callback(valid);
     }
 
-    if (Object.prototype.toString.call(validator) === '[object RegExp]') {
+    if (isRegExp(validator)) {
       validator = (function(validator) {
         return function(value, callback) {
           callback(validator.test(value));
@@ -1826,11 +1827,7 @@ export default function Core(rootElement, userSettings) {
     if (typeof obj.type === 'object') {
       type = obj.type;
     } else if (typeof obj.type === 'string') {
-      type = cellTypes[obj.type];
-      if (type === void 0) {
-        throw new Error(`You declared cell type "${obj.type
-            }" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes`);
-      }
+      type = getCellType(obj.type);
     }
 
     for (var i in type) {
@@ -2404,7 +2401,7 @@ export default function Core(rootElement, userSettings) {
     return !(instance.dataType === 'object' || instance.getSettings().columns);
   };
 
-  var rendererLookup = cellMethodLookupFactory('renderer');
+  const rendererLookup = cellMethodLookupFactory('renderer');
 
   /**
    * Returns the cell renderer function by given `row` and `col` arguments.
@@ -2417,9 +2414,7 @@ export default function Core(rootElement, userSettings) {
    * @returns {Function} The renderer function.
    */
   this.getCellRenderer = function(row, col) {
-    var renderer = rendererLookup.call(this, row, col);
-
-    return getRenderer(renderer);
+    return getRenderer(rendererLookup.call(this, row, col));
   };
 
   /**
@@ -2433,6 +2428,8 @@ export default function Core(rootElement, userSettings) {
    */
   this.getCellEditor = cellMethodLookupFactory('editor');
 
+  const validatorLookup = cellMethodLookupFactory('validator');
+
   /**
    * Returns the cell validator by `row` and `col`, provided a validator is defined. If not - it doesn't return anything.
    *
@@ -2440,9 +2437,17 @@ export default function Core(rootElement, userSettings) {
    * @function getCellValidator
    * @param {Number} row Row index.
    * @param {Number} col Column index.
-   * @returns {Function|undefined} The validator function.
+   * @returns {Function|RegExp|undefined} The validator function.
    */
-  this.getCellValidator = cellMethodLookupFactory('validator');
+  this.getCellValidator = function(row, col) {
+    let validator = validatorLookup.call(this, row, col);
+
+    if (typeof validator === 'string') {
+      validator = getValidator(validator);
+    }
+
+    return validator;
+  };
 
   /**
    * Validates all cells using their validator functions and calls callback when finished.

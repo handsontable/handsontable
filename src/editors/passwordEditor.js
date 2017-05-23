@@ -1,5 +1,4 @@
 import {empty} from './../helpers/dom/element';
-import {getEditor, registerEditor} from './../editors';
 import TextEditor from './textEditor';
 
 /**
@@ -23,7 +22,5 @@ class PasswordEditor extends TextEditor {
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }
-
-registerEditor('password', PasswordEditor);
 
 export default PasswordEditor;

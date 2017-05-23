@@ -1,4 +1,3 @@
-import {registerEditor} from './../editors';
 import BaseEditor from './_baseEditor';
 import {hasClass} from './../helpers/dom/element';
 
@@ -27,7 +26,5 @@ class CheckboxEditor extends BaseEditor {
   setValue() {}
   focus() {}
 }
-
-registerEditor('checkbox', CheckboxEditor);
 
 export default CheckboxEditor;

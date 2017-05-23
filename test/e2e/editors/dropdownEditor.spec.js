@@ -69,7 +69,7 @@ describe('DropdownEditor', () => {
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
       hot.view.wt.wtOverlays.topOverlay.scrollTo(1);
-      var dropdown = Handsontable.editors.getEditor('dropdown', hot);
+      var dropdown = hot.getActiveEditor();
 
       setTimeout(() => {
         expect($(dropdown.htContainer).is(':visible')).toBe(true);
