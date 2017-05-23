@@ -207,7 +207,7 @@ class ColumnSorting extends BasePlugin {
       sortingState.sortOrder = this.hot.sortOrder;
     }
 
-    if (hasOwnProperty(sortingState, 'sortColumn') || hasOwnProperty(sortingState, 'sortOrder')) {
+    if (hasOwnProperty(sortingState, 'sortColumn') && hasOwnProperty(sortingState, 'sortOrder')) {
       this.hot.runHooks('persistentStateSave', 'columnSorting', sortingState);
     }
 
