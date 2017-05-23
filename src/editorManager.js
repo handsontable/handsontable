@@ -1,7 +1,7 @@
 import {CellCoords} from './3rdparty/walkontable/src';
 import {KEY_CODES, isMetaKey, isCtrlKey} from './helpers/unicode';
 import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './helpers/dom/event';
-import {getEditor} from './editors';
+import {getEditorInstance} from './editors';
 import EventManager from './eventManager';
 import {EditorState} from './editors/_baseEditor';
 
@@ -340,7 +340,7 @@ function EditorManager(instance, priv, selection) {
     editorClass = instance.getCellEditor(cellProperties);
 
     if (editorClass) {
-      activeEditor = getEditor(editorClass, instance);
+      activeEditor = getEditorInstance(editorClass, instance);
       activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
 
     } else {

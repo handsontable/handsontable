@@ -49,10 +49,21 @@ export function isUndefined(variable) {
 }
 
 /**
- * Check if given variable is null, empty string or undefined
+ * Check if given variable is null, empty string or undefined.
+ *
  * @param {*} variable Variable to check.
  * @returns {Boolean}
  */
 export function isEmpty(variable) {
   return variable === null || variable === '' || isUndefined(variable);
+}
+
+/**
+ * Check if given variable is a regular expression.
+ *
+ * @param {*} variable Variable to check.
+ * @returns {Boolean}
+ */
+export function isRegExp(variable) {
+  return Object.prototype.toString.call(variable) === '[object RegExp]';
 }

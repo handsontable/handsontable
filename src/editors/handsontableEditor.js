@@ -2,7 +2,6 @@ import {KEY_CODES} from './../helpers/unicode';
 import {extend} from './../helpers/object';
 import {setCaretPosition} from './../helpers/dom/element';
 import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
-import {getEditor, registerEditor} from './../editors';
 import TextEditor from './textEditor';
 
 const HandsontableEditor = TextEditor.prototype.extend();
@@ -178,7 +177,5 @@ HandsontableEditor.prototype.assignHooks = function() {
     }
   });
 };
-
-registerEditor('handsontable', HandsontableEditor);
 
 export default HandsontableEditor;
