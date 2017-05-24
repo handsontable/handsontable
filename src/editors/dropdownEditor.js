@@ -1,4 +1,3 @@
-import {registerEditor, getEditorConstructor} from './../editors';
 import AutocompleteEditor from './autocompleteEditor';
 import Hooks from './../pluginHooks';
 
@@ -19,14 +18,12 @@ class DropdownEditor extends AutocompleteEditor {
 Hooks.getSingleton().add('beforeValidate', function(value, row, col, source) {
   let cellMeta = this.getCellMeta(row, this.propToCol(col));
 
-  if (cellMeta.editor === getEditorConstructor('dropdown')) {
+  if (cellMeta.editor === DropdownEditor) {
     if (cellMeta.strict === void 0) {
       cellMeta.filter = false;
       cellMeta.strict = true;
     }
   }
 });
-
-registerEditor('dropdown', DropdownEditor);
 
 export default DropdownEditor;

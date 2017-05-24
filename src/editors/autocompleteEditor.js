@@ -13,7 +13,6 @@ import {
   getTrimmingContainer,
   setCaretPosition,
 } from './../helpers/dom/element';
-import {registerEditor} from './../editors';
 import HandsontableEditor from './handsontableEditor';
 
 const AutocompleteEditor = HandsontableEditor.prototype.extend();
@@ -440,7 +439,5 @@ AutocompleteEditor.prototype.discardEditor = function(result) {
 
   this.instance.view.render();
 };
-
-registerEditor('autocomplete', AutocompleteEditor);
 
 export default AutocompleteEditor;

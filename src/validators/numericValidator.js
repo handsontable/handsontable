@@ -6,7 +6,7 @@
  * @param {*} value - Value of edited cell
  * @param {*} callback - Callback called with validation result
  */
-function NumericValidator(value, callback) {
+export default function numericValidator(value, callback) {
   if (value == null) {
     value = '';
   }
@@ -20,5 +20,3 @@ function NumericValidator(value, callback) {
     callback(/^-?\d*(\.|,)?\d*$/.test(value));
   }
 };
-
-export default NumericValidator;

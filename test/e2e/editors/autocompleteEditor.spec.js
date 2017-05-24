@@ -1025,7 +1025,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -1296,7 +1296,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -1354,7 +1354,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -1442,7 +1442,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -1463,7 +1463,7 @@ describe('AutocompleteEditor', () => {
       }, 400);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -1493,7 +1493,7 @@ describe('AutocompleteEditor', () => {
       keyDownUp(69); // e
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -1513,7 +1513,7 @@ describe('AutocompleteEditor', () => {
       }, 50);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -1553,7 +1553,7 @@ describe('AutocompleteEditor', () => {
       keyDownUp(69); // e
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -1573,7 +1573,7 @@ describe('AutocompleteEditor', () => {
       }, 50);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([]);
@@ -1605,7 +1605,7 @@ describe('AutocompleteEditor', () => {
       }, 20);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual(Handsontable.helper.pivot([choices]));
@@ -1615,7 +1615,7 @@ describe('AutocompleteEditor', () => {
       }, 40);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual(Handsontable.helper.pivot([choices]));
@@ -1656,7 +1656,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
         var autocompleteList = $(innerHot.rootElement);
 
@@ -1693,7 +1693,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData().length).toEqual(0);
@@ -1732,7 +1732,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         var autocompleteList = $(innerHot.rootElement);
@@ -1813,7 +1813,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getSelected()).toEqual([1, 0, 1, 0]);
@@ -1916,7 +1916,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -1930,7 +1930,7 @@ describe('AutocompleteEditor', () => {
       }, 400);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -1971,7 +1971,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -1985,7 +1985,7 @@ describe('AutocompleteEditor', () => {
       }, 400);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2046,7 +2046,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2060,7 +2060,7 @@ describe('AutocompleteEditor', () => {
       }, 400);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2102,7 +2102,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2116,7 +2116,7 @@ describe('AutocompleteEditor', () => {
       }, 400);
 
       setTimeout(() => {
-        var ac = Handsontable.editors.getEditor('autocomplete', hot);
+        var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([

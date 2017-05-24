@@ -12,7 +12,6 @@ import {
   removeClass,
   setCaretPosition,
 } from './../helpers/dom/element';
-import {getEditor, registerEditor} from './../editors';
 import BaseEditor from './_baseEditor';
 import EventManager from './../eventManager';
 
@@ -315,7 +314,5 @@ MobileTextEditor.prototype.destroy = function() {
 
   this.editorContainer.parentNode.removeChild(this.editorContainer);
 };
-
-registerEditor('mobile', MobileTextEditor);
 
 export default MobileTextEditor;

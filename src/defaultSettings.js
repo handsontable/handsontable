@@ -828,8 +828,13 @@ DefaultSettings.prototype = {
    * If a string is provided, it may be one of the following predefined values:
    * * `autocomplete`,
    * * `checkbox`,
-   * * `text`,
-   * * `numeric`.
+   * * `html`,
+   * * `numeric`,
+   * * `password`.
+   * * `text`.
+   *
+   * Or you can [register](http://docs.handsontable.com/demo-custom-renderers.html) the custom renderer under specified name and use
+   * its name as an alias in your configuration.
    *
    * If a function is provided, it will receive the following arguments:
    * ```js
@@ -841,10 +846,17 @@ DefaultSettings.prototype = {
    * @example
    * ```js
    * ...
+   * Handsontable.renderers.registerRenderer('my.renderer', function(instance, TD, row, col, prop, value, cellProperties) {
+   *   TD.innerHTML = value;
+   * });
+   * ...
    * columns: [
    *   {
    *     editor: 'select',
    *     renderer: 'autocomplete' // as string
+   *   },
+   *   {
+   *     renderer: 'my.renderer' // custom renderer as an alias
    *   },
    *   {
    *     // renderer as custom function
@@ -908,23 +920,41 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Shortcut to define the combination of the cell renderer and editor for the column.
+   * Shortcut to define the combination of the cell renderer, editor and validator for the column, cell or whole table.
    *
    * Possible values:
-   *  * text
-   *  * [numeric](http://docs.handsontable.com/demo-numeric.html)
-   *  * [date](http://docs.handsontable.com/demo-date.html)
-   *  * [checkbox](http://docs.handsontable.com/demo-checkbox.html)
    *  * [autocomplete](http://docs.handsontable.com/demo-autocomplete.html)
+   *  * [checkbox](http://docs.handsontable.com/demo-checkbox.html)
+   *  * [date](http://docs.handsontable.com/demo-date.html)
    *  * [dropdown](http://docs.handsontable.com/demo-dropdown.html)
    *  * [handsontable](http://docs.handsontable.com/demo-handsontable.html)
+   *  * [numeric](http://docs.handsontable.com/demo-numeric.html)
+   *  * [password](http://docs.handsontable.com/demo-password.html)
+   *  * text
+   *  * [time](http://docs.handsontable.com/demo-time.html)
+   *
+   * Or you can register the custom cell type under specified name and use
+   * its name as an alias in your configuration.
    *
    * @example
    * ```js
    * ...
+   * Handsontable.cellTypes.registerCellType('my.type', {
+   *   editor: MyEditorClass,
+   *   renderer: function(hot, td, row, col, prop, value, cellProperties) {
+   *     td.innerHTML = value;
+   *   },
+   *   validator: function(value, callback) {
+   *     callback(value === 'foo' ? true : false);
+   *   }
+   * });
+   * ...
    * columns: [
    *   {
    *     type: 'text'
+   *   },
+   *   {
+   *     type: 'my.type' // an alias to custom type
    *   },
    *   {
    *     type: 'checkbox'
@@ -964,7 +994,10 @@ DefaultSettings.prototype = {
    *  * [select](http://docs.handsontable.com/demo-select.html)
    *  * text
    *
-   * Or you can disable cell editing passing `false`.
+   * Or you can [register](http://docs.handsontable.com/tutorial-cell-editor.html#registering-an-editor) the custom editor under specified name and use
+   * its name as an alias in your configuration.
+   *
+   * To disable cell editing completely set `editor` property to `false`.
    *
    * @example
    * ```js
@@ -1266,10 +1299,19 @@ DefaultSettings.prototype = {
   viewportColumnRenderingOffset: 'auto',
 
   /**
-   * A function or a regular expression, which will be used in the process of cell validation.
+   * A function, regular expression or a string, which will be used in the process of cell validation.
    * If a function is used, be sure to execute the callback argument with either `true` (`callback(true)`) if the validation passed
    * or with `false` (`callback(false)`), if the validation failed.
    * Note, that `this` in the function points to the `cellProperties` object.
+   *
+   * If a string is provided, it may be one of the following predefined values:
+   * * `autocomplete`,
+   * * `date`,
+   * * `numeric`,
+   * * `time`.
+   *
+   * Or you can [register](http://docs.handsontable.com/demo-data-validation.html) the validator function under specified name and use
+   * its name as an alias in your configuration.
    *
    * See more [in the demo](http://docs.handsontable.com/demo-data-validation.html).
    *
@@ -1288,8 +1330,14 @@ DefaultSettings.prototype = {
    *      validator: /^[0-9]$/ // regular expression
    *    }
    * ]
+   * // as a string
+   * columns: [
+   *    {
+   *      validator: 'numeric'
+   *    }
+   * ]
    * ```
-   * @type {Function|RegExp}
+   * @type {Function|RegExp|String}
    * @default undefined
    * @since 0.9.5
    */

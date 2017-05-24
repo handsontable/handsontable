@@ -1,5 +1,5 @@
-describe('Core_setCellMeta', () => {
-  var id = 'testContainer';
+describe('Core.setCellMeta', () => {
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -14,7 +14,7 @@ describe('Core_setCellMeta', () => {
 
   it('should set correct meta className for cell', () => {
 
-    var className = 'htCenter htMiddle';
+    const className = 'htCenter htMiddle';
 
     handsontable({
       afterCellMetaReset() {
@@ -22,14 +22,31 @@ describe('Core_setCellMeta', () => {
       }
     });
 
-    var cellMeta = getCellMeta(0, 0);
+    let cellMeta = getCellMeta(0, 0);
+
+    expect(cellMeta.className).not.toBeUndefined();
+    expect(cellMeta.className).toEqual(className);
+  });
+
+  it('should set correct meta className for non existed cell', () => {
+
+    const className = 'htCenter htMiddle';
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      afterCellMetaReset() {
+        this.setCellMeta(100, 100, 'className', className);
+      }
+    });
+
+    let cellMeta = getCellMeta(100, 100);
 
     expect(cellMeta.className).not.toBeUndefined();
     expect(cellMeta.className).toEqual(className);
   });
 
   it('should set correct meta classNames for cells using cell in configuration', function() {
-    var classNames = [
+    const classNames = [
       'htCenter htTop',
       'htRight htBottom'
     ];
@@ -46,7 +63,7 @@ describe('Core_setCellMeta', () => {
   });
 
   it('should change cell meta data with updateSettings when the cell option is defined', function() {
-    var classNames = [
+    const classNames = [
       'htCenter htTop',
       'htRight htBottom'
     ];
@@ -80,8 +97,8 @@ describe('Core_setCellMeta', () => {
   });
 
   it('should call afterSetCellMeta plugin hook', () => {
-    var className = 'htCenter htMiddle';
-    var res = {};
+    const className = 'htCenter htMiddle';
+    let res = {};
 
     handsontable({
       afterCellMetaReset() {
