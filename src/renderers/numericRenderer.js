@@ -1,5 +1,5 @@
 import numbro from 'numbro';
-import {getRenderer, registerRenderer} from './../renderers';
+import {getRenderer} from './index';
 import {isNumeric} from './../helpers/number';
 
 /**
@@ -42,7 +42,5 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
 
   getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
 }
-
-registerRenderer('numeric', numericRenderer);
 
 export default numericRenderer;

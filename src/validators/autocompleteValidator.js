@@ -6,7 +6,7 @@
  * @param {*} value - Value of edited cell
  * @param {Function} callback - Callback called with validation result
  */
-function AutocompleteValidator(value, callback) {
+export default function autocompleteValidator(value, callback) {
   if (value == null) {
     value = '';
   }
@@ -27,8 +27,6 @@ function AutocompleteValidator(value, callback) {
     callback(true);
   }
 };
-
-export default AutocompleteValidator;
 
 /**
  * Function responsible for validation of autocomplete value.

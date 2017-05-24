@@ -1,5 +1,4 @@
 import numbro from 'numbro';
-import {registerEditor} from './../editors';
 import TextEditor from './textEditor';
 
 /**
@@ -23,7 +22,5 @@ class NumericEditor extends TextEditor {
     super.beginEditing(initialValue);
   }
 }
-
-registerEditor('numeric', NumericEditor);
 
 export default NumericEditor;

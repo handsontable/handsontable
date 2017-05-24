@@ -4,7 +4,6 @@ import 'pikaday/css/pikaday.css';
 import {addClass, outerHeight} from './../helpers/dom/element';
 import {deepExtend} from './../helpers/object';
 import EventManager from './../eventManager';
-import {getEditor, registerEditor} from './../editors';
 import {isMetaKey} from './../helpers/unicode';
 import {stopPropagation} from './../helpers/dom/event';
 import TextEditor from './textEditor';
@@ -23,6 +22,7 @@ class DateEditor extends TextEditor {
   constructor(hotInstance) {
     super(hotInstance);
 
+    // TODO: Move this option to general settings
     this.defaultDateFormat = 'DD/MM/YYYY';
     this.isCellEdited = false;
     this.parentDestroyed = false;
@@ -241,7 +241,5 @@ class DateEditor extends TextEditor {
     return options;
   }
 }
-
-registerEditor('date', DateEditor);
 
 export default DateEditor;

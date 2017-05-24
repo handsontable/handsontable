@@ -1,5 +1,5 @@
 import {fastInnerHTML} from './../helpers/dom/element';
-import {getRenderer, registerRenderer} from './../renderers';
+import {getRenderer} from './index';
 import {rangeEach} from './../helpers/number';
 
 /**
@@ -28,7 +28,5 @@ function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
   });
   fastInnerHTML(TD, hash);
 }
-
-registerRenderer('password', passwordRenderer);
 
 export default passwordRenderer;
