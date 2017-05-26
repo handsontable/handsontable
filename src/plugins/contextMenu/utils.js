@@ -1,6 +1,7 @@
 import {arrayEach} from './../../helpers/array';
 import {hasClass} from './../../helpers/dom/element';
 import {KEY as SEPARATOR} from './predefinedItems/separator';
+import {isFunction} from '../../helpers/function';
 
 export function normalizeSelection(selRange) {
   return {
@@ -23,6 +24,10 @@ export function isDisabled(cell) {
 
 export function isSelectionDisabled(cell) {
   return hasClass(cell, 'htSelectionDisabled');
+}
+
+export function isHidden(cell) {
+  return hasClass(cell.parentNode, 'htHidden');
 }
 
 export function getValidSelection(hot) {
@@ -133,7 +138,7 @@ export function markLabelAsSelected(label) {
 }
 
 export function isItemHidden(item, instance) {
-  return !item.hidden || !(typeof item.hidden == 'function' && item.hidden.call(instance));
+  return isFunction(item.hidden) ? item.hidden.call(instance) : item.hidden;
 }
 
 function shiftSeparators(items, separator) {

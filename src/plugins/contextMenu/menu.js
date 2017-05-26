@@ -12,7 +12,7 @@ import Cursor from './cursor';
 import EventManager from './../../eventManager';
 import {mixin, hasOwnProperty} from './../../helpers/object';
 import {debounce} from './../../helpers/function';
-import {filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection} from './utils';
+import {filterSeparators, hasSubMenu, isDisabled, isHidden, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
 import {SEPARATOR} from './predefinedItems';
@@ -97,10 +97,7 @@ class Menu {
     this.container.style.display = 'block';
 
     const delayedOpenSubMenu = debounce((row) => this.openSubMenu(row), 300);
-
-    let filteredItems = arrayFilter(this.menuItems, (item) => isItemHidden(item, this.hot));
-
-    filteredItems = filterSeparators(filteredItems, SEPARATOR);
+    const filteredItems = filterSeparators(this.menuItems, SEPARATOR, this.hot);
 
     let settings = {
       data: filteredItems,
@@ -374,7 +371,7 @@ class Menu {
   selectFirstCell() {
     let cell = this.hotMenu.getCell(0, 0);
 
-    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
+    if (isSeparator(cell) || isDisabled(cell) || isHidden(cell) || isSelectionDisabled(cell)) {
       this.selectNextCell(0, 0);
     } else {
       this.hotMenu.selectCell(0, 0);
@@ -388,7 +385,7 @@ class Menu {
     let lastRow = this.hotMenu.countRows() - 1;
     let cell = this.hotMenu.getCell(lastRow, 0);
 
-    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
+    if (isSeparator(cell) || isDisabled(cell) || isHidden(cell) || isSelectionDisabled(cell)) {
       this.selectPrevCell(lastRow, 0);
     } else {
       this.hotMenu.selectCell(lastRow, 0);
@@ -408,7 +405,7 @@ class Menu {
     if (!cell) {
       return;
     }
-    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
+    if (isSeparator(cell) || isDisabled(cell) || isHidden(cell) || isSelectionDisabled(cell)) {
       this.selectNextCell(nextRow, col);
     } else {
       this.hotMenu.selectCell(nextRow, col);
@@ -428,7 +425,7 @@ class Menu {
     if (!cell) {
       return;
     }
-    if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
+    if (isSeparator(cell) || isDisabled(cell) || isHidden(cell) || isSelectionDisabled(cell)) {
       this.selectPrevCell(prevRow, col);
     } else {
       this.hotMenu.selectCell(prevRow, col);
@@ -443,7 +440,6 @@ class Menu {
   menuItemRenderer(hot, TD, row, col, prop, value) {
     let item = hot.getSourceDataAtRow(row);
     let wrapper = document.createElement('div');
-
     let isSubMenu = (item) => hasOwnProperty(item, 'submenu');
     let itemIsSeparator = (item) => new RegExp(SEPARATOR, 'i').test(item.name);
     let itemIsDisabled = (item) => item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(this.hot) === true);
@@ -456,7 +452,42 @@ class Menu {
     addClass(wrapper, 'htItemWrapper');
     TD.appendChild(wrapper);
 
-    if (itemIsSeparator(item)) {
+    if (isItemHidden(item, this.hot)) {
+      addClass(TD.parentNode, 'htHidden');
+
+    } else if (itemIsSeparator(item)) {
+      let hideSeparator = true;
+      let comparedRowIndex = row;
+      let hiddenItems = 0;
+
+      while (comparedRowIndex > 0) {
+        const previousItem = hot.getSourceDataAtRow(comparedRowIndex - 1);
+
+        if (isItemHidden(previousItem, this.hot)) {
+          comparedRowIndex -= 1;
+          hiddenItems += 1;
+
+        } else if (itemIsSeparator(previousItem)) {
+          // separator by item which ISN'T another separator
+
+          if (comparedRowIndex - hiddenItems > 0) {
+            hideSeparator = false;
+          }
+
+          break;
+
+        } else {
+          // separator by item which ISN'T hidden
+
+          hideSeparator = false;
+          break;
+        }
+      }
+
+      if (hideSeparator) {
+        addClass(TD.parentNode, 'htHidden');
+      }
+
       addClass(TD, 'htSeparator');
 
     } else if (typeof item.renderer === 'function') {
@@ -679,6 +710,15 @@ class Menu {
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
         (!isChildOf(event.target, '.htMenu') && isChildOf(event.target, document))) {
       this.close(true);
+    }
+  }
+
+  /**
+   * Render again menu
+   */
+  refresh() {
+    if (this.hotMenu) {
+      this.hotMenu.render();
     }
   }
 }

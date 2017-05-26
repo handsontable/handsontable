@@ -326,16 +326,22 @@ describe('ContextMenu', () => {
     });
 
     it('should hide option if hidden function return true', () => {
-
       var hot = handsontable({
         startCols: 5,
         colHeaders: true,
         contextMenu: [
           {
-            key: '',
-            name: 'Custom option',
+            key: 'Key one',
+            name: 'Custom option one',
             hidden() {
               return !this.selection.selectedHeader.cols;
+            }
+          },
+          {
+            key: 'Key two',
+            name: 'Custom option two',
+            hidden() {
+              return true;
             }
           }
         ]
@@ -345,7 +351,8 @@ describe('ContextMenu', () => {
       var items = $('.htContextMenu tbody td');
       var actions = items.not('.htSeparator');
 
-      expect(actions.length).toEqual(0);
+      expect(actions.length).toEqual(2);
+      expect(actions.filter((index, action) => $(action).parent().hasClass('htHidden')).length).toEqual(2);
 
       var header = $('.ht_clone_top thead th').eq(1);
 
@@ -354,7 +361,9 @@ describe('ContextMenu', () => {
 
       items = $('.htContextMenu tbody td');
       actions = items.not('.htSeparator');
-      expect(actions.length).toEqual(1);
+
+      expect(actions.length).toEqual(2);
+      expect(actions.filter((index, action) => $(action).parent().hasClass('htHidden')).length).toEqual(1);
     });
   });
 
@@ -758,8 +767,8 @@ describe('ContextMenu', () => {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(8);
-      expect(separators.length).toEqual(4);
+      expect(actions.filter((index, action) => !$(action).parent().hasClass('htHidden')).length).toEqual(8);
+      expect(separators.filter((index, separator) => !$(separator).parent().hasClass('htHidden')).length).toEqual(4);
 
       expect(actions.text()).toEqual([
         'Insert column on the left',
@@ -784,7 +793,7 @@ describe('ContextMenu', () => {
       var items = $('.htContextMenu tbody td');
       var actions = items.not('.htSeparator');
 
-      expect(actions.length).toEqual(8);
+      expect(actions.filter((index, action) => !$(action).parent().hasClass('htHidden')).length).toEqual(8);
 
       expect(actions.text()).toEqual([
         'Insert row above',
