@@ -97,7 +97,7 @@ class Menu {
     this.container.style.display = 'block';
 
     const delayedOpenSubMenu = debounce((row) => this.openSubMenu(row), 300);
-    const filteredItems = filterSeparators(this.menuItems, SEPARATOR, this.hot);
+    const filteredItems = filterSeparators(this.menuItems, SEPARATOR);
 
     let settings = {
       data: filteredItems,
@@ -432,6 +432,74 @@ class Menu {
     }
   }
 
+  isSeparatorFirstVisible(comparedRowIndex, itemIsSeparator, parentHot) {
+    let hiddenItems = 0;
+
+    while (comparedRowIndex > 0) {
+      const previousItem = parentHot.getSourceDataAtRow(comparedRowIndex - 1);
+
+      if (isItemHidden(previousItem, this.hot)) {
+        comparedRowIndex -= 1;
+        hiddenItems += 1;
+
+      } else if (itemIsSeparator(previousItem)) {
+
+        // show one separator if needed
+        if (comparedRowIndex - hiddenItems > 0) {
+          return false;
+        }
+
+        return true;
+
+      } else {
+        // separator next to item which ISN'T hidden
+
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  isSeparatorLastVisible(comparedRowIndex, itemIsSeparator, parentHot) {
+    const sourceRows = parentHot.countSourceRows();
+    const startRowIndex = comparedRowIndex;
+    let hiddenItems = 0;
+
+    while (comparedRowIndex < sourceRows) {
+      const nextItem = parentHot.getSourceDataAtRow(comparedRowIndex + 1);
+
+      if (!nextItem) {
+        if (startRowIndex + hiddenItems + 1 === sourceRows) {
+          return true;
+        }
+
+        return false;
+      }
+
+      if (isItemHidden(nextItem, this.hot)) {
+        comparedRowIndex += 1;
+        hiddenItems += 1;
+
+      } else if (itemIsSeparator(nextItem)) {
+
+        // show one separator if needed
+        if (comparedRowIndex - hiddenItems > startRowIndex) {
+          return false;
+        }
+
+        return true;
+
+      } else {
+        // separator next to item which ISN'T hidden
+
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   /**
    * Menu item renderer.
    *
@@ -456,71 +524,9 @@ class Menu {
       addClass(TD.parentNode, 'htHidden');
 
     } else if (itemIsSeparator(item)) {
-      let hideSeparator = true;
-      let comparedRowIndex = row;
-      let hiddenItems = 0;
 
-      while (comparedRowIndex > 0) {
-        const previousItem = hot.getSourceDataAtRow(comparedRowIndex - 1);
-
-        if (isItemHidden(previousItem, this.hot)) {
-          comparedRowIndex -= 1;
-          hiddenItems += 1;
-
-        } else if (itemIsSeparator(previousItem)) {
-          // separator next to item which ISN'T another separator
-
-          if (comparedRowIndex - hiddenItems > 0) {
-            hideSeparator = false;
-          }
-
-          break;
-
-        } else {
-          // separator next to item which ISN'T hidden
-
-          hideSeparator = false;
-          break;
-        }
-      }
-
-      if (!hideSeparator) {
-        const sourceRows = hot.countSourceRows();
-        comparedRowIndex = row;
-        hideSeparator = true;
-
-        while (comparedRowIndex < sourceRows) {
-          const nextItem = hot.getSourceDataAtRow(comparedRowIndex + 1);
-
-          if (!nextItem) {
-            if (comparedRowIndex + hiddenItems === sourceRows) {
-              hideSeparator = true;
-            }
-
-            break;
-          }
-
-          if (isItemHidden(nextItem, this.hot)) {
-            comparedRowIndex += 1;
-            hiddenItems += 1;
-
-          } else if (itemIsSeparator(nextItem)) {
-            // separator next to item which ISN'T another separator
-
-            if (comparedRowIndex - hiddenItems > row) {
-              hideSeparator = false;
-            }
-
-            break;
-
-          } else {
-            // separator next item which ISN'T hidden
-
-            hideSeparator = false;
-            break;
-          }
-        }
-      }
+      let hideSeparator = this.isSeparatorFirstVisible(row, itemIsSeparator, hot) ||
+        this.isSeparatorLastVisible(row, itemIsSeparator, hot);
 
       if (hideSeparator) {
         addClass(TD.parentNode, 'htHidden');
