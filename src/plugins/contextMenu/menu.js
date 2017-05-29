@@ -468,7 +468,7 @@ class Menu {
           hiddenItems += 1;
 
         } else if (itemIsSeparator(previousItem)) {
-          // separator by item which ISN'T another separator
+          // separator next to item which ISN'T another separator
 
           if (comparedRowIndex - hiddenItems > 0) {
             hideSeparator = false;
@@ -477,10 +477,48 @@ class Menu {
           break;
 
         } else {
-          // separator by item which ISN'T hidden
+          // separator next to item which ISN'T hidden
 
           hideSeparator = false;
           break;
+        }
+      }
+
+      if (!hideSeparator) {
+        const sourceRows = hot.countSourceRows();
+        comparedRowIndex = row;
+        hideSeparator = true;
+
+        while (comparedRowIndex < sourceRows) {
+          const nextItem = hot.getSourceDataAtRow(comparedRowIndex + 1);
+
+          if (!nextItem) {
+            if (comparedRowIndex + hiddenItems === sourceRows) {
+              hideSeparator = true;
+            }
+
+            break;
+          }
+
+          if (isItemHidden(nextItem, this.hot)) {
+            comparedRowIndex += 1;
+            hiddenItems += 1;
+
+          } else if (itemIsSeparator(nextItem)) {
+            // separator next to item which ISN'T another separator
+
+            if (comparedRowIndex - hiddenItems > row) {
+              hideSeparator = false;
+            }
+
+            break;
+
+          } else {
+            // separator next item which ISN'T hidden
+
+            hideSeparator = false;
+            break;
+          }
         }
       }
 
