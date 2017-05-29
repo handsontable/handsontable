@@ -365,6 +365,123 @@ describe('ContextMenu', () => {
       expect(actions.length).toEqual(2);
       expect(actions.filter((index, action) => $(action).parent().hasClass('htHidden')).length).toEqual(1);
     });
+
+    describe('should allow dynamic hide / show menu items and separators #4262', () => {
+      let items = {};
+
+      beforeEach(() => {
+        items = {
+          "col_left": {
+            hidden: () => true
+          },
+          "hsep1": "---------",
+          "col_right": {},
+          "row_above": {},
+          "hsep2": "---------",
+          "row_below": {},
+          "hsep3": "---------",
+          "about": {name: 'About this menu'}
+        };
+      });
+
+      it('display elements, which were hidden at init, after change of `hidden` property', () => {
+        var hot = handsontable({
+          colHeaders: true,
+          contextMenu: {
+            items
+          }
+        });
+
+        var header = $('.ht_clone_top thead th').eq(1);
+
+        header.simulate('mousedown');
+        contextMenu();
+
+        hot.getPlugin('contextMenu').menu.menuItems[0].hidden = () => false;
+        hot.getPlugin('contextMenu').menu.hotMenu.render();
+
+        const domElements = $('.htContextMenu tbody td');
+        expect(domElements.filter((index, action) => $(action).parent().hasClass('htHidden')).length).toBe(0);
+
+        const actions = domElements.not('.htSeparator');
+        expect(actions.filter((index, action) => $(action).parent().hasClass('htHidden')).length).toBe(0);
+      });
+
+      it('hide separators if they would be first at menu after hiding another elements', () => {
+        var hot = handsontable({
+          colHeaders: true,
+          contextMenu: {
+            items
+          }
+        });
+
+        var header = $('.ht_clone_top thead th').eq(1);
+
+        header.simulate('mousedown');
+        contextMenu();
+
+        hot.getPlugin('contextMenu').menu.menuItems[0].hidden = true;
+        hot.getPlugin('contextMenu').menu.menuItems[2].hidden = true;
+        hot.getPlugin('contextMenu').menu.menuItems[3].hidden = true;
+        hot.getPlugin('contextMenu').menu.hotMenu.render();
+
+        const domElements = $('.htContextMenu tbody td');
+        expect(domElements.filter((index, action) => $(action).parent().hasClass('htHidden')).length).toBe(5);
+
+        const actions = domElements.not('.htSeparator');
+        expect(actions.filter((index, action) => $(action).parent().hasClass('htHidden')).length).toBe(3);
+      });
+
+      it('hide separators if they would be last at menu after hiding another elements', () => {
+        var hot = handsontable({
+          colHeaders: true,
+          contextMenu: {
+            items
+          }
+        });
+
+        var header = $('.ht_clone_top thead th').eq(1);
+
+        header.simulate('mousedown');
+        contextMenu();
+
+        hot.getPlugin('contextMenu').menu.menuItems[0].hidden = false;
+        hot.getPlugin('contextMenu').menu.menuItems[5].hidden = true;
+        hot.getPlugin('contextMenu').menu.menuItems[7].hidden = true;
+        hot.getPlugin('contextMenu').menu.hotMenu.render();
+
+        const domElements = $('.htContextMenu tbody td');
+        expect(domElements.filter((index, action) => $(action).parent().hasClass('htHidden')).length).toBe(4);
+
+        const actions = domElements.not('.htSeparator');
+        expect(actions.filter((index, action) => $(action).parent().hasClass('htHidden')).length).toBe(2);
+      });
+
+      xit('hide separators if two or more such elements would be next to each other after hiding another elements', () => {
+        var hot = handsontable({
+          colHeaders: true,
+          contextMenu: {
+            items
+          }
+        });
+
+        var header = $('.ht_clone_top thead th').eq(1);
+
+        header.simulate('mousedown');
+        contextMenu();
+
+        hot.getPlugin('contextMenu').menu.menuItems[0].hidden = false;
+        hot.getPlugin('contextMenu').menu.menuItems[2].hidden = true;
+        hot.getPlugin('contextMenu').menu.menuItems[3].hidden = true;
+        hot.getPlugin('contextMenu').menu.hotMenu.render();
+
+        const domElements = $('.htContextMenu tbody td');
+        expect(domElements.filter((index, action) => $(action).parent().hasClass('htHidden')).length).toBe(3);
+
+        const actions = domElements.not('.htSeparator');
+        expect(actions.filter((index, action) => $(action).parent().hasClass('htHidden')).length).toBe(2);
+      });
+    });
   });
 
   describe('menu destroy', () => {
