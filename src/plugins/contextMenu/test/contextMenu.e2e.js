@@ -371,16 +371,16 @@ describe('ContextMenu', () => {
 
       beforeEach(() => {
         items = {
-          "col_left": {
+          col_left: {
             hidden: () => true
           },
-          "hsep1": "---------",
-          "col_right": {},
-          "row_above": {},
-          "hsep2": "---------",
-          "row_below": {},
-          "hsep3": "---------",
-          "about": {name: 'About this menu'}
+          hsep1: '---------',
+          col_right: {},
+          row_above: {},
+          hsep2: '---------',
+          row_below: {},
+          hsep3: '---------',
+          about: {name: 'About this menu'}
         };
       });
 
