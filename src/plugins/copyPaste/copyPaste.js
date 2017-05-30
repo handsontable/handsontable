@@ -9,10 +9,11 @@ import {arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
 import {stopImmediatePropagation, isImmediatePropagationStopped} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
-import {getInstance} from './copyPasteManager';
+import Textarea from './textarea';
 import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import pasteItem from './contextMenuItem/paste';
+import EventManager from './../../eventManager';
 
 Hooks.getSingleton().register('afterCopyLimit');
 Hooks.getSingleton().register('modifyCopyableRange');
@@ -25,11 +26,11 @@ Hooks.getSingleton().register('afterCopy');
 
 const ROWS_LIMIT = 1000;
 const COLUMNS_LIMIT = 1000;
+const privatePool = new WeakMap();
 
 class CopyPaste extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
-
     /**
      * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
@@ -66,7 +67,17 @@ class CopyPaste extends BasePlugin {
      * @type {HTMLElement}
      * @default undefined
      */
-    this.CopyPasteManager = getInstance();
+    this.textarea = void 0;
+    /**
+     * Event manager
+     *
+     * @type {EventManager}
+     */
+    this.eventManager = new EventManager(this);
+
+    privatePool.set(this, {
+      triggeredByPaste: false,
+    });
   }
 
   /**
@@ -86,8 +97,21 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
+    const settings = this.hot.getSettings();
+
+    this.textarea = Textarea.getSingleton();
+
+    if (typeof settings.copyPaste === 'object') {
+      this.pasteMode = settings.copyPaste.pasteMode || this.pasteMode;
+      this.rowsLimit = settings.copyPaste.rowsLimit || this.rowsLimit;
+      this.columnsLimit = settings.copyPaste.columnsLimit || this.columnsLimit;
+    }
+
     this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
     this.addHook('beforeKeyDown', (event) => this.onBeforeKeyDown(event));
+    // this.addHook('beforeOnCellMouseDown', () => this.onBeforeOnCellMouseDown());
+
+    this.registerEvents();
 
     super.enablePlugin();
   }
@@ -106,16 +130,11 @@ class CopyPaste extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    super.disablePlugin();
-  }
+    if (this.textarea) {
+      this.textarea.destroy();
+    }
 
-  onAfterContextMenuDefaultOptions(options) {
-    options.items.push(
-      Handsontable.plugins.ContextMenu.SEPARATOR,
-      copyItem(this),
-      cutItem(this),
-      pasteItem(this)
-    );
+    super.disablePlugin();
   }
 
   /**
@@ -148,10 +167,10 @@ class CopyPaste extends BasePlugin {
 
     let copyableData = this.getRangedCopyableData(this.copyableRanges);
 
-    this.CopyPasteManager.setData(copyableData);
+    this.textarea.setValue(copyableData);
 
     if (endRow !== finalEndRow || endCol !== finalEndCol) {
-      this.run.runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
+      this.hot.runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, this.rowsLimit, this.columnsLimit);
     }
   }
 
@@ -236,111 +255,172 @@ class CopyPaste extends BasePlugin {
   /**
    * Copy action.
    */
-  copy(byClick) {
+  copy(triggeredByClick) {
     let rangedData = this.getRangedData(this.copyableRanges);
 
     let allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
 
     if (allowCopying) {
-      console.log('copyPaste: copy');
-      this.CopyPasteManager.setData(SheetClip.stringify(rangedData));
-      this.CopyPasteManager.action(this.hot.runHooks, 'afterCopy', rangedData, this.copyableRanges, byClick ? 'copy' : void 0);
+      this.textarea.setValue(SheetClip.stringify(rangedData));
+      this.textarea.select();
+
+      if (triggeredByClick) {
+        document.execCommand('copy');
+      }
+
+      this.hot.runHooks('afterCopy', rangedData, this.copyableRanges);
 
     } else {
-      this.CopyPasteManager.setData('');
+      this.textarea.setValue('');
     }
   }
 
   /**
    * Cut action.
    */
-  cut(byClick) {
+  cut(triggeredByClick) {
     let rangedData = this.getRangedData(this.copyableRanges);
 
     let allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
 
     if (allowCuttingOut) {
-      console.log('copyPaste: cut');
-      this.CopyPasteManager.setData(SheetClip.stringify(rangedData));
+      this.textarea.setValue(SheetClip.stringify(rangedData));
       this.hot.selection.empty();
+      this.textarea.select();
 
-      this.CopyPasteManager.action(this.hot.runHooks, 'afterCut', rangedData, this.copyableRanges, byClick ? 'cut' : void 0);
+      if (triggeredByClick) {
+        document.execCommand('cut');
+      }
+
+      this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
 
     } else {
-      this.CopyPasteManager.setData('');
+      this.textarea.setValue('');
     }
   }
 
   /**
    * Paste action.
    */
-  paste() {
-    let _this = this;
+  paste(triggeredByClick) {
+    this.textarea.select();
 
-    function pasteAction(str) {
-      let input,
-        inputArray,
-        selected,
-        coordsFrom,
-        coordsTo,
-        cellRange,
-        topLeftCorner,
-        bottomRightCorner,
-        areaStart,
-        areaEnd;
-
-      input = str;
-      inputArray = SheetClip.parse(input);
-      selected = _this.hot.getSelected();
-      coordsFrom = new CellCoords(selected[0], selected[1]);
-      coordsTo = new CellCoords(selected[2], selected[3]);
-      cellRange = new CellRange(coordsFrom, coordsFrom, coordsTo);
-      topLeftCorner = cellRange.getTopLeftCorner();
-      bottomRightCorner = cellRange.getBottomRightCorner();
-      areaStart = topLeftCorner;
-      areaEnd = new CellCoords(
-        Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
-        Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
-
-      let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
-      let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
-
-      _this.hot.addHookOnce('afterChange', (changes, source) => {
-        let changesLength = changes ? changes.length : 0;
-
-        if (changesLength) {
-          let offset = {row: 0, col: 0};
-          let highestColumnIndex = -1;
-
-          arrayEach(changes, (change, index) => {
-            let nextChange = changesLength > index + 1 ? changes[index + 1] : null;
-
-            if (nextChange) {
-              if (!isSelRowAreaCoverInputValue) {
-                offset.row += Math.max(nextChange[0] - change[0] - 1, 0);
-              }
-              if (!isSelColAreaCoverInputValue && change[1] > highestColumnIndex) {
-                highestColumnIndex = change[1];
-                offset.col += Math.max(nextChange[1] - change[1] - 1, 0);
-              }
-            }
-          });
-          _this.hot.selectCell(areaStart.row, areaStart.col, areaEnd.row + offset.row, areaEnd.col + offset.col);
-        }
-      });
-
-      let allowPasting = !!_this.hot.runHooks('beforePaste', inputArray, _this.copyableRanges);
-
-      if (allowPasting) {
-        console.log('copyPaste: paste');
-        _this.hot.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', _this.pasteMode);
-        _this.hot.runHooks('afterPaste', inputArray, _this.copyableRanges);
-      }
+    if (triggeredByClick) {
+      document.execCommand('paste');
     }
-
-    this.CopyPasteManager.action(pasteAction);
   }
 
+  /**
+   * Register event listeners.
+   *
+   * @private
+   */
+  registerEvents() {
+    this.eventManager.addEventListener(this.textarea.element, 'paste', (event) => this.onPaste(event));
+    this.eventManager.addEventListener(this.textarea.element, 'input', (event) => this.onInput(event));
+  }
+
+  /**
+   * `paste` event callback on textarea element.
+   */
+  onPaste() {
+    const priv = privatePool.get(this);
+
+    priv.triggeredByPaste = true;
+  }
+
+  /**
+   * `input` event callback is called after `paste` event callback.
+   */
+  onInput() {
+    const priv = privatePool.get(this);
+
+    if (!this.hot.isListening() || !priv.triggeredByPaste) {
+      return;
+    }
+
+    priv.triggeredByPaste = false;
+
+    let input,
+      inputArray,
+      selected,
+      coordsFrom,
+      coordsTo,
+      cellRange,
+      topLeftCorner,
+      bottomRightCorner,
+      areaStart,
+      areaEnd;
+
+    input = this.textarea.getValue();
+    inputArray = SheetClip.parse(input);
+    selected = this.hot.getSelected();
+    coordsFrom = new CellCoords(selected[0], selected[1]);
+    coordsTo = new CellCoords(selected[2], selected[3]);
+    cellRange = new CellRange(coordsFrom, coordsFrom, coordsTo);
+    topLeftCorner = cellRange.getTopLeftCorner();
+    bottomRightCorner = cellRange.getBottomRightCorner();
+    areaStart = topLeftCorner;
+    areaEnd = new CellCoords(
+      Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
+      Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
+
+    let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
+    let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
+
+    this.hot.addHookOnce('afterChange', (changes, source) => {
+      let changesLength = changes ? changes.length : 0;
+
+      if (changesLength) {
+        let offset = {row: 0, col: 0};
+        let highestColumnIndex = -1;
+
+        arrayEach(changes, (change, index) => {
+          let nextChange = changesLength > index + 1 ? changes[index + 1] : null;
+
+          if (nextChange) {
+            if (!isSelRowAreaCoverInputValue) {
+              offset.row += Math.max(nextChange[0] - change[0] - 1, 0);
+            }
+            if (!isSelColAreaCoverInputValue && change[1] > highestColumnIndex) {
+              highestColumnIndex = change[1];
+              offset.col += Math.max(nextChange[1] - change[1] - 1, 0);
+            }
+          }
+        });
+        this.hot.selectCell(areaStart.row, areaStart.col, areaEnd.row + offset.row, areaEnd.col + offset.col);
+      }
+    });
+
+    let allowPasting = !!this.hot.runHooks('beforePaste', inputArray, this.copyableRanges);
+
+    if (allowPasting) {
+      this.hot.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', this.pasteMode);
+      this.hot.runHooks('afterPaste', inputArray, this.copyableRanges);
+    }
+  }
+
+  /**
+   * Add copy, cut and paste options to the Context Menu.
+   *
+   * @private
+   * @param {Object} options Contains default added options of the Context Menu.
+   */
+  onAfterContextMenuDefaultOptions(options) {
+    options.items.push(
+      Handsontable.plugins.ContextMenu.SEPARATOR,
+      copyItem(this),
+      cutItem(this),
+      pasteItem(this)
+    );
+  }
+
+  /**
+   * beforeKeyDown callback.
+   *
+   * @private
+   * @param {Event} event
+   */
   onBeforeKeyDown(event) {
     if (!this.hot.getSelected()) {
       return;
@@ -351,7 +431,7 @@ class CopyPaste extends BasePlugin {
     if (isImmediatePropagationStopped(event)) {
       return;
     }
-    if (!this.CopyPasteManager.isActive() && getSelectionText()) {
+    if (!this.textarea.isActive() && getSelectionText()) {
       return;
     }
 
@@ -372,12 +452,9 @@ class CopyPaste extends BasePlugin {
 
     if (ctrlDown) {
       if (event.keyCode == KEY_CODES.A) {
-        console.log('selectAll');
-
         setTimeout(() => {
           this.setCopyableText();
         }, 0);
-
       }
       if (event.keyCode == KEY_CODES.X) {
         this.cut();
@@ -395,6 +472,10 @@ class CopyPaste extends BasePlugin {
    * Destroy plugin instance.
    */
   destroy() {
+    if (this.textarea) {
+      this.textarea.destroy();
+    }
+
     super.destroy();
   }
 }

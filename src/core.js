@@ -1285,6 +1285,15 @@ export default function Core(rootElement, userSettings) {
    * @since 0.11
    */
   this.listen = function() {
+    let invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
+
+    if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
+      document.activeElement.blur();
+
+    } else if (invalidActiveElement) { // IE
+      document.body.focus();
+    }
+
     activeGuid = instance.guid;
   };
 
@@ -1296,7 +1305,9 @@ export default function Core(rootElement, userSettings) {
    * @since 0.11
    */
   this.unlisten = function() {
-    activeGuid = null;
+    if (this.isListening()) {
+      activeGuid = null;
+    }
   };
 
   /**

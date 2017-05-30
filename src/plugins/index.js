@@ -4,7 +4,6 @@ import AutoRowSize from './autoRowSize/autoRowSize';
 import ColumnSorting from './columnSorting/columnSorting';
 import Comments from './comments/comments';
 import ContextMenu from './contextMenu/contextMenu';
-import ContextMenuCopyPaste from './contextMenuCopyPaste/contextMenuCopyPaste';
 import CopyPaste from './copyPaste/copyPaste';
 import CustomBorders from './customBorders/customBorders';
 import DragToScroll from './dragToScroll/dragToScroll';
@@ -29,7 +28,6 @@ export {
   ColumnSorting,
   Comments,
   ContextMenu,
-  ContextMenuCopyPaste,
   CopyPaste,
   CustomBorders,
   DragToScroll,

@@ -615,8 +615,8 @@ describe('ContextMenu', () => {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(13);
-      expect(separators.length).toEqual(6);
+      expect(actions.length).toEqual(16);
+      expect(separators.length).toEqual(7);
 
       expect(actions.text()).toEqual([
         'Insert row above',
@@ -631,7 +631,10 @@ describe('ContextMenu', () => {
         'Alignment',
         'Add comment',
         'Delete comment',
-        'Read only comment'
+        'Read only comment',
+        'Copy',
+        'Cut',
+        'Paste'
       ].join(''));
     });
 
@@ -758,8 +761,8 @@ describe('ContextMenu', () => {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(8);
-      expect(separators.length).toEqual(4);
+      expect(actions.length).toEqual(11);
+      expect(separators.length).toEqual(5);
 
       expect(actions.text()).toEqual([
         'Insert column on the left',
@@ -769,7 +772,10 @@ describe('ContextMenu', () => {
         'Undo',
         'Redo',
         'Read only',
-        'Alignment'
+        'Alignment',
+        'Copy',
+        'Cut',
+        'Paste'
       ].join(''));
     });
 
@@ -784,7 +790,7 @@ describe('ContextMenu', () => {
       var items = $('.htContextMenu tbody td');
       var actions = items.not('.htSeparator');
 
-      expect(actions.length).toEqual(8);
+      expect(actions.length).toEqual(11);
 
       expect(actions.text()).toEqual([
         'Insert row above',
@@ -794,7 +800,10 @@ describe('ContextMenu', () => {
         'Undo',
         'Redo',
         'Read only',
-        'Alignment'
+        'Alignment',
+        'Copy',
+        'Cut',
+        'Paste'
       ].join(''));
     });
 
