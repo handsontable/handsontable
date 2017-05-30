@@ -247,6 +247,10 @@ DefaultSettings.prototype = {
    * Any constructor or column option may be overwritten for a particular cell (row/column combination)
    * using the `cells` property in the Handsontable constructor.
    *
+   * Possible values of `prop`:
+   * - key name in datarow when dataset is an array of objects
+   * - the same number as `col` when dataset is an array of arrays
+   *
    * __Note:__ Parameters `row` and `col` always represent __physical indexes__. Example below show how to execute
    * operations based on the __visual__ representation of Handsontable.
    *
