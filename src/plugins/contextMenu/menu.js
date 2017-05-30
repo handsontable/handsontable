@@ -432,72 +432,45 @@ class Menu {
     }
   }
 
-  isSeparatorFirstVisible(comparedRowIndex, itemIsSeparator, parentHot) {
-    let hiddenItems = 0;
-
-    while (comparedRowIndex > 0) {
-      const previousItem = parentHot.getSourceDataAtRow(comparedRowIndex - 1);
-
-      if (isItemHidden(previousItem, this.hot)) {
-        comparedRowIndex -= 1;
-        hiddenItems += 1;
-
-      } else if (itemIsSeparator(previousItem)) {
-
-        // show one separator if needed
-        if (comparedRowIndex - hiddenItems > 0) {
-          return false;
-        }
-
-        return true;
-
-      } else {
-        // separator next to item which ISN'T hidden
-
-        return false;
-      }
-    }
-
-    return true;
+  /**
+   * Get if row at specific index should be hidden.
+   *
+   * @private
+   * @param parentHot Parent Handsontable instance
+   * @param {Number} row Row index.
+   * @returns {Boolean}
+   */
+  shouldBeHidden(parentHot, row) {
+    return this.getRowIndexedHiddenState(parentHot)[row];
   }
 
-  isSeparatorLastVisible(comparedRowIndex, itemIsSeparator, parentHot) {
-    const sourceRows = parentHot.countSourceRows();
-    const startRowIndex = comparedRowIndex;
-    let hiddenItems = 0;
+  /**
+   * Get information which rows should be hidden (with hiding unnecessary separators).
+   *
+   * @private
+   * @param parentHot Parent Handsontable instance
+   * @returns {Array}
+   */
+  getRowIndexedHiddenState(parentHot) {
+    const sourceData = parentHot.getSourceData();
+    const notHiddenItems = sourceData.filter((item) => !isItemHidden(item, this.hot));
+    const isHiddenItems = sourceData.map((item) => isItemHidden(item, this.hot));
+    const filteredItems = filterSeparators(notHiddenItems, SEPARATOR);
 
-    while (comparedRowIndex < sourceRows) {
-      const nextItem = parentHot.getSourceDataAtRow(comparedRowIndex + 1);
+    let itemsMatched = 0;
 
-      if (!nextItem) {
-        if (startRowIndex + hiddenItems + 1 === sourceRows) {
-          return true;
+    for (let i = 0; i < isHiddenItems.length; i += 1) {
+      if (!isHiddenItems[i]) {
+        if (sourceData[i] === filteredItems[itemsMatched]) {
+          itemsMatched += 1;
+
+        } else {
+          isHiddenItems[i] = true;
         }
-
-        return false;
-      }
-
-      if (isItemHidden(nextItem, this.hot)) {
-        comparedRowIndex += 1;
-        hiddenItems += 1;
-
-      } else if (itemIsSeparator(nextItem)) {
-
-        // show one separator if needed
-        if (comparedRowIndex - hiddenItems > startRowIndex) {
-          return false;
-        }
-
-        return true;
-
-      } else {
-        // separator next to item which ISN'T hidden
-
-        return false;
       }
     }
 
-    return true;
+    return isHiddenItems;
   }
 
   /**
@@ -525,10 +498,7 @@ class Menu {
 
     } else if (itemIsSeparator(item)) {
 
-      let hideSeparator = this.isSeparatorFirstVisible(row, itemIsSeparator, hot) ||
-        this.isSeparatorLastVisible(row, itemIsSeparator, hot);
-
-      if (hideSeparator) {
+      if (this.shouldBeHidden(hot, row)) {
         addClass(TD.parentNode, 'htHidden');
       }
 

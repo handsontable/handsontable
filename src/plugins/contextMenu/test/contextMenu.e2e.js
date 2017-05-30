@@ -457,7 +457,7 @@ describe('ContextMenu', () => {
         expect(actions.filter((index, action) => $(action).parent().hasClass('htHidden')).length).toBe(2);
       });
 
-      xit('hide separators if two or more such elements would be next to each other after hiding another elements', () => {
+      it('hide separators if two or more such elements would be next to each other after hiding another elements', () => {
         var hot = handsontable({
           colHeaders: true,
           contextMenu: {
