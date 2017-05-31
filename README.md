@@ -48,6 +48,11 @@ If you use a CommonJS compatible environment you can use the `require` function 
 ```javascript
 var handsontable = require('handsontable');
 ```
+To grab all dependencies following an NPM install, you can use this for CommonJS modules
+```javascript
+var handsontable = require('handsontable/dist/handsontable.full');
+```
+
 To bundle Handsontable with [Browserify](http://browserify.org) you must specify the module names of all required modules:
 
 `browserify main.js -o bundle.js -r moment -r pikaday -r zeroclipboard -r numbro`
