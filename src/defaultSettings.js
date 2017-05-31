@@ -1616,8 +1616,8 @@ DefaultSettings.prototype = {
   autoColumnSize: void 0,
 
   /**
-   * Enables or disables autoRowSize plugin. Default value is `undefined`, which has the same effect as `true`.
-   * Disabling this plugin can increase performance, as no size-related calculations would be performed.
+   * Enables or disables autoRowSize plugin. Default value is `undefined`, which has the same effect as `false` (disabled).
+   * Enabling this plugin can decrease performance, as size-related calculations would be performed.
    *
    * Row height calculations are divided into sync and async stages. Each of these stages has their own advantages and
    * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous operations don't
