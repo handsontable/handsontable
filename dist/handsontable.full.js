@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 0.32.0-beta2
- * Date: Tue May 23 2017 14:32:41 GMT+0200 (CEST)
+ * Version: 0.32.0
+ * Date: Tue May 30 2017 12:18:32 GMT+0200 (CEST)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -20310,8 +20310,8 @@ DefaultSettings.prototype = {
   autoColumnSize: void 0,
 
   /**
-   * Enables or disables autoRowSize plugin. Default value is `undefined`, which has the same effect as `true`.
-   * Disabling this plugin can increase performance, as no size-related calculations would be performed.
+   * Enables or disables autoRowSize plugin. Default value is `undefined`, which has the same effect as `false` (disabled).
+   * Enabling this plugin can decrease performance, as size-related calculations would be performed.
    *
    * Row height calculations are divided into sync and async stages. Each of these stages has their own advantages and
    * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous operations don't
@@ -36250,9 +36250,9 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "2017-05-23T12:32:41.977Z";
+Handsontable.buildDate = "2017-05-30T10:18:32.902Z";
 Handsontable.packageName = "handsontable";
-Handsontable.version = "0.32.0-beta2";
+Handsontable.version = "0.32.0";
 
 var baseVersion = undefined;
 
