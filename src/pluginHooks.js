@@ -156,7 +156,7 @@ const REGISTERED_HOOKS = [
    *
    * @since 0.28.0
    * @event Hooks#beforeCreateCol
-   * @param {Number} index Represents the index of first newly created column in the data source array.
+   * @param {Number} index Represents the visual index of first newly created column in the data source array.
    * @param {Number} amount Number of newly created columns in the data source array.
    * @param {String} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
@@ -167,7 +167,7 @@ const REGISTERED_HOOKS = [
    * Callback is fired after a new column was created.
    *
    * @event Hooks#afterCreateCol
-   * @param {Number} index Represents the index of first newly created column in the data source array.
+   * @param {Number} index Represents the visual index of first newly created column in the data source array.
    * @param {Number} amount Number of newly created columns in the data source array.
    * @param {String} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
@@ -179,7 +179,7 @@ const REGISTERED_HOOKS = [
    *
    * @since 0.28.0
    * @event Hooks#beforeCreateRow
-   * @param {Number} index Represents the index of first newly created row in the data source array.
+   * @param {Number} index Represents the visual index of first newly created row in the data source array.
    * @param {Number} amount Number of newly created rows in the data source array.
    * @param {String} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
@@ -190,7 +190,7 @@ const REGISTERED_HOOKS = [
    * Callback is fired after a new row was created.
    *
    * @event Hooks#afterCreateRow
-   * @param {Number} index Represents the index of first newly created row in the data source array.
+   * @param {Number} index Represents the visual index of first newly created row in the data source array.
    * @param {Number} amount Number of newly created rows in the data source array.
    * @param {String} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
@@ -223,8 +223,8 @@ const REGISTERED_HOOKS = [
    * Callback fired after getting the cell settings.
    *
    * @event Hooks#afterGetCellMeta
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {Object} cellProperties Object containing the cell properties.
    */
   'afterGetCellMeta',
@@ -233,7 +233,7 @@ const REGISTERED_HOOKS = [
    * Callback fired after retrieving information about a column header and appending it to the table header.
    *
    * @event Hooks#afterGetColHeader
-   * @param {Number} col Column index.
+   * @param {Number} col Visual column index.
    * @param {Element} TH Header's TH element.
    */
   'afterGetColHeader',
@@ -242,7 +242,7 @@ const REGISTERED_HOOKS = [
    * Callback fired after retrieving information about a column header and appending it to the table header.
    *
    * @event Hooks#afterGetRowHeader
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @param {Element} TH Header's TH element.
    */
   'afterGetRowHeader',
@@ -296,7 +296,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterOnCellMouseDown
    * @since 0.11
    * @param {Object} event `mousedown` event object.
-   * @param {Object} coords Coordinates object containing the row and column indexes of the clicked cell.
+   * @param {Object} coords Coordinates object containing the visual row and visual column indexes of the clicked cell.
    * @param {Element} TD Cell's TD (or TH) element.
    */
   'afterOnCellMouseDown',
@@ -310,7 +310,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterOnCellMouseOver
    * @since 0.11
    * @param {Object} event `mouseover` event object.
-   * @param {Object} coords Hovered cell's coordinate object.
+   * @param {Object} coords Hovered cell's visual coordinate object.
    * @param {Element} TD Cell's TD (or TH) element.
    */
   'afterOnCellMouseOver',
@@ -321,7 +321,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterOnCellMouseOver
    * @since 0.31.1
    * @param {Object} event `mouseout` event object.
-   * @param {Object} coords Leaved cell's coordinate object.
+   * @param {Object} coords Leaved cell's visual coordinate object.
    * @param {Element} TD Cell's TD (or TH) element.
    */
   'afterOnCellMouseOut',
@@ -330,7 +330,7 @@ const REGISTERED_HOOKS = [
    * Callback is fired when one or more columns are removed.
    *
    * @event Hooks#afterRemoveCol
-   * @param {Number} index Is an index of starter column.
+   * @param {Number} index Is an visual index of starter column.
    * @param {Number} amount Is an amount of removed columns.
    */
   'afterRemoveCol',
@@ -339,7 +339,7 @@ const REGISTERED_HOOKS = [
    * Callback is fired when one or more rows are removed.
    *
    * @event Hooks#afterRemoveRow
-   * @param {Number} index Is an index of starter row.
+   * @param {Number} index Is an visual index of starter row.
    * @param {Number} amount Is an amount of removed rows.
    */
   'afterRemoveRow',
@@ -359,8 +359,8 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeRenderer
    * @since 0.24.2
    * @param {Element} TD Currently rendered cell's TD element.
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {String|Number} prop Column property name or a column index, if datasource is an array of arrays.
    * @param {String} value Value of the rendered cell.
    * @param {Object} cellProperties Object containing the cell's properties.
@@ -373,8 +373,8 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterRenderer
    * @since 0.11.0
    * @param {Element} TD Currently rendered cell's TD element.
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {String|Number} prop Column property name or a column index, if datasource is an array of arrays.
    * @param {String} value Value of the rendered cell.
    * @param {Object} cellProperties Object containing the cell's properties.
@@ -401,10 +401,10 @@ const REGISTERED_HOOKS = [
    * Callback fired after one or more cells are selected (e.g. during mouse move).
    *
    * @event Hooks#afterSelection
-   * @param {Number} r Selection start row index.
-   * @param {Number} c Selection start column index.
-   * @param {Number} r2 Selection end row index.
-   * @param {Number} c2 Selection end column index.
+   * @param {Number} r Selection start visual row index.
+   * @param {Number} c Selection start visual column index.
+   * @param {Number} r2 Selection end visual row index.
+   * @param {Number} c2 Selection end visual column index.
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
    *    * @example
    * ```js
@@ -423,9 +423,9 @@ const REGISTERED_HOOKS = [
    * Callback fired after one or more cells are selected. The `p` argument represents the source object property name instead of the column number.
    *
    * @event Hooks#afterSelectionByProp
-   * @param {Number} r Selection start row index.
+   * @param {Number} r Selection start visual row index.
    * @param {String} p Selection start data source object property name.
-   * @param {Number} r2 Selection end row index.
+   * @param {Number} r2 Selection end visual row index.
    * @param {String} p2 Selection end data source object property name.
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
    *    * @example
@@ -445,10 +445,10 @@ const REGISTERED_HOOKS = [
    * Callback fired after one or more cells are selected (e.g. on mouse up).
    *
    * @event Hooks#afterSelectionEnd
-   * @param {Number} r Selection start row index.
-   * @param {Number} c Selection start column index.
-   * @param {Number} r2 Selection end row index.
-   * @param {Number} c2 Selection end column index.
+   * @param {Number} r Selection start visual row index.
+   * @param {Number} c Selection start visual column index.
+   * @param {Number} r2 Selection end visual row index.
+   * @param {Number} c2 Selection end visual column index.
    */
   'afterSelectionEnd',
 
@@ -457,9 +457,9 @@ const REGISTERED_HOOKS = [
    * property name instead of the column number.
    *
    * @event Hooks#afterSelectionEndByProp
-   * @param {Number} r Selection start row index.
+   * @param {Number} r Selection start visual row index.
    * @param {String} p Selection start data source object property index.
-   * @param {Number} r2 Selection end row index.
+   * @param {Number} r2 Selection end visual row index.
    * @param {String} p2 Selection end data source object property index.
    */
   'afterSelectionEndByProp',
@@ -469,8 +469,8 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterSetCellMeta
    * @since 0.11.0
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {String} key The updated meta key.
    * @param {*} value The updated meta value.
    */
@@ -622,8 +622,8 @@ const REGISTERED_HOOKS = [
    * Callback fired before getting cell settings.
    *
    * @event Hooks#beforeGetCellMeta
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {Object} cellProperties Object containing the cell's properties.
    */
   'beforeGetCellMeta',
@@ -660,7 +660,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeOnCellMouseDown
    * @param {Event} event The `mousedown` event object.
-   * @param {CellCoords} coords CellCoords object containing the coordinates of the clicked cell.
+   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
    * @param {Element} TD TD element.
    */
   'beforeOnCellMouseDown',
@@ -670,7 +670,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeOnCellMouseOver
    * @param {Event} event The `mouseover` event object.
-   * @param {CellCoords} coords CellCoords object containing the coordinates of the clicked cell.
+   * @param {CellCoords} coords CellCoords object containing the visual coordinates of the clicked cell.
    * @param {Element} TD TD element.
    * @param {Object} blockCalculations Contain keys 'row' and 'column' with boolean value.
    */
@@ -682,7 +682,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeOnCellMouseOut
    * @since 0.31.1
    * @param {Event} event The `mouseout` event object.
-   * @param {WalkontableCellCoords} coords WalkontableCellCoords object containing the coordinates of the leaved cell.
+   * @param {WalkontableCellCoords} coords WalkontableCellCoords object containing the visual coordinates of the leaved cell.
    * @param {Element} TD TD element.
    */
   'beforeOnCellMouseOut',
@@ -691,9 +691,9 @@ const REGISTERED_HOOKS = [
    * Callback is fired when one or more columns are about to be removed.
    *
    * @event Hooks#beforeRemoveCol
-   * @param {Number} index Index of starter column.
+   * @param {Number} index Visual index of starter column.
    * @param {Number} amount Amount of columns to be removed.
-   * @param {Array} [logicalCols] Consists of logical indexes of processed columns.
+   * @param {Array} [visualCols] Consists of visual indexes of processed columns.
    */
   'beforeRemoveCol',
 
@@ -701,9 +701,9 @@ const REGISTERED_HOOKS = [
    * Callback is fired when one or more rows are about to be removed.
    *
    * @event Hooks#beforeRemoveRow
-   * @param {Number} index Index of starter column.
+   * @param {Number} index Visual index of starter column.
    * @param {Number} amount Amount of columns to be removed.
-   * @param {Array} [logicalRows] Consists of logical indexes of processed rows.
+   * @param {Array} [visualRows] Consists of visual indexes of processed rows.
    */
   'beforeRemoveRow',
 
@@ -786,7 +786,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#modifyCol
    * @since 0.11
-   * @param {Number} col Column index.
+   * @param {Number} col Visual column index.
    */
   'modifyCol',
 
@@ -795,16 +795,16 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#unmodifyCol
    * @since 0.23.0
-   * @param {Number} col Column index.
+   * @param {Number} col Physical column index.
    */
   'unmodifyCol',
 
   /**
-   * Fired when a row index is about to be de-modified by a callback function.
+   * Fired when a physical row index is about to be de-modified by a callback function.
    *
    * @event Hooks#unmodifyRow
    * @since 0.26.2
-   * @param {Number} row Logical row index.
+   * @param {Number} row Physical row index.
    */
   'unmodifyRow',
   /**
@@ -812,7 +812,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#modifyColHeader
    * @since 0.20.0
-   * @param {Number} column Column header index.
+   * @param {Number} column Visual column header index.
    */
   'modifyColHeader',
 
@@ -871,7 +871,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#modifyRowSourceData
    * @since 0.28.0
-   * @param {Number} row Row logical index.
+   * @param {Number} row Visual row index.
    */
   'modifyRowData',
 
@@ -906,7 +906,7 @@ const REGISTERED_HOOKS = [
    * Handsontable (useful for server-side sorting).
    *
    * @event Hooks#beforeColumnSort
-   * @param {Number} column Sorted column index.
+   * @param {Number} column Sorted visual column index.
    * @param {Boolean} order Soring order where:
    *  * `true` means ascending order,
    *  * `false` means descending order,
@@ -918,7 +918,7 @@ const REGISTERED_HOOKS = [
    * Fired after sorting the column.
    *
    * @event Hooks#afterColumnSort
-   * @param {Number} column Sorted column index.
+   * @param {Number} column Sorted visual column index.
    * @param {Boolean} order Soring order where:
    *  * `true` means ascending order
    *  * `false` means descending order
@@ -935,8 +935,8 @@ const REGISTERED_HOOKS = [
    * ```
    *
    * @event Hooks#modifyAutofillRange
-   * @param {Array} startArea Array of coordinates of the starting point for the drag-down operation.
-   * @param {Array} entireArea Array of coordinates of the entire area of the drag-down operation.
+   * @param {Array} startArea Array of visual coordinates of the starting point for the drag-down operation.
+   * @param {Array} entireArea Array of visual coordinates of the entire area of the drag-down operation.
    */
   'modifyAutofillRange',
 
@@ -1091,7 +1091,7 @@ const REGISTERED_HOOKS = [
   'afterPaste',
 
   /**
-   * Fired before change order of the logical indexes.
+   * Fired before change order of the visual indexes.
    *
    * @event Hooks#beforeColumnMove
    * @param {Array} columns Array of visual column indexes to be moved.
@@ -1100,7 +1100,7 @@ const REGISTERED_HOOKS = [
   'beforeColumnMove',
 
   /**
-   * Fired after change order of the logical indexes.
+   * Fired after change order of the visual indexes.
    *
    * @event Hooks#afterColumnMove
    * @param {Array} columns Array of visual column indexes that were moved.
@@ -1109,7 +1109,7 @@ const REGISTERED_HOOKS = [
   'afterColumnMove',
 
   /**
-   * Fired before change order of the logical indexes.
+   * Fired before change order of the visual indexes.
    *
    * @event Hooks#beforeRowMove
    * @param {Array} rows Array of visual row indexes to be moved.
@@ -1118,7 +1118,7 @@ const REGISTERED_HOOKS = [
   'beforeRowMove',
 
   /**
-   * Fired after change order of the logical indexes.
+   * Fired after change order of the visual indexes.
    *
    * @event Hooks#afterRowMove
    * @param {Array} rows Array of visual row indexes that were moved.
@@ -1130,7 +1130,7 @@ const REGISTERED_HOOKS = [
    * Fired before rendering the table with modified column sizes.
    *
    * @event Hooks#beforeColumnResize
-   * @param {Number} currentColumn Index of the resized column.
+   * @param {Number} currentColumn Visual index of the resized column.
    * @param {Number} newSize Calculated new column width.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    * @returns {Number} Returns a new column size or `undefined`, if column size should be calculated automatically.
@@ -1141,7 +1141,7 @@ const REGISTERED_HOOKS = [
    * Fired after rendering the table with modified column sizes.
    *
    * @event Hooks#afterColumnResize
-   * @param {Number} currentColumn Index of the resized column.
+   * @param {Number} currentColumn Visual index of the resized column.
    * @param {Number} newSize Calculated new column width.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    */
@@ -1151,7 +1151,7 @@ const REGISTERED_HOOKS = [
    * Fired before rendering the table with modified row sizes.
    *
    * @event Hooks#beforeRowResize
-   * @param {Number} currentRow Index of the resized row.
+   * @param {Number} currentRow Visual index of the resized row.
    * @param {Number} newSize Calculated new row height.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    * @returns {Number} Returns the new row size or `undefined` if row size should be calculated automatically.
@@ -1162,7 +1162,7 @@ const REGISTERED_HOOKS = [
    * Fired after rendering the table with modified row sizes.
    *
    * @event Hooks#afterRowResize
-   * @param {Number} currentRow Index of the resized row.
+   * @param {Number} currentRow Visual index of the resized row.
    * @param {Number} newSize Calculated new row height.
    * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    */
@@ -1189,7 +1189,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeStretchingColumnWidth
    * @param {Number} stretchedWidth Calculated width.
-   * @param {Number} column Column index.
+   * @param {Number} column Visual column index.
    * @returns {Number} Returns new width which will be applied to the column element.
    */
   'beforeStretchingColumnWidth',
@@ -1218,7 +1218,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#modifyColumnHeaderHeight
    * @since 0.25.0
-   * @param {Number} col Column index.
+   * @param {Number} col Visual column index.
    */
   'modifyColumnHeaderHeight',
 
@@ -1311,7 +1311,7 @@ const REGISTERED_HOOKS = [
    * Fired after the end of the selection is being modified. (e.g. moving the selection with the arrow keys).
    *
    * @event Hooks#afterModifyTransformEnd
-   * @param {CellCoords} coords Coords of the freshly selected cell.
+   * @param {CellCoords} coords Visual coords of the freshly selected cell.
    * @param {Number} rowTransformDir `-1` if trying to select a cell with a negative row index. `0` otherwise.
    * @param {Number} colTransformDir `-1` if trying to select a cell with a negative column index. `0` otherwise.
    */
@@ -1369,7 +1369,7 @@ const REGISTERED_HOOKS = [
    *
    * @pro
    * @event Hooks#afterTrimRow
-   * @param {Array} rows Indexes of trimmed rows.
+   * @param {Array} rows Physical indexes of trimmed rows.
    */
   'afterTrimRow',
 
@@ -1378,7 +1378,7 @@ const REGISTERED_HOOKS = [
    *
    * @pro
    * @event Hooks#afterUntrimRow
-   * @param {Array} rows Indexes of untrimmed rows.
+   * @param {Array} rows Physical indexes of untrimmed rows.
    */
   'afterUntrimRow',
 
@@ -1405,7 +1405,7 @@ const REGISTERED_HOOKS = [
    *
    * @pro
    * @event Hooks#hiddenRow
-   * @param {Number} row The row index in question.
+   * @param {Number} row The visual row index in question.
    */
   'hiddenRow',
 
@@ -1414,7 +1414,7 @@ const REGISTERED_HOOKS = [
    *
    * @pro
    * @event Hooks#hiddenColumn
-   * @param {Number} column The column index in question.
+   * @param {Number} column The visual column index in question.
    */
   'hiddenColumn',
 

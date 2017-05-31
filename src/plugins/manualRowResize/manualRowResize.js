@@ -411,7 +411,7 @@ class ManualRowResize extends BasePlugin {
   /**
    * Cache the current row height.
    *
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @param {Number} height Row height.
    * @returns {Number}
    */
@@ -427,7 +427,7 @@ class ManualRowResize extends BasePlugin {
    *
    * @private
    * @param {Number} height Row height.
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @returns {Number}
    */
   onModifyRowHeight(height, row) {

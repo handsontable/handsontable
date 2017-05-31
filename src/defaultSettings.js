@@ -698,7 +698,7 @@ DefaultSettings.prototype = {
    * Lets you overwrite the default `isEmptyRow` method, which checks if row at the provided index is empty.
    *
    * @type {Function}
-   * @param {Number} row
+   * @param {Number} row Visual row index.
    * @returns {Boolean}
    */
   isEmptyRow(row) {
@@ -727,7 +727,7 @@ DefaultSettings.prototype = {
    * Lets you overwrite the default `isEmptyCol` method, which checks if column at the provided index is empty.
    *
    * @type {Function}
-   * @param {Number} col
+   * @param {Number} col Visual column index
    * @returns {Boolean}
    */
   isEmptyCol(col) {

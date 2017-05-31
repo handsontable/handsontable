@@ -130,8 +130,8 @@ DataMap.prototype.createMap = function() {
 /**
  * Returns property name that corresponds with the given column index.
  *
- * @param {Number} col
- * @returns {Number}
+ * @param {Number} col Visual column index.
+ * @returns {Number} Physical column index.
  */
 DataMap.prototype.colToProp = function(col) {
   col = this.instance.runHooks('modifyCol', col);
@@ -180,7 +180,7 @@ DataMap.prototype.getSchema = function() {
 /**
  * Creates row at the bottom of the data array.
  *
- * @param {Number} [index] Index of the row before which the new row will be inserted.
+ * @param {Number} [index] Physical index of the row before which the new row will be inserted.
  * @param {Number} [amount] An amount of rows to add.
  * @param {String} [source] Source of method call.
  * @fires Hooks#afterCreateRow
@@ -244,7 +244,7 @@ DataMap.prototype.createRow = function(index, amount, source) {
 /**
  * Creates col at the right of the data array.
  *
- * @param {Number} [index] Index of the column before which the new column will be inserted
+ * @param {Number} [index] Physical index of the column before which the new column will be inserted
  * @param {Number} [amount] An amount of columns to add.
  * @param {String} [source] Source of method call.
  * @fires Hooks#afterCreateCol
@@ -312,7 +312,7 @@ DataMap.prototype.createCol = function(index, amount, source) {
 /**
  * Removes row from the data array.
  *
- * @param {Number} [index] Index of the row to be removed. If not provided, the last row will be removed
+ * @param {Number} [index] Physical index of the row to be removed. If not provided, the last row will be removed
  * @param {Number} [amount] Amount of the rows to be removed. If not provided, one row will be removed
  * @param {String} [source] Source of method call.
  * @fires Hooks#beforeRemoveRow
@@ -330,7 +330,7 @@ DataMap.prototype.removeRow = function(index, amount, source) {
 
   index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
 
-  let logicRows = this.physicalRowsToLogical(index, amount);
+  let logicRows = this.physicalRowsToVisual(index, amount);
   let actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', index, amount, logicRows, source);
 
   if (actionWasNotCancelled === false) {
@@ -355,7 +355,7 @@ DataMap.prototype.removeRow = function(index, amount, source) {
 /**
  * Removes column from the data array.
  *
- * @param {Number} [index] Index of the column to be removed. If not provided, the last column will be removed
+ * @param {Number} [index] Physical index of the column to be removed. If not provided, the last column will be removed
  * @param {Number} [amount] Amount of the columns to be removed. If not provided, one column will be removed
  * @param {String} [source] Source of method call.
  * @fires Hooks#beforeRemoveCol
@@ -374,7 +374,7 @@ DataMap.prototype.removeCol = function(index, amount, source) {
 
   index = (this.instance.countCols() + index) % this.instance.countCols();
 
-  let logicColumns = this.physicalColumnsToLogical(index, amount);
+  let logicColumns = this.physicalColumnsToVisual(index, amount);
   let descendingLogicColumns = logicColumns.slice(0).sort((a, b) => b - a);
   let actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', index, amount, logicColumns, source);
 
@@ -417,7 +417,7 @@ DataMap.prototype.removeCol = function(index, amount, source) {
 /**
  * Add/Removes data from the column.
  *
- * @param {Number} col Index of column in which do you want to do splice
+ * @param {Number} col Physical index of column in which do you want to do splice
  * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
  * @returns {Array} Returns removed portion of columns
@@ -444,9 +444,9 @@ DataMap.prototype.spliceCol = function(col, index, amount/* , elements...*/) {
 /**
  * Add/Removes data from the row.
  *
- * @param {Number} row Index of row in which do you want to do splice
- * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
- * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+ * @param {Number} row Physical index of row in which do you want to do splice
+ * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
+ * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
  * @returns {Array} Returns removed portion of rows
  */
 DataMap.prototype.spliceRow = function(row, index, amount/* , elements...*/) {
@@ -470,7 +470,7 @@ DataMap.prototype.spliceRow = function(row, index, amount/* , elements...*/) {
 /**
  * Add/remove row(s) to/from the data source.
  *
- * @param {Number} index Index of the element to remove.
+ * @param {Number} index Physical index of the element to remove.
  * @param {Number} amount Number of rows to add/remove.
  * @param {Object} element Row to add.
  */
@@ -485,16 +485,16 @@ DataMap.prototype.spliceData = function(index, amount, element) {
 /**
  * Filter unwanted data elements from the data source.
  *
- * @param {Number} index Index of the element to remove.
+ * @param {Number} index Physical index of the element to remove.
  * @param {Number} amount Number of rows to add/remove.
  * @returns {Array}
  */
 DataMap.prototype.filterData = function(index, amount) {
-  let logicRows = this.physicalRowsToLogical(index, amount);
-  let continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, logicRows);
+  let visualRows = this.physicalRowsToVisual(index, amount);
+  let continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, visualRows);
 
   if (continueSplicing !== false) {
-    let newData = this.dataSource.filter((row, index) => logicRows.indexOf(index) == -1);
+    let newData = this.dataSource.filter((row, index) => visualRows.indexOf(index) == -1);
 
     return newData;
   }
@@ -503,7 +503,7 @@ DataMap.prototype.filterData = function(index, amount) {
 /**
  * Returns single value from the data array.
  *
- * @param {Number} row
+ * @param {Number} row Visual row index.
  * @param {Number} prop
  */
 DataMap.prototype.get = function(row, prop) {
@@ -573,7 +573,7 @@ var copyableLookup = cellMethodLookupFactory('copyable', false);
 /**
  * Returns single value from the data array (intended for clipboard copy to an external application).
  *
- * @param {Number} row
+ * @param {Number} row Physical row index.
  * @param {Number} prop
  * @returns {String}
  */
@@ -587,7 +587,7 @@ DataMap.prototype.getCopyable = function(row, prop) {
 /**
  * Saves single value to the data array.
  *
- * @param {Number} row
+ * @param {Number} row Visual row index.
  * @param {Number} prop
  * @param {String} value
  * @param {String} [source] Source of hook runner.
@@ -642,14 +642,14 @@ DataMap.prototype.set = function(row, prop, value, source) {
 /**
  * This ridiculous piece of code maps rows Id that are present in table data to those displayed for user.
  * The trick is, the physical row id (stored in settings.data) is not necessary the same
- * as the logical (displayed) row id (e.g. when sorting is applied).
+ * as the visual (displayed) row id (e.g. when sorting is applied).
  *
- * @param {Number} index
+ * @param {Number} index Visual row index.
  * @param {Number} amount
  * @fires Hooks#modifyRow
  * @returns {Number}
  */
-DataMap.prototype.physicalRowsToLogical = function(index, amount) {
+DataMap.prototype.physicalRowsToVisual = function(index, amount) {
   var totalRows = this.instance.countSourceRows();
   var physicRow = (totalRows + index) % totalRows;
   var logicRows = [];
@@ -669,26 +669,26 @@ DataMap.prototype.physicalRowsToLogical = function(index, amount) {
 
 /**
  *
- * @param index
+ * @param index Physical column index.
  * @param amount
  * @returns {Array}
  */
-DataMap.prototype.physicalColumnsToLogical = function(index, amount) {
+DataMap.prototype.physicalColumnsToVisual = function(index, amount) {
   let totalCols = this.instance.countCols();
   let physicalCol = (totalCols + index) % totalCols;
-  let logicalCols = [];
+  let visualCols = [];
   let colsToRemove = amount;
 
   while (physicalCol < totalCols && colsToRemove) {
     let col = this.instance.runHooks('modifyCol', physicalCol);
 
-    logicalCols.push(col);
+    visualCols.push(col);
 
     colsToRemove--;
     physicalCol++;
   }
 
-  return logicalCols;
+  return visualCols;
 };
 
 /**
@@ -781,8 +781,8 @@ DataMap.prototype.getAll = function() {
 /**
  * Returns data range as array.
  *
- * @param {Object} [start] Start selection position
- * @param {Object} [end] End selection position
+ * @param {Object} [start] Start selection position. Visual indexes.
+ * @param {Object} [end] End selection position. Visual indexes.
  * @param {Number} destination Destination of datamap.get
  * @returns {Array}
  */
@@ -828,8 +828,8 @@ DataMap.prototype.getRange = function(start, end, destination) {
 /**
  * Return data as text (tab separated columns).
  *
- * @param {Object} [start] Start selection position
- * @param {Object} [end] End selection position
+ * @param {Object} [start] Start selection position. Visual indexes.
+ * @param {Object} [end] End selection position. Visual indexes.
  * @returns {String}
  */
 DataMap.prototype.getText = function(start, end) {
@@ -839,8 +839,8 @@ DataMap.prototype.getText = function(start, end) {
 /**
  * Return data as copyable text (tab separated columns intended for clipboard copy to an external application).
  *
- * @param {Object} [start] Start selection position
- * @param {Object} [end] End selection position
+ * @param {Object} [start] Start selection position. Visual indexes.
+ * @param {Object} [end] End selection position. Visual indexes.
  * @returns {String}
  */
 DataMap.prototype.getCopyableText = function(start, end) {
