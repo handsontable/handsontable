@@ -51,6 +51,9 @@ function TableView(instance) {
   instance.container.insertBefore(table, instance.container.firstChild);
 
   this.eventManager.addEventListener(instance.rootElement, 'mousedown', function(event) {
+    if (event.buttons === 4) {
+      return; // Avoid breaking middle click scroll behaviour
+    }
     this.selectionMouseDown = true;
 
     if (!that.isTextSelectionAllowed(event.target)) {
