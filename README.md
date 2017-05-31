@@ -31,6 +31,10 @@ bower install handsontable --save
 - [Download ZIP](https://github.com/handsontable/handsontable/archive/master.zip)
 - [Download from nuget](https://www.nuget.org/packages/Handsontable/)
 
+### CDN
+ - https://www.jsdelivr.com/projects/handsontable
+ - https://cdnjs.com/libraries/handsontable
+
 ### AMD support
 If you use a modular script loader then you can require Handsontable just like any other module:
 
