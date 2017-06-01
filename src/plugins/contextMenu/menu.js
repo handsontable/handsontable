@@ -62,21 +62,16 @@ class Menu {
   registerMenuEvents(events) {
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
     this.hotMenu.addHook('afterSelection', (r, c, r2, c2, preventScrolling) => this.onAfterSelection(r, c, r2, c2, preventScrolling));
+    this.hotMenu.addHook('afterOnCellMouseOver', (event, coords, TD) => {
+      const dataItem = this.hotMenu.getSourceDataAtRow(coords.row);
 
-    for (let i = 0; i < events.selectRowIndexes.length; i += 1) {
-      const rowIndex = events.selectRowIndexes[i];
-      const TD = this.hotMenu.getCell(rowIndex, 0);
+      if (dataItem.isSelectionDisabled) {
+        this.hotMenu.deselectCell();
 
-      this.eventManager.addEventListener(TD, 'mouseenter', () =>
-        this.hotMenu.selectCell(rowIndex, 0, void 0, void 0, false, false));
-    }
-
-    for (let i = 0; i < events.deselectRowIndexes.length; i += 1) {
-      const rowIndex = events.deselectRowIndexes[i];
-      const TD = this.hotMenu.getCell(rowIndex, 0);
-
-      this.eventManager.addEventListener(TD, 'mouseenter', () => this.hotMenu.deselectCell());
-    }
+      } else {
+        this.hotMenu.selectCell(coords.row, 0, void 0, void 0, false, false);
+      }
+    });
   }
 
   /**
@@ -418,7 +413,6 @@ class Menu {
    * Select next cell in opened menu.
    *
    * @param {Number} row Row index.
-   * @param {Number} col Column index.
    */
   selectNextCell(row) {
     const nextRow = row + 1;
@@ -439,7 +433,6 @@ class Menu {
    * Select previous cell in opened menu.
    *
    * @param {Number} row Row index.
-   * @param {Number} col Column index.
    */
   selectPrevCell(row) {
     const prevRow = row - 1;

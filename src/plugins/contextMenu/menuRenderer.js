@@ -20,7 +20,6 @@ function menuRenderer(hot, TD, row, col, prop, value, cellProperties) {
   const wrapper = document.createElement('div');
   addClass(wrapper, 'htItemWrapper');
   TD.appendChild(wrapper);
-  // getRenderer('html').apply(this, [hot, wrapper, row, col, prop, value, cellProperties]);
   fastInnerHTML(wrapper, value);
 }
 

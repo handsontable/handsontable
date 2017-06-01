@@ -237,10 +237,6 @@ export function getCellMetasAndEvents(hot, data = this.getFilteredItems(hot)) {
     if (itemIsSelectionDisabled(item)) {
       properties.className.push('htSelectionDisabled');
       item.IsSelectionDisabled = true;
-      events.deselectRowIndexes.push(rowIndex);
-
-    } else {
-      events.selectRowIndexes.push(rowIndex);
     }
 
     if (properties.className.length === 0) {
