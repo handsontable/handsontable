@@ -65,7 +65,7 @@ class Menu {
     this.hotMenu.addHook('afterOnCellMouseOver', (event, coords, TD) => {
       const dataItem = this.hotMenu.getSourceDataAtRow(coords.row);
 
-      if (dataItem.isSelectionDisabled) {
+      if (dataItem.disableSelection) {
         this.hotMenu.deselectCell();
 
       } else {
@@ -389,7 +389,7 @@ class Menu {
   selectFirstCell() {
     const item = this.hotMenu.getSourceDataAtRow(0);
 
-    if (item.isSeparator || item.disabled || item.isSelectionDisabled) {
+    if (item.isSeparator || item.disabled || item.disableSelection) {
       this.selectNextCell(0);
     } else {
       this.hotMenu.selectCell(0, 0);
@@ -403,7 +403,7 @@ class Menu {
     let lastRow = this.hotMenu.countRows() - 1;
     const item = this.hotMenu.getSourceDataAtRow(lastRow);
 
-    if (item.isSeparator || item.disabled || item.isSelectionDisabled) {
+    if (item.isSeparator || item.disabled || item.disableSelection) {
       this.selectPrevCell(lastRow);
     } else {
       this.hotMenu.selectCell(lastRow, 0);
@@ -423,7 +423,7 @@ class Menu {
       return;
     }
 
-    if (item.isSeparator || item.disabled || item.isSelectionDisabled) {
+    if (item.isSeparator || item.disabled || item.disableSelection) {
       this.selectNextCell(nextRow);
     } else {
       this.hotMenu.selectCell(nextRow, 0);
@@ -442,7 +442,7 @@ class Menu {
     if (!item) {
       return;
     }
-    if (item.isSeparator || item.disabled || item.isSelectionDisabled) {
+    if (item.isSeparator || item.disabled || item.disableSelection) {
       this.selectPrevCell(prevRow);
     } else {
       this.hotMenu.selectCell(prevRow, 0);

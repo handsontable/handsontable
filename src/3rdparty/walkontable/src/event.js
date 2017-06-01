@@ -107,6 +107,8 @@ function Event(instance) {
 
       if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
         that.instance.getSetting('onCellMouseOut', event, that.instance.wtTable.getCoords(lastTD), lastTD, that.instance);
+        const mainWOT = that.instance.cloneSource || that.instance;
+        mainWOT.lastMouseOver = null;
       }
     }
   };

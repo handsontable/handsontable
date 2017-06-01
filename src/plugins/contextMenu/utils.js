@@ -232,12 +232,11 @@ export function prepareItemsAndReturnCellMeta(data) {
 
     } else if (isSubMenu(item)) {
       properties.className.push('htSubmenu');
-      item.isSubMenu = true;
+      item.hasSubMenu = true;
     }
 
-    if (itemIsSelectionDisabled(item)) {
+    if (item.disableSelection) {
       properties.className.push('htSelectionDisabled');
-      item.IsSelectionDisabled = true;
     }
 
     if (properties.className.length === 0) {
