@@ -318,7 +318,7 @@ const REGISTERED_HOOKS = [
   /**
    * Callback fired after leaving a cell or row/column header with the mouse cursor.
    *
-   * @event Hooks#afterOnCellMouseOver
+   * @event Hooks#afterOnCellMouseOut
    * @since 0.31.1
    * @param {Object} event `mouseout` event object.
    * @param {Object} coords Leaved cell's visual coordinate object.
