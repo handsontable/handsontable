@@ -9,7 +9,7 @@ import Cursor from './cursor';
 import EventManager from './../../eventManager';
 import {mixin, deepClone} from './../../helpers/object';
 import {debounce} from './../../helpers/function';
-import {hasSubMenu, isDisabled, isHidden, isSeparator, isSelectionDisabled, normalizeSelection, getFilteredItems, getCellMetasAndEvents} from './utils';
+import {normalizeSelection, getFilteredItems, getCellMetasAndEvents} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
 import {SEPARATOR} from './predefinedItems';
@@ -190,20 +190,22 @@ class Menu {
     if (!this.hotMenu) {
       return false;
     }
-    let cell = this.hotMenu.getCell(row, 0);
+    let dataItem = this.hotMenu.getSourceDataAtRow(row);
 
     this.closeAllSubMenus();
 
-    if (!cell || !hasSubMenu(cell)) {
+    if (!dataItem.hasSubMenu) {
       return false;
     }
-    let dataItem = this.hotMenu.getSourceDataAtRow(row);
-    let subMenu = new Menu(this.hot, {
+
+    const subMenu = new Menu(this.hot, {
       parent: this,
       name: dataItem.name,
       className: this.options.className,
       keepInViewport: true
     });
+    const cell = this.hotMenu.getCell(row, 0);
+
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
     subMenu.setPosition(cell.getBoundingClientRect());
@@ -389,10 +391,10 @@ class Menu {
    * Select first cell in opened menu.
    */
   selectFirstCell() {
-    let cell = this.hotMenu.getCell(0, 0);
+    const item = this.hotMenu.getSourceDataAtRow(0);
 
-    if (isSeparator(cell) || isDisabled(cell) || isHidden(cell) || isSelectionDisabled(cell)) {
-      this.selectNextCell(0, 0);
+    if (item.isSeparator || item.isDisabled || item.isSelectionDisabled) {
+      this.selectNextCell(0);
     } else {
       this.hotMenu.selectCell(0, 0);
     }
@@ -403,10 +405,10 @@ class Menu {
    */
   selectLastCell() {
     let lastRow = this.hotMenu.countRows() - 1;
-    let cell = this.hotMenu.getCell(lastRow, 0);
+    const item = this.hotMenu.getSourceDataAtRow(lastRow);
 
-    if (isSeparator(cell) || isDisabled(cell) || isHidden(cell) || isSelectionDisabled(cell)) {
-      this.selectPrevCell(lastRow, 0);
+    if (item.isSeparator || item.isDisabled || item.isSelectionDisabled) {
+      this.selectPrevCell(lastRow);
     } else {
       this.hotMenu.selectCell(lastRow, 0);
     }
@@ -418,17 +420,18 @@ class Menu {
    * @param {Number} row Row index.
    * @param {Number} col Column index.
    */
-  selectNextCell(row, col) {
-    let nextRow = row + 1;
-    let cell = nextRow < this.hotMenu.countRows() ? this.hotMenu.getCell(nextRow, col) : null;
+  selectNextCell(row) {
+    const nextRow = row + 1;
+    const item = nextRow < this.hotMenu.countRows() ? this.hotMenu.getSourceDataAtRow(nextRow) : null;
 
-    if (!cell) {
+    if (!item) {
       return;
     }
-    if (isSeparator(cell) || isDisabled(cell) || isHidden(cell) || isSelectionDisabled(cell)) {
-      this.selectNextCell(nextRow, col);
+
+    if (item.isSeparator || item.isDisabled || item.isSelectionDisabled) {
+      this.selectNextCell(nextRow);
     } else {
-      this.hotMenu.selectCell(nextRow, col);
+      this.hotMenu.selectCell(nextRow, 0);
     }
   }
 
@@ -438,17 +441,17 @@ class Menu {
    * @param {Number} row Row index.
    * @param {Number} col Column index.
    */
-  selectPrevCell(row, col) {
-    let prevRow = row - 1;
-    let cell = prevRow >= 0 ? this.hotMenu.getCell(prevRow, col) : null;
+  selectPrevCell(row) {
+    const prevRow = row - 1;
+    const item = prevRow >= 0 ? this.hotMenu.getSourceDataAtRow(prevRow) : null;
 
-    if (!cell) {
+    if (!item) {
       return;
     }
-    if (isSeparator(cell) || isDisabled(cell) || isHidden(cell) || isSelectionDisabled(cell)) {
-      this.selectPrevCell(prevRow, col);
+    if (item.isSeparator || item.isDisabled || item.isSelectionDisabled) {
+      this.selectPrevCell(prevRow);
     } else {
-      this.hotMenu.selectCell(prevRow, col);
+      this.hotMenu.selectCell(prevRow, 0);
     }
   }
 

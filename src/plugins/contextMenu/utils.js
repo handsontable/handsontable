@@ -11,26 +11,6 @@ export function normalizeSelection(selRange) {
   };
 }
 
-export function isSeparator(cell) {
-  return hasClass(cell, 'htSeparator');
-}
-
-export function hasSubMenu(cell) {
-  return hasClass(cell, 'htSubmenu');
-}
-
-export function isDisabled(cell) {
-  return hasClass(cell, 'htDisabled');
-}
-
-export function isSelectionDisabled(cell) {
-  return hasClass(cell, 'htSelectionDisabled');
-}
-
-export function isHidden(cell) {
-  return hasClass(cell.parentNode, 'htHidden');
-}
-
 export function getValidSelection(hot) {
   let selected = hot.getSelected();
 
