@@ -7,9 +7,9 @@ import {
 import {arrayEach, arrayReduce} from './../../helpers/array';
 import Cursor from './cursor';
 import EventManager from './../../eventManager';
-import {mixin, deepClone} from './../../helpers/object';
+import {mixin, deepExtend} from './../../helpers/object';
 import {debounce} from './../../helpers/function';
-import {normalizeSelection, getFilteredItems, getCellMetasAndEvents} from './utils';
+import {normalizeSelection, getParsedAndFiltredItems, prepareItemsAndReturnCellMeta} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
 import {SEPARATOR} from './predefinedItems';
@@ -59,7 +59,7 @@ class Menu {
     this.eventManager.addEventListener(document.documentElement, 'mousedown', (event) => this.onDocumentMouseDown(event));
   }
 
-  registerMenuEvents(events) {
+  registerMenuEvents() {
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
     this.hotMenu.addHook('afterSelection', (r, c, r2, c2, preventScrolling) => this.onAfterSelection(r, c, r2, c2, preventScrolling));
     this.hotMenu.addHook('afterOnCellMouseOver', (event, coords, TD) => {
@@ -108,13 +108,16 @@ class Menu {
   open() {
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
-
     const delayedOpenSubMenu = debounce((row) => this.openSubMenu(row), 300);
-    const filteredItems = getFilteredItems(hot, deepClone(this.menuItems));
-    const {events, cellMetas: cell} = getCellMetasAndEvents(hot, filteredItems);
+    const cloneOfMenuItems = {};
+
+    deepExtend(cloneOfMenuItems, this.menuItems);
+
+    const parsedAndFiltredItems = getParsedAndFiltredItems(hot, Object.values(cloneOfMenuItems));
+    const cell = prepareItemsAndReturnCellMeta(parsedAndFiltredItems);
 
     let settings = {
-      data: filteredItems,
+      data: parsedAndFiltredItems,
       cell,
       colHeaders: false,
       colWidths: [200],
@@ -136,7 +139,7 @@ class Menu {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: (row) => (filteredItems[row].isSeparator === true ? 1 : 23)
+      rowHeights: (row) => (parsedAndFiltredItems[row].isSeparator === true ? 1 : 23)
     };
 
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
@@ -144,7 +147,7 @@ class Menu {
     this.hotMenu = new Core(this.container, settings);
     this.hotMenu.init();
     this.hotMenu.listen();
-    this.registerMenuEvents(events);
+    this.registerMenuEvents();
     this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');
   }
@@ -280,9 +283,7 @@ class Menu {
     let autoClose = true;
 
     // Don't close context menu if item is disabled or it has submenu
-    if (selectedItem.disabled === true ||
-        (typeof selectedItem.disabled === 'function' && selectedItem.disabled.call(this.hot) === true) ||
-        selectedItem.submenu) {
+    if (selectedItem.disabled || selectedItem.submenu) {
       autoClose = false;
     }
 
@@ -388,7 +389,7 @@ class Menu {
   selectFirstCell() {
     const item = this.hotMenu.getSourceDataAtRow(0);
 
-    if (item.isSeparator || item.isDisabled || item.isSelectionDisabled) {
+    if (item.isSeparator || item.disabled || item.isSelectionDisabled) {
       this.selectNextCell(0);
     } else {
       this.hotMenu.selectCell(0, 0);
@@ -402,7 +403,7 @@ class Menu {
     let lastRow = this.hotMenu.countRows() - 1;
     const item = this.hotMenu.getSourceDataAtRow(lastRow);
 
-    if (item.isSeparator || item.isDisabled || item.isSelectionDisabled) {
+    if (item.isSeparator || item.disabled || item.isSelectionDisabled) {
       this.selectPrevCell(lastRow);
     } else {
       this.hotMenu.selectCell(lastRow, 0);
@@ -422,7 +423,7 @@ class Menu {
       return;
     }
 
-    if (item.isSeparator || item.isDisabled || item.isSelectionDisabled) {
+    if (item.isSeparator || item.disabled || item.isSelectionDisabled) {
       this.selectNextCell(nextRow);
     } else {
       this.hotMenu.selectCell(nextRow, 0);
@@ -441,7 +442,7 @@ class Menu {
     if (!item) {
       return;
     }
-    if (item.isSeparator || item.isDisabled || item.isSelectionDisabled) {
+    if (item.isSeparator || item.disabled || item.isSelectionDisabled) {
       this.selectPrevCell(prevRow);
     } else {
       this.hotMenu.selectCell(prevRow, 0);

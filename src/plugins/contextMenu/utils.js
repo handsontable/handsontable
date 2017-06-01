@@ -175,16 +175,8 @@ export function itemIsSeparator(item) {
   return new RegExp(SEPARATOR, 'i').test(item.name);
 };
 
-export function itemIsDisabled(item, instance) {
-  return isFunction(item.disabled) ? item.disabled.call(instance) : !!item.disabled;
-};
-
 export function itemIsSelectionDisabled(item) {
   return item.disableSelection;
-};
-
-export function isItemHidden(item, instance) {
-  return isFunction(item.hidden) ? item.hidden.call(instance) : !!item.hidden;
 };
 
 /**
@@ -192,22 +184,32 @@ export function isItemHidden(item, instance) {
  * @param unfilteredItems
  * @returns {*}
  */
-export function getFilteredItems(hot, unfilteredItems) {
-  const items = unfilteredItems || hot.getSourceData();
-  const notHiddenItems = items.filter((item) => !isItemHidden(item, hot));
+export function getParsedAndFiltredItems(parentHot, items) {
+  const parsedItems = arrayEach(items, (item) => {
+    parseValues(parentHot, item, 'name', false);
+    parseValues(parentHot, item, 'hidden');
+    parseValues(parentHot, item, 'disabled');
+  });
+  const notHiddenItems = parsedItems.filter((item) => !item.hidden);
+
   return filterSeparators(notHiddenItems, SEPARATOR);
+}
+
+export function parseValues(instance, item, key, toBoolean = true) {
+  if (isFunction(item[key])) {
+    item[key] = item[key].call(instance);
+  }
+
+  if (toBoolean) {
+    item[key] = item[key] === true;
+  }
 }
 
 /**
  *
  * @param data
  */
-export function getCellMetasAndEvents(hot, data = this.getFilteredItems(hot)) {
-  const events = {
-    selectRowIndexes: [],
-    deselectRowIndexes: []
-  };
-
+export function prepareItemsAndReturnCellMeta(data) {
   const cellMetas = data.map((item, rowIndex) => {
     const properties = {
       row: rowIndex,
@@ -225,9 +227,8 @@ export function getCellMetasAndEvents(hot, data = this.getFilteredItems(hot)) {
       properties.renderer = item.renderer;
     }
 
-    if (itemIsDisabled(item, hot)) {
+    if (item.disabled) {
       properties.className.push('htDisabled');
-      item.isDisabled = true;
 
     } else if (isSubMenu(item)) {
       properties.className.push('htSubmenu');
@@ -249,5 +250,5 @@ export function getCellMetasAndEvents(hot, data = this.getFilteredItems(hot)) {
     return properties;
   });
 
-  return {cellMetas, events};
+  return cellMetas;
 }
