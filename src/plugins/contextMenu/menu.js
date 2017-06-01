@@ -23,8 +23,9 @@ import {stopImmediatePropagation} from './../../helpers/dom/event';
  * @plugin ContextMenu
  */
 class Menu {
-  constructor(hotInstance, options) {
+  constructor(hotInstance, commandExecutor, options) {
     this.hot = hotInstance;
+    this.commandExecutor = commandExecutor;
     this.options = options || {
       parent: null,
       name: null,
@@ -147,7 +148,7 @@ class Menu {
       return;
     }
     if (closeParent && this.parentMenu) {
-      this.parentMenu.close();
+      this.parentMenu.close(closeParent);
     } else {
       this.closeAllSubMenus();
       this.container.style.display = 'none';
@@ -181,12 +182,13 @@ class Menu {
       return false;
     }
     let dataItem = this.hotMenu.getSourceDataAtRow(row);
-    let subMenu = new Menu(this.hot, {
+    let subMenu = new Menu(this.hot, this.commandExecutor, {
       parent: this,
       name: dataItem.name,
       className: this.options.className,
       keepInViewport: true
     });
+    subMenu.addLocalHook('executeCommand', (...params) => this.commandExecutor.execute.apply(this.commandExecutor, params));
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
     subMenu.setPosition(cell.getBoundingClientRect());
@@ -272,11 +274,7 @@ class Menu {
       autoClose = false;
     }
 
-    this.runLocalHooks('executeCommand', selectedItem.key, normalizedSelection, event);
-
-    if (this.isSubMenu()) {
-      this.parentMenu.runLocalHooks('executeCommand', selectedItem.key, normalizedSelection, event);
-    }
+    this.runLocalHooks('executeCommand', selectedItem, normalizedSelection, event);
 
     if (autoClose) {
       this.close(true);
