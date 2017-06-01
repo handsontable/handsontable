@@ -1,22 +1,20 @@
 import Core from './../../core';
 import {
   addClass,
-  empty,
-  fastInnerHTML,
   getScrollbarWidth,
   isChildOf,
-  removeClass,
 } from './../../helpers/dom/element';
-import {arrayEach, arrayFilter, arrayReduce} from './../../helpers/array';
+import {arrayEach, arrayReduce} from './../../helpers/array';
 import Cursor from './cursor';
 import EventManager from './../../eventManager';
-import {mixin, hasOwnProperty} from './../../helpers/object';
+import {mixin, deepClone} from './../../helpers/object';
 import {debounce} from './../../helpers/function';
-import {filterSeparators, hasSubMenu, isDisabled, isHidden, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection} from './utils';
+import {hasSubMenu, isDisabled, isHidden, isSeparator, isSelectionDisabled, normalizeSelection, getFilteredItems, getCellMetasAndEvents} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
 import {SEPARATOR} from './predefinedItems';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
+import menuRenderer from './menuRenderer';
 
 /**
  * @class Menu
@@ -61,6 +59,26 @@ class Menu {
     this.eventManager.addEventListener(document.documentElement, 'mousedown', (event) => this.onDocumentMouseDown(event));
   }
 
+  registerMenuEvents(events) {
+    this.hotMenu.addHook('afterInit', () => this.onAfterInit());
+    this.hotMenu.addHook('afterSelection', (r, c, r2, c2, preventScrolling) => this.onAfterSelection(r, c, r2, c2, preventScrolling));
+
+    for (let i = 0; i < events.selectRowIndexes.length; i += 1) {
+      const rowIndex = events.selectRowIndexes[i];
+      const TD = this.hotMenu.getCell(rowIndex, 0);
+
+      this.eventManager.addEventListener(TD, 'mouseenter', () =>
+        this.hotMenu.selectCell(rowIndex, 0, void 0, void 0, false, false));
+    }
+
+    for (let i = 0; i < events.deselectRowIndexes.length; i += 1) {
+      const rowIndex = events.deselectRowIndexes[i];
+      const TD = this.hotMenu.getCell(rowIndex, 0);
+
+      this.eventManager.addEventListener(TD, 'mouseenter', () => this.hotMenu.deselectCell());
+    }
+  }
+
   /**
    * Set array of objects which defines menu items.
    *
@@ -97,19 +115,21 @@ class Menu {
     this.container.style.display = 'block';
 
     const delayedOpenSubMenu = debounce((row) => this.openSubMenu(row), 300);
-    const filteredItems = filterSeparators(this.menuItems, SEPARATOR);
+    const filteredItems = getFilteredItems(hot, deepClone(this.menuItems));
+    const {events, cellMetas: cell} = getCellMetasAndEvents(hot, filteredItems);
 
     let settings = {
       data: filteredItems,
+      cell,
       colHeaders: false,
       colWidths: [200],
       autoRowSize: false,
       readOnly: true,
       copyPaste: false,
       columns: [{
-        data: 'name',
-        renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value)
+        data: 'name'
       }],
+      renderer: menuRenderer,
       renderAllRows: true,
       fragmentSelection: 'cell',
       disableVisualSelection: 'area',
@@ -121,15 +141,15 @@ class Menu {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: (row) => (filteredItems[row].name === SEPARATOR ? 1 : 23)
+      rowHeights: (row) => (filteredItems[row].isSeparator === true ? 1 : 23)
     };
+
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
     this.hotMenu = new Core(this.container, settings);
-    this.hotMenu.addHook('afterInit', () => this.onAfterInit());
-    this.hotMenu.addHook('afterSelection', (r, c, r2, c2, preventScrolling) => this.onAfterSelection(r, c, r2, c2, preventScrolling));
     this.hotMenu.init();
     this.hotMenu.listen();
+    this.registerMenuEvents(events);
     this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');
   }
@@ -429,113 +449,6 @@ class Menu {
       this.selectPrevCell(prevRow, col);
     } else {
       this.hotMenu.selectCell(prevRow, col);
-    }
-  }
-
-  /**
-   * Get if row at specific index should be hidden.
-   *
-   * @private
-   * @param parentHot Parent Handsontable instance
-   * @param {Number} row Row index.
-   * @returns {Boolean}
-   */
-  shouldBeHidden(parentHot, row) {
-    return this.getRowIndexedHiddenState(parentHot)[row];
-  }
-
-  /**
-   * Get information which rows should be hidden (with hiding unnecessary separators).
-   *
-   * @private
-   * @param parentHot Parent Handsontable instance
-   * @returns {Array}
-   */
-  getRowIndexedHiddenState(parentHot) {
-    const sourceData = parentHot.getSourceData();
-    const notHiddenItems = sourceData.filter((item) => !isItemHidden(item, this.hot));
-    const isHiddenItems = sourceData.map((item) => isItemHidden(item, this.hot));
-    const filteredItems = filterSeparators(notHiddenItems, SEPARATOR);
-
-    let itemsMatched = 0;
-
-    for (let i = 0; i < isHiddenItems.length; i += 1) {
-      if (!isHiddenItems[i]) {
-        if (sourceData[i] === filteredItems[itemsMatched]) {
-          itemsMatched += 1;
-
-        } else {
-          isHiddenItems[i] = true;
-        }
-      }
-    }
-
-    return isHiddenItems;
-  }
-
-  /**
-   * Menu item renderer.
-   *
-   * @private
-   */
-  menuItemRenderer(hot, TD, row, col, prop, value) {
-    let item = hot.getSourceDataAtRow(row);
-    let wrapper = document.createElement('div');
-    let isSubMenu = (item) => hasOwnProperty(item, 'submenu');
-    let itemIsSeparator = (item) => new RegExp(SEPARATOR, 'i').test(item.name);
-    let itemIsDisabled = (item) => item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(this.hot) === true);
-    let itemIsSelectionDisabled = (item) => item.disableSelection;
-
-    if (typeof value === 'function') {
-      value = value.call(this.hot);
-    }
-    empty(TD);
-    addClass(wrapper, 'htItemWrapper');
-    TD.appendChild(wrapper);
-
-    if (isItemHidden(item, this.hot)) {
-      addClass(TD.parentNode, 'htHidden');
-
-    } else if (itemIsSeparator(item)) {
-
-      if (this.shouldBeHidden(hot, row)) {
-        addClass(TD.parentNode, 'htHidden');
-      }
-
-      addClass(TD, 'htSeparator');
-
-    } else if (typeof item.renderer === 'function') {
-      addClass(TD, 'htCustomMenuRenderer');
-      TD.appendChild(item.renderer(hot, wrapper, row, col, prop, value));
-
-    } else {
-      fastInnerHTML(wrapper, value);
-    }
-    if (itemIsDisabled(item)) {
-      addClass(TD, 'htDisabled');
-      this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
-
-    } else if (itemIsSelectionDisabled(item)) {
-      addClass(TD, 'htSelectionDisabled');
-      this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
-
-    } else if (isSubMenu(item)) {
-      addClass(TD, 'htSubmenu');
-
-      if (itemIsSelectionDisabled(item)) {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
-      } else {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
-      }
-    } else {
-      removeClass(TD, 'htSubmenu');
-      removeClass(TD, 'htDisabled');
-
-      if (itemIsSelectionDisabled(item)) {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
-      } else {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
-      }
     }
   }
 

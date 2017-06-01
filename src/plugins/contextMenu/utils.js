@@ -2,6 +2,7 @@ import {arrayEach} from './../../helpers/array';
 import {hasClass} from './../../helpers/dom/element';
 import {KEY as SEPARATOR} from './predefinedItems/separator';
 import {isFunction} from '../../helpers/function';
+import {hasOwnProperty} from '../../helpers/object';
 
 export function normalizeSelection(selRange) {
   return {
@@ -137,10 +138,6 @@ export function markLabelAsSelected(label) {
   return `<span class="selected">${String.fromCharCode(10003)}</span>${label}`;
 }
 
-export function isItemHidden(item, instance) {
-  return isFunction(item.hidden) ? item.hidden.call(instance) : item.hidden;
-}
-
 function shiftSeparators(items, separator) {
   let result = items.slice(0);
 
@@ -188,4 +185,93 @@ export function filterSeparators(items, separator = SEPARATOR) {
   result = removeDuplicatedSeparators(result);
 
   return result;
+}
+
+export function isSubMenu(item) {
+  return hasOwnProperty(item, 'submenu');
+};
+
+export function itemIsSeparator(item) {
+  return new RegExp(SEPARATOR, 'i').test(item.name);
+};
+
+export function itemIsDisabled(item, instance) {
+  return isFunction(item.disabled) ? item.disabled.call(instance) : !!item.disabled;
+};
+
+export function itemIsSelectionDisabled(item) {
+  return item.disableSelection;
+};
+
+export function isItemHidden(item, instance) {
+  return isFunction(item.hidden) ? item.hidden.call(instance) : !!item.hidden;
+};
+
+/**
+ *
+ * @param unfilteredItems
+ * @returns {*}
+ */
+export function getFilteredItems(hot, unfilteredItems) {
+  const items = unfilteredItems || hot.getSourceData();
+  const notHiddenItems = items.filter((item) => !isItemHidden(item, hot));
+  return filterSeparators(notHiddenItems, SEPARATOR);
+}
+
+/**
+ *
+ * @param data
+ */
+export function getCellMetasAndEvents(hot, data = this.getFilteredItems(hot)) {
+  const events = {
+    selectRowIndexes: [],
+    deselectRowIndexes: []
+  };
+
+  const cellMetas = data.map((item, rowIndex) => {
+    const properties = {
+      row: rowIndex,
+      col: 0,
+      className: []
+    };
+
+    if (itemIsSeparator(item)) {
+      properties.className.push('htSeparator');
+      item.name = '';
+      item.isSeparator = true;
+
+    } else if (typeof item.renderer === 'function') {
+      properties.className.push('htCustomMenuRenderer');
+      properties.renderer = item.renderer;
+    }
+
+    if (itemIsDisabled(item, hot)) {
+      properties.className.push('htDisabled');
+      item.isDisabled = true;
+
+    } else if (isSubMenu(item)) {
+      properties.className.push('htSubmenu');
+      item.isSubMenu = true;
+    }
+
+    if (itemIsSelectionDisabled(item)) {
+      properties.className.push('htSelectionDisabled');
+      item.IsSelectionDisabled = true;
+      events.deselectRowIndexes.push(rowIndex);
+
+    } else {
+      events.selectRowIndexes.push(rowIndex);
+    }
+
+    if (properties.className.length === 0) {
+      delete properties.className;
+
+    } else {
+      properties.className = properties.className.join(' ');
+    }
+
+    return properties;
+  });
+
+  return {cellMetas, events};
 }
