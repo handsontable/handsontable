@@ -248,8 +248,8 @@ class Comments extends BasePlugin {
   /**
    * Set a comment for a cell.
    *
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {String} value Comment contents.
    */
   setCommentAtCell(row, col, value) {
@@ -281,8 +281,8 @@ class Comments extends BasePlugin {
   /**
    * Remove comment from a cell.
    *
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {Boolean} [forceRender = true] If `true`, the table will be re-rendered at the end of the operation.
    */
   removeCommentAtCell(row, col, forceRender = true) {
@@ -305,8 +305,8 @@ class Comments extends BasePlugin {
   /**
    * Get comment from a cell at the provided coordinates.
    *
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} column Visual column index.
    */
   getCommentAtCell(row, column) {
     return this.getCommentMeta(row, column, META_COMMENT_VALUE);
@@ -336,8 +336,8 @@ class Comments extends BasePlugin {
   /**
    * Show comment editor according to cell coordinates.
    *
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @returns {Boolean} Returns `true` if comment editor was shown.
    */
   showAtCell(row, col) {
@@ -425,8 +425,8 @@ class Comments extends BasePlugin {
   /**
    * Set or update the comment-related cell meta.
    *
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} column Visual column index.
    * @param {Object} metaObject Object defining all the comment-related meta information.
    */
   updateCommentMeta(row, column, metaObject) {
@@ -446,8 +446,8 @@ class Comments extends BasePlugin {
   /**
    * Get the comment related meta information.
    *
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} column Visual column index.
    * @param {String} property Cell meta property.
    * @returns {Mixed}
    */
@@ -704,8 +704,8 @@ class Comments extends BasePlugin {
    * `afterBeginEditing` hook callback.
    *
    * @private
-   * @param {Number} row Row index of the currently edited cell.
-   * @param {Number} column Column index of the currently edited cell.
+   * @param {Number} row Visual row index of the currently edited cell.
+   * @param {Number} column Visual column index of the currently edited cell.
    */
   onAfterBeginEditing(row, column) {
     this.hide();

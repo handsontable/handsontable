@@ -303,7 +303,7 @@ class AutoRowSize extends BasePlugin {
   /**
    * Get the calculated row height.
    *
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @param {Number} [defaultHeight] Default row height. It will be pick up if no calculated height found.
    * @returns {Number}
    */

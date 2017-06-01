@@ -653,7 +653,7 @@ class ColumnSorting extends BasePlugin {
    *
    * @private
    * @param {Event} event Event which are provided by hook.
-   * @param {CellCoords} coords Coords of the selected cell.
+   * @param {CellCoords} coords Visual coords of the selected cell.
    */
   onAfterOnCellMouseDown(event, coords) {
     if (coords.row > -1) {
