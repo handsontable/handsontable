@@ -694,6 +694,50 @@ thead .htCollapseButton:after {
   overflow-y: hidden;
 }
 
+.handsontable > .helpModalWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+}
+
+.handsontable > .helpModalWrapper > .helpModal {
+  position: absolute;
+  min-width: 200px;
+  width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+  top: 40%;
+  left: 25%;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 20px;
+  background-color: white;
+  z-index: 1001;
+  text-align: center;
+}
+
+.handsontable > .helpModalWrapper > .helpModal > .helpModalKeys {
+  font-size: 1.6em;
+  margin-top: 1em;
+  vertical-align: 90%;
+}
+
+.handsontable > .helpModalWrapper > .helpModal > .helpModalKeys > .helpModalKey {
+  display: inline-block;
+  padding: 10px;
+  margin: 0 5px;
+  font-size: 1.2em;
+  font-family: monospace;
+  font-weight: bold;
+  border: 1px solid gray;
+  border-radius: 3px;
+  background-color: beige;
+  box-shadow: inset 0 0 10px #000;
+}
 
 /*WalkontableDebugOverlay*/
 

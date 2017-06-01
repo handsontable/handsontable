@@ -59,16 +59,49 @@ describe('CopyPaste', () => {
     }, 100);
   });
 
+  it('should show help modal when triggerPaste called with no string and no browser clipboard API', (done) => {
+    var hot = handsontable();
+    expect($('.helpModalWrapper').css('display')).toEqual('none');
+    hot.copyPaste.triggerPaste();
+
+    setTimeout(() => {
+      expect($('.helpModalWrapper').css('display')).toEqual('block');
+      done();
+    }, 100);
+  });
+
+  it('should hide the help modal when a non-control key is typed', () => {
+    var hot = handsontable();
+    hot.copyPaste.showHelpModal();
+    selectCell(0, 0);
+    expect($('.helpModalWrapper').css('display')).toEqual('block');
+    keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
+    expect($('.helpModalWrapper').css('display')).toEqual('block');
+    keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_LEFT);
+    expect($('.helpModalWrapper').css('display')).toEqual('block');
+    keyDownUp(Handsontable.helper.KEY_CODES.A);
+    expect($('.helpModalWrapper').css('display')).toEqual('none');
+  });
+
+  it('should hide the help modal when its fill-wrapper is clicked', () => {
+    var hot = handsontable();
+    hot.copyPaste.showHelpModal();
+    selectCell(0, 0);
+    expect($('.helpModalWrapper').css('display')).toEqual('block');
+    $('.helpModalWrapper').simulate('click');
+    expect($('.helpModalWrapper').css('display')).toEqual('none');
+  });
+
   describe('enabling/disabing plugin', () => {
     it('should enable copyPaste by default', () => {
-
       var hot = handsontable();
 
       expect(hot.copyPaste).toBeDefined();
     });
 
-    it('should create copyPaste div if enabled', () => {
+    it('should create copyPaste and helpModalWrapper divs if enabled', () => {
       expect($('#CopyPasteDiv').length).toEqual(0);
+      expect($('.helpModalWrapper').length).toEqual(0);
 
       var hot = handsontable();
 
@@ -76,10 +109,12 @@ describe('CopyPaste', () => {
       keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT); // copyPaste div isn't created until you click CTRL
 
       expect($('#CopyPasteDiv').length).toEqual(1);
+      expect($('.helpModalWrapper').length).toEqual(1);
     });
 
-    it('should not create copyPaste div if disabled', () => {
+    it('should not create copyPaste and helpModalWrapper divs if disabled', () => {
       expect($('#CopyPasteDiv').length).toEqual(0);
+      expect($('.helpModalWrapper').length).toEqual(0);
 
       var hot = handsontable({
         copyPaste: false
@@ -89,6 +124,7 @@ describe('CopyPaste', () => {
       keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
       expect($('#CopyPasteDiv').length).toEqual(0);
+      expect($('.helpModalWrapper').length).toEqual(0);
     });
 
     it('should not create copyPaste property if plugin is disabled', () => {
@@ -111,8 +147,9 @@ describe('CopyPaste', () => {
       expect(hot.copyPaste).toBe(null);
     });
 
-    it('should remove copyPaste div if plugin has been disabled using updateSetting', () => {
+    it('should remove copyPaste and helpModalWrapper divs if plugin has been disabled using updateSetting', () => {
       expect($('#CopyPasteDiv').length).toEqual(0);
+      expect($('.helpModalWrapper').length).toEqual(0);
 
       var hot = handsontable();
 
@@ -120,17 +157,20 @@ describe('CopyPaste', () => {
       keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
       expect($('#CopyPasteDiv').length).toEqual(1);
+      expect($('.helpModalWrapper').length).toEqual(1);
 
       updateSettings({
         copyPaste: false
       });
 
       expect($('#CopyPasteDiv').length).toEqual(0);
+      expect($('.helpModalWrapper').length).toEqual(0);
 
       selectCell(0, 0);
       keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
       expect($('#CopyPasteDiv').length).toEqual(0);
+      expect($('.helpModalWrapper').length).toEqual(0);
     });
   });
 
@@ -303,9 +343,18 @@ describe('CopyPaste', () => {
 
       it('should create only one CopyPasteDiv regardless of the number of tables', function() {
         var hot1 = handsontable();
-        var hot2 = this.$container2.handsontable();
+        var hot2 = this.$container2.handsontable().handsontable('getInstance');
 
         expect($('#CopyPasteDiv').length).toEqual(1);
+      });
+
+      it('should create a helpModalWrapper for each table', function () {
+        var hot1 = handsontable();
+        var hot2 = this.$container2.handsontable().handsontable('getInstance');
+
+        expect($('.helpModalWrapper').length).toEqual(2);
+        expect($(hot1.rootElement).find('.helpModalWrapper').length).toEqual(1);
+        expect($(hot2.rootElement).find('.helpModalWrapper').length).toEqual(1);
       });
 
       it('should leave CopyPasteDiv as long as at least one table has copyPaste enabled', function() {
@@ -325,6 +374,19 @@ describe('CopyPaste', () => {
         });
 
         expect($('#CopyPasteDiv').length).toEqual(0);
+      });
+
+      it('should remove helpModalWrapper only from tables which disable the plugin', function () {
+        var hot1 = handsontable();
+        var hot2 = this.$container2.handsontable().handsontable('getInstance');
+
+        hot1.updateSettings({
+          copyPaste: false
+        });
+
+        expect($('.helpModalWrapper').length).toEqual(1);
+        expect($(hot1.rootElement).find('.helpModalWrapper').length).toEqual(0);
+        expect($(hot2.rootElement).find('.helpModalWrapper').length).toEqual(1);
       });
     });
   });
