@@ -186,22 +186,22 @@ export function itemIsSelectionDisabled(item) {
  */
 export function getParsedAndFiltredItems(parentHot, items) {
   const parsedItems = arrayEach(items, (item) => {
-    parseValues(parentHot, item, 'name', false);
-    parseValues(parentHot, item, 'hidden');
-    parseValues(parentHot, item, 'disabled');
+    parseValues(parentHot, item, 'name', 'name', false);
+    parseValues(parentHot, item, 'hidden', 'isHidden');
+    parseValues(parentHot, item, 'disabled', 'isDisabled');
   });
-  const notHiddenItems = parsedItems.filter((item) => !item.hidden);
+  const notHiddenItems = parsedItems.filter((item) => !item.isHidden);
 
   return filterSeparators(notHiddenItems, SEPARATOR);
 }
 
-export function parseValues(instance, item, key, toBoolean = true) {
+export function parseValues(instance, item, key, parsedKey, toBoolean = true) {
   if (isFunction(item[key])) {
-    item[key] = item[key].call(instance);
+    item[parsedKey] = item[key].call(instance);
   }
 
   if (toBoolean) {
-    item[key] = item[key] === true;
+    item[parsedKey] = (item[parsedKey] === true);
   }
 }
 
@@ -227,7 +227,7 @@ export function prepareItemsAndReturnCellMeta(data) {
       properties.renderer = item.renderer;
     }
 
-    if (item.disabled) {
+    if (item.isDisabled) {
       properties.className.push('htDisabled');
 
     } else if (isSubMenu(item)) {

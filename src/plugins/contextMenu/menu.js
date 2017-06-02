@@ -72,6 +72,10 @@ class Menu {
         this.hotMenu.selectCell(coords.row, 0, void 0, void 0, false, false);
       }
     });
+
+    this.hotMenu.addHook('afterOnCellMouseOut', (event, coords, TD) => {
+      this.hotMenu.deselectCell();
+    });
   }
 
   /**
@@ -113,11 +117,11 @@ class Menu {
 
     deepExtend(cloneOfMenuItems, this.menuItems);
 
-    const parsedAndFiltredItems = getParsedAndFiltredItems(hot, Object.values(cloneOfMenuItems));
-    const cell = prepareItemsAndReturnCellMeta(parsedAndFiltredItems);
+    const parsedAndFilteredItems = getParsedAndFiltredItems(this.hot, Object.values(cloneOfMenuItems));
+    const cell = prepareItemsAndReturnCellMeta(parsedAndFilteredItems);
 
     let settings = {
-      data: parsedAndFiltredItems,
+      data: parsedAndFilteredItems,
       cell,
       colHeaders: false,
       colWidths: [200],
@@ -139,7 +143,10 @@ class Menu {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: (row) => (parsedAndFiltredItems[row].isSeparator === true ? 1 : 23)
+      rowHeights: (row) => {
+        const dataAtRow = this.hotMenu.getSourceDataAtRow(row);
+        return dataAtRow.isSeparator === true ? 1 : 23
+      }
     };
 
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
@@ -283,7 +290,7 @@ class Menu {
     let autoClose = true;
 
     // Don't close context menu if item is disabled or it has submenu
-    if (selectedItem.disabled || selectedItem.submenu) {
+    if (selectedItem.isDisabled || selectedItem.submenu) {
       autoClose = false;
     }
 
@@ -389,7 +396,7 @@ class Menu {
   selectFirstCell() {
     const item = this.hotMenu.getSourceDataAtRow(0);
 
-    if (item.isSeparator || item.disabled || item.disableSelection) {
+    if (item.isSeparator || item.isDisabled || item.disableSelection) {
       this.selectNextCell(0);
     } else {
       this.hotMenu.selectCell(0, 0);
@@ -403,7 +410,7 @@ class Menu {
     let lastRow = this.hotMenu.countRows() - 1;
     const item = this.hotMenu.getSourceDataAtRow(lastRow);
 
-    if (item.isSeparator || item.disabled || item.disableSelection) {
+    if (item.isSeparator || item.isDisabled || item.disableSelection) {
       this.selectPrevCell(lastRow);
     } else {
       this.hotMenu.selectCell(lastRow, 0);
@@ -423,7 +430,7 @@ class Menu {
       return;
     }
 
-    if (item.isSeparator || item.disabled || item.disableSelection) {
+    if (item.isSeparator || item.isDisabled || item.disableSelection) {
       this.selectNextCell(nextRow);
     } else {
       this.hotMenu.selectCell(nextRow, 0);
@@ -442,7 +449,7 @@ class Menu {
     if (!item) {
       return;
     }
-    if (item.isSeparator || item.disabled || item.disableSelection) {
+    if (item.isSeparator || item.isDisabled || item.disableSelection) {
       this.selectPrevCell(prevRow);
     } else {
       this.hotMenu.selectCell(prevRow, 0);
