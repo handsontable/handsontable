@@ -1608,7 +1608,8 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function updateSettings
    * @param {Object} settings New settings object.
-   * @param {Boolean} init
+   * @param {Boolean} init Calls this method in the initialization mode. Internal use only.
+   *                       Used by API could be cause of the unexpected behaviour of the Handsontable.
    * @example
    * ```js
    * hot.updateSettings({
