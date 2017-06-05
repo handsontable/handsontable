@@ -106,6 +106,28 @@ class Menu {
     return this.parentMenu !== null;
   }
 
+  getPreparedItems(items) {
+    const data = getParsedAndFiltredItems(this.hot, items);
+    const cell = prepareItemsAndReturnCellMeta(data);
+
+    return {data, cell}
+  }
+
+  updateItems(index, changes = []) {
+    arrayEach(changes, ({key, value}) => {
+      this.menuItems[index][key] = value;
+    });
+
+    this.hotMenu.updateSettings(this.getItemsData());
+  }
+
+  getItemsData() {
+    const cloneOfMenuItems = {};
+    deepExtend(cloneOfMenuItems, this.menuItems);
+
+    return this.getPreparedItems(Object.values(cloneOfMenuItems));
+  }
+
   /**
    * Open menu.
    */
@@ -113,15 +135,11 @@ class Menu {
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
     const delayedOpenSubMenu = debounce((row) => this.openSubMenu(row), 300);
-    const cloneOfMenuItems = {};
 
-    deepExtend(cloneOfMenuItems, this.menuItems);
-
-    const parsedAndFilteredItems = getParsedAndFiltredItems(this.hot, Object.values(cloneOfMenuItems));
-    const cell = prepareItemsAndReturnCellMeta(parsedAndFilteredItems);
+    const {data, cell} = this.getItemsData();
 
     let settings = {
-      data: parsedAndFilteredItems,
+      data,
       cell,
       colHeaders: false,
       colWidths: [200],
@@ -641,15 +659,6 @@ class Menu {
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
         (!isChildOf(event.target, '.htMenu') && isChildOf(event.target, document))) {
       this.close(true);
-    }
-  }
-
-  /**
-   * Render again menu
-   */
-  refresh() {
-    if (this.hotMenu) {
-      this.hotMenu.render();
     }
   }
 }

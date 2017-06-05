@@ -175,10 +175,6 @@ export function itemIsSeparator(item) {
   return new RegExp(SEPARATOR, 'i').test(item.name);
 };
 
-export function itemIsSelectionDisabled(item) {
-  return item.disableSelection;
-};
-
 /**
  *
  * @param unfilteredItems
@@ -196,13 +192,20 @@ export function getParsedAndFiltredItems(parentHot, items) {
 }
 
 export function parseValues(instance, item, key, parsedKey, toBoolean = true) {
+  let parsedValue;
+
   if (isFunction(item[key])) {
-    item[parsedKey] = item[key].call(instance);
+    parsedValue = item[key].call(instance);
+
+  } else {
+    parsedValue = item[key]
   }
 
   if (toBoolean) {
-    item[parsedKey] = (item[parsedKey] === true);
+    parsedValue = (parsedValue === true);
   }
+
+  item[parsedKey] = parsedValue;
 }
 
 /**
