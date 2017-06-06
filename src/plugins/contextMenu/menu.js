@@ -9,12 +9,14 @@ import Cursor from './cursor';
 import EventManager from './../../eventManager';
 import {mixin, deepExtend} from './../../helpers/object';
 import {debounce} from './../../helpers/function';
-import {normalizeSelection, getParsedAndFiltredItems, prepareItemsAndReturnCellMeta} from './utils';
+import {normalizeSelection, getParsedAndFiltredItems, prepareItemsAndReturnCellMeta, itemIsSeparator} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
 import {SEPARATOR} from './predefinedItems';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 import menuRenderer from './menuRenderer';
+
+const cellMetaCache = new WeakMap();
 
 /**
  * @class Menu
@@ -110,15 +112,23 @@ class Menu {
     const data = getParsedAndFiltredItems(this.hot, items);
     const cell = prepareItemsAndReturnCellMeta(data);
 
-    return {data, cell}
+    return {data, cell};
   }
 
-  updateItems(index, changes = []) {
-    arrayEach(changes, ({key, value}) => {
-      this.menuItems[index][key] = value;
-    });
+  updateItems(physicalIndex, changes = []) {
+    const item = this.menuItems[physicalIndex];
 
-    this.hotMenu.updateSettings(this.getItemsData());
+    if (item && !itemIsSeparator(item)) {
+      arrayEach(changes, ({key, value}) => {
+        item[key] = value;
+      });
+    }
+
+    const {data, cell} = this.getItemsData();
+
+    // loadData override GridSettings -> `afterLoadData` update cell metas
+    cellMetaCache.set(this.hotMenu, cell);
+    this.hotMenu.loadData(data);
   }
 
   getItemsData() {
@@ -159,6 +169,14 @@ class Menu {
           delayedOpenSubMenu(coords.row);
         } else {
           this.openSubMenu(coords.row);
+        }
+      },
+      afterLoadData: function () {
+        if (cellMetaCache.has(this)) {
+          const cell = cellMetaCache.get(this);
+
+          this.updateSettings({cell}, true);
+          cellMetaCache.delete(this);
         }
       },
       rowHeights: (row) => {
