@@ -210,6 +210,7 @@ class Menu {
       this.closeAllSubMenus();
       this.container.style.display = 'none';
       this.releaseMainTableCallbacks();
+      cellMetaCache.delete(this.hotMenu);
       this.hotMenu.destroy();
       this.hotMenu = null;
       this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
