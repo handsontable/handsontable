@@ -175,7 +175,7 @@ class Menu {
         if (cellMetaCache.has(this)) {
           const cell = cellMetaCache.get(this);
 
-          this.updateSettings({cell}, true);
+          this.updateSettings({cell});
           cellMetaCache.delete(this);
         }
       },
