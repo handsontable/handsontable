@@ -112,9 +112,6 @@ function CopyPastePlugin(instance) {
     topLeftCorner = cellRange.getTopLeftCorner();
     bottomRightCorner = cellRange.getBottomRightCorner();
     areaStart = topLeftCorner;
-    areaEnd = new CellCoords(
-      Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
-      Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
 
     let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
     let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
@@ -146,6 +143,9 @@ function CopyPastePlugin(instance) {
     let allowPasting = !!instance.runHooks('beforePaste', inputArray, _this.copyableRanges);
 
     if (allowPasting) {
+      areaEnd = new CellCoords(
+        Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
+        Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
       instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', instance.getSettings().pasteMode);
       instance.runHooks('afterPaste', inputArray, _this.copyableRanges);
     }
