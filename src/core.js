@@ -357,6 +357,7 @@ export default function Core(rootElement, userSettings) {
      * @returns {Object|undefined} ending td in pasted area (only if any cell was changed).
      */
     populateFromArray(start, input, end, source, method, direction, deltas) {
+      // TODO: either remove or implement the `direction` argument. Currently it's not working at all.
       var r,
         rlen,
         c,
