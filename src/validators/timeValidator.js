@@ -16,7 +16,7 @@ const STRICT_FORMATS = [
  * @param {*} value - Value of edited cell
  * @param {Function} callback - Callback called with validation result
  */
-function TimeValidator(value, callback) {
+export default function timeValidator(value, callback) {
   let valid = true;
   let timeFormat = this.timeFormat || 'h:mm:ss a';
 
@@ -63,5 +63,3 @@ function TimeValidator(value, callback) {
 
   callback(valid);
 };
-
-export default TimeValidator;

@@ -1,7 +1,7 @@
 import {addClass, hasClass, empty} from './../helpers/dom/element';
 import EventManager from './../eventManager';
-import {getRenderer, registerRenderer} from './../renderers';
 import {CellCoords} from './../3rdparty/walkontable/src';
+import {getRenderer} from './index';
 
 var clonableWRAPPER = document.createElement('DIV');
 clonableWRAPPER.className = 'htAutocompleteWrapper';
@@ -68,7 +68,5 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
     });
   }
 }
-
-registerRenderer('autocomplete', autocompleteRenderer);
 
 export default autocompleteRenderer;

@@ -205,7 +205,7 @@ describe('HandsontableEditor', () => {
 
       keyDownUp('enter');
 
-      var ht = Handsontable.editors.getEditor('handsontable', hot);
+      var ht = hot.getActiveEditor();
       var innerHot = ht.htEditor;
 
       expect(innerHot.getSelected()).toEqual([0, 0, 0, 0]);
@@ -251,7 +251,7 @@ describe('HandsontableEditor', () => {
 
       keyDownUp('enter');
 
-      var ht = Handsontable.editors.getEditor('handsontable', hot);
+      var ht = hot.getActiveEditor();
       var innerHot = ht.htEditor;
 
       expect(innerHot.getSelected()).toBeUndefined();

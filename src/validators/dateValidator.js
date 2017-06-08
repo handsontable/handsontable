@@ -1,6 +1,6 @@
 import moment from 'moment';
 import {getNormalizedDate} from '../helpers/date';
-import {getEditor} from './../editors';
+import {getEditorInstance} from '../editors';
 
 /**
  * Date cell validator
@@ -11,9 +11,9 @@ import {getEditor} from './../editors';
  * @param {*} value - Value of edited cell
  * @param {Function} callback - Callback called with validation result
  */
-function DateValidator(value, callback) {
+export default function dateValidator(value, callback) {
   let valid = true;
-  let dateEditor = getEditor('date', this.instance);
+  const dateEditor = getEditorInstance('date', this.instance);
 
   if (value == null) {
     value = '';
@@ -49,8 +49,6 @@ function DateValidator(value, callback) {
   callback(valid);
 };
 
-export default DateValidator;
-
 /**
  * Format the given string using moment.js' format feature
  *
@@ -58,7 +56,7 @@ export default DateValidator;
  * @param {String} dateFormat
  * @returns {String}
  */
-let correctFormat = function correctFormat(value, dateFormat) {
+export function correctFormat(value, dateFormat) {
   let dateFromDate = moment(getNormalizedDate(value));
   let dateFromMoment = moment(value, dateFormat);
   let isAlphanumeric = value.search(/[A-z]/g) > -1;

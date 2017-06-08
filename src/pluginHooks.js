@@ -1318,14 +1318,6 @@ const REGISTERED_HOOKS = [
   'afterModifyTransformEnd',
 
   /**
-   * Fired before rendering a cell value.
-   *
-   * @event Hooks#beforeValueRender
-   * @param {Mixed} value The rendered value.
-   */
-  'beforeValueRender',
-
-  /**
    * Fired inside the `viewportRowCalculatorOverride` method. Allows modifying the row calculator parameters.
    *
    * @event Hooks#afterViewportRowCalculatorOverride

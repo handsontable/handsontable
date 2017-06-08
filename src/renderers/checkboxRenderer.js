@@ -1,10 +1,10 @@
 import {empty, addClass, hasClass} from './../helpers/dom/element';
 import {equalsIgnoreCase} from './../helpers/string';
 import EventManager from './../eventManager';
-import {getRenderer, registerRenderer} from './../renderers';
 import {isKey} from './../helpers/unicode';
 import {partial} from './../helpers/function';
 import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
+import {getRenderer} from './index';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -338,7 +338,5 @@ function onChange(event, instance) {
 function isCheckboxInput(element) {
   return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';
 }
-
-registerRenderer('checkbox', checkboxRenderer);
 
 export default checkboxRenderer;

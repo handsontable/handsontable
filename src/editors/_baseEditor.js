@@ -1,5 +1,4 @@
 import {CellCoords} from './../3rdparty/walkontable/src';
-import {registerEditor} from './../editors';
 import {stringify} from './../helpers/mixed';
 
 export const EditorState = {
@@ -267,7 +266,5 @@ BaseEditor.prototype.checkEditorSection = function() {
 
   return section;
 };
-
-registerEditor('base', BaseEditor);
 
 export default BaseEditor;

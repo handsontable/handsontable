@@ -1,6 +1,6 @@
 import {empty, fastInnerText} from './../helpers/dom/element';
 import {stringify} from './../helpers/mixed';
-import {getRenderer, registerRenderer} from './../renderers';
+import {getRenderer} from './index';
 
 /**
  * Default text renderer
@@ -42,7 +42,5 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
     fastInnerText(TD, escaped);
   }
 }
-
-registerRenderer('text', textRenderer);
 
 export default textRenderer;
