@@ -1080,7 +1080,7 @@ DefaultSettings.prototype = {
    * Possible values:
    * * `true` (to enable default options),
    * * `false` (to disable completely)
-   * * an array of any [available strings](https://docs.handsontable.com/demo-context-menu.html#page-specific),
+   * * an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
    * * an object [with defined structure](http://docs.handsontable.com/demo-context-menu.html#page-custom)
    *
    * See [the context menu demo](http://docs.handsontable.com/demo-context-menu.html) for examples.
@@ -1112,7 +1112,8 @@ DefaultSettings.prototype = {
    *             callback: function(key, options) {
    *               ...
    *             }
-   *           }
+   *           },
+   *           ...
    *         ]
    *       }
    *     }
