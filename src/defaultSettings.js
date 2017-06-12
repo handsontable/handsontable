@@ -198,6 +198,30 @@ DefaultSettings.prototype = {
    *
    * @type {Array|Function|Number|String}
    * @default undefined
+   * @example
+   * ```js
+   * ...
+   * // as numeric, for each column.
+   * colWidths: 100,
+   * ...
+   *
+   * * ...
+   * // as string, for each column.
+   * colWidths: '100px',
+   * ...
+   *
+   * ...
+   * // as array, based on visual indexes. The rest of the columns have a default width.
+   * colWidths: [100, 120, 90],
+   * ...
+   *
+   * ...
+   * // as function, based on visual indexes.
+   * colWidths: function(index) {
+   *   return index * 10;
+   * },
+   * ...
+   * ```
    */
   colWidths: void 0,
 
@@ -209,6 +233,30 @@ DefaultSettings.prototype = {
    *
    * @type {Array|Function|Number|String}
    * @default undefined
+   * @example
+   * ```js
+   * ...
+   * // as numeric, for each row.
+   * rowHeights: 100,
+   * ...
+   *
+   * * ...
+   * // as string, for each row.
+   * rowHeights: '100px',
+   * ...
+   *
+   * ...
+   * // as array, based on visual indexes. The rest of the rows have a default height.
+   * rowHeights: [100, 120, 90],
+   * ...
+   *
+   * ...
+   * // as function, based on visual indexes.
+   * rowHeights: function(index) {
+   *   return index * 10;
+   * },
+   * ...
+   * ```
    */
   rowHeights: void 0,
 
