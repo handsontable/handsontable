@@ -220,11 +220,12 @@ DefaultSettings.prototype = {
    *
    * See [documentation -> datasources.html](http://docs.handsontable.com/tutorial-data-sources.html#page-nested) for examples.
    *
-   * @type {Array}
+   * @type {Array|Function}
    * @default undefined
    * @example
    * ```js
    * ...
+   * // as an array of objects. Order of the objects in array is representation of physical indexes.
    * columns: [
    *   {
    *     // column options for the first column
@@ -237,6 +238,16 @@ DefaultSettings.prototype = {
    *     readOnly: true
    *   }
    * ],
+   * ...
+   *
+   * // or as function, based on physical indexes
+   * ...
+   * columns: function(index) {
+ *    return {
+ *      type: index > 0 ? 'numeric' : 'text',
+ *      readOnly: index < 1
+ *    }
+   * }
    * ...
    * ```
    */
