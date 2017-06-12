@@ -55,8 +55,6 @@ export default function alignmentItem() {
               }
             });
 
-            console.log(hasClass);
-
             if (hasClass) {
               label = markLabelAsSelected(label);
             }
@@ -87,8 +85,6 @@ export default function alignmentItem() {
                 return true;
               }
             });
-
-            console.log(hasClass);
 
             if (hasClass) {
               label = markLabelAsSelected(label);
