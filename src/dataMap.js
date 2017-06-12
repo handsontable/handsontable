@@ -244,7 +244,7 @@ DataMap.prototype.createRow = function(index, amount, source) {
 /**
  * Creates col at the right of the data array.
  *
- * @param {Number} [index] Physical index of the column before which the new column will be inserted
+ * @param {Number} [index] Visual index of the column before which the new column will be inserted
  * @param {Number} [amount] An amount of columns to add.
  * @param {String} [source] Source of method call.
  * @fires Hooks#afterCreateCol
@@ -312,7 +312,7 @@ DataMap.prototype.createCol = function(index, amount, source) {
 /**
  * Removes row from the data array.
  *
- * @param {Number} [index] Physical index of the row to be removed. If not provided, the last row will be removed
+ * @param {Number} [index] Visual index of the row to be removed. If not provided, the last row will be removed
  * @param {Number} [amount] Amount of the rows to be removed. If not provided, one row will be removed
  * @param {String} [source] Source of method call.
  * @fires Hooks#beforeRemoveRow
@@ -330,7 +330,7 @@ DataMap.prototype.removeRow = function(index, amount, source) {
 
   index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
 
-  let logicRows = this.physicalRowsToVisual(index, amount);
+  let logicRows = this.visualRowsToPhysical(index, amount);
   let actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', index, amount, logicRows, source);
 
   if (actionWasNotCancelled === false) {
@@ -355,7 +355,7 @@ DataMap.prototype.removeRow = function(index, amount, source) {
 /**
  * Removes column from the data array.
  *
- * @param {Number} [index] Physical index of the column to be removed. If not provided, the last column will be removed
+ * @param {Number} [index] Visual index of the column to be removed. If not provided, the last column will be removed
  * @param {Number} [amount] Amount of the columns to be removed. If not provided, one column will be removed
  * @param {String} [source] Source of method call.
  * @fires Hooks#beforeRemoveCol
@@ -374,7 +374,7 @@ DataMap.prototype.removeCol = function(index, amount, source) {
 
   index = (this.instance.countCols() + index) % this.instance.countCols();
 
-  let logicColumns = this.physicalColumnsToVisual(index, amount);
+  let logicColumns = this.visualColumnsToPhysical(index, amount);
   let descendingLogicColumns = logicColumns.slice(0).sort((a, b) => b - a);
   let actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', index, amount, logicColumns, source);
 
@@ -649,7 +649,7 @@ DataMap.prototype.set = function(row, prop, value, source) {
  * @fires Hooks#modifyRow
  * @returns {Number}
  */
-DataMap.prototype.physicalRowsToVisual = function(index, amount) {
+DataMap.prototype.visualRowsToPhysical = function(index, amount) {
   var totalRows = this.instance.countSourceRows();
   var physicRow = (totalRows + index) % totalRows;
   var logicRows = [];
@@ -669,11 +669,11 @@ DataMap.prototype.physicalRowsToVisual = function(index, amount) {
 
 /**
  *
- * @param index Physical column index.
+ * @param index Visual column index.
  * @param amount
  * @returns {Array}
  */
-DataMap.prototype.physicalColumnsToVisual = function(index, amount) {
+DataMap.prototype.visualColumnsToPhysical = function(index, amount) {
   let totalCols = this.instance.countCols();
   let physicalCol = (totalCols + index) % totalCols;
   let visualCols = [];

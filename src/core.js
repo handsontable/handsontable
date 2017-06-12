@@ -2057,9 +2057,10 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getDataAtProp
    * @since 0.9-beta2
-   * @param {String|Number} prop Property name / visual column index.
+   * @param {String|Number} prop Property name / physical column index.
    * @returns {Array} Array of cell values.
    */
+  // TODO: Getting data from `datamap` should work on visual indexes.
   this.getDataAtProp = function(prop) {
     var out = [],
       range;
@@ -2128,9 +2129,10 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getSourceDataAtCol
    * @since 0.11.0-beta3
-   * @param {Number} column Physical column index.
+   * @param {Number} column Visual column index.
    * @returns {Array} Array of the column's cell values.
    */
+  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCol = function(column) {
     return dataSource.getAtColumn(column);
   };
@@ -2154,10 +2156,11 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getSourceDataAtCell
    * @param {Number} row Physical row index.
-   * @param {Number} column Physical column index.
+   * @param {Number} column Visual column index.
    * @returns {*} Cell data.
    * @since 0.20.0
    */
+  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCell = function(row, column) {
     return dataSource.getAtCell(row, column);
   };
@@ -2239,12 +2242,13 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function removeCellMeta
-   * @param {Number} row Physical row index.
-   * @param {Number} col Physical column index.
+   * @param {Number} row Visual/physical row index.
+   * @param {Number} col Visual/physical column index.
    * @param {String} key Property name.
    */
   this.removeCellMeta = function(row, col, key) {
-    var cellMeta = instance.getCellMeta(row, col);
+    // TODO: First we use indexes as visual, after that, the same indexes are used as physical. This MUST be improved.
+    const cellMeta = instance.getCellMeta(row, col);
     if (cellMeta[key] != undefined) {
       delete priv.cellSettings[row][col][key];
     }
@@ -2268,8 +2272,8 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function setCellMetaObject
    * @since 0.11
-   * @param {Number} row Physical row index.
-   * @param {Number} col Physical column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {Object} prop Meta object.
    */
   this.setCellMetaObject = function(row, col, prop) {
@@ -2289,8 +2293,8 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function setCellMeta
    * @since 0.11
-   * @param {Number} row Physical row index.
-   * @param {Number} col Physical column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {String} key Property name.
    * @param {String} val Property value.
    * @fires Hooks#afterSetCellMeta
@@ -2408,8 +2412,8 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getCellRenderer
    * @since 0.11
-   * @param {Number|Object} row Physical row index or cell meta object.
-   * @param {Number} [col] Physical column index.
+   * @param {Number|Object} row Visual row index or cell meta object.
+   * @param {Number} [col] Visual column index.
    * @returns {Function} The renderer function.
    */
   this.getCellRenderer = function(row, col) {
@@ -2421,8 +2425,8 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getCellEditor
-   * @param {Number} row Physical row index.
-   * @param {Number} col Physical column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @returns {Object} The Editor object.
    */
   this.getCellEditor = cellMethodLookupFactory('editor');
@@ -2434,8 +2438,8 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getCellValidator
-   * @param {Number} row Physical row index.
-   * @param {Number} col Physical column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @returns {Function|RegExp|undefined} The validator function.
    */
   this.getCellValidator = function(row, col) {
@@ -2493,7 +2497,7 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getRowHeader
-   * @param {Number} [row] Physical row index.
+   * @param {Number} [row] Visual row index.
    * @fires Hooks#modifyRowHeader
    * @returns {Array|String} Array of header values / single header value.
    */
@@ -2684,7 +2688,7 @@ export default function Core(rootElement, userSettings) {
    * @private
    * @memberof Core#
    * @function _getRowHeightFromSettings
-   * @param {Number} row Physical row index.
+   * @param {Number} row Visual row index.
    * @returns {Number}
    */
   this._getRowHeightFromSettings = function(row) {
@@ -2722,7 +2726,7 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getRowHeight
    * @since 0.11
-   * @param {Number} row Physical row index.
+   * @param {Number} row Visual row index.
    * @returns {Number} The given row's height.
    * @fires Hooks#modifyRowHeight
    */

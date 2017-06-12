@@ -869,9 +869,9 @@ const REGISTERED_HOOKS = [
   /**
    * Fired when a data was retrieved or modified.
    *
-   * @event Hooks#modifyRowSourceData
+   * @event Hooks#modifyRowData
    * @since 0.28.0
-   * @param {Number} row Visual row index.
+   * @param {Number} row Physical row index.
    */
   'modifyRowData',
 
