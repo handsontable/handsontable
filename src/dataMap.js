@@ -485,16 +485,16 @@ DataMap.prototype.spliceData = function(index, amount, element) {
 /**
  * Filter unwanted data elements from the data source.
  *
- * @param {Number} index Physical index of the element to remove.
+ * @param {Number} index Visual index of the element to remove.
  * @param {Number} amount Number of rows to add/remove.
  * @returns {Array}
  */
 DataMap.prototype.filterData = function(index, amount) {
-  let visualRows = this.physicalRowsToVisual(index, amount);
-  let continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, visualRows);
+  let physicalRows = this.visualRowsToPhysical(index, amount);
+  let continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, physicalRows);
 
   if (continueSplicing !== false) {
-    let newData = this.dataSource.filter((row, index) => visualRows.indexOf(index) == -1);
+    let newData = this.dataSource.filter((row, index) => physicalRows.indexOf(index) == -1);
 
     return newData;
   }
