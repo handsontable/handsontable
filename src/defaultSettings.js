@@ -224,6 +224,7 @@ DefaultSettings.prototype = {
    * @example
    * ```js
    * ...
+   * // as an array of objects. Order of the objects in array is representation of physical indexes.
    * columns: [
    *   {
    *     // column options for the first column
