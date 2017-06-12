@@ -1084,10 +1084,8 @@ DefaultSettings.prototype = {
    * Possible values:
    * * `true` (to enable default options),
    * * `false` (to disable completely)
-   *
-   * or array of any available strings:
-   * * `["row_above", "row_below", "col_left", "col_right",
-   * "remove_row", "remove_col", "---------", "undo", "redo"]`.
+   * * an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
+   * * an object [with defined structure](http://docs.handsontable.com/demo-context-menu.html#page-custom)
    *
    * See [the context menu demo](http://docs.handsontable.com/demo-context-menu.html) for examples.
    *
@@ -1097,11 +1095,36 @@ DefaultSettings.prototype = {
    * // as a boolean
    * contextMenu: true
    * ...
-   * // as a array
+   * // as an array
    * contextMenu: ['row_above', 'row_below', '--------', 'undo', 'redo']
    * ...
    * ```
-   *
+   * ...
+   * // as an object (`name` attribute is required in the custom keys)
+   * contextMenu: {
+   *   items: {
+   *     "option1": {
+   *       name: "option1"
+   *     },
+   *     "option2": {
+   *       name: "option2",
+   *       submenu: {
+   *         items: [
+   *           {
+   *             key: "option2:suboption1",
+   *             name: "option2:suboption1",
+   *             callback: function(key, options) {
+   *               ...
+   *             }
+   *           },
+   *           ...
+   *         ]
+   *       }
+   *     }
+   *   }
+   * }
+   * ...
+   * ```
    * @type {Boolean|Array|Object}
    * @default undefined
    */
