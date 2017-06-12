@@ -222,7 +222,7 @@ export default function Core(rootElement, userSettings) {
           }
 
           if (Array.isArray(instance.getSettings().colHeaders)) {
-            if (typeof visualColumnIndex == 'undefined') {
+            if (typeof visualColumnIndex === 'undefined') {
               visualColumnIndex = -1;
             }
             instance.getSettings().colHeaders.splice(visualColumnIndex, amount);
@@ -353,7 +353,8 @@ export default function Core(rootElement, userSettings) {
      * @param {String} [source="populateFromArray"] Source information string.
      * @param {String} [method="overwrite"] Populate method. Possible options: `shift_down`, `shift_right`, `overwrite`.
      * @param {String} direction (left|right|up|down) String specifying the direction.
-     * @param {Array} deltas The deltas array.
+     * @param {Array} deltas The deltas array. A difference between values of adjacent cells.
+     *                       Useful **only** when the type of handled cells is `numeric`.
      * @returns {Object|undefined} ending td in pasted area (only if any cell was changed).
      */
     populateFromArray(start, input, end, source, method, direction, deltas) {
@@ -1764,7 +1765,7 @@ export default function Core(rootElement, userSettings) {
       instance.rootElement.style.overflow = 'hidden';
     }
 
-    if (typeof settings.width != 'undefined') {
+    if (typeof settings.width !== 'undefined') {
       var width = settings.width;
 
       if (isFunction(width)) {
