@@ -353,8 +353,8 @@ export default function Core(rootElement, userSettings) {
      * @param {String} [source="populateFromArray"] Source information string.
      * @param {String} [method="overwrite"] Populate method. Possible options: `shift_down`, `shift_right`, `overwrite`.
      * @param {String} direction (left|right|up|down) String specifying the direction.
-     * @param {Array} deltas The deltas array. Contains difference between numbers in rows or columns.
-     *                       Helpful when data in `input` is numeric.
+     * @param {Array} deltas The deltas array. A difference between values of adjacent cells.
+     *                       Useful **only** when the type of handled cells is `numeric`.
      * @returns {Object|undefined} ending td in pasted area (only if any cell was changed).
      */
     populateFromArray(start, input, end, source, method, direction, deltas) {
