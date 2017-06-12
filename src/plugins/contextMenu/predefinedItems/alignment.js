@@ -17,7 +17,7 @@ export default function alignmentItem() {
           name() {
             let label = 'Left';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let className = this.getCell(row, col).className;
 
               if (className && className.indexOf('htLeft') !== -1) {
                 return true;
@@ -48,12 +48,14 @@ export default function alignmentItem() {
           name() {
             let label = 'Center';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let className = this.getCell(row, col).className;
 
               if (className && className.indexOf('htCenter') !== -1) {
                 return true;
               }
             });
+
+            console.log(hasClass);
 
             if (hasClass) {
               label = markLabelAsSelected(label);
@@ -79,12 +81,14 @@ export default function alignmentItem() {
           name() {
             let label = 'Right';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let className = this.getCell(row, col).className;
 
               if (className && className.indexOf('htRight') !== -1) {
                 return true;
               }
             });
+
+            console.log(hasClass);
 
             if (hasClass) {
               label = markLabelAsSelected(label);
@@ -110,7 +114,7 @@ export default function alignmentItem() {
           name() {
             let label = 'Justify';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let className = this.getCell(row, col).className;
 
               if (className && className.indexOf('htJustify') !== -1) {
                 return true;
@@ -144,7 +148,7 @@ export default function alignmentItem() {
           name() {
             let label = 'Top';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let className = this.getCell(row, col).className;
 
               if (className && className.indexOf('htTop') !== -1) {
                 return true;
@@ -174,7 +178,7 @@ export default function alignmentItem() {
           name() {
             let label = 'Middle';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let className = this.getCell(row, col).className;
 
               if (className && className.indexOf('htMiddle') !== -1) {
                 return true;
@@ -205,7 +209,7 @@ export default function alignmentItem() {
           name() {
             let label = 'Bottom';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let className = this.getCell(row, col).className;
 
               if (className && className.indexOf('htBottom') !== -1) {
                 return true;
