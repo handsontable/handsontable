@@ -529,7 +529,8 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeAutofill
    * @param {Object} start Object containing information about first filled cell: `{row: 2, col: 0}`.
    * @param {Object} end Object containing information about last filled cell: `{row: 4, col: 1}`.
-   * @param {Array} data 2D array containing information about fill pattern: `[["1', "Ted"], ["1', "John"]]`.
+   * @param {Array} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
+   * @param {Array} baseRange The coordinates of the base area for autofill.
    */
   'beforeAutofill',
 
@@ -935,8 +936,8 @@ const REGISTERED_HOOKS = [
    * ```
    *
    * @event Hooks#modifyAutofillRange
-   * @param {Array} startArea Array of coordinates of the starting point for the drag-down operation.
    * @param {Array} entireArea Array of coordinates of the entire area of the drag-down operation.
+   * @param {Array} startArea Array of coordinates of the starting point for the drag-down operation.
    */
   'modifyAutofillRange',
 

@@ -427,8 +427,10 @@ class Border {
     this.rightStyle.height = `${height + 1}px`;
     this.rightStyle.display = 'block';
 
-    if (isMobileBrowser() || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
+    // if (isMobileBrowser() || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
+    if (isMobileBrowser() || !this.hasSetting(this.settings.border.cornerVisible)) {
       this.cornerStyle.display = 'none';
+
     } else {
       this.cornerStyle.top = `${top + height - 4}px`;
       this.cornerStyle.left = `${left + width - 4}px`;

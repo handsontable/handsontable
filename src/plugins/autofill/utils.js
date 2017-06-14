@@ -68,7 +68,7 @@ export function getDragDirectionAndRange(startSelection, endSelection) {
     startOfDragCoords = new CellCoords(endSelection[0], endSelection[1]);
     endOfDragCoords = new CellCoords(endSelection[2], startSelection[1] - 1);
 
-  } else if (endSelection[0] === startSelection[0] && endSelection[3] > startSelection[3]) {
+  } else if (endSelection[2] === startSelection[2] && endSelection[0] === startSelection[0] && endSelection[3] > startSelection[3]) {
     directionOfDrag = 'right';
 
     startOfDragCoords = new CellCoords(endSelection[0], startSelection[3] + 1);

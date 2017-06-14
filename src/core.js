@@ -744,13 +744,10 @@ export default function Core(rootElement, userSettings) {
      * @returns {Boolean}
      */
     isMultiple() {
-      var
-        isMultiple = !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row),
-        modifier = instance.runHooks('afterIsMultipleSelection', isMultiple);
+      const isMultiple = !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row);
+      const modifier = instance.runHooks('afterIsMultipleSelection', isMultiple);
 
-      if (isMultiple) {
-        return modifier;
-      }
+      return modifier;
     },
 
     /**

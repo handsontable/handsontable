@@ -1,5 +1,5 @@
 describe('MergeCells', () => {
-  var id = 'testContainer';
+  let id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -14,13 +14,13 @@ describe('MergeCells', () => {
 
   describe('mergeCells option', () => {
     it('should merge cell in startup', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         mergeCells: [
           {row: 0, col: 0, rowspan: 2, colspan: 2}
         ]
       });
-      var TD = hot.rootElement.querySelector('td');
+      let TD = hot.rootElement.querySelector('td');
 
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
@@ -29,13 +29,13 @@ describe('MergeCells', () => {
 
   describe('mergeCells updateSettings', () => {
     it('should allow to overwrite the initial settings using the updateSettings method', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
         mergeCells: [
           {row: 0, col: 0, rowspan: 2, colspan: 2}
         ]
       });
-      var TD = hot.rootElement.querySelector('td');
+      let TD = hot.rootElement.querySelector('td');
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
 
@@ -56,13 +56,13 @@ describe('MergeCells', () => {
     });
 
     it('should allow resetting the merged cells by changing it to an empty array', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
         mergeCells: [
           {row: 0, col: 0, rowspan: 2, colspan: 2}
         ]
       });
-      var TD = hot.rootElement.querySelector('td');
+      let TD = hot.rootElement.querySelector('td');
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
 
@@ -76,13 +76,13 @@ describe('MergeCells', () => {
     });
 
     it('should allow resetting and turning off the mergeCells plugin by changing mergeCells to \'false\'', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
         mergeCells: [
           {row: 0, col: 0, rowspan: 2, colspan: 2}
         ]
       });
-      var TD = hot.rootElement.querySelector('td');
+      let TD = hot.rootElement.querySelector('td');
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
 
@@ -99,7 +99,7 @@ describe('MergeCells', () => {
 
   describe('mergeCells copy', () => {
     it('should not copy text of cells that are merged into another cell', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         mergeCells: [
           {row: 0, col: 0, rowspan: 2, colspan: 2}
@@ -112,7 +112,7 @@ describe('MergeCells', () => {
   describe('merged cells selection', () => {
 
     it('should select the whole range of cells which form a merged cell', function() {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(4, 4),
         mergeCells: [
           {
@@ -124,8 +124,8 @@ describe('MergeCells', () => {
         ]
       });
 
-      var $table = this.$container.find('table.htCore');
-      var $td = $table.find('tr:eq(0) td:eq(0)');
+      let $table = this.$container.find('table.htCore');
+      let $td = $table.find('tr:eq(0) td:eq(0)');
 
       expect($td.attr('rowspan')).toEqual('1');
       expect($td.attr('colspan')).toEqual('4');
@@ -144,7 +144,7 @@ describe('MergeCells', () => {
     });
 
     it('should always make a rectangular selection, when selecting merged and not merged cells', function() {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(4, 4),
         mergeCells: [
           {
@@ -156,8 +156,8 @@ describe('MergeCells', () => {
         ]
       });
 
-      var $table = this.$container.find('table.htCore');
-      var $td = $table.find('tr:eq(1) td:eq(1)');
+      let $table = this.$container.find('table.htCore');
+      let $td = $table.find('tr:eq(1) td:eq(1)');
 
       expect($td.attr('rowspan')).toEqual('2');
       expect($td.attr('colspan')).toEqual('3');
@@ -183,7 +183,7 @@ describe('MergeCells', () => {
     });
 
     it('should not switch the selection start point when selecting from non-merged cells to merged cells', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
         mergeCells: [
           {row: 1, col: 1, rowspan: 3, colspan: 3},
@@ -214,7 +214,7 @@ describe('MergeCells', () => {
     });
 
     it('should select cells in the correct direction when changing selections around a merged range', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
         mergeCells: [
           {row: 4, col: 4, rowspan: 2, colspan: 2}
@@ -235,7 +235,7 @@ describe('MergeCells', () => {
     });
 
     it('should not add an area class to the selected cell if a single merged cell is selected', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(6, 6),
         mergeCells: [
           {
@@ -263,7 +263,7 @@ describe('MergeCells', () => {
 
   describe('merged cells scroll', () => {
     it('getCell should return merged cell parent', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         mergeCells: [
           {row: 0, col: 0, rowspan: 2, colspan: 2}
@@ -272,14 +272,14 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      var mergedCellParent = hot.getCell(0, 0);
-      var mergedCellHidden = hot.getCell(1, 1);
+      let mergedCellParent = hot.getCell(0, 0);
+      let mergedCellHidden = hot.getCell(1, 1);
 
       expect(mergedCellHidden).toBe(mergedCellParent);
     });
 
     it('should scroll viewport to beginning of a merged cell when it\'s clicked', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         mergeCells: [
           {row: 5, col: 0, rowspan: 2, colspan: 2}
@@ -288,17 +288,17 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      var mainHolder = hot.view.wt.wtTable.holder;
+      let mainHolder = hot.view.wt.wtTable.holder;
 
       mainHolder.scrollTop = 130;
       hot.render();
 
       expect(mainHolder.scrollTop).toBe(130);
 
-      var TD = hot.getCell(5, 0);
+      let TD = hot.getCell(5, 0);
       mouseDown(TD);
       mouseUp(TD);
-      var mergedCellScrollTop = mainHolder.scrollTop;
+      let mergedCellScrollTop = mainHolder.scrollTop;
       expect(mergedCellScrollTop).toBeLessThan(130);
       expect(mergedCellScrollTop).toBeGreaterThan(0);
 
@@ -311,12 +311,12 @@ describe('MergeCells', () => {
       TD = hot.getCell(5, 2);
       mouseDown(TD);
       mouseUp(TD);
-      var regularCellScrollTop = mainHolder.scrollTop;
+      let regularCellScrollTop = mainHolder.scrollTop;
       expect(mergedCellScrollTop).toBe(regularCellScrollTop);
     });
 
     it('should render whole merged cell even when most rows are not in the viewport - scrolled to top', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(40, 5),
         mergeCells: [
           {row: 1, col: 0, rowspan: 21, colspan: 2},
@@ -330,7 +330,7 @@ describe('MergeCells', () => {
     });
 
     it('should render whole merged cell even when most rows are not in the viewport - scrolled to bottom', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(40, 5),
         mergeCells: [
           {row: 1, col: 0, rowspan: 21, colspan: 2},
@@ -340,7 +340,7 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      var mainHolder = hot.view.wt.wtTable.holder;
+      let mainHolder = hot.view.wt.wtTable.holder;
 
       $(mainHolder).scrollTop(99999);
       hot.render();
@@ -349,7 +349,7 @@ describe('MergeCells', () => {
     });
 
     it('should render whole merged cell even when most columns are not in the viewport - scrolled to the left', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(5, 40),
         mergeCells: [
           {row: 0, col: 1, rowspan: 2, colspan: 21},
@@ -363,7 +363,7 @@ describe('MergeCells', () => {
     });
 
     it('should render whole merged cell even when most columns are not in the viewport - scrolled to the right', function() {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(5, 40),
         mergeCells: [
           {row: 0, col: 1, rowspan: 2, colspan: 21},
@@ -383,7 +383,7 @@ describe('MergeCells', () => {
 
   describe('merge cells shift', () => {
     it('should shift the merged cells right, when inserting a column on the left side of them', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
           {row: 1, col: 1, rowspan: 2, colspan: 2},
@@ -403,7 +403,7 @@ describe('MergeCells', () => {
     });
 
     it('should shift the merged cells left, when removing a column on the left side of them', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
           {row: 1, col: 1, rowspan: 2, colspan: 2},
@@ -424,7 +424,7 @@ describe('MergeCells', () => {
     });
 
     it('should shift the merged cells down, when inserting rows above them', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
           {row: 1, col: 1, rowspan: 2, colspan: 2},
@@ -444,7 +444,7 @@ describe('MergeCells', () => {
     });
 
     it('should shift the merged cells up, when removing rows above them', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
           {row: 1, col: 1, rowspan: 2, colspan: 2},
@@ -466,49 +466,69 @@ describe('MergeCells', () => {
 
   xdescribe('canMergeRange', () => {
     it('should return false if start and end cell is the same', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5)
       });
-      var mergeCells = new Handsontable.plugins.MergeCells(hot);
-      var coordsFrom = new WalkontableCellCoords(0, 1);
-      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(0, 1));
-      var result = mergeCells.canMergeRange(cellRange);
+      let mergeCells = new Handsontable.plugins.MergeCells(hot);
+      let result = mergeCells.canMergeRange({
+        from: {
+          row: 0, col: 1
+        },
+        to: {
+          row: 0, col: 1
+        }
+      });
 
       expect(result).toBe(false);
     });
 
     it('should return true for 2 consecutive cells in the same column', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5)
       });
-      var mergeCells = new Handsontable.plugins.MergeCells(hot);
-      var coordsFrom = new WalkontableCellCoords(0, 1);
-      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(1, 1));
-      var result = mergeCells.canMergeRange(cellRange);
+      let mergeCells = new Handsontable.plugins.MergeCells(hot);
+      let result = mergeCells.canMergeRange({
+        from: {
+          row: 0, col: 1
+        },
+        to: {
+          row: 1, col: 1
+        }
+      });
 
       expect(result).toBe(true);
     });
 
     it('should return true for 2 consecutive cells in the same row', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5)
       });
-      var mergeCells = new Handsontable.MergeCells(hot);
-      var coordsFrom = new WalkontableCellCoords(0, 1);
-      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(0, 2));
-      var result = mergeCells.canMergeRange(cellRange);
+      let mergeCells = hot.getPlugin('mergeCells');
+      let result = mergeCells.canMergeRange({
+        from: {
+          row: 0, col: 1
+        },
+        to: {
+          row: 0, col: 2
+        }
+      });
 
       expect(result).toBe(true);
     });
 
     it('should return true for 4 neighboring cells', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5)
       });
-      var mergeCells = new Handsontable.MergeCells(hot);
-      var coordsFrom = new WalkontableCellCoords(0, 1);
-      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(1, 2));
-      var result = mergeCells.canMergeRange(cellRange);
+      let mergeCells = hot.getPlugin('mergeCells');
+      let result = mergeCells.canMergeRange({
+        from: {
+          row: 0, col: 1
+        },
+        to: {
+          row: 1, col: 2
+        }
+      });
 
       expect(result).toBe(true);
     });
@@ -516,155 +536,155 @@ describe('MergeCells', () => {
 
   xdescribe('modifyTransform', () => {
     it('should not transform arrow right when entering a merged cell', () => {
-      var mergeCellsSettings = [
+      let mergeCellsSettings = [
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
-      var coords = new WalkontableCellCoords(1, 0);
-      var currentSelection = new WalkontableCellRange(coords, coords, coords);
-      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      var inDelta = new WalkontableCellCoords(0, 1);
+      let coords = new CellCoords(1, 0);
+      let currentSelection = new CellRange(coords, coords, coords);
+      let mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      let inDelta = new CellCoords(0, 1);
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
-      expect(inDelta).toEqual(new WalkontableCellCoords(0, 1));
+      expect(inDelta).toEqual(new CellCoords(0, 1));
     });
 
     it('should transform arrow right when leaving a merged cell', () => {
-      var mergeCellsSettings = [
+      let mergeCellsSettings = [
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
-      var coords = new WalkontableCellCoords(1, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords, coords);
-      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      var inDelta = new WalkontableCellCoords(0, 1);
+      let coords = new CellCoords(1, 1);
+      let currentSelection = new CellRange(coords, coords, coords);
+      let mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      let inDelta = new CellCoords(0, 1);
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
-      expect(inDelta).toEqual(new WalkontableCellCoords(0, 3));
+      expect(inDelta).toEqual(new CellCoords(0, 3));
     });
 
     it('should transform arrow right when leaving a merged cell (return to desired row)', () => {
-      var mergeCellsSettings = [
+      let mergeCellsSettings = [
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
-      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      let mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
 
-      var coords = new WalkontableCellCoords(2, 0);
-      var currentSelection = new WalkontableCellRange(coords, coords, coords);
-      var inDelta = new WalkontableCellCoords(0, 1);
+      let coords = new CellCoords(2, 0);
+      let currentSelection = new CellRange(coords, coords, coords);
+      let inDelta = new CellCoords(0, 1);
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
-      expect(inDelta).toEqual(new WalkontableCellCoords(-1, 1));
+      expect(inDelta).toEqual(new CellCoords(-1, 1));
 
-      coords = new WalkontableCellCoords(1, 1);
-      currentSelection = new WalkontableCellRange(coords, coords, coords);
-      inDelta = new WalkontableCellCoords(0, 1);
+      coords = new CellCoords(1, 1);
+      currentSelection = new CellRange(coords, coords, coords);
+      inDelta = new CellCoords(0, 1);
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
-      expect(inDelta).toEqual(new WalkontableCellCoords(1, 3));
+      expect(inDelta).toEqual(new CellCoords(1, 3));
     });
 
     it('should transform arrow left when entering a merged cell', () => {
-      var mergeCellsSettings = [
+      let mergeCellsSettings = [
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
-      var coords = new WalkontableCellCoords(1, 4);
-      var currentSelection = new WalkontableCellRange(coords, coords, coords);
-      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      var inDelta = new WalkontableCellCoords(0, -1);
+      let coords = new CellCoords(1, 4);
+      let currentSelection = new CellRange(coords, coords, coords);
+      let mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      let inDelta = new CellCoords(0, -1);
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
-      expect(inDelta).toEqual(new WalkontableCellCoords(0, -3));
+      expect(inDelta).toEqual(new CellCoords(0, -3));
     });
 
     it('should not transform arrow left when leaving a merged cell', () => {
-      var mergeCellsSettings = [
+      let mergeCellsSettings = [
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
-      var coords = new WalkontableCellCoords(1, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords, coords);
-      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      var inDelta = new WalkontableCellCoords(0, -1);
+      let coords = new CellCoords(1, 1);
+      let currentSelection = new CellRange(coords, coords, coords);
+      let mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      let inDelta = new CellCoords(0, -1);
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
-      expect(inDelta).toEqual(new WalkontableCellCoords(0, -1));
+      expect(inDelta).toEqual(new CellCoords(0, -1));
     });
 
     it('should transform arrow left when leaving a merged cell (return to desired row)', () => {
-      var mergeCellsSettings = [
+      let mergeCellsSettings = [
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
-      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      let mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
 
-      var coords = new WalkontableCellCoords(2, 4);
-      var currentSelection = new WalkontableCellRange(coords, coords, coords);
-      var inDelta = new WalkontableCellCoords(0, -1);
+      let coords = new CellCoords(2, 4);
+      let currentSelection = new CellRange(coords, coords, coords);
+      let inDelta = new CellCoords(0, -1);
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
-      expect(inDelta).toEqual(new WalkontableCellCoords(-1, -3));
+      expect(inDelta).toEqual(new CellCoords(-1, -3));
 
-      coords = new WalkontableCellCoords(1, 1);
-      currentSelection = new WalkontableCellRange(coords, coords, coords);
-      inDelta = new WalkontableCellCoords(0, -1);
+      coords = new CellCoords(1, 1);
+      currentSelection = new CellRange(coords, coords, coords);
+      inDelta = new CellCoords(0, -1);
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
-      expect(inDelta).toEqual(new WalkontableCellCoords(1, -1));
+      expect(inDelta).toEqual(new CellCoords(1, -1));
     });
 
     it('should not transform arrow down when entering a merged cell', () => {
-      var mergeCellsSettings = [
+      let mergeCellsSettings = [
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
-      var coords = new WalkontableCellCoords(0, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords, coords);
-      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      var inDelta = new WalkontableCellCoords(0, -1);
+      let coords = new CellCoords(0, 1);
+      let currentSelection = new CellRange(coords, coords, coords);
+      let mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      let inDelta = new CellCoords(0, -1);
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
-      expect(inDelta).toEqual(new WalkontableCellCoords(0, -1));
+      expect(inDelta).toEqual(new CellCoords(0, -1));
     });
 
     it('should transform arrow down when leaving a merged cell', () => {
-      var mergeCellsSettings = [
+      let mergeCellsSettings = [
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
-      var coords = new WalkontableCellCoords(1, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords, coords);
-      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      var inDelta = new WalkontableCellCoords(1, 0);
+      let coords = new CellCoords(1, 1);
+      let currentSelection = new CellRange(coords, coords, coords);
+      let mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      let inDelta = new CellCoords(1, 0);
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
-      expect(inDelta).toEqual(new WalkontableCellCoords(3, 0));
+      expect(inDelta).toEqual(new CellCoords(3, 0));
     });
 
     it('should transform arrow up when entering a merged cell', () => {
-      var mergeCellsSettings = [
+      let mergeCellsSettings = [
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
-      var coords = new WalkontableCellCoords(4, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords, coords);
-      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      var inDelta = new WalkontableCellCoords(-1, 0);
+      let coords = new CellCoords(4, 1);
+      let currentSelection = new CellRange(coords, coords, coords);
+      let mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      let inDelta = new CellCoords(-1, 0);
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
-      expect(inDelta).toEqual(new WalkontableCellCoords(-3, 0));
+      expect(inDelta).toEqual(new CellCoords(-3, 0));
     });
 
     it('should not transform arrow up when leaving a merged cell', () => {
-      var mergeCellsSettings = [
+      let mergeCellsSettings = [
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
-      var coords = new WalkontableCellCoords(1, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords, coords);
-      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      var inDelta = new WalkontableCellCoords(-1, 0);
+      let coords = new CellCoords(1, 1);
+      let currentSelection = new CellRange(coords, coords, coords);
+      let mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      let inDelta = new CellCoords(-1, 0);
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
-      expect(inDelta).toEqual(new WalkontableCellCoords(-1, 0));
+      expect(inDelta).toEqual(new CellCoords(-1, 0));
     });
   });
 
   describe('ContextMenu', () => {
     it('should disable `Merge cells` context menu item when context menu was triggered from corner header', () => {
-      var hot = handsontable({
+      let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         rowHeaders: true,
         colHeaders: true,

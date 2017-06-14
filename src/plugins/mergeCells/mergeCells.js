@@ -4,6 +4,7 @@ import {registerPlugin} from './../../plugins';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {CellCoords, CellRange, Table} from './../../3rdparty/walkontable/src';
 import CollectionContainer from './cellCollection/collectionContainer';
+import AutofillCalculations from './calculations/autofill';
 
 const privatePool = new WeakMap();
 
@@ -42,8 +43,15 @@ class MergeCells extends BasePlugin {
      * @type {CollectionContainer}
      */
     this.collectionContainer = null;
-  }
 
+    /**
+     * Instance of the class responsible for all the autofill-related calculations.
+     *
+     * @private
+     * @type {AutofillCalculations}
+     */
+    this.autofillCalculations = null;
+  }
 
   /**
    * Check if the plugin is enabled in the Handsontable settings.
@@ -63,6 +71,7 @@ class MergeCells extends BasePlugin {
     }
 
     this.collectionContainer = new CollectionContainer(this.hot);
+    this.autofillCalculations = new AutofillCalculations(this);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('beforeKeyDown', (...args) => this.onBeforeKeyDown(...args));
@@ -81,6 +90,7 @@ class MergeCells extends BasePlugin {
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
     this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
+    this.addHook('afterChange', (...args) => this.onAfterChange(...args));
 
     super.enablePlugin();
   }
@@ -113,7 +123,12 @@ class MergeCells extends BasePlugin {
   generateFromSettings(settings) {
     if (Array.isArray(settings)) {
       for (let i = 0; i < settings.length; i++) {
-        this.collectionContainer.add(settings[i]);
+        const setting = settings[i];
+        const highlight = new CellCoords(setting.row, setting.col);
+        const rangeEnd = new CellCoords(setting.row + setting.rowspan - 1, setting.col + setting.colspan - 1);
+
+        const mergeRange = new CellRange(highlight, highlight, rangeEnd);
+        this.mergeRange(mergeRange);
       }
     }
   }
@@ -140,6 +155,7 @@ class MergeCells extends BasePlugin {
 
   /**
    * Returns `true` if a range is mergeable.
+   * TODO: unit tests
    *
    * @param {CellRange} cellRange Cell range to test.
    */
@@ -168,8 +184,26 @@ class MergeCells extends BasePlugin {
       rowspan: bottomRight.row - topLeft.row + 1,
       colspan: bottomRight.col - topLeft.col + 1
     };
+    const clearedData = [];
+
+    for (let i = 0; i < mergeParent.rowspan; i++) {
+      for (let j = 0; j < mergeParent.colspan; j++) {
+        let clearedValue = null;
+
+        if (!clearedData[i]) {
+          clearedData[i] = [];
+        }
+
+        if (i === 0 && j === 0) {
+          clearedValue = this.hot.getDataAtCell(mergeParent.row, mergeParent.col);
+        }
+
+        clearedData[i][j] = clearedValue;
+      }
+    }
 
     this.collectionContainer.add(mergeParent);
+    this.hot.populateFromArray(mergeParent.row, mergeParent.col, clearedData);
   }
 
   /**
@@ -678,7 +712,6 @@ class MergeCells extends BasePlugin {
     }
   }
 
-
   /**
    * The `afterGetCellMeta` hook callback.
    *
@@ -755,23 +788,30 @@ class MergeCells extends BasePlugin {
    * The `modifyAutofillRange` hook callback.
    *
    * @private
-   * @param {Array} select The selection information.
    * @param {Array} drag The drag area coordinates.
+   * @param {Array} select The selection information.
    */
-  onModifyAutofillRange(select, drag) {
-    // TODO: check if works properly.
+  onModifyAutofillRange(drag, select) {
+    this.autofillCalculations.correctSelectionAreaSize(select);
+    const dragDirection = this.autofillCalculations.getDirection(select, drag);
 
-    if (this.hot.selection.isMultiple()) {
-      return;
+    if (this.autofillCalculations.dragAreaOverlapsCollections(select, drag, dragDirection)) {
+      drag = select;
+      return drag;
     }
-    let info = this.collectionContainer.get(select[0], select[1]);
 
-    if (info) {
-      select[0] = info.row;
-      select[1] = info.col;
-      select[2] = info.row + info.rowspan - 1;
-      select[3] = info.col + info.colspan - 1;
+    const collectionsWithinSelectionArea = this.collectionContainer.getWithinRange({
+      from: {row: select[0], col: select[1]},
+      to: {row: select[2], col: select[3]}
+    });
+
+    if (!collectionsWithinSelectionArea) {
+      return drag;
     }
+
+    drag = this.autofillCalculations.snapDragArea(select, drag, dragDirection, collectionsWithinSelectionArea);
+
+    return drag;
   }
 
   /**
@@ -822,6 +862,21 @@ class MergeCells extends BasePlugin {
    */
   onAfterRemoveRow(row, count) {
     this.shiftCollection('up', row, count);
+  }
+
+  /**
+   * `afterChange` hook callback. Used to propagate collections after using Autofill.
+   *
+   * @private
+   * @param {Array} changes The changes array.
+   * @param {String} source Determines the source of the change.
+   */
+  onAfterChange(changes, source) {
+    if (source !== 'Autofill.fill') {
+      return;
+    }
+
+    this.autofillCalculations.recreateAfterDataPopulation(changes);
   }
 }
 

@@ -1,4 +1,5 @@
 import Collection from './collection';
+import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
 
 /**
  * Defines a container object for the collections of merged cells.
@@ -48,7 +49,7 @@ class CollectionContainer {
   /**
    * Get a merged collection containing the provided range.
    *
-   * @param {CellRange} range The range to search collections for.
+   * @param {CellRange|Object} range The range to search collections for.
    * @return {Collection|Boolean}
    */
   getByRange(range) {
@@ -69,18 +70,32 @@ class CollectionContainer {
   /**
    * Get a merged collection contained in the provided range.
    *
-   * @param {CellRange} range The range to search collections in.
-   * @return {Collection|Boolean}
+   * @param {CellRange|Object} range The range to search collections in.
+   * @param [countPartials=false] If set to `true`, all the collections overlapping the range will be taken into calculation.
+   * @return {*}
    */
-  getWithinRange(range) {
+  getWithinRange(range, countPartials = false) {
     const collections = this.collections;
     const foundCollections = [];
 
+    if (!range.includesRange) {
+      let from = new CellCoords(range.from.row, range.from.col);
+      let to = new CellCoords(range.to.row, range.to.col);
+      range = new CellRange(from, from, to);
+    }
+
     for (let i = 0, ilen = collections.length; i < ilen; i++) {
       const collection = collections[i];
+      let collectionTopLeft = new CellCoords(collection.row, collection.col);
+      let collectionBottomRight = new CellCoords(collection.row + collection.rowspan - 1, collection.col + collection.colspan - 1);
+      let collectionRange = new CellRange(collectionTopLeft, collectionTopLeft, collectionBottomRight);
 
-      if (collection.row >= range.from.row && collection.row + collection.rowspan - 1 <= range.to.row &&
-        collection.col >= range.from.col && collection.col + collection.colspan - 1 <= range.to.col) {
+      if (countPartials) {
+        if (range.overlaps(collectionRange)) {
+          foundCollections.push(collection);
+        }
+
+      } else if (range.includesRange(collectionRange)) {
         foundCollections.push(collection);
       }
     }
@@ -129,7 +144,7 @@ class CollectionContainer {
     const wantedCollection = this.get(row, column);
     const wantedCollectionIndex = wantedCollection ? this.collections.indexOf(wantedCollection) : null;
 
-    if (wantedCollection && wantedCollectionIndex) {
+    if (wantedCollection && wantedCollectionIndex != null) {
       collections.splice(wantedCollectionIndex, 1);
       return wantedCollection;
     }
