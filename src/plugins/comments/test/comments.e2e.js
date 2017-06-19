@@ -53,6 +53,80 @@ describe('Comments', () => {
     });
   });
 
+  describe('Displaying comment after `mouseover` event', function () {
+    it('should display comment after predefined delay when custom `displayDelay` ' +
+      'option of `comments` plugin wasn\'t set', (done) => {
+      const rows = 10;
+      const columns = 10;
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(rows, columns),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        comments: true,
+        columns() {
+          return {
+            comment: {
+              value: 'test'
+            }
+          };
+        }
+      });
+
+      $(getCell(1, 1)).simulate('mouseover', {
+        clientX: Handsontable.dom.offset(getCell(1, 1)).left + 5,
+        clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
+      });
+
+      var plugin = hot.getPlugin('comments');
+      var editor = plugin.editor.getInputElement();
+
+      setTimeout(() => {
+        expect(editor.parentNode.style.display).toEqual('block');
+        done();
+      }, 250);
+    });
+
+    it('should display comment after defined delay when custom `displayDelay` ' +
+      'option of `comments` plugin was set', (done) => {
+      const rows = 10;
+      const columns = 10;
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(rows, columns),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        comments: {
+          displayDelay: 400
+        },
+        columns() {
+          return {
+            comment: {
+              value: 'test'
+            }
+          };
+        }
+      });
+
+      $(getCell(1, 1)).simulate('mouseover', {
+        clientX: Handsontable.dom.offset(getCell(1, 1)).left + 5,
+        clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
+      });
+
+      var plugin = hot.getPlugin('comments');
+      var editor = plugin.editor.getInputElement();
+
+      setTimeout(() => {
+        expect(editor.parentNode.style.display).toEqual('none');
+      }, 300);
+
+      setTimeout(() => {
+        expect(editor.parentNode.style.display).toEqual('block');
+        done();
+      }, 400);
+    });
+  });
+
   describe('API', () => {
     it('should return the comment from a proper cell, when using the getCommentAtCell method', () => {
       var hot = handsontable({
@@ -356,9 +430,8 @@ describe('Comments', () => {
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', undefined, undefined, undefined);
     });
 
-    // Don't work in PhantomJS
+    // Doesn't work in PhantomJS
     // It will work probably when #3961 will be fixed
-
     xit('should trigger `afterSetCellMeta` callback after editing comment by context menu', (done) => {
       var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
       var rows = 10,

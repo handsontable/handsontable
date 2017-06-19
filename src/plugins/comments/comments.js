@@ -29,6 +29,8 @@ const META_COMMENT = 'comment';
 const META_COMMENT_VALUE = 'value';
 const META_STYLE = 'style';
 const META_READONLY = 'readOnly';
+const DEFAULT_DISPLAY_DELAY = 250;
+const DEFAULT_HIDE_DELAY = 250;
 
 /**
  * @plugin Comments
@@ -127,7 +129,7 @@ class Comments extends BasePlugin {
      * @type {Number}
      */
     const displayDelay = this.hot.getSettings().comments.displayDelay;
-    this.displayDelay = isDefined(displayDelay) ? displayDelay : 250;
+    this.displayDelay = isDefined(displayDelay) ? displayDelay : DEFAULT_DISPLAY_DELAY;
 
     privatePool.set(this, {
       tempEditorDimensions: {},
@@ -509,15 +511,25 @@ class Comments extends BasePlugin {
    */
   onMouseOver(event) {
     const priv = privatePool.get(this);
+    let hidingAllowed = true;
+
     priv.cellBelowCursor = document.elementFromPoint(event.clientX, event.clientY);
 
-    if (this.mouseDown || this.editor.isFocused() || hasClass(event.target, 'wtBorder') ||
-      priv.cellBelowCursor !== event.target || !this.editor) {
+    if (this.mouseDown || this.editor.isFocused()) {
       return;
     }
 
-    if (this.targetIsCellWithComment(event)) {
-      debounce(() => {
+    const doNotToggleVisibility = () => hasClass(event.target, 'wtBorder')
+    || priv.cellBelowCursor !== event.target || !this.editor;
+
+    debounce(() => {
+      if (doNotToggleVisibility()) {
+        return;
+      }
+
+      if (this.targetIsCellWithComment(event)) {
+        hidingAllowed = false;
+
         let coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
         let range = {
           from: new CellCoords(coordinates.row, coordinates.col)
@@ -525,13 +537,18 @@ class Comments extends BasePlugin {
 
         this.setRange(range);
         this.show();
-      }, this.displayDelay)();
+      }
+    }, this.displayDelay)();
 
-    } else if (isChildOf(event.target, document) && !this.targetIsCommentTextArea(event) && !this.editor.isFocused()) {
-      debounce(() => {
+    debounce(() => {
+      if (doNotToggleVisibility()) {
+        return;
+      }
+
+      if (hidingAllowed && isChildOf(event.target, document) && !this.targetIsCommentTextArea(event) && !this.editor.isFocused()) {
         this.hide();
-      }, 250)();
-    }
+      }
+    }, DEFAULT_HIDE_DELAY)();
   }
 
   /**
