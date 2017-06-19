@@ -11,6 +11,7 @@ import {
 import {
   deepClone, deepExtend
 } from './../../helpers/object';
+import {isDefined} from './../../helpers/mixed';
 import {
   debounce
 } from './../../helpers/function';
@@ -39,6 +40,16 @@ const META_READONLY = 'readOnly';
  * ```js
  * ...
  * comments: true
+ * ...
+ * ```
+ *
+ * or object with extra predefined plugin config:
+ *
+ * ```js
+ * ...
+ * comments: {
+ *   displayDelay: 1000
+ * }
  * ...
  * ```
  *
@@ -115,7 +126,8 @@ class Comments extends BasePlugin {
      *
      * @type {Number}
      */
-    this.displayDelay = 250;
+    const displayDelay = this.hot.getSettings().comments.displayDelay;
+    this.displayDelay = isDefined(displayDelay) ? displayDelay : 250;
 
     privatePool.set(this, {
       tempEditorDimensions: {},
@@ -496,18 +508,16 @@ class Comments extends BasePlugin {
    * @param {MouseEvent} event The `mouseover` event.
    */
   onMouseOver(event) {
-    if (this.mouseDown || this.editor.isFocused()) {
-      return;
-    }
     const priv = privatePool.get(this);
     priv.cellBelowCursor = document.elementFromPoint(event.clientX, event.clientY);
 
-    debounce(() => {
-      if (hasClass(event.target, 'wtBorder') || priv.cellBelowCursor !== event.target || !this.editor) {
-        return;
-      }
+    if (this.mouseDown || this.editor.isFocused() || hasClass(event.target, 'wtBorder') ||
+      priv.cellBelowCursor !== event.target || !this.editor) {
+      return;
+    }
 
-      if (this.targetIsCellWithComment(event)) {
+    if (this.targetIsCellWithComment(event)) {
+      debounce(() => {
         let coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
         let range = {
           from: new CellCoords(coordinates.row, coordinates.col)
@@ -515,11 +525,13 @@ class Comments extends BasePlugin {
 
         this.setRange(range);
         this.show();
+      }, this.displayDelay)();
 
-      } else if (isChildOf(event.target, document) && !this.targetIsCommentTextArea(event) && !this.editor.isFocused()) {
+    } else if (isChildOf(event.target, document) && !this.targetIsCommentTextArea(event) && !this.editor.isFocused()) {
+      debounce(() => {
         this.hide();
-      }
-    }, this.displayDelay)();
+      }, 250)();
+    }
   }
 
   /**
