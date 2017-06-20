@@ -2758,16 +2758,13 @@ export default function Core(rootElement, userSettings) {
    */
   this.countSourceCols = function() {
     let len = 0;
-    let obj = instance.getSourceData();
+    let obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
 
-    for (let item of obj) {
-      if (isObject(item)) {
-        if (deepObjectSize(item) > len) { 
-          len = deepObjectSize(item);
-        }
-      } else {
-        len = item.length || 0;
-      }
+    if (isObject(obj)) {
+      len = deepObjectSize(obj);
+
+    } else {
+      len = obj.length || 0;
     }
 
     return len;
