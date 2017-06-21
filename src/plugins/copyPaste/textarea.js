@@ -34,9 +34,10 @@ class Textarea {
   create() {
     this.element = document.createElement('textarea');
     this.element.id = 'HandsontableCopyPaste';
+    this.element.className = 'copyPaste';
     this.element.tabIndex = -1;
-    this.element.style.position = 'fixed';
-    this.element.style.bottom = '100%';
+    this.element.autocomplete = 'off';
+    this.element.wrap = 'off';
   }
 
   append() {
@@ -77,6 +78,13 @@ class Textarea {
   select() {
     this.element.focus();
     this.element.select();
+  }
+
+  /**
+   * Sets focus on the element and select content.
+   */
+  deselect() {
+    document.activeElement.blur();
   }
 
   /**

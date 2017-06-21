@@ -1,4 +1,3 @@
-
 import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
 import SheetClip from './../../../lib/SheetClip/SheetClip';
@@ -7,13 +6,14 @@ import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
 import {getSelectionText} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
-import {stopImmediatePropagation, isImmediatePropagationStopped} from './../../helpers/dom/event';
+import {stopImmediatePropagation, stopPropagation, isImmediatePropagationStopped} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
 import Textarea from './textarea';
 import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
-import pasteItem from './contextMenuItem/paste';
 import EventManager from './../../eventManager';
+
+import './copyPaste.css';
 
 Hooks.getSingleton().register('afterCopyLimit');
 Hooks.getSingleton().register('modifyCopyableRange');
@@ -32,12 +32,11 @@ class CopyPaste extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
+     * Event manager
      *
-     * @type {Number}
-     * @default 1000
+     * @type {EventManager}
      */
-    this.rowsLimit = ROWS_LIMIT;
+    this.eventManager = new EventManager(this);
     /**
      * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
@@ -62,18 +61,19 @@ class CopyPaste extends BasePlugin {
      */
     this.pasteMode = 'overwrite';
     /**
+     * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
+     *
+     * @type {Number}
+     * @default 1000
+     */
+    this.rowsLimit = ROWS_LIMIT;
+    /**
      * The `textarea` element which is necessary to process copying, cutting off and pasting.
      *
      * @type {HTMLElement}
      * @default undefined
      */
     this.textarea = void 0;
-    /**
-     * Event manager
-     *
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
 
     privatePool.set(this, {
       triggeredByPaste: false,
@@ -115,7 +115,6 @@ class CopyPaste extends BasePlugin {
 
     super.enablePlugin();
   }
-
   /**
    * Updates the plugin to use the latest options you have specified.
    */
@@ -322,6 +321,8 @@ class CopyPaste extends BasePlugin {
 
   /**
    * `paste` event callback on textarea element.
+   *
+   * @private
    */
   onPaste() {
     const priv = privatePool.get(this);
@@ -331,6 +332,8 @@ class CopyPaste extends BasePlugin {
 
   /**
    * `input` event callback is called after `paste` event callback.
+   *
+   * @private
    */
   onInput() {
     const priv = privatePool.get(this);
@@ -354,6 +357,13 @@ class CopyPaste extends BasePlugin {
 
     input = this.textarea.getValue();
     inputArray = SheetClip.parse(input);
+
+    let allowPasting = !!this.hot.runHooks('beforePaste', inputArray, this.copyableRanges);
+
+    if (!allowPasting) {
+      return;
+    }
+
     selected = this.hot.getSelected();
     coordsFrom = new CellCoords(selected[0], selected[1]);
     coordsTo = new CellCoords(selected[2], selected[3]);
@@ -392,12 +402,8 @@ class CopyPaste extends BasePlugin {
       }
     });
 
-    let allowPasting = !!this.hot.runHooks('beforePaste', inputArray, this.copyableRanges);
-
-    if (allowPasting) {
-      this.hot.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', this.pasteMode);
-      this.hot.runHooks('afterPaste', inputArray, this.copyableRanges);
-    }
+    this.hot.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', this.pasteMode);
+    this.hot.runHooks('afterPaste', inputArray, this.copyableRanges);
   }
 
   /**
@@ -410,8 +416,7 @@ class CopyPaste extends BasePlugin {
     options.items.push(
       Handsontable.plugins.ContextMenu.SEPARATOR,
       copyItem(this),
-      cutItem(this),
-      pasteItem(this)
+      cutItem(this)
     );
   }
 
@@ -440,6 +445,7 @@ class CopyPaste extends BasePlugin {
       if (this.hot.getSettings().fragmentSelection && getSelectionText()) {
         return;
       }
+
       // when CTRL is pressed, prepare selectable text in textarea
       this.setCopyableText();
       stopImmediatePropagation(event);

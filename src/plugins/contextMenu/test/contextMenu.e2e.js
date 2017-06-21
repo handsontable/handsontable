@@ -615,7 +615,7 @@ describe('ContextMenu', () => {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(16);
+      expect(actions.length).toEqual(15);
       expect(separators.length).toEqual(7);
 
       expect(actions.text()).toEqual([
@@ -634,7 +634,6 @@ describe('ContextMenu', () => {
         'Read only comment',
         'Copy',
         'Cut',
-        'Paste'
       ].join(''));
     });
 
@@ -761,7 +760,7 @@ describe('ContextMenu', () => {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(11);
+      expect(actions.length).toEqual(10);
       expect(separators.length).toEqual(5);
 
       expect(actions.text()).toEqual([
@@ -774,8 +773,7 @@ describe('ContextMenu', () => {
         'Read only',
         'Alignment',
         'Copy',
-        'Cut',
-        'Paste'
+        'Cut'
       ].join(''));
     });
 
@@ -790,7 +788,7 @@ describe('ContextMenu', () => {
       var items = $('.htContextMenu tbody td');
       var actions = items.not('.htSeparator');
 
-      expect(actions.length).toEqual(11);
+      expect(actions.length).toEqual(10);
 
       expect(actions.text()).toEqual([
         'Insert row above',
@@ -802,8 +800,7 @@ describe('ContextMenu', () => {
         'Read only',
         'Alignment',
         'Copy',
-        'Cut',
-        'Paste'
+        'Cut'
       ].join(''));
     });
 
