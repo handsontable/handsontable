@@ -12,12 +12,6 @@ class Textarea {
 
   constructor() {
     /**
-     * Reference counter.
-     *
-     * @type {Number}
-     */
-    this.refCounter = 0;
-    /**
      * Main textarea element.
      *
      * @type {HTMLElement}
@@ -29,17 +23,17 @@ class Textarea {
      * @type {Boolean}
      */
     this.isAppended = false;
+    /**
+     * Reference counter.
+     *
+     * @type {Number}
+     */
+    this.refCounter = 0;
   }
 
-  create() {
-    this.element = document.createElement('textarea');
-    this.element.id = 'HandsontableCopyPaste';
-    this.element.className = 'copyPaste';
-    this.element.tabIndex = -1;
-    this.element.autocomplete = 'off';
-    this.element.wrap = 'off';
-  }
-
+  /**
+   * Apends textarea element to the `body`
+   */
   append() {
     if (this.hasBeenDestroyed()) {
       this.create();
@@ -54,55 +48,26 @@ class Textarea {
       }
     }
   }
+
   /**
-   * Getter for the element.
-   *
-   * @returns {String}
+   * Prepares textarea element with proper attributes.
    */
-  getValue() {
-    return this.element.value;
+  create() {
+    this.element = document.createElement('textarea');
+    this.element.id = 'HandsontableCopyPaste';
+    this.element.className = 'copyPaste';
+    this.element.tabIndex = -1;
+    this.element.autocomplete = 'off';
+    this.element.wrap = 'off';
   }
 
   /**
-   * Setter for the element.
-   *
-   * @param {String} data Value which should be insert into the element.
-   */
-  setValue(data) {
-    this.element.value = data;
-  }
-
-  /**
-   * Sets focus on the element and select content.
-   */
-  select() {
-    this.element.focus();
-    this.element.select();
-  }
-
-  /**
-   * Sets focus on the element and select content.
+   * Deselects textarea element if is active.
    */
   deselect() {
-    document.activeElement.blur();
-  }
-
-  /**
-   * Check if the element is an active element in frame.
-   *
-   * @returns {Boolean}
-   */
-  isActive() {
-    return this.element === document.activeElement;
-  }
-
-  /**
-   * Check if instance has been destroyed
-   *
-   * @returns {Boolean}
-   */
-  hasBeenDestroyed() {
-    return this.refCounter < 1;
+    if (this.element === document.activeElement) {
+      document.activeElement.blur();
+    }
   }
 
   /**
@@ -116,6 +81,50 @@ class Textarea {
       this.element = null;
       this.isAppended = false;
     }
+  }
+
+  /**
+   * Getter for the element.
+   *
+   * @returns {String}
+   */
+  getValue() {
+    return this.element.value;
+  }
+
+  /**
+   * Check if instance has been destroyed
+   *
+   * @returns {Boolean}
+   */
+  hasBeenDestroyed() {
+    return this.refCounter < 1;
+  }
+
+  /**
+   * Check if the element is an active element in frame.
+   *
+   * @returns {Boolean}
+   */
+  isActive() {
+    return this.element === document.activeElement;
+  }
+
+  /**
+   * Sets focus on the element and select content.
+   */
+  select() {
+    this.element.focus();
+    this.element.select();
+  }
+
+  /**
+   * Setter for the element.
+   *
+   * @param {String} data Value which should be insert into the element.
+   */
+  setValue(data) {
+    this.element.value = data;
   }
 }
 

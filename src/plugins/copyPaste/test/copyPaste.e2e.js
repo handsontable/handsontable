@@ -87,14 +87,14 @@ describe('CopyPaste', () => {
         data: Handsontable.helper.createSpreadsheetData(2, 2)
       });
 
-      const copyPasteTextarea = $('#HandsontableCopyPaste');
+      const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
 
-      expect(copyPasteTextarea.val().length).toEqual(0);
+      expect(copyPasteTextarea.value.length).toEqual(0);
 
       selectCell(0, 0);
       keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A1');
+      expect(copyPasteTextarea.value).toEqual('A1');
     });
 
     it('should set copyable text when selecting a single cell and hitting left command', () => {
@@ -102,14 +102,14 @@ describe('CopyPaste', () => {
         data: Handsontable.helper.createSpreadsheetData(2, 2)
       });
 
-      const copyPasteTextarea = $('#HandsontableCopyPaste');
+      const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
 
-      expect(copyPasteTextarea.val().length).toEqual(0);
+      expect(copyPasteTextarea.value.length).toEqual(0);
 
       selectCell(0, 0);
       keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A1');
+      expect(copyPasteTextarea.value).toEqual('A1');
     });
 
     it('should set copyable text when selecting a single cell and hitting right command', () => {
@@ -117,14 +117,14 @@ describe('CopyPaste', () => {
         data: Handsontable.helper.createSpreadsheetData(2, 2)
       });
 
-      const copyPasteTextarea = $('#HandsontableCopyPaste');
+      const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
 
-      expect(copyPasteTextarea.val().length).toEqual(0);
+      expect(copyPasteTextarea.value.length).toEqual(0);
 
       selectCell(0, 0);
       keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_RIGHT);
 
-      expect(copyPasteTextarea.val()).toEqual('A1');
+      expect(copyPasteTextarea.value).toEqual('A1');
     });
 
     it('should set copyable text when selecting multiple cells and hitting ctrl', () => {
@@ -132,14 +132,14 @@ describe('CopyPaste', () => {
         data: Handsontable.helper.createSpreadsheetData(2, 2)
       });
 
-      const copyPasteTextarea = $('#HandsontableCopyPaste');
+      const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
 
-      expect(copyPasteTextarea.val().length).toEqual(0);
+      expect(copyPasteTextarea.value.length).toEqual(0);
 
       selectCell(0, 0, 1, 0);
       keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A1\nA2');
+      expect(copyPasteTextarea.value).toEqual('A1\nA2');
     });
 
     it('should set copyable text when selecting all cells with CTRL+A', (done) => {
@@ -147,9 +147,9 @@ describe('CopyPaste', () => {
         data: Handsontable.helper.createSpreadsheetData(2, 2)
       });
 
-      const copyPasteTextarea = $('#HandsontableCopyPaste');
+      const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
 
-      expect(copyPasteTextarea.val().length).toEqual(0);
+      expect(copyPasteTextarea.value.length).toEqual(0);
 
       selectCell(0, 0);
 
@@ -157,7 +157,7 @@ describe('CopyPaste', () => {
 
       setTimeout(() => {
         expect(getSelected()).toEqual([0, 0, 1, 1]);
-        expect(copyPasteTextarea.val()).toEqual('A1\tB1\nA2\tB2');
+        expect(copyPasteTextarea.value).toEqual('A1\tB1\nA2\tB2');
         done();
       }, 10);
     });
@@ -184,46 +184,38 @@ describe('CopyPaste', () => {
       handsontable({
         data: [['A', 1], ['B', 2]],
         columns: [
-          {
-            type: 'text'
-          },
-          {
-            type: 'numeric'
-          }
+          { type: 'text' },
+          { type: 'numeric' }
         ]
       });
 
-      const copyPasteTextarea = $('#HandsontableCopyPaste');
+      const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
 
-      expect(copyPasteTextarea.val().length).toEqual(0);
+      expect(copyPasteTextarea.value.length).toEqual(0);
 
       selectCell(0, 0, 1, 1);
       keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A\t1\nB\t2');
+      expect(copyPasteTextarea.value).toEqual('A\t1\nB\t2');
     });
 
     it('should set copyable text when selecting a single cell with editor type as false (#2574)', () => {
       handsontable({
         data: [['A', 1], ['B', 2]],
         columns: [
-          {
-            type: 'text'
-          },
-          {
-            editor: false
-          }
+          { type: 'text' },
+          { editor: false }
         ]
       });
 
-      const copyPasteTextarea = $('#HandsontableCopyPaste');
+      const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
 
-      expect(copyPasteTextarea.val().length).toEqual(0);
+      expect(copyPasteTextarea.value.length).toEqual(0);
 
       selectCell(1, 1, 1, 1);
       keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('2');
+      expect(copyPasteTextarea.value).toEqual('2');
     });
 
     it('should set copyable text until copyRowsLimit is reached', () => {
@@ -238,7 +230,7 @@ describe('CopyPaste', () => {
       keyDownUp('ctrl');
 
       // should prepare 2 rows for copying
-      expect($('#HandsontableCopyPaste').val()).toEqual('\tKia\tNissan\tToyota\tHonda\n2008\t10\t11\t12\t13');
+      expect($('#HandsontableCopyPaste')[0].value).toEqual('\tKia\tNissan\tToyota\tHonda\n2008\t10\t11\t12\t13');
     });
 
     it('should set copyable text until copyColsLimit is reached', () => {
@@ -253,7 +245,7 @@ describe('CopyPaste', () => {
       keyDownUp('ctrl');
 
       // should prepare 2 columns for copying
-      expect($('#HandsontableCopyPaste').val()).toEqual('\tKia\n2008\t10\n2009\t20\n2010\t30');
+      expect($('#HandsontableCopyPaste')[0].value).toEqual('\tKia\n2008\t10\n2009\t20\n2010\t30');
     });
 
     it('should call onCopyLimit callback when copy limit was reached', () => {
@@ -283,7 +275,6 @@ describe('CopyPaste', () => {
       });
 
       selectCell(1, 1);
-
       keyDown('ctrl');
       keyDown('ctrl+c');
 
@@ -337,19 +328,18 @@ describe('CopyPaste', () => {
       });
 
       selectCell(0, 0);
-
       keyDown('ctrl');
       keyDown('ctrl+c');
 
       expect(beforeCopySpy.calls.count()).toEqual(1);
       expect(beforeCopySpy).toHaveBeenCalledWith([['A1']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
-
       expect(afterCopySpy.calls.count()).toEqual(1);
       expect(afterCopySpy).toHaveBeenCalledWith([['A1']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
     });
 
     it('should be possible to block copying', () => {
       const afterCopySpy = jasmine.createSpy('afterCopy');
+
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         beforeCopy() {
@@ -359,7 +349,6 @@ describe('CopyPaste', () => {
       });
 
       selectCell(0, 0);
-
       keyDown('ctrl');
       keyDown('ctrl+c');
 
@@ -375,7 +364,6 @@ describe('CopyPaste', () => {
       });
 
       selectCell(0, 0, 1, 0);
-
       keyDown('ctrl');
       keyDown('ctrl+c');
 
@@ -392,7 +380,6 @@ describe('CopyPaste', () => {
       });
 
       selectCell(1, 1);
-
       keyDown('ctrl');
       keyDown('ctrl+x');
 
@@ -454,13 +441,11 @@ describe('CopyPaste', () => {
       });
 
       selectCell(0, 0);
-
       keyDown('ctrl');
       keyDown('ctrl+x');
 
       expect(beforeCutSpy.calls.count()).toEqual(1);
       expect(beforeCutSpy).toHaveBeenCalledWith([['A1']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
-
       expect(afterCutSpy.calls.count()).toEqual(1);
       expect(afterCutSpy).toHaveBeenCalledWith([['A1']], [{startRow: 0, startCol: 0, endRow: 0, endCol: 0}], void 0, void 0, void 0, void 0);
     });
@@ -477,7 +462,6 @@ describe('CopyPaste', () => {
       });
 
       selectCell(0, 0);
-
       keyDown('ctrl');
       keyDown('ctrl+x');
 
@@ -537,6 +521,7 @@ describe('CopyPaste', () => {
       triggerPaste('Kia\tNissan\tToyota');
 
       await sleep(60);
+
       expect(getData().length).toEqual(6);
       expect(getData(0, 0, 2, 4)).toEqual([['', 'Kia', 'Nissan', 'Toyota', 'Honda'], ['Kia', 'Nissan', 'Toyota', 12, 13], ['2008', 10, 11, 14, 13]]);
     });
@@ -606,17 +591,16 @@ describe('CopyPaste', () => {
     });
 
     it('should not paste any data, if no cell is selected', (done) => {
+      const copiedData1 = 'foo';
+      const copiedData2 = 'bar';
+
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 1)
       });
 
-      const copiedData1 = 'foo';
-      const copiedData2 = 'bar';
-
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
-
       expect(getSelected()).toBeUndefined();
 
       triggerPaste(copiedData1);
@@ -642,11 +626,11 @@ describe('CopyPaste', () => {
     });
 
     it('should not paste any data, if no cell is selected (select/deselect cell using mouse)', async () => {
+      const copiedData = 'foo';
+
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 1)
       });
-
-      const copiedData = 'foo';
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
