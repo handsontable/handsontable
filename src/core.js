@@ -2762,7 +2762,7 @@ export default function Core(rootElement, userSettings) {
 
     for (let item of obj) {
       if (isObject(item)) {
-        if (deepObjectSize(item) > len) { 
+        if (deepObjectSize(item) > len) {
           len = deepObjectSize(item);
         }
       } else {
