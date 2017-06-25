@@ -2760,13 +2760,15 @@ export default function Core(rootElement, userSettings) {
     let len = 0;
     let obj = instance.getSourceData();
 
-    for (let item of obj) {
-      if (isObject(item)) {
-        if (deepObjectSize(item) > len) {
-          len = deepObjectSize(item);
+    if (isObject(obj)) {
+      for (let item of obj) {
+        if (isObject(item)) {
+          if (deepObjectSize(item) > len) {
+            len = deepObjectSize(item);
+          }
+        } else {
+          len = item.length || 0;
         }
-      } else {
-        len = item.length || 0;
       }
     }
 
