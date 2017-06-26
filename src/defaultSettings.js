@@ -229,6 +229,8 @@ DefaultSettings.prototype = {
    * Defines row heights in pixels. Accepts numbers, strings (that will be converted into a number),
    * array of numbers (if you want to define row height separately for each row) or a
    * function (if you want to set row height dynamically on each render).
+   * If the ManualRowResize or AutoRowSize plugins are enabled, this is also the minimum height that can be set
+   * via either of those two plugins.
    * Height should be equal or greater than 23px. Table is rendered incorrectly if height is less than 23px.
    *
    * @type {Array|Function|Number|String}
