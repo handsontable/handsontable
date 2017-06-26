@@ -9,7 +9,7 @@ describe('CopyPaste', () => {
       expect(textarea.refCounter).toBe(0);
     });
 
-    it('should create global textarea element without appending', () => {
+    it('should create global textarea element without appending to the DOM', () => {
       const textarea = new Textarea();
 
       expect(textarea.element).toBeUndefined();
@@ -30,7 +30,7 @@ describe('CopyPaste', () => {
       expect(textarea.isAppended).toBeTruthy();
     });
 
-    it('should get global singleton of the textarea multiple t', () => {
+    it('should get global singleton\'s textarea element, without creating the new one', () => {
       const textarea1 = Textarea.getSingleton();
 
       expect(textarea1.refCounter).toBe(1);

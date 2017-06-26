@@ -257,7 +257,6 @@ var hot = new Handsontable(elem, {
 });
 
 function test_HandsontableMethods() {
-  console.log('test types');
   var elem = document.createElement('div');
   var hot = new Handsontable(elem, {});
   hot.addHook('foo', []);

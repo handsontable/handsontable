@@ -74,7 +74,8 @@ class Textarea {
    * Destroy instance
    */
   destroy() {
-    this.refCounter = --this.refCounter < 0 ? 0 : this.refCounter;
+    this.refCounter--;
+    this.refCounter = this.refCounter < 0 ? 0 : this.refCounter;
 
     if (this.hasBeenDestroyed() && this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element);
