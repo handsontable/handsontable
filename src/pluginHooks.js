@@ -1050,7 +1050,7 @@ const REGISTERED_HOOKS = [
    * @since 0.31.1
    * @param {Array} data An array of arrays which contains data to paste.
    * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                       where changes will be inserted.
+   *                       that correspond to the previously selected area.
    * @returns {*} If returns `false` then pasting is cancelled.
    *
    * @example
@@ -1086,7 +1086,7 @@ const REGISTERED_HOOKS = [
    * @since 0.31.1
    * @param {Array} data An array of arrays which contains the pasted data.
    * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
-   *                       where changes was inserted.
+   *                       that correspond to the previously selected area.
    */
   'afterPaste',
 

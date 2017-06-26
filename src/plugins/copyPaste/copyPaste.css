@@ -1,0 +1,6 @@
+textarea#HandsontableCopyPaste {
+  position: fixed !important;
+  bottom: 100% !important;
+  right: 100% !important;
+  outline: 0 none !important;
+}

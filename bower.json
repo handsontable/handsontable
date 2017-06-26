@@ -36,8 +36,7 @@
   "dependencies": {
     "moment": "^2.13.0",
     "numbro": "^1.8.0",
-    "pikaday": "^1.4.0",
-    "zeroclipboard": "^2.2.0"
+    "pikaday": "^1.4.0"
   },
   "devDependencies": {
     "chroma-js": "~0.5.6"

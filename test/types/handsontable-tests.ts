@@ -1,5 +1,6 @@
 import Handsontable from '../../handsontable';
 
+var test = Handsontable.plugins.CopyPaste.columnsLimit;
 var elem = document.createElement('div');
 var hot = new Handsontable(elem, {
   allowEmpty: true,

@@ -57,8 +57,7 @@
   "dependencies": {
     "moment": "2.18.1",
     "numbro": "1.11.0",
-    "pikaday": "1.5.1",
-    "zeroclipboard": "2.3.0"
+    "pikaday": "1.5.1"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",

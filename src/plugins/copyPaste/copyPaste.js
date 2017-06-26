@@ -1,12 +1,19 @@
-import copyPaste from './../../../lib/copyPaste/copyPaste';
-import SheetClip from './../../../lib/SheetClip/SheetClip';
+import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
+import SheetClip from './../../../lib/SheetClip/SheetClip';
+import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
 import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
+import {getSelectionText} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
-import {stopImmediatePropagation, isImmediatePropagationStopped} from './../../helpers/dom/event';
-import {getSelectionText} from './../../helpers/dom/element';
-import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
+import {stopImmediatePropagation, stopPropagation, isImmediatePropagationStopped} from './../../helpers/dom/event';
+import {registerPlugin} from './../../plugins';
+import Textarea from './textarea';
+import copyItem from './contextMenuItem/copy';
+import cutItem from './contextMenuItem/cut';
+import EventManager from './../../eventManager';
+
+import './copyPaste.css';
 
 Hooks.getSingleton().register('afterCopyLimit');
 Hooks.getSingleton().register('modifyCopyableRange');
@@ -17,79 +24,327 @@ Hooks.getSingleton().register('afterPaste');
 Hooks.getSingleton().register('beforeCopy');
 Hooks.getSingleton().register('afterCopy');
 
-/**
- * @description
- * This plugin enables the copy/paste functionality in Handsontable.
- *
- * @example
- * ```js
- * ...
- * copyPaste: true,
- * ...
- * ```
- * @class CopyPaste
- * @plugin CopyPaste
- */
-function CopyPastePlugin(instance) {
-  var _this = this;
+const ROWS_LIMIT = 1000;
+const COLUMNS_LIMIT = 1000;
+const privatePool = new WeakMap();
 
-  this.copyPasteInstance = copyPaste();
-  this.copyPasteInstance.onCut(onCut);
-  this.copyPasteInstance.triggerCopy = callCopyAction;
-  this.copyPasteInstance.onPaste(onPaste);
-  this.onPaste = onPaste; // for paste testing purposes
-  this.copyableRanges = [];
+class CopyPaste extends BasePlugin {
+  constructor(hotInstance) {
+    super(hotInstance);
+    /**
+     * Event manager
+     *
+     * @type {EventManager}
+     */
+    this.eventManager = new EventManager(this);
+    /**
+     * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
+     *
+     * @type {Number}
+     * @default 1000
+     */
+    this.columnsLimit = COLUMNS_LIMIT;
+    /**
+     * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
+     *
+     * @type {Array}
+     */
+    this.copyableRanges = [];
+    /**
+     * Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior.
+     * * Default value `"overwrite"` will paste clipboard value over current selection.
+     * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
+     * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
+     *
+     * @type {String}
+     * @default 'overwrite'
+     */
+    this.pasteMode = 'overwrite';
+    /**
+     * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
+     *
+     * @type {Number}
+     * @default 1000
+     */
+    this.rowsLimit = ROWS_LIMIT;
+    /**
+     * The `textarea` element which is necessary to process copying, cutting off and pasting.
+     *
+     * @type {HTMLElement}
+     * @default undefined
+     */
+    this.textarea = void 0;
 
-  instance.addHook('beforeKeyDown', onBeforeKeyDown);
-
-  function onCut() {
-    instance.isListening();
+    privatePool.set(this, {
+      triggeredByPaste: false,
+    });
   }
 
-  function callCutAction() {
-    let rangedData = _this.getRangedData(_this.copyableRanges);
+  /**
+   * Check if plugin is enabled.
+   *
+   * @returns {Boolean}
+   */
+  isEnabled() {
+    return !!this.hot.getSettings().copyPaste;
+  }
 
-    if (instance.getSettings().fragmentSelection && (SheetClip.stringify(rangedData) != getSelectionText())) {
+  /**
+   * Enable the plugin.
+   */
+  enablePlugin() {
+    if (this.enabled) {
       return;
     }
 
-    let allowCuttingOut = !!instance.runHooks('beforeCut', rangedData, _this.copyableRanges);
+    const settings = this.hot.getSettings();
 
-    if (allowCuttingOut) {
-      instance.copyPaste.copyPasteInstance.copyable(SheetClip.stringify(rangedData));
-      instance.selection.empty();
-      instance.runHooks('afterCut', rangedData, _this.copyableRanges);
+    this.textarea = Textarea.getSingleton();
 
-    } else {
-      instance.copyPaste.copyPasteInstance.copyable('');
+    if (typeof settings.copyPaste === 'object') {
+      this.pasteMode = settings.copyPaste.pasteMode || this.pasteMode;
+      this.rowsLimit = settings.copyPaste.rowsLimit || this.rowsLimit;
+      this.columnsLimit = settings.copyPaste.columnsLimit || this.columnsLimit;
+    }
+
+    this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
+    this.addHook('beforeKeyDown', (event) => this.onBeforeKeyDown(event));
+    // this.addHook('beforeOnCellMouseDown', () => this.onBeforeOnCellMouseDown());
+
+    this.registerEvents();
+
+    super.enablePlugin();
+  }
+  /**
+   * Updates the plugin to use the latest options you have specified.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    super.updatePlugin();
+  }
+
+  /**
+   * Disable plugin for this Handsontable instance.
+   */
+  disablePlugin() {
+    if (this.textarea) {
+      this.textarea.destroy();
+    }
+
+    super.disablePlugin();
+  }
+
+  /**
+   * Prepares copyable text in the invisible textarea.
+   *
+   * @function setCopyable
+   * @memberof CopyPaste#
+   */
+  setCopyableText() {
+    let selRange = this.hot.getSelectedRange();
+    let topLeft = selRange.getTopLeftCorner();
+    let bottomRight = selRange.getBottomRightCorner();
+    let startRow = topLeft.row;
+    let startCol = topLeft.col;
+    let endRow = bottomRight.row;
+    let endCol = bottomRight.col;
+    let finalEndRow = Math.min(endRow, startRow + this.rowsLimit - 1);
+    let finalEndCol = Math.min(endCol, startCol + this.columnsLimit - 1);
+
+    this.copyableRanges.length = 0;
+
+    this.copyableRanges.push({
+      startRow,
+      startCol,
+      endRow: finalEndRow,
+      endCol: finalEndCol
+    });
+
+    this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
+
+    let copyableData = this.getRangedCopyableData(this.copyableRanges);
+
+    this.textarea.setValue(copyableData);
+
+    if (endRow !== finalEndRow || endCol !== finalEndCol) {
+      this.hot.runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, this.rowsLimit, this.columnsLimit);
     }
   }
 
-  function callCopyAction() {
-    if (!instance.isListening()) {
-      return;
-    }
+  /**
+   * Create copyable text releated to range objects.
+   *
+   * @since 0.19.0
+   * @param {Array} ranges Array of Objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
+   * @returns {String} Returns string which will be copied into clipboard.
+   */
+  getRangedCopyableData(ranges) {
+    let dataSet = [];
+    let copyableRows = [];
+    let copyableColumns = [];
 
-    let rangedData = _this.getRangedData(_this.copyableRanges);
+    // Count all copyable rows and columns
+    arrayEach(ranges, (range) => {
+      rangeEach(range.startRow, range.endRow, (row) => {
+        if (copyableRows.indexOf(row) === -1) {
+          copyableRows.push(row);
+        }
+      });
+      rangeEach(range.startCol, range.endCol, (column) => {
+        if (copyableColumns.indexOf(column) === -1) {
+          copyableColumns.push(column);
+        }
+      });
+    });
+    // Concat all rows and columns data defined in ranges into one copyable string
+    arrayEach(copyableRows, (row) => {
+      let rowSet = [];
 
-    if (instance.getSettings().fragmentSelection && (SheetClip.stringify(rangedData) != getSelectionText())) {
-      return;
-    }
+      arrayEach(copyableColumns, (column) => {
+        rowSet.push(this.hot.getCopyableData(row, column));
+      });
 
-    let allowCopying = !!instance.runHooks('beforeCopy', rangedData, _this.copyableRanges);
+      dataSet.push(rowSet);
+    });
+
+    return SheetClip.stringify(dataSet);
+  }
+
+  /**
+   * Create copyable text releated to range objects.
+   *
+   * @since 0.31.1
+   * @param {Array} ranges Array of Objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   * @returns {Array} Returns array of arrays which will be copied into clipboard.
+   */
+  getRangedData(ranges) {
+    let dataSet = [];
+    let copyableRows = [];
+    let copyableColumns = [];
+
+    // Count all copyable rows and columns
+    arrayEach(ranges, (range) => {
+      rangeEach(range.startRow, range.endRow, (row) => {
+        if (copyableRows.indexOf(row) === -1) {
+          copyableRows.push(row);
+        }
+      });
+      rangeEach(range.startCol, range.endCol, (column) => {
+        if (copyableColumns.indexOf(column) === -1) {
+          copyableColumns.push(column);
+        }
+      });
+    });
+    // Concat all rows and columns data defined in ranges into one copyable string
+    arrayEach(copyableRows, (row) => {
+      let rowSet = [];
+
+      arrayEach(copyableColumns, (column) => {
+        rowSet.push(this.hot.getCopyableData(row, column));
+      });
+
+      dataSet.push(rowSet);
+    });
+
+    return dataSet;
+  }
+
+  /**
+   * Copy action.
+   */
+  copy(triggeredByClick) {
+    let rangedData = this.getRangedData(this.copyableRanges);
+
+    let allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
 
     if (allowCopying) {
-      instance.copyPaste.copyPasteInstance.copyable(SheetClip.stringify(rangedData));
-      instance.runHooks('afterCopy', rangedData, _this.copyableRanges);
+      this.textarea.setValue(SheetClip.stringify(rangedData));
+      this.textarea.select();
+
+      if (triggeredByClick) {
+        document.execCommand('copy');
+      }
+
+      this.hot.runHooks('afterCopy', rangedData, this.copyableRanges);
 
     } else {
-      instance.copyPaste.copyPasteInstance.copyable('');
+      this.textarea.setValue('');
     }
   }
 
-  function onPaste(str) {
-    var
-      input,
+  /**
+   * Cut action.
+   */
+  cut(triggeredByClick) {
+    let rangedData = this.getRangedData(this.copyableRanges);
+
+    let allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
+
+    if (allowCuttingOut) {
+      this.textarea.setValue(SheetClip.stringify(rangedData));
+      this.hot.selection.empty();
+      this.textarea.select();
+
+      if (triggeredByClick) {
+        document.execCommand('cut');
+      }
+
+      this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
+
+    } else {
+      this.textarea.setValue('');
+    }
+  }
+
+  /**
+   * Paste action.
+   */
+  paste(triggeredByClick) {
+    this.textarea.select();
+
+    if (triggeredByClick) {
+      document.execCommand('paste');
+    }
+  }
+
+  /**
+   * Register event listeners.
+   *
+   * @private
+   */
+  registerEvents() {
+    this.eventManager.addEventListener(this.textarea.element, 'paste', (event) => this.onPaste(event));
+    this.eventManager.addEventListener(this.textarea.element, 'input', (event) => this.onInput(event));
+  }
+
+  /**
+   * `paste` event callback on textarea element.
+   *
+   * @private
+   */
+  onPaste() {
+    const priv = privatePool.get(this);
+
+    priv.triggeredByPaste = true;
+  }
+
+  /**
+   * `input` event callback is called after `paste` event callback.
+   *
+   * @private
+   */
+  onInput() {
+    const priv = privatePool.get(this);
+
+    if (!this.hot.isListening() || !priv.triggeredByPaste) {
+      return;
+    }
+
+    priv.triggeredByPaste = false;
+
+    let input,
       inputArray,
       selected,
       coordsFrom,
@@ -100,12 +355,16 @@ function CopyPastePlugin(instance) {
       areaStart,
       areaEnd;
 
-    if (!instance.isListening() || !instance.selection.isSelected()) {
+    input = this.textarea.getValue();
+    inputArray = SheetClip.parse(input);
+
+    let allowPasting = !!this.hot.runHooks('beforePaste', inputArray, this.copyableRanges);
+
+    if (!allowPasting) {
       return;
     }
-    input = str;
-    inputArray = SheetClip.parse(input);
-    selected = instance.getSelected();
+
+    selected = this.hot.getSelected();
     coordsFrom = new CellCoords(selected[0], selected[1]);
     coordsTo = new CellCoords(selected[2], selected[3]);
     cellRange = new CellRange(coordsFrom, coordsFrom, coordsTo);
@@ -119,7 +378,7 @@ function CopyPastePlugin(instance) {
     let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
     let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
 
-    instance.addHookOnce('afterChange', (changes, source) => {
+    this.hot.addHookOnce('afterChange', (changes, source) => {
       let changesLength = changes ? changes.length : 0;
 
       if (changesLength) {
@@ -139,232 +398,94 @@ function CopyPastePlugin(instance) {
             }
           }
         });
-        instance.selectCell(areaStart.row, areaStart.col, areaEnd.row + offset.row, areaEnd.col + offset.col);
+        this.hot.selectCell(areaStart.row, areaStart.col, areaEnd.row + offset.row, areaEnd.col + offset.col);
       }
     });
 
-    let allowPasting = !!instance.runHooks('beforePaste', inputArray, _this.copyableRanges);
-
-    if (allowPasting) {
-      instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', instance.getSettings().pasteMode);
-      instance.runHooks('afterPaste', inputArray, _this.copyableRanges);
-    }
+    this.hot.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', this.pasteMode);
+    this.hot.runHooks('afterPaste', inputArray, this.copyableRanges);
   }
 
-  function onBeforeKeyDown(event) {
-    if (!instance.getSelected()) {
+  /**
+   * Add copy, cut and paste options to the Context Menu.
+   *
+   * @private
+   * @param {Object} options Contains default added options of the Context Menu.
+   */
+  onAfterContextMenuDefaultOptions(options) {
+    options.items.push(
+      Handsontable.plugins.ContextMenu.SEPARATOR,
+      copyItem(this),
+      cutItem(this)
+    );
+  }
+
+  /**
+   * beforeKeyDown callback.
+   *
+   * @private
+   * @param {Event} event
+   */
+  onBeforeKeyDown(event) {
+    if (!this.hot.getSelected()) {
       return;
     }
-    if (instance.getActiveEditor() && instance.getActiveEditor().isOpened()) {
+    if (this.hot.getActiveEditor() && this.hot.getActiveEditor().isOpened()) {
       return;
     }
     if (isImmediatePropagationStopped(event)) {
       return;
     }
+    if (!this.textarea.isActive() && getSelectionText()) {
+      return;
+    }
+
     if (isCtrlKey(event.keyCode)) {
       // When fragmentSelection is enabled and some text is selected then don't blur selection calling 'setCopyableText'
-      if (instance.getSettings().fragmentSelection && getSelectionText()) {
+      if (this.hot.getSettings().fragmentSelection && getSelectionText()) {
         return;
       }
+
       // when CTRL is pressed, prepare selectable text in textarea
-      _this.setCopyableText();
+      this.setCopyableText();
       stopImmediatePropagation(event);
 
       return;
     }
+
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     let ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (ctrlDown) {
       if (event.keyCode == KEY_CODES.A) {
-        instance._registerTimeout(setTimeout(_this.setCopyableText.bind(_this), 0));
+        setTimeout(() => {
+          this.setCopyableText();
+        }, 0);
       }
       if (event.keyCode == KEY_CODES.X) {
-        callCutAction();
+        this.cut();
       }
       if (event.keyCode == KEY_CODES.C) {
-        callCopyAction();
+        this.copy();
+      }
+      if (event.keyCode == KEY_CODES.V) {
+        this.paste();
       }
     }
   }
 
   /**
    * Destroy plugin instance.
-   *
-   * @function destroy
-   * @memberof CopyPaste#
    */
-  this.destroy = function() {
-    if (this.copyPasteInstance) {
-      this.copyPasteInstance.removeCallback(onCut);
-      this.copyPasteInstance.removeCallback(onPaste);
-      this.copyPasteInstance.destroy();
-      this.copyPasteInstance = null;
+  destroy() {
+    if (this.textarea) {
+      this.textarea.destroy();
     }
-    instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-  };
 
-  instance.addHook('afterDestroy', this.destroy.bind(this));
-
-  /**
-   * @function triggerPaste
-   * @memberof CopyPaste#
-   */
-  this.triggerPaste = this.copyPasteInstance.triggerPaste.bind(this.copyPasteInstance);
-
-  /**
-   * @function triggerCut
-   * @memberof CopyPaste#
-   */
-  this.triggerCut = this.copyPasteInstance.triggerCut.bind(this.copyPasteInstance);
-
-  /**
-   * Prepares copyable text in the invisible textarea.
-   *
-   * @function setCopyable
-   * @memberof CopyPaste#
-   */
-  this.setCopyableText = function() {
-    var settings = instance.getSettings();
-    var copyRowsLimit = settings.copyRowsLimit;
-    var copyColsLimit = settings.copyColsLimit;
-
-    var selRange = instance.getSelectedRange();
-    var topLeft = selRange.getTopLeftCorner();
-    var bottomRight = selRange.getBottomRightCorner();
-    var startRow = topLeft.row;
-    var startCol = topLeft.col;
-    var endRow = bottomRight.row;
-    var endCol = bottomRight.col;
-    var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
-    var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
-
-    this.copyableRanges.length = 0;
-
-    this.copyableRanges.push({
-      startRow,
-      startCol,
-      endRow: finalEndRow,
-      endCol: finalEndCol
-    });
-
-    this.copyableRanges = instance.runHooks('modifyCopyableRange', this.copyableRanges);
-
-    let copyableData = this.getRangedCopyableData(this.copyableRanges);
-
-    instance.copyPaste.copyPasteInstance.copyable(copyableData);
-
-    if (endRow !== finalEndRow || endCol !== finalEndCol) {
-      instance.runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
-    }
-  };
-
-  /**
-   * Create copyable text releated to range objects.
-   *
-   * @since 0.19.0
-   * @param {Array} ranges Array of Objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
-   * @returns {String} Returns string which will be copied into clipboard.
-   */
-  this.getRangedCopyableData = function(ranges) {
-    let dataSet = [];
-    let copyableRows = [];
-    let copyableColumns = [];
-
-    // Count all copyable rows and columns
-    arrayEach(ranges, (range) => {
-      rangeEach(range.startRow, range.endRow, (row) => {
-        if (copyableRows.indexOf(row) === -1) {
-          copyableRows.push(row);
-        }
-      });
-      rangeEach(range.startCol, range.endCol, (column) => {
-        if (copyableColumns.indexOf(column) === -1) {
-          copyableColumns.push(column);
-        }
-      });
-    });
-    // Concat all rows and columns data defined in ranges into one copyable string
-    arrayEach(copyableRows, (row) => {
-      let rowSet = [];
-
-      arrayEach(copyableColumns, (column) => {
-        rowSet.push(instance.getCopyableData(row, column));
-      });
-
-      dataSet.push(rowSet);
-    });
-
-    return SheetClip.stringify(dataSet);
-  };
-
-  /**
-   * Create copyable text releated to range objects.
-   *
-   * @since 0.31.1
-   * @param {Array} ranges Array of Objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
-   * @returns {Array} Returns array of arrays which will be copied into clipboard.
-   */
-  this.getRangedData = function(ranges) {
-    let dataSet = [];
-    let copyableRows = [];
-    let copyableColumns = [];
-
-    // Count all copyable rows and columns
-    arrayEach(ranges, (range) => {
-      rangeEach(range.startRow, range.endRow, (row) => {
-        if (copyableRows.indexOf(row) === -1) {
-          copyableRows.push(row);
-        }
-      });
-      rangeEach(range.startCol, range.endCol, (column) => {
-        if (copyableColumns.indexOf(column) === -1) {
-          copyableColumns.push(column);
-        }
-      });
-    });
-    // Concat all rows and columns data defined in ranges into one copyable string
-    arrayEach(copyableRows, (row) => {
-      let rowSet = [];
-
-      arrayEach(copyableColumns, (column) => {
-        rowSet.push(instance.getCopyableData(row, column));
-      });
-
-      dataSet.push(rowSet);
-    });
-
-    return dataSet;
-  };
-}
-
-/**
- * Init plugin.
- *
- * @function init
- * @memberof CopyPaste#
- */
-function init() {
-  var instance = this,
-    pluginEnabled = instance.getSettings().copyPaste !== false;
-
-  if (pluginEnabled && !instance.copyPaste) {
-    /**
-     * Instance of CopyPaste Plugin {@link Handsontable.CopyPaste}
-     *
-     * @alias copyPaste
-     * @memberof! Handsontable.Core#
-     * @type {CopyPaste}
-     */
-    instance.copyPaste = new CopyPastePlugin(instance);
-
-  } else if (!pluginEnabled && instance.copyPaste) {
-    instance.copyPaste.destroy();
-    instance.copyPaste = null;
+    super.destroy();
   }
 }
 
-Hooks.getSingleton().add('afterInit', init);
-Hooks.getSingleton().add('afterUpdateSettings', init);
+registerPlugin('CopyPaste', CopyPaste);
 
-export default CopyPastePlugin;
+export default CopyPaste;
