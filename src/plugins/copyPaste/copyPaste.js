@@ -76,7 +76,7 @@ class CopyPaste extends BasePlugin {
     this.textarea = void 0;
 
     privatePool.set(this, {
-      triggeredByPaste: false,
+      isTriggeredByPaste: false,
     });
   }
 
@@ -254,9 +254,9 @@ class CopyPaste extends BasePlugin {
   /**
    * Copy action.
    *
-   * @param {Boolean} triggeredByClick Flag to determine that copy action was executed by the mouse click.
+   * @param {Boolean} isTriggeredByClick Flag to determine that copy action was executed by the mouse click.
    */
-  copy(triggeredByClick) {
+  copy(isTriggeredByClick) {
     let rangedData = this.getRangedData(this.copyableRanges);
 
     let allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
@@ -265,7 +265,7 @@ class CopyPaste extends BasePlugin {
       this.textarea.setValue(SheetClip.stringify(rangedData));
       this.textarea.select();
 
-      if (triggeredByClick) {
+      if (isTriggeredByClick) {
         document.execCommand('copy');
       }
 
@@ -279,9 +279,9 @@ class CopyPaste extends BasePlugin {
   /**
    * Cut action.
    *
-   * @param {Boolean} triggeredByClick Flag to determine that cut action was executed by the mouse click.
+   * @param {Boolean} isTriggeredByClick Flag to determine that cut action was executed by the mouse click.
    */
-  cut(triggeredByClick) {
+  cut(isTriggeredByClick) {
     let rangedData = this.getRangedData(this.copyableRanges);
 
     let allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
@@ -291,7 +291,7 @@ class CopyPaste extends BasePlugin {
       this.hot.selection.empty();
       this.textarea.select();
 
-      if (triggeredByClick) {
+      if (isTriggeredByClick) {
         document.execCommand('cut');
       }
 
@@ -332,7 +332,7 @@ class CopyPaste extends BasePlugin {
   onPaste() {
     const priv = privatePool.get(this);
 
-    priv.triggeredByPaste = true;
+    priv.isTriggeredByPaste = true;
   }
 
   /**
@@ -343,11 +343,11 @@ class CopyPaste extends BasePlugin {
   onInput() {
     const priv = privatePool.get(this);
 
-    if (!this.hot.isListening() || !priv.triggeredByPaste) {
+    if (!this.hot.isListening() || !priv.isTriggeredByPaste) {
       return;
     }
 
-    priv.triggeredByPaste = false;
+    priv.isTriggeredByPaste = false;
 
     let input,
       inputArray,
