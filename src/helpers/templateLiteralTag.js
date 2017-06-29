@@ -1,3 +1,6 @@
+/* eslint-disable import/prefer-default-export */
+import {arrayReduce} from '../helpers/array';
+
 /**
  * Tags a multiline string and return new one without line break characters and following spaces.
  *
@@ -6,12 +9,12 @@
  * @returns {String}
  */
 export function toSingleLine(strings, ...expressions) {
-  let result = '';
+  let result = arrayReduce(strings, (previousValue, currentValue, index) => {
+    const valueWithoutWhiteSpaces = currentValue.replace(/(?:\r?\n\s+)/g, '');
+    const expressionForIndex = expressions[index] ? expressions[index] : '';
 
-  for (let i = 0; i < strings.length; i += 1) {
-    result += strings[i].replace(/(?:\r?\n\s+)/g, '');
-    result += expressions[i] ? expressions[i] : '';
-  }
+    return previousValue + valueWithoutWhiteSpaces + expressionForIndex;
+  }, '');
 
   return result.trim();
 }
