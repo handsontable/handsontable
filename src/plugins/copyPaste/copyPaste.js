@@ -253,6 +253,8 @@ class CopyPaste extends BasePlugin {
 
   /**
    * Copy action.
+   *
+   * @param {Boolean} triggeredByClick Flag to determine that copy action was executed by the mouse click.
    */
   copy(triggeredByClick) {
     let rangedData = this.getRangedData(this.copyableRanges);
@@ -276,6 +278,8 @@ class CopyPaste extends BasePlugin {
 
   /**
    * Cut action.
+   *
+   * @param {Boolean} triggeredByClick Flag to determine that cut action was executed by the mouse click.
    */
   cut(triggeredByClick) {
     let rangedData = this.getRangedData(this.copyableRanges);
@@ -299,14 +303,15 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Paste action.
+   * Simulated paste action.
+   *
+   * @param {String} [value=''] New value, which should be `pasted`.
    */
-  paste(triggeredByClick) {
-    this.textarea.select();
+  paste(value = '') {
+    this.textarea.setValue(value);
 
-    if (triggeredByClick) {
-      document.execCommand('paste');
-    }
+    this.onPaste();
+    this.onInput();
   }
 
   /**
