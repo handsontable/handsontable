@@ -41,7 +41,7 @@ describe('HandsontableEditor', () => {
     expect(this.$container.find('.handsontableEditor:visible').length).toEqual(1);
   });
 
-  it('should create an editor directly under the textarea element', function() {
+  it('should create an editor directly below the textarea element', function() {
     handsontable({
       columns: [
         {
