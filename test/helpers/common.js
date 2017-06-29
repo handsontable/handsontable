@@ -339,9 +339,7 @@ export function autocomplete() {
  * Triggers paste string on current selection
  */
 export function triggerPaste(str) {
-  spec().$container.data('handsontable').getPlugin('CopyPaste').onPaste();
-  spec().$container.data('handsontable').getPlugin('CopyPaste').textarea.setValue(str);
-  spec().$container.data('handsontable').getPlugin('CopyPaste').onInput();
+  spec().$container.data('handsontable').getPlugin('CopyPaste').paste(str);
 };
 
 /**
