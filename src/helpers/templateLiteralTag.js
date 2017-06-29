@@ -1,5 +1,6 @@
 /**
  * Tags a multiline string and return new one without line break characters and following spaces
+ *
  * @param {Array.<String>} strings Parts of the entire string without expressions.
  * @param {...String} expressions Expressions converted to strings, which are added to the entire string.
  * @returns {String}

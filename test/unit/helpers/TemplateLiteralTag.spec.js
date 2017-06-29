@@ -1,10 +1,8 @@
-import {
-  toSingleLine,
-} from 'handsontable/helpers/templateLiteralTag';
+import {toSingleLine} from 'handsontable/helpers/templateLiteralTag';
 
 describe('Helper for template literals', () => {
 
-  it('should strip two line string (string with whitespace at end of first line and indention at second one)', () => {
+  it('should strip two line string (string with whitespaces at end of first line and indention at second one)', () => {
     const text = toSingleLine`Hello world Hello world Hello world Hello world Hello world Hello world Hello world 
       Hello world Hello world Hello world Hello world Hello world Hello world`;
 
@@ -12,7 +10,7 @@ describe('Helper for template literals', () => {
       'Hello world Hello world Hello world Hello world Hello world Hello world');
   });
 
-  it('should strip two line string (string without whitespace at end of first line and indention at second one)', () => {
+  it('should strip two line string (string without whitespaces at end of first line and indention at second one)', () => {
     const text = toSingleLine`Hello world Hello world Hello world Hello world Hello world Hello world Hello world
       Hello world Hello world Hello world Hello world Hello world Hello world`;
 
