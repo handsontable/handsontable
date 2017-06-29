@@ -2676,6 +2676,11 @@ export default function Core(rootElement, userSettings) {
       width = ViewportColumnsCalculator.DEFAULT_WIDTH;
     }
 
+    // extra space for column sorting indicator
+    if (priv.settings.columnSorting && !!instance.getColHeader(col)) {
+      width = instance.getColHeader(col).length > 3 ? width += 25 : width;
+    }
+
     return width;
   };
 
