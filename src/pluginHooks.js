@@ -1199,7 +1199,7 @@ const REGISTERED_HOOKS = [
    *
    * @pro
    * @event Hooks#beforeFilter
-   * @param {Array} formulasStack An array of objects with added formulas.
+   * @param {Array} conditionsStack An array of objects with added formulas.
    * @returns {Boolean} If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).
    */
   'beforeFilter',
@@ -1209,7 +1209,7 @@ const REGISTERED_HOOKS = [
    *
    * @pro
    * @event Hooks#afterFilter
-   * @param {Array} formulasStack An array of objects with added formulas.
+   * @param {Array} conditionsStack An array of objects with added formulas.
    */
   'afterFilter',
 
