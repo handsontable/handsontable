@@ -1,5 +1,5 @@
 describe('Comments', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -14,7 +14,7 @@ describe('Comments', () => {
 
   describe('Enabling the plugin', () => {
     it('should enable the plugin in the initial config', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true
       });
@@ -23,7 +23,7 @@ describe('Comments', () => {
     });
 
     it('should enable the plugin using updateSettings', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4)
       });
 
@@ -37,9 +37,49 @@ describe('Comments', () => {
     });
   });
 
+  describe('updateSettings', function () {
+    it('should change delay, after which comment is showed #4323', (done) => {
+      const rows = 10;
+      const columns = 10;
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(rows, columns),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        comments: true,
+        columns() {
+          return {
+            comment: {
+              value: 'test'
+            }
+          };
+        }
+      });
+
+      const plugin = hot.getPlugin('comments');
+      const editor = plugin.editor.getInputElement();
+
+      updateSettings({
+        comments: {
+          displayDelay: 100
+        }
+      });
+
+      $(getCell(1, 1)).simulate('mouseover', {
+        clientX: Handsontable.dom.offset(getCell(1, 1)).left + 5,
+        clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
+      });
+
+      setTimeout(() => {
+        expect(editor.parentNode.style.display).toEqual('block');
+        done();
+      }, 150);
+    });
+  });
+
   describe('Styling', () => {
     it('should display comment indicators in the appropriate cells', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
@@ -78,13 +118,13 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      var plugin = hot.getPlugin('comments');
-      var editor = plugin.editor.getInputElement();
+      const plugin = hot.getPlugin('comments');
+      const editor = plugin.editor.getInputElement();
 
       setTimeout(() => {
         expect(editor.parentNode.style.display).toEqual('block');
         done();
-      }, 250);
+      }, 300);
     });
 
     it('should display comment after defined delay when custom `displayDelay` ' +
@@ -113,8 +153,8 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      var plugin = hot.getPlugin('comments');
-      var editor = plugin.editor.getInputElement();
+      const plugin = hot.getPlugin('comments');
+      const editor = plugin.editor.getInputElement();
 
       setTimeout(() => {
         expect(editor.parentNode.style.display).toEqual('none');
@@ -123,29 +163,31 @@ describe('Comments', () => {
       setTimeout(() => {
         expect(editor.parentNode.style.display).toEqual('block');
         done();
-      }, 400);
+      }, 450);
     });
   });
 
   describe('API', () => {
     it('should return the comment from a proper cell, when using the getCommentAtCell method', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
-        comments: true,
+        comments: {
+          displayDelay: 400
+        },
         cell: [
           {row: 1, col: 1, comment: {value: 'test'}},
           {row: 2, col: 2, comment: {value: 'another test'}}
         ]
       });
 
-      var plugin = hot.getPlugin('comments');
+      const plugin = hot.getPlugin('comments');
 
       expect(plugin.getCommentAtCell(1, 1)).toEqual('test');
       expect(plugin.getCommentAtCell(2, 2)).toEqual('another test');
     });
 
     it('should return the comment from a proper cell, when using the setRange and getComment methods', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
@@ -154,7 +196,7 @@ describe('Comments', () => {
         ]
       });
 
-      var plugin = hot.getPlugin('comments');
+      const plugin = hot.getPlugin('comments');
 
       plugin.setRange({from: {row: 1, col: 1}});
       expect(plugin.getComment()).toEqual('test');
@@ -163,12 +205,12 @@ describe('Comments', () => {
     });
 
     it('should allow inserting comments using the `setCommentAtCell` method', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true
       });
 
-      var plugin = hot.getPlugin('comments');
+      const plugin = hot.getPlugin('comments');
 
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
 
@@ -178,21 +220,21 @@ describe('Comments', () => {
     });
 
     it('should trigger `afterSetCellMeta` callback when `setCommentAtCell` function is invoked', () => {
-      var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
-      var hot = handsontable({
+      const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         afterSetCellMeta: afterSetCellMetaCallback
       });
 
-      var plugin = hot.getPlugin('comments');
+      const plugin = hot.getPlugin('comments');
 
       plugin.setCommentAtCell(1, 1, 'Added comment');
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', {value: 'Added comment'}, undefined, undefined);
     });
 
     it('should allow removing comments using the `removeCommentAtCell` method', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
@@ -200,7 +242,7 @@ describe('Comments', () => {
         ]
       });
 
-      var plugin = hot.getPlugin('comments');
+      const plugin = hot.getPlugin('comments');
 
       expect(getCellMeta(1, 1).comment.value).toEqual('test');
 
@@ -210,8 +252,8 @@ describe('Comments', () => {
     });
 
     it('should trigger `afterSetCellMeta` callback when `removeCommentAtCell` function is invoked', () => {
-      var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
-      var hot = handsontable({
+      const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
@@ -220,20 +262,20 @@ describe('Comments', () => {
         afterSetCellMeta: afterSetCellMetaCallback
       });
 
-      var plugin = hot.getPlugin('comments');
+      const plugin = hot.getPlugin('comments');
 
       plugin.removeCommentAtCell(1, 1);
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', undefined, undefined, undefined);
     });
 
     it('should allow opening the comment editor using the `showAtCell` method', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
       });
 
-      var plugin = hot.getPlugin('comments');
-      var editor = plugin.editor.getInputElement();
+      const plugin = hot.getPlugin('comments');
+      const editor = plugin.editor.getInputElement();
 
       expect(editor.parentNode.style.display).toEqual('none');
 
@@ -243,13 +285,13 @@ describe('Comments', () => {
     });
 
     it('should allow closing the comment editor using the `hide` method', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
       });
 
-      var plugin = hot.getPlugin('comments');
-      var editor = plugin.editor.getInputElement();
+      const plugin = hot.getPlugin('comments');
+      const editor = plugin.editor.getInputElement();
       plugin.showAtCell(1, 1);
       expect(editor.parentNode.style.display).toEqual('block');
 
@@ -260,13 +302,13 @@ describe('Comments', () => {
   });
 
   it('`updateCommentMeta` & `setComment` functions should extend cellMetaObject properly', () => {
-    var comment,
-      readOnly;
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       comments: true
     });
-    var plugin = hot.getPlugin('comments');
+    const plugin = hot.getPlugin('comments');
+    let readOnly;
+    let comment;
 
     setCellMeta(0, 0, 'comment', {readOnly: true});
     plugin.updateCommentMeta(0, 0, {value: 'Test'});
@@ -287,7 +329,7 @@ describe('Comments', () => {
 
   describe('Using the Context Menu', () => {
     it('should open the comment editor when clicking the "Add comment" entry', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true
@@ -296,19 +338,19 @@ describe('Comments', () => {
       selectCell(1, 1);
       contextMenu();
 
-      var addCommentButton = $('.htItemWrapper').filter(function() {
+      const addCommentButton = $('.htItemWrapper').filter(function() {
         return $(this).text() === 'Add comment';
       })[0];
 
       $(addCommentButton).simulate('mousedown');
 
-      var editor = hot.getPlugin('comments').editor.getInputElement();
+      const editor = hot.getPlugin('comments').editor.getInputElement();
 
       expect($(editor).parents('.htComments')[0].style.display).toEqual('block');
     });
 
     it('should remove the comment from a cell after clicking the "Delete comment" entry', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
@@ -322,7 +364,7 @@ describe('Comments', () => {
       selectCell(1, 1);
       contextMenu();
 
-      var deleteCommentButton = $('.htItemWrapper').filter(function() {
+      const deleteCommentButton = $('.htItemWrapper').filter(function() {
         return $(this).text() === 'Delete comment';
       })[0];
 
@@ -332,7 +374,7 @@ describe('Comments', () => {
     });
 
     it('should remove comments from a selected group of cells after clicking the "Delete comment" entry', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
@@ -348,7 +390,7 @@ describe('Comments', () => {
       selectCell(1, 1, 2, 2);
       contextMenu();
 
-      var deleteCommentButton = $('.htItemWrapper').filter(function() {
+      const deleteCommentButton = $('.htItemWrapper').filter(function() {
         return $(this).text() === 'Delete comment';
       })[0];
 
@@ -359,7 +401,7 @@ describe('Comments', () => {
     });
 
     it('should make the comment editor\'s textarea read-only after clicking the "Read only comment" entry', (done) => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
@@ -371,11 +413,11 @@ describe('Comments', () => {
       selectCell(1, 1);
       contextMenu();
 
-      var editor = hot.getPlugin('comments').editor.getInputElement();
+      const editor = hot.getPlugin('comments').editor.getInputElement();
 
       expect($(editor)[0].readOnly).toBe(false);
 
-      var readOnlyComment = $('.htItemWrapper').filter(function() {
+      const readOnlyComment = $('.htItemWrapper').filter(function() {
         return $(this).text() === 'Read only comment';
       })[0];
 
@@ -396,8 +438,8 @@ describe('Comments', () => {
 
   describe('Hooks invoked after changing cell meta', () => {
     it('should trigger `afterSetCellMeta` callback after deleting comment by context menu', () => {
-      var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
-      var rows = 10,
+      const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
+      const rows = 10,
         columns = 10;
 
       handsontable({
@@ -421,7 +463,7 @@ describe('Comments', () => {
       selectCell(1, 1);
       contextMenu();
 
-      var deleteCommentButton = $('.htItemWrapper').filter(function() {
+      const deleteCommentButton = $('.htItemWrapper').filter(function() {
         return $(this).text() === 'Delete comment';
       })[0];
 
@@ -433,8 +475,8 @@ describe('Comments', () => {
     // Doesn't work in PhantomJS
     // It will work probably when #3961 will be fixed
     xit('should trigger `afterSetCellMeta` callback after editing comment by context menu', (done) => {
-      var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
-      var rows = 10,
+      const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
+      const rows = 10,
         columns = 10;
 
       handsontable({
@@ -456,7 +498,7 @@ describe('Comments', () => {
       selectCell(0, 0);
       contextMenu();
 
-      var editCommentButton = $('.htItemWrapper').filter(function() {
+      const editCommentButton = $('.htItemWrapper').filter(function() {
         return $(this).text() === 'Edit comment';
       })[0];
 

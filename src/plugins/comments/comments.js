@@ -8,19 +8,15 @@ import {
   outerHeight,
   getScrollableElement
 } from './../../helpers/dom/element';
-import {
-  deepClone, deepExtend
-} from './../../helpers/object';
+import {deepClone, deepExtend} from './../../helpers/object';
 import {isDefined} from './../../helpers/mixed';
-import {
-  debounce
-} from './../../helpers/function';
 import EventManager from './../../eventManager';
 import {CellCoords} from './../../3rdparty/walkontable/src';
 import {registerPlugin, getPlugin} from './../../plugins';
 import BasePlugin from './../_base';
 import CommentEditor from './commentEditor';
 import {checkSelectionConsistency, markLabelAsSelected} from './../contextMenu/utils';
+import {DisplaySwitch} from './utils/DisplaySwitch';
 
 import './comments.css';
 
@@ -124,12 +120,11 @@ class Comments extends BasePlugin {
      */
     this.timer = null;
     /**
-     * Delay used when showing/hiding the comments (in milliseconds).
+     * Delay used when showing the comments (in milliseconds).
      *
      * @type {Number}
      */
-    const displayDelay = this.hot.getSettings().comments.displayDelay;
-    this.displayDelay = isDefined(displayDelay) ? displayDelay : DEFAULT_DISPLAY_DELAY;
+    this.displayDelay = this.getDisplayDelaySetting();
 
     privatePool.set(this, {
       tempEditorDimensions: {},
@@ -162,16 +157,34 @@ class Comments extends BasePlugin {
       this.eventManager = new EventManager(this);
     }
 
+    if (!this.displaySwitch) {
+      this.displaySwitch = new DisplaySwitch(this.hot, {displayDelay: this.displayDelay, hideDelay: DEFAULT_HIDE_DELAY});
+    }
+
     this.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
     this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
     this.addHook('afterScrollHorizontally', () => this.hide());
     this.addHook('afterScrollVertically', () => this.hide());
-
     this.addHook('afterBeginEditing', (args) => this.onAfterBeginEditing(args));
+
+    this.displaySwitch.addLocalHook('hide', () => this.hide());
+    this.displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
 
     this.registerListeners();
 
     super.enablePlugin();
+  }
+
+  /**
+   * Update plugin for this Handsontable instance.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+    super.updatePlugin();
+
+    this.displayDelay = this.getDisplayDelaySetting();
+    this.displaySwitch.update(this.displayDelay, DEFAULT_HIDE_DELAY);
   }
 
   /**
@@ -511,44 +524,25 @@ class Comments extends BasePlugin {
    */
   onMouseOver(event) {
     const priv = privatePool.get(this);
-    let hidingAllowed = true;
 
     priv.cellBelowCursor = document.elementFromPoint(event.clientX, event.clientY);
 
-    if (this.mouseDown || this.editor.isFocused()) {
+    if (this.mouseDown || this.editor.isFocused() || hasClass(event.target, 'wtBorder')
+        || priv.cellBelowCursor !== event.target || !this.editor) {
       return;
     }
 
-    const doNotToggleVisibility = () => hasClass(event.target, 'wtBorder')
-    || priv.cellBelowCursor !== event.target || !this.editor;
+    if (this.targetIsCellWithComment(event)) {
+      const coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
+      const range = {
+        from: new CellCoords(coordinates.row, coordinates.col)
+      };
 
-    debounce(() => {
-      if (doNotToggleVisibility()) {
-        return;
-      }
+      this.displaySwitch.show(range);
 
-      if (this.targetIsCellWithComment(event)) {
-        hidingAllowed = false;
-
-        let coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
-        let range = {
-          from: new CellCoords(coordinates.row, coordinates.col)
-        };
-
-        this.setRange(range);
-        this.show();
-      }
-    }, this.displayDelay)();
-
-    debounce(() => {
-      if (doNotToggleVisibility()) {
-        return;
-      }
-
-      if (hidingAllowed && isChildOf(event.target, document) && !this.targetIsCommentTextArea(event) && !this.editor.isFocused()) {
-        this.hide();
-      }
-    }, DEFAULT_HIDE_DELAY)();
+    } else if (isChildOf(event.target, document) && !this.targetIsCommentTextArea(event)) {
+      this.displaySwitch.hide();
+    }
   }
 
   /**
@@ -729,6 +723,11 @@ class Comments extends BasePlugin {
     );
   }
 
+  getDisplayDelaySetting() {
+    const displayDelay = this.hot.getSettings().comments.displayDelay;
+    return isDefined(displayDelay) ? displayDelay : DEFAULT_DISPLAY_DELAY;
+  }
+
   /**
    * `afterBeginEditing` hook callback.
    *
@@ -747,6 +746,11 @@ class Comments extends BasePlugin {
     if (this.editor) {
       this.editor.destroy();
     }
+
+    if (this.displaySwitch) {
+      this.displaySwitch.destroy();
+    }
+
     super.destroy();
   }
 }
