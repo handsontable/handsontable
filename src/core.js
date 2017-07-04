@@ -211,7 +211,7 @@ export default function Core(rootElement, userSettings) {
           datamap.removeCol(index, amount, source);
 
           for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
-            if (priv.cellSettings[row]) {  // if row hasn't been rendered it wouldn't have cellSettings
+            if (priv.cellSettings[row]) { // if row hasn't been rendered it wouldn't have cellSettings
               priv.cellSettings[row].splice(visualColumnIndex, amount);
             }
           }
@@ -1038,8 +1038,8 @@ export default function Core(rootElement, userSettings) {
                 throw new Error('Validation error: result is not boolean');
               }
               if (result === false && cellProperties.allowInvalid === false) {
-                changes.splice(i, 1);         // cancel the change
-                cellProperties.valid = true;  // we cancelled the change, so cell value is still valid
+                changes.splice(i, 1); // cancel the change
+                cellProperties.valid = true; // we cancelled the change, so cell value is still valid
                 const cell = instance.getCell(cellProperties.row, cellProperties.col);
                 removeClass(cell, instance.getSettings().invalidCellClassName);
                 --i;
@@ -1187,7 +1187,7 @@ export default function Core(rootElement, userSettings) {
       return row;
     }
     return [
-        [row, propOrCol, value]
+      [row, propOrCol, value]
     ];
   }
 
@@ -2061,7 +2061,7 @@ export default function Core(rootElement, userSettings) {
   this.getDataAtCol = function(col) {
     var out = [];
     return out.concat(...datamap.getRange(
-        new CellCoords(0, col), new CellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
+      new CellCoords(0, col), new CellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
   };
 
   /**
@@ -2080,9 +2080,9 @@ export default function Core(rootElement, userSettings) {
       range;
 
     range = datamap.getRange(
-        new CellCoords(0, datamap.propToCol(prop)),
-        new CellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)),
-        datamap.DESTINATION_RENDERER);
+      new CellCoords(0, datamap.propToCol(prop)),
+      new CellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)),
+      datamap.DESTINATION_RENDERER);
 
     return out.concat(...range);
   };

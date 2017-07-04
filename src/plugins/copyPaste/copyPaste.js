@@ -28,6 +28,19 @@ const ROWS_LIMIT = 1000;
 const COLUMNS_LIMIT = 1000;
 const privatePool = new WeakMap();
 
+/**
+ * @description
+ * This plugin enables the copy/paste functionality in the Handsontable.
+ *
+ * @example
+ * ```js
+ * ...
+ * copyPaste: true,
+ * ...
+ * ```
+ * @class CopyPaste
+ * @plugin CopyPaste
+ */
 class CopyPaste extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
@@ -40,6 +53,7 @@ class CopyPaste extends BasePlugin {
     /**
      * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
+     * @private
      * @type {Number}
      * @default 1000
      */
@@ -47,6 +61,7 @@ class CopyPaste extends BasePlugin {
     /**
      * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
      *
+     * @private
      * @type {Array}
      */
     this.copyableRanges = [];
@@ -56,6 +71,7 @@ class CopyPaste extends BasePlugin {
      * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
      * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
      *
+     * @private
      * @type {String}
      * @default 'overwrite'
      */
@@ -63,6 +79,7 @@ class CopyPaste extends BasePlugin {
     /**
      * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
+     * @private
      * @type {Number}
      * @default 1000
      */
@@ -70,6 +87,7 @@ class CopyPaste extends BasePlugin {
     /**
      * The `textarea` element which is necessary to process copying, cutting off and pasting.
      *
+     * @private
      * @type {HTMLElement}
      * @default undefined
      */
@@ -419,7 +437,9 @@ class CopyPaste extends BasePlugin {
    */
   onAfterContextMenuDefaultOptions(options) {
     options.items.push(
-      Handsontable.plugins.ContextMenu.SEPARATOR,
+      {
+        name: '---------',
+      },
       copyItem(this),
       cutItem(this)
     );

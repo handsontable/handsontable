@@ -961,7 +961,7 @@ describe('ColumnSorting', () => {
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D');
 
-    this.sortByColumn(1);  // sort by second column
+    this.sortByColumn(1); // sort by second column
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
   });

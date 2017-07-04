@@ -99,9 +99,9 @@ class Viewport {
       // if no stretching is used, return the maximum used workspace width
       return Math.max(width, outerWidth(this.instance.wtTable.TABLE));
     }
-      // if stretching is used, return the actual container width, so the columns can fit inside it
-    return width;
 
+    // if stretching is used, return the actual container width, so the columns can fit inside it
+    return width;
   }
 
   /**

@@ -1257,7 +1257,6 @@ describe('ContextMenu', () => {
       contextMenu();
       var menu = $('.htContextMenu .ht_master .htCore tbody');
       menu.find('td').not('.htSeparator').eq(8).simulate('mousedown');
-//      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
     });
@@ -1280,7 +1279,6 @@ describe('ContextMenu', () => {
       contextMenu();
       var menu = $('.htContextMenu .ht_master .htCore tbody');
       menu.find('td').not('.htSeparator').eq(8).simulate('mousedown');
-//      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
 
       for (let i = 0; i < 2; i++) {
         for (let j = 0; j < 2; j++) {

@@ -56,10 +56,10 @@ class Settings {
 
       // columnWidth: 50,
       columnWidth(col) {
-         // return undefined means use default size for the rendered cell content
+        // return undefined means use default size for the rendered cell content
       },
       rowHeight(row) {
-         // return undefined means use default size for the rendered cell content
+        // return undefined means use default size for the rendered cell content
       },
       defaultRowHeight: 23,
       defaultColumnWidth: 50,
