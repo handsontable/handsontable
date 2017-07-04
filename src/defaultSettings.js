@@ -2015,6 +2015,22 @@ DefaultSettings.prototype = {
    * @default: false
    */
   filteringCaseSensitive: false,
+
+  /**
+   * If defined as 'true', column headers will be included when table is copied to clipboard
+   * 
+   * @type {Boolean}
+   * @default: false
+   */
+  columnHeadersClipboard: false,
+
+  /**
+   * If defined as 'true', row headers will be included when table is copied to clipboard
+   * 
+   * @type {Boolean}
+   * @default: false
+   */
+  rowHeadersClipboard: false,
 };
 
 export default DefaultSettings;
