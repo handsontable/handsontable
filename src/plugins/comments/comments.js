@@ -656,7 +656,9 @@ class Comments extends BasePlugin {
    */
   addToContextMenu(defaultOptions) {
     defaultOptions.items.push(
-      getPlugin(this.hot, 'contextMenu').constructor.SEPARATOR,
+      {
+        name: '---------',
+      },
       {
         key: 'commentsAddEdit',
         name: () => (this.checkSelectionCommentsConsistency() ? 'Edit comment' : 'Add comment'),

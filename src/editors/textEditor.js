@@ -1,16 +1,16 @@
 import {
-    addClass,
-    getCaretPosition,
-    getComputedStyle,
-    getCssTransform,
-    getScrollableElement,
-    getScrollbarWidth,
-    innerWidth,
-    offset,
-    resetCssTransform,
-    setCaretPosition,
-    hasVerticalScrollbar,
-    hasHorizontalScrollbar
+  addClass,
+  getCaretPosition,
+  getComputedStyle,
+  getCssTransform,
+  getScrollableElement,
+  getScrollbarWidth,
+  innerWidth,
+  offset,
+  resetCssTransform,
+  setCaretPosition,
+  hasVerticalScrollbar,
+  hasHorizontalScrollbar
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
 import BaseEditor, {EditorState} from './_baseEditor';

@@ -66,7 +66,7 @@ describe('stretchH option', () => {
 
     $wrapper.width(600).height(500);
 
-    var evt = document.createEvent('CustomEvent');  // MUST be 'CustomEvent'
+    var evt = document.createEvent('CustomEvent'); // MUST be 'CustomEvent'
     evt.initCustomEvent('resize', false, false, null);
     window.dispatchEvent(evt);
 

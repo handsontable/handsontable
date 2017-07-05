@@ -189,7 +189,7 @@ describe('Core_keepEmptyRows', () => {
 
   it('should create new row when last cell in last row is edited by autocomplete', (done) => {
     var data = [
-          {id: 1, color: 'orange' }
+      {id: 1, color: 'orange' }
     ];
 
     var syncSources = jasmine.createSpy('syncSources');

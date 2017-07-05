@@ -180,9 +180,9 @@ MobileTextEditor.prototype.updateEditorPosition = function(x, y) {
 
     if (selectedCell !== undefined) {
       var scrollLeft = this.instance.view.wt.wtOverlays.leftOverlay
-          .trimmingContainer == window ? 0 : getScrollLeft(this.instance.view.wt.wtOverlays.leftOverlay.holder);
+        .trimmingContainer == window ? 0 : getScrollLeft(this.instance.view.wt.wtOverlays.leftOverlay.holder);
       var scrollTop = this.instance.view.wt.wtOverlays.topOverlay
-          .trimmingContainer == window ? 0 : getScrollTop(this.instance.view.wt.wtOverlays.topOverlay.holder);
+        .trimmingContainer == window ? 0 : getScrollTop(this.instance.view.wt.wtOverlays.topOverlay.holder);
 
       var selectedCellOffset = offset(selectedCell),
         selectedCellWidth = outerWidth(selectedCell),
