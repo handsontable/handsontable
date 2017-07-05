@@ -1,4 +1,5 @@
 import {isDefined} from './helpers/mixed';
+import {isObjectEquals} from './helpers/object';
 
 /**
  * @alias Options
