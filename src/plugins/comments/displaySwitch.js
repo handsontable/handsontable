@@ -6,7 +6,10 @@ const DEFAULT_DISPLAY_DELAY = 250;
 const DEFAULT_HIDE_DELAY = 250;
 
 /**
- * Display switch for the Comments plugin. Manages the time of displaying comments.
+ * Display switch for the Comments plugin. Manages the time of delayed displaying / hiding comments.
+ *
+ * @class DisplaySwitch
+ * @plugin DisplaySwitch
  */
 class DisplaySwitch {
   constructor(displayDelay) {
@@ -16,7 +19,7 @@ class DisplaySwitch {
      *
      * @type {Boolean}
      */
-    this.lastActionWasShow = true;
+    this.wasLastActionShow = true;
     /**
      * Show comment after predefined delay. It keeps reference to immutable `debounce` function.
      *
@@ -31,10 +34,10 @@ class DisplaySwitch {
    * Responsible for hiding comment after proper delay.
    */
   hide() {
-    this.lastActionWasShow = false;
+    this.wasLastActionShow = false;
 
     setTimeout(() => {
-      if (this.lastActionWasShow === false) {
+      if (this.wasLastActionShow === false) {
         this.runLocalHooks('hide');
       }
     }, DEFAULT_HIDE_DELAY);
@@ -46,7 +49,7 @@ class DisplaySwitch {
    * @param {Object} range Coordinates of selected cell.
    */
   show(range) {
-    this.lastActionWasShow = true;
+    this.wasLastActionShow = true;
     this.showDebounced(range);
   };
 
@@ -57,7 +60,7 @@ class DisplaySwitch {
    */
   updateDelay(displayDelay = DEFAULT_DISPLAY_DELAY) {
     this.showDebounced = debounce((range) => {
-      if (this.lastActionWasShow) {
+      if (this.wasLastActionShow) {
         this.runLocalHooks('show', range.from.row, range.from.col);
       }
     }, displayDelay);
@@ -67,9 +70,6 @@ class DisplaySwitch {
    * Destroy the switcher.
    */
   destroy() {
-    this.show = null;
-    this.hide = null;
-
     this.clearLocalHooks();
   }
 }

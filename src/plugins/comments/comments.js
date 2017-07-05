@@ -8,7 +8,7 @@ import {
   outerHeight,
   getScrollableElement
 } from './../../helpers/dom/element';
-import {deepClone, deepExtend} from './../../helpers/object';
+import {deepClone, deepExtend, isObject} from './../../helpers/object';
 import EventManager from './../../eventManager';
 import {CellCoords} from './../../3rdparty/walkontable/src';
 import {registerPlugin, getPlugin} from './../../plugins';
@@ -88,6 +88,12 @@ class Comments extends BasePlugin {
      * @type {CommentEditor}
      */
     this.editor = null;
+    /**
+     * Instance of {@link DisplaySwitch}.
+     *
+     * @type {DisplaySwitch}
+     */
+    this.displaySwitch = null;
     /**
      * Instance of {@link EventManager}.
      *
@@ -720,7 +726,9 @@ class Comments extends BasePlugin {
    */
   getDisplayDelaySetting() {
     const commentSetting = this.hot.getSettings().comments;
-    return commentSetting && commentSetting.displayDelay;
+
+
+    return isObject(commentSetting) && commentSetting.displayDelay;
   }
 
   /**
