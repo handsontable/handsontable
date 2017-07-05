@@ -43,34 +43,32 @@ describe('Comments', () => {
       expect(setTimeout.mock.calls.length).toBe(1);
       expect(setTimeout.mock.calls[0][1]).toBe(DEFAULT_HIDE_DELAY);
     });
-  });
 
-  it('should set properly `wasLastActionShow` variable #1', () => {
-    const displaySwitch = new DisplaySwitch(700);
-    const range = {from: new CellCoords(0, 1)};
+    it('should set properly `wasLastActionShow` variable #1', () => {
+      const displaySwitch = new DisplaySwitch(700);
+      const range = {from: new CellCoords(0, 1)};
 
-    jest.useFakeTimers();
+      displaySwitch.show(range);
+      displaySwitch.show(range);
+      displaySwitch.hide();
+      displaySwitch.hide();
+      displaySwitch.show(range);
+      displaySwitch.hide();
 
-    displaySwitch.show(range);
-    displaySwitch.show(range);
-    displaySwitch.hide();
-    displaySwitch.hide();
-    displaySwitch.show(range);
-    displaySwitch.hide();
-    expect(displaySwitch.wasLastActionShow).toBe(false);
-  });
+      expect(displaySwitch.wasLastActionShow).toBe(false);
+    });
 
-  it('should set properly `wasLastActionShow` variable #2', () => {
-    const displaySwitch = new DisplaySwitch(700);
-    const range = {from: new CellCoords(0, 1)};
+    it('should set properly `wasLastActionShow` variable #2', () => {
+      const displaySwitch = new DisplaySwitch(700);
+      const range = {from: new CellCoords(0, 1)};
 
-    jest.useFakeTimers();
-
-    displaySwitch.show(range);
-    displaySwitch.show(range);
-    displaySwitch.hide();
-    displaySwitch.hide();
-    displaySwitch.show(range);
-    expect(displaySwitch.wasLastActionShow).toBe(true);
+      displaySwitch.show(range);
+      displaySwitch.show(range);
+      displaySwitch.hide();
+      displaySwitch.hide();
+      displaySwitch.show(range);
+      
+      expect(displaySwitch.wasLastActionShow).toBe(true);
+    });
   });
 });
