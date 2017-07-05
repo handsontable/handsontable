@@ -20,6 +20,7 @@ describe('Comments', () => {
       const range = {from: new CellCoords(0, 1)};
 
       displaySwitch.show(range);
+
       expect(displaySwitch.showDebounced).toHaveBeenCalledWith(range);
     });
 
@@ -29,6 +30,7 @@ describe('Comments', () => {
       const range = {from: new CellCoords(0, 1)};
 
       displaySwitch.show(range);
+
       expect(displaySwitch.wasLastActionShow).toBe(true);
     });
 
@@ -64,20 +66,6 @@ describe('Comments', () => {
     });
   });
 
-  describe('DisplaySwitch.showDebounced', () => {
-    it('should call `showDebounced` function after defined delay', () => {
-      const displaySwitch = new DisplaySwitch(1000);
-      const range = {from: new CellCoords(0, 1)};
-
-      jest.useFakeTimers();
-
-      displaySwitch.showDebounced(range);
-
-      expect(setTimeout.mock.calls.length).toBe(1);
-      expect(setTimeout.mock.calls[0][1]).toBe(1000);
-    });
-  });
-
   describe('DisplaySwitch.hide', () => {
     it('should call timeout inside `hide` function after predefined delay', () => {
       const displaySwitch = new DisplaySwitch(700);
@@ -95,6 +83,7 @@ describe('Comments', () => {
       displaySwitch.showDebounced = jasmine.createSpy('showDebounced');
 
       displaySwitch.hide();
+
       expect(displaySwitch.wasLastActionShow).toBe(false);
     });
 
@@ -127,5 +116,48 @@ describe('Comments', () => {
 
       expect(onHide).not.toHaveBeenCalled();
     });
+  });
+
+  describe('DisplaySwitch.showDebounced', () => {
+    it('should call `showDebounced` function after defined delay', () => {
+      const displaySwitch = new DisplaySwitch(1000);
+      const range = {from: new CellCoords(0, 1)};
+
+      jest.useFakeTimers();
+
+      displaySwitch.showDebounced(range);
+
+      expect(setTimeout.mock.calls.length).toBe(1);
+      expect(setTimeout.mock.calls[0][1]).toBe(1000);
+    });
+
+    it('DisplaySwitch.updateDelay should update `showDebounced` function delay', () => {
+      const displaySwitch = new DisplaySwitch(1000);
+      const range = {from: new CellCoords(0, 1)};
+      const cachedShowDebounced = jasmine.createSpy('cachedShowDebounced');
+      displaySwitch.showDebounced = cachedShowDebounced;
+
+      jest.useFakeTimers();
+
+      displaySwitch.updateDelay(800);
+
+      expect(cachedShowDebounced).not.toBe(displaySwitch.showDebounced);
+
+      displaySwitch.show(range);
+      jest.runAllTimers();
+
+      expect(cachedShowDebounced).not.toHaveBeenCalled();
+      expect(setTimeout.mock.calls.length).toBe(1);
+      expect(setTimeout.mock.calls[0][1]).toBe(800);
+    });
+  });//
+
+  it('DisplaySwitch.destroy should clear all `localHooks`', () => {
+    const displaySwitch = new DisplaySwitch(1000);
+    displaySwitch.clearLocalHooks = jasmine.createSpy('clearLocalHooks');
+
+    displaySwitch.destroy();
+
+    expect(displaySwitch.clearLocalHooks).toHaveBeenCalled();
   });
 });
