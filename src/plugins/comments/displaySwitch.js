@@ -9,7 +9,7 @@ const DEFAULT_HIDE_DELAY = 250;
  * Display switch for the Comments plugin. Manages the time of delayed displaying / hiding comments.
  *
  * @class DisplaySwitch
- * @plugin DisplaySwitch
+ * @plugin Comments
  */
 class DisplaySwitch {
   constructor(displayDelay) {

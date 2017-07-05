@@ -727,7 +727,6 @@ class Comments extends BasePlugin {
   getDisplayDelaySetting() {
     const commentSetting = this.hot.getSettings().comments;
 
-
     return isObject(commentSetting) && commentSetting.displayDelay;
   }
 
