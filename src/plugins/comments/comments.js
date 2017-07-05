@@ -9,14 +9,13 @@ import {
   getScrollableElement
 } from './../../helpers/dom/element';
 import {deepClone, deepExtend} from './../../helpers/object';
-import {isDefined} from './../../helpers/mixed';
 import EventManager from './../../eventManager';
 import {CellCoords} from './../../3rdparty/walkontable/src';
 import {registerPlugin, getPlugin} from './../../plugins';
 import BasePlugin from './../_base';
 import CommentEditor from './commentEditor';
 import {checkSelectionConsistency, markLabelAsSelected} from './../contextMenu/utils';
-import {DisplaySwitch} from './utils/DisplaySwitch';
+import DisplaySwitch from './displaySwitch';
 
 import './comments.css';
 
@@ -25,8 +24,6 @@ const META_COMMENT = 'comment';
 const META_COMMENT_VALUE = 'value';
 const META_STYLE = 'style';
 const META_READONLY = 'readOnly';
-const DEFAULT_DISPLAY_DELAY = 250;
-const DEFAULT_HIDE_DELAY = 250;
 
 /**
  * @plugin Comments
@@ -119,12 +116,6 @@ class Comments extends BasePlugin {
      * @type {*}
      */
     this.timer = null;
-    /**
-     * Delay used when showing the comments (in milliseconds).
-     *
-     * @type {Number}
-     */
-    this.displayDelay = this.getDisplayDelaySetting();
 
     privatePool.set(this, {
       tempEditorDimensions: {},
@@ -158,7 +149,7 @@ class Comments extends BasePlugin {
     }
 
     if (!this.displaySwitch) {
-      this.displaySwitch = new DisplaySwitch(this.hot, {displayDelay: this.displayDelay, hideDelay: DEFAULT_HIDE_DELAY});
+      this.displaySwitch = new DisplaySwitch(this.getDisplayDelaySetting());
     }
 
     this.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
@@ -183,8 +174,7 @@ class Comments extends BasePlugin {
     this.enablePlugin();
     super.updatePlugin();
 
-    this.displayDelay = this.getDisplayDelaySetting();
-    this.displaySwitch.update(this.displayDelay, DEFAULT_HIDE_DELAY);
+    this.displaySwitch.updateDelay(this.getDisplayDelaySetting());
   }
 
   /**
@@ -723,9 +713,14 @@ class Comments extends BasePlugin {
     );
   }
 
+  /**
+   * Get `displayDelay` setting of comment plugin.
+   *
+   * @returns {Number|undefined}
+   */
   getDisplayDelaySetting() {
-    const displayDelay = this.hot.getSettings().comments.displayDelay;
-    return isDefined(displayDelay) ? displayDelay : DEFAULT_DISPLAY_DELAY;
+    const commentSetting = this.hot.getSettings().comments;
+    return commentSetting && commentSetting.displayDelay;
   }
 
   /**

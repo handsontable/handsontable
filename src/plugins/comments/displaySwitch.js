@@ -1,0 +1,79 @@
+import {debounce} from '../../helpers/function';
+import {mixin} from '../../helpers/object';
+import localHooks from '../../mixins/localHooks';
+
+const DEFAULT_DISPLAY_DELAY = 250;
+const DEFAULT_HIDE_DELAY = 250;
+
+/**
+ * Display switch for the Comments plugin. Manages the time of displaying comments.
+ */
+class DisplaySwitch {
+  constructor(displayDelay) {
+    /**
+     * Flag to determine if comment can be showed or hidden. State `true` mean that last performed action
+     * was an attempt to show comment element. State `false` mean that it was attempt to hide comment element.
+     *
+     * @type {Boolean}
+     */
+    this.lastActionWasShow = true;
+    /**
+     * Show comment after predefined delay. It keeps reference to immutable `debounce` function.
+     *
+     * @type {Function}
+     */
+    this.showDebounced = null;
+
+    this.updateDelay(displayDelay);
+  }
+
+  /**
+   * Responsible for hiding comment after proper delay.
+   */
+  hide() {
+    this.lastActionWasShow = false;
+
+    setTimeout(() => {
+      if (this.lastActionWasShow === false) {
+        this.runLocalHooks('hide');
+      }
+    }, DEFAULT_HIDE_DELAY);
+  }
+
+  /**
+   * Responsible for showing comment after proper delay.
+   *
+   * @param {Object} range Coordinates of selected cell.
+   */
+  show(range) {
+    this.lastActionWasShow = true;
+    this.showDebounced(range);
+  };
+
+  /**
+   * Update the switch settings.
+   *
+   * @param {Number} displayDelay Delay of showing the comments (in milliseconds).
+   */
+  updateDelay(displayDelay = DEFAULT_DISPLAY_DELAY) {
+    this.showDebounced = debounce((range) => {
+      if (this.lastActionWasShow) {
+        this.runLocalHooks('show', range.from.row, range.from.col);
+      }
+    }, displayDelay);
+  }
+
+  /**
+   * Destroy the switcher.
+   */
+  destroy() {
+    this.show = null;
+    this.hide = null;
+
+    this.clearLocalHooks();
+  }
+}
+
+mixin(DisplaySwitch, localHooks);
+
+export default DisplaySwitch;
