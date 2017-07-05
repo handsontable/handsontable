@@ -427,7 +427,6 @@ class Border {
     this.rightStyle.height = `${height + 1}px`;
     this.rightStyle.display = 'block';
 
-    // if (isMobileBrowser() || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
     if (isMobileBrowser() || !this.hasSetting(this.settings.border.cornerVisible)) {
       this.cornerStyle.display = 'none';
 

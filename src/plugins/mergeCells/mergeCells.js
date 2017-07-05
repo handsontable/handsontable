@@ -213,24 +213,28 @@ class MergeCells extends BasePlugin {
    */
   mergeSelection(cellRange) {
     if (!cellRange) {
-      cellRange = this.getSelectedRange();
+      cellRange = this.hot.getSelectedRange();
     }
 
+    this.unmergeSelection(cellRange);
     this.mergeRange(cellRange);
   }
 
   /**
-   * Unmerge the selection provided as a cell range.
+   * Unmerge the selection provided as a cell range. If no cell range is provided, it uses the current selection.
    *
    * @param {CellRange} [cellRange] Selection cell range.
    */
   unmergeSelection(cellRange) {
     if (!cellRange) {
-      cellRange = this.getSelectedRange();
+      cellRange = this.hot.getSelectedRange();
     }
-    const collection = this.collectionContainer.get(cellRange.row, cellRange.col);
 
-    this.collectionContainer.remove(collection.row, collection.col);
+    const collections = this.collectionContainer.getWithinRange(cellRange);
+
+    for (let i = 0; i < collections.length; i++) {
+      this.collectionContainer.remove(collections[i].row, collections[i].col);
+    }
   }
 
   /**
@@ -240,10 +244,13 @@ class MergeCells extends BasePlugin {
    */
   toggleMerge(cellRange) {
     const collection = this.collectionContainer.get(cellRange.from.row, cellRange.from.col);
+    const collectionCoversWholeRange = collection.row === cellRange.from.row && collection.col === cellRange.from.col &&
+      collection.row + collection.rowspan - 1 === cellRange.to.row && collection.col + collection.colspan - 1 === cellRange.to.col;
 
-    if (collection) {
+    if (collectionCoversWholeRange) {
       // unmerge
-      this.unmergeSelection(cellRange.from);
+      this.unmergeSelection(cellRange);
+
     } else {
       // merge
       this.mergeSelection(cellRange);
@@ -284,11 +291,13 @@ class MergeCells extends BasePlugin {
 
     for (let i = 0, collectionLength = this.collectionContainer.collections.length; i < collectionLength; i++) {
       let currentMerge = this.collectionContainer.collections[i];
+
       this.processCollection(currentMerge, shiftVector, index);
     }
 
     for (let i = 0; i < this.collectionContainer.collections.length; i++) {
       let currentMerge = this.collectionContainer.collections[i];
+
       if (currentMerge.removed) {
         this.collectionContainer.collections.splice(this.collectionContainer.collections.indexOf(currentMerge), 1);
       }
@@ -310,7 +319,6 @@ class MergeCells extends BasePlugin {
     const shiftedIndex = indexOfChange + Math.abs(shiftVector[0] || shiftVector[1]) - 1;
     const SPAN = shiftVector[0] ? 'colspan' : 'rowspan';
     const INDEX = shiftVector[0] ? 'col' : 'row';
-    // const expandFunction = shiftVector[0] ? mergeInfo.expandHorizontally : mergeInfo.expandVertically;
     const changeStart = Math.min(indexOfChange, shiftedIndex);
     const changeEnd = Math.max(indexOfChange, shiftedIndex);
     const mergeStart = mergeInfo[INDEX];
@@ -374,12 +382,14 @@ class MergeCells extends BasePlugin {
       if (info.row === row && info.col === col) {
         TD.setAttribute('rowspan', info.rowspan.toString());
         TD.setAttribute('colspan', info.colspan.toString());
+
       } else {
         TD.removeAttribute('rowspan');
         TD.removeAttribute('colspan');
 
         TD.style.display = 'none';
       }
+
     } else {
       TD.removeAttribute('rowspan');
       TD.removeAttribute('colspan');
@@ -535,7 +545,6 @@ class MergeCells extends BasePlugin {
       col: delta.col,
     };
     let nextPosition = null;
-    // let currentPosition = new CellCoords(currentlySelectedRange.highlight.row, currentlySelectedRange.highlight.col);
 
     for (let i = 0, mergesLength = this.collectionContainer.collections.length; i < mergesLength; i++) {
       let currentMerge = this.collectionContainer.collections[i];
@@ -613,7 +622,7 @@ class MergeCells extends BasePlugin {
         const sel = this.getSelected();
         const info = plugin.collectionContainer.get(sel[0], sel[1]);
 
-        if (info) {
+        if (info.row === sel[0] && info.col === sel[1] && info.row + info.rowspan - 1 === sel[2] && info.col + info.colspan - 1 === sel[3]) {
           return 'Unmerge cells';
         }
         return 'Merge cells';
@@ -655,8 +664,8 @@ class MergeCells extends BasePlugin {
     let selRange = this.hot.getSelectedRange();
     selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
     selRange.to = coords;
-
     let rangeExpanded = false;
+
     do {
       rangeExpanded = false;
 
@@ -722,6 +731,7 @@ class MergeCells extends BasePlugin {
    */
   onAfterGetCellMeta(row, col, cellProperties) {
     let mergeParent = this.collectionContainer.get(row, col);
+
     if (mergeParent && (mergeParent.row !== row || mergeParent.col !== col)) {
       cellProperties.copyable = false;
     }
@@ -736,6 +746,7 @@ class MergeCells extends BasePlugin {
   onAfterViewportRowCalculatorOverride(calc) {
     let colCount = this.hot.countCols();
     let mergeParent;
+
     for (let c = 0; c < colCount; c++) {
       mergeParent = this.collectionContainer.get(calc.startRow, c);
       if (mergeParent) {
