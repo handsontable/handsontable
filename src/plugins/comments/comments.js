@@ -731,7 +731,7 @@ class Comments extends BasePlugin {
       return commentSetting.displayDelay;
     }
 
-    return undefined;
+    return void 0;
   }
 
   /**

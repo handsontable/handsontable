@@ -130,8 +130,10 @@ describe('Comments', () => {
       expect(setTimeout.mock.calls.length).toBe(1);
       expect(setTimeout.mock.calls[0][1]).toBe(1000);
     });
+  });
 
-    it('DisplaySwitch.updateDelay should update `showDebounced` function delay', () => {
+  describe('DisplaySwitch.updateDelay', () => {
+    it('should update `showDebounced` function delay', () => {
       const displaySwitch = new DisplaySwitch(1000);
       const range = {from: new CellCoords(0, 1)};
       const cachedShowDebounced = jasmine.createSpy('cachedShowDebounced');
@@ -150,14 +152,16 @@ describe('Comments', () => {
       expect(setTimeout.mock.calls.length).toBe(1);
       expect(setTimeout.mock.calls[0][1]).toBe(800);
     });
-  });//
+  });
 
-  it('DisplaySwitch.destroy should clear all `localHooks`', () => {
-    const displaySwitch = new DisplaySwitch(1000);
-    displaySwitch.clearLocalHooks = jasmine.createSpy('clearLocalHooks');
+  describe('DisplaySwitch.destroy', () => {
+    it('should clear all `localHooks`', () => {
+      const displaySwitch = new DisplaySwitch(1000);
+      displaySwitch.clearLocalHooks = jasmine.createSpy('clearLocalHooks');
 
-    displaySwitch.destroy();
+      displaySwitch.destroy();
 
-    expect(displaySwitch.clearLocalHooks).toHaveBeenCalled();
+      expect(displaySwitch.clearLocalHooks).toHaveBeenCalled();
+    });
   });
 });
