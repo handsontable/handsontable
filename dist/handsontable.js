@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 0.32.0
- * Date: Wed Jul 05 2017 11:49:50 GMT+1200 (New Zealand Standard Time)
+ * Date: Wed Jul 05 2017 17:21:47 GMT+1200 (New Zealand Standard Time)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -15372,7 +15372,7 @@ DefaultSettings.prototype = {
 
   /**
    * If defined as 'true', column headers will be included when table is copied to clipboard
-   * 
+   *
    * @type {Boolean}
    * @default: false
    */
@@ -15380,7 +15380,7 @@ DefaultSettings.prototype = {
 
   /**
    * If defined as 'true', row headers will be included when table is copied to clipboard
-   * 
+   *
    * @type {Boolean}
    * @default: false
    */
@@ -30320,7 +30320,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "2017-07-04T23:49:50.028Z";
+Handsontable.buildDate = "2017-07-05T05:21:47.621Z";
 Handsontable.packageName = "handsontable";
 Handsontable.version = "0.32.0";
 

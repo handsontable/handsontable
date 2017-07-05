@@ -2018,7 +2018,7 @@ DefaultSettings.prototype = {
 
   /**
    * If defined as 'true', column headers will be included when table is copied to clipboard
-   * 
+   *
    * @type {Boolean}
    * @default: false
    */
@@ -2026,11 +2026,11 @@ DefaultSettings.prototype = {
 
   /**
    * If defined as 'true', row headers will be included when table is copied to clipboard
-   * 
+   *
    * @type {Boolean}
    * @default: false
    */
-  rowHeadersClipboard: false,
+  rowHeadersClipboard: false
 };
 
 export default DefaultSettings;
