@@ -126,6 +126,7 @@ describe('Comments', () => {
       expect(typeof savedhidingTimer).toBe('number');
 
       displaySwitch.hide();
+
       expect(savedhidingTimer).not.toEqual(displaySwitch.hidingTimer);
     });
   });
