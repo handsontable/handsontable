@@ -78,7 +78,6 @@ class MergeCells extends BasePlugin {
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.onModifyTransformEnd(...args));
     this.addHook('beforeSetRangeEnd', (...args) => this.onBeforeSetRangeEnd(...args));
-    this.addHook('beforeDrawBorders', (...args) => this.onBeforeDrawAreaBorders(...args));
     this.addHook('afterIsMultipleSelection', (...args) => this.onAfterIsMultipleSelection(...args));
     this.addHook('afterRenderer', (...args) => this.onAfterRenderer(...args));
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.addMergeActionsToContextMenu(...args));
@@ -687,38 +686,6 @@ class MergeCells extends BasePlugin {
         }
       }
     } while (rangeExpanded);
-  }
-
-  /**
-   * Returns correct coordinates for merged start / end cells in selection for area borders. `beforeDrawAreaBorders` hook callback.
-   *
-   * @private
-   * @param {Array} corners The area corners.
-   * @param {String} className The area className.
-   */
-  onBeforeDrawAreaBorders(corners, className) {
-    if (className && className === 'area') {
-      let selRange = this.hot.getSelectedRange();
-      let startRange = new CellRange(selRange.from, selRange.from, selRange.from);
-      let stopRange = new CellRange(selRange.to, selRange.to, selRange.to);
-
-      for (let i = 0, ilen = this.collectionContainer.collections.length; i < ilen; i++) {
-        let cellInfo = this.collectionContainer.collections[i];
-        let mergedCellTopLeft = new CellCoords(cellInfo.row, cellInfo.col);
-        let mergedCellBottomRight = new CellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
-        let mergedCellRange = new CellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
-
-        if (startRange.expandByRange(mergedCellRange)) {
-          corners[0] = startRange.from.row;
-          corners[1] = startRange.from.col;
-        }
-
-        if (stopRange.expandByRange(mergedCellRange)) {
-          corners[2] = stopRange.from.row;
-          corners[3] = stopRange.from.col;
-        }
-      }
-    }
   }
 
   /**
