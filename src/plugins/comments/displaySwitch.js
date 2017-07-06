@@ -26,6 +26,12 @@ class DisplaySwitch {
      * @type {Function}
      */
     this.showDebounced = null;
+    /**
+     * Reference to timer, run by `setTimeout`, which is hiding comment
+     *
+     * @type {Number}
+     */
+    this.hidingTimer = null;
 
     this.updateDelay(displayDelay);
   }
@@ -36,7 +42,7 @@ class DisplaySwitch {
   hide() {
     this.wasLastActionShow = false;
 
-    setTimeout(() => {
+    this.hidingTimer = setTimeout(() => {
       if (this.wasLastActionShow === false) {
         this.runLocalHooks('hide');
       }
@@ -52,6 +58,15 @@ class DisplaySwitch {
     this.wasLastActionShow = true;
     this.showDebounced(range);
   };
+
+  /**
+   * Cancel hiding comment.
+   */
+  cancelHiding() {
+    this.wasLastActionShow = true;
+
+    clearTimeout(this.hidingTimer);
+  }
 
   /**
    * Update the switch settings.

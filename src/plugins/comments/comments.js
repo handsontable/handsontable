@@ -616,6 +616,7 @@ class Comments extends BasePlugin {
    * @private
    */
   onContextMenuAddComment() {
+    this.displaySwitch.cancelHiding();
     let coords = this.hot.getSelectedRange();
 
     this.contextMenuEvent = true;
