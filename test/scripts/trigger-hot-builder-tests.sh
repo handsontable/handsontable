@@ -17,8 +17,8 @@ const options = {
   json: {
     request: {
       message: `Checking triggered from handsontable/handsontable repository (the ${process.env.TRAVIS_BRANCH} branch)`,
-      //branch: 'master',
-      branch: 'feature/issue-22',
+      // Always check only master branch (release branch) of the hot-builder repository.
+      branch: 'master',
       config: {
         env: {
           global: [`HOT_BRANCH=${process.env.TRAVIS_BRANCH}`],
