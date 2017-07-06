@@ -327,6 +327,37 @@ describe('Comments', () => {
     expect(readOnly).toEqual(true);
   });
 
+  it('should not close the comment editor immediately after opening #4323', (done) => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      contextMenu: true,
+      comments: {
+        displayDelay: 0
+      }
+    });
+
+    selectCell(1, 1);
+    contextMenu();
+
+    const addCommentButton = $('.htItemWrapper').filter(function() {
+      return $(this).text() === 'Add comment';
+    })[0];
+
+    $(addCommentButton).simulate('mouseover', {
+      clientX: Handsontable.dom.offset(addCommentButton).left + 5,
+      clientY: Handsontable.dom.offset(addCommentButton).top + 5,
+    });
+
+    $(addCommentButton).simulate('mousedown');
+
+    const editor = hot.getPlugin('comments').editor.getInputElement();
+
+    setTimeout(function () {
+      expect($(editor).parents('.htComments')[0].style.display).toEqual('block');
+      done();
+    }, 300);
+  });
+
   describe('Using the Context Menu', () => {
     it('should open the comment editor when clicking the "Add comment" entry', () => {
       const hot = handsontable({

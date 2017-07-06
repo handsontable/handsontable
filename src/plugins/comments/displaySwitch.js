@@ -66,6 +66,7 @@ class DisplaySwitch {
     this.wasLastActionShow = true;
 
     clearTimeout(this.hidingTimer);
+    this.hidingTimer = null;
   }
 
   /**

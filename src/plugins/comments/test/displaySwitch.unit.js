@@ -116,6 +116,18 @@ describe('Comments', () => {
 
       expect(onHide).not.toHaveBeenCalled();
     });
+
+    it('should set timer properly', () => {
+      const displaySwitch = new DisplaySwitch(700);
+      displaySwitch.hide();
+
+      const savedhidingTimer = displaySwitch.hidingTimer;
+
+      expect(typeof savedhidingTimer).toBe('number');
+
+      displaySwitch.hide();
+      expect(savedhidingTimer).not.toEqual(displaySwitch.hidingTimer);
+    });
   });
 
   describe('DisplaySwitch.showDebounced', () => {
@@ -151,6 +163,39 @@ describe('Comments', () => {
       expect(cachedShowDebounced).not.toHaveBeenCalled();
       expect(setTimeout.mock.calls.length).toBe(1);
       expect(setTimeout.mock.calls[0][1]).toBe(800);
+    });
+  });
+
+  describe('DisplaySwitch.cancelHiding', () => {
+    it('should not call function after delay', function () {
+      const displaySwitch = new DisplaySwitch(700);
+      const onHide = jasmine.createSpy('onHide');
+
+      jest.useFakeTimers();
+
+      displaySwitch.addLocalHook('hide', onHide);
+      displaySwitch.hide();
+      displaySwitch.cancelHiding();
+
+      jest.runAllTimers();
+
+      expect(setTimeout.mock.calls.length).toBe(1);
+      expect(onHide).not.toHaveBeenCalled();
+    });
+
+    it('should set timer value to `null`', function () {
+      const displaySwitch = new DisplaySwitch(700);
+      const onHide = jasmine.createSpy('onHide');
+
+      jest.useFakeTimers();
+
+      displaySwitch.addLocalHook('hide', onHide);
+      displaySwitch.hide();
+      displaySwitch.cancelHiding();
+
+      jest.runAllTimers();
+
+      expect(displaySwitch.hidingTimer).toBeNull();
     });
   });
 
