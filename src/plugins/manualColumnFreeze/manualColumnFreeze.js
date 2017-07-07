@@ -83,7 +83,7 @@ class ManualColumnFreeze extends BasePlugin {
   /**
    * Freeze the given column (add it to fixed columns).
    *
-   * @param {Number} column Column index.
+   * @param {Number} column Visual column index.
    */
   freezeColumn(column) {
     let priv = privatePool.get(this);
@@ -110,7 +110,7 @@ class ManualColumnFreeze extends BasePlugin {
   /**
    * Unfreeze the given column (remove it from fixed columns and bring to it's previous position).
    *
-   * @param {Number} column Column index.
+   * @param {Number} column Visual column index.
    */
   unfreezeColumn(column) {
     let priv = privatePool.get(this);
@@ -150,7 +150,7 @@ class ManualColumnFreeze extends BasePlugin {
    * Estimates the most fitting return position for unfrozen column.
    *
    * @private
-   * @param {Number} column Column index.
+   * @param {Number} column Visual column index.
    */
   getBestColumnReturnPosition(column) {
     let movePlugin = this.getMovePlugin();

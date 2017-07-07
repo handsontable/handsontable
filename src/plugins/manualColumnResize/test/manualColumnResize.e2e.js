@@ -17,9 +17,9 @@ describe('manualColumnResize', () => {
       manualColumnResize: [100, 150, 180]
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toBe(100);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').outerWidth()).toBe(150);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(180);
+    expect(colWidth(this.$container, 0)).toBe(100);
+    expect(colWidth(this.$container, 1)).toBe(150);
+    expect(colWidth(this.$container, 2)).toBe(180);
   });
 
   it('should be enabled after specifying it in updateSettings config', function() {
@@ -46,17 +46,17 @@ describe('manualColumnResize', () => {
       manualColumnResize: true
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toBe(50);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').outerWidth()).toBe(50);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(50);
+    expect(colWidth(this.$container, 0)).toBe(50);
+    expect(colWidth(this.$container, 1)).toBe(50);
+    expect(colWidth(this.$container, 2)).toBe(50);
 
     updateSettings({
       manualColumnResize: [60, 50, 80]
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toBe(60);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').outerWidth()).toBe(50);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(80);
+    expect(colWidth(this.$container, 0)).toBe(60);
+    expect(colWidth(this.$container, 1)).toBe(50);
+    expect(colWidth(this.$container, 2)).toBe(80);
   });
 
   it('should change column widths with updateSettings', function() {
@@ -64,17 +64,17 @@ describe('manualColumnResize', () => {
       manualColumnResize: [100, 150, 180]
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toBe(100);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').outerWidth()).toBe(150);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(180);
+    expect(colWidth(this.$container, 0)).toBe(100);
+    expect(colWidth(this.$container, 1)).toBe(150);
+    expect(colWidth(this.$container, 2)).toBe(180);
 
     updateSettings({
       manualColumnResize: [60, 50, 80]
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toBe(60);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').outerWidth()).toBe(50);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(80);
+    expect(colWidth(this.$container, 0)).toBe(60);
+    expect(colWidth(this.$container, 1)).toBe(50);
+    expect(colWidth(this.$container, 2)).toBe(80);
   });
 
   it('should reset column widths when undefined is passed', function() {
@@ -82,17 +82,17 @@ describe('manualColumnResize', () => {
       manualColumnResize: [100, 150, 180]
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toBe(100);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').outerWidth()).toBe(150);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(180);
+    expect(colWidth(this.$container, 0)).toBe(100);
+    expect(colWidth(this.$container, 1)).toBe(150);
+    expect(colWidth(this.$container, 2)).toBe(180);
 
     updateSettings({
       manualColumnResize: void 0
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toBe(50);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').outerWidth()).toBe(50);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(50);
+    expect(colWidth(this.$container, 0)).toBe(50);
+    expect(colWidth(this.$container, 1)).toBe(50);
+    expect(colWidth(this.$container, 2)).toBe(50);
   });
 
   it('should not reset column widths when `true` is passed', function() {
@@ -100,17 +100,17 @@ describe('manualColumnResize', () => {
       manualColumnResize: [100, 150, 180]
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toBe(100);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').outerWidth()).toBe(150);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(180);
+    expect(colWidth(this.$container, 0)).toBe(100);
+    expect(colWidth(this.$container, 1)).toBe(150);
+    expect(colWidth(this.$container, 2)).toBe(180);
 
     updateSettings({
       manualColumnResize: true
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').outerWidth()).toBe(100);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').outerWidth()).toBe(150);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').outerWidth()).toBe(180);
+    expect(colWidth(this.$container, 0)).toBe(100);
+    expect(colWidth(this.$container, 1)).toBe(150);
+    expect(colWidth(this.$container, 2)).toBe(180);
   });
 
   it('should resize (narrowing) appropriate columns, even when stretchH `all` is enabled', function() {

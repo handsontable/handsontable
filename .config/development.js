@@ -45,12 +45,6 @@ module.exports.create = function create(envArgs) {
         commonjs2: 'pikaday',
         commonjs: 'pikaday',
         amd: 'pikaday',
-      },
-      zeroclipboard: {
-        root: 'ZeroClipboard',
-        commonjs2: 'zeroclipboard',
-        commonjs: 'zeroclipboard',
-        amd: 'zeroclipboard',
       }
     };
     c.module.rules.unshift({

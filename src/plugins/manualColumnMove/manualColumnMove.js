@@ -183,12 +183,12 @@ class ManualColumnMove extends BasePlugin {
     priv.disallowMoving = !beforeColumnHook;
 
     if (beforeColumnHook !== false) {
-      // first we need to rewrite an visual indexes to logical for save reference after move
+      // first we need to rewrite an visual indexes to physical for save reference after move
       arrayEach(columns, (column, index, array) => {
         array[index] = this.columnsMapper.getValueByIndex(column);
       });
 
-      // next, when we have got an logical indexes, we can move columns
+      // next, when we have got an physical indexes, we can move columns
       arrayEach(columns, (column, index) => {
         let actualPosition = this.columnsMapper.getIndexByValue(column);
 
@@ -461,10 +461,10 @@ class ManualColumnMove extends BasePlugin {
    * Change the behavior of selection / dragging.
    *
    * @private
-   * @param {MouseEvent} event
-   * @param {CellCoords} coords
-   * @param {HTMLElement} TD
-   * @param {Object} blockCalculations
+   * @param {MouseEvent} event `mousedown` event properties.
+   * @param {CellCoords} coords Visual cell coordinates where was fired event.
+   * @param {HTMLElement} TD Cell represented as HTMLElement.
+   * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     let wtTable = this.hot.view.wt.wtTable;
@@ -559,7 +559,7 @@ class ManualColumnMove extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event `mouseover` event properties.
-   * @param {CellCoords} coords Cell coordinates where was fired event.
+   * @param {CellCoords} coords Visual cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
    * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
@@ -639,7 +639,7 @@ class ManualColumnMove extends BasePlugin {
    * `afterCreateCol` hook callback.
    *
    * @private
-   * @param {Number} index Index of the created column.
+   * @param {Number} index Visual index of the created column.
    * @param {Number} amount Amount of created columns.
    */
   onAfterCreateCol(index, amount) {
@@ -650,7 +650,7 @@ class ManualColumnMove extends BasePlugin {
    * On before remove column listener.
    *
    * @private
-   * @param {Number} index Column index.
+   * @param {Number} index Visual column index.
    * @param {Number} amount Defines how many columns removed.
    */
   onBeforeRemoveCol(index, amount) {
@@ -668,7 +668,7 @@ class ManualColumnMove extends BasePlugin {
    * `afterRemoveCol` hook callback.
    *
    * @private
-   * @param {Number} index Index of the removed column.
+   * @param {Number} index Visual column index of the removed column.
    * @param {Number} amount Amount of removed columns.
    */
   onAfterRemoveCol(index, amount) {
@@ -690,7 +690,7 @@ class ManualColumnMove extends BasePlugin {
    *
    * @private
    * @param {Number} column Visual column index.
-   * @returns {Number} Modified column index.
+   * @returns {Number} Physical column index.
    */
   onModifyCol(column, source) {
     if (source !== this.pluginName) {
@@ -706,8 +706,8 @@ class ManualColumnMove extends BasePlugin {
    * 'unmodifyCol' hook callback.
    *
    * @private
-   * @param {Number} column Visual column index.
-   * @returns {Number} Logical column index.
+   * @param {Number} column Physical column index.
+   * @returns {Number} Visual column index.
    */
   onUnmodifyCol(column) {
     let indexInMapper = this.columnsMapper.getIndexByValue(column);

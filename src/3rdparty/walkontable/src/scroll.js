@@ -39,7 +39,7 @@ class Scroll {
       fixedRowsTop,
       fixedRowsBottom,
       fixedColumnsLeft,
-      } = this._getVariables();
+    } = this._getVariables();
 
     if (coords.row < 0 || coords.row > Math.max(totalRows - 1, 0)) {
       throw new Error(`row ${coords.row} does not exist`);
@@ -76,7 +76,7 @@ class Scroll {
       wtViewport,
       totalRows,
       fixedRowsTop,
-      } = this._getVariables();
+    } = this._getVariables();
 
     let firstVisibleRow = wtTable.getFirstVisibleRow();
 
@@ -119,7 +119,7 @@ class Scroll {
       wtTable,
       wtViewport,
       totalRows,
-      } = this._getVariables();
+    } = this._getVariables();
 
     let lastVisibleRow = wtTable.getLastVisibleRow();
 
@@ -160,7 +160,7 @@ class Scroll {
       wtViewport,
       totalColumns,
       fixedColumnsLeft,
-      } = this._getVariables();
+    } = this._getVariables();
 
     let firstVisibleColumn = wtTable.getFirstVisibleColumn();
 
@@ -201,7 +201,7 @@ class Scroll {
       wtTable,
       wtViewport,
       totalColumns,
-      } = this._getVariables();
+    } = this._getVariables();
 
     let lastVisibleColumn = wtTable.getLastVisibleColumn();
 

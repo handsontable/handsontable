@@ -19,11 +19,11 @@ import TextEditor from './textEditor';
 const registeredEditorClasses = new WeakMap();
 
 const {
- register,
- getItem,
- hasItem,
- getNames,
- getValues,
+  register,
+  getItem,
+  hasItem,
+  getNames,
+  getValues,
 } = staticRegister('editors');
 
 _register('base', BaseEditor);

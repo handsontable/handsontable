@@ -1,11 +1,11 @@
 import {
-    getComputedStyle,
-    getTrimmingContainer,
-    innerWidth,
-    innerHeight,
-    offset,
-    outerHeight,
-    outerWidth,
+  getComputedStyle,
+  getTrimmingContainer,
+  innerWidth,
+  innerHeight,
+  offset,
+  outerHeight,
+  outerWidth,
 } from './../../../helpers/dom/element';
 import {stopImmediatePropagation} from './../../../helpers/dom/event';
 import {hasOwnProperty} from './../../../helpers/object';

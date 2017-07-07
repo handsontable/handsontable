@@ -119,15 +119,15 @@ describe('Core_dataSchema', () => {
   it('should be equal to `hot.getSchema()` when dataSchema is generated based on data structure', () => {
     var hot = handsontable({
       data: [
-          {id: 1, name: {first: 'Alan', last: 'Pakoli'}, cars: [{brand: 'Ford'}]}
+        {id: 1, name: {first: 'Alan', last: 'Pakoli'}, cars: [{brand: 'Ford'}]}
       ],
       minRows: 5,
       minCols: 4,
       colHeaders: ['ID', 'First Name', 'Last Name'],
       columns: [
-          {data: 'id'},
-          {data: 'name.first'},
-          {data: 'name.last'}
+        {data: 'id'},
+        {data: 'name.first'},
+        {data: 'name.last'}
       ],
       minSpareRows: 1
     });
@@ -166,7 +166,7 @@ describe('Core_dataSchema', () => {
     });
 
     expect(JSON.stringify(hot.getSchema()))
-    .toEqual(JSON.stringify({id: null, name: {first: null, last: null}, cars: [{brand: null}]}));
+      .toEqual(JSON.stringify({id: null, name: {first: null, last: null}, cars: [{brand: null}]}));
   });
 
   it('should create new row from dataSchema', () => {

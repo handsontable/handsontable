@@ -46,14 +46,14 @@
 
 .handsontable table.htCore {
   border-collapse: separate;
-  /*it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit*/
-  /*this actually only changes appearance of user selection - does not make text unselectable
-  -webkit-user-select: none;
+  /* it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit */
+  /* this actually only changes appearance of user selection - does not make text unselectable */
+  /* -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
   -o-user-select: none;
   -ms-user-select: none;
-  /*user-select: none; /*no browser supports unprefixed version*/
+  user-select: none; */ /* no browser supports unprefixed version */
   border-spacing: 0;
   margin: 0;
   border-width: 0;
@@ -298,7 +298,7 @@
   box-shadow: 0 0 0 2px #5292F7 inset;
   resize: none;
   /*below are needed to overwrite stuff added by jQuery UI Bootstrap theme*/
-  display: inline-block;
+  display: block;
   color: #000;
   border-radius: 0;
   background-color: #FFF;

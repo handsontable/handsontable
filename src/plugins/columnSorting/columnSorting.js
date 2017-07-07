@@ -149,7 +149,7 @@ class ColumnSorting extends BasePlugin {
   /**
    * Set sorted column and order info
    *
-   * @param {number} col Sorted column index.
+   * @param {number} col Sorted visual column index.
    * @param {boolean|undefined} order Sorting order (`true` for ascending, `false` for descending).
    */
   setSortingColumn(col, order) {
@@ -506,7 +506,7 @@ class ColumnSorting extends BasePlugin {
   /**
    * Translates sorted row index to physical row index.
    *
-   * @param {Number} row Sorted row index.
+   * @param {Number} row Sorted (visual) row index.
    * @returns {number} Physical row index.
    */
   untranslateRow(row) {
@@ -523,7 +523,7 @@ class ColumnSorting extends BasePlugin {
    * `afterGetColHeader` callback. Adds column sorting css classes to clickable headers.
    *
    * @private
-   * @param {Number} col Column index.
+   * @param {Number} col Visual column index.
    * @param {Element} TH TH HTML element.
    */
   getColHeader(col, TH) {
@@ -572,7 +572,7 @@ class ColumnSorting extends BasePlugin {
    * `afterCreateRow` callback. Updates the sorting state after a row have been created.
    *
    * @private
-   * @param {Number} index
+   * @param {Number} index Visual row index.
    * @param {Number} amount
    */
   afterCreateRow(index, amount) {
@@ -597,7 +597,7 @@ class ColumnSorting extends BasePlugin {
    * `afterRemoveRow` hook callback.
    *
    * @private
-   * @param {Number} index
+   * @param {Number} index Visual row index.
    * @param {Number} amount
    */
   afterRemoveRow(index, amount) {
@@ -653,7 +653,7 @@ class ColumnSorting extends BasePlugin {
    *
    * @private
    * @param {Event} event Event which are provided by hook.
-   * @param {CellCoords} coords Coords of the selected cell.
+   * @param {CellCoords} coords Visual coords of the selected cell.
    */
   onAfterOnCellMouseDown(event, coords) {
     if (coords.row > -1) {

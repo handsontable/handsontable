@@ -80,12 +80,6 @@ module.exports.create = function create(envArgs) {
           {
             from: {glob: 'node_modules/pikaday/css/pikaday.css'}, to: 'pikaday', flatten: true
           },
-          { // zeroclipboard
-            from: {glob: 'node_modules/zeroclipboard/dist/ZeroClipboard.@(js|swf)'}, to: 'zeroclipboard', flatten: true
-          },
-          {
-            from: {glob: 'node_modules/zeroclipboard/LICENSE'}, to: 'zeroclipboard', flatten: true
-          },
         ])
       );
     }
