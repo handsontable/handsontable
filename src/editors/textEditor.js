@@ -94,14 +94,12 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       break;
 
     case KEY_CODES.ENTER:
-      var selected = that.instance.getSelected();
-      var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
+      var isMultipleSelection = this.selection.isMultiple();
+
       if ((ctrlDown && !isMultipleSelection) || event.altKey) { // if ctrl+enter or alt+enter, add new line
         if (that.isOpened()) {
-          var
-            caretPosition = getCaretPosition(that.TEXTAREA),
-            value = that.getValue();
-
+          var caretPosition = getCaretPosition(that.TEXTAREA);
+          var value = that.getValue();
           var newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
 
           that.setValue(newValue);
