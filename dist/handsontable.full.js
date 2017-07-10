@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 0.33.0
- * Date: Thu Jul 06 2017 14:20:52 GMT+0200 (CEST)
+ * Date: Mon Jul 10 2017 10:08:33 GMT+0200 (CEST)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -36497,7 +36497,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "2017-07-06T12:20:52.460Z";
+Handsontable.buildDate = "2017-07-10T08:08:33.664Z";
 Handsontable.packageName = "handsontable";
 Handsontable.version = "0.33.0";
 
@@ -43871,6 +43871,20 @@ var CopyPaste = function (_BasePlugin) {
     }
 
     /**
+     * Trigger to make possible observe `onInput` in textarea.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'triggerPaste',
+    value: function triggerPaste() {
+      this.textarea.select();
+
+      this.onPaste();
+    }
+
+    /**
      * `paste` event callback on textarea element.
      *
      * @private
@@ -44032,7 +44046,7 @@ var CopyPaste = function (_BasePlugin) {
           this.copy();
         }
         if (event.keyCode == _unicode.KEY_CODES.V) {
-          this.paste();
+          this.triggerPaste();
         }
       }
     }
