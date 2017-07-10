@@ -343,6 +343,17 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
+   * Trigger to make possible observe `onInput` in textarea.
+   *
+   * @private
+   */
+  triggerPaste() {
+    this.textarea.select();
+
+    this.onPaste();
+  }
+
+  /**
    * `paste` event callback on textarea element.
    *
    * @private
@@ -494,7 +505,7 @@ class CopyPaste extends BasePlugin {
         this.copy();
       }
       if (event.keyCode == KEY_CODES.V) {
-        this.paste();
+        this.triggerPaste();
       }
     }
   }
