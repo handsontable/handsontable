@@ -206,13 +206,13 @@ export default function Core(rootElement, userSettings) {
           break;
 
         case 'remove_col':
-          let logicalColumnIndex = recordTranslator.toPhysicalColumn(index);
+          let visualColumnIndex = recordTranslator.toPhysicalColumn(index);
 
           datamap.removeCol(index, amount, source);
 
           for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
-            if (priv.cellSettings[row]) {  // if row hasn't been rendered it wouldn't have cellSettings
-              priv.cellSettings[row].splice(logicalColumnIndex, amount);
+            if (priv.cellSettings[row]) { // if row hasn't been rendered it wouldn't have cellSettings
+              priv.cellSettings[row].splice(visualColumnIndex, amount);
             }
           }
           var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
@@ -222,10 +222,10 @@ export default function Core(rootElement, userSettings) {
           }
 
           if (Array.isArray(instance.getSettings().colHeaders)) {
-            if (typeof logicalColumnIndex == 'undefined') {
-              logicalColumnIndex = -1;
+            if (typeof visualColumnIndex === 'undefined') {
+              visualColumnIndex = -1;
             }
-            instance.getSettings().colHeaders.splice(logicalColumnIndex, amount);
+            instance.getSettings().colHeaders.splice(visualColumnIndex, amount);
           }
 
           grid.adjustRowsAndCols();
@@ -347,16 +347,18 @@ export default function Core(rootElement, userSettings) {
      * Populate the data from the provided 2d array from the given cell coordinates.
      *
      * @private
-     * @param {Object} start Start selection position.
+     * @param {Object} start Start selection position. Visual indexes.
      * @param {Array} input 2d data array.
-     * @param {Object} [end] End selection position (only for drag-down mode).
+     * @param {Object} [end] End selection position (only for drag-down mode). Visual indexes.
      * @param {String} [source="populateFromArray"] Source information string.
      * @param {String} [method="overwrite"] Populate method. Possible options: `shift_down`, `shift_right`, `overwrite`.
      * @param {String} direction (left|right|up|down) String specifying the direction.
-     * @param {Array} deltas The deltas array.
+     * @param {Array} deltas The deltas array. A difference between values of adjacent cells.
+     *                       Useful **only** when the type of handled cells is `numeric`.
      * @returns {Object|undefined} ending td in pasted area (only if any cell was changed).
      */
     populateFromArray(start, input, end, source, method, direction, deltas) {
+      // TODO: either remove or implement the `direction` argument. Currently it's not working at all.
       var r,
         rlen,
         c,
@@ -455,8 +457,8 @@ export default function Core(rootElement, userSettings) {
                 (current.row >= priv.settings.maxRows)) {
               break;
             }
-            let logicalRow = r - skippedRow;
-            let colInputLength = getInputValue(logicalRow).length;
+            let visualRow = r - skippedRow;
+            let colInputLength = getInputValue(visualRow).length;
             let colSelectionLength = end ? end.col - start.col + 1 : 0;
 
             if (end) {
@@ -495,12 +497,12 @@ export default function Core(rootElement, userSettings) {
                 /* eslint-disable no-continue */
                 continue;
               }
-              let logicalColumn = c - skippedColumn;
-              let value = getInputValue(logicalRow, logicalColumn);
+              let visualColumn = c - skippedColumn;
+              let value = getInputValue(visualRow, visualColumn);
               let orgValue = instance.getDataAtCell(current.row, current.col);
               let index = {
-                row: logicalRow,
-                col: logicalColumn
+                row: visualRow,
+                col: visualColumn
               };
 
               if (source === 'Autofill.fill') {
@@ -590,7 +592,7 @@ export default function Core(rootElement, userSettings) {
     /**
      * Starts selection range on given td object.
      *
-     * @param {CellCoords} coords
+     * @param {CellCoords} coords Visual coords.
      * @param keepEditorOpened
      */
     setRangeStart(coords, keepEditorOpened) {
@@ -602,7 +604,7 @@ export default function Core(rootElement, userSettings) {
     /**
      * Starts selection range on given td object.
      *
-     * @param {CellCoords} coords
+     * @param {CellCoords} coords Visual coords.
      * @param keepEditorOpened
      */
     setRangeStartOnly(coords) {
@@ -613,7 +615,7 @@ export default function Core(rootElement, userSettings) {
     /**
      * Ends selection range on given td object.
      *
-     * @param {CellCoords} coords
+     * @param {CellCoords} coords Visual coords.
      * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to range end
      * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range
      */
@@ -1036,8 +1038,8 @@ export default function Core(rootElement, userSettings) {
                 throw new Error('Validation error: result is not boolean');
               }
               if (result === false && cellProperties.allowInvalid === false) {
-                changes.splice(i, 1);         // cancel the change
-                cellProperties.valid = true;  // we cancelled the change, so cell value is still valid
+                changes.splice(i, 1); // cancel the change
+                cellProperties.valid = true; // we cancelled the change, so cell value is still valid
                 const cell = instance.getCell(cellProperties.row, cellProperties.col);
                 removeClass(cell, instance.getSettings().invalidCellClassName);
                 --i;
@@ -1185,9 +1187,8 @@ export default function Core(rootElement, userSettings) {
       return row;
     }
     return [
-        [row, propOrCol, value]
+      [row, propOrCol, value]
     ];
-
   }
 
   /**
@@ -1199,8 +1200,8 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function setDataAtCell
-   * @param {Number|Array} row Row index or array of changes in format `[[row, col, value], ...]`.
-   * @param {Number} col Column index.
+   * @param {Number|Array} row Visual row index or array of changes in format `[[row, col, value], ...]`.
+   * @param {Number} col Visual column index.
    * @param {String} value New value.
    * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
    */
@@ -1247,7 +1248,7 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function setDataAtRowProp
-   * @param {Number|Array} row Row index or array of changes in format `[[row, prop, value], ...]`.
+   * @param {Number|Array} row Visual row index or array of changes in format `[[row, prop, value], ...]`.
    * @param {String} prop Property name or the source string.
    * @param {String} value Value to be set.
    * @param {String} [source] String that identifies how this change will be described in changes array (useful in onChange callback).
@@ -1286,6 +1287,15 @@ export default function Core(rootElement, userSettings) {
    * @since 0.11
    */
   this.listen = function() {
+    let invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
+
+    if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
+      document.activeElement.blur();
+
+    } else if (invalidActiveElement) { // IE
+      document.body.focus();
+    }
+
     activeGuid = instance.guid;
   };
 
@@ -1297,7 +1307,9 @@ export default function Core(rootElement, userSettings) {
    * @since 0.11
    */
   this.unlisten = function() {
-    activeGuid = null;
+    if (this.isListening()) {
+      activeGuid = null;
+    }
   };
 
   /**
@@ -1333,11 +1345,11 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function populateFromArray
    * @since 0.9.0
-   * @param {Number} row Start row
-   * @param {Number} col Start column
+   * @param {Number} row Start visual row index.
+   * @param {Number} col Start visual column index.
    * @param {Array} input 2d array
-   * @param {Number} [endRow] End row (use when you want to cut input when certain row is reached)
-   * @param {Number} [endCol] End column (use when you want to cut input when certain column is reached)
+   * @param {Number} [endRow] End visual row index (use when you want to cut input when certain row is reached).
+   * @param {Number} [endCol] End visual column index (use when you want to cut input when certain column is reached).
    * @param {String} [source="populateFromArray"] Source string.
    * @param {String} [method="overwrite"] Populate method. Possible options: `shift_down`, `shift_right`, `overwrite`.
    * @param {String} direction Populate direction. (left|right|up|down)
@@ -1541,10 +1553,10 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getData
-   * @param {Number} [r] From row.
-   * @param {Number} [c] From column.
-   * @param {Number} [r2] To row.
-   * @param {Number} [c2] To column.
+   * @param {Number} [r] From visual row index.
+   * @param {Number} [c] From visual column index.
+   * @param {Number} [r2] To visual row index.
+   * @param {Number} [c2] To visual column index.
    * @returns {Array} Array with the data.
    */
   this.getData = function(r, c, r2, c2) {
@@ -1562,10 +1574,10 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getCopyableText
    * @since 0.11
-   * @param {Number} startRow From row.
-   * @param {Number} startCol From column.
-   * @param {Number} endRow To row.
-   * @param {Number} endCol To column.
+   * @param {Number} startRow From visual row index.
+   * @param {Number} startCol From visual column index.
+   * @param {Number} endRow To visual row index.
+   * @param {Number} endCol To visual column index.
    * @returns {String}
    */
   this.getCopyableText = function(startRow, startCol, endRow, endCol) {
@@ -1578,8 +1590,8 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getCopyableData
    * @since 0.19.0
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} column Visual column index.
    * @returns {String}
    */
   this.getCopyableData = function(row, column) {
@@ -1608,7 +1620,8 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function updateSettings
    * @param {Object} settings New settings object.
-   * @param {Boolean} init
+   * @param {Boolean} init Calls this method in the initialization mode. Internal use only.
+   *                       Used by API could be cause of the unexpected behaviour of the Handsontable.
    * @example
    * ```js
    * hot.updateSettings({
@@ -1763,7 +1776,7 @@ export default function Core(rootElement, userSettings) {
       instance.rootElement.style.overflow = 'hidden';
     }
 
-    if (typeof settings.width != 'undefined') {
+    if (typeof settings.width !== 'undefined') {
       var width = settings.width;
 
       if (isFunction(width)) {
@@ -1867,7 +1880,7 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function alter
    * @param {String} action See grid.alter for possible values: `"insert_row"`, `"insert_col"`, `"remove_row"`, `"remove_col"`
-   * @param {Number} index Index of the row/column before which the new row/column will be inserted/removed.
+   * @param {Number} index Visual index of the row/column before which the new row/column will be inserted/removed.
    * @param {Number} [amount = 1] Amound of rows/columns to be inserted/removed.
    * @param {String} [source] Source indicator.
    * @param {Boolean} [keepEmptyRows] Flag for preventing deletion of empty rows.
@@ -1911,8 +1924,8 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getCell
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {Boolean} topmost If set to true, it returns the TD element from the topmost overlay. For example,
    * if the wanted cell is in the range of fixed rows, it will return a TD element from the `top` overlay.
    * @returns {Element} The cell's TD element.
@@ -1927,7 +1940,7 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getCoords
    * @param {Element} elem The HTML Element representing the cell.
-   * @returns {CellCoords} Coordinates object.
+   * @returns {CellCoords} Visual coordinates object.
    */
   this.getCoords = function(elem) {
     return this.view.wt.wtTable.getCoords.call(this.view.wt.wtTable, elem);
@@ -1939,8 +1952,8 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function colToProp
-   * @param {Number} col Column index
-   * @returns {String|Number} Column property or column index.
+   * @param {Number} col Visual column index.
+   * @returns {String|Number} Column property or physical column index.
    */
   this.colToProp = function(col) {
     return datamap.colToProp(col);
@@ -1951,8 +1964,8 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function propToCol
-   * @param {String|Number} prop Property name or column index.
-   * @returns {Number} Column index.
+   * @param {String|Number} prop Property name or physical column index.
+   * @returns {Number} Visual column index.
    */
   this.propToCol = function(prop) {
     return datamap.propToCol(prop);
@@ -2013,8 +2026,8 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getDataAtCell
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @returns {String|Boolean|null} Data at cell.
    */
   this.getDataAtCell = function(row, col) {
@@ -2026,7 +2039,7 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getDataAtRowProp
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @param {String} prop Property name.
    * @returns {*} Cell value.
    */
@@ -2042,13 +2055,13 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getDataAtCol
    * @since 0.9-beta2
-   * @param {Number} col Column index.
+   * @param {Number} col Visual column index.
    * @returns {Array} Array of cell values.
    */
   this.getDataAtCol = function(col) {
     var out = [];
     return out.concat(...datamap.getRange(
-        new CellCoords(0, col), new CellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
+      new CellCoords(0, col), new CellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
   };
 
   /**
@@ -2058,17 +2071,18 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getDataAtProp
    * @since 0.9-beta2
-   * @param {String|Number} prop Property name / column index.
+   * @param {String|Number} prop Property name / physical column index.
    * @returns {Array} Array of cell values.
    */
+  // TODO: Getting data from `datamap` should work on visual indexes.
   this.getDataAtProp = function(prop) {
     var out = [],
       range;
 
     range = datamap.getRange(
-        new CellCoords(0, datamap.propToCol(prop)),
-        new CellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)),
-        datamap.DESTINATION_RENDERER);
+      new CellCoords(0, datamap.propToCol(prop)),
+      new CellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)),
+      datamap.DESTINATION_RENDERER);
 
     return out.concat(...range);
   };
@@ -2080,10 +2094,10 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getSourceData
    * @since 0.20.0
-   * @param {Number} [r] From row.
-   * @param {Number} [c] From column.
-   * @param {Number} [r2] To row.
-   * @param {Number} [c2] To column.
+   * @param {Number} [r] From physical row index.
+   * @param {Number} [c] From physical column index (or visual index, if data type is an array of objects).
+   * @param {Number} [r2] To physical row index.
+   * @param {Number} [c2] To physical column index (or visual index, if data type is an array of objects).
    * @returns {Array} Array of grid data.
    */
   this.getSourceData = function(r, c, r2, c2) {
@@ -2105,10 +2119,10 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getSourceDataArray
    * @since 0.28.0
-   * @param {Number} [r] From row.
-   * @param {Number} [c] From column.
-   * @param {Number} [r2] To row.
-   * @param {Number} [c2] To column.
+   * @param {Number} [r] From physical row index.
+   * @param {Number} [c] From physical column index (or visual index, if data type is an array of objects).
+   * @param {Number} [r2] To physical row index.
+   * @param {Number} [c2] To physical column index (or visual index, if data type is an array of objects).
    * @returns {Array} An array of arrays.
    */
   this.getSourceDataArray = function(r, c, r2, c2) {
@@ -2129,9 +2143,10 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getSourceDataAtCol
    * @since 0.11.0-beta3
-   * @param {Number} column Column index.
+   * @param {Number} column Visual column index.
    * @returns {Array} Array of the column's cell values.
    */
+  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCol = function(column) {
     return dataSource.getAtColumn(column);
   };
@@ -2142,7 +2157,7 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getSourceDataAtRow
    * @since 0.11.0-beta3
-   * @param {Number} row Row index.
+   * @param {Number} row Physical row index.
    * @returns {Array|Object} Single row of data.
    */
   this.getSourceDataAtRow = function(row) {
@@ -2154,11 +2169,12 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getSourceDataAtCell
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
+   * @param {Number} row Physical row index.
+   * @param {Number} column Visual column index.
    * @returns {*} Cell data.
    * @since 0.20.0
    */
+  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCell = function(row, column) {
     return dataSource.getAtCell(row, column);
   };
@@ -2169,7 +2185,7 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getDataAtRow
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @returns {Array} Array of row's cell data.
    * @since 0.9-beta2
    */
@@ -2187,10 +2203,10 @@ export default function Core(rootElement, userSettings) {
    * @since 0.18.1
    * @memberof Core#
    * @function getDataType
-   * @param {Number} rowFrom From row index.
-   * @param {Number} columnFrom To row index.
-   * @param {Number} rowTo From column index.
-   * @param {Number} columnTo To column index.
+   * @param {Number} rowFrom From visual row index.
+   * @param {Number} columnFrom From visual column index.
+   * @param {Number} rowTo To visual row index.
+   * @param {Number} columnTo To visual column index.
    * @returns {String} Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
    */
   this.getDataType = function(rowFrom, columnFrom, rowTo, columnTo) {
@@ -2240,12 +2256,13 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function removeCellMeta
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual/physical row index.
+   * @param {Number} col Visual/physical column index.
    * @param {String} key Property name.
    */
   this.removeCellMeta = function(row, col, key) {
-    var cellMeta = instance.getCellMeta(row, col);
+    // TODO: First we use indexes as visual, after that, the same indexes are used as physical. This MUST be improved.
+    const cellMeta = instance.getCellMeta(row, col);
     if (cellMeta[key] != undefined) {
       delete priv.cellSettings[row][col][key];
     }
@@ -2269,8 +2286,8 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function setCellMetaObject
    * @since 0.11
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {Object} prop Meta object.
    */
   this.setCellMetaObject = function(row, col, prop) {
@@ -2290,8 +2307,8 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function setCellMeta
    * @since 0.11
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {String} key Property name.
    * @param {String} val Property value.
    * @fires Hooks#afterSetCellMeta
@@ -2328,8 +2345,8 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getCellMeta
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @returns {Object} The cell properties object.
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
@@ -2386,7 +2403,7 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getCellMetaAtRow
    * @since 0.30.0
-   * @param {Number} row Index of the row to return cell meta for.
+   * @param {Number} row Physical index of the row to return cell meta for.
    * @returns {Array}
    */
   this.getCellMetaAtRow = function(row) {
@@ -2409,8 +2426,8 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getCellRenderer
    * @since 0.11
-   * @param {Number|Object} row Row index or cell meta object.
-   * @param {Number} [col] Column index.
+   * @param {Number|Object} row Visual row index or cell meta object.
+   * @param {Number} [col] Visual column index.
    * @returns {Function} The renderer function.
    */
   this.getCellRenderer = function(row, col) {
@@ -2422,8 +2439,8 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getCellEditor
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @returns {Object} The Editor object.
    */
   this.getCellEditor = cellMethodLookupFactory('editor');
@@ -2435,8 +2452,8 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getCellValidator
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @returns {Function|RegExp|undefined} The validator function.
    */
   this.getCellValidator = function(row, col) {
@@ -2494,7 +2511,7 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getRowHeader
-   * @param {Number} [row] Row index.
+   * @param {Number} [row] Visual row index.
    * @fires Hooks#modifyRowHeader
    * @returns {Array|String} Array of header values / single header value.
    */
@@ -2561,7 +2578,7 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getColHeader
-   * @param {Number} [col] Column index.
+   * @param {Number} [col] Visual column index.
    * @fires Hooks#modifyColHeader
    * @returns {Array|String} The column header(s).
    */
@@ -2627,7 +2644,7 @@ export default function Core(rootElement, userSettings) {
    * @private
    * @memberof Core#
    * @function _getColWidthFromSettings
-   * @param {Number} col
+   * @param {Number} col Visual col index.
    * @returns {Number}
    */
   this._getColWidthFromSettings = function(col) {
@@ -2663,7 +2680,7 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getColWidth
    * @since 0.11
-   * @param {Number} col Column index.
+   * @param {Number} col Visual column index.
    * @returns {Number} Column width.
    * @fires Hooks#modifyColWidth
    */
@@ -2685,7 +2702,7 @@ export default function Core(rootElement, userSettings) {
    * @private
    * @memberof Core#
    * @function _getRowHeightFromSettings
-   * @param {Number} row
+   * @param {Number} row Visual row index.
    * @returns {Number}
    */
   this._getRowHeightFromSettings = function(row) {
@@ -2723,7 +2740,7 @@ export default function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getRowHeight
    * @since 0.11
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @returns {Number} The given row's height.
    * @fires Hooks#modifyRowHeight
    */
@@ -2831,22 +2848,22 @@ export default function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns an index of the first rendered row.
+   * Returns an visual index of the first rendered row.
    *
    * @memberof Core#
    * @function rowOffset
-   * @returns {Number} Index of first rendered row.
+   * @returns {Number} Visual index of first rendered row.
    */
   this.rowOffset = function() {
     return instance.view.wt.wtTable.getFirstRenderedRow();
   };
 
   /**
-   * Returns the index of the first rendered column.
+   * Returns the visual index of the first rendered column.
    *
    * @memberof Core#
    * @function colOffset
-   * @returns {Number} Index of the first visible column.
+   * @returns {Number} Visual index of the first visible column.
    */
   this.colOffset = function() {
     return instance.view.wt.wtTable.getFirstRenderedColumn();
@@ -2985,10 +3002,10 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function selectCell
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
-   * @param {Number} [endRow] End row index (if selecting a range).
-   * @param {Number} [endCol] End column index (if selecting a range).
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
+   * @param {Number} [endRow] Visual end row index (if selecting a range).
+   * @param {Number} [endCol] Visual end column index (if selecting a range).
    * @param {Boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
    * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
@@ -3036,9 +3053,9 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function selectCellByProp
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @param {String} prop Property name.
-   * @param {Number} [endRow] End row index (if selecting a range).
+   * @param {Number} [endRow] visual end row index (if selecting a range).
    * @param {String} [endProp] End property name (if selecting a range).
    * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the selection.
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
@@ -3069,8 +3086,8 @@ export default function Core(rootElement, userSettings) {
    * @since 0.24.3
    * @memberof Core#
    * @function scrollViewportTo
-   * @param {Number} [row] Row index.
-   * @param {Number} [column] Column index.
+   * @param {Number} [row] Visual row index.
+   * @param {Number} [column] Visual column index.
    * @param {Boolean} [snapToBottom = false] If `true`, viewport is scrolled to show the cell on the bottom of the table.
    * @param {Boolean} [snapToRight = false] If `true`, viewport is scrolled to show the cell on the right side of the table.
    * @returns {Boolean} `true` if scroll was successful, `false` otherwise.

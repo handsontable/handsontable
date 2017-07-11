@@ -14,11 +14,11 @@ import textCellType from './textType';
 import timeCellType from './timeType';
 
 const {
- register,
- getItem,
- hasItem,
- getNames,
- getValues,
+  register,
+  getItem,
+  hasItem,
+  getNames,
+  getValues,
 } = staticRegister('cellTypes');
 
 _register('autocomplete', autocompleteCellType);

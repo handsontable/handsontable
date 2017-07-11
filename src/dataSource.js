@@ -65,7 +65,7 @@ class DataSource {
   /**
    * Returns array of column values from the data source. `column` is the index of the row in the data source.
    *
-   * @param {Number} column
+   * @param {Number} column Visual column index.
    * @returns {Array}
    */
   getAtColumn(column) {
@@ -88,7 +88,7 @@ class DataSource {
   /**
    * Returns a single row of the data (array or object, depending on what you have). `row` is the index of the row in the data source.
    *
-   * @param {Number} row
+   * @param {Number} row Physical row index.
    * @returns {Array|Object}
    */
   getAtRow(row) {
@@ -98,8 +98,8 @@ class DataSource {
   /**
    * Returns a single value from the data.
    *
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
+   * @param {Number} row Physical row index.
+   * @param {Number} column Visual column index.
    * @returns {*}
    */
   getAtCell(row, column) {
@@ -129,8 +129,8 @@ class DataSource {
   /**
    * Returns source data by passed range.
    *
-   * @param {Object} start Object with `row` and `col` keys.
-   * @param {Object} end Object with `row` and `col` keys.
+   * @param {Object} start Object with physical `row` and `col` keys (or visual column index, if data type is an array of objects).
+   * @param {Object} end Object with physical `row` and `col` keys (or visual column index, if data type is an array of objects).
    * @param {Boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
    *                                  in another format.
    * @returns {Array}

@@ -1,13 +1,13 @@
 import {
-    getStyle,
-    getTrimmingContainer,
-    hasClass,
-    index,
-    offset,
-    removeClass,
-    removeTextNodes,
-    overlayContainsElement,
-    closest
+  getStyle,
+  getTrimmingContainer,
+  hasClass,
+  index,
+  offset,
+  removeClass,
+  removeTextNodes,
+  overlayContainsElement,
+  closest
 } from './../../../helpers/dom/element';
 import {isFunction} from './../../../helpers/function';
 import CellCoords from './cell/coords';

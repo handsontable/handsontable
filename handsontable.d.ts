@@ -1,3 +1,4 @@
+
 declare namespace _Handsontable {
   namespace wot {
     interface CellCoords {
@@ -191,7 +192,6 @@ declare namespace _Handsontable {
   }
 
   namespace plugins {
-
     // utils for Filters
     namespace FiltersPlugin {
       interface BaseComponent {
@@ -637,12 +637,38 @@ declare namespace _Handsontable {
       open(event: Event): void;
     }
 
-    interface ContextMenuCopyPaste extends Base {
-      eventManager: EventManager;
-      outsideClickDeselectsCache: boolean | void;
-      swfPath: string | void;
+    interface Textarea {
+      element: HTMLElement;
+      isAppended: boolean;
+      refCounter: number;
 
-      getCopyValue(): string;
+      append(): void;
+      create(): void;
+      deselect(): void;
+      destroy(): void;
+      getValue(): string;
+      hasBeenDestroyed(): boolean;
+      isActive(): boolean;
+      select(): void;
+      setValue(data: string): void;
+    }
+
+    type PasteModeType = 'overwrite' | 'shift_down' | 'shift_right';
+    type RangeType = {startRow: number, startCol: number, endRow: number, endCol: number};
+    interface CopyPaste extends Base {
+      eventManager: EventManager;
+      columnsLimit: number;
+      copyableRanges: any[];
+      pasteMode: PasteModeType;
+      rowsLimit: number;
+      textarea: Textarea;
+
+      setCopyableText(): void;
+      getRangedCopyableData(ranges: RangeType[]): string;
+      getRangedData(ranges: RangeType[]): any[];
+      copy(triggeredByClick?: boolean): void;
+      cut(triggeredByClick?: boolean): void;
+      paste(triggeredByClick?: boolean): void;
     }
 
     interface DragToScroll extends Base {
@@ -1744,7 +1770,7 @@ declare namespace _Handsontable {
     ColumnSummary: plugins.ColumnSummary,
     Comments: plugins.Comments,
     ContextMenu: plugins.ContextMenu,
-    ContextMenuCopyPaste: plugins.ContextMenuCopyPaste,
+    CopyPaste: plugins.CopyPaste,
     DragToScroll: plugins.DragToScroll,
     DropdownMenu: plugins.DropdownMenu,
     ExportFile: plugins.ExportFile,
@@ -1794,6 +1820,7 @@ declare namespace _Handsontable {
     }
   }
 }
+
 
 export default class Handsontable extends _Handsontable.Core {
   static baseVersion: string;

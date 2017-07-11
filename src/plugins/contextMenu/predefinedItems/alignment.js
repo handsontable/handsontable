@@ -38,7 +38,7 @@ export default function alignmentItem() {
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
             align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
+              (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
@@ -69,7 +69,7 @@ export default function alignmentItem() {
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
             align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
+              (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
@@ -100,7 +100,7 @@ export default function alignmentItem() {
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
             align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
+              (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
@@ -131,7 +131,7 @@ export default function alignmentItem() {
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
             align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
+              (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
@@ -164,7 +164,7 @@ export default function alignmentItem() {
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
             align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
+              (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
@@ -195,7 +195,7 @@ export default function alignmentItem() {
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
             align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
+              (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false
@@ -226,7 +226,7 @@ export default function alignmentItem() {
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
             align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-                  (row, col, key, value) => this.setCellMeta(row, col, key, value));
+              (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
           disabled: false

@@ -9,11 +9,11 @@ import passwordRenderer from './passwordRenderer';
 import textRenderer from './textRenderer';
 
 const {
- register,
- getItem,
- hasItem,
- getNames,
- getValues,
+  register,
+  getItem,
+  hasItem,
+  getNames,
+  getValues,
 } = staticRegister('renderers');
 
 register('base', baseRenderer);

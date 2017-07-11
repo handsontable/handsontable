@@ -87,7 +87,7 @@ function TableView(instance) {
 
     isMouseDown = false;
 
-    if (isOutsideInput(document.activeElement)) {
+    if (isOutsideInput(document.activeElement) || !instance.selection.isSelected()) {
       instance.unlisten();
     }
   });

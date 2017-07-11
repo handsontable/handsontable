@@ -21,7 +21,7 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pikaday/1.5.1/pikaday.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/numbro/1.9.3/numbro.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/zeroclipboard/2.3.0/ZeroClipboard.min.js"></script>
+
 <!-- Handsontable bare files -->
 <script src="dist/handsontable.js"></script>
 <link rel="stylesheet" media="screen" href="https://cdnjs.cloudflare.com/ajax/libs/pikaday/1.5.1/css/pikaday.min.css">
