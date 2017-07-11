@@ -112,8 +112,8 @@ function UndoRedo(instance) {
     plugin.done(action);
   });
 
-  instance.addHook('beforeFilter', (formulaStacks) => {
-    plugin.done(new UndoRedo.FiltersAction(formulaStacks));
+  instance.addHook('beforeFilter', (conditionsStack) => {
+    plugin.done(new UndoRedo.FiltersAction(conditionsStack));
   });
 
   instance.addHook('beforeRowMove', (movedRows, target) => {
@@ -452,8 +452,8 @@ UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback)
 /**
  * Filters action.
  */
-UndoRedo.FiltersAction = function(formulaStacks) {
-  this.formulaStacks = formulaStacks;
+UndoRedo.FiltersAction = function(conditionsStack) {
+  this.conditionsStack = conditionsStack;
   this.actionType = 'filter';
 };
 inherit(UndoRedo.FiltersAction, UndoRedo.Action);
@@ -463,7 +463,7 @@ UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
 
   instance.addHookOnce('afterRender', undoneCallback);
 
-  filters.formulaCollection.importAllFormulas(this.formulaStacks.slice(0, this.formulaStacks.length - 1));
+  filters.conditionCollection.importAllConditions(this.conditionsStack.slice(0, this.conditionsStack.length - 1));
   filters.filter();
 };
 UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
@@ -471,7 +471,7 @@ UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
 
   instance.addHookOnce('afterRender', redoneCallback);
 
-  filters.formulaCollection.importAllFormulas(this.formulaStacks);
+  filters.conditionCollection.importAllConditions(this.conditionsStack);
   filters.filter();
 };
 

@@ -113,8 +113,8 @@ var insertBorderIntoSettings = function(border) {
 /** *
  * Prepare borders from setting (single cell).
  *
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {Number} row Visual row index.
+ * @param {Number} col Visual column index.
  * @param borderObj
  */
 var prepareBorderFromCustomAdded = function(row, col, borderObj) {
@@ -181,8 +181,8 @@ var prepareBorderFromCustomAddedRange = function(rowObj) {
 /** *
  * Create separated class name for borders for each cell.
  *
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {Number} row Visual row index.
+ * @param {Number} col Visual column index.
  * @returns {String}
  */
 var createClassName = function(row, col) {
@@ -228,8 +228,8 @@ var createDefaultHtBorder = function() {
 /** *
  * Prepare empty border for each cell with all custom borders hidden.
  *
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {Number} row Visual row index.
+ * @param {Number} col Visual column index.
  * @returns {Object} `{{className: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`
  */
 var createEmptyBorders = function(row, col) {
@@ -293,8 +293,8 @@ var removeBordersFromDom = function(borderClassName) {
 /** *
  * Remove border (triggered from context menu).
  *
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {Number} row Visual row index.
+ * @param {Number} col Visual column index.
  */
 var removeAllBorders = function(row, col) {
   var borderClassName = createClassName(row, col);
@@ -305,8 +305,8 @@ var removeAllBorders = function(row, col) {
 /** *
  * Set borders for each cell re. to border position
  *
- * @param row
- * @param col
+ * @param row Visual row index.
+ * @param col Visual column index.
  * @param place
  * @param remove
  */

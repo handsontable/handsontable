@@ -3,7 +3,9 @@
   "extends": "airbnb-base",
   "env": {
     "browser": true,
-    "node": true
+    "commonjs": true,
+    "jasmine": true,
+    "jest": true
   },
   "globals": {},
   "rules": {
@@ -40,6 +42,7 @@
     "no-undef": 0,
     "no-underscore-dangle": 0,
     "no-unused-vars": 1,
+    "no-restricted-globals": ["error", "Handsontable"],
     "no-use-before-define": 0,
     "no-var": 0,
     "no-void": 0,
@@ -107,7 +110,9 @@
       2,
       2,
       {
-        "SwitchCase": 1
+        "SwitchCase": 1,
+        "FunctionDeclaration": {"parameters": "first"},
+        "FunctionExpression": {"parameters": "first"}
       }
     ],
     "comma-style": [

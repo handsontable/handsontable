@@ -1,4 +1,5 @@
 import {isDefined} from './helpers/mixed';
+import {isObjectEquals} from './helpers/object';
 
 /**
  * @alias Options
@@ -198,6 +199,30 @@ DefaultSettings.prototype = {
    *
    * @type {Array|Function|Number|String}
    * @default undefined
+   * @example
+   * ```js
+   * ...
+   * // as numeric, for each column.
+   * colWidths: 100,
+   * ...
+   *
+   * * ...
+   * // as string, for each column.
+   * colWidths: '100px',
+   * ...
+   *
+   * ...
+   * // as array, based on visual indexes. The rest of the columns have a default width.
+   * colWidths: [100, 120, 90],
+   * ...
+   *
+   * ...
+   * // as function, based on visual indexes.
+   * colWidths: function(index) {
+   *   return index * 10;
+   * },
+   * ...
+   * ```
    */
   colWidths: void 0,
 
@@ -205,9 +230,36 @@ DefaultSettings.prototype = {
    * Defines row heights in pixels. Accepts numbers, strings (that will be converted into a number),
    * array of numbers (if you want to define row height separately for each row) or a
    * function (if you want to set row height dynamically on each render).
+   * If the ManualRowResize or AutoRowSize plugins are enabled, this is also the minimum height that can be set
+   * via either of those two plugins.
+   * Height should be equal or greater than 23px. Table is rendered incorrectly if height is less than 23px.
    *
    * @type {Array|Function|Number|String}
    * @default undefined
+   * @example
+   * ```js
+   * ...
+   * // as numeric, for each row.
+   * rowHeights: 100,
+   * ...
+   *
+   * * ...
+   * // as string, for each row.
+   * rowHeights: '100px',
+   * ...
+   *
+   * ...
+   * // as array, based on visual indexes. The rest of the rows have a default height.
+   * rowHeights: [100, 120, 90],
+   * ...
+   *
+   * ...
+   * // as function, based on visual indexes.
+   * rowHeights: function(index) {
+   *   return index * 10;
+   * },
+   * ...
+   * ```
    */
   rowHeights: void 0,
 
@@ -219,11 +271,12 @@ DefaultSettings.prototype = {
    *
    * See [documentation -> datasources.html](http://docs.handsontable.com/tutorial-data-sources.html#page-nested) for examples.
    *
-   * @type {Array}
+   * @type {Array|Function}
    * @default undefined
    * @example
    * ```js
    * ...
+   * // as an array of objects. Order of the objects in array is representation of physical indexes.
    * columns: [
    *   {
    *     // column options for the first column
@@ -237,6 +290,16 @@ DefaultSettings.prototype = {
    *   }
    * ],
    * ...
+   *
+   * // or as function, based on physical indexes
+   * ...
+   * columns: function(index) {
+ *    return {
+ *      type: index > 0 ? 'numeric' : 'text',
+ *      readOnly: index < 1
+ *    }
+   * }
+   * ...
    * ```
    */
   columns: void 0,
@@ -249,6 +312,10 @@ DefaultSettings.prototype = {
    *
    * __Note:__ Parameters `row` and `col` always represent __physical indexes__. Example below show how to execute
    * operations based on the __visual__ representation of Handsontable.
+   *
+   * Possible values of `prop`:
+   * - property name for column's data source object, when dataset is an [array of objects](/tutorial-data-sources.html#page-object)
+   * - the same number as `col`, when dataset is an [array of arrays](/tutorial-data-sources.html#page-array)
    *
    * @type {Function}
    * @default undefined
@@ -567,34 +634,6 @@ DefaultSettings.prototype = {
   autoWrapCol: false,
 
   /**
-   * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
-   *
-   * @type {Number}
-   * @default 1000
-   */
-  copyRowsLimit: 1000,
-
-  /**
-   * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
-   *
-   * @type {Number}
-   * @default 1000
-   */
-  copyColsLimit: 1000,
-
-  /**
-   * @description
-   * Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior.
-   * * Default value `"overwrite"` will paste clipboard value over current selection.
-   * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
-   * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
-   *
-   * @type {String}
-   * @default 'overwrite'
-   */
-  pasteMode: 'overwrite',
-
-  /**
    * @description
    * Turns on saving the state of column sorting, column positions and column sizes in local storage.
    *
@@ -698,7 +737,7 @@ DefaultSettings.prototype = {
    * Lets you overwrite the default `isEmptyRow` method, which checks if row at the provided index is empty.
    *
    * @type {Function}
-   * @param {Number} row
+   * @param {Number} row Visual row index.
    * @returns {Boolean}
    */
   isEmptyRow(row) {
@@ -727,7 +766,7 @@ DefaultSettings.prototype = {
    * Lets you overwrite the default `isEmptyCol` method, which checks if column at the provided index is empty.
    *
    * @type {Function}
-   * @param {Number} col
+   * @param {Number} col Visual column index
    * @returns {Boolean}
    */
   isEmptyCol(col) {
@@ -1080,10 +1119,8 @@ DefaultSettings.prototype = {
    * Possible values:
    * * `true` (to enable default options),
    * * `false` (to disable completely)
-   *
-   * or array of any available strings:
-   * * `["row_above", "row_below", "col_left", "col_right",
-   * "remove_row", "remove_col", "---------", "undo", "redo"]`.
+   * * an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
+   * * an object [with defined structure](http://docs.handsontable.com/demo-context-menu.html#page-custom)
    *
    * See [the context menu demo](http://docs.handsontable.com/demo-context-menu.html) for examples.
    *
@@ -1093,31 +1130,40 @@ DefaultSettings.prototype = {
    * // as a boolean
    * contextMenu: true
    * ...
-   * // as a array
+   * // as an array
    * contextMenu: ['row_above', 'row_below', '--------', 'undo', 'redo']
    * ...
    * ```
-   *
+   * ...
+   * // as an object (`name` attribute is required in the custom keys)
+   * contextMenu: {
+   *   items: {
+   *     "option1": {
+   *       name: "option1"
+   *     },
+   *     "option2": {
+   *       name: "option2",
+   *       submenu: {
+   *         items: [
+   *           {
+   *             key: "option2:suboption1",
+   *             name: "option2:suboption1",
+   *             callback: function(key, options) {
+   *               ...
+   *             }
+   *           },
+   *           ...
+   *         ]
+   *       }
+   *     }
+   *   }
+   * }
+   * ...
+   * ```
    * @type {Boolean|Array|Object}
    * @default undefined
    */
   contextMenu: void 0,
-
-  /**
-   * @description
-   * Defines new actions copy/paste for context menu. This functionality is dependent on ZeroClipboard from which you
-   * should pass the swf file path under `swfPath` object key.
-   *
-   * @example
-   * ```js
-   * ...
-   * contextMenuCopyPaste: {swfPath: '[path to file]'}
-   * ...
-   * ```
-   *
-   * @type {Object}
-   */
-  contextMenuCopyPaste: void 0,
 
   /**
    * @description
@@ -1131,9 +1177,9 @@ DefaultSettings.prototype = {
    * ```
    *
    * @type {Boolean}
-   * @default undefined
+   * @default true
    */
-  copyPaste: void 0,
+  copyPaste: true,
 
   /**
    * If `true`, undo/redo functionality is enabled.

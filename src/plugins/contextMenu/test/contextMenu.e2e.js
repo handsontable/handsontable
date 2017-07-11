@@ -615,8 +615,8 @@ describe('ContextMenu', () => {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(13);
-      expect(separators.length).toEqual(6);
+      expect(actions.length).toEqual(15);
+      expect(separators.length).toEqual(7);
 
       expect(actions.text()).toEqual([
         'Insert row above',
@@ -631,7 +631,9 @@ describe('ContextMenu', () => {
         'Alignment',
         'Add comment',
         'Delete comment',
-        'Read only comment'
+        'Read only comment',
+        'Copy',
+        'Cut',
       ].join(''));
     });
 
@@ -758,8 +760,8 @@ describe('ContextMenu', () => {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(8);
-      expect(separators.length).toEqual(4);
+      expect(actions.length).toEqual(10);
+      expect(separators.length).toEqual(5);
 
       expect(actions.text()).toEqual([
         'Insert column on the left',
@@ -769,7 +771,9 @@ describe('ContextMenu', () => {
         'Undo',
         'Redo',
         'Read only',
-        'Alignment'
+        'Alignment',
+        'Copy',
+        'Cut'
       ].join(''));
     });
 
@@ -784,7 +788,7 @@ describe('ContextMenu', () => {
       var items = $('.htContextMenu tbody td');
       var actions = items.not('.htSeparator');
 
-      expect(actions.length).toEqual(8);
+      expect(actions.length).toEqual(10);
 
       expect(actions.text()).toEqual([
         'Insert row above',
@@ -794,7 +798,9 @@ describe('ContextMenu', () => {
         'Undo',
         'Redo',
         'Read only',
-        'Alignment'
+        'Alignment',
+        'Copy',
+        'Cut'
       ].join(''));
     });
 
@@ -1251,7 +1257,6 @@ describe('ContextMenu', () => {
       contextMenu();
       var menu = $('.htContextMenu .ht_master .htCore tbody');
       menu.find('td').not('.htSeparator').eq(8).simulate('mousedown');
-//      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
     });
@@ -1274,7 +1279,6 @@ describe('ContextMenu', () => {
       contextMenu();
       var menu = $('.htContextMenu .ht_master .htCore tbody');
       menu.find('td').not('.htSeparator').eq(8).simulate('mousedown');
-//      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
 
       for (let i = 0; i < 2; i++) {
         for (let j = 0; j < 2; j++) {

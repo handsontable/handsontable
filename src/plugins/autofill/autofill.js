@@ -155,13 +155,41 @@ class Autofill extends BasePlugin {
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();
       const deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
+      let fillData = selectionData;
 
       this.hot.runHooks('beforeAutofill', startOfDragCoords, endOfDragCoords, selectionData);
+
+      if (['up', 'left'].indexOf(directionOfDrag) > -1) {
+        fillData = [];
+
+        let dragLength = null;
+        let fillOffset = null;
+
+        if (directionOfDrag === 'up') {
+          dragLength = endOfDragCoords.row - startOfDragCoords.row + 1;
+          fillOffset = dragLength % selectionData.length;
+
+          for (let i = 0; i < dragLength; i++) {
+            fillData.push(selectionData[(i + (selectionData.length - fillOffset)) % selectionData.length]);
+          }
+
+        } else {
+          dragLength = endOfDragCoords.col - startOfDragCoords.col + 1;
+          fillOffset = dragLength % selectionData[0].length;
+
+          for (let i = 0; i < selectionData.length; i++) {
+            fillData.push([]);
+            for (let j = 0; j < dragLength; j++) {
+              fillData[i].push(selectionData[i][(j + (selectionData[i].length - fillOffset)) % selectionData[i].length]);
+            }
+          }
+        }
+      }
 
       this.hot.populateFromArray(
         startOfDragCoords.row,
         startOfDragCoords.col,
-        selectionData,
+        fillData,
         endOfDragCoords.row,
         endOfDragCoords.col,
         `${this.pluginName}.fill`,

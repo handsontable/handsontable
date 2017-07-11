@@ -27,7 +27,7 @@ describe('Public API', () => {
       expect(Handsontable.plugins.ColumnSorting).toBeFunction();
       expect(Handsontable.plugins.Comments).toBeFunction();
       expect(Handsontable.plugins.ContextMenu).toBeFunction();
-      expect(Handsontable.plugins.ContextMenuCopyPaste).toBeFunction();
+      expect(Handsontable.plugins.CopyPaste).toBeFunction();
       expect(Handsontable.plugins.DragToScroll).toBeFunction();
       expect(Handsontable.plugins.ManualColumnFreeze).toBeFunction();
       expect(Handsontable.plugins.ManualColumnResize).toBeFunction();

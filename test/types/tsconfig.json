@@ -11,8 +11,8 @@
     "strictNullChecks": false,
     "forceConsistentCasingInFileNames": true
   },
-  "files": [
+  "include": [
     "../../handsontable.d.ts",
-    "./handsontable-tests.ts"
+    "../../src/plugins/**/test/*.types.ts"
   ]
 }

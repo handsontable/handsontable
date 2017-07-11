@@ -431,7 +431,7 @@ class ManualColumnResize extends BasePlugin {
   /**
    * Cache the current column width.
    *
-   * @param {Number} column Column index.
+   * @param {Number} column Visual column index.
    * @param {Number} width Column width.
    * @returns {Number}
    */
@@ -452,7 +452,7 @@ class ManualColumnResize extends BasePlugin {
   /**
    * Clear cache for the current column index.
    *
-   * @param {Number} column Column index.
+   * @param {Number} column Visual column index.
    */
   clearManualSize(column) {
     column = this.hot.runHooks('modifyCol', column);
@@ -465,7 +465,7 @@ class ManualColumnResize extends BasePlugin {
    *
    * @private
    * @param {Number} width Column width.
-   * @param {Number} column Column index.
+   * @param {Number} column Visual column index.
    * @returns {Number}
    */
   onModifyColWidth(width, column) {
@@ -485,7 +485,7 @@ class ManualColumnResize extends BasePlugin {
    *
    * @private
    * @param {Number} stretchedWidth Stretched width.
-   * @param {Number} column Column index.
+   * @param {Number} column Physical column index.
    * @returns {Number}
    */
   onBeforeStretchingColumnWidth(stretchedWidth, column) {

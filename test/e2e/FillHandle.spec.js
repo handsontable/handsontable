@@ -753,6 +753,48 @@ describe('FillHandle', () => {
     }, 300);
   });
 
+  it('should populate the filled data in the correct order, when dragging the fill handle upwards', function() {
+    const hot = handsontable({
+      data: [
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, 2, 3, null],
+        [null, 1, 4, null],
+        [null, 0, 5, null],
+        [null, null, null, null],
+      ]
+    });
+
+    expect(JSON.stringify(getData(0, 1, 3, 2))).toEqual(JSON.stringify([[null, null], [null, null], [null, null], [null, null]]));
+
+    selectCell(4, 1, 6, 2);
+    this.$container.find('.wtBorder.area.corner').simulate('mousedown');
+    $(getCell(0, 2, true)).simulate('mouseover').simulate('mouseup');
+
+    expect(JSON.stringify(getData(0, 1, 3, 2))).toEqual(JSON.stringify([[0, 5], [2, 3], [1, 4], [0, 5]]));
+  });
+
+  it('should populate the filled data in the correct order, when dragging the fill handle towards left', function() {
+    const hot = handsontable({
+      data: [
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, 0, 1, 2],
+        [null, null, null, null, null, 3, 4, 5],
+        [null, null, null, null, null, null, null, null],
+      ]
+    });
+
+    expect(JSON.stringify(getData(1, 1, 2, 4))).toEqual(JSON.stringify([[null, null, null, null], [null, null, null, null]]));
+
+    selectCell(1, 5, 2, 7);
+    this.$container.find('.wtBorder.area.corner').simulate('mousedown');
+    $(getCell(2, 1, true)).simulate('mouseover').simulate('mouseup');
+
+    expect(JSON.stringify(getData(1, 1, 2, 4))).toEqual(JSON.stringify([[2, 0, 1, 2], [5, 3, 4, 5]]));
+  });
+
   describe('should works properly when two or more instances of Handsontable was initialized with other settings (#3257)', () => {
     var getData;
     var $container1;
