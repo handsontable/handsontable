@@ -1100,4 +1100,16 @@ describe('TextEditor', () => {
       done();
     }, 150);
   });
+
+  it('should not throw an exception when window.attachEvent is defined but the text area does not have attachEvent', (done) => {
+    var hot = handsontable();
+    window.attachEvent = true;
+    selectCell(1, 1);
+
+    expect(() => {
+      hot.getActiveEditor().autoResize.init(hot.getActiveEditor().TEXTAREA);
+    }).not.toThrow();
+
+    done();
+  });
 });
