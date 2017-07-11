@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 0.32.0
- * Date: Tue May 30 2017 12:18:32 GMT+0200 (CEST)
+ * Version: 0.33.0
+ * Date: Mon Jul 10 2017 10:08:33 GMT+0200 (CEST)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -101,7 +101,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 309);
+/******/ 	return __webpack_require__(__webpack_require__.s = 323);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -1150,251 +1150,6 @@ function isOutsideInput(element) {
 
 
 exports.__esModule = true;
-exports.to2dArray = to2dArray;
-exports.extendArray = extendArray;
-exports.pivot = pivot;
-exports.arrayReduce = arrayReduce;
-exports.arrayFilter = arrayFilter;
-exports.arrayMap = arrayMap;
-exports.arrayEach = arrayEach;
-exports.arraySum = arraySum;
-exports.arrayMax = arrayMax;
-exports.arrayMin = arrayMin;
-exports.arrayAvg = arrayAvg;
-exports.arrayFlatten = arrayFlatten;
-exports.arrayUnique = arrayUnique;
-function to2dArray(arr) {
-  var i = 0,
-      ilen = arr.length;
-
-  while (i < ilen) {
-    arr[i] = [arr[i]];
-    i++;
-  }
-}
-
-function extendArray(arr, extension) {
-  var i = 0,
-      ilen = extension.length;
-
-  while (i < ilen) {
-    arr.push(extension[i]);
-    i++;
-  }
-}
-
-function pivot(arr) {
-  var pivotedArr = [];
-
-  if (!arr || arr.length === 0 || !arr[0] || arr[0].length === 0) {
-    return pivotedArr;
-  }
-
-  var rowCount = arr.length;
-  var colCount = arr[0].length;
-
-  for (var i = 0; i < rowCount; i++) {
-    for (var j = 0; j < colCount; j++) {
-      if (!pivotedArr[j]) {
-        pivotedArr[j] = [];
-      }
-
-      pivotedArr[j][i] = arr[i][j];
-    }
-  }
-
-  return pivotedArr;
-}
-
-/**
- * A specialized version of `.reduce` for arrays without support for callback
- * shorthands and `this` binding.
- *
- * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
- *
- * @param {Array} array The array to iterate over.
- * @param {Function} iteratee The function invoked per iteration.
- * @param {*} [accumulator] The initial value.
- * @param {Boolean} [initFromArray] Specify using the first element of `array` as the initial value.
- * @returns {*} Returns the accumulated value.
- */
-function arrayReduce(array, iteratee, accumulator, initFromArray) {
-  var index = -1,
-      length = array.length;
-
-  if (initFromArray && length) {
-    accumulator = array[++index];
-  }
-  while (++index < length) {
-    accumulator = iteratee(accumulator, array[index], index, array);
-  }
-
-  return accumulator;
-}
-
-/**
- * A specialized version of `.filter` for arrays without support for callback
- * shorthands and `this` binding.
- *
- * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
- *
- * @param {Array} array The array to iterate over.
- * @param {Function} predicate The function invoked per iteration.
- * @returns {Array} Returns the new filtered array.
- */
-function arrayFilter(array, predicate) {
-  var index = -1,
-      length = array.length,
-      resIndex = -1,
-      result = [];
-
-  while (++index < length) {
-    var value = array[index];
-
-    if (predicate(value, index, array)) {
-      result[++resIndex] = value;
-    }
-  }
-
-  return result;
-}
-
-/**
- * A specialized version of `.map` for arrays without support for callback
- * shorthands and `this` binding.
- *
- * @param {Array} array The array to iterate over.
- * @param {Function} iteratee The function invoked per iteration.
- * @returns {Array} Returns the new filtered array.
- */
-function arrayMap(array, iteratee) {
-  var index = -1,
-      length = array.length,
-      resIndex = -1,
-      result = [];
-
-  while (++index < length) {
-    var value = array[index];
-
-    result[++resIndex] = iteratee(value, index, array);
-  }
-
-  return result;
-}
-
-/**
- * A specialized version of `.forEach` for arrays without support for callback
- * shorthands and `this` binding.
- *
- * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
- *
- * @param {Array} array The array to iterate over.
- * @param {Function} iteratee The function invoked per iteration.
- * @returns {Array} Returns `array`.
- */
-function arrayEach(array, iteratee) {
-  var index = -1,
-      length = array.length;
-
-  while (++index < length) {
-    if (iteratee(array[index], index, array) === false) {
-      break;
-    }
-  }
-
-  return array;
-}
-
-/**
- * Calculate sum value for each item of the array.
- *
- * @param {Array} array The array to process.
- * @returns {Number} Returns calculated sum value.
- */
-function arraySum(array) {
-  return arrayReduce(array, function (a, b) {
-    return a + b;
-  }, 0);
-}
-
-/**
- * Returns the highest value from an array. Can be array of numbers or array of strings.
- * NOTICE: Mixed values is not supported.
- *
- * @param {Array} array The array to process.
- * @returns {Number} Returns the highest value from an array.
- */
-function arrayMax(array) {
-  return arrayReduce(array, function (a, b) {
-    return a > b ? a : b;
-  }, Array.isArray(array) ? array[0] : void 0);
-}
-
-/**
- * Returns the lowest value from an array. Can be array of numbers or array of strings.
- * NOTICE: Mixed values is not supported.
- *
- * @param {Array} array The array to process.
- * @returns {Number} Returns the lowest value from an array.
- */
-function arrayMin(array) {
-  return arrayReduce(array, function (a, b) {
-    return a < b ? a : b;
-  }, Array.isArray(array) ? array[0] : void 0);
-}
-
-/**
- * Calculate average value for each item of the array.
- *
- * @param {Array} array The array to process.
- * @returns {Number} Returns calculated average value.
- */
-function arrayAvg(array) {
-  if (!array.length) {
-    return 0;
-  }
-
-  return arraySum(array) / array.length;
-}
-
-/**
- * Flatten multidimensional array.
- *
- * @param {Array} array Array of Arrays
- * @returns {Array}
- */
-function arrayFlatten(array) {
-  return arrayReduce(array, function (initial, value) {
-    return initial.concat(Array.isArray(value) ? arrayFlatten(value) : value);
-  }, []);
-}
-
-/**
- * Unique values in the array.
- *
- * @param {Array} array The array to process.
- * @returns {Array}
- */
-function arrayUnique(array) {
-  var unique = [];
-
-  arrayEach(array, function (value) {
-    if (unique.indexOf(value) === -1) {
-      unique.push(value);
-    }
-  });
-
-  return unique;
-}
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -1414,7 +1169,7 @@ exports.deepObjectSize = deepObjectSize;
 exports.createObjectPropListener = createObjectPropListener;
 exports.hasOwnProperty = hasOwnProperty;
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -1748,6 +1503,251 @@ function createObjectPropListener(defaultValue) {
  */
 function hasOwnProperty(object, key) {
   return Object.prototype.hasOwnProperty.call(object, key);
+}
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.to2dArray = to2dArray;
+exports.extendArray = extendArray;
+exports.pivot = pivot;
+exports.arrayReduce = arrayReduce;
+exports.arrayFilter = arrayFilter;
+exports.arrayMap = arrayMap;
+exports.arrayEach = arrayEach;
+exports.arraySum = arraySum;
+exports.arrayMax = arrayMax;
+exports.arrayMin = arrayMin;
+exports.arrayAvg = arrayAvg;
+exports.arrayFlatten = arrayFlatten;
+exports.arrayUnique = arrayUnique;
+function to2dArray(arr) {
+  var i = 0,
+      ilen = arr.length;
+
+  while (i < ilen) {
+    arr[i] = [arr[i]];
+    i++;
+  }
+}
+
+function extendArray(arr, extension) {
+  var i = 0,
+      ilen = extension.length;
+
+  while (i < ilen) {
+    arr.push(extension[i]);
+    i++;
+  }
+}
+
+function pivot(arr) {
+  var pivotedArr = [];
+
+  if (!arr || arr.length === 0 || !arr[0] || arr[0].length === 0) {
+    return pivotedArr;
+  }
+
+  var rowCount = arr.length;
+  var colCount = arr[0].length;
+
+  for (var i = 0; i < rowCount; i++) {
+    for (var j = 0; j < colCount; j++) {
+      if (!pivotedArr[j]) {
+        pivotedArr[j] = [];
+      }
+
+      pivotedArr[j][i] = arr[i][j];
+    }
+  }
+
+  return pivotedArr;
+}
+
+/**
+ * A specialized version of `.reduce` for arrays without support for callback
+ * shorthands and `this` binding.
+ *
+ * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
+ *
+ * @param {Array} array The array to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @param {*} [accumulator] The initial value.
+ * @param {Boolean} [initFromArray] Specify using the first element of `array` as the initial value.
+ * @returns {*} Returns the accumulated value.
+ */
+function arrayReduce(array, iteratee, accumulator, initFromArray) {
+  var index = -1,
+      length = array.length;
+
+  if (initFromArray && length) {
+    accumulator = array[++index];
+  }
+  while (++index < length) {
+    accumulator = iteratee(accumulator, array[index], index, array);
+  }
+
+  return accumulator;
+}
+
+/**
+ * A specialized version of `.filter` for arrays without support for callback
+ * shorthands and `this` binding.
+ *
+ * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
+ *
+ * @param {Array} array The array to iterate over.
+ * @param {Function} predicate The function invoked per iteration.
+ * @returns {Array} Returns the new filtered array.
+ */
+function arrayFilter(array, predicate) {
+  var index = -1,
+      length = array.length,
+      resIndex = -1,
+      result = [];
+
+  while (++index < length) {
+    var value = array[index];
+
+    if (predicate(value, index, array)) {
+      result[++resIndex] = value;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * A specialized version of `.map` for arrays without support for callback
+ * shorthands and `this` binding.
+ *
+ * @param {Array} array The array to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @returns {Array} Returns the new filtered array.
+ */
+function arrayMap(array, iteratee) {
+  var index = -1,
+      length = array.length,
+      resIndex = -1,
+      result = [];
+
+  while (++index < length) {
+    var value = array[index];
+
+    result[++resIndex] = iteratee(value, index, array);
+  }
+
+  return result;
+}
+
+/**
+ * A specialized version of `.forEach` for arrays without support for callback
+ * shorthands and `this` binding.
+ *
+ * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
+ *
+ * @param {Array} array The array to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @returns {Array} Returns `array`.
+ */
+function arrayEach(array, iteratee) {
+  var index = -1,
+      length = array.length;
+
+  while (++index < length) {
+    if (iteratee(array[index], index, array) === false) {
+      break;
+    }
+  }
+
+  return array;
+}
+
+/**
+ * Calculate sum value for each item of the array.
+ *
+ * @param {Array} array The array to process.
+ * @returns {Number} Returns calculated sum value.
+ */
+function arraySum(array) {
+  return arrayReduce(array, function (a, b) {
+    return a + b;
+  }, 0);
+}
+
+/**
+ * Returns the highest value from an array. Can be array of numbers or array of strings.
+ * NOTICE: Mixed values is not supported.
+ *
+ * @param {Array} array The array to process.
+ * @returns {Number} Returns the highest value from an array.
+ */
+function arrayMax(array) {
+  return arrayReduce(array, function (a, b) {
+    return a > b ? a : b;
+  }, Array.isArray(array) ? array[0] : void 0);
+}
+
+/**
+ * Returns the lowest value from an array. Can be array of numbers or array of strings.
+ * NOTICE: Mixed values is not supported.
+ *
+ * @param {Array} array The array to process.
+ * @returns {Number} Returns the lowest value from an array.
+ */
+function arrayMin(array) {
+  return arrayReduce(array, function (a, b) {
+    return a < b ? a : b;
+  }, Array.isArray(array) ? array[0] : void 0);
+}
+
+/**
+ * Calculate average value for each item of the array.
+ *
+ * @param {Array} array The array to process.
+ * @returns {Number} Returns calculated average value.
+ */
+function arrayAvg(array) {
+  if (!array.length) {
+    return 0;
+  }
+
+  return arraySum(array) / array.length;
+}
+
+/**
+ * Flatten multidimensional array.
+ *
+ * @param {Array} array Array of Arrays
+ * @returns {Array}
+ */
+function arrayFlatten(array) {
+  return arrayReduce(array, function (initial, value) {
+    return initial.concat(Array.isArray(value) ? arrayFlatten(value) : value);
+  }, []);
+}
+
+/**
+ * Unique values in the array.
+ *
+ * @param {Array} array The array to process.
+ * @returns {Array}
+ */
+function arrayUnique(array) {
+  var unique = [];
+
+  arrayEach(array, function (value) {
+    if (unique.indexOf(value) === -1) {
+      unique.push(value);
+    }
+  });
+
+  return unique;
 }
 
 /***/ }),
@@ -2116,7 +2116,7 @@ var _pluginHooks = __webpack_require__(8);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _string = __webpack_require__(27);
 
@@ -2412,9 +2412,9 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2573,7 +2573,7 @@ var REGISTERED_HOOKS = [
  *
  * @since 0.28.0
  * @event Hooks#beforeCreateCol
- * @param {Number} index Represents the index of first newly created column in the data source array.
+ * @param {Number} index Represents the visual index of first newly created column in the data source array.
  * @param {Number} amount Number of newly created columns in the data source array.
  * @param {String} [source] String that identifies source of hook call
  *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
@@ -2584,7 +2584,7 @@ var REGISTERED_HOOKS = [
  * Callback is fired after a new column was created.
  *
  * @event Hooks#afterCreateCol
- * @param {Number} index Represents the index of first newly created column in the data source array.
+ * @param {Number} index Represents the visual index of first newly created column in the data source array.
  * @param {Number} amount Number of newly created columns in the data source array.
  * @param {String} [source] String that identifies source of hook call
  *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
@@ -2596,7 +2596,7 @@ var REGISTERED_HOOKS = [
  *
  * @since 0.28.0
  * @event Hooks#beforeCreateRow
- * @param {Number} index Represents the index of first newly created row in the data source array.
+ * @param {Number} index Represents the visual index of first newly created row in the data source array.
  * @param {Number} amount Number of newly created rows in the data source array.
  * @param {String} [source] String that identifies source of hook call
  *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
@@ -2607,7 +2607,7 @@ var REGISTERED_HOOKS = [
  * Callback is fired after a new row was created.
  *
  * @event Hooks#afterCreateRow
- * @param {Number} index Represents the index of first newly created row in the data source array.
+ * @param {Number} index Represents the visual index of first newly created row in the data source array.
  * @param {Number} amount Number of newly created rows in the data source array.
  * @param {String} [source] String that identifies source of hook call
  *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
@@ -2640,8 +2640,8 @@ var REGISTERED_HOOKS = [
  * Callback fired after getting the cell settings.
  *
  * @event Hooks#afterGetCellMeta
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {Number} row Visual row index.
+ * @param {Number} col Visual column index.
  * @param {Object} cellProperties Object containing the cell properties.
  */
 'afterGetCellMeta',
@@ -2650,7 +2650,7 @@ var REGISTERED_HOOKS = [
  * Callback fired after retrieving information about a column header and appending it to the table header.
  *
  * @event Hooks#afterGetColHeader
- * @param {Number} col Column index.
+ * @param {Number} col Visual column index.
  * @param {Element} TH Header's TH element.
  */
 'afterGetColHeader',
@@ -2659,7 +2659,7 @@ var REGISTERED_HOOKS = [
  * Callback fired after retrieving information about a column header and appending it to the table header.
  *
  * @event Hooks#afterGetRowHeader
- * @param {Number} row Row index.
+ * @param {Number} row Visual row index.
  * @param {Element} TH Header's TH element.
  */
 'afterGetRowHeader',
@@ -2713,7 +2713,7 @@ var REGISTERED_HOOKS = [
  * @event Hooks#afterOnCellMouseDown
  * @since 0.11
  * @param {Object} event `mousedown` event object.
- * @param {Object} coords Coordinates object containing the row and column indexes of the clicked cell.
+ * @param {Object} coords Coordinates object containing the visual row and visual column indexes of the clicked cell.
  * @param {Element} TD Cell's TD (or TH) element.
  */
 'afterOnCellMouseDown',
@@ -2727,7 +2727,7 @@ var REGISTERED_HOOKS = [
  * @event Hooks#afterOnCellMouseOver
  * @since 0.11
  * @param {Object} event `mouseover` event object.
- * @param {Object} coords Hovered cell's coordinate object.
+ * @param {Object} coords Hovered cell's visual coordinate object.
  * @param {Element} TD Cell's TD (or TH) element.
  */
 'afterOnCellMouseOver',
@@ -2735,10 +2735,10 @@ var REGISTERED_HOOKS = [
 /**
  * Callback fired after leaving a cell or row/column header with the mouse cursor.
  *
- * @event Hooks#afterOnCellMouseOver
+ * @event Hooks#afterOnCellMouseOut
  * @since 0.31.1
  * @param {Object} event `mouseout` event object.
- * @param {Object} coords Leaved cell's coordinate object.
+ * @param {Object} coords Leaved cell's visual coordinate object.
  * @param {Element} TD Cell's TD (or TH) element.
  */
 'afterOnCellMouseOut',
@@ -2747,7 +2747,7 @@ var REGISTERED_HOOKS = [
  * Callback is fired when one or more columns are removed.
  *
  * @event Hooks#afterRemoveCol
- * @param {Number} index Is an index of starter column.
+ * @param {Number} index Is an visual index of starter column.
  * @param {Number} amount Is an amount of removed columns.
  */
 'afterRemoveCol',
@@ -2756,7 +2756,7 @@ var REGISTERED_HOOKS = [
  * Callback is fired when one or more rows are removed.
  *
  * @event Hooks#afterRemoveRow
- * @param {Number} index Is an index of starter row.
+ * @param {Number} index Is an visual index of starter row.
  * @param {Number} amount Is an amount of removed rows.
  */
 'afterRemoveRow',
@@ -2776,8 +2776,8 @@ var REGISTERED_HOOKS = [
  * @event Hooks#beforeRenderer
  * @since 0.24.2
  * @param {Element} TD Currently rendered cell's TD element.
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {Number} row Visual row index.
+ * @param {Number} col Visual column index.
  * @param {String|Number} prop Column property name or a column index, if datasource is an array of arrays.
  * @param {String} value Value of the rendered cell.
  * @param {Object} cellProperties Object containing the cell's properties.
@@ -2790,8 +2790,8 @@ var REGISTERED_HOOKS = [
  * @event Hooks#afterRenderer
  * @since 0.11.0
  * @param {Element} TD Currently rendered cell's TD element.
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {Number} row Visual row index.
+ * @param {Number} col Visual column index.
  * @param {String|Number} prop Column property name or a column index, if datasource is an array of arrays.
  * @param {String} value Value of the rendered cell.
  * @param {Object} cellProperties Object containing the cell's properties.
@@ -2818,10 +2818,10 @@ var REGISTERED_HOOKS = [
  * Callback fired after one or more cells are selected (e.g. during mouse move).
  *
  * @event Hooks#afterSelection
- * @param {Number} r Selection start row index.
- * @param {Number} c Selection start column index.
- * @param {Number} r2 Selection end row index.
- * @param {Number} c2 Selection end column index.
+ * @param {Number} r Selection start visual row index.
+ * @param {Number} c Selection start visual column index.
+ * @param {Number} r2 Selection end visual row index.
+ * @param {Number} c2 Selection end visual column index.
  * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
  *    * @example
  * ```js
@@ -2840,9 +2840,9 @@ var REGISTERED_HOOKS = [
  * Callback fired after one or more cells are selected. The `p` argument represents the source object property name instead of the column number.
  *
  * @event Hooks#afterSelectionByProp
- * @param {Number} r Selection start row index.
+ * @param {Number} r Selection start visual row index.
  * @param {String} p Selection start data source object property name.
- * @param {Number} r2 Selection end row index.
+ * @param {Number} r2 Selection end visual row index.
  * @param {String} p2 Selection end data source object property name.
  * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
  *    * @example
@@ -2862,10 +2862,10 @@ var REGISTERED_HOOKS = [
  * Callback fired after one or more cells are selected (e.g. on mouse up).
  *
  * @event Hooks#afterSelectionEnd
- * @param {Number} r Selection start row index.
- * @param {Number} c Selection start column index.
- * @param {Number} r2 Selection end row index.
- * @param {Number} c2 Selection end column index.
+ * @param {Number} r Selection start visual row index.
+ * @param {Number} c Selection start visual column index.
+ * @param {Number} r2 Selection end visual row index.
+ * @param {Number} c2 Selection end visual column index.
  */
 'afterSelectionEnd',
 
@@ -2874,9 +2874,9 @@ var REGISTERED_HOOKS = [
  * property name instead of the column number.
  *
  * @event Hooks#afterSelectionEndByProp
- * @param {Number} r Selection start row index.
+ * @param {Number} r Selection start visual row index.
  * @param {String} p Selection start data source object property index.
- * @param {Number} r2 Selection end row index.
+ * @param {Number} r2 Selection end visual row index.
  * @param {String} p2 Selection end data source object property index.
  */
 'afterSelectionEndByProp',
@@ -2886,8 +2886,8 @@ var REGISTERED_HOOKS = [
  *
  * @event Hooks#afterSetCellMeta
  * @since 0.11.0
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {Number} row Visual row index.
+ * @param {Number} col Visual column index.
  * @param {String} key The updated meta key.
  * @param {*} value The updated meta value.
  */
@@ -3039,8 +3039,8 @@ var REGISTERED_HOOKS = [
  * Callback fired before getting cell settings.
  *
  * @event Hooks#beforeGetCellMeta
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {Number} row Visual row index.
+ * @param {Number} col Visual column index.
  * @param {Object} cellProperties Object containing the cell's properties.
  */
 'beforeGetCellMeta',
@@ -3077,7 +3077,7 @@ var REGISTERED_HOOKS = [
  *
  * @event Hooks#beforeOnCellMouseDown
  * @param {Event} event The `mousedown` event object.
- * @param {CellCoords} coords CellCoords object containing the coordinates of the clicked cell.
+ * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
  * @param {Element} TD TD element.
  */
 'beforeOnCellMouseDown',
@@ -3087,7 +3087,7 @@ var REGISTERED_HOOKS = [
  *
  * @event Hooks#beforeOnCellMouseOver
  * @param {Event} event The `mouseover` event object.
- * @param {CellCoords} coords CellCoords object containing the coordinates of the clicked cell.
+ * @param {CellCoords} coords CellCoords object containing the visual coordinates of the clicked cell.
  * @param {Element} TD TD element.
  * @param {Object} blockCalculations Contain keys 'row' and 'column' with boolean value.
  */
@@ -3099,7 +3099,7 @@ var REGISTERED_HOOKS = [
  * @event Hooks#beforeOnCellMouseOut
  * @since 0.31.1
  * @param {Event} event The `mouseout` event object.
- * @param {WalkontableCellCoords} coords WalkontableCellCoords object containing the coordinates of the leaved cell.
+ * @param {WalkontableCellCoords} coords WalkontableCellCoords object containing the visual coordinates of the leaved cell.
  * @param {Element} TD TD element.
  */
 'beforeOnCellMouseOut',
@@ -3108,9 +3108,9 @@ var REGISTERED_HOOKS = [
  * Callback is fired when one or more columns are about to be removed.
  *
  * @event Hooks#beforeRemoveCol
- * @param {Number} index Index of starter column.
+ * @param {Number} index Visual index of starter column.
  * @param {Number} amount Amount of columns to be removed.
- * @param {Array} [logicalCols] Consists of logical indexes of processed columns.
+ * @param {Array} [visualCols] Consists of visual indexes of processed columns.
  */
 'beforeRemoveCol',
 
@@ -3118,9 +3118,9 @@ var REGISTERED_HOOKS = [
  * Callback is fired when one or more rows are about to be removed.
  *
  * @event Hooks#beforeRemoveRow
- * @param {Number} index Index of starter column.
+ * @param {Number} index Visual index of starter column.
  * @param {Number} amount Amount of columns to be removed.
- * @param {Array} [logicalRows] Consists of logical indexes of processed rows.
+ * @param {Array} [visualRows] Consists of visual indexes of processed rows.
  */
 'beforeRemoveRow',
 
@@ -3203,7 +3203,7 @@ var REGISTERED_HOOKS = [
  *
  * @event Hooks#modifyCol
  * @since 0.11
- * @param {Number} col Column index.
+ * @param {Number} col Visual column index.
  */
 'modifyCol',
 
@@ -3212,16 +3212,16 @@ var REGISTERED_HOOKS = [
  *
  * @event Hooks#unmodifyCol
  * @since 0.23.0
- * @param {Number} col Column index.
+ * @param {Number} col Physical column index.
  */
 'unmodifyCol',
 
 /**
- * Fired when a row index is about to be de-modified by a callback function.
+ * Fired when a physical row index is about to be de-modified by a callback function.
  *
  * @event Hooks#unmodifyRow
  * @since 0.26.2
- * @param {Number} row Logical row index.
+ * @param {Number} row Physical row index.
  */
 'unmodifyRow',
 /**
@@ -3229,7 +3229,7 @@ var REGISTERED_HOOKS = [
  *
  * @event Hooks#modifyColHeader
  * @since 0.20.0
- * @param {Number} column Column header index.
+ * @param {Number} column Visual column header index.
  */
 'modifyColHeader',
 
@@ -3286,9 +3286,9 @@ var REGISTERED_HOOKS = [
 /**
  * Fired when a data was retrieved or modified.
  *
- * @event Hooks#modifyRowSourceData
+ * @event Hooks#modifyRowData
  * @since 0.28.0
- * @param {Number} row Row logical index.
+ * @param {Number} row Physical row index.
  */
 'modifyRowData',
 
@@ -3323,7 +3323,7 @@ var REGISTERED_HOOKS = [
  * Handsontable (useful for server-side sorting).
  *
  * @event Hooks#beforeColumnSort
- * @param {Number} column Sorted column index.
+ * @param {Number} column Sorted visual column index.
  * @param {Boolean} order Soring order where:
  *  * `true` means ascending order,
  *  * `false` means descending order,
@@ -3335,7 +3335,7 @@ var REGISTERED_HOOKS = [
  * Fired after sorting the column.
  *
  * @event Hooks#afterColumnSort
- * @param {Number} column Sorted column index.
+ * @param {Number} column Sorted visual column index.
  * @param {Boolean} order Soring order where:
  *  * `true` means ascending order
  *  * `false` means descending order
@@ -3352,8 +3352,8 @@ var REGISTERED_HOOKS = [
  * ```
  *
  * @event Hooks#modifyAutofillRange
- * @param {Array} startArea Array of coordinates of the starting point for the drag-down operation.
- * @param {Array} entireArea Array of coordinates of the entire area of the drag-down operation.
+ * @param {Array} startArea Array of visual coordinates of the starting point for the drag-down operation.
+ * @param {Array} entireArea Array of visual coordinates of the entire area of the drag-down operation.
  */
 'modifyAutofillRange',
 
@@ -3467,7 +3467,7 @@ var REGISTERED_HOOKS = [
  * @since 0.31.1
  * @param {Array} data An array of arrays which contains data to paste.
  * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
- *                       where changes will be inserted.
+ *                       that correspond to the previously selected area.
  * @returns {*} If returns `false` then pasting is cancelled.
  *
  * @example
@@ -3503,12 +3503,12 @@ var REGISTERED_HOOKS = [
  * @since 0.31.1
  * @param {Array} data An array of arrays which contains the pasted data.
  * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
- *                       where changes was inserted.
+ *                       that correspond to the previously selected area.
  */
 'afterPaste',
 
 /**
- * Fired before change order of the logical indexes.
+ * Fired before change order of the visual indexes.
  *
  * @event Hooks#beforeColumnMove
  * @param {Array} columns Array of visual column indexes to be moved.
@@ -3517,7 +3517,7 @@ var REGISTERED_HOOKS = [
 'beforeColumnMove',
 
 /**
- * Fired after change order of the logical indexes.
+ * Fired after change order of the visual indexes.
  *
  * @event Hooks#afterColumnMove
  * @param {Array} columns Array of visual column indexes that were moved.
@@ -3526,7 +3526,7 @@ var REGISTERED_HOOKS = [
 'afterColumnMove',
 
 /**
- * Fired before change order of the logical indexes.
+ * Fired before change order of the visual indexes.
  *
  * @event Hooks#beforeRowMove
  * @param {Array} rows Array of visual row indexes to be moved.
@@ -3535,7 +3535,7 @@ var REGISTERED_HOOKS = [
 'beforeRowMove',
 
 /**
- * Fired after change order of the logical indexes.
+ * Fired after change order of the visual indexes.
  *
  * @event Hooks#afterRowMove
  * @param {Array} rows Array of visual row indexes that were moved.
@@ -3547,7 +3547,7 @@ var REGISTERED_HOOKS = [
  * Fired before rendering the table with modified column sizes.
  *
  * @event Hooks#beforeColumnResize
- * @param {Number} currentColumn Index of the resized column.
+ * @param {Number} currentColumn Visual index of the resized column.
  * @param {Number} newSize Calculated new column width.
  * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
  * @returns {Number} Returns a new column size or `undefined`, if column size should be calculated automatically.
@@ -3558,7 +3558,7 @@ var REGISTERED_HOOKS = [
  * Fired after rendering the table with modified column sizes.
  *
  * @event Hooks#afterColumnResize
- * @param {Number} currentColumn Index of the resized column.
+ * @param {Number} currentColumn Visual index of the resized column.
  * @param {Number} newSize Calculated new column width.
  * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
  */
@@ -3568,7 +3568,7 @@ var REGISTERED_HOOKS = [
  * Fired before rendering the table with modified row sizes.
  *
  * @event Hooks#beforeRowResize
- * @param {Number} currentRow Index of the resized row.
+ * @param {Number} currentRow Visual index of the resized row.
  * @param {Number} newSize Calculated new row height.
  * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
  * @returns {Number} Returns the new row size or `undefined` if row size should be calculated automatically.
@@ -3579,7 +3579,7 @@ var REGISTERED_HOOKS = [
  * Fired after rendering the table with modified row sizes.
  *
  * @event Hooks#afterRowResize
- * @param {Number} currentRow Index of the resized row.
+ * @param {Number} currentRow Visual index of the resized row.
  * @param {Number} newSize Calculated new row height.
  * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
  */
@@ -3606,7 +3606,7 @@ var REGISTERED_HOOKS = [
  *
  * @event Hooks#beforeStretchingColumnWidth
  * @param {Number} stretchedWidth Calculated width.
- * @param {Number} column Column index.
+ * @param {Number} column Visual column index.
  * @returns {Number} Returns new width which will be applied to the column element.
  */
 'beforeStretchingColumnWidth',
@@ -3616,7 +3616,7 @@ var REGISTERED_HOOKS = [
  *
  * @pro
  * @event Hooks#beforeFilter
- * @param {Array} formulasStack An array of objects with added formulas.
+ * @param {Array} conditionsStack An array of objects with added formulas.
  * @returns {Boolean} If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).
  */
 'beforeFilter',
@@ -3626,7 +3626,7 @@ var REGISTERED_HOOKS = [
  *
  * @pro
  * @event Hooks#afterFilter
- * @param {Array} formulasStack An array of objects with added formulas.
+ * @param {Array} conditionsStack An array of objects with added formulas.
  */
 'afterFilter',
 
@@ -3635,7 +3635,7 @@ var REGISTERED_HOOKS = [
  *
  * @event Hooks#modifyColumnHeaderHeight
  * @since 0.25.0
- * @param {Number} col Column index.
+ * @param {Number} col Visual column index.
  */
 'modifyColumnHeaderHeight',
 
@@ -3728,19 +3728,11 @@ var REGISTERED_HOOKS = [
  * Fired after the end of the selection is being modified. (e.g. moving the selection with the arrow keys).
  *
  * @event Hooks#afterModifyTransformEnd
- * @param {CellCoords} coords Coords of the freshly selected cell.
+ * @param {CellCoords} coords Visual coords of the freshly selected cell.
  * @param {Number} rowTransformDir `-1` if trying to select a cell with a negative row index. `0` otherwise.
  * @param {Number} colTransformDir `-1` if trying to select a cell with a negative column index. `0` otherwise.
  */
 'afterModifyTransformEnd',
-
-/**
- * Fired before rendering a cell value.
- *
- * @event Hooks#beforeValueRender
- * @param {Mixed} value The rendered value.
- */
-'beforeValueRender',
 
 /**
  * Fired inside the `viewportRowCalculatorOverride` method. Allows modifying the row calculator parameters.
@@ -3786,7 +3778,7 @@ var REGISTERED_HOOKS = [
  *
  * @pro
  * @event Hooks#afterTrimRow
- * @param {Array} rows Indexes of trimmed rows.
+ * @param {Array} rows Physical indexes of trimmed rows.
  */
 'afterTrimRow',
 
@@ -3795,7 +3787,7 @@ var REGISTERED_HOOKS = [
  *
  * @pro
  * @event Hooks#afterUntrimRow
- * @param {Array} rows Indexes of untrimmed rows.
+ * @param {Array} rows Physical indexes of untrimmed rows.
  */
 'afterUntrimRow',
 
@@ -3822,7 +3814,7 @@ var REGISTERED_HOOKS = [
  *
  * @pro
  * @event Hooks#hiddenRow
- * @param {Number} row The row index in question.
+ * @param {Number} row The visual row index in question.
  */
 'hiddenRow',
 
@@ -3831,7 +3823,7 @@ var REGISTERED_HOOKS = [
  *
  * @pro
  * @event Hooks#hiddenColumn
- * @param {Number} column The column index in question.
+ * @param {Number} column The visual column index in question.
  */
 'hiddenColumn',
 
@@ -4323,35 +4315,35 @@ exports.default = Hooks;
 exports.__esModule = true;
 exports.getRegisteredRenderers = exports.getRegisteredRendererNames = exports.hasRenderer = exports.getRenderer = exports.registerRenderer = undefined;
 
-var _staticRegister2 = __webpack_require__(53);
+var _staticRegister2 = __webpack_require__(52);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _cellDecorator = __webpack_require__(360);
+var _cellDecorator = __webpack_require__(377);
 
 var _cellDecorator2 = _interopRequireDefault(_cellDecorator);
 
-var _autocompleteRenderer = __webpack_require__(361);
+var _autocompleteRenderer = __webpack_require__(378);
 
 var _autocompleteRenderer2 = _interopRequireDefault(_autocompleteRenderer);
 
-var _checkboxRenderer = __webpack_require__(362);
+var _checkboxRenderer = __webpack_require__(379);
 
 var _checkboxRenderer2 = _interopRequireDefault(_checkboxRenderer);
 
-var _htmlRenderer = __webpack_require__(363);
+var _htmlRenderer = __webpack_require__(380);
 
 var _htmlRenderer2 = _interopRequireDefault(_htmlRenderer);
 
-var _numericRenderer = __webpack_require__(364);
+var _numericRenderer = __webpack_require__(381);
 
 var _numericRenderer2 = _interopRequireDefault(_numericRenderer);
 
-var _passwordRenderer = __webpack_require__(365);
+var _passwordRenderer = __webpack_require__(382);
 
 var _passwordRenderer2 = _interopRequireDefault(_passwordRenderer);
 
-var _textRenderer = __webpack_require__(366);
+var _textRenderer = __webpack_require__(383);
 
 var _textRenderer2 = _interopRequireDefault(_textRenderer);
 
@@ -4399,7 +4391,7 @@ exports.getRegisteredRenderers = getValues;
 /* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var store      = __webpack_require__(83)('wks')
+var store      = __webpack_require__(84)('wks')
   , uid        = __webpack_require__(50)
   , Symbol     = __webpack_require__(13).Symbol
   , USE_SYMBOL = typeof Symbol == 'function';
@@ -4421,99 +4413,99 @@ $exports.store = store;
 exports.__esModule = true;
 exports.Viewport = exports.TableRenderer = exports.Table = exports.Settings = exports.Selection = exports.Scroll = exports.Overlays = exports.Event = exports.Core = exports.default = exports.Border = exports.TopLeftCornerOverlay = exports.TopOverlay = exports.LeftOverlay = exports.DebugOverlay = exports.RowFilter = exports.ColumnFilter = exports.CellRange = exports.CellCoords = exports.ViewportRowsCalculator = exports.ViewportColumnsCalculator = undefined;
 
-__webpack_require__(96);
+__webpack_require__(97);
 
-__webpack_require__(113);
-
-__webpack_require__(122);
+__webpack_require__(114);
 
 __webpack_require__(123);
 
-__webpack_require__(107);
+__webpack_require__(124);
 
-__webpack_require__(121);
+__webpack_require__(108);
 
-__webpack_require__(104);
+__webpack_require__(122);
 
 __webpack_require__(105);
 
 __webpack_require__(106);
 
-__webpack_require__(95);
+__webpack_require__(107);
 
-__webpack_require__(118);
-
-__webpack_require__(116);
-
-__webpack_require__(114);
+__webpack_require__(96);
 
 __webpack_require__(119);
 
-__webpack_require__(120);
+__webpack_require__(117);
 
 __webpack_require__(115);
 
-__webpack_require__(117);
+__webpack_require__(120);
 
-__webpack_require__(108);
+__webpack_require__(121);
+
+__webpack_require__(116);
+
+__webpack_require__(118);
 
 __webpack_require__(109);
 
 __webpack_require__(110);
 
-__webpack_require__(112);
-
 __webpack_require__(111);
 
-__webpack_require__(93);
+__webpack_require__(113);
+
+__webpack_require__(112);
 
 __webpack_require__(94);
 
-__webpack_require__(89);
+__webpack_require__(95);
+
+__webpack_require__(90);
+
+__webpack_require__(93);
 
 __webpack_require__(92);
 
 __webpack_require__(91);
 
-__webpack_require__(90);
-
-__webpack_require__(69);
-
-__webpack_require__(98);
+__webpack_require__(68);
 
 __webpack_require__(99);
 
-__webpack_require__(101);
-
 __webpack_require__(100);
-
-__webpack_require__(97);
-
-__webpack_require__(103);
 
 __webpack_require__(102);
 
-__webpack_require__(124);
+__webpack_require__(101);
 
-__webpack_require__(127);
+__webpack_require__(98);
+
+__webpack_require__(104);
+
+__webpack_require__(103);
 
 __webpack_require__(125);
 
-__webpack_require__(126);
-
-__webpack_require__(129);
-
 __webpack_require__(128);
 
-__webpack_require__(131);
+__webpack_require__(126);
+
+__webpack_require__(127);
 
 __webpack_require__(130);
 
-var _viewportColumns = __webpack_require__(235);
+__webpack_require__(129);
+
+__webpack_require__(132);
+
+__webpack_require__(131);
+
+var _viewportColumns = __webpack_require__(251);
 
 var _viewportColumns2 = _interopRequireDefault(_viewportColumns);
 
-var _viewportRows = __webpack_require__(236);
+var _viewportRows = __webpack_require__(252);
 
 var _viewportRows2 = _interopRequireDefault(_viewportRows);
 
@@ -4521,71 +4513,71 @@ var _coords = __webpack_require__(43);
 
 var _coords2 = _interopRequireDefault(_coords);
 
-var _range = __webpack_require__(70);
+var _range = __webpack_require__(69);
 
 var _range2 = _interopRequireDefault(_range);
 
-var _column = __webpack_require__(239);
+var _column = __webpack_require__(255);
 
 var _column2 = _interopRequireDefault(_column);
 
-var _row = __webpack_require__(240);
+var _row = __webpack_require__(256);
 
 var _row2 = _interopRequireDefault(_row);
 
-var _debug = __webpack_require__(285);
+var _debug = __webpack_require__(299);
 
 var _debug2 = _interopRequireDefault(_debug);
 
-var _left = __webpack_require__(286);
+var _left = __webpack_require__(300);
 
 var _left2 = _interopRequireDefault(_left);
 
-var _top = __webpack_require__(287);
+var _top = __webpack_require__(301);
 
 var _top2 = _interopRequireDefault(_top);
 
-var _topLeftCorner = __webpack_require__(288);
+var _topLeftCorner = __webpack_require__(302);
 
 var _topLeftCorner2 = _interopRequireDefault(_topLeftCorner);
 
-var _border = __webpack_require__(234);
+var _border = __webpack_require__(250);
 
 var _border2 = _interopRequireDefault(_border);
 
-var _core = __webpack_require__(237);
+var _core = __webpack_require__(253);
 
 var _core2 = _interopRequireDefault(_core);
 
-var _event = __webpack_require__(238);
+var _event = __webpack_require__(254);
 
 var _event2 = _interopRequireDefault(_event);
 
-var _overlays = __webpack_require__(241);
+var _overlays = __webpack_require__(257);
 
 var _overlays2 = _interopRequireDefault(_overlays);
 
-var _scroll = __webpack_require__(242);
+var _scroll = __webpack_require__(258);
 
 var _scroll2 = _interopRequireDefault(_scroll);
 
-var _selection = __webpack_require__(289);
+var _selection = __webpack_require__(303);
 
 var _selection2 = _interopRequireDefault(_selection);
 
-var _settings = __webpack_require__(243);
+var _settings = __webpack_require__(259);
 
 var _settings2 = _interopRequireDefault(_settings);
 
-var _table = __webpack_require__(244);
+var _table = __webpack_require__(260);
 
 var _table2 = _interopRequireDefault(_table);
 
-var _tableRenderer = __webpack_require__(245);
+var _tableRenderer = __webpack_require__(261);
 
 var _tableRenderer2 = _interopRequireDefault(_tableRenderer);
 
-var _viewport = __webpack_require__(246);
+var _viewport = __webpack_require__(262);
 
 var _viewport2 = _interopRequireDefault(_viewport);
 
@@ -4624,11 +4616,11 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _recordTranslator = __webpack_require__(253);
+var _recordTranslator = __webpack_require__(268);
 
 var _plugins = __webpack_require__(5);
 
@@ -4892,7 +4884,7 @@ exports.getRegisteredEditors = exports.getRegisteredEditorNames = exports.hasEdi
 exports.RegisteredEditor = RegisteredEditor;
 exports._getEditorInstance = _getEditorInstance;
 
-var _staticRegister2 = __webpack_require__(53);
+var _staticRegister2 = __webpack_require__(52);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
@@ -4904,39 +4896,39 @@ var _baseEditor = __webpack_require__(37);
 
 var _baseEditor2 = _interopRequireDefault(_baseEditor);
 
-var _autocompleteEditor = __webpack_require__(247);
+var _autocompleteEditor = __webpack_require__(263);
 
 var _autocompleteEditor2 = _interopRequireDefault(_autocompleteEditor);
 
-var _checkboxEditor = __webpack_require__(302);
+var _checkboxEditor = __webpack_require__(316);
 
 var _checkboxEditor2 = _interopRequireDefault(_checkboxEditor);
 
-var _dateEditor = __webpack_require__(303);
+var _dateEditor = __webpack_require__(317);
 
 var _dateEditor2 = _interopRequireDefault(_dateEditor);
 
-var _dropdownEditor = __webpack_require__(304);
+var _dropdownEditor = __webpack_require__(318);
 
 var _dropdownEditor2 = _interopRequireDefault(_dropdownEditor);
 
-var _handsontableEditor = __webpack_require__(248);
+var _handsontableEditor = __webpack_require__(264);
 
 var _handsontableEditor2 = _interopRequireDefault(_handsontableEditor);
 
-var _mobileTextEditor = __webpack_require__(305);
+var _mobileTextEditor = __webpack_require__(319);
 
 var _mobileTextEditor2 = _interopRequireDefault(_mobileTextEditor);
 
-var _numericEditor = __webpack_require__(306);
+var _numericEditor = __webpack_require__(320);
 
 var _numericEditor2 = _interopRequireDefault(_numericEditor);
 
-var _passwordEditor = __webpack_require__(307);
+var _passwordEditor = __webpack_require__(321);
 
 var _passwordEditor2 = _interopRequireDefault(_passwordEditor);
 
-var _selectEditor = __webpack_require__(308);
+var _selectEditor = __webpack_require__(322);
 
 var _selectEditor2 = _interopRequireDefault(_selectEditor);
 
@@ -5076,7 +5068,7 @@ exports.isMetaKey = isMetaKey;
 exports.isCtrlKey = isCtrlKey;
 exports.isKey = isKey;
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var KEY_CODES = exports.KEY_CODES = {
   MOUSE_LEFT: 1,
@@ -5200,11 +5192,11 @@ exports.markLabelAsSelected = markLabelAsSelected;
 exports.isItemHidden = isItemHidden;
 exports.filterSeparators = filterSeparators;
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _element = __webpack_require__(0);
 
-var _separator = __webpack_require__(71);
+var _separator = __webpack_require__(72);
 
 function normalizeSelection(selRange) {
   return {
@@ -5397,8 +5389,8 @@ module.exports = function(it){
 /***/ (function(module, exports, __webpack_require__) {
 
 var anObject       = __webpack_require__(18)
-  , IE8_DOM_DEFINE = __webpack_require__(260)
-  , toPrimitive    = __webpack_require__(86)
+  , IE8_DOM_DEFINE = __webpack_require__(275)
+  , toPrimitive    = __webpack_require__(87)
   , dP             = Object.defineProperty;
 
 exports.f = __webpack_require__(21) ? Object.defineProperty : function defineProperty(O, P, Attributes){
@@ -5522,7 +5514,7 @@ module.exports = function(it, key){
 /***/ (function(module, exports, __webpack_require__) {
 
 // to indexed object, toObject with fallback for non-array-like ES3 strings
-var IObject = __webpack_require__(77)
+var IObject = __webpack_require__(78)
   , defined = __webpack_require__(30);
 module.exports = function(it){
   return IObject(defined(it));
@@ -5533,7 +5525,7 @@ module.exports = function(it){
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.1.15 ToLength
-var toInteger = __webpack_require__(63)
+var toInteger = __webpack_require__(62)
   , min       = Math.min;
 module.exports = function(it){
   return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
@@ -5596,23 +5588,23 @@ function isMobileBrowser(userAgent) {
 exports.__esModule = true;
 exports.getRegisteredValidators = exports.getRegisteredValidatorNames = exports.hasValidator = exports.getValidator = exports.registerValidator = undefined;
 
-var _staticRegister2 = __webpack_require__(53);
+var _staticRegister2 = __webpack_require__(52);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _autocompleteValidator = __webpack_require__(371);
+var _autocompleteValidator = __webpack_require__(388);
 
 var _autocompleteValidator2 = _interopRequireDefault(_autocompleteValidator);
 
-var _dateValidator = __webpack_require__(372);
+var _dateValidator = __webpack_require__(389);
 
 var _dateValidator2 = _interopRequireDefault(_dateValidator);
 
-var _numericValidator = __webpack_require__(373);
+var _numericValidator = __webpack_require__(390);
 
 var _numericValidator2 = _interopRequireDefault(_numericValidator);
 
-var _timeValidator = __webpack_require__(374);
+var _timeValidator = __webpack_require__(391);
 
 var _timeValidator2 = _interopRequireDefault(_timeValidator);
 
@@ -5779,15 +5771,15 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _eventManager = __webpack_require__(4);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _core = __webpack_require__(237);
+var _core = __webpack_require__(253);
 
 var _core2 = _interopRequireDefault(_core);
 
@@ -6127,7 +6119,7 @@ exports.default = Overlay;
 /***/ (function(module, exports, __webpack_require__) {
 
 // optional / simple context binding
-var aFunction = __webpack_require__(72);
+var aFunction = __webpack_require__(73);
 module.exports = function(fn, that, length){
   aFunction(fn);
   if(that === undefined)return fn;
@@ -6384,7 +6376,7 @@ exports.partial = partial;
 exports.curry = curry;
 exports.curryRight = curryRight;
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 /**
  * Checks if given variable is function.
@@ -6656,7 +6648,7 @@ function curryRight(func) {
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
-//! version : 2.13.0
+//! version : 2.18.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -6665,2411 +6657,3369 @@ function curryRight(func) {
      true ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
     global.moment = factory()
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
-    var hookCallback;
+var hookCallback;
 
-    function utils_hooks__hooks () {
-        return hookCallback.apply(null, arguments);
+function hooks () {
+    return hookCallback.apply(null, arguments);
+}
+
+// This is done to register the method called with moment()
+// without creating circular dependencies.
+function setHookCallback (callback) {
+    hookCallback = callback;
+}
+
+function isArray(input) {
+    return input instanceof Array || Object.prototype.toString.call(input) === '[object Array]';
+}
+
+function isObject(input) {
+    // IE8 will treat undefined and null as object if it wasn't for
+    // input != null
+    return input != null && Object.prototype.toString.call(input) === '[object Object]';
+}
+
+function isObjectEmpty(obj) {
+    var k;
+    for (k in obj) {
+        // even if its not own property I'd still call it non-empty
+        return false;
     }
+    return true;
+}
 
-    // This is done to register the method called with moment()
-    // without creating circular dependencies.
-    function setHookCallback (callback) {
-        hookCallback = callback;
+function isUndefined(input) {
+    return input === void 0;
+}
+
+function isNumber(input) {
+    return typeof input === 'number' || Object.prototype.toString.call(input) === '[object Number]';
+}
+
+function isDate(input) {
+    return input instanceof Date || Object.prototype.toString.call(input) === '[object Date]';
+}
+
+function map(arr, fn) {
+    var res = [], i;
+    for (i = 0; i < arr.length; ++i) {
+        res.push(fn(arr[i], i));
     }
+    return res;
+}
 
-    function isArray(input) {
-        return input instanceof Array || Object.prototype.toString.call(input) === '[object Array]';
-    }
+function hasOwnProp(a, b) {
+    return Object.prototype.hasOwnProperty.call(a, b);
+}
 
-    function isDate(input) {
-        return input instanceof Date || Object.prototype.toString.call(input) === '[object Date]';
-    }
-
-    function map(arr, fn) {
-        var res = [], i;
-        for (i = 0; i < arr.length; ++i) {
-            res.push(fn(arr[i], i));
+function extend(a, b) {
+    for (var i in b) {
+        if (hasOwnProp(b, i)) {
+            a[i] = b[i];
         }
-        return res;
     }
 
-    function hasOwnProp(a, b) {
-        return Object.prototype.hasOwnProperty.call(a, b);
+    if (hasOwnProp(b, 'toString')) {
+        a.toString = b.toString;
     }
 
-    function extend(a, b) {
-        for (var i in b) {
-            if (hasOwnProp(b, i)) {
-                a[i] = b[i];
+    if (hasOwnProp(b, 'valueOf')) {
+        a.valueOf = b.valueOf;
+    }
+
+    return a;
+}
+
+function createUTC (input, format, locale, strict) {
+    return createLocalOrUTC(input, format, locale, strict, true).utc();
+}
+
+function defaultParsingFlags() {
+    // We need to deep clone this object.
+    return {
+        empty           : false,
+        unusedTokens    : [],
+        unusedInput     : [],
+        overflow        : -2,
+        charsLeftOver   : 0,
+        nullInput       : false,
+        invalidMonth    : null,
+        invalidFormat   : false,
+        userInvalidated : false,
+        iso             : false,
+        parsedDateParts : [],
+        meridiem        : null,
+        rfc2822         : false,
+        weekdayMismatch : false
+    };
+}
+
+function getParsingFlags(m) {
+    if (m._pf == null) {
+        m._pf = defaultParsingFlags();
+    }
+    return m._pf;
+}
+
+var some;
+if (Array.prototype.some) {
+    some = Array.prototype.some;
+} else {
+    some = function (fun) {
+        var t = Object(this);
+        var len = t.length >>> 0;
+
+        for (var i = 0; i < len; i++) {
+            if (i in t && fun.call(this, t[i], i, t)) {
+                return true;
             }
         }
 
-        if (hasOwnProp(b, 'toString')) {
-            a.toString = b.toString;
+        return false;
+    };
+}
+
+var some$1 = some;
+
+function isValid(m) {
+    if (m._isValid == null) {
+        var flags = getParsingFlags(m);
+        var parsedParts = some$1.call(flags.parsedDateParts, function (i) {
+            return i != null;
+        });
+        var isNowValid = !isNaN(m._d.getTime()) &&
+            flags.overflow < 0 &&
+            !flags.empty &&
+            !flags.invalidMonth &&
+            !flags.invalidWeekday &&
+            !flags.nullInput &&
+            !flags.invalidFormat &&
+            !flags.userInvalidated &&
+            (!flags.meridiem || (flags.meridiem && parsedParts));
+
+        if (m._strict) {
+            isNowValid = isNowValid &&
+                flags.charsLeftOver === 0 &&
+                flags.unusedTokens.length === 0 &&
+                flags.bigHour === undefined;
         }
 
-        if (hasOwnProp(b, 'valueOf')) {
-            a.valueOf = b.valueOf;
-        }
-
-        return a;
-    }
-
-    function create_utc__createUTC (input, format, locale, strict) {
-        return createLocalOrUTC(input, format, locale, strict, true).utc();
-    }
-
-    function defaultParsingFlags() {
-        // We need to deep clone this object.
-        return {
-            empty           : false,
-            unusedTokens    : [],
-            unusedInput     : [],
-            overflow        : -2,
-            charsLeftOver   : 0,
-            nullInput       : false,
-            invalidMonth    : null,
-            invalidFormat   : false,
-            userInvalidated : false,
-            iso             : false,
-            parsedDateParts : [],
-            meridiem        : null
-        };
-    }
-
-    function getParsingFlags(m) {
-        if (m._pf == null) {
-            m._pf = defaultParsingFlags();
-        }
-        return m._pf;
-    }
-
-    var some;
-    if (Array.prototype.some) {
-        some = Array.prototype.some;
-    } else {
-        some = function (fun) {
-            var t = Object(this);
-            var len = t.length >>> 0;
-
-            for (var i = 0; i < len; i++) {
-                if (i in t && fun.call(this, t[i], i, t)) {
-                    return true;
-                }
-            }
-
-            return false;
-        };
-    }
-
-    function valid__isValid(m) {
-        if (m._isValid == null) {
-            var flags = getParsingFlags(m);
-            var parsedParts = some.call(flags.parsedDateParts, function (i) {
-                return i != null;
-            });
-            m._isValid = !isNaN(m._d.getTime()) &&
-                flags.overflow < 0 &&
-                !flags.empty &&
-                !flags.invalidMonth &&
-                !flags.invalidWeekday &&
-                !flags.nullInput &&
-                !flags.invalidFormat &&
-                !flags.userInvalidated &&
-                (!flags.meridiem || (flags.meridiem && parsedParts));
-
-            if (m._strict) {
-                m._isValid = m._isValid &&
-                    flags.charsLeftOver === 0 &&
-                    flags.unusedTokens.length === 0 &&
-                    flags.bigHour === undefined;
-            }
-        }
-        return m._isValid;
-    }
-
-    function valid__createInvalid (flags) {
-        var m = create_utc__createUTC(NaN);
-        if (flags != null) {
-            extend(getParsingFlags(m), flags);
+        if (Object.isFrozen == null || !Object.isFrozen(m)) {
+            m._isValid = isNowValid;
         }
         else {
-            getParsingFlags(m).userInvalidated = true;
+            return isNowValid;
         }
+    }
+    return m._isValid;
+}
 
-        return m;
+function createInvalid (flags) {
+    var m = createUTC(NaN);
+    if (flags != null) {
+        extend(getParsingFlags(m), flags);
+    }
+    else {
+        getParsingFlags(m).userInvalidated = true;
     }
 
-    function isUndefined(input) {
-        return input === void 0;
+    return m;
+}
+
+// Plugins that add properties should also add the key here (null value),
+// so we can properly clone ourselves.
+var momentProperties = hooks.momentProperties = [];
+
+function copyConfig(to, from) {
+    var i, prop, val;
+
+    if (!isUndefined(from._isAMomentObject)) {
+        to._isAMomentObject = from._isAMomentObject;
+    }
+    if (!isUndefined(from._i)) {
+        to._i = from._i;
+    }
+    if (!isUndefined(from._f)) {
+        to._f = from._f;
+    }
+    if (!isUndefined(from._l)) {
+        to._l = from._l;
+    }
+    if (!isUndefined(from._strict)) {
+        to._strict = from._strict;
+    }
+    if (!isUndefined(from._tzm)) {
+        to._tzm = from._tzm;
+    }
+    if (!isUndefined(from._isUTC)) {
+        to._isUTC = from._isUTC;
+    }
+    if (!isUndefined(from._offset)) {
+        to._offset = from._offset;
+    }
+    if (!isUndefined(from._pf)) {
+        to._pf = getParsingFlags(from);
+    }
+    if (!isUndefined(from._locale)) {
+        to._locale = from._locale;
     }
 
-    // Plugins that add properties should also add the key here (null value),
-    // so we can properly clone ourselves.
-    var momentProperties = utils_hooks__hooks.momentProperties = [];
-
-    function copyConfig(to, from) {
-        var i, prop, val;
-
-        if (!isUndefined(from._isAMomentObject)) {
-            to._isAMomentObject = from._isAMomentObject;
-        }
-        if (!isUndefined(from._i)) {
-            to._i = from._i;
-        }
-        if (!isUndefined(from._f)) {
-            to._f = from._f;
-        }
-        if (!isUndefined(from._l)) {
-            to._l = from._l;
-        }
-        if (!isUndefined(from._strict)) {
-            to._strict = from._strict;
-        }
-        if (!isUndefined(from._tzm)) {
-            to._tzm = from._tzm;
-        }
-        if (!isUndefined(from._isUTC)) {
-            to._isUTC = from._isUTC;
-        }
-        if (!isUndefined(from._offset)) {
-            to._offset = from._offset;
-        }
-        if (!isUndefined(from._pf)) {
-            to._pf = getParsingFlags(from);
-        }
-        if (!isUndefined(from._locale)) {
-            to._locale = from._locale;
-        }
-
-        if (momentProperties.length > 0) {
-            for (i in momentProperties) {
-                prop = momentProperties[i];
-                val = from[prop];
-                if (!isUndefined(val)) {
-                    to[prop] = val;
-                }
+    if (momentProperties.length > 0) {
+        for (i = 0; i < momentProperties.length; i++) {
+            prop = momentProperties[i];
+            val = from[prop];
+            if (!isUndefined(val)) {
+                to[prop] = val;
             }
         }
-
-        return to;
     }
 
-    var updateInProgress = false;
+    return to;
+}
 
-    // Moment prototype object
-    function Moment(config) {
-        copyConfig(this, config);
-        this._d = new Date(config._d != null ? config._d.getTime() : NaN);
-        // Prevent infinite loop in case updateOffset creates new moment
-        // objects.
-        if (updateInProgress === false) {
-            updateInProgress = true;
-            utils_hooks__hooks.updateOffset(this);
-            updateInProgress = false;
+var updateInProgress = false;
+
+// Moment prototype object
+function Moment(config) {
+    copyConfig(this, config);
+    this._d = new Date(config._d != null ? config._d.getTime() : NaN);
+    if (!this.isValid()) {
+        this._d = new Date(NaN);
+    }
+    // Prevent infinite loop in case updateOffset creates new moment
+    // objects.
+    if (updateInProgress === false) {
+        updateInProgress = true;
+        hooks.updateOffset(this);
+        updateInProgress = false;
+    }
+}
+
+function isMoment (obj) {
+    return obj instanceof Moment || (obj != null && obj._isAMomentObject != null);
+}
+
+function absFloor (number) {
+    if (number < 0) {
+        // -0 -> 0
+        return Math.ceil(number) || 0;
+    } else {
+        return Math.floor(number);
+    }
+}
+
+function toInt(argumentForCoercion) {
+    var coercedNumber = +argumentForCoercion,
+        value = 0;
+
+    if (coercedNumber !== 0 && isFinite(coercedNumber)) {
+        value = absFloor(coercedNumber);
+    }
+
+    return value;
+}
+
+// compare two arrays, return the number of differences
+function compareArrays(array1, array2, dontConvert) {
+    var len = Math.min(array1.length, array2.length),
+        lengthDiff = Math.abs(array1.length - array2.length),
+        diffs = 0,
+        i;
+    for (i = 0; i < len; i++) {
+        if ((dontConvert && array1[i] !== array2[i]) ||
+            (!dontConvert && toInt(array1[i]) !== toInt(array2[i]))) {
+            diffs++;
         }
     }
+    return diffs + lengthDiff;
+}
 
-    function isMoment (obj) {
-        return obj instanceof Moment || (obj != null && obj._isAMomentObject != null);
+function warn(msg) {
+    if (hooks.suppressDeprecationWarnings === false &&
+            (typeof console !==  'undefined') && console.warn) {
+        console.warn('Deprecation warning: ' + msg);
     }
+}
 
-    function absFloor (number) {
-        if (number < 0) {
-            return Math.ceil(number);
-        } else {
-            return Math.floor(number);
+function deprecate(msg, fn) {
+    var firstTime = true;
+
+    return extend(function () {
+        if (hooks.deprecationHandler != null) {
+            hooks.deprecationHandler(null, msg);
         }
-    }
-
-    function toInt(argumentForCoercion) {
-        var coercedNumber = +argumentForCoercion,
-            value = 0;
-
-        if (coercedNumber !== 0 && isFinite(coercedNumber)) {
-            value = absFloor(coercedNumber);
-        }
-
-        return value;
-    }
-
-    // compare two arrays, return the number of differences
-    function compareArrays(array1, array2, dontConvert) {
-        var len = Math.min(array1.length, array2.length),
-            lengthDiff = Math.abs(array1.length - array2.length),
-            diffs = 0,
-            i;
-        for (i = 0; i < len; i++) {
-            if ((dontConvert && array1[i] !== array2[i]) ||
-                (!dontConvert && toInt(array1[i]) !== toInt(array2[i]))) {
-                diffs++;
-            }
-        }
-        return diffs + lengthDiff;
-    }
-
-    function warn(msg) {
-        if (utils_hooks__hooks.suppressDeprecationWarnings === false &&
-                (typeof console !==  'undefined') && console.warn) {
-            console.warn('Deprecation warning: ' + msg);
-        }
-    }
-
-    function deprecate(msg, fn) {
-        var firstTime = true;
-
-        return extend(function () {
-            if (utils_hooks__hooks.deprecationHandler != null) {
-                utils_hooks__hooks.deprecationHandler(null, msg);
-            }
-            if (firstTime) {
-                warn(msg + '\nArguments: ' + Array.prototype.slice.call(arguments).join(', ') + '\n' + (new Error()).stack);
-                firstTime = false;
-            }
-            return fn.apply(this, arguments);
-        }, fn);
-    }
-
-    var deprecations = {};
-
-    function deprecateSimple(name, msg) {
-        if (utils_hooks__hooks.deprecationHandler != null) {
-            utils_hooks__hooks.deprecationHandler(name, msg);
-        }
-        if (!deprecations[name]) {
-            warn(msg);
-            deprecations[name] = true;
-        }
-    }
-
-    utils_hooks__hooks.suppressDeprecationWarnings = false;
-    utils_hooks__hooks.deprecationHandler = null;
-
-    function isFunction(input) {
-        return input instanceof Function || Object.prototype.toString.call(input) === '[object Function]';
-    }
-
-    function isObject(input) {
-        return Object.prototype.toString.call(input) === '[object Object]';
-    }
-
-    function locale_set__set (config) {
-        var prop, i;
-        for (i in config) {
-            prop = config[i];
-            if (isFunction(prop)) {
-                this[i] = prop;
-            } else {
-                this['_' + i] = prop;
-            }
-        }
-        this._config = config;
-        // Lenient ordinal parsing accepts just a number in addition to
-        // number + (possibly) stuff coming from _ordinalParseLenient.
-        this._ordinalParseLenient = new RegExp(this._ordinalParse.source + '|' + (/\d{1,2}/).source);
-    }
-
-    function mergeConfigs(parentConfig, childConfig) {
-        var res = extend({}, parentConfig), prop;
-        for (prop in childConfig) {
-            if (hasOwnProp(childConfig, prop)) {
-                if (isObject(parentConfig[prop]) && isObject(childConfig[prop])) {
-                    res[prop] = {};
-                    extend(res[prop], parentConfig[prop]);
-                    extend(res[prop], childConfig[prop]);
-                } else if (childConfig[prop] != null) {
-                    res[prop] = childConfig[prop];
+        if (firstTime) {
+            var args = [];
+            var arg;
+            for (var i = 0; i < arguments.length; i++) {
+                arg = '';
+                if (typeof arguments[i] === 'object') {
+                    arg += '\n[' + i + '] ';
+                    for (var key in arguments[0]) {
+                        arg += key + ': ' + arguments[0][key] + ', ';
+                    }
+                    arg = arg.slice(0, -2); // Remove trailing comma and space
                 } else {
-                    delete res[prop];
+                    arg = arguments[i];
                 }
+                args.push(arg);
+            }
+            warn(msg + '\nArguments: ' + Array.prototype.slice.call(args).join('') + '\n' + (new Error()).stack);
+            firstTime = false;
+        }
+        return fn.apply(this, arguments);
+    }, fn);
+}
+
+var deprecations = {};
+
+function deprecateSimple(name, msg) {
+    if (hooks.deprecationHandler != null) {
+        hooks.deprecationHandler(name, msg);
+    }
+    if (!deprecations[name]) {
+        warn(msg);
+        deprecations[name] = true;
+    }
+}
+
+hooks.suppressDeprecationWarnings = false;
+hooks.deprecationHandler = null;
+
+function isFunction(input) {
+    return input instanceof Function || Object.prototype.toString.call(input) === '[object Function]';
+}
+
+function set (config) {
+    var prop, i;
+    for (i in config) {
+        prop = config[i];
+        if (isFunction(prop)) {
+            this[i] = prop;
+        } else {
+            this['_' + i] = prop;
+        }
+    }
+    this._config = config;
+    // Lenient ordinal parsing accepts just a number in addition to
+    // number + (possibly) stuff coming from _dayOfMonthOrdinalParse.
+    // TODO: Remove "ordinalParse" fallback in next major release.
+    this._dayOfMonthOrdinalParseLenient = new RegExp(
+        (this._dayOfMonthOrdinalParse.source || this._ordinalParse.source) +
+            '|' + (/\d{1,2}/).source);
+}
+
+function mergeConfigs(parentConfig, childConfig) {
+    var res = extend({}, parentConfig), prop;
+    for (prop in childConfig) {
+        if (hasOwnProp(childConfig, prop)) {
+            if (isObject(parentConfig[prop]) && isObject(childConfig[prop])) {
+                res[prop] = {};
+                extend(res[prop], parentConfig[prop]);
+                extend(res[prop], childConfig[prop]);
+            } else if (childConfig[prop] != null) {
+                res[prop] = childConfig[prop];
+            } else {
+                delete res[prop];
+            }
+        }
+    }
+    for (prop in parentConfig) {
+        if (hasOwnProp(parentConfig, prop) &&
+                !hasOwnProp(childConfig, prop) &&
+                isObject(parentConfig[prop])) {
+            // make sure changes to properties don't modify parent config
+            res[prop] = extend({}, res[prop]);
+        }
+    }
+    return res;
+}
+
+function Locale(config) {
+    if (config != null) {
+        this.set(config);
+    }
+}
+
+var keys;
+
+if (Object.keys) {
+    keys = Object.keys;
+} else {
+    keys = function (obj) {
+        var i, res = [];
+        for (i in obj) {
+            if (hasOwnProp(obj, i)) {
+                res.push(i);
             }
         }
         return res;
-    }
+    };
+}
 
-    function Locale(config) {
-        if (config != null) {
-            this.set(config);
-        }
-    }
+var keys$1 = keys;
 
-    var keys;
+var defaultCalendar = {
+    sameDay : '[Today at] LT',
+    nextDay : '[Tomorrow at] LT',
+    nextWeek : 'dddd [at] LT',
+    lastDay : '[Yesterday at] LT',
+    lastWeek : '[Last] dddd [at] LT',
+    sameElse : 'L'
+};
 
-    if (Object.keys) {
-        keys = Object.keys;
-    } else {
-        keys = function (obj) {
-            var i, res = [];
-            for (i in obj) {
-                if (hasOwnProp(obj, i)) {
-                    res.push(i);
-                }
-            }
-            return res;
-        };
-    }
+function calendar (key, mom, now) {
+    var output = this._calendar[key] || this._calendar['sameElse'];
+    return isFunction(output) ? output.call(mom, now) : output;
+}
 
-    // internal storage for locale config files
-    var locales = {};
-    var globalLocale;
+var defaultLongDateFormat = {
+    LTS  : 'h:mm:ss A',
+    LT   : 'h:mm A',
+    L    : 'MM/DD/YYYY',
+    LL   : 'MMMM D, YYYY',
+    LLL  : 'MMMM D, YYYY h:mm A',
+    LLLL : 'dddd, MMMM D, YYYY h:mm A'
+};
 
-    function normalizeLocale(key) {
-        return key ? key.toLowerCase().replace('_', '-') : key;
-    }
+function longDateFormat (key) {
+    var format = this._longDateFormat[key],
+        formatUpper = this._longDateFormat[key.toUpperCase()];
 
-    // pick the locale from the array
-    // try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
-    // substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
-    function chooseLocale(names) {
-        var i = 0, j, next, locale, split;
-
-        while (i < names.length) {
-            split = normalizeLocale(names[i]).split('-');
-            j = split.length;
-            next = normalizeLocale(names[i + 1]);
-            next = next ? next.split('-') : null;
-            while (j > 0) {
-                locale = loadLocale(split.slice(0, j).join('-'));
-                if (locale) {
-                    return locale;
-                }
-                if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
-                    //the next array item is better than a shallower substring of this one
-                    break;
-                }
-                j--;
-            }
-            i++;
-        }
-        return null;
-    }
-
-    function loadLocale(name) {
-        var oldLocale = null;
-        // TODO: Find a better way to register and load all the locales in Node
-        if (!locales[name] && (typeof module !== 'undefined') &&
-                module && module.exports) {
-            try {
-                oldLocale = globalLocale._abbr;
-                __webpack_require__(400)("./" + name);
-                // because defineLocale currently also sets the global locale, we
-                // want to undo that for lazy loaded locales
-                locale_locales__getSetGlobalLocale(oldLocale);
-            } catch (e) { }
-        }
-        return locales[name];
-    }
-
-    // This function will load locale and then set the global locale.  If
-    // no arguments are passed in, it will simply return the current global
-    // locale key.
-    function locale_locales__getSetGlobalLocale (key, values) {
-        var data;
-        if (key) {
-            if (isUndefined(values)) {
-                data = locale_locales__getLocale(key);
-            }
-            else {
-                data = defineLocale(key, values);
-            }
-
-            if (data) {
-                // moment.duration._locale = moment._locale = data;
-                globalLocale = data;
-            }
-        }
-
-        return globalLocale._abbr;
-    }
-
-    function defineLocale (name, config) {
-        if (config !== null) {
-            config.abbr = name;
-            if (locales[name] != null) {
-                deprecateSimple('defineLocaleOverride',
-                        'use moment.updateLocale(localeName, config) to change ' +
-                        'an existing locale. moment.defineLocale(localeName, ' +
-                        'config) should only be used for creating a new locale');
-                config = mergeConfigs(locales[name]._config, config);
-            } else if (config.parentLocale != null) {
-                if (locales[config.parentLocale] != null) {
-                    config = mergeConfigs(locales[config.parentLocale]._config, config);
-                } else {
-                    // treat as if there is no base config
-                    deprecateSimple('parentLocaleUndefined',
-                            'specified parentLocale is not defined yet');
-                }
-            }
-            locales[name] = new Locale(config);
-
-            // backwards compat for now: also set the locale
-            locale_locales__getSetGlobalLocale(name);
-
-            return locales[name];
-        } else {
-            // useful for testing
-            delete locales[name];
-            return null;
-        }
-    }
-
-    function updateLocale(name, config) {
-        if (config != null) {
-            var locale;
-            if (locales[name] != null) {
-                config = mergeConfigs(locales[name]._config, config);
-            }
-            locale = new Locale(config);
-            locale.parentLocale = locales[name];
-            locales[name] = locale;
-
-            // backwards compat for now: also set the locale
-            locale_locales__getSetGlobalLocale(name);
-        } else {
-            // pass null for config to unupdate, useful for tests
-            if (locales[name] != null) {
-                if (locales[name].parentLocale != null) {
-                    locales[name] = locales[name].parentLocale;
-                } else if (locales[name] != null) {
-                    delete locales[name];
-                }
-            }
-        }
-        return locales[name];
-    }
-
-    // returns locale data
-    function locale_locales__getLocale (key) {
-        var locale;
-
-        if (key && key._locale && key._locale._abbr) {
-            key = key._locale._abbr;
-        }
-
-        if (!key) {
-            return globalLocale;
-        }
-
-        if (!isArray(key)) {
-            //short-circuit everything else
-            locale = loadLocale(key);
-            if (locale) {
-                return locale;
-            }
-            key = [key];
-        }
-
-        return chooseLocale(key);
-    }
-
-    function locale_locales__listLocales() {
-        return keys(locales);
-    }
-
-    var aliases = {};
-
-    function addUnitAlias (unit, shorthand) {
-        var lowerCase = unit.toLowerCase();
-        aliases[lowerCase] = aliases[lowerCase + 's'] = aliases[shorthand] = unit;
-    }
-
-    function normalizeUnits(units) {
-        return typeof units === 'string' ? aliases[units] || aliases[units.toLowerCase()] : undefined;
-    }
-
-    function normalizeObjectUnits(inputObject) {
-        var normalizedInput = {},
-            normalizedProp,
-            prop;
-
-        for (prop in inputObject) {
-            if (hasOwnProp(inputObject, prop)) {
-                normalizedProp = normalizeUnits(prop);
-                if (normalizedProp) {
-                    normalizedInput[normalizedProp] = inputObject[prop];
-                }
-            }
-        }
-
-        return normalizedInput;
-    }
-
-    function makeGetSet (unit, keepTime) {
-        return function (value) {
-            if (value != null) {
-                get_set__set(this, unit, value);
-                utils_hooks__hooks.updateOffset(this, keepTime);
-                return this;
-            } else {
-                return get_set__get(this, unit);
-            }
-        };
-    }
-
-    function get_set__get (mom, unit) {
-        return mom.isValid() ?
-            mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]() : NaN;
-    }
-
-    function get_set__set (mom, unit, value) {
-        if (mom.isValid()) {
-            mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);
-        }
-    }
-
-    // MOMENTS
-
-    function getSet (units, value) {
-        var unit;
-        if (typeof units === 'object') {
-            for (unit in units) {
-                this.set(unit, units[unit]);
-            }
-        } else {
-            units = normalizeUnits(units);
-            if (isFunction(this[units])) {
-                return this[units](value);
-            }
-        }
-        return this;
-    }
-
-    function zeroFill(number, targetLength, forceSign) {
-        var absNumber = '' + Math.abs(number),
-            zerosToFill = targetLength - absNumber.length,
-            sign = number >= 0;
-        return (sign ? (forceSign ? '+' : '') : '-') +
-            Math.pow(10, Math.max(0, zerosToFill)).toString().substr(1) + absNumber;
-    }
-
-    var formattingTokens = /(\[[^\[]*\])|(\\)?([Hh]mm(ss)?|Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Qo?|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|kk?|mm?|ss?|S{1,9}|x|X|zz?|ZZ?|.)/g;
-
-    var localFormattingTokens = /(\[[^\[]*\])|(\\)?(LTS|LT|LL?L?L?|l{1,4})/g;
-
-    var formatFunctions = {};
-
-    var formatTokenFunctions = {};
-
-    // token:    'M'
-    // padded:   ['MM', 2]
-    // ordinal:  'Mo'
-    // callback: function () { this.month() + 1 }
-    function addFormatToken (token, padded, ordinal, callback) {
-        var func = callback;
-        if (typeof callback === 'string') {
-            func = function () {
-                return this[callback]();
-            };
-        }
-        if (token) {
-            formatTokenFunctions[token] = func;
-        }
-        if (padded) {
-            formatTokenFunctions[padded[0]] = function () {
-                return zeroFill(func.apply(this, arguments), padded[1], padded[2]);
-            };
-        }
-        if (ordinal) {
-            formatTokenFunctions[ordinal] = function () {
-                return this.localeData().ordinal(func.apply(this, arguments), token);
-            };
-        }
-    }
-
-    function removeFormattingTokens(input) {
-        if (input.match(/\[[\s\S]/)) {
-            return input.replace(/^\[|\]$/g, '');
-        }
-        return input.replace(/\\/g, '');
-    }
-
-    function makeFormatFunction(format) {
-        var array = format.match(formattingTokens), i, length;
-
-        for (i = 0, length = array.length; i < length; i++) {
-            if (formatTokenFunctions[array[i]]) {
-                array[i] = formatTokenFunctions[array[i]];
-            } else {
-                array[i] = removeFormattingTokens(array[i]);
-            }
-        }
-
-        return function (mom) {
-            var output = '', i;
-            for (i = 0; i < length; i++) {
-                output += array[i] instanceof Function ? array[i].call(mom, format) : array[i];
-            }
-            return output;
-        };
-    }
-
-    // format date using native date object
-    function formatMoment(m, format) {
-        if (!m.isValid()) {
-            return m.localeData().invalidDate();
-        }
-
-        format = expandFormat(format, m.localeData());
-        formatFunctions[format] = formatFunctions[format] || makeFormatFunction(format);
-
-        return formatFunctions[format](m);
-    }
-
-    function expandFormat(format, locale) {
-        var i = 5;
-
-        function replaceLongDateFormatTokens(input) {
-            return locale.longDateFormat(input) || input;
-        }
-
-        localFormattingTokens.lastIndex = 0;
-        while (i >= 0 && localFormattingTokens.test(format)) {
-            format = format.replace(localFormattingTokens, replaceLongDateFormatTokens);
-            localFormattingTokens.lastIndex = 0;
-            i -= 1;
-        }
-
+    if (format || !formatUpper) {
         return format;
     }
 
-    var match1         = /\d/;            //       0 - 9
-    var match2         = /\d\d/;          //      00 - 99
-    var match3         = /\d{3}/;         //     000 - 999
-    var match4         = /\d{4}/;         //    0000 - 9999
-    var match6         = /[+-]?\d{6}/;    // -999999 - 999999
-    var match1to2      = /\d\d?/;         //       0 - 99
-    var match3to4      = /\d\d\d\d?/;     //     999 - 9999
-    var match5to6      = /\d\d\d\d\d\d?/; //   99999 - 999999
-    var match1to3      = /\d{1,3}/;       //       0 - 999
-    var match1to4      = /\d{1,4}/;       //       0 - 9999
-    var match1to6      = /[+-]?\d{1,6}/;  // -999999 - 999999
+    this._longDateFormat[key] = formatUpper.replace(/MMMM|MM|DD|dddd/g, function (val) {
+        return val.slice(1);
+    });
 
-    var matchUnsigned  = /\d+/;           //       0 - inf
-    var matchSigned    = /[+-]?\d+/;      //    -inf - inf
+    return this._longDateFormat[key];
+}
 
-    var matchOffset    = /Z|[+-]\d\d:?\d\d/gi; // +00:00 -00:00 +0000 -0000 or Z
-    var matchShortOffset = /Z|[+-]\d\d(?::?\d\d)?/gi; // +00 -00 +00:00 -00:00 +0000 -0000 or Z
+var defaultInvalidDate = 'Invalid date';
 
-    var matchTimestamp = /[+-]?\d+(\.\d{1,3})?/; // 123456789 123456789.123
+function invalidDate () {
+    return this._invalidDate;
+}
 
-    // any word (or two) characters or numbers including two/three word month in arabic.
-    // includes scottish gaelic two word and hyphenated months
-    var matchWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i;
+var defaultOrdinal = '%d';
+var defaultDayOfMonthOrdinalParse = /\d{1,2}/;
 
+function ordinal (number) {
+    return this._ordinal.replace('%d', number);
+}
 
-    var regexes = {};
+var defaultRelativeTime = {
+    future : 'in %s',
+    past   : '%s ago',
+    s  : 'a few seconds',
+    ss : '%d seconds',
+    m  : 'a minute',
+    mm : '%d minutes',
+    h  : 'an hour',
+    hh : '%d hours',
+    d  : 'a day',
+    dd : '%d days',
+    M  : 'a month',
+    MM : '%d months',
+    y  : 'a year',
+    yy : '%d years'
+};
 
-    function addRegexToken (token, regex, strictRegex) {
-        regexes[token] = isFunction(regex) ? regex : function (isStrict, localeData) {
-            return (isStrict && strictRegex) ? strictRegex : regex;
-        };
-    }
+function relativeTime (number, withoutSuffix, string, isFuture) {
+    var output = this._relativeTime[string];
+    return (isFunction(output)) ?
+        output(number, withoutSuffix, string, isFuture) :
+        output.replace(/%d/i, number);
+}
 
-    function getParseRegexForToken (token, config) {
-        if (!hasOwnProp(regexes, token)) {
-            return new RegExp(unescapeFormat(token));
-        }
+function pastFuture (diff, output) {
+    var format = this._relativeTime[diff > 0 ? 'future' : 'past'];
+    return isFunction(format) ? format(output) : format.replace(/%s/i, output);
+}
 
-        return regexes[token](config._strict, config._locale);
-    }
+var aliases = {};
 
-    // Code from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
-    function unescapeFormat(s) {
-        return regexEscape(s.replace('\\', '').replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
-            return p1 || p2 || p3 || p4;
-        }));
-    }
+function addUnitAlias (unit, shorthand) {
+    var lowerCase = unit.toLowerCase();
+    aliases[lowerCase] = aliases[lowerCase + 's'] = aliases[shorthand] = unit;
+}
 
-    function regexEscape(s) {
-        return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-    }
+function normalizeUnits(units) {
+    return typeof units === 'string' ? aliases[units] || aliases[units.toLowerCase()] : undefined;
+}
 
-    var tokens = {};
+function normalizeObjectUnits(inputObject) {
+    var normalizedInput = {},
+        normalizedProp,
+        prop;
 
-    function addParseToken (token, callback) {
-        var i, func = callback;
-        if (typeof token === 'string') {
-            token = [token];
-        }
-        if (typeof callback === 'number') {
-            func = function (input, array) {
-                array[callback] = toInt(input);
-            };
-        }
-        for (i = 0; i < token.length; i++) {
-            tokens[token[i]] = func;
-        }
-    }
-
-    function addWeekParseToken (token, callback) {
-        addParseToken(token, function (input, array, config, token) {
-            config._w = config._w || {};
-            callback(input, config._w, config, token);
-        });
-    }
-
-    function addTimeToArrayFromToken(token, input, config) {
-        if (input != null && hasOwnProp(tokens, token)) {
-            tokens[token](input, config._a, config, token);
+    for (prop in inputObject) {
+        if (hasOwnProp(inputObject, prop)) {
+            normalizedProp = normalizeUnits(prop);
+            if (normalizedProp) {
+                normalizedInput[normalizedProp] = inputObject[prop];
+            }
         }
     }
 
-    var YEAR = 0;
-    var MONTH = 1;
-    var DATE = 2;
-    var HOUR = 3;
-    var MINUTE = 4;
-    var SECOND = 5;
-    var MILLISECOND = 6;
-    var WEEK = 7;
-    var WEEKDAY = 8;
+    return normalizedInput;
+}
 
-    var indexOf;
+var priorities = {};
 
-    if (Array.prototype.indexOf) {
-        indexOf = Array.prototype.indexOf;
+function addUnitPriority(unit, priority) {
+    priorities[unit] = priority;
+}
+
+function getPrioritizedUnits(unitsObj) {
+    var units = [];
+    for (var u in unitsObj) {
+        units.push({unit: u, priority: priorities[u]});
+    }
+    units.sort(function (a, b) {
+        return a.priority - b.priority;
+    });
+    return units;
+}
+
+function makeGetSet (unit, keepTime) {
+    return function (value) {
+        if (value != null) {
+            set$1(this, unit, value);
+            hooks.updateOffset(this, keepTime);
+            return this;
+        } else {
+            return get(this, unit);
+        }
+    };
+}
+
+function get (mom, unit) {
+    return mom.isValid() ?
+        mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]() : NaN;
+}
+
+function set$1 (mom, unit, value) {
+    if (mom.isValid()) {
+        mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);
+    }
+}
+
+// MOMENTS
+
+function stringGet (units) {
+    units = normalizeUnits(units);
+    if (isFunction(this[units])) {
+        return this[units]();
+    }
+    return this;
+}
+
+
+function stringSet (units, value) {
+    if (typeof units === 'object') {
+        units = normalizeObjectUnits(units);
+        var prioritized = getPrioritizedUnits(units);
+        for (var i = 0; i < prioritized.length; i++) {
+            this[prioritized[i].unit](units[prioritized[i].unit]);
+        }
     } else {
-        indexOf = function (o) {
-            // I know
-            var i;
-            for (i = 0; i < this.length; ++i) {
-                if (this[i] === o) {
-                    return i;
-                }
-            }
-            return -1;
+        units = normalizeUnits(units);
+        if (isFunction(this[units])) {
+            return this[units](value);
+        }
+    }
+    return this;
+}
+
+function zeroFill(number, targetLength, forceSign) {
+    var absNumber = '' + Math.abs(number),
+        zerosToFill = targetLength - absNumber.length,
+        sign = number >= 0;
+    return (sign ? (forceSign ? '+' : '') : '-') +
+        Math.pow(10, Math.max(0, zerosToFill)).toString().substr(1) + absNumber;
+}
+
+var formattingTokens = /(\[[^\[]*\])|(\\)?([Hh]mm(ss)?|Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Qo?|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|kk?|mm?|ss?|S{1,9}|x|X|zz?|ZZ?|.)/g;
+
+var localFormattingTokens = /(\[[^\[]*\])|(\\)?(LTS|LT|LL?L?L?|l{1,4})/g;
+
+var formatFunctions = {};
+
+var formatTokenFunctions = {};
+
+// token:    'M'
+// padded:   ['MM', 2]
+// ordinal:  'Mo'
+// callback: function () { this.month() + 1 }
+function addFormatToken (token, padded, ordinal, callback) {
+    var func = callback;
+    if (typeof callback === 'string') {
+        func = function () {
+            return this[callback]();
         };
     }
-
-    function daysInMonth(year, month) {
-        return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    if (token) {
+        formatTokenFunctions[token] = func;
     }
+    if (padded) {
+        formatTokenFunctions[padded[0]] = function () {
+            return zeroFill(func.apply(this, arguments), padded[1], padded[2]);
+        };
+    }
+    if (ordinal) {
+        formatTokenFunctions[ordinal] = function () {
+            return this.localeData().ordinal(func.apply(this, arguments), token);
+        };
+    }
+}
 
-    // FORMATTING
+function removeFormattingTokens(input) {
+    if (input.match(/\[[\s\S]/)) {
+        return input.replace(/^\[|\]$/g, '');
+    }
+    return input.replace(/\\/g, '');
+}
 
-    addFormatToken('M', ['MM', 2], 'Mo', function () {
-        return this.month() + 1;
-    });
+function makeFormatFunction(format) {
+    var array = format.match(formattingTokens), i, length;
 
-    addFormatToken('MMM', 0, 0, function (format) {
-        return this.localeData().monthsShort(this, format);
-    });
-
-    addFormatToken('MMMM', 0, 0, function (format) {
-        return this.localeData().months(this, format);
-    });
-
-    // ALIASES
-
-    addUnitAlias('month', 'M');
-
-    // PARSING
-
-    addRegexToken('M',    match1to2);
-    addRegexToken('MM',   match1to2, match2);
-    addRegexToken('MMM',  function (isStrict, locale) {
-        return locale.monthsShortRegex(isStrict);
-    });
-    addRegexToken('MMMM', function (isStrict, locale) {
-        return locale.monthsRegex(isStrict);
-    });
-
-    addParseToken(['M', 'MM'], function (input, array) {
-        array[MONTH] = toInt(input) - 1;
-    });
-
-    addParseToken(['MMM', 'MMMM'], function (input, array, config, token) {
-        var month = config._locale.monthsParse(input, token, config._strict);
-        // if we didn't find a month name, mark the date as invalid.
-        if (month != null) {
-            array[MONTH] = month;
+    for (i = 0, length = array.length; i < length; i++) {
+        if (formatTokenFunctions[array[i]]) {
+            array[i] = formatTokenFunctions[array[i]];
         } else {
-            getParsingFlags(config).invalidMonth = input;
+            array[i] = removeFormattingTokens(array[i]);
         }
+    }
+
+    return function (mom) {
+        var output = '', i;
+        for (i = 0; i < length; i++) {
+            output += isFunction(array[i]) ? array[i].call(mom, format) : array[i];
+        }
+        return output;
+    };
+}
+
+// format date using native date object
+function formatMoment(m, format) {
+    if (!m.isValid()) {
+        return m.localeData().invalidDate();
+    }
+
+    format = expandFormat(format, m.localeData());
+    formatFunctions[format] = formatFunctions[format] || makeFormatFunction(format);
+
+    return formatFunctions[format](m);
+}
+
+function expandFormat(format, locale) {
+    var i = 5;
+
+    function replaceLongDateFormatTokens(input) {
+        return locale.longDateFormat(input) || input;
+    }
+
+    localFormattingTokens.lastIndex = 0;
+    while (i >= 0 && localFormattingTokens.test(format)) {
+        format = format.replace(localFormattingTokens, replaceLongDateFormatTokens);
+        localFormattingTokens.lastIndex = 0;
+        i -= 1;
+    }
+
+    return format;
+}
+
+var match1         = /\d/;            //       0 - 9
+var match2         = /\d\d/;          //      00 - 99
+var match3         = /\d{3}/;         //     000 - 999
+var match4         = /\d{4}/;         //    0000 - 9999
+var match6         = /[+-]?\d{6}/;    // -999999 - 999999
+var match1to2      = /\d\d?/;         //       0 - 99
+var match3to4      = /\d\d\d\d?/;     //     999 - 9999
+var match5to6      = /\d\d\d\d\d\d?/; //   99999 - 999999
+var match1to3      = /\d{1,3}/;       //       0 - 999
+var match1to4      = /\d{1,4}/;       //       0 - 9999
+var match1to6      = /[+-]?\d{1,6}/;  // -999999 - 999999
+
+var matchUnsigned  = /\d+/;           //       0 - inf
+var matchSigned    = /[+-]?\d+/;      //    -inf - inf
+
+var matchOffset    = /Z|[+-]\d\d:?\d\d/gi; // +00:00 -00:00 +0000 -0000 or Z
+var matchShortOffset = /Z|[+-]\d\d(?::?\d\d)?/gi; // +00 -00 +00:00 -00:00 +0000 -0000 or Z
+
+var matchTimestamp = /[+-]?\d+(\.\d{1,3})?/; // 123456789 123456789.123
+
+// any word (or two) characters or numbers including two/three word month in arabic.
+// includes scottish gaelic two word and hyphenated months
+var matchWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i;
+
+
+var regexes = {};
+
+function addRegexToken (token, regex, strictRegex) {
+    regexes[token] = isFunction(regex) ? regex : function (isStrict, localeData) {
+        return (isStrict && strictRegex) ? strictRegex : regex;
+    };
+}
+
+function getParseRegexForToken (token, config) {
+    if (!hasOwnProp(regexes, token)) {
+        return new RegExp(unescapeFormat(token));
+    }
+
+    return regexes[token](config._strict, config._locale);
+}
+
+// Code from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
+function unescapeFormat(s) {
+    return regexEscape(s.replace('\\', '').replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
+        return p1 || p2 || p3 || p4;
+    }));
+}
+
+function regexEscape(s) {
+    return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
+var tokens = {};
+
+function addParseToken (token, callback) {
+    var i, func = callback;
+    if (typeof token === 'string') {
+        token = [token];
+    }
+    if (isNumber(callback)) {
+        func = function (input, array) {
+            array[callback] = toInt(input);
+        };
+    }
+    for (i = 0; i < token.length; i++) {
+        tokens[token[i]] = func;
+    }
+}
+
+function addWeekParseToken (token, callback) {
+    addParseToken(token, function (input, array, config, token) {
+        config._w = config._w || {};
+        callback(input, config._w, config, token);
     });
+}
 
-    // LOCALES
-
-    var MONTHS_IN_FORMAT = /D[oD]?(\[[^\[\]]*\]|\s+)+MMMM?/;
-    var defaultLocaleMonths = 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_');
-    function localeMonths (m, format) {
-        return isArray(this._months) ? this._months[m.month()] :
-            this._months[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];
+function addTimeToArrayFromToken(token, input, config) {
+    if (input != null && hasOwnProp(tokens, token)) {
+        tokens[token](input, config._a, config, token);
     }
+}
 
-    var defaultLocaleMonthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_');
-    function localeMonthsShort (m, format) {
-        return isArray(this._monthsShort) ? this._monthsShort[m.month()] :
-            this._monthsShort[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];
-    }
+var YEAR = 0;
+var MONTH = 1;
+var DATE = 2;
+var HOUR = 3;
+var MINUTE = 4;
+var SECOND = 5;
+var MILLISECOND = 6;
+var WEEK = 7;
+var WEEKDAY = 8;
 
-    function units_month__handleStrictParse(monthName, format, strict) {
-        var i, ii, mom, llc = monthName.toLocaleLowerCase();
-        if (!this._monthsParse) {
-            // this is not used
-            this._monthsParse = [];
-            this._longMonthsParse = [];
-            this._shortMonthsParse = [];
-            for (i = 0; i < 12; ++i) {
-                mom = create_utc__createUTC([2000, i]);
-                this._shortMonthsParse[i] = this.monthsShort(mom, '').toLocaleLowerCase();
-                this._longMonthsParse[i] = this.months(mom, '').toLocaleLowerCase();
+var indexOf;
+
+if (Array.prototype.indexOf) {
+    indexOf = Array.prototype.indexOf;
+} else {
+    indexOf = function (o) {
+        // I know
+        var i;
+        for (i = 0; i < this.length; ++i) {
+            if (this[i] === o) {
+                return i;
             }
         }
+        return -1;
+    };
+}
 
-        if (strict) {
-            if (format === 'MMM') {
-                ii = indexOf.call(this._shortMonthsParse, llc);
-                return ii !== -1 ? ii : null;
-            } else {
-                ii = indexOf.call(this._longMonthsParse, llc);
-                return ii !== -1 ? ii : null;
-            }
+var indexOf$1 = indexOf;
+
+function daysInMonth(year, month) {
+    return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+}
+
+// FORMATTING
+
+addFormatToken('M', ['MM', 2], 'Mo', function () {
+    return this.month() + 1;
+});
+
+addFormatToken('MMM', 0, 0, function (format) {
+    return this.localeData().monthsShort(this, format);
+});
+
+addFormatToken('MMMM', 0, 0, function (format) {
+    return this.localeData().months(this, format);
+});
+
+// ALIASES
+
+addUnitAlias('month', 'M');
+
+// PRIORITY
+
+addUnitPriority('month', 8);
+
+// PARSING
+
+addRegexToken('M',    match1to2);
+addRegexToken('MM',   match1to2, match2);
+addRegexToken('MMM',  function (isStrict, locale) {
+    return locale.monthsShortRegex(isStrict);
+});
+addRegexToken('MMMM', function (isStrict, locale) {
+    return locale.monthsRegex(isStrict);
+});
+
+addParseToken(['M', 'MM'], function (input, array) {
+    array[MONTH] = toInt(input) - 1;
+});
+
+addParseToken(['MMM', 'MMMM'], function (input, array, config, token) {
+    var month = config._locale.monthsParse(input, token, config._strict);
+    // if we didn't find a month name, mark the date as invalid.
+    if (month != null) {
+        array[MONTH] = month;
+    } else {
+        getParsingFlags(config).invalidMonth = input;
+    }
+});
+
+// LOCALES
+
+var MONTHS_IN_FORMAT = /D[oD]?(\[[^\[\]]*\]|\s)+MMMM?/;
+var defaultLocaleMonths = 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_');
+function localeMonths (m, format) {
+    if (!m) {
+        return isArray(this._months) ? this._months :
+            this._months['standalone'];
+    }
+    return isArray(this._months) ? this._months[m.month()] :
+        this._months[(this._months.isFormat || MONTHS_IN_FORMAT).test(format) ? 'format' : 'standalone'][m.month()];
+}
+
+var defaultLocaleMonthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_');
+function localeMonthsShort (m, format) {
+    if (!m) {
+        return isArray(this._monthsShort) ? this._monthsShort :
+            this._monthsShort['standalone'];
+    }
+    return isArray(this._monthsShort) ? this._monthsShort[m.month()] :
+        this._monthsShort[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];
+}
+
+function handleStrictParse(monthName, format, strict) {
+    var i, ii, mom, llc = monthName.toLocaleLowerCase();
+    if (!this._monthsParse) {
+        // this is not used
+        this._monthsParse = [];
+        this._longMonthsParse = [];
+        this._shortMonthsParse = [];
+        for (i = 0; i < 12; ++i) {
+            mom = createUTC([2000, i]);
+            this._shortMonthsParse[i] = this.monthsShort(mom, '').toLocaleLowerCase();
+            this._longMonthsParse[i] = this.months(mom, '').toLocaleLowerCase();
+        }
+    }
+
+    if (strict) {
+        if (format === 'MMM') {
+            ii = indexOf$1.call(this._shortMonthsParse, llc);
+            return ii !== -1 ? ii : null;
         } else {
-            if (format === 'MMM') {
-                ii = indexOf.call(this._shortMonthsParse, llc);
-                if (ii !== -1) {
-                    return ii;
-                }
-                ii = indexOf.call(this._longMonthsParse, llc);
-                return ii !== -1 ? ii : null;
-            } else {
-                ii = indexOf.call(this._longMonthsParse, llc);
-                if (ii !== -1) {
-                    return ii;
-                }
-                ii = indexOf.call(this._shortMonthsParse, llc);
-                return ii !== -1 ? ii : null;
+            ii = indexOf$1.call(this._longMonthsParse, llc);
+            return ii !== -1 ? ii : null;
+        }
+    } else {
+        if (format === 'MMM') {
+            ii = indexOf$1.call(this._shortMonthsParse, llc);
+            if (ii !== -1) {
+                return ii;
             }
+            ii = indexOf$1.call(this._longMonthsParse, llc);
+            return ii !== -1 ? ii : null;
+        } else {
+            ii = indexOf$1.call(this._longMonthsParse, llc);
+            if (ii !== -1) {
+                return ii;
+            }
+            ii = indexOf$1.call(this._shortMonthsParse, llc);
+            return ii !== -1 ? ii : null;
         }
     }
+}
 
-    function localeMonthsParse (monthName, format, strict) {
-        var i, mom, regex;
+function localeMonthsParse (monthName, format, strict) {
+    var i, mom, regex;
 
-        if (this._monthsParseExact) {
-            return units_month__handleStrictParse.call(this, monthName, format, strict);
-        }
-
-        if (!this._monthsParse) {
-            this._monthsParse = [];
-            this._longMonthsParse = [];
-            this._shortMonthsParse = [];
-        }
-
-        // TODO: add sorting
-        // Sorting makes sure if one month (or abbr) is a prefix of another
-        // see sorting in computeMonthsParse
-        for (i = 0; i < 12; i++) {
-            // make the regex if we don't have it already
-            mom = create_utc__createUTC([2000, i]);
-            if (strict && !this._longMonthsParse[i]) {
-                this._longMonthsParse[i] = new RegExp('^' + this.months(mom, '').replace('.', '') + '$', 'i');
-                this._shortMonthsParse[i] = new RegExp('^' + this.monthsShort(mom, '').replace('.', '') + '$', 'i');
-            }
-            if (!strict && !this._monthsParse[i]) {
-                regex = '^' + this.months(mom, '') + '|^' + this.monthsShort(mom, '');
-                this._monthsParse[i] = new RegExp(regex.replace('.', ''), 'i');
-            }
-            // test the regex
-            if (strict && format === 'MMMM' && this._longMonthsParse[i].test(monthName)) {
-                return i;
-            } else if (strict && format === 'MMM' && this._shortMonthsParse[i].test(monthName)) {
-                return i;
-            } else if (!strict && this._monthsParse[i].test(monthName)) {
-                return i;
-            }
-        }
+    if (this._monthsParseExact) {
+        return handleStrictParse.call(this, monthName, format, strict);
     }
 
-    // MOMENTS
+    if (!this._monthsParse) {
+        this._monthsParse = [];
+        this._longMonthsParse = [];
+        this._shortMonthsParse = [];
+    }
 
-    function setMonth (mom, value) {
-        var dayOfMonth;
-
-        if (!mom.isValid()) {
-            // No op
-            return mom;
+    // TODO: add sorting
+    // Sorting makes sure if one month (or abbr) is a prefix of another
+    // see sorting in computeMonthsParse
+    for (i = 0; i < 12; i++) {
+        // make the regex if we don't have it already
+        mom = createUTC([2000, i]);
+        if (strict && !this._longMonthsParse[i]) {
+            this._longMonthsParse[i] = new RegExp('^' + this.months(mom, '').replace('.', '') + '$', 'i');
+            this._shortMonthsParse[i] = new RegExp('^' + this.monthsShort(mom, '').replace('.', '') + '$', 'i');
         }
-
-        if (typeof value === 'string') {
-            if (/^\d+$/.test(value)) {
-                value = toInt(value);
-            } else {
-                value = mom.localeData().monthsParse(value);
-                // TODO: Another silent failure?
-                if (typeof value !== 'number') {
-                    return mom;
-                }
-            }
+        if (!strict && !this._monthsParse[i]) {
+            regex = '^' + this.months(mom, '') + '|^' + this.monthsShort(mom, '');
+            this._monthsParse[i] = new RegExp(regex.replace('.', ''), 'i');
         }
+        // test the regex
+        if (strict && format === 'MMMM' && this._longMonthsParse[i].test(monthName)) {
+            return i;
+        } else if (strict && format === 'MMM' && this._shortMonthsParse[i].test(monthName)) {
+            return i;
+        } else if (!strict && this._monthsParse[i].test(monthName)) {
+            return i;
+        }
+    }
+}
 
-        dayOfMonth = Math.min(mom.date(), daysInMonth(mom.year(), value));
-        mom._d['set' + (mom._isUTC ? 'UTC' : '') + 'Month'](value, dayOfMonth);
+// MOMENTS
+
+function setMonth (mom, value) {
+    var dayOfMonth;
+
+    if (!mom.isValid()) {
+        // No op
         return mom;
     }
 
-    function getSetMonth (value) {
-        if (value != null) {
-            setMonth(this, value);
-            utils_hooks__hooks.updateOffset(this, true);
-            return this;
+    if (typeof value === 'string') {
+        if (/^\d+$/.test(value)) {
+            value = toInt(value);
         } else {
-            return get_set__get(this, 'Month');
+            value = mom.localeData().monthsParse(value);
+            // TODO: Another silent failure?
+            if (!isNumber(value)) {
+                return mom;
+            }
         }
     }
 
-    function getDaysInMonth () {
-        return daysInMonth(this.year(), this.month());
+    dayOfMonth = Math.min(mom.date(), daysInMonth(mom.year(), value));
+    mom._d['set' + (mom._isUTC ? 'UTC' : '') + 'Month'](value, dayOfMonth);
+    return mom;
+}
+
+function getSetMonth (value) {
+    if (value != null) {
+        setMonth(this, value);
+        hooks.updateOffset(this, true);
+        return this;
+    } else {
+        return get(this, 'Month');
+    }
+}
+
+function getDaysInMonth () {
+    return daysInMonth(this.year(), this.month());
+}
+
+var defaultMonthsShortRegex = matchWord;
+function monthsShortRegex (isStrict) {
+    if (this._monthsParseExact) {
+        if (!hasOwnProp(this, '_monthsRegex')) {
+            computeMonthsParse.call(this);
+        }
+        if (isStrict) {
+            return this._monthsShortStrictRegex;
+        } else {
+            return this._monthsShortRegex;
+        }
+    } else {
+        if (!hasOwnProp(this, '_monthsShortRegex')) {
+            this._monthsShortRegex = defaultMonthsShortRegex;
+        }
+        return this._monthsShortStrictRegex && isStrict ?
+            this._monthsShortStrictRegex : this._monthsShortRegex;
+    }
+}
+
+var defaultMonthsRegex = matchWord;
+function monthsRegex (isStrict) {
+    if (this._monthsParseExact) {
+        if (!hasOwnProp(this, '_monthsRegex')) {
+            computeMonthsParse.call(this);
+        }
+        if (isStrict) {
+            return this._monthsStrictRegex;
+        } else {
+            return this._monthsRegex;
+        }
+    } else {
+        if (!hasOwnProp(this, '_monthsRegex')) {
+            this._monthsRegex = defaultMonthsRegex;
+        }
+        return this._monthsStrictRegex && isStrict ?
+            this._monthsStrictRegex : this._monthsRegex;
+    }
+}
+
+function computeMonthsParse () {
+    function cmpLenRev(a, b) {
+        return b.length - a.length;
     }
 
-    var defaultMonthsShortRegex = matchWord;
-    function monthsShortRegex (isStrict) {
-        if (this._monthsParseExact) {
-            if (!hasOwnProp(this, '_monthsRegex')) {
-                computeMonthsParse.call(this);
+    var shortPieces = [], longPieces = [], mixedPieces = [],
+        i, mom;
+    for (i = 0; i < 12; i++) {
+        // make the regex if we don't have it already
+        mom = createUTC([2000, i]);
+        shortPieces.push(this.monthsShort(mom, ''));
+        longPieces.push(this.months(mom, ''));
+        mixedPieces.push(this.months(mom, ''));
+        mixedPieces.push(this.monthsShort(mom, ''));
+    }
+    // Sorting makes sure if one month (or abbr) is a prefix of another it
+    // will match the longer piece.
+    shortPieces.sort(cmpLenRev);
+    longPieces.sort(cmpLenRev);
+    mixedPieces.sort(cmpLenRev);
+    for (i = 0; i < 12; i++) {
+        shortPieces[i] = regexEscape(shortPieces[i]);
+        longPieces[i] = regexEscape(longPieces[i]);
+    }
+    for (i = 0; i < 24; i++) {
+        mixedPieces[i] = regexEscape(mixedPieces[i]);
+    }
+
+    this._monthsRegex = new RegExp('^(' + mixedPieces.join('|') + ')', 'i');
+    this._monthsShortRegex = this._monthsRegex;
+    this._monthsStrictRegex = new RegExp('^(' + longPieces.join('|') + ')', 'i');
+    this._monthsShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')', 'i');
+}
+
+// FORMATTING
+
+addFormatToken('Y', 0, 0, function () {
+    var y = this.year();
+    return y <= 9999 ? '' + y : '+' + y;
+});
+
+addFormatToken(0, ['YY', 2], 0, function () {
+    return this.year() % 100;
+});
+
+addFormatToken(0, ['YYYY',   4],       0, 'year');
+addFormatToken(0, ['YYYYY',  5],       0, 'year');
+addFormatToken(0, ['YYYYYY', 6, true], 0, 'year');
+
+// ALIASES
+
+addUnitAlias('year', 'y');
+
+// PRIORITIES
+
+addUnitPriority('year', 1);
+
+// PARSING
+
+addRegexToken('Y',      matchSigned);
+addRegexToken('YY',     match1to2, match2);
+addRegexToken('YYYY',   match1to4, match4);
+addRegexToken('YYYYY',  match1to6, match6);
+addRegexToken('YYYYYY', match1to6, match6);
+
+addParseToken(['YYYYY', 'YYYYYY'], YEAR);
+addParseToken('YYYY', function (input, array) {
+    array[YEAR] = input.length === 2 ? hooks.parseTwoDigitYear(input) : toInt(input);
+});
+addParseToken('YY', function (input, array) {
+    array[YEAR] = hooks.parseTwoDigitYear(input);
+});
+addParseToken('Y', function (input, array) {
+    array[YEAR] = parseInt(input, 10);
+});
+
+// HELPERS
+
+function daysInYear(year) {
+    return isLeapYear(year) ? 366 : 365;
+}
+
+function isLeapYear(year) {
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+// HOOKS
+
+hooks.parseTwoDigitYear = function (input) {
+    return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
+};
+
+// MOMENTS
+
+var getSetYear = makeGetSet('FullYear', true);
+
+function getIsLeapYear () {
+    return isLeapYear(this.year());
+}
+
+function createDate (y, m, d, h, M, s, ms) {
+    // can't just apply() to create a date:
+    // https://stackoverflow.com/q/181348
+    var date = new Date(y, m, d, h, M, s, ms);
+
+    // the date constructor remaps years 0-99 to 1900-1999
+    if (y < 100 && y >= 0 && isFinite(date.getFullYear())) {
+        date.setFullYear(y);
+    }
+    return date;
+}
+
+function createUTCDate (y) {
+    var date = new Date(Date.UTC.apply(null, arguments));
+
+    // the Date.UTC function remaps years 0-99 to 1900-1999
+    if (y < 100 && y >= 0 && isFinite(date.getUTCFullYear())) {
+        date.setUTCFullYear(y);
+    }
+    return date;
+}
+
+// start-of-first-week - start-of-year
+function firstWeekOffset(year, dow, doy) {
+    var // first-week day -- which january is always in the first week (4 for iso, 1 for other)
+        fwd = 7 + dow - doy,
+        // first-week day local weekday -- which local weekday is fwd
+        fwdlw = (7 + createUTCDate(year, 0, fwd).getUTCDay() - dow) % 7;
+
+    return -fwdlw + fwd - 1;
+}
+
+// https://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
+function dayOfYearFromWeeks(year, week, weekday, dow, doy) {
+    var localWeekday = (7 + weekday - dow) % 7,
+        weekOffset = firstWeekOffset(year, dow, doy),
+        dayOfYear = 1 + 7 * (week - 1) + localWeekday + weekOffset,
+        resYear, resDayOfYear;
+
+    if (dayOfYear <= 0) {
+        resYear = year - 1;
+        resDayOfYear = daysInYear(resYear) + dayOfYear;
+    } else if (dayOfYear > daysInYear(year)) {
+        resYear = year + 1;
+        resDayOfYear = dayOfYear - daysInYear(year);
+    } else {
+        resYear = year;
+        resDayOfYear = dayOfYear;
+    }
+
+    return {
+        year: resYear,
+        dayOfYear: resDayOfYear
+    };
+}
+
+function weekOfYear(mom, dow, doy) {
+    var weekOffset = firstWeekOffset(mom.year(), dow, doy),
+        week = Math.floor((mom.dayOfYear() - weekOffset - 1) / 7) + 1,
+        resWeek, resYear;
+
+    if (week < 1) {
+        resYear = mom.year() - 1;
+        resWeek = week + weeksInYear(resYear, dow, doy);
+    } else if (week > weeksInYear(mom.year(), dow, doy)) {
+        resWeek = week - weeksInYear(mom.year(), dow, doy);
+        resYear = mom.year() + 1;
+    } else {
+        resYear = mom.year();
+        resWeek = week;
+    }
+
+    return {
+        week: resWeek,
+        year: resYear
+    };
+}
+
+function weeksInYear(year, dow, doy) {
+    var weekOffset = firstWeekOffset(year, dow, doy),
+        weekOffsetNext = firstWeekOffset(year + 1, dow, doy);
+    return (daysInYear(year) - weekOffset + weekOffsetNext) / 7;
+}
+
+// FORMATTING
+
+addFormatToken('w', ['ww', 2], 'wo', 'week');
+addFormatToken('W', ['WW', 2], 'Wo', 'isoWeek');
+
+// ALIASES
+
+addUnitAlias('week', 'w');
+addUnitAlias('isoWeek', 'W');
+
+// PRIORITIES
+
+addUnitPriority('week', 5);
+addUnitPriority('isoWeek', 5);
+
+// PARSING
+
+addRegexToken('w',  match1to2);
+addRegexToken('ww', match1to2, match2);
+addRegexToken('W',  match1to2);
+addRegexToken('WW', match1to2, match2);
+
+addWeekParseToken(['w', 'ww', 'W', 'WW'], function (input, week, config, token) {
+    week[token.substr(0, 1)] = toInt(input);
+});
+
+// HELPERS
+
+// LOCALES
+
+function localeWeek (mom) {
+    return weekOfYear(mom, this._week.dow, this._week.doy).week;
+}
+
+var defaultLocaleWeek = {
+    dow : 0, // Sunday is the first day of the week.
+    doy : 6  // The week that contains Jan 1st is the first week of the year.
+};
+
+function localeFirstDayOfWeek () {
+    return this._week.dow;
+}
+
+function localeFirstDayOfYear () {
+    return this._week.doy;
+}
+
+// MOMENTS
+
+function getSetWeek (input) {
+    var week = this.localeData().week(this);
+    return input == null ? week : this.add((input - week) * 7, 'd');
+}
+
+function getSetISOWeek (input) {
+    var week = weekOfYear(this, 1, 4).week;
+    return input == null ? week : this.add((input - week) * 7, 'd');
+}
+
+// FORMATTING
+
+addFormatToken('d', 0, 'do', 'day');
+
+addFormatToken('dd', 0, 0, function (format) {
+    return this.localeData().weekdaysMin(this, format);
+});
+
+addFormatToken('ddd', 0, 0, function (format) {
+    return this.localeData().weekdaysShort(this, format);
+});
+
+addFormatToken('dddd', 0, 0, function (format) {
+    return this.localeData().weekdays(this, format);
+});
+
+addFormatToken('e', 0, 0, 'weekday');
+addFormatToken('E', 0, 0, 'isoWeekday');
+
+// ALIASES
+
+addUnitAlias('day', 'd');
+addUnitAlias('weekday', 'e');
+addUnitAlias('isoWeekday', 'E');
+
+// PRIORITY
+addUnitPriority('day', 11);
+addUnitPriority('weekday', 11);
+addUnitPriority('isoWeekday', 11);
+
+// PARSING
+
+addRegexToken('d',    match1to2);
+addRegexToken('e',    match1to2);
+addRegexToken('E',    match1to2);
+addRegexToken('dd',   function (isStrict, locale) {
+    return locale.weekdaysMinRegex(isStrict);
+});
+addRegexToken('ddd',   function (isStrict, locale) {
+    return locale.weekdaysShortRegex(isStrict);
+});
+addRegexToken('dddd',   function (isStrict, locale) {
+    return locale.weekdaysRegex(isStrict);
+});
+
+addWeekParseToken(['dd', 'ddd', 'dddd'], function (input, week, config, token) {
+    var weekday = config._locale.weekdaysParse(input, token, config._strict);
+    // if we didn't get a weekday name, mark the date as invalid
+    if (weekday != null) {
+        week.d = weekday;
+    } else {
+        getParsingFlags(config).invalidWeekday = input;
+    }
+});
+
+addWeekParseToken(['d', 'e', 'E'], function (input, week, config, token) {
+    week[token] = toInt(input);
+});
+
+// HELPERS
+
+function parseWeekday(input, locale) {
+    if (typeof input !== 'string') {
+        return input;
+    }
+
+    if (!isNaN(input)) {
+        return parseInt(input, 10);
+    }
+
+    input = locale.weekdaysParse(input);
+    if (typeof input === 'number') {
+        return input;
+    }
+
+    return null;
+}
+
+function parseIsoWeekday(input, locale) {
+    if (typeof input === 'string') {
+        return locale.weekdaysParse(input) % 7 || 7;
+    }
+    return isNaN(input) ? null : input;
+}
+
+// LOCALES
+
+var defaultLocaleWeekdays = 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_');
+function localeWeekdays (m, format) {
+    if (!m) {
+        return isArray(this._weekdays) ? this._weekdays :
+            this._weekdays['standalone'];
+    }
+    return isArray(this._weekdays) ? this._weekdays[m.day()] :
+        this._weekdays[this._weekdays.isFormat.test(format) ? 'format' : 'standalone'][m.day()];
+}
+
+var defaultLocaleWeekdaysShort = 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_');
+function localeWeekdaysShort (m) {
+    return (m) ? this._weekdaysShort[m.day()] : this._weekdaysShort;
+}
+
+var defaultLocaleWeekdaysMin = 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_');
+function localeWeekdaysMin (m) {
+    return (m) ? this._weekdaysMin[m.day()] : this._weekdaysMin;
+}
+
+function handleStrictParse$1(weekdayName, format, strict) {
+    var i, ii, mom, llc = weekdayName.toLocaleLowerCase();
+    if (!this._weekdaysParse) {
+        this._weekdaysParse = [];
+        this._shortWeekdaysParse = [];
+        this._minWeekdaysParse = [];
+
+        for (i = 0; i < 7; ++i) {
+            mom = createUTC([2000, 1]).day(i);
+            this._minWeekdaysParse[i] = this.weekdaysMin(mom, '').toLocaleLowerCase();
+            this._shortWeekdaysParse[i] = this.weekdaysShort(mom, '').toLocaleLowerCase();
+            this._weekdaysParse[i] = this.weekdays(mom, '').toLocaleLowerCase();
+        }
+    }
+
+    if (strict) {
+        if (format === 'dddd') {
+            ii = indexOf$1.call(this._weekdaysParse, llc);
+            return ii !== -1 ? ii : null;
+        } else if (format === 'ddd') {
+            ii = indexOf$1.call(this._shortWeekdaysParse, llc);
+            return ii !== -1 ? ii : null;
+        } else {
+            ii = indexOf$1.call(this._minWeekdaysParse, llc);
+            return ii !== -1 ? ii : null;
+        }
+    } else {
+        if (format === 'dddd') {
+            ii = indexOf$1.call(this._weekdaysParse, llc);
+            if (ii !== -1) {
+                return ii;
             }
-            if (isStrict) {
-                return this._monthsShortStrictRegex;
+            ii = indexOf$1.call(this._shortWeekdaysParse, llc);
+            if (ii !== -1) {
+                return ii;
+            }
+            ii = indexOf$1.call(this._minWeekdaysParse, llc);
+            return ii !== -1 ? ii : null;
+        } else if (format === 'ddd') {
+            ii = indexOf$1.call(this._shortWeekdaysParse, llc);
+            if (ii !== -1) {
+                return ii;
+            }
+            ii = indexOf$1.call(this._weekdaysParse, llc);
+            if (ii !== -1) {
+                return ii;
+            }
+            ii = indexOf$1.call(this._minWeekdaysParse, llc);
+            return ii !== -1 ? ii : null;
+        } else {
+            ii = indexOf$1.call(this._minWeekdaysParse, llc);
+            if (ii !== -1) {
+                return ii;
+            }
+            ii = indexOf$1.call(this._weekdaysParse, llc);
+            if (ii !== -1) {
+                return ii;
+            }
+            ii = indexOf$1.call(this._shortWeekdaysParse, llc);
+            return ii !== -1 ? ii : null;
+        }
+    }
+}
+
+function localeWeekdaysParse (weekdayName, format, strict) {
+    var i, mom, regex;
+
+    if (this._weekdaysParseExact) {
+        return handleStrictParse$1.call(this, weekdayName, format, strict);
+    }
+
+    if (!this._weekdaysParse) {
+        this._weekdaysParse = [];
+        this._minWeekdaysParse = [];
+        this._shortWeekdaysParse = [];
+        this._fullWeekdaysParse = [];
+    }
+
+    for (i = 0; i < 7; i++) {
+        // make the regex if we don't have it already
+
+        mom = createUTC([2000, 1]).day(i);
+        if (strict && !this._fullWeekdaysParse[i]) {
+            this._fullWeekdaysParse[i] = new RegExp('^' + this.weekdays(mom, '').replace('.', '\.?') + '$', 'i');
+            this._shortWeekdaysParse[i] = new RegExp('^' + this.weekdaysShort(mom, '').replace('.', '\.?') + '$', 'i');
+            this._minWeekdaysParse[i] = new RegExp('^' + this.weekdaysMin(mom, '').replace('.', '\.?') + '$', 'i');
+        }
+        if (!this._weekdaysParse[i]) {
+            regex = '^' + this.weekdays(mom, '') + '|^' + this.weekdaysShort(mom, '') + '|^' + this.weekdaysMin(mom, '');
+            this._weekdaysParse[i] = new RegExp(regex.replace('.', ''), 'i');
+        }
+        // test the regex
+        if (strict && format === 'dddd' && this._fullWeekdaysParse[i].test(weekdayName)) {
+            return i;
+        } else if (strict && format === 'ddd' && this._shortWeekdaysParse[i].test(weekdayName)) {
+            return i;
+        } else if (strict && format === 'dd' && this._minWeekdaysParse[i].test(weekdayName)) {
+            return i;
+        } else if (!strict && this._weekdaysParse[i].test(weekdayName)) {
+            return i;
+        }
+    }
+}
+
+// MOMENTS
+
+function getSetDayOfWeek (input) {
+    if (!this.isValid()) {
+        return input != null ? this : NaN;
+    }
+    var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();
+    if (input != null) {
+        input = parseWeekday(input, this.localeData());
+        return this.add(input - day, 'd');
+    } else {
+        return day;
+    }
+}
+
+function getSetLocaleDayOfWeek (input) {
+    if (!this.isValid()) {
+        return input != null ? this : NaN;
+    }
+    var weekday = (this.day() + 7 - this.localeData()._week.dow) % 7;
+    return input == null ? weekday : this.add(input - weekday, 'd');
+}
+
+function getSetISODayOfWeek (input) {
+    if (!this.isValid()) {
+        return input != null ? this : NaN;
+    }
+
+    // behaves the same as moment#day except
+    // as a getter, returns 7 instead of 0 (1-7 range instead of 0-6)
+    // as a setter, sunday should belong to the previous week.
+
+    if (input != null) {
+        var weekday = parseIsoWeekday(input, this.localeData());
+        return this.day(this.day() % 7 ? weekday : weekday - 7);
+    } else {
+        return this.day() || 7;
+    }
+}
+
+var defaultWeekdaysRegex = matchWord;
+function weekdaysRegex (isStrict) {
+    if (this._weekdaysParseExact) {
+        if (!hasOwnProp(this, '_weekdaysRegex')) {
+            computeWeekdaysParse.call(this);
+        }
+        if (isStrict) {
+            return this._weekdaysStrictRegex;
+        } else {
+            return this._weekdaysRegex;
+        }
+    } else {
+        if (!hasOwnProp(this, '_weekdaysRegex')) {
+            this._weekdaysRegex = defaultWeekdaysRegex;
+        }
+        return this._weekdaysStrictRegex && isStrict ?
+            this._weekdaysStrictRegex : this._weekdaysRegex;
+    }
+}
+
+var defaultWeekdaysShortRegex = matchWord;
+function weekdaysShortRegex (isStrict) {
+    if (this._weekdaysParseExact) {
+        if (!hasOwnProp(this, '_weekdaysRegex')) {
+            computeWeekdaysParse.call(this);
+        }
+        if (isStrict) {
+            return this._weekdaysShortStrictRegex;
+        } else {
+            return this._weekdaysShortRegex;
+        }
+    } else {
+        if (!hasOwnProp(this, '_weekdaysShortRegex')) {
+            this._weekdaysShortRegex = defaultWeekdaysShortRegex;
+        }
+        return this._weekdaysShortStrictRegex && isStrict ?
+            this._weekdaysShortStrictRegex : this._weekdaysShortRegex;
+    }
+}
+
+var defaultWeekdaysMinRegex = matchWord;
+function weekdaysMinRegex (isStrict) {
+    if (this._weekdaysParseExact) {
+        if (!hasOwnProp(this, '_weekdaysRegex')) {
+            computeWeekdaysParse.call(this);
+        }
+        if (isStrict) {
+            return this._weekdaysMinStrictRegex;
+        } else {
+            return this._weekdaysMinRegex;
+        }
+    } else {
+        if (!hasOwnProp(this, '_weekdaysMinRegex')) {
+            this._weekdaysMinRegex = defaultWeekdaysMinRegex;
+        }
+        return this._weekdaysMinStrictRegex && isStrict ?
+            this._weekdaysMinStrictRegex : this._weekdaysMinRegex;
+    }
+}
+
+
+function computeWeekdaysParse () {
+    function cmpLenRev(a, b) {
+        return b.length - a.length;
+    }
+
+    var minPieces = [], shortPieces = [], longPieces = [], mixedPieces = [],
+        i, mom, minp, shortp, longp;
+    for (i = 0; i < 7; i++) {
+        // make the regex if we don't have it already
+        mom = createUTC([2000, 1]).day(i);
+        minp = this.weekdaysMin(mom, '');
+        shortp = this.weekdaysShort(mom, '');
+        longp = this.weekdays(mom, '');
+        minPieces.push(minp);
+        shortPieces.push(shortp);
+        longPieces.push(longp);
+        mixedPieces.push(minp);
+        mixedPieces.push(shortp);
+        mixedPieces.push(longp);
+    }
+    // Sorting makes sure if one weekday (or abbr) is a prefix of another it
+    // will match the longer piece.
+    minPieces.sort(cmpLenRev);
+    shortPieces.sort(cmpLenRev);
+    longPieces.sort(cmpLenRev);
+    mixedPieces.sort(cmpLenRev);
+    for (i = 0; i < 7; i++) {
+        shortPieces[i] = regexEscape(shortPieces[i]);
+        longPieces[i] = regexEscape(longPieces[i]);
+        mixedPieces[i] = regexEscape(mixedPieces[i]);
+    }
+
+    this._weekdaysRegex = new RegExp('^(' + mixedPieces.join('|') + ')', 'i');
+    this._weekdaysShortRegex = this._weekdaysRegex;
+    this._weekdaysMinRegex = this._weekdaysRegex;
+
+    this._weekdaysStrictRegex = new RegExp('^(' + longPieces.join('|') + ')', 'i');
+    this._weekdaysShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')', 'i');
+    this._weekdaysMinStrictRegex = new RegExp('^(' + minPieces.join('|') + ')', 'i');
+}
+
+// FORMATTING
+
+function hFormat() {
+    return this.hours() % 12 || 12;
+}
+
+function kFormat() {
+    return this.hours() || 24;
+}
+
+addFormatToken('H', ['HH', 2], 0, 'hour');
+addFormatToken('h', ['hh', 2], 0, hFormat);
+addFormatToken('k', ['kk', 2], 0, kFormat);
+
+addFormatToken('hmm', 0, 0, function () {
+    return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2);
+});
+
+addFormatToken('hmmss', 0, 0, function () {
+    return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2) +
+        zeroFill(this.seconds(), 2);
+});
+
+addFormatToken('Hmm', 0, 0, function () {
+    return '' + this.hours() + zeroFill(this.minutes(), 2);
+});
+
+addFormatToken('Hmmss', 0, 0, function () {
+    return '' + this.hours() + zeroFill(this.minutes(), 2) +
+        zeroFill(this.seconds(), 2);
+});
+
+function meridiem (token, lowercase) {
+    addFormatToken(token, 0, 0, function () {
+        return this.localeData().meridiem(this.hours(), this.minutes(), lowercase);
+    });
+}
+
+meridiem('a', true);
+meridiem('A', false);
+
+// ALIASES
+
+addUnitAlias('hour', 'h');
+
+// PRIORITY
+addUnitPriority('hour', 13);
+
+// PARSING
+
+function matchMeridiem (isStrict, locale) {
+    return locale._meridiemParse;
+}
+
+addRegexToken('a',  matchMeridiem);
+addRegexToken('A',  matchMeridiem);
+addRegexToken('H',  match1to2);
+addRegexToken('h',  match1to2);
+addRegexToken('k',  match1to2);
+addRegexToken('HH', match1to2, match2);
+addRegexToken('hh', match1to2, match2);
+addRegexToken('kk', match1to2, match2);
+
+addRegexToken('hmm', match3to4);
+addRegexToken('hmmss', match5to6);
+addRegexToken('Hmm', match3to4);
+addRegexToken('Hmmss', match5to6);
+
+addParseToken(['H', 'HH'], HOUR);
+addParseToken(['k', 'kk'], function (input, array, config) {
+    var kInput = toInt(input);
+    array[HOUR] = kInput === 24 ? 0 : kInput;
+});
+addParseToken(['a', 'A'], function (input, array, config) {
+    config._isPm = config._locale.isPM(input);
+    config._meridiem = input;
+});
+addParseToken(['h', 'hh'], function (input, array, config) {
+    array[HOUR] = toInt(input);
+    getParsingFlags(config).bigHour = true;
+});
+addParseToken('hmm', function (input, array, config) {
+    var pos = input.length - 2;
+    array[HOUR] = toInt(input.substr(0, pos));
+    array[MINUTE] = toInt(input.substr(pos));
+    getParsingFlags(config).bigHour = true;
+});
+addParseToken('hmmss', function (input, array, config) {
+    var pos1 = input.length - 4;
+    var pos2 = input.length - 2;
+    array[HOUR] = toInt(input.substr(0, pos1));
+    array[MINUTE] = toInt(input.substr(pos1, 2));
+    array[SECOND] = toInt(input.substr(pos2));
+    getParsingFlags(config).bigHour = true;
+});
+addParseToken('Hmm', function (input, array, config) {
+    var pos = input.length - 2;
+    array[HOUR] = toInt(input.substr(0, pos));
+    array[MINUTE] = toInt(input.substr(pos));
+});
+addParseToken('Hmmss', function (input, array, config) {
+    var pos1 = input.length - 4;
+    var pos2 = input.length - 2;
+    array[HOUR] = toInt(input.substr(0, pos1));
+    array[MINUTE] = toInt(input.substr(pos1, 2));
+    array[SECOND] = toInt(input.substr(pos2));
+});
+
+// LOCALES
+
+function localeIsPM (input) {
+    // IE8 Quirks Mode & IE7 Standards Mode do not allow accessing strings like arrays
+    // Using charAt should be more compatible.
+    return ((input + '').toLowerCase().charAt(0) === 'p');
+}
+
+var defaultLocaleMeridiemParse = /[ap]\.?m?\.?/i;
+function localeMeridiem (hours, minutes, isLower) {
+    if (hours > 11) {
+        return isLower ? 'pm' : 'PM';
+    } else {
+        return isLower ? 'am' : 'AM';
+    }
+}
+
+
+// MOMENTS
+
+// Setting the hour should keep the time, because the user explicitly
+// specified which hour he wants. So trying to maintain the same hour (in
+// a new timezone) makes sense. Adding/subtracting hours does not follow
+// this rule.
+var getSetHour = makeGetSet('Hours', true);
+
+// months
+// week
+// weekdays
+// meridiem
+var baseConfig = {
+    calendar: defaultCalendar,
+    longDateFormat: defaultLongDateFormat,
+    invalidDate: defaultInvalidDate,
+    ordinal: defaultOrdinal,
+    dayOfMonthOrdinalParse: defaultDayOfMonthOrdinalParse,
+    relativeTime: defaultRelativeTime,
+
+    months: defaultLocaleMonths,
+    monthsShort: defaultLocaleMonthsShort,
+
+    week: defaultLocaleWeek,
+
+    weekdays: defaultLocaleWeekdays,
+    weekdaysMin: defaultLocaleWeekdaysMin,
+    weekdaysShort: defaultLocaleWeekdaysShort,
+
+    meridiemParse: defaultLocaleMeridiemParse
+};
+
+// internal storage for locale config files
+var locales = {};
+var localeFamilies = {};
+var globalLocale;
+
+function normalizeLocale(key) {
+    return key ? key.toLowerCase().replace('_', '-') : key;
+}
+
+// pick the locale from the array
+// try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
+// substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
+function chooseLocale(names) {
+    var i = 0, j, next, locale, split;
+
+    while (i < names.length) {
+        split = normalizeLocale(names[i]).split('-');
+        j = split.length;
+        next = normalizeLocale(names[i + 1]);
+        next = next ? next.split('-') : null;
+        while (j > 0) {
+            locale = loadLocale(split.slice(0, j).join('-'));
+            if (locale) {
+                return locale;
+            }
+            if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
+                //the next array item is better than a shallower substring of this one
+                break;
+            }
+            j--;
+        }
+        i++;
+    }
+    return null;
+}
+
+function loadLocale(name) {
+    var oldLocale = null;
+    // TODO: Find a better way to register and load all the locales in Node
+    if (!locales[name] && (typeof module !== 'undefined') &&
+            module && module.exports) {
+        try {
+            oldLocale = globalLocale._abbr;
+            __webpack_require__(418)("./" + name);
+            // because defineLocale currently also sets the global locale, we
+            // want to undo that for lazy loaded locales
+            getSetGlobalLocale(oldLocale);
+        } catch (e) { }
+    }
+    return locales[name];
+}
+
+// This function will load locale and then set the global locale.  If
+// no arguments are passed in, it will simply return the current global
+// locale key.
+function getSetGlobalLocale (key, values) {
+    var data;
+    if (key) {
+        if (isUndefined(values)) {
+            data = getLocale(key);
+        }
+        else {
+            data = defineLocale(key, values);
+        }
+
+        if (data) {
+            // moment.duration._locale = moment._locale = data;
+            globalLocale = data;
+        }
+    }
+
+    return globalLocale._abbr;
+}
+
+function defineLocale (name, config) {
+    if (config !== null) {
+        var parentConfig = baseConfig;
+        config.abbr = name;
+        if (locales[name] != null) {
+            deprecateSimple('defineLocaleOverride',
+                    'use moment.updateLocale(localeName, config) to change ' +
+                    'an existing locale. moment.defineLocale(localeName, ' +
+                    'config) should only be used for creating a new locale ' +
+                    'See http://momentjs.com/guides/#/warnings/define-locale/ for more info.');
+            parentConfig = locales[name]._config;
+        } else if (config.parentLocale != null) {
+            if (locales[config.parentLocale] != null) {
+                parentConfig = locales[config.parentLocale]._config;
             } else {
-                return this._monthsShortRegex;
+                if (!localeFamilies[config.parentLocale]) {
+                    localeFamilies[config.parentLocale] = [];
+                }
+                localeFamilies[config.parentLocale].push({
+                    name: name,
+                    config: config
+                });
+                return null;
             }
-        } else {
-            return this._monthsShortStrictRegex && isStrict ?
-                this._monthsShortStrictRegex : this._monthsShortRegex;
+        }
+        locales[name] = new Locale(mergeConfigs(parentConfig, config));
+
+        if (localeFamilies[name]) {
+            localeFamilies[name].forEach(function (x) {
+                defineLocale(x.name, x.config);
+            });
+        }
+
+        // backwards compat for now: also set the locale
+        // make sure we set the locale AFTER all child locales have been
+        // created, so we won't end up with the child locale set.
+        getSetGlobalLocale(name);
+
+
+        return locales[name];
+    } else {
+        // useful for testing
+        delete locales[name];
+        return null;
+    }
+}
+
+function updateLocale(name, config) {
+    if (config != null) {
+        var locale, parentConfig = baseConfig;
+        // MERGE
+        if (locales[name] != null) {
+            parentConfig = locales[name]._config;
+        }
+        config = mergeConfigs(parentConfig, config);
+        locale = new Locale(config);
+        locale.parentLocale = locales[name];
+        locales[name] = locale;
+
+        // backwards compat for now: also set the locale
+        getSetGlobalLocale(name);
+    } else {
+        // pass null for config to unupdate, useful for tests
+        if (locales[name] != null) {
+            if (locales[name].parentLocale != null) {
+                locales[name] = locales[name].parentLocale;
+            } else if (locales[name] != null) {
+                delete locales[name];
+            }
         }
     }
+    return locales[name];
+}
 
-    var defaultMonthsRegex = matchWord;
-    function monthsRegex (isStrict) {
-        if (this._monthsParseExact) {
-            if (!hasOwnProp(this, '_monthsRegex')) {
-                computeMonthsParse.call(this);
-            }
-            if (isStrict) {
-                return this._monthsStrictRegex;
-            } else {
-                return this._monthsRegex;
-            }
-        } else {
-            return this._monthsStrictRegex && isStrict ?
-                this._monthsStrictRegex : this._monthsRegex;
-        }
+// returns locale data
+function getLocale (key) {
+    var locale;
+
+    if (key && key._locale && key._locale._abbr) {
+        key = key._locale._abbr;
     }
 
-    function computeMonthsParse () {
-        function cmpLenRev(a, b) {
-            return b.length - a.length;
-        }
-
-        var shortPieces = [], longPieces = [], mixedPieces = [],
-            i, mom;
-        for (i = 0; i < 12; i++) {
-            // make the regex if we don't have it already
-            mom = create_utc__createUTC([2000, i]);
-            shortPieces.push(this.monthsShort(mom, ''));
-            longPieces.push(this.months(mom, ''));
-            mixedPieces.push(this.months(mom, ''));
-            mixedPieces.push(this.monthsShort(mom, ''));
-        }
-        // Sorting makes sure if one month (or abbr) is a prefix of another it
-        // will match the longer piece.
-        shortPieces.sort(cmpLenRev);
-        longPieces.sort(cmpLenRev);
-        mixedPieces.sort(cmpLenRev);
-        for (i = 0; i < 12; i++) {
-            shortPieces[i] = regexEscape(shortPieces[i]);
-            longPieces[i] = regexEscape(longPieces[i]);
-            mixedPieces[i] = regexEscape(mixedPieces[i]);
-        }
-
-        this._monthsRegex = new RegExp('^(' + mixedPieces.join('|') + ')', 'i');
-        this._monthsShortRegex = this._monthsRegex;
-        this._monthsStrictRegex = new RegExp('^(' + longPieces.join('|') + ')', 'i');
-        this._monthsShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')', 'i');
+    if (!key) {
+        return globalLocale;
     }
 
-    function checkOverflow (m) {
-        var overflow;
-        var a = m._a;
-
-        if (a && getParsingFlags(m).overflow === -2) {
-            overflow =
-                a[MONTH]       < 0 || a[MONTH]       > 11  ? MONTH :
-                a[DATE]        < 1 || a[DATE]        > daysInMonth(a[YEAR], a[MONTH]) ? DATE :
-                a[HOUR]        < 0 || a[HOUR]        > 24 || (a[HOUR] === 24 && (a[MINUTE] !== 0 || a[SECOND] !== 0 || a[MILLISECOND] !== 0)) ? HOUR :
-                a[MINUTE]      < 0 || a[MINUTE]      > 59  ? MINUTE :
-                a[SECOND]      < 0 || a[SECOND]      > 59  ? SECOND :
-                a[MILLISECOND] < 0 || a[MILLISECOND] > 999 ? MILLISECOND :
-                -1;
-
-            if (getParsingFlags(m)._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {
-                overflow = DATE;
-            }
-            if (getParsingFlags(m)._overflowWeeks && overflow === -1) {
-                overflow = WEEK;
-            }
-            if (getParsingFlags(m)._overflowWeekday && overflow === -1) {
-                overflow = WEEKDAY;
-            }
-
-            getParsingFlags(m).overflow = overflow;
+    if (!isArray(key)) {
+        //short-circuit everything else
+        locale = loadLocale(key);
+        if (locale) {
+            return locale;
         }
-
-        return m;
+        key = [key];
     }
 
-    // iso 8601 regex
-    // 0000-00-00 0000-W00 or 0000-W00-0 + T + 00 or 00:00 or 00:00:00 or 00:00:00.000 + +00:00 or +0000 or +00)
-    var extendedIsoRegex = /^\s*((?:[+-]\d{6}|\d{4})-(?:\d\d-\d\d|W\d\d-\d|W\d\d|\d\d\d|\d\d))(?:(T| )(\d\d(?::\d\d(?::\d\d(?:[.,]\d+)?)?)?)([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?/;
-    var basicIsoRegex = /^\s*((?:[+-]\d{6}|\d{4})(?:\d\d\d\d|W\d\d\d|W\d\d|\d\d\d|\d\d))(?:(T| )(\d\d(?:\d\d(?:\d\d(?:[.,]\d+)?)?)?)([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?/;
+    return chooseLocale(key);
+}
 
-    var tzRegex = /Z|[+-]\d\d(?::?\d\d)?/;
+function listLocales() {
+    return keys$1(locales);
+}
 
-    var isoDates = [
-        ['YYYYYY-MM-DD', /[+-]\d{6}-\d\d-\d\d/],
-        ['YYYY-MM-DD', /\d{4}-\d\d-\d\d/],
-        ['GGGG-[W]WW-E', /\d{4}-W\d\d-\d/],
-        ['GGGG-[W]WW', /\d{4}-W\d\d/, false],
-        ['YYYY-DDD', /\d{4}-\d{3}/],
-        ['YYYY-MM', /\d{4}-\d\d/, false],
-        ['YYYYYYMMDD', /[+-]\d{10}/],
-        ['YYYYMMDD', /\d{8}/],
-        // YYYYMM is NOT allowed by the standard
-        ['GGGG[W]WWE', /\d{4}W\d{3}/],
-        ['GGGG[W]WW', /\d{4}W\d{2}/, false],
-        ['YYYYDDD', /\d{7}/]
-    ];
+function checkOverflow (m) {
+    var overflow;
+    var a = m._a;
 
-    // iso time formats and regexes
-    var isoTimes = [
-        ['HH:mm:ss.SSSS', /\d\d:\d\d:\d\d\.\d+/],
-        ['HH:mm:ss,SSSS', /\d\d:\d\d:\d\d,\d+/],
-        ['HH:mm:ss', /\d\d:\d\d:\d\d/],
-        ['HH:mm', /\d\d:\d\d/],
-        ['HHmmss.SSSS', /\d\d\d\d\d\d\.\d+/],
-        ['HHmmss,SSSS', /\d\d\d\d\d\d,\d+/],
-        ['HHmmss', /\d\d\d\d\d\d/],
-        ['HHmm', /\d\d\d\d/],
-        ['HH', /\d\d/]
-    ];
+    if (a && getParsingFlags(m).overflow === -2) {
+        overflow =
+            a[MONTH]       < 0 || a[MONTH]       > 11  ? MONTH :
+            a[DATE]        < 1 || a[DATE]        > daysInMonth(a[YEAR], a[MONTH]) ? DATE :
+            a[HOUR]        < 0 || a[HOUR]        > 24 || (a[HOUR] === 24 && (a[MINUTE] !== 0 || a[SECOND] !== 0 || a[MILLISECOND] !== 0)) ? HOUR :
+            a[MINUTE]      < 0 || a[MINUTE]      > 59  ? MINUTE :
+            a[SECOND]      < 0 || a[SECOND]      > 59  ? SECOND :
+            a[MILLISECOND] < 0 || a[MILLISECOND] > 999 ? MILLISECOND :
+            -1;
 
-    var aspNetJsonRegex = /^\/?Date\((\-?\d+)/i;
+        if (getParsingFlags(m)._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {
+            overflow = DATE;
+        }
+        if (getParsingFlags(m)._overflowWeeks && overflow === -1) {
+            overflow = WEEK;
+        }
+        if (getParsingFlags(m)._overflowWeekday && overflow === -1) {
+            overflow = WEEKDAY;
+        }
 
-    // date from iso format
-    function configFromISO(config) {
-        var i, l,
-            string = config._i,
-            match = extendedIsoRegex.exec(string) || basicIsoRegex.exec(string),
-            allowTime, dateFormat, timeFormat, tzFormat;
+        getParsingFlags(m).overflow = overflow;
+    }
 
-        if (match) {
-            getParsingFlags(config).iso = true;
+    return m;
+}
 
-            for (i = 0, l = isoDates.length; i < l; i++) {
-                if (isoDates[i][1].exec(match[1])) {
-                    dateFormat = isoDates[i][0];
-                    allowTime = isoDates[i][2] !== false;
+// iso 8601 regex
+// 0000-00-00 0000-W00 or 0000-W00-0 + T + 00 or 00:00 or 00:00:00 or 00:00:00.000 + +00:00 or +0000 or +00)
+var extendedIsoRegex = /^\s*((?:[+-]\d{6}|\d{4})-(?:\d\d-\d\d|W\d\d-\d|W\d\d|\d\d\d|\d\d))(?:(T| )(\d\d(?::\d\d(?::\d\d(?:[.,]\d+)?)?)?)([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/;
+var basicIsoRegex = /^\s*((?:[+-]\d{6}|\d{4})(?:\d\d\d\d|W\d\d\d|W\d\d|\d\d\d|\d\d))(?:(T| )(\d\d(?:\d\d(?:\d\d(?:[.,]\d+)?)?)?)([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/;
+
+var tzRegex = /Z|[+-]\d\d(?::?\d\d)?/;
+
+var isoDates = [
+    ['YYYYYY-MM-DD', /[+-]\d{6}-\d\d-\d\d/],
+    ['YYYY-MM-DD', /\d{4}-\d\d-\d\d/],
+    ['GGGG-[W]WW-E', /\d{4}-W\d\d-\d/],
+    ['GGGG-[W]WW', /\d{4}-W\d\d/, false],
+    ['YYYY-DDD', /\d{4}-\d{3}/],
+    ['YYYY-MM', /\d{4}-\d\d/, false],
+    ['YYYYYYMMDD', /[+-]\d{10}/],
+    ['YYYYMMDD', /\d{8}/],
+    // YYYYMM is NOT allowed by the standard
+    ['GGGG[W]WWE', /\d{4}W\d{3}/],
+    ['GGGG[W]WW', /\d{4}W\d{2}/, false],
+    ['YYYYDDD', /\d{7}/]
+];
+
+// iso time formats and regexes
+var isoTimes = [
+    ['HH:mm:ss.SSSS', /\d\d:\d\d:\d\d\.\d+/],
+    ['HH:mm:ss,SSSS', /\d\d:\d\d:\d\d,\d+/],
+    ['HH:mm:ss', /\d\d:\d\d:\d\d/],
+    ['HH:mm', /\d\d:\d\d/],
+    ['HHmmss.SSSS', /\d\d\d\d\d\d\.\d+/],
+    ['HHmmss,SSSS', /\d\d\d\d\d\d,\d+/],
+    ['HHmmss', /\d\d\d\d\d\d/],
+    ['HHmm', /\d\d\d\d/],
+    ['HH', /\d\d/]
+];
+
+var aspNetJsonRegex = /^\/?Date\((\-?\d+)/i;
+
+// date from iso format
+function configFromISO(config) {
+    var i, l,
+        string = config._i,
+        match = extendedIsoRegex.exec(string) || basicIsoRegex.exec(string),
+        allowTime, dateFormat, timeFormat, tzFormat;
+
+    if (match) {
+        getParsingFlags(config).iso = true;
+
+        for (i = 0, l = isoDates.length; i < l; i++) {
+            if (isoDates[i][1].exec(match[1])) {
+                dateFormat = isoDates[i][0];
+                allowTime = isoDates[i][2] !== false;
+                break;
+            }
+        }
+        if (dateFormat == null) {
+            config._isValid = false;
+            return;
+        }
+        if (match[3]) {
+            for (i = 0, l = isoTimes.length; i < l; i++) {
+                if (isoTimes[i][1].exec(match[3])) {
+                    // match[2] should be 'T' or space
+                    timeFormat = (match[2] || ' ') + isoTimes[i][0];
                     break;
                 }
             }
-            if (dateFormat == null) {
+            if (timeFormat == null) {
                 config._isValid = false;
                 return;
             }
-            if (match[3]) {
-                for (i = 0, l = isoTimes.length; i < l; i++) {
-                    if (isoTimes[i][1].exec(match[3])) {
-                        // match[2] should be 'T' or space
-                        timeFormat = (match[2] || ' ') + isoTimes[i][0];
-                        break;
-                    }
-                }
-                if (timeFormat == null) {
-                    config._isValid = false;
-                    return;
-                }
-            }
-            if (!allowTime && timeFormat != null) {
-                config._isValid = false;
-                return;
-            }
-            if (match[4]) {
-                if (tzRegex.exec(match[4])) {
-                    tzFormat = 'Z';
-                } else {
-                    config._isValid = false;
-                    return;
-                }
-            }
-            config._f = dateFormat + (timeFormat || '') + (tzFormat || '');
-            configFromStringAndFormat(config);
-        } else {
+        }
+        if (!allowTime && timeFormat != null) {
             config._isValid = false;
-        }
-    }
-
-    // date from iso format or fallback
-    function configFromString(config) {
-        var matched = aspNetJsonRegex.exec(config._i);
-
-        if (matched !== null) {
-            config._d = new Date(+matched[1]);
             return;
         }
-
-        configFromISO(config);
-        if (config._isValid === false) {
-            delete config._isValid;
-            utils_hooks__hooks.createFromInputFallback(config);
-        }
-    }
-
-    utils_hooks__hooks.createFromInputFallback = deprecate(
-        'moment construction falls back to js Date. This is ' +
-        'discouraged and will be removed in upcoming major ' +
-        'release. Please refer to ' +
-        'https://github.com/moment/moment/issues/1407 for more info.',
-        function (config) {
-            config._d = new Date(config._i + (config._useUTC ? ' UTC' : ''));
-        }
-    );
-
-    function createDate (y, m, d, h, M, s, ms) {
-        //can't just apply() to create a date:
-        //http://stackoverflow.com/questions/181348/instantiating-a-javascript-object-by-calling-prototype-constructor-apply
-        var date = new Date(y, m, d, h, M, s, ms);
-
-        //the date constructor remaps years 0-99 to 1900-1999
-        if (y < 100 && y >= 0 && isFinite(date.getFullYear())) {
-            date.setFullYear(y);
-        }
-        return date;
-    }
-
-    function createUTCDate (y) {
-        var date = new Date(Date.UTC.apply(null, arguments));
-
-        //the Date.UTC function remaps years 0-99 to 1900-1999
-        if (y < 100 && y >= 0 && isFinite(date.getUTCFullYear())) {
-            date.setUTCFullYear(y);
-        }
-        return date;
-    }
-
-    // FORMATTING
-
-    addFormatToken('Y', 0, 0, function () {
-        var y = this.year();
-        return y <= 9999 ? '' + y : '+' + y;
-    });
-
-    addFormatToken(0, ['YY', 2], 0, function () {
-        return this.year() % 100;
-    });
-
-    addFormatToken(0, ['YYYY',   4],       0, 'year');
-    addFormatToken(0, ['YYYYY',  5],       0, 'year');
-    addFormatToken(0, ['YYYYYY', 6, true], 0, 'year');
-
-    // ALIASES
-
-    addUnitAlias('year', 'y');
-
-    // PARSING
-
-    addRegexToken('Y',      matchSigned);
-    addRegexToken('YY',     match1to2, match2);
-    addRegexToken('YYYY',   match1to4, match4);
-    addRegexToken('YYYYY',  match1to6, match6);
-    addRegexToken('YYYYYY', match1to6, match6);
-
-    addParseToken(['YYYYY', 'YYYYYY'], YEAR);
-    addParseToken('YYYY', function (input, array) {
-        array[YEAR] = input.length === 2 ? utils_hooks__hooks.parseTwoDigitYear(input) : toInt(input);
-    });
-    addParseToken('YY', function (input, array) {
-        array[YEAR] = utils_hooks__hooks.parseTwoDigitYear(input);
-    });
-    addParseToken('Y', function (input, array) {
-        array[YEAR] = parseInt(input, 10);
-    });
-
-    // HELPERS
-
-    function daysInYear(year) {
-        return isLeapYear(year) ? 366 : 365;
-    }
-
-    function isLeapYear(year) {
-        return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-    }
-
-    // HOOKS
-
-    utils_hooks__hooks.parseTwoDigitYear = function (input) {
-        return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
-    };
-
-    // MOMENTS
-
-    var getSetYear = makeGetSet('FullYear', true);
-
-    function getIsLeapYear () {
-        return isLeapYear(this.year());
-    }
-
-    // start-of-first-week - start-of-year
-    function firstWeekOffset(year, dow, doy) {
-        var // first-week day -- which january is always in the first week (4 for iso, 1 for other)
-            fwd = 7 + dow - doy,
-            // first-week day local weekday -- which local weekday is fwd
-            fwdlw = (7 + createUTCDate(year, 0, fwd).getUTCDay() - dow) % 7;
-
-        return -fwdlw + fwd - 1;
-    }
-
-    //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
-    function dayOfYearFromWeeks(year, week, weekday, dow, doy) {
-        var localWeekday = (7 + weekday - dow) % 7,
-            weekOffset = firstWeekOffset(year, dow, doy),
-            dayOfYear = 1 + 7 * (week - 1) + localWeekday + weekOffset,
-            resYear, resDayOfYear;
-
-        if (dayOfYear <= 0) {
-            resYear = year - 1;
-            resDayOfYear = daysInYear(resYear) + dayOfYear;
-        } else if (dayOfYear > daysInYear(year)) {
-            resYear = year + 1;
-            resDayOfYear = dayOfYear - daysInYear(year);
-        } else {
-            resYear = year;
-            resDayOfYear = dayOfYear;
-        }
-
-        return {
-            year: resYear,
-            dayOfYear: resDayOfYear
-        };
-    }
-
-    function weekOfYear(mom, dow, doy) {
-        var weekOffset = firstWeekOffset(mom.year(), dow, doy),
-            week = Math.floor((mom.dayOfYear() - weekOffset - 1) / 7) + 1,
-            resWeek, resYear;
-
-        if (week < 1) {
-            resYear = mom.year() - 1;
-            resWeek = week + weeksInYear(resYear, dow, doy);
-        } else if (week > weeksInYear(mom.year(), dow, doy)) {
-            resWeek = week - weeksInYear(mom.year(), dow, doy);
-            resYear = mom.year() + 1;
-        } else {
-            resYear = mom.year();
-            resWeek = week;
-        }
-
-        return {
-            week: resWeek,
-            year: resYear
-        };
-    }
-
-    function weeksInYear(year, dow, doy) {
-        var weekOffset = firstWeekOffset(year, dow, doy),
-            weekOffsetNext = firstWeekOffset(year + 1, dow, doy);
-        return (daysInYear(year) - weekOffset + weekOffsetNext) / 7;
-    }
-
-    // Pick the first defined of two or three arguments.
-    function defaults(a, b, c) {
-        if (a != null) {
-            return a;
-        }
-        if (b != null) {
-            return b;
-        }
-        return c;
-    }
-
-    function currentDateArray(config) {
-        // hooks is actually the exported moment object
-        var nowValue = new Date(utils_hooks__hooks.now());
-        if (config._useUTC) {
-            return [nowValue.getUTCFullYear(), nowValue.getUTCMonth(), nowValue.getUTCDate()];
-        }
-        return [nowValue.getFullYear(), nowValue.getMonth(), nowValue.getDate()];
-    }
-
-    // convert an array to a date.
-    // the array should mirror the parameters below
-    // note: all values past the year are optional and will default to the lowest possible value.
-    // [year, month, day , hour, minute, second, millisecond]
-    function configFromArray (config) {
-        var i, date, input = [], currentDate, yearToUse;
-
-        if (config._d) {
-            return;
-        }
-
-        currentDate = currentDateArray(config);
-
-        //compute day of the year from weeks and weekdays
-        if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
-            dayOfYearFromWeekInfo(config);
-        }
-
-        //if the day of the year is set, figure out what it is
-        if (config._dayOfYear) {
-            yearToUse = defaults(config._a[YEAR], currentDate[YEAR]);
-
-            if (config._dayOfYear > daysInYear(yearToUse)) {
-                getParsingFlags(config)._overflowDayOfYear = true;
+        if (match[4]) {
+            if (tzRegex.exec(match[4])) {
+                tzFormat = 'Z';
+            } else {
+                config._isValid = false;
+                return;
             }
+        }
+        config._f = dateFormat + (timeFormat || '') + (tzFormat || '');
+        configFromStringAndFormat(config);
+    } else {
+        config._isValid = false;
+    }
+}
 
-            date = createUTCDate(yearToUse, 0, config._dayOfYear);
-            config._a[MONTH] = date.getUTCMonth();
-            config._a[DATE] = date.getUTCDate();
+// RFC 2822 regex: For details see https://tools.ietf.org/html/rfc2822#section-3.3
+var basicRfcRegex = /^((?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),?\s)?(\d?\d\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s(?:\d\d)?\d\d\s)(\d\d:\d\d)(\:\d\d)?(\s(?:UT|GMT|[ECMP][SD]T|[A-IK-Za-ik-z]|[+-]\d{4}))$/;
+
+// date and time from ref 2822 format
+function configFromRFC2822(config) {
+    var string, match, dayFormat,
+        dateFormat, timeFormat, tzFormat;
+    var timezones = {
+        ' GMT': ' +0000',
+        ' EDT': ' -0400',
+        ' EST': ' -0500',
+        ' CDT': ' -0500',
+        ' CST': ' -0600',
+        ' MDT': ' -0600',
+        ' MST': ' -0700',
+        ' PDT': ' -0700',
+        ' PST': ' -0800'
+    };
+    var military = 'YXWVUTSRQPONZABCDEFGHIKLM';
+    var timezone, timezoneIndex;
+
+    string = config._i
+        .replace(/\([^\)]*\)|[\n\t]/g, ' ') // Remove comments and folding whitespace
+        .replace(/(\s\s+)/g, ' ') // Replace multiple-spaces with a single space
+        .replace(/^\s|\s$/g, ''); // Remove leading and trailing spaces
+    match = basicRfcRegex.exec(string);
+
+    if (match) {
+        dayFormat = match[1] ? 'ddd' + ((match[1].length === 5) ? ', ' : ' ') : '';
+        dateFormat = 'D MMM ' + ((match[2].length > 10) ? 'YYYY ' : 'YY ');
+        timeFormat = 'HH:mm' + (match[4] ? ':ss' : '');
+
+        // TODO: Replace the vanilla JS Date object with an indepentent day-of-week check.
+        if (match[1]) { // day of week given
+            var momentDate = new Date(match[2]);
+            var momentDay = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][momentDate.getDay()];
+
+            if (match[1].substr(0,3) !== momentDay) {
+                getParsingFlags(config).weekdayMismatch = true;
+                config._isValid = false;
+                return;
+            }
         }
 
-        // Default to current date.
-        // * if no year, month, day of month are given, default to today
-        // * if day of month is given, default month and year
-        // * if month is given, default only year
-        // * if year is given, don't default anything
-        for (i = 0; i < 3 && config._a[i] == null; ++i) {
-            config._a[i] = input[i] = currentDate[i];
+        switch (match[5].length) {
+            case 2: // military
+                if (timezoneIndex === 0) {
+                    timezone = ' +0000';
+                } else {
+                    timezoneIndex = military.indexOf(match[5][1].toUpperCase()) - 12;
+                    timezone = ((timezoneIndex < 0) ? ' -' : ' +') +
+                        (('' + timezoneIndex).replace(/^-?/, '0')).match(/..$/)[0] + '00';
+                }
+                break;
+            case 4: // Zone
+                timezone = timezones[match[5]];
+                break;
+            default: // UT or +/-9999
+                timezone = timezones[' GMT'];
         }
+        match[5] = timezone;
+        config._i = match.splice(1).join('');
+        tzFormat = ' ZZ';
+        config._f = dayFormat + dateFormat + timeFormat + tzFormat;
+        configFromStringAndFormat(config);
+        getParsingFlags(config).rfc2822 = true;
+    } else {
+        config._isValid = false;
+    }
+}
 
-        // Zero out whatever was not defaulted, including time
-        for (; i < 7; i++) {
-            config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
-        }
+// date from iso format or fallback
+function configFromString(config) {
+    var matched = aspNetJsonRegex.exec(config._i);
 
-        // Check for 24:00:00.000
-        if (config._a[HOUR] === 24 &&
-                config._a[MINUTE] === 0 &&
-                config._a[SECOND] === 0 &&
-                config._a[MILLISECOND] === 0) {
-            config._nextDay = true;
-            config._a[HOUR] = 0;
-        }
-
-        config._d = (config._useUTC ? createUTCDate : createDate).apply(null, input);
-        // Apply timezone offset from input. The actual utcOffset can be changed
-        // with parseZone.
-        if (config._tzm != null) {
-            config._d.setUTCMinutes(config._d.getUTCMinutes() - config._tzm);
-        }
-
-        if (config._nextDay) {
-            config._a[HOUR] = 24;
-        }
+    if (matched !== null) {
+        config._d = new Date(+matched[1]);
+        return;
     }
 
-    function dayOfYearFromWeekInfo(config) {
-        var w, weekYear, week, weekday, dow, doy, temp, weekdayOverflow;
+    configFromISO(config);
+    if (config._isValid === false) {
+        delete config._isValid;
+    } else {
+        return;
+    }
 
-        w = config._w;
-        if (w.GG != null || w.W != null || w.E != null) {
-            dow = 1;
-            doy = 4;
+    configFromRFC2822(config);
+    if (config._isValid === false) {
+        delete config._isValid;
+    } else {
+        return;
+    }
 
-            // TODO: We need to take the current isoWeekYear, but that depends on
-            // how we interpret now (local, utc, fixed offset). So create
-            // a now version of current config (take local/utc/offset flags, and
-            // create now).
-            weekYear = defaults(w.GG, config._a[YEAR], weekOfYear(local__createLocal(), 1, 4).year);
-            week = defaults(w.W, 1);
-            weekday = defaults(w.E, 1);
-            if (weekday < 1 || weekday > 7) {
+    // Final attempt, use Input Fallback
+    hooks.createFromInputFallback(config);
+}
+
+hooks.createFromInputFallback = deprecate(
+    'value provided is not in a recognized RFC2822 or ISO format. moment construction falls back to js Date(), ' +
+    'which is not reliable across all browsers and versions. Non RFC2822/ISO date formats are ' +
+    'discouraged and will be removed in an upcoming major release. Please refer to ' +
+    'http://momentjs.com/guides/#/warnings/js-date/ for more info.',
+    function (config) {
+        config._d = new Date(config._i + (config._useUTC ? ' UTC' : ''));
+    }
+);
+
+// Pick the first defined of two or three arguments.
+function defaults(a, b, c) {
+    if (a != null) {
+        return a;
+    }
+    if (b != null) {
+        return b;
+    }
+    return c;
+}
+
+function currentDateArray(config) {
+    // hooks is actually the exported moment object
+    var nowValue = new Date(hooks.now());
+    if (config._useUTC) {
+        return [nowValue.getUTCFullYear(), nowValue.getUTCMonth(), nowValue.getUTCDate()];
+    }
+    return [nowValue.getFullYear(), nowValue.getMonth(), nowValue.getDate()];
+}
+
+// convert an array to a date.
+// the array should mirror the parameters below
+// note: all values past the year are optional and will default to the lowest possible value.
+// [year, month, day , hour, minute, second, millisecond]
+function configFromArray (config) {
+    var i, date, input = [], currentDate, yearToUse;
+
+    if (config._d) {
+        return;
+    }
+
+    currentDate = currentDateArray(config);
+
+    //compute day of the year from weeks and weekdays
+    if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
+        dayOfYearFromWeekInfo(config);
+    }
+
+    //if the day of the year is set, figure out what it is
+    if (config._dayOfYear != null) {
+        yearToUse = defaults(config._a[YEAR], currentDate[YEAR]);
+
+        if (config._dayOfYear > daysInYear(yearToUse) || config._dayOfYear === 0) {
+            getParsingFlags(config)._overflowDayOfYear = true;
+        }
+
+        date = createUTCDate(yearToUse, 0, config._dayOfYear);
+        config._a[MONTH] = date.getUTCMonth();
+        config._a[DATE] = date.getUTCDate();
+    }
+
+    // Default to current date.
+    // * if no year, month, day of month are given, default to today
+    // * if day of month is given, default month and year
+    // * if month is given, default only year
+    // * if year is given, don't default anything
+    for (i = 0; i < 3 && config._a[i] == null; ++i) {
+        config._a[i] = input[i] = currentDate[i];
+    }
+
+    // Zero out whatever was not defaulted, including time
+    for (; i < 7; i++) {
+        config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
+    }
+
+    // Check for 24:00:00.000
+    if (config._a[HOUR] === 24 &&
+            config._a[MINUTE] === 0 &&
+            config._a[SECOND] === 0 &&
+            config._a[MILLISECOND] === 0) {
+        config._nextDay = true;
+        config._a[HOUR] = 0;
+    }
+
+    config._d = (config._useUTC ? createUTCDate : createDate).apply(null, input);
+    // Apply timezone offset from input. The actual utcOffset can be changed
+    // with parseZone.
+    if (config._tzm != null) {
+        config._d.setUTCMinutes(config._d.getUTCMinutes() - config._tzm);
+    }
+
+    if (config._nextDay) {
+        config._a[HOUR] = 24;
+    }
+}
+
+function dayOfYearFromWeekInfo(config) {
+    var w, weekYear, week, weekday, dow, doy, temp, weekdayOverflow;
+
+    w = config._w;
+    if (w.GG != null || w.W != null || w.E != null) {
+        dow = 1;
+        doy = 4;
+
+        // TODO: We need to take the current isoWeekYear, but that depends on
+        // how we interpret now (local, utc, fixed offset). So create
+        // a now version of current config (take local/utc/offset flags, and
+        // create now).
+        weekYear = defaults(w.GG, config._a[YEAR], weekOfYear(createLocal(), 1, 4).year);
+        week = defaults(w.W, 1);
+        weekday = defaults(w.E, 1);
+        if (weekday < 1 || weekday > 7) {
+            weekdayOverflow = true;
+        }
+    } else {
+        dow = config._locale._week.dow;
+        doy = config._locale._week.doy;
+
+        var curWeek = weekOfYear(createLocal(), dow, doy);
+
+        weekYear = defaults(w.gg, config._a[YEAR], curWeek.year);
+
+        // Default to current week.
+        week = defaults(w.w, curWeek.week);
+
+        if (w.d != null) {
+            // weekday -- low day numbers are considered next week
+            weekday = w.d;
+            if (weekday < 0 || weekday > 6) {
+                weekdayOverflow = true;
+            }
+        } else if (w.e != null) {
+            // local weekday -- counting starts from begining of week
+            weekday = w.e + dow;
+            if (w.e < 0 || w.e > 6) {
                 weekdayOverflow = true;
             }
         } else {
-            dow = config._locale._week.dow;
-            doy = config._locale._week.doy;
-
-            weekYear = defaults(w.gg, config._a[YEAR], weekOfYear(local__createLocal(), dow, doy).year);
-            week = defaults(w.w, 1);
-
-            if (w.d != null) {
-                // weekday -- low day numbers are considered next week
-                weekday = w.d;
-                if (weekday < 0 || weekday > 6) {
-                    weekdayOverflow = true;
-                }
-            } else if (w.e != null) {
-                // local weekday -- counting starts from begining of week
-                weekday = w.e + dow;
-                if (w.e < 0 || w.e > 6) {
-                    weekdayOverflow = true;
-                }
-            } else {
-                // default to begining of week
-                weekday = dow;
-            }
-        }
-        if (week < 1 || week > weeksInYear(weekYear, dow, doy)) {
-            getParsingFlags(config)._overflowWeeks = true;
-        } else if (weekdayOverflow != null) {
-            getParsingFlags(config)._overflowWeekday = true;
-        } else {
-            temp = dayOfYearFromWeeks(weekYear, week, weekday, dow, doy);
-            config._a[YEAR] = temp.year;
-            config._dayOfYear = temp.dayOfYear;
+            // default to begining of week
+            weekday = dow;
         }
     }
+    if (week < 1 || week > weeksInYear(weekYear, dow, doy)) {
+        getParsingFlags(config)._overflowWeeks = true;
+    } else if (weekdayOverflow != null) {
+        getParsingFlags(config)._overflowWeekday = true;
+    } else {
+        temp = dayOfYearFromWeeks(weekYear, week, weekday, dow, doy);
+        config._a[YEAR] = temp.year;
+        config._dayOfYear = temp.dayOfYear;
+    }
+}
 
-    // constant that refers to the ISO standard
-    utils_hooks__hooks.ISO_8601 = function () {};
+// constant that refers to the ISO standard
+hooks.ISO_8601 = function () {};
 
-    // date from string and format string
-    function configFromStringAndFormat(config) {
-        // TODO: Move this to another part of the creation flow to prevent circular deps
-        if (config._f === utils_hooks__hooks.ISO_8601) {
-            configFromISO(config);
-            return;
+// constant that refers to the RFC 2822 form
+hooks.RFC_2822 = function () {};
+
+// date from string and format string
+function configFromStringAndFormat(config) {
+    // TODO: Move this to another part of the creation flow to prevent circular deps
+    if (config._f === hooks.ISO_8601) {
+        configFromISO(config);
+        return;
+    }
+    if (config._f === hooks.RFC_2822) {
+        configFromRFC2822(config);
+        return;
+    }
+    config._a = [];
+    getParsingFlags(config).empty = true;
+
+    // This array is used to make a Date, either with `new Date` or `Date.UTC`
+    var string = '' + config._i,
+        i, parsedInput, tokens, token, skipped,
+        stringLength = string.length,
+        totalParsedInputLength = 0;
+
+    tokens = expandFormat(config._f, config._locale).match(formattingTokens) || [];
+
+    for (i = 0; i < tokens.length; i++) {
+        token = tokens[i];
+        parsedInput = (string.match(getParseRegexForToken(token, config)) || [])[0];
+        // console.log('token', token, 'parsedInput', parsedInput,
+        //         'regex', getParseRegexForToken(token, config));
+        if (parsedInput) {
+            skipped = string.substr(0, string.indexOf(parsedInput));
+            if (skipped.length > 0) {
+                getParsingFlags(config).unusedInput.push(skipped);
+            }
+            string = string.slice(string.indexOf(parsedInput) + parsedInput.length);
+            totalParsedInputLength += parsedInput.length;
         }
-
-        config._a = [];
-        getParsingFlags(config).empty = true;
-
-        // This array is used to make a Date, either with `new Date` or `Date.UTC`
-        var string = '' + config._i,
-            i, parsedInput, tokens, token, skipped,
-            stringLength = string.length,
-            totalParsedInputLength = 0;
-
-        tokens = expandFormat(config._f, config._locale).match(formattingTokens) || [];
-
-        for (i = 0; i < tokens.length; i++) {
-            token = tokens[i];
-            parsedInput = (string.match(getParseRegexForToken(token, config)) || [])[0];
-            // console.log('token', token, 'parsedInput', parsedInput,
-            //         'regex', getParseRegexForToken(token, config));
+        // don't parse if it's not a known token
+        if (formatTokenFunctions[token]) {
             if (parsedInput) {
-                skipped = string.substr(0, string.indexOf(parsedInput));
-                if (skipped.length > 0) {
-                    getParsingFlags(config).unusedInput.push(skipped);
-                }
-                string = string.slice(string.indexOf(parsedInput) + parsedInput.length);
-                totalParsedInputLength += parsedInput.length;
+                getParsingFlags(config).empty = false;
             }
-            // don't parse if it's not a known token
-            if (formatTokenFunctions[token]) {
-                if (parsedInput) {
-                    getParsingFlags(config).empty = false;
-                }
-                else {
-                    getParsingFlags(config).unusedTokens.push(token);
-                }
-                addTimeToArrayFromToken(token, parsedInput, config);
-            }
-            else if (config._strict && !parsedInput) {
+            else {
                 getParsingFlags(config).unusedTokens.push(token);
             }
+            addTimeToArrayFromToken(token, parsedInput, config);
         }
-
-        // add remaining unparsed input length to the string
-        getParsingFlags(config).charsLeftOver = stringLength - totalParsedInputLength;
-        if (string.length > 0) {
-            getParsingFlags(config).unusedInput.push(string);
-        }
-
-        // clear _12h flag if hour is <= 12
-        if (getParsingFlags(config).bigHour === true &&
-                config._a[HOUR] <= 12 &&
-                config._a[HOUR] > 0) {
-            getParsingFlags(config).bigHour = undefined;
-        }
-
-        getParsingFlags(config).parsedDateParts = config._a.slice(0);
-        getParsingFlags(config).meridiem = config._meridiem;
-        // handle meridiem
-        config._a[HOUR] = meridiemFixWrap(config._locale, config._a[HOUR], config._meridiem);
-
-        configFromArray(config);
-        checkOverflow(config);
-    }
-
-
-    function meridiemFixWrap (locale, hour, meridiem) {
-        var isPm;
-
-        if (meridiem == null) {
-            // nothing to do
-            return hour;
-        }
-        if (locale.meridiemHour != null) {
-            return locale.meridiemHour(hour, meridiem);
-        } else if (locale.isPM != null) {
-            // Fallback
-            isPm = locale.isPM(meridiem);
-            if (isPm && hour < 12) {
-                hour += 12;
-            }
-            if (!isPm && hour === 12) {
-                hour = 0;
-            }
-            return hour;
-        } else {
-            // this is not supposed to happen
-            return hour;
+        else if (config._strict && !parsedInput) {
+            getParsingFlags(config).unusedTokens.push(token);
         }
     }
 
-    // date from string and array of format strings
-    function configFromStringAndArray(config) {
-        var tempConfig,
-            bestMoment,
-
-            scoreToBeat,
-            i,
-            currentScore;
-
-        if (config._f.length === 0) {
-            getParsingFlags(config).invalidFormat = true;
-            config._d = new Date(NaN);
-            return;
-        }
-
-        for (i = 0; i < config._f.length; i++) {
-            currentScore = 0;
-            tempConfig = copyConfig({}, config);
-            if (config._useUTC != null) {
-                tempConfig._useUTC = config._useUTC;
-            }
-            tempConfig._f = config._f[i];
-            configFromStringAndFormat(tempConfig);
-
-            if (!valid__isValid(tempConfig)) {
-                continue;
-            }
-
-            // if there is any input that was not parsed add a penalty for that format
-            currentScore += getParsingFlags(tempConfig).charsLeftOver;
-
-            //or tokens
-            currentScore += getParsingFlags(tempConfig).unusedTokens.length * 10;
-
-            getParsingFlags(tempConfig).score = currentScore;
-
-            if (scoreToBeat == null || currentScore < scoreToBeat) {
-                scoreToBeat = currentScore;
-                bestMoment = tempConfig;
-            }
-        }
-
-        extend(config, bestMoment || tempConfig);
+    // add remaining unparsed input length to the string
+    getParsingFlags(config).charsLeftOver = stringLength - totalParsedInputLength;
+    if (string.length > 0) {
+        getParsingFlags(config).unusedInput.push(string);
     }
 
-    function configFromObject(config) {
-        if (config._d) {
-            return;
-        }
-
-        var i = normalizeObjectUnits(config._i);
-        config._a = map([i.year, i.month, i.day || i.date, i.hour, i.minute, i.second, i.millisecond], function (obj) {
-            return obj && parseInt(obj, 10);
-        });
-
-        configFromArray(config);
+    // clear _12h flag if hour is <= 12
+    if (config._a[HOUR] <= 12 &&
+        getParsingFlags(config).bigHour === true &&
+        config._a[HOUR] > 0) {
+        getParsingFlags(config).bigHour = undefined;
     }
 
-    function createFromConfig (config) {
-        var res = new Moment(checkOverflow(prepareConfig(config)));
-        if (res._nextDay) {
-            // Adding is smart enough around DST
-            res.add(1, 'd');
-            res._nextDay = undefined;
-        }
+    getParsingFlags(config).parsedDateParts = config._a.slice(0);
+    getParsingFlags(config).meridiem = config._meridiem;
+    // handle meridiem
+    config._a[HOUR] = meridiemFixWrap(config._locale, config._a[HOUR], config._meridiem);
 
-        return res;
+    configFromArray(config);
+    checkOverflow(config);
+}
+
+
+function meridiemFixWrap (locale, hour, meridiem) {
+    var isPm;
+
+    if (meridiem == null) {
+        // nothing to do
+        return hour;
+    }
+    if (locale.meridiemHour != null) {
+        return locale.meridiemHour(hour, meridiem);
+    } else if (locale.isPM != null) {
+        // Fallback
+        isPm = locale.isPM(meridiem);
+        if (isPm && hour < 12) {
+            hour += 12;
+        }
+        if (!isPm && hour === 12) {
+            hour = 0;
+        }
+        return hour;
+    } else {
+        // this is not supposed to happen
+        return hour;
+    }
+}
+
+// date from string and array of format strings
+function configFromStringAndArray(config) {
+    var tempConfig,
+        bestMoment,
+
+        scoreToBeat,
+        i,
+        currentScore;
+
+    if (config._f.length === 0) {
+        getParsingFlags(config).invalidFormat = true;
+        config._d = new Date(NaN);
+        return;
     }
 
-    function prepareConfig (config) {
-        var input = config._i,
-            format = config._f;
+    for (i = 0; i < config._f.length; i++) {
+        currentScore = 0;
+        tempConfig = copyConfig({}, config);
+        if (config._useUTC != null) {
+            tempConfig._useUTC = config._useUTC;
+        }
+        tempConfig._f = config._f[i];
+        configFromStringAndFormat(tempConfig);
 
-        config._locale = config._locale || locale_locales__getLocale(config._l);
-
-        if (input === null || (format === undefined && input === '')) {
-            return valid__createInvalid({nullInput: true});
+        if (!isValid(tempConfig)) {
+            continue;
         }
 
-        if (typeof input === 'string') {
-            config._i = input = config._locale.preparse(input);
-        }
+        // if there is any input that was not parsed add a penalty for that format
+        currentScore += getParsingFlags(tempConfig).charsLeftOver;
 
-        if (isMoment(input)) {
-            return new Moment(checkOverflow(input));
-        } else if (isArray(format)) {
-            configFromStringAndArray(config);
-        } else if (format) {
-            configFromStringAndFormat(config);
-        } else if (isDate(input)) {
-            config._d = input;
-        } else {
-            configFromInput(config);
-        }
+        //or tokens
+        currentScore += getParsingFlags(tempConfig).unusedTokens.length * 10;
 
-        if (!valid__isValid(config)) {
-            config._d = null;
-        }
+        getParsingFlags(tempConfig).score = currentScore;
 
-        return config;
-    }
-
-    function configFromInput(config) {
-        var input = config._i;
-        if (input === undefined) {
-            config._d = new Date(utils_hooks__hooks.now());
-        } else if (isDate(input)) {
-            config._d = new Date(input.valueOf());
-        } else if (typeof input === 'string') {
-            configFromString(config);
-        } else if (isArray(input)) {
-            config._a = map(input.slice(0), function (obj) {
-                return parseInt(obj, 10);
-            });
-            configFromArray(config);
-        } else if (typeof(input) === 'object') {
-            configFromObject(config);
-        } else if (typeof(input) === 'number') {
-            // from milliseconds
-            config._d = new Date(input);
-        } else {
-            utils_hooks__hooks.createFromInputFallback(config);
+        if (scoreToBeat == null || currentScore < scoreToBeat) {
+            scoreToBeat = currentScore;
+            bestMoment = tempConfig;
         }
     }
 
-    function createLocalOrUTC (input, format, locale, strict, isUTC) {
-        var c = {};
+    extend(config, bestMoment || tempConfig);
+}
 
-        if (typeof(locale) === 'boolean') {
-            strict = locale;
-            locale = undefined;
-        }
-        // object construction must be done this way.
-        // https://github.com/moment/moment/issues/1423
-        c._isAMomentObject = true;
-        c._useUTC = c._isUTC = isUTC;
-        c._l = locale;
-        c._i = input;
-        c._f = format;
-        c._strict = strict;
-
-        return createFromConfig(c);
+function configFromObject(config) {
+    if (config._d) {
+        return;
     }
 
-    function local__createLocal (input, format, locale, strict) {
-        return createLocalOrUTC(input, format, locale, strict, false);
-    }
-
-    var prototypeMin = deprecate(
-         'moment().min is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548',
-         function () {
-             var other = local__createLocal.apply(null, arguments);
-             if (this.isValid() && other.isValid()) {
-                 return other < this ? this : other;
-             } else {
-                 return valid__createInvalid();
-             }
-         }
-     );
-
-    var prototypeMax = deprecate(
-        'moment().max is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548',
-        function () {
-            var other = local__createLocal.apply(null, arguments);
-            if (this.isValid() && other.isValid()) {
-                return other > this ? this : other;
-            } else {
-                return valid__createInvalid();
-            }
-        }
-    );
-
-    // Pick a moment m from moments so that m[fn](other) is true for all
-    // other. This relies on the function fn to be transitive.
-    //
-    // moments should either be an array of moment objects or an array, whose
-    // first element is an array of moment objects.
-    function pickBy(fn, moments) {
-        var res, i;
-        if (moments.length === 1 && isArray(moments[0])) {
-            moments = moments[0];
-        }
-        if (!moments.length) {
-            return local__createLocal();
-        }
-        res = moments[0];
-        for (i = 1; i < moments.length; ++i) {
-            if (!moments[i].isValid() || moments[i][fn](res)) {
-                res = moments[i];
-            }
-        }
-        return res;
-    }
-
-    // TODO: Use [].sort instead?
-    function min () {
-        var args = [].slice.call(arguments, 0);
-
-        return pickBy('isBefore', args);
-    }
-
-    function max () {
-        var args = [].slice.call(arguments, 0);
-
-        return pickBy('isAfter', args);
-    }
-
-    var now = function () {
-        return Date.now ? Date.now() : +(new Date());
-    };
-
-    function Duration (duration) {
-        var normalizedInput = normalizeObjectUnits(duration),
-            years = normalizedInput.year || 0,
-            quarters = normalizedInput.quarter || 0,
-            months = normalizedInput.month || 0,
-            weeks = normalizedInput.week || 0,
-            days = normalizedInput.day || 0,
-            hours = normalizedInput.hour || 0,
-            minutes = normalizedInput.minute || 0,
-            seconds = normalizedInput.second || 0,
-            milliseconds = normalizedInput.millisecond || 0;
-
-        // representation for dateAddRemove
-        this._milliseconds = +milliseconds +
-            seconds * 1e3 + // 1000
-            minutes * 6e4 + // 1000 * 60
-            hours * 1000 * 60 * 60; //using 1000 * 60 * 60 instead of 36e5 to avoid floating point rounding errors https://github.com/moment/moment/issues/2978
-        // Because of dateAddRemove treats 24 hours as different from a
-        // day when working around DST, we need to store them separately
-        this._days = +days +
-            weeks * 7;
-        // It is impossible translate months into days without knowing
-        // which months you are are talking about, so we have to store
-        // it separately.
-        this._months = +months +
-            quarters * 3 +
-            years * 12;
-
-        this._data = {};
-
-        this._locale = locale_locales__getLocale();
-
-        this._bubble();
-    }
-
-    function isDuration (obj) {
-        return obj instanceof Duration;
-    }
-
-    // FORMATTING
-
-    function offset (token, separator) {
-        addFormatToken(token, 0, 0, function () {
-            var offset = this.utcOffset();
-            var sign = '+';
-            if (offset < 0) {
-                offset = -offset;
-                sign = '-';
-            }
-            return sign + zeroFill(~~(offset / 60), 2) + separator + zeroFill(~~(offset) % 60, 2);
-        });
-    }
-
-    offset('Z', ':');
-    offset('ZZ', '');
-
-    // PARSING
-
-    addRegexToken('Z',  matchShortOffset);
-    addRegexToken('ZZ', matchShortOffset);
-    addParseToken(['Z', 'ZZ'], function (input, array, config) {
-        config._useUTC = true;
-        config._tzm = offsetFromString(matchShortOffset, input);
+    var i = normalizeObjectUnits(config._i);
+    config._a = map([i.year, i.month, i.day || i.date, i.hour, i.minute, i.second, i.millisecond], function (obj) {
+        return obj && parseInt(obj, 10);
     });
 
-    // HELPERS
+    configFromArray(config);
+}
 
-    // timezone chunker
-    // '+10:00' > ['10',  '00']
-    // '-1530'  > ['-15', '30']
-    var chunkOffset = /([\+\-]|\d\d)/gi;
-
-    function offsetFromString(matcher, string) {
-        var matches = ((string || '').match(matcher) || []);
-        var chunk   = matches[matches.length - 1] || [];
-        var parts   = (chunk + '').match(chunkOffset) || ['-', 0, 0];
-        var minutes = +(parts[1] * 60) + toInt(parts[2]);
-
-        return parts[0] === '+' ? minutes : -minutes;
+function createFromConfig (config) {
+    var res = new Moment(checkOverflow(prepareConfig(config)));
+    if (res._nextDay) {
+        // Adding is smart enough around DST
+        res.add(1, 'd');
+        res._nextDay = undefined;
     }
 
-    // Return a moment from input, that is local/utc/zone equivalent to model.
-    function cloneWithOffset(input, model) {
-        var res, diff;
-        if (model._isUTC) {
-            res = model.clone();
-            diff = (isMoment(input) || isDate(input) ? input.valueOf() : local__createLocal(input).valueOf()) - res.valueOf();
-            // Use low-level api, because this fn is low-level api.
-            res._d.setTime(res._d.valueOf() + diff);
-            utils_hooks__hooks.updateOffset(res, false);
-            return res;
+    return res;
+}
+
+function prepareConfig (config) {
+    var input = config._i,
+        format = config._f;
+
+    config._locale = config._locale || getLocale(config._l);
+
+    if (input === null || (format === undefined && input === '')) {
+        return createInvalid({nullInput: true});
+    }
+
+    if (typeof input === 'string') {
+        config._i = input = config._locale.preparse(input);
+    }
+
+    if (isMoment(input)) {
+        return new Moment(checkOverflow(input));
+    } else if (isDate(input)) {
+        config._d = input;
+    } else if (isArray(format)) {
+        configFromStringAndArray(config);
+    } else if (format) {
+        configFromStringAndFormat(config);
+    }  else {
+        configFromInput(config);
+    }
+
+    if (!isValid(config)) {
+        config._d = null;
+    }
+
+    return config;
+}
+
+function configFromInput(config) {
+    var input = config._i;
+    if (isUndefined(input)) {
+        config._d = new Date(hooks.now());
+    } else if (isDate(input)) {
+        config._d = new Date(input.valueOf());
+    } else if (typeof input === 'string') {
+        configFromString(config);
+    } else if (isArray(input)) {
+        config._a = map(input.slice(0), function (obj) {
+            return parseInt(obj, 10);
+        });
+        configFromArray(config);
+    } else if (isObject(input)) {
+        configFromObject(config);
+    } else if (isNumber(input)) {
+        // from milliseconds
+        config._d = new Date(input);
+    } else {
+        hooks.createFromInputFallback(config);
+    }
+}
+
+function createLocalOrUTC (input, format, locale, strict, isUTC) {
+    var c = {};
+
+    if (locale === true || locale === false) {
+        strict = locale;
+        locale = undefined;
+    }
+
+    if ((isObject(input) && isObjectEmpty(input)) ||
+            (isArray(input) && input.length === 0)) {
+        input = undefined;
+    }
+    // object construction must be done this way.
+    // https://github.com/moment/moment/issues/1423
+    c._isAMomentObject = true;
+    c._useUTC = c._isUTC = isUTC;
+    c._l = locale;
+    c._i = input;
+    c._f = format;
+    c._strict = strict;
+
+    return createFromConfig(c);
+}
+
+function createLocal (input, format, locale, strict) {
+    return createLocalOrUTC(input, format, locale, strict, false);
+}
+
+var prototypeMin = deprecate(
+    'moment().min is deprecated, use moment.max instead. http://momentjs.com/guides/#/warnings/min-max/',
+    function () {
+        var other = createLocal.apply(null, arguments);
+        if (this.isValid() && other.isValid()) {
+            return other < this ? this : other;
         } else {
-            return local__createLocal(input).local();
+            return createInvalid();
         }
     }
+);
 
-    function getDateOffset (m) {
-        // On Firefox.24 Date#getTimezoneOffset returns a floating point.
-        // https://github.com/moment/moment/pull/1871
-        return -Math.round(m._d.getTimezoneOffset() / 15) * 15;
-    }
-
-    // HOOKS
-
-    // This function will be called whenever a moment is mutated.
-    // It is intended to keep the offset in sync with the timezone.
-    utils_hooks__hooks.updateOffset = function () {};
-
-    // MOMENTS
-
-    // keepLocalTime = true means only change the timezone, without
-    // affecting the local hour. So 5:31:26 +0300 --[utcOffset(2, true)]-->
-    // 5:31:26 +0200 It is possible that 5:31:26 doesn't exist with offset
-    // +0200, so we adjust the time as needed, to be valid.
-    //
-    // Keeping the time actually adds/subtracts (one hour)
-    // from the actual represented time. That is why we call updateOffset
-    // a second time. In case it wants us to change the offset again
-    // _changeInProgress == true case, then we have to adjust, because
-    // there is no such time in the given timezone.
-    function getSetOffset (input, keepLocalTime) {
-        var offset = this._offset || 0,
-            localAdjust;
-        if (!this.isValid()) {
-            return input != null ? this : NaN;
-        }
-        if (input != null) {
-            if (typeof input === 'string') {
-                input = offsetFromString(matchShortOffset, input);
-            } else if (Math.abs(input) < 16) {
-                input = input * 60;
-            }
-            if (!this._isUTC && keepLocalTime) {
-                localAdjust = getDateOffset(this);
-            }
-            this._offset = input;
-            this._isUTC = true;
-            if (localAdjust != null) {
-                this.add(localAdjust, 'm');
-            }
-            if (offset !== input) {
-                if (!keepLocalTime || this._changeInProgress) {
-                    add_subtract__addSubtract(this, create__createDuration(input - offset, 'm'), 1, false);
-                } else if (!this._changeInProgress) {
-                    this._changeInProgress = true;
-                    utils_hooks__hooks.updateOffset(this, true);
-                    this._changeInProgress = null;
-                }
-            }
-            return this;
+var prototypeMax = deprecate(
+    'moment().max is deprecated, use moment.min instead. http://momentjs.com/guides/#/warnings/min-max/',
+    function () {
+        var other = createLocal.apply(null, arguments);
+        if (this.isValid() && other.isValid()) {
+            return other > this ? this : other;
         } else {
-            return this._isUTC ? offset : getDateOffset(this);
+            return createInvalid();
         }
     }
+);
 
-    function getSetZone (input, keepLocalTime) {
-        if (input != null) {
-            if (typeof input !== 'string') {
-                input = -input;
-            }
-
-            this.utcOffset(input, keepLocalTime);
-
-            return this;
-        } else {
-            return -this.utcOffset();
+// Pick a moment m from moments so that m[fn](other) is true for all
+// other. This relies on the function fn to be transitive.
+//
+// moments should either be an array of moment objects or an array, whose
+// first element is an array of moment objects.
+function pickBy(fn, moments) {
+    var res, i;
+    if (moments.length === 1 && isArray(moments[0])) {
+        moments = moments[0];
+    }
+    if (!moments.length) {
+        return createLocal();
+    }
+    res = moments[0];
+    for (i = 1; i < moments.length; ++i) {
+        if (!moments[i].isValid() || moments[i][fn](res)) {
+            res = moments[i];
         }
     }
+    return res;
+}
 
-    function setOffsetToUTC (keepLocalTime) {
-        return this.utcOffset(0, keepLocalTime);
-    }
+// TODO: Use [].sort instead?
+function min () {
+    var args = [].slice.call(arguments, 0);
 
-    function setOffsetToLocal (keepLocalTime) {
-        if (this._isUTC) {
-            this.utcOffset(0, keepLocalTime);
-            this._isUTC = false;
+    return pickBy('isBefore', args);
+}
 
-            if (keepLocalTime) {
-                this.subtract(getDateOffset(this), 'm');
-            }
-        }
-        return this;
-    }
+function max () {
+    var args = [].slice.call(arguments, 0);
 
-    function setOffsetToParsedOffset () {
-        if (this._tzm) {
-            this.utcOffset(this._tzm);
-        } else if (typeof this._i === 'string') {
-            this.utcOffset(offsetFromString(matchOffset, this._i));
-        }
-        return this;
-    }
+    return pickBy('isAfter', args);
+}
 
-    function hasAlignedHourOffset (input) {
-        if (!this.isValid()) {
+var now = function () {
+    return Date.now ? Date.now() : +(new Date());
+};
+
+var ordering = ['year', 'quarter', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millisecond'];
+
+function isDurationValid(m) {
+    for (var key in m) {
+        if (!(ordering.indexOf(key) !== -1 && (m[key] == null || !isNaN(m[key])))) {
             return false;
         }
-        input = input ? local__createLocal(input).utcOffset() : 0;
-
-        return (this.utcOffset() - input) % 60 === 0;
     }
 
-    function isDaylightSavingTime () {
-        return (
-            this.utcOffset() > this.clone().month(0).utcOffset() ||
-            this.utcOffset() > this.clone().month(5).utcOffset()
-        );
+    var unitHasDecimal = false;
+    for (var i = 0; i < ordering.length; ++i) {
+        if (m[ordering[i]]) {
+            if (unitHasDecimal) {
+                return false; // only allow non-integers for smallest unit
+            }
+            if (parseFloat(m[ordering[i]]) !== toInt(m[ordering[i]])) {
+                unitHasDecimal = true;
+            }
+        }
     }
 
-    function isDaylightSavingTimeShifted () {
-        if (!isUndefined(this._isDSTShifted)) {
-            return this._isDSTShifted;
+    return true;
+}
+
+function isValid$1() {
+    return this._isValid;
+}
+
+function createInvalid$1() {
+    return createDuration(NaN);
+}
+
+function Duration (duration) {
+    var normalizedInput = normalizeObjectUnits(duration),
+        years = normalizedInput.year || 0,
+        quarters = normalizedInput.quarter || 0,
+        months = normalizedInput.month || 0,
+        weeks = normalizedInput.week || 0,
+        days = normalizedInput.day || 0,
+        hours = normalizedInput.hour || 0,
+        minutes = normalizedInput.minute || 0,
+        seconds = normalizedInput.second || 0,
+        milliseconds = normalizedInput.millisecond || 0;
+
+    this._isValid = isDurationValid(normalizedInput);
+
+    // representation for dateAddRemove
+    this._milliseconds = +milliseconds +
+        seconds * 1e3 + // 1000
+        minutes * 6e4 + // 1000 * 60
+        hours * 1000 * 60 * 60; //using 1000 * 60 * 60 instead of 36e5 to avoid floating point rounding errors https://github.com/moment/moment/issues/2978
+    // Because of dateAddRemove treats 24 hours as different from a
+    // day when working around DST, we need to store them separately
+    this._days = +days +
+        weeks * 7;
+    // It is impossible translate months into days without knowing
+    // which months you are are talking about, so we have to store
+    // it separately.
+    this._months = +months +
+        quarters * 3 +
+        years * 12;
+
+    this._data = {};
+
+    this._locale = getLocale();
+
+    this._bubble();
+}
+
+function isDuration (obj) {
+    return obj instanceof Duration;
+}
+
+function absRound (number) {
+    if (number < 0) {
+        return Math.round(-1 * number) * -1;
+    } else {
+        return Math.round(number);
+    }
+}
+
+// FORMATTING
+
+function offset (token, separator) {
+    addFormatToken(token, 0, 0, function () {
+        var offset = this.utcOffset();
+        var sign = '+';
+        if (offset < 0) {
+            offset = -offset;
+            sign = '-';
+        }
+        return sign + zeroFill(~~(offset / 60), 2) + separator + zeroFill(~~(offset) % 60, 2);
+    });
+}
+
+offset('Z', ':');
+offset('ZZ', '');
+
+// PARSING
+
+addRegexToken('Z',  matchShortOffset);
+addRegexToken('ZZ', matchShortOffset);
+addParseToken(['Z', 'ZZ'], function (input, array, config) {
+    config._useUTC = true;
+    config._tzm = offsetFromString(matchShortOffset, input);
+});
+
+// HELPERS
+
+// timezone chunker
+// '+10:00' > ['10',  '00']
+// '-1530'  > ['-15', '30']
+var chunkOffset = /([\+\-]|\d\d)/gi;
+
+function offsetFromString(matcher, string) {
+    var matches = (string || '').match(matcher);
+
+    if (matches === null) {
+        return null;
+    }
+
+    var chunk   = matches[matches.length - 1] || [];
+    var parts   = (chunk + '').match(chunkOffset) || ['-', 0, 0];
+    var minutes = +(parts[1] * 60) + toInt(parts[2]);
+
+    return minutes === 0 ?
+      0 :
+      parts[0] === '+' ? minutes : -minutes;
+}
+
+// Return a moment from input, that is local/utc/zone equivalent to model.
+function cloneWithOffset(input, model) {
+    var res, diff;
+    if (model._isUTC) {
+        res = model.clone();
+        diff = (isMoment(input) || isDate(input) ? input.valueOf() : createLocal(input).valueOf()) - res.valueOf();
+        // Use low-level api, because this fn is low-level api.
+        res._d.setTime(res._d.valueOf() + diff);
+        hooks.updateOffset(res, false);
+        return res;
+    } else {
+        return createLocal(input).local();
+    }
+}
+
+function getDateOffset (m) {
+    // On Firefox.24 Date#getTimezoneOffset returns a floating point.
+    // https://github.com/moment/moment/pull/1871
+    return -Math.round(m._d.getTimezoneOffset() / 15) * 15;
+}
+
+// HOOKS
+
+// This function will be called whenever a moment is mutated.
+// It is intended to keep the offset in sync with the timezone.
+hooks.updateOffset = function () {};
+
+// MOMENTS
+
+// keepLocalTime = true means only change the timezone, without
+// affecting the local hour. So 5:31:26 +0300 --[utcOffset(2, true)]-->
+// 5:31:26 +0200 It is possible that 5:31:26 doesn't exist with offset
+// +0200, so we adjust the time as needed, to be valid.
+//
+// Keeping the time actually adds/subtracts (one hour)
+// from the actual represented time. That is why we call updateOffset
+// a second time. In case it wants us to change the offset again
+// _changeInProgress == true case, then we have to adjust, because
+// there is no such time in the given timezone.
+function getSetOffset (input, keepLocalTime, keepMinutes) {
+    var offset = this._offset || 0,
+        localAdjust;
+    if (!this.isValid()) {
+        return input != null ? this : NaN;
+    }
+    if (input != null) {
+        if (typeof input === 'string') {
+            input = offsetFromString(matchShortOffset, input);
+            if (input === null) {
+                return this;
+            }
+        } else if (Math.abs(input) < 16 && !keepMinutes) {
+            input = input * 60;
+        }
+        if (!this._isUTC && keepLocalTime) {
+            localAdjust = getDateOffset(this);
+        }
+        this._offset = input;
+        this._isUTC = true;
+        if (localAdjust != null) {
+            this.add(localAdjust, 'm');
+        }
+        if (offset !== input) {
+            if (!keepLocalTime || this._changeInProgress) {
+                addSubtract(this, createDuration(input - offset, 'm'), 1, false);
+            } else if (!this._changeInProgress) {
+                this._changeInProgress = true;
+                hooks.updateOffset(this, true);
+                this._changeInProgress = null;
+            }
+        }
+        return this;
+    } else {
+        return this._isUTC ? offset : getDateOffset(this);
+    }
+}
+
+function getSetZone (input, keepLocalTime) {
+    if (input != null) {
+        if (typeof input !== 'string') {
+            input = -input;
         }
 
-        var c = {};
+        this.utcOffset(input, keepLocalTime);
 
-        copyConfig(c, this);
-        c = prepareConfig(c);
+        return this;
+    } else {
+        return -this.utcOffset();
+    }
+}
 
-        if (c._a) {
-            var other = c._isUTC ? create_utc__createUTC(c._a) : local__createLocal(c._a);
-            this._isDSTShifted = this.isValid() &&
-                compareArrays(c._a, other.toArray()) > 0;
-        } else {
-            this._isDSTShifted = false;
+function setOffsetToUTC (keepLocalTime) {
+    return this.utcOffset(0, keepLocalTime);
+}
+
+function setOffsetToLocal (keepLocalTime) {
+    if (this._isUTC) {
+        this.utcOffset(0, keepLocalTime);
+        this._isUTC = false;
+
+        if (keepLocalTime) {
+            this.subtract(getDateOffset(this), 'm');
         }
+    }
+    return this;
+}
 
+function setOffsetToParsedOffset () {
+    if (this._tzm != null) {
+        this.utcOffset(this._tzm, false, true);
+    } else if (typeof this._i === 'string') {
+        var tZone = offsetFromString(matchOffset, this._i);
+        if (tZone != null) {
+            this.utcOffset(tZone);
+        }
+        else {
+            this.utcOffset(0, true);
+        }
+    }
+    return this;
+}
+
+function hasAlignedHourOffset (input) {
+    if (!this.isValid()) {
+        return false;
+    }
+    input = input ? createLocal(input).utcOffset() : 0;
+
+    return (this.utcOffset() - input) % 60 === 0;
+}
+
+function isDaylightSavingTime () {
+    return (
+        this.utcOffset() > this.clone().month(0).utcOffset() ||
+        this.utcOffset() > this.clone().month(5).utcOffset()
+    );
+}
+
+function isDaylightSavingTimeShifted () {
+    if (!isUndefined(this._isDSTShifted)) {
         return this._isDSTShifted;
     }
 
-    function isLocal () {
-        return this.isValid() ? !this._isUTC : false;
+    var c = {};
+
+    copyConfig(c, this);
+    c = prepareConfig(c);
+
+    if (c._a) {
+        var other = c._isUTC ? createUTC(c._a) : createLocal(c._a);
+        this._isDSTShifted = this.isValid() &&
+            compareArrays(c._a, other.toArray()) > 0;
+    } else {
+        this._isDSTShifted = false;
     }
 
-    function isUtcOffset () {
-        return this.isValid() ? this._isUTC : false;
-    }
+    return this._isDSTShifted;
+}
 
-    function isUtc () {
-        return this.isValid() ? this._isUTC && this._offset === 0 : false;
-    }
+function isLocal () {
+    return this.isValid() ? !this._isUTC : false;
+}
 
-    // ASP.NET json date format regex
-    var aspNetRegex = /^(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?\d*)?$/;
+function isUtcOffset () {
+    return this.isValid() ? this._isUTC : false;
+}
 
-    // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
-    // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
-    // and further modified to allow for strings containing both week and day
-    var isoRegex = /^(-)?P(?:(-?[0-9,.]*)Y)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)W)?(?:(-?[0-9,.]*)D)?(?:T(?:(-?[0-9,.]*)H)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)S)?)?$/;
+function isUtc () {
+    return this.isValid() ? this._isUTC && this._offset === 0 : false;
+}
 
-    function create__createDuration (input, key) {
-        var duration = input,
-            // matching against regexp is expensive, do it on demand
-            match = null,
-            sign,
-            ret,
-            diffRes;
+// ASP.NET json date format regex
+var aspNetRegex = /^(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)(\.\d*)?)?$/;
 
-        if (isDuration(input)) {
-            duration = {
-                ms : input._milliseconds,
-                d  : input._days,
-                M  : input._months
-            };
-        } else if (typeof input === 'number') {
-            duration = {};
-            if (key) {
-                duration[key] = input;
-            } else {
-                duration.milliseconds = input;
-            }
-        } else if (!!(match = aspNetRegex.exec(input))) {
-            sign = (match[1] === '-') ? -1 : 1;
-            duration = {
-                y  : 0,
-                d  : toInt(match[DATE])        * sign,
-                h  : toInt(match[HOUR])        * sign,
-                m  : toInt(match[MINUTE])      * sign,
-                s  : toInt(match[SECOND])      * sign,
-                ms : toInt(match[MILLISECOND]) * sign
-            };
-        } else if (!!(match = isoRegex.exec(input))) {
-            sign = (match[1] === '-') ? -1 : 1;
-            duration = {
-                y : parseIso(match[2], sign),
-                M : parseIso(match[3], sign),
-                w : parseIso(match[4], sign),
-                d : parseIso(match[5], sign),
-                h : parseIso(match[6], sign),
-                m : parseIso(match[7], sign),
-                s : parseIso(match[8], sign)
-            };
-        } else if (duration == null) {// checks for null or undefined
-            duration = {};
-        } else if (typeof duration === 'object' && ('from' in duration || 'to' in duration)) {
-            diffRes = momentsDifference(local__createLocal(duration.from), local__createLocal(duration.to));
+// from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
+// somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
+// and further modified to allow for strings containing both week and day
+var isoRegex = /^(-)?P(?:(-?[0-9,.]*)Y)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)W)?(?:(-?[0-9,.]*)D)?(?:T(?:(-?[0-9,.]*)H)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)S)?)?$/;
 
-            duration = {};
-            duration.ms = diffRes.milliseconds;
-            duration.M = diffRes.months;
-        }
+function createDuration (input, key) {
+    var duration = input,
+        // matching against regexp is expensive, do it on demand
+        match = null,
+        sign,
+        ret,
+        diffRes;
 
-        ret = new Duration(duration);
-
-        if (isDuration(input) && hasOwnProp(input, '_locale')) {
-            ret._locale = input._locale;
-        }
-
-        return ret;
-    }
-
-    create__createDuration.fn = Duration.prototype;
-
-    function parseIso (inp, sign) {
-        // We'd normally use ~~inp for this, but unfortunately it also
-        // converts floats to ints.
-        // inp may be undefined, so careful calling replace on it.
-        var res = inp && parseFloat(inp.replace(',', '.'));
-        // apply sign while we're at it
-        return (isNaN(res) ? 0 : res) * sign;
-    }
-
-    function positiveMomentsDifference(base, other) {
-        var res = {milliseconds: 0, months: 0};
-
-        res.months = other.month() - base.month() +
-            (other.year() - base.year()) * 12;
-        if (base.clone().add(res.months, 'M').isAfter(other)) {
-            --res.months;
-        }
-
-        res.milliseconds = +other - +(base.clone().add(res.months, 'M'));
-
-        return res;
-    }
-
-    function momentsDifference(base, other) {
-        var res;
-        if (!(base.isValid() && other.isValid())) {
-            return {milliseconds: 0, months: 0};
-        }
-
-        other = cloneWithOffset(other, base);
-        if (base.isBefore(other)) {
-            res = positiveMomentsDifference(base, other);
-        } else {
-            res = positiveMomentsDifference(other, base);
-            res.milliseconds = -res.milliseconds;
-            res.months = -res.months;
-        }
-
-        return res;
-    }
-
-    function absRound (number) {
-        if (number < 0) {
-            return Math.round(-1 * number) * -1;
-        } else {
-            return Math.round(number);
-        }
-    }
-
-    // TODO: remove 'name' arg after deprecation is removed
-    function createAdder(direction, name) {
-        return function (val, period) {
-            var dur, tmp;
-            //invert the arguments, but complain about it
-            if (period !== null && !isNaN(+period)) {
-                deprecateSimple(name, 'moment().' + name  + '(period, number) is deprecated. Please use moment().' + name + '(number, period).');
-                tmp = val; val = period; period = tmp;
-            }
-
-            val = typeof val === 'string' ? +val : val;
-            dur = create__createDuration(val, period);
-            add_subtract__addSubtract(this, dur, direction);
-            return this;
+    if (isDuration(input)) {
+        duration = {
+            ms : input._milliseconds,
+            d  : input._days,
+            M  : input._months
         };
-    }
-
-    function add_subtract__addSubtract (mom, duration, isAdding, updateOffset) {
-        var milliseconds = duration._milliseconds,
-            days = absRound(duration._days),
-            months = absRound(duration._months);
-
-        if (!mom.isValid()) {
-            // No op
-            return;
-        }
-
-        updateOffset = updateOffset == null ? true : updateOffset;
-
-        if (milliseconds) {
-            mom._d.setTime(mom._d.valueOf() + milliseconds * isAdding);
-        }
-        if (days) {
-            get_set__set(mom, 'Date', get_set__get(mom, 'Date') + days * isAdding);
-        }
-        if (months) {
-            setMonth(mom, get_set__get(mom, 'Month') + months * isAdding);
-        }
-        if (updateOffset) {
-            utils_hooks__hooks.updateOffset(mom, days || months);
-        }
-    }
-
-    var add_subtract__add      = createAdder(1, 'add');
-    var add_subtract__subtract = createAdder(-1, 'subtract');
-
-    function moment_calendar__calendar (time, formats) {
-        // We want to compare the start of today, vs this.
-        // Getting start-of-today depends on whether we're local/utc/offset or not.
-        var now = time || local__createLocal(),
-            sod = cloneWithOffset(now, this).startOf('day'),
-            diff = this.diff(sod, 'days', true),
-            format = diff < -6 ? 'sameElse' :
-                diff < -1 ? 'lastWeek' :
-                diff < 0 ? 'lastDay' :
-                diff < 1 ? 'sameDay' :
-                diff < 2 ? 'nextDay' :
-                diff < 7 ? 'nextWeek' : 'sameElse';
-
-        var output = formats && (isFunction(formats[format]) ? formats[format]() : formats[format]);
-
-        return this.format(output || this.localeData().calendar(format, this, local__createLocal(now)));
-    }
-
-    function clone () {
-        return new Moment(this);
-    }
-
-    function isAfter (input, units) {
-        var localInput = isMoment(input) ? input : local__createLocal(input);
-        if (!(this.isValid() && localInput.isValid())) {
-            return false;
-        }
-        units = normalizeUnits(!isUndefined(units) ? units : 'millisecond');
-        if (units === 'millisecond') {
-            return this.valueOf() > localInput.valueOf();
+    } else if (isNumber(input)) {
+        duration = {};
+        if (key) {
+            duration[key] = input;
         } else {
-            return localInput.valueOf() < this.clone().startOf(units).valueOf();
+            duration.milliseconds = input;
         }
+    } else if (!!(match = aspNetRegex.exec(input))) {
+        sign = (match[1] === '-') ? -1 : 1;
+        duration = {
+            y  : 0,
+            d  : toInt(match[DATE])                         * sign,
+            h  : toInt(match[HOUR])                         * sign,
+            m  : toInt(match[MINUTE])                       * sign,
+            s  : toInt(match[SECOND])                       * sign,
+            ms : toInt(absRound(match[MILLISECOND] * 1000)) * sign // the millisecond decimal point is included in the match
+        };
+    } else if (!!(match = isoRegex.exec(input))) {
+        sign = (match[1] === '-') ? -1 : 1;
+        duration = {
+            y : parseIso(match[2], sign),
+            M : parseIso(match[3], sign),
+            w : parseIso(match[4], sign),
+            d : parseIso(match[5], sign),
+            h : parseIso(match[6], sign),
+            m : parseIso(match[7], sign),
+            s : parseIso(match[8], sign)
+        };
+    } else if (duration == null) {// checks for null or undefined
+        duration = {};
+    } else if (typeof duration === 'object' && ('from' in duration || 'to' in duration)) {
+        diffRes = momentsDifference(createLocal(duration.from), createLocal(duration.to));
+
+        duration = {};
+        duration.ms = diffRes.milliseconds;
+        duration.M = diffRes.months;
     }
 
-    function isBefore (input, units) {
-        var localInput = isMoment(input) ? input : local__createLocal(input);
-        if (!(this.isValid() && localInput.isValid())) {
-            return false;
-        }
-        units = normalizeUnits(!isUndefined(units) ? units : 'millisecond');
-        if (units === 'millisecond') {
-            return this.valueOf() < localInput.valueOf();
-        } else {
-            return this.clone().endOf(units).valueOf() < localInput.valueOf();
-        }
+    ret = new Duration(duration);
+
+    if (isDuration(input) && hasOwnProp(input, '_locale')) {
+        ret._locale = input._locale;
     }
 
-    function isBetween (from, to, units, inclusivity) {
-        inclusivity = inclusivity || '()';
-        return (inclusivity[0] === '(' ? this.isAfter(from, units) : !this.isBefore(from, units)) &&
-            (inclusivity[1] === ')' ? this.isBefore(to, units) : !this.isAfter(to, units));
+    return ret;
+}
+
+createDuration.fn = Duration.prototype;
+createDuration.invalid = createInvalid$1;
+
+function parseIso (inp, sign) {
+    // We'd normally use ~~inp for this, but unfortunately it also
+    // converts floats to ints.
+    // inp may be undefined, so careful calling replace on it.
+    var res = inp && parseFloat(inp.replace(',', '.'));
+    // apply sign while we're at it
+    return (isNaN(res) ? 0 : res) * sign;
+}
+
+function positiveMomentsDifference(base, other) {
+    var res = {milliseconds: 0, months: 0};
+
+    res.months = other.month() - base.month() +
+        (other.year() - base.year()) * 12;
+    if (base.clone().add(res.months, 'M').isAfter(other)) {
+        --res.months;
     }
 
-    function isSame (input, units) {
-        var localInput = isMoment(input) ? input : local__createLocal(input),
-            inputMs;
-        if (!(this.isValid() && localInput.isValid())) {
-            return false;
-        }
-        units = normalizeUnits(units || 'millisecond');
-        if (units === 'millisecond') {
-            return this.valueOf() === localInput.valueOf();
-        } else {
-            inputMs = localInput.valueOf();
-            return this.clone().startOf(units).valueOf() <= inputMs && inputMs <= this.clone().endOf(units).valueOf();
-        }
+    res.milliseconds = +other - +(base.clone().add(res.months, 'M'));
+
+    return res;
+}
+
+function momentsDifference(base, other) {
+    var res;
+    if (!(base.isValid() && other.isValid())) {
+        return {milliseconds: 0, months: 0};
     }
 
-    function isSameOrAfter (input, units) {
-        return this.isSame(input, units) || this.isAfter(input,units);
+    other = cloneWithOffset(other, base);
+    if (base.isBefore(other)) {
+        res = positiveMomentsDifference(base, other);
+    } else {
+        res = positiveMomentsDifference(other, base);
+        res.milliseconds = -res.milliseconds;
+        res.months = -res.months;
     }
 
-    function isSameOrBefore (input, units) {
-        return this.isSame(input, units) || this.isBefore(input,units);
-    }
+    return res;
+}
 
-    function diff (input, units, asFloat) {
-        var that,
-            zoneDelta,
-            delta, output;
-
-        if (!this.isValid()) {
-            return NaN;
-        }
-
-        that = cloneWithOffset(input, this);
-
-        if (!that.isValid()) {
-            return NaN;
-        }
-
-        zoneDelta = (that.utcOffset() - this.utcOffset()) * 6e4;
-
-        units = normalizeUnits(units);
-
-        if (units === 'year' || units === 'month' || units === 'quarter') {
-            output = monthDiff(this, that);
-            if (units === 'quarter') {
-                output = output / 3;
-            } else if (units === 'year') {
-                output = output / 12;
-            }
-        } else {
-            delta = this - that;
-            output = units === 'second' ? delta / 1e3 : // 1000
-                units === 'minute' ? delta / 6e4 : // 1000 * 60
-                units === 'hour' ? delta / 36e5 : // 1000 * 60 * 60
-                units === 'day' ? (delta - zoneDelta) / 864e5 : // 1000 * 60 * 60 * 24, negate dst
-                units === 'week' ? (delta - zoneDelta) / 6048e5 : // 1000 * 60 * 60 * 24 * 7, negate dst
-                delta;
-        }
-        return asFloat ? output : absFloor(output);
-    }
-
-    function monthDiff (a, b) {
-        // difference in months
-        var wholeMonthDiff = ((b.year() - a.year()) * 12) + (b.month() - a.month()),
-            // b is in (anchor - 1 month, anchor + 1 month)
-            anchor = a.clone().add(wholeMonthDiff, 'months'),
-            anchor2, adjust;
-
-        if (b - anchor < 0) {
-            anchor2 = a.clone().add(wholeMonthDiff - 1, 'months');
-            // linear across the month
-            adjust = (b - anchor) / (anchor - anchor2);
-        } else {
-            anchor2 = a.clone().add(wholeMonthDiff + 1, 'months');
-            // linear across the month
-            adjust = (b - anchor) / (anchor2 - anchor);
+// TODO: remove 'name' arg after deprecation is removed
+function createAdder(direction, name) {
+    return function (val, period) {
+        var dur, tmp;
+        //invert the arguments, but complain about it
+        if (period !== null && !isNaN(+period)) {
+            deprecateSimple(name, 'moment().' + name  + '(period, number) is deprecated. Please use moment().' + name + '(number, period). ' +
+            'See http://momentjs.com/guides/#/warnings/add-inverted-param/ for more info.');
+            tmp = val; val = period; period = tmp;
         }
 
-        //check for negative zero, return zero if negative zero
-        return -(wholeMonthDiff + adjust) || 0;
+        val = typeof val === 'string' ? +val : val;
+        dur = createDuration(val, period);
+        addSubtract(this, dur, direction);
+        return this;
+    };
+}
+
+function addSubtract (mom, duration, isAdding, updateOffset) {
+    var milliseconds = duration._milliseconds,
+        days = absRound(duration._days),
+        months = absRound(duration._months);
+
+    if (!mom.isValid()) {
+        // No op
+        return;
     }
 
-    utils_hooks__hooks.defaultFormat = 'YYYY-MM-DDTHH:mm:ssZ';
-    utils_hooks__hooks.defaultFormatUtc = 'YYYY-MM-DDTHH:mm:ss[Z]';
+    updateOffset = updateOffset == null ? true : updateOffset;
 
-    function toString () {
-        return this.clone().locale('en').format('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ');
+    if (milliseconds) {
+        mom._d.setTime(mom._d.valueOf() + milliseconds * isAdding);
+    }
+    if (days) {
+        set$1(mom, 'Date', get(mom, 'Date') + days * isAdding);
+    }
+    if (months) {
+        setMonth(mom, get(mom, 'Month') + months * isAdding);
+    }
+    if (updateOffset) {
+        hooks.updateOffset(mom, days || months);
+    }
+}
+
+var add      = createAdder(1, 'add');
+var subtract = createAdder(-1, 'subtract');
+
+function getCalendarFormat(myMoment, now) {
+    var diff = myMoment.diff(now, 'days', true);
+    return diff < -6 ? 'sameElse' :
+            diff < -1 ? 'lastWeek' :
+            diff < 0 ? 'lastDay' :
+            diff < 1 ? 'sameDay' :
+            diff < 2 ? 'nextDay' :
+            diff < 7 ? 'nextWeek' : 'sameElse';
+}
+
+function calendar$1 (time, formats) {
+    // We want to compare the start of today, vs this.
+    // Getting start-of-today depends on whether we're local/utc/offset or not.
+    var now = time || createLocal(),
+        sod = cloneWithOffset(now, this).startOf('day'),
+        format = hooks.calendarFormat(this, sod) || 'sameElse';
+
+    var output = formats && (isFunction(formats[format]) ? formats[format].call(this, now) : formats[format]);
+
+    return this.format(output || this.localeData().calendar(format, this, createLocal(now)));
+}
+
+function clone () {
+    return new Moment(this);
+}
+
+function isAfter (input, units) {
+    var localInput = isMoment(input) ? input : createLocal(input);
+    if (!(this.isValid() && localInput.isValid())) {
+        return false;
+    }
+    units = normalizeUnits(!isUndefined(units) ? units : 'millisecond');
+    if (units === 'millisecond') {
+        return this.valueOf() > localInput.valueOf();
+    } else {
+        return localInput.valueOf() < this.clone().startOf(units).valueOf();
+    }
+}
+
+function isBefore (input, units) {
+    var localInput = isMoment(input) ? input : createLocal(input);
+    if (!(this.isValid() && localInput.isValid())) {
+        return false;
+    }
+    units = normalizeUnits(!isUndefined(units) ? units : 'millisecond');
+    if (units === 'millisecond') {
+        return this.valueOf() < localInput.valueOf();
+    } else {
+        return this.clone().endOf(units).valueOf() < localInput.valueOf();
+    }
+}
+
+function isBetween (from, to, units, inclusivity) {
+    inclusivity = inclusivity || '()';
+    return (inclusivity[0] === '(' ? this.isAfter(from, units) : !this.isBefore(from, units)) &&
+        (inclusivity[1] === ')' ? this.isBefore(to, units) : !this.isAfter(to, units));
+}
+
+function isSame (input, units) {
+    var localInput = isMoment(input) ? input : createLocal(input),
+        inputMs;
+    if (!(this.isValid() && localInput.isValid())) {
+        return false;
+    }
+    units = normalizeUnits(units || 'millisecond');
+    if (units === 'millisecond') {
+        return this.valueOf() === localInput.valueOf();
+    } else {
+        inputMs = localInput.valueOf();
+        return this.clone().startOf(units).valueOf() <= inputMs && inputMs <= this.clone().endOf(units).valueOf();
+    }
+}
+
+function isSameOrAfter (input, units) {
+    return this.isSame(input, units) || this.isAfter(input,units);
+}
+
+function isSameOrBefore (input, units) {
+    return this.isSame(input, units) || this.isBefore(input,units);
+}
+
+function diff (input, units, asFloat) {
+    var that,
+        zoneDelta,
+        delta, output;
+
+    if (!this.isValid()) {
+        return NaN;
     }
 
-    function moment_format__toISOString () {
-        var m = this.clone().utc();
-        if (0 < m.year() && m.year() <= 9999) {
-            if (isFunction(Date.prototype.toISOString)) {
-                // native implementation is ~50x faster, use it when we can
-                return this.toDate().toISOString();
-            } else {
-                return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
-            }
-        } else {
-            return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
+    that = cloneWithOffset(input, this);
+
+    if (!that.isValid()) {
+        return NaN;
+    }
+
+    zoneDelta = (that.utcOffset() - this.utcOffset()) * 6e4;
+
+    units = normalizeUnits(units);
+
+    if (units === 'year' || units === 'month' || units === 'quarter') {
+        output = monthDiff(this, that);
+        if (units === 'quarter') {
+            output = output / 3;
+        } else if (units === 'year') {
+            output = output / 12;
         }
+    } else {
+        delta = this - that;
+        output = units === 'second' ? delta / 1e3 : // 1000
+            units === 'minute' ? delta / 6e4 : // 1000 * 60
+            units === 'hour' ? delta / 36e5 : // 1000 * 60 * 60
+            units === 'day' ? (delta - zoneDelta) / 864e5 : // 1000 * 60 * 60 * 24, negate dst
+            units === 'week' ? (delta - zoneDelta) / 6048e5 : // 1000 * 60 * 60 * 24 * 7, negate dst
+            delta;
+    }
+    return asFloat ? output : absFloor(output);
+}
+
+function monthDiff (a, b) {
+    // difference in months
+    var wholeMonthDiff = ((b.year() - a.year()) * 12) + (b.month() - a.month()),
+        // b is in (anchor - 1 month, anchor + 1 month)
+        anchor = a.clone().add(wholeMonthDiff, 'months'),
+        anchor2, adjust;
+
+    if (b - anchor < 0) {
+        anchor2 = a.clone().add(wholeMonthDiff - 1, 'months');
+        // linear across the month
+        adjust = (b - anchor) / (anchor - anchor2);
+    } else {
+        anchor2 = a.clone().add(wholeMonthDiff + 1, 'months');
+        // linear across the month
+        adjust = (b - anchor) / (anchor2 - anchor);
     }
 
-    function format (inputString) {
-        if (!inputString) {
-            inputString = this.isUtc() ? utils_hooks__hooks.defaultFormatUtc : utils_hooks__hooks.defaultFormat;
+    //check for negative zero, return zero if negative zero
+    return -(wholeMonthDiff + adjust) || 0;
+}
+
+hooks.defaultFormat = 'YYYY-MM-DDTHH:mm:ssZ';
+hooks.defaultFormatUtc = 'YYYY-MM-DDTHH:mm:ss[Z]';
+
+function toString () {
+    return this.clone().locale('en').format('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ');
+}
+
+function toISOString() {
+    if (!this.isValid()) {
+        return null;
+    }
+    var m = this.clone().utc();
+    if (m.year() < 0 || m.year() > 9999) {
+        return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
+    }
+    if (isFunction(Date.prototype.toISOString)) {
+        // native implementation is ~50x faster, use it when we can
+        return this.toDate().toISOString();
+    }
+    return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
+}
+
+/**
+ * Return a human readable representation of a moment that can
+ * also be evaluated to get a new moment which is the same
+ *
+ * @link https://nodejs.org/dist/latest/docs/api/util.html#util_custom_inspect_function_on_objects
+ */
+function inspect () {
+    if (!this.isValid()) {
+        return 'moment.invalid(/* ' + this._i + ' */)';
+    }
+    var func = 'moment';
+    var zone = '';
+    if (!this.isLocal()) {
+        func = this.utcOffset() === 0 ? 'moment.utc' : 'moment.parseZone';
+        zone = 'Z';
+    }
+    var prefix = '[' + func + '("]';
+    var year = (0 <= this.year() && this.year() <= 9999) ? 'YYYY' : 'YYYYYY';
+    var datetime = '-MM-DD[T]HH:mm:ss.SSS';
+    var suffix = zone + '[")]';
+
+    return this.format(prefix + year + datetime + suffix);
+}
+
+function format (inputString) {
+    if (!inputString) {
+        inputString = this.isUtc() ? hooks.defaultFormatUtc : hooks.defaultFormat;
+    }
+    var output = formatMoment(this, inputString);
+    return this.localeData().postformat(output);
+}
+
+function from (time, withoutSuffix) {
+    if (this.isValid() &&
+            ((isMoment(time) && time.isValid()) ||
+             createLocal(time).isValid())) {
+        return createDuration({to: this, from: time}).locale(this.locale()).humanize(!withoutSuffix);
+    } else {
+        return this.localeData().invalidDate();
+    }
+}
+
+function fromNow (withoutSuffix) {
+    return this.from(createLocal(), withoutSuffix);
+}
+
+function to (time, withoutSuffix) {
+    if (this.isValid() &&
+            ((isMoment(time) && time.isValid()) ||
+             createLocal(time).isValid())) {
+        return createDuration({from: this, to: time}).locale(this.locale()).humanize(!withoutSuffix);
+    } else {
+        return this.localeData().invalidDate();
+    }
+}
+
+function toNow (withoutSuffix) {
+    return this.to(createLocal(), withoutSuffix);
+}
+
+// If passed a locale key, it will set the locale for this
+// instance.  Otherwise, it will return the locale configuration
+// variables for this instance.
+function locale (key) {
+    var newLocaleData;
+
+    if (key === undefined) {
+        return this._locale._abbr;
+    } else {
+        newLocaleData = getLocale(key);
+        if (newLocaleData != null) {
+            this._locale = newLocaleData;
         }
-        var output = formatMoment(this, inputString);
-        return this.localeData().postformat(output);
+        return this;
     }
+}
 
-    function from (time, withoutSuffix) {
-        if (this.isValid() &&
-                ((isMoment(time) && time.isValid()) ||
-                 local__createLocal(time).isValid())) {
-            return create__createDuration({to: this, from: time}).locale(this.locale()).humanize(!withoutSuffix);
-        } else {
-            return this.localeData().invalidDate();
-        }
-    }
-
-    function fromNow (withoutSuffix) {
-        return this.from(local__createLocal(), withoutSuffix);
-    }
-
-    function to (time, withoutSuffix) {
-        if (this.isValid() &&
-                ((isMoment(time) && time.isValid()) ||
-                 local__createLocal(time).isValid())) {
-            return create__createDuration({from: this, to: time}).locale(this.locale()).humanize(!withoutSuffix);
-        } else {
-            return this.localeData().invalidDate();
-        }
-    }
-
-    function toNow (withoutSuffix) {
-        return this.to(local__createLocal(), withoutSuffix);
-    }
-
-    // If passed a locale key, it will set the locale for this
-    // instance.  Otherwise, it will return the locale configuration
-    // variables for this instance.
-    function locale (key) {
-        var newLocaleData;
-
+var lang = deprecate(
+    'moment().lang() is deprecated. Instead, use moment().localeData() to get the language configuration. Use moment().locale() to change languages.',
+    function (key) {
         if (key === undefined) {
-            return this._locale._abbr;
+            return this.localeData();
         } else {
-            newLocaleData = locale_locales__getLocale(key);
-            if (newLocaleData != null) {
-                this._locale = newLocaleData;
-            }
-            return this;
+            return this.locale(key);
         }
     }
+);
 
-    var lang = deprecate(
-        'moment().lang() is deprecated. Instead, use moment().localeData() to get the language configuration. Use moment().locale() to change languages.',
-        function (key) {
-            if (key === undefined) {
-                return this.localeData();
-            } else {
-                return this.locale(key);
-            }
-        }
-    );
+function localeData () {
+    return this._locale;
+}
 
-    function localeData () {
-        return this._locale;
-    }
-
-    function startOf (units) {
-        units = normalizeUnits(units);
-        // the following switch intentionally omits break keywords
-        // to utilize falling through the cases.
-        switch (units) {
+function startOf (units) {
+    units = normalizeUnits(units);
+    // the following switch intentionally omits break keywords
+    // to utilize falling through the cases.
+    switch (units) {
         case 'year':
             this.month(0);
             /* falls through */
@@ -9091,1614 +10041,1080 @@ function curryRight(func) {
             /* falls through */
         case 'second':
             this.milliseconds(0);
-        }
+    }
 
-        // weeks are a special case
-        if (units === 'week') {
-            this.weekday(0);
-        }
-        if (units === 'isoWeek') {
-            this.isoWeekday(1);
-        }
+    // weeks are a special case
+    if (units === 'week') {
+        this.weekday(0);
+    }
+    if (units === 'isoWeek') {
+        this.isoWeekday(1);
+    }
 
-        // quarters are also special
-        if (units === 'quarter') {
-            this.month(Math.floor(this.month() / 3) * 3);
-        }
+    // quarters are also special
+    if (units === 'quarter') {
+        this.month(Math.floor(this.month() / 3) * 3);
+    }
 
+    return this;
+}
+
+function endOf (units) {
+    units = normalizeUnits(units);
+    if (units === undefined || units === 'millisecond') {
         return this;
     }
 
-    function endOf (units) {
-        units = normalizeUnits(units);
-        if (units === undefined || units === 'millisecond') {
-            return this;
-        }
-
-        // 'date' is an alias for 'day', so it should be considered as such.
-        if (units === 'date') {
-            units = 'day';
-        }
-
-        return this.startOf(units).add(1, (units === 'isoWeek' ? 'week' : units)).subtract(1, 'ms');
+    // 'date' is an alias for 'day', so it should be considered as such.
+    if (units === 'date') {
+        units = 'day';
     }
 
-    function to_type__valueOf () {
-        return this._d.valueOf() - ((this._offset || 0) * 60000);
-    }
+    return this.startOf(units).add(1, (units === 'isoWeek' ? 'week' : units)).subtract(1, 'ms');
+}
 
-    function unix () {
-        return Math.floor(this.valueOf() / 1000);
-    }
+function valueOf () {
+    return this._d.valueOf() - ((this._offset || 0) * 60000);
+}
 
-    function toDate () {
-        return this._offset ? new Date(this.valueOf()) : this._d;
-    }
+function unix () {
+    return Math.floor(this.valueOf() / 1000);
+}
 
-    function toArray () {
-        var m = this;
-        return [m.year(), m.month(), m.date(), m.hour(), m.minute(), m.second(), m.millisecond()];
-    }
+function toDate () {
+    return new Date(this.valueOf());
+}
 
-    function toObject () {
-        var m = this;
-        return {
-            years: m.year(),
-            months: m.month(),
-            date: m.date(),
-            hours: m.hours(),
-            minutes: m.minutes(),
-            seconds: m.seconds(),
-            milliseconds: m.milliseconds()
-        };
-    }
+function toArray () {
+    var m = this;
+    return [m.year(), m.month(), m.date(), m.hour(), m.minute(), m.second(), m.millisecond()];
+}
 
-    function toJSON () {
-        // new Date(NaN).toJSON() === null
-        return this.isValid() ? this.toISOString() : null;
-    }
-
-    function moment_valid__isValid () {
-        return valid__isValid(this);
-    }
-
-    function parsingFlags () {
-        return extend({}, getParsingFlags(this));
-    }
-
-    function invalidAt () {
-        return getParsingFlags(this).overflow;
-    }
-
-    function creationData() {
-        return {
-            input: this._i,
-            format: this._f,
-            locale: this._locale,
-            isUTC: this._isUTC,
-            strict: this._strict
-        };
-    }
-
-    // FORMATTING
-
-    addFormatToken(0, ['gg', 2], 0, function () {
-        return this.weekYear() % 100;
-    });
-
-    addFormatToken(0, ['GG', 2], 0, function () {
-        return this.isoWeekYear() % 100;
-    });
-
-    function addWeekYearFormatToken (token, getter) {
-        addFormatToken(0, [token, token.length], 0, getter);
-    }
-
-    addWeekYearFormatToken('gggg',     'weekYear');
-    addWeekYearFormatToken('ggggg',    'weekYear');
-    addWeekYearFormatToken('GGGG',  'isoWeekYear');
-    addWeekYearFormatToken('GGGGG', 'isoWeekYear');
-
-    // ALIASES
-
-    addUnitAlias('weekYear', 'gg');
-    addUnitAlias('isoWeekYear', 'GG');
-
-    // PARSING
-
-    addRegexToken('G',      matchSigned);
-    addRegexToken('g',      matchSigned);
-    addRegexToken('GG',     match1to2, match2);
-    addRegexToken('gg',     match1to2, match2);
-    addRegexToken('GGGG',   match1to4, match4);
-    addRegexToken('gggg',   match1to4, match4);
-    addRegexToken('GGGGG',  match1to6, match6);
-    addRegexToken('ggggg',  match1to6, match6);
-
-    addWeekParseToken(['gggg', 'ggggg', 'GGGG', 'GGGGG'], function (input, week, config, token) {
-        week[token.substr(0, 2)] = toInt(input);
-    });
-
-    addWeekParseToken(['gg', 'GG'], function (input, week, config, token) {
-        week[token] = utils_hooks__hooks.parseTwoDigitYear(input);
-    });
-
-    // MOMENTS
-
-    function getSetWeekYear (input) {
-        return getSetWeekYearHelper.call(this,
-                input,
-                this.week(),
-                this.weekday(),
-                this.localeData()._week.dow,
-                this.localeData()._week.doy);
-    }
-
-    function getSetISOWeekYear (input) {
-        return getSetWeekYearHelper.call(this,
-                input, this.isoWeek(), this.isoWeekday(), 1, 4);
-    }
-
-    function getISOWeeksInYear () {
-        return weeksInYear(this.year(), 1, 4);
-    }
-
-    function getWeeksInYear () {
-        var weekInfo = this.localeData()._week;
-        return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);
-    }
-
-    function getSetWeekYearHelper(input, week, weekday, dow, doy) {
-        var weeksTarget;
-        if (input == null) {
-            return weekOfYear(this, dow, doy).year;
-        } else {
-            weeksTarget = weeksInYear(input, dow, doy);
-            if (week > weeksTarget) {
-                week = weeksTarget;
-            }
-            return setWeekAll.call(this, input, week, weekday, dow, doy);
-        }
-    }
-
-    function setWeekAll(weekYear, week, weekday, dow, doy) {
-        var dayOfYearData = dayOfYearFromWeeks(weekYear, week, weekday, dow, doy),
-            date = createUTCDate(dayOfYearData.year, 0, dayOfYearData.dayOfYear);
-
-        this.year(date.getUTCFullYear());
-        this.month(date.getUTCMonth());
-        this.date(date.getUTCDate());
-        return this;
-    }
-
-    // FORMATTING
-
-    addFormatToken('Q', 0, 'Qo', 'quarter');
-
-    // ALIASES
-
-    addUnitAlias('quarter', 'Q');
-
-    // PARSING
-
-    addRegexToken('Q', match1);
-    addParseToken('Q', function (input, array) {
-        array[MONTH] = (toInt(input) - 1) * 3;
-    });
-
-    // MOMENTS
-
-    function getSetQuarter (input) {
-        return input == null ? Math.ceil((this.month() + 1) / 3) : this.month((input - 1) * 3 + this.month() % 3);
-    }
-
-    // FORMATTING
-
-    addFormatToken('w', ['ww', 2], 'wo', 'week');
-    addFormatToken('W', ['WW', 2], 'Wo', 'isoWeek');
-
-    // ALIASES
-
-    addUnitAlias('week', 'w');
-    addUnitAlias('isoWeek', 'W');
-
-    // PARSING
-
-    addRegexToken('w',  match1to2);
-    addRegexToken('ww', match1to2, match2);
-    addRegexToken('W',  match1to2);
-    addRegexToken('WW', match1to2, match2);
-
-    addWeekParseToken(['w', 'ww', 'W', 'WW'], function (input, week, config, token) {
-        week[token.substr(0, 1)] = toInt(input);
-    });
-
-    // HELPERS
-
-    // LOCALES
-
-    function localeWeek (mom) {
-        return weekOfYear(mom, this._week.dow, this._week.doy).week;
-    }
-
-    var defaultLocaleWeek = {
-        dow : 0, // Sunday is the first day of the week.
-        doy : 6  // The week that contains Jan 1st is the first week of the year.
+function toObject () {
+    var m = this;
+    return {
+        years: m.year(),
+        months: m.month(),
+        date: m.date(),
+        hours: m.hours(),
+        minutes: m.minutes(),
+        seconds: m.seconds(),
+        milliseconds: m.milliseconds()
     };
-
-    function localeFirstDayOfWeek () {
-        return this._week.dow;
-    }
-
-    function localeFirstDayOfYear () {
-        return this._week.doy;
-    }
-
-    // MOMENTS
-
-    function getSetWeek (input) {
-        var week = this.localeData().week(this);
-        return input == null ? week : this.add((input - week) * 7, 'd');
-    }
-
-    function getSetISOWeek (input) {
-        var week = weekOfYear(this, 1, 4).week;
-        return input == null ? week : this.add((input - week) * 7, 'd');
-    }
-
-    // FORMATTING
-
-    addFormatToken('D', ['DD', 2], 'Do', 'date');
-
-    // ALIASES
-
-    addUnitAlias('date', 'D');
-
-    // PARSING
-
-    addRegexToken('D',  match1to2);
-    addRegexToken('DD', match1to2, match2);
-    addRegexToken('Do', function (isStrict, locale) {
-        return isStrict ? locale._ordinalParse : locale._ordinalParseLenient;
-    });
-
-    addParseToken(['D', 'DD'], DATE);
-    addParseToken('Do', function (input, array) {
-        array[DATE] = toInt(input.match(match1to2)[0], 10);
-    });
-
-    // MOMENTS
-
-    var getSetDayOfMonth = makeGetSet('Date', true);
-
-    // FORMATTING
-
-    addFormatToken('d', 0, 'do', 'day');
-
-    addFormatToken('dd', 0, 0, function (format) {
-        return this.localeData().weekdaysMin(this, format);
-    });
-
-    addFormatToken('ddd', 0, 0, function (format) {
-        return this.localeData().weekdaysShort(this, format);
-    });
-
-    addFormatToken('dddd', 0, 0, function (format) {
-        return this.localeData().weekdays(this, format);
-    });
-
-    addFormatToken('e', 0, 0, 'weekday');
-    addFormatToken('E', 0, 0, 'isoWeekday');
-
-    // ALIASES
-
-    addUnitAlias('day', 'd');
-    addUnitAlias('weekday', 'e');
-    addUnitAlias('isoWeekday', 'E');
-
-    // PARSING
-
-    addRegexToken('d',    match1to2);
-    addRegexToken('e',    match1to2);
-    addRegexToken('E',    match1to2);
-    addRegexToken('dd',   function (isStrict, locale) {
-        return locale.weekdaysMinRegex(isStrict);
-    });
-    addRegexToken('ddd',   function (isStrict, locale) {
-        return locale.weekdaysShortRegex(isStrict);
-    });
-    addRegexToken('dddd',   function (isStrict, locale) {
-        return locale.weekdaysRegex(isStrict);
-    });
-
-    addWeekParseToken(['dd', 'ddd', 'dddd'], function (input, week, config, token) {
-        var weekday = config._locale.weekdaysParse(input, token, config._strict);
-        // if we didn't get a weekday name, mark the date as invalid
-        if (weekday != null) {
-            week.d = weekday;
-        } else {
-            getParsingFlags(config).invalidWeekday = input;
-        }
-    });
-
-    addWeekParseToken(['d', 'e', 'E'], function (input, week, config, token) {
-        week[token] = toInt(input);
-    });
-
-    // HELPERS
-
-    function parseWeekday(input, locale) {
-        if (typeof input !== 'string') {
-            return input;
-        }
-
-        if (!isNaN(input)) {
-            return parseInt(input, 10);
-        }
-
-        input = locale.weekdaysParse(input);
-        if (typeof input === 'number') {
-            return input;
-        }
-
-        return null;
-    }
-
-    // LOCALES
-
-    var defaultLocaleWeekdays = 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_');
-    function localeWeekdays (m, format) {
-        return isArray(this._weekdays) ? this._weekdays[m.day()] :
-            this._weekdays[this._weekdays.isFormat.test(format) ? 'format' : 'standalone'][m.day()];
-    }
-
-    var defaultLocaleWeekdaysShort = 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_');
-    function localeWeekdaysShort (m) {
-        return this._weekdaysShort[m.day()];
-    }
-
-    var defaultLocaleWeekdaysMin = 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_');
-    function localeWeekdaysMin (m) {
-        return this._weekdaysMin[m.day()];
-    }
-
-    function day_of_week__handleStrictParse(weekdayName, format, strict) {
-        var i, ii, mom, llc = weekdayName.toLocaleLowerCase();
-        if (!this._weekdaysParse) {
-            this._weekdaysParse = [];
-            this._shortWeekdaysParse = [];
-            this._minWeekdaysParse = [];
-
-            for (i = 0; i < 7; ++i) {
-                mom = create_utc__createUTC([2000, 1]).day(i);
-                this._minWeekdaysParse[i] = this.weekdaysMin(mom, '').toLocaleLowerCase();
-                this._shortWeekdaysParse[i] = this.weekdaysShort(mom, '').toLocaleLowerCase();
-                this._weekdaysParse[i] = this.weekdays(mom, '').toLocaleLowerCase();
-            }
-        }
-
-        if (strict) {
-            if (format === 'dddd') {
-                ii = indexOf.call(this._weekdaysParse, llc);
-                return ii !== -1 ? ii : null;
-            } else if (format === 'ddd') {
-                ii = indexOf.call(this._shortWeekdaysParse, llc);
-                return ii !== -1 ? ii : null;
-            } else {
-                ii = indexOf.call(this._minWeekdaysParse, llc);
-                return ii !== -1 ? ii : null;
-            }
-        } else {
-            if (format === 'dddd') {
-                ii = indexOf.call(this._weekdaysParse, llc);
-                if (ii !== -1) {
-                    return ii;
-                }
-                ii = indexOf.call(this._shortWeekdaysParse, llc);
-                if (ii !== -1) {
-                    return ii;
-                }
-                ii = indexOf.call(this._minWeekdaysParse, llc);
-                return ii !== -1 ? ii : null;
-            } else if (format === 'ddd') {
-                ii = indexOf.call(this._shortWeekdaysParse, llc);
-                if (ii !== -1) {
-                    return ii;
-                }
-                ii = indexOf.call(this._weekdaysParse, llc);
-                if (ii !== -1) {
-                    return ii;
-                }
-                ii = indexOf.call(this._minWeekdaysParse, llc);
-                return ii !== -1 ? ii : null;
-            } else {
-                ii = indexOf.call(this._minWeekdaysParse, llc);
-                if (ii !== -1) {
-                    return ii;
-                }
-                ii = indexOf.call(this._weekdaysParse, llc);
-                if (ii !== -1) {
-                    return ii;
-                }
-                ii = indexOf.call(this._shortWeekdaysParse, llc);
-                return ii !== -1 ? ii : null;
-            }
-        }
-    }
-
-    function localeWeekdaysParse (weekdayName, format, strict) {
-        var i, mom, regex;
-
-        if (this._weekdaysParseExact) {
-            return day_of_week__handleStrictParse.call(this, weekdayName, format, strict);
-        }
-
-        if (!this._weekdaysParse) {
-            this._weekdaysParse = [];
-            this._minWeekdaysParse = [];
-            this._shortWeekdaysParse = [];
-            this._fullWeekdaysParse = [];
-        }
-
-        for (i = 0; i < 7; i++) {
-            // make the regex if we don't have it already
-
-            mom = create_utc__createUTC([2000, 1]).day(i);
-            if (strict && !this._fullWeekdaysParse[i]) {
-                this._fullWeekdaysParse[i] = new RegExp('^' + this.weekdays(mom, '').replace('.', '\.?') + '$', 'i');
-                this._shortWeekdaysParse[i] = new RegExp('^' + this.weekdaysShort(mom, '').replace('.', '\.?') + '$', 'i');
-                this._minWeekdaysParse[i] = new RegExp('^' + this.weekdaysMin(mom, '').replace('.', '\.?') + '$', 'i');
-            }
-            if (!this._weekdaysParse[i]) {
-                regex = '^' + this.weekdays(mom, '') + '|^' + this.weekdaysShort(mom, '') + '|^' + this.weekdaysMin(mom, '');
-                this._weekdaysParse[i] = new RegExp(regex.replace('.', ''), 'i');
-            }
-            // test the regex
-            if (strict && format === 'dddd' && this._fullWeekdaysParse[i].test(weekdayName)) {
-                return i;
-            } else if (strict && format === 'ddd' && this._shortWeekdaysParse[i].test(weekdayName)) {
-                return i;
-            } else if (strict && format === 'dd' && this._minWeekdaysParse[i].test(weekdayName)) {
-                return i;
-            } else if (!strict && this._weekdaysParse[i].test(weekdayName)) {
-                return i;
-            }
-        }
-    }
-
-    // MOMENTS
-
-    function getSetDayOfWeek (input) {
-        if (!this.isValid()) {
-            return input != null ? this : NaN;
-        }
-        var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();
-        if (input != null) {
-            input = parseWeekday(input, this.localeData());
-            return this.add(input - day, 'd');
-        } else {
-            return day;
-        }
-    }
-
-    function getSetLocaleDayOfWeek (input) {
-        if (!this.isValid()) {
-            return input != null ? this : NaN;
-        }
-        var weekday = (this.day() + 7 - this.localeData()._week.dow) % 7;
-        return input == null ? weekday : this.add(input - weekday, 'd');
-    }
-
-    function getSetISODayOfWeek (input) {
-        if (!this.isValid()) {
-            return input != null ? this : NaN;
-        }
-        // behaves the same as moment#day except
-        // as a getter, returns 7 instead of 0 (1-7 range instead of 0-6)
-        // as a setter, sunday should belong to the previous week.
-        return input == null ? this.day() || 7 : this.day(this.day() % 7 ? input : input - 7);
-    }
-
-    var defaultWeekdaysRegex = matchWord;
-    function weekdaysRegex (isStrict) {
-        if (this._weekdaysParseExact) {
-            if (!hasOwnProp(this, '_weekdaysRegex')) {
-                computeWeekdaysParse.call(this);
-            }
-            if (isStrict) {
-                return this._weekdaysStrictRegex;
-            } else {
-                return this._weekdaysRegex;
-            }
-        } else {
-            return this._weekdaysStrictRegex && isStrict ?
-                this._weekdaysStrictRegex : this._weekdaysRegex;
-        }
-    }
-
-    var defaultWeekdaysShortRegex = matchWord;
-    function weekdaysShortRegex (isStrict) {
-        if (this._weekdaysParseExact) {
-            if (!hasOwnProp(this, '_weekdaysRegex')) {
-                computeWeekdaysParse.call(this);
-            }
-            if (isStrict) {
-                return this._weekdaysShortStrictRegex;
-            } else {
-                return this._weekdaysShortRegex;
-            }
-        } else {
-            return this._weekdaysShortStrictRegex && isStrict ?
-                this._weekdaysShortStrictRegex : this._weekdaysShortRegex;
-        }
-    }
-
-    var defaultWeekdaysMinRegex = matchWord;
-    function weekdaysMinRegex (isStrict) {
-        if (this._weekdaysParseExact) {
-            if (!hasOwnProp(this, '_weekdaysRegex')) {
-                computeWeekdaysParse.call(this);
-            }
-            if (isStrict) {
-                return this._weekdaysMinStrictRegex;
-            } else {
-                return this._weekdaysMinRegex;
-            }
-        } else {
-            return this._weekdaysMinStrictRegex && isStrict ?
-                this._weekdaysMinStrictRegex : this._weekdaysMinRegex;
-        }
-    }
-
-
-    function computeWeekdaysParse () {
-        function cmpLenRev(a, b) {
-            return b.length - a.length;
-        }
-
-        var minPieces = [], shortPieces = [], longPieces = [], mixedPieces = [],
-            i, mom, minp, shortp, longp;
-        for (i = 0; i < 7; i++) {
-            // make the regex if we don't have it already
-            mom = create_utc__createUTC([2000, 1]).day(i);
-            minp = this.weekdaysMin(mom, '');
-            shortp = this.weekdaysShort(mom, '');
-            longp = this.weekdays(mom, '');
-            minPieces.push(minp);
-            shortPieces.push(shortp);
-            longPieces.push(longp);
-            mixedPieces.push(minp);
-            mixedPieces.push(shortp);
-            mixedPieces.push(longp);
-        }
-        // Sorting makes sure if one weekday (or abbr) is a prefix of another it
-        // will match the longer piece.
-        minPieces.sort(cmpLenRev);
-        shortPieces.sort(cmpLenRev);
-        longPieces.sort(cmpLenRev);
-        mixedPieces.sort(cmpLenRev);
-        for (i = 0; i < 7; i++) {
-            shortPieces[i] = regexEscape(shortPieces[i]);
-            longPieces[i] = regexEscape(longPieces[i]);
-            mixedPieces[i] = regexEscape(mixedPieces[i]);
-        }
-
-        this._weekdaysRegex = new RegExp('^(' + mixedPieces.join('|') + ')', 'i');
-        this._weekdaysShortRegex = this._weekdaysRegex;
-        this._weekdaysMinRegex = this._weekdaysRegex;
-
-        this._weekdaysStrictRegex = new RegExp('^(' + longPieces.join('|') + ')', 'i');
-        this._weekdaysShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')', 'i');
-        this._weekdaysMinStrictRegex = new RegExp('^(' + minPieces.join('|') + ')', 'i');
-    }
-
-    // FORMATTING
-
-    addFormatToken('DDD', ['DDDD', 3], 'DDDo', 'dayOfYear');
-
-    // ALIASES
-
-    addUnitAlias('dayOfYear', 'DDD');
-
-    // PARSING
-
-    addRegexToken('DDD',  match1to3);
-    addRegexToken('DDDD', match3);
-    addParseToken(['DDD', 'DDDD'], function (input, array, config) {
-        config._dayOfYear = toInt(input);
-    });
-
-    // HELPERS
-
-    // MOMENTS
-
-    function getSetDayOfYear (input) {
-        var dayOfYear = Math.round((this.clone().startOf('day') - this.clone().startOf('year')) / 864e5) + 1;
-        return input == null ? dayOfYear : this.add((input - dayOfYear), 'd');
-    }
-
-    // FORMATTING
-
-    function hFormat() {
-        return this.hours() % 12 || 12;
-    }
-
-    function kFormat() {
-        return this.hours() || 24;
-    }
-
-    addFormatToken('H', ['HH', 2], 0, 'hour');
-    addFormatToken('h', ['hh', 2], 0, hFormat);
-    addFormatToken('k', ['kk', 2], 0, kFormat);
-
-    addFormatToken('hmm', 0, 0, function () {
-        return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2);
-    });
-
-    addFormatToken('hmmss', 0, 0, function () {
-        return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2) +
-            zeroFill(this.seconds(), 2);
-    });
-
-    addFormatToken('Hmm', 0, 0, function () {
-        return '' + this.hours() + zeroFill(this.minutes(), 2);
-    });
-
-    addFormatToken('Hmmss', 0, 0, function () {
-        return '' + this.hours() + zeroFill(this.minutes(), 2) +
-            zeroFill(this.seconds(), 2);
-    });
-
-    function meridiem (token, lowercase) {
-        addFormatToken(token, 0, 0, function () {
-            return this.localeData().meridiem(this.hours(), this.minutes(), lowercase);
-        });
-    }
-
-    meridiem('a', true);
-    meridiem('A', false);
-
-    // ALIASES
-
-    addUnitAlias('hour', 'h');
-
-    // PARSING
-
-    function matchMeridiem (isStrict, locale) {
-        return locale._meridiemParse;
-    }
-
-    addRegexToken('a',  matchMeridiem);
-    addRegexToken('A',  matchMeridiem);
-    addRegexToken('H',  match1to2);
-    addRegexToken('h',  match1to2);
-    addRegexToken('HH', match1to2, match2);
-    addRegexToken('hh', match1to2, match2);
-
-    addRegexToken('hmm', match3to4);
-    addRegexToken('hmmss', match5to6);
-    addRegexToken('Hmm', match3to4);
-    addRegexToken('Hmmss', match5to6);
-
-    addParseToken(['H', 'HH'], HOUR);
-    addParseToken(['a', 'A'], function (input, array, config) {
-        config._isPm = config._locale.isPM(input);
-        config._meridiem = input;
-    });
-    addParseToken(['h', 'hh'], function (input, array, config) {
-        array[HOUR] = toInt(input);
-        getParsingFlags(config).bigHour = true;
-    });
-    addParseToken('hmm', function (input, array, config) {
-        var pos = input.length - 2;
-        array[HOUR] = toInt(input.substr(0, pos));
-        array[MINUTE] = toInt(input.substr(pos));
-        getParsingFlags(config).bigHour = true;
-    });
-    addParseToken('hmmss', function (input, array, config) {
-        var pos1 = input.length - 4;
-        var pos2 = input.length - 2;
-        array[HOUR] = toInt(input.substr(0, pos1));
-        array[MINUTE] = toInt(input.substr(pos1, 2));
-        array[SECOND] = toInt(input.substr(pos2));
-        getParsingFlags(config).bigHour = true;
-    });
-    addParseToken('Hmm', function (input, array, config) {
-        var pos = input.length - 2;
-        array[HOUR] = toInt(input.substr(0, pos));
-        array[MINUTE] = toInt(input.substr(pos));
-    });
-    addParseToken('Hmmss', function (input, array, config) {
-        var pos1 = input.length - 4;
-        var pos2 = input.length - 2;
-        array[HOUR] = toInt(input.substr(0, pos1));
-        array[MINUTE] = toInt(input.substr(pos1, 2));
-        array[SECOND] = toInt(input.substr(pos2));
-    });
-
-    // LOCALES
-
-    function localeIsPM (input) {
-        // IE8 Quirks Mode & IE7 Standards Mode do not allow accessing strings like arrays
-        // Using charAt should be more compatible.
-        return ((input + '').toLowerCase().charAt(0) === 'p');
-    }
-
-    var defaultLocaleMeridiemParse = /[ap]\.?m?\.?/i;
-    function localeMeridiem (hours, minutes, isLower) {
-        if (hours > 11) {
-            return isLower ? 'pm' : 'PM';
-        } else {
-            return isLower ? 'am' : 'AM';
-        }
-    }
-
-
-    // MOMENTS
-
-    // Setting the hour should keep the time, because the user explicitly
-    // specified which hour he wants. So trying to maintain the same hour (in
-    // a new timezone) makes sense. Adding/subtracting hours does not follow
-    // this rule.
-    var getSetHour = makeGetSet('Hours', true);
-
-    // FORMATTING
-
-    addFormatToken('m', ['mm', 2], 0, 'minute');
-
-    // ALIASES
-
-    addUnitAlias('minute', 'm');
-
-    // PARSING
-
-    addRegexToken('m',  match1to2);
-    addRegexToken('mm', match1to2, match2);
-    addParseToken(['m', 'mm'], MINUTE);
-
-    // MOMENTS
-
-    var getSetMinute = makeGetSet('Minutes', false);
-
-    // FORMATTING
-
-    addFormatToken('s', ['ss', 2], 0, 'second');
-
-    // ALIASES
-
-    addUnitAlias('second', 's');
-
-    // PARSING
-
-    addRegexToken('s',  match1to2);
-    addRegexToken('ss', match1to2, match2);
-    addParseToken(['s', 'ss'], SECOND);
-
-    // MOMENTS
-
-    var getSetSecond = makeGetSet('Seconds', false);
-
-    // FORMATTING
-
-    addFormatToken('S', 0, 0, function () {
-        return ~~(this.millisecond() / 100);
-    });
-
-    addFormatToken(0, ['SS', 2], 0, function () {
-        return ~~(this.millisecond() / 10);
-    });
-
-    addFormatToken(0, ['SSS', 3], 0, 'millisecond');
-    addFormatToken(0, ['SSSS', 4], 0, function () {
-        return this.millisecond() * 10;
-    });
-    addFormatToken(0, ['SSSSS', 5], 0, function () {
-        return this.millisecond() * 100;
-    });
-    addFormatToken(0, ['SSSSSS', 6], 0, function () {
-        return this.millisecond() * 1000;
-    });
-    addFormatToken(0, ['SSSSSSS', 7], 0, function () {
-        return this.millisecond() * 10000;
-    });
-    addFormatToken(0, ['SSSSSSSS', 8], 0, function () {
-        return this.millisecond() * 100000;
-    });
-    addFormatToken(0, ['SSSSSSSSS', 9], 0, function () {
-        return this.millisecond() * 1000000;
-    });
-
-
-    // ALIASES
-
-    addUnitAlias('millisecond', 'ms');
-
-    // PARSING
-
-    addRegexToken('S',    match1to3, match1);
-    addRegexToken('SS',   match1to3, match2);
-    addRegexToken('SSS',  match1to3, match3);
-
-    var token;
-    for (token = 'SSSS'; token.length <= 9; token += 'S') {
-        addRegexToken(token, matchUnsigned);
-    }
-
-    function parseMs(input, array) {
-        array[MILLISECOND] = toInt(('0.' + input) * 1000);
-    }
-
-    for (token = 'S'; token.length <= 9; token += 'S') {
-        addParseToken(token, parseMs);
-    }
-    // MOMENTS
-
-    var getSetMillisecond = makeGetSet('Milliseconds', false);
-
-    // FORMATTING
-
-    addFormatToken('z',  0, 0, 'zoneAbbr');
-    addFormatToken('zz', 0, 0, 'zoneName');
-
-    // MOMENTS
-
-    function getZoneAbbr () {
-        return this._isUTC ? 'UTC' : '';
-    }
-
-    function getZoneName () {
-        return this._isUTC ? 'Coordinated Universal Time' : '';
-    }
-
-    var momentPrototype__proto = Moment.prototype;
-
-    momentPrototype__proto.add               = add_subtract__add;
-    momentPrototype__proto.calendar          = moment_calendar__calendar;
-    momentPrototype__proto.clone             = clone;
-    momentPrototype__proto.diff              = diff;
-    momentPrototype__proto.endOf             = endOf;
-    momentPrototype__proto.format            = format;
-    momentPrototype__proto.from              = from;
-    momentPrototype__proto.fromNow           = fromNow;
-    momentPrototype__proto.to                = to;
-    momentPrototype__proto.toNow             = toNow;
-    momentPrototype__proto.get               = getSet;
-    momentPrototype__proto.invalidAt         = invalidAt;
-    momentPrototype__proto.isAfter           = isAfter;
-    momentPrototype__proto.isBefore          = isBefore;
-    momentPrototype__proto.isBetween         = isBetween;
-    momentPrototype__proto.isSame            = isSame;
-    momentPrototype__proto.isSameOrAfter     = isSameOrAfter;
-    momentPrototype__proto.isSameOrBefore    = isSameOrBefore;
-    momentPrototype__proto.isValid           = moment_valid__isValid;
-    momentPrototype__proto.lang              = lang;
-    momentPrototype__proto.locale            = locale;
-    momentPrototype__proto.localeData        = localeData;
-    momentPrototype__proto.max               = prototypeMax;
-    momentPrototype__proto.min               = prototypeMin;
-    momentPrototype__proto.parsingFlags      = parsingFlags;
-    momentPrototype__proto.set               = getSet;
-    momentPrototype__proto.startOf           = startOf;
-    momentPrototype__proto.subtract          = add_subtract__subtract;
-    momentPrototype__proto.toArray           = toArray;
-    momentPrototype__proto.toObject          = toObject;
-    momentPrototype__proto.toDate            = toDate;
-    momentPrototype__proto.toISOString       = moment_format__toISOString;
-    momentPrototype__proto.toJSON            = toJSON;
-    momentPrototype__proto.toString          = toString;
-    momentPrototype__proto.unix              = unix;
-    momentPrototype__proto.valueOf           = to_type__valueOf;
-    momentPrototype__proto.creationData      = creationData;
-
-    // Year
-    momentPrototype__proto.year       = getSetYear;
-    momentPrototype__proto.isLeapYear = getIsLeapYear;
-
-    // Week Year
-    momentPrototype__proto.weekYear    = getSetWeekYear;
-    momentPrototype__proto.isoWeekYear = getSetISOWeekYear;
-
-    // Quarter
-    momentPrototype__proto.quarter = momentPrototype__proto.quarters = getSetQuarter;
-
-    // Month
-    momentPrototype__proto.month       = getSetMonth;
-    momentPrototype__proto.daysInMonth = getDaysInMonth;
-
-    // Week
-    momentPrototype__proto.week           = momentPrototype__proto.weeks        = getSetWeek;
-    momentPrototype__proto.isoWeek        = momentPrototype__proto.isoWeeks     = getSetISOWeek;
-    momentPrototype__proto.weeksInYear    = getWeeksInYear;
-    momentPrototype__proto.isoWeeksInYear = getISOWeeksInYear;
-
-    // Day
-    momentPrototype__proto.date       = getSetDayOfMonth;
-    momentPrototype__proto.day        = momentPrototype__proto.days             = getSetDayOfWeek;
-    momentPrototype__proto.weekday    = getSetLocaleDayOfWeek;
-    momentPrototype__proto.isoWeekday = getSetISODayOfWeek;
-    momentPrototype__proto.dayOfYear  = getSetDayOfYear;
-
-    // Hour
-    momentPrototype__proto.hour = momentPrototype__proto.hours = getSetHour;
-
-    // Minute
-    momentPrototype__proto.minute = momentPrototype__proto.minutes = getSetMinute;
-
-    // Second
-    momentPrototype__proto.second = momentPrototype__proto.seconds = getSetSecond;
-
-    // Millisecond
-    momentPrototype__proto.millisecond = momentPrototype__proto.milliseconds = getSetMillisecond;
-
-    // Offset
-    momentPrototype__proto.utcOffset            = getSetOffset;
-    momentPrototype__proto.utc                  = setOffsetToUTC;
-    momentPrototype__proto.local                = setOffsetToLocal;
-    momentPrototype__proto.parseZone            = setOffsetToParsedOffset;
-    momentPrototype__proto.hasAlignedHourOffset = hasAlignedHourOffset;
-    momentPrototype__proto.isDST                = isDaylightSavingTime;
-    momentPrototype__proto.isDSTShifted         = isDaylightSavingTimeShifted;
-    momentPrototype__proto.isLocal              = isLocal;
-    momentPrototype__proto.isUtcOffset          = isUtcOffset;
-    momentPrototype__proto.isUtc                = isUtc;
-    momentPrototype__proto.isUTC                = isUtc;
-
-    // Timezone
-    momentPrototype__proto.zoneAbbr = getZoneAbbr;
-    momentPrototype__proto.zoneName = getZoneName;
-
-    // Deprecations
-    momentPrototype__proto.dates  = deprecate('dates accessor is deprecated. Use date instead.', getSetDayOfMonth);
-    momentPrototype__proto.months = deprecate('months accessor is deprecated. Use month instead', getSetMonth);
-    momentPrototype__proto.years  = deprecate('years accessor is deprecated. Use year instead', getSetYear);
-    momentPrototype__proto.zone   = deprecate('moment().zone is deprecated, use moment().utcOffset instead. https://github.com/moment/moment/issues/1779', getSetZone);
-
-    var momentPrototype = momentPrototype__proto;
-
-    function moment__createUnix (input) {
-        return local__createLocal(input * 1000);
-    }
-
-    function moment__createInZone () {
-        return local__createLocal.apply(null, arguments).parseZone();
-    }
-
-    var defaultCalendar = {
-        sameDay : '[Today at] LT',
-        nextDay : '[Tomorrow at] LT',
-        nextWeek : 'dddd [at] LT',
-        lastDay : '[Yesterday at] LT',
-        lastWeek : '[Last] dddd [at] LT',
-        sameElse : 'L'
+}
+
+function toJSON () {
+    // new Date(NaN).toJSON() === null
+    return this.isValid() ? this.toISOString() : null;
+}
+
+function isValid$2 () {
+    return isValid(this);
+}
+
+function parsingFlags () {
+    return extend({}, getParsingFlags(this));
+}
+
+function invalidAt () {
+    return getParsingFlags(this).overflow;
+}
+
+function creationData() {
+    return {
+        input: this._i,
+        format: this._f,
+        locale: this._locale,
+        isUTC: this._isUTC,
+        strict: this._strict
     };
+}
 
-    function locale_calendar__calendar (key, mom, now) {
-        var output = this._calendar[key];
-        return isFunction(output) ? output.call(mom, now) : output;
-    }
+// FORMATTING
 
-    var defaultLongDateFormat = {
-        LTS  : 'h:mm:ss A',
-        LT   : 'h:mm A',
-        L    : 'MM/DD/YYYY',
-        LL   : 'MMMM D, YYYY',
-        LLL  : 'MMMM D, YYYY h:mm A',
-        LLLL : 'dddd, MMMM D, YYYY h:mm A'
-    };
+addFormatToken(0, ['gg', 2], 0, function () {
+    return this.weekYear() % 100;
+});
 
-    function longDateFormat (key) {
-        var format = this._longDateFormat[key],
-            formatUpper = this._longDateFormat[key.toUpperCase()];
+addFormatToken(0, ['GG', 2], 0, function () {
+    return this.isoWeekYear() % 100;
+});
 
-        if (format || !formatUpper) {
-            return format;
+function addWeekYearFormatToken (token, getter) {
+    addFormatToken(0, [token, token.length], 0, getter);
+}
+
+addWeekYearFormatToken('gggg',     'weekYear');
+addWeekYearFormatToken('ggggg',    'weekYear');
+addWeekYearFormatToken('GGGG',  'isoWeekYear');
+addWeekYearFormatToken('GGGGG', 'isoWeekYear');
+
+// ALIASES
+
+addUnitAlias('weekYear', 'gg');
+addUnitAlias('isoWeekYear', 'GG');
+
+// PRIORITY
+
+addUnitPriority('weekYear', 1);
+addUnitPriority('isoWeekYear', 1);
+
+
+// PARSING
+
+addRegexToken('G',      matchSigned);
+addRegexToken('g',      matchSigned);
+addRegexToken('GG',     match1to2, match2);
+addRegexToken('gg',     match1to2, match2);
+addRegexToken('GGGG',   match1to4, match4);
+addRegexToken('gggg',   match1to4, match4);
+addRegexToken('GGGGG',  match1to6, match6);
+addRegexToken('ggggg',  match1to6, match6);
+
+addWeekParseToken(['gggg', 'ggggg', 'GGGG', 'GGGGG'], function (input, week, config, token) {
+    week[token.substr(0, 2)] = toInt(input);
+});
+
+addWeekParseToken(['gg', 'GG'], function (input, week, config, token) {
+    week[token] = hooks.parseTwoDigitYear(input);
+});
+
+// MOMENTS
+
+function getSetWeekYear (input) {
+    return getSetWeekYearHelper.call(this,
+            input,
+            this.week(),
+            this.weekday(),
+            this.localeData()._week.dow,
+            this.localeData()._week.doy);
+}
+
+function getSetISOWeekYear (input) {
+    return getSetWeekYearHelper.call(this,
+            input, this.isoWeek(), this.isoWeekday(), 1, 4);
+}
+
+function getISOWeeksInYear () {
+    return weeksInYear(this.year(), 1, 4);
+}
+
+function getWeeksInYear () {
+    var weekInfo = this.localeData()._week;
+    return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);
+}
+
+function getSetWeekYearHelper(input, week, weekday, dow, doy) {
+    var weeksTarget;
+    if (input == null) {
+        return weekOfYear(this, dow, doy).year;
+    } else {
+        weeksTarget = weeksInYear(input, dow, doy);
+        if (week > weeksTarget) {
+            week = weeksTarget;
         }
+        return setWeekAll.call(this, input, week, weekday, dow, doy);
+    }
+}
 
-        this._longDateFormat[key] = formatUpper.replace(/MMMM|MM|DD|dddd/g, function (val) {
-            return val.slice(1);
-        });
+function setWeekAll(weekYear, week, weekday, dow, doy) {
+    var dayOfYearData = dayOfYearFromWeeks(weekYear, week, weekday, dow, doy),
+        date = createUTCDate(dayOfYearData.year, 0, dayOfYearData.dayOfYear);
 
-        return this._longDateFormat[key];
+    this.year(date.getUTCFullYear());
+    this.month(date.getUTCMonth());
+    this.date(date.getUTCDate());
+    return this;
+}
+
+// FORMATTING
+
+addFormatToken('Q', 0, 'Qo', 'quarter');
+
+// ALIASES
+
+addUnitAlias('quarter', 'Q');
+
+// PRIORITY
+
+addUnitPriority('quarter', 7);
+
+// PARSING
+
+addRegexToken('Q', match1);
+addParseToken('Q', function (input, array) {
+    array[MONTH] = (toInt(input) - 1) * 3;
+});
+
+// MOMENTS
+
+function getSetQuarter (input) {
+    return input == null ? Math.ceil((this.month() + 1) / 3) : this.month((input - 1) * 3 + this.month() % 3);
+}
+
+// FORMATTING
+
+addFormatToken('D', ['DD', 2], 'Do', 'date');
+
+// ALIASES
+
+addUnitAlias('date', 'D');
+
+// PRIOROITY
+addUnitPriority('date', 9);
+
+// PARSING
+
+addRegexToken('D',  match1to2);
+addRegexToken('DD', match1to2, match2);
+addRegexToken('Do', function (isStrict, locale) {
+    // TODO: Remove "ordinalParse" fallback in next major release.
+    return isStrict ?
+      (locale._dayOfMonthOrdinalParse || locale._ordinalParse) :
+      locale._dayOfMonthOrdinalParseLenient;
+});
+
+addParseToken(['D', 'DD'], DATE);
+addParseToken('Do', function (input, array) {
+    array[DATE] = toInt(input.match(match1to2)[0], 10);
+});
+
+// MOMENTS
+
+var getSetDayOfMonth = makeGetSet('Date', true);
+
+// FORMATTING
+
+addFormatToken('DDD', ['DDDD', 3], 'DDDo', 'dayOfYear');
+
+// ALIASES
+
+addUnitAlias('dayOfYear', 'DDD');
+
+// PRIORITY
+addUnitPriority('dayOfYear', 4);
+
+// PARSING
+
+addRegexToken('DDD',  match1to3);
+addRegexToken('DDDD', match3);
+addParseToken(['DDD', 'DDDD'], function (input, array, config) {
+    config._dayOfYear = toInt(input);
+});
+
+// HELPERS
+
+// MOMENTS
+
+function getSetDayOfYear (input) {
+    var dayOfYear = Math.round((this.clone().startOf('day') - this.clone().startOf('year')) / 864e5) + 1;
+    return input == null ? dayOfYear : this.add((input - dayOfYear), 'd');
+}
+
+// FORMATTING
+
+addFormatToken('m', ['mm', 2], 0, 'minute');
+
+// ALIASES
+
+addUnitAlias('minute', 'm');
+
+// PRIORITY
+
+addUnitPriority('minute', 14);
+
+// PARSING
+
+addRegexToken('m',  match1to2);
+addRegexToken('mm', match1to2, match2);
+addParseToken(['m', 'mm'], MINUTE);
+
+// MOMENTS
+
+var getSetMinute = makeGetSet('Minutes', false);
+
+// FORMATTING
+
+addFormatToken('s', ['ss', 2], 0, 'second');
+
+// ALIASES
+
+addUnitAlias('second', 's');
+
+// PRIORITY
+
+addUnitPriority('second', 15);
+
+// PARSING
+
+addRegexToken('s',  match1to2);
+addRegexToken('ss', match1to2, match2);
+addParseToken(['s', 'ss'], SECOND);
+
+// MOMENTS
+
+var getSetSecond = makeGetSet('Seconds', false);
+
+// FORMATTING
+
+addFormatToken('S', 0, 0, function () {
+    return ~~(this.millisecond() / 100);
+});
+
+addFormatToken(0, ['SS', 2], 0, function () {
+    return ~~(this.millisecond() / 10);
+});
+
+addFormatToken(0, ['SSS', 3], 0, 'millisecond');
+addFormatToken(0, ['SSSS', 4], 0, function () {
+    return this.millisecond() * 10;
+});
+addFormatToken(0, ['SSSSS', 5], 0, function () {
+    return this.millisecond() * 100;
+});
+addFormatToken(0, ['SSSSSS', 6], 0, function () {
+    return this.millisecond() * 1000;
+});
+addFormatToken(0, ['SSSSSSS', 7], 0, function () {
+    return this.millisecond() * 10000;
+});
+addFormatToken(0, ['SSSSSSSS', 8], 0, function () {
+    return this.millisecond() * 100000;
+});
+addFormatToken(0, ['SSSSSSSSS', 9], 0, function () {
+    return this.millisecond() * 1000000;
+});
+
+
+// ALIASES
+
+addUnitAlias('millisecond', 'ms');
+
+// PRIORITY
+
+addUnitPriority('millisecond', 16);
+
+// PARSING
+
+addRegexToken('S',    match1to3, match1);
+addRegexToken('SS',   match1to3, match2);
+addRegexToken('SSS',  match1to3, match3);
+
+var token;
+for (token = 'SSSS'; token.length <= 9; token += 'S') {
+    addRegexToken(token, matchUnsigned);
+}
+
+function parseMs(input, array) {
+    array[MILLISECOND] = toInt(('0.' + input) * 1000);
+}
+
+for (token = 'S'; token.length <= 9; token += 'S') {
+    addParseToken(token, parseMs);
+}
+// MOMENTS
+
+var getSetMillisecond = makeGetSet('Milliseconds', false);
+
+// FORMATTING
+
+addFormatToken('z',  0, 0, 'zoneAbbr');
+addFormatToken('zz', 0, 0, 'zoneName');
+
+// MOMENTS
+
+function getZoneAbbr () {
+    return this._isUTC ? 'UTC' : '';
+}
+
+function getZoneName () {
+    return this._isUTC ? 'Coordinated Universal Time' : '';
+}
+
+var proto = Moment.prototype;
+
+proto.add               = add;
+proto.calendar          = calendar$1;
+proto.clone             = clone;
+proto.diff              = diff;
+proto.endOf             = endOf;
+proto.format            = format;
+proto.from              = from;
+proto.fromNow           = fromNow;
+proto.to                = to;
+proto.toNow             = toNow;
+proto.get               = stringGet;
+proto.invalidAt         = invalidAt;
+proto.isAfter           = isAfter;
+proto.isBefore          = isBefore;
+proto.isBetween         = isBetween;
+proto.isSame            = isSame;
+proto.isSameOrAfter     = isSameOrAfter;
+proto.isSameOrBefore    = isSameOrBefore;
+proto.isValid           = isValid$2;
+proto.lang              = lang;
+proto.locale            = locale;
+proto.localeData        = localeData;
+proto.max               = prototypeMax;
+proto.min               = prototypeMin;
+proto.parsingFlags      = parsingFlags;
+proto.set               = stringSet;
+proto.startOf           = startOf;
+proto.subtract          = subtract;
+proto.toArray           = toArray;
+proto.toObject          = toObject;
+proto.toDate            = toDate;
+proto.toISOString       = toISOString;
+proto.inspect           = inspect;
+proto.toJSON            = toJSON;
+proto.toString          = toString;
+proto.unix              = unix;
+proto.valueOf           = valueOf;
+proto.creationData      = creationData;
+
+// Year
+proto.year       = getSetYear;
+proto.isLeapYear = getIsLeapYear;
+
+// Week Year
+proto.weekYear    = getSetWeekYear;
+proto.isoWeekYear = getSetISOWeekYear;
+
+// Quarter
+proto.quarter = proto.quarters = getSetQuarter;
+
+// Month
+proto.month       = getSetMonth;
+proto.daysInMonth = getDaysInMonth;
+
+// Week
+proto.week           = proto.weeks        = getSetWeek;
+proto.isoWeek        = proto.isoWeeks     = getSetISOWeek;
+proto.weeksInYear    = getWeeksInYear;
+proto.isoWeeksInYear = getISOWeeksInYear;
+
+// Day
+proto.date       = getSetDayOfMonth;
+proto.day        = proto.days             = getSetDayOfWeek;
+proto.weekday    = getSetLocaleDayOfWeek;
+proto.isoWeekday = getSetISODayOfWeek;
+proto.dayOfYear  = getSetDayOfYear;
+
+// Hour
+proto.hour = proto.hours = getSetHour;
+
+// Minute
+proto.minute = proto.minutes = getSetMinute;
+
+// Second
+proto.second = proto.seconds = getSetSecond;
+
+// Millisecond
+proto.millisecond = proto.milliseconds = getSetMillisecond;
+
+// Offset
+proto.utcOffset            = getSetOffset;
+proto.utc                  = setOffsetToUTC;
+proto.local                = setOffsetToLocal;
+proto.parseZone            = setOffsetToParsedOffset;
+proto.hasAlignedHourOffset = hasAlignedHourOffset;
+proto.isDST                = isDaylightSavingTime;
+proto.isLocal              = isLocal;
+proto.isUtcOffset          = isUtcOffset;
+proto.isUtc                = isUtc;
+proto.isUTC                = isUtc;
+
+// Timezone
+proto.zoneAbbr = getZoneAbbr;
+proto.zoneName = getZoneName;
+
+// Deprecations
+proto.dates  = deprecate('dates accessor is deprecated. Use date instead.', getSetDayOfMonth);
+proto.months = deprecate('months accessor is deprecated. Use month instead', getSetMonth);
+proto.years  = deprecate('years accessor is deprecated. Use year instead', getSetYear);
+proto.zone   = deprecate('moment().zone is deprecated, use moment().utcOffset instead. http://momentjs.com/guides/#/warnings/zone/', getSetZone);
+proto.isDSTShifted = deprecate('isDSTShifted is deprecated. See http://momentjs.com/guides/#/warnings/dst-shifted/ for more information', isDaylightSavingTimeShifted);
+
+function createUnix (input) {
+    return createLocal(input * 1000);
+}
+
+function createInZone () {
+    return createLocal.apply(null, arguments).parseZone();
+}
+
+function preParsePostFormat (string) {
+    return string;
+}
+
+var proto$1 = Locale.prototype;
+
+proto$1.calendar        = calendar;
+proto$1.longDateFormat  = longDateFormat;
+proto$1.invalidDate     = invalidDate;
+proto$1.ordinal         = ordinal;
+proto$1.preparse        = preParsePostFormat;
+proto$1.postformat      = preParsePostFormat;
+proto$1.relativeTime    = relativeTime;
+proto$1.pastFuture      = pastFuture;
+proto$1.set             = set;
+
+// Month
+proto$1.months            =        localeMonths;
+proto$1.monthsShort       =        localeMonthsShort;
+proto$1.monthsParse       =        localeMonthsParse;
+proto$1.monthsRegex       = monthsRegex;
+proto$1.monthsShortRegex  = monthsShortRegex;
+
+// Week
+proto$1.week = localeWeek;
+proto$1.firstDayOfYear = localeFirstDayOfYear;
+proto$1.firstDayOfWeek = localeFirstDayOfWeek;
+
+// Day of Week
+proto$1.weekdays       =        localeWeekdays;
+proto$1.weekdaysMin    =        localeWeekdaysMin;
+proto$1.weekdaysShort  =        localeWeekdaysShort;
+proto$1.weekdaysParse  =        localeWeekdaysParse;
+
+proto$1.weekdaysRegex       =        weekdaysRegex;
+proto$1.weekdaysShortRegex  =        weekdaysShortRegex;
+proto$1.weekdaysMinRegex    =        weekdaysMinRegex;
+
+// Hours
+proto$1.isPM = localeIsPM;
+proto$1.meridiem = localeMeridiem;
+
+function get$1 (format, index, field, setter) {
+    var locale = getLocale();
+    var utc = createUTC().set(setter, index);
+    return locale[field](utc, format);
+}
+
+function listMonthsImpl (format, index, field) {
+    if (isNumber(format)) {
+        index = format;
+        format = undefined;
     }
 
-    var defaultInvalidDate = 'Invalid date';
+    format = format || '';
 
-    function invalidDate () {
-        return this._invalidDate;
+    if (index != null) {
+        return get$1(format, index, field, 'month');
     }
 
-    var defaultOrdinal = '%d';
-    var defaultOrdinalParse = /\d{1,2}/;
-
-    function ordinal (number) {
-        return this._ordinal.replace('%d', number);
+    var i;
+    var out = [];
+    for (i = 0; i < 12; i++) {
+        out[i] = get$1(format, i, field, 'month');
     }
+    return out;
+}
 
-    function preParsePostFormat (string) {
-        return string;
-    }
-
-    var defaultRelativeTime = {
-        future : 'in %s',
-        past   : '%s ago',
-        s  : 'a few seconds',
-        m  : 'a minute',
-        mm : '%d minutes',
-        h  : 'an hour',
-        hh : '%d hours',
-        d  : 'a day',
-        dd : '%d days',
-        M  : 'a month',
-        MM : '%d months',
-        y  : 'a year',
-        yy : '%d years'
-    };
-
-    function relative__relativeTime (number, withoutSuffix, string, isFuture) {
-        var output = this._relativeTime[string];
-        return (isFunction(output)) ?
-            output(number, withoutSuffix, string, isFuture) :
-            output.replace(/%d/i, number);
-    }
-
-    function pastFuture (diff, output) {
-        var format = this._relativeTime[diff > 0 ? 'future' : 'past'];
-        return isFunction(format) ? format(output) : format.replace(/%s/i, output);
-    }
-
-    var prototype__proto = Locale.prototype;
-
-    prototype__proto._calendar       = defaultCalendar;
-    prototype__proto.calendar        = locale_calendar__calendar;
-    prototype__proto._longDateFormat = defaultLongDateFormat;
-    prototype__proto.longDateFormat  = longDateFormat;
-    prototype__proto._invalidDate    = defaultInvalidDate;
-    prototype__proto.invalidDate     = invalidDate;
-    prototype__proto._ordinal        = defaultOrdinal;
-    prototype__proto.ordinal         = ordinal;
-    prototype__proto._ordinalParse   = defaultOrdinalParse;
-    prototype__proto.preparse        = preParsePostFormat;
-    prototype__proto.postformat      = preParsePostFormat;
-    prototype__proto._relativeTime   = defaultRelativeTime;
-    prototype__proto.relativeTime    = relative__relativeTime;
-    prototype__proto.pastFuture      = pastFuture;
-    prototype__proto.set             = locale_set__set;
-
-    // Month
-    prototype__proto.months            =        localeMonths;
-    prototype__proto._months           = defaultLocaleMonths;
-    prototype__proto.monthsShort       =        localeMonthsShort;
-    prototype__proto._monthsShort      = defaultLocaleMonthsShort;
-    prototype__proto.monthsParse       =        localeMonthsParse;
-    prototype__proto._monthsRegex      = defaultMonthsRegex;
-    prototype__proto.monthsRegex       = monthsRegex;
-    prototype__proto._monthsShortRegex = defaultMonthsShortRegex;
-    prototype__proto.monthsShortRegex  = monthsShortRegex;
-
-    // Week
-    prototype__proto.week = localeWeek;
-    prototype__proto._week = defaultLocaleWeek;
-    prototype__proto.firstDayOfYear = localeFirstDayOfYear;
-    prototype__proto.firstDayOfWeek = localeFirstDayOfWeek;
-
-    // Day of Week
-    prototype__proto.weekdays       =        localeWeekdays;
-    prototype__proto._weekdays      = defaultLocaleWeekdays;
-    prototype__proto.weekdaysMin    =        localeWeekdaysMin;
-    prototype__proto._weekdaysMin   = defaultLocaleWeekdaysMin;
-    prototype__proto.weekdaysShort  =        localeWeekdaysShort;
-    prototype__proto._weekdaysShort = defaultLocaleWeekdaysShort;
-    prototype__proto.weekdaysParse  =        localeWeekdaysParse;
-
-    prototype__proto._weekdaysRegex      = defaultWeekdaysRegex;
-    prototype__proto.weekdaysRegex       =        weekdaysRegex;
-    prototype__proto._weekdaysShortRegex = defaultWeekdaysShortRegex;
-    prototype__proto.weekdaysShortRegex  =        weekdaysShortRegex;
-    prototype__proto._weekdaysMinRegex   = defaultWeekdaysMinRegex;
-    prototype__proto.weekdaysMinRegex    =        weekdaysMinRegex;
-
-    // Hours
-    prototype__proto.isPM = localeIsPM;
-    prototype__proto._meridiemParse = defaultLocaleMeridiemParse;
-    prototype__proto.meridiem = localeMeridiem;
-
-    function lists__get (format, index, field, setter) {
-        var locale = locale_locales__getLocale();
-        var utc = create_utc__createUTC().set(setter, index);
-        return locale[field](utc, format);
-    }
-
-    function listMonthsImpl (format, index, field) {
-        if (typeof format === 'number') {
+// ()
+// (5)
+// (fmt, 5)
+// (fmt)
+// (true)
+// (true, 5)
+// (true, fmt, 5)
+// (true, fmt)
+function listWeekdaysImpl (localeSorted, format, index, field) {
+    if (typeof localeSorted === 'boolean') {
+        if (isNumber(format)) {
             index = format;
             format = undefined;
         }
 
         format = format || '';
+    } else {
+        format = localeSorted;
+        index = format;
+        localeSorted = false;
 
-        if (index != null) {
-            return lists__get(format, index, field, 'month');
-        }
-
-        var i;
-        var out = [];
-        for (i = 0; i < 12; i++) {
-            out[i] = lists__get(format, i, field, 'month');
-        }
-        return out;
-    }
-
-    // ()
-    // (5)
-    // (fmt, 5)
-    // (fmt)
-    // (true)
-    // (true, 5)
-    // (true, fmt, 5)
-    // (true, fmt)
-    function listWeekdaysImpl (localeSorted, format, index, field) {
-        if (typeof localeSorted === 'boolean') {
-            if (typeof format === 'number') {
-                index = format;
-                format = undefined;
-            }
-
-            format = format || '';
-        } else {
-            format = localeSorted;
+        if (isNumber(format)) {
             index = format;
-            localeSorted = false;
-
-            if (typeof format === 'number') {
-                index = format;
-                format = undefined;
-            }
-
-            format = format || '';
+            format = undefined;
         }
 
-        var locale = locale_locales__getLocale(),
-            shift = localeSorted ? locale._week.dow : 0;
+        format = format || '';
+    }
 
-        if (index != null) {
-            return lists__get(format, (index + shift) % 7, field, 'day');
+    var locale = getLocale(),
+        shift = localeSorted ? locale._week.dow : 0;
+
+    if (index != null) {
+        return get$1(format, (index + shift) % 7, field, 'day');
+    }
+
+    var i;
+    var out = [];
+    for (i = 0; i < 7; i++) {
+        out[i] = get$1(format, (i + shift) % 7, field, 'day');
+    }
+    return out;
+}
+
+function listMonths (format, index) {
+    return listMonthsImpl(format, index, 'months');
+}
+
+function listMonthsShort (format, index) {
+    return listMonthsImpl(format, index, 'monthsShort');
+}
+
+function listWeekdays (localeSorted, format, index) {
+    return listWeekdaysImpl(localeSorted, format, index, 'weekdays');
+}
+
+function listWeekdaysShort (localeSorted, format, index) {
+    return listWeekdaysImpl(localeSorted, format, index, 'weekdaysShort');
+}
+
+function listWeekdaysMin (localeSorted, format, index) {
+    return listWeekdaysImpl(localeSorted, format, index, 'weekdaysMin');
+}
+
+getSetGlobalLocale('en', {
+    dayOfMonthOrdinalParse: /\d{1,2}(th|st|nd|rd)/,
+    ordinal : function (number) {
+        var b = number % 10,
+            output = (toInt(number % 100 / 10) === 1) ? 'th' :
+            (b === 1) ? 'st' :
+            (b === 2) ? 'nd' :
+            (b === 3) ? 'rd' : 'th';
+        return number + output;
+    }
+});
+
+// Side effect imports
+hooks.lang = deprecate('moment.lang is deprecated. Use moment.locale instead.', getSetGlobalLocale);
+hooks.langData = deprecate('moment.langData is deprecated. Use moment.localeData instead.', getLocale);
+
+var mathAbs = Math.abs;
+
+function abs () {
+    var data           = this._data;
+
+    this._milliseconds = mathAbs(this._milliseconds);
+    this._days         = mathAbs(this._days);
+    this._months       = mathAbs(this._months);
+
+    data.milliseconds  = mathAbs(data.milliseconds);
+    data.seconds       = mathAbs(data.seconds);
+    data.minutes       = mathAbs(data.minutes);
+    data.hours         = mathAbs(data.hours);
+    data.months        = mathAbs(data.months);
+    data.years         = mathAbs(data.years);
+
+    return this;
+}
+
+function addSubtract$1 (duration, input, value, direction) {
+    var other = createDuration(input, value);
+
+    duration._milliseconds += direction * other._milliseconds;
+    duration._days         += direction * other._days;
+    duration._months       += direction * other._months;
+
+    return duration._bubble();
+}
+
+// supports only 2.0-style add(1, 's') or add(duration)
+function add$1 (input, value) {
+    return addSubtract$1(this, input, value, 1);
+}
+
+// supports only 2.0-style subtract(1, 's') or subtract(duration)
+function subtract$1 (input, value) {
+    return addSubtract$1(this, input, value, -1);
+}
+
+function absCeil (number) {
+    if (number < 0) {
+        return Math.floor(number);
+    } else {
+        return Math.ceil(number);
+    }
+}
+
+function bubble () {
+    var milliseconds = this._milliseconds;
+    var days         = this._days;
+    var months       = this._months;
+    var data         = this._data;
+    var seconds, minutes, hours, years, monthsFromDays;
+
+    // if we have a mix of positive and negative values, bubble down first
+    // check: https://github.com/moment/moment/issues/2166
+    if (!((milliseconds >= 0 && days >= 0 && months >= 0) ||
+            (milliseconds <= 0 && days <= 0 && months <= 0))) {
+        milliseconds += absCeil(monthsToDays(months) + days) * 864e5;
+        days = 0;
+        months = 0;
+    }
+
+    // The following code bubbles up values, see the tests for
+    // examples of what that means.
+    data.milliseconds = milliseconds % 1000;
+
+    seconds           = absFloor(milliseconds / 1000);
+    data.seconds      = seconds % 60;
+
+    minutes           = absFloor(seconds / 60);
+    data.minutes      = minutes % 60;
+
+    hours             = absFloor(minutes / 60);
+    data.hours        = hours % 24;
+
+    days += absFloor(hours / 24);
+
+    // convert days to months
+    monthsFromDays = absFloor(daysToMonths(days));
+    months += monthsFromDays;
+    days -= absCeil(monthsToDays(monthsFromDays));
+
+    // 12 months -> 1 year
+    years = absFloor(months / 12);
+    months %= 12;
+
+    data.days   = days;
+    data.months = months;
+    data.years  = years;
+
+    return this;
+}
+
+function daysToMonths (days) {
+    // 400 years have 146097 days (taking into account leap year rules)
+    // 400 years have 12 months === 4800
+    return days * 4800 / 146097;
+}
+
+function monthsToDays (months) {
+    // the reverse of daysToMonths
+    return months * 146097 / 4800;
+}
+
+function as (units) {
+    if (!this.isValid()) {
+        return NaN;
+    }
+    var days;
+    var months;
+    var milliseconds = this._milliseconds;
+
+    units = normalizeUnits(units);
+
+    if (units === 'month' || units === 'year') {
+        days   = this._days   + milliseconds / 864e5;
+        months = this._months + daysToMonths(days);
+        return units === 'month' ? months : months / 12;
+    } else {
+        // handle milliseconds separately because of floating point math errors (issue #1867)
+        days = this._days + Math.round(monthsToDays(this._months));
+        switch (units) {
+            case 'week'   : return days / 7     + milliseconds / 6048e5;
+            case 'day'    : return days         + milliseconds / 864e5;
+            case 'hour'   : return days * 24    + milliseconds / 36e5;
+            case 'minute' : return days * 1440  + milliseconds / 6e4;
+            case 'second' : return days * 86400 + milliseconds / 1000;
+            // Math.floor prevents floating point math errors here
+            case 'millisecond': return Math.floor(days * 864e5) + milliseconds;
+            default: throw new Error('Unknown unit ' + units);
         }
-
-        var i;
-        var out = [];
-        for (i = 0; i < 7; i++) {
-            out[i] = lists__get(format, (i + shift) % 7, field, 'day');
-        }
-        return out;
     }
+}
 
-    function lists__listMonths (format, index) {
-        return listMonthsImpl(format, index, 'months');
+// TODO: Use this.as('ms')?
+function valueOf$1 () {
+    if (!this.isValid()) {
+        return NaN;
     }
+    return (
+        this._milliseconds +
+        this._days * 864e5 +
+        (this._months % 12) * 2592e6 +
+        toInt(this._months / 12) * 31536e6
+    );
+}
 
-    function lists__listMonthsShort (format, index) {
-        return listMonthsImpl(format, index, 'monthsShort');
-    }
-
-    function lists__listWeekdays (localeSorted, format, index) {
-        return listWeekdaysImpl(localeSorted, format, index, 'weekdays');
-    }
-
-    function lists__listWeekdaysShort (localeSorted, format, index) {
-        return listWeekdaysImpl(localeSorted, format, index, 'weekdaysShort');
-    }
-
-    function lists__listWeekdaysMin (localeSorted, format, index) {
-        return listWeekdaysImpl(localeSorted, format, index, 'weekdaysMin');
-    }
-
-    locale_locales__getSetGlobalLocale('en', {
-        ordinalParse: /\d{1,2}(th|st|nd|rd)/,
-        ordinal : function (number) {
-            var b = number % 10,
-                output = (toInt(number % 100 / 10) === 1) ? 'th' :
-                (b === 1) ? 'st' :
-                (b === 2) ? 'nd' :
-                (b === 3) ? 'rd' : 'th';
-            return number + output;
-        }
-    });
-
-    // Side effect imports
-    utils_hooks__hooks.lang = deprecate('moment.lang is deprecated. Use moment.locale instead.', locale_locales__getSetGlobalLocale);
-    utils_hooks__hooks.langData = deprecate('moment.langData is deprecated. Use moment.localeData instead.', locale_locales__getLocale);
-
-    var mathAbs = Math.abs;
-
-    function duration_abs__abs () {
-        var data           = this._data;
-
-        this._milliseconds = mathAbs(this._milliseconds);
-        this._days         = mathAbs(this._days);
-        this._months       = mathAbs(this._months);
-
-        data.milliseconds  = mathAbs(data.milliseconds);
-        data.seconds       = mathAbs(data.seconds);
-        data.minutes       = mathAbs(data.minutes);
-        data.hours         = mathAbs(data.hours);
-        data.months        = mathAbs(data.months);
-        data.years         = mathAbs(data.years);
-
-        return this;
-    }
-
-    function duration_add_subtract__addSubtract (duration, input, value, direction) {
-        var other = create__createDuration(input, value);
-
-        duration._milliseconds += direction * other._milliseconds;
-        duration._days         += direction * other._days;
-        duration._months       += direction * other._months;
-
-        return duration._bubble();
-    }
-
-    // supports only 2.0-style add(1, 's') or add(duration)
-    function duration_add_subtract__add (input, value) {
-        return duration_add_subtract__addSubtract(this, input, value, 1);
-    }
-
-    // supports only 2.0-style subtract(1, 's') or subtract(duration)
-    function duration_add_subtract__subtract (input, value) {
-        return duration_add_subtract__addSubtract(this, input, value, -1);
-    }
-
-    function absCeil (number) {
-        if (number < 0) {
-            return Math.floor(number);
-        } else {
-            return Math.ceil(number);
-        }
-    }
-
-    function bubble () {
-        var milliseconds = this._milliseconds;
-        var days         = this._days;
-        var months       = this._months;
-        var data         = this._data;
-        var seconds, minutes, hours, years, monthsFromDays;
-
-        // if we have a mix of positive and negative values, bubble down first
-        // check: https://github.com/moment/moment/issues/2166
-        if (!((milliseconds >= 0 && days >= 0 && months >= 0) ||
-                (milliseconds <= 0 && days <= 0 && months <= 0))) {
-            milliseconds += absCeil(monthsToDays(months) + days) * 864e5;
-            days = 0;
-            months = 0;
-        }
-
-        // The following code bubbles up values, see the tests for
-        // examples of what that means.
-        data.milliseconds = milliseconds % 1000;
-
-        seconds           = absFloor(milliseconds / 1000);
-        data.seconds      = seconds % 60;
-
-        minutes           = absFloor(seconds / 60);
-        data.minutes      = minutes % 60;
-
-        hours             = absFloor(minutes / 60);
-        data.hours        = hours % 24;
-
-        days += absFloor(hours / 24);
-
-        // convert days to months
-        monthsFromDays = absFloor(daysToMonths(days));
-        months += monthsFromDays;
-        days -= absCeil(monthsToDays(monthsFromDays));
-
-        // 12 months -> 1 year
-        years = absFloor(months / 12);
-        months %= 12;
-
-        data.days   = days;
-        data.months = months;
-        data.years  = years;
-
-        return this;
-    }
-
-    function daysToMonths (days) {
-        // 400 years have 146097 days (taking into account leap year rules)
-        // 400 years have 12 months === 4800
-        return days * 4800 / 146097;
-    }
-
-    function monthsToDays (months) {
-        // the reverse of daysToMonths
-        return months * 146097 / 4800;
-    }
-
-    function as (units) {
-        var days;
-        var months;
-        var milliseconds = this._milliseconds;
-
-        units = normalizeUnits(units);
-
-        if (units === 'month' || units === 'year') {
-            days   = this._days   + milliseconds / 864e5;
-            months = this._months + daysToMonths(days);
-            return units === 'month' ? months : months / 12;
-        } else {
-            // handle milliseconds separately because of floating point math errors (issue #1867)
-            days = this._days + Math.round(monthsToDays(this._months));
-            switch (units) {
-                case 'week'   : return days / 7     + milliseconds / 6048e5;
-                case 'day'    : return days         + milliseconds / 864e5;
-                case 'hour'   : return days * 24    + milliseconds / 36e5;
-                case 'minute' : return days * 1440  + milliseconds / 6e4;
-                case 'second' : return days * 86400 + milliseconds / 1000;
-                // Math.floor prevents floating point math errors here
-                case 'millisecond': return Math.floor(days * 864e5) + milliseconds;
-                default: throw new Error('Unknown unit ' + units);
-            }
-        }
-    }
-
-    // TODO: Use this.as('ms')?
-    function duration_as__valueOf () {
-        return (
-            this._milliseconds +
-            this._days * 864e5 +
-            (this._months % 12) * 2592e6 +
-            toInt(this._months / 12) * 31536e6
-        );
-    }
-
-    function makeAs (alias) {
-        return function () {
-            return this.as(alias);
-        };
-    }
-
-    var asMilliseconds = makeAs('ms');
-    var asSeconds      = makeAs('s');
-    var asMinutes      = makeAs('m');
-    var asHours        = makeAs('h');
-    var asDays         = makeAs('d');
-    var asWeeks        = makeAs('w');
-    var asMonths       = makeAs('M');
-    var asYears        = makeAs('y');
-
-    function duration_get__get (units) {
-        units = normalizeUnits(units);
-        return this[units + 's']();
-    }
-
-    function makeGetter(name) {
-        return function () {
-            return this._data[name];
-        };
-    }
-
-    var milliseconds = makeGetter('milliseconds');
-    var seconds      = makeGetter('seconds');
-    var minutes      = makeGetter('minutes');
-    var hours        = makeGetter('hours');
-    var days         = makeGetter('days');
-    var months       = makeGetter('months');
-    var years        = makeGetter('years');
-
-    function weeks () {
-        return absFloor(this.days() / 7);
-    }
-
-    var round = Math.round;
-    var thresholds = {
-        s: 45,  // seconds to minute
-        m: 45,  // minutes to hour
-        h: 22,  // hours to day
-        d: 26,  // days to month
-        M: 11   // months to year
+function makeAs (alias) {
+    return function () {
+        return this.as(alias);
     };
+}
 
-    // helper function for moment.fn.from, moment.fn.fromNow, and moment.duration.fn.humanize
-    function substituteTimeAgo(string, number, withoutSuffix, isFuture, locale) {
-        return locale.relativeTime(number || 1, !!withoutSuffix, string, isFuture);
+var asMilliseconds = makeAs('ms');
+var asSeconds      = makeAs('s');
+var asMinutes      = makeAs('m');
+var asHours        = makeAs('h');
+var asDays         = makeAs('d');
+var asWeeks        = makeAs('w');
+var asMonths       = makeAs('M');
+var asYears        = makeAs('y');
+
+function get$2 (units) {
+    units = normalizeUnits(units);
+    return this.isValid() ? this[units + 's']() : NaN;
+}
+
+function makeGetter(name) {
+    return function () {
+        return this.isValid() ? this._data[name] : NaN;
+    };
+}
+
+var milliseconds = makeGetter('milliseconds');
+var seconds      = makeGetter('seconds');
+var minutes      = makeGetter('minutes');
+var hours        = makeGetter('hours');
+var days         = makeGetter('days');
+var months       = makeGetter('months');
+var years        = makeGetter('years');
+
+function weeks () {
+    return absFloor(this.days() / 7);
+}
+
+var round = Math.round;
+var thresholds = {
+    ss: 44,         // a few seconds to seconds
+    s : 45,         // seconds to minute
+    m : 45,         // minutes to hour
+    h : 22,         // hours to day
+    d : 26,         // days to month
+    M : 11          // months to year
+};
+
+// helper function for moment.fn.from, moment.fn.fromNow, and moment.duration.fn.humanize
+function substituteTimeAgo(string, number, withoutSuffix, isFuture, locale) {
+    return locale.relativeTime(number || 1, !!withoutSuffix, string, isFuture);
+}
+
+function relativeTime$1 (posNegDuration, withoutSuffix, locale) {
+    var duration = createDuration(posNegDuration).abs();
+    var seconds  = round(duration.as('s'));
+    var minutes  = round(duration.as('m'));
+    var hours    = round(duration.as('h'));
+    var days     = round(duration.as('d'));
+    var months   = round(duration.as('M'));
+    var years    = round(duration.as('y'));
+
+    var a = seconds <= thresholds.ss && ['s', seconds]  ||
+            seconds < thresholds.s   && ['ss', seconds] ||
+            minutes <= 1             && ['m']           ||
+            minutes < thresholds.m   && ['mm', minutes] ||
+            hours   <= 1             && ['h']           ||
+            hours   < thresholds.h   && ['hh', hours]   ||
+            days    <= 1             && ['d']           ||
+            days    < thresholds.d   && ['dd', days]    ||
+            months  <= 1             && ['M']           ||
+            months  < thresholds.M   && ['MM', months]  ||
+            years   <= 1             && ['y']           || ['yy', years];
+
+    a[2] = withoutSuffix;
+    a[3] = +posNegDuration > 0;
+    a[4] = locale;
+    return substituteTimeAgo.apply(null, a);
+}
+
+// This function allows you to set the rounding function for relative time strings
+function getSetRelativeTimeRounding (roundingFunction) {
+    if (roundingFunction === undefined) {
+        return round;
     }
-
-    function duration_humanize__relativeTime (posNegDuration, withoutSuffix, locale) {
-        var duration = create__createDuration(posNegDuration).abs();
-        var seconds  = round(duration.as('s'));
-        var minutes  = round(duration.as('m'));
-        var hours    = round(duration.as('h'));
-        var days     = round(duration.as('d'));
-        var months   = round(duration.as('M'));
-        var years    = round(duration.as('y'));
-
-        var a = seconds < thresholds.s && ['s', seconds]  ||
-                minutes <= 1           && ['m']           ||
-                minutes < thresholds.m && ['mm', minutes] ||
-                hours   <= 1           && ['h']           ||
-                hours   < thresholds.h && ['hh', hours]   ||
-                days    <= 1           && ['d']           ||
-                days    < thresholds.d && ['dd', days]    ||
-                months  <= 1           && ['M']           ||
-                months  < thresholds.M && ['MM', months]  ||
-                years   <= 1           && ['y']           || ['yy', years];
-
-        a[2] = withoutSuffix;
-        a[3] = +posNegDuration > 0;
-        a[4] = locale;
-        return substituteTimeAgo.apply(null, a);
-    }
-
-    // This function allows you to set a threshold for relative time strings
-    function duration_humanize__getSetRelativeTimeThreshold (threshold, limit) {
-        if (thresholds[threshold] === undefined) {
-            return false;
-        }
-        if (limit === undefined) {
-            return thresholds[threshold];
-        }
-        thresholds[threshold] = limit;
+    if (typeof(roundingFunction) === 'function') {
+        round = roundingFunction;
         return true;
     }
+    return false;
+}
 
-    function humanize (withSuffix) {
-        var locale = this.localeData();
-        var output = duration_humanize__relativeTime(this, !withSuffix, locale);
+// This function allows you to set a threshold for relative time strings
+function getSetRelativeTimeThreshold (threshold, limit) {
+    if (thresholds[threshold] === undefined) {
+        return false;
+    }
+    if (limit === undefined) {
+        return thresholds[threshold];
+    }
+    thresholds[threshold] = limit;
+    if (threshold === 's') {
+        thresholds.ss = limit - 1;
+    }
+    return true;
+}
 
-        if (withSuffix) {
-            output = locale.pastFuture(+this, output);
-        }
-
-        return locale.postformat(output);
+function humanize (withSuffix) {
+    if (!this.isValid()) {
+        return this.localeData().invalidDate();
     }
 
-    var iso_string__abs = Math.abs;
+    var locale = this.localeData();
+    var output = relativeTime$1(this, !withSuffix, locale);
 
-    function iso_string__toISOString() {
-        // for ISO strings we do not use the normal bubbling rules:
-        //  * milliseconds bubble up until they become hours
-        //  * days do not bubble at all
-        //  * months bubble up until they become years
-        // This is because there is no context-free conversion between hours and days
-        // (think of clock changes)
-        // and also not between days and months (28-31 days per month)
-        var seconds = iso_string__abs(this._milliseconds) / 1000;
-        var days         = iso_string__abs(this._days);
-        var months       = iso_string__abs(this._months);
-        var minutes, hours, years;
-
-        // 3600 seconds -> 60 minutes -> 1 hour
-        minutes           = absFloor(seconds / 60);
-        hours             = absFloor(minutes / 60);
-        seconds %= 60;
-        minutes %= 60;
-
-        // 12 months -> 1 year
-        years  = absFloor(months / 12);
-        months %= 12;
-
-
-        // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js
-        var Y = years;
-        var M = months;
-        var D = days;
-        var h = hours;
-        var m = minutes;
-        var s = seconds;
-        var total = this.asSeconds();
-
-        if (!total) {
-            // this is the same as C#'s (Noda) and python (isodate)...
-            // but not other JS (goog.date)
-            return 'P0D';
-        }
-
-        return (total < 0 ? '-' : '') +
-            'P' +
-            (Y ? Y + 'Y' : '') +
-            (M ? M + 'M' : '') +
-            (D ? D + 'D' : '') +
-            ((h || m || s) ? 'T' : '') +
-            (h ? h + 'H' : '') +
-            (m ? m + 'M' : '') +
-            (s ? s + 'S' : '');
+    if (withSuffix) {
+        output = locale.pastFuture(+this, output);
     }
 
-    var duration_prototype__proto = Duration.prototype;
+    return locale.postformat(output);
+}
 
-    duration_prototype__proto.abs            = duration_abs__abs;
-    duration_prototype__proto.add            = duration_add_subtract__add;
-    duration_prototype__proto.subtract       = duration_add_subtract__subtract;
-    duration_prototype__proto.as             = as;
-    duration_prototype__proto.asMilliseconds = asMilliseconds;
-    duration_prototype__proto.asSeconds      = asSeconds;
-    duration_prototype__proto.asMinutes      = asMinutes;
-    duration_prototype__proto.asHours        = asHours;
-    duration_prototype__proto.asDays         = asDays;
-    duration_prototype__proto.asWeeks        = asWeeks;
-    duration_prototype__proto.asMonths       = asMonths;
-    duration_prototype__proto.asYears        = asYears;
-    duration_prototype__proto.valueOf        = duration_as__valueOf;
-    duration_prototype__proto._bubble        = bubble;
-    duration_prototype__proto.get            = duration_get__get;
-    duration_prototype__proto.milliseconds   = milliseconds;
-    duration_prototype__proto.seconds        = seconds;
-    duration_prototype__proto.minutes        = minutes;
-    duration_prototype__proto.hours          = hours;
-    duration_prototype__proto.days           = days;
-    duration_prototype__proto.weeks          = weeks;
-    duration_prototype__proto.months         = months;
-    duration_prototype__proto.years          = years;
-    duration_prototype__proto.humanize       = humanize;
-    duration_prototype__proto.toISOString    = iso_string__toISOString;
-    duration_prototype__proto.toString       = iso_string__toISOString;
-    duration_prototype__proto.toJSON         = iso_string__toISOString;
-    duration_prototype__proto.locale         = locale;
-    duration_prototype__proto.localeData     = localeData;
+var abs$1 = Math.abs;
 
-    // Deprecations
-    duration_prototype__proto.toIsoString = deprecate('toIsoString() is deprecated. Please use toISOString() instead (notice the capitals)', iso_string__toISOString);
-    duration_prototype__proto.lang = lang;
+function toISOString$1() {
+    // for ISO strings we do not use the normal bubbling rules:
+    //  * milliseconds bubble up until they become hours
+    //  * days do not bubble at all
+    //  * months bubble up until they become years
+    // This is because there is no context-free conversion between hours and days
+    // (think of clock changes)
+    // and also not between days and months (28-31 days per month)
+    if (!this.isValid()) {
+        return this.localeData().invalidDate();
+    }
 
-    // Side effect imports
+    var seconds = abs$1(this._milliseconds) / 1000;
+    var days         = abs$1(this._days);
+    var months       = abs$1(this._months);
+    var minutes, hours, years;
 
-    // FORMATTING
+    // 3600 seconds -> 60 minutes -> 1 hour
+    minutes           = absFloor(seconds / 60);
+    hours             = absFloor(minutes / 60);
+    seconds %= 60;
+    minutes %= 60;
 
-    addFormatToken('X', 0, 0, 'unix');
-    addFormatToken('x', 0, 0, 'valueOf');
-
-    // PARSING
-
-    addRegexToken('x', matchSigned);
-    addRegexToken('X', matchTimestamp);
-    addParseToken('X', function (input, array, config) {
-        config._d = new Date(parseFloat(input, 10) * 1000);
-    });
-    addParseToken('x', function (input, array, config) {
-        config._d = new Date(toInt(input));
-    });
-
-    // Side effect imports
+    // 12 months -> 1 year
+    years  = absFloor(months / 12);
+    months %= 12;
 
 
-    utils_hooks__hooks.version = '2.13.0';
+    // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js
+    var Y = years;
+    var M = months;
+    var D = days;
+    var h = hours;
+    var m = minutes;
+    var s = seconds;
+    var total = this.asSeconds();
 
-    setHookCallback(local__createLocal);
+    if (!total) {
+        // this is the same as C#'s (Noda) and python (isodate)...
+        // but not other JS (goog.date)
+        return 'P0D';
+    }
 
-    utils_hooks__hooks.fn                    = momentPrototype;
-    utils_hooks__hooks.min                   = min;
-    utils_hooks__hooks.max                   = max;
-    utils_hooks__hooks.now                   = now;
-    utils_hooks__hooks.utc                   = create_utc__createUTC;
-    utils_hooks__hooks.unix                  = moment__createUnix;
-    utils_hooks__hooks.months                = lists__listMonths;
-    utils_hooks__hooks.isDate                = isDate;
-    utils_hooks__hooks.locale                = locale_locales__getSetGlobalLocale;
-    utils_hooks__hooks.invalid               = valid__createInvalid;
-    utils_hooks__hooks.duration              = create__createDuration;
-    utils_hooks__hooks.isMoment              = isMoment;
-    utils_hooks__hooks.weekdays              = lists__listWeekdays;
-    utils_hooks__hooks.parseZone             = moment__createInZone;
-    utils_hooks__hooks.localeData            = locale_locales__getLocale;
-    utils_hooks__hooks.isDuration            = isDuration;
-    utils_hooks__hooks.monthsShort           = lists__listMonthsShort;
-    utils_hooks__hooks.weekdaysMin           = lists__listWeekdaysMin;
-    utils_hooks__hooks.defineLocale          = defineLocale;
-    utils_hooks__hooks.updateLocale          = updateLocale;
-    utils_hooks__hooks.locales               = locale_locales__listLocales;
-    utils_hooks__hooks.weekdaysShort         = lists__listWeekdaysShort;
-    utils_hooks__hooks.normalizeUnits        = normalizeUnits;
-    utils_hooks__hooks.relativeTimeThreshold = duration_humanize__getSetRelativeTimeThreshold;
-    utils_hooks__hooks.prototype             = momentPrototype;
+    return (total < 0 ? '-' : '') +
+        'P' +
+        (Y ? Y + 'Y' : '') +
+        (M ? M + 'M' : '') +
+        (D ? D + 'D' : '') +
+        ((h || m || s) ? 'T' : '') +
+        (h ? h + 'H' : '') +
+        (m ? m + 'M' : '') +
+        (s ? s + 'S' : '');
+}
 
-    var _moment = utils_hooks__hooks;
+var proto$2 = Duration.prototype;
 
-    return _moment;
+proto$2.isValid        = isValid$1;
+proto$2.abs            = abs;
+proto$2.add            = add$1;
+proto$2.subtract       = subtract$1;
+proto$2.as             = as;
+proto$2.asMilliseconds = asMilliseconds;
+proto$2.asSeconds      = asSeconds;
+proto$2.asMinutes      = asMinutes;
+proto$2.asHours        = asHours;
+proto$2.asDays         = asDays;
+proto$2.asWeeks        = asWeeks;
+proto$2.asMonths       = asMonths;
+proto$2.asYears        = asYears;
+proto$2.valueOf        = valueOf$1;
+proto$2._bubble        = bubble;
+proto$2.get            = get$2;
+proto$2.milliseconds   = milliseconds;
+proto$2.seconds        = seconds;
+proto$2.minutes        = minutes;
+proto$2.hours          = hours;
+proto$2.days           = days;
+proto$2.weeks          = weeks;
+proto$2.months         = months;
+proto$2.years          = years;
+proto$2.humanize       = humanize;
+proto$2.toISOString    = toISOString$1;
+proto$2.toString       = toISOString$1;
+proto$2.toJSON         = toISOString$1;
+proto$2.locale         = locale;
+proto$2.localeData     = localeData;
 
-}));
+// Deprecations
+proto$2.toIsoString = deprecate('toIsoString() is deprecated. Please use toISOString() instead (notice the capitals)', toISOString$1);
+proto$2.lang = lang;
+
+// Side effect imports
+
+// FORMATTING
+
+addFormatToken('X', 0, 0, 'unix');
+addFormatToken('x', 0, 0, 'valueOf');
+
+// PARSING
+
+addRegexToken('x', matchSigned);
+addRegexToken('X', matchTimestamp);
+addParseToken('X', function (input, array, config) {
+    config._d = new Date(parseFloat(input, 10) * 1000);
+});
+addParseToken('x', function (input, array, config) {
+    config._d = new Date(toInt(input));
+});
+
+// Side effect imports
+
+
+hooks.version = '2.18.1';
+
+setHookCallback(createLocal);
+
+hooks.fn                    = proto;
+hooks.min                   = min;
+hooks.max                   = max;
+hooks.now                   = now;
+hooks.utc                   = createUTC;
+hooks.unix                  = createUnix;
+hooks.months                = listMonths;
+hooks.isDate                = isDate;
+hooks.locale                = getSetGlobalLocale;
+hooks.invalid               = createInvalid;
+hooks.duration              = createDuration;
+hooks.isMoment              = isMoment;
+hooks.weekdays              = listWeekdays;
+hooks.parseZone             = createInZone;
+hooks.localeData            = getLocale;
+hooks.isDuration            = isDuration;
+hooks.monthsShort           = listMonthsShort;
+hooks.weekdaysMin           = listWeekdaysMin;
+hooks.defineLocale          = defineLocale;
+hooks.updateLocale          = updateLocale;
+hooks.locales               = listLocales;
+hooks.weekdaysShort         = listWeekdaysShort;
+hooks.normalizeUnits        = normalizeUnits;
+hooks.relativeTimeRounding = getSetRelativeTimeRounding;
+hooks.relativeTimeThreshold = getSetRelativeTimeThreshold;
+hooks.calendarFormat        = getCalendarFormat;
+hooks.prototype             = proto;
+
+return hooks;
+
+})));
+
 
 /*** EXPORTS FROM exports-to-window-loader ***/
 window['moment'] = __webpack_require__(36);
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(402)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(420)(module)))
 
 /***/ }),
 /* 37 */
@@ -10764,16 +11180,6 @@ BaseEditor.prototype.prepare = function (row, col, prop, td, originalValue, cell
   this.prop = prop;
   this.originalValue = originalValue;
   this.cellProperties = cellProperties;
-
-  var invalidActiveElement = !document.activeElement || document.activeElement && document.activeElement.nodeName === void 0;
-
-  if (this.instance.view.isMouseDown() && document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
-    document.activeElement.blur();
-  } else if (invalidActiveElement) {
-    // IE
-    document.body.focus();
-  }
-
   this.state = EditorState.VIRGIN;
 };
 
@@ -11004,8 +11410,8 @@ module.exports = function(it){
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.14 / 15.2.3.14 Object.keys(O)
-var $keys       = __webpack_require__(269)
-  , enumBugKeys = __webpack_require__(75);
+var $keys       = __webpack_require__(284)
+  , enumBugKeys = __webpack_require__(76);
 
 module.exports = Object.keys || function keys(O){
   return $keys(O, enumBugKeys);
@@ -11179,7 +11585,7 @@ exports.__esModule = true;
 
 var _element = __webpack_require__(0);
 
-var _autoResize = __webpack_require__(283);
+var _autoResize = __webpack_require__(298);
 
 var _autoResize2 = _interopRequireDefault(_autoResize);
 
@@ -12685,7 +13091,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
 
     numbro.loadCulturesInNode = function() {
         // TODO: Rename the folder in 2.0.0
-        var cultures = __webpack_require__(282);
+        var cultures = __webpack_require__(297);
 
         for(var langLocaleCode in cultures) {
             if(langLocaleCode) {
@@ -12972,189 +13378,6 @@ window['numbro'] = __webpack_require__(51);
 
 
 exports.__esModule = true;
-exports.ITEMS = exports.UNDO = exports.SEPARATOR = exports.ROW_BELOW = exports.ROW_ABOVE = exports.REMOVE_ROW = exports.REMOVE_COLUMN = exports.REDO = exports.READ_ONLY = exports.COLUMN_RIGHT = exports.COLUMN_LEFT = exports.CLEAR_COLUMN = exports.ALIGNMENT = undefined;
-
-var _predefinedItems2;
-
-var _alignment = __webpack_require__(323);
-
-Object.defineProperty(exports, 'ALIGNMENT', {
-  enumerable: true,
-  get: function get() {
-    return _alignment.KEY;
-  }
-});
-
-var _clearColumn = __webpack_require__(324);
-
-Object.defineProperty(exports, 'CLEAR_COLUMN', {
-  enumerable: true,
-  get: function get() {
-    return _clearColumn.KEY;
-  }
-});
-
-var _columnLeft = __webpack_require__(325);
-
-Object.defineProperty(exports, 'COLUMN_LEFT', {
-  enumerable: true,
-  get: function get() {
-    return _columnLeft.KEY;
-  }
-});
-
-var _columnRight = __webpack_require__(326);
-
-Object.defineProperty(exports, 'COLUMN_RIGHT', {
-  enumerable: true,
-  get: function get() {
-    return _columnRight.KEY;
-  }
-});
-
-var _readOnly = __webpack_require__(327);
-
-Object.defineProperty(exports, 'READ_ONLY', {
-  enumerable: true,
-  get: function get() {
-    return _readOnly.KEY;
-  }
-});
-
-var _redo = __webpack_require__(328);
-
-Object.defineProperty(exports, 'REDO', {
-  enumerable: true,
-  get: function get() {
-    return _redo.KEY;
-  }
-});
-
-var _removeColumn = __webpack_require__(329);
-
-Object.defineProperty(exports, 'REMOVE_COLUMN', {
-  enumerable: true,
-  get: function get() {
-    return _removeColumn.KEY;
-  }
-});
-
-var _removeRow = __webpack_require__(330);
-
-Object.defineProperty(exports, 'REMOVE_ROW', {
-  enumerable: true,
-  get: function get() {
-    return _removeRow.KEY;
-  }
-});
-
-var _rowAbove = __webpack_require__(331);
-
-Object.defineProperty(exports, 'ROW_ABOVE', {
-  enumerable: true,
-  get: function get() {
-    return _rowAbove.KEY;
-  }
-});
-
-var _rowBelow = __webpack_require__(332);
-
-Object.defineProperty(exports, 'ROW_BELOW', {
-  enumerable: true,
-  get: function get() {
-    return _rowBelow.KEY;
-  }
-});
-
-var _separator = __webpack_require__(71);
-
-Object.defineProperty(exports, 'SEPARATOR', {
-  enumerable: true,
-  get: function get() {
-    return _separator.KEY;
-  }
-});
-
-var _undo = __webpack_require__(333);
-
-Object.defineProperty(exports, 'UNDO', {
-  enumerable: true,
-  get: function get() {
-    return _undo.KEY;
-  }
-});
-exports.predefinedItems = predefinedItems;
-exports.addItem = addItem;
-
-var _object = __webpack_require__(2);
-
-var _alignment2 = _interopRequireDefault(_alignment);
-
-var _clearColumn2 = _interopRequireDefault(_clearColumn);
-
-var _columnLeft2 = _interopRequireDefault(_columnLeft);
-
-var _columnRight2 = _interopRequireDefault(_columnRight);
-
-var _readOnly2 = _interopRequireDefault(_readOnly);
-
-var _redo2 = _interopRequireDefault(_redo);
-
-var _removeColumn2 = _interopRequireDefault(_removeColumn);
-
-var _removeRow2 = _interopRequireDefault(_removeRow);
-
-var _rowAbove2 = _interopRequireDefault(_rowAbove);
-
-var _rowBelow2 = _interopRequireDefault(_rowBelow);
-
-var _separator2 = _interopRequireDefault(_separator);
-
-var _undo2 = _interopRequireDefault(_undo);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-var ITEMS = exports.ITEMS = [_rowAbove.KEY, _rowBelow.KEY, _columnLeft.KEY, _columnRight.KEY, _clearColumn.KEY, _removeRow.KEY, _removeColumn.KEY, _undo.KEY, _redo.KEY, _readOnly.KEY, _alignment.KEY, _separator.KEY];
-
-var _predefinedItems = (_predefinedItems2 = {}, _defineProperty(_predefinedItems2, _separator.KEY, _separator2.default), _defineProperty(_predefinedItems2, _rowAbove.KEY, _rowAbove2.default), _defineProperty(_predefinedItems2, _rowBelow.KEY, _rowBelow2.default), _defineProperty(_predefinedItems2, _columnLeft.KEY, _columnLeft2.default), _defineProperty(_predefinedItems2, _columnRight.KEY, _columnRight2.default), _defineProperty(_predefinedItems2, _clearColumn.KEY, _clearColumn2.default), _defineProperty(_predefinedItems2, _removeRow.KEY, _removeRow2.default), _defineProperty(_predefinedItems2, _removeColumn.KEY, _removeColumn2.default), _defineProperty(_predefinedItems2, _undo.KEY, _undo2.default), _defineProperty(_predefinedItems2, _redo.KEY, _redo2.default), _defineProperty(_predefinedItems2, _readOnly.KEY, _readOnly2.default), _defineProperty(_predefinedItems2, _alignment.KEY, _alignment2.default), _predefinedItems2);
-
-/**
- * Gets new object with all predefined menu items.
- *
- * @returns {Object}
- */
-function predefinedItems() {
-  var items = {};
-
-  (0, _object.objectEach)(_predefinedItems, function (itemFactory, key) {
-    items[key] = itemFactory();
-  });
-
-  return items;
-}
-
-/**
- * Add new predefined menu item to the collection.
- *
- * @param {String} key Menu command id.
- * @param {Object} item Object command descriptor.
- */
-function addItem(key, item) {
-  if (ITEMS.indexOf(key) === -1) {
-    _predefinedItems[key] = item;
-  }
-}
-
-/***/ }),
-/* 53 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
 exports.default = staticRegister;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -13227,7 +13450,7 @@ function staticRegister() {
 }
 
 /***/ }),
-/* 54 */
+/* 53 */
 /***/ (function(module, exports) {
 
 module.exports = function(it, Constructor, name, forbiddenField){
@@ -13237,7 +13460,7 @@ module.exports = function(it, Constructor, name, forbiddenField){
 };
 
 /***/ }),
-/* 55 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 0 -> Array#forEach
@@ -13248,10 +13471,10 @@ module.exports = function(it, Constructor, name, forbiddenField){
 // 5 -> Array#find
 // 6 -> Array#findIndex
 var ctx      = __webpack_require__(29)
-  , IObject  = __webpack_require__(77)
+  , IObject  = __webpack_require__(78)
   , toObject = __webpack_require__(42)
   , toLength = __webpack_require__(24)
-  , asc      = __webpack_require__(378);
+  , asc      = __webpack_require__(395);
 module.exports = function(TYPE, $create){
   var IS_MAP        = TYPE == 1
     , IS_FILTER     = TYPE == 2
@@ -13286,7 +13509,7 @@ module.exports = function(TYPE, $create){
 };
 
 /***/ }),
-/* 56 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13294,15 +13517,15 @@ module.exports = function(TYPE, $create){
 var global            = __webpack_require__(13)
   , $export           = __webpack_require__(3)
   , redefine          = __webpack_require__(33)
-  , redefineAll       = __webpack_require__(61)
+  , redefineAll       = __webpack_require__(60)
   , meta              = __webpack_require__(47)
-  , forOf             = __webpack_require__(58)
-  , anInstance        = __webpack_require__(54)
+  , forOf             = __webpack_require__(57)
+  , anInstance        = __webpack_require__(53)
   , isObject          = __webpack_require__(15)
   , fails             = __webpack_require__(31)
-  , $iterDetect       = __webpack_require__(78)
+  , $iterDetect       = __webpack_require__(79)
   , setToStringTag    = __webpack_require__(49)
-  , inheritIfRequired = __webpack_require__(381);
+  , inheritIfRequired = __webpack_require__(398);
 
 module.exports = function(NAME, wrapper, methods, common, IS_MAP, IS_WEAK){
   var Base  = global[NAME]
@@ -13377,7 +13600,7 @@ module.exports = function(NAME, wrapper, methods, common, IS_MAP, IS_WEAK){
 };
 
 /***/ }),
-/* 57 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13411,15 +13634,15 @@ module.exports = function(KEY, length, exec){
 };
 
 /***/ }),
-/* 58 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var ctx         = __webpack_require__(29)
-  , call        = __webpack_require__(265)
-  , isArrayIter = __webpack_require__(261)
+  , call        = __webpack_require__(280)
+  , isArrayIter = __webpack_require__(276)
   , anObject    = __webpack_require__(18)
   , toLength    = __webpack_require__(24)
-  , getIterFn   = __webpack_require__(276)
+  , getIterFn   = __webpack_require__(291)
   , BREAK       = {}
   , RETURN      = {};
 var exports = module.exports = function(iterable, entries, fn, that, ITERATOR){
@@ -13441,19 +13664,19 @@ exports.BREAK  = BREAK;
 exports.RETURN = RETURN;
 
 /***/ }),
-/* 59 */
+/* 58 */
 /***/ (function(module, exports) {
 
 module.exports = false;
 
 /***/ }),
-/* 60 */
+/* 59 */
 /***/ (function(module, exports) {
 
 exports.f = Object.getOwnPropertySymbols;
 
 /***/ }),
-/* 61 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var redefine = __webpack_require__(33);
@@ -13463,10 +13686,10 @@ module.exports = function(target, src, safe){
 };
 
 /***/ }),
-/* 62 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var toInteger = __webpack_require__(63)
+var toInteger = __webpack_require__(62)
   , max       = Math.max
   , min       = Math.min;
 module.exports = function(index, length){
@@ -13475,7 +13698,7 @@ module.exports = function(index, length){
 };
 
 /***/ }),
-/* 63 */
+/* 62 */
 /***/ (function(module, exports) {
 
 // 7.1.4 ToInteger
@@ -13486,7 +13709,7 @@ module.exports = function(it){
 };
 
 /***/ }),
-/* 64 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13495,7 +13718,7 @@ module.exports = function(it){
 exports.__esModule = true;
 exports.getRegisteredCellTypes = exports.getRegisteredCellTypeNames = exports.hasCellType = exports.getCellType = exports.registerCellType = undefined;
 
-var _staticRegister2 = __webpack_require__(53);
+var _staticRegister2 = __webpack_require__(52);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
@@ -13505,39 +13728,39 @@ var _renderers = __webpack_require__(9);
 
 var _validators = __webpack_require__(26);
 
-var _autocompleteType = __webpack_require__(290);
+var _autocompleteType = __webpack_require__(304);
 
 var _autocompleteType2 = _interopRequireDefault(_autocompleteType);
 
-var _checkboxType = __webpack_require__(291);
+var _checkboxType = __webpack_require__(305);
 
 var _checkboxType2 = _interopRequireDefault(_checkboxType);
 
-var _dateType = __webpack_require__(292);
+var _dateType = __webpack_require__(306);
 
 var _dateType2 = _interopRequireDefault(_dateType);
 
-var _dropdownType = __webpack_require__(293);
+var _dropdownType = __webpack_require__(307);
 
 var _dropdownType2 = _interopRequireDefault(_dropdownType);
 
-var _handsontableType = __webpack_require__(294);
+var _handsontableType = __webpack_require__(308);
 
 var _handsontableType2 = _interopRequireDefault(_handsontableType);
 
-var _numericType = __webpack_require__(295);
+var _numericType = __webpack_require__(309);
 
 var _numericType2 = _interopRequireDefault(_numericType);
 
-var _passwordType = __webpack_require__(296);
+var _passwordType = __webpack_require__(310);
 
 var _passwordType2 = _interopRequireDefault(_passwordType);
 
-var _textType = __webpack_require__(297);
+var _textType = __webpack_require__(311);
 
 var _textType2 = _interopRequireDefault(_textType);
 
-var _timeType = __webpack_require__(298);
+var _timeType = __webpack_require__(312);
 
 var _timeType2 = _interopRequireDefault(_timeType);
 
@@ -13606,7 +13829,7 @@ exports.getRegisteredCellTypeNames = getNames;
 exports.getRegisteredCellTypes = getValues;
 
 /***/ }),
-/* 65 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13626,7 +13849,7 @@ var _numbro2 = _interopRequireDefault(_numbro);
 
 var _element = __webpack_require__(0);
 
-var _setting = __webpack_require__(67);
+var _setting = __webpack_require__(66);
 
 var _function = __webpack_require__(35);
 
@@ -13634,11 +13857,11 @@ var _mixed = __webpack_require__(20);
 
 var _browser = __webpack_require__(25);
 
-var _dataMap = __webpack_require__(299);
+var _dataMap = __webpack_require__(313);
 
 var _dataMap2 = _interopRequireDefault(_dataMap);
 
-var _editorManager = __webpack_require__(301);
+var _editorManager = __webpack_require__(315);
 
 var _editorManager2 = _interopRequireDefault(_editorManager);
 
@@ -13646,9 +13869,9 @@ var _eventManager = __webpack_require__(4);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _plugins = __webpack_require__(5);
 
@@ -13660,17 +13883,17 @@ var _string = __webpack_require__(27);
 
 var _number = __webpack_require__(6);
 
-var _tableView = __webpack_require__(367);
+var _tableView = __webpack_require__(384);
 
 var _tableView2 = _interopRequireDefault(_tableView);
 
-var _dataSource = __webpack_require__(300);
+var _dataSource = __webpack_require__(314);
 
 var _dataSource2 = _interopRequireDefault(_dataSource);
 
-var _data = __webpack_require__(66);
+var _data = __webpack_require__(65);
 
-var _recordTranslator = __webpack_require__(253);
+var _recordTranslator = __webpack_require__(268);
 
 var _src = __webpack_require__(11);
 
@@ -13678,11 +13901,11 @@ var _pluginHooks = __webpack_require__(8);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _defaultSettings = __webpack_require__(87);
+var _defaultSettings = __webpack_require__(88);
 
 var _defaultSettings2 = _interopRequireDefault(_defaultSettings);
 
-var _cellTypes = __webpack_require__(64);
+var _cellTypes = __webpack_require__(63);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -13871,14 +14094,14 @@ function Core(rootElement, userSettings) {
           break;
 
         case 'remove_col':
-          var logicalColumnIndex = recordTranslator.toPhysicalColumn(index);
+          var visualColumnIndex = recordTranslator.toPhysicalColumn(index);
 
           datamap.removeCol(index, amount, source);
 
           for (var _row = 0, _len = instance.countSourceRows(); _row < _len; _row++) {
             if (priv.cellSettings[_row]) {
               // if row hasn't been rendered it wouldn't have cellSettings
-              priv.cellSettings[_row].splice(logicalColumnIndex, amount);
+              priv.cellSettings[_row].splice(visualColumnIndex, amount);
             }
           }
           var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
@@ -13888,10 +14111,10 @@ function Core(rootElement, userSettings) {
           }
 
           if (Array.isArray(instance.getSettings().colHeaders)) {
-            if (typeof logicalColumnIndex == 'undefined') {
-              logicalColumnIndex = -1;
+            if (typeof visualColumnIndex === 'undefined') {
+              visualColumnIndex = -1;
             }
-            instance.getSettings().colHeaders.splice(logicalColumnIndex, amount);
+            instance.getSettings().colHeaders.splice(visualColumnIndex, amount);
           }
 
           grid.adjustRowsAndCols();
@@ -14014,16 +14237,18 @@ function Core(rootElement, userSettings) {
      * Populate the data from the provided 2d array from the given cell coordinates.
      *
      * @private
-     * @param {Object} start Start selection position.
+     * @param {Object} start Start selection position. Visual indexes.
      * @param {Array} input 2d data array.
-     * @param {Object} [end] End selection position (only for drag-down mode).
+     * @param {Object} [end] End selection position (only for drag-down mode). Visual indexes.
      * @param {String} [source="populateFromArray"] Source information string.
      * @param {String} [method="overwrite"] Populate method. Possible options: `shift_down`, `shift_right`, `overwrite`.
      * @param {String} direction (left|right|up|down) String specifying the direction.
-     * @param {Array} deltas The deltas array.
+     * @param {Array} deltas The deltas array. A difference between values of adjacent cells.
+     *                       Useful **only** when the type of handled cells is `numeric`.
      * @returns {Object|undefined} ending td in pasted area (only if any cell was changed).
      */
     populateFromArray: function populateFromArray(start, input, end, source, method, direction, deltas) {
+      // TODO: either remove or implement the `direction` argument. Currently it's not working at all.
       var r,
           rlen,
           c,
@@ -14130,8 +14355,8 @@ function Core(rootElement, userSettings) {
             if (end && current.row > end.row && rowSelectionLength > rowInputLength || !priv.settings.allowInsertRow && current.row > instance.countRows() - 1 || current.row >= priv.settings.maxRows) {
               break;
             }
-            var logicalRow = r - skippedRow;
-            var colInputLength = getInputValue(logicalRow).length;
+            var visualRow = r - skippedRow;
+            var colInputLength = getInputValue(visualRow).length;
             var colSelectionLength = end ? end.col - start.col + 1 : 0;
 
             if (end) {
@@ -14168,12 +14393,12 @@ function Core(rootElement, userSettings) {
                 /* eslint-disable no-continue */
                 continue;
               }
-              var logicalColumn = c - skippedColumn;
-              var value = getInputValue(logicalRow, logicalColumn);
+              var visualColumn = c - skippedColumn;
+              var value = getInputValue(visualRow, visualColumn);
               var orgValue = instance.getDataAtCell(current.row, current.col);
               var index = {
-                row: logicalRow,
-                col: logicalColumn
+                row: visualRow,
+                col: visualColumn
               };
 
               if (source === 'Autofill.fill') {
@@ -14269,7 +14494,7 @@ function Core(rootElement, userSettings) {
     /**
      * Starts selection range on given td object.
      *
-     * @param {CellCoords} coords
+     * @param {CellCoords} coords Visual coords.
      * @param keepEditorOpened
      */
     setRangeStart: function setRangeStart(coords, keepEditorOpened) {
@@ -14282,7 +14507,7 @@ function Core(rootElement, userSettings) {
     /**
      * Starts selection range on given td object.
      *
-     * @param {CellCoords} coords
+     * @param {CellCoords} coords Visual coords.
      * @param keepEditorOpened
      */
     setRangeStartOnly: function setRangeStartOnly(coords) {
@@ -14294,7 +14519,7 @@ function Core(rootElement, userSettings) {
     /**
      * Ends selection range on given td object.
      *
-     * @param {CellCoords} coords
+     * @param {CellCoords} coords Visual coords.
      * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to range end
      * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range
      */
@@ -14871,8 +15096,8 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function setDataAtCell
-   * @param {Number|Array} row Row index or array of changes in format `[[row, col, value], ...]`.
-   * @param {Number} col Column index.
+   * @param {Number|Array} row Visual row index or array of changes in format `[[row, col, value], ...]`.
+   * @param {Number} col Visual column index.
    * @param {String} value New value.
    * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
    */
@@ -14913,7 +15138,7 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function setDataAtRowProp
-   * @param {Number|Array} row Row index or array of changes in format `[[row, prop, value], ...]`.
+   * @param {Number|Array} row Visual row index or array of changes in format `[[row, prop, value], ...]`.
    * @param {String} prop Property name or the source string.
    * @param {String} value Value to be set.
    * @param {String} [source] String that identifies how this change will be described in changes array (useful in onChange callback).
@@ -14947,6 +15172,15 @@ function Core(rootElement, userSettings) {
    * @since 0.11
    */
   this.listen = function () {
+    var invalidActiveElement = !document.activeElement || document.activeElement && document.activeElement.nodeName === void 0;
+
+    if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
+      document.activeElement.blur();
+    } else if (invalidActiveElement) {
+      // IE
+      document.body.focus();
+    }
+
     activeGuid = instance.guid;
   };
 
@@ -14958,7 +15192,9 @@ function Core(rootElement, userSettings) {
    * @since 0.11
    */
   this.unlisten = function () {
-    activeGuid = null;
+    if (this.isListening()) {
+      activeGuid = null;
+    }
   };
 
   /**
@@ -14994,11 +15230,11 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function populateFromArray
    * @since 0.9.0
-   * @param {Number} row Start row
-   * @param {Number} col Start column
+   * @param {Number} row Start visual row index.
+   * @param {Number} col Start visual column index.
    * @param {Array} input 2d array
-   * @param {Number} [endRow] End row (use when you want to cut input when certain row is reached)
-   * @param {Number} [endCol] End column (use when you want to cut input when certain column is reached)
+   * @param {Number} [endRow] End visual row index (use when you want to cut input when certain row is reached).
+   * @param {Number} [endCol] End visual column index (use when you want to cut input when certain column is reached).
    * @param {String} [source="populateFromArray"] Source string.
    * @param {String} [method="overwrite"] Populate method. Possible options: `shift_down`, `shift_right`, `overwrite`.
    * @param {String} direction Populate direction. (left|right|up|down)
@@ -15205,10 +15441,10 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getData
-   * @param {Number} [r] From row.
-   * @param {Number} [c] From column.
-   * @param {Number} [r2] To row.
-   * @param {Number} [c2] To column.
+   * @param {Number} [r] From visual row index.
+   * @param {Number} [c] From visual column index.
+   * @param {Number} [r2] To visual row index.
+   * @param {Number} [c2] To visual column index.
    * @returns {Array} Array with the data.
    */
   this.getData = function (r, c, r2, c2) {
@@ -15225,10 +15461,10 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getCopyableText
    * @since 0.11
-   * @param {Number} startRow From row.
-   * @param {Number} startCol From column.
-   * @param {Number} endRow To row.
-   * @param {Number} endCol To column.
+   * @param {Number} startRow From visual row index.
+   * @param {Number} startCol From visual column index.
+   * @param {Number} endRow To visual row index.
+   * @param {Number} endCol To visual column index.
    * @returns {String}
    */
   this.getCopyableText = function (startRow, startCol, endRow, endCol) {
@@ -15241,8 +15477,8 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getCopyableData
    * @since 0.19.0
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} column Visual column index.
    * @returns {String}
    */
   this.getCopyableData = function (row, column) {
@@ -15271,7 +15507,8 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function updateSettings
    * @param {Object} settings New settings object.
-   * @param {Boolean} init
+   * @param {Boolean} init Calls this method in the initialization mode. Internal use only.
+   *                       Used by API could be cause of the unexpected behaviour of the Handsontable.
    * @example
    * ```js
    * hot.updateSettings({
@@ -15420,7 +15657,7 @@ function Core(rootElement, userSettings) {
       instance.rootElement.style.overflow = 'hidden';
     }
 
-    if (typeof settings.width != 'undefined') {
+    if (typeof settings.width !== 'undefined') {
       var width = settings.width;
 
       if ((0, _function.isFunction)(width)) {
@@ -15523,7 +15760,7 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function alter
    * @param {String} action See grid.alter for possible values: `"insert_row"`, `"insert_col"`, `"remove_row"`, `"remove_col"`
-   * @param {Number} index Index of the row/column before which the new row/column will be inserted/removed.
+   * @param {Number} index Visual index of the row/column before which the new row/column will be inserted/removed.
    * @param {Number} [amount = 1] Amound of rows/columns to be inserted/removed.
    * @param {String} [source] Source indicator.
    * @param {Boolean} [keepEmptyRows] Flag for preventing deletion of empty rows.
@@ -15567,8 +15804,8 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getCell
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {Boolean} topmost If set to true, it returns the TD element from the topmost overlay. For example,
    * if the wanted cell is in the range of fixed rows, it will return a TD element from the `top` overlay.
    * @returns {Element} The cell's TD element.
@@ -15583,7 +15820,7 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getCoords
    * @param {Element} elem The HTML Element representing the cell.
-   * @returns {CellCoords} Coordinates object.
+   * @returns {CellCoords} Visual coordinates object.
    */
   this.getCoords = function (elem) {
     return this.view.wt.wtTable.getCoords.call(this.view.wt.wtTable, elem);
@@ -15595,8 +15832,8 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function colToProp
-   * @param {Number} col Column index
-   * @returns {String|Number} Column property or column index.
+   * @param {Number} col Visual column index.
+   * @returns {String|Number} Column property or physical column index.
    */
   this.colToProp = function (col) {
     return datamap.colToProp(col);
@@ -15607,8 +15844,8 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function propToCol
-   * @param {String|Number} prop Property name or column index.
-   * @returns {Number} Column index.
+   * @param {String|Number} prop Property name or physical column index.
+   * @returns {Number} Visual column index.
    */
   this.propToCol = function (prop) {
     return datamap.propToCol(prop);
@@ -15677,8 +15914,8 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getDataAtCell
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @returns {String|Boolean|null} Data at cell.
    */
   this.getDataAtCell = function (row, col) {
@@ -15690,7 +15927,7 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getDataAtRowProp
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @param {String} prop Property name.
    * @returns {*} Cell value.
    */
@@ -15706,7 +15943,7 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getDataAtCol
    * @since 0.9-beta2
-   * @param {Number} col Column index.
+   * @param {Number} col Visual column index.
    * @returns {Array} Array of cell values.
    */
   this.getDataAtCol = function (col) {
@@ -15721,9 +15958,10 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getDataAtProp
    * @since 0.9-beta2
-   * @param {String|Number} prop Property name / column index.
+   * @param {String|Number} prop Property name / physical column index.
    * @returns {Array} Array of cell values.
    */
+  // TODO: Getting data from `datamap` should work on visual indexes.
   this.getDataAtProp = function (prop) {
     var out = [],
         range;
@@ -15740,10 +15978,10 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getSourceData
    * @since 0.20.0
-   * @param {Number} [r] From row.
-   * @param {Number} [c] From column.
-   * @param {Number} [r2] To row.
-   * @param {Number} [c2] To column.
+   * @param {Number} [r] From physical row index.
+   * @param {Number} [c] From physical column index (or visual index, if data type is an array of objects).
+   * @param {Number} [r2] To physical row index.
+   * @param {Number} [c2] To physical column index (or visual index, if data type is an array of objects).
    * @returns {Array} Array of grid data.
    */
   this.getSourceData = function (r, c, r2, c2) {
@@ -15765,10 +16003,10 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getSourceDataArray
    * @since 0.28.0
-   * @param {Number} [r] From row.
-   * @param {Number} [c] From column.
-   * @param {Number} [r2] To row.
-   * @param {Number} [c2] To column.
+   * @param {Number} [r] From physical row index.
+   * @param {Number} [c] From physical column index (or visual index, if data type is an array of objects).
+   * @param {Number} [r2] To physical row index.
+   * @param {Number} [c2] To physical column index (or visual index, if data type is an array of objects).
    * @returns {Array} An array of arrays.
    */
   this.getSourceDataArray = function (r, c, r2, c2) {
@@ -15789,9 +16027,10 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getSourceDataAtCol
    * @since 0.11.0-beta3
-   * @param {Number} column Column index.
+   * @param {Number} column Visual column index.
    * @returns {Array} Array of the column's cell values.
    */
+  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCol = function (column) {
     return dataSource.getAtColumn(column);
   };
@@ -15802,7 +16041,7 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getSourceDataAtRow
    * @since 0.11.0-beta3
-   * @param {Number} row Row index.
+   * @param {Number} row Physical row index.
    * @returns {Array|Object} Single row of data.
    */
   this.getSourceDataAtRow = function (row) {
@@ -15814,11 +16053,12 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getSourceDataAtCell
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
+   * @param {Number} row Physical row index.
+   * @param {Number} column Visual column index.
    * @returns {*} Cell data.
    * @since 0.20.0
    */
+  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCell = function (row, column) {
     return dataSource.getAtCell(row, column);
   };
@@ -15829,7 +16069,7 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getDataAtRow
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @returns {Array} Array of row's cell data.
    * @since 0.9-beta2
    */
@@ -15847,10 +16087,10 @@ function Core(rootElement, userSettings) {
    * @since 0.18.1
    * @memberof Core#
    * @function getDataType
-   * @param {Number} rowFrom From row index.
-   * @param {Number} columnFrom To row index.
-   * @param {Number} rowTo From column index.
-   * @param {Number} columnTo To column index.
+   * @param {Number} rowFrom From visual row index.
+   * @param {Number} columnFrom From visual column index.
+   * @param {Number} rowTo To visual row index.
+   * @param {Number} columnTo To visual column index.
    * @returns {String} Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
    */
   this.getDataType = function (rowFrom, columnFrom, rowTo, columnTo) {
@@ -15902,11 +16142,12 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function removeCellMeta
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual/physical row index.
+   * @param {Number} col Visual/physical column index.
    * @param {String} key Property name.
    */
   this.removeCellMeta = function (row, col, key) {
+    // TODO: First we use indexes as visual, after that, the same indexes are used as physical. This MUST be improved.
     var cellMeta = instance.getCellMeta(row, col);
     if (cellMeta[key] != undefined) {
       delete priv.cellSettings[row][col][key];
@@ -15937,8 +16178,8 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function setCellMetaObject
    * @since 0.11
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {Object} prop Meta object.
    */
   this.setCellMetaObject = function (row, col, prop) {
@@ -15958,8 +16199,8 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function setCellMeta
    * @since 0.11
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {String} key Property name.
    * @param {String} val Property value.
    * @fires Hooks#afterSetCellMeta
@@ -16002,8 +16243,8 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getCellMeta
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @returns {Object} The cell properties object.
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
@@ -16066,7 +16307,7 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getCellMetaAtRow
    * @since 0.30.0
-   * @param {Number} row Index of the row to return cell meta for.
+   * @param {Number} row Physical index of the row to return cell meta for.
    * @returns {Array}
    */
   this.getCellMetaAtRow = function (row) {
@@ -16089,8 +16330,8 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getCellRenderer
    * @since 0.11
-   * @param {Number|Object} row Row index or cell meta object.
-   * @param {Number} [col] Column index.
+   * @param {Number|Object} row Visual row index or cell meta object.
+   * @param {Number} [col] Visual column index.
    * @returns {Function} The renderer function.
    */
   this.getCellRenderer = function (row, col) {
@@ -16102,8 +16343,8 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getCellEditor
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @returns {Object} The Editor object.
    */
   this.getCellEditor = (0, _data.cellMethodLookupFactory)('editor');
@@ -16115,8 +16356,8 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getCellValidator
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @returns {Function|RegExp|undefined} The validator function.
    */
   this.getCellValidator = function (row, col) {
@@ -16174,7 +16415,7 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getRowHeader
-   * @param {Number} [row] Row index.
+   * @param {Number} [row] Visual row index.
    * @fires Hooks#modifyRowHeader
    * @returns {Array|String} Array of header values / single header value.
    */
@@ -16239,7 +16480,7 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function getColHeader
-   * @param {Number} [col] Column index.
+   * @param {Number} [col] Visual column index.
    * @fires Hooks#modifyColHeader
    * @returns {Array|String} The column header(s).
    */
@@ -16299,7 +16540,7 @@ function Core(rootElement, userSettings) {
    * @private
    * @memberof Core#
    * @function _getColWidthFromSettings
-   * @param {Number} col
+   * @param {Number} col Visual col index.
    * @returns {Number}
    */
   this._getColWidthFromSettings = function (col) {
@@ -16336,7 +16577,7 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getColWidth
    * @since 0.11
-   * @param {Number} col Column index.
+   * @param {Number} col Visual column index.
    * @returns {Number} Column width.
    * @fires Hooks#modifyColWidth
    */
@@ -16358,7 +16599,7 @@ function Core(rootElement, userSettings) {
    * @private
    * @memberof Core#
    * @function _getRowHeightFromSettings
-   * @param {Number} row
+   * @param {Number} row Visual row index.
    * @returns {Number}
    */
   this._getRowHeightFromSettings = function (row) {
@@ -16397,7 +16638,7 @@ function Core(rootElement, userSettings) {
    * @memberof Core#
    * @function getRowHeight
    * @since 0.11
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @returns {Number} The given row's height.
    * @fires Hooks#modifyRowHeight
    */
@@ -16502,22 +16743,22 @@ function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns an index of the first rendered row.
+   * Returns an visual index of the first rendered row.
    *
    * @memberof Core#
    * @function rowOffset
-   * @returns {Number} Index of first rendered row.
+   * @returns {Number} Visual index of first rendered row.
    */
   this.rowOffset = function () {
     return instance.view.wt.wtTable.getFirstRenderedRow();
   };
 
   /**
-   * Returns the index of the first rendered column.
+   * Returns the visual index of the first rendered column.
    *
    * @memberof Core#
    * @function colOffset
-   * @returns {Number} Index of the first visible column.
+   * @returns {Number} Visual index of the first visible column.
    */
   this.colOffset = function () {
     return instance.view.wt.wtTable.getFirstRenderedColumn();
@@ -16655,10 +16896,10 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function selectCell
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
-   * @param {Number} [endRow] End row index (if selecting a range).
-   * @param {Number} [endCol] End column index (if selecting a range).
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
+   * @param {Number} [endRow] Visual end row index (if selecting a range).
+   * @param {Number} [endCol] Visual end column index (if selecting a range).
    * @param {Boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
    * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
@@ -16705,9 +16946,9 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function selectCellByProp
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @param {String} prop Property name.
-   * @param {Number} [endRow] End row index (if selecting a range).
+   * @param {Number} [endRow] visual end row index (if selecting a range).
    * @param {String} [endProp] End property name (if selecting a range).
    * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the selection.
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
@@ -16740,8 +16981,8 @@ function Core(rootElement, userSettings) {
    * @since 0.24.3
    * @memberof Core#
    * @function scrollViewportTo
-   * @param {Number} [row] Row index.
-   * @param {Number} [column] Column index.
+   * @param {Number} [row] Visual row index.
+   * @param {Number} [column] Visual column index.
    * @param {Boolean} [snapToBottom = false] If `true`, viewport is scrolled to show the cell on the bottom of the table.
    * @param {Boolean} [snapToRight = false] If `true`, viewport is scrolled to show the cell on the right side of the table.
    * @returns {Boolean} `true` if scroll was successful, `false` otherwise.
@@ -17006,7 +17247,7 @@ function Core(rootElement, userSettings) {
 };
 
 /***/ }),
-/* 66 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -17021,9 +17262,9 @@ exports.createEmptySpreadsheetData = createEmptySpreadsheetData;
 exports.translateRowsToColumns = translateRowsToColumns;
 exports.cellMethodLookupFactory = cellMethodLookupFactory;
 
-var _cellTypes = __webpack_require__(64);
+var _cellTypes = __webpack_require__(63);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 var COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
@@ -17215,7 +17456,7 @@ function cellMethodLookupFactory(methodName, allowUndefined) {
 }
 
 /***/ }),
-/* 67 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -17224,7 +17465,7 @@ function cellMethodLookupFactory(methodName, allowUndefined) {
 exports.__esModule = true;
 exports.columnFactory = columnFactory;
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 /* eslint-disable import/prefer-default-export */
 /**
@@ -17248,7 +17489,7 @@ function columnFactory(GridSettings, conflictList) {
 }
 
 /***/ }),
-/* 68 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -17260,7 +17501,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -17789,13 +18030,13 @@ var GhostTable = function () {
 exports.default = GhostTable;
 
 /***/ }),
-/* 69 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var addToUnscopables = __webpack_require__(38)
-  , step             = __webpack_require__(267)
+  , step             = __webpack_require__(282)
   , Iterators        = __webpack_require__(46)
   , toIObject        = __webpack_require__(23);
 
@@ -17803,7 +18044,7 @@ var addToUnscopables = __webpack_require__(38)
 // 22.1.3.13 Array.prototype.keys()
 // 22.1.3.29 Array.prototype.values()
 // 22.1.3.30 Array.prototype[@@iterator]()
-module.exports = __webpack_require__(266)(Array, 'Array', function(iterated, kind){
+module.exports = __webpack_require__(281)(Array, 'Array', function(iterated, kind){
   this._t = toIObject(iterated); // target
   this._i = 0;                   // next index
   this._k = kind;                // kind
@@ -17829,7 +18070,7 @@ addToUnscopables('values');
 addToUnscopables('entries');
 
 /***/ }),
-/* 70 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18360,7 +18601,266 @@ var CellRange = function () {
 exports.default = CellRange;
 
 /***/ }),
+/* 70 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _array = __webpack_require__(2);
+
+var _object = __webpack_require__(1);
+
+var MIXIN_NAME = 'localHooks';
+
+/**
+ * Mixin object to extend objects functionality for local hooks.
+ *
+ * @type {Object}
+ */
+var localHooks = {
+  /**
+   * Internal hooks storage.
+   */
+  _localHooks: Object.create(null),
+
+  /**
+   * Add hook to the collection.
+   *
+   * @param {String} key Hook name.
+   * @param {Function} callback Hook callback
+   */
+  addLocalHook: function addLocalHook(key, callback) {
+    if (!this._localHooks[key]) {
+      this._localHooks[key] = [];
+    }
+    this._localHooks[key].push(callback);
+  },
+
+
+  /**
+   * Run hooks.
+   *
+   * @param {String} key Hook name.
+   * @param {*} params
+   */
+  runLocalHooks: function runLocalHooks(key) {
+    var _this = this;
+
+    for (var _len = arguments.length, params = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      params[_key - 1] = arguments[_key];
+    }
+
+    if (this._localHooks[key]) {
+      (0, _array.arrayEach)(this._localHooks[key], function (callback) {
+        return callback.apply(_this, params);
+      });
+    }
+  },
+
+
+  /**
+   * Clear all added hooks.
+   */
+  clearLocalHooks: function clearLocalHooks() {
+    this._localHooks = {};
+  }
+};
+
+(0, _object.defineGetter)(localHooks, 'MIXIN_NAME', MIXIN_NAME, {
+  writable: false,
+  enumerable: false
+});
+
+exports.default = localHooks;
+
+/***/ }),
 /* 71 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.ITEMS = exports.UNDO = exports.SEPARATOR = exports.ROW_BELOW = exports.ROW_ABOVE = exports.REMOVE_ROW = exports.REMOVE_COLUMN = exports.REDO = exports.READ_ONLY = exports.COLUMN_RIGHT = exports.COLUMN_LEFT = exports.CLEAR_COLUMN = exports.ALIGNMENT = undefined;
+
+var _predefinedItems2;
+
+var _alignment = __webpack_require__(338);
+
+Object.defineProperty(exports, 'ALIGNMENT', {
+  enumerable: true,
+  get: function get() {
+    return _alignment.KEY;
+  }
+});
+
+var _clearColumn = __webpack_require__(339);
+
+Object.defineProperty(exports, 'CLEAR_COLUMN', {
+  enumerable: true,
+  get: function get() {
+    return _clearColumn.KEY;
+  }
+});
+
+var _columnLeft = __webpack_require__(340);
+
+Object.defineProperty(exports, 'COLUMN_LEFT', {
+  enumerable: true,
+  get: function get() {
+    return _columnLeft.KEY;
+  }
+});
+
+var _columnRight = __webpack_require__(341);
+
+Object.defineProperty(exports, 'COLUMN_RIGHT', {
+  enumerable: true,
+  get: function get() {
+    return _columnRight.KEY;
+  }
+});
+
+var _readOnly = __webpack_require__(342);
+
+Object.defineProperty(exports, 'READ_ONLY', {
+  enumerable: true,
+  get: function get() {
+    return _readOnly.KEY;
+  }
+});
+
+var _redo = __webpack_require__(343);
+
+Object.defineProperty(exports, 'REDO', {
+  enumerable: true,
+  get: function get() {
+    return _redo.KEY;
+  }
+});
+
+var _removeColumn = __webpack_require__(344);
+
+Object.defineProperty(exports, 'REMOVE_COLUMN', {
+  enumerable: true,
+  get: function get() {
+    return _removeColumn.KEY;
+  }
+});
+
+var _removeRow = __webpack_require__(345);
+
+Object.defineProperty(exports, 'REMOVE_ROW', {
+  enumerable: true,
+  get: function get() {
+    return _removeRow.KEY;
+  }
+});
+
+var _rowAbove = __webpack_require__(346);
+
+Object.defineProperty(exports, 'ROW_ABOVE', {
+  enumerable: true,
+  get: function get() {
+    return _rowAbove.KEY;
+  }
+});
+
+var _rowBelow = __webpack_require__(347);
+
+Object.defineProperty(exports, 'ROW_BELOW', {
+  enumerable: true,
+  get: function get() {
+    return _rowBelow.KEY;
+  }
+});
+
+var _separator = __webpack_require__(72);
+
+Object.defineProperty(exports, 'SEPARATOR', {
+  enumerable: true,
+  get: function get() {
+    return _separator.KEY;
+  }
+});
+
+var _undo = __webpack_require__(348);
+
+Object.defineProperty(exports, 'UNDO', {
+  enumerable: true,
+  get: function get() {
+    return _undo.KEY;
+  }
+});
+exports.predefinedItems = predefinedItems;
+exports.addItem = addItem;
+
+var _object = __webpack_require__(1);
+
+var _alignment2 = _interopRequireDefault(_alignment);
+
+var _clearColumn2 = _interopRequireDefault(_clearColumn);
+
+var _columnLeft2 = _interopRequireDefault(_columnLeft);
+
+var _columnRight2 = _interopRequireDefault(_columnRight);
+
+var _readOnly2 = _interopRequireDefault(_readOnly);
+
+var _redo2 = _interopRequireDefault(_redo);
+
+var _removeColumn2 = _interopRequireDefault(_removeColumn);
+
+var _removeRow2 = _interopRequireDefault(_removeRow);
+
+var _rowAbove2 = _interopRequireDefault(_rowAbove);
+
+var _rowBelow2 = _interopRequireDefault(_rowBelow);
+
+var _separator2 = _interopRequireDefault(_separator);
+
+var _undo2 = _interopRequireDefault(_undo);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var ITEMS = exports.ITEMS = [_rowAbove.KEY, _rowBelow.KEY, _columnLeft.KEY, _columnRight.KEY, _clearColumn.KEY, _removeRow.KEY, _removeColumn.KEY, _undo.KEY, _redo.KEY, _readOnly.KEY, _alignment.KEY, _separator.KEY];
+
+var _predefinedItems = (_predefinedItems2 = {}, _defineProperty(_predefinedItems2, _separator.KEY, _separator2.default), _defineProperty(_predefinedItems2, _rowAbove.KEY, _rowAbove2.default), _defineProperty(_predefinedItems2, _rowBelow.KEY, _rowBelow2.default), _defineProperty(_predefinedItems2, _columnLeft.KEY, _columnLeft2.default), _defineProperty(_predefinedItems2, _columnRight.KEY, _columnRight2.default), _defineProperty(_predefinedItems2, _clearColumn.KEY, _clearColumn2.default), _defineProperty(_predefinedItems2, _removeRow.KEY, _removeRow2.default), _defineProperty(_predefinedItems2, _removeColumn.KEY, _removeColumn2.default), _defineProperty(_predefinedItems2, _undo.KEY, _undo2.default), _defineProperty(_predefinedItems2, _redo.KEY, _redo2.default), _defineProperty(_predefinedItems2, _readOnly.KEY, _readOnly2.default), _defineProperty(_predefinedItems2, _alignment.KEY, _alignment2.default), _predefinedItems2);
+
+/**
+ * Gets new object with all predefined menu items.
+ *
+ * @returns {Object}
+ */
+function predefinedItems() {
+  var items = {};
+
+  (0, _object.objectEach)(_predefinedItems, function (itemFactory, key) {
+    items[key] = itemFactory();
+  });
+
+  return items;
+}
+
+/**
+ * Add new predefined menu item to the collection.
+ *
+ * @param {String} key Menu command id.
+ * @param {Object} item Object command descriptor.
+ */
+function addItem(key, item) {
+  if (ITEMS.indexOf(key) === -1) {
+    _predefinedItems[key] = item;
+  }
+}
+
+/***/ }),
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18377,7 +18877,7 @@ function separatorItem() {
 }
 
 /***/ }),
-/* 72 */
+/* 73 */
 /***/ (function(module, exports) {
 
 module.exports = function(it){
@@ -18386,7 +18886,7 @@ module.exports = function(it){
 };
 
 /***/ }),
-/* 73 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18400,7 +18900,7 @@ module.exports = function(object, index, value){
 };
 
 /***/ }),
-/* 74 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(15)
@@ -18412,7 +18912,7 @@ module.exports = function(it){
 };
 
 /***/ }),
-/* 75 */
+/* 76 */
 /***/ (function(module, exports) {
 
 // IE 8- don't enum bug keys
@@ -18421,7 +18921,7 @@ module.exports = (
 ).split(',');
 
 /***/ }),
-/* 76 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var MATCH = __webpack_require__(10)('match');
@@ -18438,7 +18938,7 @@ module.exports = function(KEY){
 };
 
 /***/ }),
-/* 77 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // fallback for non-array-like ES3 and non-enumerable old V8 strings
@@ -18448,7 +18948,7 @@ module.exports = Object('z').propertyIsEnumerable(0) ? Object : function(it){
 };
 
 /***/ }),
-/* 78 */
+/* 79 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var ITERATOR     = __webpack_require__(10)('iterator')
@@ -18474,27 +18974,27 @@ module.exports = function(exec, skipClosing){
 };
 
 /***/ }),
-/* 79 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject    = __webpack_require__(18)
-  , dPs         = __webpack_require__(386)
-  , enumBugKeys = __webpack_require__(75)
-  , IE_PROTO    = __webpack_require__(82)('IE_PROTO')
+  , dPs         = __webpack_require__(403)
+  , enumBugKeys = __webpack_require__(76)
+  , IE_PROTO    = __webpack_require__(83)('IE_PROTO')
   , Empty       = function(){ /* empty */ }
   , PROTOTYPE   = 'prototype';
 
 // Create object with fake `null` prototype: use iframe Object with cleared prototype
 var createDict = function(){
   // Thrash, waste and sodomy: IE GC bug
-  var iframe = __webpack_require__(74)('iframe')
+  var iframe = __webpack_require__(75)('iframe')
     , i      = enumBugKeys.length
     , lt     = '<'
     , gt     = '>'
     , iframeDocument;
   iframe.style.display = 'none';
-  __webpack_require__(259).appendChild(iframe);
+  __webpack_require__(274).appendChild(iframe);
   iframe.src = 'javascript:'; // eslint-disable-line no-script-url
   // createDict = iframe.contentWindow.Object;
   // html.removeChild(iframe);
@@ -18521,15 +19021,15 @@ module.exports = Object.create || function create(O, Properties){
 
 
 /***/ }),
-/* 80 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var pIE            = __webpack_require__(48)
   , createDesc     = __webpack_require__(41)
   , toIObject      = __webpack_require__(23)
-  , toPrimitive    = __webpack_require__(86)
+  , toPrimitive    = __webpack_require__(87)
   , has            = __webpack_require__(22)
-  , IE8_DOM_DEFINE = __webpack_require__(260)
+  , IE8_DOM_DEFINE = __webpack_require__(275)
   , gOPD           = Object.getOwnPropertyDescriptor;
 
 exports.f = __webpack_require__(21) ? gOPD : function getOwnPropertyDescriptor(O, P){
@@ -18542,29 +19042,29 @@ exports.f = __webpack_require__(21) ? gOPD : function getOwnPropertyDescriptor(O
 };
 
 /***/ }),
-/* 81 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
-var $keys      = __webpack_require__(269)
-  , hiddenKeys = __webpack_require__(75).concat('length', 'prototype');
+var $keys      = __webpack_require__(284)
+  , hiddenKeys = __webpack_require__(76).concat('length', 'prototype');
 
 exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O){
   return $keys(O, hiddenKeys);
 };
 
 /***/ }),
-/* 82 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var shared = __webpack_require__(83)('keys')
+var shared = __webpack_require__(84)('keys')
   , uid    = __webpack_require__(50);
 module.exports = function(key){
   return shared[key] || (shared[key] = uid(key));
 };
 
 /***/ }),
-/* 83 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(13)
@@ -18575,11 +19075,11 @@ module.exports = function(key){
 };
 
 /***/ }),
-/* 84 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // helper for String#{startsWith, endsWith, includes}
-var isRegExp = __webpack_require__(264)
+var isRegExp = __webpack_require__(279)
   , defined  = __webpack_require__(30);
 
 module.exports = function(that, searchString, NAME){
@@ -18588,13 +19088,13 @@ module.exports = function(that, searchString, NAME){
 };
 
 /***/ }),
-/* 85 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var ctx                = __webpack_require__(29)
-  , invoke             = __webpack_require__(382)
-  , html               = __webpack_require__(259)
-  , cel                = __webpack_require__(74)
+  , invoke             = __webpack_require__(399)
+  , html               = __webpack_require__(274)
+  , cel                = __webpack_require__(75)
   , global             = __webpack_require__(13)
   , process            = global.process
   , setTask            = global.setImmediate
@@ -18668,7 +19168,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 86 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.1.1 ToPrimitive(input [, PreferredType])
@@ -18685,7 +19185,7 @@ module.exports = function(it, S){
 };
 
 /***/ }),
-/* 87 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18696,6 +19196,8 @@ exports.__esModule = true;
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _mixed = __webpack_require__(20);
+
+var _object = __webpack_require__(1);
 
 /**
  * @alias Options
@@ -18895,6 +19397,30 @@ DefaultSettings.prototype = {
    *
    * @type {Array|Function|Number|String}
    * @default undefined
+   * @example
+   * ```js
+   * ...
+   * // as numeric, for each column.
+   * colWidths: 100,
+   * ...
+   *
+   * * ...
+   * // as string, for each column.
+   * colWidths: '100px',
+   * ...
+   *
+   * ...
+   * // as array, based on visual indexes. The rest of the columns have a default width.
+   * colWidths: [100, 120, 90],
+   * ...
+   *
+   * ...
+   * // as function, based on visual indexes.
+   * colWidths: function(index) {
+   *   return index * 10;
+   * },
+   * ...
+   * ```
    */
   colWidths: void 0,
 
@@ -18902,9 +19428,36 @@ DefaultSettings.prototype = {
    * Defines row heights in pixels. Accepts numbers, strings (that will be converted into a number),
    * array of numbers (if you want to define row height separately for each row) or a
    * function (if you want to set row height dynamically on each render).
+   * If the ManualRowResize or AutoRowSize plugins are enabled, this is also the minimum height that can be set
+   * via either of those two plugins.
+   * Height should be equal or greater than 23px. Table is rendered incorrectly if height is less than 23px.
    *
    * @type {Array|Function|Number|String}
    * @default undefined
+   * @example
+   * ```js
+   * ...
+   * // as numeric, for each row.
+   * rowHeights: 100,
+   * ...
+   *
+   * * ...
+   * // as string, for each row.
+   * rowHeights: '100px',
+   * ...
+   *
+   * ...
+   * // as array, based on visual indexes. The rest of the rows have a default height.
+   * rowHeights: [100, 120, 90],
+   * ...
+   *
+   * ...
+   * // as function, based on visual indexes.
+   * rowHeights: function(index) {
+   *   return index * 10;
+   * },
+   * ...
+   * ```
    */
   rowHeights: void 0,
 
@@ -18916,11 +19469,12 @@ DefaultSettings.prototype = {
    *
    * See [documentation -> datasources.html](http://docs.handsontable.com/tutorial-data-sources.html#page-nested) for examples.
    *
-   * @type {Array}
+   * @type {Array|Function}
    * @default undefined
    * @example
    * ```js
    * ...
+   * // as an array of objects. Order of the objects in array is representation of physical indexes.
    * columns: [
    *   {
    *     // column options for the first column
@@ -18934,6 +19488,16 @@ DefaultSettings.prototype = {
    *   }
    * ],
    * ...
+   *
+   * // or as function, based on physical indexes
+   * ...
+   * columns: function(index) {
+  *    return {
+  *      type: index > 0 ? 'numeric' : 'text',
+  *      readOnly: index < 1
+  *    }
+   * }
+   * ...
    * ```
    */
   columns: void 0,
@@ -18946,6 +19510,10 @@ DefaultSettings.prototype = {
    *
    * __Note:__ Parameters `row` and `col` always represent __physical indexes__. Example below show how to execute
    * operations based on the __visual__ representation of Handsontable.
+   *
+   * Possible values of `prop`:
+   * - property name for column's data source object, when dataset is an [array of objects](/tutorial-data-sources.html#page-object)
+   * - the same number as `col`, when dataset is an [array of arrays](/tutorial-data-sources.html#page-array)
    *
    * @type {Function}
    * @default undefined
@@ -19264,34 +19832,6 @@ DefaultSettings.prototype = {
   autoWrapCol: false,
 
   /**
-   * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
-   *
-   * @type {Number}
-   * @default 1000
-   */
-  copyRowsLimit: 1000,
-
-  /**
-   * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
-   *
-   * @type {Number}
-   * @default 1000
-   */
-  copyColsLimit: 1000,
-
-  /**
-   * @description
-   * Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior.
-   * * Default value `"overwrite"` will paste clipboard value over current selection.
-   * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
-   * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
-   *
-   * @type {String}
-   * @default 'overwrite'
-   */
-  pasteMode: 'overwrite',
-
-  /**
    * @description
    * Turns on saving the state of column sorting, column positions and column sizes in local storage.
    *
@@ -19395,7 +19935,7 @@ DefaultSettings.prototype = {
    * Lets you overwrite the default `isEmptyRow` method, which checks if row at the provided index is empty.
    *
    * @type {Function}
-   * @param {Number} row
+   * @param {Number} row Visual row index.
    * @returns {Boolean}
    */
   isEmptyRow: function isEmptyRow(row) {
@@ -19408,7 +19948,7 @@ DefaultSettings.prototype = {
         if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
           meta = this.getCellMeta(row, col);
 
-          return isObjectEquals(this.getSchema()[meta.prop], value);
+          return (0, _object.isObjectEquals)(this.getSchema()[meta.prop], value);
         }
         return false;
       }
@@ -19422,7 +19962,7 @@ DefaultSettings.prototype = {
    * Lets you overwrite the default `isEmptyCol` method, which checks if column at the provided index is empty.
    *
    * @type {Function}
-   * @param {Number} col
+   * @param {Number} col Visual column index
    * @returns {Boolean}
    */
   isEmptyCol: function isEmptyCol(col) {
@@ -19774,10 +20314,8 @@ DefaultSettings.prototype = {
    * Possible values:
    * * `true` (to enable default options),
    * * `false` (to disable completely)
-   *
-   * or array of any available strings:
-   * * `["row_above", "row_below", "col_left", "col_right",
-   * "remove_row", "remove_col", "---------", "undo", "redo"]`.
+   * * an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
+   * * an object [with defined structure](http://docs.handsontable.com/demo-context-menu.html#page-custom)
    *
    * See [the context menu demo](http://docs.handsontable.com/demo-context-menu.html) for examples.
    *
@@ -19787,31 +20325,40 @@ DefaultSettings.prototype = {
    * // as a boolean
    * contextMenu: true
    * ...
-   * // as a array
+   * // as an array
    * contextMenu: ['row_above', 'row_below', '--------', 'undo', 'redo']
    * ...
    * ```
-   *
+   * ...
+   * // as an object (`name` attribute is required in the custom keys)
+   * contextMenu: {
+   *   items: {
+   *     "option1": {
+   *       name: "option1"
+   *     },
+   *     "option2": {
+   *       name: "option2",
+   *       submenu: {
+   *         items: [
+   *           {
+   *             key: "option2:suboption1",
+   *             name: "option2:suboption1",
+   *             callback: function(key, options) {
+   *               ...
+   *             }
+   *           },
+   *           ...
+   *         ]
+   *       }
+   *     }
+   *   }
+   * }
+   * ...
+   * ```
    * @type {Boolean|Array|Object}
    * @default undefined
    */
   contextMenu: void 0,
-
-  /**
-   * @description
-   * Defines new actions copy/paste for context menu. This functionality is dependent on ZeroClipboard from which you
-   * should pass the swf file path under `swfPath` object key.
-   *
-   * @example
-   * ```js
-   * ...
-   * contextMenuCopyPaste: {swfPath: '[path to file]'}
-   * ...
-   * ```
-   *
-   * @type {Object}
-   */
-  contextMenuCopyPaste: void 0,
 
   /**
    * @description
@@ -19825,9 +20372,9 @@ DefaultSettings.prototype = {
    * ```
    *
    * @type {Boolean}
-   * @default undefined
+   * @default true
    */
-  copyPaste: void 0,
+  copyPaste: true,
 
   /**
    * If `true`, undo/redo functionality is enabled.
@@ -20714,7 +21261,7 @@ DefaultSettings.prototype = {
 exports.default = DefaultSettings;
 
 /***/ }),
-/* 88 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20746,36 +21293,36 @@ function getNormalizedDate(dateString) {
 }
 
 /***/ }),
-/* 89 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
 var $export = __webpack_require__(3);
 
-$export($export.P, 'Array', {copyWithin: __webpack_require__(375)});
+$export($export.P, 'Array', {copyWithin: __webpack_require__(392)});
 
 __webpack_require__(38)('copyWithin');
 
 /***/ }),
-/* 90 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
 var $export = __webpack_require__(3);
 
-$export($export.P, 'Array', {fill: __webpack_require__(376)});
+$export($export.P, 'Array', {fill: __webpack_require__(393)});
 
 __webpack_require__(38)('fill');
 
 /***/ }),
-/* 91 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 // 22.1.3.9 Array.prototype.findIndex(predicate, thisArg = undefined)
 var $export = __webpack_require__(3)
-  , $find   = __webpack_require__(55)(6)
+  , $find   = __webpack_require__(54)(6)
   , KEY     = 'findIndex'
   , forced  = true;
 // Shouldn't skip holes
@@ -20788,14 +21335,14 @@ $export($export.P + $export.F * forced, 'Array', {
 __webpack_require__(38)(KEY);
 
 /***/ }),
-/* 92 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 // 22.1.3.8 Array.prototype.find(predicate, thisArg = undefined)
 var $export = __webpack_require__(3)
-  , $find   = __webpack_require__(55)(5)
+  , $find   = __webpack_require__(54)(5)
   , KEY     = 'find'
   , forced  = true;
 // Shouldn't skip holes
@@ -20808,7 +21355,7 @@ $export($export.P + $export.F * forced, 'Array', {
 __webpack_require__(38)(KEY);
 
 /***/ }),
-/* 93 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20816,13 +21363,13 @@ __webpack_require__(38)(KEY);
 var ctx            = __webpack_require__(29)
   , $export        = __webpack_require__(3)
   , toObject       = __webpack_require__(42)
-  , call           = __webpack_require__(265)
-  , isArrayIter    = __webpack_require__(261)
+  , call           = __webpack_require__(280)
+  , isArrayIter    = __webpack_require__(276)
   , toLength       = __webpack_require__(24)
-  , createProperty = __webpack_require__(73)
-  , getIterFn      = __webpack_require__(276);
+  , createProperty = __webpack_require__(74)
+  , getIterFn      = __webpack_require__(291);
 
-$export($export.S + $export.F * !__webpack_require__(78)(function(iter){ Array.from(iter); }), 'Array', {
+$export($export.S + $export.F * !__webpack_require__(79)(function(iter){ Array.from(iter); }), 'Array', {
   // 22.1.2.1 Array.from(arrayLike, mapfn = undefined, thisArg = undefined)
   from: function from(arrayLike/*, mapfn = undefined, thisArg = undefined*/){
     var O       = toObject(arrayLike)
@@ -20852,13 +21399,13 @@ $export($export.S + $export.F * !__webpack_require__(78)(function(iter){ Array.f
 
 
 /***/ }),
-/* 94 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var $export        = __webpack_require__(3)
-  , createProperty = __webpack_require__(73);
+  , createProperty = __webpack_require__(74);
 
 // WebKit Array.of isn't generic
 $export($export.S + $export.F * __webpack_require__(31)(function(){
@@ -20877,7 +21424,7 @@ $export($export.S + $export.F * __webpack_require__(31)(function(){
 });
 
 /***/ }),
-/* 95 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var dP         = __webpack_require__(19).f
@@ -20907,15 +21454,15 @@ NAME in FProto || __webpack_require__(21) && dP(FProto, NAME, {
 });
 
 /***/ }),
-/* 96 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var strong = __webpack_require__(257);
+var strong = __webpack_require__(272);
 
 // 23.1 Map Objects
-module.exports = __webpack_require__(56)('Map', function(get){
+module.exports = __webpack_require__(55)('Map', function(get){
   return function Map(){ return get(this, arguments.length > 0 ? arguments[0] : undefined); };
 }, {
   // 23.1.3.6 Map.prototype.get(key)
@@ -20930,7 +21477,7 @@ module.exports = __webpack_require__(56)('Map', function(get){
 }, strong, true);
 
 /***/ }),
-/* 97 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.1 Number.EPSILON
@@ -20939,7 +21486,7 @@ var $export = __webpack_require__(3);
 $export($export.S, 'Number', {EPSILON: Math.pow(2, -52)});
 
 /***/ }),
-/* 98 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.2 Number.isFinite(number)
@@ -20953,16 +21500,16 @@ $export($export.S, 'Number', {
 });
 
 /***/ }),
-/* 99 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.3 Number.isInteger(number)
 var $export = __webpack_require__(3);
 
-$export($export.S, 'Number', {isInteger: __webpack_require__(263)});
+$export($export.S, 'Number', {isInteger: __webpack_require__(278)});
 
 /***/ }),
-/* 100 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.4 Number.isNaN(number)
@@ -20975,12 +21522,12 @@ $export($export.S, 'Number', {
 });
 
 /***/ }),
-/* 101 */
+/* 102 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.5 Number.isSafeInteger(number)
 var $export   = __webpack_require__(3)
-  , isInteger = __webpack_require__(263)
+  , isInteger = __webpack_require__(278)
   , abs       = Math.abs;
 
 $export($export.S, 'Number', {
@@ -20990,7 +21537,7 @@ $export($export.S, 'Number', {
 });
 
 /***/ }),
-/* 102 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.6 Number.MAX_SAFE_INTEGER
@@ -20999,7 +21546,7 @@ var $export = __webpack_require__(3);
 $export($export.S, 'Number', {MAX_SAFE_INTEGER: 0x1fffffffffffff});
 
 /***/ }),
-/* 103 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.10 Number.MIN_SAFE_INTEGER
@@ -21008,48 +21555,48 @@ var $export = __webpack_require__(3);
 $export($export.S, 'Number', {MIN_SAFE_INTEGER: -0x1fffffffffffff});
 
 /***/ }),
-/* 104 */
+/* 105 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.3.1 Object.assign(target, source)
 var $export = __webpack_require__(3);
 
-$export($export.S + $export.F, 'Object', {assign: __webpack_require__(268)});
-
-/***/ }),
-/* 105 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 19.1.3.10 Object.is(value1, value2)
-var $export = __webpack_require__(3);
-$export($export.S, 'Object', {is: __webpack_require__(390)});
+$export($export.S + $export.F, 'Object', {assign: __webpack_require__(283)});
 
 /***/ }),
 /* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// 19.1.3.19 Object.setPrototypeOf(O, proto)
+// 19.1.3.10 Object.is(value1, value2)
 var $export = __webpack_require__(3);
-$export($export.S, 'Object', {setPrototypeOf: __webpack_require__(271).set});
+$export($export.S, 'Object', {is: __webpack_require__(407)});
 
 /***/ }),
 /* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
+// 19.1.3.19 Object.setPrototypeOf(O, proto)
+var $export = __webpack_require__(3);
+$export($export.S, 'Object', {setPrototypeOf: __webpack_require__(286).set});
+
+/***/ }),
+/* 108 */
+/***/ (function(module, exports, __webpack_require__) {
+
 "use strict";
 
-var LIBRARY            = __webpack_require__(59)
+var LIBRARY            = __webpack_require__(58)
   , global             = __webpack_require__(13)
   , ctx                = __webpack_require__(29)
-  , classof            = __webpack_require__(256)
+  , classof            = __webpack_require__(271)
   , $export            = __webpack_require__(3)
   , isObject           = __webpack_require__(15)
-  , aFunction          = __webpack_require__(72)
-  , anInstance         = __webpack_require__(54)
-  , forOf              = __webpack_require__(58)
-  , speciesConstructor = __webpack_require__(391)
-  , task               = __webpack_require__(85).set
-  , microtask          = __webpack_require__(385)()
+  , aFunction          = __webpack_require__(73)
+  , anInstance         = __webpack_require__(53)
+  , forOf              = __webpack_require__(57)
+  , speciesConstructor = __webpack_require__(408)
+  , task               = __webpack_require__(86).set
+  , microtask          = __webpack_require__(402)()
   , PROMISE            = 'Promise'
   , TypeError          = global.TypeError
   , process            = global.process
@@ -21241,7 +21788,7 @@ if(!USE_NATIVE){
     this._h = 0;              // <- rejection state, 0 - default, 1 - handled, 2 - unhandled
     this._n = false;          // <- notify
   };
-  Internal.prototype = __webpack_require__(61)($Promise.prototype, {
+  Internal.prototype = __webpack_require__(60)($Promise.prototype, {
     // 25.4.5.3 Promise.prototype.then(onFulfilled, onRejected)
     then: function then(onFulfilled, onRejected){
       var reaction    = newPromiseCapability(speciesConstructor(this, $Promise));
@@ -21268,7 +21815,7 @@ if(!USE_NATIVE){
 
 $export($export.G + $export.W + $export.F * !USE_NATIVE, {Promise: $Promise});
 __webpack_require__(49)($Promise, PROMISE);
-__webpack_require__(272)(PROMISE);
+__webpack_require__(287)(PROMISE);
 Wrapper = __webpack_require__(45)[PROMISE];
 
 // statics
@@ -21292,7 +21839,7 @@ $export($export.S + $export.F * (LIBRARY || !USE_NATIVE), PROMISE, {
     return capability.promise;
   }
 });
-$export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(78)(function(iter){
+$export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(79)(function(iter){
   $Promise.all(iter)['catch'](empty);
 })), PROMISE, {
   // 25.4.4.1 Promise.all(iterable)
@@ -21338,21 +21885,21 @@ $export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(78)(function
 });
 
 /***/ }),
-/* 108 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 21.2.5.3 get RegExp.prototype.flags()
 if(__webpack_require__(21) && /./g.flags != 'g')__webpack_require__(19).f(RegExp.prototype, 'flags', {
   configurable: true,
-  get: __webpack_require__(380)
+  get: __webpack_require__(397)
 });
 
 /***/ }),
-/* 109 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // @@match logic
-__webpack_require__(57)('match', 1, function(defined, MATCH, $match){
+__webpack_require__(56)('match', 1, function(defined, MATCH, $match){
   // 21.1.3.11 String.prototype.match(regexp)
   return [function match(regexp){
     'use strict';
@@ -21363,11 +21910,11 @@ __webpack_require__(57)('match', 1, function(defined, MATCH, $match){
 });
 
 /***/ }),
-/* 110 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // @@replace logic
-__webpack_require__(57)('replace', 2, function(defined, REPLACE, $replace){
+__webpack_require__(56)('replace', 2, function(defined, REPLACE, $replace){
   // 21.1.3.14 String.prototype.replace(searchValue, replaceValue)
   return [function replace(searchValue, replaceValue){
     'use strict';
@@ -21380,11 +21927,11 @@ __webpack_require__(57)('replace', 2, function(defined, REPLACE, $replace){
 });
 
 /***/ }),
-/* 111 */
+/* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // @@search logic
-__webpack_require__(57)('search', 1, function(defined, SEARCH, $search){
+__webpack_require__(56)('search', 1, function(defined, SEARCH, $search){
   // 21.1.3.15 String.prototype.search(regexp)
   return [function search(regexp){
     'use strict';
@@ -21395,13 +21942,13 @@ __webpack_require__(57)('search', 1, function(defined, SEARCH, $search){
 });
 
 /***/ }),
-/* 112 */
+/* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // @@split logic
-__webpack_require__(57)('split', 2, function(defined, SPLIT, $split){
+__webpack_require__(56)('split', 2, function(defined, SPLIT, $split){
   'use strict';
-  var isRegExp   = __webpack_require__(264)
+  var isRegExp   = __webpack_require__(279)
     , _split     = $split
     , $push      = [].push
     , $SPLIT     = 'split'
@@ -21470,15 +22017,15 @@ __webpack_require__(57)('split', 2, function(defined, SPLIT, $split){
 });
 
 /***/ }),
-/* 113 */
+/* 114 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var strong = __webpack_require__(257);
+var strong = __webpack_require__(272);
 
 // 23.2 Set Objects
-module.exports = __webpack_require__(56)('Set', function(get){
+module.exports = __webpack_require__(55)('Set', function(get){
   return function Set(){ return get(this, arguments.length > 0 ? arguments[0] : undefined); };
 }, {
   // 23.2.3.1 Set.prototype.add(value)
@@ -21488,13 +22035,13 @@ module.exports = __webpack_require__(56)('Set', function(get){
 }, strong);
 
 /***/ }),
-/* 114 */
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var $export = __webpack_require__(3)
-  , $at     = __webpack_require__(392)(false);
+  , $at     = __webpack_require__(409)(false);
 $export($export.P, 'String', {
   // 21.1.3.3 String.prototype.codePointAt(pos)
   codePointAt: function codePointAt(pos){
@@ -21503,7 +22050,7 @@ $export($export.P, 'String', {
 });
 
 /***/ }),
-/* 115 */
+/* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21511,11 +22058,11 @@ $export($export.P, 'String', {
 
 var $export   = __webpack_require__(3)
   , toLength  = __webpack_require__(24)
-  , context   = __webpack_require__(84)
+  , context   = __webpack_require__(85)
   , ENDS_WITH = 'endsWith'
   , $endsWith = ''[ENDS_WITH];
 
-$export($export.P + $export.F * __webpack_require__(76)(ENDS_WITH), 'String', {
+$export($export.P + $export.F * __webpack_require__(77)(ENDS_WITH), 'String', {
   endsWith: function endsWith(searchString /*, endPosition = @length */){
     var that = context(this, searchString, ENDS_WITH)
       , endPosition = arguments.length > 1 ? arguments[1] : undefined
@@ -21529,11 +22076,11 @@ $export($export.P + $export.F * __webpack_require__(76)(ENDS_WITH), 'String', {
 });
 
 /***/ }),
-/* 116 */
+/* 117 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export        = __webpack_require__(3)
-  , toIndex        = __webpack_require__(62)
+  , toIndex        = __webpack_require__(61)
   , fromCharCode   = String.fromCharCode
   , $fromCodePoint = String.fromCodePoint;
 
@@ -21557,17 +22104,17 @@ $export($export.S + $export.F * (!!$fromCodePoint && $fromCodePoint.length != 1)
 });
 
 /***/ }),
-/* 117 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 // 21.1.3.7 String.prototype.includes(searchString, position = 0)
 
 var $export  = __webpack_require__(3)
-  , context  = __webpack_require__(84)
+  , context  = __webpack_require__(85)
   , INCLUDES = 'includes';
 
-$export($export.P + $export.F * __webpack_require__(76)(INCLUDES), 'String', {
+$export($export.P + $export.F * __webpack_require__(77)(INCLUDES), 'String', {
   includes: function includes(searchString /*, position = 0 */){
     return !!~context(this, searchString, INCLUDES)
       .indexOf(searchString, arguments.length > 1 ? arguments[1] : undefined);
@@ -21575,7 +22122,7 @@ $export($export.P + $export.F * __webpack_require__(76)(INCLUDES), 'String', {
 });
 
 /***/ }),
-/* 118 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export   = __webpack_require__(3)
@@ -21598,18 +22145,18 @@ $export($export.S, 'String', {
 });
 
 /***/ }),
-/* 119 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(3);
 
 $export($export.P, 'String', {
   // 21.1.3.13 String.prototype.repeat(count)
-  repeat: __webpack_require__(274)
+  repeat: __webpack_require__(289)
 });
 
 /***/ }),
-/* 120 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21617,11 +22164,11 @@ $export($export.P, 'String', {
 
 var $export     = __webpack_require__(3)
   , toLength    = __webpack_require__(24)
-  , context     = __webpack_require__(84)
+  , context     = __webpack_require__(85)
   , STARTS_WITH = 'startsWith'
   , $startsWith = ''[STARTS_WITH];
 
-$export($export.P + $export.F * __webpack_require__(76)(STARTS_WITH), 'String', {
+$export($export.P + $export.F * __webpack_require__(77)(STARTS_WITH), 'String', {
   startsWith: function startsWith(searchString /*, position = 0 */){
     var that   = context(this, searchString, STARTS_WITH)
       , index  = toLength(Math.min(arguments.length > 1 ? arguments[1] : undefined, that.length))
@@ -21633,7 +22180,7 @@ $export($export.P + $export.F * __webpack_require__(76)(STARTS_WITH), 'String', 
 });
 
 /***/ }),
-/* 121 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21646,22 +22193,22 @@ var global         = __webpack_require__(13)
   , redefine       = __webpack_require__(33)
   , META           = __webpack_require__(47).KEY
   , $fails         = __webpack_require__(31)
-  , shared         = __webpack_require__(83)
+  , shared         = __webpack_require__(84)
   , setToStringTag = __webpack_require__(49)
   , uid            = __webpack_require__(50)
   , wks            = __webpack_require__(10)
-  , wksExt         = __webpack_require__(275)
-  , wksDefine      = __webpack_require__(393)
-  , keyOf          = __webpack_require__(384)
-  , enumKeys       = __webpack_require__(379)
-  , isArray        = __webpack_require__(262)
+  , wksExt         = __webpack_require__(290)
+  , wksDefine      = __webpack_require__(410)
+  , keyOf          = __webpack_require__(401)
+  , enumKeys       = __webpack_require__(396)
+  , isArray        = __webpack_require__(277)
   , anObject       = __webpack_require__(18)
   , toIObject      = __webpack_require__(23)
-  , toPrimitive    = __webpack_require__(86)
+  , toPrimitive    = __webpack_require__(87)
   , createDesc     = __webpack_require__(41)
-  , _create        = __webpack_require__(79)
-  , gOPNExt        = __webpack_require__(387)
-  , $GOPD          = __webpack_require__(80)
+  , _create        = __webpack_require__(80)
+  , gOPNExt        = __webpack_require__(404)
+  , $GOPD          = __webpack_require__(81)
   , $DP            = __webpack_require__(19)
   , $keys          = __webpack_require__(40)
   , gOPD           = $GOPD.f
@@ -21786,11 +22333,11 @@ if(!USE_NATIVE){
 
   $GOPD.f = $getOwnPropertyDescriptor;
   $DP.f   = $defineProperty;
-  __webpack_require__(81).f = gOPNExt.f = $getOwnPropertyNames;
+  __webpack_require__(82).f = gOPNExt.f = $getOwnPropertyNames;
   __webpack_require__(48).f  = $propertyIsEnumerable;
-  __webpack_require__(60).f = $getOwnPropertySymbols;
+  __webpack_require__(59).f = $getOwnPropertySymbols;
 
-  if(DESCRIPTORS && !__webpack_require__(59)){
+  if(DESCRIPTORS && !__webpack_require__(58)){
     redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
   }
 
@@ -21874,16 +22421,16 @@ setToStringTag(Math, 'Math', true);
 setToStringTag(global.JSON, 'JSON', true);
 
 /***/ }),
-/* 122 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var each         = __webpack_require__(55)(0)
+var each         = __webpack_require__(54)(0)
   , redefine     = __webpack_require__(33)
   , meta         = __webpack_require__(47)
-  , assign       = __webpack_require__(268)
-  , weak         = __webpack_require__(258)
+  , assign       = __webpack_require__(283)
+  , weak         = __webpack_require__(273)
   , isObject     = __webpack_require__(15)
   , getWeak      = meta.getWeak
   , isExtensible = Object.isExtensible
@@ -21913,7 +22460,7 @@ var methods = {
 };
 
 // 23.3 WeakMap Objects
-var $WeakMap = module.exports = __webpack_require__(56)('WeakMap', wrapper, methods, weak, true, true);
+var $WeakMap = module.exports = __webpack_require__(55)('WeakMap', wrapper, methods, weak, true, true);
 
 // IE11 WeakMap frozen keys fix
 if(new $WeakMap().set((Object.freeze || Object)(tmp), 7).get(tmp) != 7){
@@ -21936,15 +22483,15 @@ if(new $WeakMap().set((Object.freeze || Object)(tmp), 7).get(tmp) != 7){
 }
 
 /***/ }),
-/* 123 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var weak = __webpack_require__(258);
+var weak = __webpack_require__(273);
 
 // 23.4 WeakSet Objects
-__webpack_require__(56)('WeakSet', function(get){
+__webpack_require__(55)('WeakSet', function(get){
   return function WeakSet(){ return get(this, arguments.length > 0 ? arguments[0] : undefined); };
 }, {
   // 23.4.3.1 WeakSet.prototype.add(value)
@@ -21954,14 +22501,14 @@ __webpack_require__(56)('WeakSet', function(get){
 }, weak, false, true);
 
 /***/ }),
-/* 124 */
+/* 125 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 // https://github.com/tc39/Array.prototype.includes
 var $export   = __webpack_require__(3)
-  , $includes = __webpack_require__(255)(true);
+  , $includes = __webpack_require__(270)(true);
 
 $export($export.P, 'Array', {
   includes: function includes(el /*, fromIndex = 0 */){
@@ -21972,12 +22519,12 @@ $export($export.P, 'Array', {
 __webpack_require__(38)('includes');
 
 /***/ }),
-/* 125 */
+/* 126 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-object-values-entries
 var $export  = __webpack_require__(3)
-  , $entries = __webpack_require__(270)(true);
+  , $entries = __webpack_require__(285)(true);
 
 $export($export.S, 'Object', {
   entries: function entries(it){
@@ -21986,15 +22533,15 @@ $export($export.S, 'Object', {
 });
 
 /***/ }),
-/* 126 */
+/* 127 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-object-getownpropertydescriptors
 var $export        = __webpack_require__(3)
-  , ownKeys        = __webpack_require__(389)
+  , ownKeys        = __webpack_require__(406)
   , toIObject      = __webpack_require__(23)
-  , gOPD           = __webpack_require__(80)
-  , createProperty = __webpack_require__(73);
+  , gOPD           = __webpack_require__(81)
+  , createProperty = __webpack_require__(74);
 
 $export($export.S, 'Object', {
   getOwnPropertyDescriptors: function getOwnPropertyDescriptors(object){
@@ -22010,32 +22557,16 @@ $export($export.S, 'Object', {
 });
 
 /***/ }),
-/* 127 */
+/* 128 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-object-values-entries
 var $export = __webpack_require__(3)
-  , $values = __webpack_require__(270)(false);
+  , $values = __webpack_require__(285)(false);
 
 $export($export.S, 'Object', {
   values: function values(it){
     return $values(it);
-  }
-});
-
-/***/ }),
-/* 128 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// https://github.com/tc39/proposal-string-pad-start-end
-var $export = __webpack_require__(3)
-  , $pad    = __webpack_require__(273);
-
-$export($export.P, 'String', {
-  padEnd: function padEnd(maxLength /*, fillString = ' ' */){
-    return $pad(this, maxLength, arguments.length > 1 ? arguments[1] : undefined, false);
   }
 });
 
@@ -22047,7 +22578,23 @@ $export($export.P, 'String', {
 
 // https://github.com/tc39/proposal-string-pad-start-end
 var $export = __webpack_require__(3)
-  , $pad    = __webpack_require__(273);
+  , $pad    = __webpack_require__(288);
+
+$export($export.P, 'String', {
+  padEnd: function padEnd(maxLength /*, fillString = ' ' */){
+    return $pad(this, maxLength, arguments.length > 1 ? arguments[1] : undefined, false);
+  }
+});
+
+/***/ }),
+/* 130 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// https://github.com/tc39/proposal-string-pad-start-end
+var $export = __webpack_require__(3)
+  , $pad    = __webpack_require__(288);
 
 $export($export.P, 'String', {
   padStart: function padStart(maxLength /*, fillString = ' ' */){
@@ -22056,10 +22603,10 @@ $export($export.P, 'String', {
 });
 
 /***/ }),
-/* 130 */
+/* 131 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var $iterators    = __webpack_require__(69)
+var $iterators    = __webpack_require__(68)
   , redefine      = __webpack_require__(33)
   , global        = __webpack_require__(13)
   , hide          = __webpack_require__(32)
@@ -22083,21 +22630,15 @@ for(var collections = ['NodeList', 'DOMTokenList', 'MediaList', 'StyleSheetList'
 }
 
 /***/ }),
-/* 131 */
+/* 132 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(3)
-  , $task   = __webpack_require__(85);
+  , $task   = __webpack_require__(86);
 $export($export.G + $export.B, {
   setImmediate:   $task.set,
   clearImmediate: $task.clear
 });
-
-/***/ }),
-/* 132 */
-/***/ (function(module, exports) {
-
-
 
 /***/ }),
 /* 133 */
@@ -22695,6 +23236,102 @@ $export($export.G + $export.B, {
 
 /***/ }),
 /* 232 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 233 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 234 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 235 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 236 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 237 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 238 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 239 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 240 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 241 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 242 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 243 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 244 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 245 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 246 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 247 */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+/* 248 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22831,7 +23468,7 @@ $export($export.G + $export.B, {
 })(window);
 
 /***/ }),
-/* 233 */
+/* 249 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23436,7 +24073,7 @@ if (true) {
 }
 
 /***/ }),
-/* 234 */
+/* 250 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23450,7 +24087,7 @@ var _element = __webpack_require__(0);
 
 var _event = __webpack_require__(7);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _browser = __webpack_require__(25);
 
@@ -23979,7 +24616,7 @@ var Border = function () {
 exports.default = Border;
 
 /***/ }),
-/* 235 */
+/* 251 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24304,7 +24941,7 @@ var ViewportColumnsCalculator = function () {
 exports.default = ViewportColumnsCalculator;
 
 /***/ }),
-/* 236 */
+/* 252 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24484,7 +25121,7 @@ var ViewportRowsCalculator = function () {
 exports.default = ViewportRowsCalculator;
 
 /***/ }),
-/* 237 */
+/* 253 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24496,31 +25133,31 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _string = __webpack_require__(27);
 
-var _event = __webpack_require__(238);
+var _event = __webpack_require__(254);
 
 var _event2 = _interopRequireDefault(_event);
 
-var _overlays = __webpack_require__(241);
+var _overlays = __webpack_require__(257);
 
 var _overlays2 = _interopRequireDefault(_overlays);
 
-var _scroll = __webpack_require__(242);
+var _scroll = __webpack_require__(258);
 
 var _scroll2 = _interopRequireDefault(_scroll);
 
-var _settings = __webpack_require__(243);
+var _settings = __webpack_require__(259);
 
 var _settings2 = _interopRequireDefault(_settings);
 
-var _table = __webpack_require__(244);
+var _table = __webpack_require__(260);
 
 var _table2 = _interopRequireDefault(_table);
 
-var _viewport = __webpack_require__(246);
+var _viewport = __webpack_require__(262);
 
 var _viewport2 = _interopRequireDefault(_viewport);
 
@@ -24821,7 +25458,7 @@ var Walkontable = function () {
 exports.default = Walkontable;
 
 /***/ }),
-/* 238 */
+/* 254 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25059,7 +25696,7 @@ Event.prototype.parentCell = function (elem) {
 exports.default = Event;
 
 /***/ }),
-/* 239 */
+/* 255 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25184,7 +25821,7 @@ var ColumnFilter = function () {
 exports.default = ColumnFilter;
 
 /***/ }),
-/* 240 */
+/* 256 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25309,7 +25946,7 @@ var RowFilter = function () {
 exports.default = RowFilter;
 
 /***/ }),
-/* 241 */
+/* 257 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25321,7 +25958,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _unicode = __webpack_require__(16);
 
@@ -26163,7 +26800,7 @@ var Overlays = function () {
 exports.default = Overlays;
 
 /***/ }),
-/* 242 */
+/* 258 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26454,7 +27091,7 @@ var Scroll = function () {
 exports.default = Scroll;
 
 /***/ }),
-/* 243 */
+/* 259 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26466,7 +27103,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -26665,7 +27302,7 @@ var Settings = function () {
 exports.default = Settings;
 
 /***/ }),
-/* 244 */
+/* 260 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26685,19 +27322,19 @@ var _coords = __webpack_require__(43);
 
 var _coords2 = _interopRequireDefault(_coords);
 
-var _range = __webpack_require__(70);
+var _range = __webpack_require__(69);
 
 var _range2 = _interopRequireDefault(_range);
 
-var _column = __webpack_require__(239);
+var _column = __webpack_require__(255);
 
 var _column2 = _interopRequireDefault(_column);
 
-var _row = __webpack_require__(240);
+var _row = __webpack_require__(256);
 
 var _row2 = _interopRequireDefault(_row);
 
-var _tableRenderer = __webpack_require__(245);
+var _tableRenderer = __webpack_require__(261);
 
 var _tableRenderer2 = _interopRequireDefault(_tableRenderer);
 
@@ -27411,7 +28048,7 @@ var Table = function () {
 exports.default = Table;
 
 /***/ }),
-/* 245 */
+/* 261 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28152,7 +28789,7 @@ function replaceThWithTd(TH, TR) {
 exports.default = TableRenderer;
 
 /***/ }),
-/* 246 */
+/* 262 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28164,17 +28801,17 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _eventManager = __webpack_require__(4);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _viewportColumns = __webpack_require__(235);
+var _viewportColumns = __webpack_require__(251);
 
 var _viewportColumns2 = _interopRequireDefault(_viewportColumns);
 
-var _viewportRows = __webpack_require__(236);
+var _viewportRows = __webpack_require__(252);
 
 var _viewportRows2 = _interopRequireDefault(_viewportRows);
 
@@ -28278,6 +28915,7 @@ var Viewport = function () {
         // if no stretching is used, return the maximum used workspace width
         return Math.max(width, (0, _element.outerWidth)(this.instance.wtTable.TABLE));
       }
+
       // if stretching is used, return the actual container width, so the columns can fit inside it
       return width;
     }
@@ -28706,7 +29344,7 @@ var Viewport = function () {
 exports.default = Viewport;
 
 /***/ }),
-/* 247 */
+/* 263 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28720,11 +29358,11 @@ var _mixed = __webpack_require__(20);
 
 var _string = __webpack_require__(27);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _element = __webpack_require__(0);
 
-var _handsontableEditor = __webpack_require__(248);
+var _handsontableEditor = __webpack_require__(264);
 
 var _handsontableEditor2 = _interopRequireDefault(_handsontableEditor);
 
@@ -29164,7 +29802,7 @@ AutocompleteEditor.prototype.discardEditor = function (result) {
 exports.default = AutocompleteEditor;
 
 /***/ }),
-/* 248 */
+/* 264 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29174,7 +29812,7 @@ exports.__esModule = true;
 
 var _unicode = __webpack_require__(16);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _element = __webpack_require__(0);
 
@@ -29298,7 +29936,9 @@ HandsontableEditor.prototype.open = function () {
   if (this.htEditor) {
     this.htEditor.destroy();
   }
-  this.htEditor = new Handsontable(this.htContainer, this.htOptions);
+  // Construct and initialise a new Handsontable
+  this.htEditor = new this.instance.constructor(this.htContainer, this.htOptions);
+  this.htEditor.init();
 
   if (this.cellProperties.strict) {
     this.htEditor.selectCell(0, 0);
@@ -29364,7 +30004,7 @@ HandsontableEditor.prototype.assignHooks = function () {
 exports.default = HandsontableEditor;
 
 /***/ }),
-/* 249 */
+/* 265 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29372,9 +30012,9 @@ exports.default = HandsontableEditor;
 
 exports.__esModule = true;
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _number = __webpack_require__(6);
 
@@ -29547,83 +30187,7 @@ var arrayMapper = {
 exports.default = arrayMapper;
 
 /***/ }),
-/* 250 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _array = __webpack_require__(1);
-
-var _object = __webpack_require__(2);
-
-var MIXIN_NAME = 'localHooks';
-
-/**
- * Mixin object to extend objects functionality for local hooks.
- *
- * @type {Object}
- */
-var localHooks = {
-  /**
-   * Internal hooks storage.
-   */
-  _localHooks: Object.create(null),
-
-  /**
-   * Add hook to the collection.
-   *
-   * @param {String} key Hook name.
-   * @param {Function} callback Hook callback
-   */
-  addLocalHook: function addLocalHook(key, callback) {
-    if (!this._localHooks[key]) {
-      this._localHooks[key] = [];
-    }
-    this._localHooks[key].push(callback);
-  },
-
-
-  /**
-   * Run hooks.
-   *
-   * @param {String} key Hook name.
-   * @param {*} params
-   */
-  runLocalHooks: function runLocalHooks(key) {
-    var _this = this;
-
-    for (var _len = arguments.length, params = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      params[_key - 1] = arguments[_key];
-    }
-
-    if (this._localHooks[key]) {
-      (0, _array.arrayEach)(this._localHooks[key], function (callback) {
-        return callback.apply(_this, params);
-      });
-    }
-  },
-
-
-  /**
-   * Clear all added hooks.
-   */
-  clearLocalHooks: function clearLocalHooks() {
-    this._localHooks = {};
-  }
-};
-
-(0, _object.defineGetter)(localHooks, 'MIXIN_NAME', MIXIN_NAME, {
-  writable: false,
-  enumerable: false
-});
-
-exports.default = localHooks;
-
-/***/ }),
-/* 251 */
+/* 266 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29843,7 +30407,7 @@ var BaseUI = function () {
 exports.default = BaseUI;
 
 /***/ }),
-/* 252 */
+/* 267 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30061,7 +30625,7 @@ var BaseUI = function () {
 exports.default = BaseUI;
 
 /***/ }),
-/* 253 */
+/* 268 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30075,11 +30639,11 @@ var _createClass = function () { function defineProperties(target, props) { for 
 exports.registerIdentity = registerIdentity;
 exports.getTranslator = getTranslator;
 
-var _core = __webpack_require__(65);
+var _core = __webpack_require__(64);
 
 var _core2 = _interopRequireDefault(_core);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -30235,7 +30799,7 @@ function getTranslator(identity) {
 }
 
 /***/ }),
-/* 254 */
+/* 269 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30245,7 +30809,7 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _number = __webpack_require__(6);
 
@@ -30469,14 +31033,14 @@ var SamplesGenerator = function () {
 exports.default = SamplesGenerator;
 
 /***/ }),
-/* 255 */
+/* 270 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // false -> Array#indexOf
 // true  -> Array#includes
 var toIObject = __webpack_require__(23)
   , toLength  = __webpack_require__(24)
-  , toIndex   = __webpack_require__(62);
+  , toIndex   = __webpack_require__(61);
 module.exports = function(IS_INCLUDES){
   return function($this, el, fromIndex){
     var O      = toIObject($this)
@@ -30495,7 +31059,7 @@ module.exports = function(IS_INCLUDES){
 };
 
 /***/ }),
-/* 256 */
+/* 271 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // getting tag from 19.1.3.6 Object.prototype.toString()
@@ -30523,21 +31087,21 @@ module.exports = function(it){
 };
 
 /***/ }),
-/* 257 */
+/* 272 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var dP          = __webpack_require__(19).f
-  , create      = __webpack_require__(79)
-  , redefineAll = __webpack_require__(61)
+  , create      = __webpack_require__(80)
+  , redefineAll = __webpack_require__(60)
   , ctx         = __webpack_require__(29)
-  , anInstance  = __webpack_require__(54)
+  , anInstance  = __webpack_require__(53)
   , defined     = __webpack_require__(30)
-  , forOf       = __webpack_require__(58)
-  , $iterDefine = __webpack_require__(266)
-  , step        = __webpack_require__(267)
-  , setSpecies  = __webpack_require__(272)
+  , forOf       = __webpack_require__(57)
+  , $iterDefine = __webpack_require__(281)
+  , step        = __webpack_require__(282)
+  , setSpecies  = __webpack_require__(287)
   , DESCRIPTORS = __webpack_require__(21)
   , fastKey     = __webpack_require__(47).fastKey
   , SIZE        = DESCRIPTORS ? '_s' : 'size';
@@ -30671,18 +31235,18 @@ module.exports = {
 };
 
 /***/ }),
-/* 258 */
+/* 273 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var redefineAll       = __webpack_require__(61)
+var redefineAll       = __webpack_require__(60)
   , getWeak           = __webpack_require__(47).getWeak
   , anObject          = __webpack_require__(18)
   , isObject          = __webpack_require__(15)
-  , anInstance        = __webpack_require__(54)
-  , forOf             = __webpack_require__(58)
-  , createArrayMethod = __webpack_require__(55)
+  , anInstance        = __webpack_require__(53)
+  , forOf             = __webpack_require__(57)
+  , createArrayMethod = __webpack_require__(54)
   , $has              = __webpack_require__(22)
   , arrayFind         = createArrayMethod(5)
   , arrayFindIndex    = createArrayMethod(6)
@@ -30760,21 +31324,21 @@ module.exports = {
 };
 
 /***/ }),
-/* 259 */
+/* 274 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__(13).document && document.documentElement;
 
 /***/ }),
-/* 260 */
+/* 275 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = !__webpack_require__(21) && !__webpack_require__(31)(function(){
-  return Object.defineProperty(__webpack_require__(74)('div'), 'a', {get: function(){ return 7; }}).a != 7;
+  return Object.defineProperty(__webpack_require__(75)('div'), 'a', {get: function(){ return 7; }}).a != 7;
 });
 
 /***/ }),
-/* 261 */
+/* 276 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // check on default Array iterator
@@ -30787,7 +31351,7 @@ module.exports = function(it){
 };
 
 /***/ }),
-/* 262 */
+/* 277 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.2.2 IsArray(argument)
@@ -30797,7 +31361,7 @@ module.exports = Array.isArray || function isArray(arg){
 };
 
 /***/ }),
-/* 263 */
+/* 278 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.3 Number.isInteger(number)
@@ -30808,7 +31372,7 @@ module.exports = function isInteger(it){
 };
 
 /***/ }),
-/* 264 */
+/* 279 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.2.8 IsRegExp(argument)
@@ -30821,7 +31385,7 @@ module.exports = function(it){
 };
 
 /***/ }),
-/* 265 */
+/* 280 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // call something on iterator step with safe closing on error
@@ -30838,20 +31402,20 @@ module.exports = function(iterator, fn, value, entries){
 };
 
 /***/ }),
-/* 266 */
+/* 281 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var LIBRARY        = __webpack_require__(59)
+var LIBRARY        = __webpack_require__(58)
   , $export        = __webpack_require__(3)
   , redefine       = __webpack_require__(33)
   , hide           = __webpack_require__(32)
   , has            = __webpack_require__(22)
   , Iterators      = __webpack_require__(46)
-  , $iterCreate    = __webpack_require__(383)
+  , $iterCreate    = __webpack_require__(400)
   , setToStringTag = __webpack_require__(49)
-  , getPrototypeOf = __webpack_require__(388)
+  , getPrototypeOf = __webpack_require__(405)
   , ITERATOR       = __webpack_require__(10)('iterator')
   , BUGGY          = !([].keys && 'next' in [].keys()) // Safari has buggy iterators w/o `next`
   , FF_ITERATOR    = '@@iterator'
@@ -30914,7 +31478,7 @@ module.exports = function(Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCED
 };
 
 /***/ }),
-/* 267 */
+/* 282 */
 /***/ (function(module, exports) {
 
 module.exports = function(done, value){
@@ -30922,17 +31486,17 @@ module.exports = function(done, value){
 };
 
 /***/ }),
-/* 268 */
+/* 283 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 // 19.1.2.1 Object.assign(target, source, ...)
 var getKeys  = __webpack_require__(40)
-  , gOPS     = __webpack_require__(60)
+  , gOPS     = __webpack_require__(59)
   , pIE      = __webpack_require__(48)
   , toObject = __webpack_require__(42)
-  , IObject  = __webpack_require__(77)
+  , IObject  = __webpack_require__(78)
   , $assign  = Object.assign;
 
 // should work with symbols and should have deterministic property order (V8 bug)
@@ -30961,13 +31525,13 @@ module.exports = !$assign || __webpack_require__(31)(function(){
 } : $assign;
 
 /***/ }),
-/* 269 */
+/* 284 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var has          = __webpack_require__(22)
   , toIObject    = __webpack_require__(23)
-  , arrayIndexOf = __webpack_require__(255)(false)
-  , IE_PROTO     = __webpack_require__(82)('IE_PROTO');
+  , arrayIndexOf = __webpack_require__(270)(false)
+  , IE_PROTO     = __webpack_require__(83)('IE_PROTO');
 
 module.exports = function(object, names){
   var O      = toIObject(object)
@@ -30983,7 +31547,7 @@ module.exports = function(object, names){
 };
 
 /***/ }),
-/* 270 */
+/* 285 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var getKeys   = __webpack_require__(40)
@@ -31004,7 +31568,7 @@ module.exports = function(isEntries){
 };
 
 /***/ }),
-/* 271 */
+/* 286 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Works with __proto__ only. Old v8 can't work with null proto objects.
@@ -31019,7 +31583,7 @@ module.exports = {
   set: Object.setPrototypeOf || ('__proto__' in {} ? // eslint-disable-line
     function(test, buggy, set){
       try {
-        set = __webpack_require__(29)(Function.call, __webpack_require__(80).f(Object.prototype, '__proto__').set, 2);
+        set = __webpack_require__(29)(Function.call, __webpack_require__(81).f(Object.prototype, '__proto__').set, 2);
         set(test, []);
         buggy = !(test instanceof Array);
       } catch(e){ buggy = true; }
@@ -31034,7 +31598,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 272 */
+/* 287 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31053,12 +31617,12 @@ module.exports = function(KEY){
 };
 
 /***/ }),
-/* 273 */
+/* 288 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-string-pad-start-end
 var toLength = __webpack_require__(24)
-  , repeat   = __webpack_require__(274)
+  , repeat   = __webpack_require__(289)
   , defined  = __webpack_require__(30);
 
 module.exports = function(that, maxLength, fillString, left){
@@ -31075,12 +31639,12 @@ module.exports = function(that, maxLength, fillString, left){
 
 
 /***/ }),
-/* 274 */
+/* 289 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var toInteger = __webpack_require__(63)
+var toInteger = __webpack_require__(62)
   , defined   = __webpack_require__(30);
 
 module.exports = function repeat(count){
@@ -31093,16 +31657,16 @@ module.exports = function repeat(count){
 };
 
 /***/ }),
-/* 275 */
+/* 290 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports.f = __webpack_require__(10);
 
 /***/ }),
-/* 276 */
+/* 291 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var classof   = __webpack_require__(256)
+var classof   = __webpack_require__(271)
   , ITERATOR  = __webpack_require__(10)('iterator')
   , Iterators = __webpack_require__(46);
 module.exports = __webpack_require__(45).getIteratorMethod = function(it){
@@ -31112,7 +31676,7 @@ module.exports = __webpack_require__(45).getIteratorMethod = function(it){
 };
 
 /***/ }),
-/* 277 */
+/* 292 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31173,100 +31737,96 @@ function jQueryWrapper(Handsontable) {
 };
 
 /***/ }),
-/* 278 */
+/* 293 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 exports.__esModule = true;
-exports.Base = exports.UndoRedo = exports.TouchScroll = exports.Search = exports.PersistentState = exports.ObserveChanges = exports.MultipleSelectionHandles = exports.MergeCells = exports.ManualRowResize = exports.ManualRowMove = exports.ManualColumnResize = exports.ManualColumnMove = exports.ManualColumnFreeze = exports.DragToScroll = exports.CustomBorders = exports.CopyPaste = exports.ContextMenuCopyPaste = exports.ContextMenu = exports.Comments = exports.ColumnSorting = exports.AutoRowSize = exports.AutoFill = exports.AutoColumnSize = undefined;
+exports.Base = exports.UndoRedo = exports.TouchScroll = exports.Search = exports.PersistentState = exports.ObserveChanges = exports.MultipleSelectionHandles = exports.MergeCells = exports.ManualRowResize = exports.ManualRowMove = exports.ManualColumnResize = exports.ManualColumnMove = exports.ManualColumnFreeze = exports.DragToScroll = exports.CustomBorders = exports.CopyPaste = exports.ContextMenu = exports.Comments = exports.ColumnSorting = exports.AutoRowSize = exports.AutoFill = exports.AutoColumnSize = undefined;
 
-var _autoColumnSize = __webpack_require__(311);
+var _autoColumnSize = __webpack_require__(325);
 
 var _autoColumnSize2 = _interopRequireDefault(_autoColumnSize);
 
-var _autofill = __webpack_require__(313);
+var _autofill = __webpack_require__(327);
 
 var _autofill2 = _interopRequireDefault(_autofill);
 
-var _autoRowSize = __webpack_require__(312);
+var _autoRowSize = __webpack_require__(326);
 
 var _autoRowSize2 = _interopRequireDefault(_autoRowSize);
 
-var _columnSorting = __webpack_require__(315);
+var _columnSorting = __webpack_require__(329);
 
 var _columnSorting2 = _interopRequireDefault(_columnSorting);
 
-var _comments = __webpack_require__(317);
+var _comments = __webpack_require__(331);
 
 var _comments2 = _interopRequireDefault(_comments);
 
-var _contextMenu = __webpack_require__(319);
+var _contextMenu = __webpack_require__(334);
 
 var _contextMenu2 = _interopRequireDefault(_contextMenu);
 
-var _contextMenuCopyPaste = __webpack_require__(334);
-
-var _contextMenuCopyPaste2 = _interopRequireDefault(_contextMenuCopyPaste);
-
-var _copyPaste = __webpack_require__(335);
+var _copyPaste = __webpack_require__(351);
 
 var _copyPaste2 = _interopRequireDefault(_copyPaste);
 
-var _customBorders = __webpack_require__(336);
+var _customBorders = __webpack_require__(353);
 
 var _customBorders2 = _interopRequireDefault(_customBorders);
 
-var _dragToScroll = __webpack_require__(337);
+var _dragToScroll = __webpack_require__(354);
 
 var _dragToScroll2 = _interopRequireDefault(_dragToScroll);
 
-var _manualColumnFreeze = __webpack_require__(340);
+var _manualColumnFreeze = __webpack_require__(357);
 
 var _manualColumnFreeze2 = _interopRequireDefault(_manualColumnFreeze);
 
-var _manualColumnMove = __webpack_require__(342);
+var _manualColumnMove = __webpack_require__(359);
 
 var _manualColumnMove2 = _interopRequireDefault(_manualColumnMove);
 
-var _manualColumnResize = __webpack_require__(345);
+var _manualColumnResize = __webpack_require__(362);
 
 var _manualColumnResize2 = _interopRequireDefault(_manualColumnResize);
 
-var _manualRowMove = __webpack_require__(346);
+var _manualRowMove = __webpack_require__(363);
 
 var _manualRowMove2 = _interopRequireDefault(_manualRowMove);
 
-var _manualRowResize = __webpack_require__(350);
+var _manualRowResize = __webpack_require__(367);
 
 var _manualRowResize2 = _interopRequireDefault(_manualRowResize);
 
-var _mergeCells = __webpack_require__(351);
+var _mergeCells = __webpack_require__(368);
 
 var _mergeCells2 = _interopRequireDefault(_mergeCells);
 
-var _multipleSelectionHandles = __webpack_require__(352);
+var _multipleSelectionHandles = __webpack_require__(369);
 
 var _multipleSelectionHandles2 = _interopRequireDefault(_multipleSelectionHandles);
 
-var _observeChanges = __webpack_require__(354);
+var _observeChanges = __webpack_require__(371);
 
 var _observeChanges2 = _interopRequireDefault(_observeChanges);
 
-var _persistentState = __webpack_require__(356);
+var _persistentState = __webpack_require__(373);
 
 var _persistentState2 = _interopRequireDefault(_persistentState);
 
-var _search = __webpack_require__(357);
+var _search = __webpack_require__(374);
 
 var _search2 = _interopRequireDefault(_search);
 
-var _touchScroll = __webpack_require__(358);
+var _touchScroll = __webpack_require__(375);
 
 var _touchScroll2 = _interopRequireDefault(_touchScroll);
 
-var _undoRedo = __webpack_require__(359);
+var _undoRedo = __webpack_require__(376);
 
 var _undoRedo2 = _interopRequireDefault(_undoRedo);
 
@@ -31282,7 +31842,6 @@ exports.AutoRowSize = _autoRowSize2.default;
 exports.ColumnSorting = _columnSorting2.default;
 exports.Comments = _comments2.default;
 exports.ContextMenu = _contextMenu2.default;
-exports.ContextMenuCopyPaste = _contextMenuCopyPaste2.default;
 exports.CopyPaste = _copyPaste2.default;
 exports.CustomBorders = _customBorders2.default;
 exports.DragToScroll = _dragToScroll2.default;
@@ -31301,31 +31860,31 @@ exports.UndoRedo = _undoRedo2.default;
 exports.Base = _base2.default;
 
 /***/ }),
-/* 279 */
+/* 294 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 280 */
+/* 295 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 281 */
+/* 296 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 282 */
+/* 297 */
 /***/ (function(module, exports) {
 
 
 
 /***/ }),
-/* 283 */
+/* 298 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31511,319 +32070,7 @@ if (true) {
 }
 
 /***/ }),
-/* 284 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * Creates a textarea that stays hidden on the page and gets focused when user presses CTRL while not having a form
- * input focused.
- * In future we may implement a better driver when better APIs are available.
- *
- * @constructor
- * @private
- */
-
-var instance;
-
-function copyPaste() {
-  if (!instance) {
-    instance = new CopyPasteClass();
-  } else if (instance.hasBeenDestroyed()) {
-    instance.init();
-  }
-  instance.refCounter++;
-
-  return instance;
-}
-
-if (true) {
-  module.exports = copyPaste;
-}
-
-function CopyPasteClass() {
-  this.refCounter = 0;
-  this.init();
-}
-
-CopyPasteClass.prototype.init = function () {
-  var style, parent;
-
-  this.copyCallbacks = [];
-  this.cutCallbacks = [];
-  this.pasteCallbacks = [];
-
-  // this.listenerElement = document.documentElement;
-  parent = document.body;
-
-  if (document.getElementById('CopyPasteDiv')) {
-    this.elDiv = document.getElementById('CopyPasteDiv');
-    this.elTextarea = this.elDiv.firstChild;
-  } else {
-    this.elDiv = document.createElement('div');
-    this.elDiv.id = 'CopyPasteDiv';
-    style = this.elDiv.style;
-    style.position = 'fixed';
-    style.top = '-10000px';
-    style.left = '-10000px';
-    parent.appendChild(this.elDiv);
-
-    this.elTextarea = document.createElement('textarea');
-    this.elTextarea.className = 'copyPaste';
-    this.elTextarea.onpaste = function (event) {
-      var clipboardContents, temp;
-
-      if ('WebkitAppearance' in document.documentElement.style) {
-        // chrome and safari
-        clipboardContents = event.clipboardData.getData("Text");
-
-        // Safari adds an additional newline to copied text
-        if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
-          temp = clipboardContents.split('\n');
-
-          if (temp[temp.length - 1] === '') {
-            temp.pop();
-          }
-          clipboardContents = temp.join('\n');
-        }
-        this.value = clipboardContents;
-
-        event.preventDefault();
-      }
-    };
-    style = this.elTextarea.style;
-    style.width = '10000px';
-    style.height = '10000px';
-    style.overflow = 'hidden';
-    this.elDiv.appendChild(this.elTextarea);
-
-    if (typeof style.opacity !== 'undefined') {
-      style.opacity = 0;
-    }
-  }
-  this.onKeyDownRef = this.onKeyDown.bind(this);
-  document.documentElement.addEventListener('keydown', this.onKeyDownRef, false);
-};
-
-/**
- * Call method on every key down event
- *
- * @param {Event} event
- */
-CopyPasteClass.prototype.onKeyDown = function (event) {
-  var _this = this,
-      isCtrlDown = false;
-
-  function isActiveElementEditable() {
-    var element = document.activeElement;
-
-    if (element.shadowRoot && element.shadowRoot.activeElement) {
-      element = element.shadowRoot.activeElement;
-    }
-
-    return ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(element.nodeName) > -1 || element.contentEditable === 'true';
-  }
-
-  // mac
-  if (event.metaKey) {
-    isCtrlDown = true;
-  }
-  // pc
-  else if (event.ctrlKey && navigator.userAgent.indexOf('Mac') === -1) {
-      isCtrlDown = true;
-    }
-  if (isCtrlDown) {
-    // this is needed by fragmentSelection in Handsontable. Ignore copypaste.js behavior if fragment of cell text is selected
-    if (document.activeElement !== this.elTextarea && (this.getSelectionText() !== '' || isActiveElementEditable())) {
-      return;
-    }
-    this.selectNodeText(this.elTextarea);
-    setTimeout(function () {
-      if (document.activeElement !== _this.elTextarea) {
-        _this.selectNodeText(_this.elTextarea);
-      }
-    }, 0);
-  }
-
-  if (event.isImmediatePropagationEnabled !== false && isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
-    // works in all browsers, incl. Opera < 12.12
-    if (event.keyCode === 88) {
-      setTimeout(function () {
-        _this.triggerCut(event);
-      }, 0);
-    } else if (event.keyCode === 86) {
-      setTimeout(function () {
-        _this.triggerPaste(event);
-      }, 0);
-    }
-  }
-};
-
-//http://jsperf.com/textara-selection
-//http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
-/**
- * Select all text contains in passed node element
- *
- * @param {Element} element
- */
-CopyPasteClass.prototype.selectNodeText = function (element) {
-  if (element) {
-    element.select();
-  }
-};
-
-//http://stackoverflow.com/questions/5379120/get-the-highlighted-selected-text
-/**
- * Get selection text
- *
- * @returns {String}
- */
-CopyPasteClass.prototype.getSelectionText = function () {
-  var text = '';
-
-  if (window.getSelection) {
-    text = window.getSelection().toString();
-  } else if (document.selection && document.selection.type !== 'Control') {
-    text = document.selection.createRange().text;
-  }
-
-  return text;
-};
-
-/**
- * Make string copyable
- *
- * @param {String} string
- */
-CopyPasteClass.prototype.copyable = function (string) {
-  if (typeof string !== 'string' && string.toString === void 0) {
-    throw new Error('copyable requires string parameter');
-  }
-  this.elTextarea.value = string;
-  this.selectNodeText(this.elTextarea);
-};
-
-/*CopyPasteClass.prototype.onCopy = function (fn) {
-  this.copyCallbacks.push(fn);
-};*/
-
-/**
- * Add function callback to onCut event
- *
- * @param {Function} callback
- */
-CopyPasteClass.prototype.onCut = function (callback) {
-  this.cutCallbacks.push(callback);
-};
-
-/**
- * Add function callback to onPaste event
- *
- * @param {Function} callback
- */
-CopyPasteClass.prototype.onPaste = function (callback) {
-  this.pasteCallbacks.push(callback);
-};
-
-/**
- * Remove callback from all events
- *
- * @param {Function} callback
- * @returns {Boolean}
- */
-CopyPasteClass.prototype.removeCallback = function (callback) {
-  var i, len;
-
-  for (i = 0, len = this.copyCallbacks.length; i < len; i++) {
-    if (this.copyCallbacks[i] === callback) {
-      this.copyCallbacks.splice(i, 1);
-
-      return true;
-    }
-  }
-  for (i = 0, len = this.cutCallbacks.length; i < len; i++) {
-    if (this.cutCallbacks[i] === callback) {
-      this.cutCallbacks.splice(i, 1);
-
-      return true;
-    }
-  }
-  for (i = 0, len = this.pasteCallbacks.length; i < len; i++) {
-    if (this.pasteCallbacks[i] === callback) {
-      this.pasteCallbacks.splice(i, 1);
-
-      return true;
-    }
-  }
-
-  return false;
-};
-
-/**
- * Trigger cut event
- *
- * @param {DOMEvent} event
- */
-CopyPasteClass.prototype.triggerCut = function (event) {
-  var _this = this;
-
-  if (_this.cutCallbacks) {
-    setTimeout(function () {
-      for (var i = 0, len = _this.cutCallbacks.length; i < len; i++) {
-        _this.cutCallbacks[i](event);
-      }
-    }, 50);
-  }
-};
-
-/**
- * Trigger paste event
- *
- * @param {DOMEvent} event
- * @param {String} string
- */
-CopyPasteClass.prototype.triggerPaste = function (event, string) {
-  var _this = this;
-
-  if (_this.pasteCallbacks) {
-    setTimeout(function () {
-      var val = string || _this.elTextarea.value;
-
-      for (var i = 0, len = _this.pasteCallbacks.length; i < len; i++) {
-        _this.pasteCallbacks[i](val, event);
-      }
-    }, 50);
-  }
-};
-
-/**
- * Destroy instance
- */
-CopyPasteClass.prototype.destroy = function () {
-  if (!this.hasBeenDestroyed() && --this.refCounter === 0) {
-    if (this.elDiv && this.elDiv.parentNode) {
-      this.elDiv.parentNode.removeChild(this.elDiv);
-      this.elDiv = null;
-      this.elTextarea = null;
-    }
-    document.documentElement.removeEventListener('keydown', this.onKeyDownRef);
-    this.onKeyDownRef = null;
-  }
-};
-
-/**
- * Check if instance has been destroyed
- *
- * @returns {Boolean}
- */
-CopyPasteClass.prototype.hasBeenDestroyed = function () {
-  return !this.refCounter;
-};
-
-/***/ }),
-/* 285 */
+/* 299 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31878,7 +32125,7 @@ _base2.default.registerOverlay(_base2.default.CLONE_DEBUG, DebugOverlay);
 exports.default = DebugOverlay;
 
 /***/ }),
-/* 286 */
+/* 300 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32240,7 +32487,7 @@ _base2.default.registerOverlay(_base2.default.CLONE_LEFT, LeftOverlay);
 exports.default = LeftOverlay;
 
 /***/ }),
-/* 287 */
+/* 301 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32656,7 +32903,7 @@ _base2.default.registerOverlay(_base2.default.CLONE_TOP, TopOverlay);
 exports.default = TopOverlay;
 
 /***/ }),
-/* 288 */
+/* 302 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32766,7 +33013,7 @@ _base2.default.registerOverlay(_base2.default.CLONE_TOP_LEFT_CORNER, TopLeftCorn
 exports.default = TopLeftCornerOverlay;
 
 /***/ }),
-/* 289 */
+/* 303 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32780,7 +33027,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(0);
 
-var _border2 = __webpack_require__(234);
+var _border2 = __webpack_require__(250);
 
 var _border3 = _interopRequireDefault(_border2);
 
@@ -32788,7 +33035,7 @@ var _coords = __webpack_require__(43);
 
 var _coords2 = _interopRequireDefault(_coords);
 
-var _range = __webpack_require__(70);
+var _range = __webpack_require__(69);
 
 var _range2 = _interopRequireDefault(_range);
 
@@ -33040,7 +33287,7 @@ var Selection = function () {
 exports.default = Selection;
 
 /***/ }),
-/* 290 */
+/* 304 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33063,7 +33310,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 291 */
+/* 305 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33083,7 +33330,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 292 */
+/* 306 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33107,7 +33354,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 293 */
+/* 307 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33131,7 +33378,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 294 */
+/* 308 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33152,7 +33399,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 295 */
+/* 309 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33176,7 +33423,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 296 */
+/* 310 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33199,7 +33446,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 297 */
+/* 311 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33221,7 +33468,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 298 */
+/* 312 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33245,7 +33492,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 299 */
+/* 313 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33255,25 +33502,25 @@ exports.__esModule = true;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _SheetClip = __webpack_require__(232);
+var _SheetClip = __webpack_require__(248);
 
 var _SheetClip2 = _interopRequireDefault(_SheetClip);
 
-var _data = __webpack_require__(66);
+var _data = __webpack_require__(65);
 
-var _setting = __webpack_require__(67);
+var _setting = __webpack_require__(66);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _interval = __webpack_require__(369);
+var _interval = __webpack_require__(386);
 
 var _interval2 = _interopRequireDefault(_interval);
 
 var _number = __webpack_require__(6);
 
-var _multiMap = __webpack_require__(310);
+var _multiMap = __webpack_require__(324);
 
 var _multiMap2 = _interopRequireDefault(_multiMap);
 
@@ -33409,8 +33656,8 @@ DataMap.prototype.createMap = function () {
 /**
  * Returns property name that corresponds with the given column index.
  *
- * @param {Number} col
- * @returns {Number}
+ * @param {Number} col Visual column index.
+ * @returns {Number} Physical column index.
  */
 DataMap.prototype.colToProp = function (col) {
   col = this.instance.runHooks('modifyCol', col);
@@ -33459,7 +33706,7 @@ DataMap.prototype.getSchema = function () {
 /**
  * Creates row at the bottom of the data array.
  *
- * @param {Number} [index] Index of the row before which the new row will be inserted.
+ * @param {Number} [index] Physical index of the row before which the new row will be inserted.
  * @param {Number} [amount] An amount of rows to add.
  * @param {String} [source] Source of method call.
  * @fires Hooks#afterCreateRow
@@ -33521,7 +33768,7 @@ DataMap.prototype.createRow = function (index, amount, source) {
 /**
  * Creates col at the right of the data array.
  *
- * @param {Number} [index] Index of the column before which the new column will be inserted
+ * @param {Number} [index] Visual index of the column before which the new column will be inserted
  * @param {Number} [amount] An amount of columns to add.
  * @param {String} [source] Source of method call.
  * @fires Hooks#afterCreateCol
@@ -33586,7 +33833,7 @@ DataMap.prototype.createCol = function (index, amount, source) {
 /**
  * Removes row from the data array.
  *
- * @param {Number} [index] Index of the row to be removed. If not provided, the last row will be removed
+ * @param {Number} [index] Visual index of the row to be removed. If not provided, the last row will be removed
  * @param {Number} [amount] Amount of the rows to be removed. If not provided, one row will be removed
  * @param {String} [source] Source of method call.
  * @fires Hooks#beforeRemoveRow
@@ -33604,7 +33851,7 @@ DataMap.prototype.removeRow = function (index, amount, source) {
 
   index = (this.instance.countSourceRows() + index) % this.instance.countSourceRows();
 
-  var logicRows = this.physicalRowsToLogical(index, amount);
+  var logicRows = this.visualRowsToPhysical(index, amount);
   var actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', index, amount, logicRows, source);
 
   if (actionWasNotCancelled === false) {
@@ -33629,7 +33876,7 @@ DataMap.prototype.removeRow = function (index, amount, source) {
 /**
  * Removes column from the data array.
  *
- * @param {Number} [index] Index of the column to be removed. If not provided, the last column will be removed
+ * @param {Number} [index] Visual index of the column to be removed. If not provided, the last column will be removed
  * @param {Number} [amount] Amount of the columns to be removed. If not provided, one column will be removed
  * @param {String} [source] Source of method call.
  * @fires Hooks#beforeRemoveCol
@@ -33648,7 +33895,7 @@ DataMap.prototype.removeCol = function (index, amount, source) {
 
   index = (this.instance.countCols() + index) % this.instance.countCols();
 
-  var logicColumns = this.physicalColumnsToLogical(index, amount);
+  var logicColumns = this.visualColumnsToPhysical(index, amount);
   var descendingLogicColumns = logicColumns.slice(0).sort(function (a, b) {
     return b - a;
   });
@@ -33692,7 +33939,7 @@ DataMap.prototype.removeCol = function (index, amount, source) {
 /**
  * Add/Removes data from the column.
  *
- * @param {Number} col Index of column in which do you want to do splice
+ * @param {Number} col Physical index of column in which do you want to do splice
  * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
  * @returns {Array} Returns removed portion of columns
@@ -33719,9 +33966,9 @@ DataMap.prototype.spliceCol = function (col, index, amount /* , elements...*/) {
 /**
  * Add/Removes data from the row.
  *
- * @param {Number} row Index of row in which do you want to do splice
- * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
- * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+ * @param {Number} row Physical index of row in which do you want to do splice
+ * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
+ * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
  * @returns {Array} Returns removed portion of rows
  */
 DataMap.prototype.spliceRow = function (row, index, amount /* , elements...*/) {
@@ -33745,7 +33992,7 @@ DataMap.prototype.spliceRow = function (row, index, amount /* , elements...*/) {
 /**
  * Add/remove row(s) to/from the data source.
  *
- * @param {Number} index Index of the element to remove.
+ * @param {Number} index Physical index of the element to remove.
  * @param {Number} amount Number of rows to add/remove.
  * @param {Object} element Row to add.
  */
@@ -33760,17 +34007,17 @@ DataMap.prototype.spliceData = function (index, amount, element) {
 /**
  * Filter unwanted data elements from the data source.
  *
- * @param {Number} index Index of the element to remove.
+ * @param {Number} index Visual index of the element to remove.
  * @param {Number} amount Number of rows to add/remove.
  * @returns {Array}
  */
 DataMap.prototype.filterData = function (index, amount) {
-  var logicRows = this.physicalRowsToLogical(index, amount);
-  var continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, logicRows);
+  var physicalRows = this.visualRowsToPhysical(index, amount);
+  var continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, physicalRows);
 
   if (continueSplicing !== false) {
     var newData = this.dataSource.filter(function (row, index) {
-      return logicRows.indexOf(index) == -1;
+      return physicalRows.indexOf(index) == -1;
     });
 
     return newData;
@@ -33780,7 +34027,7 @@ DataMap.prototype.filterData = function (index, amount) {
 /**
  * Returns single value from the data array.
  *
- * @param {Number} row
+ * @param {Number} row Visual row index.
  * @param {Number} prop
  */
 DataMap.prototype.get = function (row, prop) {
@@ -33848,7 +34095,7 @@ var copyableLookup = (0, _data.cellMethodLookupFactory)('copyable', false);
 /**
  * Returns single value from the data array (intended for clipboard copy to an external application).
  *
- * @param {Number} row
+ * @param {Number} row Physical row index.
  * @param {Number} prop
  * @returns {String}
  */
@@ -33862,7 +34109,7 @@ DataMap.prototype.getCopyable = function (row, prop) {
 /**
  * Saves single value to the data array.
  *
- * @param {Number} row
+ * @param {Number} row Visual row index.
  * @param {Number} prop
  * @param {String} value
  * @param {String} [source] Source of hook runner.
@@ -33914,14 +34161,14 @@ DataMap.prototype.set = function (row, prop, value, source) {
 /**
  * This ridiculous piece of code maps rows Id that are present in table data to those displayed for user.
  * The trick is, the physical row id (stored in settings.data) is not necessary the same
- * as the logical (displayed) row id (e.g. when sorting is applied).
+ * as the visual (displayed) row id (e.g. when sorting is applied).
  *
- * @param {Number} index
+ * @param {Number} index Visual row index.
  * @param {Number} amount
  * @fires Hooks#modifyRow
  * @returns {Number}
  */
-DataMap.prototype.physicalRowsToLogical = function (index, amount) {
+DataMap.prototype.visualRowsToPhysical = function (index, amount) {
   var totalRows = this.instance.countSourceRows();
   var physicRow = (totalRows + index) % totalRows;
   var logicRows = [];
@@ -33941,26 +34188,26 @@ DataMap.prototype.physicalRowsToLogical = function (index, amount) {
 
 /**
  *
- * @param index
+ * @param index Visual column index.
  * @param amount
  * @returns {Array}
  */
-DataMap.prototype.physicalColumnsToLogical = function (index, amount) {
+DataMap.prototype.visualColumnsToPhysical = function (index, amount) {
   var totalCols = this.instance.countCols();
   var physicalCol = (totalCols + index) % totalCols;
-  var logicalCols = [];
+  var visualCols = [];
   var colsToRemove = amount;
 
   while (physicalCol < totalCols && colsToRemove) {
     var col = this.instance.runHooks('modifyCol', physicalCol);
 
-    logicalCols.push(col);
+    visualCols.push(col);
 
     colsToRemove--;
     physicalCol++;
   }
 
-  return logicalCols;
+  return visualCols;
 };
 
 /**
@@ -34054,8 +34301,8 @@ DataMap.prototype.getAll = function () {
 /**
  * Returns data range as array.
  *
- * @param {Object} [start] Start selection position
- * @param {Object} [end] End selection position
+ * @param {Object} [start] Start selection position. Visual indexes.
+ * @param {Object} [end] End selection position. Visual indexes.
  * @param {Number} destination Destination of datamap.get
  * @returns {Array}
  */
@@ -34101,8 +34348,8 @@ DataMap.prototype.getRange = function (start, end, destination) {
 /**
  * Return data as text (tab separated columns).
  *
- * @param {Object} [start] Start selection position
- * @param {Object} [end] End selection position
+ * @param {Object} [start] Start selection position. Visual indexes.
+ * @param {Object} [end] End selection position. Visual indexes.
  * @returns {String}
  */
 DataMap.prototype.getText = function (start, end) {
@@ -34112,8 +34359,8 @@ DataMap.prototype.getText = function (start, end) {
 /**
  * Return data as copyable text (tab separated columns intended for clipboard copy to an external application).
  *
- * @param {Object} [start] Start selection position
- * @param {Object} [end] End selection position
+ * @param {Object} [start] Start selection position. Visual indexes.
+ * @param {Object} [end] End selection position. Visual indexes.
  * @returns {String}
  */
 DataMap.prototype.getCopyableText = function (start, end) {
@@ -34152,7 +34399,7 @@ DataMap.prototype.destroy = function () {
 exports.default = DataMap;
 
 /***/ }),
-/* 300 */
+/* 314 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34162,9 +34409,9 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _number = __webpack_require__(6);
 
@@ -34242,7 +34489,7 @@ var DataSource = function () {
     /**
      * Returns array of column values from the data source. `column` is the index of the row in the data source.
      *
-     * @param {Number} column
+     * @param {Number} column Visual column index.
      * @returns {Array}
      */
 
@@ -34270,7 +34517,7 @@ var DataSource = function () {
     /**
      * Returns a single row of the data (array or object, depending on what you have). `row` is the index of the row in the data source.
      *
-     * @param {Number} row
+     * @param {Number} row Physical row index.
      * @returns {Array|Object}
      */
 
@@ -34283,8 +34530,8 @@ var DataSource = function () {
     /**
      * Returns a single value from the data.
      *
-     * @param {Number} row Row index.
-     * @param {Number} column Column index.
+     * @param {Number} row Physical row index.
+     * @param {Number} column Visual column index.
      * @returns {*}
      */
 
@@ -34315,8 +34562,8 @@ var DataSource = function () {
     /**
      * Returns source data by passed range.
      *
-     * @param {Object} start Object with `row` and `col` keys.
-     * @param {Object} end Object with `row` and `col` keys.
+     * @param {Object} start Object with physical `row` and `col` keys (or visual column index, if data type is an array of objects).
+     * @param {Object} end Object with physical `row` and `col` keys (or visual column index, if data type is an array of objects).
      * @param {Boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
      *                                  in another format.
      * @returns {Array}
@@ -34413,7 +34660,7 @@ var DataSource = function () {
 exports.default = DataSource;
 
 /***/ }),
-/* 301 */
+/* 315 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34844,7 +35091,7 @@ function EditorManager(instance, priv, selection) {
 exports.default = EditorManager;
 
 /***/ }),
-/* 302 */
+/* 316 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34923,7 +35170,7 @@ var CheckboxEditor = function (_BaseEditor) {
 exports.default = CheckboxEditor;
 
 /***/ }),
-/* 303 */
+/* 317 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34939,15 +35186,15 @@ var _moment = __webpack_require__(36);
 
 var _moment2 = _interopRequireDefault(_moment);
 
-var _pikaday = __webpack_require__(401);
+var _pikaday = __webpack_require__(419);
 
 var _pikaday2 = _interopRequireDefault(_pikaday);
 
-__webpack_require__(394);
+__webpack_require__(411);
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _eventManager = __webpack_require__(4);
 
@@ -35256,7 +35503,7 @@ var DateEditor = function (_TextEditor) {
 exports.default = DateEditor;
 
 /***/ }),
-/* 304 */
+/* 318 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35268,7 +35515,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _autocompleteEditor = __webpack_require__(247);
+var _autocompleteEditor = __webpack_require__(263);
 
 var _autocompleteEditor2 = _interopRequireDefault(_autocompleteEditor);
 
@@ -35325,7 +35572,7 @@ _pluginHooks2.default.getSingleton().add('beforeValidate', function (value, row,
 exports.default = DropdownEditor;
 
 /***/ }),
-/* 305 */
+/* 319 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35638,7 +35885,7 @@ MobileTextEditor.prototype.destroy = function () {
 exports.default = MobileTextEditor;
 
 /***/ }),
-/* 306 */
+/* 320 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35705,7 +35952,7 @@ var NumericEditor = function (_TextEditor) {
 exports.default = NumericEditor;
 
 /***/ }),
-/* 307 */
+/* 321 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35769,7 +36016,7 @@ var PasswordEditor = function (_TextEditor) {
 exports.default = PasswordEditor;
 
 /***/ }),
-/* 308 */
+/* 322 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36037,105 +36284,105 @@ SelectEditor.prototype.getEditedCell = function () {
 exports.default = SelectEditor;
 
 /***/ }),
-/* 309 */
+/* 323 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(96);
+__webpack_require__(97);
 
-__webpack_require__(113);
-
-__webpack_require__(122);
+__webpack_require__(114);
 
 __webpack_require__(123);
 
-__webpack_require__(107);
+__webpack_require__(124);
 
-__webpack_require__(121);
+__webpack_require__(108);
 
-__webpack_require__(104);
+__webpack_require__(122);
 
 __webpack_require__(105);
 
 __webpack_require__(106);
 
-__webpack_require__(95);
+__webpack_require__(107);
 
-__webpack_require__(118);
-
-__webpack_require__(116);
-
-__webpack_require__(114);
+__webpack_require__(96);
 
 __webpack_require__(119);
 
-__webpack_require__(120);
+__webpack_require__(117);
 
 __webpack_require__(115);
 
-__webpack_require__(117);
+__webpack_require__(120);
 
-__webpack_require__(108);
+__webpack_require__(121);
+
+__webpack_require__(116);
+
+__webpack_require__(118);
 
 __webpack_require__(109);
 
 __webpack_require__(110);
 
-__webpack_require__(112);
-
 __webpack_require__(111);
 
-__webpack_require__(93);
+__webpack_require__(113);
+
+__webpack_require__(112);
 
 __webpack_require__(94);
 
-__webpack_require__(89);
+__webpack_require__(95);
+
+__webpack_require__(90);
+
+__webpack_require__(93);
 
 __webpack_require__(92);
 
 __webpack_require__(91);
 
-__webpack_require__(90);
-
-__webpack_require__(69);
-
-__webpack_require__(98);
+__webpack_require__(68);
 
 __webpack_require__(99);
 
-__webpack_require__(101);
-
 __webpack_require__(100);
-
-__webpack_require__(97);
-
-__webpack_require__(103);
 
 __webpack_require__(102);
 
-__webpack_require__(124);
+__webpack_require__(101);
 
-__webpack_require__(127);
+__webpack_require__(98);
+
+__webpack_require__(104);
+
+__webpack_require__(103);
 
 __webpack_require__(125);
 
-__webpack_require__(126);
-
-__webpack_require__(129);
-
 __webpack_require__(128);
 
-__webpack_require__(131);
+__webpack_require__(126);
+
+__webpack_require__(127);
 
 __webpack_require__(130);
 
-__webpack_require__(279);
+__webpack_require__(129);
 
-__webpack_require__(280);
+__webpack_require__(132);
 
-__webpack_require__(281);
+__webpack_require__(131);
+
+__webpack_require__(294);
+
+__webpack_require__(295);
+
+__webpack_require__(296);
 
 var _editors = __webpack_require__(14);
 
@@ -36143,13 +36390,13 @@ var _renderers = __webpack_require__(9);
 
 var _validators = __webpack_require__(26);
 
-var _cellTypes = __webpack_require__(64);
+var _cellTypes = __webpack_require__(63);
 
-var _core = __webpack_require__(65);
+var _core = __webpack_require__(64);
 
 var _core2 = _interopRequireDefault(_core);
 
-var _jquery = __webpack_require__(277);
+var _jquery = __webpack_require__(292);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -36161,11 +36408,11 @@ var _pluginHooks = __webpack_require__(8);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _ghostTable = __webpack_require__(68);
+var _ghostTable = __webpack_require__(67);
 
 var _ghostTable2 = _interopRequireDefault(_ghostTable);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var arrayHelpers = _interopRequireWildcard(_array);
 
@@ -36173,11 +36420,11 @@ var _browser = __webpack_require__(25);
 
 var browserHelpers = _interopRequireWildcard(_browser);
 
-var _data = __webpack_require__(66);
+var _data = __webpack_require__(65);
 
 var dataHelpers = _interopRequireWildcard(_data);
 
-var _date = __webpack_require__(88);
+var _date = __webpack_require__(89);
 
 var dateHelpers = _interopRequireWildcard(_date);
 
@@ -36197,11 +36444,11 @@ var _number = __webpack_require__(6);
 
 var numberHelpers = _interopRequireWildcard(_number);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var objectHelpers = _interopRequireWildcard(_object);
 
-var _setting = __webpack_require__(67);
+var _setting = __webpack_require__(66);
 
 var settingHelpers = _interopRequireWildcard(_setting);
 
@@ -36221,13 +36468,13 @@ var _event = __webpack_require__(7);
 
 var domEventHelpers = _interopRequireWildcard(_event);
 
-var _index = __webpack_require__(278);
+var _index = __webpack_require__(293);
 
 var plugins = _interopRequireWildcard(_index);
 
 var _plugins = __webpack_require__(5);
 
-var _defaultSettings = __webpack_require__(87);
+var _defaultSettings = __webpack_require__(88);
 
 var _defaultSettings2 = _interopRequireDefault(_defaultSettings);
 
@@ -36250,9 +36497,9 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "2017-05-30T10:18:32.902Z";
+Handsontable.buildDate = "2017-07-10T08:08:33.664Z";
 Handsontable.packageName = "handsontable";
-Handsontable.version = "0.32.0";
+Handsontable.version = "0.33.0";
 
 var baseVersion = undefined;
 
@@ -36356,7 +36603,7 @@ Handsontable.plugins.registerPlugin = _plugins.registerPlugin;
 module.exports = Handsontable;
 
 /***/ }),
-/* 310 */
+/* 324 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36415,7 +36662,7 @@ function MultiMap() {
 exports.default = MultiMap;
 
 /***/ }),
-/* 311 */
+/* 325 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36433,23 +36680,23 @@ var _base = __webpack_require__(12);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _feature = __webpack_require__(34);
 
 var _element = __webpack_require__(0);
 
-var _ghostTable = __webpack_require__(68);
+var _ghostTable = __webpack_require__(67);
 
 var _ghostTable2 = _interopRequireDefault(_ghostTable);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _number = __webpack_require__(6);
 
 var _plugins = __webpack_require__(5);
 
-var _samplesGenerator = __webpack_require__(254);
+var _samplesGenerator = __webpack_require__(269);
 
 var _samplesGenerator2 = _interopRequireDefault(_samplesGenerator);
 
@@ -37092,7 +37339,7 @@ var AutoColumnSize = function (_BasePlugin) {
 exports.default = AutoColumnSize;
 
 /***/ }),
-/* 312 */
+/* 326 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -37108,23 +37355,23 @@ var _base = __webpack_require__(12);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _feature = __webpack_require__(34);
 
 var _element = __webpack_require__(0);
 
-var _ghostTable = __webpack_require__(68);
+var _ghostTable = __webpack_require__(67);
 
 var _ghostTable2 = _interopRequireDefault(_ghostTable);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _number = __webpack_require__(6);
 
 var _plugins = __webpack_require__(5);
 
-var _samplesGenerator = __webpack_require__(254);
+var _samplesGenerator = __webpack_require__(269);
 
 var _samplesGenerator2 = _interopRequireDefault(_samplesGenerator);
 
@@ -37497,7 +37744,7 @@ var AutoRowSize = function (_BasePlugin) {
     /**
      * Get the calculated row height.
      *
-     * @param {Number} row Row index.
+     * @param {Number} row Visual row index.
      * @param {Number} [defaultHeight] Default row height. It will be pick up if no calculated height found.
      * @returns {Number}
      */
@@ -37741,7 +37988,7 @@ var AutoRowSize = function (_BasePlugin) {
 exports.default = AutoRowSize;
 
 /***/ }),
-/* 313 */
+/* 327 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -37771,7 +38018,7 @@ var _plugins = __webpack_require__(5);
 
 var _src = __webpack_require__(11);
 
-var _utils = __webpack_require__(314);
+var _utils = __webpack_require__(328);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -37967,10 +38214,37 @@ var Autofill = function (_BasePlugin) {
       if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
         var selectionData = this.getSelectionData();
         var deltas = (0, _utils.getDeltas)(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
+        var fillData = selectionData;
 
         this.hot.runHooks('beforeAutofill', startOfDragCoords, endOfDragCoords, selectionData);
 
-        this.hot.populateFromArray(startOfDragCoords.row, startOfDragCoords.col, selectionData, endOfDragCoords.row, endOfDragCoords.col, this.pluginName + '.fill', null, directionOfDrag, deltas);
+        if (['up', 'left'].indexOf(directionOfDrag) > -1) {
+          fillData = [];
+
+          var dragLength = null;
+          var fillOffset = null;
+
+          if (directionOfDrag === 'up') {
+            dragLength = endOfDragCoords.row - startOfDragCoords.row + 1;
+            fillOffset = dragLength % selectionData.length;
+
+            for (var i = 0; i < dragLength; i++) {
+              fillData.push(selectionData[(i + (selectionData.length - fillOffset)) % selectionData.length]);
+            }
+          } else {
+            dragLength = endOfDragCoords.col - startOfDragCoords.col + 1;
+            fillOffset = dragLength % selectionData[0].length;
+
+            for (var _i = 0; _i < selectionData.length; _i++) {
+              fillData.push([]);
+              for (var j = 0; j < dragLength; j++) {
+                fillData[_i].push(selectionData[_i][(j + (selectionData[_i].length - fillOffset)) % selectionData[_i].length]);
+              }
+            }
+          }
+        }
+
+        this.hot.populateFromArray(startOfDragCoords.row, startOfDragCoords.col, fillData, endOfDragCoords.row, endOfDragCoords.col, this.pluginName + '.fill', null, directionOfDrag, deltas);
 
         this.setSelection(cornersOfSelectionAndDragAreas);
       } else {
@@ -38391,7 +38665,7 @@ var Autofill = function (_BasePlugin) {
 exports.default = Autofill;
 
 /***/ }),
-/* 314 */
+/* 328 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38403,7 +38677,7 @@ exports.getDeltas = getDeltas;
 exports.getDragDirectionAndRange = getDragDirectionAndRange;
 exports.getMappedFillHandleSetting = getMappedFillHandleSetting;
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _mixed = __webpack_require__(20);
 
@@ -38543,7 +38817,7 @@ function getMappedFillHandleSetting(fillHandle) {
 }
 
 /***/ }),
-/* 315 */
+/* 329 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38563,11 +38837,11 @@ var _moment2 = _interopRequireDefault(_moment);
 
 var _element = __webpack_require__(0);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _mixed = __webpack_require__(20);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _base = __webpack_require__(12);
 
@@ -38575,7 +38849,7 @@ var _base2 = _interopRequireDefault(_base);
 
 var _plugins = __webpack_require__(5);
 
-var _mergeSort = __webpack_require__(370);
+var _mergeSort = __webpack_require__(387);
 
 var _mergeSort2 = _interopRequireDefault(_mergeSort);
 
@@ -38768,7 +39042,7 @@ var ColumnSorting = function (_BasePlugin) {
     /**
      * Set sorted column and order info
      *
-     * @param {number} col Sorted column index.
+     * @param {number} col Sorted visual column index.
      * @param {boolean|undefined} order Sorting order (`true` for ascending, `false` for descending).
      */
 
@@ -39149,7 +39423,7 @@ var ColumnSorting = function (_BasePlugin) {
     /**
      * Translates sorted row index to physical row index.
      *
-     * @param {Number} row Sorted row index.
+     * @param {Number} row Sorted (visual) row index.
      * @returns {number} Physical row index.
      */
 
@@ -39169,7 +39443,7 @@ var ColumnSorting = function (_BasePlugin) {
      * `afterGetColHeader` callback. Adds column sorting css classes to clickable headers.
      *
      * @private
-     * @param {Number} col Column index.
+     * @param {Number} col Visual column index.
      * @param {Element} TH TH HTML element.
      */
 
@@ -39223,7 +39497,7 @@ var ColumnSorting = function (_BasePlugin) {
      * `afterCreateRow` callback. Updates the sorting state after a row have been created.
      *
      * @private
-     * @param {Number} index
+     * @param {Number} index Visual row index.
      * @param {Number} amount
      */
 
@@ -39251,7 +39525,7 @@ var ColumnSorting = function (_BasePlugin) {
      * `afterRemoveRow` hook callback.
      *
      * @private
-     * @param {Number} index
+     * @param {Number} index Visual row index.
      * @param {Number} amount
      */
 
@@ -39314,7 +39588,7 @@ var ColumnSorting = function (_BasePlugin) {
      *
      * @private
      * @param {Event} event Event which are provided by hook.
-     * @param {CellCoords} coords Coords of the selected cell.
+     * @param {CellCoords} coords Visual coords of the selected cell.
      */
 
   }, {
@@ -39345,7 +39619,7 @@ var ColumnSorting = function (_BasePlugin) {
 exports.default = ColumnSorting;
 
 /***/ }),
-/* 316 */
+/* 330 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39603,7 +39877,7 @@ var CommentEditor = function () {
 exports.default = CommentEditor;
 
 /***/ }),
-/* 317 */
+/* 331 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39617,9 +39891,7 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 
 var _element = __webpack_require__(0);
 
-var _object = __webpack_require__(2);
-
-var _function = __webpack_require__(35);
+var _object = __webpack_require__(1);
 
 var _eventManager = __webpack_require__(4);
 
@@ -39633,13 +39905,17 @@ var _base = __webpack_require__(12);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _commentEditor = __webpack_require__(316);
+var _commentEditor = __webpack_require__(330);
 
 var _commentEditor2 = _interopRequireDefault(_commentEditor);
 
 var _utils = __webpack_require__(17);
 
-__webpack_require__(395);
+var _displaySwitch = __webpack_require__(332);
+
+var _displaySwitch2 = _interopRequireDefault(_displaySwitch);
+
+__webpack_require__(412);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -39667,6 +39943,16 @@ var META_READONLY = 'readOnly';
  * ```js
  * ...
  * comments: true
+ * ...
+ * ```
+ *
+ * or object with extra predefined plugin config:
+ *
+ * ```js
+ * ...
+ * comments: {
+ *   displayDelay: 1000
+ * }
  * ...
  * ```
  *
@@ -39717,6 +40003,12 @@ var Comments = function (_BasePlugin) {
 
     _this.editor = null;
     /**
+     * Instance of {@link DisplaySwitch}.
+     *
+     * @type {DisplaySwitch}
+     */
+    _this.displaySwitch = null;
+    /**
      * Instance of {@link EventManager}.
      *
      * @private
@@ -39744,12 +40036,6 @@ var Comments = function (_BasePlugin) {
      * @type {*}
      */
     _this.timer = null;
-    /**
-     * Delay used when showing/hiding the comments (in milliseconds).
-     *
-     * @type {Number}
-     */
-    _this.displayDelay = 250;
 
     privatePool.set(_this, {
       tempEditorDimensions: {},
@@ -39792,6 +40078,10 @@ var Comments = function (_BasePlugin) {
         this.eventManager = new _eventManager2.default(this);
       }
 
+      if (!this.displaySwitch) {
+        this.displaySwitch = new _displaySwitch2.default(this.getDisplayDelaySetting());
+      }
+
       this.addHook('afterContextMenuDefaultOptions', function (options) {
         return _this2.addToContextMenu(options);
       });
@@ -39804,14 +40094,34 @@ var Comments = function (_BasePlugin) {
       this.addHook('afterScrollVertically', function () {
         return _this2.hide();
       });
-
       this.addHook('afterBeginEditing', function (args) {
         return _this2.onAfterBeginEditing(args);
+      });
+
+      this.displaySwitch.addLocalHook('hide', function () {
+        return _this2.hide();
+      });
+      this.displaySwitch.addLocalHook('show', function (row, col) {
+        return _this2.showAtCell(row, col);
       });
 
       this.registerListeners();
 
       _get(Comments.prototype.__proto__ || Object.getPrototypeOf(Comments.prototype), 'enablePlugin', this).call(this);
+    }
+
+    /**
+     * Update plugin for this Handsontable instance.
+     */
+
+  }, {
+    key: 'updatePlugin',
+    value: function updatePlugin() {
+      this.disablePlugin();
+      this.enablePlugin();
+      _get(Comments.prototype.__proto__ || Object.getPrototypeOf(Comments.prototype), 'updatePlugin', this).call(this);
+
+      this.displaySwitch.updateDelay(this.getDisplayDelaySetting());
     }
 
     /**
@@ -39937,8 +40247,8 @@ var Comments = function (_BasePlugin) {
     /**
      * Set a comment for a cell.
      *
-     * @param {Number} row Row index.
-     * @param {Number} col Column index.
+     * @param {Number} row Visual row index.
+     * @param {Number} col Visual column index.
      * @param {String} value Comment contents.
      */
 
@@ -39978,8 +40288,8 @@ var Comments = function (_BasePlugin) {
     /**
      * Remove comment from a cell.
      *
-     * @param {Number} row Row index.
-     * @param {Number} col Column index.
+     * @param {Number} row Visual row index.
+     * @param {Number} col Visual column index.
      * @param {Boolean} [forceRender = true] If `true`, the table will be re-rendered at the end of the operation.
      */
 
@@ -40010,8 +40320,8 @@ var Comments = function (_BasePlugin) {
     /**
      * Get comment from a cell at the provided coordinates.
      *
-     * @param {Number} row Row index.
-     * @param {Number} column Column index.
+     * @param {Number} row Visual row index.
+     * @param {Number} column Visual column index.
      */
 
   }, {
@@ -40047,8 +40357,8 @@ var Comments = function (_BasePlugin) {
     /**
      * Show comment editor according to cell coordinates.
      *
-     * @param {Number} row Row index.
-     * @param {Number} col Column index.
+     * @param {Number} row Visual row index.
+     * @param {Number} col Visual column index.
      * @returns {Boolean} Returns `true` if comment editor was shown.
      */
 
@@ -40150,8 +40460,8 @@ var Comments = function (_BasePlugin) {
     /**
      * Set or update the comment-related cell meta.
      *
-     * @param {Number} row Row index.
-     * @param {Number} column Column index.
+     * @param {Number} row Visual row index.
+     * @param {Number} column Visual column index.
      * @param {Object} metaObject Object defining all the comment-related meta information.
      */
 
@@ -40174,8 +40484,8 @@ var Comments = function (_BasePlugin) {
     /**
      * Get the comment related meta information.
      *
-     * @param {Number} row Row index.
-     * @param {Number} column Column index.
+     * @param {Number} row Visual row index.
+     * @param {Number} column Visual column index.
      * @param {String} property Cell meta property.
      * @returns {Mixed}
      */
@@ -40233,31 +40543,24 @@ var Comments = function (_BasePlugin) {
   }, {
     key: 'onMouseOver',
     value: function onMouseOver(event) {
-      var _this4 = this;
-
-      if (this.mouseDown || this.editor.isFocused()) {
-        return;
-      }
       var priv = privatePool.get(this);
+
       priv.cellBelowCursor = document.elementFromPoint(event.clientX, event.clientY);
 
-      (0, _function.debounce)(function () {
-        if ((0, _element.hasClass)(event.target, 'wtBorder') || priv.cellBelowCursor !== event.target || !_this4.editor) {
-          return;
-        }
+      if (this.mouseDown || this.editor.isFocused() || (0, _element.hasClass)(event.target, 'wtBorder') || priv.cellBelowCursor !== event.target || !this.editor) {
+        return;
+      }
 
-        if (_this4.targetIsCellWithComment(event)) {
-          var coordinates = _this4.hot.view.wt.wtTable.getCoords(event.target);
-          var range = {
-            from: new _src.CellCoords(coordinates.row, coordinates.col)
-          };
+      if (this.targetIsCellWithComment(event)) {
+        var coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
+        var range = {
+          from: new _src.CellCoords(coordinates.row, coordinates.col)
+        };
 
-          _this4.setRange(range);
-          _this4.show();
-        } else if ((0, _element.isChildOf)(event.target, document) && !_this4.targetIsCommentTextArea(event) && !_this4.editor.isFocused()) {
-          _this4.hide();
-        }
-      }, this.displayDelay)();
+        this.displaySwitch.show(range);
+      } else if ((0, _element.isChildOf)(event.target, document) && !this.targetIsCommentTextArea(event)) {
+        this.displaySwitch.hide();
+      }
     }
 
     /**
@@ -40351,8 +40654,9 @@ var Comments = function (_BasePlugin) {
   }, {
     key: 'onContextMenuAddComment',
     value: function onContextMenuAddComment() {
-      var _this5 = this;
+      var _this4 = this;
 
+      this.displaySwitch.cancelHiding();
       var coords = this.hot.getSelectedRange();
 
       this.contextMenuEvent = true;
@@ -40361,9 +40665,9 @@ var Comments = function (_BasePlugin) {
       });
       this.show();
       setTimeout(function () {
-        if (_this5.hot) {
-          _this5.hot.deselectCell();
-          _this5.editor.focus();
+        if (_this4.hot) {
+          _this4.hot.deselectCell();
+          _this4.editor.focus();
         }
       }, 10);
     }
@@ -40420,15 +40724,17 @@ var Comments = function (_BasePlugin) {
   }, {
     key: 'addToContextMenu',
     value: function addToContextMenu(defaultOptions) {
-      var _this6 = this;
+      var _this5 = this;
 
-      defaultOptions.items.push((0, _plugins.getPlugin)(this.hot, 'contextMenu').constructor.SEPARATOR, {
+      defaultOptions.items.push({
+        name: '---------'
+      }, {
         key: 'commentsAddEdit',
         name: function name() {
-          return _this6.checkSelectionCommentsConsistency() ? 'Edit comment' : 'Add comment';
+          return _this5.checkSelectionCommentsConsistency() ? 'Edit comment' : 'Add comment';
         },
         callback: function callback() {
-          return _this6.onContextMenuAddComment();
+          return _this5.onContextMenuAddComment();
         },
         disabled: function disabled() {
           return !(this.getSelected() && !this.selection.selectedHeader.corner);
@@ -40440,19 +40746,19 @@ var Comments = function (_BasePlugin) {
         },
 
         callback: function callback(key, selection) {
-          return _this6.onContextMenuRemoveComment(selection);
+          return _this5.onContextMenuRemoveComment(selection);
         },
         disabled: function disabled() {
-          return _this6.hot.selection.selectedHeader.corner;
+          return _this5.hot.selection.selectedHeader.corner;
         }
       }, {
         key: 'commentsReadOnly',
         name: function name() {
-          var _this7 = this;
+          var _this6 = this;
 
           var label = 'Read only comment';
           var hasProperty = (0, _utils.checkSelectionConsistency)(this.getSelectedRange(), function (row, col) {
-            var readOnlyProperty = _this7.getCellMeta(row, col)[META_COMMENT];
+            var readOnlyProperty = _this6.getCellMeta(row, col)[META_COMMENT];
             if (readOnlyProperty) {
               readOnlyProperty = readOnlyProperty[META_READONLY];
             }
@@ -40470,20 +40776,38 @@ var Comments = function (_BasePlugin) {
         },
 
         callback: function callback(key, selection) {
-          return _this6.onContextMenuMakeReadOnly(selection);
+          return _this5.onContextMenuMakeReadOnly(selection);
         },
         disabled: function disabled() {
-          return _this6.hot.selection.selectedHeader.corner || !_this6.checkSelectionCommentsConsistency();
+          return _this5.hot.selection.selectedHeader.corner || !_this5.checkSelectionCommentsConsistency();
         }
       });
+    }
+
+    /**
+     * Get `displayDelay` setting of comment plugin.
+     *
+     * @returns {Number|undefined}
+     */
+
+  }, {
+    key: 'getDisplayDelaySetting',
+    value: function getDisplayDelaySetting() {
+      var commentSetting = this.hot.getSettings().comments;
+
+      if ((0, _object.isObject)(commentSetting)) {
+        return commentSetting.displayDelay;
+      }
+
+      return void 0;
     }
 
     /**
      * `afterBeginEditing` hook callback.
      *
      * @private
-     * @param {Number} row Row index of the currently edited cell.
-     * @param {Number} column Column index of the currently edited cell.
+     * @param {Number} row Visual row index of the currently edited cell.
+     * @param {Number} column Visual column index of the currently edited cell.
      */
 
   }, {
@@ -40502,6 +40826,11 @@ var Comments = function (_BasePlugin) {
       if (this.editor) {
         this.editor.destroy();
       }
+
+      if (this.displaySwitch) {
+        this.displaySwitch.destroy();
+      }
+
       _get(Comments.prototype.__proto__ || Object.getPrototypeOf(Comments.prototype), 'destroy', this).call(this);
     }
   }]);
@@ -40514,7 +40843,7 @@ var Comments = function (_BasePlugin) {
 exports.default = Comments;
 
 /***/ }),
-/* 318 */
+/* 332 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40524,9 +40853,152 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _array = __webpack_require__(1);
+var _function = __webpack_require__(35);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
+
+var _localHooks = __webpack_require__(70);
+
+var _localHooks2 = _interopRequireDefault(_localHooks);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var DEFAULT_DISPLAY_DELAY = 250;
+var DEFAULT_HIDE_DELAY = 250;
+
+/**
+ * Display switch for the Comments plugin. Manages the time of delayed displaying / hiding comments.
+ *
+ * @class DisplaySwitch
+ * @plugin Comments
+ */
+
+var DisplaySwitch = function () {
+  function DisplaySwitch(displayDelay) {
+    _classCallCheck(this, DisplaySwitch);
+
+    /**
+     * Flag to determine if comment can be showed or hidden. State `true` mean that last performed action
+     * was an attempt to show comment element. State `false` mean that it was attempt to hide comment element.
+     *
+     * @type {Boolean}
+     */
+    this.wasLastActionShow = true;
+    /**
+     * Show comment after predefined delay. It keeps reference to immutable `debounce` function.
+     *
+     * @type {Function}
+     */
+    this.showDebounced = null;
+    /**
+     * Reference to timer, run by `setTimeout`, which is hiding comment
+     *
+     * @type {Number}
+     */
+    this.hidingTimer = null;
+
+    this.updateDelay(displayDelay);
+  }
+
+  /**
+   * Responsible for hiding comment after proper delay.
+   */
+
+
+  _createClass(DisplaySwitch, [{
+    key: 'hide',
+    value: function hide() {
+      var _this = this;
+
+      this.wasLastActionShow = false;
+
+      this.hidingTimer = setTimeout(function () {
+        if (_this.wasLastActionShow === false) {
+          _this.runLocalHooks('hide');
+        }
+      }, DEFAULT_HIDE_DELAY);
+    }
+
+    /**
+     * Responsible for showing comment after proper delay.
+     *
+     * @param {Object} range Coordinates of selected cell.
+     */
+
+  }, {
+    key: 'show',
+    value: function show(range) {
+      this.wasLastActionShow = true;
+      this.showDebounced(range);
+    }
+  }, {
+    key: 'cancelHiding',
+
+
+    /**
+     * Cancel hiding comment.
+     */
+    value: function cancelHiding() {
+      this.wasLastActionShow = true;
+
+      clearTimeout(this.hidingTimer);
+      this.hidingTimer = null;
+    }
+
+    /**
+     * Update the switch settings.
+     *
+     * @param {Number} displayDelay Delay of showing the comments (in milliseconds).
+     */
+
+  }, {
+    key: 'updateDelay',
+    value: function updateDelay() {
+      var _this2 = this;
+
+      var displayDelay = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT_DISPLAY_DELAY;
+
+      this.showDebounced = (0, _function.debounce)(function (range) {
+        if (_this2.wasLastActionShow) {
+          _this2.runLocalHooks('show', range.from.row, range.from.col);
+        }
+      }, displayDelay);
+    }
+
+    /**
+     * Destroy the switcher.
+     */
+
+  }, {
+    key: 'destroy',
+    value: function destroy() {
+      this.clearLocalHooks();
+    }
+  }]);
+
+  return DisplaySwitch;
+}();
+
+(0, _object.mixin)(DisplaySwitch, _localHooks2.default);
+
+exports.default = DisplaySwitch;
+
+/***/ }),
+/* 333 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _array = __webpack_require__(2);
+
+var _object = __webpack_require__(1);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -40646,7 +41118,7 @@ function findSubCommand(subCommandName, subCommands) {
 exports.default = CommandExecutor;
 
 /***/ }),
-/* 319 */
+/* 334 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40666,9 +41138,9 @@ var _pluginHooks = __webpack_require__(8);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _commandExecutor = __webpack_require__(318);
+var _commandExecutor = __webpack_require__(333);
 
 var _commandExecutor2 = _interopRequireDefault(_commandExecutor);
 
@@ -40676,11 +41148,11 @@ var _eventManager = __webpack_require__(4);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _itemsFactory = __webpack_require__(321);
+var _itemsFactory = __webpack_require__(336);
 
 var _itemsFactory2 = _interopRequireDefault(_itemsFactory);
 
-var _menu = __webpack_require__(322);
+var _menu = __webpack_require__(337);
 
 var _menu2 = _interopRequireDefault(_menu);
 
@@ -40690,9 +41162,9 @@ var _event = __webpack_require__(7);
 
 var _element = __webpack_require__(0);
 
-var _predefinedItems = __webpack_require__(52);
+var _predefinedItems = __webpack_require__(71);
 
-__webpack_require__(396);
+__webpack_require__(413);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -41064,7 +41536,7 @@ ContextMenu.SEPARATOR = {
 exports.default = ContextMenu;
 
 /***/ }),
-/* 320 */
+/* 335 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -41214,7 +41686,7 @@ var Cursor = function () {
 exports.default = Cursor;
 
 /***/ }),
-/* 321 */
+/* 336 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -41224,11 +41696,11 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _predefinedItems = __webpack_require__(52);
+var _predefinedItems = __webpack_require__(71);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -41362,7 +41834,7 @@ function _getItems() {
 exports.default = ItemsFactory;
 
 /***/ }),
-/* 322 */
+/* 337 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -41372,15 +41844,15 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _core = __webpack_require__(65);
+var _core = __webpack_require__(64);
 
 var _core2 = _interopRequireDefault(_core);
 
 var _element = __webpack_require__(0);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _cursor = __webpack_require__(320);
+var _cursor = __webpack_require__(335);
 
 var _cursor2 = _interopRequireDefault(_cursor);
 
@@ -41388,7 +41860,7 @@ var _eventManager = __webpack_require__(4);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _function = __webpack_require__(35);
 
@@ -41396,11 +41868,11 @@ var _utils = __webpack_require__(17);
 
 var _unicode = __webpack_require__(16);
 
-var _localHooks = __webpack_require__(250);
+var _localHooks = __webpack_require__(70);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
-var _predefinedItems = __webpack_require__(52);
+var _predefinedItems = __webpack_require__(71);
 
 var _event = __webpack_require__(7);
 
@@ -42219,7 +42691,7 @@ var Menu = function () {
 exports.default = Menu;
 
 /***/ }),
-/* 323 */
+/* 338 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42231,7 +42703,7 @@ exports.default = alignmentItem;
 
 var _utils = __webpack_require__(17);
 
-var _separator = __webpack_require__(71);
+var _separator = __webpack_require__(72);
 
 var KEY = exports.KEY = 'alignment';
 
@@ -42531,7 +43003,7 @@ function alignmentItem() {
 }
 
 /***/ }),
-/* 324 */
+/* 339 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42572,7 +43044,7 @@ function clearColumnItem() {
 }
 
 /***/ }),
-/* 325 */
+/* 340 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42615,7 +43087,7 @@ function columnLeftItem() {
 }
 
 /***/ }),
-/* 326 */
+/* 341 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42659,7 +43131,7 @@ function columnRightItem() {
 }
 
 /***/ }),
-/* 327 */
+/* 342 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42710,7 +43182,7 @@ function readOnlyItem() {
 }
 
 /***/ }),
-/* 328 */
+/* 343 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42735,7 +43207,7 @@ function redoItem() {
 }
 
 /***/ }),
-/* 329 */
+/* 344 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42772,7 +43244,7 @@ function removeColumnItem() {
 }
 
 /***/ }),
-/* 330 */
+/* 345 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42809,7 +43281,7 @@ function removeRowItem() {
 }
 
 /***/ }),
-/* 331 */
+/* 346 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42843,7 +43315,7 @@ function rowAboveItem() {
 }
 
 /***/ }),
-/* 332 */
+/* 347 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42877,7 +43349,7 @@ function rowBelowItem() {
 }
 
 /***/ }),
-/* 333 */
+/* 348 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42902,7 +43374,53 @@ function undoItem() {
 }
 
 /***/ }),
-/* 334 */
+/* 349 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.default = copyItem;
+function copyItem(copyPastePlugin) {
+  return {
+    key: 'copy',
+    name: 'Copy',
+    callback: function callback() {
+      copyPastePlugin.setCopyableText();
+      copyPastePlugin.copy(true);
+    },
+
+    disabled: false,
+    hidden: false
+  };
+}
+
+/***/ }),
+/* 350 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.default = cutItem;
+function cutItem(copyPastePlugin) {
+  return {
+    key: 'cut',
+    name: 'Cut',
+    callback: function callback() {
+      copyPastePlugin.setCopyableText();
+      copyPastePlugin.cut(true);
+    },
+
+    disabled: false,
+    hidden: false
+  };
+}
+
+/***/ }),
+/* 351 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42916,25 +43434,49 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _zeroclipboard = __webpack_require__(403);
-
-var _zeroclipboard2 = _interopRequireDefault(_zeroclipboard);
-
 var _base = __webpack_require__(12);
 
 var _base2 = _interopRequireDefault(_base);
 
+var _pluginHooks = __webpack_require__(8);
+
+var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
+
+var _SheetClip = __webpack_require__(248);
+
+var _SheetClip2 = _interopRequireDefault(_SheetClip);
+
+var _src = __webpack_require__(11);
+
+var _unicode = __webpack_require__(16);
+
 var _element = __webpack_require__(0);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
+
+var _number = __webpack_require__(6);
+
+var _event = __webpack_require__(7);
+
+var _plugins = __webpack_require__(5);
+
+var _textarea = __webpack_require__(352);
+
+var _textarea2 = _interopRequireDefault(_textarea);
+
+var _copy = __webpack_require__(349);
+
+var _copy2 = _interopRequireDefault(_copy);
+
+var _cut = __webpack_require__(350);
+
+var _cut2 = _interopRequireDefault(_cut);
 
 var _eventManager = __webpack_require__(4);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _plugins = __webpack_require__(5);
-
-var _predefinedItems = __webpack_require__(52);
+__webpack_require__(414);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -42943,289 +43485,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-/**
- * @description
- * This plugin adds a copy/paste functionality to the context menu. Due to browser restrictions, it uses ZeroClipboard to allow
- * copying data with a click.
- *
- * @plugin ContextMenuCopyPaste
- * @dependencies ContextMenu
- */
-var ContextMenuCopyPaste = function (_BasePlugin) {
-  _inherits(ContextMenuCopyPaste, _BasePlugin);
-
-  /**
-   * @param {Object} hotInstance
-   */
-  function ContextMenuCopyPaste(hotInstance) {
-    _classCallCheck(this, ContextMenuCopyPaste);
-
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @type {EventManager}
-     */
-    var _this = _possibleConstructorReturn(this, (ContextMenuCopyPaste.__proto__ || Object.getPrototypeOf(ContextMenuCopyPaste)).call(this, hotInstance));
-
-    _this.eventManager = new _eventManager2.default(_this);
-    /**
-     * Path to swf file which is necessary for ZeroClipboard.
-     *
-     * @type {String}
-     */
-    _this.swfPath = null;
-    /**
-     * outsideClickDeselectsCache setting cache.
-     *
-     * @type {Boolean}
-     */
-    _this.outsideClickDeselectsCache = null;
-    return _this;
-  }
-
-  /**
-   * Check if the plugin is enabled in the handsontable settings.
-   *
-   * @returns {Boolean}
-   */
-
-
-  _createClass(ContextMenuCopyPaste, [{
-    key: 'isEnabled',
-    value: function isEnabled() {
-      return this.hot.getSettings().contextMenuCopyPaste;
-    }
-
-    /**
-     * Enable plugin for this Handsontable instance.
-     */
-
-  }, {
-    key: 'enablePlugin',
-    value: function enablePlugin() {
-      var _this2 = this;
-
-      if (this.enabled) {
-        return;
-      }
-      if (_typeof(this.hot.getSettings().contextMenuCopyPaste) === 'object') {
-        this.swfPath = this.hot.getSettings().contextMenuCopyPaste.swfPath;
-      }
-      if (typeof _zeroclipboard2.default === 'undefined') {
-        console.error('To be able to use the Copy/Paste feature from the context menu, you need to manually include ZeroClipboard.js file to your website.');
-      }
-      try {
-        /* eslint-disable no-new */
-        new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
-      } catch (exception) {
-        if (typeof navigator.mimeTypes['application/x-shockwave-flash'] == 'undefined') {
-          console.error('To be able to use the Copy/Paste feature from the context menu, your browser needs to have Flash Plugin installed.');
-        }
-      }
-      if (this.swfPath) {
-        _zeroclipboard2.default.config({
-          swfPath: this.swfPath
-        });
-      }
-      this.hot.addHook('afterContextMenuShow', function () {
-        return _this2.onAfterContextMenuShow();
-      });
-      this.hot.addHook('afterContextMenuDefaultOptions', function (options) {
-        return _this2.onAfterContextMenuDefaultOptions(options);
-      });
-      this.registerEvents();
-      _get(ContextMenuCopyPaste.prototype.__proto__ || Object.getPrototypeOf(ContextMenuCopyPaste.prototype), 'enablePlugin', this).call(this);
-    }
-
-    /**
-     * Disable plugin for this Handsontable instance.
-     */
-
-  }, {
-    key: 'disablePlugin',
-    value: function disablePlugin() {
-      _get(ContextMenuCopyPaste.prototype.__proto__ || Object.getPrototypeOf(ContextMenuCopyPaste.prototype), 'disablePlugin', this).call(this);
-    }
-
-    /**
-     * @private
-     */
-
-  }, {
-    key: 'registerEvents',
-    value: function registerEvents() {
-      var _this3 = this;
-
-      this.eventManager.addEventListener(document, 'mouseenter', function () {
-        return _this3.removeCurrentClass();
-      });
-      this.eventManager.addEventListener(document, 'mouseleave', function () {
-        return _this3.removeZeroClipboardClass();
-      });
-    }
-
-    /**
-     * Get a value to copy.
-     *
-     * @returns {String}
-     */
-
-  }, {
-    key: 'getCopyValue',
-    value: function getCopyValue() {
-      this.hot.copyPaste.setCopyableText();
-      this.hot.copyPaste.copyPasteInstance.triggerCopy();
-      return this.hot.copyPaste.copyPasteInstance.elTextarea.value;
-    }
-
-    /**
-     * Add Copy and Paste functionality to the context menu.
-     *
-     * @private
-     * @param {Object} defaultOptions
-     */
-
-  }, {
-    key: 'onAfterContextMenuDefaultOptions',
-    value: function onAfterContextMenuDefaultOptions(defaultOptions) {
-      defaultOptions.items.unshift({
-        key: 'copy',
-        name: 'Copy',
-        disabled: function disabled() {
-          return this.selection.selectedHeader.corner;
-        }
-      }, {
-        key: 'paste',
-        name: 'Paste',
-        callback: function callback() {
-          this.copyPaste.triggerPaste();
-        },
-        disabled: function disabled() {
-          return this.selection.selectedHeader.corner;
-        }
-      }, { name: _predefinedItems.SEPARATOR });
-    }
-
-    /**
-     * After context menu show listener.
-     *
-     * @private
-     */
-
-  }, {
-    key: 'onAfterContextMenuShow',
-    value: function onAfterContextMenuShow() {
-      var _this4 = this;
-
-      var contextMenu = this.hot.getPlugin('contextMenu');
-      var data = contextMenu.menu.hotMenu.getSourceData();
-
-      // find position of 'copy' option.
-      (0, _array.arrayEach)(data, function (item, index) {
-        if (item.key === 'copy') {
-          var zeroClipboardInstance = new _zeroclipboard2.default(contextMenu.menu.hotMenu.getCell(index, 0));
-
-          zeroClipboardInstance.off();
-          zeroClipboardInstance.on('copy', function (event) {
-            var clipboard = event.clipboardData;
-
-            clipboard.setData('text/plain', _this4.getCopyValue());
-            _this4.hot.getSettings().outsideClickDeselects = _this4.outsideClickDeselectsCache;
-          });
-
-          return false;
-        }
-      });
-    }
-
-    /**
-     * @private
-     */
-
-  }, {
-    key: 'removeCurrentClass',
-    value: function removeCurrentClass() {
-      var contextMenu = this.hot.getPlugin('contextMenu');
-
-      if (!contextMenu.enabled) {
-        return;
-      }
-      if (contextMenu.menu.isOpened()) {
-        var element = contextMenu.menu.hotMenu.rootElement.querySelector('td.current');
-
-        if (element) {
-          (0, _element.removeClass)(element, 'current');
-        }
-      }
-      this.outsideClickDeselectsCache = this.hot.getSettings().outsideClickDeselects;
-      this.hot.getSettings().outsideClickDeselects = false;
-    }
-
-    /**
-     * @private
-     */
-
-  }, {
-    key: 'removeZeroClipboardClass',
-    value: function removeZeroClipboardClass() {
-      var contextMenu = this.hot.getPlugin('contextMenu');
-
-      if (!contextMenu.enabled) {
-        return;
-      }
-      if (contextMenu.menu.isOpened()) {
-        var element = contextMenu.menu.hotMenu.rootElement.querySelector('td.zeroclipboard-is-hover');
-
-        if (element) {
-          (0, _element.removeClass)(element, 'zeroclipboard-is-hover');
-        }
-      }
-      this.hot.getSettings().outsideClickDeselects = this.outsideClickDeselectsCache;
-    }
-  }]);
-
-  return ContextMenuCopyPaste;
-}(_base2.default);
-
-(0, _plugins.registerPlugin)('contextMenuCopyPaste', ContextMenuCopyPaste);
-
-exports.default = ContextMenuCopyPaste;
-
-/***/ }),
-/* 335 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _copyPaste = __webpack_require__(284);
-
-var _copyPaste2 = _interopRequireDefault(_copyPaste);
-
-var _SheetClip = __webpack_require__(232);
-
-var _SheetClip2 = _interopRequireDefault(_SheetClip);
-
-var _pluginHooks = __webpack_require__(8);
-
-var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
-
-var _unicode = __webpack_require__(16);
-
-var _array = __webpack_require__(1);
-
-var _number = __webpack_require__(6);
-
-var _event = __webpack_require__(7);
-
-var _element = __webpack_require__(0);
-
-var _src = __webpack_require__(11);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 _pluginHooks2.default.getSingleton().register('afterCopyLimit');
 _pluginHooks2.default.getSingleton().register('modifyCopyableRange');
@@ -43236,9 +43495,13 @@ _pluginHooks2.default.getSingleton().register('afterPaste');
 _pluginHooks2.default.getSingleton().register('beforeCopy');
 _pluginHooks2.default.getSingleton().register('afterCopy');
 
+var ROWS_LIMIT = 1000;
+var COLUMNS_LIMIT = 1000;
+var privatePool = new WeakMap();
+
 /**
  * @description
- * This plugin enables the copy/paste functionality in Handsontable.
+ * This plugin enables the copy/paste functionality in the Handsontable.
  *
  * @example
  * ```js
@@ -43249,332 +43512,753 @@ _pluginHooks2.default.getSingleton().register('afterCopy');
  * @class CopyPaste
  * @plugin CopyPaste
  */
-function CopyPastePlugin(instance) {
-  var _this = this;
 
-  this.copyPasteInstance = (0, _copyPaste2.default)();
-  this.copyPasteInstance.onCut(onCut);
-  this.copyPasteInstance.triggerCopy = callCopyAction;
-  this.copyPasteInstance.onPaste(onPaste);
-  this.onPaste = onPaste; // for paste testing purposes
-  this.copyableRanges = [];
+var CopyPaste = function (_BasePlugin) {
+  _inherits(CopyPaste, _BasePlugin);
 
-  instance.addHook('beforeKeyDown', onBeforeKeyDown);
+  function CopyPaste(hotInstance) {
+    _classCallCheck(this, CopyPaste);
 
-  function onCut() {
-    instance.isListening();
-  }
+    /**
+     * Event manager
+     *
+     * @type {EventManager}
+     */
+    var _this = _possibleConstructorReturn(this, (CopyPaste.__proto__ || Object.getPrototypeOf(CopyPaste)).call(this, hotInstance));
 
-  function callCutAction() {
-    var rangedData = _this.getRangedData(_this.copyableRanges);
+    _this.eventManager = new _eventManager2.default(_this);
+    /**
+     * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
+     *
+     * @private
+     * @type {Number}
+     * @default 1000
+     */
+    _this.columnsLimit = COLUMNS_LIMIT;
+    /**
+     * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
+     *
+     * @private
+     * @type {Array}
+     */
+    _this.copyableRanges = [];
+    /**
+     * Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior.
+     * * Default value `"overwrite"` will paste clipboard value over current selection.
+     * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
+     * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
+     *
+     * @private
+     * @type {String}
+     * @default 'overwrite'
+     */
+    _this.pasteMode = 'overwrite';
+    /**
+     * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
+     *
+     * @private
+     * @type {Number}
+     * @default 1000
+     */
+    _this.rowsLimit = ROWS_LIMIT;
+    /**
+     * The `textarea` element which is necessary to process copying, cutting off and pasting.
+     *
+     * @private
+     * @type {HTMLElement}
+     * @default undefined
+     */
+    _this.textarea = void 0;
 
-    if (instance.getSettings().fragmentSelection && _SheetClip2.default.stringify(rangedData) != (0, _element.getSelectionText)()) {
-      return;
-    }
-
-    var allowCuttingOut = !!instance.runHooks('beforeCut', rangedData, _this.copyableRanges);
-
-    if (allowCuttingOut) {
-      instance.copyPaste.copyPasteInstance.copyable(_SheetClip2.default.stringify(rangedData));
-      instance.selection.empty();
-      instance.runHooks('afterCut', rangedData, _this.copyableRanges);
-    } else {
-      instance.copyPaste.copyPasteInstance.copyable('');
-    }
-  }
-
-  function callCopyAction() {
-    if (!instance.isListening()) {
-      return;
-    }
-
-    var rangedData = _this.getRangedData(_this.copyableRanges);
-
-    if (instance.getSettings().fragmentSelection && _SheetClip2.default.stringify(rangedData) != (0, _element.getSelectionText)()) {
-      return;
-    }
-
-    var allowCopying = !!instance.runHooks('beforeCopy', rangedData, _this.copyableRanges);
-
-    if (allowCopying) {
-      instance.copyPaste.copyPasteInstance.copyable(_SheetClip2.default.stringify(rangedData));
-      instance.runHooks('afterCopy', rangedData, _this.copyableRanges);
-    } else {
-      instance.copyPaste.copyPasteInstance.copyable('');
-    }
-  }
-
-  function onPaste(str) {
-    var input, inputArray, selected, coordsFrom, coordsTo, cellRange, topLeftCorner, bottomRightCorner, areaStart, areaEnd;
-
-    if (!instance.isListening() || !instance.selection.isSelected()) {
-      return;
-    }
-    input = str;
-    inputArray = _SheetClip2.default.parse(input);
-    selected = instance.getSelected();
-    coordsFrom = new _src.CellCoords(selected[0], selected[1]);
-    coordsTo = new _src.CellCoords(selected[2], selected[3]);
-    cellRange = new _src.CellRange(coordsFrom, coordsFrom, coordsTo);
-    topLeftCorner = cellRange.getTopLeftCorner();
-    bottomRightCorner = cellRange.getBottomRightCorner();
-    areaStart = topLeftCorner;
-    areaEnd = new _src.CellCoords(Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row), Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
-
-    var isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
-    var isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
-
-    instance.addHookOnce('afterChange', function (changes, source) {
-      var changesLength = changes ? changes.length : 0;
-
-      if (changesLength) {
-        var offset = { row: 0, col: 0 };
-        var highestColumnIndex = -1;
-
-        (0, _array.arrayEach)(changes, function (change, index) {
-          var nextChange = changesLength > index + 1 ? changes[index + 1] : null;
-
-          if (nextChange) {
-            if (!isSelRowAreaCoverInputValue) {
-              offset.row += Math.max(nextChange[0] - change[0] - 1, 0);
-            }
-            if (!isSelColAreaCoverInputValue && change[1] > highestColumnIndex) {
-              highestColumnIndex = change[1];
-              offset.col += Math.max(nextChange[1] - change[1] - 1, 0);
-            }
-          }
-        });
-        instance.selectCell(areaStart.row, areaStart.col, areaEnd.row + offset.row, areaEnd.col + offset.col);
-      }
+    privatePool.set(_this, {
+      isTriggeredByPaste: false
     });
-
-    var allowPasting = !!instance.runHooks('beforePaste', inputArray, _this.copyableRanges);
-
-    if (allowPasting) {
-      instance.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', instance.getSettings().pasteMode);
-      instance.runHooks('afterPaste', inputArray, _this.copyableRanges);
-    }
+    return _this;
   }
 
-  function onBeforeKeyDown(event) {
-    if (!instance.getSelected()) {
-      return;
+  /**
+   * Check if plugin is enabled.
+   *
+   * @returns {Boolean}
+   */
+
+
+  _createClass(CopyPaste, [{
+    key: 'isEnabled',
+    value: function isEnabled() {
+      return !!this.hot.getSettings().copyPaste;
     }
-    if (instance.getActiveEditor() && instance.getActiveEditor().isOpened()) {
-      return;
-    }
-    if ((0, _event.isImmediatePropagationStopped)(event)) {
-      return;
-    }
-    if ((0, _unicode.isCtrlKey)(event.keyCode)) {
-      // When fragmentSelection is enabled and some text is selected then don't blur selection calling 'setCopyableText'
-      if (instance.getSettings().fragmentSelection && (0, _element.getSelectionText)()) {
+
+    /**
+     * Enable the plugin.
+     */
+
+  }, {
+    key: 'enablePlugin',
+    value: function enablePlugin() {
+      var _this2 = this;
+
+      if (this.enabled) {
         return;
       }
-      // when CTRL is pressed, prepare selectable text in textarea
-      _this.setCopyableText();
-      (0, _event.stopImmediatePropagation)(event);
 
-      return;
-    }
-    // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+      var settings = this.hot.getSettings();
 
-    if (ctrlDown) {
-      if (event.keyCode == _unicode.KEY_CODES.A) {
-        instance._registerTimeout(setTimeout(_this.setCopyableText.bind(_this), 0));
+      this.textarea = _textarea2.default.getSingleton();
+
+      if (_typeof(settings.copyPaste) === 'object') {
+        this.pasteMode = settings.copyPaste.pasteMode || this.pasteMode;
+        this.rowsLimit = settings.copyPaste.rowsLimit || this.rowsLimit;
+        this.columnsLimit = settings.copyPaste.columnsLimit || this.columnsLimit;
       }
-      if (event.keyCode == _unicode.KEY_CODES.X) {
-        callCutAction();
-      }
-      if (event.keyCode == _unicode.KEY_CODES.C) {
-        callCopyAction();
-      }
+
+      this.addHook('afterContextMenuDefaultOptions', function (options) {
+        return _this2.onAfterContextMenuDefaultOptions(options);
+      });
+      this.addHook('beforeKeyDown', function (event) {
+        return _this2.onBeforeKeyDown(event);
+      });
+      // this.addHook('beforeOnCellMouseDown', () => this.onBeforeOnCellMouseDown());
+
+      this.registerEvents();
+
+      _get(CopyPaste.prototype.__proto__ || Object.getPrototypeOf(CopyPaste.prototype), 'enablePlugin', this).call(this);
     }
-  }
-
-  /**
-   * Destroy plugin instance.
-   *
-   * @function destroy
-   * @memberof CopyPaste#
-   */
-  this.destroy = function () {
-    if (this.copyPasteInstance) {
-      this.copyPasteInstance.removeCallback(onCut);
-      this.copyPasteInstance.removeCallback(onPaste);
-      this.copyPasteInstance.destroy();
-      this.copyPasteInstance = null;
-    }
-    instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-  };
-
-  instance.addHook('afterDestroy', this.destroy.bind(this));
-
-  /**
-   * @function triggerPaste
-   * @memberof CopyPaste#
-   */
-  this.triggerPaste = this.copyPasteInstance.triggerPaste.bind(this.copyPasteInstance);
-
-  /**
-   * @function triggerCut
-   * @memberof CopyPaste#
-   */
-  this.triggerCut = this.copyPasteInstance.triggerCut.bind(this.copyPasteInstance);
-
-  /**
-   * Prepares copyable text in the invisible textarea.
-   *
-   * @function setCopyable
-   * @memberof CopyPaste#
-   */
-  this.setCopyableText = function () {
-    var settings = instance.getSettings();
-    var copyRowsLimit = settings.copyRowsLimit;
-    var copyColsLimit = settings.copyColsLimit;
-
-    var selRange = instance.getSelectedRange();
-    var topLeft = selRange.getTopLeftCorner();
-    var bottomRight = selRange.getBottomRightCorner();
-    var startRow = topLeft.row;
-    var startCol = topLeft.col;
-    var endRow = bottomRight.row;
-    var endCol = bottomRight.col;
-    var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
-    var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
-
-    this.copyableRanges.length = 0;
-
-    this.copyableRanges.push({
-      startRow: startRow,
-      startCol: startCol,
-      endRow: finalEndRow,
-      endCol: finalEndCol
-    });
-
-    this.copyableRanges = instance.runHooks('modifyCopyableRange', this.copyableRanges);
-
-    var copyableData = this.getRangedCopyableData(this.copyableRanges);
-
-    instance.copyPaste.copyPasteInstance.copyable(copyableData);
-
-    if (endRow !== finalEndRow || endCol !== finalEndCol) {
-      instance.runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
-    }
-  };
-
-  /**
-   * Create copyable text releated to range objects.
-   *
-   * @since 0.19.0
-   * @param {Array} ranges Array of Objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
-   * @returns {String} Returns string which will be copied into clipboard.
-   */
-  this.getRangedCopyableData = function (ranges) {
-    var dataSet = [];
-    var copyableRows = [];
-    var copyableColumns = [];
-
-    // Count all copyable rows and columns
-    (0, _array.arrayEach)(ranges, function (range) {
-      (0, _number.rangeEach)(range.startRow, range.endRow, function (row) {
-        if (copyableRows.indexOf(row) === -1) {
-          copyableRows.push(row);
-        }
-      });
-      (0, _number.rangeEach)(range.startCol, range.endCol, function (column) {
-        if (copyableColumns.indexOf(column) === -1) {
-          copyableColumns.push(column);
-        }
-      });
-    });
-    // Concat all rows and columns data defined in ranges into one copyable string
-    (0, _array.arrayEach)(copyableRows, function (row) {
-      var rowSet = [];
-
-      (0, _array.arrayEach)(copyableColumns, function (column) {
-        rowSet.push(instance.getCopyableData(row, column));
-      });
-
-      dataSet.push(rowSet);
-    });
-
-    return _SheetClip2.default.stringify(dataSet);
-  };
-
-  /**
-   * Create copyable text releated to range objects.
-   *
-   * @since 0.31.1
-   * @param {Array} ranges Array of Objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
-   * @returns {Array} Returns array of arrays which will be copied into clipboard.
-   */
-  this.getRangedData = function (ranges) {
-    var dataSet = [];
-    var copyableRows = [];
-    var copyableColumns = [];
-
-    // Count all copyable rows and columns
-    (0, _array.arrayEach)(ranges, function (range) {
-      (0, _number.rangeEach)(range.startRow, range.endRow, function (row) {
-        if (copyableRows.indexOf(row) === -1) {
-          copyableRows.push(row);
-        }
-      });
-      (0, _number.rangeEach)(range.startCol, range.endCol, function (column) {
-        if (copyableColumns.indexOf(column) === -1) {
-          copyableColumns.push(column);
-        }
-      });
-    });
-    // Concat all rows and columns data defined in ranges into one copyable string
-    (0, _array.arrayEach)(copyableRows, function (row) {
-      var rowSet = [];
-
-      (0, _array.arrayEach)(copyableColumns, function (column) {
-        rowSet.push(instance.getCopyableData(row, column));
-      });
-
-      dataSet.push(rowSet);
-    });
-
-    return dataSet;
-  };
-}
-
-/**
- * Init plugin.
- *
- * @function init
- * @memberof CopyPaste#
- */
-function init() {
-  var instance = this,
-      pluginEnabled = instance.getSettings().copyPaste !== false;
-
-  if (pluginEnabled && !instance.copyPaste) {
     /**
-     * Instance of CopyPaste Plugin {@link Handsontable.CopyPaste}
-     *
-     * @alias copyPaste
-     * @memberof! Handsontable.Core#
-     * @type {CopyPaste}
+     * Updates the plugin to use the latest options you have specified.
      */
-    instance.copyPaste = new CopyPastePlugin(instance);
-  } else if (!pluginEnabled && instance.copyPaste) {
-    instance.copyPaste.destroy();
-    instance.copyPaste = null;
-  }
-}
 
-_pluginHooks2.default.getSingleton().add('afterInit', init);
-_pluginHooks2.default.getSingleton().add('afterUpdateSettings', init);
+  }, {
+    key: 'updatePlugin',
+    value: function updatePlugin() {
+      this.disablePlugin();
+      this.enablePlugin();
 
-exports.default = CopyPastePlugin;
+      _get(CopyPaste.prototype.__proto__ || Object.getPrototypeOf(CopyPaste.prototype), 'updatePlugin', this).call(this);
+    }
+
+    /**
+     * Disable plugin for this Handsontable instance.
+     */
+
+  }, {
+    key: 'disablePlugin',
+    value: function disablePlugin() {
+      if (this.textarea) {
+        this.textarea.destroy();
+      }
+
+      _get(CopyPaste.prototype.__proto__ || Object.getPrototypeOf(CopyPaste.prototype), 'disablePlugin', this).call(this);
+    }
+
+    /**
+     * Prepares copyable text in the invisible textarea.
+     *
+     * @function setCopyable
+     * @memberof CopyPaste#
+     */
+
+  }, {
+    key: 'setCopyableText',
+    value: function setCopyableText() {
+      var selRange = this.hot.getSelectedRange();
+      var topLeft = selRange.getTopLeftCorner();
+      var bottomRight = selRange.getBottomRightCorner();
+      var startRow = topLeft.row;
+      var startCol = topLeft.col;
+      var endRow = bottomRight.row;
+      var endCol = bottomRight.col;
+      var finalEndRow = Math.min(endRow, startRow + this.rowsLimit - 1);
+      var finalEndCol = Math.min(endCol, startCol + this.columnsLimit - 1);
+
+      this.copyableRanges.length = 0;
+
+      this.copyableRanges.push({
+        startRow: startRow,
+        startCol: startCol,
+        endRow: finalEndRow,
+        endCol: finalEndCol
+      });
+
+      this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
+
+      var copyableData = this.getRangedCopyableData(this.copyableRanges);
+
+      this.textarea.setValue(copyableData);
+
+      if (endRow !== finalEndRow || endCol !== finalEndCol) {
+        this.hot.runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, this.rowsLimit, this.columnsLimit);
+      }
+    }
+
+    /**
+     * Create copyable text releated to range objects.
+     *
+     * @since 0.19.0
+     * @param {Array} ranges Array of Objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
+     * @returns {String} Returns string which will be copied into clipboard.
+     */
+
+  }, {
+    key: 'getRangedCopyableData',
+    value: function getRangedCopyableData(ranges) {
+      var _this3 = this;
+
+      var dataSet = [];
+      var copyableRows = [];
+      var copyableColumns = [];
+
+      // Count all copyable rows and columns
+      (0, _array.arrayEach)(ranges, function (range) {
+        (0, _number.rangeEach)(range.startRow, range.endRow, function (row) {
+          if (copyableRows.indexOf(row) === -1) {
+            copyableRows.push(row);
+          }
+        });
+        (0, _number.rangeEach)(range.startCol, range.endCol, function (column) {
+          if (copyableColumns.indexOf(column) === -1) {
+            copyableColumns.push(column);
+          }
+        });
+      });
+      // Concat all rows and columns data defined in ranges into one copyable string
+      (0, _array.arrayEach)(copyableRows, function (row) {
+        var rowSet = [];
+
+        (0, _array.arrayEach)(copyableColumns, function (column) {
+          rowSet.push(_this3.hot.getCopyableData(row, column));
+        });
+
+        dataSet.push(rowSet);
+      });
+
+      return _SheetClip2.default.stringify(dataSet);
+    }
+
+    /**
+     * Create copyable text releated to range objects.
+     *
+     * @since 0.31.1
+     * @param {Array} ranges Array of Objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+     * @returns {Array} Returns array of arrays which will be copied into clipboard.
+     */
+
+  }, {
+    key: 'getRangedData',
+    value: function getRangedData(ranges) {
+      var _this4 = this;
+
+      var dataSet = [];
+      var copyableRows = [];
+      var copyableColumns = [];
+
+      // Count all copyable rows and columns
+      (0, _array.arrayEach)(ranges, function (range) {
+        (0, _number.rangeEach)(range.startRow, range.endRow, function (row) {
+          if (copyableRows.indexOf(row) === -1) {
+            copyableRows.push(row);
+          }
+        });
+        (0, _number.rangeEach)(range.startCol, range.endCol, function (column) {
+          if (copyableColumns.indexOf(column) === -1) {
+            copyableColumns.push(column);
+          }
+        });
+      });
+      // Concat all rows and columns data defined in ranges into one copyable string
+      (0, _array.arrayEach)(copyableRows, function (row) {
+        var rowSet = [];
+
+        (0, _array.arrayEach)(copyableColumns, function (column) {
+          rowSet.push(_this4.hot.getCopyableData(row, column));
+        });
+
+        dataSet.push(rowSet);
+      });
+
+      return dataSet;
+    }
+
+    /**
+     * Copy action.
+     *
+     * @param {Boolean} isTriggeredByClick Flag to determine that copy action was executed by the mouse click.
+     */
+
+  }, {
+    key: 'copy',
+    value: function copy(isTriggeredByClick) {
+      var rangedData = this.getRangedData(this.copyableRanges);
+
+      var allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
+
+      if (allowCopying) {
+        this.textarea.setValue(_SheetClip2.default.stringify(rangedData));
+        this.textarea.select();
+
+        if (isTriggeredByClick) {
+          document.execCommand('copy');
+        }
+
+        this.hot.runHooks('afterCopy', rangedData, this.copyableRanges);
+      } else {
+        this.textarea.setValue('');
+      }
+    }
+
+    /**
+     * Cut action.
+     *
+     * @param {Boolean} isTriggeredByClick Flag to determine that cut action was executed by the mouse click.
+     */
+
+  }, {
+    key: 'cut',
+    value: function cut(isTriggeredByClick) {
+      var rangedData = this.getRangedData(this.copyableRanges);
+
+      var allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
+
+      if (allowCuttingOut) {
+        this.textarea.setValue(_SheetClip2.default.stringify(rangedData));
+        this.hot.selection.empty();
+        this.textarea.select();
+
+        if (isTriggeredByClick) {
+          document.execCommand('cut');
+        }
+
+        this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
+      } else {
+        this.textarea.setValue('');
+      }
+    }
+
+    /**
+     * Simulated paste action.
+     *
+     * @param {String} [value=''] New value, which should be `pasted`.
+     */
+
+  }, {
+    key: 'paste',
+    value: function paste() {
+      var value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+      this.textarea.setValue(value);
+
+      this.onPaste();
+      this.onInput();
+    }
+
+    /**
+     * Register event listeners.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'registerEvents',
+    value: function registerEvents() {
+      var _this5 = this;
+
+      this.eventManager.addEventListener(this.textarea.element, 'paste', function (event) {
+        return _this5.onPaste(event);
+      });
+      this.eventManager.addEventListener(this.textarea.element, 'input', function (event) {
+        return _this5.onInput(event);
+      });
+    }
+
+    /**
+     * Trigger to make possible observe `onInput` in textarea.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'triggerPaste',
+    value: function triggerPaste() {
+      this.textarea.select();
+
+      this.onPaste();
+    }
+
+    /**
+     * `paste` event callback on textarea element.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'onPaste',
+    value: function onPaste() {
+      var priv = privatePool.get(this);
+
+      priv.isTriggeredByPaste = true;
+    }
+
+    /**
+     * `input` event callback is called after `paste` event callback.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'onInput',
+    value: function onInput() {
+      var _this6 = this;
+
+      var priv = privatePool.get(this);
+
+      if (!this.hot.isListening() || !priv.isTriggeredByPaste) {
+        return;
+      }
+
+      priv.isTriggeredByPaste = false;
+
+      var input = void 0,
+          inputArray = void 0,
+          selected = void 0,
+          coordsFrom = void 0,
+          coordsTo = void 0,
+          cellRange = void 0,
+          topLeftCorner = void 0,
+          bottomRightCorner = void 0,
+          areaStart = void 0,
+          areaEnd = void 0;
+
+      input = this.textarea.getValue();
+      inputArray = _SheetClip2.default.parse(input);
+
+      var allowPasting = !!this.hot.runHooks('beforePaste', inputArray, this.copyableRanges);
+
+      if (!allowPasting) {
+        return;
+      }
+
+      selected = this.hot.getSelected();
+      coordsFrom = new _src.CellCoords(selected[0], selected[1]);
+      coordsTo = new _src.CellCoords(selected[2], selected[3]);
+      cellRange = new _src.CellRange(coordsFrom, coordsFrom, coordsTo);
+      topLeftCorner = cellRange.getTopLeftCorner();
+      bottomRightCorner = cellRange.getBottomRightCorner();
+      areaStart = topLeftCorner;
+      areaEnd = new _src.CellCoords(Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row), Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
+
+      var isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
+      var isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
+
+      this.hot.addHookOnce('afterChange', function (changes, source) {
+        var changesLength = changes ? changes.length : 0;
+
+        if (changesLength) {
+          var offset = { row: 0, col: 0 };
+          var highestColumnIndex = -1;
+
+          (0, _array.arrayEach)(changes, function (change, index) {
+            var nextChange = changesLength > index + 1 ? changes[index + 1] : null;
+
+            if (nextChange) {
+              if (!isSelRowAreaCoverInputValue) {
+                offset.row += Math.max(nextChange[0] - change[0] - 1, 0);
+              }
+              if (!isSelColAreaCoverInputValue && change[1] > highestColumnIndex) {
+                highestColumnIndex = change[1];
+                offset.col += Math.max(nextChange[1] - change[1] - 1, 0);
+              }
+            }
+          });
+          _this6.hot.selectCell(areaStart.row, areaStart.col, areaEnd.row + offset.row, areaEnd.col + offset.col);
+        }
+      });
+
+      this.hot.populateFromArray(areaStart.row, areaStart.col, inputArray, areaEnd.row, areaEnd.col, 'CopyPaste.paste', this.pasteMode);
+      this.hot.runHooks('afterPaste', inputArray, this.copyableRanges);
+    }
+
+    /**
+     * Add copy, cut and paste options to the Context Menu.
+     *
+     * @private
+     * @param {Object} options Contains default added options of the Context Menu.
+     */
+
+  }, {
+    key: 'onAfterContextMenuDefaultOptions',
+    value: function onAfterContextMenuDefaultOptions(options) {
+      options.items.push({
+        name: '---------'
+      }, (0, _copy2.default)(this), (0, _cut2.default)(this));
+    }
+
+    /**
+     * beforeKeyDown callback.
+     *
+     * @private
+     * @param {Event} event
+     */
+
+  }, {
+    key: 'onBeforeKeyDown',
+    value: function onBeforeKeyDown(event) {
+      var _this7 = this;
+
+      if (!this.hot.getSelected()) {
+        return;
+      }
+      if (this.hot.getActiveEditor() && this.hot.getActiveEditor().isOpened()) {
+        return;
+      }
+      if ((0, _event.isImmediatePropagationStopped)(event)) {
+        return;
+      }
+      if (!this.textarea.isActive() && (0, _element.getSelectionText)()) {
+        return;
+      }
+
+      if ((0, _unicode.isCtrlKey)(event.keyCode)) {
+        // When fragmentSelection is enabled and some text is selected then don't blur selection calling 'setCopyableText'
+        if (this.hot.getSettings().fragmentSelection && (0, _element.getSelectionText)()) {
+          return;
+        }
+
+        // when CTRL is pressed, prepare selectable text in textarea
+        this.setCopyableText();
+        (0, _event.stopImmediatePropagation)(event);
+
+        return;
+      }
+
+      // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+      var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+
+      if (ctrlDown) {
+        if (event.keyCode == _unicode.KEY_CODES.A) {
+          setTimeout(function () {
+            _this7.setCopyableText();
+          }, 0);
+        }
+        if (event.keyCode == _unicode.KEY_CODES.X) {
+          this.cut();
+        }
+        if (event.keyCode == _unicode.KEY_CODES.C) {
+          this.copy();
+        }
+        if (event.keyCode == _unicode.KEY_CODES.V) {
+          this.triggerPaste();
+        }
+      }
+    }
+
+    /**
+     * Destroy plugin instance.
+     */
+
+  }, {
+    key: 'destroy',
+    value: function destroy() {
+      if (this.textarea) {
+        this.textarea.destroy();
+      }
+
+      _get(CopyPaste.prototype.__proto__ || Object.getPrototypeOf(CopyPaste.prototype), 'destroy', this).call(this);
+    }
+  }]);
+
+  return CopyPaste;
+}(_base2.default);
+
+(0, _plugins.registerPlugin)('CopyPaste', CopyPaste);
+
+exports.default = CopyPaste;
 
 /***/ }),
-/* 336 */
+/* 352 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * @class Textarea
+ *
+ * @plugin CopyPaste
+ */
+var Textarea = function () {
+  _createClass(Textarea, null, [{
+    key: 'getSingleton',
+    value: function getSingleton() {
+      globalSingleton.append();
+
+      return globalSingleton;
+    }
+  }]);
+
+  function Textarea() {
+    _classCallCheck(this, Textarea);
+
+    /**
+     * Main textarea element.
+     *
+     * @type {HTMLElement}
+     */
+    this.element = void 0;
+    /**
+     * Store information about append to the document.body.
+     *
+     * @type {Boolean}
+     */
+    this.isAppended = false;
+    /**
+     * Reference counter.
+     *
+     * @type {Number}
+     */
+    this.refCounter = 0;
+  }
+
+  /**
+   * Apends textarea element to the `body`
+   */
+
+
+  _createClass(Textarea, [{
+    key: 'append',
+    value: function append() {
+      if (this.hasBeenDestroyed()) {
+        this.create();
+      }
+
+      this.refCounter++;
+
+      if (!this.isAppended && document.body) {
+        if (document.body) {
+          this.isAppended = true;
+          document.body.appendChild(this.element);
+        }
+      }
+    }
+
+    /**
+     * Prepares textarea element with proper attributes.
+     */
+
+  }, {
+    key: 'create',
+    value: function create() {
+      this.element = document.createElement('textarea');
+      this.element.id = 'HandsontableCopyPaste';
+      this.element.className = 'copyPaste';
+      this.element.tabIndex = -1;
+      this.element.autocomplete = 'off';
+      this.element.wrap = 'off';
+    }
+
+    /**
+     * Deselects textarea element if is active.
+     */
+
+  }, {
+    key: 'deselect',
+    value: function deselect() {
+      if (this.element === document.activeElement) {
+        document.activeElement.blur();
+      }
+    }
+
+    /**
+     * Destroy instance
+     */
+
+  }, {
+    key: 'destroy',
+    value: function destroy() {
+      this.refCounter--;
+      this.refCounter = this.refCounter < 0 ? 0 : this.refCounter;
+
+      if (this.hasBeenDestroyed() && this.element && this.element.parentNode) {
+        this.element.parentNode.removeChild(this.element);
+        this.element = null;
+        this.isAppended = false;
+      }
+    }
+
+    /**
+     * Getter for the element.
+     *
+     * @returns {String}
+     */
+
+  }, {
+    key: 'getValue',
+    value: function getValue() {
+      return this.element.value;
+    }
+
+    /**
+     * Check if instance has been destroyed
+     *
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: 'hasBeenDestroyed',
+    value: function hasBeenDestroyed() {
+      return this.refCounter < 1;
+    }
+
+    /**
+     * Check if the element is an active element in frame.
+     *
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: 'isActive',
+    value: function isActive() {
+      return this.element === document.activeElement;
+    }
+
+    /**
+     * Sets focus on the element and select content.
+     */
+
+  }, {
+    key: 'select',
+    value: function select() {
+      this.element.focus();
+      this.element.select();
+    }
+
+    /**
+     * Setter for the element.
+     *
+     * @param {String} data Value which should be insert into the element.
+     */
+
+  }, {
+    key: 'setValue',
+    value: function setValue(data) {
+      this.element.value = data;
+    }
+  }]);
+
+  return Textarea;
+}();
+
+var globalSingleton = new Textarea();
+
+exports.default = Textarea;
+
+/***/ }),
+/* 353 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43588,7 +44272,7 @@ var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
 var _plugins = __webpack_require__(5);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _src = __webpack_require__(11);
 
@@ -43704,8 +44388,8 @@ var insertBorderIntoSettings = function insertBorderIntoSettings(border) {
 /** *
  * Prepare borders from setting (single cell).
  *
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {Number} row Visual row index.
+ * @param {Number} col Visual column index.
  * @param borderObj
  */
 var prepareBorderFromCustomAdded = function prepareBorderFromCustomAdded(row, col, borderObj) {
@@ -43772,8 +44456,8 @@ var prepareBorderFromCustomAddedRange = function prepareBorderFromCustomAddedRan
 /** *
  * Create separated class name for borders for each cell.
  *
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {Number} row Visual row index.
+ * @param {Number} col Visual column index.
  * @returns {String}
  */
 var createClassName = function createClassName(row, col) {
@@ -43819,8 +44503,8 @@ var createDefaultHtBorder = function createDefaultHtBorder() {
 /** *
  * Prepare empty border for each cell with all custom borders hidden.
  *
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {Number} row Visual row index.
+ * @param {Number} col Visual column index.
  * @returns {Object} `{{className: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`
  */
 var createEmptyBorders = function createEmptyBorders(row, col) {
@@ -43884,8 +44568,8 @@ var removeBordersFromDom = function removeBordersFromDom(borderClassName) {
 /** *
  * Remove border (triggered from context menu).
  *
- * @param {Number} row Row index.
- * @param {Number} col Column index.
+ * @param {Number} row Visual row index.
+ * @param {Number} col Visual column index.
  */
 var removeAllBorders = function removeAllBorders(row, col) {
   var borderClassName = createClassName(row, col);
@@ -43896,8 +44580,8 @@ var removeAllBorders = function removeAllBorders(row, col) {
 /** *
  * Set borders for each cell re. to border position
  *
- * @param row
- * @param col
+ * @param row Visual row index.
+ * @param col Visual column index.
  * @param place
  * @param remove
  */
@@ -44124,7 +44808,7 @@ _pluginHooks2.default.getSingleton().add('afterInit', function () {
 });
 
 /***/ }),
-/* 337 */
+/* 354 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44260,7 +44944,7 @@ _pluginHooks2.default.getSingleton().add('afterOnCellCornerMouseDown', function 
 exports.default = DragToScroll;
 
 /***/ }),
-/* 338 */
+/* 355 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44296,7 +44980,7 @@ function freezeColumnItem(manualColumnFreezePlugin) {
 }
 
 /***/ }),
-/* 339 */
+/* 356 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44332,7 +45016,7 @@ function unfreezeColumnItem(manualColumnFreezePlugin) {
 }
 
 /***/ }),
-/* 340 */
+/* 357 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44350,17 +45034,17 @@ var _base2 = _interopRequireDefault(_base);
 
 var _plugins = __webpack_require__(5);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _freezeColumn = __webpack_require__(338);
+var _freezeColumn = __webpack_require__(355);
 
 var _freezeColumn2 = _interopRequireDefault(_freezeColumn);
 
-var _unfreezeColumn = __webpack_require__(339);
+var _unfreezeColumn = __webpack_require__(356);
 
 var _unfreezeColumn2 = _interopRequireDefault(_unfreezeColumn);
 
-__webpack_require__(397);
+__webpack_require__(415);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -44474,7 +45158,7 @@ var ManualColumnFreeze = function (_BasePlugin) {
     /**
      * Freeze the given column (add it to fixed columns).
      *
-     * @param {Number} column Column index.
+     * @param {Number} column Visual column index.
      */
 
   }, {
@@ -44503,7 +45187,7 @@ var ManualColumnFreeze = function (_BasePlugin) {
     /**
      * Unfreeze the given column (remove it from fixed columns and bring to it's previous position).
      *
-     * @param {Number} column Column index.
+     * @param {Number} column Visual column index.
      */
 
   }, {
@@ -44549,7 +45233,7 @@ var ManualColumnFreeze = function (_BasePlugin) {
      * Estimates the most fitting return position for unfrozen column.
      *
      * @private
-     * @param {Number} column Column index.
+     * @param {Number} column Visual column index.
      */
 
   }, {
@@ -44663,7 +45347,7 @@ var ManualColumnFreeze = function (_BasePlugin) {
 exports.default = ManualColumnFreeze;
 
 /***/ }),
-/* 341 */
+/* 358 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44673,13 +45357,13 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _arrayMapper = __webpack_require__(249);
+var _arrayMapper = __webpack_require__(265);
 
 var _arrayMapper2 = _interopRequireDefault(_arrayMapper);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _number = __webpack_require__(6);
 
@@ -44770,7 +45454,7 @@ var ColumnsMapper = function () {
 exports.default = ColumnsMapper;
 
 /***/ }),
-/* 342 */
+/* 359 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44790,7 +45474,7 @@ var _pluginHooks = __webpack_require__(8);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _element = __webpack_require__(0);
 
@@ -44802,21 +45486,21 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _plugins = __webpack_require__(5);
 
-var _columnsMapper = __webpack_require__(341);
+var _columnsMapper = __webpack_require__(358);
 
 var _columnsMapper2 = _interopRequireDefault(_columnsMapper);
 
-var _backlight = __webpack_require__(343);
+var _backlight = __webpack_require__(360);
 
 var _backlight2 = _interopRequireDefault(_backlight);
 
-var _guideline = __webpack_require__(344);
+var _guideline = __webpack_require__(361);
 
 var _guideline2 = _interopRequireDefault(_guideline);
 
 var _src = __webpack_require__(11);
 
-__webpack_require__(398);
+__webpack_require__(416);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -45044,12 +45728,12 @@ var ManualColumnMove = function (_BasePlugin) {
       priv.disallowMoving = !beforeColumnHook;
 
       if (beforeColumnHook !== false) {
-        // first we need to rewrite an visual indexes to logical for save reference after move
+        // first we need to rewrite an visual indexes to physical for save reference after move
         (0, _array.arrayEach)(columns, function (column, index, array) {
           array[index] = _this3.columnsMapper.getValueByIndex(column);
         });
 
-        // next, when we have got an logical indexes, we can move columns
+        // next, when we have got an physical indexes, we can move columns
         (0, _array.arrayEach)(columns, function (column, index) {
           var actualPosition = _this3.columnsMapper.getIndexByValue(column);
 
@@ -45353,10 +46037,10 @@ var ManualColumnMove = function (_BasePlugin) {
      * Change the behavior of selection / dragging.
      *
      * @private
-     * @param {MouseEvent} event
-     * @param {CellCoords} coords
-     * @param {HTMLElement} TD
-     * @param {Object} blockCalculations
+     * @param {MouseEvent} event `mousedown` event properties.
+     * @param {CellCoords} coords Visual cell coordinates where was fired event.
+     * @param {HTMLElement} TD Cell represented as HTMLElement.
+     * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
      */
 
   }, {
@@ -45458,7 +46142,7 @@ var ManualColumnMove = function (_BasePlugin) {
      *
      * @private
      * @param {MouseEvent} event `mouseover` event properties.
-     * @param {CellCoords} coords Cell coordinates where was fired event.
+     * @param {CellCoords} coords Visual cell coordinates where was fired event.
      * @param {HTMLElement} TD Cell represented as HTMLElement.
      * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
      */
@@ -45546,7 +46230,7 @@ var ManualColumnMove = function (_BasePlugin) {
      * `afterCreateCol` hook callback.
      *
      * @private
-     * @param {Number} index Index of the created column.
+     * @param {Number} index Visual index of the created column.
      * @param {Number} amount Amount of created columns.
      */
 
@@ -45560,7 +46244,7 @@ var ManualColumnMove = function (_BasePlugin) {
      * On before remove column listener.
      *
      * @private
-     * @param {Number} index Column index.
+     * @param {Number} index Visual column index.
      * @param {Number} amount Defines how many columns removed.
      */
 
@@ -45583,7 +46267,7 @@ var ManualColumnMove = function (_BasePlugin) {
      * `afterRemoveCol` hook callback.
      *
      * @private
-     * @param {Number} index Index of the removed column.
+     * @param {Number} index Visual column index of the removed column.
      * @param {Number} amount Amount of removed columns.
      */
 
@@ -45611,7 +46295,7 @@ var ManualColumnMove = function (_BasePlugin) {
      *
      * @private
      * @param {Number} column Visual column index.
-     * @returns {Number} Modified column index.
+     * @returns {Number} Physical column index.
      */
 
   }, {
@@ -45630,8 +46314,8 @@ var ManualColumnMove = function (_BasePlugin) {
      * 'unmodifyCol' hook callback.
      *
      * @private
-     * @param {Number} column Visual column index.
-     * @returns {Number} Logical column index.
+     * @param {Number} column Physical column index.
+     * @returns {Number} Visual column index.
      */
 
   }, {
@@ -45679,7 +46363,7 @@ var ManualColumnMove = function (_BasePlugin) {
 exports.default = ManualColumnMove;
 
 /***/ }),
-/* 343 */
+/* 360 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45691,7 +46375,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _base = __webpack_require__(251);
+var _base = __webpack_require__(266);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -45740,7 +46424,7 @@ var BacklightUI = function (_BaseUI) {
 exports.default = BacklightUI;
 
 /***/ }),
-/* 344 */
+/* 361 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45752,7 +46436,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _base = __webpack_require__(251);
+var _base = __webpack_require__(266);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -45801,7 +46485,7 @@ var GuidelineUI = function (_BaseUI) {
 exports.default = GuidelineUI;
 
 /***/ }),
-/* 345 */
+/* 362 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45825,7 +46509,7 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _event = __webpack_require__(7);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _number = __webpack_require__(6);
 
@@ -46359,7 +47043,7 @@ var ManualColumnResize = function (_BasePlugin) {
     /**
      * Cache the current column width.
      *
-     * @param {Number} column Column index.
+     * @param {Number} column Visual column index.
      * @param {Number} width Column width.
      * @returns {Number}
      */
@@ -46383,7 +47067,7 @@ var ManualColumnResize = function (_BasePlugin) {
     /**
      * Clear cache for the current column index.
      *
-     * @param {Number} column Column index.
+     * @param {Number} column Visual column index.
      */
 
   }, {
@@ -46399,7 +47083,7 @@ var ManualColumnResize = function (_BasePlugin) {
      *
      * @private
      * @param {Number} width Column width.
-     * @param {Number} column Column index.
+     * @param {Number} column Visual column index.
      * @returns {Number}
      */
 
@@ -46422,7 +47106,7 @@ var ManualColumnResize = function (_BasePlugin) {
      *
      * @private
      * @param {Number} stretchedWidth Stretched width.
-     * @param {Number} column Column index.
+     * @param {Number} column Physical column index.
      * @returns {Number}
      */
 
@@ -46463,7 +47147,7 @@ var ManualColumnResize = function (_BasePlugin) {
 exports.default = ManualColumnResize;
 
 /***/ }),
-/* 346 */
+/* 363 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46483,7 +47167,7 @@ var _pluginHooks = __webpack_require__(8);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _element = __webpack_require__(0);
 
@@ -46495,21 +47179,21 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _plugins = __webpack_require__(5);
 
-var _rowsMapper = __webpack_require__(347);
+var _rowsMapper = __webpack_require__(364);
 
 var _rowsMapper2 = _interopRequireDefault(_rowsMapper);
 
-var _backlight = __webpack_require__(348);
+var _backlight = __webpack_require__(365);
 
 var _backlight2 = _interopRequireDefault(_backlight);
 
-var _guideline = __webpack_require__(349);
+var _guideline = __webpack_require__(366);
 
 var _guideline2 = _interopRequireDefault(_guideline);
 
 var _src = __webpack_require__(11);
 
-__webpack_require__(399);
+__webpack_require__(417);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -46738,12 +47422,12 @@ var ManualRowMove = function (_BasePlugin) {
       priv.disallowMoving = beforeMoveHook === false;
 
       if (!priv.disallowMoving) {
-        // first we need to rewrite an visual indexes to logical for save reference after move
+        // first we need to rewrite an visual indexes to physical for save reference after move
         (0, _array.arrayEach)(rows, function (row, index, array) {
           array[index] = _this3.rowsMapper.getValueByIndex(row);
         });
 
-        // next, when we have got an logical indexes, we can move rows
+        // next, when we have got an physical indexes, we can move rows
         (0, _array.arrayEach)(rows, function (row, index) {
           var actualPosition = _this3.rowsMapper.getIndexByValue(row);
 
@@ -47082,7 +47766,7 @@ var ManualRowMove = function (_BasePlugin) {
      *
      * @private
      * @param {MouseEvent} event
-     * @param {CellCoords} coords
+     * @param {CellCoords} coords Visual coordinates.
      * @param {HTMLElement} TD
      * @param {Object} blockCalculations
      */
@@ -47175,7 +47859,7 @@ var ManualRowMove = function (_BasePlugin) {
      *
      * @private
      * @param {MouseEvent} event `mouseover` event properties.
-     * @param {CellCoords} coords Cell coordinates where was fired event.
+     * @param {CellCoords} coords Visual cell coordinates where was fired event.
      * @param {HTMLElement} TD Cell represented as HTMLElement.
      * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
      */
@@ -47265,7 +47949,7 @@ var ManualRowMove = function (_BasePlugin) {
      * `afterCreateRow` hook callback.
      *
      * @private
-     * @param {Number} index Index of the created row.
+     * @param {Number} index Visual index of the created row.
      * @param {Number} amount Amount of created rows.
      */
 
@@ -47279,7 +47963,7 @@ var ManualRowMove = function (_BasePlugin) {
      * On before remove row listener.
      *
      * @private
-     * @param {Number} index Row index.
+     * @param {Number} index Visual row index.
      * @param {Number} amount Defines how many rows removed.
      */
 
@@ -47302,7 +47986,7 @@ var ManualRowMove = function (_BasePlugin) {
      * `afterRemoveRow` hook callback.
      *
      * @private
-     * @param {Number} index Index of the removed row.
+     * @param {Number} index Visual index of the removed row.
      * @param {Number} amount Amount of removed rows.
      */
 
@@ -47330,7 +48014,7 @@ var ManualRowMove = function (_BasePlugin) {
      *
      * @private
      * @param {Number} row Visual Row index.
-     * @returns {Number} Modified row index.
+     * @returns {Number} Physical row index.
      */
 
   }, {
@@ -47348,8 +48032,8 @@ var ManualRowMove = function (_BasePlugin) {
      * 'unmodifyRow' hook callback.
      *
      * @private
-     * @param {Number} row Visual row index.
-     * @returns {Number} Logical row index.
+     * @param {Number} row Physical row index.
+     * @returns {Number} Visual row index.
      */
 
   }, {
@@ -47397,7 +48081,7 @@ var ManualRowMove = function (_BasePlugin) {
 exports.default = ManualRowMove;
 
 /***/ }),
-/* 347 */
+/* 364 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47407,13 +48091,13 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _arrayMapper = __webpack_require__(249);
+var _arrayMapper = __webpack_require__(265);
 
 var _arrayMapper2 = _interopRequireDefault(_arrayMapper);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _number = __webpack_require__(6);
 
@@ -47504,7 +48188,7 @@ var RowsMapper = function () {
 exports.default = RowsMapper;
 
 /***/ }),
-/* 348 */
+/* 365 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47516,7 +48200,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _base = __webpack_require__(252);
+var _base = __webpack_require__(267);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -47565,7 +48249,7 @@ var BacklightUI = function (_BaseUI) {
 exports.default = BacklightUI;
 
 /***/ }),
-/* 349 */
+/* 366 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47577,7 +48261,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _base = __webpack_require__(252);
+var _base = __webpack_require__(267);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -47626,7 +48310,7 @@ var GuidelineUI = function (_BaseUI) {
 exports.default = GuidelineUI;
 
 /***/ }),
-/* 350 */
+/* 367 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47650,7 +48334,7 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _event = __webpack_require__(7);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _number = __webpack_require__(6);
 
@@ -48160,7 +48844,7 @@ var ManualRowResize = function (_BasePlugin) {
     /**
      * Cache the current row height.
      *
-     * @param {Number} row Row index.
+     * @param {Number} row Visual row index.
      * @param {Number} height Row height.
      * @returns {Number}
      */
@@ -48179,7 +48863,7 @@ var ManualRowResize = function (_BasePlugin) {
      *
      * @private
      * @param {Number} height Row height.
-     * @param {Number} row Row index.
+     * @param {Number} row Visual row index.
      * @returns {Number}
      */
 
@@ -48211,7 +48895,7 @@ var ManualRowResize = function (_BasePlugin) {
 exports.default = ManualRowResize;
 
 /***/ }),
-/* 351 */
+/* 368 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48865,7 +49549,7 @@ hook.add('afterRemoveRow', onAfterRemoveRow);
 exports.default = MergeCells;
 
 /***/ }),
-/* 352 */
+/* 369 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49285,7 +49969,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
 exports.default = MultipleSelectionHandles;
 
 /***/ }),
-/* 353 */
+/* 370 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49295,17 +49979,17 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _jsonPatchDuplex = __webpack_require__(233);
+var _jsonPatchDuplex = __webpack_require__(249);
 
 var _jsonPatchDuplex2 = _interopRequireDefault(_jsonPatchDuplex);
 
-var _localHooks = __webpack_require__(250);
+var _localHooks = __webpack_require__(70);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
-var _utils = __webpack_require__(355);
+var _utils = __webpack_require__(372);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -49429,7 +50113,7 @@ var DataObserver = function () {
 exports.default = DataObserver;
 
 /***/ }),
-/* 354 */
+/* 371 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49445,15 +50129,15 @@ var _base = __webpack_require__(12);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _jsonPatchDuplex = __webpack_require__(233);
+var _jsonPatchDuplex = __webpack_require__(249);
 
 var _jsonPatchDuplex2 = _interopRequireDefault(_jsonPatchDuplex);
 
-var _dataObserver = __webpack_require__(353);
+var _dataObserver = __webpack_require__(370);
 
 var _dataObserver2 = _interopRequireDefault(_dataObserver);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _plugins = __webpack_require__(5);
 
@@ -49718,7 +50402,7 @@ exports.default = ObserveChanges;
 (0, _plugins.registerPlugin)('observeChanges', ObserveChanges);
 
 /***/ }),
-/* 355 */
+/* 372 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49731,7 +50415,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 exports.cleanPatches = cleanPatches;
 exports.parsePath = parsePath;
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 /**
  * Clean and extend patches from jsonpatch observer.
@@ -49810,7 +50494,7 @@ function parsePath(path) {
 }
 
 /***/ }),
-/* 356 */
+/* 373 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49824,7 +50508,7 @@ var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
 var _plugins = __webpack_require__(5);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -49969,7 +50653,7 @@ _pluginHooks2.default.getSingleton().add('afterUpdateSettings', htPersistentStat
 exports.default = HandsontablePersistentState;
 
 /***/ }),
-/* 357 */
+/* 374 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50115,7 +50799,7 @@ _pluginHooks2.default.getSingleton().add('afterUpdateSettings', init);
 exports.default = Search;
 
 /***/ }),
-/* 358 */
+/* 375 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50129,7 +50813,7 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 
 var _element = __webpack_require__(0);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _base = __webpack_require__(12);
 
@@ -50377,7 +51061,7 @@ var TouchScroll = function (_BasePlugin) {
 exports.default = TouchScroll;
 
 /***/ }),
-/* 359 */
+/* 376 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50387,11 +51071,11 @@ var _pluginHooks = __webpack_require__(8);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _array = __webpack_require__(1);
+var _array = __webpack_require__(2);
 
 var _number = __webpack_require__(6);
 
-var _object = __webpack_require__(2);
+var _object = __webpack_require__(1);
 
 var _event = __webpack_require__(7);
 
@@ -50506,8 +51190,8 @@ function UndoRedo(instance) {
     plugin.done(action);
   });
 
-  instance.addHook('beforeFilter', function (formulaStacks) {
-    plugin.done(new UndoRedo.FiltersAction(formulaStacks));
+  instance.addHook('beforeFilter', function (conditionsStack) {
+    plugin.done(new UndoRedo.FiltersAction(conditionsStack));
   });
 
   instance.addHook('beforeRowMove', function (movedRows, target) {
@@ -50846,8 +51530,8 @@ UndoRedo.CellAlignmentAction.prototype.redo = function (instance, undoneCallback
 /**
  * Filters action.
  */
-UndoRedo.FiltersAction = function (formulaStacks) {
-  this.formulaStacks = formulaStacks;
+UndoRedo.FiltersAction = function (conditionsStack) {
+  this.conditionsStack = conditionsStack;
   this.actionType = 'filter';
 };
 (0, _object.inherit)(UndoRedo.FiltersAction, UndoRedo.Action);
@@ -50857,7 +51541,7 @@ UndoRedo.FiltersAction.prototype.undo = function (instance, undoneCallback) {
 
   instance.addHookOnce('afterRender', undoneCallback);
 
-  filters.formulaCollection.importAllFormulas(this.formulaStacks.slice(0, this.formulaStacks.length - 1));
+  filters.conditionCollection.importAllConditions(this.conditionsStack.slice(0, this.conditionsStack.length - 1));
   filters.filter();
 };
 UndoRedo.FiltersAction.prototype.redo = function (instance, redoneCallback) {
@@ -50865,7 +51549,7 @@ UndoRedo.FiltersAction.prototype.redo = function (instance, redoneCallback) {
 
   instance.addHookOnce('afterRender', redoneCallback);
 
-  filters.formulaCollection.importAllFormulas(this.formulaStacks);
+  filters.conditionCollection.importAllConditions(this.conditionsStack);
   filters.filter();
 };
 
@@ -51029,7 +51713,7 @@ hook.register('beforeRedo');
 hook.register('afterRedo');
 
 /***/ }),
-/* 360 */
+/* 377 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51071,7 +51755,7 @@ function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = cellDecorator;
 
 /***/ }),
-/* 361 */
+/* 378 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51161,7 +51845,7 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
 exports.default = autocompleteRenderer;
 
 /***/ }),
-/* 362 */
+/* 379 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51524,7 +52208,7 @@ function isCheckboxInput(element) {
 exports.default = checkboxRenderer;
 
 /***/ }),
-/* 363 */
+/* 380 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51560,7 +52244,7 @@ function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = htmlRenderer;
 
 /***/ }),
-/* 364 */
+/* 381 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51621,7 +52305,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = numericRenderer;
 
 /***/ }),
-/* 365 */
+/* 382 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51665,7 +52349,7 @@ function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = passwordRenderer;
 
 /***/ }),
-/* 366 */
+/* 383 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51722,7 +52406,7 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = textRenderer;
 
 /***/ }),
-/* 367 */
+/* 384 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51823,7 +52507,7 @@ function TableView(instance) {
 
     isMouseDown = false;
 
-    if ((0, _element.isOutsideInput)(document.activeElement)) {
+    if ((0, _element.isOutsideInput)(document.activeElement) || !instance.selection.isSelected()) {
       instance.unlisten();
     }
   });
@@ -51934,6 +52618,7 @@ function TableView(instance) {
     border: {
       width: 1,
       color: 'red'
+      // style: 'solid' // not used
     }
   })];
   selections.current = selections[0];
@@ -52532,7 +53217,7 @@ TableView.prototype.destroy = function () {
 exports.default = TableView;
 
 /***/ }),
-/* 368 */
+/* 385 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52843,7 +53528,7 @@ exports.NodeStructure = NodeStructure;
 exports.default = LinkedList;
 
 /***/ }),
-/* 369 */
+/* 386 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52992,7 +53677,7 @@ function parseDelay(delay) {
 }
 
 /***/ }),
-/* 370 */
+/* 387 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53002,7 +53687,7 @@ exports.__esModule = true;
 exports.default = mergeSort;
 exports.merge = merge;
 
-var _linkedList = __webpack_require__(368);
+var _linkedList = __webpack_require__(385);
 
 var _linkedList2 = _interopRequireDefault(_linkedList);
 
@@ -53117,7 +53802,7 @@ function merge(array, compareFunction, startIndex, middleIndex, endIndex) {
 };
 
 /***/ }),
-/* 371 */
+/* 388 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53179,7 +53864,7 @@ function process(value, callback) {
 }
 
 /***/ }),
-/* 372 */
+/* 389 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53193,7 +53878,7 @@ var _moment = __webpack_require__(36);
 
 var _moment2 = _interopRequireDefault(_moment);
 
-var _date = __webpack_require__(88);
+var _date = __webpack_require__(89);
 
 var _editors = __webpack_require__(14);
 
@@ -53270,7 +53955,7 @@ function correctFormat(value, dateFormat) {
 };
 
 /***/ }),
-/* 373 */
+/* 390 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53300,7 +53985,7 @@ function numericValidator(value, callback) {
 };
 
 /***/ }),
-/* 374 */
+/* 391 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53379,14 +54064,14 @@ function timeValidator(value, callback) {
 };
 
 /***/ }),
-/* 375 */
+/* 392 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 // 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
 
 var toObject = __webpack_require__(42)
-  , toIndex  = __webpack_require__(62)
+  , toIndex  = __webpack_require__(61)
   , toLength = __webpack_require__(24);
 
 module.exports = [].copyWithin || function copyWithin(target/*= 0*/, start/*= 0, end = @length*/){
@@ -53411,14 +54096,14 @@ module.exports = [].copyWithin || function copyWithin(target/*= 0*/, start/*= 0,
 };
 
 /***/ }),
-/* 376 */
+/* 393 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 // 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
 
 var toObject = __webpack_require__(42)
-  , toIndex  = __webpack_require__(62)
+  , toIndex  = __webpack_require__(61)
   , toLength = __webpack_require__(24);
 module.exports = function fill(value /*, start = 0, end = @length */){
   var O      = toObject(this)
@@ -53432,11 +54117,11 @@ module.exports = function fill(value /*, start = 0, end = @length */){
 };
 
 /***/ }),
-/* 377 */
+/* 394 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(15)
-  , isArray  = __webpack_require__(262)
+  , isArray  = __webpack_require__(277)
   , SPECIES  = __webpack_require__(10)('species');
 
 module.exports = function(original){
@@ -53453,23 +54138,23 @@ module.exports = function(original){
 };
 
 /***/ }),
-/* 378 */
+/* 395 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 9.4.2.3 ArraySpeciesCreate(originalArray, length)
-var speciesConstructor = __webpack_require__(377);
+var speciesConstructor = __webpack_require__(394);
 
 module.exports = function(original, length){
   return new (speciesConstructor(original))(length);
 };
 
 /***/ }),
-/* 379 */
+/* 396 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // all enumerable object keys, includes symbols
 var getKeys = __webpack_require__(40)
-  , gOPS    = __webpack_require__(60)
+  , gOPS    = __webpack_require__(59)
   , pIE     = __webpack_require__(48);
 module.exports = function(it){
   var result     = getKeys(it)
@@ -53484,7 +54169,7 @@ module.exports = function(it){
 };
 
 /***/ }),
-/* 380 */
+/* 397 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53503,11 +54188,11 @@ module.exports = function(){
 };
 
 /***/ }),
-/* 381 */
+/* 398 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isObject       = __webpack_require__(15)
-  , setPrototypeOf = __webpack_require__(271).set;
+  , setPrototypeOf = __webpack_require__(286).set;
 module.exports = function(that, target, C){
   var P, S = target.constructor;
   if(S !== C && typeof S == 'function' && (P = S.prototype) !== C.prototype && isObject(P) && setPrototypeOf){
@@ -53516,7 +54201,7 @@ module.exports = function(that, target, C){
 };
 
 /***/ }),
-/* 382 */
+/* 399 */
 /***/ (function(module, exports) {
 
 // fast apply, http://jsperf.lnkit.com/fast-apply/5
@@ -53537,12 +54222,12 @@ module.exports = function(fn, args, that){
 };
 
 /***/ }),
-/* 383 */
+/* 400 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var create         = __webpack_require__(79)
+var create         = __webpack_require__(80)
   , descriptor     = __webpack_require__(41)
   , setToStringTag = __webpack_require__(49)
   , IteratorPrototype = {};
@@ -53556,7 +54241,7 @@ module.exports = function(Constructor, NAME, next){
 };
 
 /***/ }),
-/* 384 */
+/* 401 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var getKeys   = __webpack_require__(40)
@@ -53571,11 +54256,11 @@ module.exports = function(object, el){
 };
 
 /***/ }),
-/* 385 */
+/* 402 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global    = __webpack_require__(13)
-  , macrotask = __webpack_require__(85).set
+  , macrotask = __webpack_require__(86).set
   , Observer  = global.MutationObserver || global.WebKitMutationObserver
   , process   = global.process
   , Promise   = global.Promise
@@ -53644,7 +54329,7 @@ module.exports = function(){
 };
 
 /***/ }),
-/* 386 */
+/* 403 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var dP       = __webpack_require__(19)
@@ -53662,12 +54347,12 @@ module.exports = __webpack_require__(21) ? Object.defineProperties : function de
 };
 
 /***/ }),
-/* 387 */
+/* 404 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
 var toIObject = __webpack_require__(23)
-  , gOPN      = __webpack_require__(81).f
+  , gOPN      = __webpack_require__(82).f
   , toString  = {}.toString;
 
 var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
@@ -53687,13 +54372,13 @@ module.exports.f = function getOwnPropertyNames(it){
 
 
 /***/ }),
-/* 388 */
+/* 405 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
 var has         = __webpack_require__(22)
   , toObject    = __webpack_require__(42)
-  , IE_PROTO    = __webpack_require__(82)('IE_PROTO')
+  , IE_PROTO    = __webpack_require__(83)('IE_PROTO')
   , ObjectProto = Object.prototype;
 
 module.exports = Object.getPrototypeOf || function(O){
@@ -53705,12 +54390,12 @@ module.exports = Object.getPrototypeOf || function(O){
 };
 
 /***/ }),
-/* 389 */
+/* 406 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // all object keys, includes non-enumerable and symbols
-var gOPN     = __webpack_require__(81)
-  , gOPS     = __webpack_require__(60)
+var gOPN     = __webpack_require__(82)
+  , gOPS     = __webpack_require__(59)
   , anObject = __webpack_require__(18)
   , Reflect  = __webpack_require__(13).Reflect;
 module.exports = Reflect && Reflect.ownKeys || function ownKeys(it){
@@ -53720,7 +54405,7 @@ module.exports = Reflect && Reflect.ownKeys || function ownKeys(it){
 };
 
 /***/ }),
-/* 390 */
+/* 407 */
 /***/ (function(module, exports) {
 
 // 7.2.9 SameValue(x, y)
@@ -53729,12 +54414,12 @@ module.exports = Object.is || function is(x, y){
 };
 
 /***/ }),
-/* 391 */
+/* 408 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.3.20 SpeciesConstructor(O, defaultConstructor)
 var anObject  = __webpack_require__(18)
-  , aFunction = __webpack_require__(72)
+  , aFunction = __webpack_require__(73)
   , SPECIES   = __webpack_require__(10)('species');
 module.exports = function(O, D){
   var C = anObject(O).constructor, S;
@@ -53742,10 +54427,10 @@ module.exports = function(O, D){
 };
 
 /***/ }),
-/* 392 */
+/* 409 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var toInteger = __webpack_require__(63)
+var toInteger = __webpack_require__(62)
   , defined   = __webpack_require__(30);
 // true  -> String#at
 // false -> String#codePointAt
@@ -53764,13 +54449,13 @@ module.exports = function(TO_STRING){
 };
 
 /***/ }),
-/* 393 */
+/* 410 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global         = __webpack_require__(13)
   , core           = __webpack_require__(45)
-  , LIBRARY        = __webpack_require__(59)
-  , wksExt         = __webpack_require__(275)
+  , LIBRARY        = __webpack_require__(58)
+  , wksExt         = __webpack_require__(290)
   , defineProperty = __webpack_require__(19).f;
 module.exports = function(name){
   var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
@@ -53778,246 +54463,282 @@ module.exports = function(name){
 };
 
 /***/ }),
-/* 394 */
+/* 411 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 395 */
+/* 412 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 396 */
+/* 413 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 397 */
+/* 414 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 398 */
+/* 415 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 399 */
+/* 416 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 400 */
+/* 417 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 418 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./af": 132,
-	"./af.js": 132,
-	"./ar": 136,
-	"./ar-ma": 133,
-	"./ar-ma.js": 133,
-	"./ar-sa": 134,
-	"./ar-sa.js": 134,
-	"./ar-tn": 135,
-	"./ar-tn.js": 135,
-	"./ar.js": 136,
-	"./az": 137,
-	"./az.js": 137,
-	"./be": 138,
-	"./be.js": 138,
-	"./bg": 139,
-	"./bg.js": 139,
-	"./bn": 140,
-	"./bn.js": 140,
-	"./bo": 141,
-	"./bo.js": 141,
-	"./br": 142,
-	"./br.js": 142,
-	"./bs": 143,
-	"./bs.js": 143,
-	"./ca": 144,
-	"./ca.js": 144,
-	"./cs": 145,
-	"./cs.js": 145,
-	"./cv": 146,
-	"./cv.js": 146,
-	"./cy": 147,
-	"./cy.js": 147,
-	"./da": 148,
-	"./da.js": 148,
-	"./de": 150,
-	"./de-at": 149,
-	"./de-at.js": 149,
-	"./de.js": 150,
-	"./dv": 151,
-	"./dv.js": 151,
-	"./el": 152,
-	"./el.js": 152,
-	"./en-au": 153,
-	"./en-au.js": 153,
-	"./en-ca": 154,
-	"./en-ca.js": 154,
-	"./en-gb": 155,
-	"./en-gb.js": 155,
-	"./en-ie": 156,
-	"./en-ie.js": 156,
-	"./en-nz": 157,
-	"./en-nz.js": 157,
-	"./eo": 158,
-	"./eo.js": 158,
-	"./es": 159,
-	"./es.js": 159,
-	"./et": 160,
-	"./et.js": 160,
-	"./eu": 161,
-	"./eu.js": 161,
-	"./fa": 162,
-	"./fa.js": 162,
-	"./fi": 163,
-	"./fi.js": 163,
-	"./fo": 164,
-	"./fo.js": 164,
-	"./fr": 167,
-	"./fr-ca": 165,
-	"./fr-ca.js": 165,
-	"./fr-ch": 166,
-	"./fr-ch.js": 166,
-	"./fr.js": 167,
-	"./fy": 168,
-	"./fy.js": 168,
-	"./gd": 169,
-	"./gd.js": 169,
-	"./gl": 170,
-	"./gl.js": 170,
-	"./he": 171,
-	"./he.js": 171,
-	"./hi": 172,
-	"./hi.js": 172,
-	"./hr": 173,
-	"./hr.js": 173,
-	"./hu": 174,
-	"./hu.js": 174,
-	"./hy-am": 175,
-	"./hy-am.js": 175,
-	"./id": 176,
-	"./id.js": 176,
-	"./is": 177,
-	"./is.js": 177,
-	"./it": 178,
-	"./it.js": 178,
-	"./ja": 179,
-	"./ja.js": 179,
-	"./jv": 180,
-	"./jv.js": 180,
-	"./ka": 181,
-	"./ka.js": 181,
-	"./kk": 182,
-	"./kk.js": 182,
-	"./km": 183,
-	"./km.js": 183,
-	"./ko": 184,
-	"./ko.js": 184,
-	"./ky": 185,
-	"./ky.js": 185,
-	"./lb": 186,
-	"./lb.js": 186,
-	"./lo": 187,
-	"./lo.js": 187,
-	"./lt": 188,
-	"./lt.js": 188,
-	"./lv": 189,
-	"./lv.js": 189,
-	"./me": 190,
-	"./me.js": 190,
-	"./mk": 191,
-	"./mk.js": 191,
-	"./ml": 192,
-	"./ml.js": 192,
-	"./mr": 193,
-	"./mr.js": 193,
-	"./ms": 195,
-	"./ms-my": 194,
-	"./ms-my.js": 194,
-	"./ms.js": 195,
-	"./my": 196,
-	"./my.js": 196,
-	"./nb": 197,
-	"./nb.js": 197,
-	"./ne": 198,
-	"./ne.js": 198,
-	"./nl": 199,
-	"./nl.js": 199,
-	"./nn": 200,
-	"./nn.js": 200,
-	"./pa-in": 201,
-	"./pa-in.js": 201,
-	"./pl": 202,
-	"./pl.js": 202,
-	"./pt": 204,
-	"./pt-br": 203,
-	"./pt-br.js": 203,
-	"./pt.js": 204,
-	"./ro": 205,
-	"./ro.js": 205,
-	"./ru": 206,
-	"./ru.js": 206,
-	"./se": 207,
-	"./se.js": 207,
-	"./si": 208,
-	"./si.js": 208,
-	"./sk": 209,
-	"./sk.js": 209,
-	"./sl": 210,
-	"./sl.js": 210,
-	"./sq": 211,
-	"./sq.js": 211,
-	"./sr": 213,
-	"./sr-cyrl": 212,
-	"./sr-cyrl.js": 212,
-	"./sr.js": 213,
-	"./ss": 214,
-	"./ss.js": 214,
-	"./sv": 215,
-	"./sv.js": 215,
-	"./sw": 216,
-	"./sw.js": 216,
-	"./ta": 217,
-	"./ta.js": 217,
-	"./te": 218,
-	"./te.js": 218,
-	"./th": 219,
-	"./th.js": 219,
-	"./tl-ph": 220,
-	"./tl-ph.js": 220,
-	"./tlh": 221,
-	"./tlh.js": 221,
-	"./tr": 222,
-	"./tr.js": 222,
-	"./tzl": 223,
-	"./tzl.js": 223,
-	"./tzm": 225,
-	"./tzm-latn": 224,
-	"./tzm-latn.js": 224,
-	"./tzm.js": 225,
-	"./uk": 226,
-	"./uk.js": 226,
-	"./uz": 227,
-	"./uz.js": 227,
-	"./vi": 228,
-	"./vi.js": 228,
-	"./x-pseudo": 229,
-	"./x-pseudo.js": 229,
-	"./zh-cn": 230,
-	"./zh-cn.js": 230,
-	"./zh-tw": 231,
-	"./zh-tw.js": 231
+	"./af": 133,
+	"./af.js": 133,
+	"./ar": 140,
+	"./ar-dz": 134,
+	"./ar-dz.js": 134,
+	"./ar-kw": 135,
+	"./ar-kw.js": 135,
+	"./ar-ly": 136,
+	"./ar-ly.js": 136,
+	"./ar-ma": 137,
+	"./ar-ma.js": 137,
+	"./ar-sa": 138,
+	"./ar-sa.js": 138,
+	"./ar-tn": 139,
+	"./ar-tn.js": 139,
+	"./ar.js": 140,
+	"./az": 141,
+	"./az.js": 141,
+	"./be": 142,
+	"./be.js": 142,
+	"./bg": 143,
+	"./bg.js": 143,
+	"./bn": 144,
+	"./bn.js": 144,
+	"./bo": 145,
+	"./bo.js": 145,
+	"./br": 146,
+	"./br.js": 146,
+	"./bs": 147,
+	"./bs.js": 147,
+	"./ca": 148,
+	"./ca.js": 148,
+	"./cs": 149,
+	"./cs.js": 149,
+	"./cv": 150,
+	"./cv.js": 150,
+	"./cy": 151,
+	"./cy.js": 151,
+	"./da": 152,
+	"./da.js": 152,
+	"./de": 155,
+	"./de-at": 153,
+	"./de-at.js": 153,
+	"./de-ch": 154,
+	"./de-ch.js": 154,
+	"./de.js": 155,
+	"./dv": 156,
+	"./dv.js": 156,
+	"./el": 157,
+	"./el.js": 157,
+	"./en-au": 158,
+	"./en-au.js": 158,
+	"./en-ca": 159,
+	"./en-ca.js": 159,
+	"./en-gb": 160,
+	"./en-gb.js": 160,
+	"./en-ie": 161,
+	"./en-ie.js": 161,
+	"./en-nz": 162,
+	"./en-nz.js": 162,
+	"./eo": 163,
+	"./eo.js": 163,
+	"./es": 165,
+	"./es-do": 164,
+	"./es-do.js": 164,
+	"./es.js": 165,
+	"./et": 166,
+	"./et.js": 166,
+	"./eu": 167,
+	"./eu.js": 167,
+	"./fa": 168,
+	"./fa.js": 168,
+	"./fi": 169,
+	"./fi.js": 169,
+	"./fo": 170,
+	"./fo.js": 170,
+	"./fr": 173,
+	"./fr-ca": 171,
+	"./fr-ca.js": 171,
+	"./fr-ch": 172,
+	"./fr-ch.js": 172,
+	"./fr.js": 173,
+	"./fy": 174,
+	"./fy.js": 174,
+	"./gd": 175,
+	"./gd.js": 175,
+	"./gl": 176,
+	"./gl.js": 176,
+	"./gom-latn": 177,
+	"./gom-latn.js": 177,
+	"./he": 178,
+	"./he.js": 178,
+	"./hi": 179,
+	"./hi.js": 179,
+	"./hr": 180,
+	"./hr.js": 180,
+	"./hu": 181,
+	"./hu.js": 181,
+	"./hy-am": 182,
+	"./hy-am.js": 182,
+	"./id": 183,
+	"./id.js": 183,
+	"./is": 184,
+	"./is.js": 184,
+	"./it": 185,
+	"./it.js": 185,
+	"./ja": 186,
+	"./ja.js": 186,
+	"./jv": 187,
+	"./jv.js": 187,
+	"./ka": 188,
+	"./ka.js": 188,
+	"./kk": 189,
+	"./kk.js": 189,
+	"./km": 190,
+	"./km.js": 190,
+	"./kn": 191,
+	"./kn.js": 191,
+	"./ko": 192,
+	"./ko.js": 192,
+	"./ky": 193,
+	"./ky.js": 193,
+	"./lb": 194,
+	"./lb.js": 194,
+	"./lo": 195,
+	"./lo.js": 195,
+	"./lt": 196,
+	"./lt.js": 196,
+	"./lv": 197,
+	"./lv.js": 197,
+	"./me": 198,
+	"./me.js": 198,
+	"./mi": 199,
+	"./mi.js": 199,
+	"./mk": 200,
+	"./mk.js": 200,
+	"./ml": 201,
+	"./ml.js": 201,
+	"./mr": 202,
+	"./mr.js": 202,
+	"./ms": 204,
+	"./ms-my": 203,
+	"./ms-my.js": 203,
+	"./ms.js": 204,
+	"./my": 205,
+	"./my.js": 205,
+	"./nb": 206,
+	"./nb.js": 206,
+	"./ne": 207,
+	"./ne.js": 207,
+	"./nl": 209,
+	"./nl-be": 208,
+	"./nl-be.js": 208,
+	"./nl.js": 209,
+	"./nn": 210,
+	"./nn.js": 210,
+	"./pa-in": 211,
+	"./pa-in.js": 211,
+	"./pl": 212,
+	"./pl.js": 212,
+	"./pt": 214,
+	"./pt-br": 213,
+	"./pt-br.js": 213,
+	"./pt.js": 214,
+	"./ro": 215,
+	"./ro.js": 215,
+	"./ru": 216,
+	"./ru.js": 216,
+	"./sd": 217,
+	"./sd.js": 217,
+	"./se": 218,
+	"./se.js": 218,
+	"./si": 219,
+	"./si.js": 219,
+	"./sk": 220,
+	"./sk.js": 220,
+	"./sl": 221,
+	"./sl.js": 221,
+	"./sq": 222,
+	"./sq.js": 222,
+	"./sr": 224,
+	"./sr-cyrl": 223,
+	"./sr-cyrl.js": 223,
+	"./sr.js": 224,
+	"./ss": 225,
+	"./ss.js": 225,
+	"./sv": 226,
+	"./sv.js": 226,
+	"./sw": 227,
+	"./sw.js": 227,
+	"./ta": 228,
+	"./ta.js": 228,
+	"./te": 229,
+	"./te.js": 229,
+	"./tet": 230,
+	"./tet.js": 230,
+	"./th": 231,
+	"./th.js": 231,
+	"./tl-ph": 232,
+	"./tl-ph.js": 232,
+	"./tlh": 233,
+	"./tlh.js": 233,
+	"./tr": 234,
+	"./tr.js": 234,
+	"./tzl": 235,
+	"./tzl.js": 235,
+	"./tzm": 237,
+	"./tzm-latn": 236,
+	"./tzm-latn.js": 236,
+	"./tzm.js": 237,
+	"./uk": 238,
+	"./uk.js": 238,
+	"./ur": 239,
+	"./ur.js": 239,
+	"./uz": 241,
+	"./uz-latn": 240,
+	"./uz-latn.js": 240,
+	"./uz.js": 241,
+	"./vi": 242,
+	"./vi.js": 242,
+	"./x-pseudo": 243,
+	"./x-pseudo.js": 243,
+	"./yo": 244,
+	"./yo.js": 244,
+	"./zh-cn": 245,
+	"./zh-cn.js": 245,
+	"./zh-hk": 246,
+	"./zh-hk.js": 246,
+	"./zh-tw": 247,
+	"./zh-tw.js": 247
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -54033,10 +54754,10 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 400;
+webpackContext.id = 418;
 
 /***/ }),
-/* 401 */
+/* 419 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*!
@@ -54243,6 +54964,9 @@ webpackContext.id = 400;
         // first day of week (0: Sunday, 1: Monday etc)
         firstDay: 0,
 
+        // the default flag for moment's strict date parsing
+        formatStrict: false,
+
         // the minimum/earliest date that can be selected
         minDate: null,
         // the maximum/latest date that can be selected
@@ -54270,6 +54994,9 @@ webpackContext.id = 400;
 
         // Render the month after year in the calendar title
         showMonthAfterYear: false,
+
+        // Render days of the calendar grid that fall in the next or previous month
+        showDaysInNextAndPreviousMonths: false,
 
         // how many months are visible
         numberOfMonths: 1,
@@ -54315,10 +55042,15 @@ webpackContext.id = 400;
 
     renderDay = function(opts)
     {
-        if (opts.isEmpty) {
-            return '<td class="is-empty"></td>';
-        }
         var arr = [];
+        var ariaSelected = 'false';
+        if (opts.isEmpty) {
+            if (opts.showDaysInNextAndPreviousMonths) {
+                arr.push('is-outside-current-month');
+            } else {
+                return '<td class="is-empty"></td>';
+            }
+        }
         if (opts.isDisabled) {
             arr.push('is-disabled');
         }
@@ -54327,6 +55059,7 @@ webpackContext.id = 400;
         }
         if (opts.isSelected) {
             arr.push('is-selected');
+            ariaSelected = 'true';
         }
         if (opts.isInRange) {
             arr.push('is-inrange');
@@ -54337,7 +55070,7 @@ webpackContext.id = 400;
         if (opts.isEndRange) {
             arr.push('is-endrange');
         }
-        return '<td data-day="' + opts.day + '" class="' + arr.join(' ') + '">' +
+        return '<td data-day="' + opts.day + '" class="' + arr.join(' ') + '" aria-selected="' + ariaSelected + '">' +
                  '<button class="pika-button pika-day" type="button" ' +
                     'data-pika-year="' + opts.year + '" data-pika-month="' + opts.month + '" data-pika-day="' + opts.day + '">' +
                         opts.day +
@@ -54371,16 +55104,16 @@ webpackContext.id = 400;
         for (i = 0; i < 7; i++) {
             arr.push('<th scope="col"><abbr title="' + renderDayName(opts, i) + '">' + renderDayName(opts, i, true) + '</abbr></th>');
         }
-        return '<thead>' + (opts.isRTL ? arr.reverse() : arr).join('') + '</thead>';
+        return '<thead><tr>' + (opts.isRTL ? arr.reverse() : arr).join('') + '</tr></thead>';
     },
 
-    renderTitle = function(instance, c, year, month, refYear)
+    renderTitle = function(instance, c, year, month, refYear, randId)
     {
         var i, j, arr,
             opts = instance._o,
             isMinYear = year === opts.minYear,
             isMaxYear = year === opts.maxYear,
-            html = '<div class="pika-title">',
+            html = '<div id="' + randId + '" class="pika-title" role="heading" aria-live="assertive">',
             monthHtml,
             yearHtml,
             prev = true,
@@ -54388,10 +55121,11 @@ webpackContext.id = 400;
 
         for (arr = [], i = 0; i < 12; i++) {
             arr.push('<option value="' + (year === refYear ? i - c : 12 + i - c) + '"' +
-                (i === month ? ' selected': '') +
-                ((isMinYear && i < opts.minMonth) || (isMaxYear && i > opts.maxMonth) ? 'disabled' : '') + '>' +
+                (i === month ? ' selected="selected"': '') +
+                ((isMinYear && i < opts.minMonth) || (isMaxYear && i > opts.maxMonth) ? 'disabled="disabled"' : '') + '>' +
                 opts.i18n.months[i] + '</option>');
         }
+
         monthHtml = '<div class="pika-label">' + opts.i18n.months[month] + '<select class="pika-select pika-select-month" tabindex="-1">' + arr.join('') + '</select></div>';
 
         if (isArray(opts.yearRange)) {
@@ -54404,7 +55138,7 @@ webpackContext.id = 400;
 
         for (arr = []; i < j && i <= opts.maxYear; i++) {
             if (i >= opts.minYear) {
-                arr.push('<option value="' + i + '"' + (i === year ? ' selected': '') + '>' + (i) + '</option>');
+                arr.push('<option value="' + i + '"' + (i === year ? ' selected="selected"': '') + '>' + (i) + '</option>');
             }
         }
         yearHtml = '<div class="pika-label">' + year + opts.yearSuffix + '<select class="pika-select pika-select-year" tabindex="-1">' + arr.join('') + '</select></div>';
@@ -54433,9 +55167,9 @@ webpackContext.id = 400;
         return html += '</div>';
     },
 
-    renderTable = function(opts, data)
+    renderTable = function(opts, data, randId)
     {
-        return '<table cellpadding="0" cellspacing="0" class="pika-table">' + renderHead(opts) + renderBody(data) + '</table>';
+        return '<table cellpadding="0" cellspacing="0" class="pika-table" role="grid" aria-labelledby="' + randId + '">' + renderHead(opts) + renderBody(data) + '</table>';
     },
 
 
@@ -54459,7 +55193,7 @@ webpackContext.id = 400;
             }
 
             if (!hasClass(target, 'is-disabled')) {
-                if (hasClass(target, 'pika-button') && !hasClass(target, 'is-empty')) {
+                if (hasClass(target, 'pika-button') && !hasClass(target, 'is-empty') && !hasClass(target.parentNode, 'is-disabled')) {
                     self.setDate(new Date(target.getAttribute('data-pika-year'), target.getAttribute('data-pika-month'), target.getAttribute('data-pika-day')));
                     if (opts.bound) {
                         sto(function() {
@@ -54505,6 +55239,34 @@ webpackContext.id = 400;
             }
         };
 
+        self._onKeyChange = function(e)
+        {
+            e = e || window.event;
+
+            if (self.isVisible()) {
+
+                switch(e.keyCode){
+                    case 13:
+                    case 27:
+                        opts.field.blur();
+                        break;
+                    case 37:
+                        e.preventDefault();
+                        self.adjustDate('subtract', 1);
+                        break;
+                    case 38:
+                        self.adjustDate('subtract', 7);
+                        break;
+                    case 39:
+                        self.adjustDate('add', 1);
+                        break;
+                    case 40:
+                        self.adjustDate('add', 7);
+                        break;
+                }
+            }
+        };
+
         self._onInputChange = function(e)
         {
             var date;
@@ -54513,7 +55275,7 @@ webpackContext.id = 400;
                 return;
             }
             if (hasMoment) {
-                date = moment(opts.field.value, opts.format);
+                date = moment(opts.field.value, opts.format, opts.formatStrict);
                 date = (date && date.isValid()) ? date.toDate() : null;
             }
             else {
@@ -54587,6 +55349,7 @@ webpackContext.id = 400;
         addEvent(self.el, 'mousedown', self._onMouseDown, true);
         addEvent(self.el, 'touchend', self._onMouseDown, true);
         addEvent(self.el, 'change', self._onChange);
+        addEvent(document, 'keydown', self._onKeyChange);
 
         if (opts.field) {
             if (opts.container) {
@@ -54723,11 +55486,11 @@ webpackContext.id = 400;
         },
 
         /**
-         * return a Date object of the current selection
+         * return a Date object of the current selection with fallback for the current date
          */
         getDate: function()
         {
-            return isDate(this._d) ? new Date(this._d.getTime()) : null;
+            return isDate(this._d) ? new Date(this._d.getTime()) : new Date();
         },
 
         /**
@@ -54808,6 +55571,30 @@ webpackContext.id = 400;
             this.adjustCalendars();
         },
 
+        adjustDate: function(sign, days) {
+
+            var day = this.getDate();
+            var difference = parseInt(days)*24*60*60*1000;
+
+            var newDay;
+
+            if (sign === 'add') {
+                newDay = new Date(day.valueOf() + difference);
+            } else if (sign === 'subtract') {
+                newDay = new Date(day.valueOf() - difference);
+            }
+
+            if (hasMoment) {
+                if (sign === 'add') {
+                    newDay = moment(day).add(days, "days").toDate();
+                } else if (sign === 'subtract') {
+                    newDay = moment(day).subtract(days, "days").toDate();
+                }
+            }
+
+            this.setDate(newDay);
+        },
+
         adjustCalendars: function() {
             this.calendars[0] = adjustCalendar(this.calendars[0]);
             for (var c = 1; c < this._o.numberOfMonths; c++) {
@@ -54863,10 +55650,18 @@ webpackContext.id = 400;
          */
         setMinDate: function(value)
         {
-            setToStartOfDay(value);
-            this._o.minDate = value;
-            this._o.minYear  = value.getFullYear();
-            this._o.minMonth = value.getMonth();
+            if(value instanceof Date) {
+                setToStartOfDay(value);
+                this._o.minDate = value;
+                this._o.minYear  = value.getFullYear();
+                this._o.minMonth = value.getMonth();
+            } else {
+                this._o.minDate = defaults.minDate;
+                this._o.minYear  = defaults.minYear;
+                this._o.minMonth = defaults.minMonth;
+                this._o.startRange = defaults.startRange;
+            }
+
             this.draw();
         },
 
@@ -54875,10 +55670,18 @@ webpackContext.id = 400;
          */
         setMaxDate: function(value)
         {
-            setToStartOfDay(value);
-            this._o.maxDate = value;
-            this._o.maxYear = value.getFullYear();
-            this._o.maxMonth = value.getMonth();
+            if(value instanceof Date) {
+                setToStartOfDay(value);
+                this._o.maxDate = value;
+                this._o.maxYear = value.getFullYear();
+                this._o.maxMonth = value.getMonth();
+            } else {
+                this._o.maxDate = defaults.maxDate;
+                this._o.maxYear = defaults.maxYear;
+                this._o.maxMonth = defaults.maxMonth;
+                this._o.endRange = defaults.endRange;
+            }
+
             this.draw();
         },
 
@@ -54905,7 +55708,8 @@ webpackContext.id = 400;
                 maxYear = opts.maxYear,
                 minMonth = opts.minMonth,
                 maxMonth = opts.maxMonth,
-                html = '';
+                html = '',
+                randId;
 
             if (this._y <= minYear) {
                 this._y = minYear;
@@ -54920,8 +55724,10 @@ webpackContext.id = 400;
                 }
             }
 
+            randId = 'pika-title-' + Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 2);
+
             for (var c = 0; c < opts.numberOfMonths; c++) {
-                html += '<div class="pika-lendar">' + renderTitle(this, c, this.calendars[c].year, this.calendars[c].month, this.calendars[0].year) + this.render(this.calendars[c].year, this.calendars[c].month) + '</div>';
+                html += '<div class="pika-lendar">' + renderTitle(this, c, this.calendars[c].year, this.calendars[c].month, this.calendars[0].year, randId) + this.render(this.calendars[c].year, this.calendars[c].month, randId) + '</div>';
             }
 
             this.el.innerHTML = html;
@@ -54935,10 +55741,12 @@ webpackContext.id = 400;
             }
 
             if (typeof this._o.onDraw === 'function') {
-                var self = this;
-                sto(function() {
-                    self._o.onDraw.call(self);
-                }, 0);
+                this._o.onDraw(this);
+            }
+            
+            if (opts.bound) {
+                // let the screen reader user know to use arrow keys
+                opts.field.setAttribute('aria-label', 'Use the arrow keys to pick a date');
             }
         },
 
@@ -54996,7 +55804,7 @@ webpackContext.id = 400;
         /**
          * render HTML for a particular month
          */
-        render: function(year, month)
+        render: function(year, month, randId)
         {
             var opts   = this._o,
                 now    = new Date(),
@@ -55011,6 +55819,11 @@ webpackContext.id = 400;
                     before += 7;
                 }
             }
+            var previousMonth = month === 0 ? 11 : month - 1,
+                nextMonth = month === 11 ? 0 : month + 1,
+                yearOfPreviousMonth = month === 0 ? year - 1 : year,
+                yearOfNextMonth = month === 11 ? year + 1 : year,
+                daysInPreviousMonth = getDaysInMonth(yearOfPreviousMonth, previousMonth);
             var cells = days + before,
                 after = cells;
             while(after > 7) {
@@ -55023,24 +55836,41 @@ webpackContext.id = 400;
                     isSelected = isDate(this._d) ? compareDates(day, this._d) : false,
                     isToday = compareDates(day, now),
                     isEmpty = i < before || i >= (days + before),
+                    dayNumber = 1 + (i - before),
+                    monthNumber = month,
+                    yearNumber = year,
                     isStartRange = opts.startRange && compareDates(opts.startRange, day),
                     isEndRange = opts.endRange && compareDates(opts.endRange, day),
                     isInRange = opts.startRange && opts.endRange && opts.startRange < day && day < opts.endRange,
                     isDisabled = (opts.minDate && day < opts.minDate) ||
                                  (opts.maxDate && day > opts.maxDate) ||
                                  (opts.disableWeekends && isWeekend(day)) ||
-                                 (opts.disableDayFn && opts.disableDayFn(day)),
-                    dayConfig = {
-                        day: 1 + (i - before),
-                        month: month,
-                        year: year,
+                                 (opts.disableDayFn && opts.disableDayFn(day));
+
+                if (isEmpty) {
+                    if (i < before) {
+                        dayNumber = daysInPreviousMonth + dayNumber;
+                        monthNumber = previousMonth;
+                        yearNumber = yearOfPreviousMonth;
+                    } else {
+                        dayNumber = dayNumber - days;
+                        monthNumber = nextMonth;
+                        yearNumber = yearOfNextMonth;
+                    }
+                }
+
+                var dayConfig = {
+                        day: dayNumber,
+                        month: monthNumber,
+                        year: yearNumber,
                         isSelected: isSelected,
                         isToday: isToday,
                         isDisabled: isDisabled,
                         isEmpty: isEmpty,
                         isStartRange: isStartRange,
                         isEndRange: isEndRange,
-                        isInRange: isInRange
+                        isInRange: isInRange,
+                        showDaysInNextAndPreviousMonths: opts.showDaysInNextAndPreviousMonths
                     };
 
                 row.push(renderDay(dayConfig));
@@ -55054,7 +55884,7 @@ webpackContext.id = 400;
                     r = 0;
                 }
             }
-            return renderTable(opts, data);
+            return renderTable(opts, data, randId);
         },
 
         isVisible: function()
@@ -55064,7 +55894,7 @@ webpackContext.id = 400;
 
         show: function()
         {
-            if (!this._v) {
+            if (!this.isVisible()) {
                 removeClass(this.el, 'is-hidden');
                 this._v = true;
                 this.draw();
@@ -55126,7 +55956,7 @@ webpackContext.id = 400;
 
 
 /***/ }),
-/* 402 */
+/* 420 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -55152,2728 +55982,6 @@ module.exports = function(module) {
 	return module;
 };
 
-
-/***/ }),
-/* 403 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_RESULT__;/*!
- * ZeroClipboard
- * The ZeroClipboard library provides an easy way to copy text to the clipboard using an invisible Adobe Flash movie and a JavaScript interface
- * Copyright (c) 2009-2016 Jon Rohan, James M. Greene
- * Licensed MIT
- * http://zeroclipboard.org/
- * v2.3.0
- */
-(function(window, undefined) {
-  "use strict";
-  /**
- * Store references to critically important global functions that may be
- * overridden on certain web pages.
- */
-  var _window = window, _document = _window.document, _navigator = _window.navigator, _setTimeout = _window.setTimeout, _clearTimeout = _window.clearTimeout, _setInterval = _window.setInterval, _clearInterval = _window.clearInterval, _getComputedStyle = _window.getComputedStyle, _encodeURIComponent = _window.encodeURIComponent, _ActiveXObject = _window.ActiveXObject, _Error = _window.Error, _parseInt = _window.Number.parseInt || _window.parseInt, _parseFloat = _window.Number.parseFloat || _window.parseFloat, _isNaN = _window.Number.isNaN || _window.isNaN, _now = _window.Date.now, _keys = _window.Object.keys, _hasOwn = _window.Object.prototype.hasOwnProperty, _slice = _window.Array.prototype.slice, _unwrap = function() {
-    var unwrapper = function(el) {
-      return el;
-    };
-    if (typeof _window.wrap === "function" && typeof _window.unwrap === "function") {
-      try {
-        var div = _document.createElement("div");
-        var unwrappedDiv = _window.unwrap(div);
-        if (div.nodeType === 1 && unwrappedDiv && unwrappedDiv.nodeType === 1) {
-          unwrapper = _window.unwrap;
-        }
-      } catch (e) {}
-    }
-    return unwrapper;
-  }();
-  /**
- * Convert an `arguments` object into an Array.
- *
- * @returns The arguments as an Array
- * @private
- */
-  var _args = function(argumentsObj) {
-    return _slice.call(argumentsObj, 0);
-  };
-  /**
- * Shallow-copy the owned, enumerable properties of one object over to another, similar to jQuery's `$.extend`.
- *
- * @returns The target object, augmented
- * @private
- */
-  var _extend = function() {
-    var i, len, arg, prop, src, copy, args = _args(arguments), target = args[0] || {};
-    for (i = 1, len = args.length; i < len; i++) {
-      if ((arg = args[i]) != null) {
-        for (prop in arg) {
-          if (_hasOwn.call(arg, prop)) {
-            src = target[prop];
-            copy = arg[prop];
-            if (target !== copy && copy !== undefined) {
-              target[prop] = copy;
-            }
-          }
-        }
-      }
-    }
-    return target;
-  };
-  /**
- * Return a deep copy of the source object or array.
- *
- * @returns Object or Array
- * @private
- */
-  var _deepCopy = function(source) {
-    var copy, i, len, prop;
-    if (typeof source !== "object" || source == null || typeof source.nodeType === "number") {
-      copy = source;
-    } else if (typeof source.length === "number") {
-      copy = [];
-      for (i = 0, len = source.length; i < len; i++) {
-        if (_hasOwn.call(source, i)) {
-          copy[i] = _deepCopy(source[i]);
-        }
-      }
-    } else {
-      copy = {};
-      for (prop in source) {
-        if (_hasOwn.call(source, prop)) {
-          copy[prop] = _deepCopy(source[prop]);
-        }
-      }
-    }
-    return copy;
-  };
-  /**
- * Makes a shallow copy of `obj` (like `_extend`) but filters its properties based on a list of `keys` to keep.
- * The inverse of `_omit`, mostly. The big difference is that these properties do NOT need to be enumerable to
- * be kept.
- *
- * @returns A new filtered object.
- * @private
- */
-  var _pick = function(obj, keys) {
-    var newObj = {};
-    for (var i = 0, len = keys.length; i < len; i++) {
-      if (keys[i] in obj) {
-        newObj[keys[i]] = obj[keys[i]];
-      }
-    }
-    return newObj;
-  };
-  /**
- * Makes a shallow copy of `obj` (like `_extend`) but filters its properties based on a list of `keys` to omit.
- * The inverse of `_pick`.
- *
- * @returns A new filtered object.
- * @private
- */
-  var _omit = function(obj, keys) {
-    var newObj = {};
-    for (var prop in obj) {
-      if (keys.indexOf(prop) === -1) {
-        newObj[prop] = obj[prop];
-      }
-    }
-    return newObj;
-  };
-  /**
- * Remove all owned, enumerable properties from an object.
- *
- * @returns The original object without its owned, enumerable properties.
- * @private
- */
-  var _deleteOwnProperties = function(obj) {
-    if (obj) {
-      for (var prop in obj) {
-        if (_hasOwn.call(obj, prop)) {
-          delete obj[prop];
-        }
-      }
-    }
-    return obj;
-  };
-  /**
- * Determine if an element is contained within another element.
- *
- * @returns Boolean
- * @private
- */
-  var _containedBy = function(el, ancestorEl) {
-    if (el && el.nodeType === 1 && el.ownerDocument && ancestorEl && (ancestorEl.nodeType === 1 && ancestorEl.ownerDocument && ancestorEl.ownerDocument === el.ownerDocument || ancestorEl.nodeType === 9 && !ancestorEl.ownerDocument && ancestorEl === el.ownerDocument)) {
-      do {
-        if (el === ancestorEl) {
-          return true;
-        }
-        el = el.parentNode;
-      } while (el);
-    }
-    return false;
-  };
-  /**
- * Get the URL path's parent directory.
- *
- * @returns String or `undefined`
- * @private
- */
-  var _getDirPathOfUrl = function(url) {
-    var dir;
-    if (typeof url === "string" && url) {
-      dir = url.split("#")[0].split("?")[0];
-      dir = url.slice(0, url.lastIndexOf("/") + 1);
-    }
-    return dir;
-  };
-  /**
- * Get the current script's URL by throwing an `Error` and analyzing it.
- *
- * @returns String or `undefined`
- * @private
- */
-  var _getCurrentScriptUrlFromErrorStack = function(stack) {
-    var url, matches;
-    if (typeof stack === "string" && stack) {
-      matches = stack.match(/^(?:|[^:@]*@|.+\)@(?=http[s]?|file)|.+?\s+(?: at |@)(?:[^:\(]+ )*[\(]?)((?:http[s]?|file):\/\/[\/]?.+?\/[^:\)]*?)(?::\d+)(?::\d+)?/);
-      if (matches && matches[1]) {
-        url = matches[1];
-      } else {
-        matches = stack.match(/\)@((?:http[s]?|file):\/\/[\/]?.+?\/[^:\)]*?)(?::\d+)(?::\d+)?/);
-        if (matches && matches[1]) {
-          url = matches[1];
-        }
-      }
-    }
-    return url;
-  };
-  /**
- * Get the current script's URL by throwing an `Error` and analyzing it.
- *
- * @returns String or `undefined`
- * @private
- */
-  var _getCurrentScriptUrlFromError = function() {
-    var url, err;
-    try {
-      throw new _Error();
-    } catch (e) {
-      err = e;
-    }
-    if (err) {
-      url = err.sourceURL || err.fileName || _getCurrentScriptUrlFromErrorStack(err.stack);
-    }
-    return url;
-  };
-  /**
- * Get the current script's URL.
- *
- * @returns String or `undefined`
- * @private
- */
-  var _getCurrentScriptUrl = function() {
-    var jsPath, scripts, i;
-    if (_document.currentScript && (jsPath = _document.currentScript.src)) {
-      return jsPath;
-    }
-    scripts = _document.getElementsByTagName("script");
-    if (scripts.length === 1) {
-      return scripts[0].src || undefined;
-    }
-    if ("readyState" in (scripts[0] || document.createElement("script"))) {
-      for (i = scripts.length; i--; ) {
-        if (scripts[i].readyState === "interactive" && (jsPath = scripts[i].src)) {
-          return jsPath;
-        }
-      }
-    }
-    if (_document.readyState === "loading" && (jsPath = scripts[scripts.length - 1].src)) {
-      return jsPath;
-    }
-    if (jsPath = _getCurrentScriptUrlFromError()) {
-      return jsPath;
-    }
-    return undefined;
-  };
-  /**
- * Get the unanimous parent directory of ALL script tags.
- * If any script tags are either (a) inline or (b) from differing parent
- * directories, this method must return `undefined`.
- *
- * @returns String or `undefined`
- * @private
- */
-  var _getUnanimousScriptParentDir = function() {
-    var i, jsDir, jsPath, scripts = _document.getElementsByTagName("script");
-    for (i = scripts.length; i--; ) {
-      if (!(jsPath = scripts[i].src)) {
-        jsDir = null;
-        break;
-      }
-      jsPath = _getDirPathOfUrl(jsPath);
-      if (jsDir == null) {
-        jsDir = jsPath;
-      } else if (jsDir !== jsPath) {
-        jsDir = null;
-        break;
-      }
-    }
-    return jsDir || undefined;
-  };
-  /**
- * Get the presumed location of the "ZeroClipboard.swf" file, based on the location
- * of the executing JavaScript file (e.g. "ZeroClipboard.js", etc.).
- *
- * @returns String
- * @private
- */
-  var _getDefaultSwfPath = function() {
-    var jsDir = _getDirPathOfUrl(_getCurrentScriptUrl()) || _getUnanimousScriptParentDir() || "";
-    return jsDir + "ZeroClipboard.swf";
-  };
-  /**
- * Is the client's operating system some version of Windows?
- *
- * @returns Boolean
- * @private
- */
-  var _isWindows = function() {
-    var isWindowsRegex = /win(dows|[\s]?(nt|me|ce|xp|vista|[\d]+))/i;
-    return !!_navigator && (isWindowsRegex.test(_navigator.appVersion || "") || isWindowsRegex.test(_navigator.platform || "") || (_navigator.userAgent || "").indexOf("Windows") !== -1);
-  };
-  /**
- * Keep track of if the page is framed (in an `iframe`). This can never change.
- * @private
- */
-  var _pageIsFramed = function() {
-    return _window.opener == null && (!!_window.top && _window != _window.top || !!_window.parent && _window != _window.parent);
-  }();
-  /**
- * Keep track of if the page is XHTML (vs. HTML), which requires that everything
- * be rendering in XML mode.
- * @private
- */
-  var _pageIsXhtml = _document.documentElement.nodeName === "html";
-  /**
- * Keep track of the state of the Flash object.
- * @private
- */
-  var _flashState = {
-    bridge: null,
-    version: "0.0.0",
-    pluginType: "unknown",
-    sandboxed: null,
-    disabled: null,
-    outdated: null,
-    insecure: null,
-    unavailable: null,
-    degraded: null,
-    deactivated: null,
-    overdue: null,
-    ready: null
-  };
-  /**
- * The minimum Flash Player version required to use ZeroClipboard completely.
- * @readonly
- * @private
- */
-  var _minimumFlashVersion = "11.0.0";
-  /**
- * The ZeroClipboard library version number, as reported by Flash, at the time the SWF was compiled.
- */
-  var _zcSwfVersion;
-  /**
- * Keep track of all event listener registrations.
- * @private
- */
-  var _handlers = {};
-  /**
- * Keep track of the currently activated element.
- * @private
- */
-  var _currentElement;
-  /**
- * Keep track of the element that was activated when a `copy` process started.
- * @private
- */
-  var _copyTarget;
-  /**
- * Keep track of data for the pending clipboard transaction.
- * @private
- */
-  var _clipData = {};
-  /**
- * Keep track of data formats for the pending clipboard transaction.
- * @private
- */
-  var _clipDataFormatMap = null;
-  /**
- * Keep track of the Flash availability check timeout.
- * @private
- */
-  var _flashCheckTimeout = 0;
-  /**
- * Keep track of SWF network errors interval polling.
- * @private
- */
-  var _swfFallbackCheckInterval = 0;
-  /**
- * The `message` store for events
- * @private
- */
-  var _eventMessages = {
-    ready: "Flash communication is established",
-    error: {
-      "flash-sandboxed": "Attempting to run Flash in a sandboxed iframe, which is impossible",
-      "flash-disabled": "Flash is disabled or not installed. May also be attempting to run Flash in a sandboxed iframe, which is impossible.",
-      "flash-outdated": "Flash is too outdated to support ZeroClipboard",
-      "flash-insecure": "Flash will be unable to communicate due to a protocol mismatch between your `swfPath` configuration and the page",
-      "flash-unavailable": "Flash is unable to communicate bidirectionally with JavaScript",
-      "flash-degraded": "Flash is unable to preserve data fidelity when communicating with JavaScript",
-      "flash-deactivated": "Flash is too outdated for your browser and/or is configured as click-to-activate.\nThis may also mean that the ZeroClipboard SWF object could not be loaded, so please check your `swfPath` configuration and/or network connectivity.\nMay also be attempting to run Flash in a sandboxed iframe, which is impossible.",
-      "flash-overdue": "Flash communication was established but NOT within the acceptable time limit",
-      "version-mismatch": "ZeroClipboard JS version number does not match ZeroClipboard SWF version number",
-      "clipboard-error": "At least one error was thrown while ZeroClipboard was attempting to inject your data into the clipboard",
-      "config-mismatch": "ZeroClipboard configuration does not match Flash's reality",
-      "swf-not-found": "The ZeroClipboard SWF object could not be loaded, so please check your `swfPath` configuration and/or network connectivity",
-      "browser-unsupported": "The browser does not support the required HTML DOM and JavaScript features"
-    }
-  };
-  /**
- * The `name`s of `error` events that can only occur is Flash has at least
- * been able to load the SWF successfully.
- * @private
- */
-  var _errorsThatOnlyOccurAfterFlashLoads = [ "flash-unavailable", "flash-degraded", "flash-overdue", "version-mismatch", "config-mismatch", "clipboard-error" ];
-  /**
- * The `name`s of `error` events that should likely result in the `_flashState`
- * variable's property values being updated.
- * @private
- */
-  var _flashStateErrorNames = [ "flash-sandboxed", "flash-disabled", "flash-outdated", "flash-insecure", "flash-unavailable", "flash-degraded", "flash-deactivated", "flash-overdue" ];
-  /**
- * A RegExp to match the `name` property of `error` events related to Flash.
- * @private
- */
-  var _flashStateErrorNameMatchingRegex = new RegExp("^flash-(" + _flashStateErrorNames.map(function(errorName) {
-    return errorName.replace(/^flash-/, "");
-  }).join("|") + ")$");
-  /**
- * A RegExp to match the `name` property of `error` events related to Flash,
- * which is enabled.
- * @private
- */
-  var _flashStateEnabledErrorNameMatchingRegex = new RegExp("^flash-(" + _flashStateErrorNames.filter(function(errorName) {
-    return errorName !== "flash-disabled";
-  }).map(function(errorName) {
-    return errorName.replace(/^flash-/, "");
-  }).join("|") + ")$");
-  /**
- * ZeroClipboard configuration defaults for the Core module.
- * @private
- */
-  var _globalConfig = {
-    swfPath: _getDefaultSwfPath(),
-    trustedDomains: _window.location.host ? [ _window.location.host ] : [],
-    cacheBust: true,
-    forceEnhancedClipboard: false,
-    flashLoadTimeout: 3e4,
-    autoActivate: true,
-    bubbleEvents: true,
-    fixLineEndings: true,
-    containerId: "global-zeroclipboard-html-bridge",
-    containerClass: "global-zeroclipboard-container",
-    swfObjectId: "global-zeroclipboard-flash-bridge",
-    hoverClass: "zeroclipboard-is-hover",
-    activeClass: "zeroclipboard-is-active",
-    forceHandCursor: false,
-    title: null,
-    zIndex: 999999999
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.config`.
- * @private
- */
-  var _config = function(options) {
-    if (typeof options === "object" && options && !("length" in options)) {
-      _keys(options).forEach(function(prop) {
-        if (/^(?:forceHandCursor|title|zIndex|bubbleEvents|fixLineEndings)$/.test(prop)) {
-          _globalConfig[prop] = options[prop];
-        } else if (_flashState.bridge == null) {
-          if (prop === "containerId" || prop === "swfObjectId") {
-            if (_isValidHtml4Id(options[prop])) {
-              _globalConfig[prop] = options[prop];
-            } else {
-              throw new Error("The specified `" + prop + "` value is not valid as an HTML4 Element ID");
-            }
-          } else {
-            _globalConfig[prop] = options[prop];
-          }
-        }
-      });
-    }
-    if (typeof options === "string" && options) {
-      if (_hasOwn.call(_globalConfig, options)) {
-        return _globalConfig[options];
-      }
-      return;
-    }
-    return _deepCopy(_globalConfig);
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.state`.
- * @private
- */
-  var _state = function() {
-    _detectSandbox();
-    return {
-      browser: _extend(_pick(_navigator, [ "userAgent", "platform", "appName", "appVersion" ]), {
-        isSupported: _isBrowserSupported()
-      }),
-      flash: _omit(_flashState, [ "bridge" ]),
-      zeroclipboard: {
-        version: ZeroClipboard.version,
-        config: ZeroClipboard.config()
-      }
-    };
-  };
-  /**
- * Does this browser support all of the necessary DOM and JS features necessary?
- * @private
- */
-  var _isBrowserSupported = function() {
-    return !!(_document.addEventListener && _window.Object.keys && _window.Array.prototype.map);
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.isFlashUnusable`.
- * @private
- */
-  var _isFlashUnusable = function() {
-    return !!(_flashState.sandboxed || _flashState.disabled || _flashState.outdated || _flashState.unavailable || _flashState.degraded || _flashState.deactivated);
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.on`.
- * @private
- */
-  var _on = function(eventType, listener) {
-    var i, len, events, added = {};
-    if (typeof eventType === "string" && eventType) {
-      events = eventType.toLowerCase().split(/\s+/);
-    } else if (typeof eventType === "object" && eventType && !("length" in eventType) && typeof listener === "undefined") {
-      _keys(eventType).forEach(function(key) {
-        var listener = eventType[key];
-        if (typeof listener === "function") {
-          ZeroClipboard.on(key, listener);
-        }
-      });
-    }
-    if (events && events.length && listener) {
-      for (i = 0, len = events.length; i < len; i++) {
-        eventType = events[i].replace(/^on/, "");
-        added[eventType] = true;
-        if (!_handlers[eventType]) {
-          _handlers[eventType] = [];
-        }
-        _handlers[eventType].push(listener);
-      }
-      if (added.ready && _flashState.ready) {
-        ZeroClipboard.emit({
-          type: "ready"
-        });
-      }
-      if (added.error) {
-        if (!_isBrowserSupported()) {
-          ZeroClipboard.emit({
-            type: "error",
-            name: "browser-unsupported"
-          });
-        }
-        for (i = 0, len = _flashStateErrorNames.length; i < len; i++) {
-          if (_flashState[_flashStateErrorNames[i].replace(/^flash-/, "")] === true) {
-            ZeroClipboard.emit({
-              type: "error",
-              name: _flashStateErrorNames[i]
-            });
-            break;
-          }
-        }
-        if (_zcSwfVersion !== undefined && ZeroClipboard.version !== _zcSwfVersion) {
-          ZeroClipboard.emit({
-            type: "error",
-            name: "version-mismatch",
-            jsVersion: ZeroClipboard.version,
-            swfVersion: _zcSwfVersion
-          });
-        }
-      }
-    }
-    return ZeroClipboard;
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.off`.
- * @private
- */
-  var _off = function(eventType, listener) {
-    var i, len, foundIndex, events, perEventHandlers;
-    if (arguments.length === 0) {
-      events = _keys(_handlers);
-    } else if (typeof eventType === "string" && eventType) {
-      events = eventType.toLowerCase().split(/\s+/);
-    } else if (typeof eventType === "object" && eventType && !("length" in eventType) && typeof listener === "undefined") {
-      _keys(eventType).forEach(function(key) {
-        var listener = eventType[key];
-        if (typeof listener === "function") {
-          ZeroClipboard.off(key, listener);
-        }
-      });
-    }
-    if (events && events.length) {
-      for (i = 0, len = events.length; i < len; i++) {
-        eventType = events[i].replace(/^on/, "");
-        perEventHandlers = _handlers[eventType];
-        if (perEventHandlers && perEventHandlers.length) {
-          if (listener) {
-            foundIndex = perEventHandlers.indexOf(listener);
-            while (foundIndex !== -1) {
-              perEventHandlers.splice(foundIndex, 1);
-              foundIndex = perEventHandlers.indexOf(listener, foundIndex);
-            }
-          } else {
-            perEventHandlers.length = 0;
-          }
-        }
-      }
-    }
-    return ZeroClipboard;
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.handlers`.
- * @private
- */
-  var _listeners = function(eventType) {
-    var copy;
-    if (typeof eventType === "string" && eventType) {
-      copy = _deepCopy(_handlers[eventType]) || null;
-    } else {
-      copy = _deepCopy(_handlers);
-    }
-    return copy;
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.emit`.
- * @private
- */
-  var _emit = function(event) {
-    var eventCopy, returnVal, tmp;
-    event = _createEvent(event);
-    if (!event) {
-      return;
-    }
-    if (_preprocessEvent(event)) {
-      return;
-    }
-    if (event.type === "ready" && _flashState.overdue === true) {
-      return ZeroClipboard.emit({
-        type: "error",
-        name: "flash-overdue"
-      });
-    }
-    eventCopy = _extend({}, event);
-    _dispatchCallbacks.call(this, eventCopy);
-    if (event.type === "copy") {
-      tmp = _mapClipDataToFlash(_clipData);
-      returnVal = tmp.data;
-      _clipDataFormatMap = tmp.formatMap;
-    }
-    return returnVal;
-  };
-  /**
- * Get the protocol of the configured SWF path.
- * @private
- */
-  var _getSwfPathProtocol = function() {
-    var swfPath = _globalConfig.swfPath || "", swfPathFirstTwoChars = swfPath.slice(0, 2), swfProtocol = swfPath.slice(0, swfPath.indexOf("://") + 1);
-    return swfPathFirstTwoChars === "\\\\" ? "file:" : swfPathFirstTwoChars === "//" || swfProtocol === "" ? _window.location.protocol : swfProtocol;
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.create`.
- * @private
- */
-  var _create = function() {
-    var maxWait, swfProtocol, previousState = _flashState.sandboxed;
-    if (!_isBrowserSupported()) {
-      _flashState.ready = false;
-      ZeroClipboard.emit({
-        type: "error",
-        name: "browser-unsupported"
-      });
-      return;
-    }
-    _detectSandbox();
-    if (typeof _flashState.ready !== "boolean") {
-      _flashState.ready = false;
-    }
-    if (_flashState.sandboxed !== previousState && _flashState.sandboxed === true) {
-      _flashState.ready = false;
-      ZeroClipboard.emit({
-        type: "error",
-        name: "flash-sandboxed"
-      });
-    } else if (!ZeroClipboard.isFlashUnusable() && _flashState.bridge === null) {
-      swfProtocol = _getSwfPathProtocol();
-      if (swfProtocol && swfProtocol !== _window.location.protocol) {
-        ZeroClipboard.emit({
-          type: "error",
-          name: "flash-insecure"
-        });
-      } else {
-        maxWait = _globalConfig.flashLoadTimeout;
-        if (typeof maxWait === "number" && maxWait >= 0) {
-          _flashCheckTimeout = _setTimeout(function() {
-            if (typeof _flashState.deactivated !== "boolean") {
-              _flashState.deactivated = true;
-            }
-            if (_flashState.deactivated === true) {
-              ZeroClipboard.emit({
-                type: "error",
-                name: "flash-deactivated"
-              });
-            }
-          }, maxWait);
-        }
-        _flashState.overdue = false;
-        _embedSwf();
-      }
-    }
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.destroy`.
- * @private
- */
-  var _destroy = function() {
-    ZeroClipboard.clearData();
-    ZeroClipboard.blur();
-    ZeroClipboard.emit("destroy");
-    _unembedSwf();
-    ZeroClipboard.off();
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.setData`.
- * @private
- */
-  var _setData = function(format, data) {
-    var dataObj;
-    if (typeof format === "object" && format && typeof data === "undefined") {
-      dataObj = format;
-      ZeroClipboard.clearData();
-    } else if (typeof format === "string" && format) {
-      dataObj = {};
-      dataObj[format] = data;
-    } else {
-      return;
-    }
-    for (var dataFormat in dataObj) {
-      if (typeof dataFormat === "string" && dataFormat && _hasOwn.call(dataObj, dataFormat) && typeof dataObj[dataFormat] === "string" && dataObj[dataFormat]) {
-        _clipData[dataFormat] = _fixLineEndings(dataObj[dataFormat]);
-      }
-    }
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.clearData`.
- * @private
- */
-  var _clearData = function(format) {
-    if (typeof format === "undefined") {
-      _deleteOwnProperties(_clipData);
-      _clipDataFormatMap = null;
-    } else if (typeof format === "string" && _hasOwn.call(_clipData, format)) {
-      delete _clipData[format];
-    }
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.getData`.
- * @private
- */
-  var _getData = function(format) {
-    if (typeof format === "undefined") {
-      return _deepCopy(_clipData);
-    } else if (typeof format === "string" && _hasOwn.call(_clipData, format)) {
-      return _clipData[format];
-    }
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.focus`/`ZeroClipboard.activate`.
- * @private
- */
-  var _focus = function(element) {
-    if (!(element && element.nodeType === 1)) {
-      return;
-    }
-    if (_currentElement) {
-      _removeClass(_currentElement, _globalConfig.activeClass);
-      if (_currentElement !== element) {
-        _removeClass(_currentElement, _globalConfig.hoverClass);
-      }
-    }
-    _currentElement = element;
-    _addClass(element, _globalConfig.hoverClass);
-    var newTitle = element.getAttribute("title") || _globalConfig.title;
-    if (typeof newTitle === "string" && newTitle) {
-      var htmlBridge = _getHtmlBridge(_flashState.bridge);
-      if (htmlBridge) {
-        htmlBridge.setAttribute("title", newTitle);
-      }
-    }
-    var useHandCursor = _globalConfig.forceHandCursor === true || _getStyle(element, "cursor") === "pointer";
-    _setHandCursor(useHandCursor);
-    _reposition();
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.blur`/`ZeroClipboard.deactivate`.
- * @private
- */
-  var _blur = function() {
-    var htmlBridge = _getHtmlBridge(_flashState.bridge);
-    if (htmlBridge) {
-      htmlBridge.removeAttribute("title");
-      htmlBridge.style.left = "0px";
-      htmlBridge.style.top = "-9999px";
-      htmlBridge.style.width = "1px";
-      htmlBridge.style.height = "1px";
-    }
-    if (_currentElement) {
-      _removeClass(_currentElement, _globalConfig.hoverClass);
-      _removeClass(_currentElement, _globalConfig.activeClass);
-      _currentElement = null;
-    }
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.activeElement`.
- * @private
- */
-  var _activeElement = function() {
-    return _currentElement || null;
-  };
-  /**
- * Check if a value is a valid HTML4 `ID` or `Name` token.
- * @private
- */
-  var _isValidHtml4Id = function(id) {
-    return typeof id === "string" && id && /^[A-Za-z][A-Za-z0-9_:\-\.]*$/.test(id);
-  };
-  /**
- * Create or update an `event` object, based on the `eventType`.
- * @private
- */
-  var _createEvent = function(event) {
-    var eventType;
-    if (typeof event === "string" && event) {
-      eventType = event;
-      event = {};
-    } else if (typeof event === "object" && event && typeof event.type === "string" && event.type) {
-      eventType = event.type;
-    }
-    if (!eventType) {
-      return;
-    }
-    eventType = eventType.toLowerCase();
-    if (!event.target && (/^(copy|aftercopy|_click)$/.test(eventType) || eventType === "error" && event.name === "clipboard-error")) {
-      event.target = _copyTarget;
-    }
-    _extend(event, {
-      type: eventType,
-      target: event.target || _currentElement || null,
-      relatedTarget: event.relatedTarget || null,
-      currentTarget: _flashState && _flashState.bridge || null,
-      timeStamp: event.timeStamp || _now() || null
-    });
-    var msg = _eventMessages[event.type];
-    if (event.type === "error" && event.name && msg) {
-      msg = msg[event.name];
-    }
-    if (msg) {
-      event.message = msg;
-    }
-    if (event.type === "ready") {
-      _extend(event, {
-        target: null,
-        version: _flashState.version
-      });
-    }
-    if (event.type === "error") {
-      if (_flashStateErrorNameMatchingRegex.test(event.name)) {
-        _extend(event, {
-          target: null,
-          minimumVersion: _minimumFlashVersion
-        });
-      }
-      if (_flashStateEnabledErrorNameMatchingRegex.test(event.name)) {
-        _extend(event, {
-          version: _flashState.version
-        });
-      }
-      if (event.name === "flash-insecure") {
-        _extend(event, {
-          pageProtocol: _window.location.protocol,
-          swfProtocol: _getSwfPathProtocol()
-        });
-      }
-    }
-    if (event.type === "copy") {
-      event.clipboardData = {
-        setData: ZeroClipboard.setData,
-        clearData: ZeroClipboard.clearData
-      };
-    }
-    if (event.type === "aftercopy") {
-      event = _mapClipResultsFromFlash(event, _clipDataFormatMap);
-    }
-    if (event.target && !event.relatedTarget) {
-      event.relatedTarget = _getRelatedTarget(event.target);
-    }
-    return _addMouseData(event);
-  };
-  /**
- * Get a relatedTarget from the target's `data-clipboard-target` attribute
- * @private
- */
-  var _getRelatedTarget = function(targetEl) {
-    var relatedTargetId = targetEl && targetEl.getAttribute && targetEl.getAttribute("data-clipboard-target");
-    return relatedTargetId ? _document.getElementById(relatedTargetId) : null;
-  };
-  /**
- * Add element and position data to `MouseEvent` instances
- * @private
- */
-  var _addMouseData = function(event) {
-    if (event && /^_(?:click|mouse(?:over|out|down|up|move))$/.test(event.type)) {
-      var srcElement = event.target;
-      var fromElement = event.type === "_mouseover" && event.relatedTarget ? event.relatedTarget : undefined;
-      var toElement = event.type === "_mouseout" && event.relatedTarget ? event.relatedTarget : undefined;
-      var pos = _getElementPosition(srcElement);
-      var screenLeft = _window.screenLeft || _window.screenX || 0;
-      var screenTop = _window.screenTop || _window.screenY || 0;
-      var scrollLeft = _document.body.scrollLeft + _document.documentElement.scrollLeft;
-      var scrollTop = _document.body.scrollTop + _document.documentElement.scrollTop;
-      var pageX = pos.left + (typeof event._stageX === "number" ? event._stageX : 0);
-      var pageY = pos.top + (typeof event._stageY === "number" ? event._stageY : 0);
-      var clientX = pageX - scrollLeft;
-      var clientY = pageY - scrollTop;
-      var screenX = screenLeft + clientX;
-      var screenY = screenTop + clientY;
-      var moveX = typeof event.movementX === "number" ? event.movementX : 0;
-      var moveY = typeof event.movementY === "number" ? event.movementY : 0;
-      delete event._stageX;
-      delete event._stageY;
-      _extend(event, {
-        srcElement: srcElement,
-        fromElement: fromElement,
-        toElement: toElement,
-        screenX: screenX,
-        screenY: screenY,
-        pageX: pageX,
-        pageY: pageY,
-        clientX: clientX,
-        clientY: clientY,
-        x: clientX,
-        y: clientY,
-        movementX: moveX,
-        movementY: moveY,
-        offsetX: 0,
-        offsetY: 0,
-        layerX: 0,
-        layerY: 0
-      });
-    }
-    return event;
-  };
-  /**
- * Determine if an event's registered handlers should be execute synchronously or asynchronously.
- *
- * @returns {boolean}
- * @private
- */
-  var _shouldPerformAsync = function(event) {
-    var eventType = event && typeof event.type === "string" && event.type || "";
-    return !/^(?:(?:before)?copy|destroy)$/.test(eventType);
-  };
-  /**
- * Control if a callback should be executed asynchronously or not.
- *
- * @returns `undefined`
- * @private
- */
-  var _dispatchCallback = function(func, context, args, async) {
-    if (async) {
-      _setTimeout(function() {
-        func.apply(context, args);
-      }, 0);
-    } else {
-      func.apply(context, args);
-    }
-  };
-  /**
- * Handle the actual dispatching of events to client instances.
- *
- * @returns `undefined`
- * @private
- */
-  var _dispatchCallbacks = function(event) {
-    if (!(typeof event === "object" && event && event.type)) {
-      return;
-    }
-    var async = _shouldPerformAsync(event);
-    var wildcardTypeHandlers = _handlers["*"] || [];
-    var specificTypeHandlers = _handlers[event.type] || [];
-    var handlers = wildcardTypeHandlers.concat(specificTypeHandlers);
-    if (handlers && handlers.length) {
-      var i, len, func, context, eventCopy, originalContext = this;
-      for (i = 0, len = handlers.length; i < len; i++) {
-        func = handlers[i];
-        context = originalContext;
-        if (typeof func === "string" && typeof _window[func] === "function") {
-          func = _window[func];
-        }
-        if (typeof func === "object" && func && typeof func.handleEvent === "function") {
-          context = func;
-          func = func.handleEvent;
-        }
-        if (typeof func === "function") {
-          eventCopy = _extend({}, event);
-          _dispatchCallback(func, context, [ eventCopy ], async);
-        }
-      }
-    }
-    return this;
-  };
-  /**
- * Check an `error` event's `name` property to see if Flash has
- * already loaded, which rules out possible `iframe` sandboxing.
- * @private
- */
-  var _getSandboxStatusFromErrorEvent = function(event) {
-    var isSandboxed = null;
-    if (_pageIsFramed === false || event && event.type === "error" && event.name && _errorsThatOnlyOccurAfterFlashLoads.indexOf(event.name) !== -1) {
-      isSandboxed = false;
-    }
-    return isSandboxed;
-  };
-  /**
- * Preprocess any special behaviors, reactions, or state changes after receiving this event.
- * Executes only once per event emitted, NOT once per client.
- * @private
- */
-  var _preprocessEvent = function(event) {
-    var element = event.target || _currentElement || null;
-    var sourceIsSwf = event._source === "swf";
-    delete event._source;
-    switch (event.type) {
-     case "error":
-      var isSandboxed = event.name === "flash-sandboxed" || _getSandboxStatusFromErrorEvent(event);
-      if (typeof isSandboxed === "boolean") {
-        _flashState.sandboxed = isSandboxed;
-      }
-      if (event.name === "browser-unsupported") {
-        _extend(_flashState, {
-          disabled: false,
-          outdated: false,
-          unavailable: false,
-          degraded: false,
-          deactivated: false,
-          overdue: false,
-          ready: false
-        });
-      } else if (_flashStateErrorNames.indexOf(event.name) !== -1) {
-        _extend(_flashState, {
-          disabled: event.name === "flash-disabled",
-          outdated: event.name === "flash-outdated",
-          insecure: event.name === "flash-insecure",
-          unavailable: event.name === "flash-unavailable",
-          degraded: event.name === "flash-degraded",
-          deactivated: event.name === "flash-deactivated",
-          overdue: event.name === "flash-overdue",
-          ready: false
-        });
-      } else if (event.name === "version-mismatch") {
-        _zcSwfVersion = event.swfVersion;
-        _extend(_flashState, {
-          disabled: false,
-          outdated: false,
-          insecure: false,
-          unavailable: false,
-          degraded: false,
-          deactivated: false,
-          overdue: false,
-          ready: false
-        });
-      }
-      _clearTimeoutsAndPolling();
-      break;
-
-     case "ready":
-      _zcSwfVersion = event.swfVersion;
-      var wasDeactivated = _flashState.deactivated === true;
-      _extend(_flashState, {
-        sandboxed: false,
-        disabled: false,
-        outdated: false,
-        insecure: false,
-        unavailable: false,
-        degraded: false,
-        deactivated: false,
-        overdue: wasDeactivated,
-        ready: !wasDeactivated
-      });
-      _clearTimeoutsAndPolling();
-      break;
-
-     case "beforecopy":
-      _copyTarget = element;
-      break;
-
-     case "copy":
-      var textContent, htmlContent, targetEl = event.relatedTarget;
-      if (!(_clipData["text/html"] || _clipData["text/plain"]) && targetEl && (htmlContent = targetEl.value || targetEl.outerHTML || targetEl.innerHTML) && (textContent = targetEl.value || targetEl.textContent || targetEl.innerText)) {
-        event.clipboardData.clearData();
-        event.clipboardData.setData("text/plain", textContent);
-        if (htmlContent !== textContent) {
-          event.clipboardData.setData("text/html", htmlContent);
-        }
-      } else if (!_clipData["text/plain"] && event.target && (textContent = event.target.getAttribute("data-clipboard-text"))) {
-        event.clipboardData.clearData();
-        event.clipboardData.setData("text/plain", textContent);
-      }
-      break;
-
-     case "aftercopy":
-      _queueEmitClipboardErrors(event);
-      ZeroClipboard.clearData();
-      if (element && element !== _safeActiveElement() && element.focus) {
-        element.focus();
-      }
-      break;
-
-     case "_mouseover":
-      ZeroClipboard.focus(element);
-      if (_globalConfig.bubbleEvents === true && sourceIsSwf) {
-        if (element && element !== event.relatedTarget && !_containedBy(event.relatedTarget, element)) {
-          _fireMouseEvent(_extend({}, event, {
-            type: "mouseenter",
-            bubbles: false,
-            cancelable: false
-          }));
-        }
-        _fireMouseEvent(_extend({}, event, {
-          type: "mouseover"
-        }));
-      }
-      break;
-
-     case "_mouseout":
-      ZeroClipboard.blur();
-      if (_globalConfig.bubbleEvents === true && sourceIsSwf) {
-        if (element && element !== event.relatedTarget && !_containedBy(event.relatedTarget, element)) {
-          _fireMouseEvent(_extend({}, event, {
-            type: "mouseleave",
-            bubbles: false,
-            cancelable: false
-          }));
-        }
-        _fireMouseEvent(_extend({}, event, {
-          type: "mouseout"
-        }));
-      }
-      break;
-
-     case "_mousedown":
-      _addClass(element, _globalConfig.activeClass);
-      if (_globalConfig.bubbleEvents === true && sourceIsSwf) {
-        _fireMouseEvent(_extend({}, event, {
-          type: event.type.slice(1)
-        }));
-      }
-      break;
-
-     case "_mouseup":
-      _removeClass(element, _globalConfig.activeClass);
-      if (_globalConfig.bubbleEvents === true && sourceIsSwf) {
-        _fireMouseEvent(_extend({}, event, {
-          type: event.type.slice(1)
-        }));
-      }
-      break;
-
-     case "_click":
-      _copyTarget = null;
-      if (_globalConfig.bubbleEvents === true && sourceIsSwf) {
-        _fireMouseEvent(_extend({}, event, {
-          type: event.type.slice(1)
-        }));
-      }
-      break;
-
-     case "_mousemove":
-      if (_globalConfig.bubbleEvents === true && sourceIsSwf) {
-        _fireMouseEvent(_extend({}, event, {
-          type: event.type.slice(1)
-        }));
-      }
-      break;
-    }
-    if (/^_(?:click|mouse(?:over|out|down|up|move))$/.test(event.type)) {
-      return true;
-    }
-  };
-  /**
- * Check an "aftercopy" event for clipboard errors and emit a corresponding "error" event.
- * @private
- */
-  var _queueEmitClipboardErrors = function(aftercopyEvent) {
-    if (aftercopyEvent.errors && aftercopyEvent.errors.length > 0) {
-      var errorEvent = _deepCopy(aftercopyEvent);
-      _extend(errorEvent, {
-        type: "error",
-        name: "clipboard-error"
-      });
-      delete errorEvent.success;
-      _setTimeout(function() {
-        ZeroClipboard.emit(errorEvent);
-      }, 0);
-    }
-  };
-  /**
- * Dispatch a synthetic MouseEvent.
- *
- * @returns `undefined`
- * @private
- */
-  var _fireMouseEvent = function(event) {
-    if (!(event && typeof event.type === "string" && event)) {
-      return;
-    }
-    var e, target = event.target || null, doc = target && target.ownerDocument || _document, defaults = {
-      view: doc.defaultView || _window,
-      canBubble: true,
-      cancelable: true,
-      detail: event.type === "click" ? 1 : 0,
-      button: typeof event.which === "number" ? event.which - 1 : typeof event.button === "number" ? event.button : doc.createEvent ? 0 : 1
-    }, args = _extend(defaults, event);
-    if (!target) {
-      return;
-    }
-    if (doc.createEvent && target.dispatchEvent) {
-      args = [ args.type, args.canBubble, args.cancelable, args.view, args.detail, args.screenX, args.screenY, args.clientX, args.clientY, args.ctrlKey, args.altKey, args.shiftKey, args.metaKey, args.button, args.relatedTarget ];
-      e = doc.createEvent("MouseEvents");
-      if (e.initMouseEvent) {
-        e.initMouseEvent.apply(e, args);
-        e._source = "js";
-        target.dispatchEvent(e);
-      }
-    }
-  };
-  /**
- * Continuously poll the DOM until either:
- *  (a) the fallback content becomes visible, or
- *  (b) we receive an event from SWF (handled elsewhere)
- *
- * IMPORTANT:
- * This is NOT a necessary check but it can result in significantly faster
- * detection of bad `swfPath` configuration and/or network/server issues [in
- * supported browsers] than waiting for the entire `flashLoadTimeout` duration
- * to elapse before detecting that the SWF cannot be loaded. The detection
- * duration can be anywhere from 10-30 times faster [in supported browsers] by
- * using this approach.
- *
- * @returns `undefined`
- * @private
- */
-  var _watchForSwfFallbackContent = function() {
-    var maxWait = _globalConfig.flashLoadTimeout;
-    if (typeof maxWait === "number" && maxWait >= 0) {
-      var pollWait = Math.min(1e3, maxWait / 10);
-      var fallbackContentId = _globalConfig.swfObjectId + "_fallbackContent";
-      _swfFallbackCheckInterval = _setInterval(function() {
-        var el = _document.getElementById(fallbackContentId);
-        if (_isElementVisible(el)) {
-          _clearTimeoutsAndPolling();
-          _flashState.deactivated = null;
-          ZeroClipboard.emit({
-            type: "error",
-            name: "swf-not-found"
-          });
-        }
-      }, pollWait);
-    }
-  };
-  /**
- * Create the HTML bridge element to embed the Flash object into.
- * @private
- */
-  var _createHtmlBridge = function() {
-    var container = _document.createElement("div");
-    container.id = _globalConfig.containerId;
-    container.className = _globalConfig.containerClass;
-    container.style.position = "absolute";
-    container.style.left = "0px";
-    container.style.top = "-9999px";
-    container.style.width = "1px";
-    container.style.height = "1px";
-    container.style.zIndex = "" + _getSafeZIndex(_globalConfig.zIndex);
-    return container;
-  };
-  /**
- * Get the HTML element container that wraps the Flash bridge object/element.
- * @private
- */
-  var _getHtmlBridge = function(flashBridge) {
-    var htmlBridge = flashBridge && flashBridge.parentNode;
-    while (htmlBridge && htmlBridge.nodeName === "OBJECT" && htmlBridge.parentNode) {
-      htmlBridge = htmlBridge.parentNode;
-    }
-    return htmlBridge || null;
-  };
-  /**
- *
- * @private
- */
-  var _escapeXmlValue = function(val) {
-    if (typeof val !== "string" || !val) {
-      return val;
-    }
-    return val.replace(/["&'<>]/g, function(chr) {
-      switch (chr) {
-       case '"':
-        return "&quot;";
-
-       case "&":
-        return "&amp;";
-
-       case "'":
-        return "&apos;";
-
-       case "<":
-        return "&lt;";
-
-       case ">":
-        return "&gt;";
-
-       default:
-        return chr;
-      }
-    });
-  };
-  /**
- * Create the SWF object.
- *
- * @returns The SWF object reference.
- * @private
- */
-  var _embedSwf = function() {
-    var len, flashBridge = _flashState.bridge, container = _getHtmlBridge(flashBridge);
-    if (!flashBridge) {
-      var allowScriptAccess = _determineScriptAccess(_window.location.host, _globalConfig);
-      var allowNetworking = allowScriptAccess === "never" ? "none" : "all";
-      var flashvars = _vars(_extend({
-        jsVersion: ZeroClipboard.version
-      }, _globalConfig));
-      var swfUrl = _globalConfig.swfPath + _cacheBust(_globalConfig.swfPath, _globalConfig);
-      if (_pageIsXhtml) {
-        swfUrl = _escapeXmlValue(swfUrl);
-      }
-      container = _createHtmlBridge();
-      var divToBeReplaced = _document.createElement("div");
-      container.appendChild(divToBeReplaced);
-      _document.body.appendChild(container);
-      var tmpDiv = _document.createElement("div");
-      var usingActiveX = _flashState.pluginType === "activex";
-      tmpDiv.innerHTML = '<object id="' + _globalConfig.swfObjectId + '" name="' + _globalConfig.swfObjectId + '" ' + 'width="100%" height="100%" ' + (usingActiveX ? 'classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"' : 'type="application/x-shockwave-flash" data="' + swfUrl + '"') + ">" + (usingActiveX ? '<param name="movie" value="' + swfUrl + '"/>' : "") + '<param name="allowScriptAccess" value="' + allowScriptAccess + '"/>' + '<param name="allowNetworking" value="' + allowNetworking + '"/>' + '<param name="menu" value="false"/>' + '<param name="wmode" value="transparent"/>' + '<param name="flashvars" value="' + flashvars + '"/>' + '<div id="' + _globalConfig.swfObjectId + '_fallbackContent">&nbsp;</div>' + "</object>";
-      flashBridge = tmpDiv.firstChild;
-      tmpDiv = null;
-      _unwrap(flashBridge).ZeroClipboard = ZeroClipboard;
-      container.replaceChild(flashBridge, divToBeReplaced);
-      _watchForSwfFallbackContent();
-    }
-    if (!flashBridge) {
-      flashBridge = _document[_globalConfig.swfObjectId];
-      if (flashBridge && (len = flashBridge.length)) {
-        flashBridge = flashBridge[len - 1];
-      }
-      if (!flashBridge && container) {
-        flashBridge = container.firstChild;
-      }
-    }
-    _flashState.bridge = flashBridge || null;
-    return flashBridge;
-  };
-  /**
- * Destroy the SWF object.
- * @private
- */
-  var _unembedSwf = function() {
-    var flashBridge = _flashState.bridge;
-    if (flashBridge) {
-      var htmlBridge = _getHtmlBridge(flashBridge);
-      if (htmlBridge) {
-        if (_flashState.pluginType === "activex" && "readyState" in flashBridge) {
-          flashBridge.style.display = "none";
-          (function removeSwfFromIE() {
-            if (flashBridge.readyState === 4) {
-              for (var prop in flashBridge) {
-                if (typeof flashBridge[prop] === "function") {
-                  flashBridge[prop] = null;
-                }
-              }
-              if (flashBridge.parentNode) {
-                flashBridge.parentNode.removeChild(flashBridge);
-              }
-              if (htmlBridge.parentNode) {
-                htmlBridge.parentNode.removeChild(htmlBridge);
-              }
-            } else {
-              _setTimeout(removeSwfFromIE, 10);
-            }
-          })();
-        } else {
-          if (flashBridge.parentNode) {
-            flashBridge.parentNode.removeChild(flashBridge);
-          }
-          if (htmlBridge.parentNode) {
-            htmlBridge.parentNode.removeChild(htmlBridge);
-          }
-        }
-      }
-      _clearTimeoutsAndPolling();
-      _flashState.ready = null;
-      _flashState.bridge = null;
-      _flashState.deactivated = null;
-      _flashState.insecure = null;
-      _zcSwfVersion = undefined;
-    }
-  };
-  /**
- * Map the data format names of the "clipData" to Flash-friendly names.
- *
- * @returns A new transformed object.
- * @private
- */
-  var _mapClipDataToFlash = function(clipData) {
-    var newClipData = {}, formatMap = {};
-    if (!(typeof clipData === "object" && clipData)) {
-      return;
-    }
-    for (var dataFormat in clipData) {
-      if (dataFormat && _hasOwn.call(clipData, dataFormat) && typeof clipData[dataFormat] === "string" && clipData[dataFormat]) {
-        switch (dataFormat.toLowerCase()) {
-         case "text/plain":
-         case "text":
-         case "air:text":
-         case "flash:text":
-          newClipData.text = clipData[dataFormat];
-          formatMap.text = dataFormat;
-          break;
-
-         case "text/html":
-         case "html":
-         case "air:html":
-         case "flash:html":
-          newClipData.html = clipData[dataFormat];
-          formatMap.html = dataFormat;
-          break;
-
-         case "application/rtf":
-         case "text/rtf":
-         case "rtf":
-         case "richtext":
-         case "air:rtf":
-         case "flash:rtf":
-          newClipData.rtf = clipData[dataFormat];
-          formatMap.rtf = dataFormat;
-          break;
-
-         default:
-          break;
-        }
-      }
-    }
-    return {
-      data: newClipData,
-      formatMap: formatMap
-    };
-  };
-  /**
- * Map the data format names from Flash-friendly names back to their original "clipData" names (via a format mapping).
- *
- * @returns A new transformed object.
- * @private
- */
-  var _mapClipResultsFromFlash = function(clipResults, formatMap) {
-    if (!(typeof clipResults === "object" && clipResults && typeof formatMap === "object" && formatMap)) {
-      return clipResults;
-    }
-    var newResults = {};
-    for (var prop in clipResults) {
-      if (_hasOwn.call(clipResults, prop)) {
-        if (prop === "errors") {
-          newResults[prop] = clipResults[prop] ? clipResults[prop].slice() : [];
-          for (var i = 0, len = newResults[prop].length; i < len; i++) {
-            newResults[prop][i].format = formatMap[newResults[prop][i].format];
-          }
-        } else if (prop !== "success" && prop !== "data") {
-          newResults[prop] = clipResults[prop];
-        } else {
-          newResults[prop] = {};
-          var tmpHash = clipResults[prop];
-          for (var dataFormat in tmpHash) {
-            if (dataFormat && _hasOwn.call(tmpHash, dataFormat) && _hasOwn.call(formatMap, dataFormat)) {
-              newResults[prop][formatMap[dataFormat]] = tmpHash[dataFormat];
-            }
-          }
-        }
-      }
-    }
-    return newResults;
-  };
-  /**
- * Will look at a path, and will create a "?noCache={time}" or "&noCache={time}"
- * query param string to return. Does NOT append that string to the original path.
- * This is useful because ExternalInterface often breaks when a Flash SWF is cached.
- *
- * @returns The `noCache` query param with necessary "?"/"&" prefix.
- * @private
- */
-  var _cacheBust = function(path, options) {
-    var cacheBust = options == null || options && options.cacheBust === true;
-    if (cacheBust) {
-      return (path.indexOf("?") === -1 ? "?" : "&") + "noCache=" + _now();
-    } else {
-      return "";
-    }
-  };
-  /**
- * Creates a query string for the FlashVars param.
- * Does NOT include the cache-busting query param.
- *
- * @returns FlashVars query string
- * @private
- */
-  var _vars = function(options) {
-    var i, len, domain, domains, str = "", trustedOriginsExpanded = [];
-    if (options.trustedDomains) {
-      if (typeof options.trustedDomains === "string") {
-        domains = [ options.trustedDomains ];
-      } else if (typeof options.trustedDomains === "object" && "length" in options.trustedDomains) {
-        domains = options.trustedDomains;
-      }
-    }
-    if (domains && domains.length) {
-      for (i = 0, len = domains.length; i < len; i++) {
-        if (_hasOwn.call(domains, i) && domains[i] && typeof domains[i] === "string") {
-          domain = _extractDomain(domains[i]);
-          if (!domain) {
-            continue;
-          }
-          if (domain === "*") {
-            trustedOriginsExpanded.length = 0;
-            trustedOriginsExpanded.push(domain);
-            break;
-          }
-          trustedOriginsExpanded.push.apply(trustedOriginsExpanded, [ domain, "//" + domain, _window.location.protocol + "//" + domain ]);
-        }
-      }
-    }
-    if (trustedOriginsExpanded.length) {
-      str += "trustedOrigins=" + _encodeURIComponent(trustedOriginsExpanded.join(","));
-    }
-    if (options.forceEnhancedClipboard === true) {
-      str += (str ? "&" : "") + "forceEnhancedClipboard=true";
-    }
-    if (typeof options.swfObjectId === "string" && options.swfObjectId) {
-      str += (str ? "&" : "") + "swfObjectId=" + _encodeURIComponent(options.swfObjectId);
-    }
-    if (typeof options.jsVersion === "string" && options.jsVersion) {
-      str += (str ? "&" : "") + "jsVersion=" + _encodeURIComponent(options.jsVersion);
-    }
-    return str;
-  };
-  /**
- * Extract the domain (e.g. "github.com") from an origin (e.g. "https://github.com") or
- * URL (e.g. "https://github.com/zeroclipboard/zeroclipboard/").
- *
- * @returns the domain
- * @private
- */
-  var _extractDomain = function(originOrUrl) {
-    if (originOrUrl == null || originOrUrl === "") {
-      return null;
-    }
-    originOrUrl = originOrUrl.replace(/^\s+|\s+$/g, "");
-    if (originOrUrl === "") {
-      return null;
-    }
-    var protocolIndex = originOrUrl.indexOf("//");
-    originOrUrl = protocolIndex === -1 ? originOrUrl : originOrUrl.slice(protocolIndex + 2);
-    var pathIndex = originOrUrl.indexOf("/");
-    originOrUrl = pathIndex === -1 ? originOrUrl : protocolIndex === -1 || pathIndex === 0 ? null : originOrUrl.slice(0, pathIndex);
-    if (originOrUrl && originOrUrl.slice(-4).toLowerCase() === ".swf") {
-      return null;
-    }
-    return originOrUrl || null;
-  };
-  /**
- * Set `allowScriptAccess` based on `trustedDomains` and `window.location.host` vs. `swfPath`.
- *
- * @returns The appropriate script access level.
- * @private
- */
-  var _determineScriptAccess = function() {
-    var _extractAllDomains = function(origins) {
-      var i, len, tmp, resultsArray = [];
-      if (typeof origins === "string") {
-        origins = [ origins ];
-      }
-      if (!(typeof origins === "object" && origins && typeof origins.length === "number")) {
-        return resultsArray;
-      }
-      for (i = 0, len = origins.length; i < len; i++) {
-        if (_hasOwn.call(origins, i) && (tmp = _extractDomain(origins[i]))) {
-          if (tmp === "*") {
-            resultsArray.length = 0;
-            resultsArray.push("*");
-            break;
-          }
-          if (resultsArray.indexOf(tmp) === -1) {
-            resultsArray.push(tmp);
-          }
-        }
-      }
-      return resultsArray;
-    };
-    return function(currentDomain, configOptions) {
-      var swfDomain = _extractDomain(configOptions.swfPath);
-      if (swfDomain === null) {
-        swfDomain = currentDomain;
-      }
-      var trustedDomains = _extractAllDomains(configOptions.trustedDomains);
-      var len = trustedDomains.length;
-      if (len > 0) {
-        if (len === 1 && trustedDomains[0] === "*") {
-          return "always";
-        }
-        if (trustedDomains.indexOf(currentDomain) !== -1) {
-          if (len === 1 && currentDomain === swfDomain) {
-            return "sameDomain";
-          }
-          return "always";
-        }
-      }
-      return "never";
-    };
-  }();
-  /**
- * Get the currently active/focused DOM element.
- *
- * @returns the currently active/focused element, or `null`
- * @private
- */
-  var _safeActiveElement = function() {
-    try {
-      return _document.activeElement;
-    } catch (err) {
-      return null;
-    }
-  };
-  /**
- * Add a class to an element, if it doesn't already have it.
- *
- * @returns The element, with its new class added.
- * @private
- */
-  var _addClass = function(element, value) {
-    var c, cl, className, classNames = [];
-    if (typeof value === "string" && value) {
-      classNames = value.split(/\s+/);
-    }
-    if (element && element.nodeType === 1 && classNames.length > 0) {
-      className = (" " + (element.className || "") + " ").replace(/[\t\r\n\f]/g, " ");
-      for (c = 0, cl = classNames.length; c < cl; c++) {
-        if (className.indexOf(" " + classNames[c] + " ") === -1) {
-          className += classNames[c] + " ";
-        }
-      }
-      className = className.replace(/^\s+|\s+$/g, "");
-      if (className !== element.className) {
-        element.className = className;
-      }
-    }
-    return element;
-  };
-  /**
- * Remove a class from an element, if it has it.
- *
- * @returns The element, with its class removed.
- * @private
- */
-  var _removeClass = function(element, value) {
-    var c, cl, className, classNames = [];
-    if (typeof value === "string" && value) {
-      classNames = value.split(/\s+/);
-    }
-    if (element && element.nodeType === 1 && classNames.length > 0) {
-      if (element.className) {
-        className = (" " + element.className + " ").replace(/[\t\r\n\f]/g, " ");
-        for (c = 0, cl = classNames.length; c < cl; c++) {
-          className = className.replace(" " + classNames[c] + " ", " ");
-        }
-        className = className.replace(/^\s+|\s+$/g, "");
-        if (className !== element.className) {
-          element.className = className;
-        }
-      }
-    }
-    return element;
-  };
-  /**
- * Attempt to interpret the element's CSS styling. If `prop` is `"cursor"`,
- * then we assume that it should be a hand ("pointer") cursor if the element
- * is an anchor element ("a" tag).
- *
- * @returns The computed style property.
- * @private
- */
-  var _getStyle = function(el, prop) {
-    var value = _getComputedStyle(el, null).getPropertyValue(prop);
-    if (prop === "cursor") {
-      if (!value || value === "auto") {
-        if (el.nodeName === "A") {
-          return "pointer";
-        }
-      }
-    }
-    return value;
-  };
-  /**
- * Get the absolutely positioned coordinates of a DOM element.
- *
- * @returns Object containing the element's position, width, and height.
- * @private
- */
-  var _getElementPosition = function(el) {
-    var pos = {
-      left: 0,
-      top: 0,
-      width: 0,
-      height: 0
-    };
-    if (el.getBoundingClientRect) {
-      var elRect = el.getBoundingClientRect();
-      var pageXOffset = _window.pageXOffset;
-      var pageYOffset = _window.pageYOffset;
-      var leftBorderWidth = _document.documentElement.clientLeft || 0;
-      var topBorderWidth = _document.documentElement.clientTop || 0;
-      var leftBodyOffset = 0;
-      var topBodyOffset = 0;
-      if (_getStyle(_document.body, "position") === "relative") {
-        var bodyRect = _document.body.getBoundingClientRect();
-        var htmlRect = _document.documentElement.getBoundingClientRect();
-        leftBodyOffset = bodyRect.left - htmlRect.left || 0;
-        topBodyOffset = bodyRect.top - htmlRect.top || 0;
-      }
-      pos.left = elRect.left + pageXOffset - leftBorderWidth - leftBodyOffset;
-      pos.top = elRect.top + pageYOffset - topBorderWidth - topBodyOffset;
-      pos.width = "width" in elRect ? elRect.width : elRect.right - elRect.left;
-      pos.height = "height" in elRect ? elRect.height : elRect.bottom - elRect.top;
-    }
-    return pos;
-  };
-  /**
- * Determine is an element is visible somewhere within the document (page).
- *
- * @returns Boolean
- * @private
- */
-  var _isElementVisible = function(el) {
-    if (!el) {
-      return false;
-    }
-    var styles = _getComputedStyle(el, null);
-    if (!styles) {
-      return false;
-    }
-    var hasCssHeight = _parseFloat(styles.height) > 0;
-    var hasCssWidth = _parseFloat(styles.width) > 0;
-    var hasCssTop = _parseFloat(styles.top) >= 0;
-    var hasCssLeft = _parseFloat(styles.left) >= 0;
-    var cssKnows = hasCssHeight && hasCssWidth && hasCssTop && hasCssLeft;
-    var rect = cssKnows ? null : _getElementPosition(el);
-    var isVisible = styles.display !== "none" && styles.visibility !== "collapse" && (cssKnows || !!rect && (hasCssHeight || rect.height > 0) && (hasCssWidth || rect.width > 0) && (hasCssTop || rect.top >= 0) && (hasCssLeft || rect.left >= 0));
-    return isVisible;
-  };
-  /**
- * Clear all existing timeouts and interval polling delegates.
- *
- * @returns `undefined`
- * @private
- */
-  var _clearTimeoutsAndPolling = function() {
-    _clearTimeout(_flashCheckTimeout);
-    _flashCheckTimeout = 0;
-    _clearInterval(_swfFallbackCheckInterval);
-    _swfFallbackCheckInterval = 0;
-  };
-  /**
- * Reposition the Flash object to cover the currently activated element.
- *
- * @returns `undefined`
- * @private
- */
-  var _reposition = function() {
-    var htmlBridge;
-    if (_currentElement && (htmlBridge = _getHtmlBridge(_flashState.bridge))) {
-      var pos = _getElementPosition(_currentElement);
-      _extend(htmlBridge.style, {
-        width: pos.width + "px",
-        height: pos.height + "px",
-        top: pos.top + "px",
-        left: pos.left + "px",
-        zIndex: "" + _getSafeZIndex(_globalConfig.zIndex)
-      });
-    }
-  };
-  /**
- * Sends a signal to the Flash object to display the hand cursor if `true`.
- *
- * @returns `undefined`
- * @private
- */
-  var _setHandCursor = function(enabled) {
-    if (_flashState.ready === true) {
-      if (_flashState.bridge && typeof _flashState.bridge.setHandCursor === "function") {
-        _flashState.bridge.setHandCursor(enabled);
-      } else {
-        _flashState.ready = false;
-      }
-    }
-  };
-  /**
- * Get a safe value for `zIndex`
- *
- * @returns an integer, or "auto"
- * @private
- */
-  var _getSafeZIndex = function(val) {
-    if (/^(?:auto|inherit)$/.test(val)) {
-      return val;
-    }
-    var zIndex;
-    if (typeof val === "number" && !_isNaN(val)) {
-      zIndex = val;
-    } else if (typeof val === "string") {
-      zIndex = _getSafeZIndex(_parseInt(val, 10));
-    }
-    return typeof zIndex === "number" ? zIndex : "auto";
-  };
-  /**
- * Ensure OS-compliant line endings, i.e. "\r\n" on Windows, "\n" elsewhere
- *
- * @returns string
- * @private
- */
-  var _fixLineEndings = function(content) {
-    var replaceRegex = /(\r\n|\r|\n)/g;
-    if (typeof content === "string" && _globalConfig.fixLineEndings === true) {
-      if (_isWindows()) {
-        if (/((^|[^\r])\n|\r([^\n]|$))/.test(content)) {
-          content = content.replace(replaceRegex, "\r\n");
-        }
-      } else if (/\r/.test(content)) {
-        content = content.replace(replaceRegex, "\n");
-      }
-    }
-    return content;
-  };
-  /**
- * Attempt to detect if ZeroClipboard is executing inside of a sandboxed iframe.
- * If it is, Flash Player cannot be used, so ZeroClipboard is dead in the water.
- *
- * @see {@link http://lists.w3.org/Archives/Public/public-whatwg-archive/2014Dec/0002.html}
- * @see {@link https://github.com/zeroclipboard/zeroclipboard/issues/511}
- * @see {@link http://zeroclipboard.org/test-iframes.html}
- *
- * @returns `true` (is sandboxed), `false` (is not sandboxed), or `null` (uncertain)
- * @private
- */
-  var _detectSandbox = function(doNotReassessFlashSupport) {
-    var effectiveScriptOrigin, frame, frameError, previousState = _flashState.sandboxed, isSandboxed = null;
-    doNotReassessFlashSupport = doNotReassessFlashSupport === true;
-    if (_pageIsFramed === false) {
-      isSandboxed = false;
-    } else {
-      try {
-        frame = window.frameElement || null;
-      } catch (e) {
-        frameError = {
-          name: e.name,
-          message: e.message
-        };
-      }
-      if (frame && frame.nodeType === 1 && frame.nodeName === "IFRAME") {
-        try {
-          isSandboxed = frame.hasAttribute("sandbox");
-        } catch (e) {
-          isSandboxed = null;
-        }
-      } else {
-        try {
-          effectiveScriptOrigin = document.domain || null;
-        } catch (e) {
-          effectiveScriptOrigin = null;
-        }
-        if (effectiveScriptOrigin === null || frameError && frameError.name === "SecurityError" && /(^|[\s\(\[@])sandbox(es|ed|ing|[\s\.,!\)\]@]|$)/.test(frameError.message.toLowerCase())) {
-          isSandboxed = true;
-        }
-      }
-    }
-    _flashState.sandboxed = isSandboxed;
-    if (previousState !== isSandboxed && !doNotReassessFlashSupport) {
-      _detectFlashSupport(_ActiveXObject);
-    }
-    return isSandboxed;
-  };
-  /**
- * Detect the Flash Player status, version, and plugin type.
- *
- * @see {@link https://code.google.com/p/doctype-mirror/wiki/ArticleDetectFlash#The_code}
- * @see {@link http://stackoverflow.com/questions/12866060/detecting-pepper-ppapi-flash-with-javascript}
- *
- * @returns `undefined`
- * @private
- */
-  var _detectFlashSupport = function(ActiveXObject) {
-    var plugin, ax, mimeType, hasFlash = false, isActiveX = false, isPPAPI = false, flashVersion = "";
-    /**
-   * Derived from Apple's suggested sniffer.
-   * @param {String} desc e.g. "Shockwave Flash 7.0 r61"
-   * @returns {String} "7.0.61"
-   * @private
-   */
-    function parseFlashVersion(desc) {
-      var matches = desc.match(/[\d]+/g);
-      matches.length = 3;
-      return matches.join(".");
-    }
-    function isPepperFlash(flashPlayerFileName) {
-      return !!flashPlayerFileName && (flashPlayerFileName = flashPlayerFileName.toLowerCase()) && (/^(pepflashplayer\.dll|libpepflashplayer\.so|pepperflashplayer\.plugin)$/.test(flashPlayerFileName) || flashPlayerFileName.slice(-13) === "chrome.plugin");
-    }
-    function inspectPlugin(plugin) {
-      if (plugin) {
-        hasFlash = true;
-        if (plugin.version) {
-          flashVersion = parseFlashVersion(plugin.version);
-        }
-        if (!flashVersion && plugin.description) {
-          flashVersion = parseFlashVersion(plugin.description);
-        }
-        if (plugin.filename) {
-          isPPAPI = isPepperFlash(plugin.filename);
-        }
-      }
-    }
-    if (_navigator.plugins && _navigator.plugins.length) {
-      plugin = _navigator.plugins["Shockwave Flash"];
-      inspectPlugin(plugin);
-      if (_navigator.plugins["Shockwave Flash 2.0"]) {
-        hasFlash = true;
-        flashVersion = "2.0.0.11";
-      }
-    } else if (_navigator.mimeTypes && _navigator.mimeTypes.length) {
-      mimeType = _navigator.mimeTypes["application/x-shockwave-flash"];
-      plugin = mimeType && mimeType.enabledPlugin;
-      inspectPlugin(plugin);
-    } else if (typeof ActiveXObject !== "undefined") {
-      isActiveX = true;
-      try {
-        ax = new ActiveXObject("ShockwaveFlash.ShockwaveFlash.7");
-        hasFlash = true;
-        flashVersion = parseFlashVersion(ax.GetVariable("$version"));
-      } catch (e1) {
-        try {
-          ax = new ActiveXObject("ShockwaveFlash.ShockwaveFlash.6");
-          hasFlash = true;
-          flashVersion = "6.0.21";
-        } catch (e2) {
-          try {
-            ax = new ActiveXObject("ShockwaveFlash.ShockwaveFlash");
-            hasFlash = true;
-            flashVersion = parseFlashVersion(ax.GetVariable("$version"));
-          } catch (e3) {
-            isActiveX = false;
-          }
-        }
-      }
-    }
-    _flashState.disabled = hasFlash !== true;
-    _flashState.outdated = flashVersion && _parseFloat(flashVersion) < _parseFloat(_minimumFlashVersion);
-    _flashState.version = flashVersion || "0.0.0";
-    _flashState.pluginType = isPPAPI ? "pepper" : isActiveX ? "activex" : hasFlash ? "netscape" : "unknown";
-  };
-  /**
- * Invoke the Flash detection algorithms immediately upon inclusion so we're not waiting later.
- */
-  _detectFlashSupport(_ActiveXObject);
-  /**
- * Always assess the `sandboxed` state of the page at important Flash-related moments.
- */
-  _detectSandbox(true);
-  /**
- * A shell constructor for `ZeroClipboard` client instances.
- *
- * @constructor
- */
-  var ZeroClipboard = function() {
-    if (!(this instanceof ZeroClipboard)) {
-      return new ZeroClipboard();
-    }
-    if (typeof ZeroClipboard._createClient === "function") {
-      ZeroClipboard._createClient.apply(this, _args(arguments));
-    }
-  };
-  /**
- * The ZeroClipboard library's version number.
- *
- * @static
- * @readonly
- * @property {string}
- */
-  ZeroClipboard.version = "2.3.0";
-  /**
- * Update or get a copy of the ZeroClipboard global configuration.
- * Returns a copy of the current/updated configuration.
- *
- * @returns Object
- * @static
- */
-  ZeroClipboard.config = function() {
-    return _config.apply(this, _args(arguments));
-  };
-  /**
- * Diagnostic method that describes the state of the browser, Flash Player, and ZeroClipboard.
- *
- * @returns Object
- * @static
- */
-  ZeroClipboard.state = function() {
-    return _state.apply(this, _args(arguments));
-  };
-  /**
- * Check if Flash is unusable for any reason: disabled, outdated, deactivated, etc.
- *
- * @returns Boolean
- * @static
- */
-  ZeroClipboard.isFlashUnusable = function() {
-    return _isFlashUnusable.apply(this, _args(arguments));
-  };
-  /**
- * Register an event listener.
- *
- * @returns `ZeroClipboard`
- * @static
- */
-  ZeroClipboard.on = function() {
-    return _on.apply(this, _args(arguments));
-  };
-  /**
- * Unregister an event listener.
- * If no `listener` function/object is provided, it will unregister all listeners for the provided `eventType`.
- * If no `eventType` is provided, it will unregister all listeners for every event type.
- *
- * @returns `ZeroClipboard`
- * @static
- */
-  ZeroClipboard.off = function() {
-    return _off.apply(this, _args(arguments));
-  };
-  /**
- * Retrieve event listeners for an `eventType`.
- * If no `eventType` is provided, it will retrieve all listeners for every event type.
- *
- * @returns array of listeners for the `eventType`; if no `eventType`, then a map/hash object of listeners for all event types; or `null`
- */
-  ZeroClipboard.handlers = function() {
-    return _listeners.apply(this, _args(arguments));
-  };
-  /**
- * Event emission receiver from the Flash object, forwarding to any registered JavaScript event listeners.
- *
- * @returns For the "copy" event, returns the Flash-friendly "clipData" object; otherwise `undefined`.
- * @static
- */
-  ZeroClipboard.emit = function() {
-    return _emit.apply(this, _args(arguments));
-  };
-  /**
- * Create and embed the Flash object.
- *
- * @returns The Flash object
- * @static
- */
-  ZeroClipboard.create = function() {
-    return _create.apply(this, _args(arguments));
-  };
-  /**
- * Self-destruct and clean up everything, including the embedded Flash object.
- *
- * @returns `undefined`
- * @static
- */
-  ZeroClipboard.destroy = function() {
-    return _destroy.apply(this, _args(arguments));
-  };
-  /**
- * Set the pending data for clipboard injection.
- *
- * @returns `undefined`
- * @static
- */
-  ZeroClipboard.setData = function() {
-    return _setData.apply(this, _args(arguments));
-  };
-  /**
- * Clear the pending data for clipboard injection.
- * If no `format` is provided, all pending data formats will be cleared.
- *
- * @returns `undefined`
- * @static
- */
-  ZeroClipboard.clearData = function() {
-    return _clearData.apply(this, _args(arguments));
-  };
-  /**
- * Get a copy of the pending data for clipboard injection.
- * If no `format` is provided, a copy of ALL pending data formats will be returned.
- *
- * @returns `String` or `Object`
- * @static
- */
-  ZeroClipboard.getData = function() {
-    return _getData.apply(this, _args(arguments));
-  };
-  /**
- * Sets the current HTML object that the Flash object should overlay. This will put the global
- * Flash object on top of the current element; depending on the setup, this may also set the
- * pending clipboard text data as well as the Flash object's wrapping element's title attribute
- * based on the underlying HTML element and ZeroClipboard configuration.
- *
- * @returns `undefined`
- * @static
- */
-  ZeroClipboard.focus = ZeroClipboard.activate = function() {
-    return _focus.apply(this, _args(arguments));
-  };
-  /**
- * Un-overlays the Flash object. This will put the global Flash object off-screen; depending on
- * the setup, this may also unset the Flash object's wrapping element's title attribute based on
- * the underlying HTML element and ZeroClipboard configuration.
- *
- * @returns `undefined`
- * @static
- */
-  ZeroClipboard.blur = ZeroClipboard.deactivate = function() {
-    return _blur.apply(this, _args(arguments));
-  };
-  /**
- * Returns the currently focused/"activated" HTML element that the Flash object is wrapping.
- *
- * @returns `HTMLElement` or `null`
- * @static
- */
-  ZeroClipboard.activeElement = function() {
-    return _activeElement.apply(this, _args(arguments));
-  };
-  /**
- * Keep track of the ZeroClipboard client instance counter.
- */
-  var _clientIdCounter = 0;
-  /**
- * Keep track of the state of the client instances.
- *
- * Entry structure:
- *   _clientMeta[client.id] = {
- *     instance: client,
- *     elements: [],
- *     handlers: {},
- *     coreWildcardHandler: function(event) { return client.emit(event); }
- *   };
- */
-  var _clientMeta = {};
-  /**
- * Keep track of the ZeroClipboard clipped elements counter.
- */
-  var _elementIdCounter = 0;
-  /**
- * Keep track of the state of the clipped element relationships to clients.
- *
- * Entry structure:
- *   _elementMeta[element.zcClippingId] = [client1.id, client2.id];
- */
-  var _elementMeta = {};
-  /**
- * Keep track of the state of the mouse event handlers for clipped elements.
- *
- * Entry structure:
- *   _mouseHandlers[element.zcClippingId] = {
- *     mouseover:  function(event) {},
- *     mouseout:   function(event) {},
- *     mouseenter: function(event) {},
- *     mouseleave: function(event) {},
- *     mousemove:  function(event) {}
- *   };
- */
-  var _mouseHandlers = {};
-  /**
- * Extending the ZeroClipboard configuration defaults for the Client module.
- */
-  _extend(_globalConfig, {
-    autoActivate: true
-  });
-  /**
- * The real constructor for `ZeroClipboard` client instances.
- * @private
- */
-  var _clientConstructor = function(elements) {
-    var meta, client = this;
-    client.id = "" + _clientIdCounter++;
-    meta = {
-      instance: client,
-      elements: [],
-      handlers: {},
-      coreWildcardHandler: function(event) {
-        return client.emit(event);
-      }
-    };
-    _clientMeta[client.id] = meta;
-    if (elements) {
-      client.clip(elements);
-    }
-    ZeroClipboard.on("*", meta.coreWildcardHandler);
-    ZeroClipboard.on("destroy", function() {
-      client.destroy();
-    });
-    ZeroClipboard.create();
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.Client.prototype.on`.
- * @private
- */
-  var _clientOn = function(eventType, listener) {
-    var i, len, events, added = {}, client = this, meta = _clientMeta[client.id], handlers = meta && meta.handlers;
-    if (!meta) {
-      throw new Error("Attempted to add new listener(s) to a destroyed ZeroClipboard client instance");
-    }
-    if (typeof eventType === "string" && eventType) {
-      events = eventType.toLowerCase().split(/\s+/);
-    } else if (typeof eventType === "object" && eventType && !("length" in eventType) && typeof listener === "undefined") {
-      _keys(eventType).forEach(function(key) {
-        var listener = eventType[key];
-        if (typeof listener === "function") {
-          client.on(key, listener);
-        }
-      });
-    }
-    if (events && events.length && listener) {
-      for (i = 0, len = events.length; i < len; i++) {
-        eventType = events[i].replace(/^on/, "");
-        added[eventType] = true;
-        if (!handlers[eventType]) {
-          handlers[eventType] = [];
-        }
-        handlers[eventType].push(listener);
-      }
-      if (added.ready && _flashState.ready) {
-        this.emit({
-          type: "ready",
-          client: this
-        });
-      }
-      if (added.error) {
-        for (i = 0, len = _flashStateErrorNames.length; i < len; i++) {
-          if (_flashState[_flashStateErrorNames[i].replace(/^flash-/, "")]) {
-            this.emit({
-              type: "error",
-              name: _flashStateErrorNames[i],
-              client: this
-            });
-            break;
-          }
-        }
-        if (_zcSwfVersion !== undefined && ZeroClipboard.version !== _zcSwfVersion) {
-          this.emit({
-            type: "error",
-            name: "version-mismatch",
-            jsVersion: ZeroClipboard.version,
-            swfVersion: _zcSwfVersion
-          });
-        }
-      }
-    }
-    return client;
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.Client.prototype.off`.
- * @private
- */
-  var _clientOff = function(eventType, listener) {
-    var i, len, foundIndex, events, perEventHandlers, client = this, meta = _clientMeta[client.id], handlers = meta && meta.handlers;
-    if (!handlers) {
-      return client;
-    }
-    if (arguments.length === 0) {
-      events = _keys(handlers);
-    } else if (typeof eventType === "string" && eventType) {
-      events = eventType.split(/\s+/);
-    } else if (typeof eventType === "object" && eventType && !("length" in eventType) && typeof listener === "undefined") {
-      _keys(eventType).forEach(function(key) {
-        var listener = eventType[key];
-        if (typeof listener === "function") {
-          client.off(key, listener);
-        }
-      });
-    }
-    if (events && events.length) {
-      for (i = 0, len = events.length; i < len; i++) {
-        eventType = events[i].toLowerCase().replace(/^on/, "");
-        perEventHandlers = handlers[eventType];
-        if (perEventHandlers && perEventHandlers.length) {
-          if (listener) {
-            foundIndex = perEventHandlers.indexOf(listener);
-            while (foundIndex !== -1) {
-              perEventHandlers.splice(foundIndex, 1);
-              foundIndex = perEventHandlers.indexOf(listener, foundIndex);
-            }
-          } else {
-            perEventHandlers.length = 0;
-          }
-        }
-      }
-    }
-    return client;
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.Client.prototype.handlers`.
- * @private
- */
-  var _clientListeners = function(eventType) {
-    var copy = null, handlers = _clientMeta[this.id] && _clientMeta[this.id].handlers;
-    if (handlers) {
-      if (typeof eventType === "string" && eventType) {
-        copy = handlers[eventType] ? handlers[eventType].slice(0) : [];
-      } else {
-        copy = _deepCopy(handlers);
-      }
-    }
-    return copy;
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.Client.prototype.emit`.
- * @private
- */
-  var _clientEmit = function(event) {
-    var eventCopy, client = this;
-    if (_clientShouldEmit.call(client, event)) {
-      if (typeof event === "object" && event && typeof event.type === "string" && event.type) {
-        event = _extend({}, event);
-      }
-      eventCopy = _extend({}, _createEvent(event), {
-        client: client
-      });
-      _clientDispatchCallbacks.call(client, eventCopy);
-    }
-    return client;
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.Client.prototype.clip`.
- * @private
- */
-  var _clientClip = function(elements) {
-    if (!_clientMeta[this.id]) {
-      throw new Error("Attempted to clip element(s) to a destroyed ZeroClipboard client instance");
-    }
-    elements = _prepClip(elements);
-    for (var i = 0; i < elements.length; i++) {
-      if (_hasOwn.call(elements, i) && elements[i] && elements[i].nodeType === 1) {
-        if (!elements[i].zcClippingId) {
-          elements[i].zcClippingId = "zcClippingId_" + _elementIdCounter++;
-          _elementMeta[elements[i].zcClippingId] = [ this.id ];
-          if (_globalConfig.autoActivate === true) {
-            _addMouseHandlers(elements[i]);
-          }
-        } else if (_elementMeta[elements[i].zcClippingId].indexOf(this.id) === -1) {
-          _elementMeta[elements[i].zcClippingId].push(this.id);
-        }
-        var clippedElements = _clientMeta[this.id] && _clientMeta[this.id].elements;
-        if (clippedElements.indexOf(elements[i]) === -1) {
-          clippedElements.push(elements[i]);
-        }
-      }
-    }
-    return this;
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.Client.prototype.unclip`.
- * @private
- */
-  var _clientUnclip = function(elements) {
-    var meta = _clientMeta[this.id];
-    if (!meta) {
-      return this;
-    }
-    var clippedElements = meta.elements;
-    var arrayIndex;
-    if (typeof elements === "undefined") {
-      elements = clippedElements.slice(0);
-    } else {
-      elements = _prepClip(elements);
-    }
-    for (var i = elements.length; i--; ) {
-      if (_hasOwn.call(elements, i) && elements[i] && elements[i].nodeType === 1) {
-        arrayIndex = 0;
-        while ((arrayIndex = clippedElements.indexOf(elements[i], arrayIndex)) !== -1) {
-          clippedElements.splice(arrayIndex, 1);
-        }
-        var clientIds = _elementMeta[elements[i].zcClippingId];
-        if (clientIds) {
-          arrayIndex = 0;
-          while ((arrayIndex = clientIds.indexOf(this.id, arrayIndex)) !== -1) {
-            clientIds.splice(arrayIndex, 1);
-          }
-          if (clientIds.length === 0) {
-            if (_globalConfig.autoActivate === true) {
-              _removeMouseHandlers(elements[i]);
-            }
-            delete elements[i].zcClippingId;
-          }
-        }
-      }
-    }
-    return this;
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.Client.prototype.elements`.
- * @private
- */
-  var _clientElements = function() {
-    var meta = _clientMeta[this.id];
-    return meta && meta.elements ? meta.elements.slice(0) : [];
-  };
-  /**
- * The underlying implementation of `ZeroClipboard.Client.prototype.destroy`.
- * @private
- */
-  var _clientDestroy = function() {
-    var meta = _clientMeta[this.id];
-    if (!meta) {
-      return;
-    }
-    this.unclip();
-    this.off();
-    ZeroClipboard.off("*", meta.coreWildcardHandler);
-    delete _clientMeta[this.id];
-  };
-  /**
- * Inspect an Event to see if the Client (`this`) should honor it for emission.
- * @private
- */
-  var _clientShouldEmit = function(event) {
-    if (!(event && event.type)) {
-      return false;
-    }
-    if (event.client && event.client !== this) {
-      return false;
-    }
-    var meta = _clientMeta[this.id];
-    var clippedEls = meta && meta.elements;
-    var hasClippedEls = !!clippedEls && clippedEls.length > 0;
-    var goodTarget = !event.target || hasClippedEls && clippedEls.indexOf(event.target) !== -1;
-    var goodRelTarget = event.relatedTarget && hasClippedEls && clippedEls.indexOf(event.relatedTarget) !== -1;
-    var goodClient = event.client && event.client === this;
-    if (!meta || !(goodTarget || goodRelTarget || goodClient)) {
-      return false;
-    }
-    return true;
-  };
-  /**
- * Handle the actual dispatching of events to a client instance.
- *
- * @returns `undefined`
- * @private
- */
-  var _clientDispatchCallbacks = function(event) {
-    var meta = _clientMeta[this.id];
-    if (!(typeof event === "object" && event && event.type && meta)) {
-      return;
-    }
-    var async = _shouldPerformAsync(event);
-    var wildcardTypeHandlers = meta && meta.handlers["*"] || [];
-    var specificTypeHandlers = meta && meta.handlers[event.type] || [];
-    var handlers = wildcardTypeHandlers.concat(specificTypeHandlers);
-    if (handlers && handlers.length) {
-      var i, len, func, context, eventCopy, originalContext = this;
-      for (i = 0, len = handlers.length; i < len; i++) {
-        func = handlers[i];
-        context = originalContext;
-        if (typeof func === "string" && typeof _window[func] === "function") {
-          func = _window[func];
-        }
-        if (typeof func === "object" && func && typeof func.handleEvent === "function") {
-          context = func;
-          func = func.handleEvent;
-        }
-        if (typeof func === "function") {
-          eventCopy = _extend({}, event);
-          _dispatchCallback(func, context, [ eventCopy ], async);
-        }
-      }
-    }
-  };
-  /**
- * Prepares the elements for clipping/unclipping.
- *
- * @returns An Array of elements.
- * @private
- */
-  var _prepClip = function(elements) {
-    if (typeof elements === "string") {
-      elements = [];
-    }
-    return typeof elements.length !== "number" ? [ elements ] : elements;
-  };
-  /**
- * Add a `mouseover` handler function for a clipped element.
- *
- * @returns `undefined`
- * @private
- */
-  var _addMouseHandlers = function(element) {
-    if (!(element && element.nodeType === 1)) {
-      return;
-    }
-    var _suppressMouseEvents = function(event) {
-      if (!(event || (event = _window.event))) {
-        return;
-      }
-      if (event._source !== "js") {
-        event.stopImmediatePropagation();
-        event.preventDefault();
-      }
-      delete event._source;
-    };
-    var _elementMouseOver = function(event) {
-      if (!(event || (event = _window.event))) {
-        return;
-      }
-      _suppressMouseEvents(event);
-      ZeroClipboard.focus(element);
-    };
-    element.addEventListener("mouseover", _elementMouseOver, false);
-    element.addEventListener("mouseout", _suppressMouseEvents, false);
-    element.addEventListener("mouseenter", _suppressMouseEvents, false);
-    element.addEventListener("mouseleave", _suppressMouseEvents, false);
-    element.addEventListener("mousemove", _suppressMouseEvents, false);
-    _mouseHandlers[element.zcClippingId] = {
-      mouseover: _elementMouseOver,
-      mouseout: _suppressMouseEvents,
-      mouseenter: _suppressMouseEvents,
-      mouseleave: _suppressMouseEvents,
-      mousemove: _suppressMouseEvents
-    };
-  };
-  /**
- * Remove a `mouseover` handler function for a clipped element.
- *
- * @returns `undefined`
- * @private
- */
-  var _removeMouseHandlers = function(element) {
-    if (!(element && element.nodeType === 1)) {
-      return;
-    }
-    var mouseHandlers = _mouseHandlers[element.zcClippingId];
-    if (!(typeof mouseHandlers === "object" && mouseHandlers)) {
-      return;
-    }
-    var key, val, mouseEvents = [ "move", "leave", "enter", "out", "over" ];
-    for (var i = 0, len = mouseEvents.length; i < len; i++) {
-      key = "mouse" + mouseEvents[i];
-      val = mouseHandlers[key];
-      if (typeof val === "function") {
-        element.removeEventListener(key, val, false);
-      }
-    }
-    delete _mouseHandlers[element.zcClippingId];
-  };
-  /**
- * Creates a new ZeroClipboard client instance.
- * Optionally, auto-`clip` an element or collection of elements.
- *
- * @constructor
- */
-  ZeroClipboard._createClient = function() {
-    _clientConstructor.apply(this, _args(arguments));
-  };
-  /**
- * Register an event listener to the client.
- *
- * @returns `this`
- */
-  ZeroClipboard.prototype.on = function() {
-    return _clientOn.apply(this, _args(arguments));
-  };
-  /**
- * Unregister an event handler from the client.
- * If no `listener` function/object is provided, it will unregister all handlers for the provided `eventType`.
- * If no `eventType` is provided, it will unregister all handlers for every event type.
- *
- * @returns `this`
- */
-  ZeroClipboard.prototype.off = function() {
-    return _clientOff.apply(this, _args(arguments));
-  };
-  /**
- * Retrieve event listeners for an `eventType` from the client.
- * If no `eventType` is provided, it will retrieve all listeners for every event type.
- *
- * @returns array of listeners for the `eventType`; if no `eventType`, then a map/hash object of listeners for all event types; or `null`
- */
-  ZeroClipboard.prototype.handlers = function() {
-    return _clientListeners.apply(this, _args(arguments));
-  };
-  /**
- * Event emission receiver from the Flash object for this client's registered JavaScript event listeners.
- *
- * @returns For the "copy" event, returns the Flash-friendly "clipData" object; otherwise `undefined`.
- */
-  ZeroClipboard.prototype.emit = function() {
-    return _clientEmit.apply(this, _args(arguments));
-  };
-  /**
- * Register clipboard actions for new element(s) to the client.
- *
- * @returns `this`
- */
-  ZeroClipboard.prototype.clip = function() {
-    return _clientClip.apply(this, _args(arguments));
-  };
-  /**
- * Unregister the clipboard actions of previously registered element(s) on the page.
- * If no elements are provided, ALL registered elements will be unregistered.
- *
- * @returns `this`
- */
-  ZeroClipboard.prototype.unclip = function() {
-    return _clientUnclip.apply(this, _args(arguments));
-  };
-  /**
- * Get all of the elements to which this client is clipped.
- *
- * @returns array of clipped elements
- */
-  ZeroClipboard.prototype.elements = function() {
-    return _clientElements.apply(this, _args(arguments));
-  };
-  /**
- * Self-destruct and clean up everything for a single client.
- * This will NOT destroy the embedded Flash object.
- *
- * @returns `undefined`
- */
-  ZeroClipboard.prototype.destroy = function() {
-    return _clientDestroy.apply(this, _args(arguments));
-  };
-  /**
- * Stores the pending plain text to inject into the clipboard.
- *
- * @returns `this`
- */
-  ZeroClipboard.prototype.setText = function(text) {
-    if (!_clientMeta[this.id]) {
-      throw new Error("Attempted to set pending clipboard data from a destroyed ZeroClipboard client instance");
-    }
-    ZeroClipboard.setData("text/plain", text);
-    return this;
-  };
-  /**
- * Stores the pending HTML text to inject into the clipboard.
- *
- * @returns `this`
- */
-  ZeroClipboard.prototype.setHtml = function(html) {
-    if (!_clientMeta[this.id]) {
-      throw new Error("Attempted to set pending clipboard data from a destroyed ZeroClipboard client instance");
-    }
-    ZeroClipboard.setData("text/html", html);
-    return this;
-  };
-  /**
- * Stores the pending rich text (RTF) to inject into the clipboard.
- *
- * @returns `this`
- */
-  ZeroClipboard.prototype.setRichText = function(richText) {
-    if (!_clientMeta[this.id]) {
-      throw new Error("Attempted to set pending clipboard data from a destroyed ZeroClipboard client instance");
-    }
-    ZeroClipboard.setData("application/rtf", richText);
-    return this;
-  };
-  /**
- * Stores the pending data to inject into the clipboard.
- *
- * @returns `this`
- */
-  ZeroClipboard.prototype.setData = function() {
-    if (!_clientMeta[this.id]) {
-      throw new Error("Attempted to set pending clipboard data from a destroyed ZeroClipboard client instance");
-    }
-    ZeroClipboard.setData.apply(this, _args(arguments));
-    return this;
-  };
-  /**
- * Clears the pending data to inject into the clipboard.
- * If no `format` is provided, all pending data formats will be cleared.
- *
- * @returns `this`
- */
-  ZeroClipboard.prototype.clearData = function() {
-    if (!_clientMeta[this.id]) {
-      throw new Error("Attempted to clear pending clipboard data from a destroyed ZeroClipboard client instance");
-    }
-    ZeroClipboard.clearData.apply(this, _args(arguments));
-    return this;
-  };
-  /**
- * Gets a copy of the pending data to inject into the clipboard.
- * If no `format` is provided, a copy of ALL pending data formats will be returned.
- *
- * @returns `String` or `Object`
- */
-  ZeroClipboard.prototype.getData = function() {
-    if (!_clientMeta[this.id]) {
-      throw new Error("Attempted to get pending clipboard data from a destroyed ZeroClipboard client instance");
-    }
-    return ZeroClipboard.getData.apply(this, _args(arguments));
-  };
-  if (true) {
-    !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
-      return ZeroClipboard;
-    }.call(exports, __webpack_require__, exports, module),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-  } else if (typeof module === "object" && module && typeof module.exports === "object" && module.exports) {
-    module.exports = ZeroClipboard;
-  } else {
-    window.ZeroClipboard = ZeroClipboard;
-  }
-})(function() {
-  return this || window;
-}());
 
 /***/ })
 /******/ ]);

@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 0.32.0
- * Date: Tue May 30 2017 12:18:32 GMT+0200 (CEST)
+ * Version: 0.33.0
+ * Date: Mon Jul 10 2017 10:08:33 GMT+0200 (CEST)
  */
 /**
  * Fix for bootstrap styles
@@ -134,14 +134,14 @@
 
 .handsontable table.htCore {
   border-collapse: separate;
-  /*it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit*/
-  /*this actually only changes appearance of user selection - does not make text unselectable
-  -webkit-user-select: none;
+  /* it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit */
+  /* this actually only changes appearance of user selection - does not make text unselectable */
+  /* -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
   -o-user-select: none;
   -ms-user-select: none;
-  /*user-select: none; /*no browser supports unprefixed version*/
+  user-select: none; */ /* no browser supports unprefixed version */
   border-spacing: 0;
   margin: 0;
   border-width: 0;
@@ -386,7 +386,7 @@
   box-shadow: 0 0 0 2px #5292F7 inset;
   resize: none;
   /*below are needed to overwrite stuff added by jQuery UI Bootstrap theme*/
-  display: inline-block;
+  display: block;
   color: #000;
   border-radius: 0;
   background-color: #FFF;
@@ -1170,6 +1170,12 @@ thead .htCollapseButton:after {
 
 .htContextMenu .ht_master .wtHolder {
   overflow: hidden;
+}
+textarea#HandsontableCopyPaste {
+  position: fixed !important;
+  bottom: 100% !important;
+  right: 100% !important;
+  outline: 0 none !important;
 }
 .htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_top_left_corner th:nth-child(2),
 .htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_left td:first-of-type {
