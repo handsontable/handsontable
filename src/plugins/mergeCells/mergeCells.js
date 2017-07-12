@@ -195,6 +195,9 @@ class MergeCells extends BasePlugin {
 
         if (i === 0 && j === 0) {
           clearedValue = this.hot.getDataAtCell(mergeParent.row, mergeParent.col);
+
+        } else {
+          this.hot.setCellMeta(mergeParent.row + i, mergeParent.col + j, 'hidden', true);
         }
 
         clearedData[i][j] = clearedValue;
@@ -215,7 +218,7 @@ class MergeCells extends BasePlugin {
       cellRange = this.hot.getSelectedRange();
     }
 
-    this.unmergeSelection(cellRange);
+    this.unmergeRange(cellRange);
     this.mergeRange(cellRange);
   }
 
@@ -224,7 +227,7 @@ class MergeCells extends BasePlugin {
    *
    * @param {CellRange} [cellRange] Selection cell range.
    */
-  unmergeSelection(cellRange) {
+  unmergeRange(cellRange) {
     if (!cellRange) {
       cellRange = this.hot.getSelectedRange();
     }
@@ -232,7 +235,15 @@ class MergeCells extends BasePlugin {
     const collections = this.collectionContainer.getWithinRange(cellRange);
 
     for (let i = 0; i < collections.length; i++) {
-      this.collectionContainer.remove(collections[i].row, collections[i].col);
+      let currentCollection = collections[i];
+
+      this.collectionContainer.remove(currentCollection.row, currentCollection.col);
+
+      for (let i = 0; i < currentCollection.rowspan; i++) {
+        for (let j = 0; j < currentCollection.colspan; j++) {
+          this.hot.removeCellMeta(currentCollection.row + i, currentCollection.col + j, 'hidden');
+        }
+      }
     }
   }
 
@@ -248,7 +259,7 @@ class MergeCells extends BasePlugin {
 
     if (collectionCoversWholeRange) {
       // unmerge
-      this.unmergeSelection(cellRange);
+      this.unmergeRange(cellRange);
 
     } else {
       // merge

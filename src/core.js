@@ -1136,7 +1136,12 @@ export default function Core(rootElement, userSettings) {
   this.validateCell = function(value, cellProperties, callback, source) {
     var validator = instance.getCellValidator(cellProperties);
 
-    function done(valid) {
+    function done(valid, validated = true) {
+      if (!validated || cellProperties.hidden === true) {
+        callback(valid);
+        return;
+      }
+
       var col = cellProperties.visualCol,
         row = cellProperties.visualRow,
         td = instance.getCell(row, col, true);
@@ -1174,7 +1179,7 @@ export default function Core(rootElement, userSettings) {
       // resolve callback even if validator function was not found
       instance._registerTimeout(setTimeout(() => {
         cellProperties.valid = true;
-        done(cellProperties.valid);
+        done(cellProperties.valid, false);
       }, 0));
     }
   };

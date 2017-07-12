@@ -708,4 +708,41 @@ describe('MergeCells', () => {
       ].join(''));
     });
   });
+
+  describe('Validation', () => {
+    it('should not hide the merged cells after validating the table', (done) => {
+      let onAfterValidate = jasmine.createSpy('onAfterValidate');
+      let hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          {row: 5, col: 4, rowspan: 2, colspan: 2},
+          {row: 1, col: 1, rowspan: 2, colspan: 2},
+        ],
+        validator: function(query, callback) {
+          callback(true);
+        },
+        afterValidate: onAfterValidate
+      });
+
+      let firstCollection = hot.getCell(5, 4);
+      let secondCollection = hot.getCell(1, 1);
+
+      expect(firstCollection.style.display.indexOf('none')).toEqual(-1);
+      expect(secondCollection.style.display.indexOf('none')).toEqual(-1);
+
+      hot.validateCells();
+
+      setTimeout(() => {
+        expect(onAfterValidate).toHaveBeenCalled();
+
+        firstCollection = hot.getCell(5, 4);
+        secondCollection = hot.getCell(1, 1);
+
+        expect(firstCollection.style.display.indexOf('none')).toEqual(-1);
+        expect(secondCollection.style.display.indexOf('none')).toEqual(-1);
+
+        done();
+      }, 100);
+    });
+  });
 });
