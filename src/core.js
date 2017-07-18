@@ -2272,8 +2272,9 @@ export default function Core(rootElement, userSettings) {
       delete priv.cellSettings[physicalRow][physicalColumn][key];
 
       instance.runHooks('afterRemoveCellMeta', row, col, key, cachedValue);
-      cachedValue = null;
     }
+
+    cachedValue = null;
   };
 
   /**
