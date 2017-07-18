@@ -85,7 +85,7 @@ describe('Core_removeCellMeta', () => {
     setCellMeta(0, 0, 'key', 'value');
     removeCellMeta(0, 0, 'key');
 
-    expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', true, undefined, undefined);
+    expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value', undefined, undefined);
   });
 
   it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 2  (removed `key` not existed) #4410', function () {
@@ -101,7 +101,7 @@ describe('Core_removeCellMeta', () => {
     });
 
     removeCellMeta(0, 0, 'key');
-    expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', false, undefined, undefined);
+    expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', undefined, undefined, undefined);
   });
 
   it('should call `beforeRemoveCellMeta` plugin hook with visual indexes as parameters #4410', () => {
@@ -146,5 +146,27 @@ describe('Core_removeCellMeta', () => {
     removeCellMeta(0, 1, 'key');
     expect(rowInsideHook).toEqual(0);
     expect(colInsideHook).toEqual(1);
+  });
+
+  it('should block removing cell meta when hook `beforeRemoveCellMeta` return false', function () {
+    handsontable({
+      beforeRemoveCellMeta: function (row, col) {
+        if (row === 0 && col === 0) {
+          return false;
+        }
+
+        return true;
+      }
+    });
+
+    setCellMeta(0, 0, 'key', 'value');
+    setCellMeta(0, 1, 'key', 'value');
+
+    removeCellMeta(0, 0, 'key');
+    removeCellMeta(0, 1, 'key');
+
+    // `value` shouldn't be removed
+    expect(getCellMeta(0, 0).key).toEqual('value');
+    expect(getCellMeta(0, 1).key).toBeUndefined();
   });
 });

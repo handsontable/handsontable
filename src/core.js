@@ -2266,12 +2266,14 @@ export default function Core(rootElement, userSettings) {
     const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
     let cachedValue = priv.cellSettings[physicalRow][physicalColumn][key];
 
-    instance.runHooks('beforeRemoveCellMeta', row, col, key, priv.cellSettings[physicalRow][physicalColumn][key]);
+    const hookResult = instance.runHooks('beforeRemoveCellMeta', row, col, key, priv.cellSettings[physicalRow][physicalColumn][key]);
 
-    delete priv.cellSettings[physicalRow][physicalColumn][key];
+    if (hookResult !== false) {
+      delete priv.cellSettings[physicalRow][physicalColumn][key];
 
-    instance.runHooks('afterRemoveCellMeta', row, col, key, cachedValue);
-    cachedValue = null;
+      instance.runHooks('afterRemoveCellMeta', row, col, key, cachedValue);
+      cachedValue = null;
+    }
   };
 
   /**
