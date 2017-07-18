@@ -52,7 +52,7 @@ describe('Core_removeCellMeta', () => {
     expect(getCellMeta(0, 0).key).toBeUndefined();
   });
 
-  it('should trigger `beforeRemoveCellMeta` hook with proper parameters - case 1 #4410', function () {
+  it('should trigger `beforeRemoveCellMeta` hook with proper parameters #4410', function () {
     const beforeRemoveCellMeta = jasmine.createSpy('beforeRemoveCellMeta');
 
     handsontable({
@@ -83,8 +83,8 @@ describe('Core_removeCellMeta', () => {
     });
 
     setCellMeta(0, 0, 'key', 'value');
-
     removeCellMeta(0, 0, 'key');
+
     expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', true, undefined, undefined);
   });
 

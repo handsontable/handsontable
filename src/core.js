@@ -2264,7 +2264,7 @@ export default function Core(rootElement, userSettings) {
    */
   this.removeCellMeta = function(row, col, key) {
     const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
-    const keyExist = priv.cellSettings[physicalRow][physicalColumn][key] !== undefined;
+    const keyExist = isDefined(priv.cellSettings[physicalRow][physicalColumn][key]);
 
     instance.runHooks('beforeRemoveCellMeta', row, col, key, priv.cellSettings[physicalRow][physicalColumn][key]);
     delete priv.cellSettings[physicalRow][physicalColumn][key];
