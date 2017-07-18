@@ -2264,13 +2264,14 @@ export default function Core(rootElement, userSettings) {
    */
   this.removeCellMeta = function(row, col, key) {
     const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
-    const keyExist = isDefined(priv.cellSettings[physicalRow][physicalColumn][key]);
+    let cachedValue = priv.cellSettings[physicalRow][physicalColumn][key];
 
     instance.runHooks('beforeRemoveCellMeta', row, col, key, priv.cellSettings[physicalRow][physicalColumn][key]);
 
     delete priv.cellSettings[physicalRow][physicalColumn][key];
 
-    instance.runHooks('afterRemoveCellMeta', row, col, key, keyExist);
+    instance.runHooks('afterRemoveCellMeta', row, col, key, cachedValue);
+    cachedValue = null;
   };
 
   /**
