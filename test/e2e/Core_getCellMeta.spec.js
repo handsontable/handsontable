@@ -22,13 +22,12 @@ describe('Core_getCellMeta', () => {
       }
     });
 
-    // eslint-disable-next-line camelcase
-    const cellMeta0_1 = getCellMeta(0, 1);
+    const cellMeta = getCellMeta(0, 1);
 
-    expect(cellMeta0_1.row).toEqual(10);
-    expect(cellMeta0_1.col).toEqual(11);
-    expect(cellMeta0_1.visualRow).toEqual(0);
-    expect(cellMeta0_1.visualCol).toEqual(1);
+    expect(cellMeta.row).toEqual(10);
+    expect(cellMeta.col).toEqual(11);
+    expect(cellMeta.visualRow).toEqual(0);
+    expect(cellMeta.visualCol).toEqual(1);
   });
 
   it('should not allow manual editing of a read only cell', () => {
