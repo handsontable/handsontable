@@ -39,6 +39,7 @@ describe('Core.setCellMeta', () => {
     });
 
     setCellMeta(0, 1, 'key', 'value');
+
     expect(getCellMeta(0, 1).key).toEqual('value');
   });
 
@@ -109,7 +110,7 @@ describe('Core.setCellMeta', () => {
     expect(this.$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[0]);
   });
 
-  it('should call afterSetCellMeta plugin hook with visual indexes as parameters', () => {
+  it('should call `afterSetCellMeta` plugin hook with visual indexes as parameters', () => {
     const className = 'htCenter htMiddle';
     const afterSetCellMeta = jasmine.createSpy('afterSetCellMeta');
 
@@ -124,6 +125,7 @@ describe('Core.setCellMeta', () => {
     });
 
     hot.setCellMeta(0, 1, 'className', className);
+
     expect(afterSetCellMeta).toHaveBeenCalledWith(0, 1, 'className', className, undefined, undefined);
   });
 });

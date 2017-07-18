@@ -22,6 +22,7 @@ describe('Core_getCellMeta', () => {
       }
     });
 
+    // eslint-disable-next-line camelcase
     const cellMeta0_1 = getCellMeta(0, 1);
 
     expect(cellMeta0_1.row).toEqual(10);
@@ -189,5 +190,51 @@ describe('Core_getCellMeta', () => {
 
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('C');
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
+  });
+
+  it('should call `beforeGetCellMeta` plugin hook with visual indexes as parameters', () => {
+    let rowInsideHook;
+    let colInsideHook;
+
+    const hot = handsontable({
+      beforeGetCellMeta: function (row, col) {
+        rowInsideHook = row;
+        colInsideHook = col;
+      },
+      modifyRow(row) {
+        return row + 10;
+      },
+      modifyCol(col) {
+        return col + 10;
+      }
+    });
+
+    hot.getCellMeta(0, 1);
+
+    expect(rowInsideHook).toEqual(0);
+    expect(colInsideHook).toEqual(1);
+  });
+
+  it('should call `afterGetCellMeta` plugin hook with visual indexes as parameters', () => {
+    let rowInsideHook;
+    let colInsideHook;
+
+    const hot = handsontable({
+      afterGetCellMeta: function (row, col) {
+        rowInsideHook = row;
+        colInsideHook = col;
+      },
+      modifyRow(row) {
+        return row + 10;
+      },
+      modifyCol(col) {
+        return col + 10;
+      }
+    });
+
+    hot.getCellMeta(0, 1);
+
+    expect(rowInsideHook).toEqual(0);
+    expect(colInsideHook).toEqual(1);
   });
 });
