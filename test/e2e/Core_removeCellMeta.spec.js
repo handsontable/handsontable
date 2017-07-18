@@ -36,7 +36,7 @@ describe('Core_removeCellMeta', () => {
     expect(getCellMeta(0, 0).borders).toBeUndefined();
   });
 
-  it('should remove proper cell meta when indexes was modified', () => {
+  it('should remove proper cell meta when indexes was modified #4410', () => {
     handsontable({
       modifyRow(row) {
         return row + 10;
@@ -104,7 +104,7 @@ describe('Core_removeCellMeta', () => {
     expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', false, undefined, undefined);
   });
 
-  it('should call `beforeRemoveCellMeta` plugin hook with visual indexes as parameters', () => {
+  it('should call `beforeRemoveCellMeta` plugin hook with visual indexes as parameters #4410', () => {
     let rowInsideHook;
     let colInsideHook;
 
@@ -126,7 +126,7 @@ describe('Core_removeCellMeta', () => {
     expect(colInsideHook).toEqual(1);
   });
 
-  it('should call `afterRemoveCellMeta` plugin hook with visual indexes as parameters', () => {
+  it('should call `afterRemoveCellMeta` plugin hook with visual indexes as parameters #4410', () => {
     let rowInsideHook;
     let colInsideHook;
 

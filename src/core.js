@@ -2267,6 +2267,7 @@ export default function Core(rootElement, userSettings) {
     const keyExist = isDefined(priv.cellSettings[physicalRow][physicalColumn][key]);
 
     instance.runHooks('beforeRemoveCellMeta', row, col, key, priv.cellSettings[physicalRow][physicalColumn][key]);
+
     delete priv.cellSettings[physicalRow][physicalColumn][key];
 
     instance.runHooks('afterRemoveCellMeta', row, col, key, keyExist);
