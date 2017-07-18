@@ -2365,7 +2365,7 @@ export default function Core(rootElement, userSettings) {
       priv.cellSettings[physicalRow] = [];
     }
     if (!priv.cellSettings[physicalRow][physicalColumn]) {
-      priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[col]();
+      priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
     }
 
     cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
@@ -2381,7 +2381,7 @@ export default function Core(rootElement, userSettings) {
     extend(cellProperties, expandType(cellProperties)); // for `type` added in beforeGetCellMeta
 
     if (cellProperties.cells) {
-      const settings = cellProperties.cells.call(cellProperties, physicalRow, col, prop);
+      const settings = cellProperties.cells.call(cellProperties, physicalRow, physicalColumn, prop);
 
       if (settings) {
         extend(cellProperties, settings);
