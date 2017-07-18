@@ -2256,16 +2256,20 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function removeCellMeta
-   * @param {Number} row Visual/physical row index.
-   * @param {Number} col Visual/physical column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {String} key Property name.
+   * @fires Hooks#beforeRemoveCellMeta
+   * @fires Hooks#afterRemoveCellMeta
    */
   this.removeCellMeta = function(row, col, key) {
-    // TODO: First we use indexes as visual, after that, the same indexes are used as physical. This MUST be improved.
-    const cellMeta = instance.getCellMeta(row, col);
-    if (cellMeta[key] != undefined) {
-      delete priv.cellSettings[row][col][key];
-    }
+    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
+    const keyExist = priv.cellSettings[physicalRow][physicalColumn][key] !== undefined;
+
+    instance.runHooks('beforeRemoveCellMeta', row, col, key, priv.cellSettings[physicalRow][physicalColumn][key]);
+    delete priv.cellSettings[physicalRow][physicalColumn][key];
+
+    instance.runHooks('afterRemoveCellMeta', row, col, key, keyExist);
   };
 
   /**
