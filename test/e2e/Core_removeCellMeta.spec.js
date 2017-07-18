@@ -36,7 +36,7 @@ describe('Core_removeCellMeta', () => {
     expect(getCellMeta(0, 0).borders).toBeUndefined();
   });
 
-  it('should remove proper cell meta when indexes was modified #4410', () => {
+  it('should remove proper cell meta when indexes was modified', () => {
     handsontable({
       modifyRow(row) {
         return row + 10;
@@ -52,7 +52,7 @@ describe('Core_removeCellMeta', () => {
     expect(getCellMeta(0, 0).key).toBeUndefined();
   });
 
-  it('should trigger `beforeRemoveCellMeta` hook with proper parameters #4410', function () {
+  it('should trigger `beforeRemoveCellMeta` hook with proper parameters', function () {
     const beforeRemoveCellMeta = jasmine.createSpy('beforeRemoveCellMeta');
 
     handsontable({
@@ -70,7 +70,7 @@ describe('Core_removeCellMeta', () => {
     expect(beforeRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value', undefined, undefined);
   });
 
-  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 1 (removed `key` existed) #4410', function () {
+  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 1 (removed `key` existed)', function () {
     const afterRemoveCellMeta = jasmine.createSpy('afterRemoveCellMeta');
 
     handsontable({
@@ -88,7 +88,7 @@ describe('Core_removeCellMeta', () => {
     expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value', undefined, undefined);
   });
 
-  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 2  (removed `key` not existed) #4410', function () {
+  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 2  (removed `key` not existed)', function () {
     const afterRemoveCellMeta = jasmine.createSpy('afterRemoveCellMeta');
 
     handsontable({
@@ -101,10 +101,11 @@ describe('Core_removeCellMeta', () => {
     });
 
     removeCellMeta(0, 0, 'key');
+
     expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', undefined, undefined, undefined);
   });
 
-  it('should call `beforeRemoveCellMeta` plugin hook with visual indexes as parameters #4410', () => {
+  it('should call `beforeRemoveCellMeta` plugin hook with visual indexes as parameters', () => {
     let rowInsideHook;
     let colInsideHook;
 
@@ -122,11 +123,12 @@ describe('Core_removeCellMeta', () => {
     });
 
     removeCellMeta(0, 1, 'key');
+
     expect(rowInsideHook).toEqual(0);
     expect(colInsideHook).toEqual(1);
   });
 
-  it('should call `afterRemoveCellMeta` plugin hook with visual indexes as parameters #4410', () => {
+  it('should call `afterRemoveCellMeta` plugin hook with visual indexes as parameters', () => {
     let rowInsideHook;
     let colInsideHook;
 
@@ -144,6 +146,7 @@ describe('Core_removeCellMeta', () => {
     });
 
     removeCellMeta(0, 1, 'key');
+
     expect(rowInsideHook).toEqual(0);
     expect(colInsideHook).toEqual(1);
   });
