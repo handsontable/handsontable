@@ -648,7 +648,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} row Visual row index.
    * @param {Number} col Visual column index.
    * @param {String} key The removed meta key.
-   * @param {*} value Value which is under removed key of cell meta (it's reference).
+   * @param {*} value Value which is under removed key of cell meta.
    */
   'beforeRemoveCellMeta',
 

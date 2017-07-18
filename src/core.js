@@ -2266,7 +2266,7 @@ export default function Core(rootElement, userSettings) {
     const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
     let cachedValue = priv.cellSettings[physicalRow][physicalColumn][key];
 
-    const hookResult = instance.runHooks('beforeRemoveCellMeta', row, col, key, priv.cellSettings[physicalRow][physicalColumn][key]);
+    const hookResult = instance.runHooks('beforeRemoveCellMeta', row, col, key, cachedValue);
 
     if (hookResult !== false) {
       delete priv.cellSettings[physicalRow][physicalColumn][key];
