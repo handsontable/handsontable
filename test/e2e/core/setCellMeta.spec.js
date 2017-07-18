@@ -28,8 +28,21 @@ describe('Core.setCellMeta', () => {
     expect(cellMeta.className).toEqual(className);
   });
 
-  it('should set correct meta className for non existed cell', () => {
+  it('should set proper cell meta when indexes was modified', () => {
+    handsontable({
+      modifyRow(row) {
+        return row + 10;
+      },
+      modifyCol(col) {
+        return col + 10;
+      }
+    });
 
+    setCellMeta(0, 1, 'key', 'value');
+    expect(getCellMeta(0, 1).key).toEqual('value');
+  });
+
+  it('should set correct meta className for non existed cell', () => {
     const className = 'htCenter htMiddle';
 
     handsontable({

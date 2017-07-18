@@ -12,6 +12,24 @@ describe('Core_getCellMeta', () => {
     }
   });
 
+  it('should get proper cell meta when indexes was modified', () => {
+    handsontable({
+      modifyRow(row) {
+        return row + 10;
+      },
+      modifyCol(col) {
+        return col + 10;
+      }
+    });
+
+    const cellMeta0_1 = getCellMeta(0, 1);
+
+    expect(cellMeta0_1.row).toEqual(10);
+    expect(cellMeta0_1.col).toEqual(11);
+    expect(cellMeta0_1.visualRow).toEqual(0);
+    expect(cellMeta0_1.visualCol).toEqual(1);
+  });
+
   it('should not allow manual editing of a read only cell', () => {
     var allCellsReadOnly = false;
 
