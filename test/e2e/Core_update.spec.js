@@ -631,4 +631,19 @@ describe('Core_updateSettings', () => {
 
     expect(afterUpdateSettings).toHaveBeenCalledWith(newSettings, undefined, undefined, undefined, undefined, undefined);
   });
+
+  it('should not extend parameter passed to `afterUpdateSettings` hook by another properties', () => {
+    let newSettings;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+      readOnly: true,
+      afterUpdateSettings: function (settings) {
+        newSettings = settings;
+      }
+    });
+
+    updateSettings({fillHandle: true});
+    expect(newSettings.readOnly).toBeUndefined();
+  });
 });
