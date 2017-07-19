@@ -502,6 +502,7 @@ const REGISTERED_HOOKS = [
    * Fired after calling the `updateSettings` method.
    *
    * @event Hooks#afterUpdateSettings
+   * @param {Object} settings New settings object.
    */
   'afterUpdateSettings',
 
