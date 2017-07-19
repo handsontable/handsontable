@@ -13,5 +13,8 @@ after_success:
   - "./test/scripts/trigger-hot-builder-tests.sh"
 
 notifications:
+  email: false
   slack:
     secure: LDlPC3IbXLbve4yq6kNznoIR5WgMhS2x+/KomgbVRDkUpySzyt27dUtRJqgkAqtkHhDhd0FbpROZNPriQVJI8nLLux0xdl9dngy6Lazl2qVzShrtdN01I3lVxysJlDM3phKHQCPmGhd/1v1qjfTAu45tM9pnYACSnDfdfh46b84=
+    on_failure: change
+    on_success: change
