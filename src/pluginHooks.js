@@ -477,18 +477,6 @@ const REGISTERED_HOOKS = [
   'afterSetCellMeta',
 
   /**
-   * Called after cell meta is removed.
-   *
-   * @event Hooks#afterRemoveCellMeta
-   * @since 0.33.1
-   * @param {Number} row Visual row index.
-   * @param {Number} col Visual column index.
-   * @param {String} key The removed meta key.
-   * @param {*} value Value which was under removed key of cell meta.
-   */
-  'afterRemoveCellMeta',
-
-  /**
    * Called after cell data was changed.
    *
    * @event Hooks#afterSetDataAtCell
@@ -514,6 +502,7 @@ const REGISTERED_HOOKS = [
    * Fired after calling the `updateSettings` method.
    *
    * @event Hooks#afterUpdateSettings
+   * @param {Object} settings New settings object.
    */
   'afterUpdateSettings',
 
@@ -639,18 +628,6 @@ const REGISTERED_HOOKS = [
    * @param {Object} cellProperties Object containing the cell's properties.
    */
   'beforeGetCellMeta',
-
-  /**
-   * Called before cell meta is removed.
-   *
-   * @event Hooks#beforeRemoveCellMeta
-   * @since 0.33.1
-   * @param {Number} row Visual row index.
-   * @param {Number} col Visual column index.
-   * @param {String} key The removed meta key.
-   * @param {*} value Value which is under removed key of cell meta.
-   */
-  'beforeRemoveCellMeta',
 
   /**
    * @description
