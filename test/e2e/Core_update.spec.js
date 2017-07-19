@@ -528,7 +528,7 @@ describe('Core_updateSettings', () => {
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(columns, rows),
-      columns (col) {
+      columns(col) {
         const colProp = {
           data: 'prop' + col,
           readOnly: true
