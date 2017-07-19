@@ -633,17 +633,19 @@ describe('Core_updateSettings', () => {
   });
 
   it('should not extend parameter passed to `afterUpdateSettings` hook by another properties', () => {
+    const updatedSetting = {fillHandle: true};
     let newSettings;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
       readOnly: true,
-      afterUpdateSettings: function (settings) {
+      afterUpdateSettings(settings) {
         newSettings = settings;
       }
     });
 
-    updateSettings({fillHandle: true});
-    expect(newSettings.readOnly).toBeUndefined();
+    updateSettings(updatedSetting);
+
+    expect(Object.keys(updatedSetting)).toEqual(Object.keys(newSettings));
   });
 });
