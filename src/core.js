@@ -1793,7 +1793,7 @@ export default function Core(rootElement, userSettings) {
         instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
       }
 
-      instance.runHooks('afterUpdateSettings');
+      instance.runHooks('afterUpdateSettings', settings);
     }
 
     grid.adjustRowsAndCols();
