@@ -3,11 +3,15 @@ language: node_js
 sudo: false
 
 node_js:
-  - "6"
+- '6'
 
 before_script:
-  - "export TZ=Europe/Warsaw"
-  - "chmod ugo+x test/scripts/trigger-hot-builder-tests.sh"
+- export TZ=Europe/Warsaw
+- chmod ugo+x test/scripts/trigger-hot-builder-tests.sh
 
 after_success:
-  - "./test/scripts/trigger-hot-builder-tests.sh"
+- "./test/scripts/trigger-hot-builder-tests.sh"
+
+notifications:
+  slack:
+    secure: LDlPC3IbXLbve4yq6kNznoIR5WgMhS2x+/KomgbVRDkUpySzyt27dUtRJqgkAqtkHhDhd0FbpROZNPriQVJI8nLLux0xdl9dngy6Lazl2qVzShrtdN01I3lVxysJlDM3phKHQCPmGhd/1v1qjfTAu45tM9pnYACSnDfdfh46b84=
