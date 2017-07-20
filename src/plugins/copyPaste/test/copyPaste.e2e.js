@@ -180,6 +180,18 @@ describe('CopyPaste', () => {
       expect(keydownCtrl).not.toThrow();
     });
 
+    it('should not throw error when no cell is selected and contextmenu options was clicked', () => {
+      // This is ugly trick to check problematic thing (#4390).
+      // Unfortunately we cannot open the context menu, when event.target is not an TD element.
+      // TODO: we have to looking for a solution for way to test contextMenu in similar use cases.
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2)
+      });
+
+      // expect no to throw any exception
+      expect(() => { hot.getPlugin('CopyPaste').setCopyableText(); }).not.toThrow();
+    });
+
     it('should set copyable text when selecting a single cell with specified type and hitting ctrl (#1300)', () => {
       handsontable({
         data: [['A', 1], ['B', 2]],

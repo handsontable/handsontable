@@ -6,7 +6,9 @@ export default function cutItem(copyPastePlugin) {
       copyPastePlugin.setCopyableText();
       copyPastePlugin.cut(true);
     },
-    disabled: false,
+    disabled() {
+      return !copyPastePlugin.hot.getSelected();
+    },
     hidden: false
   };
 }
