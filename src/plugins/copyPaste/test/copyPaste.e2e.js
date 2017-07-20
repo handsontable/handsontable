@@ -189,7 +189,7 @@ describe('CopyPaste', () => {
       });
 
       // expect no to throw any exception
-      expect(function() { hot.getPlugin('CopyPaste').setCopyableText(); }).not.toThrow();
+      expect(() => { hot.getPlugin('CopyPaste').setCopyableText(); }).not.toThrow();
     });
 
     it('should set copyable text when selecting a single cell with specified type and hitting ctrl (#1300)', () => {
