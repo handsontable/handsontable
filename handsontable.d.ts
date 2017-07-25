@@ -194,6 +194,37 @@ declare namespace _Handsontable {
   namespace plugins {
     // utils for Filters
     namespace FiltersPlugin {
+      type OperationType = 'conjunction' | 'disjunction';
+      type ConditionName = 'begins_with' | 'between' | 'by_value' | 'contains' | 'empty' | 'ends_with' | 'eq' | 'gt' |
+        'gte' | 'lt' | 'lte' | 'not_between' | 'not_contains' | 'not_empty' | 'neq';
+
+      interface ConditionId {
+        args: any[];
+        name?: ConditionName
+        command?: {
+          key: ConditionName
+        }
+      }
+
+      interface Condition {
+        name: ConditionName,
+        args: any[];
+        func: (dataRow: CellValue, ...values) => boolean
+      }
+
+      interface CellLikeData {
+        meta: {
+          row: number,
+          col: number,
+          visualCol: number,
+          visualRow: number,
+          type: string,
+          instance: Core,
+          dateFormat?: string
+        },
+        value: string
+      }
+
       interface BaseComponent {
         elements: any[];
         hidden: boolean;
@@ -270,27 +301,27 @@ declare namespace _Handsontable {
         conditions: object;
         orderStack: any[];
 
-        addCondition(column: number, conditionDefinition: object, args: any[], operation: "conjunction" | "disjunction"): void;
+        addCondition(column: number, conditionDefinition: ConditionId, operation?: OperationType): void;
         clean(): void;
         clearConditions(column: number): void;
         destroy(): void;
-        exportAllConditions(): any[];
-        getConditions(column: number): any[];
+        exportAllConditions(): ConditionId[];
+        getConditions(column: number): Condition[];
         hasConditions(column: number, name: string): boolean;
         isEmpty(): boolean;
-        isMatch(value: object, column: number): boolean;
-        isMatchInConditions(conditions: any[], value: object, operationType: "conjunction" | "disjunction"): boolean;
-        importAllConditions(conditions: any[]): void;
+        isMatch(value: CellLikeData, column: number): boolean;
+        isMatchInConditions(conditions: Condition[], value: CellLikeData, operationType?: OperationType): boolean;
+        importAllConditions(conditions: ConditionId[]): void;
         removeConditions(column: number): void;
       }
 
       interface ConditionUpdateObserver {
-        changes: any[];
-        columnDataFactory: (column: number) => any[];
+        changes: number[];
+        columnDataFactory: (column: number) => object[];
         conditionCollection: ConditionCollection;
         grouping: boolean;
         latestEditedColumnPosition: number;
-        latestOrderStack: any[];
+        latestOrderStack: number[];
 
         destroy(): void;
         flush(): void;
@@ -712,10 +743,10 @@ declare namespace _Handsontable {
       trimRowsPlugin: TrimRows | void;
       valueComponent: FiltersPlugin.ValueComponent | void;
 
-      addCondition(column: number, name: string, args: any[], operationId: "conjunction" | "disjunction"): void;
+      addCondition(column: number, name: string, args: any[], operationId: FiltersPlugin.OperationType): void;
       clearColumnSelection(): void;
       clearConditions(column?: number | void): void;
-      getDataMapAtColumn(column: number): any[];
+      getDataMapAtColumn(column: number): FiltersPlugin.CellLikeData[];
       getSelectedColumn(): number | void;
       filter(): void;
       removeConditions(column: number): void;
