@@ -266,28 +266,28 @@ declare namespace _Handsontable {
         closeOptions(): void;
       }
 
-      interface FormulaCollection {
-        formulas: object;
+      interface ConditionCollection {
+        conditions: object;
         orderStack: any[];
 
-        addFormula(column: number, formulaDefinition: object): void;
+        addCondition(column: number, conditionDefinition: object, args: any[], operation: "conjunction" | "disjunction"): void;
         clean(): void;
-        clearFormulas(column: number): void;
+        clearConditions(column: number): void;
         destroy(): void;
-        exportAllFormulas(): any[];
-        getFormulas(column: number): any[];
-        hasFormulas(column: number, name: string): boolean;
+        exportAllConditions(): any[];
+        getConditions(column: number): any[];
+        hasConditions(column: number, name: string): boolean;
         isEmpty(): boolean;
         isMatch(value: object, column: number): boolean;
-        isMatchInFormulas(formulas: any[], value: object): boolean;
-        importAllFormulas(formulas: any[]): void;
-        removeFormulas(column: number): void;
+        isMatchInConditions(conditions: any[], value: object, operationType: "conjunction" | "disjunction"): boolean;
+        importAllConditions(conditions: any[]): void;
+        removeConditions(column: number): void;
       }
 
-      interface FormulaUpdateObserver {
+      interface ConditionUpdateObserver {
         changes: any[];
         columnDataFactory: (column: number) => any[];
-        formulaCollection: FormulaCollection;
+        conditionCollection: ConditionCollection;
         grouping: boolean;
         latestEditedColumnPosition: number;
         latestOrderStack: any[];
@@ -295,7 +295,7 @@ declare namespace _Handsontable {
         destroy(): void;
         flush(): void;
         groupChanges(): void;
-        updateStatesAtColumn(column: number, formulaArgsChange: object): void;
+        updateStatesAtColumn(column: number, conditionArgsChange: object): void;
       }
     }
 
@@ -706,19 +706,19 @@ declare namespace _Handsontable {
       dropdownMenuPlugin: DropdownMenu | void;
       eventManager: EventManager;
       conditionComponent: FiltersPlugin.ConditionComponent | void;
-      formulaCollection: FiltersPlugin.FormulaCollection | void;
-      formulaUpdateObserver: FiltersPlugin.FormulaUpdateObserver | void;
+      conditionCollection: FiltersPlugin.ConditionCollection | void;
+      conditionUpdateObserver: FiltersPlugin.ConditionUpdateObserver | void;
       lastSelectedColumn?: number | void;
       trimRowsPlugin: TrimRows | void;
       valueComponent: FiltersPlugin.ValueComponent | void;
 
-      addFormula(column: number, name: string, args: any[]): void;
+      addCondition(column: number, name: string, args: any[], operationId: "conjunction" | "disjunction"): void;
       clearColumnSelection(): void;
-      clearFormulas(column?: number | void): void;
+      clearConditions(column?: number | void): void;
       getDataMapAtColumn(column: number): any[];
       getSelectedColumn(): number | void;
       filter(): void;
-      removeFormulas(column: number): void;
+      removeConditions(column: number): void;
     }
 
     interface RecordTranslator {
