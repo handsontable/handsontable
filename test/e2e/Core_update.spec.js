@@ -1,5 +1,5 @@
 describe('Core_updateSettings', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,6 @@ describe('Core_updateSettings', () => {
   });
 
   it('should inherit cell type', () => {
-
     handsontable({
       data: [[1, 2]],
       columns: [
@@ -31,14 +30,13 @@ describe('Core_updateSettings', () => {
 
     expect(getCellMeta(0, 0).type).toEqual('numeric');
     expect(getCellMeta(0, 1).type).toEqual('checkbox');
-
   });
 
   it('should inherit cell type when columns is a function', () => {
     handsontable({
       data: [[1, 2]],
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {};
@@ -87,8 +85,8 @@ describe('Core_updateSettings', () => {
 
     handsontable({
       data: [[1, true]],
-      columns: function(column) {
-        var colMeta = null;
+      columns(column) {
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {type: 'numeric'};
@@ -115,7 +113,7 @@ describe('Core_updateSettings', () => {
       ]
     });
 
-    var td = this.$container.find('td');
+    const td = this.$container.find('td');
 
     expect(td.eq(0).text()).toEqual('1');
     expect(td.eq(1).text()).toEqual('');
@@ -129,8 +127,8 @@ describe('Core_updateSettings', () => {
   it('should not reset columns types to text when columns is a function', function() {
     handsontable({
       data: [[1, true]],
-      columns: function(column) {
-        var colMeta = null;
+      columns(column) {
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {type: 'numeric'};
@@ -143,7 +141,7 @@ describe('Core_updateSettings', () => {
       }
     });
 
-    var td = this.$container.find('td');
+    const td = this.$container.find('td');
 
     expect(td.eq(0).text()).toEqual('1');
     expect(td.eq(1).text()).toEqual('');
@@ -186,7 +184,7 @@ describe('Core_updateSettings', () => {
       readOnly: true,
       data: [['foo', 'bar']],
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if ([0, 1].indexOf(column) < 0) {
           colMeta = null;
@@ -246,7 +244,7 @@ describe('Core_updateSettings', () => {
     handsontable({
       data: [['foo', true]],
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {type: 'text', readOnly: true};
@@ -266,7 +264,7 @@ describe('Core_updateSettings', () => {
 
     updateSettings({
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {type: 'text', readOnly: false};
@@ -320,7 +318,7 @@ describe('Core_updateSettings', () => {
       readOnly: true,
       data: [['foo', true]],
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {type: 'text'};
@@ -341,7 +339,7 @@ describe('Core_updateSettings', () => {
 
     updateSettings({
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {type: 'text', readOnly: false};
@@ -362,13 +360,13 @@ describe('Core_updateSettings', () => {
   });
 
   it('should not alter the columns object during init', () => {
-    var columns = [
+    const columns = [
       {
         type: 'text'
       }
     ];
 
-    var columnsCopy = JSON.parse(JSON.stringify(columns));
+    const columnsCopy = JSON.parse(JSON.stringify(columns));
 
     handsontable({
       columns
@@ -378,7 +376,7 @@ describe('Core_updateSettings', () => {
   });
 
   it('should update column type', () => {
-    var columns = [
+    const columns = [
       {
         type: 'text'
       }
@@ -404,7 +402,7 @@ describe('Core_updateSettings', () => {
   });
 
   it('should update cell type functions, even if new type does not implement all of those functions', () => {
-    var columns = [
+    const columns = [
       {
         type: 'numeric'
       }
@@ -433,12 +431,12 @@ describe('Core_updateSettings', () => {
   });
 
   it('should allow updating the table height', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       startRows: 22,
       startCols: 5
     });
 
-    var initialHeight = parseInt(this.$container[0].style.height, 10);
+    const initialHeight = parseInt(this.$container[0].style.height, 10);
 
     updateSettings({
       height: 300
@@ -449,13 +447,13 @@ describe('Core_updateSettings', () => {
   });
 
   it('should not reset the table height, when the updateSettings config object doesn\'t have any height specified', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       startRows: 22,
       startCols: 5,
       height: 300
     });
 
-    var initialHeight = this.$container[0].style.height;
+    const initialHeight = this.$container[0].style.height;
 
     updateSettings({
       rowHeaders: true
@@ -465,13 +463,13 @@ describe('Core_updateSettings', () => {
   });
 
   it('should allow resetting the table height', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       startRows: 22,
       startCols: 5,
       height: 300
     });
 
-    var initialHeight = this.$container[0].style.height;
+    const initialHeight = this.$container[0].style.height;
 
     updateSettings({
       height: null
@@ -481,7 +479,7 @@ describe('Core_updateSettings', () => {
   });
 
   it('should allow updating the stretching type', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       stretchH: 'last'
     });
 
@@ -507,12 +505,12 @@ describe('Core_updateSettings', () => {
   });
 
   it('should change colHeader\'s row height if is needed', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       colHeaders: true,
       rowHeaders: true
     });
 
-    var rowHeights = [];
+    const rowHeights = [];
 
     rowHeights.push(this.$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
     updateSettings({
@@ -525,13 +523,13 @@ describe('Core_updateSettings', () => {
   });
 
   it('should not overwrite properties (created by columns defined as function) of cells below the viewport by updateSettings #4029', function() {
-    var rows = 50;
-    var columns = 2;
+    let rows = 50;
+    const columns = 2;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(columns, rows),
-      columns: function (col) {
-        var colProp = {
+      columns(col) {
+        const colProp = {
           data: 'prop' + col,
           readOnly: true
         };
@@ -555,8 +553,8 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(rows, 1).type).toEqual('checkbox');
 
     updateSettings({
-      columns: function (col) {
-        var colProp = {
+      columns(col) {
+        const colProp = {
           data: 'prop' + col,
           type: 'numeric'
         };
@@ -571,8 +569,8 @@ describe('Core_updateSettings', () => {
   });
 
   it('should not overwrite properties (created by columns defined as array) of cells below the viewport by updateSettings #4029', function() {
-    var rows = 50;
-    var columns = 2;
+    let rows = 50;
+    const columns = 2;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(columns, rows),
@@ -616,5 +614,38 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).readOnly).toEqual(false);
     expect(getCellMeta(rows, 0).type).toEqual('text');
     expect(getCellMeta(rows, 1).type).toEqual('numeric');
+  });
+
+  it('should call `afterUpdateSettings` hook with proper parameter', () => {
+    const afterUpdateSettings = jasmine.createSpy('afterUpdateSettings');
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+      readOnly: true,
+      afterUpdateSettings
+    });
+
+    const newSettings = {readOnly: false};
+
+    updateSettings(newSettings);
+
+    expect(afterUpdateSettings).toHaveBeenCalledWith(newSettings, undefined, undefined, undefined, undefined, undefined);
+  });
+
+  it('should not extend parameter passed to `afterUpdateSettings` hook by another properties', () => {
+    const updatedSetting = {fillHandle: true};
+    let newSettings;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+      readOnly: true,
+      afterUpdateSettings(settings) {
+        newSettings = settings;
+      }
+    });
+
+    updateSettings(updatedSetting);
+
+    expect(Object.keys(updatedSetting)).toEqual(Object.keys(newSettings));
   });
 });

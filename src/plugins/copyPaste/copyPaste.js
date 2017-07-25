@@ -127,7 +127,6 @@ class CopyPaste extends BasePlugin {
 
     this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
     this.addHook('beforeKeyDown', (event) => this.onBeforeKeyDown(event));
-    // this.addHook('beforeOnCellMouseDown', () => this.onBeforeOnCellMouseDown());
 
     this.registerEvents();
 
@@ -155,13 +154,18 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Prepares copyable text in the invisible textarea.
+   * Prepares copyable text from the cells selection in the invisible textarea.
    *
    * @function setCopyable
    * @memberof CopyPaste#
    */
   setCopyableText() {
     let selRange = this.hot.getSelectedRange();
+
+    if (!selRange) {
+      return;
+    }
+
     let topLeft = selRange.getTopLeftCorner();
     let bottomRight = selRange.getBottomRightCorner();
     let startRow = topLeft.row;
@@ -343,6 +347,17 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
+   * Trigger to make possible observe `onInput` in textarea.
+   *
+   * @private
+   */
+  triggerPaste() {
+    this.textarea.select();
+
+    this.onPaste();
+  }
+
+  /**
    * `paste` event callback on textarea element.
    *
    * @private
@@ -494,7 +509,7 @@ class CopyPaste extends BasePlugin {
         this.copy();
       }
       if (event.keyCode == KEY_CODES.V) {
-        this.paste();
+        this.triggerPaste();
       }
     }
   }
