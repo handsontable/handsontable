@@ -209,7 +209,7 @@ declare namespace _Handsontable {
       interface Condition {
         name: ConditionName,
         args: any[];
-        func: (dataRow: CellValue, ...values) => boolean
+        func: (dataRow: CellValue, values: any[]) => boolean
       }
 
       interface CellLikeData {
