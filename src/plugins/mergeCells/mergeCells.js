@@ -149,7 +149,7 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
       this.lastDesiredCoords = new CellCoords(null, null);
     }
     var currentPosition = new CellCoords(currentSelectedRange.highlight.row, currentSelectedRange.highlight.col),
-    // if current position's parent is a merged range, returns it
+      // if current position's parent is a merged range, returns it
       mergedParent = this.mergedCellInfoCollection.getInfo(currentPosition.row, currentPosition.col),
       currentRangeContainsMerge; // if current range contains a merged range
 
