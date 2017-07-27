@@ -422,7 +422,7 @@ DataMap.prototype.removeCol = function(index, amount, source) {
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
  * @returns {Array} Returns removed portion of columns
  */
-DataMap.prototype.spliceCol = function(col, index, amount/* , elements...*/) {
+DataMap.prototype.spliceCol = function(col, index, amount/* , elements... */) {
   var elements = arguments.length >= 4 ? [].slice.call(arguments, 3) : [];
 
   var colData = this.instance.getDataAtCol(col);
@@ -449,7 +449,7 @@ DataMap.prototype.spliceCol = function(col, index, amount/* , elements...*/) {
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
  * @returns {Array} Returns removed portion of rows
  */
-DataMap.prototype.spliceRow = function(row, index, amount/* , elements...*/) {
+DataMap.prototype.spliceRow = function(row, index, amount/* , elements... */) {
   var elements = arguments.length >= 4 ? [].slice.call(arguments, 3) : [];
 
   var rowData = this.instance.getSourceDataAtRow(row);
