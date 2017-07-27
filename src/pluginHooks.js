@@ -1520,6 +1520,7 @@ class Hooks {
   createEmptyBucket() {
     const bucket = Object.create(null);
 
+    // eslint-disable-next-line no-return-assign
     arrayEach(REGISTERED_HOOKS, (hook) => (bucket[hook] = []));
 
     return bucket;
@@ -1760,6 +1761,7 @@ class Hooks {
    * ```
    */
   destroy(context = null) {
+    // eslint-disable-next-line no-return-assign
     objectEach(this.getBucket(context), (value, key, bucket) => (bucket[key].length = 0));
   }
 
