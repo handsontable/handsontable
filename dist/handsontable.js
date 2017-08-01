@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 0.33.0
- * Date: Mon Jul 10 2017 10:08:33 GMT+0200 (CEST)
+ * Date: Tue Aug 01 2017 11:34:43 GMT+0200 (CEST)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -30043,7 +30043,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "2017-07-10T08:08:33.664Z";
+Handsontable.buildDate = "2017-08-01T09:34:43.948Z";
 Handsontable.packageName = "handsontable";
 Handsontable.version = "0.33.0";
 
@@ -44647,20 +44647,23 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * Handsontable UndoRedo class
  */
 function UndoRedo(instance) {
+  var _this = this;
+
   var plugin = this;
   this.instance = instance;
   this.doneActions = [];
   this.undoneActions = [];
   this.ignoreNewActions = false;
+  this.excludedSources = ['UndoRedo.undo', 'UndoRedo.redo', 'auto'];
 
   instance.addHook('afterChange', function (changes, source) {
-    if (changes && source !== 'UndoRedo.undo' && source !== 'UndoRedo.redo') {
+    if (changes && _this.excludedSources.indexOf(source) === -1) {
       plugin.done(new UndoRedo.ChangeAction(changes));
     }
   });
 
   instance.addHook('afterCreateRow', function (index, amount, source) {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.undo' || source === 'auto') {
+    if (_this.excludedSources.indexOf(source) === -1) {
       return;
     }
 
@@ -44669,7 +44672,7 @@ function UndoRedo(instance) {
   });
 
   instance.addHook('beforeRemoveRow', function (index, amount, logicRows, source) {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
+    if (_this.excludedSources.indexOf(source) === -1) {
       return;
     }
 
@@ -44683,7 +44686,7 @@ function UndoRedo(instance) {
   });
 
   instance.addHook('afterCreateCol', function (index, amount, source) {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
+    if (_this.excludedSources.indexOf(source) === -1) {
       return;
     }
 
@@ -44691,7 +44694,7 @@ function UndoRedo(instance) {
   });
 
   instance.addHook('beforeRemoveCol', function (index, amount, logicColumns, source) {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
+    if (_this.excludedSources.indexOf(source) === -1) {
       return;
     }
 
@@ -44747,6 +44750,11 @@ function UndoRedo(instance) {
 
     plugin.done(new UndoRedo.RowMoveAction(movedRows, target));
   });
+};
+
+UndoRedo.prototype.addExcludedSource = function (source) {
+  console.log('addExcludedSource');
+  this.excludedSources.push(source);
 };
 
 UndoRedo.prototype.done = function (action) {
@@ -44978,17 +44986,17 @@ UndoRedo.RemoveColumnAction = function (index, indexes, data, headers, columnPos
 (0, _object.inherit)(UndoRedo.RemoveColumnAction, UndoRedo.Action);
 
 UndoRedo.RemoveColumnAction.prototype.undo = function (instance, undoneCallback) {
-  var _this = this;
+  var _this2 = this;
 
   var row = void 0;
   var ascendingIndexes = this.indexes.slice(0).sort();
   var sortByIndexes = function sortByIndexes(elem, j, arr) {
-    return arr[_this.indexes.indexOf(ascendingIndexes[j])];
+    return arr[_this2.indexes.indexOf(ascendingIndexes[j])];
   };
 
   var sortedData = [];
   (0, _number.rangeEach)(this.data.length - 1, function (i) {
-    sortedData[i] = (0, _array.arrayMap)(_this.data[i], sortByIndexes);
+    sortedData[i] = (0, _array.arrayMap)(_this2.data[i], sortByIndexes);
   });
 
   var sortedHeaders = [];
@@ -45140,7 +45148,7 @@ UndoRedo.RowMoveAction.prototype.redo = function (instance, redoneCallback) {
 
 function init() {
   var instance = this;
-  var pluginEnabled = typeof instance.getSettings().undo == 'undefined' || instance.getSettings().undo;
+  var pluginEnabled = typeof instance.getSettings().undo === 'undefined' || instance.getSettings().undo;
 
   if (pluginEnabled) {
     if (!instance.undoRedo) {

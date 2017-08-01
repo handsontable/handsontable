@@ -28,15 +28,16 @@ function UndoRedo(instance) {
   this.doneActions = [];
   this.undoneActions = [];
   this.ignoreNewActions = false;
+  this.excludedSources = ['UndoRedo.undo', 'UndoRedo.redo', 'auto'];
 
   instance.addHook('afterChange', (changes, source) => {
-    if (changes && source !== 'UndoRedo.undo' && source !== 'UndoRedo.redo') {
+    if (changes && this.excludedSources.indexOf(source) === -1) {
       plugin.done(new UndoRedo.ChangeAction(changes));
     }
   });
 
   instance.addHook('afterCreateRow', (index, amount, source) => {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.undo' || source === 'auto') {
+    if (this.excludedSources.indexOf(source) === -1) {
       return;
     }
 
@@ -45,7 +46,7 @@ function UndoRedo(instance) {
   });
 
   instance.addHook('beforeRemoveRow', (index, amount, logicRows, source) => {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
+    if (this.excludedSources.indexOf(source) === -1) {
       return;
     }
 
@@ -59,7 +60,7 @@ function UndoRedo(instance) {
   });
 
   instance.addHook('afterCreateCol', (index, amount, source) => {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
+    if (this.excludedSources.indexOf(source) === -1) {
       return;
     }
 
@@ -67,7 +68,7 @@ function UndoRedo(instance) {
   });
 
   instance.addHook('beforeRemoveCol', (index, amount, logicColumns, source) => {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
+    if (this.excludedSources.indexOf(source) === -1) {
       return;
     }
 
@@ -123,6 +124,10 @@ function UndoRedo(instance) {
 
     plugin.done(new UndoRedo.RowMoveAction(movedRows, target));
   });
+};
+
+UndoRedo.prototype.addExcludedSource = function(source) {
+  this.excludedSources.push(source);
 };
 
 UndoRedo.prototype.done = function(action) {
@@ -516,7 +521,7 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
 
 function init() {
   let instance = this;
-  let pluginEnabled = typeof instance.getSettings().undo == 'undefined' || instance.getSettings().undo;
+  let pluginEnabled = typeof instance.getSettings().undo === 'undefined' || instance.getSettings().undo;
 
   if (pluginEnabled) {
     if (!instance.undoRedo) {
