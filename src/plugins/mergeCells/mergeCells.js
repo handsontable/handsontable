@@ -5,6 +5,12 @@ import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {CellCoords, CellRange, Table} from './../../3rdparty/walkontable/src';
 import CollectionContainer from './cellCollection/collectionContainer';
 import AutofillCalculations from './calculations/autofill';
+import './mergeCells.css';
+
+Hooks.getSingleton().register('beforeMergeCells');
+Hooks.getSingleton().register('afterMergeCells');
+Hooks.getSingleton().register('beforeUnmergeCells');
+Hooks.getSingleton().register('afterUnmergeCells');
 
 const privatePool = new WeakMap();
 
@@ -127,7 +133,7 @@ class MergeCells extends BasePlugin {
         const rangeEnd = new CellCoords(setting.row + setting.rowspan - 1, setting.col + setting.colspan - 1);
 
         const mergeRange = new CellRange(highlight, highlight, rangeEnd);
-        this.mergeRange(mergeRange);
+        this.mergeRange(mergeRange, true);
       }
     }
   }
@@ -167,8 +173,9 @@ class MergeCells extends BasePlugin {
    * Merge cells in the provided cell range.
    *
    * @param {CellRange} cellRange Cell range to merge.
+   * @param {Boolean} [auto=false] `true` if is called automatically, e.g. at initialization.
    */
-  mergeRange(cellRange) {
+  mergeRange(cellRange, auto = false) {
     if (!this.canMergeRange(cellRange)) {
       return;
     }
@@ -184,6 +191,8 @@ class MergeCells extends BasePlugin {
       colspan: bottomRight.col - topLeft.col + 1
     };
     const clearedData = [];
+
+    this.hot.runHooks('beforeMergeCells', cellRange, auto);
 
     for (let i = 0; i < mergeParent.rowspan; i++) {
       for (let j = 0; j < mergeParent.colspan; j++) {
@@ -205,7 +214,9 @@ class MergeCells extends BasePlugin {
     }
 
     this.collectionContainer.add(mergeParent);
-    this.hot.populateFromArray(mergeParent.row, mergeParent.col, clearedData);
+    this.hot.populateFromArray(mergeParent.row, mergeParent.col, clearedData, void 0, void 0, this.pluginName);
+
+    this.hot.runHooks('afterMergeCells', cellRange, mergeParent, auto);
   }
 
   /**
@@ -218,7 +229,7 @@ class MergeCells extends BasePlugin {
       cellRange = this.hot.getSelectedRange();
     }
 
-    this.unmergeRange(cellRange);
+    this.unmergeRange(cellRange, true);
     this.mergeRange(cellRange);
   }
 
@@ -226,11 +237,14 @@ class MergeCells extends BasePlugin {
    * Unmerge the selection provided as a cell range. If no cell range is provided, it uses the current selection.
    *
    * @param {CellRange} [cellRange] Selection cell range.
+   * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
    */
-  unmergeRange(cellRange) {
+  unmergeRange(cellRange, auto = false) {
     if (!cellRange) {
       cellRange = this.hot.getSelectedRange();
     }
+
+    this.hot.runHooks('beforeUnmergeCells', cellRange, auto);
 
     const collections = this.collectionContainer.getWithinRange(cellRange);
 
@@ -245,6 +259,8 @@ class MergeCells extends BasePlugin {
         }
       }
     }
+
+    this.hot.runHooks('afterUnmergeCells', cellRange, auto);
   }
 
   /**
@@ -590,7 +606,7 @@ class MergeCells extends BasePlugin {
       let withinColspan = currentMerge.includesHorizontally(nextPosition.col);
 
       if (currentlySelectedRange.includesRange(mergedRange) && (mergedRange.includes(nextPosition) ||
-        withinRowspan || withinColspan)) { // if next step overlaps a merged range, jump past it
+          withinRowspan || withinColspan)) { // if next step overlaps a merged range, jump past it
         if (withinRowspan) {
           if (newDelta.row < 0) {
             newDelta.row -= currentMerge.rowspan - 1;
@@ -675,6 +691,10 @@ class MergeCells extends BasePlugin {
     selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
     selRange.to = coords;
     let rangeExpanded = false;
+
+    if ((selRange.from.row === 0 && selRange.to.row === this.hot.countRows() - 1) || (selRange.from.col === 0 && selRange.to.col === this.hot.countCols() - 1)) {
+      return;
+    }
 
     do {
       rangeExpanded = false;

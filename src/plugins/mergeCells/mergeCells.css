@@ -1,0 +1,4 @@
+.handsontable.ht__selection--rows tbody td[rowspan].area.highlight,
+.handsontable.ht__selection--columns tbody td[colspan].area.highlight{
+    background: inherit;
+}
