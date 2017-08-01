@@ -127,7 +127,6 @@ function UndoRedo(instance) {
 };
 
 UndoRedo.prototype.addExcludedSource = function(source) {
-  console.log('addExcludedSource');
   this.excludedSources.push(source);
 };
 
