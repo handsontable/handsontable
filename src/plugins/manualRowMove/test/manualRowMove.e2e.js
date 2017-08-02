@@ -214,28 +214,21 @@ describe('manualRowMove', () => {
       expect(beforeMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
     });
 
-    it('should trigger an afterRowMove event after row move', function() {
+    it('should trigger the `afterRowMove` hook after row move with visual indexes as parameters', function() {
       var afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
-
-      this.$container.height(150);
 
       var hot = handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true,
-        afterRowMove: afterMoveRowCallback
+        afterRowMove: afterMoveRowCallback,
+        modifyRow(row) {
+          return row + 10;
+        }
       });
-
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
       hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
       hot.render();
-
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('9');
-      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('10');
-      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('8');
 
       expect(afterMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
     });
