@@ -195,26 +195,21 @@ describe('manualRowMove', () => {
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('9');
     });
 
-    it('should trigger an beforeRowMove event before row move', function() {
+    it('should trigger the `beforeRowMove` hook before row move with visual indexes as parameters', function() {
       var beforeMoveRowCallback = jasmine.createSpy('beforeMoveRowCallback');
 
       var hot = handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true,
-        beforeRowMove: beforeMoveRowCallback
+        beforeRowMove: beforeMoveRowCallback,
+        modifyRow(row) {
+          return row + 10;
+        }
       });
-
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
       hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
       hot.render();
-
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('9');
-      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('10');
-      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('8');
 
       expect(beforeMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
     });
