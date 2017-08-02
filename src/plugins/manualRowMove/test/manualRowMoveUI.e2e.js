@@ -244,5 +244,28 @@ describe('manualRowMove', () => {
 
       expect(targetParameterInsideCallback).toEqual(2);
     });
+
+    it('should run `afterRowMove` with proper visual `target` parameter', function () {
+      let targetParameterInsideCallback;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(30, 30),
+        rowHeaders: true,
+        manualRowMove: [1, 2, 0],
+        afterRowMove: (rows, target) => {
+          targetParameterInsideCallback = target;
+        }
+      });
+
+      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
+      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
+      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
+
+      this.$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseover');
+      this.$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousemove');
+      this.$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
+
+      expect(targetParameterInsideCallback).toEqual(2);
+    });
   });
 });
