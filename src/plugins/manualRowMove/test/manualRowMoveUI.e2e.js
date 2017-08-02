@@ -1,4 +1,4 @@
-describe('manualRowMove', function () {
+describe('manualRowMove', () => {
   const id = 'testContainer';
 
   beforeEach(function () {
@@ -12,7 +12,7 @@ describe('manualRowMove', function () {
     }
   });
 
-  describe('UI', function () {
+  describe('UI', () => {
     it('should append UI elements to wtHider after click on row header', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
