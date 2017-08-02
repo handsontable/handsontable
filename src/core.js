@@ -1793,7 +1793,7 @@ export default function Core(rootElement, userSettings) {
         instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
       }
 
-      instance.runHooks('afterUpdateSettings');
+      instance.runHooks('afterUpdateSettings', settings);
     }
 
     grid.adjustRowsAndCols();
@@ -2256,16 +2256,25 @@ export default function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function removeCellMeta
-   * @param {Number} row Visual/physical row index.
-   * @param {Number} col Visual/physical column index.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
    * @param {String} key Property name.
+   * @fires Hooks#beforeRemoveCellMeta
+   * @fires Hooks#afterRemoveCellMeta
    */
   this.removeCellMeta = function(row, col, key) {
-    // TODO: First we use indexes as visual, after that, the same indexes are used as physical. This MUST be improved.
-    const cellMeta = instance.getCellMeta(row, col);
-    if (cellMeta[key] != undefined) {
-      delete priv.cellSettings[row][col][key];
+    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
+    let cachedValue = priv.cellSettings[physicalRow][physicalColumn][key];
+
+    const hookResult = instance.runHooks('beforeRemoveCellMeta', row, col, key, cachedValue);
+
+    if (hookResult !== false) {
+      delete priv.cellSettings[physicalRow][physicalColumn][key];
+
+      instance.runHooks('afterRemoveCellMeta', row, col, key, cachedValue);
     }
+
+    cachedValue = null;
   };
 
   /**
@@ -2314,19 +2323,19 @@ export default function Core(rootElement, userSettings) {
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row, col, key, val) {
-    [row, col] = recordTranslator.toPhysical(row, col);
+    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
 
-    if (!priv.columnSettings[col]) {
-      priv.columnSettings[col] = columnFactory(GridSettings, priv.columnsSettingConflicts);
+    if (!priv.columnSettings[physicalColumn]) {
+      priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
     }
 
-    if (!priv.cellSettings[row]) {
-      priv.cellSettings[row] = [];
+    if (!priv.cellSettings[physicalRow]) {
+      priv.cellSettings[physicalRow] = [];
     }
-    if (!priv.cellSettings[row][col]) {
-      priv.cellSettings[row][col] = new priv.columnSettings[col]();
+    if (!priv.cellSettings[physicalRow][physicalColumn]) {
+      priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
     }
-    priv.cellSettings[row][col][key] = val;
+    priv.cellSettings[physicalRow][physicalColumn][key] = val;
     instance.runHooks('afterSetCellMeta', row, col, key, val);
   };
 
@@ -2352,31 +2361,28 @@ export default function Core(rootElement, userSettings) {
    * @fires Hooks#afterGetCellMeta
    */
   this.getCellMeta = function(row, col) {
-    var prop = datamap.colToProp(col),
-      cellProperties;
+    const prop = datamap.colToProp(col);
+    let cellProperties;
 
-    let visualRow = row;
-    let visualCol = col;
+    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
 
-    [row, col] = recordTranslator.toPhysical(row, col);
-
-    if (!priv.columnSettings[col]) {
-      priv.columnSettings[col] = columnFactory(GridSettings, priv.columnsSettingConflicts);
+    if (!priv.columnSettings[physicalColumn]) {
+      priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
     }
 
-    if (!priv.cellSettings[row]) {
-      priv.cellSettings[row] = [];
+    if (!priv.cellSettings[physicalRow]) {
+      priv.cellSettings[physicalRow] = [];
     }
-    if (!priv.cellSettings[row][col]) {
-      priv.cellSettings[row][col] = new priv.columnSettings[col]();
+    if (!priv.cellSettings[physicalRow][physicalColumn]) {
+      priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
     }
 
-    cellProperties = priv.cellSettings[row][col]; // retrieve cellProperties from cache
+    cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
 
-    cellProperties.row = row;
-    cellProperties.col = col;
-    cellProperties.visualRow = visualRow;
-    cellProperties.visualCol = visualCol;
+    cellProperties.row = physicalRow;
+    cellProperties.col = physicalColumn;
+    cellProperties.visualRow = row;
+    cellProperties.visualCol = col;
     cellProperties.prop = prop;
     cellProperties.instance = instance;
 
@@ -2384,7 +2390,7 @@ export default function Core(rootElement, userSettings) {
     extend(cellProperties, expandType(cellProperties)); // for `type` added in beforeGetCellMeta
 
     if (cellProperties.cells) {
-      var settings = cellProperties.cells.call(cellProperties, row, col, prop);
+      const settings = cellProperties.cells.call(cellProperties, physicalRow, physicalColumn, prop);
 
       if (settings) {
         extend(cellProperties, settings);

@@ -67,7 +67,7 @@ const META_READONLY = 'readOnly';
  * var commentsPlugin = hot.getPlugin('comments');
  *
  * // Manage comments programmatically:
- * commentsPlugin.editor.setCommentAtCell(1, 6, 'Comment contents');
+ * commentsPlugin.setCommentAtCell(1, 6, 'Comment contents');
  * commentsPlugin.showAtCell(1, 6);
  * commentsPlugin.removeCommentAtCell(1, 6);
  *
