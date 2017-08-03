@@ -396,7 +396,8 @@ class Comments extends BasePlugin {
     let cellOffset = offset(TD);
     let scrollOffset = this.scrollOffset(this.hot.rootElement);
     let lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
-    let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
+    let cellTopOffset = cellOffset.top - scrollOffset.top;
+    cellTopOffset = cellTopOffset < 0 ? 0 : cellTopOffset;
     let cellLeftOffset = cellOffset.left - scrollOffset.left;
 
     if (this.hot.view.wt.wtViewport.hasVerticalScroll() && scrollableElement !== window) {
