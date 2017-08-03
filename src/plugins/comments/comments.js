@@ -394,9 +394,11 @@ class Comments extends BasePlugin {
     const row = this.range.from.row;
     const column = this.range.from.col;
     let cellOffset = offset(TD);
+    let scrollOffset = this.scrollOffset(this.hot.rootElement);
     let lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
-    let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
-    let cellLeftOffset = cellOffset.left;
+    let cellTopOffset = cellOffset.top - scrollOffset.top;
+    cellTopOffset = cellTopOffset < 0 ? 0 : cellTopOffset;
+    let cellLeftOffset = cellOffset.left - scrollOffset.left;
 
     if (this.hot.view.wt.wtViewport.hasVerticalScroll() && scrollableElement !== window) {
       cellTopOffset -= this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
@@ -421,6 +423,28 @@ class Comments extends BasePlugin {
     this.editor.setReadOnlyState(readOnly);
 
     this.editor.setPosition(x, y);
+  }
+
+  /**
+   * Find the recursive scroll offset distance between an element and the
+   * closest fixed element, or the document body.
+   *
+   * @private
+   * @param {Element} element The element to check from.
+   * @returns {Object}
+   */
+  scrollOffset(element) {
+    let scrollTop = 0;
+    let scrollLeft = 0;
+    while (element && element != document.documentElement && element != document.body) {
+      scrollTop += element.scrollTop;
+      scrollLeft += element.scrollLeft;
+      if (element.style.position == 'fixed') {
+        break;
+      }
+    }
+
+    return {left: scrollLeft, top: scrollTop};
   }
 
   /**
