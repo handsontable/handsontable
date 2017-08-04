@@ -1,4 +1,4 @@
-import {holder, rootInstancSymbol, registerAsRootInstance, hasValidParameter, isRootInstance} from 'handsontable/utils/rootInstance';
+import {holder, rootInstanceSymbol, registerAsRootInstance, hasValidParameter, isRootInstance} from 'handsontable/utils/rootInstance';
 
 describe('rootInstance', () => {
   describe('.registerAsRootInstance', () => {
@@ -13,7 +13,7 @@ describe('rootInstance', () => {
 
   describe('.hasValidParameter', () => {
     it('should return `true` when valid Symbol was passed', () => {
-      expect(hasValidParameter(rootInstancSymbol)).toBe(true);
+      expect(hasValidParameter(rootInstanceSymbol)).toBe(true);
     });
 
     it('should return `false` when Symbol with the same name was passed', () => {

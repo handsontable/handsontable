@@ -1,6 +1,6 @@
 export const holder = new WeakMap();
 
-export const rootInstancSymbol = Symbol('rootInstance');
+export const rootInstanceSymbol = Symbol('rootInstance');
 
 /**
  * Register an object as a root instance.
@@ -18,7 +18,7 @@ export function registerAsRootInstance(object) {
  * @return {Boolean}
  */
 export function hasValidParameter(rootSymbol) {
-  return rootSymbol === rootInstancSymbol;
+  return rootSymbol === rootInstanceSymbol;
 }
 
 /**
