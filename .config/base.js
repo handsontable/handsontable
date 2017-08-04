@@ -12,6 +12,7 @@ var packageBody = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../package
 var PACKAGE_VERSION = packageBody.version;
 var PACKAGE_NAME = packageBody.name;
 var BUILD_DATE = new Date();
+var BUILD_DAYS_SINCE_EPOCH = Math.floor(BUILD_DATE.getTime() / 8.64e7);
 var BASE_VERSION = void 0;
 
 module.exports.PACKAGE_VERSION = PACKAGE_VERSION;
@@ -76,6 +77,8 @@ module.exports.create = function create(envArgs) {
         '__HOT_PACKAGE_NAME__': JSON.stringify(PACKAGE_NAME),
         '__HOT_BUILD_DATE__': JSON.stringify(BUILD_DATE),
         '__HOT_BASE_VERSION__': JSON.stringify(BASE_VERSION),
+        '__HOT_PRIV_PACKAGE_TYPE__': JSON.stringify('pro'),
+        '__BUILD_DAYS_SINCE_EPOCH__': JSON.stringify(BUILD_DAYS_SINCE_EPOCH),
         '__ENV_ARGS__': JSON.stringify(envArgs),
       }),
     ],

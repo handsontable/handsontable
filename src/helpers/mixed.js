@@ -1,3 +1,5 @@
+import {addClass} from './dom/element';
+import {toSingleLine} from './templateLiteralTag';
 
 /**
  * Converts any value to string.
@@ -66,4 +68,74 @@ export function isEmpty(variable) {
  */
 export function isRegExp(variable) {
   return Object.prototype.toString.call(variable) === '[object RegExp]';
+}
+
+/* eslint-disable */
+const _m = '\x6C\x65\x6E\x67\x74\x68';
+const _hd = (v) => parseInt(v, 16);
+const _dh = (v) => v['\x74\x6F\x53\x74\x72\x69\x6E\x67'](16);
+const _pi = (v) => parseInt(v, 10);
+const _ss = (v, s, l) => v['\x73\x75\x62\x73\x74\x72'](s, l);
+const _cp = (v) => v['\x63\x6F\x64\x65\x50\x6F\x69\x6E\x74\x41\x74'](0) - 65;
+const _norm = (v) => v.replace(/\-/g, '');
+const _extractTime = (v) => _hd(_ss(_norm(v), _hd('12'), _cp('\x46'))) / (_hd(_ss(_norm(v), _cp('\x42'), ~~![][_m])) || 1);
+let _notified = false;
+
+export function _injectProductInfo(key, element) {
+  key = _norm(key || '');
+
+  let warningMessage = '';
+  let showDomMessage = true;
+  const schemaValidity = _checkKeySchema(key);
+
+  if (schemaValidity || isEmpty(key) || key === '\x74\x72\x69\x61\x6C') {
+    if (schemaValidity) {
+      const releaseTime = __BUILD_DAYS_SINCE_EPOCH__;
+      const keyGenTime = _extractTime(key);
+
+      if (releaseTime > keyGenTime + 1) {
+        warningMessage = toSingleLine`
+          Your license key of Handsontable Pro has expired.‌‌‌‌\x20
+          Renew your maintenance plan at https://handsontable.com or downgrade to the previous version of the software.
+          `;
+      }
+      showDomMessage = releaseTime > keyGenTime + 15;
+
+    } else {
+      warningMessage = 'Evaluation version of Handsontable Pro. Not licensed for use in a production environment.';
+    }
+
+  } else {
+    warningMessage = 'The license key provided to Handsontable Pro is invalid. Make sure you pass it correctly.';
+  }
+
+  if (warningMessage && !_notified) {
+    console.warn(warningMessage);
+    _notified = true;
+  }
+  if (showDomMessage && element.parentNode) {
+    const message = document.createElement('div');
+
+    addClass(message, 'display-license-info');
+    message.appendChild(document.createTextNode('Evaluation version of Handsontable Pro.'));
+    message.appendChild(document.createElement('br'));
+    message.appendChild(document.createTextNode('Not licensed for production use.'));
+
+    element.parentNode.insertBefore(message, element.nextSibling);
+  }
+}
+
+function _checkKeySchema(v) {
+  let z = _pi('\x31');
+  let p = z;
+
+  if (v[_m] !== _cp('\x5A')) {
+    return false;
+  }
+
+  for (let c = '', i = '\x42\x38\x4E\x2B'.split(''), j = _cp(i.shift()); j; j = _cp(i.shift() || 'A')) {
+    --j < ''[_m] ? p = p & _pi(`${_pi(_hd(c) + '' + _hd(_ss(v, Math.abs(j), 2)))}`) % _cp('\xA2') : c = _ss(v, j, !j ? 10 : 11);
+  }
+
+  return p === z;
 }

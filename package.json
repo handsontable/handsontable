@@ -120,7 +120,9 @@
       "__HOT_BUILD_DATE__": "",
       "__HOT_PACKAGE_NAME__": "",
       "__HOT_VERSION__": "",
-      "__HOT_BASE_VERSION__": ""
+      "__HOT_BASE_VERSION__": "",
+      "__HOT_PRIV_PACKAGE_TYPE__": "ce",
+      "__BUILD_DAYS_SINCE_EPOCH__": ""
     }
   },
   "typings": "./handsontable.d.ts"

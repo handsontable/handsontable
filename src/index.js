@@ -31,9 +31,10 @@ import * as domEventHelpers from './helpers/dom/event';
 import * as plugins from './plugins/index';
 import {registerPlugin} from './plugins';
 import DefaultSettings from './defaultSettings';
+import {rootInstancSymbol} from './utils/rootInstance';
 
 function Handsontable(rootElement, userSettings) {
-  const instance = new Core(rootElement, userSettings || {});
+  const instance = new Core(rootElement, userSettings || {}, rootInstancSymbol);
 
   instance.init();
 
