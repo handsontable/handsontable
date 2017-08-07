@@ -77,7 +77,7 @@ module.exports.create = function create(envArgs) {
         '__HOT_PACKAGE_NAME__': JSON.stringify(PACKAGE_NAME),
         '__HOT_BUILD_DATE__': JSON.stringify(BUILD_DATE),
         '__HOT_BASE_VERSION__': JSON.stringify(BASE_VERSION),
-        '__HOT_PRIV_PACKAGE_TYPE__': JSON.stringify('pro'),
+        '__HOT_PRIV_PACKAGE_TYPE__': JSON.stringify('ce'),
         '__BUILD_DAYS_SINCE_EPOCH__': JSON.stringify(BUILD_DAYS_SINCE_EPOCH),
         '__ENV_ARGS__': JSON.stringify(envArgs),
       }),

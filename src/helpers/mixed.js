@@ -73,7 +73,6 @@ export function isRegExp(variable) {
 /* eslint-disable */
 const _m = '\x6C\x65\x6E\x67\x74\x68';
 const _hd = (v) => parseInt(v, 16);
-const _dh = (v) => v['\x74\x6F\x53\x74\x72\x69\x6E\x67'](16);
 const _pi = (v) => parseInt(v, 10);
 const _ss = (v, s, l) => v['\x73\x75\x62\x73\x74\x72'](s, l);
 const _cp = (v) => v['\x63\x6F\x64\x65\x50\x6F\x69\x6E\x74\x41\x74'](0) - 65;
@@ -134,8 +133,9 @@ function _checkKeySchema(v) {
   }
 
   for (let c = '', i = '\x42\x38\x4E\x2B'.split(''), j = _cp(i.shift()); j; j = _cp(i.shift() || 'A')) {
-    --j < ''[_m] ? p = p & _pi(`${_pi(_hd(c) + '' + _hd(_ss(v, Math.abs(j), 2)))}`) % _cp('\xA2') : c = _ss(v, j, !j ? 10 : 11);
+    --j<''[_m]?p=p&_pi(`${_pi(_hd(c)+(_hd(_ss(v,Math.abs(j),2))+[]).padStart(2,'0'))}`)%_cp('\xA2'):c=_ss(v,j,!j?10:11);
   }
 
   return p === z;
 }
+/* eslint-enable */
