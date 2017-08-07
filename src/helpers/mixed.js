@@ -78,6 +78,7 @@ const _ss = (v, s, l) => v['\x73\x75\x62\x73\x74\x72'](s, l);
 const _cp = (v) => v['\x63\x6F\x64\x65\x50\x6F\x69\x6E\x74\x41\x74'](0) - 65;
 const _norm = (v) => v.replace(/\-/g, '');
 const _extractTime = (v) => _hd(_ss(_norm(v), _hd('12'), _cp('\x46'))) / (_hd(_ss(_norm(v), _cp('\x42'), ~~![][_m])) || 1);
+const _ignored = () => typeof location !== 'undefined' && /^([a-z0-9\-]+\.)?\x68\x61\x6E\x64\x73\x6F\x6E\x74\x61\x62\x6C\x65\x2E\x63\x6F\x6D$/i.test(location.host);
 let _notified = false;
 
 export function _injectProductInfo(key, element) {
@@ -86,8 +87,9 @@ export function _injectProductInfo(key, element) {
   let warningMessage = '';
   let showDomMessage = true;
   const schemaValidity = _checkKeySchema(key);
+  const ignored = _ignored();
 
-  if (schemaValidity || isEmpty(key) || key === '\x74\x72\x69\x61\x6C') {
+  if (isEmpty(key) || schemaValidity || key === '\x74\x72\x69\x61\x6C') {
     if (schemaValidity) {
       const releaseTime = __BUILD_DAYS_SINCE_EPOCH__;
       const keyGenTime = _extractTime(key);
@@ -106,6 +108,10 @@ export function _injectProductInfo(key, element) {
 
   } else {
     warningMessage = 'The license key provided to Handsontable Pro is invalid. Make sure you pass it correctly.';
+  }
+  if (ignored) {
+    warningMessage = false;
+    showDomMessage = false;
   }
 
   if (warningMessage && !_notified) {
