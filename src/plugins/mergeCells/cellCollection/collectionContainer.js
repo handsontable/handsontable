@@ -1,5 +1,7 @@
 import Collection from './collection';
 import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
+import {rangeEach} from '../../../helpers/number';
+import DOMManipulation from '../dom/domManipulation';
 
 /**
  * Defines a container object for the collections of merged cells.
@@ -8,7 +10,13 @@ import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
  * @plugin MergeCells
  */
 class CollectionContainer {
-  constructor(hotInstance) {
+  constructor(plugin) {
+    /**
+     * Reference to the Merge Cells plugin.
+     *
+     * @type {MergeCells}
+     */
+    this.plugin = plugin;
     /**
      * Array of merged collections.
      *
@@ -20,7 +28,7 @@ class CollectionContainer {
      *
      * @type {Handsontable}
      */
-    this.hot = hotInstance;
+    this.hot = plugin.hot;
   }
 
   /**
@@ -156,7 +164,85 @@ class CollectionContainer {
    * Clear all the merged cell collections.
    */
   clear() {
+    const collections = this.collections;
+    const collectionParentsToClear = [];
+    const hiddenCollectionElements = [];
+
+    rangeEach(0, collections.length - 1, (i) => {
+      const collection = collections[i];
+      collectionParentsToClear.push([this.hot.getCell(collection.row, collection.col), this.get(collection.row, collection.col), collection.row, collection.col]);
+    });
+
     this.collections.length = 0;
+
+    rangeEach(0, collectionParentsToClear.length - 1, (i) => {
+      let collection = collectionParentsToClear[i][1];
+      rangeEach(0, collection.rowspan - 1, (j) => {
+        rangeEach(0, collection.colspan - 1, (k) => {
+          if (k !== 0 || j !== 0) {
+            hiddenCollectionElements.push([this.hot.getCell(collection.row + j, collection.col + k), null, null, null]);
+          }
+        });
+      });
+
+      collectionParentsToClear[i][1] = null;
+    });
+
+    rangeEach(0, collectionParentsToClear.length - 1, (i) => {
+      this.plugin.dom.applySpanProperties(...collectionParentsToClear[i]);
+    });
+
+    rangeEach(0, hiddenCollectionElements.length - 1, (i) => {
+      this.plugin.dom.applySpanProperties(...hiddenCollectionElements[i]);
+    });
+  }
+
+  /**
+   * Shift the collection in the direction and by an offset defined in the arguments.
+   *
+   * @private
+   * @param {String} direction `right`, `left`, `up` or `down`.
+   * @param {Number} index Index where the change, which caused the shifting took place.
+   * @param {Number} count Number of rows/columns added/removed in the preceding action.
+   */
+  shiftCollections(direction, index, count) {
+    const shiftVector = [0, 0];
+
+    switch (direction) {
+      case 'right':
+        shiftVector[0] += count;
+
+        break;
+      case 'left':
+        shiftVector[0] -= count;
+
+        break;
+      case 'down':
+        shiftVector[1] += count;
+
+        break;
+      case 'up':
+        shiftVector[1] -= count;
+
+        break;
+      default:
+        break;
+    }
+
+    for (let i = 0, collectionLength = this.collections.length; i < collectionLength; i++) {
+      let currentMerge = this.collections[i];
+
+      currentMerge.shift(shiftVector, index);
+    }
+
+    for (let i = 0; i < this.collections.length; i++) {
+      let currentMerge = this.collections[i];
+
+      if (currentMerge.removed) {
+        this.collections.splice(this.collections.indexOf(currentMerge), 1);
+      }
+    }
+
   }
 }
 

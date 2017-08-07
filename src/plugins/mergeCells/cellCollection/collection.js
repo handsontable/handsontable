@@ -99,6 +99,94 @@ class Collection {
   includesVertically(row) {
     return this.row <= row && this.row + this.rowspan - 1 >= row;
   }
+
+  /**
+   * Shift (and possibly resize, if needed) the merged collection.
+   *
+   * @private
+   * @param {Array} shiftVector 2-element array containing the information on the shifting in the `x` and `y` axis.
+   * @param {Number} indexOfChange Index of the preceding change.
+   * @returns {boolean} Returns `false` if the whole collection was removed.
+   */
+  shift(shiftVector, indexOfChange) {
+    const shiftValue = shiftVector[0] || shiftVector[1];
+    const shiftedIndex = indexOfChange + Math.abs(shiftVector[0] || shiftVector[1]) - 1;
+    const SPAN = shiftVector[0] ? 'colspan' : 'rowspan';
+    const INDEX = shiftVector[0] ? 'col' : 'row';
+    const changeStart = Math.min(indexOfChange, shiftedIndex);
+    const changeEnd = Math.max(indexOfChange, shiftedIndex);
+    const mergeStart = this[INDEX];
+    const mergeEnd = this[INDEX] + this[SPAN] - 1;
+
+    if (mergeStart >= indexOfChange) {
+      this[INDEX] += shiftValue;
+    }
+
+    // adding rows/columns
+    if (shiftValue > 0) {
+
+      if (indexOfChange <= mergeEnd && indexOfChange > mergeStart) {
+        this[SPAN] += shiftValue;
+      }
+
+      // removing rows/columns
+    } else if (shiftValue < 0) {
+
+      // removing the whole merge
+      if (changeStart <= mergeStart && changeEnd >= mergeEnd) {
+        this.removed = true;
+        return false;
+
+        // removing the merge partially, including the beginning
+      } else if (mergeStart >= changeStart && mergeStart <= changeEnd) {
+        const removedOffset = changeEnd - mergeStart + 1;
+        const preRemovedOffset = Math.abs(shiftValue) - removedOffset;
+
+        this[INDEX] -= preRemovedOffset;
+        this[SPAN] -= removedOffset;
+
+        // removing the middle part of the merge
+      } else if (mergeStart <= changeStart && mergeEnd >= changeEnd) {
+        this[SPAN] += shiftValue;
+
+        // removing the end part of the merge
+      } else if (mergeStart <= changeStart && mergeEnd >= changeStart && mergeEnd < changeEnd) {
+        const removedPart = mergeEnd - changeStart + 1;
+
+        this[SPAN] -= removedPart;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Check if the second provided collection is "farther" in the provided direction.
+   *
+   * @private
+   * @param {Collection} collection The collection to check.
+   * @param {String} direction Drag direction.
+   * @return {boolean} `true` if the second provided collection is "farther".
+   * @param collection
+   */
+  isFarther(collection, direction) {
+    if (!collection) {
+      return true;
+    }
+
+    if (direction === 'down') {
+      return collection.row + collection.rowspan - 1 < this.row + this.rowspan - 1;
+
+    } else if (direction === 'up') {
+      return collection.row > this.row;
+
+    } else if (direction === 'right') {
+      return collection.col + collection.colspan - 1 < this.col + this.colspan - 1;
+
+    } else if (direction === 'left') {
+      return collection.col > this.col;
+    }
+  }
 }
 
 export default Collection;

@@ -159,16 +159,16 @@ describe('MergeCells-Autofill calculations', () => {
       const second = new Collection(8, 8, 2, 3);
       let direction = 'up';
 
-      expect(instance.isFarther(first, second, direction)).toEqual(false);
+      expect(second.isFarther(first, direction)).toEqual(false);
 
       direction = 'down';
-      expect(instance.isFarther(first, second, direction)).toEqual(true);
+      expect(second.isFarther(first, direction)).toEqual(true);
 
       direction = 'left';
-      expect(instance.isFarther(first, second, direction)).toEqual(false);
+      expect(second.isFarther(first, direction)).toEqual(false);
 
       direction = 'right';
-      expect(instance.isFarther(first, second, direction)).toEqual(true);
+      expect(second.isFarther(first, direction)).toEqual(true);
     });
   });
 

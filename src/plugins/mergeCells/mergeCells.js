@@ -5,6 +5,7 @@ import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {CellCoords, CellRange, Table} from './../../3rdparty/walkontable/src';
 import CollectionContainer from './cellCollection/collectionContainer';
 import AutofillCalculations from './calculations/autofill';
+import DOMManipulation from './dom/domManipulation';
 import './mergeCells.css';
 
 Hooks.getSingleton().register('beforeMergeCells');
@@ -57,6 +58,12 @@ class MergeCells extends BasePlugin {
      * @type {AutofillCalculations}
      */
     this.autofillCalculations = null;
+
+    /**
+     * Instance of the class responsible for all the DOM manipulations.
+     * @type {DOMManipulation}
+     */
+    this.dom = null;
   }
 
   /**
@@ -76,8 +83,9 @@ class MergeCells extends BasePlugin {
       return;
     }
 
-    this.collectionContainer = new CollectionContainer(this.hot);
+    this.collectionContainer = new CollectionContainer(this);
     this.autofillCalculations = new AutofillCalculations(this);
+    this.dom = new DOMManipulation(this);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('beforeKeyDown', (...args) => this.onBeforeKeyDown(...args));
@@ -123,6 +131,7 @@ class MergeCells extends BasePlugin {
   /**
    * Generate the collection container from the settings provided to the plugin.
    *
+   * @private
    * @param {Array|Boolean} settings The settings provided to the plugin.
    */
   generateFromSettings(settings) {
@@ -142,26 +151,13 @@ class MergeCells extends BasePlugin {
    * Clear the collections from the collection container.
    */
   clearCollections() {
-    const collections = this.collectionContainer.collections;
-    const cellsToClear = [];
-
-    for (let i = 0; i < collections.length; i++) {
-      const collection = collections[i];
-
-      cellsToClear.push([this.hot.getCell(collection.row, collection.col), collection.row, collection.col]);
-    }
-
     this.collectionContainer.clear();
-
-    for (let i = 0; i < cellsToClear.length; i++) {
-      this.applySpanProperties(...cellsToClear[i]);
-    }
   }
 
   /**
    * Returns `true` if a range is mergeable.
-   * TODO: unit tests
    *
+   * @private
    * @param {CellRange} cellRange Cell range to test.
    */
   canMergeRange(cellRange) {
@@ -172,6 +168,7 @@ class MergeCells extends BasePlugin {
   /**
    * Merge cells in the provided cell range.
    *
+   * @private
    * @param {CellRange} cellRange Cell range to merge.
    * @param {Boolean} [auto=false] `true` if is called automatically, e.g. at initialization.
    */
@@ -236,14 +233,11 @@ class MergeCells extends BasePlugin {
   /**
    * Unmerge the selection provided as a cell range. If no cell range is provided, it uses the current selection.
    *
-   * @param {CellRange} [cellRange] Selection cell range.
+   * @private
+   * @param {CellRange} cellRange Selection cell range.
    * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
    */
   unmergeRange(cellRange, auto = false) {
-    if (!cellRange) {
-      cellRange = this.hot.getSelectedRange();
-    }
-
     this.hot.runHooks('beforeUnmergeCells', cellRange, auto);
 
     const collections = this.collectionContainer.getWithinRange(cellRange);
@@ -259,13 +253,14 @@ class MergeCells extends BasePlugin {
         }
       }
     }
-
+    this.hot.render();
     this.hot.runHooks('afterUnmergeCells', cellRange, auto);
   }
 
   /**
    * Merge or unmerge, based on the cell range provided as `cellRange`.
    *
+   * @private
    * @param {CellRange} cellRange The cell range to merge or unmerged.
    */
   toggleMerge(cellRange) {
@@ -284,142 +279,31 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Shift the collection in the direction and by an offset defined in the arguments.
+   * Merge the specified range.
    *
-   * @private
-   * @param {String} direction `right`, `left`, `up` or `down`.
-   * @param {Number} index Index where the change, which caused the shifting took place.
-   * @param {Number} count Number of rows/columns added/removed in the preceding action.
+   * @param {Number} startRow Start row of the collection.
+   * @param {Number} startColumn Start column of the collection.
+   * @param {Number} endRow End row of the collection.
+   * @param {Number} endColumn End column of the collection.
    */
-  shiftCollection(direction, index, count) {
-    const shiftVector = [0, 0];
-
-    switch (direction) {
-      case 'right':
-        shiftVector[0] += count;
-
-        break;
-      case 'left':
-        shiftVector[0] -= count;
-
-        break;
-      case 'down':
-        shiftVector[1] += count;
-
-        break;
-      case 'up':
-        shiftVector[1] -= count;
-
-        break;
-      default:
-        break;
-    }
-
-    for (let i = 0, collectionLength = this.collectionContainer.collections.length; i < collectionLength; i++) {
-      let currentMerge = this.collectionContainer.collections[i];
-
-      this.processCollection(currentMerge, shiftVector, index);
-    }
-
-    for (let i = 0; i < this.collectionContainer.collections.length; i++) {
-      let currentMerge = this.collectionContainer.collections[i];
-
-      if (currentMerge.removed) {
-        this.collectionContainer.collections.splice(this.collectionContainer.collections.indexOf(currentMerge), 1);
-      }
-    }
-
+  merge(startRow, startColumn, endRow, endColumn) {
+    const start = new CellCoords(startRow, startColumn);
+    const end = new CellCoords(endRow, endColumn);
+    this.mergeRange(new CellRange(start, start, end));
   }
 
   /**
-   * Processes the merged collection (in terms of modifying the position and size of the collection).
+   * Unmerge the collection in the provided range.
    *
-   * @private
-   * @param {Collection} mergeInfo Object containing the collection information.
-   * @param {Array} shiftVector 2-element array containing the information on the shifting in the `x` and `y` axis.
-   * @param {Number} indexOfChange Index of the preceding change.
-   * @returns {Boolean} Returns `false` if the whole collection was removed.
+   * @param {Number} startRow Start row of the collection.
+   * @param {Number} startColumn Start column of the collection.
+   * @param {Number} endRow End row of the collection.
+   * @param {Number} endColumn End column of the collection.
    */
-  processCollection(mergeInfo, shiftVector, indexOfChange) {
-    const shiftValue = shiftVector[0] || shiftVector[1];
-    const shiftedIndex = indexOfChange + Math.abs(shiftVector[0] || shiftVector[1]) - 1;
-    const SPAN = shiftVector[0] ? 'colspan' : 'rowspan';
-    const INDEX = shiftVector[0] ? 'col' : 'row';
-    const changeStart = Math.min(indexOfChange, shiftedIndex);
-    const changeEnd = Math.max(indexOfChange, shiftedIndex);
-    const mergeStart = mergeInfo[INDEX];
-    const mergeEnd = mergeInfo[INDEX] + mergeInfo[SPAN] - 1;
-
-    if (mergeStart > indexOfChange) {
-      mergeInfo[INDEX] += shiftValue;
-    }
-
-    // adding rows/columns
-    if (shiftValue > 0) {
-
-      if (indexOfChange <= mergeEnd && indexOfChange > mergeStart) {
-        mergeInfo[SPAN] += shiftValue;
-      }
-
-      // removing rows/columns
-    } else if (shiftValue < 0) {
-
-      // removing the whole merge
-      if (changeStart <= mergeStart && changeEnd >= mergeEnd) {
-        mergeInfo.removed = true;
-        return false;
-
-        // removing the merge partially, including the beginning
-      } else if (mergeStart >= changeStart && mergeStart <= changeEnd) {
-        const removedOffset = changeEnd - mergeStart + 1;
-        const preRemovedOffset = Math.abs(shiftValue) - removedOffset;
-
-        mergeInfo[INDEX] -= preRemovedOffset;
-        mergeInfo[SPAN] -= removedOffset;
-
-        // removing the middle part of the merge
-      } else if (mergeStart <= changeStart && mergeEnd >= changeEnd) {
-        mergeInfo[SPAN] += shiftValue;
-
-        // removing the end part of the merge
-      } else if (mergeStart <= changeStart && mergeEnd >= changeStart && mergeEnd < changeEnd) {
-        const removedPart = mergeEnd - changeStart + 1;
-
-        mergeInfo[SPAN] -= removedPart;
-      }
-    }
-
-    return true;
-  }
-
-  /**
-   * Apply the `colspan`/`rowspan` properties.
-   *
-   * @private
-   * @param {HTMLElement} TD The soon-to-be-modified cell.
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
-   */
-  applySpanProperties(TD, row, col) {
-    // TODO: maybe move to dom?
-    let info = this.collectionContainer.get(row, col);
-
-    if (info) {
-      if (info.row === row && info.col === col) {
-        TD.setAttribute('rowspan', info.rowspan.toString());
-        TD.setAttribute('colspan', info.colspan.toString());
-
-      } else {
-        TD.removeAttribute('rowspan');
-        TD.removeAttribute('colspan');
-
-        TD.style.display = 'none';
-      }
-
-    } else {
-      TD.removeAttribute('rowspan');
-      TD.removeAttribute('colspan');
-    }
+  unmerge(startRow, startColumn, endRow, endColumn) {
+    const start = new CellCoords(startRow, startColumn);
+    const end = new CellCoords(endRow, endColumn);
+    this.unmergeRange(new CellRange(start, start, end));
   }
 
   /**
@@ -588,12 +472,15 @@ class MergeCells extends BasePlugin {
         if (sharedBorders.indexOf('top') > -1) { // if range shares a border with the merged section, change range direction accordingly
           if (currentlySelectedRange.to.isSouthEastOf(mergedRange.from) && mergeHighlighted) {
             currentlySelectedRange.setDirection('NW-SE');
+
           } else if (currentlySelectedRange.to.isSouthWestOf(mergedRange.from) && mergeHighlighted) {
             currentlySelectedRange.setDirection('NE-SW');
           }
+
         } else if (sharedBorders.indexOf('bottom') > -1) {
           if (currentlySelectedRange.to.isNorthEastOf(mergedRange.from) && mergeHighlighted) {
             currentlySelectedRange.setDirection('SW-NE');
+
           } else if (currentlySelectedRange.to.isNorthWestOf(mergedRange.from) && mergeHighlighted) {
             currentlySelectedRange.setDirection('SE-NW');
           }
@@ -676,7 +563,8 @@ class MergeCells extends BasePlugin {
    * @param {Object} cellProperties The current cell properties.
    */
   onAfterRenderer(TD, row, col, prop, value, cellProperties) {
-    this.applySpanProperties(TD, row, col);
+    let collectionInfo = this.collectionContainer.get(row, col);
+    this.dom.applySpanProperties(TD, collectionInfo, row, col);
   }
 
   /**
@@ -831,7 +719,7 @@ class MergeCells extends BasePlugin {
    * @param {Number} count Number of created columns.
    */
   onAfterCreateCol(column, count) {
-    this.shiftCollection('right', column, count);
+    this.collectionContainer.shiftCollections('right', column, count);
   }
 
   /**
@@ -843,7 +731,7 @@ class MergeCells extends BasePlugin {
    * @param {String} source Source of change.
    */
   onAfterRemoveCol(column, count, source) {
-    this.shiftCollection('left', column, count);
+    this.collectionContainer.shiftCollections('left', column, count);
   }
 
   /**
@@ -859,7 +747,7 @@ class MergeCells extends BasePlugin {
       return;
     }
 
-    this.shiftCollection('down', row, count);
+    this.collectionContainer.shiftCollections('down', row, count);
   }
 
   /**
@@ -870,7 +758,7 @@ class MergeCells extends BasePlugin {
    * @param {Number} count Number of removed rows.
    */
   onAfterRemoveRow(row, count) {
-    this.shiftCollection('up', row, count);
+    this.collectionContainer.shiftCollections('up', row, count);
   }
 
   /**

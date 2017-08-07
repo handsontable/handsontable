@@ -224,41 +224,13 @@ class AutofillCalculations {
       let currentCollection = collectionArray[i];
 
       if (currentCollection[inclusionFunctionName](endOfDragRecreationIndex)) {
-        if (this.isFarther(farthestCollection, currentCollection, direction)) {
+        if (currentCollection.isFarther(farthestCollection, direction)) {
           farthestCollection = currentCollection;
         }
       }
     }
 
     return farthestCollection;
-  }
-
-  /**
-   * Check if the second provided collection is "farther" in the provided direction.
-   *
-   * @private
-   * @param {Collection} first The first collection to check.
-   * @param {Collection} second The second collection to check.
-   * @param {String} direction Drag direction.
-   * @return {Boolean} `true` if the second provided collection is "farther".
-   */
-  isFarther(first, second, direction) {
-    if (!first) {
-      return true;
-    }
-
-    if (direction === 'down') {
-      return first.row + first.rowspan - 1 < second.row + second.rowspan - 1;
-
-    } else if (direction === 'up') {
-      return first.row > second.row;
-
-    } else if (direction === 'right') {
-      return first.col + first.colspan - 1 < second.col + second.colspan - 1;
-
-    } else if (direction === 'left') {
-      return first.col > second.col;
-    }
   }
 
   /**
@@ -387,7 +359,7 @@ class AutofillCalculations {
   }
 
   /**
-   * Checks if the drag area contains any merged collections.
+   * Check if the drag area contains any merged collections.
    *
    * @param {Array} baseArea The base selection area.
    * @param {Array} fullArea The base area extended by the drag area.

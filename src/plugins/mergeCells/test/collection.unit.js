@@ -81,5 +81,121 @@ describe('MergeCells', () => {
 
       });
     });
+
+    describe('`shift` method', () => {
+      it('should shift the merged collection right, when there was a column added to its left', () => {
+        const collection = new Collection(3, 3, 4, 4);
+
+        // Adding one column at index 1
+        collection.shift([1, 0], 1);
+
+        expect(collection.row).toEqual(3);
+        expect(collection.col).toEqual(4);
+        expect(collection.rowspan).toEqual(4);
+        expect(collection.colspan).toEqual(4);
+      });
+
+      it('should shift the merged collection left, when there was a column removed to its left', () => {
+        const collection = new Collection(3, 3, 4, 4);
+
+        // Removing one column at index 1
+        collection.shift([-1, 0], 1);
+
+        expect(collection.row).toEqual(3);
+        expect(collection.col).toEqual(2);
+        expect(collection.rowspan).toEqual(4);
+        expect(collection.colspan).toEqual(4);
+      });
+
+      it('should shift the merged collection down, when there was a row added above', () => {
+        const collection = new Collection(3, 3, 4, 4);
+
+        // Adding one row at index 1
+        collection.shift([0, 1], 1);
+
+        expect(collection.row).toEqual(4);
+        expect(collection.col).toEqual(3);
+        expect(collection.rowspan).toEqual(4);
+        expect(collection.colspan).toEqual(4);
+      });
+
+      it('should shift the merged collection up, when there was a row removed above', () => {
+        const collection = new Collection(3, 3, 4, 4);
+
+        // Removing one column at index 1
+        collection.shift([0, -1], 1);
+
+        expect(collection.row).toEqual(2);
+        expect(collection.col).toEqual(3);
+        expect(collection.rowspan).toEqual(4);
+        expect(collection.colspan).toEqual(4);
+      });
+
+      it('should expand the merged collection, when there was a column added between its borders', () => {
+        const collection = new Collection(3, 3, 4, 4);
+
+        // Adding one column at index 4
+        collection.shift([1, 0], 4);
+
+        expect(collection.row).toEqual(3);
+        expect(collection.col).toEqual(3);
+        expect(collection.rowspan).toEqual(4);
+        expect(collection.colspan).toEqual(5);
+      });
+
+      it('should contract the merged collection, when there was a column removed between its borders', () => {
+        const collection = new Collection(3, 3, 4, 4);
+
+        // Removing one column at index 4
+        collection.shift([-1, 0], 4);
+
+        expect(collection.row).toEqual(3);
+        expect(collection.col).toEqual(3);
+        expect(collection.rowspan).toEqual(4);
+        expect(collection.colspan).toEqual(3);
+      });
+
+      it('should expand the merged collection, when there was a row added between its borders', () => {
+        const collection = new Collection(3, 3, 4, 4);
+
+        // Adding one row at index 4
+        collection.shift([0, 1], 4);
+
+        expect(collection.row).toEqual(3);
+        expect(collection.col).toEqual(3);
+        expect(collection.rowspan).toEqual(5);
+        expect(collection.colspan).toEqual(4);
+      });
+
+      it('should contract the merged collection, when there was a row removed between its borders', () => {
+        const collection = new Collection(3, 3, 4, 4);
+
+        // Removing one row at index 4
+        collection.shift([0, -1], 4);
+
+        expect(collection.row).toEqual(3);
+        expect(collection.col).toEqual(3);
+        expect(collection.rowspan).toEqual(3);
+        expect(collection.colspan).toEqual(4);
+      });
+    });
+
+    describe('`isFarther` method', () => {
+      it('should return whether the "base" collection is farther in the defined direction than the provided collection', () => {
+        const TopLeftcollection = new Collection(1, 1, 2, 2);
+        const TopRightcollection = new Collection(1, 5, 2, 2);
+        const BottomLeftcollection = new Collection(5, 1, 2, 2);
+        const BottomRightcollection = new Collection(5, 5, 2, 2);
+
+        expect(TopRightcollection.isFarther(TopLeftcollection, 'left')).toBe(false);
+        expect(TopRightcollection.isFarther(TopLeftcollection, 'up')).toBe(false);
+        expect(TopRightcollection.isFarther(BottomLeftcollection, 'left')).toBe(false);
+
+        expect(TopLeftcollection.isFarther(TopRightcollection, 'left')).toBe(true);
+        expect(TopRightcollection.isFarther(TopLeftcollection, 'right')).toBe(true);
+        expect(BottomLeftcollection.isFarther(TopRightcollection, 'down')).toBe(true);
+        expect(TopLeftcollection.isFarther(BottomRightcollection, 'up')).toBe(true);
+      });
+    });
   });
 });

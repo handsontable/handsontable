@@ -133,6 +133,10 @@ function UndoRedo(instance) {
   });
 
   instance.addHook('afterUnmergeCells', (cellRange, auto) => {
+    if (auto) {
+      return;
+    }
+
     plugin.done(new UndoRedo.UnmergeCells(instance, cellRange));
   });
 

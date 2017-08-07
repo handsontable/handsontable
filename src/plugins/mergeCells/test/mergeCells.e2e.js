@@ -745,4 +745,92 @@ describe('MergeCells', () => {
       }, 100);
     });
   });
+
+  describe('Entire row/column selection', () => {
+    it('should be possible to select a single entire column, when there\'s a merged collection in it', () => {
+      let hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          {row: 5, col: 4, rowspan: 2, colspan: 5}
+        ]
+      });
+
+      hot.selectCell(0, 5, 9, 5);
+      expect(JSON.stringify(hot.getSelected())).toEqual('[0,5,9,5]');
+
+      // it should work only for selecting the entire column
+      hot.selectCell(4, 5, 7, 5);
+      expect(JSON.stringify(hot.getSelected())).toEqual('[4,4,7,8]');
+    });
+
+    it('should be possible to select a single entire row, when there\'s a merged collection in it', () => {
+      let hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          {row: 5, col: 4, rowspan: 5, colspan: 2}
+        ]
+      });
+
+      hot.selectCell(5, 0, 5, 9);
+      expect(JSON.stringify(hot.getSelected())).toEqual('[5,0,5,9]');
+
+      // it should work only for selecting the entire row
+      hot.selectCell(6, 3, 6, 7);
+      expect(JSON.stringify(hot.getSelected())).toEqual('[5,3,9,7]');
+    });
+  });
+
+  describe('Undo/Redo', () => {
+    it('should not be possible to remove initially declared merged collections by calling the \'Undo\' action.', () => {
+      let hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          {row: 5, col: 4, rowspan: 2, colspan: 5},
+          {row: 1, col: 1, rowspan: 2, colspan: 2},
+        ]
+      });
+
+      hot.undo();
+
+      expect(hot.getPlugin('mergeCells').collectionContainer.collections.length).toEqual(2);
+    });
+
+    it('should be possible undo the merging process by calling the \'Undo\' action.', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: true
+      });
+
+      const plugin = hot.getPlugin('mergeCells');
+      plugin.merge(0, 0, 3, 3);
+      hot.selectCell(4, 4, 7, 7);
+      plugin.mergeSelection();
+
+      expect(plugin.collectionContainer.collections.length).toEqual(2);
+      hot.undo();
+      expect(plugin.collectionContainer.collections.length).toEqual(1);
+      hot.undo();
+      expect(plugin.collectionContainer.collections.length).toEqual(0);
+    });
+
+    it('should be possible redo the merging process by calling the \'Redo\' action.', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: true
+      });
+
+      const plugin = hot.getPlugin('mergeCells');
+      plugin.merge(0, 0, 3, 3);
+      hot.selectCell(4, 4, 7, 7);
+      plugin.mergeSelection();
+
+      hot.undo();
+      hot.undo();
+
+      hot.redo();
+      expect(plugin.collectionContainer.collections.length).toEqual(1);
+      hot.redo();
+      expect(plugin.collectionContainer.collections.length).toEqual(2);
+    });
+  });
 });
