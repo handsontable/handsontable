@@ -88,8 +88,9 @@ export function _injectProductInfo(key, element) {
   let showDomMessage = true;
   const schemaValidity = _checkKeySchema(key);
   const ignored = _ignored();
+  const trial = isEmpty(key) || key === 'trial';
 
-  if (isEmpty(key) || schemaValidity || key === '\x74\x72\x69\x61\x6C') {
+  if (trial || schemaValidity) {
     if (schemaValidity) {
       const releaseTime = __BUILD_DAYS_SINCE_EPOCH__;
       const keyGenTime = _extractTime(key);
@@ -115,7 +116,7 @@ export function _injectProductInfo(key, element) {
   }
 
   if (warningMessage && !_notified) {
-    console.warn(warningMessage);
+    console[trial ? 'info' : 'warn'](warningMessage);
     _notified = true;
   }
   if (showDomMessage && element.parentNode) {
