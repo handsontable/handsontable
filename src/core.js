@@ -3155,6 +3155,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     dataSource = null;
 
+    const nextSibling = instance.rootElement.nextSibling;
+
+    if (isRootInstance(instance) && nextSibling) {
+      instance.rootElement.parentNode.removeChild(nextSibling);
+    }
     empty(instance.rootElement);
     eventManager.destroy();
 
