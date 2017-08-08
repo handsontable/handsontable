@@ -135,10 +135,10 @@ class CollectionContainer {
 
       return newCollection;
 
-    } else {
-      console.warn(`The declared merged cell collection at [${newCollection.row}, ${newCollection.col}] overlaps with the other declared collections.` +
-        ` The overlapping collection was not added to the table, please fix your setup.`);
     }
+
+    console.warn(`The declared merged cell collection at [${newCollection.row}, ${newCollection.col}] overlaps with the other declared collections. 
+    The overlapping collection was not added to the table, please fix your setup.`);
 
     return false;
   }
@@ -207,7 +207,8 @@ class CollectionContainer {
    * @param {Collection} collection The collection to check against all others in the container.
    */
   checkIfOverlaps(collection) {
-    const collectionRange = new CellRange(null, new CellCoords(collection.row, collection.col), new CellCoords(collection.row + collection.rowspan - 1, collection.col + collection.colspan - 1));
+    const collectionRange = new CellRange(null, new CellCoords(collection.row, collection.col),
+      new CellCoords(collection.row + collection.rowspan - 1, collection.col + collection.colspan - 1));
 
     for (let i = 0; i < this.collections.length; i++) {
       let col = this.collections[i];
