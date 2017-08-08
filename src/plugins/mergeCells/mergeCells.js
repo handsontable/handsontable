@@ -91,6 +91,7 @@ class MergeCells extends BasePlugin {
     this.addHook('beforeKeyDown', (...args) => this.onBeforeKeyDown(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.onModifyTransformEnd(...args));
+    this.addHook('modifyGetCellCoords', (...args) => this.onModifyGetCellCoords(...args));
     this.addHook('beforeSetRangeEnd', (...args) => this.onBeforeSetRangeEnd(...args));
     this.addHook('afterIsMultipleSelection', (...args) => this.onAfterIsMultipleSelection(...args));
     this.addHook('afterRenderer', (...args) => this.onAfterRenderer(...args));
@@ -140,8 +141,8 @@ class MergeCells extends BasePlugin {
         const setting = settings[i];
         const highlight = new CellCoords(setting.row, setting.col);
         const rangeEnd = new CellCoords(setting.row + setting.rowspan - 1, setting.col + setting.colspan - 1);
-
         const mergeRange = new CellRange(highlight, highlight, rangeEnd);
+
         this.mergeRange(mergeRange, true);
       }
     }
@@ -210,8 +211,11 @@ class MergeCells extends BasePlugin {
       }
     }
 
-    this.collectionContainer.add(mergeParent);
-    this.hot.populateFromArray(mergeParent.row, mergeParent.col, clearedData, void 0, void 0, this.pluginName);
+    let collectionAdded = this.collectionContainer.add(mergeParent);
+
+    if (collectionAdded) {
+      this.hot.populateFromArray(mergeParent.row, mergeParent.col, clearedData, void 0, void 0, this.pluginName);
+    }
 
     this.hot.runHooks('afterMergeCells', cellRange, mergeParent, auto);
   }
@@ -314,23 +318,6 @@ class MergeCells extends BasePlugin {
   onAfterInit() {
     this.generateFromSettings(this.hot.getSettings().mergeCells);
     this.hot.render();
-
-    // TODO: maybe try to remove this and use a hook-ish solution?
-    if (this.isEnabled()) {
-      let plugin = this;
-      /**
-       * Monkey patch Table.prototype.getCell to return TD for merged cell parent if asked for TD of a cell that is
-       * invisible due to the merge. This is not the cleanest solution but there is a test case for it (merged cells scroll) so feel free to refactor it!
-       */
-      this.hot.view.wt.wtTable.getCell = function(coords) {
-        const mergeParent = plugin.collectionContainer.get(coords.row, coords.col);
-
-        if (mergeParent) {
-          coords = mergeParent;
-        }
-        return Table.prototype.getCell.call(this, coords);
-      };
-    }
   }
 
   /**
@@ -517,6 +504,21 @@ class MergeCells extends BasePlugin {
     if (newDelta.col !== 0) {
       delta.col = newDelta.col;
     }
+  }
+
+  /**
+   * `modifyGetCellCoords` hook callback. Swaps the `getCell` coords with the merged parent coords.
+   *
+   * @private
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
+   * @param {Boolean} topmost True if the topmost cell is needed.
+   * @returns {Array}
+   */
+  onModifyGetCellCoords(row, column, topmost) {
+    const mergeParent = this.collectionContainer.get(row, column);
+
+    return mergeParent ? [mergeParent.row, mergeParent.col] : void 0;
   }
 
   /**

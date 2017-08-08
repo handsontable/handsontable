@@ -902,6 +902,18 @@ const REGISTERED_HOOKS = [
   'modifyRowData',
 
   /**
+   * Used to modify the cell coordinates when using the `getCell` method.
+   *
+   * @event Hooks#modifyGetCellCoords
+   * @since 0.35.0
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
+   * @param {Boolean} topmost If set to true, it returns the TD element from the topmost overlay. For example,
+   * if the wanted cell is in the range of fixed rows, it will return a TD element from the `top` overlay.
+   */
+  'modifyGetCellCoords',
+
+  /**
    * Fired after loading data using the Persistent State plugin.
    *
    * @event Hooks#persistentStateLoad

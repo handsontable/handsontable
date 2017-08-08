@@ -373,5 +373,38 @@ describe('MergeCells', () => {
 
       });
     });
+
+    describe('`checkIfOverlaps` method', () => {
+      it('should return whether the provided collection overlaps with the others in the collection', () => {
+        const collectionContainer = new CollectionContainer({hot: null});
+
+        collectionContainer.add({
+          row: 0,
+          col: 1,
+          rowspan: 3,
+          colspan: 4
+        });
+        collectionContainer.add({
+          row: 10,
+          col: 11,
+          rowspan: 3,
+          colspan: 4
+        });
+        collectionContainer.add({
+          row: 20,
+          col: 21,
+          rowspan: 3,
+          colspan: 4
+        });
+
+        expect(collectionContainer.checkIfOverlaps({row: 30, col: 30, rowspan: 3, colspan: 3})).toEqual(false);
+        expect(collectionContainer.checkIfOverlaps({row: 2, col: 2, rowspan: 3, colspan: 3})).toEqual(true);
+        expect(collectionContainer.checkIfOverlaps({row: 9, col: 9, rowspan: 3, colspan: 3})).toEqual(true);
+        expect(collectionContainer.checkIfOverlaps({row: 21, col: 19, rowspan: 5, colspan: 5})).toEqual(true);
+        expect(collectionContainer.checkIfOverlaps({row: 21, col: 22, rowspan: 5, colspan: 5})).toEqual(true);
+        expect(collectionContainer.checkIfOverlaps({row: 24, col: 25, rowspan: 5, colspan: 5})).toEqual(false);
+
+      });
+    });
   });
 });

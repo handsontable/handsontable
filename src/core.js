@@ -1933,6 +1933,12 @@ export default function Core(rootElement, userSettings) {
    * @returns {Element} The cell's TD element.
    */
   this.getCell = function(row, col, topmost) {
+    const hookResult = instance.runHooks('modifyGetCellCoords', row, col, topmost);
+
+    if (hookResult && Object.prototype.toString.call(hookResult) === '[object Array]') {
+      [row, col] = hookResult;
+    }
+
     return instance.view.getCellAtCoords(new CellCoords(row, col), topmost);
   };
 
