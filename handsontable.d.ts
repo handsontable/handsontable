@@ -1498,17 +1498,17 @@ declare namespace _Handsontable {
   }
 
   interface Editors {
-    AutocompleteEditor: editors.Autocomplete;
-    BaseEditor: editors.Base;
-    CheckboxEditor: editors.Checkbox;
-    DateEditor: editors.Date;
-    DropdownEditor: editors.Dropdown;
-    HandsontableEditor: editors.Handsontable;
-    MobileEditor: editors.Mobile;
-    NumericEditor: editors.Numeric;
-    PasswordEditor: editors.Password;
-    SelectEditor: editors.Select;
-    TextEditor: editors.Text | editors.Mobile;
+    AutocompleteEditor: typeof editors.Autocomplete;
+    BaseEditor: typeof editors.Base;
+    CheckboxEditor: typeof editors.Checkbox;
+    DateEditor: typeof editors.Date;
+    DropdownEditor: typeof editors.Dropdown;
+    HandsontableEditor: typeof editors.Handsontable;
+    MobileEditor: typeof editors.Mobile;
+    NumericEditor: typeof editors.Numeric;
+    PasswordEditor: typeof editors.Password;
+    SelectEditor: typeof editors.Select;
+    TextEditor: typeof editors.Text | editors.Mobile;
     getEditor: (editorName: string, hotInstance: Core) => any;
     registerEditor: (editorName: string, editorClass: any) => void;
   }
