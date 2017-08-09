@@ -95,13 +95,19 @@ export function _injectProductInfo(key, element) {
       const releaseTime = __BUILD_DAYS_SINCE_EPOCH__;
       const keyGenTime = _extractTime(key);
 
-      if (releaseTime > keyGenTime + 1 || keyGenTime > 45000) {
-        warningMessage = toSingleLine`
+      if (keyGenTime > 45000) {
+        warningMessage = 'The license key provided to Handsontable Pro is invalid. Make sure you pass it correctly.';
+      }
+
+      if (!warningMessage) {
+        if (releaseTime > keyGenTime + 1) {
+          warningMessage = toSingleLine`
           Your license key of Handsontable Pro has expired.‌‌‌‌\x20
           Renew your maintenance plan at https://handsontable.com or downgrade to the previous version of the software.
           `;
+        }
+        showDomMessage = releaseTime > keyGenTime + 15;
       }
-      showDomMessage = releaseTime > keyGenTime + 15;
 
     } else {
       warningMessage = 'Evaluation version of Handsontable Pro. Not licensed for use in a production environment.';
