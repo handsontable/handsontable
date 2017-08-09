@@ -77,7 +77,7 @@ const _pi = (v) => parseInt(v, 10);
 const _ss = (v, s, l) => v['\x73\x75\x62\x73\x74\x72'](s, l);
 const _cp = (v) => v['\x63\x6F\x64\x65\x50\x6F\x69\x6E\x74\x41\x74'](0) - 65;
 const _norm = (v) => v.replace(/\-/g, '');
-const _extractTime = (v) => _hd(_ss(_norm(v), _hd('12'), _cp('\x46'))) / (_hd(_ss(_norm(v), _cp('\x42'), ~~![][_m])) || 1);
+const _extractTime = (v) => _hd(_ss(_norm(v), _hd('12'), _cp('\x46'))) / (_hd(_ss(_norm(v), _cp('\x42'), ~~![][_m])) || 9);
 const _ignored = () => typeof location !== 'undefined' && /^([a-z0-9\-]+\.)?\x68\x61\x6E\x64\x73\x6F\x6E\x74\x61\x62\x6C\x65\x2E\x63\x6F\x6D$/i.test(location.host);
 let _notified = false;
 
