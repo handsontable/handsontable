@@ -126,6 +126,9 @@ declare namespace _Handsontable {
       getEditedCell(): void;
       refreshDimensions(): void;
       refreshValue():void;
+      TEXTAREA: HTMLInputElement;
+      TEXTAREA_PARENT: HTMLElement;
+      textareaStyle: CSSStyleDeclaration;
     }
 
     class Date extends Text {
