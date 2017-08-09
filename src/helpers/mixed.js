@@ -95,7 +95,7 @@ export function _injectProductInfo(key, element) {
       const releaseTime = __BUILD_DAYS_SINCE_EPOCH__;
       const keyGenTime = _extractTime(key);
 
-      if (keyGenTime > 45000) {
+      if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
         warningMessage = 'The license key provided to Handsontable Pro is invalid. Make sure you pass it correctly.';
       }
 
