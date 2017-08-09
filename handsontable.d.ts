@@ -1508,7 +1508,7 @@ declare namespace _Handsontable {
     NumericEditor: typeof editors.Numeric;
     PasswordEditor: typeof editors.Password;
     SelectEditor: typeof editors.Select;
-    TextEditor: typeof editors.Text | editors.Mobile;
+    TextEditor: typeof editors.Text;
     getEditor: (editorName: string, hotInstance: Core) => any;
     registerEditor: (editorName: string, editorClass: any) => void;
   }
