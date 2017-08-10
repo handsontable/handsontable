@@ -2,10 +2,12 @@ import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
 import {registerPlugin} from './../../plugins';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
-import {CellCoords, CellRange, Table} from './../../3rdparty/walkontable/src';
+import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
 import CollectionContainer from './cellCollection/collectionContainer';
 import AutofillCalculations from './calculations/autofill';
 import DOMManipulation from './dom/domManipulation';
+import {arrayEach} from '../../helpers/array';
+import {rangeEach} from '../../helpers/number';
 import './mergeCells.css';
 
 Hooks.getSingleton().register('beforeMergeCells');
@@ -137,14 +139,13 @@ class MergeCells extends BasePlugin {
    */
   generateFromSettings(settings) {
     if (Array.isArray(settings)) {
-      for (let i = 0; i < settings.length; i++) {
-        const setting = settings[i];
+      arrayEach(settings, (setting, i) => {
         const highlight = new CellCoords(setting.row, setting.col);
         const rangeEnd = new CellCoords(setting.row + setting.rowspan - 1, setting.col + setting.colspan - 1);
         const mergeRange = new CellRange(highlight, highlight, rangeEnd);
 
         this.mergeRange(mergeRange, true);
-      }
+      });
     }
   }
 
@@ -192,8 +193,8 @@ class MergeCells extends BasePlugin {
 
     this.hot.runHooks('beforeMergeCells', cellRange, auto);
 
-    for (let i = 0; i < mergeParent.rowspan; i++) {
-      for (let j = 0; j < mergeParent.colspan; j++) {
+    rangeEach(0, mergeParent.rowspan - 1, (i) => {
+      rangeEach(0, mergeParent.colspan - 1, (j) => {
         let clearedValue = null;
 
         if (!clearedData[i]) {
@@ -208,8 +209,8 @@ class MergeCells extends BasePlugin {
         }
 
         clearedData[i][j] = clearedValue;
-      }
-    }
+      });
+    });
 
     let collectionAdded = this.collectionContainer.add(mergeParent);
 
@@ -246,17 +247,16 @@ class MergeCells extends BasePlugin {
 
     const collections = this.collectionContainer.getWithinRange(cellRange);
 
-    for (let i = 0; i < collections.length; i++) {
-      let currentCollection = collections[i];
-
+    arrayEach(collections, (currentCollection, i) => {
       this.collectionContainer.remove(currentCollection.row, currentCollection.col);
 
-      for (let i = 0; i < currentCollection.rowspan; i++) {
-        for (let j = 0; j < currentCollection.colspan; j++) {
+      rangeEach(0, currentCollection.rowspan - 1, (i) => {
+        rangeEach(0, currentCollection.colspan - 1, (j) => {
           this.hot.removeCellMeta(currentCollection.row + i, currentCollection.col + j, 'hidden');
-        }
-      }
-    }
+        });
+      });
+    });
+
     this.hot.render();
     this.hot.runHooks('afterUnmergeCells', cellRange, auto);
   }
@@ -443,8 +443,7 @@ class MergeCells extends BasePlugin {
     };
     let nextPosition = null;
 
-    for (let i = 0, mergesLength = this.collectionContainer.collections.length; i < mergesLength; i++) {
-      let currentMerge = this.collectionContainer.collections[i];
+    arrayEach(this.collectionContainer.collections, (currentMerge, i) => {
       let mergeTopLeft = new CellCoords(currentMerge.row, currentMerge.col);
       let mergeBottomRight = new CellCoords(currentMerge.row + currentMerge.rowspan - 1, currentMerge.col + currentMerge.colspan - 1);
       let mergedRange = new CellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
@@ -496,7 +495,7 @@ class MergeCells extends BasePlugin {
           }
         }
       }
-    }
+    });
 
     if (newDelta.row !== 0) {
       delta.row = newDelta.row;
@@ -589,7 +588,7 @@ class MergeCells extends BasePlugin {
     do {
       rangeExpanded = false;
 
-      for (let i = 0, ilen = this.collectionContainer.collections.length; i < ilen; i++) {
+      for (let i = 0; i < this.collectionContainer.collections.length; i++) {
         let cellInfo = this.collectionContainer.collections[i];
         let mergedCellTopLeft = new CellCoords(cellInfo.row, cellInfo.col);
         let bottomRightCoords = {
@@ -606,6 +605,7 @@ class MergeCells extends BasePlugin {
           rangeExpanded = true;
         }
       }
+
     } while (rangeExpanded);
   }
 
@@ -635,7 +635,7 @@ class MergeCells extends BasePlugin {
     let colCount = this.hot.countCols();
     let mergeParent;
 
-    for (let c = 0; c < colCount; c++) {
+    rangeEach(0, colCount - 1, (c) => {
       mergeParent = this.collectionContainer.get(calc.startRow, c);
       if (mergeParent) {
         if (mergeParent.row < calc.startRow) {
@@ -651,7 +651,7 @@ class MergeCells extends BasePlugin {
           return this.onAfterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
         }
       }
-    }
+    });
   }
 
   /**
@@ -663,7 +663,8 @@ class MergeCells extends BasePlugin {
   onAfterViewportColumnCalculatorOverride(calc) {
     let rowCount = this.hot.countRows();
     let mergeParent;
-    for (let r = 0; r < rowCount; r++) {
+
+    rangeEach(0, rowCount - 1, (r) => {
       mergeParent = this.collectionContainer.get(r, calc.startColumn);
 
       if (mergeParent) {
@@ -680,7 +681,7 @@ class MergeCells extends BasePlugin {
           return this.onAfterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
         }
       }
-    }
+    });
   }
 
   /**

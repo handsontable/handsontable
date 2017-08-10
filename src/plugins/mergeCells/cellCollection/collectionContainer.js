@@ -1,7 +1,7 @@
 import Collection from './collection';
 import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
 import {rangeEach} from '../../../helpers/number';
-import DOMManipulation from '../dom/domManipulation';
+import {arrayEach} from './../../../helpers/array';
 
 /**
  * Defines a container object for the collections of merged cells.
@@ -41,17 +41,17 @@ class CollectionContainer {
    */
   get(row, column) {
     const collections = this.collections;
+    let result = false;
 
-    for (let i = 0, ilen = collections.length; i < ilen; i++) {
-      const collection = collections[i];
-
+    arrayEach(collections, (collection) => {
       if (collection.row <= row && collection.row + collection.rowspan - 1 >= row &&
         collection.col <= column && collection.col + collection.colspan - 1 >= column) {
-        return collection;
+        result = collection;
+        return false;
       }
-    }
+    });
 
-    return false;
+    return result;
   }
 
   /**
@@ -62,17 +62,17 @@ class CollectionContainer {
    */
   getByRange(range) {
     const collections = this.collections;
+    let result = false;
 
-    for (let i = 0, ilen = collections.length; i < ilen; i++) {
-      const collection = collections[i];
-
+    arrayEach(collections, (collection) => {
       if (collection.row <= range.from.row && collection.row + collection.rowspan - 1 >= range.to.row &&
         collection.col <= range.from.col && collection.col + collection.colspan - 1 >= range.to.col) {
-        return collection;
+        result = collection;
+        return result;
       }
-    }
+    });
 
-    return false;
+    return result;
   }
 
   /**
@@ -92,8 +92,7 @@ class CollectionContainer {
       range = new CellRange(from, from, to);
     }
 
-    for (let i = 0, ilen = collections.length; i < ilen; i++) {
-      const collection = collections[i];
+    arrayEach(collections, (collection) => {
       let collectionTopLeft = new CellCoords(collection.row, collection.col);
       let collectionBottomRight = new CellCoords(collection.row + collection.rowspan - 1, collection.col + collection.colspan - 1);
       let collectionRange = new CellRange(collectionTopLeft, collectionTopLeft, collectionBottomRight);
@@ -106,7 +105,7 @@ class CollectionContainer {
       } else if (range.includesRange(collectionRange)) {
         foundCollections.push(collection);
       }
-    }
+    });
 
     return foundCollections.length ? foundCollections : false;
   }
@@ -172,15 +171,13 @@ class CollectionContainer {
     const collectionParentsToClear = [];
     const hiddenCollectionElements = [];
 
-    rangeEach(0, collections.length - 1, (i) => {
-      const collection = collections[i];
+    arrayEach(collections, (collection) => {
       collectionParentsToClear.push([this.hot.getCell(collection.row, collection.col), this.get(collection.row, collection.col), collection.row, collection.col]);
     });
 
     this.collections.length = 0;
 
-    rangeEach(0, collectionParentsToClear.length - 1, (i) => {
-      let collection = collectionParentsToClear[i][1];
+    arrayEach(collectionParentsToClear, (collection, i) => {
       rangeEach(0, collection.rowspan - 1, (j) => {
         rangeEach(0, collection.colspan - 1, (k) => {
           if (k !== 0 || j !== 0) {
@@ -192,12 +189,12 @@ class CollectionContainer {
       collectionParentsToClear[i][1] = null;
     });
 
-    rangeEach(0, collectionParentsToClear.length - 1, (i) => {
-      this.plugin.dom.applySpanProperties(...collectionParentsToClear[i]);
+    arrayEach(collectionParentsToClear, (collectionParents) => {
+      this.plugin.dom.applySpanProperties(...collectionParents);
     });
 
-    rangeEach(0, hiddenCollectionElements.length - 1, (i) => {
-      this.plugin.dom.applySpanProperties(...hiddenCollectionElements[i]);
+    arrayEach(hiddenCollectionElements, (hiddenCollectionElement) => {
+      this.plugin.dom.applySpanProperties(...hiddenCollectionElement);
     });
   }
 
@@ -209,17 +206,18 @@ class CollectionContainer {
   checkIfOverlaps(collection) {
     const collectionRange = new CellRange(null, new CellCoords(collection.row, collection.col),
       new CellCoords(collection.row + collection.rowspan - 1, collection.col + collection.colspan - 1));
+    let result = false;
 
-    for (let i = 0; i < this.collections.length; i++) {
-      let col = this.collections[i];
+    arrayEach(this.collections, (col) => {
       let currentRange = new CellRange(null, new CellCoords(col.row, col.col), new CellCoords(col.row + col.rowspan - 1, col.col + col.colspan - 1));
 
       if (currentRange.overlaps(collectionRange)) {
-        return true;
+        result = true;
+        return false;
       }
-    }
+    });
 
-    return false;
+    return result;
   }
 
   /**
@@ -254,20 +252,15 @@ class CollectionContainer {
         break;
     }
 
-    for (let i = 0, collectionLength = this.collections.length; i < collectionLength; i++) {
-      let currentMerge = this.collections[i];
-
+    arrayEach(this.collections, (currentMerge) => {
       currentMerge.shift(shiftVector, index);
-    }
+    });
 
-    for (let i = 0; i < this.collections.length; i++) {
-      let currentMerge = this.collections[i];
-
+    arrayEach(this.collections, (currentMerge) => {
       if (currentMerge.removed) {
         this.collections.splice(this.collections.indexOf(currentMerge), 1);
       }
-    }
-
+    });
   }
 }
 

@@ -1,5 +1,6 @@
 import {extend} from '../../../helpers/object';
 import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
+import {arrayEach} from './../../../helpers/array';
 
 /**
  * Class responsible for all of the Autofill-related operations on merged cells.
@@ -220,15 +221,13 @@ class AutofillCalculations {
       default:
     }
 
-    for (let i = 0; i < collectionArray.length; i++) {
-      let currentCollection = collectionArray[i];
-
+    arrayEach(collectionArray, (currentCollection) => {
       if (currentCollection[inclusionFunctionName](endOfDragRecreationIndex)) {
         if (currentCollection.isFarther(farthestCollection, direction)) {
           farthestCollection = currentCollection;
         }
       }
-    }
+    });
 
     return farthestCollection;
   }
@@ -312,6 +311,7 @@ class AutofillCalculations {
           multiplier++;
         }
       }
+
     } while (inBounds(current, fillOffset));
 
     this.currentFillData = null;
@@ -328,23 +328,23 @@ class AutofillCalculations {
     const rows = {min: null, max: null};
     const columns = {min: null, max: null};
 
-    for (let i = 0; i < changes.length; i++) {
-      if (rows.min === null || changes[i][0] < rows.min) {
-        rows.min = changes[i][0];
+    arrayEach(changes, (change, i) => {
+      if (rows.min === null || change[0] < rows.min) {
+        rows.min = change[0];
       }
 
-      if (rows.max === null || changes[i][0] > rows.max) {
-        rows.max = changes[i][0];
+      if (rows.max === null || change[0] > rows.max) {
+        rows.max = change[0];
       }
 
-      if (columns.min === null || changes[i][1] < columns.min) {
-        columns.min = changes[i][1];
+      if (columns.min === null || change[1] < columns.min) {
+        columns.min = change[1];
       }
 
-      if (columns.max === null || changes[i][1] > columns.max) {
-        columns.max = changes[i][1];
+      if (columns.max === null || change[1] > columns.max) {
+        columns.max = change[1];
       }
-    }
+    });
 
     return {
       from: {

@@ -1497,7 +1497,44 @@ const REGISTERED_HOOKS = [
    * @param {Number} row Row index of the edited cell.
    * @param {Number} column Column index of the edited cell.
    */
-  'afterBeginEditing'
+  'afterBeginEditing',
+
+  /**
+   * Fired before cell merging.
+   *
+   * @event Hooks#beforeMergeCells
+   * @param {CellRange} cellRange Selection cell range.
+   * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
+   */
+  'beforeMergeCells',
+
+  /**
+   * Fired after cell merging.
+   *
+   * @event Hooks#afterMergeCells
+   * @param {CellRange} cellRange Selection cell range.
+   * @param mergeParent
+   * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
+   */
+  'afterMergeCells',
+
+  /**
+   * Fired before unmerging the cells.
+   *
+   * @event Hooks#beforeUnmergeCells
+   * @param {CellRange} cellRange Selection cell range.
+   * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
+   */
+  'beforeUnmergeCells',
+
+  /**
+   * Fired after unmerging the cells.
+   *
+   * @event Hooks#beforeUnmergeCells
+   * @param {CellRange} cellRange Selection cell range.
+   * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
+   */
+  'afterUnmergeCells'
 ];
 
 class Hooks {
