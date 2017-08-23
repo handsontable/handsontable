@@ -1,30 +1,21 @@
-import {getDefinition} from './localeRegisterer';
-import {deepExtend} from './../helpers/object';
-import getNestedObjectKey from './utils';
-import {LANGUAGE_CODE as ENG_LANGUAGE_CODE, phraseDefinitions as ENG_PHRASES_DEFINITIONS} from './languages/en';
+import {arrayEach} from './../helpers/array';
+import {get as getLangDefinition, DEFAULT_LANGUAGE_CODE} from './langDefinitionsController';
+import {getGlobal as getGlobalFormatters, getSpecific as getSpecificFormatters} from './formattersController';
+import './languages/en';
 import './languages/pl';
+import './formatters/substitute';
+import './formatters/plural';
+import './formatters/default';
 
 class LanguageController {
-  constructor(languageCode = ENG_LANGUAGE_CODE) {
-    /**
-     * Language code for current locale.
-     * @type {String}
-     */
-    this.code = null;
-    /**
-     * Locale phraseDefinitions
-     * @type Object
-     */
-    this.phraseDefinitions = null;
-
-    this.setLocale(languageCode);
+  static getSingleton() {
+    return singleton;
   }
 
-  /**
-   * Get phrases for current locale.
-   */
-  getPhrasesFromNamespace(namespace) {
-    return getNestedObjectKey(this.phraseDefinitions, namespace);
+  constructor() {
+    this.languageCode = null;
+
+    this.setLocale(DEFAULT_LANGUAGE_CODE);
   }
 
   /**
@@ -32,26 +23,22 @@ class LanguageController {
    * @param {String} languageCode Language code.
    */
   setLocale(languageCode) {
-    try {
-      const phraseDefinitions = getDefinition(languageCode);
-
-      if (phraseDefinitions !== ENG_PHRASES_DEFINITIONS) {
-        deepExtend(phraseDefinitions, ENG_PHRASES_DEFINITIONS);
-      }
-
-      this.phraseDefinitions = phraseDefinitions;
-      this.code = languageCode;
-
-    } catch (error) {
-      throw error;
-    }
+    this.languageCode = languageCode;
+    this.langDefinition = getLangDefinition(languageCode);
+    this.specificFormatters = getSpecificFormatters(languageCode);
   }
 
-  static getSingleton() {
-    return singleton;
+  getPhrase(constant, settings) {
+    let phrases = this.langDefinition[constant];
+
+    arrayEach(this.specificFormatters.concat(getGlobalFormatters()), (formatter) => {
+      phrases = formatter(phrases, settings, this.languageCode);
+    });
+
+    return phrases;
   }
 }
 
 const singleton = new LanguageController();
 
-export default LanguageController;
+export default singleton;
