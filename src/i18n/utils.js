@@ -1,7 +1,6 @@
-/* eslint-disable import/prefer-default-export */
-
 import {isUndefined} from './../helpers/mixed';
 import {objectEach} from './../helpers/object';
+import {arrayEach} from './../helpers/array';
 
 /**
  * Perform shallow extend of a target object with only this extension's properties which doesn't exist in the target.
@@ -10,7 +9,7 @@ import {objectEach} from './../helpers/object';
  * @param {Object} extension An object containing additional properties to merge into the target.
  */
 
-// TODO: Maybe it should be moved to global helpers?
+// TODO: Maybe it should be moved to global helpers? It's changed `extend` function.
 export function extendNotExistingKeys(target, extension) {
   objectEach(extension, (value, key) => {
     if (isUndefined(target[key])) {
@@ -19,4 +18,34 @@ export function extendNotExistingKeys(target, extension) {
   });
 
   return target;
+}
+
+export function hasArrayRangeOfNextNumbers(numbers) {
+  if (numbers.length <= 1) {
+    return false;
+  }
+
+  return numbers.every((number, index) => {
+    if (index > 0) {
+      return number - numbers[index - 1] === 1;
+    }
+
+    return true;
+  });
+};
+
+function formatArrayToStringRange(array) {
+  if (Array.isArray(array) && hasArrayRangeOfNextNumbers(array)) {
+    return `${array[0]}-${array[array.length - 1]}`;
+  }
+
+  return array;
+}
+
+export function getFormattedObjectValues(object) {
+  arrayEach(Object.keys(object), (key) => {
+    object[key] = formatArrayToStringRange(object[key]);
+  });
+
+  return object;
 }

@@ -1,6 +1,6 @@
 import {arrayEach} from './../helpers/array';
 import {get as getLangDefinition, DEFAULT_LANGUAGE_CODE} from './langDefinitionsController';
-import {getGlobal as getGlobalFormatters, getSpecific as getSpecificFormatter} from './formattersController';
+import {get as getFormatters} from './formattersController';
 import './languages/en';
 import './languages/pl';
 import './formatters/substituteVariables';
@@ -25,14 +25,13 @@ class LanguageController {
   setLocale(languageCode) {
     this.languageCode = languageCode;
     this.langDefinition = getLangDefinition(languageCode);
-    this.specificFormatters = getSpecificFormatter(languageCode);
   }
 
-  getPhrase(constant, settings) {
+  getPhrase(constant, zippedVariableAndValue) {
     let phrases = this.langDefinition[constant];
 
-    arrayEach(this.specificFormatters.concat(getGlobalFormatters()), (formatter) => {
-      phrases = formatter(phrases, settings, this.languageCode);
+    arrayEach(getFormatters(), (formatter) => {
+      phrases = formatter(phrases, zippedVariableAndValue, this.languageCode);
     });
 
     return phrases;

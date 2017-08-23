@@ -1,35 +1,28 @@
-import {registerGlobal as registerGlobalFormatter} from '../formattersController';
+import {register as registerFormatter} from '../formattersController';
+import {hasArrayRangeOfNextNumbers} from './../utils';
+import {isObject} from './../../helpers/object';
 
-function isNumberLike(phrase) {
-  // RegExp which will find for example: `0`, `7`, `20`, '1-20'
-  const rangeOfNumbers = /^(0|[1-9][0-9]*)(-(0|[1-9][0-9]*))?$/;
-
-  // RegExp which will find for example: `1, 3', `0, 2, 4`
-  const numbersListed = /^(0|[1-9][0-9]*)(, (0|[1-9][0-9]*))+$/;
-
-  return rangeOfNumbers.test(phrase) || numbersListed.test(phrase);
-};
-
-function defaultPluralizationFunction(pluralDeterminant) {
-  if (pluralDeterminant.toString() === '1') {
+function pluralizationFunction(pluralDeterminant) {
+  if (pluralDeterminant.length <= 1) {
     return 0;
+
+  } else if (hasArrayRangeOfNextNumbers(pluralDeterminant)) {
+    return 1;
   }
 
-  return 1;
+  return 2;
 }
 
-function pluralizeBy(pluralizationFunction) {
-  return function pluralize(phrases, settings) {
-    const pluralizeByKey = settings.pluralizeByKey;
-    const pluralDeterminant = settings[pluralizeByKey];
-    const isPluralDeterminantNumberLike = isNumberLike(pluralDeterminant);
+function pluralize(phrases, zippedVariableAndValue) {
+  // TODO: Should be first value which is an Array our plural determinant?
+  const pluralDeterminant = isObject(zippedVariableAndValue)
+    && Object.values(zippedVariableAndValue).find((value) => Array.isArray(value));
 
-    if (Array.isArray(phrases) && isPluralDeterminantNumberLike) {
-      return phrases[pluralizationFunction(pluralDeterminant)];
-    }
+  if (Array.isArray(phrases) && Array.isArray(pluralDeterminant)) {
+    return phrases[pluralizationFunction(pluralDeterminant)];
+  }
 
-    return phrases;
-  };
+  return phrases;
 };
 
-registerGlobalFormatter(pluralizeBy(defaultPluralizationFunction));
+registerFormatter(pluralize);

@@ -1,4 +1,4 @@
-import {registerGlobal as registerGlobalFormatter} from '../formattersController';
+import {register as registerFormatter} from '../formattersController';
 
 function defaultFormatter(phrases) {
   if (Array.isArray(phrases)) {
@@ -9,4 +9,4 @@ function defaultFormatter(phrases) {
   return phrases;
 }
 
-registerGlobalFormatter(defaultFormatter);
+registerFormatter(defaultFormatter);
