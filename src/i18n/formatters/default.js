@@ -1,10 +1,12 @@
-import {registerGlobal} from '../formattersController';
+import {registerGlobal as registerGlobalFormatter} from '../formattersController';
 
-registerGlobal((phrases) => {
+function defaultFormatter(phrases) {
   if (Array.isArray(phrases)) {
     // Just return first option
     return phrases[0];
   }
 
   return phrases;
-});
+}
+
+registerGlobalFormatter(defaultFormatter);

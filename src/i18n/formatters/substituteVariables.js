@@ -1,7 +1,7 @@
-import {registerGlobal} from '../formattersController';
+import {registerGlobal as registerGlobalFormatter} from '../formattersController';
 import {substitute} from './../../helpers/string';
 
-function substituteFunction(phrases, settings) {
+function substituteVariables(phrases, settings) {
   if (Array.isArray(phrases)) {
     return phrases.map((phrase) => substitute(phrase, settings));
   }
@@ -9,4 +9,4 @@ function substituteFunction(phrases, settings) {
   return substitute(phrases, settings);
 };
 
-registerGlobal(substituteFunction);
+registerGlobalFormatter(substituteVariables);

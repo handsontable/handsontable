@@ -1,10 +1,10 @@
 import {arrayEach} from './../helpers/array';
 import {get as getLangDefinition, DEFAULT_LANGUAGE_CODE} from './langDefinitionsController';
-import {getGlobal as getGlobalFormatters, getSpecific as getSpecificFormatters} from './formattersController';
+import {getGlobal as getGlobalFormatters, getSpecific as getSpecificFormatter} from './formattersController';
 import './languages/en';
 import './languages/pl';
-import './formatters/substitute';
-import './formatters/plural';
+import './formatters/substituteVariables';
+import './formatters/pluralize';
 import './formatters/default';
 
 class LanguageController {
@@ -25,7 +25,7 @@ class LanguageController {
   setLocale(languageCode) {
     this.languageCode = languageCode;
     this.langDefinition = getLangDefinition(languageCode);
-    this.specificFormatters = getSpecificFormatters(languageCode);
+    this.specificFormatters = getSpecificFormatter(languageCode);
   }
 
   getPhrase(constant, settings) {
