@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 0.34.0
- * Date: Thu Jul 27 2017 13:34:25 GMT+0200 (CEST)
+ * Date: Sun Aug 27 2017 01:28:56 GMT+0100 (Horário de Verão de Greenwich )
  */
 /**
  * Fix for bootstrap styles
@@ -266,7 +266,7 @@
 
 /* row + column resizer*/
 .handsontable .manualColumnResizer {
-  position: fixed;
+  position: absolute;
   top: 0;
   cursor: col-resize;
   z-index: 110;
@@ -275,7 +275,7 @@
 }
 
 .handsontable .manualRowResizer {
-  position: fixed;
+  position: absolute;
   left: 0;
   cursor: row-resize;
   z-index: 110;

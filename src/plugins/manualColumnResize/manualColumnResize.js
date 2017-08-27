@@ -141,7 +141,13 @@ class ManualColumnResize extends BasePlugin {
     let headerHeight = outerHeight(this.currentTH);
 
     if (col >= 0) { // if not col header
-      let box = this.currentTH.getBoundingClientRect();
+      var tableBox = this.hot.view.wt.wtTable.TABLE.getBoundingClientRect();
+      var cellBox = this.currentTH.getBoundingClientRect();
+      var box = {
+        top: cellBox.top - tableBox.top,
+        left: cellBox.left - tableBox.left,
+        width: cellBox.width
+      }
 
       this.currentCol = col;
       this.selectedCols = [];

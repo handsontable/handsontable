@@ -135,7 +135,13 @@ class ManualRowResize extends BasePlugin {
     let headerWidth = outerWidth(this.currentTH);
 
     if (row >= 0) { // if not col header
-      let box = this.currentTH.getBoundingClientRect();
+      var tableBox = this.hot.view.wt.wtTable.TABLE.getBoundingClientRect();
+      var cellBox = this.currentTH.getBoundingClientRect();
+      var box = {
+        top: cellBox.top - tableBox.top,
+        left: cellBox.left - tableBox.left,
+        width: cellBox.width
+      }
 
       this.currentRow = row;
       this.selectedRows = [];
