@@ -9,14 +9,18 @@ export default function removeColumnItem() {
   return {
     key: KEY,
     name() {
-      const [, fromColumn, , toColumn] = this.getSelected();
+      const selection = this.getSelected();
       const translationConfiguration = {};
 
-      if (fromColumn - toColumn !== 0) {
-        translationConfiguration.rangeOfColumns = createRange(
-          {index: fromColumn + 1, value: this.getColHeader(fromColumn)},
-          {index: toColumn + 1, value: this.getColHeader(toColumn)}
-        );
+      if (Array.isArray(selection)) {
+        const [, fromColumn, , toColumn] = selection;
+
+        if (fromColumn - toColumn !== 0) {
+          translationConfiguration.rangeOfColumns = createRange(
+            {index: fromColumn + 1, value: this.getColHeader(fromColumn)},
+            {index: toColumn + 1, value: this.getColHeader(toColumn)}
+          );
+        }
       }
 
       return L.getPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, translationConfiguration);
@@ -26,7 +30,6 @@ export default function removeColumnItem() {
       let amount = selection.end.col - selection.start.col + 1;
 
       this.alter('remove_col', selection.start.col, amount, 'ContextMenu.removeColumn');
-
     },
     disabled() {
       const selected = getValidSelection(this);
