@@ -1,24 +1,22 @@
 import {register as registerFormatter} from '../formattersController';
-import {hasArrayRangeOfNextNumbers} from './../utils';
 import {isObject} from './../../helpers/object';
 
 function pluralizationFunction(pluralDeterminant) {
-  if (pluralDeterminant.length <= 1) {
-    return 0;
+  const isRange = /\S+-\S+$/;
 
-  } else if (hasArrayRangeOfNextNumbers(pluralDeterminant)) {
+  if (isRange.test(pluralDeterminant)) {
     return 1;
   }
 
-  return 2;
+  return 0;
 }
 
 function pluralize(phrases, zippedVariableAndValue) {
-  // TODO: Should be first value which is an Array our plural determinant?
-  const pluralDeterminant = isObject(zippedVariableAndValue)
-    && Object.values(zippedVariableAndValue).find((value) => Array.isArray(value));
+  // TODO: Should be first value our plural determinant?
+  const pluralDeterminant = isObject(zippedVariableAndValue) && Object.values(zippedVariableAndValue)[0];
+  const isPluralizable = Array.isArray(phrases);
 
-  if (Array.isArray(phrases) && Array.isArray(pluralDeterminant)) {
+  if (isPluralizable) {
     return phrases[pluralizationFunction(pluralDeterminant)];
   }
 

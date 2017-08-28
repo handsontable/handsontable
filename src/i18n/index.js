@@ -5,7 +5,6 @@ import './languages/en';
 import './languages/pl';
 import './formatters/substituteVariables';
 import './formatters/pluralize';
-import './formatters/default';
 
 class LanguageController {
   static getSingleton() {

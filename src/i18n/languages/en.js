@@ -10,8 +10,8 @@ import * as C from '../constants';
 registerLangDefinition('en', {
   [C.CONTEXTMENU_ITEMS_ALIGN]: 'Alignment',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insert row above',
-  [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['Remove row', 'Remove rows [listOfrows]', 'Remove selected rows'],
-  [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['Remove column', 'Remove columns [columns]', 'Remove selected columns'],
+  [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['Remove row', 'Remove rows [rangeOfRows]'],
+  [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['Remove column', 'Remove columns [rangeOfColumns]'],
   [C.FILTERS_CONDITIONS_NONE]: 'None',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Is empty',
   [C.FILTERS_LABELS_FILTER_BY_CONDITION]: 'Filter by condition:',
