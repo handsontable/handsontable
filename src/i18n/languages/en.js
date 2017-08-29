@@ -4,10 +4,10 @@
  *
  * Description: Definition file for English language.
  */
-import {register as registerLangDefinition} from '../langDefinitionsController';
+import {langDefinitionsController as l} from '../langDefinitionsController';
 import * as C from '../constants';
 
-registerLangDefinition('en', {
+l.registerLangDefinition('en', {
   [C.CONTEXTMENU_ITEMS_ALIGN]: 'Alignment',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insert row above',
   [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['Remove row', 'Remove rows [rangeOfRows]'],

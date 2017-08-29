@@ -1,9 +1,39 @@
-const formatters = [];
+/* eslint-disable import/prefer-default-export */
 
-export function register(formatter) {
-  formatters.push(formatter);
+class FormattersController {
+  static getSingleton() {
+    return singleton;
+  }
+
+  constructor() {
+    /**
+     * List of formatter functions.
+     *
+     * @type {Array}
+     */
+    this.formatters = [];
+  }
+
+  /**
+   * Register formatter.
+   *
+   * @param {Function} formatter Function which will be applied on phrase propositions.
+   * It will transform them if it's possible.
+   */
+  registerFormatter(formatter) {
+    this.formatters.push(formatter);
+  }
+
+  /**
+   * Get all registered previously formatters.
+   *
+   * @returns {Array}
+   */
+  getFormatters() {
+    return this.formatters;
+  }
 }
 
-export function get() {
-  return formatters;
-}
+const singleton = new FormattersController();
+
+export {singleton as formattersController};

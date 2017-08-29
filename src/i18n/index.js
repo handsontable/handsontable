@@ -1,6 +1,6 @@
 import {arrayEach} from './../helpers/array';
-import {get as getLangDefinition, DEFAULT_LANGUAGE_CODE} from './langDefinitionsController';
-import {get as getFormatters} from './formattersController';
+import {langDefinitionsController, DEFAULT_LANGUAGE_CODE} from './langDefinitionsController';
+import {formattersController} from './formattersController';
 import './languages/en';
 import './languages/pl';
 import './formatters/substituteVariables';
@@ -12,28 +12,49 @@ class LanguageController {
   }
 
   constructor() {
+    /**
+     * Language code for specific locale i.e. 'en', 'pt', 'de'.
+     *
+     * @type {string}
+     */
     this.languageCode = null;
+    /**
+     * Dictionary for specific language.
+     *
+     * @type {string}
+     */
+    this.langDefinition = null;
 
     this.setLocale(DEFAULT_LANGUAGE_CODE);
   }
 
   /**
    * Set actual locale.
-   * @param {String} languageCode Language code.
+   *
+   * @param {string} languageCode Language code.
    */
   setLocale(languageCode) {
     this.languageCode = languageCode;
-    this.langDefinition = getLangDefinition(languageCode);
+    this.langDefinition = langDefinitionsController.getDefinition(languageCode);
   }
 
+  /**
+   * Get formatted phrase from phrases propositions under constant.
+   *
+   * @param constant Dictionary key.
+   * @param zippedVariableAndValue Object containing variables and corresponding to them values
+   * which will be handled by formatters.
+   *
+   * @returns {string}
+   */
   getPhrase(constant, zippedVariableAndValue) {
-    let phrases = this.langDefinition[constant];
+    let phrasePropositions = this.langDefinition[constant];
 
-    arrayEach(getFormatters(), (formatter) => {
-      phrases = formatter(phrases, zippedVariableAndValue, this.languageCode);
+    arrayEach(formattersController.getFormatters(), (formatter) => {
+      phrasePropositions = formatter(phrasePropositions, zippedVariableAndValue, this.languageCode);
     });
 
-    return phrases;
+    return phrasePropositions;
   }
 }
 
