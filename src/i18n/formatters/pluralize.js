@@ -2,14 +2,14 @@ import {formattersController as f} from '../formattersController';
 import {isObject} from './../../helpers/object';
 
 /**
- * Get plural form by pluralDeterminant.
+ * Get plural form by plural determinant.
  *
- * @param {string} pluralDeterminant Variable by which we try to determine which plural from will match to sentence.
+ * @param {string} pluralDeterminant Value by which we try to determine which plural from will match to sentence.
  *
  * @returns {number} Number representing form which should be used for pluralization.
  */
 function getPluralForm(pluralDeterminant) {
-  const isRange = /\S+-\S+$/;
+  const isRange = /^\S+-\S+$/;
 
   if (isRange.test(pluralDeterminant)) {
     return 1;
@@ -22,7 +22,7 @@ function getPluralForm(pluralDeterminant) {
  * Try to choose plural form from available phrase propositions.
  *
  * @param phrasePropositions List of phrases propositions.
- * @param zippedVariableAndValue Object containing variables and corresponding to them values.
+ * @param zippedVariableAndValue Object containing variables and corresponding values.
  *
  * @returns {string|Array} One particular phrase if it's possible, list of unchanged phrase propositions otherwise.
  */

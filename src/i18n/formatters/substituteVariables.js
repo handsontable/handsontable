@@ -5,9 +5,9 @@ import {substitute} from './../../helpers/string';
  * Try to substitute variable inside phrase propositions.
  *
  * @param phrasePropositions List of phrases propositions.
- * @param zippedVariableAndValue Object containing variables and corresponding to them values.
+ * @param zippedVariableAndValue Object containing variables and corresponding values.
  *
- * @returns {String} Phrases with substitutes variables if it's possible, list of unchanged phrase propositions otherwise.
+ * @returns {String} Phrases with substituted variables if it's possible, list of unchanged phrase propositions otherwise.
  */
 function substituteVariables(phrasePropositions, zippedVariableAndValue) {
   if (Array.isArray(phrasePropositions)) {

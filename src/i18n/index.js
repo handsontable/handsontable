@@ -39,16 +39,16 @@ class LanguageController {
   }
 
   /**
-   * Get formatted phrase from phrases propositions under constant.
+   * Get formatted phrase from phrases propositions under specified dictionary key.
    *
-   * @param constant Dictionary key.
-   * @param zippedVariableAndValue Object containing variables and corresponding to them values
+   * @param dictionaryKey Constant which is dictionary key.
+   * @param zippedVariableAndValue Object containing variables and corresponding values
    * which will be handled by formatters.
    *
    * @returns {string}
    */
-  getPhrase(constant, zippedVariableAndValue) {
-    let phrasePropositions = this.langDefinition[constant];
+  getPhrase(dictionaryKey, zippedVariableAndValue) {
+    let phrasePropositions = this.langDefinition[dictionaryKey];
 
     arrayEach(formattersController.getFormatters(), (formatter) => {
       phrasePropositions = formatter(phrasePropositions, zippedVariableAndValue, this.languageCode);

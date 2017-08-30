@@ -4,11 +4,16 @@ export const DEFAULT_LANGUAGE_CODE = 'en';
 
 class LangDefinitionsController {
   constructor() {
+    /**
+     * Language definitions. At specified language code we have got a locale dictionary.
+     *
+     * @type {Map}
+     */
     this.langDefinitions = new Map();
   }
 
   /**
-   * Register dictionary at specific language code.
+   * Register dictionary for specific language code.
    *
    * @param languageCode Language code for specific locale i.e. 'en', 'pt', 'de'.
    * @param langDefinition Dictionary for specific language.
@@ -21,7 +26,7 @@ class LangDefinitionsController {
   /**
    * Dictionary for specific language code.
    *
-   * @param languageCode Language code for specific locale i.e. 'en', 'pt', 'de'.
+   * @param languageCode Language code
    * @returns {Object}
    */
   getDefinition(languageCode) {
@@ -33,10 +38,10 @@ class LangDefinitionsController {
   }
 
   /**
-   * Extend handled dictionary be default language. As result if any constant isn't defined for specific language
-   * default value will be returned.
+   * Extend handled dictionary by default language dictionary. As result, if any dictionary key isn't defined
+   * for specific language, it will be filled with default language value.
    *
-   * @param languageCode Language code for specific locale i.e. 'en', 'pt', 'de'.
+   * @param languageCode Language code
    * @param langDefinition Dictionary which is extended.
    */
   extendDefinitionByDefaultLangBase(languageCode, langDefinition) {

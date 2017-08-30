@@ -23,7 +23,7 @@ export function extendNotExistingKeys(target, extension) {
  *
  * @param {Object} from Object containing `index` and `value` keys.
  * @param {Object} to Object containing `index` and `value` keys.
- * @returns {string} String representing range i.e. A-Z, 11-15
+ * @returns {string} Value representing range i.e. A-Z, 11-15.
  */
 export function createRange(from, to) {
   // Will swap `from` with `to` if it's necessary.
