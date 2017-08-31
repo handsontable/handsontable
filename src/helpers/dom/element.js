@@ -235,7 +235,7 @@ if (classListSupport) {
   }());
 
   _hasClass = function _hasClass(element, className) {
-    if (className === '') {
+    if (element.classList === void 0 || className === '') {
       return false;
     }
 
@@ -287,7 +287,7 @@ if (classListSupport) {
 
   _hasClass = function _hasClass(element, className) {
     // http://snipplr.com/view/3561/addclass-removeclass-hasclass/
-    return !!element.className.match(createClassNameRegExp(className));
+    return element.className !== void 0 && element.className.test(createClassNameRegExp(className));
   };
 
   _addClass = function _addClass(element, className) {
