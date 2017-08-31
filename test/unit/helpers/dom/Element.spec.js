@@ -1,4 +1,4 @@
-import {isInput, closestDown, getParent} from 'handsontable/helpers/dom/element';
+import {isInput, closestDown, getParent, hasClass} from 'handsontable/helpers/dom/element';
 
 describe('DomElement helper', () => {
   //
@@ -77,6 +77,34 @@ describe('DomElement helper', () => {
       expect(getParent(element.querySelector('#a4'), 5)).toBe(null);
       expect(getParent(element.querySelector('#a2'), 0)).toBe(element.querySelector('#a1'));
       expect(getParent(element.querySelector('#a2'), 1)).toBe(element);
+    });
+  });
+
+  /**
+   * Handsontable.helper.hasClass
+   */
+  describe('hasClass', () => {
+    let element = null;
+
+    beforeEach(() => {
+      element = document.createElement('div');
+      element.className = 'test1';
+    });
+
+    afterEach(() => {
+      element = null;
+    });
+
+    it('should not throw error when checked element has not classList property', () => {
+      expect(() => { hasClass(document, 'test2'); }).not.toThrow();
+    });
+
+    it('should return true if element has className', () => {
+      expect(hasClass(element, 'test1')).toBeTruthy();
+    });
+
+    it('should return false if element has not className', () => {
+      expect(hasClass(element, 'test2')).toBeFalsy();
     });
   });
 });
