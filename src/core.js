@@ -22,6 +22,7 @@ import {CellCoords, CellRange, ViewportColumnsCalculator} from './3rdparty/walko
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
 import {getCellType} from './cellTypes';
+import languagesController from './i18n/index';
 
 let activeGuid = null;
 
@@ -1660,6 +1661,10 @@ export default function Core(rootElement, userSettings) {
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
         GridSettings.prototype[i] = settings[i];
       }
+    }
+
+    if (init || isDefined(settings.locale)) {
+      languagesController.setLocale(instance, settings.locale);
     }
 
     // Load data or create data map
@@ -3343,13 +3348,6 @@ export default function Core(rootElement, userSettings) {
       clearTimeout(this.timeouts[i]);
     }
   };
-
-  /**
-   * Handsontable version
-   *
-   * @type {String}
-   */
-  // this.version = Handsontable.version;
 
   Hooks.getSingleton().run(instance, 'construct');
 };

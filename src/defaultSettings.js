@@ -1607,6 +1607,14 @@ DefaultSettings.prototype = {
   language: void 0,
 
   /**
+   * Locale for Handsontable translation.
+   *
+   * @type {String}
+   * @default 'en'
+   */
+  locale: void 0,
+
+  /**
    * @description
    * Data source for [select](http://docs.handsontable.com/demo-select.html)-typed cells.
    *
