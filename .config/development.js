@@ -7,20 +7,17 @@
  *  - handsontable.full.js
  *  - handsontable.full.css
  */
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-var path = require('path');
-var webpack = require('webpack');
-var configFactory = require('./base');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const path = require('path');
+const webpack = require('webpack');
+const configFactory = require('./base');
 
-var env = process.env.NODE_ENV;
-var PACKAGE_NAME = configFactory.PACKAGE_NAME;
-
-module.exports.PACKAGE_NAME = PACKAGE_NAME;
+const PACKAGE_NAME = process.env.HOT_PACKAGE_NAME;
 
 module.exports.create = function create(envArgs) {
-  var configBase = configFactory.create(envArgs);
-  var configFull = configFactory.create(envArgs);
+  const configBase = configFactory.create(envArgs);
+  const configFull = configFactory.create(envArgs);
 
   configBase.forEach(function(c) {
     c.output.filename = PACKAGE_NAME + '.js';

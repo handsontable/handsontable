@@ -5,18 +5,15 @@
  *  - handsontable.js
  *  - handsontable.css
  */
-var path = require('path');
-var webpack = require('webpack');
-var configFactory = require('./base');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+const path = require('path');
+const webpack = require('webpack');
+const configFactory = require('./base');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-var env = process.env.NODE_ENV;
-var PACKAGE_NAME = configFactory.PACKAGE_NAME;
-
-module.exports.PACKAGE_NAME = PACKAGE_NAME;
+const PACKAGE_NAME = process.env.HOT_PACKAGE_NAME;
 
 module.exports.create = function create(envArgs) {
-  var config = configFactory.create(envArgs);
+  const config = configFactory.create(envArgs);
 
   config.forEach(function(c) {
     c.devtool = 'cheap-module-source-map';

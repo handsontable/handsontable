@@ -79,12 +79,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.isHotTableEnv = isChildOfWebComponentTable(this.rootElement);
   EventManager.isHotTableEnv = this.isHotTableEnv;
 
-  this.container = document.createElement('DIV');
+  this.container = document.createElement('div');
   this.renderCall = false;
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
-  if (__HOT_PRIV_PACKAGE_TYPE__ !== '\x63\x65' && isRootInstance(this)) {
+  if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(this)) {
     _injectProductInfo(userSettings.licenseKey, rootElement);
   }
 

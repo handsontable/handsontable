@@ -92,7 +92,7 @@ export function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      const releaseTime = __BUILD_DAYS_SINCE_EPOCH__;
+      const releaseTime = Math.floor(moment(process.env.HOT_RELEASE_DATE, 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       const keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
