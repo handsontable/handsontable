@@ -26,12 +26,12 @@ class LangDefinitionsController {
   }
 
   /**
-   * Dictionary for specific language code.
+   * Get dictionary for specific language code.
    *
    * @param languageCode Language code
    * @returns {Object}
    */
-  getDefinition(languageCode) {
+  getDefinitions(languageCode) {
     if (!this.langDefinitions.has(languageCode)) {
       throw Error(`Locale with "${languageCode}" language code is not defined.`);
     }

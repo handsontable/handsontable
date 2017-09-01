@@ -22,7 +22,7 @@ class LanguageController {
     if (hotCode !== languageCode) {
       hotLanguages.set(hotInstance, {
         code: languageCode,
-        definition: langDefinitionsController.getDefinition(languageCode)
+        definitions: langDefinitionsController.getDefinitions(languageCode)
       });
     }
   }
@@ -39,7 +39,7 @@ class LanguageController {
    */
   static getPhrase(hotInstance, dictionaryKey, zippedVariableAndValue) {
     const hotLanguageCode = hotLanguages.get(hotInstance).code;
-    let phrasePropositions = hotLanguages.get(hotInstance).definition[dictionaryKey];
+    let phrasePropositions = hotLanguages.get(hotInstance).definitions[dictionaryKey];
 
     arrayEach(formattersController.getFormatters(), (formatter) => {
       phrasePropositions = formatter(phrasePropositions, zippedVariableAndValue, hotLanguageCode);
