@@ -10,8 +10,6 @@ const webpack = require('webpack');
 const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
 
-const PACKAGE_NAME = process.env.HOT_PACKAGE_NAME;
-
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
 

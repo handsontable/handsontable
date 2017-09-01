@@ -2,6 +2,7 @@ const moment = require('moment');
 const package = require('./package.json');
 
 module.exports = {
+  HOT_FILENAME: 'handsontable',
   HOT_VERSION: package.version,
   HOT_BASE_VERSION: '',
   HOT_PACKAGE_TYPE: 'ce',

@@ -11,8 +11,6 @@ const JasmineHtml = require('./plugin/jasmine-html');
 
 const wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
 
-const PACKAGE_NAME = process.env.HOT_PACKAGE_NAME;
-
 module.exports.create = function create(envArgs) {
   const config = {
     devtool: 'cheap-module-source-map',

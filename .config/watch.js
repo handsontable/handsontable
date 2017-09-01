@@ -10,14 +10,14 @@ const webpack = require('webpack');
 const configFactory = require('./base');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-const PACKAGE_NAME = process.env.HOT_PACKAGE_NAME;
+const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
 
   config.forEach(function(c) {
     c.devtool = 'cheap-module-source-map';
-    c.output.filename = PACKAGE_NAME + '.js';
+    c.output.filename = PACKAGE_FILENAME + '.js';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css)
     c.externals = {
       numbro: {
@@ -47,7 +47,7 @@ module.exports.create = function create(envArgs) {
       loader: path.resolve(__dirname, 'loader/empty-loader.js'),
     });
     c.plugins.push(
-      new ExtractTextPlugin(PACKAGE_NAME + '.css')
+      new ExtractTextPlugin(PACKAGE_FILENAME + '.css')
     );
   });
 

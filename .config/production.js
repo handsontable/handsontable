@@ -13,7 +13,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
 const configFactory = require('./development');
 
-const PACKAGE_NAME = process.env.HOT_PACKAGE_NAME;
+const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -47,7 +47,7 @@ module.exports.create = function create(envArgs) {
           screw_ie8: true,
         },
       }),
-      new ExtractTextPlugin(PACKAGE_NAME + (isFullBuild ? '.full' : '') + '.min.css'),
+      new ExtractTextPlugin(PACKAGE_FILENAME + (isFullBuild ? '.full' : '') + '.min.css'),
       new OptimizeCssAssetsPlugin({
         assetNameRegExp: isFullBuild ? /\.full\.min\.css$/ : /\.min\.css$/,
       })
