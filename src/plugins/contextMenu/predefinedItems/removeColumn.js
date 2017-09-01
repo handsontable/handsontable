@@ -23,7 +23,7 @@ export default function removeColumnItem() {
         }
       }
 
-      return L.getPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, translationConfiguration);
+      return L.getPhrase(this, C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, translationConfiguration);
     },
 
     callback(key, selection) {

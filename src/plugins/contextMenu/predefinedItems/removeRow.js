@@ -23,7 +23,7 @@ export default function removeRowItem() {
         }
       }
 
-      return L.getPhrase(C.CONTEXTMENU_ITEMS_REMOVE_ROW, translationConfiguration);
+      return L.getPhrase(this, C.CONTEXTMENU_ITEMS_REMOVE_ROW, translationConfiguration);
     },
     callback(key, selection) {
       let amount = selection.end.row - selection.start.row + 1;

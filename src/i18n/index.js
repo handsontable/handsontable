@@ -6,58 +6,47 @@ import './languages/pl';
 import './formatters/substituteVariables';
 import './formatters/pluralize';
 
+const hotLanguages = new WeakMap();
+
 class LanguageController {
-  static getSingleton() {
-    return singleton;
-  }
-
-  constructor() {
-    /**
-     * Language code for specific locale i.e. 'en', 'pt', 'de'.
-     *
-     * @type {string}
-     */
-    this.languageCode = null;
-    /**
-     * Dictionary for specific language.
-     *
-     * @type {string}
-     */
-    this.langDefinition = null;
-
-    this.setLocale(DEFAULT_LANGUAGE_CODE);
-  }
-
   /**
    * Set actual locale.
    *
+   * @param {Object} hotInstance Instance of Handsontable for which we set language.
    * @param {string} languageCode Language code.
    */
-  setLocale(languageCode) {
-    this.languageCode = languageCode;
-    this.langDefinition = langDefinitionsController.getDefinition(languageCode);
+  static setLocale(hotInstance, languageCode = DEFAULT_LANGUAGE_CODE) {
+    const hotLanguage = hotLanguages.get(hotInstance);
+    const hotCode = hotLanguage && hotLanguage.code;
+
+    if (hotCode !== languageCode) {
+      hotLanguages.set(hotInstance, {
+        code: languageCode,
+        definition: langDefinitionsController.getDefinition(languageCode)
+      });
+    }
   }
 
   /**
    * Get formatted phrase from phrases propositions under specified dictionary key.
    *
+   * @param {Object} hotInstance Instance of Handsontable for which we get phrase.
    * @param dictionaryKey Constant which is dictionary key.
    * @param zippedVariableAndValue Object containing variables and corresponding values
    * which will be handled by formatters.
    *
    * @returns {string}
    */
-  getPhrase(dictionaryKey, zippedVariableAndValue) {
-    let phrasePropositions = this.langDefinition[dictionaryKey];
+  static getPhrase(hotInstance, dictionaryKey, zippedVariableAndValue) {
+    const hotLanguageCode = hotLanguages.get(hotInstance).code;
+    let phrasePropositions = hotLanguages.get(hotInstance).definition[dictionaryKey];
 
     arrayEach(formattersController.getFormatters(), (formatter) => {
-      phrasePropositions = formatter(phrasePropositions, zippedVariableAndValue, this.languageCode);
+      phrasePropositions = formatter(phrasePropositions, zippedVariableAndValue, hotLanguageCode);
     });
 
     return phrasePropositions;
   }
 }
 
-const singleton = new LanguageController();
-
-export default singleton;
+export default LanguageController;

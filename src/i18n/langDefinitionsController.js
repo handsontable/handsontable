@@ -19,8 +19,10 @@ class LangDefinitionsController {
    * @param langDefinition Dictionary for specific language.
    */
   registerLangDefinition(languageCode, langDefinition) {
-    this.extendDefinitionByDefaultLangBase(languageCode, langDefinition);
-    this.langDefinitions.set(languageCode, langDefinition);
+    if (!this.langDefinitions.has(languageCode)) {
+      this.extendDefinitionByDefaultLangBase(languageCode, langDefinition);
+      this.langDefinitions.set(languageCode, langDefinition);
+    }
   }
 
   /**
