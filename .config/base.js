@@ -47,7 +47,7 @@ module.exports.create = function create(envArgs) {
             /node_modules/,
           ],
           options: {
-            cacheDirectory: true,
+            cacheDirectory: false, // Disable cache. Necessary for injected variables into source code via hot.config.js
           },
         },
       ]
