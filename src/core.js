@@ -1001,12 +1001,15 @@ export default function Core(rootElement, userSettings) {
         var col = datamap.propToCol(changes[i][1]);
 
         var cellProperties = instance.getCellMeta(row, col);
+        const numericFormat = cellProperties.numericFormat;
+        const cellCulture = numericFormat && numericFormat.culture;
+        const cellFormatPattern = numericFormat && numericFormat.pattern;
 
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3]) || cellProperties.format)) {
+          if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3]) || cellFormatPattern)) {
             var len = changes[i][3].length;
 
-            if (isUndefined(cellProperties.language)) {
+            if (isUndefined(cellCulture)) {
               numbro.culture('en-US');
 
             } else if (changes[i][3].indexOf('.') === len - 3 && changes[i][3].indexOf(',') === -1) {
@@ -1014,10 +1017,8 @@ export default function Core(rootElement, userSettings) {
               numbro.culture('en-US');
             } else {
 
-              numbro.culture(cellProperties.language);
+              numbro.culture(cellCulture);
             }
-
-            const {delimiters} = numbro.cultureData(numbro.culture());
 
             // try to parse to float - https://github.com/foretagsplatsen/numbro/pull/183
             if (numbro.validate(changes[i][3]) && !isNaN(changes[i][3])) {
