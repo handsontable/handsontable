@@ -1,4 +1,5 @@
 import {arrayEach} from './../helpers/array';
+import {isDefined} from './../helpers/mixed';
 import {langDefinitionsController, DEFAULT_LANGUAGE_CODE} from './langDefinitionsController';
 import {formattersController} from './formattersController';
 import './languages/en';
@@ -7,6 +8,7 @@ import './formatters/substituteVariables';
 import './formatters/pluralize';
 
 const hotLanguages = new WeakMap();
+const hotOnLocaleChangeCallbacks = new WeakMap();
 
 class LanguageController {
   /**
@@ -17,12 +19,18 @@ class LanguageController {
    */
   static setLocale(hotInstance, languageCode = DEFAULT_LANGUAGE_CODE) {
     const hotLanguage = hotLanguages.get(hotInstance);
-    const hotCode = hotLanguage && hotLanguage.code;
+    const hotLanguageCode = hotLanguage && hotLanguage.code;
 
-    if (hotCode !== languageCode) {
+    if (hotLanguageCode !== languageCode) {
       hotLanguages.set(hotInstance, {
         code: languageCode,
         definitions: langDefinitionsController.getDefinitions(languageCode)
+      });
+    }
+
+    if (isDefined(hotLanguageCode)) {
+      arrayEach(hotOnLocaleChangeCallbacks.get(hotInstance) || [], (callback) => {
+        callback();
       });
     }
   }
@@ -46,6 +54,27 @@ class LanguageController {
     });
 
     return phrasePropositions;
+  }
+
+  /**
+   * Register callback which will be executed after locale change.
+   *
+   * @param {Object} hotInstance Instance of Handsontable for which we register locale change callback.
+   * @param {string} dictionaryKey Constant which is dictionary key.
+   * @param {Object} zippedVariableAndValue  Object containing variables and corresponding values
+   * @param {Function} callback Function which will be executed after locale change, as parameter gets phrase which is
+   * created from `dictionaryKey` and `zippedVariableAndValue` parameters
+   */
+  static registerLocaleChangeFn(hotInstance, dictionaryKey, zippedVariableAndValue, callback) {
+    const callbacks = hotOnLocaleChangeCallbacks.get(hotInstance) || [];
+
+    callbacks.push(() => {
+      const phrase = LanguageController.getPhrase(hotInstance, dictionaryKey, zippedVariableAndValue);
+
+      callback.call(hotInstance, phrase);
+    });
+
+    hotOnLocaleChangeCallbacks.set(hotInstance, callbacks);
   }
 }
 

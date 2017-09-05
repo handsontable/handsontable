@@ -27,7 +27,7 @@ function getPluralForm(pluralDeterminant) {
  * @returns {string|Array} One particular phrase if it's possible, list of unchanged phrase propositions otherwise.
  */
 function pluralize(phrasePropositions, zippedVariableAndValue) {
-  // TODO: Should be first value our plural determinant?
+  // TODO: Should be first object value our plural determinant?
   const pluralDeterminant = isObject(zippedVariableAndValue) && Object.values(zippedVariableAndValue)[0];
   const isPluralizable = Array.isArray(phrasePropositions);
 

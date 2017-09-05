@@ -1,10 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 
 class FormattersController {
-  static getSingleton() {
-    return singleton;
-  }
-
   constructor() {
     /**
      * List of formatter functions.
