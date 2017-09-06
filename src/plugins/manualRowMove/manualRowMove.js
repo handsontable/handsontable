@@ -359,10 +359,6 @@ class ManualRowMove extends BasePlugin {
     let backlightElemMarginTop = this.backlight.getOffset().top;
     let backlightElemHeight = this.backlight.getSize().height;
 
-    if ((rootElementOffset.top + wtTable.holder.offsetHeight) < priv.target.eventPageY) {
-      priv.target.coords.row++;
-    }
-
     if (this.isFixedRowTop(coords.row)) {
       tdOffsetTop += wtTable.holder.scrollTop;
     }

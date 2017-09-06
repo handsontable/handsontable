@@ -31,9 +31,10 @@ import * as domEventHelpers from './helpers/dom/event';
 import * as plugins from './plugins/index';
 import {registerPlugin} from './plugins';
 import DefaultSettings from './defaultSettings';
+import {rootInstanceSymbol} from './utils/rootInstance';
 
 function Handsontable(rootElement, userSettings) {
-  const instance = new Core(rootElement, userSettings || {});
+  const instance = new Core(rootElement, userSettings || {}, rootInstanceSymbol);
 
   instance.init();
 
@@ -47,11 +48,11 @@ Handsontable.DefaultSettings = DefaultSettings;
 Handsontable.EventManager = EventManager;
 Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = __HOT_BUILD_DATE__;
-Handsontable.packageName = __HOT_PACKAGE_NAME__;
-Handsontable.version = __HOT_VERSION__;
+Handsontable.buildDate = process.env.HOT_BUILD_DATE;
+Handsontable.packageName = process.env.HOT_PACKAGE_NAME;
+Handsontable.version = process.env.HOT_VERSION;
 
-const baseVersion = __HOT_BASE_VERSION__;
+const baseVersion = process.env.HOT_BASE_VERSION;
 
 if (baseVersion) {
   Handsontable.baseVersion = baseVersion;
