@@ -1,7 +1,7 @@
 import {getValidSelection} from './../utils';
 import L from './../../../i18n/index';
 import * as C from './../../../i18n/constants';
-import {createRange} from './../../../i18n/utils';
+import {createCellHeadersRange} from './../../../i18n/utils';
 
 export const KEY = 'remove_col';
 
@@ -16,10 +16,7 @@ export default function removeColumnItem() {
         const [, fromColumn, , toColumn] = selection;
 
         if (fromColumn - toColumn !== 0) {
-          translationConfiguration.rangeOfColumns = createRange(
-            {index: fromColumn + 1, value: this.getColHeader(fromColumn)},
-            {index: toColumn + 1, value: this.getColHeader(toColumn)}
-          );
+          translationConfiguration.rangeOfColumns = createCellHeadersRange(fromColumn + 1, toColumn + 1);
         }
       }
 
