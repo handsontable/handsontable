@@ -8,9 +8,9 @@ import {isNumeric} from './../../helpers/number';
  *
  * @returns {number} Number representing form which should be used for pluralization.
  */
-function getPluralForm(pluralProposition) {
-  if (isNumeric(pluralProposition)) {
-    return pluralProposition;
+function getPluralForm(pluralDeterminant) {
+  if (isNumeric(pluralDeterminant)) {
+    return pluralDeterminant;
   }
 
   return 0;
@@ -28,9 +28,9 @@ function pluralize(phrasePropositions, zippedVariableAndValue) {
   const isPluralizable = Array.isArray(phrasePropositions);
 
   if (isPluralizable) {
-    const pluralDeterminant = getPluralForm(zippedVariableAndValue.pluralForm);
+    const pluralForm = getPluralForm(zippedVariableAndValue.pluralForm);
 
-    return phrasePropositions[pluralDeterminant];
+    return phrasePropositions[pluralForm];
   }
 
   return phrasePropositions;
