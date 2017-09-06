@@ -7,7 +7,7 @@ Your contributions to this project are very welcome. If you want to fix a bug or
 3. Always make the target of your pull request the `develop` branch, not `master`.
 4. Do not edit files in `dist/` directory (e.g: `handsontable.js`, `handsontable.css`, `handsontable.full.js`, `handsontable.full.css`). Instead, edit files inside the `src/` directory and then use `npm run build` to make a build. More information about this you can find [here](https://docs.handsontable.com/tutorial-custom-build.html).
 5. **Important: For any change you make, please add at least one test case** in `test/e2e/` (for End-to-End tests), `test/unit/` or `src/3rdparty/walkontable/test/spec/`. That will help us understand the issue and make sure that it stays fixed forever. Read more about our [testing process](http://docs.handsontable.com/tutorial-testing.html).
-6. Please review our [coding style](https://github.com/handsontable/handsontable/wiki/Coding-style) for instructions on how to properly style the code.
+6. Please review our [coding style](https://github.com/airbnb/javascript) for instructions on how to properly style the code.
 7. Add a thorough description of all the changes.
 
 Thank you for your commitment!
