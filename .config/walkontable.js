@@ -4,19 +4,15 @@
  * Config responsible for building Walkontable (bundled into `src/3rdparty/walkontable/dist/`):
  *  - walkontable.js
  */
-var path = require('path');
-var webpack = require('webpack');
-var configFactory = require('./base');
-var JasmineHtml = require('./plugin/jasmine-html');
+const path = require('path');
+const webpack = require('webpack');
+const configFactory = require('./base');
+const JasmineHtml = require('./plugin/jasmine-html');
 
-var env = process.env.NODE_ENV;
-var PACKAGE_NAME = configFactory.PACKAGE_NAME;
-var wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
-
-module.exports.PACKAGE_NAME = PACKAGE_NAME;
+const wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
 
 module.exports.create = function create(envArgs) {
-  var config = {
+  const config = {
     devtool: 'cheap-module-source-map',
     output: {
       library: 'Walkontable',

@@ -7,23 +7,20 @@
  *  - handsontable.full.min.js
  *  - handsontable.full.min.css
  */
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-var CopyWebpackPlugin = require('copy-webpack-plugin');
-var webpack = require('webpack');
-var configFactory = require('./development');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const webpack = require('webpack');
+const configFactory = require('./development');
 
-var env = process.env.NODE_ENV;
-var PACKAGE_NAME = configFactory.PACKAGE_NAME;
-
-module.exports.PACKAGE_NAME = PACKAGE_NAME;
+const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
 module.exports.create = function create(envArgs) {
-  var config = configFactory.create(envArgs);
+  const config = configFactory.create(envArgs);
 
   // Add uglifyJs plugin for each configuration
   config.forEach(function(c) {
-    var isFullBuild = /\.full\.js$/.test(c.output.filename);
+    const isFullBuild = /\.full\.js$/.test(c.output.filename);
 
     c.devtool = false;
     c.output.filename = c.output.filename.replace(/\.js$/, '.min.js');
@@ -50,7 +47,7 @@ module.exports.create = function create(envArgs) {
           screw_ie8: true,
         },
       }),
-      new ExtractTextPlugin(PACKAGE_NAME + (isFullBuild ? '.full' : '') + '.min.css'),
+      new ExtractTextPlugin(PACKAGE_FILENAME + (isFullBuild ? '.full' : '') + '.min.css'),
       new OptimizeCssAssetsPlugin({
         assetNameRegExp: isFullBuild ? /\.full\.min\.css$/ : /\.min\.css$/,
       })
