@@ -19,17 +19,24 @@ export function extendNotExistingKeys(target, extension) {
 }
 
 /**
- * Create range from lower to higher value.
+ * Create range of values basing on cell indexes. For example, it will create below ranges for specified function arguments:
  *
- * @param {Object} from Object containing `index` and `value` keys.
- * @param {Object} to Object containing `index` and `value` keys.
+ * createCellHeadersRange(2, 7) => `2-7`
+ * createCellHeadersRange(7, 2) => `2-7`
+ * createCellHeadersRange(0, 4, 'A', 'D') => `A-D`
+ * createCellHeadersRange(4, 0, 'D', 'A') => `A-D`
+ *
+ * @param firstRowIndex Index of "first" cell
+ * @param secondRowIndex Index of "second" cell
+ * @param fromValue Value which will represent "first" cell
+ * @param toValue Value which will represent "second" cell
  * @returns {string} Value representing range i.e. A-Z, 11-15.
  */
-export function createRange(from, to) {
-  // Will swap `from` with `to` if it's necessary.
-  if (from.index > to.index) {
-    [from, to] = [to, from];
+export function createCellHeadersRange(firstRowIndex, secondRowIndex, fromValue = firstRowIndex, toValue = secondRowIndex) {
+  // Will swap `fromValue` with `toValue` if it's necessary.
+  if (firstRowIndex > secondRowIndex) {
+    [fromValue, toValue] = [toValue, fromValue];
   }
 
-  return `${from.value}-${to.value}`;
+  return `${fromValue}-${toValue}`;
 }

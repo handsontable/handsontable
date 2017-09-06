@@ -9,7 +9,7 @@ import {isObject} from './../../helpers/object';
  * @returns {number} Number representing form which should be used for pluralization.
  */
 function getPluralForm(pluralDeterminant) {
-  const isRange = /^\S+-\S+$/;
+  const isRange = /^[^-]+-[^-]+$/;
 
   if (isRange.test(pluralDeterminant)) {
     return 1;
