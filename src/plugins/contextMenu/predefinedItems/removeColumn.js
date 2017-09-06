@@ -16,7 +16,7 @@ export default function removeColumnItem() {
         const [, fromColumn, , toColumn] = selection;
 
         if (fromColumn - toColumn !== 0) {
-          translationConfiguration.rangeOfColumns = createCellHeadersRange(fromColumn + 1, toColumn + 1);
+          translationConfiguration.pluralForm = 1;
         }
       }
 

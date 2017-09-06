@@ -1,5 +1,5 @@
 import {formattersController as f} from '../formattersController';
-import {isObject} from './../../helpers/object';
+import {isNumeric} from './../../helpers/number';
 
 /**
  * Get plural form by plural determinant.
@@ -8,11 +8,9 @@ import {isObject} from './../../helpers/object';
  *
  * @returns {number} Number representing form which should be used for pluralization.
  */
-function getPluralForm(pluralDeterminant) {
-  const isRange = /^[^-]+-[^-]+$/;
-
-  if (isRange.test(pluralDeterminant)) {
-    return 1;
+function getPluralForm(pluralProposition) {
+  if (isNumeric(pluralProposition)) {
+    return pluralProposition;
   }
 
   return 0;
@@ -27,12 +25,12 @@ function getPluralForm(pluralDeterminant) {
  * @returns {string|Array} One particular phrase if it's possible, list of unchanged phrase propositions otherwise.
  */
 function pluralize(phrasePropositions, zippedVariableAndValue) {
-  // TODO: Should be first object value our plural determinant?
-  const pluralDeterminant = isObject(zippedVariableAndValue) && Object.values(zippedVariableAndValue)[0];
   const isPluralizable = Array.isArray(phrasePropositions);
 
   if (isPluralizable) {
-    return phrasePropositions[getPluralForm(pluralDeterminant)];
+    const pluralDeterminant = getPluralForm(zippedVariableAndValue.pluralForm);
+
+    return phrasePropositions[pluralDeterminant];
   }
 
   return phrasePropositions;

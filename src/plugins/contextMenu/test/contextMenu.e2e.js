@@ -652,7 +652,7 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
         'Insert column on the left',
         'Insert column on the right',
-        'Remove columns A-D',
+        'Remove columns',
         'Undo',
         'Redo',
       ].join(''));
@@ -673,7 +673,7 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
         'Insert row above',
         'Insert row below',
-        'Remove rows 1-4',
+        'Remove rows',
         'Undo',
         'Redo',
       ].join(''));
@@ -1553,7 +1553,7 @@ describe('ContextMenu', () => {
       contextMenu();
       var $menu = $('.htContextMenu .ht_master .htCore');
 
-      expect($menu.find('tbody td:eq(0)').text()).toEqual('Remove columns A-E');
+      expect($menu.find('tbody td:eq(0)').text()).toEqual('Remove columns');
       expect($menu.find('tbody td:eq(0)').hasClass('htDisabled')).toBe(true);
     });
 
@@ -1574,7 +1574,7 @@ describe('ContextMenu', () => {
       contextMenu();
       var $menu = $('.htContextMenu .ht_master .htCore');
 
-      expect($menu.find('tbody td:eq(1)').text()).toEqual('Remove rows 1-5');
+      expect($menu.find('tbody td:eq(1)').text()).toEqual('Remove rows');
       expect($menu.find('tbody td:eq(1)').hasClass('htDisabled')).toBe(true);
     });
 

@@ -1,7 +1,6 @@
 import {getValidSelection} from './../utils';
 import L from './../../../i18n/index';
 import * as C from './../../../i18n/constants';
-import {createCellHeadersRange} from './../../../i18n/utils';
 
 export const KEY = 'remove_row';
 
@@ -16,7 +15,7 @@ export default function removeRowItem() {
         const [fromRow, , toRow] = selection;
 
         if (fromRow - toRow !== 0) {
-          translationConfiguration.rangeOfRows = createCellHeadersRange(fromRow + 1, toRow + 1);
+          translationConfiguration.pluralForm = 1;
         }
       }
 
