@@ -15,8 +15,8 @@ class LangDefinitionsController {
   /**
    * Register dictionary for specific language code.
    *
-   * @param languageCode Language code for specific locale i.e. 'en', 'pt', 'de'.
-   * @param langDefinition Dictionary for specific language.
+   * @param {string} languageCode Language code for specific locale i.e. 'en', 'pt', 'de'.
+   * @param {Object} langDefinition Dictionary for specific language.
    */
   registerLangDefinition(languageCode, langDefinition) {
     if (!this.langDefinitions.has(languageCode)) {
@@ -28,7 +28,7 @@ class LangDefinitionsController {
   /**
    * Get dictionary for specific language code.
    *
-   * @param languageCode Language code
+   * @param {String} languageCode Language code
    * @returns {Object}
    */
   getDefinitions(languageCode) {
@@ -43,8 +43,8 @@ class LangDefinitionsController {
    * Extend handled dictionary by default language dictionary. As result, if any dictionary key isn't defined
    * for specific language, it will be filled with default language value.
    *
-   * @param languageCode Language code
-   * @param langDefinition Dictionary which is extended.
+   * @param {String} languageCode Language code
+   * @param {Object} langDefinition Dictionary which is extended.
    */
   extendDefinitionByDefaultLangBase(languageCode, langDefinition) {
     if (languageCode !== DEFAULT_LANGUAGE_CODE) {

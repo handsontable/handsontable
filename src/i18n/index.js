@@ -39,18 +39,18 @@ class LanguageController {
    * Get formatted phrase from phrases propositions under specified dictionary key.
    *
    * @param {Object} hotInstance Instance of Handsontable for which we get phrase.
-   * @param dictionaryKey Constant which is dictionary key.
-   * @param zippedVariableAndValue Object containing variables and corresponding values
+   * @param {String} dictionaryKey Constant which is dictionary key.
+   * @param {Object} zippedVariableAndValues Object containing variables and corresponding values
    * which will be handled by formatters.
    *
    * @returns {string}
    */
-  static getPhrase(hotInstance, dictionaryKey, zippedVariableAndValue) {
+  static getPhrase(hotInstance, dictionaryKey, zippedVariableAndValues) {
     const hotLanguageCode = hotLanguages.get(hotInstance).code;
     let phrasePropositions = hotLanguages.get(hotInstance).definitions[dictionaryKey];
 
     arrayEach(formattersController.getFormatters(), (formatter) => {
-      phrasePropositions = formatter(phrasePropositions, zippedVariableAndValue, hotLanguageCode);
+      phrasePropositions = formatter(phrasePropositions, zippedVariableAndValues, hotLanguageCode);
     });
 
     return phrasePropositions;
@@ -61,15 +61,15 @@ class LanguageController {
    *
    * @param {Object} hotInstance Instance of Handsontable for which we register locale change callback.
    * @param {string} dictionaryKey Constant which is dictionary key.
-   * @param {Object} zippedVariableAndValue  Object containing variables and corresponding values
+   * @param {Object} zippedVariableAndValues  Object containing variables and corresponding values
    * @param {Function} callback Function which will be executed after locale change, as parameter gets phrase which is
-   * created from `dictionaryKey` and `zippedVariableAndValue` parameters
+   * created from `dictionaryKey` and `zippedVariableAndValues` parameters
    */
-  static registerLocaleChangeFn(hotInstance, dictionaryKey, zippedVariableAndValue, callback) {
+  static registerLocaleChangeFn(hotInstance, dictionaryKey, zippedVariableAndValues, callback) {
     const callbacks = hotOnLocaleChangeCallbacks.get(hotInstance) || [];
 
     callbacks.push(() => {
-      const phrase = LanguageController.getPhrase(hotInstance, dictionaryKey, zippedVariableAndValue);
+      const phrase = LanguageController.getPhrase(hotInstance, dictionaryKey, zippedVariableAndValues);
 
       callback.call(hotInstance, phrase);
     });

@@ -26,10 +26,10 @@ export function extendNotExistingKeys(target, extension) {
  * createCellHeadersRange(0, 4, 'A', 'D') => `A-D`
  * createCellHeadersRange(4, 0, 'D', 'A') => `A-D`
  *
- * @param firstRowIndex Index of "first" cell
- * @param secondRowIndex Index of "second" cell
- * @param fromValue Value which will represent "first" cell
- * @param toValue Value which will represent "second" cell
+ * @param {number} firstRowIndex Index of "first" cell
+ * @param {number} secondRowIndex Index of "second" cell
+ * @param {*} fromValue Value which will represent "first" cell
+ * @param {*} toValue Value which will represent "second" cell
  * @returns {string} Value representing range i.e. A-Z, 11-15.
  */
 export function createCellHeadersRange(firstRowIndex, secondRowIndex, fromValue = firstRowIndex, toValue = secondRowIndex) {
