@@ -1,0 +1,220 @@
+describe('Header tooltips', function() {
+  var id = 'testContainer';
+
+  beforeEach(function() {
+    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+  });
+
+  afterEach(function() {
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+  });
+
+  describe('initialization', function() {
+    it('should be initialized by HOT config', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        colHeaders: true,
+        headerTooltips: {
+          columns: true,
+          rows: true,
+          onlyTrimmed: false
+        },
+        width: 500,
+        height: 300
+      });
+
+      var headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+
+      for (var i = 0; i < headers.length; i++) {
+        var title = headers[i].getAttribute('title');
+        expect(headers[i].getAttribute('title')).not.toBe(null);
+        expect(title).toEqual(headers[i].textContent);
+      }
+    });
+
+    it('should be initialized by the updateSettings method', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        colHeaders: true,
+        width: 500,
+        height: 300
+      });
+
+      hot.updateSettings({
+        headerTooltips: {
+          columns: true,
+          rows: true,
+          onlyTrimmed: false
+        }
+      });
+
+      var headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+
+      for (var i = 0; i < headers.length; i++) {
+        var title = headers[i].getAttribute('title');
+        expect(headers[i].getAttribute('title')).not.toBe(null);
+        expect(title).toEqual(headers[i].textContent);
+      }
+    });
+
+    it('should be disabled by the disablePlugin method', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        colHeaders: true,
+        headerTooltips: {
+          columns: true,
+          rows: true,
+          onlyTrimmed: false
+        },
+        width: 500,
+        height: 300
+      });
+
+      hot.getPlugin('headerTooltips').disablePlugin();
+
+      var headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+
+      for (var i = 0; i < headers.length; i++) {
+        var title = headers[i].getAttribute('title');
+        expect(headers[i].getAttribute('title')).toBe(null);
+      }
+    });
+
+    it('should be re-enabled by the enablePlugin method', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        colHeaders: true,
+        headerTooltips: {
+          columns: true,
+          rows: true,
+          onlyTrimmed: false
+        },
+        width: 500,
+        height: 300
+      });
+
+      hot.getPlugin('headerTooltips').disablePlugin();
+
+      hot.getPlugin('headerTooltips').enablePlugin();
+      hot.render();
+
+      var headers = hot.view.wt.wtTable.THEAD.childNodes[0].childNodes;
+
+      for (var i = 0; i < headers.length; i++) {
+        var title = headers[i].getAttribute('title');
+        expect(headers[i].getAttribute('title')).not.toBe(null);
+        expect(title).toEqual(headers[i].textContent);
+      }
+    });
+
+  });
+
+  describe('adding the title attribute', function() {
+
+    it('should add the "title" attribute to both rows and columns, if both "rows" and "columns" properties are set to "true"', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        colHeaders: true,
+        headerTooltips: {
+          columns: true,
+          rows: true,
+          onlyTrimmed: false
+        },
+        width: 500,
+        height: 300
+      });
+
+      var $colHeaders = $('thead th');
+      var $rowHeaders = $('tbody th');
+
+      $colHeaders.each(function() {
+        expect($(this).attr('title')).toEqual($(this).text());
+      });
+
+      $rowHeaders.each(function() {
+        expect($(this).attr('title')).toEqual($(this).text());
+      });
+    });
+
+    it('should add the "title" attribute to only rows, of only "rows" property is set to "true"', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        colHeaders: true,
+        headerTooltips: {
+          columns: false,
+          rows: true,
+          onlyTrimmed: false
+        },
+        width: 500,
+        height: 300
+      });
+
+      var $colHeaders = $('thead th');
+      var $rowHeaders = $('tbody th');
+
+      $colHeaders.each(function() {
+        expect($(this).attr('title')).not.toBeDefined();
+      });
+
+      $rowHeaders.each(function() {
+        expect($(this).attr('title')).toEqual($(this).text());
+      });
+    });
+
+    it('should add the "title" attribute to only columns, of only "columns" property is set to "true"', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        colHeaders: true,
+        headerTooltips: {
+          columns: true,
+          rows: false,
+          onlyTrimmed: false
+        },
+        width: 500,
+        height: 300
+      });
+
+      var $colHeaders = $('thead th');
+      var $rowHeaders = $('tbody th');
+
+      $colHeaders.each(function() {
+        expect($(this).attr('title')).toEqual($(this).text());
+      });
+
+      $rowHeaders.each(function() {
+        expect($(this).attr('title')).toEqual(null);
+      });
+    });
+
+    it('should add the "title" attribute only if the header content exceeds the header with, when onlyTrimmed property is set to true', function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        colHeaders: ['very long column header', 'B', 'very long column header', 'C'],
+        rowHeaders: ['very long column header', '1', 'very long column header', '3'],
+        colWidths: [20, 20, 20, 20, 20, 20, 20],
+        headerTooltips: {
+          columns: true,
+          rows: true,
+          onlyTrimmed: true
+        },
+        width: 500,
+        height: 300
+      });
+
+      expect($('thead th').eq(1).attr('title')).toEqual($('thead th').eq(1).text());
+      expect($('thead th').eq(2).attr('title')).not.toBeDefined();
+      expect($('thead th').eq(3).attr('title')).toEqual($('thead th').eq(3).text());
+      expect($('thead th').eq(4).attr('title')).not.toBeDefined();
+
+      expect($('tbody th').eq(0).attr('title')).toEqual($('tbody th').eq(0).text());
+      expect($('tbody th').eq(1).attr('title')).not.toBeDefined();
+      expect($('tbody th').eq(2).attr('title')).toEqual($('tbody th').eq(2).text());
+      expect($('tbody th').eq(3).attr('title')).not.toBeDefined();
+    });
+
+  });
+
+});
