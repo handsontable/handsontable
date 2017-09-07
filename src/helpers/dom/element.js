@@ -613,11 +613,12 @@ export function getScrollableElement(element) {
       }
     }
 
-    if (el.clientHeight <= el.scrollHeight && (props.indexOf(overflowY) !== -1 || props.indexOf(overflow) !== -1 ||
+    // The '+ 1' after the scrollHeight/scrollWidth is to prevent problems with zoomed out Chrome.
+    if (el.clientHeight <= el.scrollHeight + 1 && (props.indexOf(overflowY) !== -1 || props.indexOf(overflow) !== -1 ||
         props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowY) !== -1)) {
       return el;
     }
-    if (el.clientWidth <= el.scrollWidth && (props.indexOf(overflowX) !== -1 || props.indexOf(overflow) !== -1 ||
+    if (el.clientWidth <= el.scrollWidth + 1 && (props.indexOf(overflowX) !== -1 || props.indexOf(overflow) !== -1 ||
         props.indexOf(computedOverflow) !== -1 || props.indexOf(computedOverflowX) !== -1)) {
       return el;
     }
