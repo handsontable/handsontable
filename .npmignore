@@ -7,6 +7,8 @@ _SpecRunner.html
 cars.sqlite
 dev.html
 webpack.config.js
+hot.config.js
 
 !dist/README.md
 node_modules/
+test/
