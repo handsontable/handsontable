@@ -999,6 +999,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   function validateChanges(changes, source, callback) {
+    verifyChanges(); 
+ 
     var waitingForValidator = new ValidatorsQueue();
     waitingForValidator.onQueueEmpty = resolve;
 
@@ -1062,6 +1064,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     waitingForValidator.checkIfQueueIsEmpty();
 
     function resolve() {
+      callback(); // called when async validators are resolved and beforeChange was not async 
+    } 
+ 
+    function verifyChanges() { 
       var beforeChangeResult;
 
       if (changes.length) {
@@ -1072,7 +1078,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           changes.splice(0, changes.length); // invalidate all changes (remove everything from array)
         }
       }
-      callback(); // called when async validators are resolved and beforeChange was not async
     }
   }
 
