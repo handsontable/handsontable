@@ -235,7 +235,7 @@ class ManualColumnMove extends BasePlugin {
       let columnWidth = 0;
 
       if (i < 0) {
-        columnWidth = this.hot.view.wt.wtTable.getColumnWidth(i) || 0;
+        columnWidth = this.hot.view.wt.wtViewport.getRowHeaderWidth() || 0;
       } else {
         columnWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(i) || 0;
       }

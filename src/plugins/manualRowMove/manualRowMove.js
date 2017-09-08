@@ -409,6 +409,9 @@ class ManualRowMove extends BasePlugin {
       this.hot.scrollViewportTo(coords.row);
     }
 
+    if (guidelineTop < 1 && !this.hot.hasColHeaders()) {
+      guidelineTop += 1;
+    }
     this.backlight.setPosition(backlightTop);
     this.guideline.setPosition(guidelineTop);
   }
@@ -518,7 +521,7 @@ class ManualRowMove extends BasePlugin {
       priv.target.TD = TD;
       priv.rowsToMove = this.prepareRowsToMoving();
 
-      let leftPos = wtTable.holder.scrollLeft + wtTable.getColumnWidth(-1);
+      let leftPos = wtTable.holder.scrollLeft + this.hot.view.wt.wtViewport.getRowHeaderWidth();
 
       this.backlight.setPosition(null, leftPos);
       this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end + 1));
@@ -638,7 +641,7 @@ class ManualRowMove extends BasePlugin {
    */
   onAfterScrollHorizontally() {
     let wtTable = this.hot.view.wt.wtTable;
-    let headerWidth = wtTable.getColumnWidth(-1);
+    let headerWidth = this.hot.view.wt.wtViewport.getRowHeaderWidth();
     let scrollLeft = wtTable.holder.scrollLeft;
     let posLeft = headerWidth + scrollLeft;
 
