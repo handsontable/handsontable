@@ -8,4 +8,4 @@ import BottomLeftCornerOverlay from './3rdparty/walkontable/src/overlay/bottomLe
 
 Handsontable.baseVersion = process.env.HOT_BASE_VERSION;
 
-module.exports = Handsontable;
+export default Handsontable;
