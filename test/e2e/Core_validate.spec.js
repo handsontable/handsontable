@@ -534,7 +534,7 @@ describe('Core_validate', () => {
       done();
     }, 500);
   });
-  
+
   it('should not remove class name `htInvalid` for cancelled changes - on edit', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
     var allowChange = true;
@@ -544,8 +544,7 @@ describe('Core_validate', () => {
       validator(value, callb) {
         if (value === 'test') {
           callb(false);
-        }
-        else {
+        } else {
           callb(true);
         }
       },
