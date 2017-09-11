@@ -287,7 +287,7 @@ if (classListSupport) {
 
   _hasClass = function _hasClass(element, className) {
     // http://snipplr.com/view/3561/addclass-removeclass-hasclass/
-    return element.className !== void 0 && element.className.test(createClassNameRegExp(className));
+    return element.className !== void 0 && createClassNameRegExp(className).test(element.className);
   };
 
   _addClass = function _addClass(element, className) {
