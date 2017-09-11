@@ -1,13 +1,17 @@
 /*!
- * Copyright (c) Handsoncode sp. z o.o. <hello@handsoncode.net>
+ * Copyright (c) Handsoncode sp. z o.o.
  * 
- * This Handsontable Pro is a commercial software distributed by Handsoncode Sp. z o.o. with
- * its registered seat in Gdynia, Aleja Zwyciestwa 96/98 (81-451 Gdynia) Poland, entered into the Entrepreneurs
- * Register of the National Court Register under number 0000538651, hereinafter referred to as "HANDSONCODE".
+ * This Handsontable Pro is a commercial software distributed by Handsoncode sp. z o. o., a limited liability
+ * company registered under the laws of Poland, with its registered office in Gdynia, Poland, at 96/98 Aleja Zwycięstwa,
+ * postal code 81-451, entered into the Entrepreneurs Register of the National Court Register under number 0000538651,
+ * share capital: PLN 62,800.00., hereinafter referred to as "HANDSONCODE".
  * 
  * By installing, copying, or otherwise using this software, you agree to be bound by the terms
- * of its EULA (End-User License Agreement). This software is copyrighted and protected by copyright laws
- * and international treaties.
+ * of its General Software License Terms ("Terms") outlined in a file "handsontable-pro-general-terms.pdf"
+ * available in the main directory of the software repository.
+ * This software is copyrighted and protected by copyright laws and international treaties.
+ * 
+ * You shall obtain a commercial license for this software at handsontable.com.
  * 
  * YOU EXPRESSLY ACKNOWLEDGE AND AGREE THAT USE OF THE SOFTWARE IS AT YOUR OWN RISK AND THAT THE SOFTWARE
  * IS PROVIDED "AS IS" WITHOUT ANY WARRANTIES OR CONDITIONS WHATSOEVER. HANDSONCODE EXPRESSLY DISCLAIMS ANY WARRANTY,
@@ -16,10 +20,8 @@
  * RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
  * UNINTERRUPTED OR ERROR FREE.
  * 
- * YOU SHALL OBTAIN A COMMERCIAL LICENSE FOR THIS SOFTWARE AT HANDSONTABLE.COM.
- * 
- * Version: 1.13.1
- * Release date: 06/09/2017 (built at 06/09/2017 13:17:58)
+ * Version: 1.14.0
+ * Release date: 12/09/2017 (built at 11/09/2017 15:04:32)
  */
 /**
  * Fix for bootstrap styles
@@ -263,7 +265,6 @@
 }
 
 .handsontable + .display-license-info {
-  background-color: rgba(255, 255, 255, 0.8);
   font-size: 9px;
   color: #323232 ;
   padding: 5px 0 3px 0;

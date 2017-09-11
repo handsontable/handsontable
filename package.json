@@ -7,7 +7,7 @@
     "url": "https://my.handsontable.com/handsontable/handsontable-pro.git"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "1.13.1",
+  "version": "1.14.0",
   "browser": "dist/handsontable.js",
   "main": "commonjs/index.js",
   "module": "es/index.js",
@@ -50,7 +50,7 @@
     "data-spreadsheet"
   ],
   "dependencies": {
-    "handsontable": "handsontable/handsontable#develop",
+    "handsontable": "handsontable/handsontable#release/0.34.2",
     "hot-formula-parser": "^2.2.0",
     "moment": "2.18.1",
     "numbro": "1.11.0",
