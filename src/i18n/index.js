@@ -20,19 +20,32 @@ class LanguageController {
   static setLocale(hotInstance, languageCode = DEFAULT_LANGUAGE_CODE) {
     const hotLanguage = hotLanguages.get(hotInstance);
     const hotLanguageCode = hotLanguage && hotLanguage.code;
+    const wasLocalizationInitialized = isDefined(hotLanguageCode);
+    const isLanguageChanged = hotLanguageCode !== languageCode;
 
-    if (hotLanguageCode !== languageCode) {
+    if (isLanguageChanged) {
       hotLanguages.set(hotInstance, {
         code: languageCode,
         definitions: langDefinitionsController.getDefinitions(languageCode)
       });
     }
 
-    if (isDefined(hotLanguageCode)) {
-      arrayEach(hotOnLocaleChangeCallbacks.get(hotInstance) || [], (callback) => {
-        callback();
-      });
+    if (wasLocalizationInitialized) {
+      LanguageController.runOnLocaleChangeCallbacks();
     }
+  }
+
+  /**
+   * Run callbacks on locale change
+   *
+   * @param {Object} hotInstance Instance of Handsontable for which we set language.
+   *
+   * @param hotInstance
+   */
+  static runOnLocaleChangeCallbacks(hotInstance) {
+    arrayEach(hotOnLocaleChangeCallbacks.get(hotInstance) || [], (callback) => {
+      callback();
+    });
   }
 
   /**
@@ -49,11 +62,25 @@ class LanguageController {
     const hotLanguageCode = hotLanguages.get(hotInstance).code;
     let phrasePropositions = hotLanguages.get(hotInstance).definitions[dictionaryKey];
 
+    return LanguageController.getFormattedPhrasePropositions(phrasePropositions, zippedVariableAndValues, hotLanguageCode);
+  }
+
+  /**
+   * Format phrases propositions.
+   *
+   * @param {Array|string} phrasePropositions List of phrase propositions.
+   * @param {...string} args Arguments for formatting.
+   *
+   * @returns {Array|string}
+   */
+  static getFormattedPhrasePropositions(phrasePropositions, ...args) {
+    let formattedPhrasePropositions = phrasePropositions;
+
     arrayEach(formattersController.getFormatters(), (formatter) => {
-      phrasePropositions = formatter(phrasePropositions, zippedVariableAndValues, hotLanguageCode);
+      formattedPhrasePropositions = formatter(phrasePropositions, ...args);
     });
 
-    return phrasePropositions;
+    return formattedPhrasePropositions;
   }
 
   /**
