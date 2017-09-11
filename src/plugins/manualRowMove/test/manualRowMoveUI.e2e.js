@@ -13,7 +13,7 @@ describe('manualRowMove', () => {
   });
 
   describe('UI', () => {
-    it('should append UI elements to wtHider after click on row header', function () {
+    it('should append UI elements to wtHider after click on row header', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         rowHeaders: true,
@@ -30,7 +30,7 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('.ht__manualRowMove--backlight').length).toBe(1);
     });
 
-    it('should part of UI elements be visible on dragging action', function () {
+    it('should part of UI elements be visible on dragging action', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         rowHeaders: true,
@@ -47,7 +47,7 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('.ht__manualRowMove--backlight:visible').length).toBe(1);
     });
 
-    it('should all of UI elements be visible on dragging action', function () {
+    it('should all of UI elements be visible on dragging action', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         rowHeaders: true,
@@ -55,9 +55,9 @@ describe('manualRowMove', () => {
       });
 
       const $headers = [
-        this.$container.find('tbody tr:eq(0) th:eq(0)'),
-        this.$container.find('tbody tr:eq(1) th:eq(0)'),
-        this.$container.find('tbody tr:eq(2) th:eq(0)'),
+        spec().$container.find('tbody tr:eq(0) th:eq(0)'),
+        spec().$container.find('tbody tr:eq(1) th:eq(0)'),
+        spec().$container.find('tbody tr:eq(2) th:eq(0)'),
       ];
 
       $headers[0].simulate('mousedown');
@@ -70,202 +70,63 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('.ht__manualRowMove--backlight:visible').length).toBe(1);
     });
 
-    it('should run `beforeRowMove` with proper `target` parameter (moving row above first header)', function () {
-      let targetParameterInsideCallback;
+    describe('backlight', () => {
+      it('should set proper left position of element when colWidths is undefined', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          rowHeaders: true,
+          manualRowMove: true
+        });
 
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        rowHeaders: true,
-        colHeaders: true,
-        manualRowMove: true,
-        beforeRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
-        }
+        const $headerTH = spec().$container.find('tbody tr:eq(0) th:eq(0)');
+
+        $headerTH.simulate('mousedown');
+        $headerTH.simulate('mouseup');
+        $headerTH.simulate('mousedown');
+
+        expect(spec().$container.find('.ht__manualRowMove--backlight')[0].offsetLeft).toBe(50);
       });
-      const $fistHeader = this.$container.find('tbody tr:eq(0) th:eq(0)');
 
-      this.$container.find('tbody tr:eq(1) th:eq(0)').simulate('mousedown');
-      this.$container.find('tbody tr:eq(1) th:eq(0)').simulate('mouseup');
-      this.$container.find('tbody tr:eq(1) th:eq(0)').simulate('mousedown');
+      it('should set proper left position of element when colWidths is defined', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          rowHeaders: true,
+          manualRowMove: true,
+          colWidths: 100,
+        });
 
-      $fistHeader.simulate('mouseover');
-      $fistHeader.simulate('mousemove', {
-        clientY: $fistHeader.offset().bottom - $fistHeader.height() - 50
+        const $headerTH = spec().$container.find('tbody tr:eq(0) th:eq(0)');
+
+        $headerTH.simulate('mousedown');
+        $headerTH.simulate('mouseup');
+        $headerTH.simulate('mousedown');
+
+        expect(spec().$container.find('.ht__manualRowMove--backlight')[0].offsetLeft).toBe(50);
       });
-      $fistHeader.simulate('mouseup');
-
-      expect(targetParameterInsideCallback).toEqual(0);
     });
 
-    it('should run `beforeRowMove` with proper `target` parameter (moving row to the top of first header)', function () {
-      let targetParameterInsideCallback;
+    describe('guideline', () => {
+      it('should set proper top position of element when target is first row and column headers are disabled', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          rowHeaders: true,
+          colHeaders: false,
+          manualRowMove: true,
+        });
 
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        rowHeaders: true,
-        manualRowMove: true,
-        colHeaders: true,
-        beforeRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
-        }
+        const $headers = [
+          spec().$container.find('tbody tr:eq(0) th:eq(0)'),
+          spec().$container.find('tbody tr:eq(1) th:eq(0)'),
+        ];
+
+        $headers[1].simulate('mousedown');
+        $headers[1].simulate('mouseup');
+        $headers[1].simulate('mousedown');
+        $headers[0].simulate('mouseover');
+        $headers[0].simulate('mousemove');
+
+        expect(spec().$container.find('.ht__manualRowMove--guideline')[0].offsetTop).toBe(-1);
       });
-      const $fistHeader = this.$container.find('tbody tr:eq(0) th:eq(0)');
-
-      this.$container.find('tbody tr:eq(1) th:eq(0)').simulate('mousedown');
-      this.$container.find('tbody tr:eq(1) th:eq(0)').simulate('mouseup');
-      this.$container.find('tbody tr:eq(1) th:eq(0)').simulate('mousedown');
-
-      $fistHeader.simulate('mouseover');
-      $fistHeader.simulate('mousemove', {
-        clientY: $fistHeader.offset().bottom - $fistHeader.height()
-      });
-      $fistHeader.simulate('mouseup');
-
-      expect(targetParameterInsideCallback).toEqual(0);
-    });
-
-    it('should run `beforeRowMove` with proper `target` parameter (moving row to the middle of the table)', function () {
-      let targetParameterInsideCallback;
-
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        rowHeaders: true,
-        manualRowMove: true,
-        beforeRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
-        }
-      });
-
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-
-      this.$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseover');
-      this.$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousemove');
-      this.$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
-
-      expect(targetParameterInsideCallback).toEqual(2);
-    });
-
-    it('should run `beforeRowMove` with proper `target` parameter (moving row to the top of last header)', function () {
-      let targetParameterInsideCallback;
-
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        rowHeaders: true,
-        manualRowMove: true,
-        beforeRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
-        }
-      });
-
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-
-      this.$container.find('tbody tr:eq(29) th:eq(0)').simulate('mouseover');
-      this.$container.find('tbody tr:eq(29) th:eq(0)').simulate('mousemove');
-      this.$container.find('tbody tr:eq(29) th:eq(0)').simulate('mouseup');
-
-      expect(targetParameterInsideCallback).toEqual(29);
-    });
-
-    it('should run `beforeRowMove` with proper `target` parameter (moving row to the bottom of last header)', function () {
-      let targetParameterInsideCallback;
-
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        rowHeaders: true,
-        manualRowMove: true,
-        beforeRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
-        }
-      });
-      const $lastHeader = this.$container.find('tbody tr:eq(29) th:eq(0)');
-
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-
-      $lastHeader.simulate('mouseover');
-      $lastHeader.simulate('mousemove', {
-        clientY: $lastHeader.offset().top + $lastHeader.height()
-      });
-      $lastHeader.simulate('mouseup');
-
-      expect(targetParameterInsideCallback).toEqual(30);
-    });
-
-    it('should run `beforeRowMove` with proper `target` parameter (moving row below last header)', function () {
-      let targetParameterInsideCallback;
-
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        rowHeaders: true,
-        manualRowMove: true,
-        beforeRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
-        }
-      });
-      const $lastHeader = this.$container.find('tbody tr:eq(29) th:eq(0)');
-
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-
-      $lastHeader.simulate('mouseover');
-      $lastHeader.simulate('mousemove', {
-        clientY: $lastHeader.offset().top + $lastHeader.height() + 200
-      });
-      $lastHeader.simulate('mouseup');
-
-      expect(targetParameterInsideCallback).toEqual(30);
-    });
-
-    it('should run `beforeRowMove` with proper visual `target` parameter', function () {
-      let targetParameterInsideCallback;
-
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        rowHeaders: true,
-        manualRowMove: [1, 2, 0],
-        beforeRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
-        }
-      });
-
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-
-      this.$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseover');
-      this.$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousemove');
-      this.$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
-
-      expect(targetParameterInsideCallback).toEqual(2);
-    });
-
-    it('should run `afterRowMove` with proper visual `target` parameter', function () {
-      let targetParameterInsideCallback;
-
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        rowHeaders: true,
-        manualRowMove: [1, 2, 0],
-        afterRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
-        }
-      });
-
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
-      this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-
-      this.$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseover');
-      this.$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousemove');
-      this.$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
-
-      expect(targetParameterInsideCallback).toEqual(2);
     });
   });
 });
