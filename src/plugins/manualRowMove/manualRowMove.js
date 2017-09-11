@@ -114,9 +114,9 @@ class ManualRowMove extends BasePlugin {
     this.addHook('afterScrollHorizontally', () => this.onAfterScrollHorizontally());
     this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
     this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
-    this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
+    this.addHook('afterRemoveRow', () => this.onAfterRemoveRow());
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
-    this.addHook('afterLoadData', (firstTime) => this.onAfterLoadData(firstTime));
+    this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeColumnSort', (column, order) => this.onBeforeColumnSort(column, order));
     this.addHook('unmodifyRow', (row) => this.onUnmodifyRow(row));
 
@@ -434,7 +434,7 @@ class ManualRowMove extends BasePlugin {
       let maxIndex = countRows - 1;
       let rowsToRemove = [];
 
-      arrayEach(this.rowsMapper._arrayMap, (value, index, array) => {
+      arrayEach(this.rowsMapper._arrayMap, (value, index) => {
         if (value > maxIndex) {
           rowsToRemove.push(index);
         }
@@ -518,7 +518,7 @@ class ManualRowMove extends BasePlugin {
       priv.target.TD = TD;
       priv.rowsToMove = this.prepareRowsToMoving();
 
-      let leftPos = wtTable.holder.scrollLeft + wtTable.getColumnWidth(-1);
+      let leftPos = wtTable.holder.scrollLeft + this.hot.view.wt.wtViewport.getRowHeaderWidth();
 
       this.backlight.setPosition(null, leftPos);
       this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end + 1));
@@ -638,7 +638,7 @@ class ManualRowMove extends BasePlugin {
    */
   onAfterScrollHorizontally() {
     let wtTable = this.hot.view.wt.wtTable;
-    let headerWidth = wtTable.getColumnWidth(-1);
+    let headerWidth = this.hot.view.wt.wtViewport.getRowHeaderWidth();
     let scrollLeft = wtTable.holder.scrollLeft;
     let posLeft = headerWidth + scrollLeft;
 
@@ -679,10 +679,8 @@ class ManualRowMove extends BasePlugin {
    * `afterRemoveRow` hook callback.
    *
    * @private
-   * @param {Number} index Visual index of the removed row.
-   * @param {Number} amount Amount of removed rows.
    */
-  onAfterRemoveRow(index, amount) {
+  onAfterRemoveRow() {
     this.rowsMapper.unshiftItems(this.removedRows);
   }
 
@@ -690,9 +688,8 @@ class ManualRowMove extends BasePlugin {
    * `afterLoadData` hook callback.
    *
    * @private
-   * @param {Boolean} firstTime True if that was loading data during the initialization.
    */
-  onAfterLoadData(firstTime) {
+  onAfterLoadData() {
     this.updateRowsMapper();
   }
 

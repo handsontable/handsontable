@@ -116,9 +116,9 @@ class ManualColumnMove extends BasePlugin {
     this.addHook('afterScrollVertically', () => this.onAfterScrollVertically());
     this.addHook('modifyCol', (row, source) => this.onModifyCol(row, source));
     this.addHook('beforeRemoveCol', (index, amount) => this.onBeforeRemoveCol(index, amount));
-    this.addHook('afterRemoveCol', (index, amount) => this.onAfterRemoveCol(index, amount));
+    this.addHook('afterRemoveCol', () => this.onAfterRemoveCol());
     this.addHook('afterCreateCol', (index, amount) => this.onAfterCreateCol(index, amount));
-    this.addHook('afterLoadData', (firstTime) => this.onAfterLoadData(firstTime));
+    this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('unmodifyCol', (column) => this.onUnmodifyCol(column));
 
     this.registerEvents();
@@ -235,7 +235,7 @@ class ManualColumnMove extends BasePlugin {
       let columnWidth = 0;
 
       if (i < 0) {
-        columnWidth = this.hot.view.wt.wtTable.getColumnWidth(i) || 0;
+        columnWidth = this.hot.view.wt.wtViewport.getRowHeaderWidth() || 0;
       } else {
         columnWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(i) || 0;
       }
@@ -428,7 +428,7 @@ class ManualColumnMove extends BasePlugin {
       let maxIndex = countCols - 1;
       let columnsToRemove = [];
 
-      arrayEach(this.columnsMapper._arrayMap, (value, index, array) => {
+      arrayEach(this.columnsMapper._arrayMap, (value, index) => {
         if (value > maxIndex) {
           columnsToRemove.push(index);
         }
@@ -668,10 +668,8 @@ class ManualColumnMove extends BasePlugin {
    * `afterRemoveCol` hook callback.
    *
    * @private
-   * @param {Number} index Visual column index of the removed column.
-   * @param {Number} amount Amount of removed columns.
    */
-  onAfterRemoveCol(index, amount) {
+  onAfterRemoveCol() {
     this.columnsMapper.unshiftItems(this.removedColumns);
   }
 
@@ -679,9 +677,8 @@ class ManualColumnMove extends BasePlugin {
    * `afterLoadData` hook callback.
    *
    * @private
-   * @param {Boolean} firstTime True if that was loading data during the initialization.
    */
-  onAfterLoadData(firstTime) {
+  onAfterLoadData() {
     this.updateColumnsMapper();
   }
 

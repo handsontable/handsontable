@@ -17,6 +17,7 @@ module.exports.create = function create(envArgs) {
     output: {
       library: 'Handsontable',
       libraryTarget: 'umd',
+      libraryExport: 'default',
       umdNamedDefine: true,
       path: path.resolve(__dirname, '../dist'),
     },
