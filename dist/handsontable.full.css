@@ -20,8 +20,8 @@
  * RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
  * UNINTERRUPTED OR ERROR FREE.
  * 
- * Version: 1.14.0
- * Release date: 12/09/2017 (built at 12/09/2017 10:16:16)
+ * Version: 1.14.1
+ * Release date: 12/09/2017 (built at 12/09/2017 13:42:28)
  */
 /**
  * Fix for bootstrap styles
@@ -264,7 +264,7 @@
   color: #000;
 }
 
-.handsontable + .display-license-info {
+#hot-display-license-info {
   font-size: 9px;
   color: #323232 ;
   padding: 5px 0 3px 0;
