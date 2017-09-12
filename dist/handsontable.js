@@ -20,8 +20,8 @@
  * RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
  * UNINTERRUPTED OR ERROR FREE.
  * 
- * Version: 1.14.0
- * Release date: 12/09/2017 (built at 12/09/2017 10:16:16)
+ * Version: 1.14.1
+ * Release date: 12/09/2017 (built at 12/09/2017 13:42:28)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -5141,7 +5141,7 @@ function _injectProductInfo(key, element) {
   if (showDomMessage && element.parentNode) {
     var message = document.createElement('div');
 
-    (0, _element.addClass)(message, 'display-license-info');
+    message.id = 'hot-display-license-info';
     message.appendChild(document.createTextNode('Evaluation version of Handsontable Pro.'));
     message.appendChild(document.createElement('br'));
     message.appendChild(document.createTextNode('Not licensed for production use.'));
@@ -14776,7 +14776,7 @@ function Core(rootElement, userSettings) {
               if (result === false && cellProperties.allowInvalid === false) {
                 changes.splice(i, 1); // cancel the change
                 cellProperties.valid = true; // we cancelled the change, so cell value is still valid
-                var cell = instance.getCell(cellProperties.row, cellProperties.col);
+                var cell = instance.getCell(cellProperties.visualRow, cellProperties.visualCol);
                 (0, _element.removeClass)(cell, instance.getSettings().invalidCellClassName);
                 --i;
               }
@@ -16881,10 +16881,12 @@ function Core(rootElement, userSettings) {
     }
     dataSource = null;
 
-    var nextSibling = instance.rootElement.nextSibling;
+    if ('pro' !== '\x63\x65' && (0, _rootInstance.isRootInstance)(instance)) {
+      var licenseInfo = document.querySelector('#hot-display-license-info');
 
-    if ((0, _rootInstance.isRootInstance)(instance) && nextSibling) {
-      instance.rootElement.parentNode.removeChild(nextSibling);
+      if (licenseInfo) {
+        licenseInfo.parentNode.removeChild(licenseInfo);
+      }
     }
     (0, _element.empty)(instance.rootElement);
     eventManager.destroy();
@@ -30230,7 +30232,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_handsontable2.default.baseVersion = '0.34.2';
+_handsontable2.default.baseVersion = '0.34.3';
 
 exports.default = _handsontable2.default;
 
@@ -30887,11 +30889,11 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '12/09/2017 10:16:16';
+Handsontable.buildDate = '12/09/2017 13:42:28';
 Handsontable.packageName = 'handsontable-pro';
-Handsontable.version = '1.14.0';
+Handsontable.version = '1.14.1';
 
-var baseVersion = '0.34.2';
+var baseVersion = '0.34.3';
 
 if (baseVersion) {
   Handsontable.baseVersion = baseVersion;
