@@ -174,7 +174,7 @@
   color: #000;
 }
 
-.handsontable + .display-license-info {
+#hot-display-license-info {
   font-size: 9px;
   color: #323232 ;
   padding: 5px 0 3px 0;
