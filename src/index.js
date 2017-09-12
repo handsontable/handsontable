@@ -166,5 +166,4 @@ arrayHelpers.arrayEach(Object.getOwnPropertyNames(plugins), (pluginName) => {
 
 Handsontable.plugins.registerPlugin = registerPlugin;
 
-// Export Handsontable
-module.exports = Handsontable;
+export default Handsontable;
