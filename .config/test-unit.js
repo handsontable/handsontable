@@ -18,6 +18,7 @@ module.exports.create = function create(envArgs) {
     c.target = 'web';
     c.output = {
       libraryTarget: 'var',
+      libraryExport: 'default',
       filename: '[name].entry.js',
       path: path.resolve(__dirname, '../test/dist'),
     };
