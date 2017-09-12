@@ -21,7 +21,7 @@
  * UNINTERRUPTED OR ERROR FREE.
  * 
  * Version: 1.14.0
- * Release date: 12/09/2017 (built at 11/09/2017 15:04:32)
+ * Release date: 12/09/2017 (built at 12/09/2017 10:16:16)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -56364,7 +56364,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_handsontable2.default.baseVersion = 'handsontable/handsontable#release/0.34.2';
+_handsontable2.default.baseVersion = '0.34.2';
 
 exports.default = _handsontable2.default;
 
@@ -57021,11 +57021,11 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '11/09/2017 15:04:32';
+Handsontable.buildDate = '12/09/2017 10:16:16';
 Handsontable.packageName = 'handsontable-pro';
 Handsontable.version = '1.14.0';
 
-var baseVersion = 'handsontable/handsontable#release/0.34.2';
+var baseVersion = '0.34.2';
 
 if (baseVersion) {
   Handsontable.baseVersion = baseVersion;
