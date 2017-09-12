@@ -128,7 +128,7 @@ export function _injectProductInfo(key, element) {
   if (showDomMessage && element.parentNode) {
     const message = document.createElement('div');
 
-    addClass(message, 'display-license-info');
+    message.id = 'hot-display-license-info';
     message.appendChild(document.createTextNode('Evaluation version of Handsontable Pro.'));
     message.appendChild(document.createElement('br'));
     message.appendChild(document.createTextNode('Not licensed for production use.'));
