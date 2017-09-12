@@ -3155,10 +3155,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     dataSource = null;
 
-    const nextSibling = instance.rootElement.nextSibling;
+    if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(instance)) {
+      const licenseInfo = document.querySelector('#hot-display-license-info');
 
-    if (isRootInstance(instance) && nextSibling) {
-      instance.rootElement.parentNode.removeChild(nextSibling);
+      if (licenseInfo) {
+        licenseInfo.parentNode.removeChild(licenseInfo);
+      }
     }
     empty(instance.rootElement);
     eventManager.destroy();
