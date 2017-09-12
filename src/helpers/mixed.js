@@ -1,3 +1,4 @@
+import moment from 'moment';
 import {addClass} from './dom/element';
 import {toSingleLine} from './templateLiteralTag';
 
