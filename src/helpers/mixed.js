@@ -1,4 +1,4 @@
-import {addClass} from './dom/element';
+import moment from 'moment';
 import {toSingleLine} from './templateLiteralTag';
 
 /**
