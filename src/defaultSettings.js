@@ -59,7 +59,7 @@ import {isObjectEquals} from './helpers/object';
  *
  * ##### 3. Cells
  *
- * Configuration options that are provided using second-level function `handsontable(container, {cells: function: (row, col, prop){ }})`
+ * Configuration options that are provided using third-level function `handsontable(container, {cells: function: (row, col, prop){ }})`
  *
  * ---
  * ## Architecture performance
@@ -73,6 +73,15 @@ import {isObjectEquals} from './helpers/object';
 function DefaultSettings() {};
 
 DefaultSettings.prototype = {
+  /**
+   * License key for commercial version of Handsontable.
+   *
+   * @pro
+   * @type {String}
+   * @default 'trial'
+   */
+  licenseKey: 'trial',
+
   /**
    * @description
    * Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
