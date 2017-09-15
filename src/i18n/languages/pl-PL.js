@@ -4,10 +4,9 @@
  *
  * Description: Definition file for Polish language.
  */
-import {langDefinitionsController as l} from '../langDefinitionsController';
 import * as C from '../constants';
 
-l.registerLangDefinition('pl', {
+export default {
   [C.CONTEXTMENU_ITEMS_ALIGN]: 'Wyśrodkuj',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Umieść wiersz poniżej',
   [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['Usuń wiersz', 'Usuń wiersze'],
@@ -18,4 +17,4 @@ l.registerLangDefinition('pl', {
   [C.FILTERS_LABELS_FILTER_BY_VALUE]: 'Filtruj na podstawie wartości:',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Anuluj'
-});
+};

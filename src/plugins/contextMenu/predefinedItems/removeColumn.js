@@ -1,7 +1,6 @@
 import {getValidSelection} from './../utils';
-import L from './../../../i18n/index';
+import {getPhrase} from './../../../i18n';
 import * as C from './../../../i18n/constants';
-import {createCellHeadersRange} from './../../../i18n/utils';
 
 export const KEY = 'remove_col';
 
@@ -10,17 +9,17 @@ export default function removeColumnItem() {
     key: KEY,
     name() {
       const selection = this.getSelected();
-      const translationConfiguration = {};
+      let pluralForm = 0;
 
       if (Array.isArray(selection)) {
         const [, fromColumn, , toColumn] = selection;
 
         if (fromColumn - toColumn !== 0) {
-          translationConfiguration.pluralForm = 1;
+          pluralForm = 1;
         }
       }
 
-      return L.getPhrase(this, C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, translationConfiguration);
+      return getPhrase(this, C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, pluralForm);
     },
 
     callback(key, selection) {

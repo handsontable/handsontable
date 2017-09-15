@@ -1,4 +1,3 @@
-import {formattersController as f} from '../formattersController';
 import {substitute} from './../../helpers/string';
 
 /**
@@ -9,12 +8,10 @@ import {substitute} from './../../helpers/string';
  *
  * @returns {String} Phrases with substituted variables if it's possible, list of unchanged phrase propositions otherwise.
  */
-function substituteVariables(phrasePropositions, zippedVariableAndValues) {
+export default function substituteVariables(phrasePropositions, zippedVariableAndValues) {
   if (Array.isArray(phrasePropositions)) {
     return phrasePropositions.map((phraseProposition) => substituteVariables(phraseProposition, zippedVariableAndValues));
   }
 
   return substitute(phrasePropositions, zippedVariableAndValues);
 };
-
-f.registerFormatter(substituteVariables);

@@ -23,7 +23,7 @@ import {CellCoords, CellRange, ViewportColumnsCalculator} from './3rdparty/walko
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
 import {getCellType} from './cellTypes';
-import languagesController from './i18n/index';
+import {setLocale} from './i18n';
 
 let activeGuid = null;
 
@@ -1673,7 +1673,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (init || isDefined(settings.locale)) {
-      languagesController.setLocale(instance, settings.locale);
+      setLocale(instance, settings.locale);
     }
 
     // Load data or create data map

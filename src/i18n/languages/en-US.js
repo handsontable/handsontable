@@ -4,10 +4,9 @@
  *
  * Description: Definition file for English language.
  */
-import {langDefinitionsController as l} from '../langDefinitionsController';
 import * as C from '../constants';
 
-l.registerLangDefinition('en', {
+export default {
   [C.CONTEXTMENU_ITEMS_ALIGN]: 'Alignment',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insert row above',
   [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['Remove row', 'Remove rows'],
@@ -18,4 +17,4 @@ l.registerLangDefinition('en', {
   [C.FILTERS_LABELS_FILTER_BY_VALUE]: 'Filter by value:',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Cancel'
-});
+};
