@@ -37,7 +37,7 @@ class EventManager {
    * @param {Function} callback Function which will be called after event occur.
    * @returns {Function} Returns function which you can easily call to remove that event
    */
-  addEventListener(element, eventName, callback) {
+  addEventListener(element, eventName, callback, options) {
     let context = this.context;
 
     function callbackProxy(event) {
@@ -52,8 +52,17 @@ class EventManager {
       callbackProxy,
     });
 
+    var supportsPassive = false;
+    try {
+      addEventListener("test", null, { get passive() { supportsPassive = true; } });
+    } catch(e) {}
+
     if (window.addEventListener) {
-      element.addEventListener(eventName, callbackProxy, false);
+      if (supportsPassive) {
+        element.addEventListener(eventName, callbackProxy, options);
+      } else {
+        element.addEventListener(eventName, callbackProxy);
+      }
     } else {
       element.attachEvent(`on${eventName}`, callbackProxy);
     }

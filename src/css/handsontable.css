@@ -688,17 +688,17 @@ thead .htCollapseButton:after {
 }
 
 .ht_master .wtHolder {
-  overflow: auto;
+  overflow: hidden;
 }
 
 .ht_clone_left .wtHolder {
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
 }
 
 .ht_clone_top .wtHolder,
 .ht_clone_bottom .wtHolder {
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-y: hidden;
 }
 

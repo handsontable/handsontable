@@ -261,7 +261,13 @@ class LeftOverlay extends Overlay {
    * @returns {Number} Main table's vertical scroll position
    */
   getScrollPosition() {
-    return getScrollLeft(this.mainTableScrollableElement);
+    var element = document.querySelector('.scroll-overlay');
+
+    if (!element) {
+      element = this.mainTableScrollableElement;
+    }
+
+    return getScrollLeft(element);
   }
 
   /**

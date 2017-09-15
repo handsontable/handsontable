@@ -270,7 +270,13 @@ class TopOverlay extends Overlay {
    * @returns {Number} Main table's vertical scroll position
    */
   getScrollPosition() {
-    return getScrollTop(this.mainTableScrollableElement);
+    var element = document.querySelector('.scroll-overlay');
+
+    if (!element) {
+      element = this.mainTableScrollableElement;
+    }
+
+    return getScrollTop(element);
   }
 
   /**

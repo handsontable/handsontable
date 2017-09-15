@@ -943,14 +943,14 @@ export function hasHorizontalScrollbar(element) {
  * Sets overlay position depending on it's type and used browser
  */
 export function setOverlayPosition(overlayElem, left, top) {
-  if (isIE8() || isIE9()) {
-    overlayElem.style.top = top;
-    overlayElem.style.left = left;
-  } else if (isSafari()) {
-    overlayElem.style['-webkit-transform'] = 'translate3d(' + left + ',' + top + ',0)';
-  } else {
+  // if (isIE8() || isIE9()) {
+  //   overlayElem.style.top = top;
+  //   overlayElem.style.left = left;
+  // } else if (isSafari()) {
+  //   overlayElem.style['-webkit-transform'] = 'translate3d(' + left + ',' + top + ',0)';
+  // } else {
     overlayElem.style.transform = 'translate3d(' + left + ',' + top + ',0)';
-  }
+  // }
 }
 
 export function getCssTransform(element) {
