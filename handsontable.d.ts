@@ -1320,7 +1320,7 @@ declare namespace Handsontable {
   interface DefaultSettings extends GridSettings { }
   interface DefaultSettings extends Hooks { }
 
-  interface GridSettings {
+  interface GridSettings extends Hooks {
     allowEmpty?: boolean;
     allowHtml?: boolean;
     allowInsertColumn?: boolean;
@@ -1437,6 +1437,7 @@ declare namespace Handsontable {
     type?: string;
     uncheckedTemplate?: boolean | string;
     undo?: boolean;
+    valid?: boolean;
     validator?: (() => void) | RegExp;
     viewportColumnRenderingOffset?: number | string;
     viewportRowRenderingOffset?: number | string;
