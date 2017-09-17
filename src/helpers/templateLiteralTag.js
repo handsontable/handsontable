@@ -10,6 +10,7 @@ import {arrayReduce} from '../helpers/array';
  */
 export function toSingleLine(strings, ...expressions) {
   let result = arrayReduce(strings, (previousValue, currentValue, index) => {
+
     const valueWithoutWhiteSpaces = currentValue.replace(/(?:\r?\n\s+)/g, '');
     const expressionForIndex = expressions[index] ? expressions[index] : '';
 

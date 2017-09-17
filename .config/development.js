@@ -7,23 +7,20 @@
  *  - handsontable.full.js
  *  - handsontable.full.css
  */
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-var path = require('path');
-var webpack = require('webpack');
-var configFactory = require('./base');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const path = require('path');
+const webpack = require('webpack');
+const configFactory = require('./base');
 
-var env = process.env.NODE_ENV;
-var PACKAGE_NAME = configFactory.PACKAGE_NAME;
-
-module.exports.PACKAGE_NAME = PACKAGE_NAME;
+const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
 module.exports.create = function create(envArgs) {
-  var configBase = configFactory.create(envArgs);
-  var configFull = configFactory.create(envArgs);
+  const configBase = configFactory.create(envArgs);
+  const configFull = configFactory.create(envArgs);
 
   configBase.forEach(function(c) {
-    c.output.filename = PACKAGE_NAME + '.js';
+    c.output.filename = PACKAGE_FILENAME + '.js';
 
     c.devtool = 'cheap-module-source-map';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css files)
@@ -55,12 +52,12 @@ module.exports.create = function create(envArgs) {
       loader: path.resolve(__dirname, 'loader/empty-loader.js'),
     });
     c.plugins.push(
-      new ExtractTextPlugin(PACKAGE_NAME + '.css')
+      new ExtractTextPlugin(PACKAGE_FILENAME + '.css')
     );
   });
 
   configFull.forEach(function(c) {
-    c.output.filename = PACKAGE_NAME + '.full.js';
+    c.output.filename = PACKAGE_FILENAME + '.full.js';
     c.module.rules.unshift({
       test: /numbro/,
       use: [
@@ -85,7 +82,7 @@ module.exports.create = function create(envArgs) {
     });
 
     c.plugins.push(
-      new ExtractTextPlugin(PACKAGE_NAME + '.full.css')
+      new ExtractTextPlugin(PACKAGE_FILENAME + '.full.css')
     );
   });
 

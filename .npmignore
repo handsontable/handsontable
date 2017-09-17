@@ -9,6 +9,7 @@ dev.html
 webpack.config.js
 
 !dist/README.md
+!test/
 node_modules/
 
 # this directories are necessary for build PRO package
