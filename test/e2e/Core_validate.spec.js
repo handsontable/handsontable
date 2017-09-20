@@ -976,6 +976,35 @@ describe('Core_validate', () => {
     }, 200);
   });
 
+  it('should remove htInvalid class properly after cancelling change, when physical indexes are not equal to visual indexes', (done) => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      columnSorting: {
+        column: 0,
+        sortOrder: false
+      },
+      allowInvalid: false,
+      validator(value, callback) {
+        setTimeout(() => {
+          callback(value.length === 2);
+        }, 100);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    document.activeElement.value = 'Ted';
+
+    keyDown('enter');
+
+    setTimeout(() => {
+      const $cell = $(getCell(0, 0));
+      expect($cell.hasClass('htInvalid')).toEqual(false);
+      done();
+    }, 200);
+  });
+
   it('should close the editor and save the new value if validation fails and allowInvalid is set to "true"', (done) => {
     var validated = false;
     var validationResult;

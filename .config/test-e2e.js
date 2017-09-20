@@ -53,7 +53,6 @@ module.exports.create = function create(envArgs) {
           '../dist/numbro/languages.js',
           '../dist/moment/moment.js',
           '../dist/pikaday/pikaday.js',
-          '../dist/zeroclipboard/ZeroClipboard.js',
           '../dist/handsontable.js',
         ],
       })

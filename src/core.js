@@ -1050,7 +1050,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               if (result === false && cellProperties.allowInvalid === false) {
                 changes.splice(i, 1); // cancel the change
                 cellProperties.valid = true; // we cancelled the change, so cell value is still valid
-                const cell = instance.getCell(cellProperties.row, cellProperties.col);
+                const cell = instance.getCell(cellProperties.visualRow, cellProperties.visualCol);
                 removeClass(cell, instance.getSettings().invalidCellClassName);
                 --i;
               }
@@ -3160,10 +3160,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     dataSource = null;
 
-    const nextSibling = instance.rootElement.nextSibling;
+    if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(instance)) {
+      const licenseInfo = document.querySelector('#hot-display-license-info');
 
-    if (isRootInstance(instance) && nextSibling) {
-      instance.rootElement.parentNode.removeChild(nextSibling);
+      if (licenseInfo) {
+        licenseInfo.parentNode.removeChild(licenseInfo);
+      }
     }
     empty(instance.rootElement);
     eventManager.destroy();
