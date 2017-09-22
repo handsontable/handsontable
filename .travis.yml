@@ -1,5 +1,10 @@
 language: node_js
 
+env:
+  global:
+    - HOT_BRANCH=master
+    - HOT_FOREIGN_TRIGGER=false
+
 sudo: false
 
 node_js:
@@ -7,6 +12,10 @@ node_js:
 
 before_script:
   - export TZ=Europe/Warsaw
+  - chmod ugo+x test/scripts/run-customized-tests.sh
+
+script:
+  - 'if [ ${HOT_FOREIGN_TRIGGER} = "true" ]; then ./test/scripts/run-customized-tests.sh; else npm run test; fi'
 
 notifications:
   email: false
