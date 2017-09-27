@@ -127,6 +127,19 @@ describe('CopyPaste', () => {
       expect(copyPasteTextarea.value).toEqual('A1');
     });
 
+    it('should select text after the preparation', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2)
+      });
+
+      expect(window.getSelection().toString()).toEqual('');
+
+      selectCell(0, 0);
+      keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_RIGHT);
+
+      expect(window.getSelection().toString()).toEqual('A1');
+    });
+
     it('should set copyable text when selecting multiple cells and hitting ctrl', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2)
