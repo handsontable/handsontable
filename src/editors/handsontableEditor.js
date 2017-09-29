@@ -12,8 +12,8 @@ const HandsontableEditor = TextEditor.prototype.extend();
  * @class HandsontableEditor
  * @dependencies TextEditor
  */
-HandsontableEditor.prototype.createElements = function() {
-  TextEditor.prototype.createElements.apply(this, arguments);
+HandsontableEditor.prototype.createElements = function(...args) {
+  TextEditor.prototype.createElements.apply(this, args);
 
   var DIV = document.createElement('DIV');
   DIV.className = 'handsontableEditor';
@@ -23,8 +23,8 @@ HandsontableEditor.prototype.createElements = function() {
   this.assignHooks();
 };
 
-HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellProperties) {
-  TextEditor.prototype.prepare.apply(this, arguments);
+HandsontableEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellProperties) {
+  TextEditor.prototype.prepare.apply(this, [row, col, prop, td, originalValue, cellProperties]);
 
   var parent = this;
   var options = {
@@ -39,11 +39,11 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
     readOnly: true,
     fillHandle: false,
     afterOnCellMouseDown(_, coords) {
-      var value = this.getSourceData(coords.row, coords.col);
+      let sourceValue = this.getSourceData(coords.row, coords.col);
 
       // if the value is undefined then it means we don't want to set the value
-      if (value !== void 0) {
-        parent.setValue(value);
+      if (sourceValue !== void 0) {
+        parent.setValue(sourceValue);
       }
       parent.instance.destroyEditor();
     }
@@ -66,7 +66,7 @@ var onBeforeKeyDown = function(event) {
   var rowToSelect;
   var selectedRow;
 
-  if (event.keyCode == KEY_CODES.ARROW_DOWN) {
+  if (event.keyCode === KEY_CODES.ARROW_DOWN) {
     if (!innerHOT.getSelected() && !innerHOT.flipped) {
       rowToSelect = 0;
     } else if (innerHOT.getSelected()) {
@@ -78,7 +78,7 @@ var onBeforeKeyDown = function(event) {
         rowToSelect = Math.min(lastRow, selectedRow + 1);
       }
     }
-  } else if (event.keyCode == KEY_CODES.ARROW_UP) {
+  } else if (event.keyCode === KEY_CODES.ARROW_UP) {
     if (!innerHOT.getSelected() && innerHOT.flipped) {
       rowToSelect = innerHOT.countRows() - 1;
 
@@ -109,10 +109,10 @@ var onBeforeKeyDown = function(event) {
   }
 };
 
-HandsontableEditor.prototype.open = function() {
+HandsontableEditor.prototype.open = function(...args) {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 
-  TextEditor.prototype.open.apply(this, arguments);
+  TextEditor.prototype.open.apply(this, args);
 
   if (this.htEditor) {
     this.htEditor.destroy();
@@ -132,16 +132,16 @@ HandsontableEditor.prototype.open = function() {
   setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
 };
 
-HandsontableEditor.prototype.close = function() {
+HandsontableEditor.prototype.close = function(...args) {
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
   this.instance.listen();
 
-  TextEditor.prototype.close.apply(this, arguments);
+  TextEditor.prototype.close.apply(this, args);
 };
 
-HandsontableEditor.prototype.focus = function() {
+HandsontableEditor.prototype.focus = function(...args) {
   this.instance.listen();
-  TextEditor.prototype.focus.apply(this, arguments);
+  TextEditor.prototype.focus.apply(this, args);
 };
 
 HandsontableEditor.prototype.beginEditing = function(initialValue) {
@@ -150,7 +150,7 @@ HandsontableEditor.prototype.beginEditing = function(initialValue) {
   if (onBeginEditing && onBeginEditing() === false) {
     return;
   }
-  TextEditor.prototype.beginEditing.apply(this, arguments);
+  TextEditor.prototype.beginEditing.apply(this, [initialValue]);
 };
 
 HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
@@ -167,7 +167,7 @@ HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
     }
   }
 
-  return TextEditor.prototype.finishEditing.apply(this, arguments);
+  return TextEditor.prototype.finishEditing.apply(this, [isCancelled, ctrlDown]);
 };
 
 HandsontableEditor.prototype.assignHooks = function() {

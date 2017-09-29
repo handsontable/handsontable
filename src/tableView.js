@@ -59,7 +59,7 @@ function TableView(instance) {
       window.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
     }
   });
-  this.eventManager.addEventListener(instance.rootElement, 'mouseup', function(event) {
+  this.eventManager.addEventListener(instance.rootElement, 'mouseup', function() {
     this.selectionMouseDown = false;
   });
   this.eventManager.addEventListener(instance.rootElement, 'mousemove', function(event) {
@@ -69,7 +69,7 @@ function TableView(instance) {
     }
   });
 
-  this.eventManager.addEventListener(document.documentElement, 'keyup', function(event) {
+  this.eventManager.addEventListener(document.documentElement, 'keyup', (event) => {
     if (instance.selection.isInProgress() && !event.shiftKey) {
       instance.selection.finish();
     }
@@ -80,7 +80,7 @@ function TableView(instance) {
     return isMouseDown;
   };
 
-  this.eventManager.addEventListener(document.documentElement, 'mouseup', function(event) {
+  this.eventManager.addEventListener(document.documentElement, 'mouseup', (event) => {
     if (instance.selection.isInProgress() && event.which === 1) { // is left mouse button
       instance.selection.finish();
     }
@@ -92,7 +92,7 @@ function TableView(instance) {
     }
   });
 
-  this.eventManager.addEventListener(document.documentElement, 'mousedown', function(event) {
+  this.eventManager.addEventListener(document.documentElement, 'mousedown', (event) => {
     var originalTarget = event.target;
     var next = event.target;
     var eventX = event.x || event.clientX;
@@ -140,7 +140,7 @@ function TableView(instance) {
     }
   });
 
-  this.eventManager.addEventListener(table, 'selectstart', function(event) {
+  this.eventManager.addEventListener(table, 'selectstart', (event) => {
     if (that.settings.fragmentSelection || isInput(event.target)) {
       return;
     }
@@ -169,10 +169,10 @@ function TableView(instance) {
         width: 2,
         color: '#5292F7',
         // style: 'solid', // not used
-        cornerVisible: function() {
+        cornerVisible() {
           return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
         },
-        multipleSelectionHandlesVisible: function() {
+        multipleSelectionHandlesVisible() {
           return !that.isCellEdited() && !instance.selection.isMultiple();
         },
       },
@@ -183,10 +183,10 @@ function TableView(instance) {
         width: 1,
         color: '#89AFF9',
         // style: 'solid', // not used
-        cornerVisible: function() {
+        cornerVisible() {
           return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
         },
-        multipleSelectionHandlesVisible: function() {
+        multipleSelectionHandlesVisible() {
           return !that.isCellEdited() && instance.selection.isMultiple();
         },
       },
@@ -212,36 +212,36 @@ function TableView(instance) {
   selections.fill = selections[3];
 
   var walkontableConfig = {
-    debug: function() {
+    debug() {
       return that.settings.debug;
     },
     externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
-    table: table,
+    table,
     preventOverflow: () => this.settings.preventOverflow,
-    stretchH: function() {
+    stretchH() {
       return that.settings.stretchH;
     },
     data: instance.getDataAtCell,
     totalRows: () => instance.countRows(),
     totalColumns: () => instance.countCols(),
-    fixedColumnsLeft: function() {
+    fixedColumnsLeft() {
       return that.settings.fixedColumnsLeft;
     },
-    fixedRowsTop: function() {
+    fixedRowsTop() {
       return that.settings.fixedRowsTop;
     },
-    fixedRowsBottom: function() {
+    fixedRowsBottom() {
       return that.settings.fixedRowsBottom;
     },
-    minSpareRows: function() {
+    minSpareRows() {
       return that.settings.minSpareRows;
     },
     renderAllRows: that.settings.renderAllRows,
-    rowHeaders: function() {
+    rowHeaders() {
       let headerRenderers = [];
 
       if (instance.hasRowHeaders()) {
-        headerRenderers.push(function(row, TH) {
+        headerRenderers.push((row, TH) => {
           that.appendRowHeader(row, TH);
         });
       }
@@ -249,11 +249,11 @@ function TableView(instance) {
 
       return headerRenderers;
     },
-    columnHeaders: function() {
+    columnHeaders() {
       let headerRenderers = [];
 
       if (instance.hasColHeaders()) {
-        headerRenderers.push(function(column, TH) {
+        headerRenderers.push((column, TH) => {
           that.appendColHeader(column, TH);
         });
       }
@@ -263,7 +263,7 @@ function TableView(instance) {
     },
     columnWidth: instance.getColWidth,
     rowHeight: instance.getRowHeight,
-    cellRenderer: function(row, col, TD) {
+    cellRenderer(row, col, TD) {
       const cellProperties = that.instance.getCellMeta(row, col);
       const prop = that.instance.colToProp(col);
       let value = that.instance.getDataAtRowProp(row, prop);
@@ -277,11 +277,11 @@ function TableView(instance) {
       that.instance.runHooks('afterRenderer', TD, row, col, prop, value, cellProperties);
 
     },
-    selections: selections,
-    hideBorderOnMouseDownOver: function() {
+    selections,
+    hideBorderOnMouseDownOver() {
       return that.settings.fragmentSelection;
     },
-    onCellMouseDown: function(event, coords, TD, wt) {
+    onCellMouseDown(event, coords, TD, wt) {
       let blockCalculations = {
         row: false,
         column: false,
@@ -392,7 +392,7 @@ function TableView(instance) {
       instance.runHooks('afterOnCellMouseDown', event, coords, TD);
       that.activeWt = that.wt;
     },
-    onCellMouseOut: function(event, coords, TD, wt) {
+    onCellMouseOut(event, coords, TD, wt) {
       that.activeWt = wt;
       instance.runHooks('beforeOnCellMouseOut', event, coords, TD);
 
@@ -403,7 +403,7 @@ function TableView(instance) {
       instance.runHooks('afterOnCellMouseOut', event, coords, TD);
       that.activeWt = that.wt;
     },
-    onCellMouseOver: function(event, coords, TD, wt) {
+    onCellMouseOver(event, coords, TD, wt) {
       let blockCalculations = {
         row: false,
         column: false,
@@ -445,49 +445,49 @@ function TableView(instance) {
       instance.runHooks('afterOnCellMouseOver', event, coords, TD);
       that.activeWt = that.wt;
     },
-    onCellMouseUp: function(event, coords, TD, wt) {
+    onCellMouseUp(event, coords, TD, wt) {
       that.activeWt = wt;
       instance.runHooks('beforeOnCellMouseUp', event, coords, TD);
 
       instance.runHooks('afterOnCellMouseUp', event, coords, TD);
       that.activeWt = that.wt;
     },
-    onCellCornerMouseDown: function(event) {
+    onCellCornerMouseDown(event) {
       event.preventDefault();
       instance.runHooks('afterOnCellCornerMouseDown', event);
     },
-    onCellCornerDblClick: function(event) {
+    onCellCornerDblClick(event) {
       event.preventDefault();
       instance.runHooks('afterOnCellCornerDblClick', event);
     },
-    beforeDraw: function(force, skipRender) {
+    beforeDraw(force, skipRender) {
       that.beforeRender(force, skipRender);
     },
-    onDraw: function(force) {
+    onDraw(force) {
       that.onDraw(force);
     },
-    onScrollVertically: function() {
+    onScrollVertically() {
       instance.runHooks('afterScrollVertically');
     },
-    onScrollHorizontally: function() {
+    onScrollHorizontally() {
       instance.runHooks('afterScrollHorizontally');
     },
-    onBeforeDrawBorders: function(corners, borderClassName) {
+    onBeforeDrawBorders(corners, borderClassName) {
       instance.runHooks('beforeDrawBorders', corners, borderClassName);
     },
-    onBeforeTouchScroll: function() {
+    onBeforeTouchScroll() {
       instance.runHooks('beforeTouchScroll');
     },
-    onAfterMomentumScroll: function() {
+    onAfterMomentumScroll() {
       instance.runHooks('afterMomentumScroll');
     },
-    onBeforeStretchingColumnWidth: function(stretchedWidth, column) {
+    onBeforeStretchingColumnWidth(stretchedWidth, column) {
       return instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column);
     },
-    onModifyRowHeaderWidth: function(rowHeaderWidth) {
+    onModifyRowHeaderWidth(rowHeaderWidth) {
       return instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth);
     },
-    viewportRowCalculatorOverride: function(calc) {
+    viewportRowCalculatorOverride(calc) {
       let rows = instance.countRows();
       let viewportOffset = that.settings.viewportRowRenderingOffset;
 
@@ -507,7 +507,7 @@ function TableView(instance) {
       }
       instance.runHooks('afterViewportRowCalculatorOverride', calc);
     },
-    viewportColumnCalculatorOverride: function(calc) {
+    viewportColumnCalculatorOverride(calc) {
       let cols = instance.countCols();
       let viewportOffset = that.settings.viewportColumnRenderingOffset;
 
@@ -527,10 +527,10 @@ function TableView(instance) {
       }
       instance.runHooks('afterViewportColumnCalculatorOverride', calc);
     },
-    rowHeaderWidth: function() {
+    rowHeaderWidth() {
       return that.settings.rowHeaderWidth;
     },
-    columnHeaderHeight: function() {
+    columnHeaderHeight() {
       const columnHeaderHeight = instance.runHooks('modifyColumnHeaderHeight');
       return that.settings.columnHeaderHeight || columnHeaderHeight;
     }
@@ -568,21 +568,21 @@ function TableView(instance) {
     });
   }
 
-  this.eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', function(event) {
+  this.eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', (event) => {
     // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
     if (event.target === that.wt.wtTable.spreader && event.which === 3) {
       stopPropagation(event);
     }
   });
 
-  this.eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', function(event) {
+  this.eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', (event) => {
     // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
     if (event.target === that.wt.wtTable.spreader && event.which === 3) {
       stopPropagation(event);
     }
   });
 
-  this.eventManager.addEventListener(document.documentElement, 'click', function() {
+  this.eventManager.addEventListener(document.documentElement, 'click', () => {
     if (that.settings.observeDOMVisibility) {
       if (that.wt.drawInterrupted) {
         that.instance.forceFullRender = true;

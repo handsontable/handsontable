@@ -1,4 +1,4 @@
-import {arrayEach, arrayReduce, arrayMap, arrayMax} from './../helpers/array';
+import {arrayReduce, arrayMap, arrayMax} from './../helpers/array';
 import {defineGetter} from './../helpers/object';
 import {rangeEach} from './../helpers/number';
 
@@ -103,7 +103,7 @@ const arrayMapper = {
       }, 0);
     }
 
-    this._arrayMap = arrayMap(this._arrayMap, (logicalRow, physicalRow) => {
+    this._arrayMap = arrayMap(this._arrayMap, (logicalRow) => {
       let rowShift = countRowShift(logicalRow);
 
       if (rowShift) {

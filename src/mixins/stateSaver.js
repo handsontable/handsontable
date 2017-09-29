@@ -1,4 +1,3 @@
-import {arrayEach} from './../helpers/array';
 import {defineGetter} from './../helpers/object';
 
 const MIXIN_NAME = 'stateSaver';

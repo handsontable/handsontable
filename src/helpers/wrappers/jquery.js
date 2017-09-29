@@ -44,7 +44,7 @@ export default function jQueryWrapper(Handsontable) {
         }
 
       } else {
-        throw new Error('Handsontable do not provide action: ' + action);
+        throw new Error(`Handsontable do not provide action: ${action}`);
       }
     }
 

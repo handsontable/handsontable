@@ -53,15 +53,13 @@ function Event(instance) {
     }
   };
 
-  var onTouchMove = function(event) {
+  var onTouchMove = function() {
     that.instance.touchMoving = true;
   };
 
   var longTouchTimeout;
 
   var onTouchStart = function(event) {
-    var container = this;
-
     eventManager.addEventListener(this, 'touchmove', onTouchMove);
 
     // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
@@ -176,7 +174,7 @@ function Event(instance) {
     if (!that.instance.momentumScrolling) {
       that.instance.momentumScrolling = {};
     }
-    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', (event) => {
+    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', () => {
       clearTimeout(that.instance.momentumScrolling._timeout);
 
       if (!that.instance.momentumScrolling.ongoing) {

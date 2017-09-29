@@ -43,7 +43,7 @@ var createControls = function() {
 };
 
 MobileTextEditor.prototype.valueChanged = function() {
-  return this.initValue != this.getValue();
+  return this.initValue !== this.getValue();
 };
 
 MobileTextEditor.prototype.init = function() {
@@ -180,9 +180,9 @@ MobileTextEditor.prototype.updateEditorPosition = function(x, y) {
 
     if (selectedCell !== undefined) {
       var scrollLeft = this.instance.view.wt.wtOverlays.leftOverlay
-        .trimmingContainer == window ? 0 : getScrollLeft(this.instance.view.wt.wtOverlays.leftOverlay.holder);
+        .trimmingContainer === window ? 0 : getScrollLeft(this.instance.view.wt.wtOverlays.leftOverlay.holder);
       var scrollTop = this.instance.view.wt.wtOverlays.topOverlay
-        .trimmingContainer == window ? 0 : getScrollTop(this.instance.view.wt.wtOverlays.topOverlay.holder);
+        .trimmingContainer === window ? 0 : getScrollTop(this.instance.view.wt.wtOverlays.topOverlay.holder);
 
       var selectedCellOffset = offset(selectedCell),
         selectedCellWidth = outerWidth(selectedCell),
@@ -268,22 +268,22 @@ MobileTextEditor.prototype.bindEvents = function() {
   });
 
   this.eventManager.addEventListener(this.moveHandle, 'touchstart', function(event) {
-    if (event.touches.length == 1) {
-      var touch = event.touches[0];
-      var onTouchPosition = {
+    if (event.touches.length === 1) {
+      let touch = event.touches[0];
+      let onTouchPosition = {
         x: that.editorContainer.offsetLeft,
         y: that.editorContainer.offsetTop
       };
-      var onTouchOffset = {
+      let onTouchOffset = {
         x: touch.pageX - onTouchPosition.x,
         y: touch.pageY - onTouchPosition.y
       };
 
-      that.eventManager.addEventListener(this, 'touchmove', (event) => {
-        var touch = event.touches[0];
-        that.updateEditorPosition(touch.pageX - onTouchOffset.x, touch.pageY - onTouchOffset.y);
+      that.eventManager.addEventListener(this, 'touchmove', (e) => {
+        let touchMove = e.touches[0];
+        that.updateEditorPosition(touchMove.pageX - onTouchOffset.x, touchMove.pageY - onTouchOffset.y);
         that.hideCellPointer();
-        event.preventDefault();
+        e.preventDefault();
       });
 
     }
@@ -295,14 +295,14 @@ MobileTextEditor.prototype.bindEvents = function() {
     }
   });
 
-  this.eventManager.addEventListener(this.instance.view.wt.wtOverlays.leftOverlay.holder, 'scroll', (event) => {
-    if (that.instance.view.wt.wtOverlays.leftOverlay.trimmingContainer != window) {
+  this.eventManager.addEventListener(this.instance.view.wt.wtOverlays.leftOverlay.holder, 'scroll', () => {
+    if (that.instance.view.wt.wtOverlays.leftOverlay.trimmingContainer !== window) {
       that.hideCellPointer();
     }
   });
 
-  this.eventManager.addEventListener(this.instance.view.wt.wtOverlays.topOverlay.holder, 'scroll', (event) => {
-    if (that.instance.view.wt.wtOverlays.topOverlay.trimmingContainer != window) {
+  this.eventManager.addEventListener(this.instance.view.wt.wtOverlays.topOverlay.holder, 'scroll', () => {
+    if (that.instance.view.wt.wtOverlays.topOverlay.trimmingContainer !== window) {
       that.hideCellPointer();
     }
   });

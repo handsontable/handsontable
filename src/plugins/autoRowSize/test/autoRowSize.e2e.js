@@ -342,7 +342,7 @@ describe('AutoRowSize', () => {
       autoRowSize: true,
       renderer(instance, td, row, col, prop, value, cellProperties) {
         // taken from demo/renderers.html
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
+        Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
 
         if (row === 1 && col === 0) {
           td.style.padding = '100px';
@@ -464,7 +464,7 @@ describe('AutoRowSize', () => {
   });
 
   it('should resize the column headers properly, according the their content sizes', () => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(30, 30),
       colHeaders(index) {
         if (index === 22) {

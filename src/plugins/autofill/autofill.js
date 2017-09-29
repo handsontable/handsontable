@@ -95,7 +95,7 @@ class Autofill extends BasePlugin {
 
     this.addHook('afterOnCellCornerMouseDown', (event) => this.onAfterCellCornerMouseDown(event));
     this.addHook('afterOnCellCornerDblClick', (event) => this.onCellCornerDblClick(event));
-    this.addHook('beforeOnCellMouseOver', (event, coords, TD) => this.onBeforeCellMouseOver(coords));
+    this.addHook('beforeOnCellMouseOver', (event, coords) => this.onBeforeCellMouseOver(coords));
 
     super.enablePlugin();
   }
@@ -231,7 +231,7 @@ class Autofill extends BasePlugin {
    *
    * @private
    * @param {CellCoords} coordsOfSelection `CellCoords` coord object.
-   * @returns {Array}
+   * @returns {CellCoords}
    */
 
   getCoordsOfDragAndDropBorders(coordsOfSelection) {

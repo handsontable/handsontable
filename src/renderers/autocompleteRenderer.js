@@ -1,4 +1,4 @@
-import {addClass, hasClass, empty} from './../helpers/dom/element';
+import {addClass, hasClass} from './../helpers/dom/element';
 import EventManager from './../eventManager';
 import {CellCoords} from './../3rdparty/walkontable/src';
 import {getRenderer} from './index';
@@ -11,12 +11,6 @@ clonableARROW.className = 'htAutocompleteArrow';
 // workaround for https://github.com/handsontable/handsontable/issues/1946
 // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
 clonableARROW.appendChild(document.createTextNode(String.fromCharCode(9660)));
-
-var wrapTdContentWithWrapper = function(TD, WRAPPER) {
-  WRAPPER.innerHTML = TD.innerHTML;
-  empty(TD);
-  TD.appendChild(WRAPPER);
-};
 
 /**
  * Autocomplete renderer
@@ -32,14 +26,11 @@ var wrapTdContentWithWrapper = function(TD, WRAPPER) {
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
 function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  var WRAPPER = clonableWRAPPER.cloneNode(true); // this is faster than createElement
+  const TYPE = cellProperties.allowHtml ? 'html' : 'text';
+
   var ARROW = clonableARROW.cloneNode(true); // this is faster than createElement
 
-  if (cellProperties.allowHtml) {
-    getRenderer('html').apply(this, arguments);
-  } else {
-    getRenderer('text').apply(this, arguments);
-  }
+  getRenderer(TYPE).apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 
   TD.appendChild(ARROW);
   addClass(TD, 'htAutocomplete');

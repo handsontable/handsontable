@@ -1,9 +1,9 @@
 import BasePlugin from './../_base';
-import {arrayEach, arrayFilter} from './../../helpers/array';
+import {arrayFilter} from './../../helpers/array';
 import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/feature';
 import {isVisible} from './../../helpers/dom/element';
 import GhostTable from './../../utils/ghostTable';
-import {isObject, objectEach, hasOwnProperty} from './../../helpers/object';
+import {isObject, hasOwnProperty} from './../../helpers/object';
 import {valueAccordingPercent, rangeEach} from './../../helpers/number';
 import {registerPlugin} from './../../plugins';
 import SamplesGenerator from './../../utils/samplesGenerator';
@@ -182,8 +182,8 @@ class AutoRowSize extends BasePlugin {
       if (force || this.heights[row] === void 0) {
         const samples = this.samplesGenerator.generateRowSamples(row, colRange);
 
-        samples.forEach((sample, row) => {
-          this.ghostTable.addRow(row, sample);
+        samples.forEach((sample, r) => {
+          this.ghostTable.addRow(r, sample);
         });
       }
     });

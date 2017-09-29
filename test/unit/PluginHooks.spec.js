@@ -91,7 +91,6 @@ describe('PluginHooks', () => {
     var fn2 = function() {};
     var fn3 = function() {};
     var context = {};
-    var bucket = {};
 
     spyOn(hooks, 'add');
 
@@ -109,7 +108,6 @@ describe('PluginHooks', () => {
     var fn1 = function() {};
     var fn2 = function() {};
     var context = {};
-    var bucket = {};
 
     spyOn(hooks, 'add');
 
@@ -132,7 +130,6 @@ describe('PluginHooks', () => {
     var fn1 = function() {};
     var fn2 = function() {};
     var fn3 = function() {};
-    var context = {};
     var bucket = {test: [fn1, fn2]};
     var result;
 
@@ -197,7 +194,6 @@ describe('PluginHooks', () => {
     var fn2 = jasmine.createSpy('fn2').and.returnValue('Bar');
     var fn3 = jasmine.createSpy('fn3');
     var context = {pluginHookBucket: {test: [fn1, fn2]}};
-    var result;
 
     fn1.runOnce = true;
     fn2.runOnce = true;

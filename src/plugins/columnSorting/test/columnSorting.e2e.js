@@ -35,7 +35,7 @@ describe('ColumnSorting', () => {
   };
 
   it('should sort table by first visible column', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
         [9, 8, 7, 6, 5, 4, 3, 2, 1],
@@ -896,8 +896,6 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    var htCore = getHtCore();
-
     this.sortByColumn(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['6999.9999', '7000', 8330, '8330', 8333, 30500, '33900']);
@@ -930,7 +928,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should sort table with multiple row headers', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -967,7 +965,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should allow to define sorting column and order during initialization', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -986,7 +984,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should allow to change sorting column with updateSettings', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1015,7 +1013,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should allow to change sorting order with updateSettings', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1149,7 +1147,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should reset column sorting with updateSettings', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1219,7 +1217,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should reset column sorting with updateSettings', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1330,13 +1328,13 @@ describe('ColumnSorting', () => {
     var afterColumnSortHandler = jasmine.createSpy('afterColumnSortHandler');
     var afterRenderSpy = jasmine.createSpy('afterRender');
 
-    hot.addHook('afterColumnSort', function() {
+    hot.addHook('afterColumnSort', (...args) => {
       expect(rendered).toBe(false);
-      afterColumnSortHandler.apply(afterColumnSortHandler, arguments);
+      afterColumnSortHandler.apply(afterColumnSortHandler, args);
     });
-    hot.addHook('afterRender', function() {
+    hot.addHook('afterRender', (...args) => {
       rendered = true;
-      afterRenderSpy.apply(afterRenderSpy, arguments);
+      afterRenderSpy.apply(afterRenderSpy, args);
     });
 
     var sortColumn = 0;
@@ -1545,7 +1543,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should apply sorting when there are two tables and only one has sorting enabled and has been already sorted (#1020)', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1559,7 +1557,6 @@ describe('ColumnSorting', () => {
 
     this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
     this.$container2.handsontable();
-    var hot2 = this.$container2.handsontable('getInstance');
 
     selectCell(0, 1);
     keyDown('enter');
@@ -1667,7 +1664,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should return updated data at specyfied row after sorted', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, 'Frank', 'Honest'],
@@ -1697,7 +1694,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should return updated data at specyfied col after sorted', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, 'Frank', 'Honest'],
@@ -1727,7 +1724,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should return original data source at specified row after sorted', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, 'Frank', 'Honest'],
@@ -1759,7 +1756,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should return original data source at specified col after sorted', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, 'Frank', 'Honest'],
@@ -1798,7 +1795,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should ignore case when sorting', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'albuquerque'],
         [2, 'Alabama'],
@@ -1819,7 +1816,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should push empty cells to the end of sorted column', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, '', 'Honest'],
@@ -1844,7 +1841,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should push numeric values before non-numeric values, when sorting ascending using the default sorting function', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 'Ted', 123],
         [2, '', 'Some'],
@@ -2227,7 +2224,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should properly sort integers with nulls', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         ['12'],
         [null],
@@ -2248,7 +2245,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should properly sort floating points', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         ['0.0561'],
         ['-10.67'],
@@ -2269,7 +2266,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should properly sort floating points with nulls', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         ['0.0561'],
         ['-10.67'],
@@ -2293,7 +2290,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should properly sort floating points with non-numerical values', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         ['0.0561'],
         ['-10.67'],

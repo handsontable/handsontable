@@ -159,7 +159,6 @@ class Scroll {
       wtTable,
       wtViewport,
       totalColumns,
-      fixedColumnsLeft,
     } = this._getVariables();
 
     let firstVisibleColumn = wtTable.getFirstVisibleColumn();

@@ -126,7 +126,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       amount = amount || 1;
 
-      function spliceWith(data, index, count, toInject) {
+      function spliceWith(data, i, count, toInject) {
         let valueFactory = () => {
           let result;
 
@@ -141,7 +141,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         };
         let spliceArgs = arrayMap(new Array(count), () => valueFactory());
 
-        spliceArgs.unshift(index, 0);
+        spliceArgs.unshift(i, 0);
         data.splice(...spliceArgs);
       }
 
@@ -381,14 +381,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         return false;
       }
 
-      var repeatCol,
-        repeatRow,
-        cmax,
-        rmax,
-        baseEnd = {
-          row: end === null ? null : end.row,
-          col: end === null ? null : end.col
-        };
+      let repeatCol;
+      let repeatRow;
+      let cmax;
+      let rmax;
 
       /* eslint-disable no-case-declarations */
       // insert data with specified pasteMode method
@@ -787,11 +783,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         } else if (priv.settings.autoWrapCol) {
           delta.row = 1 - totalRows;
-          delta.col = priv.selRange.highlight.col + delta.col == totalCols - 1 ? 1 - totalCols : 1;
+          delta.col = priv.selRange.highlight.col + delta.col === totalCols - 1 ? 1 - totalCols : 1;
         }
       } else if (priv.settings.autoWrapCol && priv.selRange.highlight.row + delta.row < 0 && priv.selRange.highlight.col + delta.col >= 0) {
         delta.row = totalRows - 1;
-        delta.col = priv.selRange.highlight.col + delta.col == 0 ? totalCols - 1 : -1;
+        delta.col = priv.selRange.highlight.col + delta.col === 0 ? totalCols - 1 : -1;
       }
 
       if (priv.selRange.highlight.col + delta.col > totalCols - 1) {
@@ -800,11 +796,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           totalCols = instance.countCols();
 
         } else if (priv.settings.autoWrapRow) {
-          delta.row = priv.selRange.highlight.row + delta.row == totalRows - 1 ? 1 - totalRows : 1;
+          delta.row = priv.selRange.highlight.row + delta.row === totalRows - 1 ? 1 - totalRows : 1;
           delta.col = 1 - totalCols;
         }
       } else if (priv.settings.autoWrapRow && priv.selRange.highlight.col + delta.col < 0 && priv.selRange.highlight.row + delta.row >= 0) {
-        delta.row = priv.selRange.highlight.row + delta.row == 0 ? totalRows - 1 : -1;
+        delta.row = priv.selRange.highlight.row + delta.row === 0 ? totalRows - 1 : -1;
         delta.col = totalCols - 1;
       }
 
@@ -987,10 +983,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
         this.checkIfQueueIsEmpty();
       },
-      onQueueEmpty(valid) {
-      },
+      onQueueEmpty() {},
       checkIfQueueIsEmpty() {
-        if (this.validatorsInQueue == 0 && resolved == false) {
+        if (this.validatorsInQueue === 0 && resolved === false) {
           resolved = true;
           this.onQueueEmpty(this.valid);
         }
@@ -1026,8 +1021,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               numbro.culture(cellProperties.language);
             }
 
-            const {delimiters} = numbro.cultureData(numbro.culture());
-
             // try to parse to float - https://github.com/foretagsplatsen/numbro/pull/183
             if (numbro.validate(changes[i][3]) && !isNaN(changes[i][3])) {
               changes[i][3] = parseFloat(changes[i][3]);
@@ -1041,17 +1034,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         /* eslint-disable no-loop-func */
         if (instance.getCellValidator(cellProperties)) {
           waitingForValidator.addValidatorToQueue();
-          instance.validateCell(changes[i][3], cellProperties, (function(i, cellProperties) {
+          instance.validateCell(changes[i][3], cellProperties, (function(index, cellProps) {
             return function(result) {
               if (typeof result !== 'boolean') {
                 throw new Error('Validation error: result is not boolean');
               }
-              if (result === false && cellProperties.allowInvalid === false) {
-                changes.splice(i, 1); // cancel the change
-                cellProperties.valid = true; // we cancelled the change, so cell value is still valid
-                const cell = instance.getCell(cellProperties.visualRow, cellProperties.visualCol);
+              if (result === false && cellProps.allowInvalid === false) {
+                changes.splice(index, 1); // cancel the change
+                cellProps.valid = true; // we cancelled the change, so cell value is still valid
+                const cell = instance.getCell(cellProps.visualRow, cellProps.visualCol);
                 removeClass(cell, instance.getSettings().invalidCellClassName);
-                --i;
+                --index;
               }
               waitingForValidator.removeValidatorFormQueue();
             };
@@ -1146,14 +1139,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   this.validateCell = function(value, cellProperties, callback, source) {
-    var validator = instance.getCellValidator(cellProperties);
+    let validator = instance.getCellValidator(cellProperties);
 
     function done(valid) {
-      var col = cellProperties.visualCol,
-        row = cellProperties.visualRow,
-        td = instance.getCell(row, col, true);
+      let col = cellProperties.visualCol;
+      let row = cellProperties.visualRow;
+      let td = instance.getCell(row, col, true);
 
-      if (td && td.nodeName != 'TH') {
+      if (td && td.nodeName !== 'TH') {
         instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
       }
       callback(valid);
@@ -1161,8 +1154,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (isRegExp(validator)) {
       validator = (function(validator) {
-        return function(value, callback) {
-          callback(validator.test(value));
+        return function(_value, _callback) {
+          _callback(validator.test(_value));
         };
       }(validator));
     }
@@ -1393,8 +1386,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
    * @param {*} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
    */
-  this.spliceCol = function(col, index, amount/* , elements... */) {
-    return datamap.spliceCol(...arguments);
+  this.spliceCol = function(col, index, amount, ...elements) {
+    return datamap.spliceCol(col, index, amount, ...elements);
   };
 
   /**
@@ -1414,8 +1407,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
    * @param {*} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
    */
-  this.spliceRow = function(row, index, amount/* , elements... */) {
-    return datamap.spliceRow(...arguments);
+  this.spliceRow = function(row, index, amount, ...elements) {
+    return datamap.spliceRow(row, index, amount, ...elements);
   };
 
   /**
@@ -2614,7 +2607,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       result = out;
 
     } else {
-      let translateVisualIndexToColumns = function(col) {
+      let translateVisualIndexToColumns = function(column) {
         let arr = [];
         let columnsLen = instance.countSourceCols();
         let index = 0;
@@ -2625,7 +2618,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
         }
 
-        return arr[col];
+        return arr[column];
       };
       let baseCol = col;
       col = instance.runHooks('modifyCol', col);
@@ -2971,19 +2964,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (instance.countRows() < 1) {
       return 0;
     }
-    var i = instance.countCols() - 1,
-      empty = 0;
+    let i = instance.countCols() - 1;
+    let emptyCol = 0;
 
     while (i >= 0) {
       if (instance.isEmptyCol(i)) {
-        empty++;
+        emptyCol++;
       } else if (ending) {
         break;
       }
       i--;
     }
 
-    return empty;
+    return emptyCol;
   };
 
   /**
@@ -3076,13 +3069,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell) {
-    arguments[1] = datamap.propToCol(arguments[1]);
+    prop = datamap.propToCol(prop);
 
-    if (isDefined(arguments[3])) {
-      arguments[3] = datamap.propToCol(arguments[3]);
+    if (isDefined(endProp)) {
+      endProp = datamap.propToCol(endProp);
     }
 
-    return instance.selectCell(...arguments);
+    return instance.selectCell(row, prop, endRow, endProp, scrollToCell);
   };
 
   /**

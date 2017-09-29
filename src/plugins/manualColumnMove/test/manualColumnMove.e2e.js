@@ -171,8 +171,8 @@ describe('manualColumnMove', () => {
     });
   });
 
-  describe('loadData', function() {
-    it('should increase numbers of columns if it is necessary', function() {
+  describe('loadData', () => {
+    it('should increase numbers of columns if it is necessary', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         manualColumnMove: true
@@ -184,7 +184,7 @@ describe('manualColumnMove', () => {
       expect(hot.getPlugin('manualColumnMove').columnsMapper.__arrayMap.length).toEqual(10);
     });
 
-    it('should decrease numbers of columns if it is necessary', function() {
+    it('should decrease numbers of columns if it is necessary', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         manualColumnMove: true
@@ -197,7 +197,7 @@ describe('manualColumnMove', () => {
     });
   });
 
-  describe('moving', function() {
+  describe('moving', () => {
     it('should move column by API', function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -287,7 +287,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should move the second column to the first column', function() {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true
@@ -374,7 +374,7 @@ describe('manualColumnMove', () => {
         colHeaders: true,
         manualColumnMove: true,
         cells(row, col) {
-          if (row == 1 && col == 0) {
+          if (row === 1 && col === 0) {
             this.readOnly = true;
           }
         }

@@ -23,7 +23,7 @@ describe('manualColumnResize', () => {
   });
 
   it('should be enabled after specifying it in updateSettings config', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         {id: 1, name: 'Ted', lastName: 'Right'},
         {id: 2, name: 'Frank', lastName: 'Honest'},
@@ -152,7 +152,7 @@ describe('manualColumnResize', () => {
   });
 
   it('should resize (narrowing) selected columns', function(done) {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnResize: true
@@ -184,7 +184,7 @@ describe('manualColumnResize', () => {
   });
 
   it('should resize (expanding) selected columns', function(done) {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnResize: true
@@ -543,7 +543,7 @@ describe('manualColumnResize', () => {
 
   describe('handle and guide', () => {
     it('should display the resize handle in the proper position and with a proper size', function() {
-      var hot = handsontable({
+      handsontable({
         data: [
           {id: 1, name: 'Ted', lastName: 'Right'},
           {id: 2, name: 'Frank', lastName: 'Honest'},

@@ -161,7 +161,7 @@ describe('ContextMenu', () => {
 
   describe('menu closing', () => {
     it('should close menu after click', function () {
-      var hot = handsontable({
+      handsontable({
         contextMenu: true,
         height: 100
       });
@@ -176,7 +176,7 @@ describe('ContextMenu', () => {
     });
 
     it('should close menu after click under the menu', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(500, 10),
         contextMenu: true,
         height: 500
@@ -288,7 +288,8 @@ describe('ContextMenu', () => {
         selectCell(0, 0);
         contextMenu();
 
-        $('.htContextMenu .ht_master .htCore tbody').find('td').not('.htSeparator').eq(0).simulate('mousedown');
+        $('.htContextMenu .ht_master .htCore tbody').find('td').not('.htSeparator').eq(0)
+          .simulate('mousedown');
         expect(getData().length).toEqual(4);
       };
       test();
@@ -301,7 +302,7 @@ describe('ContextMenu', () => {
 
   describe('menu hidden items', () => {
     it('should remove separators from top, bottom and duplicated', () => {
-      var hot = handsontable({
+      handsontable({
         contextMenu: [
           '---------',
           '---------',
@@ -327,7 +328,7 @@ describe('ContextMenu', () => {
 
     it('should hide option if hidden function return true', () => {
 
-      var hot = handsontable({
+      handsontable({
         startCols: 5,
         colHeaders: true,
         contextMenu: [
@@ -360,7 +361,7 @@ describe('ContextMenu', () => {
 
   describe('menu destroy', () => {
     it('should close context menu when HOT is being destroyed', () => {
-      var hot = handsontable({
+      handsontable({
         contextMenu: true,
         height: 100
       });
@@ -377,7 +378,7 @@ describe('ContextMenu', () => {
 
   describe('subMenu', () => {
     it('should not open subMenu immediately', (done) => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -392,7 +393,7 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.length).toEqual(0);
 
       setTimeout(() => {
-        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`).find('tbody td');
+        contextSubMenu = $(`.htContextMenuSub_${item.text()}`).find('tbody td');
 
         expect(contextSubMenu.length).toEqual(0);
         done();
@@ -400,7 +401,7 @@ describe('ContextMenu', () => {
     });
 
     it('should open subMenu with delay', (done) => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -421,7 +422,7 @@ describe('ContextMenu', () => {
     });
 
     it('should NOT open subMenu if there is no subMenu for item', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -441,7 +442,7 @@ describe('ContextMenu', () => {
     });
 
     it('should open subMenu on the left of main menu if on the right there\'s no space left', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
         contextMenu: true,
         width: window.innerWidth
@@ -464,7 +465,7 @@ describe('ContextMenu', () => {
     });
 
     it('should open subMenu on the right of main menu if there\'s free space', (done) => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
         contextMenu: true,
         width: window.innerWidth
@@ -490,7 +491,7 @@ describe('ContextMenu', () => {
     });
 
     it('should open subMenu on the left-bottom of main menu if there\'s free space', (done) => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
         contextMenu: true,
         height: window.innerHeight,
@@ -518,7 +519,7 @@ describe('ContextMenu', () => {
     });
 
     it('should open subMenu on the right-bottom of main menu if there\'s free space', (done) => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
         contextMenu: true,
         height: window.innerHeight
@@ -547,7 +548,7 @@ describe('ContextMenu', () => {
     });
 
     it('should open subMenu on the left-top of main menu if there\'s no free space on bottom', (done) => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
         contextMenu: true,
         height: window.innerHeight
@@ -574,7 +575,7 @@ describe('ContextMenu', () => {
     });
 
     it('should open subMenu on the right-top of main menu if there\'s no free space on bottom', (done) => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
         contextMenu: true,
         height: window.innerHeight
@@ -603,7 +604,7 @@ describe('ContextMenu', () => {
 
   describe('default context menu actions', () => {
     it('should display the default set of actions', () => {
-      var hot = handsontable({
+      handsontable({
         contextMenu: true,
         comments: true,
         height: 100
@@ -638,7 +639,7 @@ describe('ContextMenu', () => {
     });
 
     it('should disable column manipulation when row header selected', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         colHeaders: true,
@@ -646,7 +647,12 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      $('.ht_clone_left .htCore').eq(0).find('tbody').find('th').eq(0).simulate('mousedown', {which: 3});
+      $('.ht_clone_left .htCore')
+        .eq(0)
+        .find('tbody')
+        .find('th')
+        .eq(0)
+        .simulate('mousedown', {which: 3});
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -659,7 +665,7 @@ describe('ContextMenu', () => {
     });
 
     it('should disable row manipulation when column header selected', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         colHeaders: true,
@@ -667,7 +673,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      $('.ht_clone_top .htCore').find('thead').find('th').eq(2).simulate('mousedown', {which: 3});
+      $('.ht_clone_top .htCore').find('thead').find('th').eq(2)
+        .simulate('mousedown', {which: 3});
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -680,7 +687,7 @@ describe('ContextMenu', () => {
     });
 
     it('should disable cells manipulation when corner header selected', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         colHeaders: true,
@@ -688,7 +695,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0).simulate('mousedown', {which: 3});
+      $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0)
+        .simulate('mousedown', {which: 3});
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -715,7 +723,8 @@ describe('ContextMenu', () => {
 
       selectCell(1, 0, 3, 0);
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown'); // Insert row above
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
+        .simulate('mousedown'); // Insert row above
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.rowAbove', undefined, undefined, undefined);
       expect(countRows()).toEqual(5);
@@ -741,7 +750,8 @@ describe('ContextMenu', () => {
 
       cell.simulate('mousedown', {which: 3});
       contextMenu(cell[0]);
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown'); // Insert row above
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
+        .simulate('mousedown'); // Insert row above
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.rowAbove', undefined, undefined, undefined);
       expect(countRows()).toEqual(1);
@@ -749,7 +759,7 @@ describe('ContextMenu', () => {
     });
 
     it('should NOT display insert row selection', () => {
-      var hot = handsontable({
+      handsontable({
         contextMenu: true,
         allowInsertRow: false
       });
@@ -778,7 +788,7 @@ describe('ContextMenu', () => {
     });
 
     it('should NOT display insert column selection', () => {
-      var hot = handsontable({
+      handsontable({
         contextMenu: true,
         allowInsertColumn: false
       });
@@ -818,7 +828,8 @@ describe('ContextMenu', () => {
 
       selectCell(3, 0, 1, 0);
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown'); // Insert row above
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
+        .simulate('mousedown'); // Insert row above
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.rowAbove', undefined, undefined, undefined);
       expect(countRows()).toEqual(5);
@@ -839,7 +850,8 @@ describe('ContextMenu', () => {
 
       selectCell(1, 0, 3, 0);
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1).simulate('mousedown'); // Insert row above
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1)
+        .simulate('mousedown'); // Insert row above
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.rowBelow', undefined, undefined, undefined);
       expect(countRows()).toEqual(5);
@@ -865,7 +877,8 @@ describe('ContextMenu', () => {
 
       cell.simulate('mousedown', {which: 3});
       contextMenu(cell[0]);
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1).simulate('mousedown'); // Insert row below
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1)
+        .simulate('mousedown'); // Insert row below
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.rowBelow', undefined, undefined, undefined);
       expect(countRows()).toEqual(1);
@@ -886,7 +899,8 @@ describe('ContextMenu', () => {
 
       selectCell(3, 0, 1, 0);
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1).simulate('mousedown'); // Insert row below
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1)
+        .simulate('mousedown'); // Insert row below
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.rowBelow', undefined, undefined, undefined);
       expect(countRows()).toEqual(5);
@@ -908,7 +922,8 @@ describe('ContextMenu', () => {
 
       selectCell(0, 1, 0, 3);
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2).simulate('mousedown'); // Insert col left
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2)
+        .simulate('mousedown'); // Insert col left
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
@@ -934,7 +949,8 @@ describe('ContextMenu', () => {
 
       cell.simulate('mousedown', {which: 3});
       contextMenu(cell[0]);
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3).simulate('mousedown'); // Insert column on the left
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3)
+        .simulate('mousedown'); // Insert column on the left
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight', undefined, undefined, undefined);
       expect(countCols()).toEqual(1);
@@ -955,7 +971,8 @@ describe('ContextMenu', () => {
 
       selectCell(0, 3, 0, 1);
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2).simulate('mousedown'); // Insert col left
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2)
+        .simulate('mousedown'); // Insert col left
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
@@ -976,7 +993,8 @@ describe('ContextMenu', () => {
 
       selectCell(0, 1, 0, 3);
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2).simulate('mousedown'); // Insert col right
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2)
+        .simulate('mousedown'); // Insert col right
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
@@ -1002,7 +1020,8 @@ describe('ContextMenu', () => {
 
       cell.simulate('mousedown', {which: 3});
       contextMenu(cell[0]);
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3).simulate('mousedown'); // Insert column on the right
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3)
+        .simulate('mousedown'); // Insert column on the right
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight', undefined, undefined, undefined);
       expect(countCols()).toEqual(1);
@@ -1023,7 +1042,8 @@ describe('ContextMenu', () => {
 
       selectCell(0, 3, 0, 1);
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3).simulate('mousedown'); // Insert col right
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3)
+        .simulate('mousedown'); // Insert col right
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.columnRight', undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
@@ -1044,7 +1064,8 @@ describe('ContextMenu', () => {
 
       selectCell(1, 0, 3, 0);
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(4).simulate('mousedown'); // Remove row
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(4)
+        .simulate('mousedown'); // Remove row
 
       expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeRow', undefined, undefined);
       expect(countRows()).toEqual(1);
@@ -1066,7 +1087,8 @@ describe('ContextMenu', () => {
       selectCell(0, 0, 0, 0);
       contextMenu();
 
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(4).simulate('mousedown'); // Remove row
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(4)
+        .simulate('mousedown'); // Remove row
 
       expect(afterRemoveRowCallback).toHaveBeenCalledWith(0, 1, [0], 'ContextMenu.removeRow', undefined, undefined);
       expect(countRows()).toBe(0);
@@ -1087,7 +1109,8 @@ describe('ContextMenu', () => {
 
       selectCell(3, 0, 1, 0);
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(4).simulate('mousedown'); // Remove row
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(4)
+        .simulate('mousedown'); // Remove row
 
       expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeRow', undefined, undefined);
       expect(countRows()).toBe(1);
@@ -1108,7 +1131,8 @@ describe('ContextMenu', () => {
 
       selectCell(0, 1, 0, 3);
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5).simulate('mousedown'); // Remove col
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5)
+        .simulate('mousedown'); // Remove col
 
       expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeColumn', undefined, undefined);
       expect(countCols()).toBe(1);
@@ -1130,7 +1154,8 @@ describe('ContextMenu', () => {
       selectCell(0, 0, 0, 0);
       contextMenu();
 
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5).simulate('mousedown'); // Remove column
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5)
+        .simulate('mousedown'); // Remove column
 
       expect(afterRemoveColCallback).toHaveBeenCalledWith(0, 1, [0], 'ContextMenu.removeColumn', undefined, undefined);
       expect(countCols()).toBe(0);
@@ -1153,14 +1178,15 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5).simulate('mousedown'); // Remove col
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5)
+        .simulate('mousedown'); // Remove col
 
       expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeColumn', undefined, undefined);
       expect(countCols()).toEqual(1);
     });
 
     it('should undo changes', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -1176,7 +1202,8 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(6).simulate('mousedown'); // Undo
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(6)
+        .simulate('mousedown'); // Undo
 
       expect(getDataAtCell(0, 0)).toEqual('A1');
     });
@@ -1202,13 +1229,14 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(7).simulate('mousedown'); // Redo
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(7)
+        .simulate('mousedown'); // Redo
 
       expect(getDataAtCell(0, 0)).toEqual('XX');
     });
 
     it('should display only the specified actions', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: ['remove_row', 'undo'],
         height: 100
@@ -1288,7 +1316,7 @@ describe('ContextMenu', () => {
     });
 
     it('should not close menu after clicking on submenu root item', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: ['row_above', 'remove_row', '---------', 'alignment'],
         height: 400
@@ -1297,7 +1325,8 @@ describe('ContextMenu', () => {
       selectCell(1, 0, 3, 0);
       contextMenu();
 
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2).simulate('mousedown'); // Alignment
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2)
+        .simulate('mousedown'); // Alignment
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
@@ -1346,7 +1375,8 @@ describe('ContextMenu', () => {
       selectCell(0, 0, 2, 2);
 
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(8).simulate('mousedown'); // Make writable
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(8)
+        .simulate('mousedown'); // Make writable
 
       for (let i = 0; i < 2; i++) {
         for (let j = 0; j < 2; j++) {
@@ -1373,7 +1403,8 @@ describe('ContextMenu', () => {
       selectCell(2, 2, 0, 0);
 
       contextMenu();
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(8).simulate('mousedown'); // Make writable
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(8)
+        .simulate('mousedown'); // Make writable
 
       for (let i = 0; i < 2; i++) {
         for (let j = 0; j < 2; j++) {
@@ -1385,7 +1416,7 @@ describe('ContextMenu', () => {
 
   describe('disabling actions', () => {
     it('should not close menu after clicking on disabled item', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: ['undo', 'redo'],
         height: 400
@@ -1394,12 +1425,13 @@ describe('ContextMenu', () => {
       selectCell(1, 0, 3, 0);
       contextMenu();
 
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown'); // Undo
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
+        .simulate('mousedown'); // Undo
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
     it('should disable undo and redo action if undoRedo plugin is not enabled ', () => {
-      var hot = handsontable({
+      handsontable({
         contextMenu: true,
         undoRedo: false,
         height: 100
@@ -1465,7 +1497,7 @@ describe('ContextMenu', () => {
     });
 
     it('should disable Insert row in context menu when maxRows is reached', () => {
-      var hot = handsontable({
+      handsontable({
         contextMenu: true,
         maxRows: 6,
         height: 100
@@ -1492,7 +1524,7 @@ describe('ContextMenu', () => {
     });
 
     it('should disable Insert col in context menu when maxCols is reached', () => {
-      var hot = handsontable({
+      handsontable({
         contextMenu: true,
         maxCols: 6,
         height: 100
@@ -1518,7 +1550,7 @@ describe('ContextMenu', () => {
     });
 
     it('should NOT disable Insert col in context menu when only one column exists', () => {
-      var hot = handsontable({
+      handsontable({
         data: [['single col']],
         contextMenu: true,
         maxCols: 10,
@@ -1536,7 +1568,7 @@ describe('ContextMenu', () => {
     });
 
     it('should disable Remove col in context menu when rows are selected by headers', function() {
-      var hot = handsontable({
+      handsontable({
         contextMenu: ['remove_col', 'remove_row'],
         height: 100,
         colHeaders: true,
@@ -1558,7 +1590,7 @@ describe('ContextMenu', () => {
     });
 
     it('should disable Remove row in context menu when columns are selected by headers', function() {
-      var hot = handsontable({
+      handsontable({
         contextMenu: ['remove_col', 'remove_row'],
         height: 100,
         colHeaders: true,
@@ -1586,7 +1618,7 @@ describe('ContextMenu', () => {
       var callback1 = jasmine.createSpy('callback1');
       var callback2 = jasmine.createSpy('callback2');
 
-      var hot = handsontable({
+      handsontable({
         contextMenu: {
           items: {
             cust1: {
@@ -1622,7 +1654,7 @@ describe('ContextMenu', () => {
 
     it('should have custom items list (defined as a function)', () => {
       var enabled = false;
-      var hot = handsontable({
+      handsontable({
         contextMenu: {
           items: {
             cust1: {
@@ -1661,7 +1693,7 @@ describe('ContextMenu', () => {
 
       var callback = jasmine.createSpy('callback');
 
-      var hot = handsontable({
+      handsontable({
         contextMenu: {
           callback,
           items: {
@@ -1691,7 +1723,7 @@ describe('ContextMenu', () => {
     it('should override default items options', () => {
       var callback = jasmine.createSpy('callback');
 
-      var hot = handsontable({
+      handsontable({
         contextMenu: {
           items: {
             remove_row: {
@@ -1730,7 +1762,7 @@ describe('ContextMenu', () => {
 
       spyOn(customItem, 'callback');
 
-      var hot = handsontable({
+      handsontable({
         contextMenu: {
           items: {
             customItemKey: customItem
@@ -1767,134 +1799,134 @@ describe('ContextMenu', () => {
       });
 
       it('should scroll down, when user hits ARROW_DOWN for item in menu below the viewport', () => {
-        var hot = handsontable({
-            height: 100,
-            contextMenu: {
-              items: {
-                item1: {
-                  name: 'Item1'
-                },
-                item2: {
-                  name: 'Item2'
-                },
-                item3: {
-                  name: 'Item3'
-                },
-                item4: {
-                  name: 'Item4'
-                },
-                item5: {
-                  name: 'Item5'
-                },
-                item6: {
-                  name: 'Item6'
-                },
-                item7: {
-                  name: 'Item7'
-                },
-                item8: {
-                  name: 'Item8'
-                },
-                item9: {
-                  name: 'Item9'
-                },
-                item10: {
-                  name: 'Item10'
-                },
-                item11: {
-                  name: 'Item11'
-                },
-                item12: {
-                  name: 'Item12'
-                },
-                item13: {
-                  name: 'Item13'
-                },
-                item14: {
-                  name: 'Item14'
-                },
-                item15: {
-                  name: 'Item15'
-                },
-                item16: {
-                  name: 'Item16'
-                },
-                item17: {
-                  name: 'Item17'
-                },
-                item18: {
-                  name: 'Item18'
-                },
-                item19: {
-                  name: 'Item19'
-                },
-                item20: {
-                  name: 'Item20'
-                },
-                item21: {
-                  name: 'Item21'
-                },
-                item22: {
-                  name: 'Item22'
-                },
-                item23: {
-                  name: 'Item23'
-                },
-                item24: {
-                  name: 'Item24'
-                },
-                item25: {
-                  name: 'Item25'
-                },
-                item26: {
-                  name: 'Item26'
-                },
-                item27: {
-                  name: 'Item27'
-                },
-                item28: {
-                  name: 'Item28'
-                },
-                item29: {
-                  name: 'Item29'
-                },
-                item30: {
-                  name: 'Item30'
-                },
-                item31: {
-                  name: 'Item31'
-                },
-                item32: {
-                  name: 'Item32'
-                },
-                item33: {
-                  name: 'Item33'
-                },
-                item34: {
-                  name: 'Item34'
-                },
-                item35: {
-                  name: 'Item35'
-                },
-                item36: {
-                  name: 'Item36'
-                },
-                item37: {
-                  name: 'Item37'
-                },
-                item38: {
-                  name: 'Item38'
-                },
-                item39: {
-                  name: 'Item39'
-                },
-                item40: {
-                  name: 'Item40'
-                }
+        handsontable({
+          height: 100,
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1'
+              },
+              item2: {
+                name: 'Item2'
+              },
+              item3: {
+                name: 'Item3'
+              },
+              item4: {
+                name: 'Item4'
+              },
+              item5: {
+                name: 'Item5'
+              },
+              item6: {
+                name: 'Item6'
+              },
+              item7: {
+                name: 'Item7'
+              },
+              item8: {
+                name: 'Item8'
+              },
+              item9: {
+                name: 'Item9'
+              },
+              item10: {
+                name: 'Item10'
+              },
+              item11: {
+                name: 'Item11'
+              },
+              item12: {
+                name: 'Item12'
+              },
+              item13: {
+                name: 'Item13'
+              },
+              item14: {
+                name: 'Item14'
+              },
+              item15: {
+                name: 'Item15'
+              },
+              item16: {
+                name: 'Item16'
+              },
+              item17: {
+                name: 'Item17'
+              },
+              item18: {
+                name: 'Item18'
+              },
+              item19: {
+                name: 'Item19'
+              },
+              item20: {
+                name: 'Item20'
+              },
+              item21: {
+                name: 'Item21'
+              },
+              item22: {
+                name: 'Item22'
+              },
+              item23: {
+                name: 'Item23'
+              },
+              item24: {
+                name: 'Item24'
+              },
+              item25: {
+                name: 'Item25'
+              },
+              item26: {
+                name: 'Item26'
+              },
+              item27: {
+                name: 'Item27'
+              },
+              item28: {
+                name: 'Item28'
+              },
+              item29: {
+                name: 'Item29'
+              },
+              item30: {
+                name: 'Item30'
+              },
+              item31: {
+                name: 'Item31'
+              },
+              item32: {
+                name: 'Item32'
+              },
+              item33: {
+                name: 'Item33'
+              },
+              item34: {
+                name: 'Item34'
+              },
+              item35: {
+                name: 'Item35'
+              },
+              item36: {
+                name: 'Item36'
+              },
+              item37: {
+                name: 'Item37'
+              },
+              item38: {
+                name: 'Item38'
+              },
+              item39: {
+                name: 'Item39'
+              },
+              item40: {
+                name: 'Item40'
               }
             }
-          }),
-          scrollHeight;
+          }
+        });
+        let scrollHeight;
 
         contextMenu();
 
@@ -2084,7 +2116,6 @@ describe('ContextMenu', () => {
         });
 
         contextMenu();
-        var id = $('.htContextMenu')[0].id;
         var menuHot = hot.getPlugin('contextMenu').menu.hotMenu;
 
         expect(menuHot.getSelected()).toBeUndefined();
@@ -2497,7 +2528,6 @@ describe('ContextMenu', () => {
       contextMenu();
 
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
-      var contextMenuRoot = $('.htContextMenu');
 
       item.simulate('mouseover');
 
@@ -2561,7 +2591,8 @@ describe('ContextMenu', () => {
       hot.selectCell(100, 0);
       contextMenu();
       window.scrollTo(0, 0);
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown');
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
+        .simulate('mousedown');
 
       if (typeof window.scrollY !== 'undefined') {
         scrollHeight = window.scrollY;
@@ -2715,7 +2746,7 @@ describe('ContextMenu', () => {
     });
 
     it('should display menu table is not scrolled', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(40, 30),
         colWidths: 50, // can also be a number or a function
         rowHeaders: true,
@@ -2795,7 +2826,6 @@ describe('ContextMenu', () => {
       selectCell(15, 3);
       var scrollTop = mainHolder.scrollTop();
       contextMenu();
-      var $menu = $('.htContextMenu');
 
       spyOn(hot.getPlugin('contextMenu'), 'close');
 
@@ -2846,7 +2876,7 @@ describe('ContextMenu', () => {
 
       Handsontable.hooks.add('afterContextMenuDefaultOptions', afterContextMenuDefaultOptions);
 
-      var hot = handsontable({
+      handsontable({
         contextMenu: true,
         height: 100
       });

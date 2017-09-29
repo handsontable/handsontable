@@ -82,7 +82,7 @@ describe('WalkontableEvent', () => {
     expect(fn.calls.argsFor(0)[2]).toBe(outerTD[0]);
   });
 
-  it('should call `onCellMouseOut` callback', function () {
+  it('should call `onCellMouseOut` callback', () => {
     var myCoords = null,
       myTD = null,
       wt = new Walkontable.Core({
@@ -90,7 +90,7 @@ describe('WalkontableEvent', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        onCellMouseOut: function (event, coords, TD) {
+        onCellMouseOut(event, coords, TD) {
           myCoords = coords;
           myTD = TD;
         }
@@ -105,7 +105,7 @@ describe('WalkontableEvent', () => {
     expect(myTD).toEqual($td[0]);
   });
 
-  it('should call `onCellMouseOut` callback with correctly passed TD element when cell contains another table', function () {
+  it('should call `onCellMouseOut` callback with correctly passed TD element when cell contains another table', () => {
     var fn = jasmine.createSpy();
     var wt = new Walkontable.Core({
       table: $table[0],
@@ -113,7 +113,7 @@ describe('WalkontableEvent', () => {
       totalRows: 1,
       totalColumns: 1,
       onCellMouseOut: fn,
-      cellRenderer: function(row, column, TD) {
+      cellRenderer(row, column, TD) {
         TD.innerHTML = wt.wtSettings.getSetting('data', row, column);
       },
     });
@@ -128,7 +128,7 @@ describe('WalkontableEvent', () => {
     expect(fn.calls.argsFor(0)[2]).toBe(outerTD[0]);
   });
 
-  it('should call `onCellDblClick` callback', function () {
+  it('should call `onCellDblClick` callback', () => {
     var myCoords = null,
       myTD = null,
       wt = new Walkontable.Core({
@@ -188,7 +188,7 @@ describe('WalkontableEvent', () => {
         columnHeaders: [function(col, TH) {
           TH.innerHTML = col + 1;
         }],
-        onCellMouseDown(event, coords, TD) {
+        onCellMouseDown() {
           called = true;
         }
       });
@@ -201,7 +201,7 @@ describe('WalkontableEvent', () => {
   });
 
   it('should not call `onCellMouseDown` callback when clicked on the focusable element (column headers)', () => {
-    var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map((opt) => `<option value="${opt}">${opt}</option>`).join('');
+    var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map((option) => `<option value="${option}">${option}</option>`).join('');
     var called = false;
     var wt = new Walkontable.Core({
       table: $table[0],
@@ -211,7 +211,7 @@ describe('WalkontableEvent', () => {
       columnHeaders: [function(col, TH) {
         TH.innerHTML = `#${col}<select>${opt}</select>`;
       }],
-      onCellMouseDown(event, coords, TD) {
+      onCellMouseDown() {
         called = true;
       }
     });
@@ -226,7 +226,7 @@ describe('WalkontableEvent', () => {
   });
 
   it('should not call `onCellMouseDown` callback when clicked on the focusable element (cell renderer)', () => {
-    var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map((opt) => `<option value="${opt}">${opt}</option>`).join('');
+    var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map((option) => `<option value="${option}">${option}</option>`).join('');
     var called = false;
     var wt = new Walkontable.Core({
       table: $table[0],
@@ -236,7 +236,7 @@ describe('WalkontableEvent', () => {
       cellRenderer(row, column, TD) {
         TD.innerHTML = `<select>${opt}</select>`;
       },
-      onCellMouseDown(event, coords, TD) {
+      onCellMouseDown() {
         called = true;
       }
     });
@@ -261,7 +261,7 @@ describe('WalkontableEvent', () => {
         columnHeaders: [function(col, TH) {
           TH.innerHTML = col + 1;
         }],
-        onCellMouseOver(event, coords, TD) {
+        onCellMouseOver() {
           called = coords;
         }
       });
@@ -284,7 +284,7 @@ describe('WalkontableEvent', () => {
         columnHeaders: [function(col, TH) {
           TH.innerHTML = col + 1;
         }],
-        onCellDblClick(event, coords, TD) {
+        onCellDblClick() {
           called = true;
         }
       });
@@ -308,7 +308,7 @@ describe('WalkontableEvent', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        onCellDblClick(event, coords, TD) {
+        onCellDblClick() {
           called = true;
         }
       });
@@ -335,7 +335,7 @@ describe('WalkontableEvent', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        onCellDblClick(event, coords, TD) {
+        onCellDblClick() {
           called = true;
         }
       });
@@ -449,7 +449,7 @@ describe('WalkontableEvent', () => {
             }
           })
         ],
-        onCellCornerMouseDown(event) {
+        onCellCornerMouseDown() {
           clicked = true;
         }
       });
@@ -491,7 +491,7 @@ describe('WalkontableEvent', () => {
     $td.simulate('mousedown');
     $td.simulate('mouseup');
     $td.simulate('mousedown');
-    wt.update('onCellCornerDblClick', (event) => {
+    wt.update('onCellCornerDblClick', () => {
       clicked = true;
     });
     $td.simulate('mouseup');

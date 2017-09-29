@@ -1,5 +1,4 @@
 import Hooks from './../../pluginHooks';
-import {registerPlugin} from './../../plugins';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {CellCoords, CellRange, Table} from './../../3rdparty/walkontable/src';
 
@@ -141,23 +140,22 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
     col: delta.col,
   };
 
-  if (hook == 'modifyTransformStart') {
+  if (hook === 'modifyTransformStart') {
     /* eslint-disable block-scoped-var */
     var nextPosition;
 
     if (!this.lastDesiredCoords) {
       this.lastDesiredCoords = new CellCoords(null, null);
     }
-    var currentPosition = new CellCoords(currentSelectedRange.highlight.row, currentSelectedRange.highlight.col),
-      // if current position's parent is a merged range, returns it
-      mergedParent = this.mergedCellInfoCollection.getInfo(currentPosition.row, currentPosition.col),
-      currentRangeContainsMerge; // if current range contains a merged range
+    let currentPosition = new CellCoords(currentSelectedRange.highlight.row, currentSelectedRange.highlight.col);
+    // if current position's parent is a merged range, returns it
+    let mergedParent = this.mergedCellInfoCollection.getInfo(currentPosition.row, currentPosition.col);
 
-    for (var i = 0, mergesLength = this.mergedCellInfoCollection.length; i < mergesLength; i++) {
+    for (let i = 0, mergesLength = this.mergedCellInfoCollection.length; i < mergesLength; i++) {
       var range = this.mergedCellInfoCollection[i];
       range = new CellCoords(range.row + range.rowspan - 1, range.col + range.colspan - 1);
+
       if (currentSelectedRange.includes(range)) {
-        currentRangeContainsMerge = true;
         break;
       }
     }
@@ -197,7 +195,7 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
         col: nextParentIsMerged.col - currentPosition.col
       };
     }
-  } else if (hook == 'modifyTransformEnd') {
+  } else if (hook === 'modifyTransformEnd') {
     for (let i = 0, mergesLength = this.mergedCellInfoCollection.length; i < mergesLength; i++) {
       let currentMerge = this.mergedCellInfoCollection[i];
       let mergeTopLeft = new CellCoords(currentMerge.row, currentMerge.col);
@@ -258,7 +256,7 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
   }
 };
 
-MergeCells.prototype.shiftCollection = function(direction, index, count) {
+MergeCells.prototype.shiftCollection = function(direction, index) {
   var shiftVector = [0, 0];
 
   switch (direction) {
@@ -390,7 +388,7 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
   });
 };
 
-var afterRenderer = function(TD, row, col, prop, value, cellProperties) {
+var afterRenderer = function(TD, row, col) {
   if (this.mergeCells) {
     this.mergeCells.applySpanProperties(TD, row, col);
   }
@@ -464,7 +462,7 @@ var beforeSetRangeEnd = function(coords) {
  * @param className
  */
 var beforeDrawAreaBorders = function(corners, className) {
-  if (className && className == 'area') {
+  if (className && className === 'area') {
     var mergeCellsSetting = this.getSettings().mergeCells;
     if (mergeCellsSetting) {
       var selRange = this.getSelectedRange();
@@ -495,7 +493,7 @@ var afterGetCellMeta = function(row, col, cellProperties) {
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
     var mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(row, col);
-    if (mergeParent && (mergeParent.row != row || mergeParent.col != col)) {
+    if (mergeParent && (mergeParent.row !== row || mergeParent.col !== col)) {
       cellProperties.copyable = false;
     }
   }
@@ -558,10 +556,10 @@ var isMultipleSelection = function(isMultiple) {
       selectionRange = this.getSelectedRange();
 
     for (var group in mergedCells) {
-      if (selectionRange.highlight.row == mergedCells[group].row &&
-        selectionRange.highlight.col == mergedCells[group].col &&
-        selectionRange.to.row == mergedCells[group].row + mergedCells[group].rowspan - 1 &&
-        selectionRange.to.col == mergedCells[group].col + mergedCells[group].colspan - 1) {
+      if (selectionRange.highlight.row === mergedCells[group].row &&
+        selectionRange.highlight.col === mergedCells[group].col &&
+        selectionRange.to.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
+        selectionRange.to.col === mergedCells[group].col + mergedCells[group].colspan - 1) {
         return false;
       }
     }
@@ -569,7 +567,7 @@ var isMultipleSelection = function(isMultiple) {
   return isMultiple;
 };
 
-function modifyAutofillRange(select, drag) {
+function modifyAutofillRange(select) {
   var mergeCellsSetting = this.getSettings().mergeCells;
 
   if (!mergeCellsSetting || this.selection.isMultiple()) {

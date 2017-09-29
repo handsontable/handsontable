@@ -6,7 +6,6 @@ import {extendArray, to2dArray} from './helpers/array';
 import Interval from './utils/interval';
 import {rangeEach} from './helpers/number';
 import MultiMap from './multiMap';
-import Hooks from './pluginHooks';
 
 /**
  * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names
@@ -189,8 +188,7 @@ DataMap.prototype.getSchema = function() {
 DataMap.prototype.createRow = function(index, amount, source) {
   var row,
     colCount = this.instance.countCols(),
-    numberOfCreatedRows = 0,
-    currentIndex;
+    numberOfCreatedRows = 0;
 
   if (!amount) {
     amount = 1;
@@ -201,7 +199,6 @@ DataMap.prototype.createRow = function(index, amount, source) {
   }
   this.instance.runHooks('beforeCreateRow', index, amount, source);
 
-  currentIndex = index;
   var maxRows = this.instance.getSettings().maxRows;
 
   while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
@@ -232,7 +229,6 @@ DataMap.prototype.createRow = function(index, amount, source) {
     }
 
     numberOfCreatedRows++;
-    currentIndex++;
   }
 
   this.instance.runHooks('afterCreateRow', index, numberOfCreatedRows, source);
@@ -279,7 +275,7 @@ DataMap.prototype.createCol = function(index, amount, source) {
 
     if (typeof index !== 'number' || index >= this.instance.countCols()) {
       if (rlen > 0) {
-        for (var r = 0; r < rlen; r++) {
+        for (let r = 0; r < rlen; r++) {
           if (typeof data[r] === 'undefined') {
             data[r] = [];
           }
@@ -494,7 +490,7 @@ DataMap.prototype.filterData = function(index, amount) {
   let continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, physicalRows);
 
   if (continueSplicing !== false) {
-    let newData = this.dataSource.filter((row, index) => physicalRows.indexOf(index) == -1);
+    let newData = this.dataSource.filter((row, i) => physicalRows.indexOf(i) === -1);
 
     return newData;
   }

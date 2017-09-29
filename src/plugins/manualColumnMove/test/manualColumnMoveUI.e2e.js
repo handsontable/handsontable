@@ -15,7 +15,7 @@ describe('manualColumnMove', () => {
 
   describe('UI', () => {
     it('should append UI elements to wtHider after click on row header', function() {
-      var hot = handsontable({
+      handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
         manualColumnMove: true
@@ -31,7 +31,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should part of UI elements be visible on dragging action', function() {
-      var hot = handsontable({
+      handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
         manualColumnMove: true
@@ -47,7 +47,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should all of UI elements be visible on dragging action', function() {
-      var hot = handsontable({
+      handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
         manualColumnMove: true
@@ -70,7 +70,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should set properly width for the backlight element when stretchH is enabled', function() {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 5),
         width: 600,
         colHeaders: true,
@@ -87,7 +87,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should set properly width for the backlight element when stretchH is enabled and column order was changed', function() {
-      var hot = handsontable({
+      handsontable({
         data: [
           {id: 1, flag: 'EUR', currencyCode: 'EUR', currency: 'Euro', level: 0.9033, units: 'EUR / USD', asOf: '08/19/2015', onedChng: 0.0026},
         ],
@@ -152,7 +152,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should not run moving ui if mousedown was fired on sorting element', function() {
-      var hot = handsontable({
+      handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
         manualColumnMove: true,

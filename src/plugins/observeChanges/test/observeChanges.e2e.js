@@ -25,7 +25,7 @@ describe('HandsontableObserveChanges', () => {
     describe('array data', () => {
       it('should render newly added row', (done) => {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
 
         data.push(['A3', 'B3']);
 
@@ -40,7 +40,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render newly added column', (done) => {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data[0].push('C1');
@@ -55,7 +55,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render removed row', (done) => {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data.splice(0, 1); // removes one row at index 0
@@ -69,7 +69,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render removed column', (done) => {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data[0].splice(0, 1); // removes one column at index 0 in first row
@@ -84,7 +84,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render cell change from string to string', (done) => {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data[0][0] = 'new string';
@@ -97,7 +97,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render cell change in a new row', (done) => {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data.push(['A3', 'B3']);
@@ -129,7 +129,7 @@ describe('HandsontableObserveChanges', () => {
     describe('object data', () => {
       it('should render newly added row', (done) => {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data.push({prop0: 'A3', prop1: 'B3'});
@@ -143,7 +143,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render removed row', (done) => {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data.splice(0, 1); // removes one row at index 0
@@ -157,7 +157,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render cell change from string to string', (done) => {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data[0].prop0 = 'new string';
@@ -170,7 +170,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render cell change in a new row', (done) => {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data.push({prop0: 'A3', prop1: 'B3'});
@@ -191,8 +191,8 @@ describe('HandsontableObserveChanges', () => {
         data[0].prop0 = undefined;
 
         expect(() => {
-          var hot = createHOT(data, true);
-          var htCore = getHtCore();
+          createHOT(data, true);
+          getHtCore();
         }).not.toThrow();
       });
 
@@ -214,7 +214,7 @@ describe('HandsontableObserveChanges', () => {
   describe('enabling/disabling plugin', () => {
     it('should be possible to enable plugin using updateSettings', (done) => {
       var data = Handsontable.helper.createSpreadsheetData(2, 2);
-      var hot = createHOT(data, false);
+      createHOT(data, false);
       var htCore = getHtCore();
 
       data[0][0] = 'new string';

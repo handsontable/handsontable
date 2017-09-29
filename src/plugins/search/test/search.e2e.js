@@ -83,7 +83,7 @@ describe('Search plugin', () => {
         search: true
       });
 
-      var searchResult = hot.search.query('A');
+      hot.search.query('A');
 
       expect(defaultQueryMethod.calls.count()).toEqual(25);
     });
@@ -98,7 +98,7 @@ describe('Search plugin', () => {
 
       Handsontable.plugins.Search.global.setDefaultQueryMethod(customDefaultQueryMethod);
 
-      var searchResult = hot.search.query('A');
+      hot.search.query('A');
 
       expect(customDefaultQueryMethod.calls.count()).toEqual(25);
     });
@@ -113,7 +113,7 @@ describe('Search plugin', () => {
         }
       });
 
-      var searchResult = hot.search.query('A');
+      hot.search.query('A');
 
       expect(customQueryMethod.calls.count()).toEqual(25);
     });
@@ -126,7 +126,7 @@ describe('Search plugin', () => {
         search: true
       });
 
-      var searchResult = hot.search.query('A', null, customQueryMethod);
+      hot.search.query('A', null, customQueryMethod);
 
       expect(customQueryMethod.calls.count()).toEqual(25);
     });
@@ -254,7 +254,7 @@ describe('Search plugin', () => {
         search: true
       });
 
-      var searchResult = hot.search.query('A');
+      hot.search.query('A');
 
       expect(defaultCallback.calls.count()).toEqual(25);
     });
@@ -270,7 +270,7 @@ describe('Search plugin', () => {
       var defaultCallback = jasmine.createSpy('defaultCallback');
       Handsontable.plugins.Search.global.setDefaultCallback(defaultCallback);
 
-      var searchResult = hot.search.query('A');
+      hot.search.query('A');
 
       expect(Handsontable.plugins.Search.DEFAULT_CALLBACK).not.toHaveBeenCalled();
       expect(defaultCallback.calls.count()).toEqual(25);
@@ -286,7 +286,7 @@ describe('Search plugin', () => {
         }
       });
 
-      var searchResult = hot.search.query('A');
+      hot.search.query('A');
 
       expect(searchCallback.calls.count()).toEqual(25);
     });
@@ -299,7 +299,7 @@ describe('Search plugin', () => {
 
       var searchCallback = jasmine.createSpy('searchCallback');
 
-      var searchResult = hot.search.query('A', searchCallback);
+      hot.search.query('A', searchCallback);
 
       expect(searchCallback.calls.count()).toEqual(25);
 
@@ -311,7 +311,7 @@ describe('Search plugin', () => {
           expect(callArgs[2]).toEqual(colIndex);
           expect(callArgs[3]).toEqual(hot.getDataAtCell(rowIndex, colIndex));
 
-          if (colIndex == 0) {
+          if (colIndex === 0) {
             expect(callArgs[4]).toBe(true);
           } else {
             expect(callArgs[4]).toBe(false);
@@ -328,13 +328,13 @@ describe('Search plugin', () => {
         search: true
       });
 
-      var searchResult = hot.search.query('2');
+      hot.search.query('2');
 
       for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++) {
         for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++) {
           var cellProperties = getCellMeta(rowIndex, colIndex);
 
-          if (rowIndex == 1) {
+          if (rowIndex === 1) {
             expect(cellProperties.isSearchResult).toBeTruthy();
           } else {
             expect(cellProperties.isSearchResult).toBeFalsy();
@@ -352,7 +352,7 @@ describe('Search plugin', () => {
         search: true
       });
 
-      var searchResult = hot.search.query('2');
+      hot.search.query('2');
 
       render();
 
@@ -360,7 +360,7 @@ describe('Search plugin', () => {
         for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++) {
           var cell = getCell(rowIndex, colIndex);
 
-          if (rowIndex == 1) {
+          if (rowIndex === 1) {
             expect($(cell).hasClass(Handsontable.plugins.Search.DEFAULT_SEARCH_RESULT_CLASS)).toBe(true);
           } else {
             expect($(cell).hasClass(Handsontable.plugins.Search.DEFAULT_SEARCH_RESULT_CLASS)).toBe(false);
@@ -377,7 +377,7 @@ describe('Search plugin', () => {
         }
       });
 
-      var searchResult = hot.search.query('2');
+      hot.search.query('2');
 
       render();
 
@@ -385,7 +385,7 @@ describe('Search plugin', () => {
         for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++) {
           var cell = getCell(rowIndex, colIndex);
 
-          if (rowIndex == 1) {
+          if (rowIndex === 1) {
             expect($(cell).hasClass('customSearchResultClass')).toBe(true);
           } else {
             expect($(cell).hasClass('customSearchResultClass')).toBe(false);

@@ -36,7 +36,7 @@ describe('WalkontableBorder', () => {
           }
         })
       ],
-      onCellMouseDown(event, coords, TD) {
+      onCellMouseDown(event, coords) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
@@ -102,7 +102,7 @@ describe('WalkontableBorder', () => {
         }),
         new Walkontable.Selection({})
       ],
-      onCellMouseDown(event, coords, TD) {
+      onCellMouseDown(event, coords) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
@@ -152,7 +152,7 @@ describe('WalkontableBorder', () => {
         }),
         new Walkontable.Selection({})
       ],
-      onCellMouseDown(event, coords, TD) {
+      onCellMouseDown(event, coords) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();

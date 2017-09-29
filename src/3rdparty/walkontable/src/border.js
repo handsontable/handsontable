@@ -12,7 +12,6 @@ import {hasOwnProperty} from './../../../helpers/object';
 import {isMobileBrowser} from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import CellCoords from './cell/coords';
-import Overlay from './overlay/_base.js';
 
 /**
  *
@@ -106,23 +105,23 @@ class Border {
     // Hide border to prevents selection jumping when fragmentSelection is enabled.
     parentElement.style.display = 'none';
 
-    function isOutside(event) {
-      if (event.clientY < Math.floor(bounds.top)) {
+    function isOutside(e) {
+      if (e.clientY < Math.floor(bounds.top)) {
         return true;
       }
-      if (event.clientY > Math.ceil(bounds.top + bounds.height)) {
+      if (e.clientY > Math.ceil(bounds.top + bounds.height)) {
         return true;
       }
-      if (event.clientX < Math.floor(bounds.left)) {
+      if (e.clientX < Math.floor(bounds.left)) {
         return true;
       }
-      if (event.clientX > Math.ceil(bounds.left + bounds.width)) {
+      if (e.clientX > Math.ceil(bounds.left + bounds.width)) {
         return true;
       }
     }
 
-    function handler(event) {
-      if (isOutside(event)) {
+    function handler(e) {
+      if (isOutside(e)) {
         _this.eventManager.removeEventListener(document.body, 'mousemove', handler);
         parentElement.style.display = 'block';
       }
@@ -256,7 +255,7 @@ class Border {
 
   isPartRange(row, col) {
     if (this.wot.selections.area.cellRange) {
-      if (row != this.wot.selections.area.cellRange.to.row || col != this.wot.selections.area.cellRange.to.col) {
+      if (row !== this.wot.selections.area.cellRange.to.row || col !== this.wot.selections.area.cellRange.to.col) {
         return true;
       }
     }
@@ -298,7 +297,7 @@ class Border {
       this.selectionHandles.styles.bottomRightHitArea.display = 'none';
     }
 
-    if (row == this.wot.wtSettings.getSetting('fixedRowsTop') || col == this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
+    if (row === this.wot.wtSettings.getSetting('fixedRowsTop') || col === this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
       this.selectionHandles.styles.topLeft.zIndex = '9999';
       this.selectionHandles.styles.topLeftHitArea.zIndex = '9999';
     } else {

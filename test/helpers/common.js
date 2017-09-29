@@ -1,6 +1,6 @@
 export function sleep(delay = 100) {
   return Promise.resolve({
-    then: function(resolve) {
+    then: (resolve) => {
       setTimeout(resolve, delay);
     }
   });
@@ -71,7 +71,7 @@ export function isFillHandleVisible() {
 export function getCorrespondingOverlay(cell, container) {
   var overlay = $(cell).parents('.handsontable');
 
-  if (overlay[0] == container[0]) {
+  if (overlay[0] === container[0]) {
     return $('.ht_master');
   }
 
@@ -82,17 +82,17 @@ export function getCorrespondingOverlay(cell, container) {
  * Shows context menu
  */
 export function contextMenu(cell) {
-  var hot = spec().$container.data('handsontable');
-  var selected = hot.getSelected();
+  const instance = spec().$container.data('handsontable');
+  let selected = instance.getSelected();
 
   if (!selected) {
-    hot.selectCell(0, 0);
-    selected = hot.getSelected();
+    instance.selectCell(0, 0);
+    selected = instance.getSelected();
   }
   if (!cell) {
     cell = getCell(selected[0], selected[1]);
   }
-  var cellOffset = $(cell).offset();
+  let cellOffset = $(cell).offset();
 
   $(cell).simulate('contextmenu', {
     clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
@@ -109,9 +109,9 @@ export function closeContextMenu() {
  * Shows dropdown menu
  */
 export function dropdownMenu(columnIndex) {
-  var hot = spec().$container.data('handsontable');
-  var th = hot.view.wt.wtTable.getColumnHeader(columnIndex || 0);
-  var button = th.querySelector('.changeType');
+  const instance = spec().$container.data('handsontable');
+  const th = instance.view.wt.wtTable.getColumnHeader(columnIndex || 0);
+  const button = th.querySelector('.changeType');
 
   if (button) {
     $(button).simulate('mousedown');
@@ -292,7 +292,7 @@ export function keyProxy() {
 };
 
 export function serveImmediatePropagation(event) {
-  if (event != null && event.isImmediatePropagationEnabled == null) {
+  if (event !== null && event.isImmediatePropagationEnabled === null) {
     event.stopImmediatePropagation = function() {
       this.isImmediatePropagationEnabled = false;
       this.cancelBubble = true;
@@ -475,7 +475,8 @@ export function rowHeight($elem, row) {
  * @returns {String}
  */
 export function getRenderedValue(trIndex, tdIndex) {
-  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).html();
+  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex)
+    .html();
 }
 
 /**
@@ -485,7 +486,8 @@ export function getRenderedValue(trIndex, tdIndex) {
  * @returns {String}
  */
 export function getRenderedContent(trIndex, tdIndex) {
-  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).children();
+  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex)
+    .children();
 }
 
 /**
@@ -701,7 +703,7 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
 
   var touch = document.createTouch(window, target, 0, pageX, pageY, pageX, pageY);
 
-  if (type == 'touchend') {
+  if (type === 'touchend') {
     touches = document.createTouchList();
     targetTouches = document.createTouchList();
     changedTouches = document.createTouchList(touch);

@@ -13,7 +13,7 @@ import {getRenderer} from './index';
  * @param cellProperties
  */
 function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  getRenderer('base').apply(this, arguments);
+  getRenderer('base').apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 
   if (value === null || value === void 0) {
     value = '';

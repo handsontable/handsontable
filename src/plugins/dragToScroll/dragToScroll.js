@@ -1,6 +1,5 @@
 import Hooks from './../../pluginHooks';
 import EventManager from './../../eventManager';
-import {registerPlugin} from './../../plugins';
 
 /**
  * @description
@@ -58,7 +57,7 @@ DragToScroll.prototype.check = function(x, y) {
 };
 
 var dragToScroll;
-var instance;
+// var instance;
 
 var setupListening = function(instance) {
   instance.dragToScrollListening = false;

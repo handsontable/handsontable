@@ -52,7 +52,7 @@ beforeEach(function() {
     },
     toBeFunction() {
       return {
-        compare(actual, expected) {
+        compare(actual) {
           return {
             pass: typeof actual === 'function'
           };
@@ -96,7 +96,7 @@ export function range(from, to) {
     return [];
   }
 
-  if (arguments.length == 1) {
+  if (arguments.length === 1) {
     to = from;
     from = 0;
   }
@@ -208,7 +208,7 @@ export function walkontableCalculateScrollbarWidth() {
   var w1 = inner.offsetWidth;
   outer.style.overflow = 'scroll';
   var w2 = inner.offsetWidth;
-  if (w1 == w2) {
+  if (w1 === w2) {
     w2 = outer.clientWidth;
   }
 

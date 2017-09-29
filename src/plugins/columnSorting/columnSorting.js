@@ -83,19 +83,15 @@ class ColumnSorting extends BasePlugin {
       this.enableObserveChangesPlugin();
     }
 
-    this.addHook('afterTrimRow', (row) => this.sort());
-    this.addHook('afterUntrimRow', (row) => this.sort());
+    this.addHook('afterTrimRow', () => this.sort());
+    this.addHook('afterUntrimRow', () => this.sort());
     this.addHook('modifyRow', (row) => this.translateRow(row));
     this.addHook('unmodifyRow', (row) => this.untranslateRow(row));
     this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
     this.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
-    this.addHook('afterCreateRow', function() {
-      _this.afterCreateRow(...arguments);
-    });
-    this.addHook('afterRemoveRow', function() {
-      _this.afterRemoveRow(...arguments);
-    });
+    this.addHook('afterCreateRow', (...args) => this.afterCreateRow(...args));
+    this.addHook('afterRemoveRow', (...args) => this.afterRemoveRow(...args));
     this.addHook('afterInit', () => this.sortBySettings());
     this.addHook('afterLoadData', () => {
       this.hot.sortIndex = [];
@@ -153,12 +149,12 @@ class ColumnSorting extends BasePlugin {
    * @param {boolean|undefined} order Sorting order (`true` for ascending, `false` for descending).
    */
   setSortingColumn(col, order) {
-    if (typeof col == 'undefined') {
+    if (typeof col === 'undefined') {
       this.hot.sortColumn = void 0;
       this.hot.sortOrder = void 0;
 
       return;
-    } else if (this.hot.sortColumn === col && typeof order == 'undefined') {
+    } else if (this.hot.sortColumn === col && typeof order === 'undefined') {
       if (this.hot.sortOrder === false) {
         this.hot.sortOrder = void 0;
       } else {
@@ -175,7 +171,7 @@ class ColumnSorting extends BasePlugin {
   sortByColumn(col, order) {
     this.setSortingColumn(col, order);
 
-    if (typeof this.hot.sortColumn == 'undefined') {
+    if (typeof this.hot.sortColumn === 'undefined') {
       return;
     }
 
@@ -199,11 +195,11 @@ class ColumnSorting extends BasePlugin {
   saveSortingState() {
     let sortingState = {};
 
-    if (typeof this.hot.sortColumn != 'undefined') {
+    if (typeof this.hot.sortColumn !== 'undefined') {
       sortingState.sortColumn = this.hot.sortColumn;
     }
 
-    if (typeof this.hot.sortOrder != 'undefined') {
+    if (typeof this.hot.sortOrder !== 'undefined') {
       sortingState.sortOrder = this.hot.sortOrder;
     }
 
@@ -260,10 +256,10 @@ class ColumnSorting extends BasePlugin {
    */
   defaultSort(sortOrder, columnMeta) {
     return function(a, b) {
-      if (typeof a[1] == 'string') {
+      if (typeof a[1] === 'string') {
         a[1] = a[1].toLowerCase();
       }
-      if (typeof b[1] == 'string') {
+      if (typeof b[1] === 'string') {
         b[1] = b[1].toLowerCase();
       }
 
@@ -423,7 +419,7 @@ class ColumnSorting extends BasePlugin {
    * Perform the sorting.
    */
   sort() {
-    if (typeof this.hot.sortOrder == 'undefined') {
+    if (typeof this.hot.sortOrder === 'undefined') {
       this.hot.sortIndex.length = 0;
 
       return;
@@ -481,7 +477,7 @@ class ColumnSorting extends BasePlugin {
    * Update indicator states.
    */
   updateSortIndicator() {
-    if (typeof this.hot.sortOrder == 'undefined') {
+    if (typeof this.hot.sortOrder === 'undefined') {
       return;
     }
     const colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
@@ -512,7 +508,7 @@ class ColumnSorting extends BasePlugin {
   untranslateRow(row) {
     if (this.hot.sortingEnabled && this.hot.sortIndex && this.hot.sortIndex.length) {
       for (var i = 0; i < this.hot.sortIndex.length; i++) {
-        if (this.hot.sortIndex[i][0] == row) {
+        if (this.hot.sortIndex[i][0] === row) {
           return i;
         }
       }
@@ -528,11 +524,10 @@ class ColumnSorting extends BasePlugin {
    */
   getColHeader(col, TH) {
     if (col < 0 || !TH.parentNode) {
-      return false;
+      return;
     }
 
     let headerLink = TH.querySelector('.colHeader');
-    let colspan = TH.getAttribute('colspan');
     let TRs = TH.parentNode.parentNode.childNodes;
     let headerLevel = Array.prototype.indexOf.call(TRs, TH.parentNode);
     headerLevel -= TRs.length;
@@ -565,7 +560,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Boolean}
    */
   isSorted() {
-    return typeof this.hot.sortColumn != 'undefined';
+    return typeof this.hot.sortColumn !== 'undefined';
   }
 
   /**
@@ -619,7 +614,7 @@ class ColumnSorting extends BasePlugin {
       }, 0);
     }
 
-    this.hot.sortIndex = arrayMap(this.hot.sortIndex, (logicalRow, physicalRow) => {
+    this.hot.sortIndex = arrayMap(this.hot.sortIndex, (logicalRow) => {
       let rowShift = countRowShift(logicalRow[0]);
 
       if (rowShift) {

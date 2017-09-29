@@ -88,10 +88,10 @@ class CellRange {
    * @returns {Boolean}
    */
   isEqual(testedRange) {
-    return (Math.min(this.from.row, this.to.row) == Math.min(testedRange.from.row, testedRange.to.row)) &&
-           (Math.max(this.from.row, this.to.row) == Math.max(testedRange.from.row, testedRange.to.row)) &&
-           (Math.min(this.from.col, this.to.col) == Math.min(testedRange.from.col, testedRange.to.col)) &&
-           (Math.max(this.from.col, this.to.col) == Math.max(testedRange.from.col, testedRange.to.col));
+    return (Math.min(this.from.row, this.to.row) === Math.min(testedRange.from.row, testedRange.to.row)) &&
+           (Math.max(this.from.row, this.to.row) === Math.max(testedRange.from.row, testedRange.to.row)) &&
+           (Math.min(this.from.col, this.to.col) === Math.min(testedRange.from.col, testedRange.to.col)) &&
+           (Math.max(this.from.col, this.to.col) === Math.max(testedRange.from.col, testedRange.to.col));
   }
 
   /**
@@ -153,8 +153,6 @@ class CellRange {
 
     let topLeft = this.getTopLeftCorner();
     let bottomRight = this.getBottomRightCorner();
-    let topRight = this.getTopRightCorner();
-    let bottomLeft = this.getBottomLeftCorner();
 
     let expandingTopLeft = expandingRange.getTopLeftCorner();
     let expandingBottomRight = expandingRange.getBottomRightCorner();
@@ -346,16 +344,16 @@ class CellRange {
     };
     const result = [];
 
-    if (thisBorders.top == rangeBorders.top) {
+    if (thisBorders.top === rangeBorders.top) {
       result.push('top');
     }
-    if (thisBorders.right == rangeBorders.right) {
+    if (thisBorders.right === rangeBorders.right) {
       result.push('right');
     }
-    if (thisBorders.bottom == rangeBorders.bottom) {
+    if (thisBorders.bottom === rangeBorders.bottom) {
       result.push('bottom');
     }
-    if (thisBorders.left == rangeBorders.left) {
+    if (thisBorders.left === rangeBorders.left) {
       result.push('left');
     }
 

@@ -11,7 +11,6 @@ import {
 } from './../../../helpers/dom/element';
 import {isFunction} from './../../../helpers/function';
 import CellCoords from './cell/coords';
-import CellRange from './cell/range';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 import TableRenderer from './tableRenderer';
@@ -543,7 +542,7 @@ class Table {
   }
 
   allRowsInViewport() {
-    return this.wot.getSetting('totalRows') == this.getVisibleRowsCount();
+    return this.wot.getSetting('totalRows') === this.getVisibleRowsCount();
   }
 
   /**
@@ -579,7 +578,7 @@ class Table {
   }
 
   allColumnsInViewport() {
-    return this.wot.getSetting('totalColumns') == this.getVisibleColumnsCount();
+    return this.wot.getSetting('totalColumns') === this.getVisibleColumnsCount();
   }
 
   getColumnWidth(sourceColumn) {

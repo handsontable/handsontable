@@ -234,9 +234,9 @@ class Overlays {
           overlay = 'bottomLeft';
         }
 
-        if ((overlay == 'top' && deltaY !== 0) ||
-          (overlay == 'left' && deltaX !== 0) ||
-          (overlay == 'bottom' && deltaY !== 0) ||
+        if ((overlay === 'top' && deltaY !== 0) ||
+          (overlay === 'left' && deltaX !== 0) ||
+          (overlay === 'bottom' && deltaY !== 0) ||
           ((overlay === 'topLeft' || overlay === 'bottomLeft') && (deltaY !== 0 || deltaX !== 0))) {
 
           event.preventDefault();
@@ -334,7 +334,7 @@ class Overlays {
       deltaX *= 120;
     }
 
-    while (tempElem != document && tempElem != null) {
+    while (tempElem !== document && tempElem !== null) {
       if (tempElem.className.indexOf('wtHolder') > -1) {
         parentHolder = tempElem;
         break;
@@ -748,7 +748,7 @@ class Overlays {
     ];
     let result = null;
 
-    arrayEach(overlays, (elem, i) => {
+    arrayEach(overlays, (elem) => {
       if (!elem) {
         return;
       }

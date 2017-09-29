@@ -1,5 +1,4 @@
 import Hooks from './../../pluginHooks';
-import {registerPlugin} from './../../plugins';
 import {hasOwnProperty} from './../../helpers/object';
 import {CellRange, Selection} from './../../3rdparty/walkontable/src';
 
@@ -82,7 +81,7 @@ var init = function() {
  */
 var getSettingIndex = function(className) {
   for (var i = 0; i < instance.view.wt.selections.length; i++) {
-    if (instance.view.wt.selections[i].settings.className == className) {
+    if (instance.view.wt.selections[i].settings.className === className) {
       return i;
     }
   }
@@ -138,7 +137,7 @@ var prepareBorderFromCustomAddedRange = function(rowObj) {
       var border = createEmptyBorders(row, col);
       var add = 0;
 
-      if (row == range.from.row) {
+      if (row === range.from.row) {
         add++;
 
         if (hasOwnProperty(rowObj, 'top')) {
@@ -146,7 +145,7 @@ var prepareBorderFromCustomAddedRange = function(rowObj) {
         }
       }
 
-      if (row == range.to.row) {
+      if (row === range.to.row) {
         add++;
 
         if (hasOwnProperty(rowObj, 'bottom')) {
@@ -154,7 +153,7 @@ var prepareBorderFromCustomAddedRange = function(rowObj) {
         }
       }
 
-      if (col == range.from.col) {
+      if (col === range.from.col) {
         add++;
 
         if (hasOwnProperty(rowObj, 'left')) {
@@ -162,7 +161,7 @@ var prepareBorderFromCustomAddedRange = function(rowObj) {
         }
       }
 
-      if (col == range.to.col) {
+      if (col === range.to.col) {
         add++;
 
         if (hasOwnProperty(rowObj, 'right')) {
@@ -279,7 +278,7 @@ var removeBordersFromDom = function(borderClassName) {
 
   for (var i = 0; i < borders.length; i++) {
     if (borders[i]) {
-      if (borders[i].nodeName != 'TD') {
+      if (borders[i].nodeName !== 'TD') {
         var parent = borders[i].parentNode;
 
         if (parent.parentNode) {
@@ -314,7 +313,7 @@ var setBorder = function(row, col, place, remove) {
 
   var bordersMeta = this.getCellMeta(row, col).borders;
 
-  if (!bordersMeta || bordersMeta.border == undefined) {
+  if (!bordersMeta || bordersMeta.border === void 0) {
     bordersMeta = createEmptyBorders(row, col);
   }
 
@@ -342,8 +341,8 @@ var setBorder = function(row, col, place, remove) {
  */
 var prepareBorder = function(range, place, remove) {
 
-  if (range.from.row == range.to.row && range.from.col == range.to.col) {
-    if (place == 'noBorders') {
+  if (range.from.row === range.to.row && range.from.col === range.to.col) {
+    if (place === 'noBorders') {
       removeAllBorders.call(this, range.from.row, range.from.col);
     } else {
       setBorder.call(this, range.from.row, range.from.col, place, remove);
@@ -406,7 +405,10 @@ var checkSelectionBorders = function(hot, direction) {
         return false; // breaks forAll
       }
     }
+
+    return true;
   });
+
   return atLeastOneHasBorder;
 };
 

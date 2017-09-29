@@ -7,7 +7,7 @@
  * @param {*} callback - Callback called with validation result
  */
 export default function numericValidator(value, callback) {
-  if (value == null) {
+  if (value === null) {
     value = '';
   }
   if (this.allowEmpty && value === '') {

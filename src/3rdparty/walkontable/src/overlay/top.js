@@ -234,7 +234,6 @@ class TopOverlay extends Overlay {
 
     if (bottomEdge) {
       let fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
-      let fixedRowsTop = this.wot.getSetting('fixedRowsTop');
       let totalRows = this.wot.getSetting('totalRows');
 
       newY += this.sumCellSizes(0, sourceRow + 1);

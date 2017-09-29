@@ -39,7 +39,7 @@ export function getValidSelection(hot) {
 }
 
 export function prepareVerticalAlignClass(className, alignment) {
-  if (className.indexOf(alignment) != -1) {
+  if (className.indexOf(alignment) !== -1) {
     return className;
   }
   className = className
@@ -54,7 +54,7 @@ export function prepareVerticalAlignClass(className, alignment) {
 }
 
 export function prepareHorizontalAlignClass(className, alignment) {
-  if (className.indexOf(alignment) != -1) {
+  if (className.indexOf(alignment) !== -1) {
     return className;
   }
   className = className
@@ -85,7 +85,7 @@ export function getAlignmentClasses(range, callback) {
 }
 
 export function align(range, type, alignment, cellDescriptor, propertySetter) {
-  if (range.from.row == range.to.row && range.from.col == range.to.col) {
+  if (range.from.row === range.to.row && range.from.col === range.to.col) {
     applyAlignClassName(range.from.row, range.from.col, type, alignment, cellDescriptor, propertySetter);
   } else {
     for (let row = range.from.row; row <= range.to.row; row++) {
@@ -133,7 +133,7 @@ export function markLabelAsSelected(label) {
 }
 
 export function isItemHidden(item, instance) {
-  return !item.hidden || !(typeof item.hidden == 'function' && item.hidden.call(instance));
+  return !item.hidden || !(typeof item.hidden === 'function' && item.hidden.call(instance));
 }
 
 function shiftSeparators(items, separator) {

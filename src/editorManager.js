@@ -269,7 +269,7 @@ function EditorManager(instance, priv, selection) {
 
     function onDblClick(event, coords, elem) {
       // may be TD or TH
-      if (elem.nodeName == 'TD') {
+      if (elem.nodeName === 'TD') {
         _this.openEditor();
 
         if (activeEditor) {

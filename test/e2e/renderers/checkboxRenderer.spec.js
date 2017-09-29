@@ -252,7 +252,7 @@ describe('CheckboxRenderer', () => {
   });
 
   it('should reverse checkboxes state after hitting space, when multiple cells are selected', function() {
-    var hot = handsontable({
+    handsontable({
       data: [[true], [false], [true]],
       columns: [
         {type: 'checkbox'}

@@ -89,25 +89,25 @@ describe('CustomBorders', () => {
 
     for (var row = 1; row <= 3; row++) {
       for (var column = 1; column <= 4; column++) {
-        if (row == 1) {
+        if (row === 1) {
           var topRow = $(`.wtBorder.border_row${row}col${column}`);
           expect(topRow.length).toEqual(20); // borders for all tables (main and hiders)
           expect(topRow[0].style.backgroundColor).toEqual('black');
           expect(topRow[0].style.height).toEqual('2px');
         }
-        if (column == 1) {
+        if (column === 1) {
           var leftColumn = $(`.wtBorder.border_row${row}col${column}`);
           expect(leftColumn.length).toEqual(20); // borders for all tables (main and hiders)
           expect(leftColumn[1].style.backgroundColor).toEqual('red');
           expect(leftColumn[1].style.width).toEqual('2px');
         }
-        if (row == 3) {
+        if (row === 3) {
           var bottomRow = $(`.wtBorder.border_row${row}col${column}`);
           expect(bottomRow.length).toEqual(20); // borders for all tables (main and hiders)
           expect(bottomRow[2].style.backgroundColor).toEqual('red');
           expect(bottomRow[2].style.height).toEqual('2px');
         }
-        if (column == 4) {
+        if (column === 4) {
           var rightColumn = $(`.wtBorder.border_row${row}col${column}`);
           expect(rightColumn.length).toEqual(20); // borders for all tables (main and hiders)
           expect(rightColumn[3].style.backgroundColor).toEqual('black');
@@ -118,7 +118,7 @@ describe('CustomBorders', () => {
   });
 
   it('should draw top border from context menu options', (done) => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
@@ -152,7 +152,7 @@ describe('CustomBorders', () => {
   });
 
   it('should draw left border from context menu options', (done) => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
@@ -187,7 +187,7 @@ describe('CustomBorders', () => {
   });
 
   it('should draw right border from context menu options', (done) => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
@@ -222,7 +222,7 @@ describe('CustomBorders', () => {
   });
 
   it('should draw bottom border from context menu options', (done) => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
@@ -257,7 +257,7 @@ describe('CustomBorders', () => {
   });
 
   it('should remove all bottoms border from context menu options', (done) => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: [
@@ -291,7 +291,7 @@ describe('CustomBorders', () => {
   });
 
   it('should disable `Borders` context menu item when menu was triggered from corner header', () => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
       colHeaders: true,
@@ -299,7 +299,8 @@ describe('CustomBorders', () => {
       customBorders: true,
     });
 
-    $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0).simulate('mousedown', {which: 3});
+    $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0)
+      .simulate('mousedown', {which: 3});
     contextMenu();
 
     expect($('.htContextMenu tbody td.htDisabled').text()).toBe([

@@ -455,7 +455,6 @@ describe('WalkontableScroll', () => {
       $wrapper.width(260).height(201);
 
       var masterCallback = jasmine.createSpy('masterCallback');
-      var topOverlayCallback = jasmine.createSpy('topOverlayCallback');
       var leftOverlayCallback = jasmine.createSpy('leftOverlayCallback');
 
       var wt = new Walkontable.Core({

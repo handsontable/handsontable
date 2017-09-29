@@ -16,7 +16,7 @@ import {getRenderer} from './index';
  * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
 function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  getRenderer('base').apply(this, arguments);
+  getRenderer('base').apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 
   if (!value && cellProperties.placeholder) {
     value = cellProperties.placeholder;

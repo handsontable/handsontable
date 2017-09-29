@@ -1,5 +1,4 @@
 import Hooks from './../../pluginHooks';
-import {registerPlugin} from './../../plugins';
 import {hasOwnProperty} from './../../helpers/object';
 
 function Storage(prefix) {
@@ -11,7 +10,7 @@ function Storage(prefix) {
 
   var loadSavedKeys = function() {
     var keysJSON = window.localStorage[`${prefix}__persistentStateKeys`];
-    var keys = typeof keysJSON == 'string' ? JSON.parse(keysJSON) : void 0;
+    var keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : void 0;
     savedKeys = keys ? keys : [];
   };
 
@@ -24,7 +23,7 @@ function Storage(prefix) {
 
   this.saveValue = function(key, value) {
     window.localStorage[`${prefix}_${key}`] = JSON.stringify(value);
-    if (savedKeys.indexOf(key) == -1) {
+    if (savedKeys.indexOf(key) === -1) {
       savedKeys.push(key);
       saveSavedKeys();
     }
@@ -37,7 +36,7 @@ function Storage(prefix) {
 
     var value = window.localStorage[`${prefix}_${key}`];
 
-    return typeof value == 'undefined' ? void 0 : JSON.parse(value);
+    return typeof value === 'undefined' ? void 0 : JSON.parse(value);
   };
 
   this.reset = function(key) {

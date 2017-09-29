@@ -256,13 +256,13 @@ describe('GhostTable', () => {
   });
 
   it('should be detected as horizontal if at least one column is added', () => {
-    var hot = handsontable(hotSettings);
-    var samples = new Map();
-    var gt = new Handsontable.__GhostTable(hot);
+    const hot = handsontable(hotSettings);
+    const samples = new Map();
+    const ghostTable = new Handsontable.__GhostTable(hot);
 
-    gt.addColumn(0, samples);
+    ghostTable.addColumn(0, samples);
 
-    expect(gt.isVertical()).toBe(false);
-    expect(gt.isHorizontal()).toBe(true);
+    expect(ghostTable.isVertical()).toBe(false);
+    expect(ghostTable.isHorizontal()).toBe(true);
   });
 });

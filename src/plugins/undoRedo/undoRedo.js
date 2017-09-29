@@ -251,7 +251,7 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
 
   for (let i = 0, len = data.length; i < len; i++) {
     if (instance.getSettings().minSpareRows && data[i][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
-        emptyRowsAtTheEnd == instance.getSettings().minSpareRows) {
+        emptyRowsAtTheEnd === instance.getSettings().minSpareRows) {
 
       instance.alter('remove_row', parseInt(data[i][0] + 1, 10), instance.getSettings().minSpareRows);
       instance.undoRedo.doneActions.pop();
@@ -259,7 +259,7 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
     }
 
     if (instance.getSettings().minSpareCols && data[i][1] + 1 + instance.getSettings().minSpareCols === instance.countCols() &&
-        emptyColsAtTheEnd == instance.getSettings().minSpareCols) {
+        emptyColsAtTheEnd === instance.getSettings().minSpareCols) {
 
       instance.alter('remove_col', parseInt(data[i][1] + 1, 10), instance.getSettings().minSpareCols);
       instance.undoRedo.doneActions.pop();
@@ -516,7 +516,7 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
 
 function init() {
   let instance = this;
-  let pluginEnabled = typeof instance.getSettings().undo == 'undefined' || instance.getSettings().undo;
+  let pluginEnabled = typeof instance.getSettings().undo === 'undefined' || instance.getSettings().undo;
 
   if (pluginEnabled) {
     if (!instance.undoRedo) {
@@ -562,8 +562,9 @@ function onBeforeKeyDown(event) {
 
 function onAfterChange(changes, source) {
   let instance = this;
+
   if (source === 'loadData') {
-    return instance.undoRedo.clear();
+    instance.undoRedo.clear();
   }
 }
 

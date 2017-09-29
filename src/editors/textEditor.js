@@ -146,7 +146,7 @@ TextEditor.prototype.open = function() {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-TextEditor.prototype.close = function(tdOutside) {
+TextEditor.prototype.close = function() {
   this.textareaParentStyle.display = 'none';
 
   this.autoResize.unObserve();
@@ -238,7 +238,7 @@ TextEditor.prototype.getEditedCell = function() {
       break;
   }
 
-  return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
+  return editedCell !== -1 && editedCell !== -2 ? editedCell : void 0;
 };
 
 TextEditor.prototype.refreshValue = function() {
@@ -257,7 +257,7 @@ TextEditor.prototype.refreshDimensions = function() {
 
   // TD is outside of the viewport.
   if (!this.TD) {
-    this.close(true);
+    this.close();
 
     return;
   }
@@ -273,7 +273,6 @@ TextEditor.prototype.refreshDimensions = function() {
     editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
 
     settings = this.instance.getSettings(),
-    rowHeadersCount = this.instance.hasRowHeaders(),
     colHeadersCount = this.instance.hasColHeaders(),
     editorSection = this.checkEditorSection(),
     backgroundColor = this.TD.style.backgroundColor,
@@ -309,7 +308,7 @@ TextEditor.prototype.refreshDimensions = function() {
     editLeft += 1;
   }
 
-  if (cssTransformOffset && cssTransformOffset != -1) {
+  if (cssTransformOffset && cssTransformOffset !== -1) {
     this.textareaParentStyle[cssTransformOffset[0]] = cssTransformOffset[1];
   } else {
     resetCssTransform(this.TEXTAREA_PARENT);

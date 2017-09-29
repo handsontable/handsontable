@@ -100,7 +100,6 @@ describe('persistentState', () => {
     // We have to manually save data, as persistentStateSave won't work when the plugin is disabled
     window.localStorage[`${id}_testData`] = JSON.stringify(100);
 
-    var storedData = {};
     hot.runHooks('persistentStateReset', 'testData');
 
     expect(JSON.parse(window.localStorage[`${id}_testData`])).toEqual(100);

@@ -525,7 +525,7 @@ describe('UndoRedo', () => {
         });
 
         it('should undo removal of multiple columns (with a used manualColumnMove)', () => {
-          var HOT = handsontable({
+          handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 7),
             manualColumnMove: [3, 2, 0, 6, 1, 5, 4]
           });
@@ -2354,7 +2354,6 @@ describe('UndoRedo', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(2, 2)
         });
-        var HOT = getInstance();
 
         selectCell(0, 0);
         setDataAtCell(0, 0, 'new value');

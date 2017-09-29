@@ -1,6 +1,5 @@
 import {getEditor} from './../editors';
 import {getRenderer} from './../renderers';
-import {getValidator} from './../validators';
 
 const CELL_TYPE = 'password';
 

@@ -33,7 +33,7 @@ describe('Walkontable.Selection', () => {
           className: 'current'
         })
       ],
-      onCellMouseDown(event, coords, TD) {
+      onCellMouseDown(event, coords) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
@@ -127,7 +127,7 @@ describe('Walkontable.Selection', () => {
           }
         })
       ],
-      onCellMouseDown(event, coords, TD) {
+      onCellMouseDown(event, coords) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();

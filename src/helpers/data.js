@@ -123,7 +123,7 @@ export function translateRowsToColumns(input) {
 
   for (i = 0, ilen = input.length; i < ilen; i++) {
     for (j = 0, jlen = input[i].length; j < jlen; j++) {
-      if (j == olen) {
+      if (j === olen) {
         output.push([]);
         olen++;
       }
@@ -153,7 +153,7 @@ export function translateRowsToColumns(input) {
  */
 export function cellMethodLookupFactory(methodName, allowUndefined) {
 
-  allowUndefined = typeof allowUndefined == 'undefined' ? true : allowUndefined;
+  allowUndefined = typeof allowUndefined === 'undefined' ? true : allowUndefined;
 
   return function cellMethodLookup(row, col) {
     return (function getMethodFromProperties(properties) {
@@ -167,7 +167,7 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
       } else if (hasOwnProperty(properties, 'type') && properties.type) { // check if it is own and is not empty
         var type;
 
-        if (typeof properties.type != 'string') {
+        if (typeof properties.type !== 'string') {
           throw new Error('Cell type must be a string ');
         }
         type = getCellType(properties.type);
@@ -181,6 +181,6 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
 
       return getMethodFromProperties(Object.getPrototypeOf(properties));
 
-    }(typeof row == 'number' ? this.getCellMeta(row, col) : row));
+    }(typeof row === 'number' ? this.getCellMeta(row, col) : row));
   };
 }

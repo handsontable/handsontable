@@ -1,8 +1,8 @@
-describe('ContextMenu', function () {
+describe('ContextMenu', () => {
   var id = 'testContainer';
 
   beforeEach(function () {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function () {
@@ -12,9 +12,9 @@ describe('ContextMenu', function () {
     }
   });
 
-  describe('alignment', function() {
-    it('should align text left', function (done) {
-      var hot = handsontable({
+  describe('alignment', () => {
+    it('should align text left', async (done) => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -25,8 +25,8 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      setTimeout(() => {
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
         button.simulate('mousedown'); // Text left
 
@@ -36,8 +36,8 @@ describe('ContextMenu', function () {
       }, 350);
     });
 
-    it('should align text center', function (done) {
-      var hot = handsontable({
+    it('should align text center', async (done) => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -48,8 +48,8 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      setTimeout(() => {
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
 
         button.simulate('mousedown'); // Text center
@@ -59,8 +59,8 @@ describe('ContextMenu', function () {
       }, 350);
     });
 
-    it('should align text right', function (done) {
-      var hot = handsontable({
+    it('should align text right', async (done) => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -71,8 +71,8 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      setTimeout(() => {
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
 
         button.simulate('mousedown'); // Text right
@@ -82,8 +82,8 @@ describe('ContextMenu', function () {
       }, 350);
     });
 
-    it('should justify text', function (done) {
-      var hot = handsontable({
+    it('should justify text', async (done) => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -94,8 +94,8 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      setTimeout(() => {
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
 
         button.simulate('mousedown'); // Text justify
@@ -106,8 +106,8 @@ describe('ContextMenu', function () {
       }, 350); // menu opens after 300ms
     });
 
-    it('should vertical align text top', function (done) {
-      var hot = handsontable({
+    it('should vertical align text top', async (done) => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -118,8 +118,8 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      setTimeout(() => {
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
 
         button.simulate('mousedown'); // Text top
@@ -130,8 +130,8 @@ describe('ContextMenu', function () {
       }, 350); // menu opens after 300ms
     });
 
-    it('should vertical align text middle', function (done) {
-      var hot = handsontable({
+    it('should vertical align text middle', async (done) => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -142,8 +142,8 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      setTimeout(() => {
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(5);
 
         button.simulate('mousedown'); // Text middle
@@ -154,8 +154,8 @@ describe('ContextMenu', function () {
       }, 350); // menu opens after 300ms
     });
 
-    it('should vertical align text bottom', function (done) {
-      var hot = handsontable({
+    it('should vertical align text bottom', async (done) => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -165,8 +165,8 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      setTimeout(() => {
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(6);
         button.simulate('mousedown'); // Text bottom
         deselectCell();
@@ -176,9 +176,9 @@ describe('ContextMenu', function () {
       }, 350); // menu opens after 300ms
     });
 
-    it('should trigger `afterSetCellMeta` callback after changing alignment by context menu', function (done) {
+    it('should trigger `afterSetCellMeta` callback after changing alignment by context menu', async (done) => {
       var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
@@ -191,8 +191,8 @@ describe('ContextMenu', function () {
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
-      setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+      setTimeout(() => {
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
         button.simulate('mousedown'); // Text bottom
         deselectCell();

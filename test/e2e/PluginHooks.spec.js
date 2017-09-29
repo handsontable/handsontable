@@ -196,12 +196,12 @@ describe('PluginHooks', () => {
   });
 
   it('should execute two "once" hooks in desired order', () => {
-    var hot = handsontable();
-    var str = 'a';
+    let hot = handsontable();
+    let str = 'a';
 
-    hot.addHookOnce('myHook', (str) => `${str}b`);
+    hot.addHookOnce('myHook', (text) => `${text}b`);
 
-    hot.addHookOnce('myHook', (str) => `${str}c`);
+    hot.addHookOnce('myHook', (text) => `${text}c`);
 
     expect(hot.runHooks('myHook', str)).toEqual('abc');
   });
@@ -222,7 +222,7 @@ describe('PluginHooks', () => {
     expect(i).toEqual(1);
   });
 
-  it('should mark the hook callbacks added with Handsontable initialization', function() {
+  it('should mark the hook callbacks added with Handsontable initialization', () => {
     var fn = function() {};
     var fn2 = function() {};
 
@@ -236,7 +236,7 @@ describe('PluginHooks', () => {
     expect(fn2.initialHook).toEqual(void 0);
   });
 
-  it('should mark the hook callbacks added using the updateSettings method', function() {
+  it('should mark the hook callbacks added using the updateSettings method', () => {
     var fn = function() {};
     var fn2 = function() {};
 
@@ -253,7 +253,7 @@ describe('PluginHooks', () => {
   });
 
   it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method (when there was a hook ' +
-     'already declared in the initialization)', function() {
+     'already declared in the initialization)', () => {
     var fn = function() {};
     var fn2 = function() {};
 
@@ -264,13 +264,13 @@ describe('PluginHooks', () => {
     var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
 
     hot.updateSettings({
-      afterGetCellMeta: function() {
+      afterGetCellMeta() {
         var a = 'another function';
       }
     });
 
     hot.updateSettings({
-      afterGetCellMeta: function() {
+      afterGetCellMeta() {
         var a = 'yet another function';
       }
     });
@@ -282,7 +282,7 @@ describe('PluginHooks', () => {
     expect(hot.pluginHookBucket.afterGetCellMeta.length).toEqual(initialCallbackCount);
   });
 
-  it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method', function() {
+  it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method', () => {
     var fn = function() {};
     var fn2 = function() {};
 
@@ -299,13 +299,13 @@ describe('PluginHooks', () => {
     var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
 
     hot.updateSettings({
-      afterGetCellMeta: function() {
+      afterGetCellMeta() {
         var a = 'another function';
       }
     });
 
     hot.updateSettings({
-      afterGetCellMeta: function() {
+      afterGetCellMeta() {
         var a = 'yet another function';
       }
     });
@@ -317,7 +317,7 @@ describe('PluginHooks', () => {
     expect(hot.pluginHookBucket.afterGetCellMeta.length).toEqual(initialCallbackCount);
   });
 
-  it('should NOT replace existing hook callbacks, if the\'re added using the addHook method', function() {
+  it('should NOT replace existing hook callbacks, if the\'re added using the addHook method', () => {
     var fn = function() {};
     var fn2 = function() {};
 
@@ -329,11 +329,11 @@ describe('PluginHooks', () => {
 
     var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
 
-    hot.addHook('afterGetCellMeta', function() {
+    hot.addHook('afterGetCellMeta', () => {
       var a = 'another function';
     });
 
-    hot.addHook('afterGetCellMeta', function() {
+    hot.addHook('afterGetCellMeta', () => {
       var a = 'yet another function';
     });
 

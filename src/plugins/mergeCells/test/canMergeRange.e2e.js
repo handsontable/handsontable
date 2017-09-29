@@ -235,7 +235,7 @@ describe('MergeCells', () => {
     });
 
     it('should not add an area class to the selected cell if a single merged cell is selected', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(6, 6),
         mergeCells: [
           {
@@ -652,7 +652,7 @@ describe('MergeCells', () => {
 
   describe('ContextMenu', () => {
     it('should disable `Merge cells` context menu item when context menu was triggered from corner header', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         rowHeaders: true,
         colHeaders: true,
@@ -660,7 +660,8 @@ describe('MergeCells', () => {
         mergeCells: true,
       });
 
-      $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0).simulate('mousedown', {which: 3});
+      $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0)
+        .simulate('mousedown', {which: 3});
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([

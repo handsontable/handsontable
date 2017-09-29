@@ -53,14 +53,14 @@ Search.DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
 };
 
 Search.DEFAULT_QUERY_METHOD = function(query, value) {
-  if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length === 0) {
+  if (typeof query === 'undefined' || query === null || !query.toLowerCase || query.length === 0) {
     return false;
   }
-  if (typeof value == 'undefined' || value == null) {
+  if (typeof value === 'undefined' || value === null) {
     return false;
   }
 
-  return value.toString().toLowerCase().indexOf(query.toLowerCase()) != -1;
+  return value.toString().toLowerCase().indexOf(query.toLowerCase()) !== -1;
 };
 
 Search.DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
@@ -100,7 +100,7 @@ Search.global = (function() {
 }());
 
 function SearchCellDecorator(instance, TD, row, col, prop, value, cellProperties) {
-  var searchResultClass = (cellProperties.search !== null && typeof cellProperties.search == 'object' &&
+  var searchResultClass = (cellProperties.search !== null && typeof cellProperties.search === 'object' &&
       cellProperties.search.searchResultClass) || Search.global.getDefaultSearchResultClass();
 
   if (cellProperties.isSearchResult) {
@@ -113,8 +113,8 @@ function SearchCellDecorator(instance, TD, row, col, prop, value, cellProperties
 var originalBaseRenderer = getRenderer('base');
 
 registerRenderer('base', function(instance, TD, row, col, prop, value, cellProperties) {
-  originalBaseRenderer.apply(this, arguments);
-  SearchCellDecorator.apply(this, arguments);
+  originalBaseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
+  SearchCellDecorator.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 });
 
 function init() {

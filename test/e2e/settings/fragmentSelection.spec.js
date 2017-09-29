@@ -22,7 +22,7 @@ describe('settings', () => {
       var text = '';
 
       // IE8
-      if (window.getSelection && window.getSelection().toString() && $(window.getSelection()).attr('type') != 'Caret') {
+      if (window.getSelection && window.getSelection().toString() && $(window.getSelection()).attr('type') !== 'Caret') {
         text = window.getSelection();
 
         return text.toString();
@@ -101,7 +101,7 @@ describe('settings', () => {
       });
 
       it('should allow fragmentSelection from one cell when set to `cell`', function() {
-        var hot = handsontable({
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
         });
@@ -116,7 +116,7 @@ describe('settings', () => {
       });
 
       it('should disallow fragmentSelection from one cell when set to `cell` and when user selects adjacent cell', function() {
-        var hot = handsontable({
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
         });

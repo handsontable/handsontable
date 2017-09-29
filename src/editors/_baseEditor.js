@@ -32,7 +32,7 @@ BaseEditor.prototype.getValue = function() {
   throw Error('Editor getValue() method unimplemented');
 };
 
-BaseEditor.prototype.setValue = function(newValue) {
+BaseEditor.prototype.setValue = function() {
   throw Error('Editor setValue() method unimplemented');
 };
 
@@ -57,8 +57,8 @@ BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
 BaseEditor.prototype.extend = function() {
   var baseClass = this.constructor;
 
-  function Editor() {
-    baseClass.apply(this, arguments);
+  function Editor(...args) {
+    baseClass.apply(this, args);
   }
 
   function inherit(Child, Parent) {
@@ -99,14 +99,14 @@ BaseEditor.prototype.saveValue = function(value, ctrlDown) {
 };
 
 BaseEditor.prototype.beginEditing = function(initialValue, event) {
-  if (this.state != EditorState.VIRGIN) {
+  if (this.state !== EditorState.VIRGIN) {
     return;
   }
   this.instance.view.scrollViewport(new CellCoords(this.row, this.col));
   this.instance.view.render();
   this.state = EditorState.EDITING;
 
-  initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
+  initialValue = typeof initialValue === 'string' ? initialValue : this.originalValue;
   this.setValue(stringify(initialValue));
 
   this.open(event);
@@ -140,7 +140,7 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
     return;
   }
 
-  if (this.state == EditorState.VIRGIN) {
+  if (this.state === EditorState.VIRGIN) {
     this.instance._registerTimeout(setTimeout(() => {
       _this._fireCallbacks(true);
     }, 0));
@@ -148,7 +148,7 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
     return;
   }
 
-  if (this.state == EditorState.EDITING) {
+  if (this.state === EditorState.EDITING) {
     if (restoreOriginalValue) {
       this.cancelChanges();
       this.instance.view.render();
