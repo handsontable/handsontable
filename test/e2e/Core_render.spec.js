@@ -102,10 +102,10 @@ describe('Core_render', () => {
   it('should run beforeValueRender hook', function() {
     // some primitive i18n function
     const i18n = (locale) => {
-      if  (locale.startsWith('ch')) {
-        return { 'car.brand.bmw': '寶馬', 'car.brand.mercedes' : '奔馳', 'car.brand.volkswagen' : '大眾汽車'};
+      if (locale.startsWith('ch')) {
+        return { 'car.brand.bmw': '寶馬', 'car.brand.mercedes': '奔馳', 'car.brand.volkswagen': '大眾汽車'};
       }
-      return { 'car.brand.bmw': 'BMW', 'car.brand.mercedes' : 'Mercedes', 'car.brand.volkswagen' : 'Volkswagen'};
+      return { 'car.brand.bmw': 'BMW', 'car.brand.mercedes': 'Mercedes', 'car.brand.volkswagen': 'Volkswagen'};
     };
 
     // assume somewhere we get the user locale
@@ -123,9 +123,9 @@ describe('Core_render', () => {
       ],
       beforeValueRender(td, row, col, prop, value, cellProperties) {
         if (prop === 'brand') {
-          return i18n(userLocale)[value]
+          return i18n(userLocale)[value];
         }
-        return value
+        return value;
       }
     });
 
