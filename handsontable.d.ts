@@ -1553,7 +1553,7 @@ declare namespace Handsontable {
     beforeTouchScroll?: () => void;
     beforeUndo?: (action: object) => void;
     beforeValidate?: (value: any, row: number, prop: string | number, source?: string) => void;
-    beforeValueRender?: (value: any) => void;
+    beforeValueRender?: (TD: Element, row: number, col: number, prop: string|number, value: any, cellProperties: object) => void;
     construct?: () => void;
     hiddenColumn?: (column: number) => void;
     hiddenRow?: (row: number) => void;

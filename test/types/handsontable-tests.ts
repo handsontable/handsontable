@@ -231,7 +231,7 @@ var hotSettings: Handsontable.GridSettings = {
   beforeTouchScroll: () => {},
   beforeUndo: (action) => {},
   beforeValidate: (value, row, prop, source = 'source') => {},
-  beforeValueRender: (value) => {},
+  beforeValueRender: (TD, row, col, prop, value, cellProperties) => {},
   construct: () => {},
   hiddenColumn: (column) => {},
   hiddenRow: (row) => {},
