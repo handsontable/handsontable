@@ -22,14 +22,14 @@ class ItemsFactory {
   /**
    * Set predefined items.
    *
-   * @param {Array} predefinedItems Array of predefined items.
+   * @param {Array} predefItems Array of predefined items.
    */
-  setPredefinedItems(predefinedItems) {
+  setPredefinedItems(predefItems) {
     let items = {};
 
     this.defaultOrderPattern.length = 0;
 
-    objectEach(predefinedItems, (value, key) => {
+    objectEach(predefItems, (value, key) => {
       let menuItemKey = '';
 
       if (value.name === SEPARATOR) {

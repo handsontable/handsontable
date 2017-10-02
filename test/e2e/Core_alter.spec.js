@@ -69,7 +69,7 @@ describe('Core_alter', () => {
     it('should fire beforeRemoveRow event before removing row', () => {
       var onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
 
-      var hot = handsontable({
+      handsontable({
         data: arrayOfNestedObjects(),
         columns: [
           {data: 'id'},
@@ -87,7 +87,7 @@ describe('Core_alter', () => {
 
       onBeforeRemoveRow.and.callFake(() => false);
 
-      var hot = handsontable({
+      handsontable({
         data: arrayOfNestedObjects(),
         columns: [
           {data: 'id'},
@@ -296,7 +296,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new row layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 3,
         startRows: 4
       });
@@ -308,7 +308,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new rows (>1) layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 3,
         startRows: 4
       });
@@ -391,7 +391,7 @@ describe('Core_alter', () => {
     it('should fire beforeRemoveCol event before removing col', () => {
       var onBeforeRemoveCol = jasmine.createSpy('onBeforeRemoveCol');
 
-      var hot = handsontable({
+      handsontable({
         beforeRemoveCol: onBeforeRemoveCol
       });
       alter('remove_col');
@@ -404,7 +404,7 @@ describe('Core_alter', () => {
 
       onBeforeRemoveCol.and.callFake(() => false);
 
-      var hot = handsontable({
+      handsontable({
         beforeRemoveCol: onBeforeRemoveCol
       });
 
@@ -524,7 +524,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new column layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 4,
         startRows: 3
       });
@@ -536,7 +536,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new columns (>1) layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 4,
         startRows: 3
       });
@@ -585,7 +585,7 @@ describe('Core_alter', () => {
 
     it('should not change cellMeta after executing `insert row` without parameters (#3581, #3989, #2114)', () => {
       var greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
+        Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
         td.style.backgroundColor = 'green';
       };
 
@@ -772,7 +772,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new row layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 4,
         startRows: 3
       });
@@ -784,7 +784,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new rows (>1) layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 4,
         startRows: 3
       });
@@ -960,7 +960,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new column layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 4,
         startRows: 3
       });
@@ -972,7 +972,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new columns (>1) layout', () => {
-      var hot = handsontable({
+      handsontable({
         startCols: 4,
         startRows: 3
       });

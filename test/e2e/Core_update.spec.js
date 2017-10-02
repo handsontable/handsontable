@@ -19,12 +19,8 @@ describe('Core_updateSettings', () => {
         {},
         {type: 'checkbox'},
       ],
-      cells(row, col, prop) {
-        if (row === 0 && col === 0) {
-          return {
-            type: 'numeric'
-          };
-        }
+      cells(row, col) {
+        return row === 0 && col === 0 ? { type: 'numeric' } : {};
       }
     });
 
@@ -47,12 +43,8 @@ describe('Core_updateSettings', () => {
 
         return colMeta;
       },
-      cells(row, col, prop) {
-        if (row === 0 && col === 0) {
-          return {
-            type: 'numeric'
-          };
-        }
+      cells(row, col) {
+        return row === 0 && col === 0 ? { type: 'numeric' } : {};
       }
     });
 
@@ -431,7 +423,7 @@ describe('Core_updateSettings', () => {
   });
 
   it('should allow updating the table height', function() {
-    const hot = handsontable({
+    handsontable({
       startRows: 22,
       startCols: 5
     });
@@ -447,7 +439,7 @@ describe('Core_updateSettings', () => {
   });
 
   it('should not reset the table height, when the updateSettings config object doesn\'t have any height specified', function() {
-    const hot = handsontable({
+    handsontable({
       startRows: 22,
       startCols: 5,
       height: 300
@@ -463,7 +455,7 @@ describe('Core_updateSettings', () => {
   });
 
   it('should allow resetting the table height', function() {
-    const hot = handsontable({
+    handsontable({
       startRows: 22,
       startCols: 5,
       height: 300
@@ -505,7 +497,7 @@ describe('Core_updateSettings', () => {
   });
 
   it('should change colHeader\'s row height if is needed', function() {
-    const hot = handsontable({
+    handsontable({
       colHeaders: true,
       rowHeaders: true
     });
@@ -522,7 +514,7 @@ describe('Core_updateSettings', () => {
     expect(rowHeights[0]).toBeLessThan(rowHeights[1]);
   });
 
-  it('should not overwrite properties (created by columns defined as function) of cells below the viewport by updateSettings #4029', function() {
+  it('should not overwrite properties (created by columns defined as function) of cells below the viewport by updateSettings #4029', () => {
     let rows = 50;
     const columns = 2;
 
@@ -530,7 +522,7 @@ describe('Core_updateSettings', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(columns, rows),
       columns(col) {
         const colProp = {
-          data: 'prop' + col,
+          data: `prop${col}`,
           readOnly: true
         };
 
@@ -555,7 +547,7 @@ describe('Core_updateSettings', () => {
     updateSettings({
       columns(col) {
         const colProp = {
-          data: 'prop' + col,
+          data: `prop${col}`,
           type: 'numeric'
         };
 
@@ -568,7 +560,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(rows, 1).readOnly).toEqual(false);
   });
 
-  it('should not overwrite properties (created by columns defined as array) of cells below the viewport by updateSettings #4029', function() {
+  it('should not overwrite properties (created by columns defined as array) of cells below the viewport by updateSettings #4029', () => {
     let rows = 50;
     const columns = 2;
 

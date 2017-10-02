@@ -444,10 +444,10 @@ class Menu {
     let item = hot.getSourceDataAtRow(row);
     let wrapper = document.createElement('div');
 
-    let isSubMenu = (item) => hasOwnProperty(item, 'submenu');
-    let itemIsSeparator = (item) => new RegExp(SEPARATOR, 'i').test(item.name);
-    let itemIsDisabled = (item) => item.disabled === true || (typeof item.disabled === 'function' && item.disabled.call(this.hot) === true);
-    let itemIsSelectionDisabled = (item) => item.disableSelection;
+    let isSubMenu = (elem) => hasOwnProperty(elem, 'submenu');
+    let itemIsSeparator = (elem) => new RegExp(SEPARATOR, 'i').test(elem.name);
+    let itemIsDisabled = (elem) => elem.disabled === true || (typeof elem.disabled === 'function' && elem.disabled.call(this.hot) === true);
+    let itemIsSelectionDisabled = (elem) => elem.disableSelection;
 
     if (typeof value === 'function') {
       value = value.call(this.hot);

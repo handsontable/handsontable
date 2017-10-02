@@ -101,6 +101,8 @@ class Scroll {
 
             return false;
           }
+
+          return true;
         });
       }
     }
@@ -141,6 +143,8 @@ class Scroll {
 
             return false;
           }
+
+          return true;
         });
       }
     }
@@ -182,6 +186,8 @@ class Scroll {
 
             return false;
           }
+
+          return true;
         });
       }
     }
@@ -222,6 +228,8 @@ class Scroll {
 
             return false;
           }
+
+          return true;
         });
       }
     }

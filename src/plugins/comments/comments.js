@@ -699,13 +699,17 @@ class Comments extends BasePlugin {
           let label = 'Read only comment';
           let hasProperty = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
             let readOnlyProperty = this.getCellMeta(row, col)[META_COMMENT];
+            let result;
+
             if (readOnlyProperty) {
               readOnlyProperty = readOnlyProperty[META_READONLY];
             }
 
             if (readOnlyProperty) {
-              return true;
+              result = true;
             }
+
+            return result;
           });
 
           if (hasProperty) {

@@ -31,6 +31,8 @@ class Selection {
 
     // where is this returned?
     this.instanceBorders[wotInstance.guid] = new Border(wotInstance, this.settings);
+
+    return false;
   }
 
   /**

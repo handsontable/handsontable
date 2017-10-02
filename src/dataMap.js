@@ -418,8 +418,8 @@ DataMap.prototype.removeCol = function(index, amount, source) {
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
  * @returns {Array} Returns removed portion of columns
  */
-DataMap.prototype.spliceCol = function(col, index, amount/* , elements... */) {
-  var elements = arguments.length >= 4 ? [].slice.call(arguments, 3) : [];
+DataMap.prototype.spliceCol = function(col, index, amount, ...elements) {
+  elements = elements && elements.length > 0 ? [].slice.call(elements) : [];
 
   var colData = this.instance.getDataAtCol(col);
   var removed = colData.slice(index, index + amount);
@@ -445,8 +445,8 @@ DataMap.prototype.spliceCol = function(col, index, amount/* , elements... */) {
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
  * @returns {Array} Returns removed portion of rows
  */
-DataMap.prototype.spliceRow = function(row, index, amount/* , elements... */) {
-  var elements = arguments.length >= 4 ? [].slice.call(arguments, 3) : [];
+DataMap.prototype.spliceRow = function(row, index, amount, ...elements) {
+  elements = elements && elements.length > 0 ? [].slice.call(elements) : [];
 
   var rowData = this.instance.getSourceDataAtRow(row);
   var removed = rowData.slice(index, index + amount);
@@ -494,6 +494,8 @@ DataMap.prototype.filterData = function(index, amount) {
 
     return newData;
   }
+
+  return false;
 };
 
 /**

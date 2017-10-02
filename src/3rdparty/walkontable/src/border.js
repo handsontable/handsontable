@@ -106,18 +106,22 @@ class Border {
     parentElement.style.display = 'none';
 
     function isOutside(e) {
+      let result;
+
       if (e.clientY < Math.floor(bounds.top)) {
-        return true;
+        result = true;
+
+      } else if (e.clientY > Math.ceil(bounds.top + bounds.height)) {
+        result = true;
+
+      } else if (e.clientX < Math.floor(bounds.left)) {
+        result = true;
+
+      } else if (e.clientX > Math.ceil(bounds.left + bounds.width)) {
+        result = true;
       }
-      if (e.clientY > Math.ceil(bounds.top + bounds.height)) {
-        return true;
-      }
-      if (e.clientX < Math.floor(bounds.left)) {
-        return true;
-      }
-      if (e.clientX > Math.ceil(bounds.left + bounds.width)) {
-        return true;
-      }
+
+      return result;
     }
 
     function handler(e) {

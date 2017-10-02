@@ -260,7 +260,6 @@ describe('SelectEditor', () => {
     var editor = $('.htSelectEditor');
 
     keyDown('enter');
-    var select = editor.find('select');
 
     var selectMouseDownListener = jasmine.createSpy('selectMouseDownListener');
     $('body').on('mousedown', selectMouseDownListener);

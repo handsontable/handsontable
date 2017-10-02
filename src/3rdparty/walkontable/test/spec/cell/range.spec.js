@@ -1243,6 +1243,7 @@ describe('Walkontable.CellRange', () => {
         if (callCount === 2) {
           return false;
         }
+        return true;
       });
       expect(callCount).toBe(2);
     });

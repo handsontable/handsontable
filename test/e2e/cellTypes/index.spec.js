@@ -5,16 +5,13 @@ describe('cellTypes', () => {
     getCellType,
   } = Handsontable.cellTypes;
   const {
-    registerEditor,
     getEditor,
     BaseEditor,
   } = Handsontable.editors;
   const {
-    registerRenderer,
     getRenderer,
   } = Handsontable.renderers;
   const {
-    registerValidator,
     getValidator,
   } = Handsontable.validators;
 
@@ -52,7 +49,7 @@ describe('cellTypes', () => {
     }
     registerCellType('myCellType', {
       editor: MyEditor,
-      renderer: (hot, td, row, col, prop, value, cellProperties) => {
+      renderer: (hot, td, row, col, prop, value) => {
         td.innerHTML = `--${value}--`;
       },
       validator: (value, cb) => {

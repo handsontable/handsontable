@@ -261,7 +261,7 @@ describe('WalkontableEvent', () => {
         columnHeaders: [function(col, TH) {
           TH.innerHTML = col + 1;
         }],
-        onCellMouseOver() {
+        onCellMouseOver(event, coords) {
           called = coords;
         }
       });

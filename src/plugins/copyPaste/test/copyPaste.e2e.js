@@ -50,7 +50,7 @@ describe('CopyPaste', () => {
       }
     });
 
-    it('should disable copyPaste only in particular table', function() {
+    it('should disable copyPaste only in particular table', () => {
       const hot1 = handsontable();
       const hot2 = spec().$container2.handsontable({ copyPaste: false }).handsontable('getInstance');
 
@@ -58,14 +58,14 @@ describe('CopyPaste', () => {
       expect(hot2.getPlugin('CopyPaste').textarea).toBeUndefined();
     });
 
-    it('should create only one HandsontableCopyPaste regardless of the number of tables', function() {
+    it('should create only one HandsontableCopyPaste regardless of the number of tables', () => {
       handsontable();
       spec().$container2.handsontable();
 
       expect($('#HandsontableCopyPaste').length).toEqual(1);
     });
 
-    it('should leave HandsontableCopyPaste as long as at least one table has copyPaste enabled', function() {
+    it('should leave HandsontableCopyPaste as long as at least one table has copyPaste enabled', () => {
       const hot1 = handsontable();
       const hot2 = spec().$container2.handsontable().handsontable('getInstance');
 

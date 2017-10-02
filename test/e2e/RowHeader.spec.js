@@ -28,7 +28,7 @@ describe('RowHeader', () => {
     expect(that.$container.find('tbody th').length).toBeGreaterThan(0);
   });
 
-  it('should show row headers numbered 1-10 by default', function() {
+  it('should show row headers numbered 1-10 by default', () => {
     var startRows = 5;
     handsontable({
       startRows,
@@ -44,7 +44,7 @@ describe('RowHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('5');
   });
 
-  it('should show row headers with custom label', function() {
+  it('should show row headers with custom label', () => {
     var startRows = 5;
     handsontable({
       startRows,
@@ -60,7 +60,7 @@ describe('RowHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('5');
   });
 
-  it('should not show row headers if false', function() {
+  it('should not show row headers if false', () => {
     handsontable({
       rowHeaders: false
     });

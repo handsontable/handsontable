@@ -449,8 +449,8 @@ describe('Core_loadData', () => {
     });
 
     // use the "good" Collection methods to emulate Array.splice
-    function hackedSplice(index, howMany /* model1, ... modelN */) {
-      var args = _.toArray(arguments).slice(2).concat({at: index}),
+    function hackedSplice(index, howMany, ...models) {
+      var args = _.toArray(models).concat({at: index}),
         removed = this.models.slice(index, index + howMany);
       this.remove(removed).add.apply(this, args);
 
@@ -458,14 +458,14 @@ describe('Core_loadData', () => {
     }
 
     // normally, you'd get these from the server with .fetch()
-    function attr(attr) {
+    function attr(key) {
       // this lets us remember `attr` for when when it is get/set
       return {
         data(car, value) {
           if (_.isUndefined(value)) {
-            return car.get(attr);
+            return car.get(key);
           }
-          car.set(attr, value);
+          return car.set(key, value);
         }
       };
     }
@@ -509,8 +509,8 @@ describe('Core_loadData', () => {
     });
 
     // use the "good" Collection methods to emulate Array.splice
-    function hackedSplice(index, howMany /* model1, ... modelN */) {
-      var args = _.toArray(arguments).slice(2).concat({at: index}),
+    function hackedSplice(index, howMany, ...models) {
+      var args = _.toArray(models).concat({at: index}),
         removed = this.models.slice(index, index + howMany);
       this.remove(removed).add.apply(this, args);
 
@@ -518,15 +518,15 @@ describe('Core_loadData', () => {
     }
 
     // normally, you'd get these from the server with .fetch()
-    function attr(attr) {
+    function attr(key) {
       // this lets us remember `attr` for when when it is get/set
       return {
         data(car, value) {
           if (_.isUndefined(value)) {
-            return car.get(attr);
+            return car.get(key);
           }
 
-          car.set(attr, value);
+          return car.set(key, value);
         }
       };
     }

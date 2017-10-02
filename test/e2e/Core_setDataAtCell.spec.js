@@ -207,12 +207,10 @@ describe('Core_setDataAtCell', () => {
   });
 
   it('should accept changes array as 1st param and source as 2nd param', () => {
-    var callCount = 0,
-      lastSource = '';
+    let lastSource = '';
 
     handsontable({
       afterChange(changes, source) {
-        callCount++;
         lastSource = source;
       }
     });
@@ -243,7 +241,7 @@ describe('Core_setDataAtCell', () => {
   it('should modify value on the fly using `afterSetDataAtCell` hook', () => {
     handsontable({
       data: [['a', 'b', 'c'], [1, 2, 3]],
-      afterSetDataAtCell(changes, source) {
+      afterSetDataAtCell(changes) {
         if (changes[0][3] === 'foo bar') {
           changes[0][3] = 'bar';
         }
@@ -284,7 +282,7 @@ describe('Core_setDataAtCell', () => {
     handsontable({
       data: [{name: 'a', id: 1}, {name: 'b', id: 2}, {name: 'c', id: 3}],
       columns: [{data: 'name'}, {data: 'id'}],
-      afterSetDataAtRowProp(changes, source) {
+      afterSetDataAtRowProp(changes) {
         if (changes[0][3] === 'foo bar') {
           changes[0][3] = 'bar';
         }

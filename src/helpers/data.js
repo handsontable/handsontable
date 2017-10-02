@@ -159,7 +159,7 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
     return (function getMethodFromProperties(properties) {
 
       if (!properties) {
-        return; // method not found
+        return void 0; // method not found
 
       } else if (hasOwnProperty(properties, methodName) && properties[methodName] !== void 0) { // check if it is own and is not empty
         return properties[methodName]; // method defined directly
@@ -175,7 +175,7 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
         if (hasOwnProperty(type, methodName)) {
           return type[methodName]; // method defined in type.
         } else if (allowUndefined) {
-          return; // method does not defined in type (eg. validator), returns undefined
+          return void 0; // method does not defined in type (eg. validator), returns undefined
         }
       }
 

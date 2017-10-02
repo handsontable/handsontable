@@ -1597,6 +1597,8 @@ class Hooks {
 
               return false;
             }
+
+            return true;
           });
         }
 

@@ -463,7 +463,7 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    const changedColumns = arrayMap(changes, ([row, column]) => this.hot.propToCol(column));
+    const changedColumns = arrayMap(changes, ([, column]) => this.hot.propToCol(column));
 
     this.clearCache(changedColumns);
   }

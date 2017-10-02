@@ -70,14 +70,17 @@ class MultipleSelectionHandles extends BasePlugin {
       }
 
       const entryPosition = _this.dragged.indexOf(query);
+      let result;
 
       if (entryPosition === -1) {
-        return false;
+        result = false;
       } else if (entryPosition === 0) {
         _this.dragged = _this.dragged.slice(0, 1);
       } else if (entryPosition === 1) {
         _this.dragged = _this.dragged.slice(-1);
       }
+
+      return result;
     }
 
     this.eventManager.addEventListener(this.hot.rootElement, 'touchstart', (event) => {

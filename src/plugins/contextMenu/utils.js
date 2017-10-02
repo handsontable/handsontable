@@ -121,6 +121,8 @@ export function checkSelectionConsistency(range, comparator) {
 
         return false;
       }
+
+      return true;
     });
   }
 

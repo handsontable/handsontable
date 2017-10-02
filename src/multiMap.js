@@ -6,11 +6,15 @@ function MultiMap() {
 
   return {
     get(key) {
+      let result;
+
       if (canBeAnArrayMapKey(key)) {
-        return map.arrayMap[key];
+        result = map.arrayMap[key];
       } else if (canBeAWeakMapKey(key)) {
-        return map.weakMap.get(key);
+        result = map.weakMap.get(key);
       }
+
+      return result;
     },
 
     set(key, value) {

@@ -39,7 +39,7 @@ describe('editors', () => {
     }
     registerEditor('myEditor', MyEditor);
 
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 6, 10],
       ],

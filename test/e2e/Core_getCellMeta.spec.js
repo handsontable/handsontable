@@ -83,7 +83,7 @@ describe('Core_getCellMeta', () => {
         return {
           renderer(instance, td, row, col, prop, value, cellProperties) {
             // taken from demo/renderers.html
-            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
             $(td).css({
               background: 'yellow'
             });
@@ -107,17 +107,19 @@ describe('Core_getCellMeta', () => {
         [0, 9, 8, 7]
       ],
       cells(row, col) {
-        if (row === 2 && col === 2) {
-          return {
-            type: 'checkbox',
-            renderer(instance, td, row, col, prop, value, cellProperties) {
-              // taken from demo/renderers.html
-              Handsontable.renderers.TextRenderer.apply(this, arguments);
+        let cellProperties = {};
 
-              td.style.backgroundColor = 'yellow';
-            }
+        if (row === 2 && col === 2) {
+          cellProperties.type = 'checkbox';
+          cellProperties.renderer = (instance, td, r, c, prop, value, cellProps) => {
+            // taken from demo/renderers.html
+            Handsontable.renderers.TextRenderer.apply(this, [instance, td, r, c, prop, value, cellProps]);
+
+            td.style.backgroundColor = 'yellow';
           };
         }
+
+        return cellProperties;
       }
     });
 
@@ -131,7 +133,7 @@ describe('Core_getCellMeta', () => {
       _this;
 
     handsontable({
-      cells(row, col, prop) {
+      cells(row) {
         called++;
         _row = row;
         _this = this;
@@ -146,14 +148,14 @@ describe('Core_getCellMeta', () => {
   });
 
   it('should get proper cellProperties when order of displayed rows is different than order of stored data', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         ['C'],
         ['A'],
         ['B']
       ],
       minSpareRows: 1,
-      cells(row, col, prop) {
+      cells(row, col) {
         var cellProperties = {};
 
         if (getSourceData()[row][col] === 'A') {
@@ -196,7 +198,7 @@ describe('Core_getCellMeta', () => {
     let colInsideHook;
 
     const hot = handsontable({
-      beforeGetCellMeta: function (row, col) {
+      beforeGetCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },
@@ -219,7 +221,7 @@ describe('Core_getCellMeta', () => {
     let colInsideHook;
 
     const hot = handsontable({
-      afterGetCellMeta: function (row, col) {
+      afterGetCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },

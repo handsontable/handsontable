@@ -547,6 +547,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
           break;
       }
+
+      return true;
     },
   };
 
@@ -750,13 +752,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * @returns {Boolean}
      */
     isMultiple() {
-      var
-        isMultiple = !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row),
-        modifier = instance.runHooks('afterIsMultipleSelection', isMultiple);
+      let isMultiple = !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row);
+      let modifier = instance.runHooks('afterIsMultipleSelection', isMultiple);
 
-      if (isMultiple) {
-        return modifier;
-      }
+      return isMultiple ? modifier : void 0;
     },
 
     /**
@@ -1421,9 +1420,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} Array of the selection's indexes.
    */
   this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
+    let result;
+
     if (selection.isSelected()) {
-      return [priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col];
+      result = [priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col];
     }
+
+    return result;
   };
 
   /**
@@ -1435,9 +1438,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {CellRange} Selected range object or undefined` if there is no selection.
    */
   this.getSelectedRange = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
-    if (selection.isSelected()) {
-      return priv.selRange;
-    }
+    return selection.isSelected() ? priv.selRange : void 0;
   };
 
   /**
@@ -1818,33 +1819,36 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {*} Value of selected cell.
    */
   this.getValue = function() {
-    var sel = instance.getSelected();
+    let sel = instance.getSelected();
+    let result;
+
     if (GridSettings.prototype.getValue) {
       if (isFunction(GridSettings.prototype.getValue)) {
-        return GridSettings.prototype.getValue.call(instance);
+        result = GridSettings.prototype.getValue.call(instance);
       } else if (sel) {
         return instance.getData()[sel[0]][GridSettings.prototype.getValue];
       }
     } else if (sel) {
       return instance.getDataAtCell(sel[0], sel[1]);
     }
+
+    return result;
   };
 
   function expandType(obj) {
     if (!hasOwnProperty(obj, 'type')) {
       // ignore obj.prototype.type
-      return;
+      return false;
     }
 
-    var type,
-      expandedType = {};
+    let type;
+    let expandedType = {};
 
     if (typeof obj.type === 'object') {
       type = obj.type;
     } else if (typeof obj.type === 'string') {
       type = getCellType(obj.type);
     }
-
     for (var i in type) {
       if (hasOwnProperty(type, i) && !hasOwnProperty(obj, i)) {
         expandedType[i] = type[i];
@@ -1852,7 +1856,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     return expandedType;
-
   }
 
   /**

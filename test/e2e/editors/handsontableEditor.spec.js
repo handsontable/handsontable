@@ -83,7 +83,7 @@ describe('HandsontableEditor', () => {
     var spy = jasmine.createSpyObj('error', ['test']);
     var prevError = window.onerror;
 
-    window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+    window.onerror = function() {
       spy.test();
     };
     handsontable({
@@ -175,14 +175,14 @@ describe('HandsontableEditor', () => {
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
             data: getManufacturerData(),
-            afterSelection() {
-              selections.push(['inner', arguments[0]]); // arguments[0] is selection start row
+            afterSelection(...args) {
+              selections.push(['inner', args[0]]); // arguments[0] is selection start row
             }
           }
         }
       ],
-      afterSelection() {
-        selections.push(['outer', arguments[0]]); // arguments[0] is selection start row
+      afterSelection(...args) {
+        selections.push(['outer', args[0]]); // arguments[0] is selection start row
       }
     });
     expect(selections.length).toBe(0);

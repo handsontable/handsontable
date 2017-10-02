@@ -383,7 +383,7 @@ describe('Core_validate', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'B1') {
+        if (value === 'B1') {
           callb(false);
         } else {
           callb(true);
@@ -406,7 +406,7 @@ describe('Core_validate', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'B1') {
+        if (value === 'B1') {
           callb(false);
         } else {
           callb(true);
@@ -485,7 +485,7 @@ describe('Core_validate', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'test') {
+        if (value === 'test') {
           callb(false);
         } else {
           callb(true);
@@ -508,7 +508,7 @@ describe('Core_validate', () => {
     var validator = jasmine.createSpy('validator');
 
     validator.and.callFake((value, callb) => {
-      if (value == 123) {
+      if (value === 123) {
         callb(false);
       } else {
         callb(true);
@@ -551,7 +551,7 @@ describe('Core_validate', () => {
       expect(spec().$container.find('td.htInvalid').length).toEqual(0);
       updateSettings({
         validator(value, callb) {
-          if (value == 'test') {
+          if (value === 'test') {
             callb(false);
           } else {
             callb(true);
@@ -576,7 +576,7 @@ describe('Core_validate', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'A1') {
+        if (value === 'A1') {
           callb(false);
         } else {
           callb(true);
@@ -822,7 +822,6 @@ describe('Core_validate', () => {
   });
 
   it('should validate edited cell after selecting another cell', (done) => {
-    var validated = false;
     var validatedValue;
 
     handsontable({
@@ -830,7 +829,6 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          validated = true;
           validatedValue = value;
           callback(true);
         }, 100);
@@ -851,7 +849,6 @@ describe('Core_validate', () => {
   });
 
   it('should leave the new value in editor if it does not validate (async validation), after hitting ENTER', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
@@ -859,8 +856,7 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          validated = true;
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -881,15 +877,13 @@ describe('Core_validate', () => {
   });
 
   it('should leave the new value in editor if it does not validate (sync validation), after hitting ENTER', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
-        validated = true;
-        validationResult = value.length == 2;
+        validationResult = value.length === 2;
         callback(validationResult);
       }
     });
@@ -909,7 +903,6 @@ describe('Core_validate', () => {
   });
 
   it('should leave the new value in editor if it does not validate (async validation), after selecting another cell', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
@@ -917,11 +910,7 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          setTimeout(() => {
-            validated = true;
-          }, 0);
-
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -941,25 +930,14 @@ describe('Core_validate', () => {
   });
 
   it('should leave the new value in editor if it does not validate (sync validation), after selecting another cell', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
-        validationResult = value.length == 2;
+        validationResult = value.length === 2;
         callback(validationResult);
-
-        /* Setting this variable has to be async, because we are not interested in when the validation happens, but when
-         the callback is being called. Since internally all the callbacks are processed asynchronously (even if they are
-         synchronous) end of validator function is not the equivalent of whole validation routine end.
-         If it still sounds weird, take a look at HandsontableTextEditorClass.prototype.finishEditing method.
-         */
-
-        setTimeout(() => {
-          validated = true;
-        }, 0);
       }
     });
     selectCell(0, 0);
@@ -1006,7 +984,6 @@ describe('Core_validate', () => {
   });
 
   it('should close the editor and save the new value if validation fails and allowInvalid is set to "true"', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
@@ -1014,9 +991,7 @@ describe('Core_validate', () => {
       allowInvalid: true,
       validator(value, callback) {
         setTimeout(() => {
-
-          validated = true;
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -1037,7 +1012,6 @@ describe('Core_validate', () => {
   });
 
   it('should close the editor and save the new value after double clicking on a cell, if the previously edited cell validated correctly', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
@@ -1045,9 +1019,7 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-
-          validated = true;
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -1064,18 +1036,15 @@ describe('Core_validate', () => {
     expect(document.activeElement.value).toEqual('AA');
 
     var cell = $(getCell(1, 0));
-    var clicks = 0;
 
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
     }, 0);
 
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
     }, 100);
 
     setTimeout(() => {
@@ -1087,7 +1056,6 @@ describe('Core_validate', () => {
   });
 
   it('should close the editor and restore the original value after double clicking on a cell, if the previously edited cell have not validated', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
@@ -1095,8 +1063,7 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          validated = true;
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -1109,18 +1076,15 @@ describe('Core_validate', () => {
     expect(document.activeElement.value).toEqual('AAA');
 
     var cell = $(getCell(1, 0));
-    var clicks = 0;
 
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
     }, 0);
 
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
     }, 100);
 
     setTimeout(() => {
@@ -1472,6 +1436,7 @@ describe('Core_validate', () => {
         {
           data: 'id',
           validator(value, cb) {
+            // eslint-disable-next-line eqeqeq
             cb(value == parseInt(value, 10));
           },
           allowInvalid: false
@@ -1528,6 +1493,7 @@ describe('Core_validate', () => {
           colMeta = {
             data: 'id',
             validator(value, cb) {
+              // eslint-disable-next-line eqeqeq
               cb(value == parseInt(value, 10));
             },
             allowInvalid: false
@@ -1593,7 +1559,7 @@ describe('Core_validate', () => {
         {
           data: 'id',
           validator(value, cb) {
-            cb(value == parseInt(value, 10));
+            cb(value === parseInt(value, 10));
           }
         },
         {data: 'name'}
@@ -1626,7 +1592,7 @@ describe('Core_validate', () => {
           colMeta = {
             data: 'id',
             validator(value, cb) {
-              cb(value == parseInt(value, 10));
+              cb(value === parseInt(value, 10));
             }
           };
 

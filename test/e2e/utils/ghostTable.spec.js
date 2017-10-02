@@ -247,7 +247,7 @@ describe('GhostTable', () => {
   it('should be detected as vertical if at least one row is added', () => {
     var hot = handsontable(hotSettings);
     var samples = new Map();
-    var gt = new Handsontable.__GhostTable(hot);
+    gt = new Handsontable.__GhostTable(hot);
 
     gt.addRow(0, samples);
 
@@ -258,11 +258,11 @@ describe('GhostTable', () => {
   it('should be detected as horizontal if at least one column is added', () => {
     const hot = handsontable(hotSettings);
     const samples = new Map();
-    const ghostTable = new Handsontable.__GhostTable(hot);
+    gt = new Handsontable.__GhostTable(hot);
 
-    ghostTable.addColumn(0, samples);
+    gt.addColumn(0, samples);
 
-    expect(ghostTable.isVertical()).toBe(false);
-    expect(ghostTable.isHorizontal()).toBe(true);
+    expect(gt.isVertical()).toBe(false);
+    expect(gt.isHorizontal()).toBe(true);
   });
 });

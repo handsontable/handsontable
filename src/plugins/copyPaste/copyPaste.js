@@ -6,7 +6,7 @@ import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
 import {getSelectionText} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
-import {stopImmediatePropagation, stopPropagation, isImmediatePropagationStopped} from './../../helpers/dom/event';
+import {stopImmediatePropagation, isImmediatePropagationStopped} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
 import Textarea from './textarea';
 import copyItem from './contextMenuItem/copy';
@@ -416,7 +416,7 @@ class CopyPaste extends BasePlugin {
     let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
     let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
 
-    this.hot.addHookOnce('afterChange', (changes, source) => {
+    this.hot.addHookOnce('afterChange', (changes) => {
       let changesLength = changes ? changes.length : 0;
 
       if (changesLength) {
@@ -497,18 +497,18 @@ class CopyPaste extends BasePlugin {
     let ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (ctrlDown) {
-      if (event.keyCode == KEY_CODES.A) {
+      if (event.keyCode === KEY_CODES.A) {
         setTimeout(() => {
           this.setCopyableText();
         }, 0);
       }
-      if (event.keyCode == KEY_CODES.X) {
+      if (event.keyCode === KEY_CODES.X) {
         this.cut();
       }
-      if (event.keyCode == KEY_CODES.C) {
+      if (event.keyCode === KEY_CODES.C) {
         this.copy();
       }
-      if (event.keyCode == KEY_CODES.V) {
+      if (event.keyCode === KEY_CODES.V) {
         this.triggerPaste();
       }
     }

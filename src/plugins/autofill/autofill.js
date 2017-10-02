@@ -248,7 +248,7 @@ class Autofill extends BasePlugin {
 
     } else {
       // wrong direction
-      return;
+      return false;
     }
 
     return this.reduceSelectionAreaIfNeeded(coords);

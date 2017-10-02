@@ -6,12 +6,17 @@ function CellInfoCollection() {
   var collection = [];
 
   collection.getInfo = function(row, col) {
+    let result;
+
     for (var i = 0, ilen = this.length; i < ilen; i++) {
       if (this[i].row <= row && this[i].row + this[i].rowspan - 1 >= row &&
         this[i].col <= col && this[i].col + this[i].colspan - 1 >= col) {
-        return this[i];
+        result = this[i];
+        break;
       }
     }
+
+    return result;
   };
 
   collection.setInfo = function(info) {
@@ -500,16 +505,20 @@ var afterGetCellMeta = function(row, col, cellProperties) {
 };
 
 var afterViewportRowCalculatorOverride = function(calc) {
-  var mergeCellsSetting = this.getSettings().mergeCells;
+  const mergeCellsSetting = this.getSettings().mergeCells;
+  let result;
+
   if (mergeCellsSetting) {
-    var colCount = this.countCols();
-    var mergeParent;
+    const colCount = this.countCols();
+    let mergeParent;
+
     for (var c = 0; c < colCount; c++) {
       mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(calc.startRow, c);
       if (mergeParent) {
         if (mergeParent.row < calc.startRow) {
           calc.startRow = mergeParent.row;
-          return afterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
+          result = afterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
+          break;
         }
       }
       mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(calc.endRow, c);
@@ -517,25 +526,31 @@ var afterViewportRowCalculatorOverride = function(calc) {
         var mergeEnd = mergeParent.row + mergeParent.rowspan - 1;
         if (mergeEnd > calc.endRow) {
           calc.endRow = mergeEnd;
-          return afterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
+          result = afterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
+          break;
         }
       }
     }
   }
+
+  return result;
 };
 
 var afterViewportColumnCalculatorOverride = function(calc) {
-  var mergeCellsSetting = this.getSettings().mergeCells;
+  const mergeCellsSetting = this.getSettings().mergeCells;
+  let result;
+
   if (mergeCellsSetting) {
-    var rowCount = this.countRows();
-    var mergeParent;
+    const rowCount = this.countRows();
+    let mergeParent;
     for (var r = 0; r < rowCount; r++) {
       mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(r, calc.startColumn);
 
       if (mergeParent) {
         if (mergeParent.col < calc.startColumn) {
           calc.startColumn = mergeParent.col;
-          return afterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
+          result = afterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
+          break;
         }
       }
       mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(r, calc.endColumn);
@@ -543,11 +558,14 @@ var afterViewportColumnCalculatorOverride = function(calc) {
         var mergeEnd = mergeParent.col + mergeParent.colspan - 1;
         if (mergeEnd > calc.endColumn) {
           calc.endColumn = mergeEnd;
-          return afterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
+          result = afterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
+          break;
         }
       }
     }
   }
+
+  return result;
 };
 
 var isMultipleSelection = function(isMultiple) {

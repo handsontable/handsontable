@@ -123,6 +123,8 @@ export function isKey(keyCode, baseCode) {
 
       return false;
     }
+
+    return true;
   });
 
   return result;

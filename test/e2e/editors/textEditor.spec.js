@@ -183,8 +183,7 @@ describe('TextEditor', () => {
   });
 
   it('should render textarea editor in specified height (single line)', (done) => {
-    var hot = handsontable(),
-      editorHeight;
+    var hot = handsontable();
 
     setDataAtCell(2, 2, 'first line');
     selectCell(2, 2);
@@ -198,8 +197,7 @@ describe('TextEditor', () => {
   });
 
   it('should render textarea editor in specified height (multi line)', (done) => {
-    var hot = handsontable(),
-      editorHeight;
+    var hot = handsontable();
 
     setDataAtCell(2, 2, 'first line\n second line\n third line...');
     selectCell(2, 2);
@@ -410,7 +408,6 @@ describe('TextEditor', () => {
     handsontable();
     selectCell(2, 2);
 
-    var editor = $('.handsontableInput');
     expect(isEditorVisible()).toEqual(false);
     keyDown('f2');
     expect(isEditorVisible()).toEqual(true);
@@ -420,7 +417,6 @@ describe('TextEditor', () => {
     handsontable();
     selectCell(2, 2);
 
-    var editor = $('.handsontableInput');
     expect(isEditorVisible()).toEqual(false);
     keyDown('f2');
     expect(isEditorVisible()).toEqual(true);
@@ -432,7 +428,6 @@ describe('TextEditor', () => {
     handsontable();
     selectCell(2, 2);
 
-    var editor = $('.handsontableInput');
     expect(isEditorVisible()).toEqual(false);
     keyDown(Handsontable.helper.KEY_CODES.CAPS_LOCK);
     expect(isEditorVisible()).toEqual(false);
@@ -479,7 +474,7 @@ describe('TextEditor', () => {
       ['c', 'd']
     ];
 
-    var hot = handsontable({
+    handsontable({
       data,
       minRows: 4,
       minCols: 4,
@@ -490,7 +485,6 @@ describe('TextEditor', () => {
 
     selectCell(1, 1);
     var $td = getHtCore().find('tbody tr:eq(1) td:eq(1)');
-    var editor = hot.getActiveEditor();
     keyDownUp('enter');
     expect(keyProxy().width()).toEqual($td.width());
     keyDownUp('enter');
@@ -630,7 +624,7 @@ describe('TextEditor', () => {
   });
 
   it('should open editor after pressing a printable character', function() {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3)
     });
 
@@ -655,7 +649,7 @@ describe('TextEditor', () => {
   });
 
   it('should open editor after pressing a printable character with shift key', function() {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3)
     });
 
@@ -692,7 +686,7 @@ describe('TextEditor', () => {
   });
 
   it('should be able to open editor after clearing cell data with DELETE', function() {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3)
     });
 
@@ -713,7 +707,7 @@ describe('TextEditor', () => {
   });
 
   it('should be able to open editor after clearing cell data with BACKSPACE', function() {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3)
     });
 
@@ -990,7 +984,7 @@ describe('TextEditor', () => {
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
     // lame check, needs investigating why sometimes it leaves 2px error
-    if (Handsontable.dom.outerHeight(hot.getActiveEditor().TEXTAREA) == regularHeight) {
+    if (Handsontable.dom.outerHeight(hot.getActiveEditor().TEXTAREA) === regularHeight) {
       expect(Handsontable.dom.outerHeight(hot.getActiveEditor().TEXTAREA)).toEqual(regularHeight);
     } else {
       expect(Handsontable.dom.outerHeight(hot.getActiveEditor().TEXTAREA)).toEqual(regularHeight - 2);
@@ -1082,7 +1076,7 @@ describe('TextEditor', () => {
       ['', '', '', '', '', '', '', '', '', '', ''],
       ['', '', '', '', '', '', '', '', '', '', ''],
     ];
-    var hot = handsontable({
+    handsontable({
       data,
       colWidths: 40,
       rowHeights: 25,

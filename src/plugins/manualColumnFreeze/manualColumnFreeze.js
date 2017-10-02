@@ -225,6 +225,8 @@ class ManualColumnFreeze extends BasePlugin {
             disallowMoving = true;
             return false;
           }
+
+          return true;
         });
       }
 
@@ -236,6 +238,8 @@ class ManualColumnFreeze extends BasePlugin {
     if (priv.moveByFreeze) {
       priv.moveByFreeze = false;
     }
+
+    return true;
   }
 
   /**

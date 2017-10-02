@@ -187,18 +187,22 @@ class CellRange {
    * @returns {String}
    */
   getDirection() {
+    let result;
+
     if (this.from.isNorthWestOf(this.to)) { // NorthWest - SouthEast
-      return 'NW-SE';
+      result = 'NW-SE';
 
     } else if (this.from.isNorthEastOf(this.to)) { // NorthEast - SouthWest
-      return 'NE-SW';
+      result = 'NE-SW';
 
     } else if (this.from.isSouthEastOf(this.to)) { // SouthEast - NorthWest
-      return 'SE-NW';
+      result = 'SE-NW';
 
     } else if (this.from.isSouthWestOf(this.to)) { // SouthWest - NorthEast
-      return 'SW-NE';
+      result = 'SW-NE';
     }
+
+    return result;
   }
 
   /**
@@ -290,35 +294,41 @@ class CellRange {
       return false;
     }
 
+    let result;
+
     if (expandedRange) {
       if (expandedRange.includes(coords)) {
         if (this.getTopLeftCorner().isEqual(new CellCoords(expandedRange.from.row, expandedRange.from.col))) {
-          return this.getBottomRightCorner();
+          result = this.getBottomRightCorner();
+
+        } else if (this.getTopRightCorner().isEqual(new CellCoords(expandedRange.from.row, expandedRange.to.col))) {
+          result = this.getBottomLeftCorner();
+
+        } else if (this.getBottomLeftCorner().isEqual(new CellCoords(expandedRange.to.row, expandedRange.from.col))) {
+          result = this.getTopRightCorner();
+
+        } else if (this.getBottomRightCorner().isEqual(new CellCoords(expandedRange.to.row, expandedRange.to.col))) {
+          result = this.getTopLeftCorner();
         }
-        if (this.getTopRightCorner().isEqual(new CellCoords(expandedRange.from.row, expandedRange.to.col))) {
-          return this.getBottomLeftCorner();
-        }
-        if (this.getBottomLeftCorner().isEqual(new CellCoords(expandedRange.to.row, expandedRange.from.col))) {
-          return this.getTopRightCorner();
-        }
-        if (this.getBottomRightCorner().isEqual(new CellCoords(expandedRange.to.row, expandedRange.to.col))) {
-          return this.getTopLeftCorner();
-        }
+
+        return result;
       }
     }
 
     if (coords.isEqual(this.getBottomRightCorner())) {
-      return this.getTopLeftCorner();
+      result = this.getTopLeftCorner();
 
     } else if (coords.isEqual(this.getTopLeftCorner())) {
-      return this.getBottomRightCorner();
+      result = this.getBottomRightCorner();
 
     } else if (coords.isEqual(this.getTopRightCorner())) {
-      return this.getBottomLeftCorner();
+      result = this.getBottomLeftCorner();
 
     } else if (coords.isEqual(this.getBottomLeftCorner())) {
-      return this.getTopRightCorner();
+      result = this.getTopRightCorner();
     }
+
+    return result;
   }
 
   /**

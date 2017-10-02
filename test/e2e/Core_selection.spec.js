@@ -630,7 +630,7 @@ describe('Core_selection', () => {
   });
 
   it('should add classname after select column', function() {
-    var hot = handsontable({
+    handsontable({
       width: 200,
       height: 100,
       startRows: 50,
@@ -842,7 +842,7 @@ describe('Core_selection', () => {
   });
 
   it('should add classname after select row', function() {
-    var hot = handsontable({
+    handsontable({
       width: 200,
       height: 100,
       startRows: 50,
@@ -873,7 +873,7 @@ describe('Core_selection', () => {
 
   it('should select a cell in a newly added row after automatic row adding, triggered by editing a cell in the last row with minSpareRows > 0, ' +
     'unless editing happened within the fixed bottom rows', (done) => {
-    var hot = handsontable({
+    handsontable({
       startRows: 5,
       startCols: 2,
       minSpareRows: 1
@@ -1040,7 +1040,7 @@ describe('Core_selection', () => {
     expect(hot.selection.selectedHeader.corner).toBe(true);
   });
 
-  it('should redraw selection when option `colHeaders` is set and user scrolled', function (done) {
+  it('should redraw selection when option `colHeaders` is set and user scrolled', (done) => {
     var hot = handsontable({
       startRows: 20,
       startCols: 20,
@@ -1056,14 +1056,14 @@ describe('Core_selection', () => {
     selectCell(5, 5);
     hot.view.wt.wtOverlays.topOverlay.scrollTo(2);
 
-    setTimeout(function () {
+    setTimeout(() => {
       cellVerticalPosition = hot.getCell(5, 5).offsetTop;
       topBorder = $('.wtBorder.current')[0];
       expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
       hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
     }, 100);
 
-    setTimeout(function () {
+    setTimeout(() => {
       cellVerticalPosition = hot.getCell(5, 5).offsetTop;
       topBorder = $('.wtBorder.current')[0];
       expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
@@ -1071,7 +1071,7 @@ describe('Core_selection', () => {
     }, 200);
   });
 
-  it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled', function (done) {
+  it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled', (done) => {
     var hot = handsontable({
       fixedColumnsLeft: 2,
       startRows: 20,
@@ -1088,14 +1088,14 @@ describe('Core_selection', () => {
     selectCell(1, 0);
     hot.view.wt.wtOverlays.topOverlay.scrollTo(5);
 
-    setTimeout(function () {
+    setTimeout(() => {
       cellVerticalPosition = hot.getCell(1, 0).offsetTop;
       topBorder = $('.wtBorder.current')[0];
       expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
       hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
     }, 100);
 
-    setTimeout(function () {
+    setTimeout(() => {
       cellVerticalPosition = hot.getCell(1, 0).offsetTop;
       topBorder = $('.wtBorder.current')[0];
       expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);

@@ -204,7 +204,7 @@ export function isObjectEquals(object1, object2) {
  * @returns {boolean}
  */
 export function isObject(obj) {
-  return Object.prototype.toString.call(obj) == '[object Object]';
+  return Object.prototype.toString.call(obj) === '[object Object]';
 }
 
 export function defineGetter(object, property, value, options) {
@@ -224,6 +224,7 @@ export function defineGetter(object, property, value, options) {
  * @returns {Object} Returns `object`.
  */
 export function objectEach(object, iteratee) {
+  // eslint-disable-next-line no-restricted-syntax
   for (let key in object) {
     if (!object.hasOwnProperty || (object.hasOwnProperty && Object.prototype.hasOwnProperty.call(object, key))) {
       if (iteratee(object[key], key, object) === false) {
@@ -249,11 +250,7 @@ export function getProperty(object, name) {
   objectEach(names, (name) => {
     result = result[name];
 
-    if (result === void 0) {
-      result = void 0;
-
-      return false;
-    }
+    return result !== void 0;
   });
 
   return result;

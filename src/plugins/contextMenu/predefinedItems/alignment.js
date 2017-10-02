@@ -18,10 +18,13 @@ export default function alignmentItem() {
             let label = 'Left';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
+              let result = false;
 
               if (className && className.indexOf('htLeft') !== -1) {
-                return true;
+                result = true;
               }
+
+              return result;
             });
 
             if (hasClass) {
@@ -49,10 +52,13 @@ export default function alignmentItem() {
             let label = 'Center';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
+              let result = false;
 
               if (className && className.indexOf('htCenter') !== -1) {
-                return true;
+                result = true;
               }
+
+              return result;
             });
 
             if (hasClass) {
@@ -80,10 +86,13 @@ export default function alignmentItem() {
             let label = 'Right';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
+              let result = false;
 
               if (className && className.indexOf('htRight') !== -1) {
-                return true;
+                result = true;
               }
+
+              return result;
             });
 
             if (hasClass) {
@@ -111,10 +120,13 @@ export default function alignmentItem() {
             let label = 'Justify';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
+              let result = false;
 
               if (className && className.indexOf('htJustify') !== -1) {
-                return true;
+                result = true;
               }
+
+              return result;
             });
 
             if (hasClass) {
@@ -145,10 +157,13 @@ export default function alignmentItem() {
             let label = 'Top';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
+              let result = false;
 
               if (className && className.indexOf('htTop') !== -1) {
-                return true;
+                result = true;
               }
+
+              return result;
             });
 
             if (hasClass) {
@@ -175,10 +190,13 @@ export default function alignmentItem() {
             let label = 'Middle';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
+              let result = false;
 
               if (className && className.indexOf('htMiddle') !== -1) {
-                return true;
+                result = true;
               }
+
+              return result;
             });
 
             if (hasClass) {
@@ -206,10 +224,13 @@ export default function alignmentItem() {
             let label = 'Bottom';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
+              let result = false;
 
               if (className && className.indexOf('htBottom') !== -1) {
-                return true;
+                result = true;
               }
+
+              return result;
             });
 
             if (hasClass) {

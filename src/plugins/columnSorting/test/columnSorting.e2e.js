@@ -2167,19 +2167,27 @@ describe('ColumnSorting', () => {
                 newB = b[1];
 
               Handsontable.helper.objectEach(unitsRatios, (val, prop) => {
+                let result = true;
+
                 if (a[1].indexOf(prop) > -1) {
                   newA = parseFloat(a[1].replace(prop, '')) * val;
 
-                  return false;
+                  result = false;
                 }
+
+                return result;
               });
 
               Handsontable.helper.objectEach(unitsRatios, (val, prop) => {
+                let result = true;
+
                 if (b[1].indexOf(prop) > -1) {
                   newB = parseFloat(b[1].replace(prop, '')) * val;
 
-                  return false;
+                  result = false;
                 }
+
+                return result;
               });
 
               if (newA < newB) {

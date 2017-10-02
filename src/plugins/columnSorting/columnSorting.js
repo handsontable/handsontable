@@ -73,8 +73,8 @@ class ColumnSorting extends BasePlugin {
     const _this = this;
     this.hot.sortIndex = [];
 
-    this.hot.sort = function() {
-      let args = Array.prototype.slice.call(arguments);
+    this.hot.sort = function(...params) {
+      let args = Array.prototype.slice.call(params);
 
       return _this.sortByColumn(...args);
     };
@@ -503,16 +503,21 @@ class ColumnSorting extends BasePlugin {
    * Translates sorted row index to physical row index.
    *
    * @param {Number} row Sorted (visual) row index.
-   * @returns {number} Physical row index.
+   * @returns {Number|undefined} Physical row index.
    */
   untranslateRow(row) {
+    let result;
+
     if (this.hot.sortingEnabled && this.hot.sortIndex && this.hot.sortIndex.length) {
       for (var i = 0; i < this.hot.sortIndex.length; i++) {
         if (this.hot.sortIndex[i][0] === row) {
-          return i;
+          result = i;
+          break;
         }
       }
     }
+
+    return result;
   }
 
   /**
