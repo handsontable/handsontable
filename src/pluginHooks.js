@@ -1107,7 +1107,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after values are pasted into table.
    *
-   * @event Hooks#afterePaste
+   * @event Hooks#afterPaste
    * @since 0.31.1
    * @param {Array} data An array of arrays which contains the pasted data.
    * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
