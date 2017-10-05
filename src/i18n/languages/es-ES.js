@@ -2,7 +2,7 @@
  * Authors: Wojciech Szymański
  * Last updated: 28.09.2017
  *
- * Description: Definition file for 	Spanish - Spain language.
+ * Description: Definition file for Spanish - Spain language.
  */
 import * as C from '../constants';
 
