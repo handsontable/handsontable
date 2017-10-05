@@ -1,6 +1,6 @@
 import {arrayEach} from './../helpers/array';
 import {isDefined} from './../helpers/mixed';
-import {getLocaleDictionary, DEFAULT_LANGUAGE_CODE} from './languages';
+import {getLocaleDictionary, DEFAULT_LANGUAGE_CODE} from './dictionaryManager';
 import {getPhraseFormatters} from './phraseFormatters';
 
 const hotLanguages = new WeakMap();
@@ -26,12 +26,12 @@ export function setLocale(hotInstance, languageCode = DEFAULT_LANGUAGE_CODE) {
   }
 
   if (wasLocalizationInitialized) {
-    runOnLocaleChangeCallbacks();
+    runOnLocaleChangeCallbacks(hotInstance);
   }
 }
 
 /**
- * Get formatted phrase from phrases propositions under specified dictionary key.
+ * Get formatted phrase from phrases propositions for specified dictionary key.
  *
  * @param {Object} hotInstance Instance of Handsontable for which we get phrase.
  * @param {String} dictionaryKey Constant which is dictionary key.
@@ -51,11 +51,11 @@ export function getPhrase(hotInstance, dictionaryKey, argumentsForFormatters) {
  *
  * @param {Object} hotInstance Instance of Handsontable for which we register locale change callback.
  * @param {string} dictionaryKey Constant which is dictionary key.
- * @param {Object} zippedVariableAndValues  Object containing variables and corresponding values
+ * @param {Object} argumentsForFormatters  Object containing arguments which will be handled by formatters.
  * @param {Function} callback Function which will be executed after locale change, as parameter gets phrase which is
  * created from `dictionaryKey` and `zippedVariableAndValues` parameters
  */
-export function registerLocaleChangeFn(hotInstance, dictionaryKey, zippedVariableAndValues, callback) {
+export function registerLocaleChangeFn(hotInstance, dictionaryKey, argumentsForFormatters, callback) {
   const callbacks = hotOnLocaleChangeCallbacks.get(hotInstance) || [];
 
   callbacks.push(() => {

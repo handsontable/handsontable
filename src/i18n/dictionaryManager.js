@@ -1,15 +1,15 @@
-import staticRegister from './../../utils/staticRegister';
-import {extendNotExistingKeys} from './../utils';
-import enLanguage from './en-US';
-import plLanguage from './pl-PL';
+import staticRegister from '../utils/staticRegister';
+import {extendNotExistingKeys} from './utils';
+import DEFAULT_DICTIONARY from './languages/en-US';
+
+export const DEFAULT_LANGUAGE_CODE = DEFAULT_DICTIONARY.languageCode;
 
 const {
   register: registerGloballyLanguage,
   getItem: getGlobalLanguage,
-  hasItem: hasGlobalLanguage
+  hasItem: hasGlobalLanguage,
+  getValues: getGlobalLanguages
 } = staticRegister('languages');
-
-export const DEFAULT_LANGUAGE_CODE = 'en-US';
 
 /**
  * Register locale dictionary for specific language code.
@@ -18,10 +18,8 @@ export const DEFAULT_LANGUAGE_CODE = 'en-US';
  * @param {Object} dictionary Dictionary for specific language.
  */
 export function registerLocaleDictionary(languageCode, dictionary) {
-  if (!hasGlobalLanguage(languageCode)) {
-    extendDictionaryByDefaultLangBase(languageCode, dictionary);
-    registerGloballyLanguage(languageCode, dictionary);
-  }
+  extendDictionaryByDefaultLangBase(languageCode, dictionary);
+  registerGloballyLanguage(languageCode, dictionary);
 };
 
 /**
@@ -52,5 +50,8 @@ function extendDictionaryByDefaultLangBase(languageCode, dictionary) {
   }
 }
 
-registerLocaleDictionary('en-US', enLanguage);
-registerLocaleDictionary('pl-PL', plLanguage);
+export function getDictonaries() {
+  return getGlobalLanguages();
+}
+
+registerLocaleDictionary(DEFAULT_LANGUAGE_CODE, DEFAULT_DICTIONARY);

@@ -33,6 +33,8 @@ import {registerPlugin} from './plugins';
 import DefaultSettings from './defaultSettings';
 import {rootInstanceSymbol} from './utils/rootInstance';
 
+import {registerLocaleDictionary, getDictonaries} from './i18n/dictionaryManager';
+
 function Handsontable(rootElement, userSettings) {
   const instance = new Core(rootElement, userSettings || {}, rootInstanceSymbol);
 
@@ -165,5 +167,9 @@ arrayHelpers.arrayEach(Object.getOwnPropertyNames(plugins), (pluginName) => {
 });
 
 Handsontable.plugins.registerPlugin = registerPlugin;
+
+Handsontable.languages = {};
+Handsontable.languages.registerLocaleDictionary = registerLocaleDictionary;
+Handsontable.languages.getDictonaries = getDictonaries;
 
 export default Handsontable;
