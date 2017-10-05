@@ -1,0 +1,23 @@
+language: node_js
+
+env:
+  global:
+    - HOT_BRANCH=master
+    - HOT_FOREIGN_TRIGGER=false
+
+sudo: false
+
+node_js:
+  - '6'
+
+before_script:
+  - export TZ=Europe/Warsaw
+  - chmod ugo+x test/scripts/run-customized-tests.sh
+
+script:
+  - 'if [ ${HOT_FOREIGN_TRIGGER} = "true" ]; then ./test/scripts/run-customized-tests.sh; else npm run test; fi'
+
+notifications:
+  email: false
+  slack:
+    secure: YtX81hxveNr5fLNQVRvjLXtEny2B7G0pv1W6L33a5Kk0h0ifWt69EnGT9NNy45TPgKQ+pfI42bSoOORxmwGJ7ebwq+CCzvc4mVLur+ASzTSNSILDt/4O05Q1eQc+5RQDbmixwXmVsxRtrwQcoONsNPcdLa7cC94TgPki49ZLibyejrR4nkE0Vz1YO0KR/tRqKStAcsvr/xMHteEDExvtCRTb4aDUqEKBdgSY2F4Hobw1gqpX/tnNKI4AOOW4exNZLxfQaQ64D5x3kPp3AFV2uuya+RyzhZvAS6pPehhhDu/cagOaVTgY8mvDcJNEapfwnk5fH5E5MJA7pHBH+QKCeYI6zSE/d3AUTsji3gj10hdTw0R05lOAvZS4J+LFfqo/8eO0/POaqZ05RwgvYjS5gJWMDDG/ulz9P6zVSP2d1UctLzpa+h8j5cGn/vggtO79XL4SPM6HOMVFgWF3Emjhp7PxU4GkqbhLorzV1I38vC44rmbKNelTaN9n51vQWU02PWCAAjd/gE6O84+T0IvOoiF+fZvkPhLheY9L1GNfJZypKgp4po2scQqv5HmAETYEislSMboChwl77am4AVwsIlc8SJOPk3/0oMRvcnNBkVUdi3kHvQ900DDRh9ohzKM+sNO3tkK95/tHgqkz3q5/tCI1N1QdfU03oVC0nBueAzU=
