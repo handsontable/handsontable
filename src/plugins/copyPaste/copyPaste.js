@@ -2,11 +2,9 @@ import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
 import SheetClip from './../../../lib/SheetClip/SheetClip';
 import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
-import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
 import {getSelectionText} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
-import {stopImmediatePropagation, isImmediatePropagationStopped} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
 import Textarea from './textarea';
 import copyItem from './contextMenuItem/copy';
@@ -123,7 +121,7 @@ class CopyPaste extends BasePlugin {
 
     this.textarea = Textarea.getSingleton();
     priv.isFragmentSelectionEnabled = settings.fragmentSelection;
-    
+
     if (typeof settings.copyPaste === 'object') {
       this.pasteMode = settings.copyPaste.pasteMode || this.pasteMode;
       this.rowsLimit = settings.copyPaste.rowsLimit || this.rowsLimit;
@@ -334,7 +332,7 @@ class CopyPaste extends BasePlugin {
    */
   onCopy(event) {
     const priv = privatePool.get(this);
-    
+
     if (!this.hot.isListening() && !priv.isTriggeredByCopy) {
       return;
     }
@@ -508,7 +506,7 @@ class CopyPaste extends BasePlugin {
    */
   onAfterSelectionEnd() {
     const priv = privatePool.get(this);
-    
+
     if (priv.isBeginEditing) {
       priv.isBeginEditing = false;
       return;
@@ -521,7 +519,12 @@ class CopyPaste extends BasePlugin {
     this.textarea.select();
   }
 
-  onAfterListen(){
+  /**
+   * Textarea has to be focused, if instance is listen.
+   *
+   * @private
+   */
+  onAfterListen() {
     this.setCopyableText();
     this.textarea.select();
   }

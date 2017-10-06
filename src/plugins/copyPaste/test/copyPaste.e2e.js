@@ -14,7 +14,7 @@ describe('CopyPaste', () => {
 
   class DataTransferObject {
     constructor() {
-      this.data;
+      this.data = '';
     }
     getData() {
       return this.data;
@@ -24,7 +24,7 @@ describe('CopyPaste', () => {
     }
   };
 
-  function getClipboardEvent(type) {
+  function getClipboardEvent() {
     let event = {};
     event.clipboardData = new DataTransferObject();
     event.preventDefault = () => {};
@@ -219,7 +219,7 @@ describe('CopyPaste', () => {
       const plugin = hot.getPlugin('CopyPaste');
 
       selectCell(1, 0);
-    
+
       plugin.setCopyableText();
       plugin.onCopy(copyEvent);
 
@@ -240,7 +240,7 @@ describe('CopyPaste', () => {
       const plugin = hot.getPlugin('CopyPaste');
 
       selectCell(0, 0);
-    
+
       plugin.setCopyableText();
       plugin.onCopy(copyEvent);
 
@@ -267,10 +267,10 @@ describe('CopyPaste', () => {
       const plugin = hot.getPlugin('CopyPaste');
 
       selectCell(0, 0);
-    
+
       plugin.setCopyableText();
       plugin.onCopy(copyEvent);
-      
+
       expect(beforeCopySpy.calls.count()).toEqual(1);
       expect(afterCopySpy.calls.count()).toEqual(0);
     });
@@ -286,7 +286,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent('copy');
       const plugin = hot.getPlugin('CopyPaste');
       selectCell(0, 0, 1, 0);
-    
+
       plugin.setCopyableText();
       plugin.onCopy(copyEvent);
 
@@ -311,7 +311,7 @@ describe('CopyPaste', () => {
       const plugin = hot.getPlugin('CopyPaste');
 
       selectCell(1, 0);
-    
+
       plugin.setCopyableText();
       plugin.onCut(cutEvent);
 
@@ -332,9 +332,9 @@ describe('CopyPaste', () => {
       });
       const cutEvent = getClipboardEvent('cut');
       const plugin = hot.getPlugin('CopyPaste');
-      
+
       selectCell(0, 0);
-    
+
       plugin.setCopyableText();
       plugin.onCut(cutEvent);
 
