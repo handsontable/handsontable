@@ -1,4 +1,5 @@
 /**
+ * @preserve
  * Authors: Wojciech Szymański
  * Last updated: 28.09.2017
  *
