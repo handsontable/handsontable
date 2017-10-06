@@ -3,20 +3,22 @@
 /**
  * Config responsible for building Handsontable `languages/` files.
  */
+
+const NEW_LINE_CHAR = '\n';
+const SOURCE_LANGUAGES_DIRECTORY = 'src/i18n/languages'
+const OUTPUT_LANGUAGES_DIRECTORY = 'languages';
+
 const path = require('path');
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const StringReplacePlugin  = require('string-replace-webpack-plugin');
 const fs  = require('fs');
 
-const NEW_LINE_CHAR = '\n';
-const LANGUAGES_DIRECTORY = 'src/i18n/languages'
-
 const licenseBody = fs.readFileSync(path.resolve(__dirname, '../LICENSE'), 'utf8');
 
 function getEntryJsFiles() {
   const entryObject = {};
-  const filesInLanguagesDirectory = fs.readdirSync(LANGUAGES_DIRECTORY);
+  const filesInLanguagesDirectory = fs.readdirSync(SOURCE_LANGUAGES_DIRECTORY);
 
   filesInLanguagesDirectory.forEach((fileName, b) => {
     const jsExtensionRegExp = /\.js$/
@@ -25,7 +27,7 @@ function getEntryJsFiles() {
     if (isJsFile(fileName)) {
       const fileNameWithoutExtension = fileName.replace(jsExtensionRegExp, '');
 
-      entryObject[fileNameWithoutExtension] = path.resolve(LANGUAGES_DIRECTORY, fileName);
+      entryObject[fileNameWithoutExtension] = path.resolve(SOURCE_LANGUAGES_DIRECTORY, fileName);
     }
   });
 
@@ -35,7 +37,7 @@ function getEntryJsFiles() {
 const ruleForSnippetsInjection = {
   test: /\.js$/,
   include: [
-    path.resolve(__dirname, '../', LANGUAGES_DIRECTORY),
+    path.resolve(__dirname, '../', SOURCE_LANGUAGES_DIRECTORY),
   ],
   loader: StringReplacePlugin.replace({
     replacements: [{
@@ -61,7 +63,7 @@ module.exports.create = function create(envArgs) {
   const config = {
     entry: getEntryJsFiles(),
     output: {
-      path: path.resolve(__dirname, '../languages'),
+      path: path.resolve(__dirname, '../' + OUTPUT_LANGUAGES_DIRECTORY),
       libraryTarget: 'umd',
       filename: '[name].js',
       libraryExport: 'default',
