@@ -12,7 +12,7 @@ import Textarea from './textarea';
 import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import EventManager from './../../eventManager';
-import PasteEvent from './utils/pasteEvent';
+import PasteEvent from './pasteEvent';
 
 import './copyPaste.css';
 
@@ -284,6 +284,9 @@ class CopyPaste extends BasePlugin {
     const priv = privatePool.get(this);
 
     priv.isTriggeredByCopy = true;
+
+    copyPastePlugin.textarea.select();
+    copyPastePlugin.setCopyableText();
     document.execCommand('copy');
   }
 
@@ -294,6 +297,9 @@ class CopyPaste extends BasePlugin {
     const priv = privatePool.get(this);
 
     priv.isTriggeredByCut = true;
+
+    copyPastePlugin.textarea.select();
+    copyPastePlugin.setCopyableText();
     document.execCommand('cut');
   }
 
@@ -320,6 +326,12 @@ class CopyPaste extends BasePlugin {
     this.eventManager.addEventListener(this.textarea.element, 'copy', (event) => this.onCopy(event));
   }
 
+  /**
+   * `cut` event callback on textarea element.
+   *
+   * @param {Event} event ClipboardEvent.
+   * @private
+   */
   onCopy(event) {
     const priv = privatePool.get(this);
     
@@ -349,6 +361,12 @@ class CopyPaste extends BasePlugin {
     event.preventDefault();
   }
 
+  /**
+   * `cut` event callback on textarea element.
+   *
+   * @param {Event} event ClipboardEvent.
+   * @private
+   */
   onCut(event) {
     const priv = privatePool.get(this);
 
@@ -382,7 +400,7 @@ class CopyPaste extends BasePlugin {
   /**
    * `paste` event callback on textarea element.
    *
-   * @param {Event} event ClipboardEvent or undefined, if paste was called manually.
+   * @param {Event} event ClipboardEvent or pseudo ClipboardEvent, if paste was called manually.
    * @private
    */
   onPaste(event) {
@@ -457,7 +475,11 @@ class CopyPaste extends BasePlugin {
     this.hot.runHooks('afterPaste', inputArray, this.copyableRanges);
   }
 
-
+  /**
+   * Prevent `afterSelectionEnd` hook, after begin editing.
+   *
+   * @private
+   */
   onAfterBeginEditing() {
     const priv = privatePool.get(this);
     priv.isBeginEditing = true;

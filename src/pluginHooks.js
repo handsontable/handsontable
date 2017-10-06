@@ -1490,6 +1490,7 @@ const REGISTERED_HOOKS = [
    * Fired after the listening is turned on.
    *
    * @event Hooks#afterListen
+   * @since 0.34.5
    */
   'afterListen',
 
@@ -1497,6 +1498,7 @@ const REGISTERED_HOOKS = [
    * Fired after the listening is turned off.
    *
    * @event Hooks#afterUnlisten
+   * @since 0.34.5
    */
   'afterUnlisten',
 ];

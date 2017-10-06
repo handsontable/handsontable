@@ -1305,8 +1305,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       document.body.focus();
     }
 
-    activeGuid = instance.guid;
-    instance.runHooks('afterListen');
+    if (!this.isListening()) {
+      activeGuid = instance.guid;
+      instance.runHooks('afterListen');
+    }
   };
 
   /**
