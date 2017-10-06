@@ -10,13 +10,32 @@ const StringReplacePlugin  = require('string-replace-webpack-plugin');
 const fs  = require('fs');
 
 const NEW_LINE_CHAR = '\n';
+const LANGUAGES_DIRECTORY = 'src/i18n/languages'
 
 const licenseBody = fs.readFileSync(path.resolve(__dirname, '../LICENSE'), 'utf8');
+
+function getEntryJsFiles() {
+  const entryObject = {};
+  const filesInLanguagesDirectory = fs.readdirSync(LANGUAGES_DIRECTORY);
+
+  filesInLanguagesDirectory.forEach((fileName, b) => {
+    const jsExtensionRegExp = /\.js$/
+    const isJsFile = (fileName) => jsExtensionRegExp.test(fileName);
+
+    if (isJsFile(fileName)) {
+      const fileNameWithoutExtension = fileName.replace(jsExtensionRegExp, '');
+
+      entryObject[fileNameWithoutExtension] = path.resolve(LANGUAGES_DIRECTORY, fileName);
+    }
+  });
+
+  return entryObject;
+}
 
 const ruleForSnippetsInjection = {
   test: /\.js$/,
   include: [
-    path.resolve(__dirname, "../src/i18n/languages"),
+    path.resolve(__dirname, '../', LANGUAGES_DIRECTORY),
   ],
   loader: StringReplacePlugin.replace({
     replacements: [{
@@ -40,19 +59,12 @@ const ruleForSnippetsInjection = {
 
 module.exports.create = function create(envArgs) {
   const config = {
-    entry: {
-      'all': './src/i18n/languages/all.js',
-      'de-DE': './src/i18n/languages/de-DE.js',
-      'en-US': './src/i18n/languages/en-US.js',
-      'es-ES': './src/i18n/languages/es-ES.js',
-      'fr-FR': './src/i18n/languages/fr-FR.js',
-      'pl-PL': './src/i18n/languages/pl-PL.js'
-    },
+    entry: getEntryJsFiles(),
     output: {
       path: path.resolve(__dirname, '../languages'),
       libraryTarget: 'umd',
       filename: '[name].js',
-      libraryExport: "default",
+      libraryExport: 'default',
       umdNamedDefine: true
     },
     externals: {
