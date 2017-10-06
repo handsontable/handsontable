@@ -1484,7 +1484,21 @@ const REGISTERED_HOOKS = [
    * @param {Number} row Row index of the edited cell.
    * @param {Number} column Column index of the edited cell.
    */
-  'afterBeginEditing'
+  'afterBeginEditing',
+
+  /**
+   * Fired after the listening is turned on.
+   *
+   * @event Hooks#afterListen
+   */
+  'afterListen',
+
+  /**
+   * Fired after the listening is turned off.
+   *
+   * @event Hooks#afterUnlisten
+   */
+  'afterUnlisten',
 ];
 
 class Hooks {

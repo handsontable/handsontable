@@ -59,6 +59,7 @@ class Textarea {
     this.element.tabIndex = -1;
     this.element.autocomplete = 'off';
     this.element.wrap = 'hard';
+    this.element.value = ' ';
   }
 
   /**
