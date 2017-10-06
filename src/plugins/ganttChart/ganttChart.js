@@ -370,36 +370,11 @@ class GanttChart extends BasePlugin {
 
           // Mixed month's only column
           if (!allowSplitWeeks && month.fullWeeks === 1) {
-            if (monthNumber === 0) {
-              end = this.monthList[monthNumber + 1].daysBeforeFullWeeks;
-              start = 31 - (7 - end) + 1;
-
-            } else if (monthNumber === this.monthList.length - 1) {
-              end = 7 - this.monthList[monthNumber - 1].daysAfterFullWeeks;
-              start = this.monthList[monthNumber - 1].days - this.monthList[monthNumber - 1].daysAfterFullWeeks + 1;
-
-            } else {
-              end = this.monthList[monthNumber + 1].daysBeforeFullWeeks;
-              start = this.monthList[monthNumber - 1].days - (7 - end) + 1;
-            }
+            [start, end] = this.getWeekColumnRange(month, monthNumber, i, true);
 
             // Standard week column
-          } else if (allowSplitWeeks && areDaysBeforeFullWeeks && i === 0) {
-            start = i + 1;
-            end = month.daysBeforeFullWeeks;
-
-          } else if (allowSplitWeeks && areDaysAfterFullWeeks && i === headerCount - 1) {
-            start = month.days - month.daysAfterFullWeeks + 1;
-            end = month.days;
-
           } else {
-            start = null;
-            if (allowSplitWeeks) {
-              start = month.daysBeforeFullWeeks + ((i - areDaysBeforeFullWeeks) * 7) + 1;
-            } else {
-              start = month.daysBeforeFullWeeks + (i * 7) + 1;
-            }
-            end = start + 6;
+            [start, end] = this.getWeekColumnRange(month, monthNumber, i);
           }
 
           if (start === end) {
@@ -414,6 +389,62 @@ class GanttChart extends BasePlugin {
     });
 
     return headers;
+  }
+
+  /**
+   * Get the week column range.
+   *
+   * @private
+   * @param {Object} monthObject The month object.
+   * @param {Number} monthNumber Index of the month.
+   * @param {Number} headerIndex Index of the header.
+   * @param {Boolean} mixedMonth `true` if the header is the single header of a mixed month.
+   * @returns {Array}
+   */
+  getWeekColumnRange(monthObject, monthNumber, headerIndex, mixedMonth) {
+    const DEC_LENGTH = 31;
+    const WEEK_LENGTH = 7;
+    const allowSplitWeeks = this.settings.allowSplitWeeks;
+    const areDaysBeforeFullWeeks = monthObject.daysBeforeFullWeeks > 0 ? 1 : 0;
+    const areDaysAfterFullWeeks = monthObject.daysAfterFullWeeks > 0 ? 1 : 0;
+    let headerCount = monthObject.fullWeeks + (this.settings.allowSplitWeeks ? areDaysBeforeFullWeeks + areDaysAfterFullWeeks : 0);
+
+    let start = null;
+    let end = null;
+
+    if (mixedMonth) {
+      if (monthNumber === 0) {
+        end = this.monthList[monthNumber + 1].daysBeforeFullWeeks;
+        start = DEC_LENGTH - (WEEK_LENGTH - end) + 1;
+
+      } else if (monthNumber === this.monthList.length - 1) {
+        end = WEEK_LENGTH - this.monthList[monthNumber - 1].daysAfterFullWeeks;
+        start = this.monthList[monthNumber - 1].days - this.monthList[monthNumber - 1].daysAfterFullWeeks + 1;
+
+      } else {
+        end = this.monthList[monthNumber + 1].daysBeforeFullWeeks;
+        start = this.monthList[monthNumber - 1].days - (WEEK_LENGTH - end) + 1;
+      }
+
+    } else if (allowSplitWeeks && areDaysBeforeFullWeeks && headerIndex === 0) {
+      start = headerIndex + 1;
+      end = monthObject.daysBeforeFullWeeks;
+
+    } else if (allowSplitWeeks && areDaysAfterFullWeeks && headerIndex === headerCount - 1) {
+      start = monthObject.days - monthObject.daysAfterFullWeeks + 1;
+      end = monthObject.days;
+
+    } else {
+      start = null;
+      if (allowSplitWeeks) {
+        start = monthObject.daysBeforeFullWeeks + ((headerIndex - areDaysBeforeFullWeeks) * WEEK_LENGTH) + 1;
+      } else {
+        start = monthObject.daysBeforeFullWeeks + (headerIndex * WEEK_LENGTH) + 1;
+      }
+      end = start + WEEK_LENGTH - 1;
+    }
+
+    return [start, end];
   }
 
   /**

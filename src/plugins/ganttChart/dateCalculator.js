@@ -273,7 +273,7 @@ class DateCalculator {
 
         let indexOfDay = column.indexOf(day + 1);
 
-        if ((indexOfDay === 0)) {
+        if (indexOfDay === 0) {
           isOnTheEdgeOfWeek = [1, 0];
           return false;
 
@@ -310,18 +310,19 @@ class DateCalculator {
     }
 
     if (start <= end) {
-      for (let j = start; j <= end; j++) {
-        this.daysInColumns[monthNumber][columnNumber].push(j);
+      for (let dayIndex = start; dayIndex <= end; dayIndex++) {
+        this.daysInColumns[monthNumber][columnNumber].push(dayIndex);
       }
+
     } else {
       let previousMonthDaysCount = monthNumber - 1 >= 0 ? this.countMonthDays(monthNumber) : 31;
 
-      for (let j = start; j <= previousMonthDaysCount; j++) {
-        this.daysInColumns[monthNumber][columnNumber].push(j);
+      for (let dayIndex = start; dayIndex <= previousMonthDaysCount; dayIndex++) {
+        this.daysInColumns[monthNumber][columnNumber].push(dayIndex);
       }
 
-      for (let j = 1; j <= end; j++) {
-        this.daysInColumns[monthNumber][columnNumber].push(j);
+      for (let dayIndex = 1; dayIndex <= end; dayIndex++) {
+        this.daysInColumns[monthNumber][columnNumber].push(dayIndex);
       }
     }
   }
@@ -418,21 +419,10 @@ class DateCalculator {
       currentMonth.daysBeforeFullWeeks = (7 - firstMonthDay + weekOffset) % 7;
 
       if (!this.allowSplitWeeks && currentMonth.daysBeforeFullWeeks) {
-        if (i > 0) {
-          mixedMonthName = monthList[i - 1].name.substring(0, 3) + '/' + monthList[i].name.substring(0, 3);
+        mixedMonthName = this.getMixedMonthName(i, monthList);
 
-        } else {
-          mixedMonthName = monthList[monthList.length - 1].name.substring(0, 3) + '/' + monthList[i].name.substring(0, 3);
-        }
+        mixedMonthToAdd.push(this.getMixedMonthObject(mixedMonthName, i));
 
-        mixedMonthToAdd.push({
-          name: mixedMonthName,
-          days: 7,
-          daysBeforeFullWeeks: 0,
-          daysAfterFullWeeks: 0,
-          fullWeeks: 1,
-          index: i
-        });
         mixedMonthsAdded++;
       }
 
@@ -441,15 +431,10 @@ class DateCalculator {
 
       if (!this.allowSplitWeeks) {
         if (i === monthList.length - 1 && currentMonth.daysAfterFullWeeks) {
-          mixedMonthName = monthList[i].name.substring(0, 3) + '/' + monthList[0].name.substring(0, 3);
-          mixedMonthToAdd.push({
-            name: mixedMonthName,
-            days: 7,
-            daysBeforeFullWeeks: 0,
-            daysAfterFullWeeks: 0,
-            fullWeeks: 1,
-            index: null
-          });
+          mixedMonthName = this.getMixedMonthName(i, monthList);
+
+          mixedMonthToAdd.push(this.getMixedMonthObject(mixedMonthName, null));
+
           mixedMonthsAdded++;
         }
 
@@ -462,12 +447,56 @@ class DateCalculator {
 
     arrayEach(mixedMonthToAdd, (monthObject, i) => {
       const index = monthObject.index;
+
       delete monthObject.index;
 
       this.addMixedMonth(index === null ? index : i + index, monthObject);
     });
 
     this.weekSectionCount = weekSectionCount;
+  }
+
+  /**
+   * Generate a mixed month object.
+   *
+   * @private
+   * @param {String} monthName The month name.
+   * @param {Number} index Index for the mixed month.
+   * @returns {Object} The month object.
+   */
+  getMixedMonthObject(monthName, index) {
+    return {
+      name: monthName,
+      days: 7,
+      daysBeforeFullWeeks: 0,
+      daysAfterFullWeeks: 0,
+      fullWeeks: 1,
+      index: index
+    };
+  }
+
+  /**
+   * Generate the name for a mixed month.
+   *
+   * @private
+   * @param {Number} afterMonthIndex Index of the month after the mixed one.
+   * @param {Array} monthList List of the months.
+   * @returns {String} Name for the mixed month.
+   */
+  getMixedMonthName(afterMonthIndex, monthList) {
+    let mixedMonthName = null;
+
+    if (afterMonthIndex > 0) {
+      mixedMonthName = monthList[afterMonthIndex - 1].name.substring(0, 3) + '/' + monthList[afterMonthIndex].name.substring(0, 3);
+
+    } else if (afterMonthIndex === monthList.length - 1) {
+      mixedMonthName = monthList[afterMonthIndex].name.substring(0, 3) + '/' + monthList[0].name.substring(0, 3);
+
+    } else {
+      mixedMonthName = monthList[monthList.length - 1].name.substring(0, 3) + '/' + monthList[afterMonthIndex].name.substring(0, 3);
+    }
+
+    return mixedMonthName;
   }
 
   /**
@@ -480,6 +509,7 @@ class DateCalculator {
   addMixedMonth(index, monthObject) {
     if (index === null) {
       this.monthList.push(monthObject);
+
     } else {
       this.monthList.splice(index, 0, monthObject);
     }
