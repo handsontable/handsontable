@@ -11,7 +11,7 @@ import {arrayEach, arrayFilter, arrayReduce} from './../../helpers/array';
 import Cursor from './cursor';
 import EventManager from './../../eventManager';
 import {mixin, hasOwnProperty} from './../../helpers/object';
-import {debounce} from './../../helpers/function';
+import {debounce, isFunction} from './../../helpers/function';
 import {filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
@@ -502,19 +502,25 @@ class Menu {
    * @returns {HTMLElement}
    */
   createContainer(name = null) {
-    if (name) {
-      name = name.replace(/[^A-z0-9]/g, '_');
-      name = `${this.options.className}Sub_${name}`;
-    }
     let container;
 
     if (name) {
+      if (isFunction(name)) {
+        name = name.call(this.hot);
+      }
+
+      name = name.replace(/[^A-z0-9]/g, '_');
+      name = `${this.options.className}Sub_${name}`;
+
       container = document.querySelector(`.${this.options.className}.${name}`);
+
     } else {
       container = document.querySelector(`.${this.options.className}`);
     }
+
     if (!container) {
       container = document.createElement('div');
+
       addClass(container, `htMenu ${this.options.className}`);
 
       if (name) {
