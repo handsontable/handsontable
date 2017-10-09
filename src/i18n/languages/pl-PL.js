@@ -17,7 +17,7 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['Usuń kolumnę', 'Usuń kolumny'],
   [C.CONTEXTMENU_ITEMS_UNDO]: 'Cofnij',
   [C.CONTEXTMENU_ITEMS_REDO]: 'Przywróć',
-  [C.CONTEXTMENU_ITEMS_READ_ONLY]: 'Read only',
+  [C.CONTEXTMENU_ITEMS_READ_ONLY]: 'Tylko do odczytu',
 
   [C.CONTEXTMENU_ITEMS_ALIGNMENT]: 'Wyrównanie',
   [C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT]: 'Lewo',

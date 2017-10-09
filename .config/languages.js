@@ -20,7 +20,7 @@ function getEntryJsFiles() {
   const entryObject = {};
   const filesInLanguagesDirectory = fs.readdirSync(SOURCE_LANGUAGES_DIRECTORY);
 
-  filesInLanguagesDirectory.forEach((fileName, b) => {
+  filesInLanguagesDirectory.forEach((fileName) => {
     const jsExtensionRegExp = /\.js$/
     const isJsFile = (fileName) => jsExtensionRegExp.test(fileName);
 
