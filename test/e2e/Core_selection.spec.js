@@ -596,7 +596,7 @@ describe('Core_selection', () => {
 
     selectCell(0, 0);
 
-    expect(document.activeElement.nodeName).toBeInArray(['BODY', 'HTML']);
+    expect(document.activeElement.nodeName).toBeInArray(['TEXTAREA', 'BODY', 'HTML']);
 
     $input.focus();
 
