@@ -20,8 +20,8 @@
  * RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
  * UNINTERRUPTED OR ERROR FREE.
  * 
- * Version: 1.14.2
- * Release date: 13/09/2017 (built at 13/09/2017 11:34:21)
+ * Version: 1.14.3
+ * Release date: 11/10/2017 (built at 09/10/2017 15:47:34)
  */
 /**
  * Fix for bootstrap styles
@@ -1183,8 +1183,10 @@ thead .htCollapseButton:after {
 }
 textarea#HandsontableCopyPaste {
   position: fixed !important;
-  bottom: 100% !important;
+  top: 0 !important;
   right: 100% !important;
+  overflow: hidden;
+  opacity: 0;
   outline: 0 none !important;
 }
 .htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_top_left_corner th:nth-child(2),
