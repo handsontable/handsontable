@@ -29,3 +29,43 @@ export function getMixedMonthObject(monthName, index) {
     index
   };
 }
+
+/**
+ * Generate the name for a mixed month.
+ *
+ * @private
+ * @param {Number} afterMonthIndex Index of the month after the mixed one.
+ * @param {Array} monthList List of the months.
+ * @returns {String} Name for the mixed month.
+ */
+export function getMixedMonthName(afterMonthIndex, monthList) {
+  let mixedMonthName = null;
+  const afterMonthShorthand = getShorthand(monthList[afterMonthIndex].name);
+  const beforeMonthShorthand = afterMonthIndex > 0 ? getShorthand(monthList[afterMonthIndex - 1].name) : null;
+  const firstMonthShorthand = getShorthand(monthList[0].name);
+  const lastMonthShorthand = getShorthand(monthList[monthList.length - 1].name);
+
+  if (afterMonthIndex > 0) {
+    mixedMonthName = `${beforeMonthShorthand}/${afterMonthShorthand}`;
+
+  } else if (afterMonthIndex === monthList.length - 1) {
+    mixedMonthName = `${afterMonthShorthand}/${firstMonthShorthand}`;
+
+  } else {
+    mixedMonthName = `${lastMonthShorthand}/${afterMonthShorthand}`;
+  }
+
+  return mixedMonthName;
+}
+
+/**
+ * Get the three first letters from the provided month name.
+ *
+ * @private
+ * @param {String} monthName The month name.
+ * @returns {String} The three-lettered shorthand for the month name.
+ */
+export function getShorthand(monthName) {
+  const MONTH_SHORT_LEN = 3;
+  return monthName.substring(0, MONTH_SHORT_LEN);
+}

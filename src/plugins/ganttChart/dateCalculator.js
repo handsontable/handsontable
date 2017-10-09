@@ -1,6 +1,6 @@
 import {arrayEach} from 'handsontable/helpers/array';
 import {objectEach} from 'handsontable/helpers/object';
-import {getMixedMonthObject} from './utils';
+import {getMixedMonthObject, getMixedMonthName} from './utils';
 
 /**
  * This class handles the date-related calculations for the GanttChart plugin.
@@ -420,7 +420,7 @@ class DateCalculator {
       currentMonth.daysBeforeFullWeeks = (7 - firstMonthDay + weekOffset) % 7;
 
       if (!this.allowSplitWeeks && currentMonth.daysBeforeFullWeeks) {
-        mixedMonthName = this.getMixedMonthName(monthIndex, monthList);
+        mixedMonthName = getMixedMonthName(monthIndex, monthList);
 
         mixedMonthToAdd.push(getMixedMonthObject(mixedMonthName, monthIndex));
 
@@ -432,7 +432,7 @@ class DateCalculator {
 
       if (!this.allowSplitWeeks) {
         if (monthIndex === monthList.length - 1 && currentMonth.daysAfterFullWeeks) {
-          mixedMonthName = this.getMixedMonthName(monthIndex, monthList);
+          mixedMonthName = getMixedMonthName(monthIndex, monthList);
 
           mixedMonthToAdd.push(getMixedMonthObject(mixedMonthName, null));
 
@@ -455,31 +455,6 @@ class DateCalculator {
     });
 
     this.weekSectionCount = weekSectionCount;
-  }
-
-  /**
-   * Generate the name for a mixed month.
-   *
-   * @private
-   * @param {Number} afterMonthIndex Index of the month after the mixed one.
-   * @param {Array} monthList List of the months.
-   * @returns {String} Name for the mixed month.
-   */
-  getMixedMonthName(afterMonthIndex, monthList) {
-    const MONTH_SHORT_LEN = 3;
-    let mixedMonthName = null;
-
-    if (afterMonthIndex > 0) {
-      mixedMonthName = `${monthList[afterMonthIndex - 1].name.substring(0, MONTH_SHORT_LEN)}/${monthList[afterMonthIndex].name.substring(0, MONTH_SHORT_LEN)}`;
-
-    } else if (afterMonthIndex === monthList.length - 1) {
-      mixedMonthName = `${monthList[afterMonthIndex].name.substring(0, MONTH_SHORT_LEN)}/${monthList[0].name.substring(0, MONTH_SHORT_LEN)}`;
-
-    } else {
-      mixedMonthName = `${monthList[monthList.length - 1].name.substring(0, MONTH_SHORT_LEN)}/${monthList[afterMonthIndex].name.substring(0, MONTH_SHORT_LEN)}`;
-    }
-
-    return mixedMonthName;
   }
 
   /**
