@@ -1,12 +1,11 @@
 import {addClass, removeClass} from 'handsontable/helpers/dom/element';
 import {objectEach, deepClone, extend} from 'handsontable/helpers/object';
-import {arrayEach} from 'handsontable/helpers/array';
-import {rangeEach} from 'handsontable/helpers/number';
 import {createEmptySpreadsheetData} from 'handsontable/helpers/data';
-import {registerPlugin} from 'handsontable/plugins.js';
-import BasePlugin from 'handsontable/plugins/_base.js';
+import {registerPlugin} from 'handsontable/plugins';
+import BasePlugin from 'handsontable/plugins/_base';
 import DateCalculator from './dateCalculator';
 import GanttChartDataFeed from './ganttChartDataFeed';
+import {DEC_LENGTH, WEEK_LENGTH} from './utils';
 
 import './ganttChart.css';
 
@@ -402,8 +401,6 @@ class GanttChart extends BasePlugin {
    * @returns {Array}
    */
   getWeekColumnRange(monthObject, monthNumber, headerIndex, mixedMonth) {
-    const DEC_LENGTH = 31;
-    const WEEK_LENGTH = 7;
     const allowSplitWeeks = this.settings.allowSplitWeeks;
     const areDaysBeforeFullWeeks = monthObject.daysBeforeFullWeeks > 0 ? 1 : 0;
     const areDaysAfterFullWeeks = monthObject.daysAfterFullWeeks > 0 ? 1 : 0;
@@ -625,7 +622,7 @@ class GanttChart extends BasePlugin {
    * @param {Object} data Object with the updated data.
    */
   updateRangeBarData(row, column, data) {
-    var rangeBar = this.getRangeBarData(row, column);
+    const rangeBar = this.getRangeBarData(row, column);
 
     objectEach(data, (val, prop) => {
       if (rangeBar[prop] !== val) {
