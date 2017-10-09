@@ -1,5 +1,5 @@
 describe('GanttChart', function() {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
@@ -20,7 +20,7 @@ describe('GanttChart', function() {
 
   describe('initialization', function() {
     it('should update all the needed settings for the current instance', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         colHeaders: true,
         ganttChart: {
           firstWeekDay: 'monday'
@@ -28,7 +28,7 @@ describe('GanttChart', function() {
         height: 250
       });
 
-      var ganttPlugin = hot.getPlugin('ganttChart');
+      const ganttPlugin = hot.getPlugin('ganttChart');
 
       expect(hot.getSettings().readOnly).toEqual(true);
       expect(hot.getSettings().colWidths).toEqual(60);
@@ -47,7 +47,7 @@ describe('GanttChart', function() {
     it('should throw a warning if colHeaders property is not defined for the ganttChart-enabled instance', function() {
       console.warn = jasmine.createSpy('warn');
 
-      var hot = handsontable({
+      const hot = handsontable({
         ganttChart: true,
         height: 250
       });
@@ -58,7 +58,7 @@ describe('GanttChart', function() {
 
   describe('disabling and enabling the plugin', function() {
     it('should revert to a clean Handsontable instance after calling the disablePlugin method', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         colHeaders: true,
         ganttChart: true,
         height: 250
@@ -72,13 +72,13 @@ describe('GanttChart', function() {
     });
 
     it('should allow to re-enable the plugin using the disablePlugin->enablePlugin methods', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         colHeaders: true,
         ganttChart: true,
         height: 250
       });
 
-      var plugin = hot.getPlugin('ganttChart');
+      const plugin = hot.getPlugin('ganttChart');
 
       plugin.disablePlugin();
       hot.render();
@@ -90,7 +90,7 @@ describe('GanttChart', function() {
     });
 
     it('should allow to change the gantt chart\'s year using the updateSettings method', function() {
-      var source = [
+      const source = [
         {
           additionalData: {vendor: 'Vendor One', format: 'Posters', market: 'New York, NY'},
           startDate: '1/5/2015',
@@ -98,7 +98,7 @@ describe('GanttChart', function() {
         }
       ];
 
-      var hot = handsontable({
+      const hot = handsontable({
         colHeaders: true,
         ganttChart: {
           startYear: 2015,
@@ -107,7 +107,7 @@ describe('GanttChart', function() {
         height: 250
       });
 
-      var plugin = hot.getPlugin('ganttChart');
+      const plugin = hot.getPlugin('ganttChart');
 
       expect(hot.getCellMeta(0, 1).className.indexOf('rangeBar')).toBeGreaterThan(-1);
       expect(hot.getCellMeta(0, 2).className.indexOf('rangeBar')).toBeGreaterThan(-1);
@@ -144,7 +144,7 @@ describe('GanttChart', function() {
 
   describe('updateSettings', function() {
     it('should be able to turn on the plugin using the updateSettings method', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         colHeaders: true,
         height: 250
       });
@@ -161,7 +161,7 @@ describe('GanttChart', function() {
   describe('header structure', function() {
 
     it('should calculate the right data for month and week structure', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         colHeaders: true,
         height: 250,
         ganttChart: {
@@ -169,16 +169,42 @@ describe('GanttChart', function() {
         }
       });
 
-      var plugin = hot.getPlugin('ganttChart');
+      const plugin = hot.getPlugin('ganttChart');
 
-      var preDaysInMonths = [4, 1, 1, 5, 3, 0, 5, 2, 6, 4, 1, 6];
-      var weeksInMonths = [3, 3, 4, 3, 4, 4, 3, 4, 3, 3, 4, 3];
-      var postDaysInMonths = [6, 6, 2, 4, 0, 2, 5, 1, 3, 6, 1, 4];
+      const preDaysInMonths = [4, 1, 1, 5, 3, 0, 5, 2, 6, 4, 1, 6];
+      const weeksInMonths = [3, 3, 4, 3, 4, 4, 3, 4, 3, 3, 4, 3];
+      const postDaysInMonths = [6, 6, 2, 4, 0, 2, 5, 1, 3, 6, 1, 4];
 
       /* eslint-disable no-eval */
       expect(plugin.overallWeekSectionCount).toEqual(eval(weeksInMonths.join('+')) + preDaysInMonths.length + postDaysInMonths.length - 2); // 2 is the number of '0's in pre and post days
 
-      for (var i = 0; i < 12; i++) {
+      for (let i = 0; i < 12; i++) {
+        expect(plugin.monthList[i].daysBeforeFullWeeks).toEqual(preDaysInMonths[i]);
+        expect(plugin.monthList[i].fullWeeks).toEqual(weeksInMonths[i]);
+        expect(plugin.monthList[i].daysAfterFullWeeks).toEqual(postDaysInMonths[i]);
+      }
+    });
+
+    it('should calculate the right data for month and week structure, when using the `allowSplitWeeks: false` option.', () => {
+      const hot = handsontable({
+        colHeaders: true,
+        height: 250,
+        ganttChart: {
+          startYear: 2015,
+          allowSplitWeeks: false
+        }
+      });
+
+      const plugin = hot.getPlugin('ganttChart');
+
+      const preDaysInMonths = [0, 4, 0, 1, 0, 1, 0, 5, 0, 3, 0, 0, 5, 0, 2, 0, 6, 0, 4, 0, 1, 0, 6, 0];
+      const weeksInMonths = [1, 3, 1, 3, 1, 4, 1, 3, 1, 4, 4, 1, 3, 1, 4, 1, 3, 1, 3, 1, 4, 1, 3, 1];
+      const postDaysInMonths = [0, 6, 0, 6, 0, 2, 0, 4, 0, 0, 2, 0, 5, 0, 1, 0, 3, 0, 6, 0, 1, 0, 4, 0];
+
+      /* eslint-disable no-eval */
+      expect(plugin.overallWeekSectionCount).toEqual(eval(weeksInMonths.join('+')));
+
+      for (let i = 0; i < plugin.dateCalculator.monthList.length; i++) {
         expect(plugin.monthList[i].daysBeforeFullWeeks).toEqual(preDaysInMonths[i]);
         expect(plugin.monthList[i].fullWeeks).toEqual(weeksInMonths[i]);
         expect(plugin.monthList[i].daysAfterFullWeeks).toEqual(postDaysInMonths[i]);
@@ -186,7 +212,7 @@ describe('GanttChart', function() {
     });
 
     it('should create a month/week structure of nested headers', function() {
-      var hot = handsontable({
+      const hot = handsontable({
         colHeaders: true,
         height: 250,
         ganttChart: {
@@ -195,9 +221,9 @@ describe('GanttChart', function() {
         viewportColumnRenderingOffset: 1000
       });
 
-      var preDaysInMonths = [4, 1, 1, 5, 3, 0, 5, 2, 6, 4, 1, 6];
-      var weeksInMonths = [3, 3, 4, 3, 4, 4, 3, 4, 3, 3, 4, 3];
-      var postDaysInMonths = [6, 6, 2, 4, 0, 2, 5, 1, 3, 6, 1, 4];
+      const preDaysInMonths = [4, 1, 1, 5, 3, 0, 5, 2, 6, 4, 1, 6];
+      const weeksInMonths = [3, 3, 4, 3, 4, 4, 3, 4, 3, 3, 4, 3];
+      const postDaysInMonths = [6, 6, 2, 4, 0, 2, 5, 1, 3, 6, 1, 4];
 
       expect($(hot.rootElement).find('.ht_master thead').find('tr').size()).toEqual(2);
       expect($(hot.rootElement).find('.ht_master thead tr:first-child').find('th:not(".hiddenHeader")').size()).toEqual(12);
@@ -205,10 +231,10 @@ describe('GanttChart', function() {
       expect($(hot.rootElement).find('.ht_master thead tr:nth-child(2)').find('th').size())
         .toEqual(eval(weeksInMonths.join('+')) + preDaysInMonths.length + postDaysInMonths.length - 2);
 
-      var monthHeaders = $(hot.rootElement).find('.ht_master thead tr:first-child').find('th:not(".hiddenHeader")');
-      var currentColspan;
+      const monthHeaders = $(hot.rootElement).find('.ht_master thead tr:first-child').find('th:not(".hiddenHeader")');
+      let currentColspan;
 
-      for (var i = 0; i < 12; i++) {
+      for (let i = 0; i < 12; i++) {
         /* eslint-disable no-extra-boolean-cast */
         currentColspan = (!!preDaysInMonths[i] ? 1 : 0) + weeksInMonths[i] + (!!postDaysInMonths[i] ? 1 : 0);
 
@@ -220,7 +246,7 @@ describe('GanttChart', function() {
 
   describe('data sources', function() {
     it('should be able to feed the gantt chart data from another HOT instance', function() {
-      var source = this.$sourceContainer.handsontable({
+      const source = this.$sourceContainer.handsontable({
         data: [
           ['Vendor One', 'Posters', 'New York, NY', '2', '1/5/2015', '1/20/2015'],
           ['Vendor Two', 'Malls', 'Los Angeles, CA', '1', '1/11/2015', '1/29/2015'],
@@ -233,7 +259,7 @@ describe('GanttChart', function() {
         ]
       }).handsontable('getInstance');
 
-      var hot = handsontable({
+      const hot = handsontable({
         colHeaders: true,
         height: 250,
         ganttChart: {
@@ -267,10 +293,10 @@ describe('GanttChart', function() {
     });
 
     it('should be able to feed the gantt chart data from another HOT instance, when the asyncUpdates option is enabled', function(done) {
-      var plugin;
-      var triesLimit;
-      var source;
-      var hot;
+      let plugin;
+      let triesLimit;
+      let source;
+      let hot;
 
       source = this.$sourceContainer.handsontable({
         data: [
@@ -306,7 +332,7 @@ describe('GanttChart', function() {
 
       plugin = hot.getPlugin('ganttChart');
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(hot.getCellMeta(0, 1).className.indexOf('rangeBar')).toBeGreaterThan(-1);
         expect(hot.getCellMeta(0, 2).className.indexOf('rangeBar')).toBeGreaterThan(-1);
         expect(hot.getCellMeta(0, 3).className.indexOf('rangeBar')).toBeGreaterThan(-1);
@@ -326,7 +352,7 @@ describe('GanttChart', function() {
     });
 
     it('should be able to feed the gantt chart data from an object', function() {
-      var source = [
+      const source = [
         {
           additionalData: {vendor: 'Vendor One', format: 'Posters', market: 'New York, NY'},
           startDate: '1/5/2015',
@@ -369,7 +395,7 @@ describe('GanttChart', function() {
         },
       ];
 
-      var hot = handsontable({
+      const hot = handsontable({
         colHeaders: true,
         height: 250,
         ganttChart: {
@@ -378,7 +404,7 @@ describe('GanttChart', function() {
         }
       });
 
-      var plugin = hot.getPlugin('ganttChart');
+      const plugin = hot.getPlugin('ganttChart');
 
       expect(hot.getCellMeta(0, 1).className.indexOf('rangeBar')).toBeGreaterThan(-1);
       expect(hot.getCellMeta(0, 2).className.indexOf('rangeBar')).toBeGreaterThan(-1);
