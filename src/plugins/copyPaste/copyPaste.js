@@ -130,8 +130,6 @@ class CopyPaste extends BasePlugin {
 
     this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
-    this.addHook('afterBeginEditing', () => this.onAfterBeginEditing());
-    this.addHook('afterListen', () => this.onAfterListen());
 
     this.registerEvents();
 
@@ -325,7 +323,7 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * `cut` event callback on textarea element.
+   * `copy` event callback on textarea element.
    *
    * @param {Event} event ClipboardEvent.
    * @private
@@ -474,16 +472,6 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Prevent `afterSelectionEnd` hook, after begin editing.
-   *
-   * @private
-   */
-  onAfterBeginEditing() {
-    const priv = privatePool.get(this);
-    priv.isBeginEditing = true;
-  }
-
-  /**
    * Add copy, cut and paste options to the Context Menu.
    *
    * @private
@@ -506,25 +494,15 @@ class CopyPaste extends BasePlugin {
    */
   onAfterSelectionEnd() {
     const priv = privatePool.get(this);
+    const editor = this.hot.getActiveEditor();
 
-    if (priv.isBeginEditing) {
-      priv.isBeginEditing = false;
+    if (editor && typeof editor.isOpened !== 'undefined' && editor.isOpened()) {
       return;
     }
     if (priv.isFragmentSelectionEnabled && !this.textarea.isActive() && getSelectionText()) {
       return;
     }
 
-    this.setCopyableText();
-    this.textarea.select();
-  }
-
-  /**
-   * Textarea has to be focused, if instance is listen.
-   *
-   * @private
-   */
-  onAfterListen() {
     this.setCopyableText();
     this.textarea.select();
   }
