@@ -76,4 +76,36 @@ describe('Core_listen', () => {
     $container2.handsontable('destroy');
     $container2.remove();
   });
+
+  describe('hooks', () => {
+    it('should call `afterListen` after set listen on instance', () => {
+      var afterListenCallback = jasmine.createSpy('afterListenCallback');
+
+      handsontable({
+        afterListen: afterListenCallback
+      });
+
+      expect(afterListenCallback.calls.count()).toBe(0);
+
+      spec().$container.handsontable('listen');
+
+      expect(afterListenCallback.calls.count()).toBe(1);
+    });
+
+    it('should call `afterUnlisten` after unset listen on instance', () => {
+      var afterUnlistenCallback = jasmine.createSpy('afterListenCallback');
+
+      handsontable({
+        afterUnlisten: afterUnlistenCallback
+      });
+
+      spec().$container.handsontable('listen');
+
+      expect(afterUnlistenCallback.calls.count()).toBe(0);
+
+      spec().$container.handsontable('unlisten');
+
+      expect(afterUnlistenCallback.calls.count()).toBe(1);
+    });
+  });
 });

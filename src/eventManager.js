@@ -1,5 +1,5 @@
-// import Core from './core';
 import {polymerWrap, closest} from './helpers/dom/element';
+import {hasOwnProperty} from './helpers/object';
 import {isWebComponentSupportedNatively} from './helpers/feature';
 import {stopImmediatePropagation as _stopImmediatePropagation} from './helpers/dom/event';
 
@@ -227,13 +227,18 @@ function extendEvent(context, event) {
   if (isWebComponentSupportedNatively()) {
     event.realTarget = event.srcElement || event.toElement;
 
-  } else if (context instanceof Core || context instanceof Walkontable) {
+  } else if (hasOwnProperty(context, 'hot') || context.isHotTableEnv || context.wtTable) {
     // Polymer doesn't support `event.target` property properly we must emulate it ourselves
-    if (context instanceof Core) {
-      fromElement = context.view ? context.view.wt.wtTable.TABLE : null;
+    if (hasOwnProperty(context, 'hot')) {
+      // Custom element
+      fromElement = context.hot ? context.hot.view.wt.wtTable.TABLE : null;
 
-    } else if (context instanceof Walkontable) {
-      // .wtHider
+    } else if (context.isHotTableEnv) {
+      // Handsontable.Core
+      fromElement = context.view.activeWt.wtTable.TABLE.parentNode.parentNode;
+
+    } else if (context.wtTable) {
+      // Walkontable
       fromElement = context.wtTable.TABLE.parentNode.parentNode;
     }
     realTarget = closest(event.target, [componentName], fromElement);

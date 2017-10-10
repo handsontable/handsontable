@@ -116,6 +116,41 @@ describe('manualColumnMove', () => {
       expect(this.$container.find('.ht__manualColumnMove--backlight')[0].offsetWidth).toBe($headerTH[0].offsetWidth);
     });
 
+    it('should set proper left position of the backlight element when colWidths is undefined', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      let header = spec().$container.find('thead tr:eq(0) th:eq(2)');
+
+      header.simulate('mousedown');
+      header.simulate('mouseup');
+      header.simulate('mousedown');
+
+      expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetLeft).toBe(100);
+    });
+
+    it('should set proper left position of the backlight element when colWidths is defined', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true,
+        rowHeaders: true,
+        colWidths: 100,
+        colHeaders: true,
+      });
+
+      let header = spec().$container.find('thead tr:eq(0) th:eq(2)');
+
+      header.simulate('mousedown');
+      header.simulate('mouseup');
+      header.simulate('mousedown');
+
+      expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetLeft).toBe(150);
+    });
+
     it('should not run moving ui if mousedown was fired on sorting element', function() {
       var hot = handsontable({
         data: arrayOfArrays.slice(),

@@ -1120,7 +1120,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after values are pasted into table.
    *
-   * @event Hooks#afterePaste
+   * @event Hooks#afterPaste
    * @since 0.31.1
    * @param {Array} data An array of arrays which contains the pasted data.
    * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
@@ -1534,7 +1534,23 @@ const REGISTERED_HOOKS = [
    * @param {CellRange} cellRange Selection cell range.
    * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
    */
-  'afterUnmergeCells'
+  'afterUnmergeCells',
+
+  /**
+   * Fired after the listening is turned on.
+   *
+   * @event Hooks#afterListen
+   * @since 0.34.5
+   */
+  'afterListen',
+
+  /**
+   * Fired after the listening is turned off.
+   *
+   * @event Hooks#afterUnlisten
+   * @since 0.34.5
+   */
+  'afterUnlisten',
 ];
 
 class Hooks {

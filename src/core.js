@@ -2,7 +2,7 @@ import numbro from 'numbro';
 import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
 import {columnFactory} from './helpers/setting';
 import {isFunction} from './helpers/function';
-import {isDefined, isUndefined, isRegExp} from './helpers/mixed';
+import {isDefined, isUndefined, isRegExp, _injectProductInfo} from './helpers/mixed';
 import {isMobileBrowser} from './helpers/browser';
 import DataMap from './dataMap';
 import EditorManager from './editorManager';
@@ -18,6 +18,7 @@ import TableView from './tableView';
 import DataSource from './dataSource';
 import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
 import {getTranslator} from './utils/recordTranslator';
+import {registerAsRootInstance, hasValidParameter, isRootInstance} from './utils/rootInstance';
 import {CellCoords, CellRange, ViewportColumnsCalculator} from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
@@ -54,7 +55,7 @@ let activeGuid = null;
  * ```
  * ---
  */
-export default function Core(rootElement, userSettings) {
+export default function Core(rootElement, userSettings, rootInstanceSymbol = false) {
   var priv,
     datamap,
     dataSource,
@@ -70,14 +71,22 @@ export default function Core(rootElement, userSettings) {
   extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
   extend(GridSettings.prototype, expandType(userSettings));
 
+  if (hasValidParameter(rootInstanceSymbol)) {
+    registerAsRootInstance(this);
+  }
+
   this.rootElement = rootElement;
   this.isHotTableEnv = isChildOfWebComponentTable(this.rootElement);
   EventManager.isHotTableEnv = this.isHotTableEnv;
 
-  this.container = document.createElement('DIV');
+  this.container = document.createElement('div');
   this.renderCall = false;
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
+
+  if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(this)) {
+    _injectProductInfo(userSettings.licenseKey, rootElement);
+  }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
 
@@ -1037,7 +1046,7 @@ export default function Core(rootElement, userSettings) {
               if (result === false && cellProperties.allowInvalid === false) {
                 changes.splice(i, 1); // cancel the change
                 cellProperties.valid = true; // we cancelled the change, so cell value is still valid
-                const cell = instance.getCell(cellProperties.row, cellProperties.col);
+                const cell = instance.getCell(cellProperties.visualRow, cellProperties.visualCol);
                 removeClass(cell, instance.getSettings().invalidCellClassName);
                 --i;
               }
@@ -1298,7 +1307,10 @@ export default function Core(rootElement, userSettings) {
       document.body.focus();
     }
 
-    activeGuid = instance.guid;
+    if (!this.isListening()) {
+      activeGuid = instance.guid;
+      instance.runHooks('afterListen');
+    }
   };
 
   /**
@@ -1311,6 +1323,7 @@ export default function Core(rootElement, userSettings) {
   this.unlisten = function() {
     if (this.isListening()) {
       activeGuid = null;
+      instance.runHooks('afterUnlisten');
     }
   };
 
@@ -3154,6 +3167,13 @@ export default function Core(rootElement, userSettings) {
     }
     dataSource = null;
 
+    if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(instance)) {
+      const licenseInfo = document.querySelector('#hot-display-license-info');
+
+      if (licenseInfo) {
+        licenseInfo.parentNode.removeChild(licenseInfo);
+      }
+    }
     empty(instance.rootElement);
     eventManager.destroy();
 

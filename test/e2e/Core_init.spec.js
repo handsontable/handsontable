@@ -53,6 +53,16 @@ describe('Core_init', () => {
     expect(getData()).toBeTruthy();
   });
 
+  xit('should create table even if is launched inside custom element', function() {
+    // TODO: When we'll update phantomjs, then we should try to run this test case.
+    this.$container = $(`<hot-table><div id="${id}"></div></hot-table>`).appendTo('body');
+    handsontable();
+
+    expect(() => {
+      mouseOver(this.$container.find('tr:eq(0) td:eq(1)'));
+    }).not.toThrow();
+  });
+
   it('Handsontable.Dom should be available as a helper to the plugins', () => {
     // all public methods of Handsontable.Dom should be exposed here
     expect(Handsontable.dom.closest).toBeDefined();

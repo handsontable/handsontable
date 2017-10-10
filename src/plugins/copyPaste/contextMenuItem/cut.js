@@ -3,8 +3,7 @@ export default function cutItem(copyPastePlugin) {
     key: 'cut',
     name: 'Cut',
     callback() {
-      copyPastePlugin.setCopyableText();
-      copyPastePlugin.cut(true);
+      copyPastePlugin.cut();
     },
     disabled() {
       return !copyPastePlugin.hot.getSelected();
