@@ -440,6 +440,102 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.length).toEqual(0);
     });
 
+    it('should not throw error when opening multi-level menu with name declared as `function` #4550', async () => {
+      const spy = spyOn(window, 'onerror');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: {
+          items: {
+            alignment: {
+              name() {
+                return 'Alignment';
+              },
+              submenu: {
+                items: [
+                  {key: 'alignment:left', name: 'Align to LEFT'}
+                ]
+              }
+            }
+          }
+        }
+      });
+
+      contextMenu();
+
+      const $submenu = $('.htSubmenu');
+
+      $submenu.simulate('mouseover');
+
+      await sleep(350);
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should not throw error when opening multi-level menu with name declared as `function` which return value not castable to string', async () => {
+      const spy = spyOn(window, 'onerror');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: {
+          items: {
+            alignment: {
+              name() {
+                return undefined;
+              },
+              submenu: {
+                items: [
+                  {key: 'alignment:left', name: 'Align to LEFT'}
+                ]
+              }
+            },
+            custom1: {
+              name() {
+                return null;
+              },
+              submenu: {
+                items: [
+                  {key: 'custom1:test', name: 'Test1'}
+                ]
+              }
+            },
+            custom2: {
+              name() {
+                return 0;
+              },
+              submenu: {
+                items: [
+                  {key: 'custom2:test', name: 'Test2'}
+                ]
+              }
+            }
+          }
+        }
+      });
+
+      contextMenu();
+
+      const $submenu1 = $('.htSubmenu').eq(0);
+
+      $submenu1.simulate('mouseover');
+
+      await sleep(350);
+
+      const $submenu2 = $('.htSubmenu').eq(1);
+
+      $submenu2.simulate('mouseover');
+
+      await sleep(350);
+
+      const $submenu3 = $('.htSubmenu').eq(2);
+
+      $submenu3.simulate('mouseover');
+
+      await sleep(350);
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
     it('should open subMenu on the left of main menu if on the right there\'s no space left', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -1655,6 +1751,29 @@ describe('ContextMenu', () => {
 
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
 
+    });
+
+    it('should bind HOT instace to menu\'s `name` function', () => {
+      let thisInsideFunction;
+
+      const hot = handsontable({
+        contextMenu: {
+          items: {
+            cust1: {
+              name() {
+                thisInsideFunction = this;
+
+                return 'Example';
+              },
+            }
+          }
+        },
+        height: 100
+      });
+
+      contextMenu();
+
+      expect(thisInsideFunction).toEqual(hot);
     });
 
     it('should enable to define item options globally', () => {
