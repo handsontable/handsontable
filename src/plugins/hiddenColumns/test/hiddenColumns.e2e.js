@@ -213,6 +213,24 @@ describe('HiddenColumns', function() {
   });
 
   describe('copy-paste functionality', function() {
+    class DataTransferObject {
+      constructor() {
+        this.data = '';
+      }
+      getData() {
+        return this.data;
+      }
+      setData(type, value) {
+        this.data = value;
+      }
+    };
+
+    function getClipboardEvent() {
+      let event = {};
+      event.clipboardData = new DataTransferObject();
+      event.preventDefault = () => {};
+      return event;
+    }
 
     it('should allow to copy hidden columns, when "copyPasteEnabled" property is not set', function() {
       var hot = handsontable({
@@ -224,16 +242,19 @@ describe('HiddenColumns', function() {
           ]
         },
         width: 500,
-        height: 300
+        height: 300,
       });
 
-      selectCell(0, 0, 4, 9);
-      keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_LEFT);
+      const copyEvent = getClipboardEvent('copy');
+      const plugin = hot.getPlugin('CopyPaste');
 
-      var copyPasteTextarea = $('textarea.copyPaste');
+      selectCell(0, 0, 4, 9);
+
+      plugin.setCopyableText();
+      plugin.onCopy(copyEvent);
 
       /* eslint-disable no-tabs */
-      expect(copyPasteTextarea.val()).toEqual(
+      expect(copyEvent.clipboardData.getData()).toEqual(
         'A1	B1	"C1\n' +
         'line"	D1	E1	F1	G1	H1	I1	J1\n' +
         'A2	B2	"C2\n' +
@@ -256,13 +277,16 @@ describe('HiddenColumns', function() {
         height: 300
       });
 
-      selectCell(0, 0, 4, 9);
-      keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_LEFT);
+      const copyEvent = getClipboardEvent('copy');
+      const plugin = hot.getPlugin('CopyPaste');
 
-      var copyPasteTextarea = $('textarea.copyPaste');
+      selectCell(0, 0, 4, 9);
+
+      plugin.setCopyableText();
+      plugin.onCopy(copyEvent);
 
       /* eslint-disable no-tabs */
-      expect(copyPasteTextarea.val()).toEqual(
+      expect(copyEvent.clipboardData.getData()).toEqual(
         'A1	B1	"C1\n' +
         'line"	D1	E1	F1	G1	H1	I1	J1\n' +
         'A2	B2	"C2\n' +
@@ -285,13 +309,16 @@ describe('HiddenColumns', function() {
         height: 300
       });
 
-      selectCell(0, 0, 4, 9);
-      keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_LEFT);
+      const copyEvent = getClipboardEvent('copy');
+      const plugin = hot.getPlugin('CopyPaste');
 
-      var copyPasteTextarea = $('textarea.copyPaste');
+      selectCell(0, 0, 4, 9);
+
+      plugin.setCopyableText();
+      plugin.onCopy(copyEvent);
 
       /* eslint-disable no-tabs */
-      expect(copyPasteTextarea.val()).toEqual(
+      expect(copyEvent.clipboardData.getData()).toEqual(
         'A1	B1	D1	F1	G1	H1	I1	J1\n' +
         'A2	B2	D2	F2	G2	H2	I2	J2\n' +
         'A3	B3	D3	F3	G3	H3	I3	J3\n' +
