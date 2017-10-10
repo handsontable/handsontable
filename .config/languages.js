@@ -5,12 +5,11 @@
  */
 
 const NEW_LINE_CHAR = '\n';
-const SOURCE_LANGUAGES_DIRECTORY = 'src/i18n/languages'
+const SOURCE_LANGUAGES_DIRECTORY = 'src/i18n/languages';
 const OUTPUT_LANGUAGES_DIRECTORY = 'languages';
 
 const path = require('path');
 const webpack = require('webpack');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const StringReplacePlugin  = require('string-replace-webpack-plugin');
 const fs  = require('fs');
 
@@ -86,7 +85,7 @@ module.exports.create = function create(envArgs) {
     plugins: [
       new webpack.BannerPlugin(licenseBody)
     ]
-  }
+  };
 
   return [config];
-}
+};
