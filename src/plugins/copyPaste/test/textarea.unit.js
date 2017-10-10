@@ -56,7 +56,7 @@ describe('CopyPaste', () => {
       const textarea = Textarea.getSingleton();
       const newValue = 'zxcvb';
 
-      expect(textarea.element.value.length).toBe(0);
+      expect(textarea.element.value.length).toBe(1);
 
       textarea.setValue(newValue);
 
@@ -69,7 +69,7 @@ describe('CopyPaste', () => {
       const textarea = Textarea.getSingleton();
       const newValue = 'zxcvb';
 
-      expect(textarea.getValue().length).toBe(0);
+      expect(textarea.getValue().length).toBe(1);
 
       textarea.setValue(newValue);
 
