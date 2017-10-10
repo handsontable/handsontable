@@ -440,6 +440,37 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.length).toEqual(0);
     });
 
+    it('should not throw error when opening multi-level menu with name declared as `function` #4450', async () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: {
+          items: {
+            alignment: {
+              name() {
+                return 'Alignment';
+              },
+              submenu: {
+                items: [
+                  {key: 'alignment:left', name: 'Align to LEFT'}
+                ]
+              }
+            }
+          }
+        }
+      });
+
+      contextMenu();
+
+      const submenu = $('.htSubmenu');
+      const spy = spyOn(window, 'onerror');
+
+      submenu.simulate('mouseover');
+
+      await sleep(350);
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
     it('should open subMenu on the left of main menu if on the right there\'s no space left', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -1655,6 +1686,29 @@ describe('ContextMenu', () => {
 
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown');
 
+    });
+
+    it('should bind HOT instace to menu\'s `name` function', () => {
+      let thisInsideFunction;
+
+      const hot = handsontable({
+        contextMenu: {
+          items: {
+            cust1: {
+              name() {
+                thisInsideFunction = this;
+
+                return 'Example';
+              },
+            }
+          }
+        },
+        height: 100
+      });
+
+      contextMenu();
+
+      expect(thisInsideFunction).toEqual(hot);
     });
 
     it('should enable to define item options globally', () => {
