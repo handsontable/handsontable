@@ -281,8 +281,8 @@ class CopyPaste extends BasePlugin {
 
     priv.isTriggeredByCopy = true;
 
-    copyPastePlugin.textarea.select();
-    copyPastePlugin.setCopyableText();
+    this.textarea.select();
+    this.setCopyableText();
     document.execCommand('copy');
   }
 
@@ -294,8 +294,8 @@ class CopyPaste extends BasePlugin {
 
     priv.isTriggeredByCut = true;
 
-    copyPastePlugin.textarea.select();
-    copyPastePlugin.setCopyableText();
+    this.textarea.select();
+    this.setCopyableText();
     document.execCommand('cut');
   }
 
