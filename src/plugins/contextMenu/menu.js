@@ -11,6 +11,7 @@ import {arrayEach, arrayFilter, arrayReduce} from './../../helpers/array';
 import Cursor from './cursor';
 import EventManager from './../../eventManager';
 import {mixin, hasOwnProperty} from './../../helpers/object';
+import {isUndefined} from './../../helpers/mixed';
 import {debounce, isFunction} from './../../helpers/function';
 import {filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
@@ -507,6 +508,13 @@ class Menu {
     if (name) {
       if (isFunction(name)) {
         name = name.call(this.hot);
+
+        if (name === null || isUndefined(name)) {
+          name = '';
+
+        } else {
+          name = name.toString();
+        }
       }
 
       name = name.replace(/[^A-z0-9]/g, '_');
