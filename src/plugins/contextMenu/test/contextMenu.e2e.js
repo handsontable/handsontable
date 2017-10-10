@@ -440,7 +440,7 @@ describe('ContextMenu', () => {
       expect(contextSubMenu.length).toEqual(0);
     });
 
-    it('should not throw error when opening multi-level menu with name declared as `function` #4450', async () => {
+    it('should not throw error when opening multi-level menu with name declared as `function` #4550', async () => {
       const spy = spyOn(window, 'onerror');
 
       handsontable({
