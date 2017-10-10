@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 0.34.5
- * Release date: 11/10/2017 (built at 09/10/2017 15:39:41)
+ * Release date: 11/10/2017 (built at 10/10/2017 16:37:16)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -32315,7 +32315,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '09/10/2017 15:39:41';
+Handsontable.buildDate = '10/10/2017 16:37:16';
 Handsontable.packageName = 'handsontable';
 Handsontable.version = '0.34.5';
 
@@ -48492,8 +48492,8 @@ var CopyPaste = function (_BasePlugin) {
 
       priv.isTriggeredByCopy = true;
 
-      copyPastePlugin.textarea.select();
-      copyPastePlugin.setCopyableText();
+      this.textarea.select();
+      this.setCopyableText();
       document.execCommand('copy');
     }
 
@@ -48508,8 +48508,8 @@ var CopyPaste = function (_BasePlugin) {
 
       priv.isTriggeredByCut = true;
 
-      copyPastePlugin.textarea.select();
-      copyPastePlugin.setCopyableText();
+      this.textarea.select();
+      this.setCopyableText();
       document.execCommand('cut');
     }
 
