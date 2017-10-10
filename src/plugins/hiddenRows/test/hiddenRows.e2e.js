@@ -268,6 +268,24 @@ describe('HiddenRows', function() {
   });
 
   describe('copy-paste functionality', function() {
+    class DataTransferObject {
+      constructor() {
+        this.data = '';
+      }
+      getData() {
+        return this.data;
+      }
+      setData(type, value) {
+        this.data = value;
+      }
+    };
+
+    function getClipboardEvent() {
+      let event = {};
+      event.clipboardData = new DataTransferObject();
+      event.preventDefault = () => {};
+      return event;
+    }
 
     it('should allow to copy hidden rows, when "copyPasteEnabled" property is not set', function() {
       var hot = handsontable({
@@ -281,13 +299,16 @@ describe('HiddenRows', function() {
         height: 300
       });
 
-      selectCell(0, 0, 4, 9);
-      keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_LEFT);
+      const copyEvent = getClipboardEvent('copy');
+      const plugin = hot.getPlugin('CopyPaste');
 
-      var copyPasteTextarea = $('textarea.copyPaste');
+      selectCell(0, 0, 4, 9);
+
+      plugin.setCopyableText();
+      plugin.onCopy(copyEvent);
 
       /* eslint-disable no-tabs */
-      expect(copyPasteTextarea.val()).toEqual('A1	B1	"C1\n' +
+      expect(copyEvent.clipboardData.getData()).toEqual('A1	B1	"C1\n' +
         'line"	D1	E1	F1	G1	H1	I1	J1\n' +
         'A2	B2	"C2\n' +
         'line\n' +
@@ -310,13 +331,16 @@ describe('HiddenRows', function() {
         height: 300
       });
 
-      selectCell(0, 0, 4, 9);
-      keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_LEFT);
+      const copyEvent = getClipboardEvent('copy');
+      const plugin = hot.getPlugin('CopyPaste');
 
-      var copyPasteTextarea = $('textarea.copyPaste');
+      selectCell(0, 0, 4, 9);
+
+      plugin.setCopyableText();
+      plugin.onCopy(copyEvent);
 
       /* eslint-disable no-tabs */
-      expect(copyPasteTextarea.val()).toEqual('A1	B1	"C1\n' +
+      expect(copyEvent.clipboardData.getData()).toEqual('A1	B1	"C1\n' +
         'line"	D1	E1	F1	G1	H1	I1	J1\n' +
         'A2	B2	"C2\n' +
         'line\n' +
@@ -339,13 +363,16 @@ describe('HiddenRows', function() {
         height: 300
       });
 
-      selectCell(0, 0, 4, 9);
-      keyDownUp(Handsontable.helper.KEY_CODES.COMMAND_LEFT);
+      const copyEvent = getClipboardEvent('copy');
+      const plugin = hot.getPlugin('CopyPaste');
 
-      var copyPasteTextarea = $('textarea.copyPaste');
+      selectCell(0, 0, 4, 9);
+
+      plugin.setCopyableText();
+      plugin.onCopy(copyEvent);
 
       /* eslint-disable no-tabs */
-      expect(copyPasteTextarea.val()).toEqual('A1	B1	"C1\n' +
+      expect(copyEvent.clipboardData.getData()).toEqual('A1	B1	"C1\n' +
         'line"	D1	E1	F1	G1	H1	I1	J1\n' +
         'A2	B2	"C2\n' +
         'line\n' +
