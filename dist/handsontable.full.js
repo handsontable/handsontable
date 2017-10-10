@@ -21,7 +21,7 @@
  * UNINTERRUPTED OR ERROR FREE.
  * 
  * Version: 1.14.3
- * Release date: 11/10/2017 (built at 10/10/2017 10:45:11)
+ * Release date: 11/10/2017 (built at 10/10/2017 16:42:51)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -57346,7 +57346,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '10/10/2017 10:45:11';
+Handsontable.buildDate = '10/10/2017 16:42:51';
 Handsontable.packageName = 'handsontable-pro';
 Handsontable.version = '1.14.3';
 
@@ -71791,8 +71791,8 @@ var CopyPaste = function (_BasePlugin) {
 
       priv.isTriggeredByCopy = true;
 
-      copyPastePlugin.textarea.select();
-      copyPastePlugin.setCopyableText();
+      this.textarea.select();
+      this.setCopyableText();
       document.execCommand('copy');
     }
 
@@ -71807,8 +71807,8 @@ var CopyPaste = function (_BasePlugin) {
 
       priv.isTriggeredByCut = true;
 
-      copyPastePlugin.textarea.select();
-      copyPastePlugin.setCopyableText();
+      this.textarea.select();
+      this.setCopyableText();
       document.execCommand('cut');
     }
 
