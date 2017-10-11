@@ -29,7 +29,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox' }
+        {type: 'checkbox'}
       ]
     });
 
@@ -55,7 +55,13 @@ describe('CheckboxRenderer', () => {
     expect($(getRenderedContent(2, 0)).prop('checked')).toBe(true);
   });
 
-  it('should select cell after checkbox click', function() {
+  it('should select cell after checkbox click', function(done) {
+    var spy = jasmine.createSpyObj('error', ['test']);
+    window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+      spy.test();
+      return false;
+    };
+
     var hot = handsontable({
       data: [[true], [false], [true]],
       columns: [
@@ -65,9 +71,16 @@ describe('CheckboxRenderer', () => {
 
     hot.selectCell(0, 0);
 
-    this.$container.find(':checkbox').eq(2).simulate('mousedown');
+    spec().$container.find(':checkbox').eq(2).simulate('mousedown');
+    spec().$container.find(':checkbox').eq(2).simulate('mouseup');
+    spec().$container.find(':checkbox').eq(2).simulate('click');
 
-    expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
+    setTimeout(() => {
+      expect(spy.test.calls.count()).toBe(0);
+      expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
+
+      done();
+    }, 100);
   });
 
   it('should select cell after label click', function() {
@@ -89,7 +102,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox' }
+        {type: 'checkbox'}
       ]
     });
 
@@ -465,7 +478,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        { type: 'checkbox'}
+        {type: 'checkbox'}
       ]
     });
 
@@ -499,7 +512,7 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        { type: 'checkbox'}
+        {type: 'checkbox'}
       ]
     });
 
