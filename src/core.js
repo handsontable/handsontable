@@ -1305,7 +1305,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       document.body.focus();
     }
 
-    if (!instance.isListening()) {
+    if (instance && !instance.isListening()) {
       activeGuid = instance.guid;
       instance.runHooks('afterListen');
     }
