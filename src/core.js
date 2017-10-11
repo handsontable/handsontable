@@ -3062,7 +3062,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.setRangeEnd(new CellCoords(endRow, endCol), scrollToCell);
     }
     instance.selection.finish();
-
     return true;
   };
 
