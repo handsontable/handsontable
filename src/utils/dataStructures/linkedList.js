@@ -154,6 +154,7 @@ class LinkedList {
     let fast = this.first;
     let slow = this.first;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       if (fast === null) {
         return false;

@@ -119,9 +119,9 @@ function HandsontablePersistentState() {
   function addHooks() {
     var instance = this;
 
-    for (var hookName in hooks) {
-      if (hasOwnProperty(hooks, hookName)) {
-        instance.addHook(hookName, hooks[hookName]);
+    for (var _hookName in hooks) {
+      if (hasOwnProperty(hooks, _hookName)) {
+        instance.addHook(_hookName, hooks[_hookName]);
       }
     }
   }
@@ -129,9 +129,9 @@ function HandsontablePersistentState() {
   function removeHooks() {
     var instance = this;
 
-    for (var hookName in hooks) {
-      if (hasOwnProperty(hooks, hookName)) {
-        instance.removeHook(hookName, hooks[hookName]);
+    for (var _hookName in hooks) {
+      if (hasOwnProperty(hooks, _hookName)) {
+        instance.removeHook(_hookName, hooks[_hookName]);
       }
     }
   }
