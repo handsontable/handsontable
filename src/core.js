@@ -1306,7 +1306,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       document.body.focus();
     }
 
-    activeGuid = instance.guid;
+    if (!this.isListening()) {
+      activeGuid = instance.guid;
+      instance.runHooks('afterListen');
+    }
   };
 
   /**
@@ -1319,6 +1322,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.unlisten = function() {
     if (this.isListening()) {
       activeGuid = null;
+      instance.runHooks('afterUnlisten');
     }
   };
 

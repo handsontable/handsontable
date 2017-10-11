@@ -8,8 +8,7 @@ export default function cutItem(copyPastePlugin) {
       return getPhrase(this, C.CONTEXTMENU_ITEMS_CUT);
     },
     callback() {
-      copyPastePlugin.setCopyableText();
-      copyPastePlugin.cut(true);
+      copyPastePlugin.cut();
     },
     disabled() {
       return !copyPastePlugin.hot.getSelected();
