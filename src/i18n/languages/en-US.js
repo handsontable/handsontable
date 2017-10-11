@@ -51,6 +51,8 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CLEAR]: 'Clear',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Cancel',
+
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Search...'
 };
 
 export default dictionary;

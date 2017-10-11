@@ -44,3 +44,5 @@ export const FILTERS_BUTTONS_SELECT_ALL = 'Filters:buttons.searchAll';
 export const FILTERS_BUTTONS_CLEAR = 'Filters:buttons.clear';
 export const FILTERS_BUTTONS_OK = 'Filters:buttons.ok';
 export const FILTERS_BUTTONS_CANCEL = 'Filters:buttons.cancel';
+
+export const FILTERS_BUTTONS_PLACEHOLDER_SEARCH = 'Filters:buttons.placeholder.search';
