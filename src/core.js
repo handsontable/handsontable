@@ -1305,7 +1305,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       document.body.focus();
     }
 
-    if (!this.isListening()) {
+    if (!instance.isListening()) {
       activeGuid = instance.guid;
       instance.runHooks('afterListen');
     }
@@ -3062,7 +3062,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.setRangeEnd(new CellCoords(endRow, endCol), scrollToCell);
     }
     instance.selection.finish();
-
     return true;
   };
 
