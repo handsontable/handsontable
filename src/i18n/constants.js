@@ -25,6 +25,7 @@ export const CONTEXTMENU_ITEMS_CLEAR_COLUMN = 'ContextMenu:items.clearColumn';
 export const CONTEXTMENU_ITEMS_COPY = 'ContextMenu:items.copy';
 export const CONTEXTMENU_ITEMS_CUT = 'ContextMenu:items.cut';
 
+export const FILTERS_CONDITIONS_NAMESPACE = 'Filters:conditions';
 export const FILTERS_CONDITIONS_NONE = 'Filters:conditions.none';
 export const FILTERS_CONDITIONS_EMPTY = 'Filters:conditions.isEmpty';
 export const FILTERS_CONDITIONS_NOT_EMPTY = 'Filters:conditions.isNotEmpty';
