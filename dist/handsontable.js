@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 0.34.4
- * Release date: 13/09/2017 (built at 11/10/2017 15:23:09)
+ * Release date: 13/09/2017 (built at 11/10/2017 16:51:47)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -10370,6 +10370,11 @@ function Core(rootElement, userSettings) {
 
   this.init = function () {
     dataSource.setData(priv.settings.data);
+
+    if ((0, _mixed.isDefined)(priv.settings.locale)) {
+      (0, _i18n.setLocale)(instance, priv.settings.locale);
+    }
+
     instance.runHooks('beforeInit');
 
     if ((0, _browser.isMobileBrowser)()) {
@@ -10713,7 +10718,7 @@ function Core(rootElement, userSettings) {
       document.body.focus();
     }
 
-    if (!this.isListening()) {
+    if (instance && !instance.isListening()) {
       activeGuid = instance.guid;
       instance.runHooks('afterListen');
     }
@@ -26128,7 +26133,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '11/10/2017 15:23:09';
+Handsontable.buildDate = '11/10/2017 16:51:47';
 Handsontable.packageName = 'handsontable';
 Handsontable.version = '0.34.4';
 
@@ -41154,8 +41159,8 @@ var CopyPaste = function (_BasePlugin) {
 
       priv.isTriggeredByCopy = true;
 
-      copyPastePlugin.textarea.select();
-      copyPastePlugin.setCopyableText();
+      this.textarea.select();
+      this.setCopyableText();
       document.execCommand('copy');
     }
 
@@ -41170,8 +41175,8 @@ var CopyPaste = function (_BasePlugin) {
 
       priv.isTriggeredByCut = true;
 
-      copyPastePlugin.textarea.select();
-      copyPastePlugin.setCopyableText();
+      this.textarea.select();
+      this.setCopyableText();
       document.execCommand('cut');
     }
 
