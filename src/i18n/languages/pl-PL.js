@@ -1,7 +1,7 @@
 /**
  * @preserve
  * Authors: Wojciech Szymański
- * Last updated: 19.09.2017
+ * Last updated: 12.10.2017
  *
  * Description: Definition file for Polish language.
  */
@@ -41,6 +41,13 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_ENDS_WITH]: 'Kończy się',
   [C.FILTERS_CONDITIONS_CONTAINS]: 'Zawiera',
   [C.FILTERS_CONDITIONS_NOT_CONTAIN]: 'Nie zawiera',
+  [C.FILTERS_CONDITIONS_BY_VALUE]: 'By value',
+  [C.FILTERS_CONDITIONS_GREATER_THAN]: 'Większe niż',
+  [C.FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL]: 'Większe lub równe',
+  [C.FILTERS_CONDITIONS_LESS_THAN]: 'Mniejsze niż',
+  [C.FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL]: 'Mniejsze lub równe',
+  [C.FILTERS_CONDITIONS_BETWEEN]: 'Pomiędzy',
+  [C.FILTERS_CONDITIONS_NOT_BETWEEN]: 'Nie jest pomiędzy',
 
   [C.FILTERS_LABELS_FILTER_BY_CONDITION]: 'Filtruj na podstawie warunku',
   [C.FILTERS_LABELS_FILTER_BY_VALUE]: 'Filtruj na podstawie wartości',

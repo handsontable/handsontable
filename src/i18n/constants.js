@@ -34,6 +34,15 @@ export const FILTERS_CONDITIONS_BEGINS_WITH = 'Filters:conditions.beginsWith';
 export const FILTERS_CONDITIONS_ENDS_WITH = 'Filters:conditions.endsWith';
 export const FILTERS_CONDITIONS_CONTAINS = 'Filters:conditions.contains';
 export const FILTERS_CONDITIONS_NOT_CONTAIN = 'Filters:conditions.doesNotContain';
+export const FILTERS_CONDITIONS_BY_VALUE = 'Filters:conditions.byValue';
+export const FILTERS_CONDITIONS_GREATER_THAN = 'Filters:conditions.greaterThan';
+export const FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL = 'Filters:conditions.greaterThanOrEqualTo';
+export const FILTERS_CONDITIONS_LESS_THAN = 'Filters:conditions.lessThan';
+export const FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL = 'Filters:conditions.lessThanOrEqualTo';
+export const FILTERS_CONDITIONS_BETWEEN = 'Filters:conditions.isBetween';
+export const FILTERS_CONDITIONS_NOT_BETWEEN = 'Filters:conditions.isNotBetween';
+export const FILTERS_CONDITIONS_FALSE = 'Filters:conditions.false';
+export const FILTERS_CONDITIONS_TRUE = 'Filters:conditions.true';
 
 export const FILTERS_LABELS_FILTER_BY_CONDITION = 'Filters:labels.filterByCondition';
 export const FILTERS_LABELS_FILTER_BY_VALUE = 'Filters:labels.filterByValue';

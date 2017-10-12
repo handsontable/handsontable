@@ -1,7 +1,7 @@
 /**
  * @preserve
  * Authors: Wojciech Szymański
- * Last updated: 19.09.2017
+ * Last updated: 12.10.2017
  *
  * Description: Definition file for English language.
  */
@@ -41,6 +41,15 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_ENDS_WITH]: 'Ends with',
   [C.FILTERS_CONDITIONS_CONTAINS]: 'Contains',
   [C.FILTERS_CONDITIONS_NOT_CONTAIN]: 'Does not contain',
+  [C.FILTERS_CONDITIONS_BY_VALUE]: 'By value',
+  [C.FILTERS_CONDITIONS_GREATER_THAN]: 'Greater than',
+  [C.FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL]: 'Greater than or equal to',
+  [C.FILTERS_CONDITIONS_LESS_THAN]: 'Less than',
+  [C.FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL]: 'Less than or equal to',
+  [C.FILTERS_CONDITIONS_BETWEEN]: 'Is between',
+  [C.FILTERS_CONDITIONS_NOT_BETWEEN]: 'Is not between',
+  [C.FILTERS_CONDITIONS_FALSE]: 'False',
+  [C.FILTERS_CONDITIONS_TRUE]: 'True',
 
   [C.FILTERS_LABELS_FILTER_BY_CONDITION]: 'Filter by condition',
   [C.FILTERS_LABELS_FILTER_BY_VALUE]: 'Filter by value',
