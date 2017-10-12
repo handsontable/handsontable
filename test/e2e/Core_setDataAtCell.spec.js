@@ -240,6 +240,25 @@ describe('Core_setDataAtCell', () => {
     expect(getDataAtCell(0, 0)).toEqual('foo bar');
   });
 
+  it('should trigger `afterSetDataAtCell` hook with formattedChanges', () => {
+    var _changes;
+    var _source;
+
+    handsontable({
+      type: 'numeric',
+      afterSetDataAtCell(changes, source) {
+        _changes = changes;
+        _source = source;
+      }
+    });
+
+    setDataAtCell(0, 0, '1', 'customSource');
+
+    expect(_changes).toEqual([[0, 0, null, 1]]);
+    expect(_source).toBe('customSource');
+    expect(getDataAtCell(0, 0)).toEqual(1);
+  });
+
   it('should modify value on the fly using `afterSetDataAtCell` hook', () => {
     handsontable({
       data: [['a', 'b', 'c'], [1, 2, 3]],
