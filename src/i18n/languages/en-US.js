@@ -33,7 +33,7 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_CUT]: 'Cut',
 
   [C.FILTERS_CONDITIONS_NONE]: 'None',
-  [C.FILTERS_CONDITIONS_EMPTY]: 'Is Empty',
+  [C.FILTERS_CONDITIONS_EMPTY]: 'Is empty',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Is not empty',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Is equal to',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Is not equal to',
