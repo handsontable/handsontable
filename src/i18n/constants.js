@@ -43,6 +43,11 @@ export const FILTERS_CONDITIONS_BETWEEN = 'Filters:conditions.isBetween';
 export const FILTERS_CONDITIONS_NOT_BETWEEN = 'Filters:conditions.isNotBetween';
 export const FILTERS_CONDITIONS_FALSE = 'Filters:conditions.false';
 export const FILTERS_CONDITIONS_TRUE = 'Filters:conditions.true';
+export const FILTERS_CONDITIONS_AFTER = 'Filters:conditions.after';
+export const FILTERS_CONDITIONS_BEFORE = 'Filters:conditions.before';
+export const FILTERS_CONDITIONS_TODAY = 'Filters:conditions.today';
+export const FILTERS_CONDITIONS_TOMORROW = 'Filters:conditions.tomorrow';
+export const FILTERS_CONDITIONS_YESTERDAY = 'Filters:conditions.yesterday';
 
 export const FILTERS_LABELS_FILTER_BY_CONDITION = 'Filters:labels.filterByCondition';
 export const FILTERS_LABELS_FILTER_BY_VALUE = 'Filters:labels.filterByValue';

@@ -48,6 +48,11 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL]: 'Mniejsze lub równe',
   [C.FILTERS_CONDITIONS_BETWEEN]: 'Pomiędzy',
   [C.FILTERS_CONDITIONS_NOT_BETWEEN]: 'Nie jest pomiędzy',
+  [C.FILTERS_CONDITIONS_AFTER]: 'Po',
+  [C.FILTERS_CONDITIONS_BEFORE]: 'Przed',
+  [C.FILTERS_CONDITIONS_TODAY]: 'Dzisiaj',
+  [C.FILTERS_CONDITIONS_TOMORROW]: 'Jutro',
+  [C.FILTERS_CONDITIONS_YESTERDAY]: 'Wczoraj',
 
   [C.FILTERS_LABELS_FILTER_BY_CONDITION]: 'Filtruj na podstawie warunku',
   [C.FILTERS_LABELS_FILTER_BY_VALUE]: 'Filtruj na podstawie wartości',
