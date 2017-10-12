@@ -4,10 +4,13 @@
   "homepage": "http://handsontable.com/",
   "repository": {
     "type": "git",
-    "url": "https://my.handsontable.com/handsontable/handsontable-pro.git"
+    "url": "https://github.com/handsontable/handsontable-pro.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handsontable/handsontable-pro/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "1.14.2",
+  "version": "1.14.3",
   "browser": "dist/handsontable.js",
   "main": "commonjs/index.js",
   "module": "es/index.js",
@@ -50,7 +53,7 @@
     "data-spreadsheet"
   ],
   "dependencies": {
-    "handsontable": "0.34.4",
+    "handsontable": "0.34.5",
     "hot-formula-parser": "^2.2.0",
     "moment": "2.18.1",
     "numbro": "1.11.0",

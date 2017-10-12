@@ -30,7 +30,7 @@ If you are looking for an open source version, head to [Handsontable Community E
 <br/>
 
 ### Installation
-There are many ways to install Handsontable Pro but we suggest using npm:
+There are many ways to install Handsontable Pro, but we suggest using npm:
 ```
 npm install handsontable-pro
 ```
@@ -126,18 +126,18 @@ Handsontable Pro comes with wrappers and directives for most popular frameworks:
 <br/>
 
 ### Support
-Handsontable Pro is supported on a commercial basis. All the suggestions and issues should be reported to support@handsontable.com.
+Handsontable Pro is supported on a commercial basis. All the suggestions and issues should be sent to support@handsontable.com.
 
 <br/>
 
 ### Pricing
-Go to the [pricing page](//handsontable.com/pricing.html) in order to purchase a new license or to renew a maintenance plan.
+The [pricing page](//handsontable.com/pricing.html) lists all pricing info, and contains links to purchase a new license, or to renew a maintenance plan.
 
 <br/>
 
 ### License key
 Handsontable Pro requires passing a valid license key in the configuration section.
-You can find a purchased license key at your account at [my.handsontable.com](//my.handsontable.com/sign-in.html).
+You can find your purchased license key in your account at [my.handsontable.com](//my.handsontable.com/sign-in.html).
 
 An example of what the configuration object should look like:
 
@@ -150,11 +150,11 @@ hot = new Handsontable(container,{
 });
 ```
 
-**Note that the license key is passed as a string so you need to wrap it with quotes ('').**
+**Note that the license key is passed as a string so you need to wrap it in quotes ('').**
 
 <br/>
 
 ### License
 Handsontable Pro is released under a commercial license. [Learn more](//docs.handsontable.com/pro/tutorial-licensing.html)
 
-Copyrights belong to Handsoncode sp. z o.o.
+Copyright belong to Handsoncode sp. z o.o.
