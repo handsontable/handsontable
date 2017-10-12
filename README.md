@@ -46,7 +46,7 @@ The list below gives a rough idea on what you can do with Handsontable CE, but i
 <br/>
 
 ### Installation
-There are many ways to install Handsontable CE but we suggest using npm:
+There are many ways to install Handsontable CE, but we suggest using npm:
 ```
 npm install handsontable
 ```

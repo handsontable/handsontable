@@ -3,8 +3,7 @@ export default function copyItem(copyPastePlugin) {
     key: 'copy',
     name: 'Copy',
     callback() {
-      copyPastePlugin.setCopyableText();
-      copyPastePlugin.copy(true);
+      copyPastePlugin.copy();
     },
     disabled() {
       return !copyPastePlugin.hot.getSelected();
