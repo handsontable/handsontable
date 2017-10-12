@@ -534,7 +534,7 @@ describe('ContextMenu', () => {
       await sleep(350);
 
       expect(spy).not.toHaveBeenCalled();
-    });
+    }, 1200);
 
     it('should open subMenu on the left of main menu if on the right there\'s no space left', () => {
       var hot = handsontable({
