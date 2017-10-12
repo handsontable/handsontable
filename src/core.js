@@ -952,9 +952,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.init = function() {
     dataSource.setData(priv.settings.data);
 
-    if (isDefined(priv.settings.locale)) {
-      setLocale(instance, priv.settings.locale);
-    }
+    setLocale(instance, priv.settings.locale);
 
     instance.runHooks('beforeInit');
 
