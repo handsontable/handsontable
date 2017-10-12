@@ -61,7 +61,9 @@ const dictionary = {
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Cancel',
 
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Search...'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Search...',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Value',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Second value'
 };
 
 export default dictionary;

@@ -55,3 +55,5 @@ export const FILTERS_BUTTONS_OK = 'Filters:buttons.ok';
 export const FILTERS_BUTTONS_CANCEL = 'Filters:buttons.cancel';
 
 export const FILTERS_BUTTONS_PLACEHOLDER_SEARCH = 'Filters:buttons.placeholder.search';
+export const FILTERS_BUTTONS_PLACEHOLDER_VALUE = 'Filters:buttons.placeholder.value';
+export const FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE = 'Filters:buttons.placeholder.secondValue';

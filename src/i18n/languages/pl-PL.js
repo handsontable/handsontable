@@ -59,7 +59,9 @@ const dictionary = {
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Anuluj',
 
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Szukaj...'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Szukaj...',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Wartość',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga wartość'
 };
 
 export default dictionary;
