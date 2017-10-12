@@ -21,7 +21,7 @@
  * UNINTERRUPTED OR ERROR FREE.
  * 
  * Version: 1.14.3
- * Release date: 11/10/2017 (built at 10/10/2017 16:42:51)
+ * Release date: 12/10/2017 (built at 12/10/2017 10:04:38)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -5130,7 +5130,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment2.default)('11/10/2017', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment2.default)('12/10/2017', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       var keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
@@ -15039,7 +15039,7 @@ function Core(rootElement, userSettings) {
       document.body.focus();
     }
 
-    if (!this.isListening()) {
+    if (instance && !instance.isListening()) {
       activeGuid = instance.guid;
       instance.runHooks('afterListen');
     }
@@ -16802,7 +16802,6 @@ function Core(rootElement, userSettings) {
       selection.setRangeEnd(new _src.CellCoords(endRow, endCol), scrollToCell);
     }
     instance.selection.finish();
-
     return true;
   };
 
@@ -31153,7 +31152,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '10/10/2017 16:42:51';
+Handsontable.buildDate = '12/10/2017 10:04:38';
 Handsontable.packageName = 'handsontable-pro';
 Handsontable.version = '1.14.3';
 
@@ -44120,7 +44119,6 @@ var CopyPaste = function (_BasePlugin) {
       priv.isTriggeredByCopy = true;
 
       this.textarea.select();
-      this.setCopyableText();
       document.execCommand('copy');
     }
 
@@ -44136,7 +44134,6 @@ var CopyPaste = function (_BasePlugin) {
       priv.isTriggeredByCut = true;
 
       this.textarea.select();
-      this.setCopyableText();
       document.execCommand('cut');
     }
 
@@ -44195,6 +44192,7 @@ var CopyPaste = function (_BasePlugin) {
         return;
       }
 
+      this.setCopyableText();
       priv.isTriggeredByCopy = false;
 
       var rangedData = this.getRangedData(this.copyableRanges);
@@ -44232,6 +44230,7 @@ var CopyPaste = function (_BasePlugin) {
         return;
       }
 
+      this.setCopyableText();
       priv.isTriggeredByCut = false;
 
       var rangedData = this.getRangedData(this.copyableRanges);
