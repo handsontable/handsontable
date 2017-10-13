@@ -12550,7 +12550,9 @@ var Parser = function (_Emitter) {
         return _this._callVariable(variable);
       },
       evaluateByOperator: _evaluateByOperator2['default'],
-      callFunction: _evaluateByOperator2['default'],
+      callFunction: function callFunction(name, params) {
+        return _this._callFunction(name, params);
+      },
       cellValue: function cellValue(value) {
         return _this._callCellValue(value);
       },
@@ -12559,6 +12561,7 @@ var Parser = function (_Emitter) {
       }
     };
     _this.variables = Object.create(null);
+    _this.functions = Object.create(null);
 
     _this.setVariable('TRUE', true).setVariable('FALSE', false).setVariable('NULL', null);
     return _this;
@@ -12653,6 +12656,62 @@ var Parser = function (_Emitter) {
     }
 
     return value;
+  };
+
+  /**
+   * Set custom function which can be visible while parsing formula expression.
+   *
+   * @param {String} name Custom function name.
+   * @param {Function} fn Custom function.
+   * @returns {Parser}
+   */
+
+
+  Parser.prototype.setFunction = function setFunction(name, fn) {
+    this.functions[name] = fn;
+
+    return this;
+  };
+
+  /**
+   * Get custom function.
+   *
+   * @param {String} name Custom function name.
+   * @returns {*}
+   */
+
+
+  Parser.prototype.getFunction = function getFunction(name) {
+    return this.functions[name];
+  };
+
+  /**
+   * Call function with provided params.
+   *
+   * @param name Function name.
+   * @param params Function params.
+   * @returns {*}
+   * @private
+   */
+
+
+  Parser.prototype._callFunction = function _callFunction(name) {
+    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+
+    var fn = this.getFunction(name);
+    var value = void 0;
+
+    if (fn) {
+      value = fn(params);
+    }
+
+    this.emit('callFunction', name, params, function (newValue) {
+      if (newValue !== void 0) {
+        value = newValue;
+      }
+    });
+
+    return value === void 0 ? (0, _evaluateByOperator2['default'])(name, params) : value;
   };
 
   /**
