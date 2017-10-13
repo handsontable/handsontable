@@ -1,8 +1,9 @@
 import {addClass} from 'handsontable/helpers/dom/element';
 import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
-import {arrayEach, arrayFilter} from 'handsontable/helpers/array';
-import {extend} from 'handsontable/helpers/object';
+import {arrayEach} from 'handsontable/helpers/array';
 import {isKey} from 'handsontable/helpers/unicode';
+import {getPhrase} from 'handsontable/i18n';
+import * as C from 'handsontable/i18n/constants';
 import BaseComponent from './_base';
 import getOptionsList, {CONDITION_NONE} from './../constants';
 import InputUI from './../ui/input';
@@ -22,8 +23,8 @@ class ConditionComponent extends BaseComponent {
     this.addSeparator = options.addSeparator;
 
     this.elements.push(new SelectUI(this.hot));
-    this.elements.push(new InputUI(this.hot, {placeholder: 'Value'}));
-    this.elements.push(new InputUI(this.hot, {placeholder: 'Second Value'}));
+    this.elements.push(new InputUI(this.hot, {placeholder: getPhrase(this.hot, C.FILTERS_BUTTONS_PLACEHOLDER_VALUE)}));
+    this.elements.push(new InputUI(this.hot, {placeholder: getPhrase(this.hot, C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE)}));
     this.registerHooks();
   }
 
@@ -97,8 +98,14 @@ class ConditionComponent extends BaseComponent {
    * @param column Physical column index.
    */
   updateState(condition, column) {
+    let command = condition ? getConditionDescriptor(condition.name) : getConditionDescriptor(CONDITION_NONE);
+
+    if (command.name.includes(C.FILTERS_CONDITIONS_NAMESPACE)) {
+      command.name = getPhrase(this.hot, command.name);
+    }
+
     this.setCachedState(column, {
-      command: condition ? getConditionDescriptor(condition.name) : getConditionDescriptor(CONDITION_NONE),
+      command,
       args: condition ? condition.args : [],
     });
 

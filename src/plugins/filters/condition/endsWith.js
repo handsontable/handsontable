@@ -1,3 +1,4 @@
+import * as C from 'handsontable/i18n/constants';
 import {stringify} from 'handsontable/helpers/mixed';
 import {registerCondition} from './../conditionRegisterer';
 
@@ -8,7 +9,7 @@ export function condition(dataRow, [value] = inputValues) {
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: 'Ends with',
+  name: C.FILTERS_CONDITIONS_ENDS_WITH,
   inputsCount: 1,
   showOperators: true
 });

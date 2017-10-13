@@ -1,7 +1,8 @@
-import {addClass, getWindowScrollTop, getWindowScrollLeft} from 'handsontable/helpers/dom/element';
 import Menu from 'handsontable/plugins/contextMenu/menu';
 import {clone, extend} from 'handsontable/helpers/object';
 import {arrayEach} from 'handsontable/helpers/array';
+import {getPhrase} from 'handsontable/i18n';
+import * as C from 'handsontable/i18n/constants';
 import {SEPARATOR} from 'handsontable/plugins/contextMenu/predefinedItems';
 import BaseUI from './_base';
 
@@ -52,11 +53,27 @@ class SelectUI extends BaseUI {
    * @param {Array} items Array of objects with required keys `key` and `name`.
    */
   setItems(items) {
-    this.items = items;
+    this.items = this.translateNames(items);
 
     if (this.menu) {
       this.menu.setMenuItems(this.items);
     }
+  }
+
+  /**
+   * Translate names of menu items.
+   *
+   * @param {Array} items Array of objects with required keys `key` and `name`.
+   * @returns {Array} Items with translated `name` keys.
+   */
+  translateNames(items) {
+    arrayEach(items, (item) => {
+      if (typeof item.name === 'string' && item.name.includes(C.FILTERS_CONDITIONS_NAMESPACE)) {
+        item.name = getPhrase(this.menu.hot, item.name);
+      }
+    });
+
+    return items;
   }
 
   /**
@@ -97,7 +114,17 @@ class SelectUI extends BaseUI {
     if (!this.isBuilt()) {
       return;
     }
-    privatePool.get(this).captionElement.textContent = this.options.value ? this.options.value.name : 'None';
+
+    let conditionName;
+
+    if (this.options.value) {
+      conditionName = this.options.value.name;
+
+    } else {
+      conditionName = getPhrase(this.menu.hot, C.FILTERS_CONDITIONS_NONE);
+    }
+
+    privatePool.get(this).captionElement.textContent = conditionName;
     super.update();
   }
 

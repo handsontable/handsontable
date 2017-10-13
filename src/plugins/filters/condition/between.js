@@ -1,3 +1,4 @@
+import * as C from 'handsontable/i18n/constants';
 import {registerCondition, getCondition} from './../conditionRegisterer';
 import {CONDITION_NAME as CONDITION_DATE_AFTER} from './date/after';
 import {CONDITION_NAME as CONDITION_DATE_BEFORE} from './date/before';
@@ -23,7 +24,7 @@ export function condition(dataRow, [from, to] = inputValues) {
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: 'Is between',
+  name: C.FILTERS_CONDITIONS_BETWEEN,
   inputsCount: 2,
   showOperators: true
 });

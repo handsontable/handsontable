@@ -1,3 +1,4 @@
+import * as C from 'handsontable/i18n/constants';
 import {registerCondition} from './../conditionRegisterer';
 import {createArrayAssertion} from './../utils';
 
@@ -8,7 +9,7 @@ export function condition(dataRow, [value] = inputValues) {
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: 'By value',
+  name: C.FILTERS_CONDITIONS_BY_VALUE,
   inputsCount: 0,
   inputValuesDecorator: function([data] = inputValues) {
     return [createArrayAssertion(data)];

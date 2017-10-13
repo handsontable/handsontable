@@ -1,3 +1,4 @@
+import * as C from 'handsontable/i18n/constants';
 import {registerCondition, getCondition} from './../conditionRegisterer';
 import {CONDITION_NAME as CONDITION_BETWEEN} from './between';
 
@@ -8,7 +9,7 @@ export function condition(dataRow, inputValues) {
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: 'Is not between',
+  name: C.FILTERS_CONDITIONS_NOT_BETWEEN,
   inputsCount: 2,
   showOperators: true
 });

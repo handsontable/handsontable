@@ -1,3 +1,4 @@
+import * as C from 'handsontable/i18n/constants';
 import {registerCondition} from './../conditionRegisterer';
 
 export const CONDITION_NAME = 'empty';
@@ -7,7 +8,7 @@ export function condition(dataRow) {
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: 'Is empty',
+  name: C.FILTERS_CONDITIONS_EMPTY,
   inputsCount: 0,
   showOperators: true
 });
