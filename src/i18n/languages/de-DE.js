@@ -9,7 +9,8 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'de-DE',
-  [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Legen Sie die Zeile oben'
+  [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Legen Sie die Zeile oben',
+  [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Spalte links einfügen'
 };
 
 export default dictionary;
