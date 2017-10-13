@@ -32,7 +32,6 @@ import * as plugins from './plugins/index';
 import {registerPlugin} from './plugins';
 import DefaultSettings from './defaultSettings';
 import {rootInstanceSymbol} from './utils/rootInstance';
-
 import {registerLocaleDictionary, getDictonaries} from './i18n/dictionaryManager';
 
 function Handsontable(rootElement, userSettings) {

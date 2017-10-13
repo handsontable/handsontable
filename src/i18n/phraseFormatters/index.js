@@ -9,13 +9,6 @@ const {
 /**
  * Register formatter.
  *
- * @param {Function} formatter Function which will be applied on phrase propositions.
- * It will transform them if it's possible.
- */
-
-/**
- * Register formatter.
- *
  * @param {string} name Name of formatter.
  * @param {Function} formatterFn Function which will be applied on phrase propositions.
  * It will transform them if it's possible.

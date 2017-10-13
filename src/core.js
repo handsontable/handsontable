@@ -1679,10 +1679,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
     }
 
-    if (init || isDefined(settings.locale)) {
-      setLocale(instance, settings.locale);
-    }
-
     // Load data or create data map
     if (settings.data === void 0 && priv.settings.data === void 0) {
       instance.loadData(null); // data source created just now
@@ -1808,6 +1804,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (!init) {
+      if (isDefined(settings.locale)) {
+        setLocale(instance, settings.locale);
+      }
+
       datamap.clearLengthCache(); // force clear cache length on updateSettings() #3416
 
       if (instance.view) {
