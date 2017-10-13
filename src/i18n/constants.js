@@ -11,6 +11,9 @@ export const CONTEXTMENU_ITEMS_REMOVE_COLUMN = 'ContextMenu:items.removeColumn';
 export const CONTEXTMENU_ITEMS_UNDO = 'ContextMenu:items.undo';
 export const CONTEXTMENU_ITEMS_REDO = 'ContextMenu:items.redo';
 export const CONTEXTMENU_ITEMS_READ_ONLY = 'ContextMenu:items.readOnly';
+export const CONTEXTMENU_ITEMS_CLEAR_COLUMN = 'ContextMenu:items.clearColumn';
+export const CONTEXTMENU_ITEMS_COPY = 'ContextMenu:items.copy';
+export const CONTEXTMENU_ITEMS_CUT = 'ContextMenu:items.cut';
 
 export const CONTEXTMENU_ITEMS_ALIGNMENT = 'ContextMenu:items.align';
 export const CONTEXTMENU_ITEMS_ALIGNMENT_LEFT = 'ContextMenu:items.align.left';
@@ -20,10 +23,6 @@ export const CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY = 'ContextMenu:items.align.just
 export const CONTEXTMENU_ITEMS_ALIGNMENT_TOP = 'ContextMenu:items.align.top';
 export const CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE = 'ContextMenu:items.align.middle';
 export const CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM = 'ContextMenu:items.align.bottom';
-
-export const CONTEXTMENU_ITEMS_CLEAR_COLUMN = 'ContextMenu:items.clearColumn';
-export const CONTEXTMENU_ITEMS_COPY = 'ContextMenu:items.copy';
-export const CONTEXTMENU_ITEMS_CUT = 'ContextMenu:items.cut';
 
 export const FILTERS_CONDITIONS_NAMESPACE = 'Filters:conditions';
 export const FILTERS_CONDITIONS_NONE = 'Filters:conditions.none';
@@ -42,8 +41,6 @@ export const FILTERS_CONDITIONS_LESS_THAN = 'Filters:conditions.lessThan';
 export const FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL = 'Filters:conditions.lessThanOrEqualTo';
 export const FILTERS_CONDITIONS_BETWEEN = 'Filters:conditions.isBetween';
 export const FILTERS_CONDITIONS_NOT_BETWEEN = 'Filters:conditions.isNotBetween';
-export const FILTERS_CONDITIONS_FALSE = 'Filters:conditions.false';
-export const FILTERS_CONDITIONS_TRUE = 'Filters:conditions.true';
 export const FILTERS_CONDITIONS_AFTER = 'Filters:conditions.after';
 export const FILTERS_CONDITIONS_BEFORE = 'Filters:conditions.before';
 export const FILTERS_CONDITIONS_TODAY = 'Filters:conditions.today';
