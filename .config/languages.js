@@ -20,7 +20,7 @@ function getEntryJsFiles() {
   const filesInLanguagesDirectory = fs.readdirSync(SOURCE_LANGUAGES_DIRECTORY);
 
   filesInLanguagesDirectory.forEach((fileName) => {
-    const jsExtensionRegExp = /\.js$/
+    const jsExtensionRegExp = /\.js$/;
     const isJsFile = (fileName) => jsExtensionRegExp.test(fileName);
 
     if (isJsFile(fileName)) {
@@ -50,7 +50,7 @@ const ruleForSnippetsInjection = {
       {
         pattern: /export default dictionary.+/,
         replacement: function(match) {
-          const snippet = `Handsontable.languages.registerLocaleDictionary(dictionary.languageCode, dictionary);`;
+          const snippet = `Handsontable.languages.register(dictionary.languageCode, dictionary);`;
 
           return `${snippet}${NEW_LINE_CHAR.repeat(2)}${match}`;
         }
@@ -58,7 +58,7 @@ const ruleForSnippetsInjection = {
   })
 };
 
-module.exports.create = function create(envArgs) {
+module.exports.create = function create() {
   const config = {
     entry: getEntryJsFiles(),
     output: {
