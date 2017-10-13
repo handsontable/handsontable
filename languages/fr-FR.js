@@ -188,6 +188,8 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
 
 exports.__esModule = true;
 
+var _dictionary;
+
 var _constants = __webpack_require__(0);
 
 var C = _interopRequireWildcard(_constants);
@@ -209,9 +211,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                                                                                                                                                                                                                    */
 
 
-var dictionary = _defineProperty({
+var dictionary = (_dictionary = {
   languageCode: 'fr-FR'
-}, C.CONTEXTMENU_ITEMS_ROW_ABOVE, 'Placez la ligne ci-dessus');
+}, _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ROW_ABOVE, 'Placez la ligne ci-dessus'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_INSERT_LEFT, 'Insérer la colonne à gauche'), _dictionary);
 
 _handsontable2.default.languages.registerLocaleDictionary(dictionary.languageCode, dictionary);
 
