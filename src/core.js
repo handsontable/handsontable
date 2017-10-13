@@ -7,7 +7,7 @@ import {isMobileBrowser} from './helpers/browser';
 import DataMap from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
-import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize, hasOwnProperty, createObjectPropListener} from './helpers/object';
+import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize, hasOwnProperty, createObjectPropListener, objectEach} from './helpers/object';
 import {arrayFlatten, arrayMap} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
@@ -1093,7 +1093,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         continue;
       }
 
-      if (changes[i][2] == null && changes[i][3] == null) {
+      if ((changes[i][2] === null || changes[i][2] === void 0) && (changes[i][3] === null || changes[i][3] === void 0)) {
         /* eslint-disable no-continue */
         continue;
       }
@@ -1152,9 +1152,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (isRegExp(validator)) {
-      validator = (function(validator) {
+      validator = (function(_validator) {
         return function(_value, _callback) {
-          _callback(validator.test(_value));
+          _callback(_validator.test(_value));
         };
       }(validator));
     }
@@ -1649,6 +1649,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
     }
 
+    // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
       if (i === 'data') {
         /* eslint-disable no-continue */
@@ -1725,13 +1726,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (isDefined(settings.cell)) {
-      for (let key in settings.cell) {
-        if (hasOwnProperty(settings.cell, key)) {
-          let cell = settings.cell[key];
-
-          instance.setCellMetaObject(cell.row, cell.col, cell);
-        }
-      }
+      objectEach(settings.cell, (value) => {
+        instance.setCellMetaObject(value.row, value.col, value);
+      });
     }
 
     instance.runHooks('afterCellMetaReset');
@@ -1849,11 +1846,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     } else if (typeof obj.type === 'string') {
       type = getCellType(obj.type);
     }
-    for (var i in type) {
-      if (hasOwnProperty(type, i) && !hasOwnProperty(obj, i)) {
-        expandedType[i] = type[i];
+
+    objectEach(type, (value, key) => {
+      if (!hasOwnProperty(obj, key)) {
+        expandedType[key] = value;
       }
-    }
+    });
 
     return expandedType;
   }
@@ -2305,14 +2303,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Object} prop Meta object.
    */
   this.setCellMetaObject = function(row, col, prop) {
-    if (typeof prop === 'object') {
-      for (var key in prop) {
-        if (hasOwnProperty(prop, key)) {
-          var value = prop[key];
-          this.setCellMeta(row, col, key, value);
-        }
-      }
+    if (typeof prop !== 'object') {
+      return;
     }
+
+    objectEach(prop, (value, key) => {
+      this.setCellMeta(row, col, key, value);
+    });
   };
 
   /**
@@ -2936,14 +2933,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countEmptyRows = function(ending) {
     var i = instance.countRows() - 1,
-      empty = 0,
+      _empty = 0,
       row;
 
     while (i >= 0) {
       row = instance.runHooks('modifyRow', i);
 
       if (instance.isEmptyRow(row)) {
-        empty++;
+        _empty++;
 
       } else if (ending) {
         break;
@@ -2951,7 +2948,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       i--;
     }
 
-    return empty;
+    return _empty;
   };
 
   /**
@@ -3164,19 +3161,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.runHooks('afterDestroy');
     Hooks.getSingleton().destroy(instance);
 
-    for (var i in instance) {
-      if (hasOwnProperty(instance, i)) {
-        // replace instance methods with post mortem
-        if (isFunction(instance[i])) {
-          instance[i] = postMortem;
+    objectEach(instance, (value, key, obj) => {
+      if (isFunction(value)) {
+        obj[key] = postMortem;
 
-        } else if (i !== 'guid') {
-          // replace instance properties with null (restores memory)
-          // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
-          instance[i] = null;
-        }
+      } else if (key !== 'guid') {
+        // replace instance properties with null (restores memory)
+        // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
+        obj[key] = null;
       }
-    }
+    });
 
     // replace private properties with null (restores memory)
     // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests

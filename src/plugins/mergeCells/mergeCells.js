@@ -1,5 +1,6 @@
 import Hooks from './../../pluginHooks';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
+import {objectEach} from './../../helpers/object';
 import {CellCoords, CellRange, Table} from './../../3rdparty/walkontable/src';
 
 function CellInfoCollection() {
@@ -573,14 +574,17 @@ var isMultipleSelection = function(isMultiple) {
     var mergedCells = this.mergeCells.mergedCellInfoCollection,
       selectionRange = this.getSelectedRange();
 
-    for (var group in mergedCells) {
-      if (selectionRange.highlight.row === mergedCells[group].row &&
-        selectionRange.highlight.col === mergedCells[group].col &&
-        selectionRange.to.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
-        selectionRange.to.col === mergedCells[group].col + mergedCells[group].colspan - 1) {
+    objectEach(mergedCells, (value) => {
+      if (selectionRange.highlight.row === value.row &&
+        selectionRange.highlight.col === value.col &&
+        selectionRange.to.row === value.row + value.rowspan - 1 &&
+        selectionRange.to.col === value.col + value.colspan - 1) {
+        isMultiple = false;
         return false;
       }
-    }
+
+      return true;
+    });
   }
   return isMultiple;
 };

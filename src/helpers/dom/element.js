@@ -12,7 +12,7 @@ export function getParent(element, level = 0) {
   let iteration = -1;
   let parent = null;
 
-  while (element != null) {
+  while (element !== null) {
     if (iteration === level) {
       parent = element;
       break;
@@ -40,7 +40,7 @@ export function getParent(element, level = 0) {
  * @returns {HTMLElement|null}
  */
 export function closest(element, nodes, until) {
-  while (element != null && element !== until) {
+  while (element !== null && element !== until) {
     if (element.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
       return element;
     }
@@ -104,7 +104,7 @@ export function isChildOf(child, parent) {
     queriedParents.push(parent);
   }
 
-  while (node != null) {
+  while (node !== null) {
     if (queriedParents.indexOf(node) > -1) {
       return true;
     }
@@ -127,11 +127,11 @@ export function isChildOfWebComponentTable(element) {
 
   parentNode = polymerWrap(element);
 
-  function isHotTable(element) {
-    return element.nodeType === Node.ELEMENT_NODE && element.nodeName === hotTableName.toUpperCase();
+  function isHotTable(_element) {
+    return _element.nodeType === Node.ELEMENT_NODE && _element.nodeName === hotTableName.toUpperCase();
   }
 
-  while (parentNode != null) {
+  while (parentNode !== null) {
     if (isHotTable(parentNode)) {
       result = true;
       break;
@@ -234,7 +234,7 @@ if (classListSupport) {
     return element.classList.contains('test2');
   }());
 
-  _hasClass = function _hasClass(element, className) {
+  _hasClass = function (element, className) {
     if (element.classList === void 0 || className === '') {
       return false;
     }
@@ -242,7 +242,7 @@ if (classListSupport) {
     return element.classList.contains(className);
   };
 
-  _addClass = function _addClass(element, className) {
+  _addClass = function (element, className) {
     var len = 0;
 
     if (typeof className === 'string') {
@@ -251,7 +251,7 @@ if (classListSupport) {
     className = filterEmptyClassNames(className);
 
     if (isSupportMultipleClassesArg) {
-      element.classList.add.apply(element.classList, className);
+      element.classList.add(...className);
 
     } else {
       while (className && className[len]) {
@@ -261,7 +261,7 @@ if (classListSupport) {
     }
   };
 
-  _removeClass = function _removeClass(element, className) {
+  _removeClass = function (element, className) {
     var len = 0;
 
     if (typeof className === 'string') {
@@ -270,7 +270,7 @@ if (classListSupport) {
     className = filterEmptyClassNames(className);
 
     if (isSupportMultipleClassesArg) {
-      element.classList.remove.apply(element.classList, className);
+      element.classList.remove(...className);
 
     } else {
       while (className && className[len]) {
@@ -281,16 +281,16 @@ if (classListSupport) {
   };
 
 } else {
-  var createClassNameRegExp = function createClassNameRegExp(className) {
+  var createClassNameRegExp = function (className) {
     return new RegExp(`(\\s|^)${className}(\\s|$)`);
   };
 
-  _hasClass = function _hasClass(element, className) {
+  _hasClass = function (element, className) {
     // http://snipplr.com/view/3561/addclass-removeclass-hasclass/
     return element.className !== void 0 && createClassNameRegExp(className).test(element.className);
   };
 
-  _addClass = function _addClass(element, className) {
+  _addClass = function (element, className) {
     var len = 0,
       _className = element.className;
 
@@ -311,7 +311,7 @@ if (classListSupport) {
     element.className = _className;
   };
 
-  _removeClass = function _removeClass(element, className) {
+  _removeClass = function (element, className) {
     var len = 0,
       _className = element.className;
 

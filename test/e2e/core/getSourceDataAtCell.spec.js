@@ -77,6 +77,7 @@ describe('Core.getSourceDataAtCell', () => {
           address: undefined
         };
 
+      // eslint-disable-next-line no-restricted-syntax
       for (var i in opts) {
         if (Object.prototype.hasOwnProperty.call(opts, i)) {
           _priv[i] = opts[i];

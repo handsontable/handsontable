@@ -151,7 +151,7 @@ class ContextMenu extends BasePlugin {
 
       this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
-      this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.apply(this, params));
+      this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand(...params));
 
       // Register all commands. Predefined and added by user or by plugins
       arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
@@ -247,7 +247,7 @@ class ContextMenu extends BasePlugin {
    * @param {*} params
    */
   executeCommand(...params) {
-    this.commandExecutor.execute.apply(this.commandExecutor, params);
+    this.commandExecutor.execute(...params);
   }
 
   /**

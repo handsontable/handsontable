@@ -159,7 +159,7 @@ class ManualColumnFreeze extends BasePlugin {
     let j = movePlugin.columnsMapper.getValueByIndex(i);
     let initialCol;
 
-    if (this.frozenColumnsBasePositions[column] == null) {
+    if (this.frozenColumnsBasePositions[column] === void 0) {
       initialCol = movePlugin.columnsMapper.getValueByIndex(column);
 
       while (j < initialCol) {

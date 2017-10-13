@@ -11,6 +11,7 @@ import {
   resetCssTransform,
 } from './../helpers/dom/element';
 import {stopImmediatePropagation} from './../helpers/dom/event';
+import {objectEach} from './../helpers/object';
 import {KEY_CODES} from './../helpers/unicode';
 import BaseEditor, {EditorState} from './_baseEditor';
 
@@ -49,15 +50,12 @@ SelectEditor.prototype.prepare = function(...args) {
   }
 
   empty(this.select);
-
-  for (var option in options) {
-    if (Object.prototype.hasOwnProperty.call(options, option)) {
-      var optionElement = document.createElement('OPTION');
-      optionElement.value = option;
-      fastInnerHTML(optionElement, options[option]);
-      this.select.appendChild(optionElement);
-    }
-  }
+  objectEach(options, (value, key) => {
+    var optionElement = document.createElement('OPTION');
+    optionElement.value = key;
+    fastInnerHTML(optionElement, value);
+    this.select.appendChild(optionElement);
+  });
 };
 
 SelectEditor.prototype.prepareOptions = function(optionsToPrepare) {

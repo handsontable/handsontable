@@ -135,7 +135,7 @@ class AutoColumnSize extends BasePlugin {
 
     let setting = this.hot.getSettings().autoColumnSize;
 
-    if (setting && setting.useHeaders != null) {
+    if (setting && setting.useHeaders !== void 0 && setting.useHeaders !== null) {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
 

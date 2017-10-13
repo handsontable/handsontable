@@ -24,8 +24,7 @@ export function throttle(func, wait = 200) {
   };
   let lastTimer = null;
 
-  function _throttle() {
-    const args = arguments;
+  function _throttle(...args) {
     let stamp = Date.now();
     let needCall = false;
 
@@ -74,14 +73,14 @@ export function throttleAfterHits(func, wait = 200, hits = 10) {
   function _clearHits() {
     remainHits = hits;
   }
-  function _throttleAfterHits() {
+  function _throttleAfterHits(...args) {
     if (remainHits) {
       remainHits--;
 
-      return func.apply(this, arguments);
+      return func.apply(this, args);
     }
 
-    return funcThrottle.apply(this, arguments);
+    return funcThrottle.apply(this, args);
   }
   _throttleAfterHits.clearHits = _clearHits;
 
@@ -100,9 +99,7 @@ export function debounce(func, wait = 200) {
   let lastTimer = null;
   let result;
 
-  function _debounce() {
-    const args = arguments;
-
+  function _debounce(...args) {
     if (lastTimer) {
       clearTimeout(lastTimer);
     }
@@ -126,8 +123,8 @@ export function debounce(func, wait = 200) {
 export function pipe(...functions) {
   const [firstFunc, ...restFunc] = functions;
 
-  return function _pipe() {
-    return arrayReduce(restFunc, (acc, fn) => fn(acc), firstFunc.apply(this, arguments));
+  return function _pipe(...args) {
+    return arrayReduce(restFunc, (acc, fn) => fn(acc), firstFunc.apply(this, args));
   };
 }
 

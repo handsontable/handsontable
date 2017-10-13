@@ -12,6 +12,7 @@ import {
   removeClass,
   setCaretPosition,
 } from './../helpers/dom/element';
+import {objectEach} from './../helpers/object';
 import BaseEditor from './_baseEditor';
 import EventManager from './../eventManager';
 
@@ -35,11 +36,9 @@ var createControls = function() {
   this.controls.downButton = document.createElement('DIV');
   this.controls.downButton.className = 'downButton';
 
-  for (var button in this.controls) {
-    if (Object.prototype.hasOwnProperty.call(this.controls, button)) {
-      this.positionControls.appendChild(this.controls[button]);
-    }
-  }
+  objectEach(this.controls, (value) => {
+    this.positionControls.appendChild(value);
+  });
 };
 
 MobileTextEditor.prototype.valueChanged = function() {

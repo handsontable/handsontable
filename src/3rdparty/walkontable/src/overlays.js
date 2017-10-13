@@ -433,7 +433,7 @@ class Overlays {
       } else {
         if (topOverlay && topOverlay.scrollLeft !== tempScrollValue) {
 
-          if (fakeScrollValue == null) {
+          if (fakeScrollValue === null || fakeScrollValue === void 0) {
             this.pendingScrollCallbacks.top.left++;
           }
 
@@ -443,7 +443,7 @@ class Overlays {
 
         if (bottomOverlay && bottomOverlay.scrollLeft !== tempScrollValue) {
 
-          if (fakeScrollValue == null) {
+          if (fakeScrollValue === null || fakeScrollValue === void 0) {
             this.pendingScrollCallbacks.bottom.left++;
           }
 
@@ -462,7 +462,7 @@ class Overlays {
         this.pendingScrollCallbacks.master.top--;
 
       } else if (leftOverlay && leftOverlay.scrollTop !== tempScrollValue) {
-        if (fakeScrollValue == null) {
+        if (fakeScrollValue === null || fakeScrollValue === void 0) {
           this.pendingScrollCallbacks.left.top++;
         }
 
@@ -482,14 +482,14 @@ class Overlays {
         this.pendingScrollCallbacks.bottom.left--;
 
       } else {
-        if (fakeScrollValue == null) {
+        if (fakeScrollValue === null || fakeScrollValue === void 0) {
           this.pendingScrollCallbacks.master.left++;
         }
 
         masterHorizontal.scrollLeft = tempScrollValue;
 
         if (topOverlay && topOverlay.scrollLeft !== tempScrollValue) {
-          if (fakeScrollValue == null) {
+          if (fakeScrollValue === null || fakeScrollValue === void 0) {
             this.pendingScrollCallbacks.top.left++;
           }
 
@@ -518,7 +518,7 @@ class Overlays {
 
       } else {
 
-        if (fakeScrollValue == null) {
+        if (fakeScrollValue === null || fakeScrollValue === void 0) {
           this.pendingScrollCallbacks.master.left++;
         }
 
@@ -532,7 +532,7 @@ class Overlays {
       }
 
       if (bottomOverlay && bottomOverlay.scrollLeft !== tempScrollValue) {
-        if (fakeScrollValue == null) {
+        if (fakeScrollValue === null || fakeScrollValue === void 0) {
           this.pendingScrollCallbacks.bottom.left++;
         }
 
@@ -553,7 +553,7 @@ class Overlays {
           this.pendingScrollCallbacks.left.top--;
 
         } else {
-          if (fakeScrollValue == null) {
+          if (fakeScrollValue === null || fakeScrollValue === void 0) {
             this.pendingScrollCallbacks.master.top++;
           }
 
