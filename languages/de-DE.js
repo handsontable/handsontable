@@ -204,7 +204,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                                                                                                                                                                                                                    * Authors: Wojciech Szymański
                                                                                                                                                                                                                    * Last updated: 28.09.2017
                                                                                                                                                                                                                    *
-                                                                                                                                                                                                                   * Description: Definition file for German - Germany language.
+                                                                                                                                                                                                                   * Description: Definition file for German - Germany language-country.
                                                                                                                                                                                                                    */
 
 
@@ -212,7 +212,7 @@ var dictionary = (_dictionary = {
   languageCode: 'de-DE'
 }, _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ROW_ABOVE, 'Legen Sie die Zeile oben'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_INSERT_LEFT, 'Spalte links einfügen'), _dictionary);
 
-_handsontable2.default.languages.registerLocaleDictionary(dictionary.languageCode, dictionary);
+_handsontable2.default.languages.register(dictionary.languageCode, dictionary);
 
 exports.default = dictionary;
 

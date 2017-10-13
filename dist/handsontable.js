@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 0.34.4
- * Release date: 13/09/2017 (built at 13/10/2017 09:44:09)
+ * Release date: 13/09/2017 (built at 13/10/2017 15:26:23)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -4948,7 +4948,7 @@ var _array = __webpack_require__(2);
 
 var _mixed = __webpack_require__(18);
 
-var _dictionaryManager = __webpack_require__(177);
+var _dictionariesManager = __webpack_require__(177);
 
 var _phraseFormatters = __webpack_require__(251);
 
@@ -4962,7 +4962,7 @@ var hotOnLocaleChangeCallbacks = new WeakMap();
  * @param {string} languageCode Language code.
  */
 function setLocale(hotInstance) {
-  var languageCode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _dictionaryManager.DEFAULT_LANGUAGE_CODE;
+  var languageCode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _dictionariesManager.DEFAULT_LANGUAGE_CODE;
 
   var hotLanguage = hotLanguages.get(hotInstance);
   var hotLanguageCode = hotLanguage && hotLanguage.code;
@@ -4972,7 +4972,7 @@ function setLocale(hotInstance) {
   if (isLanguageChanged) {
     hotLanguages.set(hotInstance, {
       code: languageCode,
-      definitions: (0, _dictionaryManager.getLocaleDictionary)(languageCode)
+      definitions: (0, _dictionariesManager.getLanguage)(languageCode)
     });
   }
 
@@ -4982,7 +4982,7 @@ function setLocale(hotInstance) {
 }
 
 /**
- * Get formatted phrase from phrases propositions for specified dictionary key.
+ * Get phrase for specified dictionary key.
  *
  * @param {Object} hotInstance Instance of Handsontable for which we get phrase.
  * @param {String} dictionaryKey Constant which is dictionary key.
@@ -4994,7 +4994,30 @@ function getPhrase(hotInstance, dictionaryKey, argumentsForFormatters) {
   var hotLanguageCode = hotLanguages.get(hotInstance).code;
   var phrasePropositions = hotLanguages.get(hotInstance).definitions[dictionaryKey];
 
-  return getFormattedPhrasePropositions(phrasePropositions, argumentsForFormatters, hotLanguageCode);
+  return getFormattedPhrase(phrasePropositions, argumentsForFormatters, hotLanguageCode);
+}
+
+/**
+ * Get formatted phrase from phrases propositions for specified dictionary key.
+ *
+ * @private
+ * @param {Array|string} phrasePropositions List of phrase propositions.
+ * @param {...string} args Arguments for formatting.
+ *
+ * @returns {Array|string}
+ */
+function getFormattedPhrase(phrasePropositions) {
+  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    args[_key - 1] = arguments[_key];
+  }
+
+  var formattedPhrasePropositions = phrasePropositions;
+
+  (0, _array.arrayEach)((0, _phraseFormatters.getAll)(), function (formatter) {
+    formattedPhrasePropositions = formatter.apply(undefined, [phrasePropositions].concat(args));
+  });
+
+  return formattedPhrasePropositions;
 }
 
 /**
@@ -5028,29 +5051,6 @@ function runOnLocaleChangeCallbacks(hotInstance) {
   (0, _array.arrayEach)(hotOnLocaleChangeCallbacks.get(hotInstance) || [], function (callback) {
     callback();
   });
-}
-
-/**
- * Format phrases propositions.
- *
- * @private
- * @param {Array|string} phrasePropositions List of phrase propositions.
- * @param {...string} args Arguments for formatting.
- *
- * @returns {Array|string}
-*/
-function getFormattedPhrasePropositions(phrasePropositions) {
-  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    args[_key - 1] = arguments[_key];
-  }
-
-  var formattedPhrasePropositions = phrasePropositions;
-
-  (0, _array.arrayEach)((0, _phraseFormatters.getPhraseFormatters)(), function (formatter) {
-    formattedPhrasePropositions = formatter.apply(undefined, [phrasePropositions].concat(args));
-  });
-
-  return formattedPhrasePropositions;
 }
 
 /***/ }),
@@ -11101,10 +11101,6 @@ function Core(rootElement, userSettings) {
       }
     }
 
-    if (init || (0, _mixed.isDefined)(settings.locale)) {
-      (0, _i18n.setLocale)(instance, settings.locale);
-    }
-
     // Load data or create data map
     if (settings.data === void 0 && priv.settings.data === void 0) {
       instance.loadData(null); // data source created just now
@@ -11225,6 +11221,10 @@ function Core(rootElement, userSettings) {
     }
 
     if (!init) {
+      if ((0, _mixed.isDefined)(settings.locale)) {
+        (0, _i18n.setLocale)(instance, settings.locale);
+      }
+
       datamap.clearLengthCache(); // force clear cache length on updateSettings() #3416
 
       if (instance.view) {
@@ -24394,9 +24394,9 @@ exports.default = DefaultSettings;
 
 exports.__esModule = true;
 exports.DEFAULT_LANGUAGE_CODE = undefined;
-exports.registerLocaleDictionary = registerLocaleDictionary;
-exports.getLocaleDictionary = getLocaleDictionary;
-exports.getDictonaries = getDictonaries;
+exports.registerLanguage = registerLanguage;
+exports.getLanguage = getLanguage;
+exports.getLanguages = getLanguages;
 
 var _staticRegister2 = __webpack_require__(43);
 
@@ -24412,58 +24412,65 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var DEFAULT_LANGUAGE_CODE = exports.DEFAULT_LANGUAGE_CODE = _enUS2.default.languageCode;
 
-var _staticRegister = (0, _staticRegister3.default)('languages'),
-    registerGloballyLanguage = _staticRegister.register,
-    getGlobalLanguage = _staticRegister.getItem,
-    hasGlobalLanguage = _staticRegister.hasItem,
-    getGlobalLanguages = _staticRegister.getValues;
+var _staticRegister = (0, _staticRegister3.default)('languagesDictionaries'),
+    registerGloballyLanguageDictionary = _staticRegister.register,
+    getGlobalLanguageDictionary = _staticRegister.getItem,
+    hasGlobalLanguageDictionary = _staticRegister.hasItem,
+    getGlobalLanguagesDictionaries = _staticRegister.getValues;
 
 /**
- * Register locale dictionary for specific language code.
+ * Register language dictionary for specific language code.
  *
- * @param {string} languageCode Language code for specific locale i.e. 'en-US', 'pt-BR', 'de-DE'.
+ * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @param {Object} dictionary Dictionary for specific language.
  */
 
 
-function registerLocaleDictionary(languageCode, dictionary) {
-  extendDictionaryByDefaultLangBase(languageCode, dictionary);
-  registerGloballyLanguage(languageCode, dictionary);
+function registerLanguage(languageCode, dictionary) {
+  extendLangDictionaryByDefaultLangDictionary(languageCode, dictionary);
+  registerGloballyLanguageDictionary(languageCode, dictionary);
 };
 
 /**
- * Get dictionary for specific language code.
+ * Get language dictionary for specific language code.
  *
- * @param {String} languageCode Language code
- * @returns {Object}
+ * @param {String} languageCode Language code.
+ * @returns {Object} Object with constants representing identifiers for translation (as keys) and corresponding translation phrases (as values).
  */
-function getLocaleDictionary(languageCode) {
-  if (!hasGlobalLanguage(languageCode)) {
-    throw Error('Locale with "' + languageCode + '" language code is not defined.');
+function getLanguage(languageCode) {
+  if (!hasGlobalLanguageDictionary(languageCode)) {
+    throw Error('Language dictionary with "' + languageCode + '" language code is not defined. It wasn\'t previously registered.');
   }
 
-  return getGlobalLanguage(languageCode);
+  return getGlobalLanguageDictionary(languageCode);
 }
 
 /**
- * Extend handled dictionary by default language dictionary. As result, if any dictionary key isn't defined
- * for specific language, it will be filled with default language value.
+ * Extend handled dictionary by default language dictionary. As result, if any dictionary key isn't defined for specific language, it will be filled with default language value ("dictionary gaps" are supplemented).
  *
  * @private
- * @param {String} languageCode Language code
+ * @param {String} languageCode Language code.
  * @param {Object} dictionary Dictionary which is extended.
  */
-function extendDictionaryByDefaultLangBase(languageCode, dictionary) {
+function extendLangDictionaryByDefaultLangDictionary(languageCode, dictionary) {
   if (languageCode !== DEFAULT_LANGUAGE_CODE) {
-    (0, _utils.extendNotExistingKeys)(dictionary, getGlobalLanguage(DEFAULT_LANGUAGE_CODE));
+    (0, _utils.extendNotExistingKeys)(dictionary, getGlobalLanguageDictionary(DEFAULT_LANGUAGE_CODE));
   }
 }
 
-function getDictonaries() {
-  return getGlobalLanguages();
+/**
+ * Get registered language dictionaries.
+ *
+ * @returns {Array}
+ */
+function getLanguages() {
+  return getGlobalLanguagesDictionaries();
 }
 
-registerLocaleDictionary(DEFAULT_LANGUAGE_CODE, _enUS2.default);
+/**
+ * Automatically registers default dictionary.
+ */
+registerLanguage(DEFAULT_LANGUAGE_CODE, _enUS2.default);
 
 /***/ }),
 /* 178 */
@@ -26124,7 +26131,7 @@ var _defaultSettings2 = _interopRequireDefault(_defaultSettings);
 
 var _rootInstance = __webpack_require__(175);
 
-var _dictionaryManager = __webpack_require__(177);
+var _dictionariesManager = __webpack_require__(177);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -26145,7 +26152,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '13/10/2017 09:44:09';
+Handsontable.buildDate = '13/10/2017 15:26:23';
 Handsontable.packageName = 'handsontable';
 Handsontable.version = '0.34.4';
 
@@ -26248,8 +26255,9 @@ arrayHelpers.arrayEach(Object.getOwnPropertyNames(plugins), function (pluginName
 Handsontable.plugins.registerPlugin = _plugins.registerPlugin;
 
 Handsontable.languages = {};
-Handsontable.languages.registerLocaleDictionary = _dictionaryManager.registerLocaleDictionary;
-Handsontable.languages.getDictonaries = _dictionaryManager.getDictonaries;
+Handsontable.languages.register = _dictionariesManager.registerLanguage;
+Handsontable.languages.getAll = _dictionariesManager.getLanguages;
+Handsontable.languages.get = _dictionariesManager.getLanguage;
 
 exports.default = Handsontable;
 
@@ -33168,17 +33176,17 @@ function extendNotExistingKeys(target, extension) {
  * createCellHeadersRange(4, 0, 'D', 'A') => `A-D`
  *
  * @param {number} firstRowIndex Index of "first" cell
- * @param {number} secondRowIndex Index of "second" cell
+ * @param {number} nextRowIndex Index of "next" cell
  * @param {*} fromValue Value which will represent "first" cell
- * @param {*} toValue Value which will represent "second" cell
+ * @param {*} toValue Value which will represent "next" cell
  * @returns {string} Value representing range i.e. A-Z, 11-15.
  */
-function createCellHeadersRange(firstRowIndex, secondRowIndex) {
+function createCellHeadersRange(firstRowIndex, nextRowIndex) {
   var fromValue = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : firstRowIndex;
-  var toValue = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : secondRowIndex;
+  var toValue = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : nextRowIndex;
 
   // Will swap `fromValue` with `toValue` if it's necessary.
-  if (firstRowIndex > secondRowIndex) {
+  if (firstRowIndex > nextRowIndex) {
     var _ref = [toValue, fromValue];
     fromValue = _ref[0];
     toValue = _ref[1];
@@ -33209,7 +33217,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                                                                                                                                                                                                                    * Authors: Wojciech Szymański
                                                                                                                                                                                                                    * Last updated: 12.10.2017
                                                                                                                                                                                                                    *
-                                                                                                                                                                                                                   * Description: Definition file for English language.
+                                                                                                                                                                                                                   * Description: Definition file for English - United States language-country.
                                                                                                                                                                                                                    */
 
 
@@ -33227,8 +33235,8 @@ exports.default = dictionary;
 
 
 exports.__esModule = true;
-exports.registerPhraseFormatter = registerPhraseFormatter;
-exports.getPhraseFormatters = getPhraseFormatters;
+exports.register = register;
+exports.getAll = getAll;
 
 var _staticRegister2 = __webpack_require__(43);
 
@@ -33242,25 +33250,17 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var _staticRegister = (0, _staticRegister3.default)('phraseFormatters'),
     registerGloballyPhraseFormatter = _staticRegister.register,
-    getGlobalFormatters = _staticRegister.getValues;
+    getGlobalPhraseFormatters = _staticRegister.getValues;
 
 /**
- * Register formatter.
- *
- * @param {Function} formatter Function which will be applied on phrase propositions.
- * It will transform them if it's possible.
- */
-
-/**
- * Register formatter.
+ * Register phrase formatter.
  *
  * @param {string} name Name of formatter.
- * @param {Function} formatterFn Function which will be applied on phrase propositions.
- * It will transform them if it's possible.
+ * @param {Function} formatterFn Function which will be applied on phrase propositions. It will transform them if it's possible.
  */
 
 
-function registerPhraseFormatter(name, formatterFn) {
+function register(name, formatterFn) {
   registerGloballyPhraseFormatter(name, formatterFn);
 }
 
@@ -33269,11 +33269,11 @@ function registerPhraseFormatter(name, formatterFn) {
  *
  * @returns {Array}
  */
-function getPhraseFormatters() {
-  return getGlobalFormatters();
+function getAll() {
+  return getGlobalPhraseFormatters();
 }
 
-registerPhraseFormatter('pluralize', _pluralize2.default);
+register('pluralize', _pluralize2.default);
 
 /***/ }),
 /* 252 */

@@ -207,7 +207,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                                                                                                                                                                                                                    * Authors: Wojciech Szymański
                                                                                                                                                                                                                    * Last updated: 28.09.2017
                                                                                                                                                                                                                    *
-                                                                                                                                                                                                                   * Description: Definition file for French - France language.
+                                                                                                                                                                                                                   * Description: Definition file for French - France language-country.
                                                                                                                                                                                                                    */
 
 
@@ -215,7 +215,7 @@ var dictionary = (_dictionary = {
   languageCode: 'fr-FR'
 }, _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ROW_ABOVE, 'Placez la ligne ci-dessus'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_INSERT_LEFT, 'Insérer la colonne à gauche'), _dictionary);
 
-_handsontable2.default.languages.registerLocaleDictionary(dictionary.languageCode, dictionary);
+_handsontable2.default.languages.register(dictionary.languageCode, dictionary);
 
 exports.default = dictionary;
 
