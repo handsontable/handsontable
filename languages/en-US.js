@@ -132,6 +132,15 @@ const CONTEXTMENU_ITEMS_REDO = 'ContextMenu:items.redo';
 const CONTEXTMENU_ITEMS_READ_ONLY = 'ContextMenu:items.readOnly';
 /* harmony export (immutable) */ __webpack_exports__["n"] = CONTEXTMENU_ITEMS_READ_ONLY;
 
+const CONTEXTMENU_ITEMS_CLEAR_COLUMN = 'ContextMenu:items.clearColumn';
+/* harmony export (immutable) */ __webpack_exports__["i"] = CONTEXTMENU_ITEMS_CLEAR_COLUMN;
+
+const CONTEXTMENU_ITEMS_COPY = 'ContextMenu:items.copy';
+/* harmony export (immutable) */ __webpack_exports__["j"] = CONTEXTMENU_ITEMS_COPY;
+
+const CONTEXTMENU_ITEMS_CUT = 'ContextMenu:items.cut';
+/* harmony export (immutable) */ __webpack_exports__["k"] = CONTEXTMENU_ITEMS_CUT;
+
 
 const CONTEXTMENU_ITEMS_ALIGNMENT = 'ContextMenu:items.align';
 /* harmony export (immutable) */ __webpack_exports__["a"] = CONTEXTMENU_ITEMS_ALIGNMENT;
@@ -158,59 +167,88 @@ const CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM = 'ContextMenu:items.align.bottom';
 /* harmony export (immutable) */ __webpack_exports__["b"] = CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM;
 
 
-const CONTEXTMENU_ITEMS_CLEAR_COLUMN = 'ContextMenu:items.clearColumn';
-/* harmony export (immutable) */ __webpack_exports__["i"] = CONTEXTMENU_ITEMS_CLEAR_COLUMN;
-
-const CONTEXTMENU_ITEMS_COPY = 'ContextMenu:items.copy';
-/* harmony export (immutable) */ __webpack_exports__["j"] = CONTEXTMENU_ITEMS_COPY;
-
-const CONTEXTMENU_ITEMS_CUT = 'ContextMenu:items.cut';
-/* harmony export (immutable) */ __webpack_exports__["k"] = CONTEXTMENU_ITEMS_CUT;
-
+const FILTERS_CONDITIONS_NAMESPACE = 'Filters:conditions';
+/* unused harmony export FILTERS_CONDITIONS_NAMESPACE */
 
 const FILTERS_CONDITIONS_NONE = 'Filters:conditions.none';
-/* harmony export (immutable) */ __webpack_exports__["D"] = FILTERS_CONDITIONS_NONE;
+/* harmony export (immutable) */ __webpack_exports__["O"] = FILTERS_CONDITIONS_NONE;
 
 const FILTERS_CONDITIONS_EMPTY = 'Filters:conditions.isEmpty';
-/* harmony export (immutable) */ __webpack_exports__["A"] = FILTERS_CONDITIONS_EMPTY;
+/* harmony export (immutable) */ __webpack_exports__["H"] = FILTERS_CONDITIONS_EMPTY;
 
 const FILTERS_CONDITIONS_NOT_EMPTY = 'Filters:conditions.isNotEmpty';
-/* harmony export (immutable) */ __webpack_exports__["F"] = FILTERS_CONDITIONS_NOT_EMPTY;
+/* harmony export (immutable) */ __webpack_exports__["R"] = FILTERS_CONDITIONS_NOT_EMPTY;
 
 const FILTERS_CONDITIONS_EQUAL = 'Filters:conditions.isEqualTo';
-/* harmony export (immutable) */ __webpack_exports__["C"] = FILTERS_CONDITIONS_EQUAL;
+/* harmony export (immutable) */ __webpack_exports__["J"] = FILTERS_CONDITIONS_EQUAL;
 
 const FILTERS_CONDITIONS_NOT_EQUAL = 'Filters:conditions.isNotEqualTo';
-/* harmony export (immutable) */ __webpack_exports__["G"] = FILTERS_CONDITIONS_NOT_EQUAL;
+/* harmony export (immutable) */ __webpack_exports__["S"] = FILTERS_CONDITIONS_NOT_EQUAL;
 
 const FILTERS_CONDITIONS_BEGINS_WITH = 'Filters:conditions.beginsWith';
-/* harmony export (immutable) */ __webpack_exports__["y"] = FILTERS_CONDITIONS_BEGINS_WITH;
+/* harmony export (immutable) */ __webpack_exports__["D"] = FILTERS_CONDITIONS_BEGINS_WITH;
 
 const FILTERS_CONDITIONS_ENDS_WITH = 'Filters:conditions.endsWith';
-/* harmony export (immutable) */ __webpack_exports__["B"] = FILTERS_CONDITIONS_ENDS_WITH;
+/* harmony export (immutable) */ __webpack_exports__["I"] = FILTERS_CONDITIONS_ENDS_WITH;
 
 const FILTERS_CONDITIONS_CONTAINS = 'Filters:conditions.contains';
-/* harmony export (immutable) */ __webpack_exports__["z"] = FILTERS_CONDITIONS_CONTAINS;
+/* harmony export (immutable) */ __webpack_exports__["G"] = FILTERS_CONDITIONS_CONTAINS;
 
 const FILTERS_CONDITIONS_NOT_CONTAIN = 'Filters:conditions.doesNotContain';
-/* harmony export (immutable) */ __webpack_exports__["E"] = FILTERS_CONDITIONS_NOT_CONTAIN;
+/* harmony export (immutable) */ __webpack_exports__["Q"] = FILTERS_CONDITIONS_NOT_CONTAIN;
+
+const FILTERS_CONDITIONS_BY_VALUE = 'Filters:conditions.byValue';
+/* harmony export (immutable) */ __webpack_exports__["F"] = FILTERS_CONDITIONS_BY_VALUE;
+
+const FILTERS_CONDITIONS_GREATER_THAN = 'Filters:conditions.greaterThan';
+/* harmony export (immutable) */ __webpack_exports__["K"] = FILTERS_CONDITIONS_GREATER_THAN;
+
+const FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL = 'Filters:conditions.greaterThanOrEqualTo';
+/* harmony export (immutable) */ __webpack_exports__["L"] = FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL;
+
+const FILTERS_CONDITIONS_LESS_THAN = 'Filters:conditions.lessThan';
+/* harmony export (immutable) */ __webpack_exports__["M"] = FILTERS_CONDITIONS_LESS_THAN;
+
+const FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL = 'Filters:conditions.lessThanOrEqualTo';
+/* harmony export (immutable) */ __webpack_exports__["N"] = FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL;
+
+const FILTERS_CONDITIONS_BETWEEN = 'Filters:conditions.isBetween';
+/* harmony export (immutable) */ __webpack_exports__["E"] = FILTERS_CONDITIONS_BETWEEN;
+
+const FILTERS_CONDITIONS_NOT_BETWEEN = 'Filters:conditions.isNotBetween';
+/* harmony export (immutable) */ __webpack_exports__["P"] = FILTERS_CONDITIONS_NOT_BETWEEN;
+
+const FILTERS_CONDITIONS_AFTER = 'Filters:conditions.after';
+/* harmony export (immutable) */ __webpack_exports__["B"] = FILTERS_CONDITIONS_AFTER;
+
+const FILTERS_CONDITIONS_BEFORE = 'Filters:conditions.before';
+/* harmony export (immutable) */ __webpack_exports__["C"] = FILTERS_CONDITIONS_BEFORE;
+
+const FILTERS_CONDITIONS_TODAY = 'Filters:conditions.today';
+/* harmony export (immutable) */ __webpack_exports__["T"] = FILTERS_CONDITIONS_TODAY;
+
+const FILTERS_CONDITIONS_TOMORROW = 'Filters:conditions.tomorrow';
+/* harmony export (immutable) */ __webpack_exports__["U"] = FILTERS_CONDITIONS_TOMORROW;
+
+const FILTERS_CONDITIONS_YESTERDAY = 'Filters:conditions.yesterday';
+/* harmony export (immutable) */ __webpack_exports__["V"] = FILTERS_CONDITIONS_YESTERDAY;
 
 
 const FILTERS_LABELS_FILTER_BY_CONDITION = 'Filters:labels.filterByCondition';
-/* harmony export (immutable) */ __webpack_exports__["J"] = FILTERS_LABELS_FILTER_BY_CONDITION;
+/* harmony export (immutable) */ __webpack_exports__["Y"] = FILTERS_LABELS_FILTER_BY_CONDITION;
 
 const FILTERS_LABELS_FILTER_BY_VALUE = 'Filters:labels.filterByValue';
-/* harmony export (immutable) */ __webpack_exports__["K"] = FILTERS_LABELS_FILTER_BY_VALUE;
+/* harmony export (immutable) */ __webpack_exports__["Z"] = FILTERS_LABELS_FILTER_BY_VALUE;
 
 const FILTERS_LABELS_CONJUNCTION = 'Filters:labels.conjunction';
-/* harmony export (immutable) */ __webpack_exports__["H"] = FILTERS_LABELS_CONJUNCTION;
+/* harmony export (immutable) */ __webpack_exports__["W"] = FILTERS_LABELS_CONJUNCTION;
 
 const FILTERS_LABELS_DISJUNCTION = 'Filters:labels.disjunction';
-/* harmony export (immutable) */ __webpack_exports__["I"] = FILTERS_LABELS_DISJUNCTION;
+/* harmony export (immutable) */ __webpack_exports__["X"] = FILTERS_LABELS_DISJUNCTION;
 
 
 const FILTERS_BUTTONS_SELECT_ALL = 'Filters:buttons.searchAll';
-/* harmony export (immutable) */ __webpack_exports__["x"] = FILTERS_BUTTONS_SELECT_ALL;
+/* harmony export (immutable) */ __webpack_exports__["A"] = FILTERS_BUTTONS_SELECT_ALL;
 
 const FILTERS_BUTTONS_CLEAR = 'Filters:buttons.clear';
 /* harmony export (immutable) */ __webpack_exports__["v"] = FILTERS_BUTTONS_CLEAR;
@@ -220,6 +258,16 @@ const FILTERS_BUTTONS_OK = 'Filters:buttons.ok';
 
 const FILTERS_BUTTONS_CANCEL = 'Filters:buttons.cancel';
 /* harmony export (immutable) */ __webpack_exports__["u"] = FILTERS_BUTTONS_CANCEL;
+
+
+const FILTERS_BUTTONS_PLACEHOLDER_SEARCH = 'Filters:buttons.placeholder.search';
+/* harmony export (immutable) */ __webpack_exports__["x"] = FILTERS_BUTTONS_PLACEHOLDER_SEARCH;
+
+const FILTERS_BUTTONS_PLACEHOLDER_VALUE = 'Filters:buttons.placeholder.value';
+/* harmony export (immutable) */ __webpack_exports__["z"] = FILTERS_BUTTONS_PLACEHOLDER_VALUE;
+
+const FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE = 'Filters:buttons.placeholder.secondValue';
+/* harmony export (immutable) */ __webpack_exports__["y"] = FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE;
 
 
 
@@ -242,7 +290,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /**
  * @preserve
  * Authors: Wojciech Szymański
- * Last updated: 19.09.2017
+ * Last updated: 12.10.2017
  *
  * Description: Definition file for English language.
  */
@@ -274,25 +322,41 @@ const dictionary = {
   [__WEBPACK_IMPORTED_MODULE_0__constants__["j" /* CONTEXTMENU_ITEMS_COPY */]]: 'Copy',
   [__WEBPACK_IMPORTED_MODULE_0__constants__["k" /* CONTEXTMENU_ITEMS_CUT */]]: 'Cut',
 
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["D" /* FILTERS_CONDITIONS_NONE */]]: 'None',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["A" /* FILTERS_CONDITIONS_EMPTY */]]: 'Is Empty',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["F" /* FILTERS_CONDITIONS_NOT_EMPTY */]]: 'Is not empty',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["C" /* FILTERS_CONDITIONS_EQUAL */]]: 'Is equal to',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["G" /* FILTERS_CONDITIONS_NOT_EQUAL */]]: 'Is not equal to',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["y" /* FILTERS_CONDITIONS_BEGINS_WITH */]]: 'Begins with',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["B" /* FILTERS_CONDITIONS_ENDS_WITH */]]: 'Ends with',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["z" /* FILTERS_CONDITIONS_CONTAINS */]]: 'Contains',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["E" /* FILTERS_CONDITIONS_NOT_CONTAIN */]]: 'Does not contain',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["O" /* FILTERS_CONDITIONS_NONE */]]: 'None',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["H" /* FILTERS_CONDITIONS_EMPTY */]]: 'Is empty',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["R" /* FILTERS_CONDITIONS_NOT_EMPTY */]]: 'Is not empty',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["J" /* FILTERS_CONDITIONS_EQUAL */]]: 'Is equal to',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["S" /* FILTERS_CONDITIONS_NOT_EQUAL */]]: 'Is not equal to',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["D" /* FILTERS_CONDITIONS_BEGINS_WITH */]]: 'Begins with',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["I" /* FILTERS_CONDITIONS_ENDS_WITH */]]: 'Ends with',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["G" /* FILTERS_CONDITIONS_CONTAINS */]]: 'Contains',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["Q" /* FILTERS_CONDITIONS_NOT_CONTAIN */]]: 'Does not contain',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["F" /* FILTERS_CONDITIONS_BY_VALUE */]]: 'By value',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["K" /* FILTERS_CONDITIONS_GREATER_THAN */]]: 'Greater than',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["L" /* FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL */]]: 'Greater than or equal to',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["M" /* FILTERS_CONDITIONS_LESS_THAN */]]: 'Less than',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["N" /* FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL */]]: 'Less than or equal to',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["E" /* FILTERS_CONDITIONS_BETWEEN */]]: 'Is between',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["P" /* FILTERS_CONDITIONS_NOT_BETWEEN */]]: 'Is not between',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["B" /* FILTERS_CONDITIONS_AFTER */]]: 'After',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["C" /* FILTERS_CONDITIONS_BEFORE */]]: 'Before',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["T" /* FILTERS_CONDITIONS_TODAY */]]: 'Today',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["U" /* FILTERS_CONDITIONS_TOMORROW */]]: 'Tomorrow',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["V" /* FILTERS_CONDITIONS_YESTERDAY */]]: 'Yesterday',
 
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["J" /* FILTERS_LABELS_FILTER_BY_CONDITION */]]: 'Filter by condition',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["K" /* FILTERS_LABELS_FILTER_BY_VALUE */]]: 'Filter by value',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["H" /* FILTERS_LABELS_CONJUNCTION */]]: 'And',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["I" /* FILTERS_LABELS_DISJUNCTION */]]: 'Or',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["Y" /* FILTERS_LABELS_FILTER_BY_CONDITION */]]: 'Filter by condition',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["Z" /* FILTERS_LABELS_FILTER_BY_VALUE */]]: 'Filter by value',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["W" /* FILTERS_LABELS_CONJUNCTION */]]: 'And',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["X" /* FILTERS_LABELS_DISJUNCTION */]]: 'Or',
 
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["x" /* FILTERS_BUTTONS_SELECT_ALL */]]: 'Select all',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["A" /* FILTERS_BUTTONS_SELECT_ALL */]]: 'Select all',
   [__WEBPACK_IMPORTED_MODULE_0__constants__["v" /* FILTERS_BUTTONS_CLEAR */]]: 'Clear',
   [__WEBPACK_IMPORTED_MODULE_0__constants__["w" /* FILTERS_BUTTONS_OK */]]: 'OK',
   [__WEBPACK_IMPORTED_MODULE_0__constants__["u" /* FILTERS_BUTTONS_CANCEL */]]: 'Cancel',
+
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["x" /* FILTERS_BUTTONS_PLACEHOLDER_SEARCH */]]: 'Search...',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["z" /* FILTERS_BUTTONS_PLACEHOLDER_VALUE */]]: 'Value',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["y" /* FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE */]]: 'Second value'
 };
 
 __WEBPACK_IMPORTED_MODULE_1__handsontable_pro___default.a.languages.registerLocaleDictionary(dictionary.languageCode, dictionary);
