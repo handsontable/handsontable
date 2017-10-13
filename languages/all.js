@@ -298,7 +298,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 const dictionary = {
   languageCode: 'de-DE',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["r" /* CONTEXTMENU_ITEMS_ROW_ABOVE */]]: 'Legen Sie die Zeile oben'
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["r" /* CONTEXTMENU_ITEMS_ROW_ABOVE */]]: 'Legen Sie die Zeile oben',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["l" /* CONTEXTMENU_ITEMS_INSERT_LEFT */]]: 'Spalte links einfügen'
 };
 
 __WEBPACK_IMPORTED_MODULE_1__handsontable_pro___default.a.languages.registerLocaleDictionary(dictionary.languageCode, dictionary);
@@ -413,7 +414,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 const dictionary = {
   languageCode: 'es-ES',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["r" /* CONTEXTMENU_ITEMS_ROW_ABOVE */]]: 'Coloque la fila arriba'
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["r" /* CONTEXTMENU_ITEMS_ROW_ABOVE */]]: 'Coloque la fila arriba',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["l" /* CONTEXTMENU_ITEMS_INSERT_LEFT */]]: 'Insertar columna a la izquierda'
 };
 
 __WEBPACK_IMPORTED_MODULE_1__handsontable_pro___default.a.languages.registerLocaleDictionary(dictionary.languageCode, dictionary);
@@ -442,7 +444,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 const dictionary = {
   languageCode: 'fr-FR',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["r" /* CONTEXTMENU_ITEMS_ROW_ABOVE */]]: 'Placez la ligne ci-dessus'
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["r" /* CONTEXTMENU_ITEMS_ROW_ABOVE */]]: 'Placez la ligne ci-dessus',
+  [__WEBPACK_IMPORTED_MODULE_0__constants__["l" /* CONTEXTMENU_ITEMS_INSERT_LEFT */]]: 'Insérer la colonne à gauche'
 };
 
 __WEBPACK_IMPORTED_MODULE_1__handsontable_pro___default.a.languages.registerLocaleDictionary(dictionary.languageCode, dictionary);
