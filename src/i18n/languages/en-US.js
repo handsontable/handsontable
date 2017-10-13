@@ -3,7 +3,7 @@
  * Authors: Wojciech Szymański
  * Last updated: 12.10.2017
  *
- * Description: Definition file for English language.
+ * Description: Definition file for English - United States language-country.
  */
 import * as C from '../constants';
 

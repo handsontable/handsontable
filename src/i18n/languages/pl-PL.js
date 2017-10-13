@@ -3,7 +3,7 @@
  * Authors: Wojciech Szymański
  * Last updated: 12.10.2017
  *
- * Description: Definition file for Polish language.
+ * Description: Definition file for Polish - Poland language-country.
  */
 import * as C from '../constants';
 

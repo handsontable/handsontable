@@ -50,7 +50,7 @@ const ruleForSnippetsInjection = {
     {
       pattern: /export default dictionary.+/,
       replacement: function(match) {
-        const snippet = `Handsontable.languages.registerLocaleDictionary(dictionary.languageCode, dictionary);`;
+        const snippet = `Handsontable.languages.register(dictionary.languageCode, dictionary);`;
 
         return `${snippet}${NEW_LINE_CHAR.repeat(2)}${match}`;
       }

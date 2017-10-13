@@ -3,17 +3,16 @@ import pluralizeFn from './pluralize';
 
 const {
   register: registerGloballyPhraseFormatter,
-  getValues: getGlobalFormatters,
+  getValues: getGlobalPhraseFormatters,
 } = staticRegister('phraseFormatters');
 
 /**
- * Register formatter.
+ * Register phrase formatter.
  *
  * @param {string} name Name of formatter.
- * @param {Function} formatterFn Function which will be applied on phrase propositions.
- * It will transform them if it's possible.
+ * @param {Function} formatterFn Function which will be applied on phrase propositions. It will transform them if it's possible.
  */
-export function registerPhraseFormatter(name, formatterFn) {
+export function register(name, formatterFn) {
   registerGloballyPhraseFormatter(name, formatterFn);
 }
 
@@ -22,8 +21,8 @@ export function registerPhraseFormatter(name, formatterFn) {
  *
  * @returns {Array}
  */
-export function getPhraseFormatters() {
-  return getGlobalFormatters();
+export function getAll() {
+  return getGlobalPhraseFormatters();
 }
 
-registerPhraseFormatter('pluralize', pluralizeFn);
+register('pluralize', pluralizeFn);
