@@ -20,7 +20,7 @@ function Event(instance) {
   var dblClickOrigin = [null, null];
   this.dblClickTimeout = [null, null];
 
-  var onMouseDown = function(event) {
+  var onMouseDown = function (event) {
     const activeElement = document.activeElement;
     const getParentNode = partial(getParent, event.realTarget);
     const realTarget = event.realTarget;
@@ -53,13 +53,13 @@ function Event(instance) {
     }
   };
 
-  var onTouchMove = function() {
+  var onTouchMove = function () {
     that.instance.touchMoving = true;
   };
 
   var longTouchTimeout;
 
-  var onTouchStart = function(event) {
+  var onTouchStart = function (event) {
     eventManager.addEventListener(this, 'touchmove', onTouchMove);
 
     // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
@@ -75,7 +75,7 @@ function Event(instance) {
     }, 30);
   };
 
-  var onMouseOver = function(event) {
+  var onMouseOver = function (event) {
     var table,
       td,
       mainWOT;
@@ -93,7 +93,7 @@ function Event(instance) {
     }
   };
 
-  var onMouseOut = function(event) {
+  var onMouseOut = function (event) {
     let table;
     let lastTD;
     let nextTD;
@@ -109,7 +109,7 @@ function Event(instance) {
     }
   };
 
-  var onMouseUp = function(event) {
+  var onMouseUp = function (event) {
     if (event.button !== 2) { // if not right mouse button
       var cell = that.parentCell(event.realTarget);
 
@@ -139,7 +139,7 @@ function Event(instance) {
     }
   };
 
-  var onTouchEnd = function(event) {
+  var onTouchEnd = function (event) {
     clearTimeout(longTouchTimeout);
     // that.instance.longTouch == void 0;
 
@@ -198,7 +198,7 @@ function Event(instance) {
     }
   });
 
-  this.destroy = function() {
+  this.destroy = function () {
     clearTimeout(this.dblClickTimeout[0]);
     clearTimeout(this.dblClickTimeout[1]);
 
@@ -206,7 +206,7 @@ function Event(instance) {
   };
 }
 
-Event.prototype.parentCell = function(elem) {
+Event.prototype.parentCell = function (elem) {
   var cell = {};
   var TABLE = this.instance.wtTable.TABLE;
   var TD = closestDown(elem, ['TD', 'TH'], TABLE);

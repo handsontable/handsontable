@@ -1,11 +1,11 @@
 describe('HandsontableEditor', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -23,7 +23,7 @@ describe('HandsontableEditor', () => {
     ];
   }
 
-  it('should create an editor that is a Handsontable instance', function() {
+  it('should create an editor that is a Handsontable instance', function () {
     handsontable({
       columns: [
         {
@@ -41,7 +41,7 @@ describe('HandsontableEditor', () => {
     expect(this.$container.find('.handsontableEditor:visible').length).toEqual(1);
   });
 
-  it('should create an editor directly below the textarea element', function() {
+  it('should create an editor directly below the textarea element', function () {
     handsontable({
       columns: [
         {
@@ -59,7 +59,7 @@ describe('HandsontableEditor', () => {
     expect(this.$container.find('.handsontableEditor')[0].offsetTop).toEqual(this.$container.find('.handsontableInput')[0].offsetHeight);
   });
 
-  it('should destroy the editor when Esc is pressed', function() {
+  it('should destroy the editor when Esc is pressed', function () {
     handsontable({
       columns: [
         {
@@ -83,7 +83,7 @@ describe('HandsontableEditor', () => {
     var spy = jasmine.createSpyObj('error', ['test']);
     var prevError = window.onerror;
 
-    window.onerror = function() {
+    window.onerror = function () {
       spy.test();
     };
     handsontable({
@@ -105,7 +105,7 @@ describe('HandsontableEditor', () => {
     window.onerror = prevError;
   });
 
-  it('Enter pressed in nested HT should set the value and hide the editor', function() {
+  it('Enter pressed in nested HT should set the value and hide the editor', function () {
     handsontable({
       columns: [
         {

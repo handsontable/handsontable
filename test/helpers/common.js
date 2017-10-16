@@ -140,7 +140,7 @@ export function dropdownMenuRootElement() {
  * @return {Function}
  */
 export function handsontableMouseTriggerFactory(type, button) {
-  return function(element) {
+  return function (element) {
     if (!(element instanceof jQuery)) {
       element = $(element);
     }
@@ -172,7 +172,7 @@ export const mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
  * @return {Function}
  */
 export function handsontableKeyTriggerFactory(type) {
-  return function(key, extend) {
+  return function (key, extend) {
     var ev = {}; // $.Event(type);
 
     if (typeof key === 'string') {
@@ -293,12 +293,12 @@ export function keyProxy() {
 
 export function serveImmediatePropagation(event) {
   if (event !== null && event.isImmediatePropagationEnabled === null) {
-    event.stopImmediatePropagation = function() {
+    event.stopImmediatePropagation = function () {
       this.isImmediatePropagationEnabled = false;
       this.cancelBubble = true;
     };
     event.isImmediatePropagationEnabled = true;
-    event.isImmediatePropagationStopped = function() {
+    event.isImmediatePropagationStopped = function () {
       return !this.isImmediatePropagationEnabled;
     };
   }
@@ -348,7 +348,7 @@ export function triggerPaste(str) {
  * @return {Function}
  */
 export function handsontableMethodFactory(method) {
-  return function(...args) {
+  return function (...args) {
     var instance;
     try {
       instance = spec().$container.handsontable('getInstance');
@@ -533,7 +533,7 @@ export function Model(opts) {
     address: undefined,
   }, opts);
 
-  obj.attr = function(name, value) {
+  obj.attr = function (name, value) {
     if (typeof value === 'undefined') {
       return this.get(name);
     }
@@ -541,11 +541,11 @@ export function Model(opts) {
     return this.set(name, value);
   };
 
-  obj.get = function(name) {
+  obj.get = function (name) {
     return _data[name];
   };
 
-  obj.set = function(name, value) {
+  obj.set = function (name, value) {
     _data[name] = value;
 
     return this;
@@ -562,7 +562,7 @@ export function Model(opts) {
  * @returns {Function}
  */
 export function createAccessorForProperty(name) {
-  return function(obj, value) {
+  return function (obj, value) {
     return obj.attr(name, value);
   };
 }

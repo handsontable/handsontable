@@ -1,18 +1,18 @@
 describe('NumericEditor', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfObjects = function() {
+  var arrayOfObjects = function () {
     return [
       {id: 1, name: 'Ted', lastName: 'Right'},
       {id: 2, name: 'Frank', lastName: 'Honest'},
@@ -452,7 +452,7 @@ describe('NumericEditor', () => {
   });
 
   describe('Cell corner is showed properly when changing focused cells #3877', () => {
-    var isFocusedCellDisplayingCornerTest = function(settings) {
+    var isFocusedCellDisplayingCornerTest = function (settings) {
       var moveFromRow = settings.moveFromRow;
       var moveFromCol = settings.moveFromCol;
       var moveToRow = settings.moveToRow;
@@ -470,7 +470,7 @@ describe('NumericEditor', () => {
       }, 100);
     };
 
-    it('Moving from numeric editor to text editor', function(done) {
+    it('Moving from numeric editor to text editor', function (done) {
       handsontable({
         data: [
           {id: 1, name: 'Ted', lastName: 'Right', money: 0},
@@ -493,7 +493,7 @@ describe('NumericEditor', () => {
       });
     });
 
-    it('Moving from text editor to numeric editor', function(done) {
+    it('Moving from text editor to numeric editor', function (done) {
       handsontable({
         data: [
           {id: 1, name: 'Ted', lastName: 'Right', money: 0},

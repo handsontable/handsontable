@@ -52,7 +52,7 @@ describe('Walkontable.Selection', () => {
     expect($td2.hasClass('current')).toEqual(true);
   });
 
-  it('should add class to selection on all overlays', function() {
+  it('should add class to selection on all overlays', function () {
     $wrapper.width(300).height(300);
 
     this.data = createSpreadsheetData(10, 10);
@@ -324,10 +324,10 @@ describe('Walkontable.Selection', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
-      columnHeaders: [function(row, TH) {
+      columnHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
       selections: [

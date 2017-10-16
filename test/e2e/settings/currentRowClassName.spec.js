@@ -1,11 +1,11 @@
 describe('settings', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -13,7 +13,7 @@ describe('settings', () => {
   });
 
   describe('currentRowClassName', () => {
-    it('should apply currentRowClassName to cells in row where there is a selection', function() {
+    it('should apply currentRowClassName to cells in row where there is a selection', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 7),
         currentRowClassName: 'currentRowClassName',
@@ -24,7 +24,7 @@ describe('settings', () => {
       expect(this.$container.find('td.currentRowClassName').length).toEqual(6);
     });
 
-    it('should apply currentRowClassName from cells after deselection', function() {
+    it('should apply currentRowClassName from cells after deselection', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 7),
         currentRowClassName: 'currentRowClassName',
@@ -38,7 +38,7 @@ describe('settings', () => {
   });
 
   describe('currentColClassName', () => {
-    it('should apply currentColClassName to cells in row where there is a selection', function() {
+    it('should apply currentColClassName to cells in row where there is a selection', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 7),
         currentColClassName: 'currentColClassName',
@@ -49,7 +49,7 @@ describe('settings', () => {
       expect(this.$container.find('td.currentColClassName').length).toEqual(4);
     });
 
-    it('should remove currentColClassName from cells after deselection', function() {
+    it('should remove currentColClassName from cells after deselection', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 7),
         currentColClassName: 'currentColClassName',

@@ -2,11 +2,11 @@ describe('AutocompleteEditor', () => {
   let id = 'testContainer';
   let choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -76,7 +76,7 @@ describe('AutocompleteEditor', () => {
       var spy = jasmine.createSpyObj('error', ['test']);
       var prevError = window.onerror;
 
-      window.onerror = function() {
+      window.onerror = function () {
         spy.test();
       };
       handsontable({
@@ -126,7 +126,7 @@ describe('AutocompleteEditor', () => {
       var source = jasmine.createSpy('source');
       var context;
 
-      source.and.callFake(function(query, process) {
+      source.and.callFake(function (query, process) {
         process(choices);
         context = this;
       });
@@ -901,8 +901,8 @@ describe('AutocompleteEditor', () => {
     it('should show fillHandle element again after close editor', (done) => {
       var syncSources = jasmine.createSpy('syncSources');
 
-      syncSources.plan = function(query, process) {
-        process(choices.filter((choice) => choice.indexOf(query) !== -1));
+      syncSources.plan = function (query, process) {
+        process(choices.filter(choice => choice.indexOf(query) !== -1));
       };
 
       handsontable({
@@ -988,7 +988,7 @@ describe('AutocompleteEditor', () => {
       var syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
-        process(choices.filter((choice) => choice.indexOf(query) !== -1));
+        process(choices.filter(choice => choice.indexOf(query) !== -1));
       });
 
       hot = handsontable({
@@ -1256,7 +1256,7 @@ describe('AutocompleteEditor', () => {
       var syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
-        process(choices.filter((choice) => choice.indexOf(query) !== -1));
+        process(choices.filter(choice => choice.indexOf(query) !== -1));
       });
 
       hot = handsontable({
@@ -1314,7 +1314,7 @@ describe('AutocompleteEditor', () => {
       var syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
-        process(choices.filter((choice) => choice.indexOf(query) !== -1));
+        process(choices.filter(choice => choice.indexOf(query) !== -1));
       });
 
       hot = handsontable({
@@ -1405,7 +1405,7 @@ describe('AutocompleteEditor', () => {
       var syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
-        process(choices.filter((choice) => choice.indexOf(query) !== -1));
+        process(choices.filter(choice => choice.indexOf(query) !== -1));
       });
 
       hot = handsontable({
@@ -1617,7 +1617,7 @@ describe('AutocompleteEditor', () => {
       var syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
-        process(choices2.filter((choice) => choice.search(new RegExp(query, 'i')) !== -1));
+        process(choices2.filter(choice => choice.search(new RegExp(query, 'i')) !== -1));
       });
 
       hot = handsontable({
@@ -1695,7 +1695,7 @@ describe('AutocompleteEditor', () => {
       var syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
-        process(choices2.filter((choice) => choice.search(new RegExp(query, 'i')) !== -1));
+        process(choices2.filter(choice => choice.search(new RegExp(query, 'i')) !== -1));
       });
 
       hot = handsontable({
@@ -1774,7 +1774,7 @@ describe('AutocompleteEditor', () => {
       var syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
-        process(choices2.filter((choice) => choice.search(new RegExp(query, 'i')) !== -1));
+        process(choices2.filter(choice => choice.search(new RegExp(query, 'i')) !== -1));
       });
 
       var hot = handsontable({
@@ -2425,7 +2425,7 @@ describe('AutocompleteEditor', () => {
     }, 200);
   });
 
-  it('should add a scrollbar to the autocomplete dropdown, only if number of displayed choices exceeds 10', function(done) {
+  it('should add a scrollbar to the autocomplete dropdown, only if number of displayed choices exceeds 10', function (done) {
     var hot = handsontable({
       data: [
         ['', 'two', 'three'],
@@ -2521,7 +2521,7 @@ describe('AutocompleteEditor', () => {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
-      process(choices.filter((choice) => choice.indexOf(query) !== -1));
+      process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
     handsontable({
@@ -2555,7 +2555,7 @@ describe('AutocompleteEditor', () => {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
-      process(choices.filter((choice) => choice.indexOf(query) !== -1));
+      process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
     handsontable({
@@ -2591,7 +2591,7 @@ describe('AutocompleteEditor', () => {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
-      process(choices.filter((choice) => choice.indexOf(query) !== -1));
+      process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
     handsontable({
@@ -2623,8 +2623,8 @@ describe('AutocompleteEditor', () => {
   it('should jump to the next cell, after pressing right key in quick edit mode', (done) => {
     var syncSources = jasmine.createSpy('syncSources');
 
-    syncSources.plan = function(query, process) {
-      process(choices.filter((choice) => choice.indexOf(query) !== -1));
+    syncSources.plan = function (query, process) {
+      process(choices.filter(choice => choice.indexOf(query) !== -1));
     };
 
     handsontable({
@@ -2657,7 +2657,7 @@ describe('AutocompleteEditor', () => {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
-      process(choices.filter((choice) => choice.indexOf(query) !== -1));
+      process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
     handsontable({
@@ -2692,7 +2692,7 @@ describe('AutocompleteEditor', () => {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
-      process(choices.filter((choice) => choice.indexOf(query) !== -1));
+      process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
     handsontable({
@@ -2724,7 +2724,7 @@ describe('AutocompleteEditor', () => {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
-      process(choices.filter((choice) => choice.indexOf(query) !== -1));
+      process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
     handsontable({
@@ -2762,7 +2762,7 @@ describe('AutocompleteEditor', () => {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
-      process(choices.filter((choice) => choice.indexOf(query) !== -1));
+      process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
     handsontable({
@@ -2794,7 +2794,7 @@ describe('AutocompleteEditor', () => {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
-      process(choices.filter((choice) => choice.indexOf(query) !== -1));
+      process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
     var hot = handsontable({
@@ -2831,7 +2831,7 @@ describe('AutocompleteEditor', () => {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
-      process(choices.filter((choice) => choice.indexOf(query) !== -1));
+      process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
     var hot = handsontable({
@@ -2872,7 +2872,7 @@ describe('AutocompleteEditor', () => {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
-      process(choices.filter((choice) => choice.indexOf(query) !== -1));
+      process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
     var hot = handsontable({
@@ -2908,7 +2908,7 @@ describe('AutocompleteEditor', () => {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
-      process(choices.filter((choice) => choice.indexOf(query) !== -1));
+      process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
     var hot = handsontable({

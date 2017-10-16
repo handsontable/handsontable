@@ -158,7 +158,7 @@ class Comments extends BasePlugin {
       this.displaySwitch = new DisplaySwitch(this.getDisplayDelaySetting());
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options) => this.addToContextMenu(options));
+    this.addHook('afterContextMenuDefaultOptions', options => this.addToContextMenu(options));
     this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
     this.addHook('afterScrollHorizontally', () => this.hide());
     this.addHook('afterScrollVertically', () => this.hide());
@@ -196,12 +196,12 @@ class Comments extends BasePlugin {
    * @private
    */
   registerListeners() {
-    this.eventManager.addEventListener(document, 'mouseover', (event) => this.onMouseOver(event));
-    this.eventManager.addEventListener(document, 'mousedown', (event) => this.onMouseDown(event));
-    this.eventManager.addEventListener(document, 'mouseup', (event) => this.onMouseUp(event));
-    this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', (event) => this.onEditorBlur(event));
-    this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', (event) => this.onEditorMouseDown(event));
-    this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', (event) => this.onEditorMouseUp(event));
+    this.eventManager.addEventListener(document, 'mouseover', event => this.onMouseOver(event));
+    this.eventManager.addEventListener(document, 'mousedown', event => this.onMouseDown(event));
+    this.eventManager.addEventListener(document, 'mouseup', event => this.onMouseUp(event));
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', event => this.onEditorBlur(event));
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', event => this.onEditorMouseDown(event));
+    this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', event => this.onEditorMouseUp(event));
   }
 
   /**

@@ -1,18 +1,18 @@
 describe('CopyPaste', () => {
   const id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  const arrayOfArrays = function() {
+  const arrayOfArrays = function () {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
@@ -39,11 +39,11 @@ describe('CopyPaste', () => {
   });
 
   describe('working with multiple tables', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.$container2 = $(`<div id="${id}2"></div>`).appendTo('body');
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (this.$container2) {
         this.$container2.handsontable('destroy');
         this.$container2.remove();

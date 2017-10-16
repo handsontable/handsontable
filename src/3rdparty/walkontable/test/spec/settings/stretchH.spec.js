@@ -33,7 +33,7 @@ describe('stretchH option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       stretchH: 'all',
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
     });
@@ -55,7 +55,7 @@ describe('stretchH option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       stretchH: 'all',
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
     });
@@ -78,7 +78,7 @@ describe('stretchH option', () => {
     }, 10);
   });
 
-  it('should stretch all visible columns when stretchH equals \'all\' (when rows are of variable height)', function() {
+  it('should stretch all visible columns when stretchH equals \'all\' (when rows are of variable height)', function () {
     createDataArray(20, 2);
 
     for (var i = 0, ilen = this.data.length; i < ilen; i++) {
@@ -120,7 +120,7 @@ describe('stretchH option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       stretchH: 'last',
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
     });
@@ -143,7 +143,7 @@ describe('stretchH option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       stretchH: 'last',
-      columnHeaders: [function(index, TH) {
+      columnHeaders: [function (index, TH) {
         TH.innerHTML = index + 1;
       }],
       columnWidth(index) {
@@ -170,7 +170,7 @@ describe('stretchH option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       stretchH: 'last',
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
     });
@@ -191,7 +191,7 @@ describe('stretchH option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       stretchH: 'none',
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
     });

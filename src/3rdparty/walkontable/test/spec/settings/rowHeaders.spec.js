@@ -40,7 +40,7 @@ describe('rowHeaders option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
     });
@@ -55,7 +55,7 @@ describe('rowHeaders option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
     });
@@ -78,7 +78,7 @@ describe('rowHeaders option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
     });
@@ -97,10 +97,10 @@ describe('rowHeaders option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
       }],
     });

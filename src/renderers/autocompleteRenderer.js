@@ -45,7 +45,7 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
     var eventManager = new EventManager(instance);
 
     // not very elegant but easy and fast
-    instance.acArrowListener = function(event) {
+    instance.acArrowListener = function (event) {
       if (hasClass(event.target, 'htAutocompleteArrow')) {
         instance.view.wt.getSetting('onCellDblClick', null, new CellCoords(row, col), TD);
       }

@@ -4,24 +4,24 @@ import {hasOwnProperty, objectEach} from './../../helpers/object';
 function Storage(prefix) {
   var savedKeys;
 
-  var saveSavedKeys = function() {
+  var saveSavedKeys = function () {
     window.localStorage[`${prefix}__persistentStateKeys`] = JSON.stringify(savedKeys);
   };
 
-  var loadSavedKeys = function() {
+  var loadSavedKeys = function () {
     var keysJSON = window.localStorage[`${prefix}__persistentStateKeys`];
     var keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : void 0;
-    savedKeys = keys ? keys : [];
+    savedKeys = keys || [];
   };
 
-  var clearSavedKeys = function() {
+  var clearSavedKeys = function () {
     savedKeys = [];
     saveSavedKeys();
   };
 
   loadSavedKeys();
 
-  this.saveValue = function(key, value) {
+  this.saveValue = function (key, value) {
     window.localStorage[`${prefix}_${key}`] = JSON.stringify(value);
     if (savedKeys.indexOf(key) === -1) {
       savedKeys.push(key);
@@ -30,7 +30,7 @@ function Storage(prefix) {
 
   };
 
-  this.loadValue = function(key, defaultValue) {
+  this.loadValue = function (key, defaultValue) {
 
     key = typeof key === 'undefined' ? defaultValue : key;
 
@@ -39,11 +39,11 @@ function Storage(prefix) {
     return typeof value === 'undefined' ? void 0 : JSON.parse(value);
   };
 
-  this.reset = function(key) {
+  this.reset = function (key) {
     window.localStorage.removeItem(`${prefix}_${key}`);
   };
 
-  this.resetAll = function() {
+  this.resetAll = function () {
     for (var index = 0; index < savedKeys.length; index++) {
       window.localStorage.removeItem(`${prefix}_${savedKeys[index]}`);
     }
@@ -60,7 +60,7 @@ function Storage(prefix) {
 function HandsontablePersistentState() {
   var plugin = this;
 
-  this.init = function() {
+  this.init = function () {
     var instance = this,
       pluginSettings = instance.getSettings().persistentState;
 
@@ -81,19 +81,19 @@ function HandsontablePersistentState() {
 
   };
 
-  this.saveValue = function(key, value) {
+  this.saveValue = function (key, value) {
     var instance = this;
 
     instance.storage.saveValue(key, value);
   };
 
-  this.loadValue = function(key, saveTo) {
+  this.loadValue = function (key, saveTo) {
     var instance = this;
 
     saveTo.value = instance.storage.loadValue(key);
   };
 
-  this.resetValue = function(key) {
+  this.resetValue = function (key) {
     var instance = this;
 
     if (typeof key === 'undefined') {

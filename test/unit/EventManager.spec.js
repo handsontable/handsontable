@@ -12,8 +12,8 @@ describe('EventManager', () => {
 
     expect(instance.eventListeners.length).toEqual(0);
 
-    var test = function() {};
-    var test2 = function() {};
+    var test = function () {};
+    var test2 = function () {};
 
     eM0.addEventListener(window, 'click', test, true);
     eM1.addEventListener(window, 'mousedown', test);

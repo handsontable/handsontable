@@ -17,14 +17,14 @@ function DragToScroll() {
 /**
  * @param boundaries {Object} compatible with getBoundingClientRect
  */
-DragToScroll.prototype.setBoundaries = function(boundaries) {
+DragToScroll.prototype.setBoundaries = function (boundaries) {
   this.boundaries = boundaries;
 };
 
 /**
  * @param callback {Function}
  */
-DragToScroll.prototype.setCallback = function(callback) {
+DragToScroll.prototype.setCallback = function (callback) {
   this.callback = callback;
 };
 
@@ -33,7 +33,7 @@ DragToScroll.prototype.setCallback = function(callback) {
  * @param x
  * @param y
  */
-DragToScroll.prototype.check = function(x, y) {
+DragToScroll.prototype.check = function (x, y) {
   var diffX = 0;
   var diffY = 0;
 
@@ -59,7 +59,7 @@ DragToScroll.prototype.check = function(x, y) {
 var dragToScroll;
 // var instance;
 
-var setupListening = function(instance) {
+var setupListening = function (instance) {
   instance.dragToScrollListening = false;
   var scrollHandler = instance.view.wt.wtTable.holder; // native scroll
   dragToScroll = new DragToScroll();
@@ -87,7 +87,7 @@ var setupListening = function(instance) {
   instance.dragToScrollListening = true;
 };
 
-Hooks.getSingleton().add('afterInit', function() {
+Hooks.getSingleton().add('afterInit', function () {
   var instance = this;
   var eventManager = new EventManager(this);
 
@@ -102,15 +102,15 @@ Hooks.getSingleton().add('afterInit', function() {
   });
 });
 
-Hooks.getSingleton().add('afterDestroy', function() {
+Hooks.getSingleton().add('afterDestroy', function () {
   (new EventManager(this)).clear();
 });
 
-Hooks.getSingleton().add('afterOnCellMouseDown', function() {
+Hooks.getSingleton().add('afterOnCellMouseDown', function () {
   setupListening(this);
 });
 
-Hooks.getSingleton().add('afterOnCellCornerMouseDown', function() {
+Hooks.getSingleton().add('afterOnCellCornerMouseDown', function () {
   setupListening(this);
 });
 

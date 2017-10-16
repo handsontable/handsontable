@@ -1,11 +1,11 @@
 describe('AutoRowSize', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -27,7 +27,7 @@ describe('AutoRowSize', () => {
     ];
   }
 
-  it('should apply auto size by default', function() {
+  it('should apply auto size by default', function () {
     handsontable({
       data: arrayOfObjects(),
     });
@@ -76,7 +76,7 @@ describe('AutoRowSize', () => {
     var SYNC_CALCULATION_LIMIT = Handsontable.plugins.AutoRowSize.SYNC_CALCULATION_LIMIT;
     var CALCULATION_STEP = Handsontable.plugins.AutoRowSize.CALCULATION_STEP;
 
-    beforeEach(function() {
+    beforeEach(function () {
       if (!this.$container) {
         this.$container = $(`<div id="${id}"></div>`).appendTo('body');
       }
@@ -96,7 +96,7 @@ describe('AutoRowSize', () => {
       $(head).append(style);
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (this.$container) {
         destroy();
         this.$container.remove();
@@ -174,7 +174,7 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should correctly detect row height when table is hidden on init (display: none)', function(done) {
+  it('should correctly detect row height when table is hidden on init (display: none)', function (done) {
     this.$container.css('display', 'none');
     var hot = handsontable({
       data: arrayOfObjects(),
@@ -193,7 +193,7 @@ describe('AutoRowSize', () => {
     }, 200);
   });
 
-  it('should be possible to disable plugin using updateSettings', function() {
+  it('should be possible to disable plugin using updateSettings', function () {
     var hot = handsontable({
       data: arrayOfObjects(),
     });
@@ -276,7 +276,7 @@ describe('AutoRowSize', () => {
     $container2.remove();
   });
 
-  it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', function() {
+  it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', function () {
     var $style = $('<style>.htCore.big-table td {font-size: 32px;line-height: 1.1}</style>').appendTo('head');
 
     var hot = handsontable({
@@ -361,7 +361,7 @@ describe('AutoRowSize', () => {
     expect(document.querySelector('.htAutoSize')).toBe(null);
   });
 
-  it('should recalculate heights after column resize', function() {
+  it('should recalculate heights after column resize', function () {
     var hot = handsontable({
       data: arrayOfObjects2(),
       colWidths: 250,

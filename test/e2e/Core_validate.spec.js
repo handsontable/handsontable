@@ -1,18 +1,18 @@
 describe('Core_validate', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfObjects = function() {
+  var arrayOfObjects = function () {
     return [
       {id: 1, name: 'Ted', lastName: 'Right'},
       {id: 2, name: 'Frank', lastName: 'Honest'},
@@ -426,7 +426,7 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('should add class name `htInvalid` to an cell that does not validate - when we trigger validateCell', function(done) {
+  it('should add class name `htInvalid` to an cell that does not validate - when we trigger validateCell', function (done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
@@ -450,7 +450,7 @@ describe('Core_validate', () => {
   it('should remove class name `htInvalid` from an cell that does validate - when we change validator rules', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
     var isValid = false;
-    var validator = function() {
+    var validator = function () {
       return isValid;
     };
     var hot = handsontable({
@@ -1256,7 +1256,7 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('should not allow keyboard movement until cell is validated (move LEFT)', function(done) {
+  it('should not allow keyboard movement until cell is validated (move LEFT)', function (done) {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     hot = handsontable({

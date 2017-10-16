@@ -33,7 +33,7 @@ describe('WalkontableScrollbar', () => {
     expect($table.parents('.wtHolder').length).toEqual(1);
   });
 
-  it('scrolling should have no effect when totalRows is smaller than height', function() {
+  it('scrolling should have no effect when totalRows is smaller than height', function () {
     this.data.splice(5, this.data.length - 5);
 
     try {

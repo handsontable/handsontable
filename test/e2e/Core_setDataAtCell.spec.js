@@ -1,18 +1,18 @@
 describe('Core_setDataAtCell', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfNestedObjects = function() {
+  var arrayOfNestedObjects = function () {
     return [
       {id: 1,
         name: {
@@ -183,7 +183,7 @@ describe('Core_setDataAtCell', () => {
           address: undefined,
         }, opts);
 
-      _pub.attr = function(attr, val) {
+      _pub.attr = function (attr, val) {
         if (typeof val === 'undefined') {
           return _priv[attr];
         }
@@ -196,7 +196,7 @@ describe('Core_setDataAtCell', () => {
     }
 
     function property(attr) {
-      return function(row, value) {
+      return function (row, value) {
         return row.attr(attr, value);
       };
     }

@@ -1567,7 +1567,7 @@ describe('ContextMenu', () => {
       expect($menu.find('tbody td:eq(4)').hasClass('htDisabled')).toBe(false);
     });
 
-    it('should disable Remove col in context menu when rows are selected by headers', function() {
+    it('should disable Remove col in context menu when rows are selected by headers', function () {
       handsontable({
         contextMenu: ['remove_col', 'remove_row'],
         height: 100,
@@ -1589,7 +1589,7 @@ describe('ContextMenu', () => {
       expect($menu.find('tbody td:eq(0)').hasClass('htDisabled')).toBe(true);
     });
 
-    it('should disable Remove row in context menu when columns are selected by headers', function() {
+    it('should disable Remove row in context menu when columns are selected by headers', function () {
       handsontable({
         contextMenu: ['remove_col', 'remove_row'],
         height: 100,
@@ -2865,7 +2865,7 @@ describe('ContextMenu', () => {
     it('should call afterContextMenuDefaultOptions hook with context menu options as the first param', () => {
       var options;
 
-      var afterContextMenuDefaultOptions = function(options_) {
+      var afterContextMenuDefaultOptions = function (options_) {
         options = options_;
         options.items.cust1 = {
           name: 'My custom item',
@@ -2897,7 +2897,7 @@ describe('ContextMenu', () => {
 
   describe('beforeContextMenuSetItems hook', () => {
     it('should add new menu item even when item is excluded from plugin settings', () => {
-      Handsontable.hooks.add('beforeContextMenuSetItems', function(options) {
+      Handsontable.hooks.add('beforeContextMenuSetItems', function (options) {
         if (this === hot || !hot) {
           options.push({
             key: 'test',
@@ -2925,9 +2925,9 @@ describe('ContextMenu', () => {
     it('should be called only with items selected in plugin settings', () => {
       var keys = [];
 
-      Handsontable.hooks.add('beforeContextMenuSetItems', function(items) {
+      Handsontable.hooks.add('beforeContextMenuSetItems', function (items) {
         if (this === hot || !hot) {
-          keys = items.map((v) => v.key);
+          keys = items.map(v => v.key);
         }
       });
 

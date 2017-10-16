@@ -1,18 +1,18 @@
 describe('Core_render', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('all cells should get green background', function() {
+  it('all cells should get green background', function () {
     function greenCell(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
       td.style.backgroundColor = 'green';
@@ -36,12 +36,12 @@ describe('Core_render', () => {
     });
 
     var $tds = this.$container.find('.htCore tbody td');
-    $tds.each(function() {
+    $tds.each(function () {
       expect(this.style.backgroundColor).toEqual('green');
     });
   });
 
-  it('render should update border dimensions', function() {
+  it('render should update border dimensions', function () {
     var data = [
       ['a', 'b'],
       ['c', 'd'],
@@ -79,7 +79,7 @@ describe('Core_render', () => {
     expect(counter).toEqual(2); // 1 from load and 1 from populateFromArray
   });
 
-  it('should run afterRenderer hook', function() {
+  it('should run afterRenderer hook', function () {
     var lastCellProperties;
 
     handsontable({
@@ -99,7 +99,7 @@ describe('Core_render', () => {
     expect(lastCellProperties.col).toEqual(4);
   });
 
-  it('should run beforeRenderer hook', function() {
+  it('should run beforeRenderer hook', function () {
     var lastCellProperties;
 
     handsontable({

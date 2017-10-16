@@ -125,7 +125,7 @@ function UndoRedo(instance) {
   });
 };
 
-UndoRedo.prototype.done = function(action) {
+UndoRedo.prototype.done = function (action) {
   if (!this.ignoreNewActions) {
     this.doneActions.push(action);
     this.undoneActions.length = 0;
@@ -138,7 +138,7 @@ UndoRedo.prototype.done = function(action) {
  * @function undo
  * @memberof UndoRedo#
  */
-UndoRedo.prototype.undo = function() {
+UndoRedo.prototype.undo = function () {
   if (this.isUndoAvailable()) {
     let action = this.doneActions.pop();
     let actionClone = deepClone(action);
@@ -167,7 +167,7 @@ UndoRedo.prototype.undo = function() {
  * @function redo
  * @memberof UndoRedo#
  */
-UndoRedo.prototype.redo = function() {
+UndoRedo.prototype.redo = function () {
   if (this.isRedoAvailable()) {
     let action = this.undoneActions.pop();
     let actionClone = deepClone(action);
@@ -197,7 +197,7 @@ UndoRedo.prototype.redo = function() {
  * @memberof UndoRedo#
  * @return {Boolean} Return `true` if undo can be performed, `false` otherwise
  */
-UndoRedo.prototype.isUndoAvailable = function() {
+UndoRedo.prototype.isUndoAvailable = function () {
   return this.doneActions.length > 0;
 };
 
@@ -208,7 +208,7 @@ UndoRedo.prototype.isUndoAvailable = function() {
  * @memberof UndoRedo#
  * @return {Boolean} Return `true` if redo can be performed, `false` otherwise.
  */
-UndoRedo.prototype.isRedoAvailable = function() {
+UndoRedo.prototype.isRedoAvailable = function () {
   return this.undoneActions.length > 0;
 };
 
@@ -218,25 +218,25 @@ UndoRedo.prototype.isRedoAvailable = function() {
  * @function clear
  * @memberof UndoRedo#
  */
-UndoRedo.prototype.clear = function() {
+UndoRedo.prototype.clear = function () {
   this.doneActions.length = 0;
   this.undoneActions.length = 0;
 };
 
-UndoRedo.Action = function() {};
-UndoRedo.Action.prototype.undo = function() {};
-UndoRedo.Action.prototype.redo = function() {};
+UndoRedo.Action = function () {};
+UndoRedo.Action.prototype.undo = function () {};
+UndoRedo.Action.prototype.redo = function () {};
 
 /**
  * Change action.
  */
-UndoRedo.ChangeAction = function(changes) {
+UndoRedo.ChangeAction = function (changes) {
   this.changes = changes;
   this.actionType = 'change';
 };
 inherit(UndoRedo.ChangeAction, UndoRedo.Action);
 
-UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
+UndoRedo.ChangeAction.prototype.undo = function (instance, undoneCallback) {
   let data = deepClone(this.changes),
     emptyRowsAtTheEnd = instance.countEmptyRows(true),
     emptyColsAtTheEnd = instance.countEmptyCols(true);
@@ -267,7 +267,7 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
   }
 
 };
-UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
+UndoRedo.ChangeAction.prototype.redo = function (instance, onFinishCallback) {
   let data = deepClone(this.changes);
 
   for (let i = 0, len = data.length; i < len; i++) {
@@ -281,14 +281,14 @@ UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
 /**
  * Create row action.
  */
-UndoRedo.CreateRowAction = function(index, amount) {
+UndoRedo.CreateRowAction = function (index, amount) {
   this.index = index;
   this.amount = amount;
   this.actionType = 'insert_row';
 };
 inherit(UndoRedo.CreateRowAction, UndoRedo.Action);
 
-UndoRedo.CreateRowAction.prototype.undo = function(instance, undoneCallback) {
+UndoRedo.CreateRowAction.prototype.undo = function (instance, undoneCallback) {
   let rowCount = instance.countRows(),
     minSpareRows = instance.getSettings().minSpareRows;
 
@@ -299,7 +299,7 @@ UndoRedo.CreateRowAction.prototype.undo = function(instance, undoneCallback) {
   instance.addHookOnce('afterRemoveRow', undoneCallback);
   instance.alter('remove_row', this.index, this.amount, 'UndoRedo.undo');
 };
-UndoRedo.CreateRowAction.prototype.redo = function(instance, redoneCallback) {
+UndoRedo.CreateRowAction.prototype.redo = function (instance, redoneCallback) {
   instance.addHookOnce('afterCreateRow', redoneCallback);
   instance.alter('insert_row', this.index, this.amount, 'UndoRedo.redo');
 };
@@ -307,19 +307,19 @@ UndoRedo.CreateRowAction.prototype.redo = function(instance, redoneCallback) {
 /**
  * Remove row action.
  */
-UndoRedo.RemoveRowAction = function(index, data) {
+UndoRedo.RemoveRowAction = function (index, data) {
   this.index = index;
   this.data = data;
   this.actionType = 'remove_row';
 };
 inherit(UndoRedo.RemoveRowAction, UndoRedo.Action);
 
-UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
+UndoRedo.RemoveRowAction.prototype.undo = function (instance, undoneCallback) {
   instance.alter('insert_row', this.index, this.data.length, 'UndoRedo.undo');
   instance.addHookOnce('afterRender', undoneCallback);
   instance.populateFromArray(this.index, 0, this.data, void 0, void 0, 'UndoRedo.undo');
 };
-UndoRedo.RemoveRowAction.prototype.redo = function(instance, redoneCallback) {
+UndoRedo.RemoveRowAction.prototype.redo = function (instance, redoneCallback) {
   instance.addHookOnce('afterRemoveRow', redoneCallback);
   instance.alter('remove_row', this.index, this.data.length, 'UndoRedo.redo');
 };
@@ -327,18 +327,18 @@ UndoRedo.RemoveRowAction.prototype.redo = function(instance, redoneCallback) {
 /**
  * Create column action.
  */
-UndoRedo.CreateColumnAction = function(index, amount) {
+UndoRedo.CreateColumnAction = function (index, amount) {
   this.index = index;
   this.amount = amount;
   this.actionType = 'insert_col';
 };
 inherit(UndoRedo.CreateColumnAction, UndoRedo.Action);
 
-UndoRedo.CreateColumnAction.prototype.undo = function(instance, undoneCallback) {
+UndoRedo.CreateColumnAction.prototype.undo = function (instance, undoneCallback) {
   instance.addHookOnce('afterRemoveCol', undoneCallback);
   instance.alter('remove_col', this.index, this.amount, 'UndoRedo.undo');
 };
-UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) {
+UndoRedo.CreateColumnAction.prototype.redo = function (instance, redoneCallback) {
   instance.addHookOnce('afterCreateCol', redoneCallback);
   instance.alter('insert_col', this.index, this.amount, 'UndoRedo.redo');
 };
@@ -346,7 +346,7 @@ UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) 
 /**
  * Remove column action.
  */
-UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions) {
+UndoRedo.RemoveColumnAction = function (index, indexes, data, headers, columnPositions) {
   this.index = index;
   this.indexes = indexes;
   this.data = data;
@@ -357,7 +357,7 @@ UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPosi
 };
 inherit(UndoRedo.RemoveColumnAction, UndoRedo.Action);
 
-UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) {
+UndoRedo.RemoveColumnAction.prototype.undo = function (instance, undoneCallback) {
   let row;
   let ascendingIndexes = this.indexes.slice(0).sort();
   let sortByIndexes = (elem, j, arr) => arr[this.indexes.indexOf(ascendingIndexes[j])];
@@ -411,7 +411,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   instance.render();
 };
 
-UndoRedo.RemoveColumnAction.prototype.redo = function(instance, redoneCallback) {
+UndoRedo.RemoveColumnAction.prototype.redo = function (instance, redoneCallback) {
   instance.addHookOnce('afterRemoveCol', redoneCallback);
   instance.alter('remove_col', this.index, this.amount, 'UndoRedo.redo');
 };
@@ -419,13 +419,13 @@ UndoRedo.RemoveColumnAction.prototype.redo = function(instance, redoneCallback) 
 /**
  * Cell alignment action.
  */
-UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
+UndoRedo.CellAlignmentAction = function (stateBefore, range, type, alignment) {
   this.stateBefore = stateBefore;
   this.range = range;
   this.type = type;
   this.alignment = alignment;
 };
-UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
+UndoRedo.CellAlignmentAction.prototype.undo = function (instance, undoneCallback) {
   if (!instance.getPlugin('contextMenu').isEnabled()) {
     return;
   }
@@ -438,7 +438,7 @@ UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback)
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
 };
-UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback) {
+UndoRedo.CellAlignmentAction.prototype.redo = function (instance, undoneCallback) {
   if (!instance.getPlugin('contextMenu').isEnabled()) {
     return;
   }
@@ -452,13 +452,13 @@ UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback)
 /**
  * Filters action.
  */
-UndoRedo.FiltersAction = function(conditionsStack) {
+UndoRedo.FiltersAction = function (conditionsStack) {
   this.conditionsStack = conditionsStack;
   this.actionType = 'filter';
 };
 inherit(UndoRedo.FiltersAction, UndoRedo.Action);
 
-UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
+UndoRedo.FiltersAction.prototype.undo = function (instance, undoneCallback) {
   let filters = instance.getPlugin('filters');
 
   instance.addHookOnce('afterRender', undoneCallback);
@@ -466,7 +466,7 @@ UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
   filters.conditionCollection.importAllConditions(this.conditionsStack.slice(0, this.conditionsStack.length - 1));
   filters.filter();
 };
-UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
+UndoRedo.FiltersAction.prototype.redo = function (instance, redoneCallback) {
   let filters = instance.getPlugin('filters');
 
   instance.addHookOnce('afterRender', redoneCallback);
@@ -479,13 +479,13 @@ UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
  * ManualRowMove action.
  * @TODO: removeRow undo should works on logical index
  */
-UndoRedo.RowMoveAction = function(movedRows, target) {
+UndoRedo.RowMoveAction = function (movedRows, target) {
   this.rows = movedRows.slice();
   this.target = target;
 };
 inherit(UndoRedo.RowMoveAction, UndoRedo.Action);
 
-UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
+UndoRedo.RowMoveAction.prototype.undo = function (instance, undoneCallback) {
   let manualRowMove = instance.getPlugin('manualRowMove');
 
   instance.addHookOnce('afterRender', undoneCallback);
@@ -503,7 +503,7 @@ UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
   instance.selection.setRangeStartOnly(new CellCoords(this.rows[0], 0));
   instance.selection.setRangeEnd(new CellCoords(this.rows[this.rows.length - 1], instance.countCols() - 1));
 };
-UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
+UndoRedo.RowMoveAction.prototype.redo = function (instance, redoneCallback) {
   let manualRowMove = instance.getPlugin('manualRowMove');
 
   instance.addHookOnce('afterRender', redoneCallback);
@@ -574,7 +574,7 @@ function exposeUndoRedoMethods(instance) {
    * @alias undo
    * @memberof! Handsontable.Core#
    */
-  instance.undo = function() {
+  instance.undo = function () {
     return instance.undoRedo.undo();
   };
 
@@ -583,7 +583,7 @@ function exposeUndoRedoMethods(instance) {
    * @alias redo
    * @memberof! Handsontable.Core#
    */
-  instance.redo = function() {
+  instance.redo = function () {
     return instance.undoRedo.redo();
   };
 
@@ -592,7 +592,7 @@ function exposeUndoRedoMethods(instance) {
    * @alias isUndoAvailable
    * @memberof! Handsontable.Core#
    */
-  instance.isUndoAvailable = function() {
+  instance.isUndoAvailable = function () {
     return instance.undoRedo.isUndoAvailable();
   };
 
@@ -601,7 +601,7 @@ function exposeUndoRedoMethods(instance) {
    * @alias isRedoAvailable
    * @memberof! Handsontable.Core#
    */
-  instance.isRedoAvailable = function() {
+  instance.isRedoAvailable = function () {
     return instance.undoRedo.isRedoAvailable();
   };
 
@@ -610,7 +610,7 @@ function exposeUndoRedoMethods(instance) {
    * @alias clearUndo
    * @memberof! Handsontable.Core#
    */
-  instance.clearUndo = function() {
+  instance.clearUndo = function () {
     return instance.undoRedo.clear();
   };
 }

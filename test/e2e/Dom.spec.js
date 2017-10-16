@@ -10,25 +10,25 @@ describe('Handsontable.Dom', () => {
         left: 0,
       });
 
-    beforeEach(function() {
+    beforeEach(function () {
       $forceScrollbar.appendTo(document.body);
       this.$div = $('<div id="test"></div>').appendTo($forceScrollbar);
       this.div = this.$div[0];
     });
 
-    afterEach(function() {
+    afterEach(function () {
       this.$div.remove();
       $forceScrollbar.remove();
     });
 
     describe('top', () => {
-      it('should return offset top with position absolute', function() {
+      it('should return offset top with position absolute', function () {
         this.$div.css({position: 'absolute', top: 200});
 
         expect(Handsontable.dom.offset(this.div).top).toEqual(200);
       });
 
-      it('should return offset top with position absolute & scrolled window', function() {
+      it('should return offset top with position absolute & scrolled window', function () {
         this.$div.css({position: 'absolute', top: 200});
         $window.scrollTop(1900);
 
@@ -37,13 +37,13 @@ describe('Handsontable.Dom', () => {
         $window.scrollTop(0);
       });
 
-      it('should return offset top with position fixed', function() {
+      it('should return offset top with position fixed', function () {
         this.$div.css({position: 'fixed', top: 200});
 
         expect(Handsontable.dom.offset(this.div).top).toEqual(200);
       });
 
-      it('should return offset top with position fixed & scrolled window', function() {
+      it('should return offset top with position fixed & scrolled window', function () {
         this.$div.css({position: 'fixed', top: 200});
         $window.scrollTop(1900);
 
@@ -54,13 +54,13 @@ describe('Handsontable.Dom', () => {
     });
 
     describe('left', () => {
-      it('should return offset left with position absolute', function() {
+      it('should return offset left with position absolute', function () {
         this.$div.css({position: 'absolute', left: 200});
 
         expect(Handsontable.dom.offset(this.div).left).toEqual(200);
       });
 
-      it('should return offset left with position absolute & scrolled window', function() {
+      it('should return offset left with position absolute & scrolled window', function () {
         this.$div.css({position: 'absolute', left: 200});
         $window.scrollLeft(1900);
 
@@ -69,13 +69,13 @@ describe('Handsontable.Dom', () => {
         $window.scrollLeft(0);
       });
 
-      it('should return offset left with position fixed', function() {
+      it('should return offset left with position fixed', function () {
         this.$div.css({position: 'fixed', left: 200});
 
         expect(Handsontable.dom.offset(this.div).left).toEqual(200);
       });
 
-      it('should return offset left with position fixed & scrolled window', function() {
+      it('should return offset left with position fixed & scrolled window', function () {
         this.$div.css({position: 'fixed', left: 200});
         $window.scrollLeft(1900);
 
@@ -324,7 +324,7 @@ describe('Handsontable.Dom', () => {
     it('should wrap element into polymer wrapper if exists', () => {
       expect(Handsontable.dom.polymerWrap(1)).toBe(1);
 
-      window.wrap = function() { return 'wrapped'; };
+      window.wrap = function () { return 'wrapped'; };
       window.Polymer = {};
 
       expect(Handsontable.dom.polymerWrap(1)).toBe('wrapped');
@@ -346,7 +346,7 @@ describe('Handsontable.Dom', () => {
     it('should unwrap element from polymer wrapper if exists', () => {
       expect(Handsontable.dom.polymerUnwrap('wrapped')).toBe('wrapped');
 
-      window.unwrap = function() { return 1; };
+      window.unwrap = function () { return 1; };
       window.Polymer = {};
 
       expect(Handsontable.dom.polymerUnwrap('wrapped')).toBe(1);

@@ -159,7 +159,7 @@ export function mixin(Base, ...mixins) {
             return _value;
           };
 
-          return function() {
+          return function () {
             if (this[propertyName] === void 0) {
               this[propertyName] = initValue(initialValue);
             }
@@ -170,7 +170,7 @@ export function mixin(Base, ...mixins) {
         let setter = function _setter(propertyName) {
           propertyName = `_${propertyName}`;
 
-          return function(_value) {
+          return function (_value) {
             this[propertyName] = _value;
           };
         };
@@ -266,7 +266,7 @@ export function deepObjectSize(object) {
   if (!isObject(object)) {
     return 0;
   }
-  let recursObjLen = function(obj) {
+  let recursObjLen = function (obj) {
     let result = 0;
 
     if (isObject(obj)) {

@@ -2,11 +2,11 @@ describe('PluginHooks', () => {
 
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -30,7 +30,7 @@ describe('PluginHooks', () => {
   it('should remove a global hook', () => {
     var
       test = 0,
-      hook = function() {
+      hook = function () {
         test = 5;
       };
 
@@ -45,7 +45,7 @@ describe('PluginHooks', () => {
   it('should remove a local hook', () => {
     var
       test = 0,
-      hook = function() {
+      hook = function () {
         test = 5;
       };
 
@@ -134,7 +134,7 @@ describe('PluginHooks', () => {
     var hot1 = handsontable();
 
     var test = 0;
-    var handler = function() {
+    var handler = function () {
       test += 5;
     };
 
@@ -154,7 +154,7 @@ describe('PluginHooks', () => {
     var hot1 = handsontable();
 
     var test = 0;
-    var handler = function() {
+    var handler = function () {
       test += 5;
     };
 
@@ -169,7 +169,7 @@ describe('PluginHooks', () => {
   it('should run hook with runHooks and return value', () => {
     var hot = handsontable();
 
-    var handler = function() {
+    var handler = function () {
       return 5;
     };
 
@@ -199,16 +199,16 @@ describe('PluginHooks', () => {
     let hot = handsontable();
     let str = 'a';
 
-    hot.addHookOnce('myHook', (text) => `${text}b`);
+    hot.addHookOnce('myHook', text => `${text}b`);
 
-    hot.addHookOnce('myHook', (text) => `${text}c`);
+    hot.addHookOnce('myHook', text => `${text}c`);
 
     expect(hot.runHooks('myHook', str)).toEqual('abc');
   });
 
   it('adding same hook twice should register it only once (without an error)', () => {
     var i = 0;
-    var fn = function() {
+    var fn = function () {
       i++;
     };
 
@@ -223,8 +223,8 @@ describe('PluginHooks', () => {
   });
 
   it('should mark the hook callbacks added with Handsontable initialization', () => {
-    var fn = function() {};
-    var fn2 = function() {};
+    var fn = function () {};
+    var fn2 = function () {};
 
     var hot = handsontable({
       afterChange: fn,
@@ -237,8 +237,8 @@ describe('PluginHooks', () => {
   });
 
   it('should mark the hook callbacks added using the updateSettings method', () => {
-    var fn = function() {};
-    var fn2 = function() {};
+    var fn = function () {};
+    var fn2 = function () {};
 
     var hot = handsontable();
 
@@ -254,8 +254,8 @@ describe('PluginHooks', () => {
 
   it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method (when there was a hook ' +
      'already declared in the initialization)', () => {
-    var fn = function() {};
-    var fn2 = function() {};
+    var fn = function () {};
+    var fn2 = function () {};
 
     var hot = handsontable({
       afterGetCellMeta: fn,
@@ -283,8 +283,8 @@ describe('PluginHooks', () => {
   });
 
   it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method', () => {
-    var fn = function() {};
-    var fn2 = function() {};
+    var fn = function () {};
+    var fn2 = function () {};
 
     var hot = handsontable();
 
@@ -318,8 +318,8 @@ describe('PluginHooks', () => {
   });
 
   it('should NOT replace existing hook callbacks, if the\'re added using the addHook method', () => {
-    var fn = function() {};
-    var fn2 = function() {};
+    var fn = function () {};
+    var fn2 = function () {};
 
     var hot = handsontable();
 

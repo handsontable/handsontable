@@ -1,11 +1,11 @@
 describe('TextEditor', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -557,7 +557,7 @@ describe('TextEditor', () => {
     expect(editor.focus).toHaveBeenCalled();
   });
 
-  it('editor size should not exceed the viewport after text edit', function() {
+  it('editor size should not exceed the viewport after text edit', function () {
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 5),
@@ -582,7 +582,7 @@ describe('TextEditor', () => {
 
   });
 
-  it('should open editor after selecting cell in another table and hitting enter', function() {
+  it('should open editor after selecting cell in another table and hitting enter', function () {
     this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
     var hot1 = handsontable();
@@ -623,7 +623,7 @@ describe('TextEditor', () => {
 
   });
 
-  it('should open editor after pressing a printable character', function() {
+  it('should open editor after pressing a printable character', function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
     });
@@ -648,7 +648,7 @@ describe('TextEditor', () => {
     expect(editorHolder.is(':visible')).toBe(true);
   });
 
-  it('should open editor after pressing a printable character with shift key', function() {
+  it('should open editor after pressing a printable character with shift key', function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
     });
@@ -685,7 +685,7 @@ describe('TextEditor', () => {
     expect(editorHolder.is(':visible')).toBe(true);
   });
 
-  it('should be able to open editor after clearing cell data with DELETE', function() {
+  it('should be able to open editor after clearing cell data with DELETE', function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
     });
@@ -706,7 +706,7 @@ describe('TextEditor', () => {
     expect(editorHolder.is(':visible')).toBe(true);
   });
 
-  it('should be able to open editor after clearing cell data with BACKSPACE', function() {
+  it('should be able to open editor after clearing cell data with BACKSPACE', function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
     });
@@ -955,7 +955,7 @@ describe('TextEditor', () => {
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
 
-  it('should display editor with the proper size, when the edited column is beyond the tables container', function() {
+  it('should display editor with the proper size, when the edited column is beyond the tables container', function () {
     this.$container.css('overflow', '');
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 9),
@@ -992,7 +992,7 @@ describe('TextEditor', () => {
 
   });
 
-  it('should render the text without trimming out the whitespace, if trimWhitespace is set to false', function() {
+  it('should render the text without trimming out the whitespace, if trimWhitespace is set to false', function () {
     this.$container.css('overflow', '');
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 9),

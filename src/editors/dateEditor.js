@@ -65,7 +65,7 @@ class DateEditor extends TextEditor {
     /**
      * Prevent recognizing clicking on datepicker as clicking outside of table
      */
-    eventManager.addEventListener(this.datePicker, 'mousedown', (event) => stopPropagation(event));
+    eventManager.addEventListener(this.datePicker, 'mousedown', event => stopPropagation(event));
     this.hideDatepicker();
   }
 
@@ -148,7 +148,7 @@ class DateEditor extends TextEditor {
     this.datePickerStyle.top = `${window.pageYOffset + offset.top + outerHeight(this.TD)}px`;
     this.datePickerStyle.left = `${window.pageXOffset + offset.left}px`;
 
-    this.$datePicker._onInputFocus = function() {};
+    this.$datePicker._onInputFocus = function () {};
     datePickerConfig.format = dateFormat;
 
     if (this.originalValue) {

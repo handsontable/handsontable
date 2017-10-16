@@ -51,7 +51,7 @@ describe('Mixed helper', () => {
     });
 
     it('should convert properly `function` to `string`', () => {
-      var toConvert = function() {};
+      var toConvert = function () {};
 
       expect(stringify(toConvert)).toMatch(/function/i);
     });

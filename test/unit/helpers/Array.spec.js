@@ -45,7 +45,7 @@ describe('Array helper', () => {
   //
   describe('arrayMap', () => {
     it('should returns the mapped array', () => {
-      expect(arrayMap([1], (a) => a + 1)).toEqual([2]);
+      expect(arrayMap([1], a => a + 1)).toEqual([2]);
       expect(arrayMap([1, 2, 3], () => '')).toEqual(['', '', '']);
     });
   });

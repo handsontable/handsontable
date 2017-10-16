@@ -1,18 +1,18 @@
 describe('Core_alter', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfNestedObjects = function() {
+  var arrayOfNestedObjects = function () {
     return [
       {id: 1,
         name: {
@@ -41,7 +41,7 @@ describe('Core_alter', () => {
     ];
   };
 
-  var arrayOfArrays = function() {
+  var arrayOfArrays = function () {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
@@ -127,7 +127,7 @@ describe('Core_alter', () => {
       expect(countCols()).toEqual(4);
     });
 
-    it('should remove one row if amount parameter is empty', function() {
+    it('should remove one row if amount parameter is empty', function () {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -144,7 +144,7 @@ describe('Core_alter', () => {
       expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual('c2');
     });
 
-    it('should remove as many rows as given in the amount parameter', function() {
+    it('should remove as many rows as given in the amount parameter', function () {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -321,7 +321,7 @@ describe('Core_alter', () => {
   });
 
   describe('remove column', () => {
-    it('should remove one column if amount parameter is empty', function() {
+    it('should remove one column if amount parameter is empty', function () {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -335,7 +335,7 @@ describe('Core_alter', () => {
       expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual('c');
     });
 
-    it('should remove as many columns as given in the amount parameter', function() {
+    it('should remove as many columns as given in the amount parameter', function () {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -349,7 +349,7 @@ describe('Core_alter', () => {
       expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual('e');
     });
 
-    it('should not remove more columns that exist', function() {
+    it('should not remove more columns that exist', function () {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -362,7 +362,7 @@ describe('Core_alter', () => {
       expect(this.$container.find('tr:eq(1) td:last').html()).toEqual('f');
     });
 
-    it('should remove one column from end if no parameters are given', function() {
+    it('should remove one column from end if no parameters are given', function () {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -375,7 +375,7 @@ describe('Core_alter', () => {
       expect(this.$container.find('tr:eq(1) td:last').html()).toEqual('g');
     });
 
-    it('should remove amount of columns from end if index parameter is not given', function() {
+    it('should remove amount of columns from end if index parameter is not given', function () {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -451,7 +451,7 @@ describe('Core_alter', () => {
       expect(getCellMeta(0, 1).someValue).toEqual([0, 2]);
     });
 
-    it('should remove column when not all rows are visible in the viewport', function() {
+    it('should remove column when not all rows are visible in the viewport', function () {
       this.$container.css({
         height: '100',
         overflow: 'auto',
@@ -549,7 +549,7 @@ describe('Core_alter', () => {
   });
 
   describe('insert row', () => {
-    it('should insert row at given index', function() {
+    it('should insert row at given index', function () {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -584,7 +584,7 @@ describe('Core_alter', () => {
     });
 
     it('should not change cellMeta after executing `insert row` without parameters (#3581, #3989, #2114)', () => {
-      var greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      var greenRenderer = function (instance, td, row, col, prop, value, cellProperties) {
         Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
         td.style.backgroundColor = 'green';
       };
@@ -644,7 +644,7 @@ describe('Core_alter', () => {
       expect(getDataAtCell(4, 2)).toEqual(null);
     });
 
-    it('should insert the amount of rows at given index', function() {
+    it('should insert the amount of rows at given index', function () {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -695,7 +695,7 @@ describe('Core_alter', () => {
       expect(countRows()).toEqual(7);
     });
 
-    it('when amount parameter is used, should not insert more rows than allowed by maxRows', function() {
+    it('when amount parameter is used, should not insert more rows than allowed by maxRows', function () {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -797,7 +797,7 @@ describe('Core_alter', () => {
   });
 
   describe('insert column', () => {
-    it('should insert column at given index', function() {
+    it('should insert column at given index', function () {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -810,7 +810,7 @@ describe('Core_alter', () => {
       expect(this.$container.find('tr:eq(1) td:eq(2)').html()).toEqual('b');
     });
 
-    it('should insert column at the end if index is not given', function() {
+    it('should insert column at the end if index is not given', function () {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -823,7 +823,7 @@ describe('Core_alter', () => {
       expect(this.$container.find('tr:eq(1) td:eq(7)').html()).toEqual('h');
     });
 
-    it('should insert the amount of columns at given index', function() {
+    it('should insert the amount of columns at given index', function () {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -836,7 +836,7 @@ describe('Core_alter', () => {
       expect(this.$container.find('tr:eq(1) td:eq(4)').html()).toEqual('b');
     });
 
-    it('should insert the amount of columns at the end if index is not given', function() {
+    it('should insert the amount of columns at the end if index is not given', function () {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -865,7 +865,7 @@ describe('Core_alter', () => {
       expect(countCols()).toEqual(7);
     });
 
-    it('should not insert more columns than allowed by maxCols, when amount parameter is used', function() {
+    it('should not insert more columns than allowed by maxCols, when amount parameter is used', function () {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -941,7 +941,7 @@ describe('Core_alter', () => {
 
     });
 
-    it('should stretch the table after adding another column (if stretching is set to \'all\')', function() {
+    it('should stretch the table after adding another column (if stretching is set to \'all\')', function () {
       this.$container.css({
         width: 500,
       });

@@ -1,25 +1,25 @@
 describe('RowHeader', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should not show row headers by default', function() {
+  it('should not show row headers by default', function () {
     var that = this;
     handsontable();
 
     expect(that.$container.find('tbody th').length).toEqual(0);
   });
 
-  it('should show row headers if true', function() {
+  it('should show row headers if true', function () {
     var that = this;
     handsontable({
       rowHeaders: true,
@@ -154,7 +154,7 @@ describe('RowHeader', () => {
 
   });
 
-  it('should allow defining custom row header width using the rowHeaderWidth config option', function() {
+  it('should allow defining custom row header width using the rowHeaderWidth config option', function () {
     handsontable({
       startCols: 3,
       rowHeaders: true,
@@ -165,7 +165,7 @@ describe('RowHeader', () => {
     expect(this.$container.find('col').first().css('width')).toEqual('150px');
   });
 
-  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', function() {
+  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', function () {
     var hot = handsontable({
       startCols: 3,
       rowHeaders: true,

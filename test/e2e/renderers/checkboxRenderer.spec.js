@@ -1,11 +1,11 @@
 describe('CheckboxRenderer', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px;"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -55,7 +55,7 @@ describe('CheckboxRenderer', () => {
     expect($(getRenderedContent(2, 0)).prop('checked')).toBe(true);
   });
 
-  it('should select cell after checkbox click', function() {
+  it('should select cell after checkbox click', function () {
     var hot = handsontable({
       data: [[true], [false], [true]],
       columns: [
@@ -70,7 +70,7 @@ describe('CheckboxRenderer', () => {
     expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
   });
 
-  it('should select cell after label click', function() {
+  it('should select cell after label click', function () {
     var hot = handsontable({
       data: [[true], [false], [true]],
       columns: [
@@ -85,7 +85,7 @@ describe('CheckboxRenderer', () => {
     expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
   });
 
-  it('should reverse selection in checkboxes', function() {
+  it('should reverse selection in checkboxes', function () {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
@@ -100,7 +100,7 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[false], [true], [false]]);
   });
 
-  it('shouldn\'t uncheck checkboxes', function() {
+  it('shouldn\'t uncheck checkboxes', function () {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
@@ -113,7 +113,7 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[true], [true], [true]]);
   });
 
-  it('should check single box after hitting space', function() {
+  it('should check single box after hitting space', function () {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
@@ -149,7 +149,7 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should not check single box after hitting space, if cell is readOnly', function() {
+  it('should not check single box after hitting space, if cell is readOnly', function () {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
@@ -180,7 +180,7 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).not.toHaveBeenCalled();
   });
 
-  it('should not check single box after hitting space, if last column is readOnly (#3562)', function() {
+  it('should not check single box after hitting space, if last column is readOnly (#3562)', function () {
     handsontable({
       data: [[true, true], [false, false], [true, true]],
       columns: [
@@ -251,7 +251,7 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(199, 0)).toEqual(true);
   });
 
-  it('should reverse checkboxes state after hitting space, when multiple cells are selected', function() {
+  it('should reverse checkboxes state after hitting space, when multiple cells are selected', function () {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
@@ -283,7 +283,7 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false], [1, 0, false, true], [2, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should reverse checkboxes state after hitting space, when multiple cells are selected and selStart > selEnd', function() {
+  it('should reverse checkboxes state after hitting space, when multiple cells are selected and selStart > selEnd', function () {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
@@ -357,7 +357,7 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(0, 0)).toBe(false);
   });
 
-  it('should change checkbox state from checked to unchecked after hitting ENTER', function() {
+  it('should change checkbox state from checked to unchecked after hitting ENTER', function () {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
@@ -389,7 +389,7 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates', function() {
+  it('should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates', function () {
     handsontable({
       data: [['yes'], ['yes'], ['no']],
       columns: [
@@ -425,7 +425,7 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'yes', 'no']], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates in numeric format', function() {
+  it('should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates in numeric format', function () {
     handsontable({
       data: [[1], [1], [0]],
       columns: [
@@ -461,7 +461,7 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 1, 0]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should change checkbox state to unchecked after hitting DELETE', function() {
+  it('should change checkbox state to unchecked after hitting DELETE', function () {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
@@ -495,7 +495,7 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should change checkbox notte to unchecked after hitting BACKSPACE', function() {
+  it('should change checkbox notte to unchecked after hitting BACKSPACE', function () {
     handsontable({
       data: [[true], [false], [true]],
       columns: [

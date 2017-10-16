@@ -60,7 +60,7 @@ describe('WalkontableCore', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
     });

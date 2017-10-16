@@ -37,7 +37,7 @@ export default function autocompleteValidator(value, callback) {
 function process(value, callback) {
   var originalVal = value;
 
-  return function(source) {
+  return function (source) {
     var found = false;
 
     for (var s = 0, slen = source.length; s < slen; s++) {

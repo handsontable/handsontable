@@ -1,11 +1,11 @@
 describe('Core_updateSettings', () => {
   const id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -96,7 +96,7 @@ describe('Core_updateSettings', () => {
     }).not.toThrow();
   });
 
-  it('should not reset columns types to text', function() {
+  it('should not reset columns types to text', function () {
     handsontable({
       data: [[1, true]],
       columns: [
@@ -116,7 +116,7 @@ describe('Core_updateSettings', () => {
     expect(td.eq(1).text()).toEqual('');
   });
 
-  it('should not reset columns types to text when columns is a function', function() {
+  it('should not reset columns types to text when columns is a function', function () {
     handsontable({
       data: [[1, true]],
       columns(column) {
@@ -422,7 +422,7 @@ describe('Core_updateSettings', () => {
     expect(getCellValidator(0, 0)).toBeUndefined();
   });
 
-  it('should allow updating the table height', function() {
+  it('should allow updating the table height', function () {
     handsontable({
       startRows: 22,
       startCols: 5,
@@ -438,7 +438,7 @@ describe('Core_updateSettings', () => {
     expect(parseInt(this.$container[0].style.height, 10)).not.toEqual(initialHeight);
   });
 
-  it('should not reset the table height, when the updateSettings config object doesn\'t have any height specified', function() {
+  it('should not reset the table height, when the updateSettings config object doesn\'t have any height specified', function () {
     handsontable({
       startRows: 22,
       startCols: 5,
@@ -454,7 +454,7 @@ describe('Core_updateSettings', () => {
     expect(parseInt(this.$container[0].style.height, 10)).toEqual(parseInt(initialHeight, 10));
   });
 
-  it('should allow resetting the table height', function() {
+  it('should allow resetting the table height', function () {
     handsontable({
       startRows: 22,
       startCols: 5,
@@ -496,7 +496,7 @@ describe('Core_updateSettings', () => {
     expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
   });
 
-  it('should change colHeader\'s row height if is needed', function() {
+  it('should change colHeader\'s row height if is needed', function () {
     handsontable({
       colHeaders: true,
       rowHeaders: true,

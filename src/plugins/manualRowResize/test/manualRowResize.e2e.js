@@ -2,18 +2,18 @@ describe('manualRowResize', () => {
   var id = 'test';
   var defaultRowHeight = 22;
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should change row heights at init', function() {
+  it('should change row heights at init', function () {
     handsontable({
       rowHeaders: true,
       manualRowResize: [50, 40, 100],
@@ -24,7 +24,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(this.$container, 2)).toEqual(100);
   });
 
-  it('should be enabled after specifying it in updateSettings config', function() {
+  it('should be enabled after specifying it in updateSettings config', function () {
     handsontable({
       data: [
         {id: 1, name: 'Ted', lastName: 'Right'},
@@ -43,7 +43,7 @@ describe('manualRowResize', () => {
     expect($('.manualRowResizer').size()).toBeGreaterThan(0);
   });
 
-  it('should change the default row height with updateSettings', function() {
+  it('should change the default row height with updateSettings', function () {
     handsontable({
       manualRowResize: true,
     });
@@ -61,7 +61,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(this.$container, 2)).toEqual(80);
   });
 
-  it('should change the row height with updateSettings', function() {
+  it('should change the row height with updateSettings', function () {
     handsontable({
       manualRowResize: [60, 50, 80],
     });
@@ -79,7 +79,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(this.$container, 2)).toEqual(100);
   });
 
-  it('should not change the row height when `true` is passing', function() {
+  it('should not change the row height when `true` is passing', function () {
     handsontable({
       manualRowResize: [60, 50, 80],
     });
@@ -97,7 +97,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(this.$container, 2)).toEqual(80);
   });
 
-  it('should change the row height to defaults when undefined is passed', function() {
+  it('should change the row height to defaults when undefined is passed', function () {
     handsontable({
       manualRowResize: [60, 50, 80],
     });
@@ -115,7 +115,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight + 1); // + Single border
   });
 
-  it('should reset row height', function() {
+  it('should reset row height', function () {
     handsontable({
       manualRowResize: true,
     });
@@ -133,7 +133,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight + 1);
   });
 
-  it('should trigger afterRowResize event after row height changes', function() {
+  it('should trigger afterRowResize event after row height changes', function () {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -150,7 +150,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(this.$container, 0)).toEqual(101);
   });
 
-  it('should not trigger afterRowResize event if row height does not change (delta = 0)', function() {
+  it('should not trigger afterRowResize event if row height does not change (delta = 0)', function () {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -167,7 +167,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
   });
 
-  it('should not trigger afterRowResize event after if row height does not change (no mousemove event)', function() {
+  it('should not trigger afterRowResize event after if row height does not change (no mousemove event)', function () {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -195,7 +195,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
   });
 
-  it('should trigger an afterRowResize after row size changes, after double click', function(done) {
+  it('should trigger an afterRowResize after row size changes, after double click', function (done) {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -232,7 +232,7 @@ describe('manualRowResize', () => {
       done();
     }, 1000);
   });
-  it('should not trigger afterRowResize event after if row height does not change (no dblclick event)', function() {
+  it('should not trigger afterRowResize event after if row height does not change (no dblclick event)', function () {
     var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -258,7 +258,7 @@ describe('manualRowResize', () => {
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight + 2);
   });
-  it('should display the resize handle in the correct place after the table has been scrolled', function() {
+  it('should display the resize handle in the correct place after the table has been scrolled', function () {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 20),
       rowHeaders: true,
@@ -286,7 +286,7 @@ describe('manualRowResize', () => {
     expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
   });
 
-  it('should autosize selected rows after double click on handler', function(done) {
+  it('should autosize selected rows after double click on handler', function (done) {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(9, 9),
       rowHeaders: true,
@@ -319,7 +319,7 @@ describe('manualRowResize', () => {
     }, 1600);
   });
 
-  it('should resize (expanding and narrowing) selected rows', function(done) {
+  it('should resize (expanding and narrowing) selected rows', function (done) {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       rowHeaders: true,
@@ -363,7 +363,7 @@ describe('manualRowResize', () => {
   });
 
   describe('handle and guide', () => {
-    it('should display the resize handle in the proper position and with a proper size', function() {
+    it('should display the resize handle in the proper position and with a proper size', function () {
       handsontable({
         data: [
           {id: 1, name: 'Ted', lastName: 'Right'},

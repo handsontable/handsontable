@@ -1,11 +1,11 @@
 describe('MergeCells', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -111,7 +111,7 @@ describe('MergeCells', () => {
 
   describe('merged cells selection', () => {
 
-    it('should select the whole range of cells which form a merged cell', function() {
+    it('should select the whole range of cells which form a merged cell', function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(4, 4),
         mergeCells: [
@@ -143,7 +143,7 @@ describe('MergeCells', () => {
       expect(hot.getSelected()).toEqual([0, 0, 0, 3]);
     });
 
-    it('should always make a rectangular selection, when selecting merged and not merged cells', function() {
+    it('should always make a rectangular selection, when selecting merged and not merged cells', function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(4, 4),
         mergeCells: [
@@ -362,7 +362,7 @@ describe('MergeCells', () => {
       expect(hot.countRenderedCols()).toBe(39);
     });
 
-    it('should render whole merged cell even when most columns are not in the viewport - scrolled to the right', function() {
+    it('should render whole merged cell even when most columns are not in the viewport - scrolled to the right', function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(5, 40),
         mergeCells: [

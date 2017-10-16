@@ -37,7 +37,7 @@ export function getTotalColumns() {
 
 var currentSpec;
 
-beforeEach(function() {
+beforeEach(function () {
   currentSpec = this;
 
   var matchers = {

@@ -2,11 +2,11 @@ describe('settings', () => {
   describe('colWidths', () => {
     var id = 'testContainer';
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (this.$container) {
         destroy();
         this.$container.remove();
@@ -14,7 +14,7 @@ describe('settings', () => {
     });
 
     describe('defined in constructor', () => {
-      it('should consider colWidths provided as number', function() {
+      it('should consider colWidths provided as number', function () {
         handsontable({
           colWidths: 123,
         });
@@ -22,7 +22,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider colWidths provided as string', function() {
+      it('should consider colWidths provided as string', function () {
         handsontable({
           colWidths: '123',
         });
@@ -30,7 +30,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider colWidths provided as array of numbers', function() {
+      it('should consider colWidths provided as array of numbers', function () {
         handsontable({
           colWidths: [123],
         });
@@ -38,7 +38,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider colWidths provided as array of strings', function() {
+      it('should consider colWidths provided as array of strings', function () {
         handsontable({
           colWidths: ['123'],
         });
@@ -46,7 +46,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider colWidth provided as function that returns number', function() {
+      it('should consider colWidth provided as function that returns number', function () {
         handsontable({
           colWidths(index) {
             if (index === 0) {
@@ -59,7 +59,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider colWidth provided as function that returns string', function() {
+      it('should consider colWidth provided as function that returns string', function () {
         handsontable({
           colWidths(index) {
             if (index === 0) {
@@ -74,7 +74,7 @@ describe('settings', () => {
     });
 
     describe('defined in updateSettings', () => {
-      it('should consider colWidths provided as number', function() {
+      it('should consider colWidths provided as number', function () {
         handsontable();
         updateSettings({
           colWidths: 123,
@@ -83,7 +83,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider colWidths provided as string', function() {
+      it('should consider colWidths provided as string', function () {
         handsontable();
         updateSettings({
           colWidths: '123',
@@ -92,7 +92,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider colWidths provided as array of numbers', function() {
+      it('should consider colWidths provided as array of numbers', function () {
         handsontable();
         updateSettings({
           colWidths: [123],
@@ -101,7 +101,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider colWidths provided as array of strings', function() {
+      it('should consider colWidths provided as array of strings', function () {
         handsontable();
         updateSettings({
           colWidths: ['123'],
@@ -110,7 +110,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider colWidth provided as function that returns number', function() {
+      it('should consider colWidth provided as function that returns number', function () {
         handsontable();
         updateSettings({
           colWidths(index) {
@@ -124,7 +124,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider colWidth provided as function that returns string', function() {
+      it('should consider colWidth provided as function that returns string', function () {
         handsontable();
         updateSettings({
           colWidths(index) {
@@ -140,7 +140,7 @@ describe('settings', () => {
     });
 
     describe('defined in columns', () => {
-      it('should consider width provided as number', function() {
+      it('should consider width provided as number', function () {
         handsontable({
           columns: [
             {
@@ -152,7 +152,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider width provided as string', function() {
+      it('should consider width provided as string', function () {
         handsontable({
           columns: [
             {
@@ -164,7 +164,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider width provided as array of numbers', function() {
+      it('should consider width provided as array of numbers', function () {
         handsontable({
           columns: [
             {
@@ -176,7 +176,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider width provided as array of strings', function() {
+      it('should consider width provided as array of strings', function () {
         handsontable({
           columns: [
             {
@@ -188,7 +188,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider width provided as function that returns number', function() {
+      it('should consider width provided as function that returns number', function () {
         handsontable({
           columns: [
             {
@@ -205,7 +205,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider width provided as function that returns string', function() {
+      it('should consider width provided as function that returns string', function () {
         handsontable({
           columns: [
             {
@@ -224,7 +224,7 @@ describe('settings', () => {
     });
 
     describe('defined in cells', () => {
-      it('should consider width provided as number', function() {
+      it('should consider width provided as number', function () {
         handsontable({
           cells(row, col) {
             if (col === 0) {
@@ -236,7 +236,7 @@ describe('settings', () => {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
 
-      it('should consider width provided as string', function() {
+      it('should consider width provided as string', function () {
         handsontable({
           cells(row, col) {
             if (col === 0) {

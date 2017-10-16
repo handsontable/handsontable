@@ -7,7 +7,7 @@ import {registerRenderer, getRenderer} from './../../renderers';
  * @plugin Search
  */
 function Search(instance) {
-  this.query = function(queryStr, callback, queryMethod) {
+  this.query = function (queryStr, callback, queryMethod) {
     var rowCount = instance.countRows();
     var colCount = instance.countCols();
     var queryResult = [];
@@ -48,11 +48,11 @@ function Search(instance) {
   };
 };
 
-Search.DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
+Search.DEFAULT_CALLBACK = function (instance, row, col, data, testResult) {
   instance.getCellMeta(row, col).isSearchResult = testResult;
 };
 
-Search.DEFAULT_QUERY_METHOD = function(query, value) {
+Search.DEFAULT_QUERY_METHOD = function (query, value) {
   if (typeof query === 'undefined' || query === null || !query.toLowerCase || query.length === 0) {
     return false;
   }
@@ -65,7 +65,7 @@ Search.DEFAULT_QUERY_METHOD = function(query, value) {
 
 Search.DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
-Search.global = (function() {
+Search.global = (function () {
 
   var defaultCallback = Search.DEFAULT_CALLBACK;
   var defaultQueryMethod = Search.DEFAULT_QUERY_METHOD;
@@ -112,7 +112,7 @@ function SearchCellDecorator(instance, TD, row, col, prop, value, cellProperties
 
 var originalBaseRenderer = getRenderer('base');
 
-registerRenderer('base', function(instance, TD, row, col, prop, value, cellProperties) {
+registerRenderer('base', function (instance, TD, row, col, prop, value, cellProperties) {
   originalBaseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
   SearchCellDecorator.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 });

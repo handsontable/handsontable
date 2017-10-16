@@ -1,11 +1,11 @@
 describe('Core_selection', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -39,7 +39,7 @@ describe('Core_selection', () => {
     expect(output[1]).toEqual(2);
   });
 
-  it('this.rootElement should point to handsontable rootElement (onSelection)', function() {
+  it('this.rootElement should point to handsontable rootElement (onSelection)', function () {
     var output = null;
 
     handsontable({
@@ -52,7 +52,7 @@ describe('Core_selection', () => {
     expect(output).toEqual(this.$container[0]);
   });
 
-  it('this.rootElement should point to handsontable rootElement (onSelectionByProp)', function() {
+  it('this.rootElement should point to handsontable rootElement (onSelectionByProp)', function () {
     var output = null;
 
     handsontable({
@@ -449,7 +449,7 @@ describe('Core_selection', () => {
     expect(tick).toEqual(2);
   });
 
-  it('should select columns by click on header with SHIFT key', function() {
+  it('should select columns by click on header with SHIFT key', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -466,7 +466,7 @@ describe('Core_selection', () => {
 
   });
 
-  it('should select rows by click on header with SHIFT key', function() {
+  it('should select rows by click on header with SHIFT key', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -483,7 +483,7 @@ describe('Core_selection', () => {
 
   });
 
-  it('should select columns by click on header with SHIFT key', function() {
+  it('should select columns by click on header with SHIFT key', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -500,7 +500,7 @@ describe('Core_selection', () => {
 
   });
 
-  it('should change selection after click on row header with SHIFT key', function() {
+  it('should change selection after click on row header with SHIFT key', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -516,7 +516,7 @@ describe('Core_selection', () => {
 
   });
 
-  it('should change selection after click on column header with SHIFT key', function() {
+  it('should change selection after click on column header with SHIFT key', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -531,7 +531,7 @@ describe('Core_selection', () => {
     expect(getSelected()).toEqual([0, 1, 4, 4]);
   });
 
-  it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', function() {
+  it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', function () {
     var tick = 0,
       tickEnd = 0;
     handsontable({
@@ -556,7 +556,7 @@ describe('Core_selection', () => {
     expect(tickEnd).toEqual(1);
   });
 
-  it('should properly select columns, when the user moves the cursor over column headers across two overlays', function() {
+  it('should properly select columns, when the user moves the cursor over column headers across two overlays', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -612,7 +612,7 @@ describe('Core_selection', () => {
     $input.remove();
   });
 
-  it('should select the entire column after column header is clicked', function() {
+  it('should select the entire column after column header is clicked', function () {
     var hot = handsontable({
       width: 200,
       height: 100,
@@ -629,7 +629,7 @@ describe('Core_selection', () => {
     expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
-  it('should add classname after select column', function() {
+  it('should add classname after select column', function () {
     handsontable({
       width: 200,
       height: 100,
@@ -643,7 +643,7 @@ describe('Core_selection', () => {
     expect(this.$container.hasClass('ht__selection--columns')).toBeTruthy();
   });
 
-  it('should select the entire column after column header is clicked (in fixed rows/cols corner)', function() {
+  it('should select the entire column after column header is clicked (in fixed rows/cols corner)', function () {
     var hot = handsontable({
       width: 200,
       height: 100,
@@ -663,7 +663,7 @@ describe('Core_selection', () => {
     expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
-  it('should select the entire fixed column after column header is clicked, after scroll horizontally', function() {
+  it('should select the entire fixed column after column header is clicked, after scroll horizontally', function () {
     var hot = handsontable({
       width: 200,
       height: 100,
@@ -738,7 +738,7 @@ describe('Core_selection', () => {
     }, 60);
   });
 
-  it('should allow to scroll the table when a whole column is selected and table is longer than it\'s container', function(done) {
+  it('should allow to scroll the table when a whole column is selected and table is longer than it\'s container', function (done) {
     var errCount = 0;
     $(window).on('error.selectionTest', () => {
       errCount++;
@@ -825,7 +825,7 @@ describe('Core_selection', () => {
 
   });
 
-  it('should select the entire row after row header is clicked', function() {
+  it('should select the entire row after row header is clicked', function () {
     var hot = handsontable({
       startRows: 5,
       startCols: 5,
@@ -841,7 +841,7 @@ describe('Core_selection', () => {
     expect(hot.selection.selectedHeader.corner).toBe(false);
   });
 
-  it('should add classname after select row', function() {
+  it('should add classname after select row', function () {
     handsontable({
       width: 200,
       height: 100,
@@ -855,7 +855,7 @@ describe('Core_selection', () => {
     expect(this.$container.hasClass('ht__selection--rows')).toBeTruthy();
   });
 
-  it('should select the entire row of a partially fixed table after row header is clicked', function() {
+  it('should select the entire row of a partially fixed table after row header is clicked', function () {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -1024,7 +1024,7 @@ describe('Core_selection', () => {
     expect(hot.getSelected()).toEqual([3, 1, 3, 1]);
   });
 
-  it('should select the first row after corner header is clicked', function() {
+  it('should select the first row after corner header is clicked', function () {
     var hot = handsontable({
       startRows: 5,
       startCols: 5,

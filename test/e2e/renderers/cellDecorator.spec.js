@@ -1,18 +1,18 @@
 describe('CellDecorator', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfObjects = function() {
+  var arrayOfObjects = function () {
     return [
       {id: 1, name: 'Ted', lastName: 'Right'},
       {id: 2, name: 'Frank', lastName: 'Honest'},

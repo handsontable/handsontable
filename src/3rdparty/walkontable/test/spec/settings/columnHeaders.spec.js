@@ -40,7 +40,7 @@ describe('columnHeaders option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
       }],
     });
@@ -55,7 +55,7 @@ describe('columnHeaders option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
       }],
     });
@@ -79,7 +79,7 @@ describe('columnHeaders option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = 'Client State State';
       }],
       columnWidth: 80,
@@ -96,7 +96,7 @@ describe('columnHeaders option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = 'Client State State';
       }],
       columnWidth: 80,
@@ -113,7 +113,7 @@ describe('columnHeaders option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      columnHeaders: [function(column, TH) {
+      columnHeaders: [function (column, TH) {
         TH.innerHTML = headers[column];
       }],
     });

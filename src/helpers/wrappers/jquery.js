@@ -5,7 +5,7 @@ export default function jQueryWrapper(Handsontable) {
     return;
   }
 
-  jQuery.fn.handsontable = function(action, ...args) {
+  jQuery.fn.handsontable = function (action, ...args) {
     const $this = this.first(); // Use only first element from list
     let instance = $this.data('handsontable');
 

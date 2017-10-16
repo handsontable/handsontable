@@ -1,18 +1,18 @@
 describe('manualColumnResize', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should change column widths at init', function() {
+  it('should change column widths at init', function () {
     handsontable({
       manualColumnResize: [100, 150, 180],
     });
@@ -22,7 +22,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(this.$container, 2)).toBe(180);
   });
 
-  it('should be enabled after specifying it in updateSettings config', function() {
+  it('should be enabled after specifying it in updateSettings config', function () {
     handsontable({
       data: [
         {id: 1, name: 'Ted', lastName: 'Right'},
@@ -41,7 +41,7 @@ describe('manualColumnResize', () => {
     expect($('.manualColumnResizer').size()).toBeGreaterThan(0);
   });
 
-  it('should change the default column widths with updateSettings', function() {
+  it('should change the default column widths with updateSettings', function () {
     handsontable({
       manualColumnResize: true,
     });
@@ -59,7 +59,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(this.$container, 2)).toBe(80);
   });
 
-  it('should change column widths with updateSettings', function() {
+  it('should change column widths with updateSettings', function () {
     handsontable({
       manualColumnResize: [100, 150, 180],
     });
@@ -77,7 +77,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(this.$container, 2)).toBe(80);
   });
 
-  it('should reset column widths when undefined is passed', function() {
+  it('should reset column widths when undefined is passed', function () {
     handsontable({
       manualColumnResize: [100, 150, 180],
     });
@@ -95,7 +95,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(this.$container, 2)).toBe(50);
   });
 
-  it('should not reset column widths when `true` is passed', function() {
+  it('should not reset column widths when `true` is passed', function () {
     handsontable({
       manualColumnResize: [100, 150, 180],
     });
@@ -113,7 +113,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(this.$container, 2)).toBe(180);
   });
 
-  it('should resize (narrowing) appropriate columns, even when stretchH `all` is enabled', function() {
+  it('should resize (narrowing) appropriate columns, even when stretchH `all` is enabled', function () {
     this.$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -132,7 +132,7 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(4).width()).toBe(211);
   });
 
-  it('should resize (extending) appropriate columns, even when stretchH `all` is enabled', function() {
+  it('should resize (extending) appropriate columns, even when stretchH `all` is enabled', function () {
     this.$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -151,7 +151,7 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(4).width()).toBe(128);
   });
 
-  it('should resize (narrowing) selected columns', function(done) {
+  it('should resize (narrowing) selected columns', function (done) {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -183,7 +183,7 @@ describe('manualColumnResize', () => {
     }, 1000);
   });
 
-  it('should resize (expanding) selected columns', function(done) {
+  it('should resize (expanding) selected columns', function (done) {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -215,7 +215,7 @@ describe('manualColumnResize', () => {
     }, 1000);
   });
 
-  it('should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`', function(done) {
+  it('should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`', function (done) {
     this.$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -256,7 +256,7 @@ describe('manualColumnResize', () => {
     }, 1000);
   });
 
-  it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', function(done) {
+  it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', function (done) {
     this.$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -297,7 +297,7 @@ describe('manualColumnResize', () => {
     }, 1000);
   });
 
-  it('should resize appropriate columns, even if the column order was changed with manualColumnMove plugin', function() {
+  it('should resize appropriate columns, even if the column order was changed with manualColumnMove plugin', function () {
     handsontable({
       colHeaders: ['First', 'Second', 'Third'],
       manualColumnMove: [2, 1, 0, 3],
@@ -307,7 +307,7 @@ describe('manualColumnResize', () => {
     var $columnHeaders = this.$container.find('thead tr:eq(0) th');
     var initialColumnWidths = [];
 
-    $columnHeaders.each(function() {
+    $columnHeaders.each(function () {
       initialColumnWidths.push($(this).width());
     });
 
@@ -324,7 +324,7 @@ describe('manualColumnResize', () => {
     }
   });
 
-  it('should trigger an afterColumnResize event after column size changes', function() {
+  it('should trigger an afterColumnResize event after column size changes', function () {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
@@ -342,7 +342,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(this.$container, 0)).toEqual(100);
   });
 
-  it('should not trigger an afterColumnResize event if column size does not change (mouseMove event width delta = 0)', function() {
+  it('should not trigger an afterColumnResize event if column size does not change (mouseMove event width delta = 0)', function () {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
@@ -360,7 +360,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(this.$container, 0)).toEqual(50);
   });
 
-  it('should not trigger an afterColumnResize event if column size does not change (no mouseMove event)', function() {
+  it('should not trigger an afterColumnResize event if column size does not change (no mouseMove event)', function () {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
@@ -385,7 +385,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(this.$container, 0)).toEqual(50);
   });
 
-  it('should trigger an afterColumnResize after column size changes, after double click', function(done) {
+  it('should trigger an afterColumnResize after column size changes, after double click', function (done) {
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
@@ -420,7 +420,7 @@ describe('manualColumnResize', () => {
     }, 1000);
   });
 
-  it('should autosize column after double click (when initial width is not defined)', function(done) {
+  it('should autosize column after double click (when initial width is not defined)', function (done) {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
@@ -449,7 +449,7 @@ describe('manualColumnResize', () => {
     }, 1000);
   });
 
-  it('should autosize selected columns after double click on handler', function(done) {
+  it('should autosize selected columns after double click on handler', function (done) {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(9, 9),
       colHeaders: true,
@@ -482,7 +482,7 @@ describe('manualColumnResize', () => {
     }, 1200);
   });
 
-  it('should adjust resize handles position after table size changed', function() {
+  it('should adjust resize handles position after table size changed', function () {
     var maxed = false;
 
     handsontable({
@@ -513,7 +513,7 @@ describe('manualColumnResize', () => {
     expect(handleBox.left + handleBox.width).toEqual(thBox.left + thBox.width - 1);
   });
 
-  it('should display the resize handle in the correct place after the table has been scrolled', function() {
+  it('should display the resize handle in the correct place after the table has been scrolled', function () {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -542,7 +542,7 @@ describe('manualColumnResize', () => {
   });
 
   describe('handle and guide', () => {
-    it('should display the resize handle in the proper position and with a proper size', function() {
+    it('should display the resize handle in the proper position and with a proper size', function () {
       handsontable({
         data: [
           {id: 1, name: 'Ted', lastName: 'Right'},

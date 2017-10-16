@@ -1,11 +1,11 @@
 describe('TextRenderer', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -50,7 +50,7 @@ describe('TextRenderer', () => {
   it('should render undefined', () => {
     handsontable();
     /* eslint-disable wrap-iife */
-    setDataAtCell(2, 2, (function() {})());
+    setDataAtCell(2, 2, (function () {})());
 
     expect(getCell(2, 2).innerHTML).toEqual('');
   });

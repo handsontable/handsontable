@@ -1,11 +1,11 @@
 describe('noEditor', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -126,7 +126,7 @@ describe('noEditor', () => {
     }, 200);
   });
 
-  it('should not open editor after pressing a printable character', function() {
+  it('should not open editor after pressing a printable character', function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       editor: false,
@@ -140,7 +140,7 @@ describe('noEditor', () => {
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should not open editor after pressing a printable character with shift key', function() {
+  it('should not open editor after pressing a printable character with shift key', function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       editor: false,

@@ -2,11 +2,11 @@ describe('settings', () => {
   describe('fragmentSelection', () => {
     var id = 'testContainer';
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (this.$container) {
         destroy();
         this.$container.remove();
@@ -71,7 +71,7 @@ describe('settings', () => {
     }
 
     describe('constructor', () => {
-      it('should disallow fragmentSelection when set to false', function() {
+      it('should disallow fragmentSelection when set to false', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: false,
@@ -85,7 +85,7 @@ describe('settings', () => {
         expect(sel).toEqual(false);
       });
 
-      it('should allow fragmentSelection when set to true', function() {
+      it('should allow fragmentSelection when set to true', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: true,
@@ -100,7 +100,7 @@ describe('settings', () => {
         expect(sel).toEqual('B1C1D1');
       });
 
-      it('should allow fragmentSelection from one cell when set to `cell`', function() {
+      it('should allow fragmentSelection from one cell when set to `cell`', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: 'cell',
@@ -115,7 +115,7 @@ describe('settings', () => {
         expect(getSelected().replace(/\s/g, '')).toEqual('B1');
       });
 
-      it('should disallow fragmentSelection from one cell when set to `cell` and when user selects adjacent cell', function() {
+      it('should disallow fragmentSelection from one cell when set to `cell` and when user selects adjacent cell', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: 'cell',
@@ -130,7 +130,7 @@ describe('settings', () => {
         expect(getSelected()).toEqual(false);
       });
 
-      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to false', function() {
+      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to false', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: false,
@@ -145,7 +145,7 @@ describe('settings', () => {
         expect(sel).toEqual(false);
       });
 
-      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to true', function() {
+      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to true', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: true,
@@ -162,7 +162,7 @@ describe('settings', () => {
     });
 
     describe('dynamic', () => {
-      it('should disallow fragmentSelection when set to false', function() {
+      it('should disallow fragmentSelection when set to false', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: true,
@@ -177,7 +177,7 @@ describe('settings', () => {
         expect(sel).toEqual(false);
       });
 
-      it('should allow fragmentSelection when set to true', function() {
+      it('should allow fragmentSelection when set to true', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: false,

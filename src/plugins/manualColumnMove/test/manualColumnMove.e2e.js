@@ -1,11 +1,11 @@
 describe('manualColumnMove', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -13,7 +13,7 @@ describe('manualColumnMove', () => {
   });
 
   describe('init', () => {
-    it('should change column order at init', function() {
+    it('should change column order at init', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: [1, 2, 0],
@@ -26,7 +26,7 @@ describe('manualColumnMove', () => {
   });
 
   describe('persistentState', () => {
-    it('should load data from cache after initialization of new Handsontable instance', function(done) {
+    it('should load data from cache after initialization of new Handsontable instance', function (done) {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: true,
@@ -72,7 +72,7 @@ describe('manualColumnMove', () => {
   });
 
   describe('updateSettings', () => {
-    it('should be enabled after specifying it in updateSettings config', function() {
+    it('should be enabled after specifying it in updateSettings config', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -88,7 +88,7 @@ describe('manualColumnMove', () => {
       expect(this.$container.hasClass('after-selection--columns')).toBeGreaterThan(0);
     });
 
-    it('should change the default column order with updateSettings', function() {
+    it('should change the default column order with updateSettings', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: true,
@@ -107,7 +107,7 @@ describe('manualColumnMove', () => {
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
     });
 
-    it('should change column order with updateSettings', function() {
+    it('should change column order with updateSettings', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: [1, 2, 0],
@@ -126,7 +126,7 @@ describe('manualColumnMove', () => {
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
     });
 
-    it('should update columnsMapper when updateSettings change numbers of columns', function() {
+    it('should update columnsMapper when updateSettings change numbers of columns', function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: true,
@@ -151,7 +151,7 @@ describe('manualColumnMove', () => {
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
     });
 
-    it('should reset column order with updateSettings when undefined is passed', function() {
+    it('should reset column order with updateSettings when undefined is passed', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: [1, 2, 0],
@@ -217,7 +217,7 @@ describe('manualColumnMove', () => {
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
     });
 
-    it('should move many columns by API', function() {
+    it('should move many columns by API', function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -236,7 +236,7 @@ describe('manualColumnMove', () => {
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('I1');
     });
 
-    it('should trigger an beforeColumnMove event before column move', function() {
+    it('should trigger an beforeColumnMove event before column move', function () {
       var beforeMoveColumnCallback = jasmine.createSpy('beforeMoveColumnCallback');
 
       var hot = handsontable({
@@ -260,7 +260,7 @@ describe('manualColumnMove', () => {
       expect(beforeMoveColumnCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
     });
 
-    it('should trigger an afterColumnMove event after column move', function() {
+    it('should trigger an afterColumnMove event after column move', function () {
       var afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
       this.$container.height(150);
@@ -286,7 +286,7 @@ describe('manualColumnMove', () => {
       expect(afterMoveColumnCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
     });
 
-    it('should move the second column to the first column', function() {
+    it('should move the second column to the first column', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -311,7 +311,7 @@ describe('manualColumnMove', () => {
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
     });
 
-    it('should move the second row to the third row', function() {
+    it('should move the second row to the third row', function () {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,

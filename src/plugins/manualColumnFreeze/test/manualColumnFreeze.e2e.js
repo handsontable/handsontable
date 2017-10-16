@@ -1,11 +1,11 @@
 describe('manualColumnFreeze', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -83,7 +83,7 @@ describe('manualColumnFreeze', () => {
       selectCell(1, 1);
       contextMenu();
 
-      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         return $(this).text() === 'Freeze this column';
 
       });
@@ -102,7 +102,7 @@ describe('manualColumnFreeze', () => {
       selectCell(1, 1);
       contextMenu();
 
-      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         return $(this).text() === 'Unfreeze this column';
 
       });
@@ -124,7 +124,7 @@ describe('manualColumnFreeze', () => {
 
       contextMenu();
 
-      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         if ($(this).text() === 'Freeze this column') {
           return true;
         }
@@ -159,7 +159,7 @@ describe('manualColumnFreeze', () => {
       selectCell(1, 1);
       contextMenu();
 
-      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         return $(this).text() === 'Unfreeze this column';
 
       });
@@ -176,7 +176,7 @@ describe('manualColumnFreeze', () => {
       selectCell(1, 1);
       contextMenu();
 
-      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         if ($(this).text() === 'Unfreeze this column') {
           return true;
         }
@@ -205,7 +205,7 @@ describe('manualColumnFreeze', () => {
 
       selectCell(1, 2);
       contextMenu();
-      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         return $(this).text() === 'Freeze this column';
       });
 
@@ -217,7 +217,7 @@ describe('manualColumnFreeze', () => {
 
       selectCell(1, 0);
       contextMenu();
-      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         return $(this).text() === 'Unfreeze this column';
       });
 

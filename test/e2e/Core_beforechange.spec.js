@@ -1,18 +1,18 @@
 describe('Core_beforechange', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('this.rootElement should point to handsontable rootElement', function() {
+  it('this.rootElement should point to handsontable rootElement', function () {
     var output = null;
 
     handsontable({
@@ -60,7 +60,7 @@ describe('Core_beforechange', () => {
   });
 
   function beforechangeOnKeyFactory(keyCode) {
-    return function() {
+    return function () {
       var called = false;
 
       handsontable({

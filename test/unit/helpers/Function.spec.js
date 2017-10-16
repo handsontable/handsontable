@@ -135,10 +135,10 @@ describe('Function helper', () => {
     it('should returns new function with piped all passed functions', () => {
       var spy1 = jasmine.createSpyObj('spy', ['test1', 'test2', 'test3', 'test4']);
 
-      spy1.test1.and.callFake((a) => a + 1);
-      spy1.test2.and.callFake((a) => a + 1);
-      spy1.test3.and.callFake((a) => a + 1);
-      spy1.test4.and.callFake((a) => a + 1);
+      spy1.test1.and.callFake(a => a + 1);
+      spy1.test2.and.callFake(a => a + 1);
+      spy1.test3.and.callFake(a => a + 1);
+      spy1.test4.and.callFake(a => a + 1);
 
       var piped = pipe(spy1.test1, spy1.test2, spy1.test3, spy1.test4);
 
@@ -212,7 +212,7 @@ describe('Function helper', () => {
   describe('isFunction', () => {
     it('should correctly detect function', () => {
       var toCheck = [
-        function() {},
+        function () {},
         {id() {}},
         1,
         'text',

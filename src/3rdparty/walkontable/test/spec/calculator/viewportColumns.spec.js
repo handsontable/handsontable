@@ -26,7 +26,7 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('should render 10 columns, starting from 1 in container scrolled to half of fourth column (with render overrides)', () => {
-    var overrideFn = function(calc) {
+    var overrideFn = function (calc) {
       calc.startColumn -= 2;
       calc.endColumn += 2;
     };
@@ -98,7 +98,7 @@ describe('Walkontable.ViewportColumnsCalculator', () => {
   });
 
   it('should set null values if total columns is 0 (with overrideFn provided)', () => {
-    var overrideFn = function(myCalc) {
+    var overrideFn = function (myCalc) {
       myCalc.startColumn = 0;
       myCalc.endColumn = 0;
     };

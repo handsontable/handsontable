@@ -125,8 +125,8 @@ class CopyPaste extends BasePlugin {
       this.columnsLimit = settings.copyPaste.columnsLimit || this.columnsLimit;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
-    this.addHook('beforeKeyDown', (event) => this.onBeforeKeyDown(event));
+    this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
+    this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
 
     this.registerEvents();
 
@@ -342,8 +342,8 @@ class CopyPaste extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.textarea.element, 'paste', (event) => this.onPaste(event));
-    this.eventManager.addEventListener(this.textarea.element, 'input', (event) => this.onInput(event));
+    this.eventManager.addEventListener(this.textarea.element, 'paste', event => this.onPaste(event));
+    this.eventManager.addEventListener(this.textarea.element, 'input', event => this.onInput(event));
   }
 
   /**

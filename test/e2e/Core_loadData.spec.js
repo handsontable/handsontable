@@ -1,18 +1,18 @@
 describe('Core_loadData', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfArrays = function() {
+  var arrayOfArrays = function () {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
@@ -21,7 +21,7 @@ describe('Core_loadData', () => {
     ];
   };
 
-  var arrayOfObjects = function() {
+  var arrayOfObjects = function () {
     return [
       {id: 1, name: 'Ted', lastName: 'Right'},
       {id: 2, name: 'Frank', lastName: 'Honest'},
@@ -36,7 +36,7 @@ describe('Core_loadData', () => {
     ];
   };
 
-  var arrayOfNestedObjects = function() {
+  var arrayOfNestedObjects = function () {
     return [
       {
         id: 1,
@@ -547,7 +547,7 @@ describe('Core_loadData', () => {
     expect(getCellMeta(0, 0).foo).toBeUndefined();
   });
 
-  it('should clear cell properties after loadData, but before rendering new data', function() {
+  it('should clear cell properties after loadData, but before rendering new data', function () {
     handsontable();
     loadData(arrayOfArrays());
 

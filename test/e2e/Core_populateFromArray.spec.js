@@ -1,18 +1,18 @@
 describe('Core_populateFromArray', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfArrays = function() {
+  var arrayOfArrays = function () {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda', 'Mix'],
       ['2008', 10, 11, 12, 13, {a: 1, b: 2}],

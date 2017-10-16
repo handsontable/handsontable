@@ -6,9 +6,9 @@ describe('localHooks mixin', () => {
   });
 
   it('should add local hook to the hooks collection', () => {
-    var callback = function() {};
-    var callback1 = function() {};
-    var callback2 = function() {};
+    var callback = function () {};
+    var callback1 = function () {};
+    var callback2 = function () {};
 
     localHooks.addLocalHook('myHook', callback);
     localHooks.addLocalHook('myHook', callback);

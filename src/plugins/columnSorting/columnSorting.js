@@ -73,7 +73,7 @@ class ColumnSorting extends BasePlugin {
     const _this = this;
     this.hot.sortIndex = [];
 
-    this.hot.sort = function(...params) {
+    this.hot.sort = function (...params) {
       let args = Array.prototype.slice.call(params);
 
       return _this.sortByColumn(...args);
@@ -85,8 +85,8 @@ class ColumnSorting extends BasePlugin {
 
     this.addHook('afterTrimRow', () => this.sort());
     this.addHook('afterUntrimRow', () => this.sort());
-    this.addHook('modifyRow', (row) => this.translateRow(row));
-    this.addHook('unmodifyRow', (row) => this.untranslateRow(row));
+    this.addHook('modifyRow', row => this.translateRow(row));
+    this.addHook('unmodifyRow', row => this.untranslateRow(row));
     this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
     this.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
@@ -255,7 +255,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The comparing function.
    */
   defaultSort(sortOrder, columnMeta) {
-    return function(a, b) {
+    return function (a, b) {
       if (typeof a[1] === 'string') {
         a[1] = a[1].toLowerCase();
       }
@@ -318,7 +318,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The compare function.
    */
   dateSort(sortOrder, columnMeta) {
-    return function(a, b) {
+    return function (a, b) {
       if (a[1] === b[1]) {
         return 0;
       }
@@ -376,7 +376,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The compare function.
    */
   numericSort(sortOrder, columnMeta) {
-    return function(a, b) {
+    return function (a, b) {
       const parsedA = parseFloat(a[1]);
       const parsedB = parseFloat(b[1]);
 
@@ -606,7 +606,7 @@ class ColumnSorting extends BasePlugin {
     }
     let removedRows = this.hot.sortIndex.splice(index, amount);
 
-    removedRows = arrayMap(removedRows, (row) => row[0]);
+    removedRows = arrayMap(removedRows, row => row[0]);
 
     function countRowShift(logicalRow) {
       // Todo: compare perf between reduce vs sort->each->brake

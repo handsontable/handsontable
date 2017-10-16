@@ -13,11 +13,11 @@ describe('manualRowMove', () => {
     {id: 10, name: 'Eve', lastName: 'Branson'},
   ];
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();

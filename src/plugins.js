@@ -16,7 +16,7 @@ const registeredPlugins = new WeakMap();
 function registerPlugin(pluginName, PluginClass) {
   pluginName = toUpperCaseFirst(pluginName);
 
-  Hooks.getSingleton().add('construct', function() {
+  Hooks.getSingleton().add('construct', function () {
     let holder;
 
     if (!registeredPlugins.has(this)) {
@@ -28,11 +28,11 @@ function registerPlugin(pluginName, PluginClass) {
       holder[pluginName] = new PluginClass(this);
     }
   });
-  Hooks.getSingleton().add('afterDestroy', function() {
+  Hooks.getSingleton().add('afterDestroy', function () {
     if (registeredPlugins.has(this)) {
       let pluginsHolder = registeredPlugins.get(this);
 
-      objectEach(pluginsHolder, (plugin) => plugin.destroy());
+      objectEach(pluginsHolder, plugin => plugin.destroy());
       registeredPlugins.delete(this);
     }
   });

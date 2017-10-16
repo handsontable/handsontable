@@ -10,7 +10,7 @@ for (let x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
 }
 
 if (!_requestAnimationFrame) {
-  _requestAnimationFrame = function(callback) {
+  _requestAnimationFrame = function (callback) {
     let currTime = new Date().getTime();
     let timeToCall = Math.max(0, 16 - (currTime - lastTime));
     let id = window.setTimeout(() => {
@@ -23,7 +23,7 @@ if (!_requestAnimationFrame) {
 }
 
 if (!_cancelAnimationFrame) {
-  _cancelAnimationFrame = function(id) {
+  _cancelAnimationFrame = function (id) {
     clearTimeout(id);
   };
 }

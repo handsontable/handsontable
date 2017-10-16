@@ -12,7 +12,7 @@ const HandsontableEditor = TextEditor.prototype.extend();
  * @class HandsontableEditor
  * @dependencies TextEditor
  */
-HandsontableEditor.prototype.createElements = function(...args) {
+HandsontableEditor.prototype.createElements = function (...args) {
   TextEditor.prototype.createElements.apply(this, args);
 
   var DIV = document.createElement('DIV');
@@ -23,7 +23,7 @@ HandsontableEditor.prototype.createElements = function(...args) {
   this.assignHooks();
 };
 
-HandsontableEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellProperties) {
+HandsontableEditor.prototype.prepare = function (row, col, prop, td, originalValue, cellProperties) {
   TextEditor.prototype.prepare.apply(this, [row, col, prop, td, originalValue, cellProperties]);
 
   var parent = this;
@@ -55,7 +55,7 @@ HandsontableEditor.prototype.prepare = function(row, col, prop, td, originalValu
   this.htOptions = options;
 };
 
-var onBeforeKeyDown = function(event) {
+var onBeforeKeyDown = function (event) {
   if (isImmediatePropagationStopped(event)) {
     return;
   }
@@ -109,7 +109,7 @@ var onBeforeKeyDown = function(event) {
   }
 };
 
-HandsontableEditor.prototype.open = function(...args) {
+HandsontableEditor.prototype.open = function (...args) {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 
   TextEditor.prototype.open.apply(this, args);
@@ -132,19 +132,19 @@ HandsontableEditor.prototype.open = function(...args) {
   setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
 };
 
-HandsontableEditor.prototype.close = function(...args) {
+HandsontableEditor.prototype.close = function (...args) {
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
   this.instance.listen();
 
   TextEditor.prototype.close.apply(this, args);
 };
 
-HandsontableEditor.prototype.focus = function(...args) {
+HandsontableEditor.prototype.focus = function (...args) {
   this.instance.listen();
   TextEditor.prototype.focus.apply(this, args);
 };
 
-HandsontableEditor.prototype.beginEditing = function(initialValue) {
+HandsontableEditor.prototype.beginEditing = function (initialValue) {
   var onBeginEditing = this.instance.getSettings().onBeginEditing;
 
   if (onBeginEditing && onBeginEditing() === false) {
@@ -153,7 +153,7 @@ HandsontableEditor.prototype.beginEditing = function(initialValue) {
   TextEditor.prototype.beginEditing.apply(this, [initialValue]);
 };
 
-HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
+HandsontableEditor.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (this.htEditor && this.htEditor.isListening()) { // if focus is still in the HOT editor
 
     this.instance.listen(); // return the focus to the parent HOT instance
@@ -170,7 +170,7 @@ HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
   return TextEditor.prototype.finishEditing.apply(this, [isCancelled, ctrlDown]);
 };
 
-HandsontableEditor.prototype.assignHooks = function() {
+HandsontableEditor.prototype.assignHooks = function () {
   var _this = this;
 
   this.instance.addHook('afterDestroy', () => {

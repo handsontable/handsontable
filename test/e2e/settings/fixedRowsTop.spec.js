@@ -2,11 +2,11 @@ describe('settings', () => {
   describe('fixedRowsTop', () => {
     var id = 'testContainer';
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (this.$container) {
         destroy();
         this.$container.remove();
@@ -88,7 +88,7 @@ describe('settings', () => {
         var spy = jasmine.createSpyObj('error', ['test']);
         var prevError = window.onerror;
 
-        window.onerror = function() {
+        window.onerror = function () {
           spy.test();
         };
         var hot = handsontable({

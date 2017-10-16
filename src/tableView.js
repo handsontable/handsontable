@@ -50,7 +50,7 @@ function TableView(instance) {
 
   instance.container.insertBefore(table, instance.container.firstChild);
 
-  this.eventManager.addEventListener(instance.rootElement, 'mousedown', function(event) {
+  this.eventManager.addEventListener(instance.rootElement, 'mousedown', function (event) {
     this.selectionMouseDown = true;
 
     if (!that.isTextSelectionAllowed(event.target)) {
@@ -59,10 +59,10 @@ function TableView(instance) {
       window.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
     }
   });
-  this.eventManager.addEventListener(instance.rootElement, 'mouseup', function() {
+  this.eventManager.addEventListener(instance.rootElement, 'mouseup', function () {
     this.selectionMouseDown = false;
   });
-  this.eventManager.addEventListener(instance.rootElement, 'mousemove', function(event) {
+  this.eventManager.addEventListener(instance.rootElement, 'mousemove', function (event) {
     if (this.selectionMouseDown && !that.isTextSelectionAllowed(event.target)) {
       clearTextSelection();
       event.preventDefault();
@@ -76,7 +76,7 @@ function TableView(instance) {
   });
 
   var isMouseDown;
-  this.isMouseDown = function() {
+  this.isMouseDown = function () {
     return isMouseDown;
   };
 
@@ -149,7 +149,7 @@ function TableView(instance) {
     event.preventDefault();
   });
 
-  var clearTextSelection = function() {
+  var clearTextSelection = function () {
     // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
     if (window.getSelection) {
       if (window.getSelection().empty) { // Chrome
@@ -592,7 +592,7 @@ function TableView(instance) {
   });
 }
 
-TableView.prototype.isTextSelectionAllowed = function(el) {
+TableView.prototype.isTextSelectionAllowed = function (el) {
   if (isInput(el)) {
     return true;
   }
@@ -616,33 +616,33 @@ TableView.prototype.isTextSelectionAllowed = function(el) {
  *
  * @returns {Boolean}
  */
-TableView.prototype.isSelectedOnlyCell = function() {
+TableView.prototype.isSelectedOnlyCell = function () {
   var [row, col, rowEnd, colEnd] = this.instance.getSelected() || [];
 
   return row !== void 0 && row === rowEnd && col === colEnd;
 };
 
-TableView.prototype.isCellEdited = function() {
+TableView.prototype.isCellEdited = function () {
   var activeEditor = this.instance.getActiveEditor();
 
   return activeEditor && activeEditor.isOpened();
 };
 
-TableView.prototype.beforeRender = function(force, skipRender) {
+TableView.prototype.beforeRender = function (force, skipRender) {
   if (force) {
     // this.instance.forceFullRender = did Handsontable request full render?
     this.instance.runHooks('beforeRender', this.instance.forceFullRender, skipRender);
   }
 };
 
-TableView.prototype.onDraw = function(force) {
+TableView.prototype.onDraw = function (force) {
   if (force) {
     // this.instance.forceFullRender = did Handsontable request full render?
     this.instance.runHooks('afterRender', this.instance.forceFullRender);
   }
 };
 
-TableView.prototype.render = function() {
+TableView.prototype.render = function () {
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.forceFullRender = false;
   this.instance.renderCall = false;
@@ -654,7 +654,7 @@ TableView.prototype.render = function() {
  * @param {CellCoords} coords
  * @param {Boolean} topmost
  */
-TableView.prototype.getCellAtCoords = function(coords, topmost) {
+TableView.prototype.getCellAtCoords = function (coords, topmost) {
   var td = this.wt.getCell(coords, topmost);
 
   if (td < 0) { // there was an exit code (cell is out of bounds)
@@ -669,7 +669,7 @@ TableView.prototype.getCellAtCoords = function(coords, topmost) {
  *
  * @param {CellCoords} coords
  */
-TableView.prototype.scrollViewport = function(coords) {
+TableView.prototype.scrollViewport = function (coords) {
   this.wt.scrollViewport(coords);
 };
 
@@ -678,7 +678,7 @@ TableView.prototype.scrollViewport = function(coords) {
  * @param row
  * @param TH
  */
-TableView.prototype.appendRowHeader = function(row, TH) {
+TableView.prototype.appendRowHeader = function (row, TH) {
   if (TH.firstChild) {
     let container = TH.firstChild;
 
@@ -710,7 +710,7 @@ TableView.prototype.appendRowHeader = function(row, TH) {
  * @param col
  * @param TH
  */
-TableView.prototype.appendColHeader = function(col, TH) {
+TableView.prototype.appendColHeader = function (col, TH) {
   if (TH.firstChild) {
     let container = TH.firstChild;
 
@@ -744,7 +744,7 @@ TableView.prototype.appendColHeader = function(col, TH) {
  * @param {Number} index Row index or column index
  * @param {Function} content Function which should be returns content for this cell
  */
-TableView.prototype.updateCellHeader = function(element, index, content) {
+TableView.prototype.updateCellHeader = function (element, index, content) {
   let renderedIndex = index;
   let parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
 
@@ -774,7 +774,7 @@ TableView.prototype.updateCellHeader = function(element, index, content) {
  * @param {Number} leftOffset
  * @return {Number}
  */
-TableView.prototype.maximumVisibleElementWidth = function(leftOffset) {
+TableView.prototype.maximumVisibleElementWidth = function (leftOffset) {
   var workspaceWidth = this.wt.wtViewport.getWorkspaceWidth();
   var maxWidth = workspaceWidth - leftOffset;
   return maxWidth > 0 ? maxWidth : 0;
@@ -787,17 +787,17 @@ TableView.prototype.maximumVisibleElementWidth = function(leftOffset) {
  * @param {Number} topOffset
  * @return {Number}
  */
-TableView.prototype.maximumVisibleElementHeight = function(topOffset) {
+TableView.prototype.maximumVisibleElementHeight = function (topOffset) {
   var workspaceHeight = this.wt.wtViewport.getWorkspaceHeight();
   var maxHeight = workspaceHeight - topOffset;
   return maxHeight > 0 ? maxHeight : 0;
 };
 
-TableView.prototype.mainViewIsActive = function() {
+TableView.prototype.mainViewIsActive = function () {
   return this.wt === this.activeWt;
 };
 
-TableView.prototype.destroy = function() {
+TableView.prototype.destroy = function () {
   this.wt.destroy();
   this.eventManager.destroy();
 };

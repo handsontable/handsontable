@@ -5,11 +5,11 @@ describe('DropdownEditor', () => {
 
   var hot;
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (hot) {
       hot = null;
     }
@@ -26,7 +26,7 @@ describe('DropdownEditor', () => {
       var spy = jasmine.createSpyObj('error', ['test']);
       var prevError = window.onerror;
 
-      window.onerror = function() {
+      window.onerror = function () {
         spy.test();
       };
       handsontable({

@@ -22,7 +22,7 @@ const SelectEditor = BaseEditor.prototype.extend();
  * @editor SelectEditor
  * @class SelectEditor
  */
-SelectEditor.prototype.init = function() {
+SelectEditor.prototype.init = function () {
   this.select = document.createElement('SELECT');
   addClass(this.select, 'htSelectEditor');
   this.select.style.display = 'none';
@@ -30,14 +30,14 @@ SelectEditor.prototype.init = function() {
   this.registerHooks();
 };
 
-SelectEditor.prototype.registerHooks = function() {
+SelectEditor.prototype.registerHooks = function () {
   this.instance.addHook('afterScrollHorizontally', () => this.refreshDimensions());
   this.instance.addHook('afterScrollVertically', () => this.refreshDimensions());
   this.instance.addHook('afterColumnResize', () => this.refreshDimensions());
   this.instance.addHook('afterRowResize', () => this.refreshDimensions());
 };
 
-SelectEditor.prototype.prepare = function(...args) {
+SelectEditor.prototype.prepare = function (...args) {
   BaseEditor.prototype.prepare.apply(this, args);
 
   var selectOptions = this.cellProperties.selectOptions;
@@ -58,7 +58,7 @@ SelectEditor.prototype.prepare = function(...args) {
   });
 };
 
-SelectEditor.prototype.prepareOptions = function(optionsToPrepare) {
+SelectEditor.prototype.prepareOptions = function (optionsToPrepare) {
   var preparedOptions = {};
 
   if (Array.isArray(optionsToPrepare)) {
@@ -73,15 +73,15 @@ SelectEditor.prototype.prepareOptions = function(optionsToPrepare) {
 
 };
 
-SelectEditor.prototype.getValue = function() {
+SelectEditor.prototype.getValue = function () {
   return this.select.value;
 };
 
-SelectEditor.prototype.setValue = function(value) {
+SelectEditor.prototype.setValue = function (value) {
   this.select.value = value;
 };
 
-var onBeforeKeyDown = function(event) {
+var onBeforeKeyDown = function (event) {
   var instance = this;
   var editor = instance.getActiveEditor();
 
@@ -110,24 +110,24 @@ var onBeforeKeyDown = function(event) {
   }
 };
 
-SelectEditor.prototype.open = function() {
+SelectEditor.prototype.open = function () {
   this._opened = true;
   this.refreshDimensions();
   this.select.style.display = '';
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-SelectEditor.prototype.close = function() {
+SelectEditor.prototype.close = function () {
   this._opened = false;
   this.select.style.display = 'none';
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-SelectEditor.prototype.focus = function() {
+SelectEditor.prototype.focus = function () {
   this.select.focus();
 };
 
-SelectEditor.prototype.refreshValue = function() {
+SelectEditor.prototype.refreshValue = function () {
   let sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
   this.originalValue = sourceData;
 
@@ -135,7 +135,7 @@ SelectEditor.prototype.refreshValue = function() {
   this.refreshDimensions();
 };
 
-SelectEditor.prototype.refreshDimensions = function() {
+SelectEditor.prototype.refreshDimensions = function () {
   if (this.state !== EditorState.EDITING) {
     return;
   }
@@ -208,7 +208,7 @@ SelectEditor.prototype.refreshDimensions = function() {
   selectStyle.margin = '0px';
 };
 
-SelectEditor.prototype.getEditedCell = function() {
+SelectEditor.prototype.getEditedCell = function () {
   var editorSection = this.checkEditorSection(),
     editedCell;
 

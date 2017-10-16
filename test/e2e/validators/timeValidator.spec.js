@@ -1,18 +1,18 @@
 describe('timeValidator', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfObjects = function() {
+  var arrayOfObjects = function () {
     return [
       {time: '4:10:05 am', name: 'Ted', lastName: 'Right'},
       {time: '17:15:25', name: 'Frank', lastName: 'Honest'},
@@ -300,7 +300,7 @@ describe('timeValidator', () => {
       }, 100);
 
       setTimeout(() => {
-        var addLeadingZero = function(number) {
+        var addLeadingZero = function (number) {
           return number < 10 ? `0${number}` : number;
         };
         expect(getDataAtCell(1, 0)).toEqual(`${addLeadingZero(currentDateTime.getHours())}:${addLeadingZero(currentDateTime.getMinutes())}:${
@@ -330,7 +330,7 @@ describe('timeValidator', () => {
       }, 100);
 
       setTimeout(() => {
-        var addLeadingZero = function(number) {
+        var addLeadingZero = function (number) {
           return number < 10 ? `0${number}` : number;
         };
 

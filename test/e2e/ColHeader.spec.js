@@ -1,25 +1,25 @@
 describe('ColHeader', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should not show col headers by default', function() {
+  it('should not show col headers by default', function () {
     var that = this;
     handsontable();
 
     expect(that.$container.find('thead th').length).toEqual(0);
   });
 
-  it('should show col headers if true', function() {
+  it('should show col headers if true', function () {
     var that = this;
     handsontable({
       colHeaders: true,
@@ -99,7 +99,7 @@ describe('ColHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
-  it('should not show col headers if false', function() {
+  it('should not show col headers if false', function () {
     var that = this;
     handsontable({
       colHeaders: false,
@@ -310,7 +310,7 @@ describe('ColHeader', () => {
     expect(topHeaderExample.height()).toEqual(masterHeaderExample.height());
   });
 
-  it('should allow defining custom column header height using the columnHeaderHeight config option', function() {
+  it('should allow defining custom column header height using the columnHeaderHeight config option', function () {
     var hot = handsontable({
       startCols: 3,
       colHeaders: true,
@@ -322,7 +322,7 @@ describe('ColHeader', () => {
     expect(this.$container.find('th').eq(0).height()).toEqual(40);
   });
 
-  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', function() {
+  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', function () {
     var hot = handsontable({
       startCols: 3,
       colHeaders: true,

@@ -1,7 +1,7 @@
 describe('CustomBorders', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     var wrapper = $('<div></div>').css({
       width: 400,
@@ -12,7 +12,7 @@ describe('CustomBorders', () => {
     this.$wrapper = this.$container.wrap(wrapper).parent();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();

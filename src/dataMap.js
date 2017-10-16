@@ -35,7 +35,7 @@ function DataMap(instance, priv, GridSettings) {
   this.createMap();
   this.interval = Interval.create(() => this.clearLengthCache(), '15fps');
 
-  this.instance.addHook('skipLengthCache', (delay) => this.onSkipLengthCache(delay));
+  this.instance.addHook('skipLengthCache', delay => this.onSkipLengthCache(delay));
   this.onSkipLengthCache(500);
 }
 
@@ -46,7 +46,7 @@ DataMap.prototype.DESTINATION_CLIPBOARD_GENERATOR = 2;
  * @param {Object|Array} object
  * @returns {Object|Array}
  */
-DataMap.prototype.recursiveDuckSchema = function(object) {
+DataMap.prototype.recursiveDuckSchema = function (object) {
   return duckSchema(object);
 };
 
@@ -56,7 +56,7 @@ DataMap.prototype.recursiveDuckSchema = function(object) {
  * @param {Number} parent
  * @returns {Number}
  */
-DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
+DataMap.prototype.recursiveDuckColumns = function (schema, lastCol, parent) {
   if (typeof lastCol === 'undefined') {
     lastCol = 0;
     parent = '';
@@ -78,7 +78,7 @@ DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
   return lastCol;
 };
 
-DataMap.prototype.createMap = function() {
+DataMap.prototype.createMap = function () {
   let i;
   let schema = this.getSchema();
 
@@ -128,7 +128,7 @@ DataMap.prototype.createMap = function() {
  * @param {Number} col Visual column index.
  * @returns {Number} Physical column index.
  */
-DataMap.prototype.colToProp = function(col) {
+DataMap.prototype.colToProp = function (col) {
   col = this.instance.runHooks('modifyCol', col);
 
   if (!isNaN(col) && this.colToPropCache && typeof this.colToPropCache[col] !== 'undefined') {
@@ -143,7 +143,7 @@ DataMap.prototype.colToProp = function(col) {
  * @fires Hooks#modifyCol
  * @returns {*}
  */
-DataMap.prototype.propToCol = function(prop) {
+DataMap.prototype.propToCol = function (prop) {
   var col;
 
   if (typeof this.propToColCache.get(prop) === 'undefined') {
@@ -159,7 +159,7 @@ DataMap.prototype.propToCol = function(prop) {
 /**
  * @returns {Object}
  */
-DataMap.prototype.getSchema = function() {
+DataMap.prototype.getSchema = function () {
   var schema = this.instance.getSettings().dataSchema;
 
   if (schema) {
@@ -181,7 +181,7 @@ DataMap.prototype.getSchema = function() {
  * @fires Hooks#afterCreateRow
  * @returns {Number} Returns number of created rows.
  */
-DataMap.prototype.createRow = function(index, amount, source) {
+DataMap.prototype.createRow = function (index, amount, source) {
   var row,
     colCount = this.instance.countCols(),
     numberOfCreatedRows = 0;
@@ -242,7 +242,7 @@ DataMap.prototype.createRow = function(index, amount, source) {
  * @fires Hooks#afterCreateCol
  * @returns {Number} Returns number of created columns
  */
-DataMap.prototype.createCol = function(index, amount, source) {
+DataMap.prototype.createCol = function (index, amount, source) {
   if (!this.instance.isColumnModificationAllowed()) {
     throw new Error('Cannot create new column. When data source in an object, ' +
       'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
@@ -310,7 +310,7 @@ DataMap.prototype.createCol = function(index, amount, source) {
  * @fires Hooks#beforeRemoveRow
  * @fires Hooks#afterRemoveRow
  */
-DataMap.prototype.removeRow = function(index, amount, source) {
+DataMap.prototype.removeRow = function (index, amount, source) {
   if (!amount) {
     amount = 1;
   }
@@ -353,7 +353,7 @@ DataMap.prototype.removeRow = function(index, amount, source) {
  * @fires Hooks#beforeRemoveCol
  * @fires Hooks#afterRemoveCol
  */
-DataMap.prototype.removeCol = function(index, amount, source) {
+DataMap.prototype.removeCol = function (index, amount, source) {
   if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
     throw new Error('cannot remove column with object data source or columns option specified');
   }
@@ -414,7 +414,7 @@ DataMap.prototype.removeCol = function(index, amount, source) {
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
  * @returns {Array} Returns removed portion of columns
  */
-DataMap.prototype.spliceCol = function(col, index, amount, ...elements) {
+DataMap.prototype.spliceCol = function (col, index, amount, ...elements) {
   elements = elements && elements.length > 0 ? [].slice.call(elements) : [];
 
   var colData = this.instance.getDataAtCol(col);
@@ -441,7 +441,7 @@ DataMap.prototype.spliceCol = function(col, index, amount, ...elements) {
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
  * @returns {Array} Returns removed portion of rows
  */
-DataMap.prototype.spliceRow = function(row, index, amount, ...elements) {
+DataMap.prototype.spliceRow = function (row, index, amount, ...elements) {
   elements = elements && elements.length > 0 ? [].slice.call(elements) : [];
 
   var rowData = this.instance.getSourceDataAtRow(row);
@@ -466,7 +466,7 @@ DataMap.prototype.spliceRow = function(row, index, amount, ...elements) {
  * @param {Number} amount Number of rows to add/remove.
  * @param {Object} element Row to add.
  */
-DataMap.prototype.spliceData = function(index, amount, element) {
+DataMap.prototype.spliceData = function (index, amount, element) {
   let continueSplicing = this.instance.runHooks('beforeDataSplice', index, amount, element);
 
   if (continueSplicing !== false) {
@@ -481,7 +481,7 @@ DataMap.prototype.spliceData = function(index, amount, element) {
  * @param {Number} amount Number of rows to add/remove.
  * @returns {Array}
  */
-DataMap.prototype.filterData = function(index, amount) {
+DataMap.prototype.filterData = function (index, amount) {
   let physicalRows = this.visualRowsToPhysical(index, amount);
   let continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, physicalRows);
 
@@ -500,7 +500,7 @@ DataMap.prototype.filterData = function(index, amount) {
  * @param {Number} row Visual row index.
  * @param {Number} prop
  */
-DataMap.prototype.get = function(row, prop) {
+DataMap.prototype.get = function (row, prop) {
   row = this.instance.runHooks('modifyRow', row);
 
   let dataRow = this.dataSource[row];
@@ -571,7 +571,7 @@ var copyableLookup = cellMethodLookupFactory('copyable', false);
  * @param {Number} prop
  * @returns {String}
  */
-DataMap.prototype.getCopyable = function(row, prop) {
+DataMap.prototype.getCopyable = function (row, prop) {
   if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
     return this.get(row, prop);
   }
@@ -586,7 +586,7 @@ DataMap.prototype.getCopyable = function(row, prop) {
  * @param {String} value
  * @param {String} [source] Source of hook runner.
  */
-DataMap.prototype.set = function(row, prop, value, source) {
+DataMap.prototype.set = function (row, prop, value, source) {
   row = this.instance.runHooks('modifyRow', row, source || 'datamapGet');
 
   let dataRow = this.dataSource[row];
@@ -643,7 +643,7 @@ DataMap.prototype.set = function(row, prop, value, source) {
  * @fires Hooks#modifyRow
  * @returns {Number}
  */
-DataMap.prototype.visualRowsToPhysical = function(index, amount) {
+DataMap.prototype.visualRowsToPhysical = function (index, amount) {
   var totalRows = this.instance.countSourceRows();
   var physicRow = (totalRows + index) % totalRows;
   var logicRows = [];
@@ -667,7 +667,7 @@ DataMap.prototype.visualRowsToPhysical = function(index, amount) {
  * @param amount
  * @returns {Array}
  */
-DataMap.prototype.visualColumnsToPhysical = function(index, amount) {
+DataMap.prototype.visualColumnsToPhysical = function (index, amount) {
   let totalCols = this.instance.countCols();
   let physicalCol = (totalCols + index) % totalCols;
   let visualCols = [];
@@ -688,7 +688,7 @@ DataMap.prototype.visualColumnsToPhysical = function(index, amount) {
 /**
  * Clears the data array.
  */
-DataMap.prototype.clear = function() {
+DataMap.prototype.clear = function () {
   for (var r = 0; r < this.instance.countSourceRows(); r++) {
     for (var c = 0; c < this.instance.countCols(); c++) {
       this.set(r, this.colToProp(c), '');
@@ -699,7 +699,7 @@ DataMap.prototype.clear = function() {
 /**
  * Clear cached data length.
  */
-DataMap.prototype.clearLengthCache = function() {
+DataMap.prototype.clearLengthCache = function () {
   this.cachedLength = null;
 };
 
@@ -708,7 +708,7 @@ DataMap.prototype.clearLengthCache = function() {
  *
  * @returns {Number}
  */
-DataMap.prototype.getLength = function() {
+DataMap.prototype.getLength = function () {
   let maxRows,
     maxRowsFromSettings = this.instance.getSettings().maxRows;
 
@@ -754,7 +754,7 @@ DataMap.prototype.getLength = function() {
  *
  * @returns {Array}
  */
-DataMap.prototype.getAll = function() {
+DataMap.prototype.getAll = function () {
   const start = {
     row: 0,
     col: 0,
@@ -780,7 +780,7 @@ DataMap.prototype.getAll = function() {
  * @param {Number} destination Destination of datamap.get
  * @returns {Array}
  */
-DataMap.prototype.getRange = function(start, end, destination) {
+DataMap.prototype.getRange = function (start, end, destination) {
   var r,
     rlen,
     c,
@@ -826,7 +826,7 @@ DataMap.prototype.getRange = function(start, end, destination) {
  * @param {Object} [end] End selection position. Visual indexes.
  * @returns {String}
  */
-DataMap.prototype.getText = function(start, end) {
+DataMap.prototype.getText = function (start, end) {
   return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_RENDERER));
 };
 
@@ -837,7 +837,7 @@ DataMap.prototype.getText = function(start, end) {
  * @param {Object} [end] End selection position. Visual indexes.
  * @returns {String}
  */
-DataMap.prototype.getCopyableText = function(start, end) {
+DataMap.prototype.getCopyableText = function (start, end) {
   return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
 };
 
@@ -846,7 +846,7 @@ DataMap.prototype.getCopyableText = function(start, end) {
  * @private
  * @param {Number} delay Time of the delay in milliseconds.
  */
-DataMap.prototype.onSkipLengthCache = function(delay) {
+DataMap.prototype.onSkipLengthCache = function (delay) {
   this.skipCache = true;
   setTimeout(() => {
     this.skipCache = false;
@@ -856,7 +856,7 @@ DataMap.prototype.onSkipLengthCache = function(delay) {
 /**
  * Destroy instance.
  */
-DataMap.prototype.destroy = function() {
+DataMap.prototype.destroy = function () {
   this.interval.stop();
 
   this.interval = null;

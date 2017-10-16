@@ -26,7 +26,7 @@ describe('Walkontable.ViewportRowsCalculator', () => {
   });
 
   it('should render 10 rows, starting from 1 in container scrolled to half of fourth row (with render overrides)', () => {
-    var overrideFn = function(calc) {
+    var overrideFn = function (calc) {
       calc.startRow -= 2;
       calc.endRow += 2;
     };
@@ -98,7 +98,7 @@ describe('Walkontable.ViewportRowsCalculator', () => {
   });
 
   it('should set null values if total rows is 0 (with overrideFn provided)', () => {
-    var overrideFn = function(myCalc) {
+    var overrideFn = function (myCalc) {
       myCalc.startRow = 0;
       myCalc.endRow = 0;
     };

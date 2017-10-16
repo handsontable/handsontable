@@ -291,7 +291,7 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    * @param {Boolean} revertOriginal
    */
-  this.destroyEditor = function(revertOriginal) {
+  this.destroyEditor = function (revertOriginal) {
     this.closeEditor(revertOriginal);
   };
 
@@ -302,7 +302,7 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    * @returns {*}
    */
-  this.getActiveEditor = function() {
+  this.getActiveEditor = function () {
     return activeEditor;
   };
 
@@ -312,7 +312,7 @@ function EditorManager(instance, priv, selection) {
    * @function prepareEditor
    * @memberof! Handsontable.EditorManager#
    */
-  this.prepareEditor = function() {
+  this.prepareEditor = function () {
     var row,
       col,
       prop,
@@ -355,7 +355,7 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    * @returns {Boolean}
    */
-  this.isEditorOpened = function() {
+  this.isEditorOpened = function () {
     return activeEditor && activeEditor.isOpened();
   };
 
@@ -367,7 +367,7 @@ function EditorManager(instance, priv, selection) {
    * @param {String} initialValue
    * @param {DOMEvent} event
    */
-  this.openEditor = function(initialValue, event) {
+  this.openEditor = function (initialValue, event) {
     if (activeEditor && !activeEditor.cellProperties.readOnly) {
       activeEditor.beginEditing(initialValue, event);
     } else if (activeEditor && activeEditor.cellProperties.readOnly) {
@@ -388,7 +388,7 @@ function EditorManager(instance, priv, selection) {
    * @param {Boolean} [ctrlDown]
    * @param {Function} [callback]
    */
-  this.closeEditor = function(restoreOriginalValue, ctrlDown, callback) {
+  this.closeEditor = function (restoreOriginalValue, ctrlDown, callback) {
     if (activeEditor) {
       activeEditor.finishEditing(restoreOriginalValue, ctrlDown, callback);
 
@@ -404,7 +404,7 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    * @param {Boolean} ctrlDown
    */
-  this.closeEditorAndSaveChanges = function(ctrlDown) {
+  this.closeEditorAndSaveChanges = function (ctrlDown) {
     return this.closeEditor(false, ctrlDown);
   };
 
@@ -415,7 +415,7 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    * @param {Boolean} ctrlDown
    */
-  this.closeEditorAndRestoreOriginalValue = function(ctrlDown) {
+  this.closeEditorAndRestoreOriginalValue = function (ctrlDown) {
     return this.closeEditor(true, ctrlDown);
   };
 

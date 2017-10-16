@@ -195,7 +195,7 @@ function extendEvent(context, event) {
   event.realTarget = event.target;
 
   nativeStopImmediatePropagation = event.stopImmediatePropagation;
-  event.stopImmediatePropagation = function() {
+  event.stopImmediatePropagation = function () {
     nativeStopImmediatePropagation.apply(this);
     _stopImmediatePropagation(this);
   };

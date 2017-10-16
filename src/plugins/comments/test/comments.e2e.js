@@ -1,11 +1,11 @@
 describe('Comments', () => {
   const id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -339,7 +339,7 @@ describe('Comments', () => {
     selectCell(1, 1);
     contextMenu();
 
-    const addCommentButton = $('.htItemWrapper').filter(function() {
+    const addCommentButton = $('.htItemWrapper').filter(function () {
       return $(this).text() === 'Add comment';
     })[0];
 
@@ -369,7 +369,7 @@ describe('Comments', () => {
       selectCell(1, 1);
       contextMenu();
 
-      const addCommentButton = $('.htItemWrapper').filter(function() {
+      const addCommentButton = $('.htItemWrapper').filter(function () {
         return $(this).text() === 'Add comment';
       })[0];
 
@@ -395,7 +395,7 @@ describe('Comments', () => {
       selectCell(1, 1);
       contextMenu();
 
-      const deleteCommentButton = $('.htItemWrapper').filter(function() {
+      const deleteCommentButton = $('.htItemWrapper').filter(function () {
         return $(this).text() === 'Delete comment';
       })[0];
 
@@ -421,7 +421,7 @@ describe('Comments', () => {
       selectCell(1, 1, 2, 2);
       contextMenu();
 
-      const deleteCommentButton = $('.htItemWrapper').filter(function() {
+      const deleteCommentButton = $('.htItemWrapper').filter(function () {
         return $(this).text() === 'Delete comment';
       })[0];
 
@@ -448,7 +448,7 @@ describe('Comments', () => {
 
       expect($(editor)[0].readOnly).toBe(false);
 
-      const readOnlyComment = $('.htItemWrapper').filter(function() {
+      const readOnlyComment = $('.htItemWrapper').filter(function () {
         return $(this).text() === 'Read only comment';
       })[0];
 
@@ -494,7 +494,7 @@ describe('Comments', () => {
       selectCell(1, 1);
       contextMenu();
 
-      const deleteCommentButton = $('.htItemWrapper').filter(function() {
+      const deleteCommentButton = $('.htItemWrapper').filter(function () {
         return $(this).text() === 'Delete comment';
       })[0];
 
@@ -529,7 +529,7 @@ describe('Comments', () => {
       selectCell(0, 0);
       contextMenu();
 
-      const editCommentButton = $('.htItemWrapper').filter(function() {
+      const editCommentButton = $('.htItemWrapper').filter(function () {
         return $(this).text() === 'Edit comment';
       })[0];
 

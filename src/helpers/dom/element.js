@@ -226,7 +226,7 @@ function filterEmptyClassNames(classNames) {
 }
 
 if (classListSupport) {
-  var isSupportMultipleClassesArg = (function() {
+  var isSupportMultipleClassesArg = (function () {
     var element = document.createElement('div');
 
     element.classList.add('test', 'test2');

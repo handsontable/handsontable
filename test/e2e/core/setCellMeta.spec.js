@@ -1,11 +1,11 @@
 describe('Core.setCellMeta', () => {
   const id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -59,7 +59,7 @@ describe('Core.setCellMeta', () => {
     expect(cellMeta.className).toEqual(className);
   });
 
-  it('should set correct meta classNames for cells using cell in configuration', function() {
+  it('should set correct meta classNames for cells using cell in configuration', function () {
     const classNames = [
       'htCenter htTop',
       'htRight htBottom',
@@ -76,7 +76,7 @@ describe('Core.setCellMeta', () => {
     expect(this.$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[1]);
   });
 
-  it('should change cell meta data with updateSettings when the cell option is defined', function() {
+  it('should change cell meta data with updateSettings when the cell option is defined', function () {
     const classNames = [
       'htCenter htTop',
       'htRight htBottom',

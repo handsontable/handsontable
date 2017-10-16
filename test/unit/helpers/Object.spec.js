@@ -60,7 +60,7 @@ describe('Object helper', () => {
   //
   describe('mixin', () => {
     it('should mix base object from one object', () => {
-      var Base = function() {};
+      var Base = function () {};
       var MixinFoo = {
         local: 'value',
         myFunction() {
@@ -91,7 +91,7 @@ describe('Object helper', () => {
     });
 
     it('should mix base object from multiple objects', () => {
-      var Base = function() {};
+      var Base = function () {};
       var MixinFoo = {
         local: 'value',
         myFunction() {
@@ -124,8 +124,8 @@ describe('Object helper', () => {
     });
 
     it('mixed object should not interfere with properties from another mixed objects', () => {
-      var Base = function() {};
-      var Base1 = function() {};
+      var Base = function () {};
+      var Base1 = function () {};
       var MixinFoo = {
         local: {},
         myFunction() {
@@ -153,7 +153,7 @@ describe('Object helper', () => {
   //
   describe('clone', () => {
     it('should returns cloned object', () => {
-      var function1 = function() {};
+      var function1 = function () {};
       var object1 = {};
       var object2 = {
         foo: false,

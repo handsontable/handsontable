@@ -1,11 +1,11 @@
 describe('Core_getCellMeta', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -147,7 +147,7 @@ describe('Core_getCellMeta', () => {
     expect(_this.instance).toBe(HOT);
   });
 
-  it('should get proper cellProperties when order of displayed rows is different than order of stored data', function() {
+  it('should get proper cellProperties when order of displayed rows is different than order of stored data', function () {
     handsontable({
       data: [
         ['C'],

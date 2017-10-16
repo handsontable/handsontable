@@ -19,32 +19,32 @@ function BaseEditor(instance) {
   this.init();
 }
 
-BaseEditor.prototype._fireCallbacks = function(result) {
+BaseEditor.prototype._fireCallbacks = function (result) {
   if (this._closeCallback) {
     this._closeCallback(result);
     this._closeCallback = null;
   }
 };
 
-BaseEditor.prototype.init = function() {};
+BaseEditor.prototype.init = function () {};
 
-BaseEditor.prototype.getValue = function() {
+BaseEditor.prototype.getValue = function () {
   throw Error('Editor getValue() method unimplemented');
 };
 
-BaseEditor.prototype.setValue = function() {
+BaseEditor.prototype.setValue = function () {
   throw Error('Editor setValue() method unimplemented');
 };
 
-BaseEditor.prototype.open = function() {
+BaseEditor.prototype.open = function () {
   throw Error('Editor open() method unimplemented');
 };
 
-BaseEditor.prototype.close = function() {
+BaseEditor.prototype.close = function () {
   throw Error('Editor close() method unimplemented');
 };
 
-BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellProperties) {
+BaseEditor.prototype.prepare = function (row, col, prop, td, originalValue, cellProperties) {
   this.TD = td;
   this.row = row;
   this.col = col;
@@ -54,7 +54,7 @@ BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
   this.state = EditorState.VIRGIN;
 };
 
-BaseEditor.prototype.extend = function() {
+BaseEditor.prototype.extend = function () {
   var baseClass = this.constructor;
 
   function Editor(...args) {
@@ -73,7 +73,7 @@ BaseEditor.prototype.extend = function() {
   return inherit(Editor, baseClass);
 };
 
-BaseEditor.prototype.saveValue = function(value, ctrlDown) {
+BaseEditor.prototype.saveValue = function (value, ctrlDown) {
   let selection;
   let tmp;
 
@@ -98,7 +98,7 @@ BaseEditor.prototype.saveValue = function(value, ctrlDown) {
   this.instance.populateFromArray(selection[0], selection[1], value, selection[2], selection[3], 'edit');
 };
 
-BaseEditor.prototype.beginEditing = function(initialValue, event) {
+BaseEditor.prototype.beginEditing = function (initialValue, event) {
   if (this.state !== EditorState.VIRGIN) {
     return;
   }
@@ -119,14 +119,14 @@ BaseEditor.prototype.beginEditing = function(initialValue, event) {
   this.instance.runHooks('afterBeginEditing', this.row, this.col);
 };
 
-BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, callback) {
+BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown, callback) {
   var _this = this,
     val;
 
   if (callback) {
     var previousCloseCallback = this._closeCallback;
 
-    this._closeCallback = function(result) {
+    this._closeCallback = function (result) {
       if (previousCloseCallback) {
         previousCloseCallback(result);
       }
@@ -184,12 +184,12 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
   }
 };
 
-BaseEditor.prototype.cancelChanges = function() {
+BaseEditor.prototype.cancelChanges = function () {
   this.state = EditorState.FINISHED;
   this.discardEditor();
 };
 
-BaseEditor.prototype.discardEditor = function(result) {
+BaseEditor.prototype.discardEditor = function (result) {
   if (this.state !== EditorState.FINISHED) {
     return;
   }
@@ -213,7 +213,7 @@ BaseEditor.prototype.discardEditor = function(result) {
  * Switch editor into full edit mode. In this state navigation keys don't close editor. This mode is activated
  * automatically after hit ENTER or F2 key on the cell or while editing cell press F2 key.
  */
-BaseEditor.prototype.enableFullEditMode = function() {
+BaseEditor.prototype.enableFullEditMode = function () {
   this._fullEditMode = true;
 };
 
@@ -222,19 +222,19 @@ BaseEditor.prototype.enableFullEditMode = function() {
  *
  * @returns {Boolean}
  */
-BaseEditor.prototype.isInFullEditMode = function() {
+BaseEditor.prototype.isInFullEditMode = function () {
   return this._fullEditMode;
 };
 
-BaseEditor.prototype.isOpened = function() {
+BaseEditor.prototype.isOpened = function () {
   return this._opened;
 };
 
-BaseEditor.prototype.isWaiting = function() {
+BaseEditor.prototype.isWaiting = function () {
   return this.state === EditorState.WAITING;
 };
 
-BaseEditor.prototype.checkEditorSection = function() {
+BaseEditor.prototype.checkEditorSection = function () {
   var totalRows = this.instance.countRows();
   var section = '';
 

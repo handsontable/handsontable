@@ -2,11 +2,11 @@ describe('settings', () => {
   describe('editor', () => {
     var id = 'testContainer';
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (this.$container) {
         destroy();
         this.$container.remove();
@@ -60,8 +60,8 @@ describe('settings', () => {
       it('should use editor class passed directly', () => {
         var customEditor = jasmine.createSpy('customEditor');
 
-        customEditor.and.callFake(function() {
-          this.prepare = function() {};
+        customEditor.and.callFake(function () {
+          this.prepare = function () {};
         });
 
         handsontable({
@@ -79,8 +79,8 @@ describe('settings', () => {
       it('should use editor class passed directly when columns is a function', () => {
         var customEditor = jasmine.createSpy('customEditor');
 
-        customEditor.and.callFake(function() {
-          this.prepare = function() {};
+        customEditor.and.callFake(function () {
+          this.prepare = function () {};
         });
 
         handsontable({
@@ -95,8 +95,8 @@ describe('settings', () => {
 
       it('should use editor from custom string', () => {
         var customEditor = jasmine.createSpy('customEditor');
-        customEditor.and.callFake(function() {
-          this.prepare = function() {};
+        customEditor.and.callFake(function () {
+          this.prepare = function () {};
         });
 
         Handsontable.editors.registerEditor('myEditor', customEditor);
@@ -116,8 +116,8 @@ describe('settings', () => {
       it('should use editor from custom string when columns is a function', () => {
         var customEditor = jasmine.createSpy('customEditor');
 
-        customEditor.and.callFake(function() {
-          this.prepare = function() {};
+        customEditor.and.callFake(function () {
+          this.prepare = function () {};
         });
 
         Handsontable.editors.registerEditor('myEditor', customEditor);

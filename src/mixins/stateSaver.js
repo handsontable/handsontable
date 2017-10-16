@@ -4,11 +4,11 @@ const MIXIN_NAME = 'stateSaver';
 const STATE_PREFIX = 'state_';
 const PROP_PREFIX = '_states';
 
-const getState = function(object, stateId) {
+const getState = function (object, stateId) {
   return object[PROP_PREFIX][STATE_PREFIX + stateId];
 };
 
-const setState = function(object, stateId, value) {
+const setState = function (object, stateId, value) {
   object[PROP_PREFIX][STATE_PREFIX + stateId] = value;
 };
 

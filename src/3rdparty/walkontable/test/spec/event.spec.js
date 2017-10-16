@@ -185,7 +185,7 @@ describe('WalkontableEvent', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        columnHeaders: [function(col, TH) {
+        columnHeaders: [function (col, TH) {
           TH.innerHTML = col + 1;
         }],
         onCellMouseDown() {
@@ -201,14 +201,14 @@ describe('WalkontableEvent', () => {
   });
 
   it('should not call `onCellMouseDown` callback when clicked on the focusable element (column headers)', () => {
-    var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map((option) => `<option value="${option}">${option}</option>`).join('');
+    var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(option => `<option value="${option}">${option}</option>`).join('');
     var called = false;
     var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = `#${col}<select>${opt}</select>`;
       }],
       onCellMouseDown() {
@@ -226,7 +226,7 @@ describe('WalkontableEvent', () => {
   });
 
   it('should not call `onCellMouseDown` callback when clicked on the focusable element (cell renderer)', () => {
-    var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map((option) => `<option value="${option}">${option}</option>`).join('');
+    var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(option => `<option value="${option}">${option}</option>`).join('');
     var called = false;
     var wt = new Walkontable.Core({
       table: $table[0],
@@ -258,7 +258,7 @@ describe('WalkontableEvent', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        columnHeaders: [function(col, TH) {
+        columnHeaders: [function (col, TH) {
           TH.innerHTML = col + 1;
         }],
         onCellMouseOver(event, coords) {
@@ -281,7 +281,7 @@ describe('WalkontableEvent', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        columnHeaders: [function(col, TH) {
+        columnHeaders: [function (col, TH) {
           TH.innerHTML = col + 1;
         }],
         onCellDblClick() {

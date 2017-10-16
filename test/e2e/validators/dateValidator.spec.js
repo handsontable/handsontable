@@ -1,18 +1,18 @@
 describe('dateValidator', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfObjects = function() {
+  var arrayOfObjects = function () {
     return [
       {date: '01/01/2015', name: 'Ted', lastName: 'Right'},
       {date: '01/01/15', name: 'Frank', lastName: 'Honest'},

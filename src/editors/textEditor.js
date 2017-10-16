@@ -26,7 +26,7 @@ const TextEditor = BaseEditor.prototype.extend();
  * @class TextEditor
  * @dependencies autoResize
  */
-TextEditor.prototype.init = function() {
+TextEditor.prototype.init = function () {
   var that = this;
   this.createElements();
   this.eventManager = new EventManager(this);
@@ -38,11 +38,11 @@ TextEditor.prototype.init = function() {
   });
 };
 
-TextEditor.prototype.getValue = function() {
+TextEditor.prototype.getValue = function () {
   return this.TEXTAREA.value;
 };
 
-TextEditor.prototype.setValue = function(newValue) {
+TextEditor.prototype.setValue = function (newValue) {
   this.TEXTAREA.value = newValue;
 };
 
@@ -140,13 +140,13 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
   }
 };
 
-TextEditor.prototype.open = function() {
+TextEditor.prototype.open = function () {
   this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
 
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-TextEditor.prototype.close = function() {
+TextEditor.prototype.close = function () {
   this.textareaParentStyle.display = 'none';
 
   this.autoResize.unObserve();
@@ -157,12 +157,12 @@ TextEditor.prototype.close = function() {
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-TextEditor.prototype.focus = function() {
+TextEditor.prototype.focus = function () {
   this.TEXTAREA.focus();
   setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
 };
 
-TextEditor.prototype.createElements = function() {
+TextEditor.prototype.createElements = function () {
   //    this.$body = $(document.body);
 
   this.TEXTAREA = document.createElement('TEXTAREA');
@@ -191,7 +191,7 @@ TextEditor.prototype.createElements = function() {
   }, 0));
 };
 
-TextEditor.prototype.getEditedCell = function() {
+TextEditor.prototype.getEditedCell = function () {
   var
     editorSection = this.checkEditorSection(),
     editedCell;
@@ -241,7 +241,7 @@ TextEditor.prototype.getEditedCell = function() {
   return editedCell !== -1 && editedCell !== -2 ? editedCell : void 0;
 };
 
-TextEditor.prototype.refreshValue = function() {
+TextEditor.prototype.refreshValue = function () {
   let sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
   this.originalValue = sourceData;
 
@@ -249,7 +249,7 @@ TextEditor.prototype.refreshValue = function() {
   this.refreshDimensions();
 };
 
-TextEditor.prototype.refreshDimensions = function() {
+TextEditor.prototype.refreshDimensions = function () {
   if (this.state !== EditorState.EDITING) {
     return;
   }
@@ -338,7 +338,7 @@ TextEditor.prototype.refreshDimensions = function() {
   this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
   this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
   this.TEXTAREA.style.backgroundColor = ''; // RESET STYLE
-  this.TEXTAREA.style.backgroundColor = backgroundColor ? backgroundColor : getComputedStyle(this.TEXTAREA).backgroundColor;
+  this.TEXTAREA.style.backgroundColor = backgroundColor || getComputedStyle(this.TEXTAREA).backgroundColor;
 
   this.autoResize.init(this.TEXTAREA, {
     minHeight: Math.min(height, maxHeight),
@@ -350,7 +350,7 @@ TextEditor.prototype.refreshDimensions = function() {
   this.textareaParentStyle.display = 'block';
 };
 
-TextEditor.prototype.bindEvents = function() {
+TextEditor.prototype.bindEvents = function () {
   var editor = this;
 
   this.eventManager.addEventListener(this.TEXTAREA, 'cut', (event) => {
@@ -384,7 +384,7 @@ TextEditor.prototype.bindEvents = function() {
   });
 };
 
-TextEditor.prototype.destroy = function() {
+TextEditor.prototype.destroy = function () {
   this.eventManager.destroy();
 };
 

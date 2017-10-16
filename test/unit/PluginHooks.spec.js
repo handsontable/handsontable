@@ -38,9 +38,9 @@ describe('PluginHooks', () => {
 
   it('should add hooks as array', () => {
     var hooks = new Hooks();
-    var fn1 = function() {};
-    var fn2 = function() {};
-    var fn3 = function() {};
+    var fn1 = function () {};
+    var fn2 = function () {};
+    var fn3 = function () {};
     var context = {};
     var bucket = {};
 
@@ -62,8 +62,8 @@ describe('PluginHooks', () => {
 
   it('should add hook as function', () => {
     var hooks = new Hooks();
-    var fn1 = function() {};
-    var fn2 = function() {};
+    var fn1 = function () {};
+    var fn2 = function () {};
     var context = {};
     var bucket = {test: []};
 
@@ -87,9 +87,9 @@ describe('PluginHooks', () => {
 
   it('should add hook once as array', () => {
     var hooks = new Hooks();
-    var fn1 = function() {};
-    var fn2 = function() {};
-    var fn3 = function() {};
+    var fn1 = function () {};
+    var fn2 = function () {};
+    var fn3 = function () {};
     var context = {};
 
     spyOn(hooks, 'add');
@@ -105,8 +105,8 @@ describe('PluginHooks', () => {
 
   it('should add hook once as function', () => {
     var hooks = new Hooks();
-    var fn1 = function() {};
-    var fn2 = function() {};
+    var fn1 = function () {};
+    var fn2 = function () {};
     var context = {};
 
     spyOn(hooks, 'add');
@@ -127,9 +127,9 @@ describe('PluginHooks', () => {
 
   it('should remove hook', () => {
     var hooks = new Hooks();
-    var fn1 = function() {};
-    var fn2 = function() {};
-    var fn3 = function() {};
+    var fn1 = function () {};
+    var fn2 = function () {};
+    var fn3 = function () {};
     var bucket = {test: [fn1, fn2]};
     var result;
 

@@ -1,11 +1,11 @@
 describe('UndoRedo', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -748,7 +748,7 @@ describe('UndoRedo', () => {
           expect(getDataAtCell(3, 1)).toEqual('B4');
         });
 
-        it('should undo changes only for table where the change actually took place', function() {
+        it('should undo changes only for table where the change actually took place', function () {
           this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
           var hot1 = handsontable({
@@ -1324,7 +1324,7 @@ describe('UndoRedo', () => {
           expect(getDataAtCell(0, 1)).toEqual('B1');
         });
 
-        it('should redo changes only for table where the change actually took place', function() {
+        it('should redo changes only for table where the change actually took place', function () {
           this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
           var hot1 = handsontable({
@@ -2350,7 +2350,7 @@ describe('UndoRedo', () => {
     });
 
     describe('Keyboard shortcuts', () => {
-      it('should undo single change after hitting CTRL+Z', function() {
+      it('should undo single change after hitting CTRL+Z', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(2, 2),
         });
@@ -2362,7 +2362,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(0, 0)).toBe('A1');
       });
 
-      it('should redo single change after hitting CTRL+Y', function() {
+      it('should redo single change after hitting CTRL+Y', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(2, 2),
         });
@@ -2381,7 +2381,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
 
-      it('should redo single change after hitting CTRL+SHIFT+Z', function() {
+      it('should redo single change after hitting CTRL+SHIFT+Z', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(2, 2),
         });

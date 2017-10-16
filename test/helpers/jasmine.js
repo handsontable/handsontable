@@ -5,7 +5,7 @@ export function spec() {
   return currentSpec;
 };
 
-beforeEach(function() {
+beforeEach(function () {
   currentSpec = this;
 
   var matchers = {

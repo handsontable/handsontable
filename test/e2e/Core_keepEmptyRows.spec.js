@@ -1,18 +1,18 @@
 describe('Core_keepEmptyRows', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfNestedObjects = function() {
+  var arrayOfNestedObjects = function () {
     return [
       {id: 1,
         name: {
@@ -41,7 +41,7 @@ describe('Core_keepEmptyRows', () => {
     ];
   };
 
-  it('should remove columns if needed', function() {
+  it('should remove columns if needed', function () {
     handsontable({
       data: arrayOfNestedObjects(),
       columns: [
@@ -53,7 +53,7 @@ describe('Core_keepEmptyRows', () => {
     expect(this.$container.find('tbody tr:first td').length).toEqual(2);
   });
 
-  it('should remove columns if needed when columns is a function', function() {
+  it('should remove columns if needed when columns is a function', function () {
     handsontable({
       data: arrayOfNestedObjects(),
       columns(column) {
@@ -76,7 +76,7 @@ describe('Core_keepEmptyRows', () => {
     expect(this.$container.find('tbody tr:first td').length).toEqual(2);
   });
 
-  it('should create columns if needed', function() {
+  it('should create columns if needed', function () {
     handsontable({
       data: arrayOfNestedObjects(),
       columns: [
@@ -92,7 +92,7 @@ describe('Core_keepEmptyRows', () => {
     expect(this.$container.find('tbody tr:first td').length).toEqual(6);
   });
 
-  it('should create columns if needed when columns is a function', function() {
+  it('should create columns if needed when columns is a function', function () {
     handsontable({
       data: arrayOfNestedObjects(),
       columns(column) {
@@ -141,7 +141,7 @@ describe('Core_keepEmptyRows', () => {
     expect(countCells()).toEqual(36);
   });
 
-  it('should create spare cols and rows on init (object data source)', function() {
+  it('should create spare cols and rows on init (object data source)', function () {
     handsontable({
       data: arrayOfNestedObjects(),
       minRows: 4,

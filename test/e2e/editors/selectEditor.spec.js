@@ -2,11 +2,11 @@ describe('SelectEditor', () => {
 
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -128,7 +128,7 @@ describe('SelectEditor', () => {
   });
 
   it('should populate select with given options (function:array)', () => {
-    var options = function() {
+    var options = function () {
       return [
         'Misubishi', 'Chevrolet', 'Lamborgini',
       ];
@@ -161,7 +161,7 @@ describe('SelectEditor', () => {
   });
 
   it('should populate select with given options (function:object)', () => {
-    var options = function() {
+    var options = function () {
       return {
         mit: 'Misubishi',
         che: 'Chevrolet',
@@ -240,7 +240,7 @@ describe('SelectEditor', () => {
 
   it('should not prevent the default event action when select is clicked', () => {
 
-    var options = function() {
+    var options = function () {
       return [
         'Misubishi', 'Chevrolet', 'Lamborgini',
       ];

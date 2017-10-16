@@ -24,7 +24,7 @@ const domDimensionsCache = {};
  * @editor MobileTextEditor
  * @class MobileTextEditor
  */
-var createControls = function() {
+var createControls = function () {
   this.controls = {};
 
   this.controls.leftButton = document.createElement('DIV');
@@ -41,11 +41,11 @@ var createControls = function() {
   });
 };
 
-MobileTextEditor.prototype.valueChanged = function() {
+MobileTextEditor.prototype.valueChanged = function () {
   return this.initValue !== this.getValue();
 };
 
-MobileTextEditor.prototype.init = function() {
+MobileTextEditor.prototype.init = function () {
   var that = this;
   this.eventManager = new EventManager(this.instance);
 
@@ -58,17 +58,17 @@ MobileTextEditor.prototype.init = function() {
 
 };
 
-MobileTextEditor.prototype.getValue = function() {
+MobileTextEditor.prototype.getValue = function () {
   return this.TEXTAREA.value;
 };
 
-MobileTextEditor.prototype.setValue = function(newValue) {
+MobileTextEditor.prototype.setValue = function (newValue) {
   this.initValue = newValue;
 
   this.TEXTAREA.value = newValue;
 };
 
-MobileTextEditor.prototype.createElements = function() {
+MobileTextEditor.prototype.createElements = function () {
   this.editorContainer = document.createElement('DIV');
   this.editorContainer.className = 'htMobileEditorContainer';
 
@@ -99,7 +99,7 @@ MobileTextEditor.prototype.createElements = function() {
   document.body.appendChild(this.editorContainer);
 };
 
-MobileTextEditor.prototype.onBeforeKeyDown = function(event) {
+MobileTextEditor.prototype.onBeforeKeyDown = function (event) {
   var instance = this;
   var that = instance.getActiveEditor();
 
@@ -120,7 +120,7 @@ MobileTextEditor.prototype.onBeforeKeyDown = function(event) {
   }
 };
 
-MobileTextEditor.prototype.open = function() {
+MobileTextEditor.prototype.open = function () {
   this.instance.addHook('beforeKeyDown', this.onBeforeKeyDown);
 
   addClass(this.editorContainer, 'active');
@@ -129,30 +129,30 @@ MobileTextEditor.prototype.open = function() {
   this.updateEditorPosition();
 };
 
-MobileTextEditor.prototype.focus = function() {
+MobileTextEditor.prototype.focus = function () {
   this.TEXTAREA.focus();
   setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
 };
 
-MobileTextEditor.prototype.close = function() {
+MobileTextEditor.prototype.close = function () {
   this.TEXTAREA.blur();
   this.instance.removeHook('beforeKeyDown', this.onBeforeKeyDown);
 
   removeClass(this.editorContainer, 'active');
 };
 
-MobileTextEditor.prototype.scrollToView = function() {
+MobileTextEditor.prototype.scrollToView = function () {
   var coords = this.instance.getSelectedRange().highlight;
   this.instance.view.scrollViewport(coords);
 };
 
-MobileTextEditor.prototype.hideCellPointer = function() {
+MobileTextEditor.prototype.hideCellPointer = function () {
   if (!hasClass(this.cellPointer, 'hidden')) {
     addClass(this.cellPointer, 'hidden');
   }
 };
 
-MobileTextEditor.prototype.updateEditorPosition = function(x, y) {
+MobileTextEditor.prototype.updateEditorPosition = function (x, y) {
   if (x && y) {
     x = parseInt(x, 10);
     y = parseInt(y, 10);
@@ -208,7 +208,7 @@ MobileTextEditor.prototype.updateEditorPosition = function(x, y) {
   }
 };
 
-MobileTextEditor.prototype.updateEditorData = function() {
+MobileTextEditor.prototype.updateEditorData = function () {
   var selected = this.instance.getSelected(),
     selectedValue = this.instance.getDataAtCell(selected[0], selected[1]);
 
@@ -218,7 +218,7 @@ MobileTextEditor.prototype.updateEditorData = function() {
   this.updateEditorPosition();
 };
 
-MobileTextEditor.prototype.prepareAndSave = function() {
+MobileTextEditor.prototype.prepareAndSave = function () {
   var val;
 
   if (!this.valueChanged()) {
@@ -238,7 +238,7 @@ MobileTextEditor.prototype.prepareAndSave = function() {
   this.saveValue(val);
 };
 
-MobileTextEditor.prototype.bindEvents = function() {
+MobileTextEditor.prototype.bindEvents = function () {
   var that = this;
 
   this.eventManager.addEventListener(this.controls.leftButton, 'touchend', (event) => {
@@ -266,7 +266,7 @@ MobileTextEditor.prototype.bindEvents = function() {
     event.preventDefault();
   });
 
-  this.eventManager.addEventListener(this.moveHandle, 'touchstart', function(event) {
+  this.eventManager.addEventListener(this.moveHandle, 'touchstart', function (event) {
     if (event.touches.length === 1) {
       let touch = event.touches[0];
       let onTouchPosition = {
@@ -308,7 +308,7 @@ MobileTextEditor.prototype.bindEvents = function() {
 
 };
 
-MobileTextEditor.prototype.destroy = function() {
+MobileTextEditor.prototype.destroy = function () {
   this.eventManager.clear();
 
   this.editorContainer.parentNode.removeChild(this.editorContainer);

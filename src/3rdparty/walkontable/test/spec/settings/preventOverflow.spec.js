@@ -44,7 +44,7 @@ describe('preventOverflow option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      columnHeaders: [function(column, TH) {
+      columnHeaders: [function (column, TH) {
         TH.innerHTML = column + 1;
       }],
       preventOverflow() {

@@ -42,11 +42,11 @@ export function RegisteredEditor(editorClass) {
   let instances = {};
   const Clazz = editorClass;
 
-  this.getConstructor = function() {
+  this.getConstructor = function () {
     return editorClass;
   };
 
-  this.getInstance = function(hotInstance) {
+  this.getInstance = function (hotInstance) {
     if (!(hotInstance.guid in instances)) {
       instances[hotInstance.guid] = new Clazz(hotInstance);
     }

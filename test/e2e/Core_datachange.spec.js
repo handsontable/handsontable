@@ -1,11 +1,11 @@
 describe('Core_datachange', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -75,7 +75,7 @@ describe('Core_datachange', () => {
     expect(output[0][3]).toEqual('test');
   });
 
-  it('this.rootElement should point to handsontable rootElement', function() {
+  it('this.rootElement should point to handsontable rootElement', function () {
     var output = null;
     var $container = this.$container;
 
@@ -89,7 +89,7 @@ describe('Core_datachange', () => {
     expect(output).toEqual($container[0]);
   });
 
-  it('onChange should be triggered after data is rendered to DOM (init)', function() {
+  it('onChange should be triggered after data is rendered to DOM (init)', function () {
     var output = null;
     var $container = this.$container;
 
@@ -107,7 +107,7 @@ describe('Core_datachange', () => {
     expect(output).toEqual('Joe Red');
   });
 
-  it('onChange should be triggered after data is rendered to DOM (setDataAtCell)', function() {
+  it('onChange should be triggered after data is rendered to DOM (setDataAtCell)', function () {
     var output = null;
     var $container = this.$container;
 
