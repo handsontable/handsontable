@@ -42,9 +42,10 @@ const ruleForSnippetsInjection = {
     replacements: [{
       pattern: /import.+constants.+/,
       replacement: function(match) {
-        const snippet = `import Handsontable from '../../handsontable';`;
+        const snippet1 = `import Handsontable from '../../handsontable';`;
+        const snippet2 = `const C = Handsontable.languages.constants;`;
 
-        return `${match}${NEW_LINE_CHAR}${snippet}`;
+        return `${snippet1}${NEW_LINE_CHAR}${snippet2}`;
       }
     },
     {
@@ -58,7 +59,7 @@ const ruleForSnippetsInjection = {
   })
 };
 
-module.exports.create = function create(envArgs) {
+module.exports.create = function create() {
   const config = {
     entry: getEntryJsFiles(),
     output: {
