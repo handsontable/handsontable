@@ -3,7 +3,7 @@ import {clone, extend} from 'handsontable/helpers/object';
 import {arrayFilter, arrayMap, arrayEach} from 'handsontable/helpers/array';
 import {isKey} from 'handsontable/helpers/unicode';
 import {partial} from 'handsontable/helpers/function';
-import * as C from 'handsontable/i18n/C';
+import * as C from 'handsontable/i18n/constants';
 import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
 import BaseUI from './_base';
 import InputUI from './input';
