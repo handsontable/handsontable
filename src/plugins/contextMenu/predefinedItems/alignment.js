@@ -1,6 +1,5 @@
 import {align, getAlignmentClasses, checkSelectionConsistency, markLabelAsSelected} from './../utils';
 import {KEY as SEPARATOR} from './separator';
-import {getPhrase} from './../../../i18n';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'alignment';
@@ -9,7 +8,7 @@ export default function alignmentItem() {
   return {
     key: KEY,
     name() {
-      return getPhrase(this, C.CONTEXTMENU_ITEMS_ALIGNMENT);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT);
     },
     disabled() {
       return !(this.getSelectedRange() && !this.selection.selectedHeader.corner);
@@ -19,7 +18,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:left`,
           name() {
-            let label = getPhrase(this, C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT);
+            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT);
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
 
@@ -50,7 +49,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:center`,
           name() {
-            let label = getPhrase(this, C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER);
+            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER);
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
 
@@ -81,7 +80,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:right`,
           name() {
-            let label = getPhrase(this, C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT);
+            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT);
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
 
@@ -112,7 +111,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:justify`,
           name() {
-            let label = getPhrase(this, C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY);
+            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY);
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
 
@@ -146,7 +145,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:top`,
           name() {
-            let label = getPhrase(this, C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP);
+            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP);
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
 
@@ -176,7 +175,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:middle`,
           name() {
-            let label = getPhrase(this, C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE);
+            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE);
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
 
@@ -207,7 +206,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:bottom`,
           name() {
-            let label = getPhrase(this, C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM);
+            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM);
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
               let className = this.getCellMeta(row, col).className;
 

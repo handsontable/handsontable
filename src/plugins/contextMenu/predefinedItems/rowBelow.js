@@ -1,5 +1,4 @@
 import {getValidSelection} from './../utils';
-import {getPhrase} from './../../../i18n';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'row_below';
@@ -8,7 +7,7 @@ export default function rowBelowItem() {
   return {
     key: KEY,
     name() {
-      return getPhrase(this, C.CONTEXTMENU_ITEMS_ROW_BELOW);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_BELOW);
     },
 
     callback(key, selection) {

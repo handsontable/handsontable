@@ -1,11 +1,10 @@
-import {getPhrase} from './../../../i18n';
 import * as C from './../../../i18n/constants';
 
 export default function cutItem(copyPastePlugin) {
   return {
     key: 'cut',
     name() {
-      return getPhrase(this, C.CONTEXTMENU_ITEMS_CUT);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CUT);
     },
     callback() {
       copyPastePlugin.cut();

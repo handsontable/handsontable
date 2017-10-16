@@ -1,5 +1,4 @@
 import {getValidSelection} from './../utils';
-import {getPhrase} from './../../../i18n';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'remove_col';
@@ -19,7 +18,7 @@ export default function removeColumnItem() {
         }
       }
 
-      return getPhrase(this, C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, pluralForm);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, pluralForm);
     },
 
     callback(key, selection) {

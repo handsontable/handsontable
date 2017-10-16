@@ -1,5 +1,4 @@
 import {getValidSelection} from './../utils';
-import {getPhrase} from './../../../i18n';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'col_left';
@@ -8,7 +7,7 @@ export default function columnLeftItem() {
   return {
     key: KEY,
     name() {
-      return getPhrase(this, C.CONTEXTMENU_ITEMS_INSERT_LEFT);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_LEFT);
     },
     callback(key, selection) {
       this.alter('insert_col', selection.start.col, 1, 'ContextMenu.columnLeft');

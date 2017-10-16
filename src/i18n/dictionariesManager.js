@@ -29,11 +29,33 @@ export function registerLanguage(languageCode, dictionary) {
  * @returns {Object} Object with constants representing identifiers for translation (as keys) and corresponding translation phrases (as values).
  */
 export function getLanguage(languageCode) {
-  if (!hasGlobalLanguageDictionary(languageCode)) {
-    throw Error(`Language dictionary with "${languageCode}" language code is not defined. It wasn't previously registered.`);
+  if (!hasLanguage(languageCode)) {
+    console.error(`Language dictionary with "${languageCode}" language code is not defined. It wasn't previously registered.`);
+
+    return null;
   }
 
   return getGlobalLanguageDictionary(languageCode);
+}
+
+/**
+ *
+ * Get if language with specified language code was registered.
+ *
+ * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
+ * @returns {Boolean}
+ */
+export function hasLanguage(languageCode) {
+  return hasGlobalLanguageDictionary(languageCode);
+}
+
+/**
+ * Get default language dictionary.
+ *
+ * @returns {Object} Object with constants representing identifiers for translation (as keys) and corresponding translation phrases (as values).
+ */
+export function getDefaultLanguage() {
+  return DEFAULT_DICTIONARY;
 }
 
 /**

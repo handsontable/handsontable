@@ -1,5 +1,4 @@
 import {getValidSelection} from './../utils';
-import {getPhrase} from './../../../i18n';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'remove_row';
@@ -19,7 +18,7 @@ export default function removeRowItem() {
         }
       }
 
-      return getPhrase(this, C.CONTEXTMENU_ITEMS_REMOVE_ROW, pluralForm);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_ROW, pluralForm);
     },
     callback(key, selection) {
       let amount = selection.end.row - selection.start.row + 1;

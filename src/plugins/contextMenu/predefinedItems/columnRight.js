@@ -1,5 +1,4 @@
 import {getValidSelection} from './../utils';
-import {getPhrase} from './../../../i18n';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'col_right';
@@ -8,7 +7,7 @@ export default function columnRightItem() {
   return {
     key: KEY,
     name() {
-      return getPhrase(this, C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
     },
 
     callback(key, selection) {

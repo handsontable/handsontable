@@ -1,49 +1,39 @@
 import {arrayEach} from './../helpers/array';
-import {isDefined} from './../helpers/mixed';
-import {getLanguage as getLanguageDictionary, DEFAULT_LANGUAGE_CODE} from './dictionariesManager';
+import {getLanguage as getLanguageDictionary} from './dictionariesManager';
 import {getAll as getPhraseFormatters} from './phraseFormatters';
+import {isUndefined} from '../helpers/mixed';
 
-const hotLanguages = new WeakMap();
-const hotOnLocaleChangeCallbacks = new WeakMap();
-
-/**
- * Set actual locale.
- *
- * @param {Object} hotInstance Instance of Handsontable for which we set language.
- * @param {string} languageCode Language code.
- */
-export function setLocale(hotInstance, languageCode = DEFAULT_LANGUAGE_CODE) {
-  const hotLanguage = hotLanguages.get(hotInstance);
-  const hotLanguageCode = hotLanguage && hotLanguage.code;
-  const wasLocalizationInitialized = isDefined(hotLanguageCode);
-  const isLanguageChanged = hotLanguageCode !== languageCode;
-
-  if (isLanguageChanged) {
-    hotLanguages.set(hotInstance, {
-      code: languageCode,
-      definitions: getLanguageDictionary(languageCode)
-    });
-  }
-
-  if (wasLocalizationInitialized) {
-    runOnLocaleChangeCallbacks(hotInstance);
-  }
-}
+const hotOnLanguageChangeCallbacks = new WeakMap();
 
 /**
  * Get phrase for specified dictionary key.
  *
- * @param {Object} hotInstance Instance of Handsontable for which we get phrase.
- * @param {String} dictionaryKey Constant which is dictionary key.
- * @param {Object} argumentsForFormatters Object containing arguments which will be handled by formatters.
+ * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
+ * @param {string} dictionaryKey Constant which is dictionary key.
+ * @param {*} argumentsForFormatters Arguments which will be handled by formatters.
  *
  * @returns {string}
 */
-export function getPhrase(hotInstance, dictionaryKey, argumentsForFormatters) {
-  const hotLanguageCode = hotLanguages.get(hotInstance).code;
-  let phrasePropositions = hotLanguages.get(hotInstance).definitions[dictionaryKey];
+export function getTranslatedPhrase(languageCode, dictionaryKey, argumentsForFormatters) {
+  const languageDictionary = getLanguageDictionary(languageCode);
 
-  return getFormattedPhrase(phrasePropositions, argumentsForFormatters, hotLanguageCode);
+  if (languageDictionary === null) {
+    return null;
+  }
+
+  const phrasePropositions = languageDictionary[dictionaryKey];
+
+  if (isUndefined(phrasePropositions)) {
+    return null;
+  }
+
+  const formattedPhrase = getFormattedPhrase(phrasePropositions, argumentsForFormatters);
+
+  if (Array.isArray(formattedPhrase)) {
+    return formattedPhrase[0];
+  }
+
+  return formattedPhrase;
 }
 
 /**
@@ -51,7 +41,7 @@ export function getPhrase(hotInstance, dictionaryKey, argumentsForFormatters) {
  *
  * @private
  * @param {Array|string} phrasePropositions List of phrase propositions.
- * @param {...string} args Arguments for formatting.
+ * @param {*} argumentsForFormatters Arguments which will be handled by formatters.
  *
  * @returns {Array|string}
  */
@@ -66,34 +56,34 @@ function getFormattedPhrase(phrasePropositions, ...args) {
 }
 
 /**
- * Register callback which will be executed after locale change.
+ * Register callback which will be executed after language change.
  *
- * @param {Object} hotInstance Instance of Handsontable for which we register locale change callback.
+ * @param {Object} hotInstance Instance of Handsontable for which we register language change callback.
  * @param {string} dictionaryKey Constant which is dictionary key.
- * @param {Object} argumentsForFormatters  Object containing arguments which will be handled by formatters.
- * @param {Function} callback Function which will be executed after locale change, as parameter gets phrase which is
+ * @param {*} argumentsForFormatters Arguments which will be handled by formatters.
+ * @param {Function} callback Function which will be executed after language change, as parameter gets phrase which is
  * created from `dictionaryKey` and `zippedVariableAndValues` parameters
  */
-export function registerLocaleChangeFn(hotInstance, dictionaryKey, argumentsForFormatters, callback) {
-  const callbacks = hotOnLocaleChangeCallbacks.get(hotInstance) || [];
+export function registerLanguageChangeFn(hotInstance, dictionaryKey, argumentsForFormatters, callback) {
+  const callbacks = hotOnLanguageChangeCallbacks.get(hotInstance) || [];
 
   callbacks.push(() => {
-    const phrase = getPhrase(hotInstance, dictionaryKey, zippedVariableAndValues);
+    const phrase = getPhrase(hotInstance, dictionaryKey, argumentsForFormatters);
 
     callback.call(hotInstance, phrase);
   });
 
-  hotOnLocaleChangeCallbacks.set(hotInstance, callbacks);
+  hotOnLanguageChangeCallbacks.set(hotInstance, callbacks);
 }
 
 /**
- * Run callbacks on locale change.
+ * Run callbacks on language change.
  *
  * @private
  * @param {Object} hotInstance Instance of Handsontable for which we set language.
  */
-function runOnLocaleChangeCallbacks(hotInstance) {
-  arrayEach(hotOnLocaleChangeCallbacks.get(hotInstance) || [], (callback) => {
+export function runOnLanguageChangeCallbacks(hotInstance) {
+  arrayEach(hotOnLanguageChangeCallbacks.get(hotInstance) || [], (callback) => {
     callback();
   });
 }

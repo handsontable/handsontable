@@ -1,5 +1,4 @@
 import {checkSelectionConsistency, markLabelAsSelected} from './../utils';
-import {getPhrase} from './../../../i18n';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'make_read_only';
@@ -8,7 +7,7 @@ export default function readOnlyItem() {
   return {
     key: KEY,
     name() {
-      let label = getPhrase(this, C.CONTEXTMENU_ITEMS_READ_ONLY);
+      let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
       let atLeastOneReadOnly = checkSelectionConsistency(this.getSelectedRange(), (row, col) => this.getCellMeta(row, col).readOnly);
 
       if (atLeastOneReadOnly) {

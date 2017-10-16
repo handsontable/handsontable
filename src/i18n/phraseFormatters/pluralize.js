@@ -1,3 +1,5 @@
+import {isDefined} from '../../helpers/mixed';
+
 /**
  * Try to choose plural form from available phrase propositions.
  *
@@ -7,7 +9,7 @@
  * @returns {string|Array} One particular phrase if it's possible, list of unchanged phrase propositions otherwise.
  */
 export default function pluralize(phrasePropositions, pluralForm) {
-  const isPluralizable = Array.isArray(phrasePropositions);
+  const isPluralizable = Array.isArray(phrasePropositions) && isDefined(pluralForm);
 
   if (isPluralizable) {
     return phrasePropositions[pluralForm];

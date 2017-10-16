@@ -23,7 +23,8 @@ import {CellCoords, CellRange, ViewportColumnsCalculator} from './3rdparty/walko
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
 import {getCellType} from './cellTypes';
-import {setLocale} from './i18n';
+import {getTranslatedPhrase, runOnLanguageChangeCallbacks} from './i18n';
+import {DEFAULT_LANGUAGE_CODE, hasLanguage as hasLanguageDictionary} from './i18n/dictionariesManager';
 
 let activeGuid = null;
 
@@ -107,6 +108,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     isPopulated: null,
     scrollable: null,
     firstRun: true,
+    languageCode: null
   };
 
   grid = {
@@ -949,11 +951,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   };
 
+  function setLanguageCode(localeFromSettings) {
+    if (hasLanguageDictionary(localeFromSettings)) {
+      priv.languageCode = localeFromSettings;
+
+      runOnLanguageChangeCallbacks(this);
+
+    } else if (priv.languageCode !== null) {
+      console.error(`Language dictionary with "${localeFromSettings}" language code is not defined. Leaving previously chosen "${priv.languageCode}" language.`);
+
+    } else {
+      priv.languageCode = DEFAULT_LANGUAGE_CODE;
+    }
+  }
+
   this.init = function() {
     dataSource.setData(priv.settings.data);
 
-    setLocale(instance, priv.settings.locale);
+    const localeFromSettings = priv.settings.locale;
 
+    setLanguageCode(localeFromSettings);
     instance.runHooks('beforeInit');
 
     if (isMobileBrowser()) {
@@ -1805,7 +1822,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (!init) {
       if (isDefined(settings.locale)) {
-        setLocale(instance, settings.locale);
+        setLanguageCode(settings.locale);
       }
 
       datamap.clearLengthCache(); // force clear cache length on updateSettings() #3416
@@ -3370,6 +3387,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     for (var i = 0, ilen = this.timeouts.length; i < ilen; i++) {
       clearTimeout(this.timeouts[i]);
     }
+  };
+
+  this.getTranslatedPhrase = function (dictionaryKey, extraArguments) {
+    return getTranslatedPhrase(priv.languageCode, dictionaryKey, extraArguments);
   };
 
   Hooks.getSingleton().run(instance, 'construct');
