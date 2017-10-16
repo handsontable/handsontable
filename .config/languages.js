@@ -41,19 +41,19 @@ const ruleForSnippetsInjection = {
   loader: StringReplacePlugin.replace({
     replacements: [{
       pattern: /import.+constants.+/,
-      replacement: function(match) {
+      replacement: function() {
         const snippet1 = `import Handsontable from '../../handsontable-pro';`;
         const snippet2 = `const C = Handsontable.languages.constants;`;
 
-        return `${snippet1}${NEW_LINE_CHAR}${snippet2}`;
+        return `${snippet1}${NEW_LINE_CHAR.repeat(2)}${snippet2}`;
       }
     },
       {
         pattern: /export default dictionary.+/,
-        replacement: function(match) {
+        replacement: function(matchingPhrase) {
           const snippet = `Handsontable.languages.register(dictionary.languageCode, dictionary);`;
 
-          return `${snippet}${NEW_LINE_CHAR.repeat(2)}${match}`;
+          return `${snippet}${NEW_LINE_CHAR.repeat(2)}${matchingPhrase}`;
         }
       }]
   })

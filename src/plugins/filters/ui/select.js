@@ -1,7 +1,6 @@
 import Menu from 'handsontable/plugins/contextMenu/menu';
 import {clone, extend} from 'handsontable/helpers/object';
 import {arrayEach} from 'handsontable/helpers/array';
-import {getPhrase} from 'handsontable/i18n';
 import * as C from 'handsontable/i18n/constants';
 import {SEPARATOR} from 'handsontable/plugins/contextMenu/predefinedItems';
 import BaseUI from './_base';
@@ -69,7 +68,7 @@ class SelectUI extends BaseUI {
   translateNames(items) {
     arrayEach(items, (item) => {
       if (typeof item.name === 'string' && item.name.includes(C.FILTERS_CONDITIONS_NAMESPACE)) {
-        item.name = getPhrase(this.menu.hot, item.name);
+        item.name = this.menu.hot.getTranslatedPhrase(item.name);
       }
     });
 
@@ -121,7 +120,7 @@ class SelectUI extends BaseUI {
       conditionName = this.options.value.name;
 
     } else {
-      conditionName = getPhrase(this.menu.hot, C.FILTERS_CONDITIONS_NONE);
+      conditionName = this.menu.hot.getTranslatedPhrase(C.FILTERS_CONDITIONS_NONE);
     }
 
     privatePool.get(this).captionElement.textContent = conditionName;

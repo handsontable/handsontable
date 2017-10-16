@@ -1,11 +1,8 @@
 import {addClass} from 'handsontable/helpers/dom/element';
-import Menu from 'handsontable/plugins/contextMenu/menu';
 import {clone, extend} from 'handsontable/helpers/object';
 import {arrayFilter, arrayMap, arrayEach} from 'handsontable/helpers/array';
-import {startsWith} from 'handsontable/helpers/string';
 import {isKey} from 'handsontable/helpers/unicode';
 import {partial} from 'handsontable/helpers/function';
-import {getPhrase} from 'handsontable/i18n';
 import * as constants from 'handsontable/i18n/constants';
 import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
 import BaseUI from './_base';
@@ -36,7 +33,7 @@ class MultipleSelectUI extends BaseUI {
      * @type {InputUI}
      */
     this.searchInput = new InputUI(this.hot, {
-      placeholder: getPhrase(this.hot, constants.FILTERS_BUTTONS_PLACEHOLDER_SEARCH),
+      placeholder: this.hot.getTranslatedPhrase(constants.FILTERS_BUTTONS_PLACEHOLDER_SEARCH),
       className: 'htUIMultipleSelectSearch'
     });
     /**
@@ -46,7 +43,7 @@ class MultipleSelectUI extends BaseUI {
      */
     this.selectAllUI = new BaseUI(this.hot, {
       tagName: 'a',
-      textContent: getPhrase(this.hot, constants.FILTERS_BUTTONS_SELECT_ALL),
+      textContent: this.hot.getTranslatedPhrase(constants.FILTERS_BUTTONS_SELECT_ALL),
       href: '#',
       className: 'htUISelectAll',
     });
@@ -57,7 +54,7 @@ class MultipleSelectUI extends BaseUI {
      */
     this.clearAllUI = new BaseUI(this.hot, {
       tagName: 'a',
-      textContent: getPhrase(this.hot, constants.FILTERS_BUTTONS_CLEAR),
+      textContent: this.hot.getTranslatedPhrase(constants.FILTERS_BUTTONS_CLEAR),
       href: '#',
       className: 'htUIClearAll',
     });
