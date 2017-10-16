@@ -42,9 +42,10 @@ const ruleForSnippetsInjection = {
     replacements: [{
       pattern: /import.+constants.+/,
       replacement: function(match) {
-        const snippet = `import Handsontable from '../../handsontable-pro';`;
+        const snippet1 = `import Handsontable from '../../handsontable-pro';`;
+        const snippet2 = `const C = Handsontable.languages.constants;`;
 
-        return `${match}${NEW_LINE_CHAR}${snippet}`;
+        return `${snippet1}${NEW_LINE_CHAR}${snippet2}`;
       }
     },
       {
