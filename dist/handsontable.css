@@ -21,7 +21,7 @@
  * UNINTERRUPTED OR ERROR FREE.
  * 
  * Version: 1.14.2
- * Release date: 13/09/2017 (built at 16/10/2017 15:26:09)
+ * Release date: 13/09/2017 (built at 16/10/2017 15:32:13)
  */
 /**
  * Fix for bootstrap styles
@@ -1805,3 +1805,5 @@ textarea#HandsontableCopyPaste {
 .handsontable th.afterHiddenRow.firstVisibleRow {
   border-top: 1px solid #CCC;
 }
+
+/*# sourceMappingURL=handsontable.css.map*/
