@@ -18,7 +18,7 @@ describe('Core_selection', () => {
     handsontable({
       afterSelection(r, c) {
         output = [r, c];
-      }
+      },
     });
     selectCell(1, 2);
 
@@ -45,7 +45,7 @@ describe('Core_selection', () => {
     handsontable({
       afterSelection() {
         output = this.rootElement;
-      }
+      },
     });
     selectCell(0, 0);
 
@@ -58,7 +58,7 @@ describe('Core_selection', () => {
     handsontable({
       afterSelectionByProp() {
         output = this.rootElement;
-      }
+      },
     });
     selectCell(0, 0);
 
@@ -95,30 +95,30 @@ describe('Core_selection', () => {
       minRows: 20,
       minCols: 2,
       width: 400,
-      height: 100
+      height: 100,
     });
     selectCell(0, 0);
 
     var holderBoundingBox = hot.view.wt.wtTable.holder.getBoundingClientRect(),
       verticalScrollbarCoords = {
         x: holderBoundingBox.left + holderBoundingBox.width - 3,
-        y: holderBoundingBox.top + (holderBoundingBox.height / 2)
+        y: holderBoundingBox.top + (holderBoundingBox.height / 2),
       },
       horizontalScrollbarCoords = {
         x: holderBoundingBox.left + (holderBoundingBox.width / 2),
-        y: holderBoundingBox.top + holderBoundingBox.height - 3
+        y: holderBoundingBox.top + holderBoundingBox.height - 3,
       };
 
     $(hot.view.wt.wtTable.holder).simulate('mousedown', {
       clientX: verticalScrollbarCoords.x,
-      clientY: verticalScrollbarCoords.y
+      clientY: verticalScrollbarCoords.y,
     });
 
     expect(getSelected()).toEqual([0, 0, 0, 0]);
 
     $(hot.view.wt.wtTable.holder).simulate('mousedown', {
       clientX: horizontalScrollbarCoords.x,
-      clientY: horizontalScrollbarCoords.y
+      clientY: horizontalScrollbarCoords.y,
     });
 
     expect(getSelected()).toEqual([0, 0, 0, 0]);
@@ -126,7 +126,7 @@ describe('Core_selection', () => {
 
   it('should not deselect currently selected cell', () => {
     handsontable({
-      outsideClickDeselects: false
+      outsideClickDeselects: false,
     });
     selectCell(0, 0);
 
@@ -139,7 +139,7 @@ describe('Core_selection', () => {
     var textarea = $('<input id="test_textarea" type="text">').prependTo($('body'));
 
     handsontable({
-      outsideClickDeselects: false
+      outsideClickDeselects: false,
     });
     selectCell(0, 0);
 
@@ -155,7 +155,7 @@ describe('Core_selection', () => {
     var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
     var keyPressed;
     handsontable({
-      outsideClickDeselects: false
+      outsideClickDeselects: false,
     });
     selectCell(0, 0);
 
@@ -170,7 +170,7 @@ describe('Core_selection', () => {
     var LETTER_A_KEY = 97;
 
     $(document.activeElement).simulate('keydown', {
-      keyCode: LETTER_A_KEY
+      keyCode: LETTER_A_KEY,
     });
 
     // textarea should receive the event and be an active element
@@ -188,7 +188,7 @@ describe('Core_selection', () => {
     var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
     var keyPressed;
     handsontable({
-      outsideClickDeselects: false
+      outsideClickDeselects: false,
     });
     selectCell(0, 0);
     keyDown('enter');
@@ -205,7 +205,7 @@ describe('Core_selection', () => {
     var LETTER_A_KEY = 97;
 
     $(document.activeElement).simulate('keydown', {
-      keyCode: LETTER_A_KEY
+      keyCode: LETTER_A_KEY,
     });
 
     // textarea should receive the event and be an active element
@@ -240,7 +240,7 @@ describe('Core_selection', () => {
     var LETTER_A_KEY = 97;
 
     $(document.activeElement).simulate('keydown', {
-      keyCode: LETTER_A_KEY
+      keyCode: LETTER_A_KEY,
     });
 
     // textarea should receive the event and be an active element
@@ -275,7 +275,7 @@ describe('Core_selection', () => {
     var LETTER_A_KEY = 97;
 
     $(document.activeElement).simulate('keydown', {
-      keyCode: LETTER_A_KEY
+      keyCode: LETTER_A_KEY,
     });
 
     // textarea should receive the event and be an active element
@@ -292,7 +292,7 @@ describe('Core_selection', () => {
   it('should fix start range if provided is out of bounds (to the left)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     selectCell(0, 0);
     keyDownUp('arrow_left');
@@ -303,7 +303,7 @@ describe('Core_selection', () => {
   it('should fix start range if provided is out of bounds (to the top)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     selectCell(0, 0);
     keyDownUp('arrow_up');
@@ -314,7 +314,7 @@ describe('Core_selection', () => {
   it('should fix start range if provided is out of bounds (to the right)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     selectCell(0, 4);
     keyDownUp('arrow_right');
@@ -325,7 +325,7 @@ describe('Core_selection', () => {
   it('should fix start range if provided is out of bounds (to the bottom)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     selectCell(4, 0);
     keyDownUp('arrow_down');
@@ -336,7 +336,7 @@ describe('Core_selection', () => {
   it('should fix end range if provided is out of bounds (to the left)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     selectCell(0, 1);
     keyDownUp('shift+arrow_left');
@@ -348,7 +348,7 @@ describe('Core_selection', () => {
   it('should fix end range if provided is out of bounds (to the top)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     selectCell(1, 0);
     keyDownUp('shift+arrow_up');
@@ -360,7 +360,7 @@ describe('Core_selection', () => {
   it('should fix end range if provided is out of bounds (to the right)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     selectCell(0, 3);
     keyDownUp('shift+arrow_right');
@@ -372,7 +372,7 @@ describe('Core_selection', () => {
   it('should fix end range if provided is out of bounds (to the bottom)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     selectCell(3, 0);
     keyDownUp('shift+arrow_down');
@@ -385,7 +385,7 @@ describe('Core_selection', () => {
   it('should select multiple cells', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     selectCell(3, 0, 4, 1);
 
@@ -404,7 +404,7 @@ describe('Core_selection', () => {
       },
       afterSelectionEnd() {
         tickEnd++;
-      }
+      },
     });
     selectCell(3, 0);
     selectCell(1, 1);
@@ -420,7 +420,7 @@ describe('Core_selection', () => {
       startCols: 5,
       afterSelectionEnd() {
         tick++;
-      }
+      },
     });
     selectCell(3, 0); // makes tick++
     keyDownUp('shift+arrow_down'); // makes tick++
@@ -438,7 +438,7 @@ describe('Core_selection', () => {
       startCols: 5,
       afterSelectionEnd() {
         tick++;
-      }
+      },
     });
     selectCell(3, 0); // makes tick++
     keyDown('shift+arrow_down');
@@ -453,7 +453,7 @@ describe('Core_selection', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
-      colHeaders: true
+      colHeaders: true,
     });
 
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
@@ -470,7 +470,7 @@ describe('Core_selection', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     this.$container.find('.ht_clone_left tr:eq(1) th:eq(0)').simulate('mousedown');
@@ -487,7 +487,7 @@ describe('Core_selection', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
-      colHeaders: true
+      colHeaders: true,
     });
 
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
@@ -504,7 +504,7 @@ describe('Core_selection', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     selectCell(1, 1, 3, 3);
@@ -520,7 +520,7 @@ describe('Core_selection', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
-      colHeaders: true
+      colHeaders: true,
     });
 
     selectCell(1, 1, 3, 3);
@@ -542,7 +542,7 @@ describe('Core_selection', () => {
       },
       afterSelectionEnd() {
         tickEnd++;
-      }
+      },
     });
 
     this.$container.find('tr:eq(0) td:eq(0)').simulate('mousedown');
@@ -561,7 +561,7 @@ describe('Core_selection', () => {
       startRows: 5,
       startCols: 5,
       colHeaders: true,
-      fixedColumnsLeft: 2
+      fixedColumnsLeft: 2,
     });
 
     this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mousedown');
@@ -577,7 +577,7 @@ describe('Core_selection', () => {
     var $input = $('<input>').appendTo(document.body);
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     $input[0].focus();
     selectCell(0, 0);
@@ -618,7 +618,7 @@ describe('Core_selection', () => {
       height: 100,
       startRows: 50,
       startCols: 5,
-      colHeaders: true
+      colHeaders: true,
     });
 
     this.$container.find('thead th:eq(0)').simulate('mousedown');
@@ -635,7 +635,7 @@ describe('Core_selection', () => {
       height: 100,
       startRows: 50,
       startCols: 5,
-      colHeaders: true
+      colHeaders: true,
     });
 
     this.$container.find('thead th:eq(0)').simulate('mousedown');
@@ -652,7 +652,7 @@ describe('Core_selection', () => {
       colHeaders: true,
       rowHeaders: true,
       fixedRowsTop: 2,
-      fixedColumnsLeft: 2
+      fixedColumnsLeft: 2,
     });
 
     this.$container.find('.ht_master thead th:eq(1)').simulate('mousedown');
@@ -671,7 +671,7 @@ describe('Core_selection', () => {
       startCols: 50,
       colHeaders: true,
       rowHeaders: true,
-      fixedColumnsLeft: 2
+      fixedColumnsLeft: 2,
     });
 
     hot.render();
@@ -693,7 +693,7 @@ describe('Core_selection', () => {
       startRows: 20,
       startCols: 20,
       colHeaders: true,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     hot.view.wt.scrollVertical(10);
@@ -719,7 +719,7 @@ describe('Core_selection', () => {
       startRows: 20,
       startCols: 20,
       colHeaders: true,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     hot.view.wt.scrollVertical(10);
@@ -753,7 +753,7 @@ describe('Core_selection', () => {
       startCols: 5,
       colHeaders: true,
       rowHeaders: true,
-      afterScrollVertically: onAfterScrollVertically
+      afterScrollVertically: onAfterScrollVertically,
     });
 
     var mainHolder = hot.view.wt.wtTable.holder;
@@ -782,7 +782,7 @@ describe('Core_selection', () => {
       colHeaders: true,
       rowHeaders: true,
       fixedRowsTop: 2,
-      fixedColumnsLeft: 2
+      fixedColumnsLeft: 2,
     });
 
     var mainHolder = hot.view.wt.wtTable.holder;
@@ -830,7 +830,7 @@ describe('Core_selection', () => {
       startRows: 5,
       startCols: 5,
       colHeaders: true,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
@@ -847,7 +847,7 @@ describe('Core_selection', () => {
       height: 100,
       startRows: 50,
       startCols: 5,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
@@ -862,7 +862,7 @@ describe('Core_selection', () => {
       colHeaders: true,
       rowHeaders: true,
       fixedRowsTop: 2,
-      fixedColumnsLeft: 2
+      fixedColumnsLeft: 2,
     });
 
     this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
@@ -876,7 +876,7 @@ describe('Core_selection', () => {
     handsontable({
       startRows: 5,
       startCols: 2,
-      minSpareRows: 1
+      minSpareRows: 1,
     });
 
     setTimeout(() => {
@@ -901,7 +901,7 @@ describe('Core_selection', () => {
   it('should change selected coords by modifying coords object via `modifyTransformStart` hook', () => {
     var hot = handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     selectCell(0, 0);
 
@@ -917,7 +917,7 @@ describe('Core_selection', () => {
   it('should change selected coords by modifying coords object via `modifyTransformEnd` hook', () => {
     var hot = handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     selectCell(0, 0);
 
@@ -935,7 +935,7 @@ describe('Core_selection', () => {
 
     var hot = handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     hot.addHook('afterModifyTransformStart', spy);
 
@@ -972,7 +972,7 @@ describe('Core_selection', () => {
 
     var hot = handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
     hot.addHook('afterModifyTransformEnd', spy);
 
@@ -1007,7 +1007,7 @@ describe('Core_selection', () => {
   it('should change selection after left mouse button on one of selected cell', () => {
     var hot = handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
 
     var cells = $('.ht_master.handsontable td');
@@ -1029,7 +1029,7 @@ describe('Core_selection', () => {
       startRows: 5,
       startCols: 5,
       colHeaders: true,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     this.$container.find('thead').find('th').eq(0).simulate('mousedown');
@@ -1047,7 +1047,7 @@ describe('Core_selection', () => {
       colHeaders: true,
       rowHeaders: true,
       width: 400,
-      height: 200
+      height: 200,
     });
     var cellVerticalPosition;
     var borderOffsetInPixels = 1;
@@ -1079,7 +1079,7 @@ describe('Core_selection', () => {
       colHeaders: true,
       rowHeaders: true,
       width: 400,
-      height: 200
+      height: 200,
     });
     var cellVerticalPosition;
     var borderOffsetInPixels = 1;

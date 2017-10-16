@@ -85,7 +85,7 @@ const stateSaver = {
    */
   clearStates() {
     this[PROP_PREFIX] = {};
-  }
+  },
 };
 
 defineGetter(stateSaver, 'MIXIN_NAME', MIXIN_NAME, {

@@ -57,11 +57,11 @@ describe('Core_destroyEditor', () => {
   it('should not destroy editor on scroll', function() {
     this.$container.css({
       width: 200,
-      height: 100
+      height: 100,
     });
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(20, 10)
+      data: Handsontable.helper.createSpreadsheetData(20, 10),
     });
 
     selectCell(0, 0);

@@ -30,7 +30,7 @@ describe('preventOverflow option', () => {
       totalColumns: getTotalColumns,
       preventOverflow() {
         return 'horizontal';
-      }
+      },
     });
     wt.draw();
 
@@ -49,7 +49,7 @@ describe('preventOverflow option', () => {
       }],
       preventOverflow() {
         return 'horizontal';
-      }
+      },
     });
     wt.draw();
 

@@ -6,7 +6,7 @@ import {
   offset,
   outerWidth,
   outerHeight,
-  getScrollableElement
+  getScrollableElement,
 } from './../../helpers/dom/element';
 import {deepClone, deepExtend, isObject} from './../../helpers/object';
 import EventManager from './../../eventManager';
@@ -125,7 +125,7 @@ class Comments extends BasePlugin {
 
     privatePool.set(this, {
       tempEditorDimensions: {},
-      cellBelowCursor: null
+      cellBelowCursor: null,
     });
   }
 
@@ -277,7 +277,7 @@ class Comments extends BasePlugin {
    */
   setCommentAtCell(row, col, value) {
     this.setRange({
-      from: new CellCoords(row, col)
+      from: new CellCoords(row, col),
     });
     this.setComment(value);
   }
@@ -310,7 +310,7 @@ class Comments extends BasePlugin {
    */
   removeCommentAtCell(row, col, forceRender = true) {
     this.setRange({
-      from: new CellCoords(row, col)
+      from: new CellCoords(row, col),
     });
     this.removeComment(forceRender);
   }
@@ -365,7 +365,7 @@ class Comments extends BasePlugin {
    */
   showAtCell(row, col) {
     this.setRange({
-      from: new CellCoords(row, col)
+      from: new CellCoords(row, col),
     });
 
     return this.show();
@@ -531,7 +531,7 @@ class Comments extends BasePlugin {
     if (this.targetIsCellWithComment(event)) {
       const coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
       const range = {
-        from: new CellCoords(coordinates.row, coordinates.col)
+        from: new CellCoords(coordinates.row, coordinates.col),
       };
 
       this.displaySwitch.show(range);
@@ -583,7 +583,7 @@ class Comments extends BasePlugin {
 
     priv.tempEditorDimensions = {
       width: outerWidth(event.target),
-      height: outerHeight(event.target)
+      height: outerHeight(event.target),
     };
   }
 
@@ -602,8 +602,8 @@ class Comments extends BasePlugin {
       this.updateCommentMeta(this.range.from.row, this.range.from.col, {
         [META_STYLE]: {
           width: currentWidth,
-          height: currentHeight
-        }
+          height: currentHeight,
+        },
       });
     }
   }
@@ -619,7 +619,7 @@ class Comments extends BasePlugin {
 
     this.contextMenuEvent = true;
     this.setRange({
-      from: coords.from
+      from: coords.from,
     });
     this.show();
     setTimeout(() => {
@@ -683,7 +683,7 @@ class Comments extends BasePlugin {
         callback: () => this.onContextMenuAddComment(),
         disabled() {
           return !(this.getSelected() && !this.selection.selectedHeader.corner);
-        }
+        },
       },
       {
         key: 'commentsRemove',
@@ -691,7 +691,7 @@ class Comments extends BasePlugin {
           return 'Delete comment';
         },
         callback: (key, selection) => this.onContextMenuRemoveComment(selection),
-        disabled: () => this.hot.selection.selectedHeader.corner
+        disabled: () => this.hot.selection.selectedHeader.corner,
       },
       {
         key: 'commentsReadOnly',
@@ -719,8 +719,8 @@ class Comments extends BasePlugin {
           return label;
         },
         callback: (key, selection) => this.onContextMenuMakeReadOnly(selection),
-        disabled: () => this.hot.selection.selectedHeader.corner || !this.checkSelectionCommentsConsistency()
-      }
+        disabled: () => this.hot.selection.selectedHeader.corner || !this.checkSelectionCommentsConsistency(),
+      },
     );
   }
 

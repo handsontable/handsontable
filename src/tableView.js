@@ -8,7 +8,7 @@ import {
   hasClass,
   isChildOf,
   isInput,
-  isOutsideInput
+  isOutsideInput,
 } from './helpers/dom/element';
 import {isChrome, isSafari} from './helpers/browser';
 import EventManager from './eventManager';
@@ -285,7 +285,7 @@ function TableView(instance) {
       let blockCalculations = {
         row: false,
         column: false,
-        cells: false
+        cells: false,
       };
 
       instance.listen();
@@ -407,7 +407,7 @@ function TableView(instance) {
       let blockCalculations = {
         row: false,
         column: false,
-        cell: false
+        cell: false,
       };
 
       that.activeWt = wt;
@@ -533,7 +533,7 @@ function TableView(instance) {
     columnHeaderHeight() {
       const columnHeaderHeight = instance.runHooks('modifyColumnHeaderHeight');
       return that.settings.columnHeaderHeight || columnHeaderHeight;
-    }
+    },
   };
 
   instance.runHooks('beforeInitWalkontable', walkontableConfig);

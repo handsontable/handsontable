@@ -19,7 +19,7 @@ describe('Core_getCellMeta', () => {
       },
       modifyCol(col) {
         return col + 10;
-      }
+      },
     });
 
     const cellMeta = getCellMeta(0, 1);
@@ -36,7 +36,7 @@ describe('Core_getCellMeta', () => {
     handsontable({
       cells() {
         return {readOnly: allCellsReadOnly};
-      }
+      },
     });
     allCellsReadOnly = true;
     selectCell(2, 2);
@@ -52,7 +52,7 @@ describe('Core_getCellMeta', () => {
     handsontable({
       cells() {
         return {readOnly: allCellsReadOnly};
-      }
+      },
     });
     allCellsReadOnly = false;
     selectCell(2, 2);
@@ -67,7 +67,7 @@ describe('Core_getCellMeta', () => {
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       cells() {
         return {readOnly: true};
-      }
+      },
     });
 
     selectCell(0, 0);
@@ -85,11 +85,11 @@ describe('Core_getCellMeta', () => {
             // taken from demo/renderers.html
             Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
             $(td).css({
-              background: 'yellow'
+              background: 'yellow',
             });
-          }
+          },
         };
-      }
+      },
     });
     selectCell(2, 2);
 
@@ -104,7 +104,7 @@ describe('Core_getCellMeta', () => {
       data: [
         [1, 2, 3, 4],
         [5, 6, 7, 8],
-        [0, 9, 8, 7]
+        [0, 9, 8, 7],
       ],
       cells(row, col) {
         let cellProperties = {};
@@ -120,7 +120,7 @@ describe('Core_getCellMeta', () => {
         }
 
         return cellProperties;
-      }
+      },
     });
 
     expect(getCell(2, 2).style.backgroundColor).toEqual('yellow');
@@ -137,7 +137,7 @@ describe('Core_getCellMeta', () => {
         called++;
         _row = row;
         _this = this;
-      }
+      },
     });
 
     var HOT = getInstance();
@@ -152,7 +152,7 @@ describe('Core_getCellMeta', () => {
       data: [
         ['C'],
         ['A'],
-        ['B']
+        ['B'],
       ],
       minSpareRows: 1,
       cells(row, col) {
@@ -163,7 +163,7 @@ describe('Core_getCellMeta', () => {
         }
 
         return cellProperties;
-      }
+      },
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C');
@@ -179,8 +179,8 @@ describe('Core_getCellMeta', () => {
     updateSettings({
       columnSorting: {
         column: 0,
-        sortOrder: true
-      }
+        sortOrder: true,
+      },
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A');
@@ -207,7 +207,7 @@ describe('Core_getCellMeta', () => {
       },
       modifyCol(col) {
         return col + 10;
-      }
+      },
     });
 
     hot.getCellMeta(0, 1);
@@ -230,7 +230,7 @@ describe('Core_getCellMeta', () => {
       },
       modifyCol(col) {
         return col + 10;
-      }
+      },
     });
 
     hot.getCellMeta(0, 1);

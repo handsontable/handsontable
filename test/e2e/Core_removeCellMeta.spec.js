@@ -17,8 +17,8 @@ describe('Core_removeCellMeta', () => {
       data: [
         [1, 2, 3, 4],
         [5, 6, 7, 8],
-        [0, 9, 8, 7]
-      ]
+        [0, 9, 8, 7],
+      ],
     });
     var border = {
       top: {
@@ -26,7 +26,7 @@ describe('Core_removeCellMeta', () => {
       },
       left: {
 
-      }
+      },
     };
 
     setCellMeta(0, 0, 'borders', border);
@@ -43,7 +43,7 @@ describe('Core_removeCellMeta', () => {
       },
       modifyCol(col) {
         return col + 10;
-      }
+      },
     });
 
     setCellMeta(0, 0, 'key', 'value');
@@ -59,9 +59,9 @@ describe('Core_removeCellMeta', () => {
       data: [
         [1, 2, 3, 4],
         [5, 6, 7, 8],
-        [0, 9, 8, 7]
+        [0, 9, 8, 7],
       ],
-      beforeRemoveCellMeta
+      beforeRemoveCellMeta,
     });
 
     setCellMeta(0, 0, 'key', 'value');
@@ -77,9 +77,9 @@ describe('Core_removeCellMeta', () => {
       data: [
         [1, 2, 3, 4],
         [5, 6, 7, 8],
-        [0, 9, 8, 7]
+        [0, 9, 8, 7],
       ],
-      afterRemoveCellMeta
+      afterRemoveCellMeta,
     });
 
     setCellMeta(0, 0, 'key', 'value');
@@ -95,9 +95,9 @@ describe('Core_removeCellMeta', () => {
       data: [
         [1, 2, 3, 4],
         [5, 6, 7, 8],
-        [0, 9, 8, 7]
+        [0, 9, 8, 7],
       ],
-      afterRemoveCellMeta
+      afterRemoveCellMeta,
     });
 
     removeCellMeta(0, 0, 'key');
@@ -119,7 +119,7 @@ describe('Core_removeCellMeta', () => {
       },
       modifyCol(col) {
         return col + 10;
-      }
+      },
     });
 
     removeCellMeta(0, 1, 'key');
@@ -142,7 +142,7 @@ describe('Core_removeCellMeta', () => {
       },
       modifyCol(col) {
         return col + 10;
-      }
+      },
     });
 
     removeCellMeta(0, 1, 'key');
@@ -159,7 +159,7 @@ describe('Core_removeCellMeta', () => {
         }
 
         return true;
-      }
+      },
     });
 
     setCellMeta(0, 0, 'key', 'value');

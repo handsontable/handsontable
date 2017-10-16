@@ -14,13 +14,13 @@ describe('AutoColumnSize', () => {
 
   var arrayOfObjects = function() {
     return [
-      {id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one', nestedData: [{id: 1000}]}
+      {id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one', nestedData: [{id: 1000}]},
     ];
   };
 
   it('should apply auto size by default', function() {
     handsontable({
-      data: arrayOfObjects()
+      data: arrayOfObjects(),
     });
 
     var width0 = colWidth(this.$container, 0);
@@ -39,7 +39,7 @@ describe('AutoColumnSize', () => {
         {data: 'id'},
         {data: 'name'},
         {data: 'lastName'},
-      ]
+      ],
     });
 
     expect(colWidth(this.$container, 0)).toBeAroundValue(50, 3);
@@ -62,7 +62,7 @@ describe('AutoColumnSize', () => {
       columns: [
         {data: 'id'},
         {data: 'name'},
-      ]
+      ],
     });
 
     expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
@@ -76,7 +76,7 @@ describe('AutoColumnSize', () => {
       columns: [
         {data: 'id'},
         {data: 'name'},
-      ]
+      ],
     });
 
     expect([50, 51, 53]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
@@ -95,7 +95,7 @@ describe('AutoColumnSize', () => {
       columns: [
         {data: 'id'},
         {data: 'name'},
-      ]
+      ],
     });
 
     expect([50, 51, 53]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
@@ -114,7 +114,7 @@ describe('AutoColumnSize', () => {
       columns: [
         {data: 'id'},
         {data: 'name'},
-      ]
+      ],
     });
 
     expect([50, 51, 53]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
@@ -132,15 +132,15 @@ describe('AutoColumnSize', () => {
   it('should correctly detect column width with colHeaders and the useHeaders option set to false (not taking the header widths into calculation)', function() {
     handsontable({
       data: [
-        {id: 'ab'}
+        {id: 'ab'},
       ],
       autoColumnSize: {
-        useHeaders: false
+        useHeaders: false,
       },
       colHeaders: ['Identifier'],
       columns: [
-        {data: 'id'}
-      ]
+        {data: 'id'},
+      ],
     });
 
     expect(colWidth(this.$container, 0)).toBe(50);
@@ -151,8 +151,8 @@ describe('AutoColumnSize', () => {
       data: arrayOfObjects(),
       autoColumnSize: true,
       columns: [
-        {data: 'id', title: 'Identifier'}
-      ]
+        {data: 'id', title: 'Identifier'},
+      ],
     });
 
     expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
@@ -163,8 +163,8 @@ describe('AutoColumnSize', () => {
       data: arrayOfObjects(),
       autoColumnSize: true,
       columns: [
-        {data: 'id', title: 'Identifier'}
-      ]
+        {data: 'id', title: 'Identifier'},
+      ],
     });
 
     updateSettings({
@@ -182,7 +182,7 @@ describe('AutoColumnSize', () => {
     var hot = handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
-      colHeaders: ['Identifier', 'First Name']
+      colHeaders: ['Identifier', 'First Name'],
     });
 
     await sleep(200);
@@ -201,7 +201,7 @@ describe('AutoColumnSize', () => {
         {data: 'id', title: 'Identifier'},
         {data: 'name', title: 'Name'},
         {data: 'lastName', title: 'Last Name'},
-      ]
+      ],
     });
 
     expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
@@ -217,7 +217,7 @@ describe('AutoColumnSize', () => {
 
   it('should be possible to disable plugin using updateSettings', function() {
     handsontable({
-      data: arrayOfObjects()
+      data: arrayOfObjects(),
     });
 
     var width0 = colWidth(this.$container, 0);
@@ -228,7 +228,7 @@ describe('AutoColumnSize', () => {
     expect(width1).toBeLessThan(width2);
 
     updateSettings({
-      autoColumnSize: false
+      autoColumnSize: false,
     });
 
     width0 = colWidth(this.$container, 0);
@@ -244,16 +244,16 @@ describe('AutoColumnSize', () => {
     this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
     handsontable({
-      data: arrayOfObjects()
+      data: arrayOfObjects(),
     });
 
     this.$container2.handsontable({
-      data: arrayOfObjects()
+      data: arrayOfObjects(),
     });
 
     var widths = {
       1: [],
-      2: []
+      2: [],
     };
 
     widths[1][0] = colWidth(this.$container, 0);
@@ -271,7 +271,7 @@ describe('AutoColumnSize', () => {
     expect(widths[2][1]).toBeLessThan(widths[2][2]);
 
     updateSettings({
-      autoColumnSize: false
+      autoColumnSize: false,
     });
 
     widths[1][0] = colWidth(this.$container, 0);
@@ -296,7 +296,7 @@ describe('AutoColumnSize', () => {
   it('should be possible to enable plugin using updateSettings', function() {
     handsontable({
       data: arrayOfObjects(),
-      autoColumnSize: false
+      autoColumnSize: false,
     });
 
     var width0 = colWidth(this.$container, 0);
@@ -308,7 +308,7 @@ describe('AutoColumnSize', () => {
     expect(width1).toEqual(width2);
 
     updateSettings({
-      autoColumnSize: true
+      autoColumnSize: true,
     });
 
     width0 = colWidth(this.$container, 0);
@@ -322,10 +322,10 @@ describe('AutoColumnSize', () => {
   it('should consider CSS style of each instance separately', () => {
     var $style = $('<style>.big .htCore td {font-size: 40px; line-height: 1.1;}</style>').appendTo('head');
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
-      data: arrayOfObjects()
+      data: arrayOfObjects(),
     });
     var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
-      data: arrayOfObjects()
+      data: arrayOfObjects(),
     });
     var hot1 = $container1.handsontable('getInstance');
     var hot2 = $container2.handsontable('getInstance');
@@ -353,7 +353,7 @@ describe('AutoColumnSize', () => {
 
     handsontable({
       data: arrayOfObjects(),
-      autoColumnSize: true
+      autoColumnSize: true,
     });
 
     var width = colWidth(this.$container, 0);
@@ -367,7 +367,7 @@ describe('AutoColumnSize', () => {
 
   it('should destroy temporary element', () => {
     handsontable({
-      autoColumnSize: true
+      autoColumnSize: true,
     });
 
     expect(document.querySelector('.htAutoSize')).toBe(null);
@@ -380,7 +380,7 @@ describe('AutoColumnSize', () => {
       colWidths: [70, 70, 70],
       width: 500,
       height: 100,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     setDataAtCell(0, 0, 'LongLongLongLong');
@@ -396,11 +396,11 @@ describe('AutoColumnSize', () => {
       columns: [
         {width: 70},
         {width: 70},
-        {width: 70}
+        {width: 70},
       ],
       width: 500,
       height: 100,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     setDataAtCell(0, 0, 'LongLongLongLong');
@@ -415,7 +415,7 @@ describe('AutoColumnSize', () => {
       data,
       columns: [
         {data: 'id'},
-        {data: 'name'}
+        {data: 'name'},
       ],
       autoColumnSize: true,
       renderer(instance, td, row, col, prop, value, cellProperties) {
@@ -424,7 +424,7 @@ describe('AutoColumnSize', () => {
         if (row === 1 && col === 0) {
           td.style.padding = '100px';
         }
-      }
+      },
     });
 
     expect(colWidth(this.$container, 0)).toBeGreaterThan(colWidth(this.$container, 1));
@@ -437,9 +437,9 @@ describe('AutoColumnSize', () => {
       data: arrayOfObjects(),
       autoColumnSize: true,
       columns: [
-        {data: 'nestedData'}
+        {data: 'nestedData'},
       ],
-      renderer: spy
+      renderer: spy,
     });
 
     expect(spy.calls.mostRecent().args[5]).toEqual([{id: 1000}]);

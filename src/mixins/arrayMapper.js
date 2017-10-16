@@ -139,7 +139,7 @@ const arrayMapper = {
    */
   clearMap() {
     this._arrayMap.length = 0;
-  }
+  },
 };
 
 defineGetter(arrayMapper, 'MIXIN_NAME', MIXIN_NAME, {

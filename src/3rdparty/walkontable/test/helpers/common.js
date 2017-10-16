@@ -45,18 +45,18 @@ beforeEach(function() {
       return {
         compare(actual, expected) {
           return {
-            pass: Array.isArray(expected) && expected.indexOf(actual) > -1
+            pass: Array.isArray(expected) && expected.indexOf(actual) > -1,
           };
-        }
+        },
       };
     },
     toBeFunction() {
       return {
         compare(actual) {
           return {
-            pass: typeof actual === 'function'
+            pass: typeof actual === 'function',
           };
-        }
+        },
       };
     },
     toBeAroundValue() {
@@ -73,11 +73,11 @@ beforeEach(function() {
 
           return {
             pass,
-            message
+            message,
           };
-        }
+        },
       };
-    }
+    },
   };
 
   jasmine.addMatchers(matchers);

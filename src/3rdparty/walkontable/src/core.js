@@ -56,7 +56,7 @@ class Walkontable {
         this.update('columnHeaders', [
           function(column, TH) {
             fastInnerText(TH, originalHeaders[column]);
-          }
+          },
         ]);
       }
     }
@@ -182,7 +182,7 @@ class Walkontable {
       this.wtTable.getFirstVisibleRow(),
       this.wtTable.getFirstVisibleColumn(),
       this.wtTable.getLastVisibleRow(),
-      this.wtTable.getLastVisibleColumn()
+      this.wtTable.getLastVisibleColumn(),
     ];
   }
 
@@ -215,7 +215,7 @@ class Walkontable {
   exportSettingsAsClassNames() {
     let toExport = {
       rowHeaders: ['array'],
-      columnHeaders: ['array']
+      columnHeaders: ['array'],
     };
     let allClassNames = [];
     let newClassNames = [];

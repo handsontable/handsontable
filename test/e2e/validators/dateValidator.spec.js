@@ -17,7 +17,7 @@ describe('dateValidator', () => {
       {date: '01/01/2015', name: 'Ted', lastName: 'Right'},
       {date: '01/01/15', name: 'Frank', lastName: 'Honest'},
       {date: '41/01/2015', name: 'Joan', lastName: 'Well'},
-      {date: '01/51/2015', name: 'Sid', lastName: 'Strong'}
+      {date: '01/51/2015', name: 'Sid', lastName: 'Strong'},
     ];
   };
 
@@ -29,9 +29,9 @@ describe('dateValidator', () => {
       columns: [
         {data: 'date', type: 'date'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(0, 0, '');
@@ -49,9 +49,9 @@ describe('dateValidator', () => {
       data: arrayOfObjects(),
       columns: [
         {data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(1, 0, '2016-03-18');
@@ -74,9 +74,9 @@ describe('dateValidator', () => {
       columns: [
         {data: 'date', type: 'date'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(0, 0, 'wat');
@@ -95,9 +95,9 @@ describe('dateValidator', () => {
       columns: [
         {data: 'date', type: 'date'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(0, 0, '33/01/2014');
@@ -116,9 +116,9 @@ describe('dateValidator', () => {
       columns: [
         {data: 'date', type: 'date'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(1, 0, '01/01/15');
@@ -137,9 +137,9 @@ describe('dateValidator', () => {
       columns: [
         {data: 'date', type: 'date', dateFormat: 'DD/MM/YY'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(1, 0, '01/01/2015');
@@ -158,9 +158,9 @@ describe('dateValidator', () => {
       columns: [
         {data: 'date', type: 'date'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(1, 0, '01/01/2015');
@@ -179,9 +179,9 @@ describe('dateValidator', () => {
       columns: [
         {data: 'date', type: 'date', dateFormat: 'DD/MM/YY'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(1, 0, '23/03/15');
@@ -201,9 +201,9 @@ describe('dateValidator', () => {
         columns: [
           {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false},
           {data: 'name'},
-          {data: 'lastName'}
+          {data: 'lastName'},
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, '');
@@ -222,9 +222,9 @@ describe('dateValidator', () => {
         columns: [
           {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false},
           {data: 'name'},
-          {data: 'lastName'}
+          {data: 'lastName'},
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, null);
@@ -243,9 +243,9 @@ describe('dateValidator', () => {
         columns: [
           {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false},
           {data: 'name'},
-          {data: 'lastName'}
+          {data: 'lastName'},
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, void 0);
@@ -266,9 +266,9 @@ describe('dateValidator', () => {
         columns: [
           {data: 'date', type: 'date', dateFormat: 'MM/DD/YY'},
           {data: 'name'},
-          {data: 'lastName'}
+          {data: 'lastName'},
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, '11/23/2013');
@@ -287,9 +287,9 @@ describe('dateValidator', () => {
         columns: [
           {data: 'date', type: 'date', dateFormat: 'MM/DD/YY', correctFormat: false},
           {data: 'name'},
-          {data: 'lastName'}
+          {data: 'lastName'},
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, '11/23/2013');
@@ -307,9 +307,9 @@ describe('dateValidator', () => {
         data: arrayOfObjects(),
         columns: [
           {data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true},
-          {data: 'lastName'}
+          {data: 'lastName'},
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, '1/10/15');
@@ -331,9 +331,9 @@ describe('dateValidator', () => {
         data: arrayOfObjects(),
         columns: [
           {data: 'date', type: 'date', dateFormat: 'DD.MM.YYYY', correctFormat: true},
-          {data: 'lastName'}
+          {data: 'lastName'},
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, '5.3.2016');
@@ -356,9 +356,9 @@ describe('dateValidator', () => {
         columns: [
           {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', correctFormat: true},
           {data: 'name'},
-          {data: 'lastName'}
+          {data: 'lastName'},
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, 'test non-date string');

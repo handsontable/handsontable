@@ -27,6 +27,6 @@ export default function columnRightItem() {
     },
     hidden() {
       return !this.getSettings().allowInsertColumn;
-    }
+    },
   };
 }

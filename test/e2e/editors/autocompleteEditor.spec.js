@@ -19,9 +19,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: choices
-          }
-        ]
+            source: choices,
+          },
+        ],
       });
       selectCell(0, 0);
       var editor = $('.autocompleteEditor');
@@ -38,9 +38,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: choices
-          }
-        ]
+            source: choices,
+          },
+        ],
       });
       selectCell(0, 0);
       var editor = $('.autocompleteEditor');
@@ -57,9 +57,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: choices
-          }
-        ]
+            source: choices,
+          },
+        ],
       });
       selectCell(0, 0);
       var editor = $('.autocompleteEditor');
@@ -82,8 +82,8 @@ describe('AutocompleteEditor', () => {
       handsontable({
         columns: [{
           editor: 'autocomplete',
-          source: choices
-        }]
+          source: choices,
+        }],
       });
 
       selectCell(0, 0);
@@ -103,9 +103,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: choices
-          }
-        ]
+            source: choices,
+          },
+        ],
       });
       selectCell(0, 0);
       var editor = $('.autocompleteEditor');
@@ -134,9 +134,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source
-          }
-        ]
+            source,
+          },
+        ],
       });
       selectCell(0, 0);
       source.calls.reset();
@@ -160,9 +160,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
       selectCell(0, 0);
       var editor = $('.autocompleteEditor');
@@ -193,9 +193,9 @@ describe('AutocompleteEditor', () => {
               setTimeout(() => {
                 asyncSources(process);
               }, 0);
-            }
-          }
-        ]
+            },
+          },
+        ],
       });
       selectCell(0, 0);
       var editor = $('.autocompleteEditor');
@@ -221,9 +221,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: choices
-          }
-        ]
+            source: choices,
+          },
+        ],
       });
       selectCell(0, 0);
       var editor = hot.getActiveEditor();
@@ -251,9 +251,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: choices
-          }
-        ]
+            source: choices,
+          },
+        ],
       });
       selectCell(0, 0);
       var editor = hot.getActiveEditor();
@@ -266,7 +266,7 @@ describe('AutocompleteEditor', () => {
         editor.TEXTAREA.value = 'red';
 
         $(editor.TEXTAREA).simulate('keydown', {
-          keyCode: 'd'.charCodeAt(0)
+          keyCode: 'd'.charCodeAt(0),
         });
       }, 200);
 
@@ -283,18 +283,18 @@ describe('AutocompleteEditor', () => {
       var hot = handsontable({
         data: [
           [
-            'blue'
+            'blue',
           ],
           [],
           [],
-          []
+          [],
         ],
         columns: [
           {
             editor: 'autocomplete',
-            source: choices
-          }
-        ]
+            source: choices,
+          },
+        ],
       });
       selectCell(0, 0);
       var editor = hot.getActiveEditor();
@@ -320,9 +320,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
       selectCell(0, 0);
       var editor = $('.handsontableInputHolder');
@@ -350,8 +350,8 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
+            source: syncSources,
+          },
         ],
         trimDropdown: false,
       });
@@ -371,7 +371,7 @@ describe('AutocompleteEditor', () => {
     it('autocomplete textarea should have cell dimensions (after render)', (done) => {
       var data = [
         ['a', 'b'],
-        ['c', 'd']
+        ['c', 'd'],
       ];
 
       hot = handsontable({
@@ -382,9 +382,9 @@ describe('AutocompleteEditor', () => {
         minSpareCols: 4,
         cells() {
           return {
-            type: Handsontable.AutocompleteCell
+            type: Handsontable.AutocompleteCell,
           };
-        }
+        },
       });
 
       selectCell(1, 1);
@@ -408,9 +408,9 @@ describe('AutocompleteEditor', () => {
           {},
           {
             type: 'autocomplete',
-            source: choices
-          }
-        ]
+            source: choices,
+          },
+        ],
       });
       selectCell(0, 2);
       spyOn(hot.getActiveEditor(), 'beginEditing');
@@ -440,9 +440,9 @@ describe('AutocompleteEditor', () => {
               'Ford', 'General Motors', 'GMC', 'Honda', 'Hummer', 'Hyundai', 'Infiniti', 'Isuzu', 'Jaguar', 'Jeep', 'Kia',
               'Lamborghini', 'Land Rover', 'Lexus', 'Lincoln', 'Lotus', 'Mazda', 'Mercedes-Benz', 'Mercury', 'Mitsubishi',
               'Nissan', 'Oldsmobile', 'Peugeot', 'Pontiac', 'Porsche', 'Regal', 'Renault', 'Saab', 'Saturn', 'Seat', 'Skoda',
-              'Subaru', 'Suzuki', 'Toyota', 'Volkswagen', 'Volvo']
-          }
-        ]
+              'Subaru', 'Suzuki', 'Toyota', 'Volkswagen', 'Volvo'],
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -466,9 +466,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: ['1', '2', 3, '4', 5, 6]
-          }
-        ]
+            source: ['1', '2', 3, '4', 5, 6],
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -494,9 +494,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: ['1', '2', 3, '4', 5, 6]
-          }
-        ]
+            source: ['1', '2', 3, '4', 5, 6],
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -524,11 +524,11 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: choices
-          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+            source: choices,
+          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
         ],
         width: 400,
-        height: 400
+        height: 400,
       });
 
       setDataAtCell(29, 0, '');
@@ -551,11 +551,11 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: choices
-          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+            source: choices,
+          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
         ],
         width: 400,
-        height: 400
+        height: 400,
       });
 
       setDataAtCell(26, 0, 'b');
@@ -594,9 +594,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
       selectCell(0, 0);
       keyDownUp('enter');
@@ -616,9 +616,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: [1, 2, 3, 4, 5, 11, 14]
-          }
-        ]
+            source: [1, 2, 3, 4, 5, 11, 14],
+          },
+        ],
       });
       selectCell(0, 0);
       keyDownUp('enter');
@@ -644,9 +644,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
       selectCell(0, 0);
       keyDownUp('enter');
@@ -672,10 +672,10 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: [1, 2, 3, 4, 5, 11, 14]
-          }
+            source: [1, 2, 3, 4, 5, 11, 14],
+          },
         ],
-        afterChange
+        afterChange,
       });
       selectCell(0, 0);
       keyDownUp('enter');
@@ -708,10 +708,10 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
+            source: syncSources,
+          },
         ],
-        afterChange
+        afterChange,
       });
       selectCell(0, 0);
       keyDownUp('enter');
@@ -736,9 +736,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
       selectCell(0, 0);
       keyDownUp('enter');
@@ -765,9 +765,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -796,9 +796,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
       selectCell(0, 0);
       keyDownUp('enter');
@@ -824,9 +824,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
       selectCell(0, 0);
       mouseDoubleClick(getCell(0, 0));
@@ -852,9 +852,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
 
       setDataAtCell(0, 0, 'black');
@@ -881,9 +881,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
       selectCell(0, 0);
       mouseDoubleClick(getCell(0, 0));
@@ -910,10 +910,10 @@ describe('AutocompleteEditor', () => {
           {
             type: 'autocomplete',
             source: syncSources,
-            strict: false
+            strict: false,
           },
-          {}
-        ]
+          {},
+        ],
       });
 
       selectCell(1, 0);
@@ -939,9 +939,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
       selectCell(0, 0);
       keyDownUp('enter');
@@ -967,9 +967,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
       selectCell(0, 0);
       keyDownUp('enter');
@@ -995,9 +995,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
       selectCell(0, 0);
       var editorInput = $('.handsontableInput');
@@ -1019,7 +1019,7 @@ describe('AutocompleteEditor', () => {
 
         expect(innerHot.getData()).toEqual([
           ['blue'],
-          ['black']
+          ['black'],
         ]);
 
         var selected = innerHot.getSelected();
@@ -1047,19 +1047,19 @@ describe('AutocompleteEditor', () => {
       handsontable({
         data: [
           ['one', 'two'],
-          ['three', 'four']
+          ['three', 'four'],
         ],
         columns: [
           {
             type: 'autocomplete',
             source: syncSources,
             allowInvalid: false,
-            strict: true
+            strict: true,
           },
-          {}
+          {},
         ],
         afterValidate: onAfterValidate,
-        afterChange: onAfterChange
+        afterChange: onAfterChange,
       });
 
       setDataAtCell(0, 0, 'unexistent');
@@ -1067,7 +1067,7 @@ describe('AutocompleteEditor', () => {
       setTimeout(() => {
         expect(getData()).toEqual([
           ['one', 'two'],
-          ['three', 'four']
+          ['three', 'four'],
         ]);
 
         expect(syncSources.calls.count()).toEqual(1);
@@ -1089,19 +1089,19 @@ describe('AutocompleteEditor', () => {
       handsontable({
         data: [
           ['one', 'two'],
-          ['three', 'four']
+          ['three', 'four'],
         ],
         columns: [
           {
             type: 'autocomplete',
             source: syncSources,
             allowInvalid: false,
-            strict: true
+            strict: true,
           },
-          {}
+          {},
         ],
         afterValidate: onAfterValidate,
-        afterChange: onAfterChange
+        afterChange: onAfterChange,
       });
 
       setDataAtCell(0, 0, 'yellow');
@@ -1109,7 +1109,7 @@ describe('AutocompleteEditor', () => {
       setTimeout(() => {
         expect(getData()).toEqual([
           ['yellow', 'two'],
-          ['three', 'four']
+          ['three', 'four'],
         ]);
 
         expect(syncSources.calls.count()).toEqual(1);
@@ -1133,19 +1133,19 @@ describe('AutocompleteEditor', () => {
       handsontable({
         data: [
           ['one', 'two'],
-          ['three', 'four']
+          ['three', 'four'],
         ],
         columns: [
           {
             type: 'autocomplete',
             source: asyncSources,
             allowInvalid: false,
-            strict: true
+            strict: true,
           },
-          {}
+          {},
         ],
         afterValidate: onAfterValidate,
-        afterChange: onAfterChange
+        afterChange: onAfterChange,
       });
 
       setDataAtCell(0, 0, 'unexistent');
@@ -1153,7 +1153,7 @@ describe('AutocompleteEditor', () => {
       setTimeout(() => {
         expect(getData()).toEqual([
           ['one', 'two'],
-          ['three', 'four']
+          ['three', 'four'],
         ]);
 
         expect(asyncSources.calls.count()).toEqual(1);
@@ -1177,19 +1177,19 @@ describe('AutocompleteEditor', () => {
       handsontable({
         data: [
           ['one', 'two'],
-          ['three', 'four']
+          ['three', 'four'],
         ],
         columns: [
           {
             type: 'autocomplete',
             source: asyncSources,
             allowInvalid: false,
-            strict: true
+            strict: true,
           },
-          {}
+          {},
         ],
         afterValidate: onAfterValidate,
-        afterChange: onAfterChange
+        afterChange: onAfterChange,
       });
 
       setDataAtCell(0, 0, 'yellow');
@@ -1197,7 +1197,7 @@ describe('AutocompleteEditor', () => {
       setTimeout(() => {
         expect(getData()).toEqual([
           ['yellow', 'two'],
-          ['three', 'four']
+          ['three', 'four'],
         ]);
 
         expect(asyncSources.calls.count()).toEqual(1);
@@ -1219,19 +1219,19 @@ describe('AutocompleteEditor', () => {
       handsontable({
         data: [
           ['one', 'two'],
-          ['three', 'four']
+          ['three', 'four'],
         ],
         columns: [
           {
             type: 'autocomplete',
             source: syncSources,
             allowInvalid: true,
-            strict: true
+            strict: true,
           },
-          {}
+          {},
         ],
         afterValidate: onAfterValidate,
-        afterChange: onAfterChange
+        afterChange: onAfterChange,
       });
 
       expect(getCellMeta(0, 0).valid).not.toBe(false);
@@ -1242,7 +1242,7 @@ describe('AutocompleteEditor', () => {
       setTimeout(() => {
         expect(getData()).toEqual([
           ['unexistent', 'two'],
-          ['three', 'four']
+          ['three', 'four'],
         ]);
 
         expect(getCellMeta(0, 0).valid).toBe(false);
@@ -1264,10 +1264,10 @@ describe('AutocompleteEditor', () => {
           {
             editor: 'autocomplete',
             source: syncSources,
-            strict: true
-          }
+            strict: true,
+          },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       selectCell(0, 0);
@@ -1290,7 +1290,7 @@ describe('AutocompleteEditor', () => {
 
         expect(innerHot.getData()).toEqual([
           ['blue'],
-          ['black']
+          ['black'],
         ]);
 
         var selected = innerHot.getSelected();
@@ -1322,10 +1322,10 @@ describe('AutocompleteEditor', () => {
           {
             editor: 'autocomplete',
             source: syncSources,
-            strict: true
-          }
+            strict: true,
+          },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       selectCell(0, 0);
@@ -1348,7 +1348,7 @@ describe('AutocompleteEditor', () => {
 
         expect(innerHot.getData()).toEqual([
           ['blue'],
-          ['black']
+          ['black'],
         ]);
 
         var selected = innerHot.getSelected();
@@ -1379,14 +1379,14 @@ describe('AutocompleteEditor', () => {
           {
             editor: 'autocomplete',
             source: syncSources,
-            strict: true
-          }
+            strict: true,
+          },
         ],
         data: [
           ['yellow'],
           ['red'],
-          ['blue']
-        ]
+          ['blue'],
+        ],
       });
 
       selectCell(0, 0);
@@ -1412,9 +1412,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: syncSources
-          }
-        ]
+            source: syncSources,
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -1443,7 +1443,7 @@ describe('AutocompleteEditor', () => {
           ['white'],
           ['olive'],
           ['orange'],
-          ['purple']
+          ['purple'],
         ]);
 
         syncSources.calls.reset();
@@ -1456,7 +1456,7 @@ describe('AutocompleteEditor', () => {
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          ['red']
+          ['red'],
         ]);
         done();
       }, 600);
@@ -1466,9 +1466,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: choices
-          }
-        ]
+            source: choices,
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -1494,7 +1494,7 @@ describe('AutocompleteEditor', () => {
           ['white'],
           ['olive'],
           ['orange'],
-          ['purple']
+          ['purple'],
         ]);
 
         editorInput.val('e');
@@ -1514,7 +1514,7 @@ describe('AutocompleteEditor', () => {
           ['white'],
           ['olive'],
           ['orange'],
-          ['purple']
+          ['purple'],
         ]);
         done();
       }, 100);
@@ -1526,9 +1526,9 @@ describe('AutocompleteEditor', () => {
           {
             editor: 'autocomplete',
             source: choices,
-            filteringCaseSensitive: true
-          }
-        ]
+            filteringCaseSensitive: true,
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -1554,7 +1554,7 @@ describe('AutocompleteEditor', () => {
           ['white'],
           ['olive'],
           ['orange'],
-          ['purple']
+          ['purple'],
         ]);
 
         editorInput.val('E');
@@ -1577,9 +1577,9 @@ describe('AutocompleteEditor', () => {
           {
             editor: 'autocomplete',
             source: choices,
-            filter: false
-          }
-        ]
+            filter: false,
+          },
+        ],
       });
       selectCell(0, 0);
       var editorInput = $('.handsontableInput');
@@ -1625,9 +1625,9 @@ describe('AutocompleteEditor', () => {
           {
             editor: 'autocomplete',
             source: syncSources,
-            filter: false
-          }
-        ]
+            filter: false,
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -1663,9 +1663,9 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             editor: 'autocomplete',
-            source: choices
-          }
-        ]
+            source: choices,
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -1703,9 +1703,9 @@ describe('AutocompleteEditor', () => {
           {
             editor: 'autocomplete',
             source: syncSources,
-            filter: false
-          }
-        ]
+            filter: false,
+          },
+        ],
       });
       selectCell(0, 0);
       var editorInput = $('.handsontableInput');
@@ -1743,9 +1743,9 @@ describe('AutocompleteEditor', () => {
             source: choices,
             filter: false,
             strict: true,
-            allowInvalid: true
-          }
-        ]
+            allowInvalid: true,
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -1783,9 +1783,9 @@ describe('AutocompleteEditor', () => {
             editor: 'autocomplete',
             source: syncSources,
             filter: false,
-            strict: true
-          }
-        ]
+            strict: true,
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -1822,9 +1822,9 @@ describe('AutocompleteEditor', () => {
       columns: [
         {
           editor: 'autocomplete',
-          source: syncSources
-        }
-      ]
+          source: syncSources,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -1854,15 +1854,15 @@ describe('AutocompleteEditor', () => {
     handsontable({
       data: [
         ['one', 'two'],
-        ['three', 'four']
+        ['three', 'four'],
       ],
       columns: [
         {
           editor: 'autocomplete',
           source: syncSources,
-          filter: false
-        }
-      ]
+          filter: false,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -1888,8 +1888,8 @@ describe('AutocompleteEditor', () => {
               cb(['<b>foo <span>zip</span></b>', '<i>bar</i>', '<strong>baz</strong>']);
             },
             allowHtml: true,
-          }
-        ]
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -1923,7 +1923,7 @@ describe('AutocompleteEditor', () => {
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          ['<i>bar</i>']
+          ['<i>bar</i>'],
         ]);
 
         keyDownUp('arrow_down');
@@ -1943,8 +1943,8 @@ describe('AutocompleteEditor', () => {
             type: 'autocomplete',
             source: ['<b>foo <span>zip</span></b>', '<i>bar</i>', '<strong>baz</strong>'],
             allowHtml: true,
-          }
-        ]
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -1978,7 +1978,7 @@ describe('AutocompleteEditor', () => {
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          ['<i>bar</i>']
+          ['<i>bar</i>'],
         ]);
 
         keyDownUp('arrow_down');
@@ -2002,8 +2002,8 @@ describe('AutocompleteEditor', () => {
               cb(['<b>foo <span>zip</span></b>', '<i>bar</i>', '<strong>baz</strong>']);
             },
             allowHtml: false,
-          }
-        ]
+          },
+        ],
       });
 
       expect(hot.getCellMeta(0, 0).allowHtml).toBeFalsy();
@@ -2018,8 +2018,8 @@ describe('AutocompleteEditor', () => {
               cb(['<b>foo <span>zip</span></b>', '<i>bar</i>', '<strong>baz</strong>']);
             },
             allowHtml: false,
-          }
-        ]
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -2053,7 +2053,7 @@ describe('AutocompleteEditor', () => {
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          ['bar']
+          ['bar'],
         ]);
 
         keyDownUp('arrow_down');
@@ -2074,8 +2074,8 @@ describe('AutocompleteEditor', () => {
             type: 'autocomplete',
             source: ['<b>foo <span>zip</span></b>', '<i>bar</i>', '<strong>baz</strong>'],
             allowHtml: false,
-          }
-        ]
+          },
+        ],
       });
 
       selectCell(0, 0);
@@ -2109,7 +2109,7 @@ describe('AutocompleteEditor', () => {
         var innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          ['bar']
+          ['bar'],
         ]);
 
         keyDownUp('arrow_down');
@@ -2136,7 +2136,7 @@ describe('AutocompleteEditor', () => {
           'Kent', // 5
           'Gordon', // 6
           'Kyle', // 7
-          'Simmons'// 8
+          'Simmons', // 8
         ];
         let value = 'a';
 
@@ -2159,16 +2159,16 @@ describe('AutocompleteEditor', () => {
 
   it('should not modify the suggestion lists\' order, when the sortByRelevance option is set to false', (done) => {
     let choices2 = [
-      'Wayne', 'Draven', 'Banner', 'Stark', 'Parker', 'Kent', 'Gordon', 'Kyle', 'Simmons'
+      'Wayne', 'Draven', 'Banner', 'Stark', 'Parker', 'Kent', 'Gordon', 'Kyle', 'Simmons',
     ];
     handsontable({
       columns: [
         {
           editor: 'autocomplete',
           source: choices2,
-          sortByRelevance: false
-        }
-      ]
+          sortByRelevance: false,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -2203,10 +2203,10 @@ describe('AutocompleteEditor', () => {
       columns: [
         {
           editor: 'autocomplete',
-          source: syncSources
-        }
+          source: syncSources,
+        },
       ],
-      afterChange: onAfterChange
+      afterChange: onAfterChange,
     });
 
     selectCell(0, 0);
@@ -2237,15 +2237,15 @@ describe('AutocompleteEditor', () => {
         {},
         {
           editor: 'autocomplete',
-          source: syncSources
+          source: syncSources,
         },
-        {}
+        {},
       ],
       data: [
         [null, null, 'yellow', null],
         [null, null, 'red', null],
-        [null, null, 'blue', null]
-      ]
+        [null, null, 'blue', null],
+      ],
     });
 
     expect($(getCell(0, 2)).text()).toMatch('yellow');
@@ -2275,17 +2275,17 @@ describe('AutocompleteEditor', () => {
         new Model({
           id: 1,
           name: 'Ted Right',
-          address: ''
+          address: '',
         }),
         new Model({
           id: 2,
           name: 'Frank Honest',
-          address: ''
+          address: '',
         }),
         new Model({
           id: 3,
           name: 'Joan Well',
-          address: ''
+          address: '',
         })],
       dataSchema: Model,
       colHeaders: ['ID', 'Name', 'Address'],
@@ -2295,17 +2295,17 @@ describe('AutocompleteEditor', () => {
           type: 'autocomplete',
           source: ['1', '2', '3'],
           filter: false,
-          strict: true
+          strict: true,
         },
         {
-          data: createAccessorForProperty('name')
+          data: createAccessorForProperty('name'),
         },
         {
-          data: createAccessorForProperty('address')
-        }
+          data: createAccessorForProperty('address'),
+        },
       ],
       minSpareRows: 1,
-      afterValidate: afterValidateCallback
+      afterValidate: afterValidateCallback,
     });
     selectCell(0, 0);
     expect(hot.getActiveEditor().isOpened()).toBe(false);
@@ -2334,16 +2334,16 @@ describe('AutocompleteEditor', () => {
     handsontable({
       data: [
         ['one', 'two'],
-        ['three', 'four']
+        ['three', 'four'],
       ],
       columns: [
         {
           type: 'autocomplete',
           source: syncSources,
           allowInvalid: false,
-          strict: true
+          strict: true,
         },
-        {}
+        {},
       ],
       cells(row, col) {
         var cellProperties = {};
@@ -2353,7 +2353,7 @@ describe('AutocompleteEditor', () => {
         }
 
         return cellProperties;
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -2380,16 +2380,16 @@ describe('AutocompleteEditor', () => {
     handsontable({
       data: [
         ['one', 'two'],
-        ['three', 'four']
+        ['three', 'four'],
       ],
       columns: [
         {
           type: 'autocomplete',
           source: syncSources,
           allowInvalid: false,
-          strict: true
+          strict: true,
         },
-        {}
+        {},
       ],
       cells(row, col) {
         var cellProperties = {};
@@ -2399,7 +2399,7 @@ describe('AutocompleteEditor', () => {
         }
 
         return cellProperties;
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -2429,22 +2429,22 @@ describe('AutocompleteEditor', () => {
     var hot = handsontable({
       data: [
         ['', 'two', 'three'],
-        ['four', 'five', 'six']
+        ['four', 'five', 'six'],
       ],
       columns: [
         {
           type: 'autocomplete',
           source: choices,
           allowInvalid: false,
-          strict: false
+          strict: false,
         },
         {},
-        {}
-      ]
+        {},
+      ],
     });
 
     this.$container.css({
-      height: 600
+      height: 600,
     });
 
     expect(choices.length).toBeGreaterThan(10);
@@ -2476,18 +2476,18 @@ describe('AutocompleteEditor', () => {
     var hot = handsontable({
       data: [
         ['', 'two', 'three'],
-        ['four', 'five', 'six']
+        ['four', 'five', 'six'],
       ],
       columns: [
         {
           type: 'autocomplete',
           source: choices,
           allowInvalid: false,
-          strict: false
+          strict: false,
         },
         {},
-        {}
-      ]
+        {},
+      ],
     });
 
     expect(choices.length).toBeGreaterThan(10);
@@ -2529,9 +2529,9 @@ describe('AutocompleteEditor', () => {
         {
           type: 'autocomplete',
           source: syncSources,
-          strict: false
-        }
-      ]
+          strict: false,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -2563,9 +2563,9 @@ describe('AutocompleteEditor', () => {
         {
           type: 'autocomplete',
           source: syncSources,
-          strict: false
-        }
-      ]
+          strict: false,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -2599,10 +2599,10 @@ describe('AutocompleteEditor', () => {
         {
           type: 'autocomplete',
           source: syncSources,
-          strict: false
+          strict: false,
         },
-        {}
-      ]
+        {},
+      ],
     });
 
     selectCell(1, 0);
@@ -2632,10 +2632,10 @@ describe('AutocompleteEditor', () => {
         {
           type: 'autocomplete',
           source: syncSources,
-          strict: false
+          strict: false,
         },
-        {}
-      ]
+        {},
+      ],
     });
 
     selectCell(1, 0);
@@ -2666,9 +2666,9 @@ describe('AutocompleteEditor', () => {
         {
           type: 'autocomplete',
           source: syncSources,
-          strict: false
-        }
-      ]
+          strict: false,
+        },
+      ],
     });
 
     selectCell(1, 1);
@@ -2700,10 +2700,10 @@ describe('AutocompleteEditor', () => {
         {
           type: 'autocomplete',
           source: syncSources,
-          strict: false
+          strict: false,
         },
-        {}
-      ]
+        {},
+      ],
     });
     selectCell(1, 0);
     keyDownUp('x'); // trigger quick edit mode
@@ -2732,10 +2732,10 @@ describe('AutocompleteEditor', () => {
         {
           type: 'autocomplete',
           source: syncSources,
-          strict: false
+          strict: false,
         },
-        {}
-      ]
+        {},
+      ],
     });
     selectCell(1, 0);
     keyDownUp('x'); // trigger quick edit mode
@@ -2770,10 +2770,10 @@ describe('AutocompleteEditor', () => {
         {
           type: 'autocomplete',
           source: syncSources,
-          strict: false
+          strict: false,
         },
-        {}
-      ]
+        {},
+      ],
     });
     selectCell(1, 0);
     keyDownUp('x'); // trigger quick edit mode
@@ -2802,10 +2802,10 @@ describe('AutocompleteEditor', () => {
         {
           type: 'autocomplete',
           source: syncSources,
-          strict: false
+          strict: false,
         },
-        {}
-      ]
+        {},
+      ],
     });
 
     selectCell(1, 0);
@@ -2839,10 +2839,10 @@ describe('AutocompleteEditor', () => {
         {
           type: 'autocomplete',
           source: syncSources,
-          strict: false
+          strict: false,
         },
-        {}
-      ]
+        {},
+      ],
     });
 
     selectCell(1, 0);
@@ -2880,10 +2880,10 @@ describe('AutocompleteEditor', () => {
         {
           type: 'autocomplete',
           source: syncSources,
-          strict: false
+          strict: false,
         },
-        {}
-      ]
+        {},
+      ],
     });
 
     selectCell(1, 0);
@@ -2916,10 +2916,10 @@ describe('AutocompleteEditor', () => {
         {
           type: 'autocomplete',
           source: syncSources,
-          strict: false
+          strict: false,
         },
-        {}
-      ]
+        {},
+      ],
     });
 
     selectCell(1, 0);

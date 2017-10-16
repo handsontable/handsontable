@@ -20,6 +20,6 @@ export default function removeRowItem() {
     },
     hidden() {
       return !this.getSettings().allowRemoveRow;
-    }
+    },
   };
 }

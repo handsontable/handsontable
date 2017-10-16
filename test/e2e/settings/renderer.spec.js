@@ -38,9 +38,9 @@ describe('settings', () => {
         handsontable({
           columns: [
             {
-              renderer: 'checkbox'
-            }
-          ]
+              renderer: 'checkbox',
+            },
+          ],
         });
         expect(Handsontable.renderers.TextRenderer).not.toHaveBeenCalled();
         expect(Handsontable.renderers.CheckboxRenderer).toHaveBeenCalled();
@@ -62,7 +62,7 @@ describe('settings', () => {
         handsontable({
           columns(column) {
             return column === 0 ? {renderer: 'checkbox'} : null;
-          }
+          },
         });
         expect(Handsontable.renderers.TextRenderer).not.toHaveBeenCalled();
         expect(Handsontable.renderers.CheckboxRenderer).toHaveBeenCalled();
@@ -81,9 +81,9 @@ describe('settings', () => {
         handsontable({
           columns: [
             {
-              renderer: myRenderer
-            }
-          ]
+              renderer: myRenderer,
+            },
+          ],
         });
 
         expect(called).toBe(true);
@@ -99,7 +99,7 @@ describe('settings', () => {
         handsontable({
           columns(column) {
             return column === 0 ? {renderer: myRenderer} : null;
-          }
+          },
         });
 
         expect(called).toBe(true);
@@ -113,9 +113,9 @@ describe('settings', () => {
         handsontable({
           columns: [
             {
-              renderer: 'myRenderer'
-            }
-          ]
+              renderer: 'myRenderer',
+            },
+          ],
         });
 
         expect(myRenderer).toHaveBeenCalled();
@@ -129,7 +129,7 @@ describe('settings', () => {
         handsontable({
           columns(column) {
             return column === 0 ? {renderer: 'myRenderer'} : null;
-          }
+          },
         });
 
         expect(myRenderer).toHaveBeenCalled();
@@ -143,12 +143,12 @@ describe('settings', () => {
       rendererSpy.and.callFake((instance, TD, row, col, prop, value, cellProperties) => {
         cellPropertiesCache.push({
           row: cellProperties.row,
-          col: cellProperties.col
+          col: cellProperties.col,
         });
       });
 
       handsontable({
-        renderer: rendererSpy
+        renderer: rendererSpy,
       });
 
       for (var i = 0, len = rendererSpy.calls.count(); i < len; i++) {
@@ -169,7 +169,7 @@ describe('settings', () => {
       rendererSpy.and.callFake((instance, TD, row, col, prop, value, cellProperties) => {
         cellPropertiesCache.push({
           cellsRow: cellProperties.cellsRow,
-          cellsCol: cellProperties.cellsCol
+          cellsCol: cellProperties.cellsCol,
         });
       });
 
@@ -178,9 +178,9 @@ describe('settings', () => {
         cells(row, col) {
           return {
             cellsRow: row,
-            cellsCol: col
+            cellsCol: col,
           };
-        }
+        },
       });
 
       for (var i = 0, len = rendererSpy.calls.count(); i < len; i++) {

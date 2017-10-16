@@ -18,7 +18,7 @@ describe('manualColumnMove', () => {
       handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
-        manualColumnMove: true
+        manualColumnMove: true,
       });
 
       var $headerTH = this.$container.find('thead tr:eq(0) th:eq(0)');
@@ -34,7 +34,7 @@ describe('manualColumnMove', () => {
       handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
-        manualColumnMove: true
+        manualColumnMove: true,
       });
 
       var $headerTH = this.$container.find('thead tr:eq(0) th:eq(0)');
@@ -50,7 +50,7 @@ describe('manualColumnMove', () => {
       handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
-        manualColumnMove: true
+        manualColumnMove: true,
       });
 
       var $headers = [
@@ -75,7 +75,7 @@ describe('manualColumnMove', () => {
         width: 600,
         colHeaders: true,
         stretchH: 'all',
-        manualColumnMove: true
+        manualColumnMove: true,
       });
 
       var $headerTH = this.$container.find('thead tr:eq(0) th:eq(1)');
@@ -102,8 +102,8 @@ describe('manualColumnMove', () => {
           { data: 'level', type: 'numeric', format: '0.0000' },
           { data: 'units', type: 'text' },
           { data: 'asOf', type: 'date', dateFormat: 'MM/DD/YYYY' },
-          { data: 'onedChng', type: 'numeric', format: '0.00%' }
-        ]
+          { data: 'onedChng', type: 'numeric', format: '0.00%' },
+        ],
       });
 
       var $headerTH = this.$container.find('thead tr:eq(0) th:eq(6)');
@@ -156,7 +156,7 @@ describe('manualColumnMove', () => {
         data: arrayOfArrays.slice(),
         colHeaders: true,
         manualColumnMove: true,
-        columnSorting: true
+        columnSorting: true,
       });
 
       var $headerTH = this.$container.find('thead tr:eq(0) th:eq(6)');

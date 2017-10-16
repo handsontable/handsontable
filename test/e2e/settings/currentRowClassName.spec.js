@@ -16,7 +16,7 @@ describe('settings', () => {
     it('should apply currentRowClassName to cells in row where there is a selection', function() {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 7),
-        currentRowClassName: 'currentRowClassName'
+        currentRowClassName: 'currentRowClassName',
       });
 
       selectCell(2, 2);
@@ -27,7 +27,7 @@ describe('settings', () => {
     it('should apply currentRowClassName from cells after deselection', function() {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 7),
-        currentRowClassName: 'currentRowClassName'
+        currentRowClassName: 'currentRowClassName',
       });
 
       selectCell(2, 2);
@@ -41,7 +41,7 @@ describe('settings', () => {
     it('should apply currentColClassName to cells in row where there is a selection', function() {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 7),
-        currentColClassName: 'currentColClassName'
+        currentColClassName: 'currentColClassName',
       });
 
       selectCell(2, 2);
@@ -52,7 +52,7 @@ describe('settings', () => {
     it('should remove currentColClassName from cells after deselection', function() {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 7),
-        currentColClassName: 'currentColClassName'
+        currentColClassName: 'currentColClassName',
       });
 
       selectCell(2, 2);

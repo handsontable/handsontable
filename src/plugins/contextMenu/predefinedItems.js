@@ -27,7 +27,7 @@ export {KEY as UNDO} from './predefinedItems/undo';
 
 export const ITEMS = [
   ROW_ABOVE, ROW_BELOW, COLUMN_LEFT, COLUMN_RIGHT, CLEAR_COLUMN, REMOVE_ROW, REMOVE_COLUMN, UNDO, REDO, READ_ONLY,
-  ALIGNMENT, SEPARATOR
+  ALIGNMENT, SEPARATOR,
 ];
 
 const _predefinedItems = {

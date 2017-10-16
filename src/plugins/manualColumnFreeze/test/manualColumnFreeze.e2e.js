@@ -16,7 +16,7 @@ describe('manualColumnFreeze', () => {
     it('should increase fixedColumnsLeft setting', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
-        manualColumnFreeze: true
+        manualColumnFreeze: true,
       });
       var plugin = hot.getPlugin('manualColumnFreeze');
       plugin.freezeColumn(4);
@@ -27,7 +27,7 @@ describe('manualColumnFreeze', () => {
     it('should freeze (make fixed) the column provided as an argument', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
-        manualColumnFreeze: true
+        manualColumnFreeze: true,
       });
 
       var plugin = hot.getPlugin('manualColumnFreeze');
@@ -44,7 +44,7 @@ describe('manualColumnFreeze', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 1
+        fixedColumnsLeft: 1,
       });
       var plugin = hot.getPlugin('manualColumnFreeze');
 
@@ -56,7 +56,7 @@ describe('manualColumnFreeze', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 3
+        fixedColumnsLeft: 3,
       });
 
       var plugin = hot.getPlugin('manualColumnFreeze');
@@ -77,7 +77,7 @@ describe('manualColumnFreeze', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        contextMenu: true
+        contextMenu: true,
       });
 
       selectCell(1, 1);
@@ -96,7 +96,7 @@ describe('manualColumnFreeze', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
         contextMenu: true,
-        fixedColumnsLeft: 2
+        fixedColumnsLeft: 2,
       });
 
       selectCell(1, 1);
@@ -115,7 +115,7 @@ describe('manualColumnFreeze', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
         fixedColumnsLeft: 1,
-        contextMenu: true
+        contextMenu: true,
       });
 
       selectCell(1, 3);
@@ -146,7 +146,7 @@ describe('manualColumnFreeze', () => {
         fixedColumnsLeft: 3,
         manualColumnMove: [0, 2, 5, 3, 4, 1, 6, 7, 8, 9],
         contextMenu: true,
-        rowHeaders: true
+        rowHeaders: true,
       });
 
       var dataAtCell = hot.getDataAtCell(1, 0);

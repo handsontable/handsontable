@@ -17,7 +17,7 @@ describe('ContextMenu', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
-        height: 100
+        height: 100,
       });
 
       contextMenu();
@@ -40,7 +40,7 @@ describe('ContextMenu', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
-        height: 100
+        height: 100,
       });
 
       contextMenu();
@@ -63,7 +63,7 @@ describe('ContextMenu', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
-        height: 100
+        height: 100,
       });
 
       contextMenu();
@@ -86,7 +86,7 @@ describe('ContextMenu', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
-        height: 100
+        height: 100,
       });
 
       contextMenu();
@@ -110,7 +110,7 @@ describe('ContextMenu', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
-        height: 100
+        height: 100,
       });
 
       contextMenu();
@@ -134,7 +134,7 @@ describe('ContextMenu', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
-        height: 100
+        height: 100,
       });
 
       contextMenu();
@@ -158,7 +158,7 @@ describe('ContextMenu', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
-        height: 100
+        height: 100,
       });
 
       contextMenu();
@@ -183,7 +183,7 @@ describe('ContextMenu', () => {
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
-        afterSetCellMeta: afterSetCellMetaCallback
+        afterSetCellMeta: afterSetCellMetaCallback,
       });
 
       selectCell(2, 3);

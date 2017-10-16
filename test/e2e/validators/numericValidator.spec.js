@@ -23,7 +23,7 @@ describe('numericValidator', () => {
       {id: 7, name: 'Meg', lastName: 'Jansen'},
       {id: 8, name: 'Rob', lastName: 'Norris'},
       {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'}
+      {id: 10, name: 'Eve', lastName: 'Branson'},
     ];
   };
 
@@ -35,9 +35,9 @@ describe('numericValidator', () => {
       columns: [
         {data: 'id', type: 'numeric'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(2, 0, '');
@@ -56,9 +56,9 @@ describe('numericValidator', () => {
       columns: [
         {data: 'id', type: 'numeric'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(2, 0, 'test');
@@ -77,9 +77,9 @@ describe('numericValidator', () => {
       columns: [
         {data: 'id', type: 'numeric'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(2, 0, '123');
@@ -98,9 +98,9 @@ describe('numericValidator', () => {
       columns: [
         {data: 'id', type: 'numeric'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(2, 0, '-123');
@@ -120,9 +120,9 @@ describe('numericValidator', () => {
         columns: [
           {data: 'id', type: 'numeric', allowEmpty: false},
           {data: 'name'},
-          {data: 'lastName'}
+          {data: 'lastName'},
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(2, 0, '');
@@ -141,9 +141,9 @@ describe('numericValidator', () => {
         columns: [
           {data: 'id', type: 'numeric', allowEmpty: false},
           {data: 'name'},
-          {data: 'lastName'}
+          {data: 'lastName'},
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(2, 0, null);
@@ -162,9 +162,9 @@ describe('numericValidator', () => {
         columns: [
           {data: 'id', type: 'numeric', allowEmpty: false},
           {data: 'name'},
-          {data: 'lastName'}
+          {data: 'lastName'},
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(2, 0, void 0);
@@ -183,9 +183,9 @@ describe('numericValidator', () => {
         columns: [
           {data: 'id', type: 'numeric', allowEmpty: false},
           {data: 'name'},
-          {data: 'lastName'}
+          {data: 'lastName'},
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(2, 0, 0);
@@ -201,13 +201,13 @@ describe('numericValidator', () => {
         data: [
           {id: 1, name: 'Ted', salary: 10000},
           {id: 2, name: 'Frank', salary: '5300'},
-          {id: 3, name: 'Joan', salary: 'non-numeric value'}
+          {id: 3, name: 'Joan', salary: 'non-numeric value'},
         ],
         columns: [
           {data: 'id'},
           {data: 'name'},
-          {data: 'salary', type: 'numeric', allowInvalid: false}
-        ]
+          {data: 'salary', type: 'numeric', allowInvalid: false},
+        ],
       });
 
       hot.validateCells();

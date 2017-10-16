@@ -18,7 +18,7 @@ describe('Core_datachange', () => {
     handsontable({
       afterChange(changes) {
         output = changes;
-      }
+      },
     });
     setDataAtCell(1, 2, 'test');
 
@@ -36,7 +36,7 @@ describe('Core_datachange', () => {
       afterChange(changes, source) {
         output = changes;
         src = source;
-      }
+      },
     });
     setDataAtCell(1, 2, 'abc', 'test');
 
@@ -52,7 +52,7 @@ describe('Core_datachange', () => {
       afterChange(changes, source) {
         output = changes;
         src = source;
-      }
+      },
     });
     setDataAtCell([[1, 2, 'abc']], 'test');
 
@@ -82,7 +82,7 @@ describe('Core_datachange', () => {
     handsontable({
       afterChange() {
         output = this.rootElement;
-      }
+      },
     });
     setDataAtCell(0, 0, 'test');
 
@@ -95,13 +95,13 @@ describe('Core_datachange', () => {
 
     handsontable({
       data: [
-        ['Joe Red']
+        ['Joe Red'],
       ],
       afterChange(changes, source) {
         if (source === 'loadData') {
           output = $container.find('table.htCore tbody td:first').html();
         }
-      }
+      },
     });
 
     expect(output).toEqual('Joe Red');
@@ -113,13 +113,13 @@ describe('Core_datachange', () => {
 
     handsontable({
       data: [
-        ['Joe Red']
+        ['Joe Red'],
       ],
       afterChange(changes, source) {
         if (source === 'edit') {
           output = $container.find('table.htCore tbody td:first').html();
         }
-      }
+      },
     });
     setDataAtCell(0, 0, 'Alice Red');
 
@@ -131,8 +131,8 @@ describe('Core_datachange', () => {
       {
         col1: 'a',
         col2: 'b',
-        col3: 'c'
-      }
+        col3: 'c',
+      },
     ];
     var event = null;
 
@@ -142,7 +142,7 @@ describe('Core_datachange', () => {
         if (source === 'edit') {
           event = changes.shift();
         }
-      }
+      },
     });
     setDataAtCell(0, 0, 'test');
 
@@ -157,11 +157,11 @@ describe('Core_datachange', () => {
 
     handsontable({
       data: [
-        ['Joe Red']
+        ['Joe Red'],
       ],
       afterChange(changes, source) {
         sources.push(source);
-      }
+      },
     });
     selectCell(0, 0);
 

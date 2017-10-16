@@ -23,7 +23,7 @@ describe('Core_validate', () => {
       {id: 7, name: 'Meg', lastName: 'Jansen'},
       {id: 8, name: 'Rob', lastName: 'Norris'},
       {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'}
+      {id: 10, name: 'Eve', lastName: 'Branson'},
     ];
   };
 
@@ -35,11 +35,11 @@ describe('Core_validate', () => {
       columns: [
         {data: 'id', type: 'numeric'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
       beforeValidate() {
         fired = true;
-      }
+      },
     });
     setDataAtCell(2, 0, 'test');
 
@@ -72,7 +72,7 @@ describe('Core_validate', () => {
       },
       beforeValidate() {
         fired = true;
-      }
+      },
     });
     setDataAtCell(2, 0, 'test');
 
@@ -87,9 +87,9 @@ describe('Core_validate', () => {
       columns: [
         {data: 'id', type: 'numeric'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     setDataAtCell(2, 0, 'test');
 
@@ -123,7 +123,7 @@ describe('Core_validate', () => {
 
         return colMeta;
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     setDataAtCell(2, 0, 'test');
 
@@ -146,13 +146,13 @@ describe('Core_validate', () => {
       columns: [
         {data: 'id', type: 'numeric'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
       beforeValidate(value) {
         value = 999;
         return value;
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     setDataAtCell(2, 0, 123);
 
@@ -195,7 +195,7 @@ describe('Core_validate', () => {
         value = 999;
         return value;
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     setDataAtCell(2, 0, 123);
 
@@ -216,9 +216,9 @@ describe('Core_validate', () => {
             cb(true);
           }},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     setDataAtCell(2, 0, 123);
 
@@ -241,7 +241,7 @@ describe('Core_validate', () => {
             data: 'id',
             validator(value, cb) {
               cb(true);
-            }
+            },
           };
 
         } else if (column === 1) {
@@ -253,7 +253,7 @@ describe('Core_validate', () => {
 
         return colMeta;
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     setDataAtCell(2, 0, 123);
 
@@ -271,9 +271,9 @@ describe('Core_validate', () => {
       columns: [
         {data: 'id', validator: /^\d+$/ },
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(2, 0, 'test');
@@ -304,7 +304,7 @@ describe('Core_validate', () => {
 
         return colMeta;
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     setDataAtCell(2, 0, 'test');
 
@@ -326,12 +326,12 @@ describe('Core_validate', () => {
           validator(value, cb) {
             result = this;
             cb(true);
-          }
+          },
         },
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     setDataAtCell(2, 0, 123);
 
@@ -356,7 +356,7 @@ describe('Core_validate', () => {
             validator(value, cb) {
               result = this;
               cb(true);
-            }
+            },
           };
 
         } else if (column === 1) {
@@ -368,7 +368,7 @@ describe('Core_validate', () => {
 
         return colMeta;
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     setDataAtCell(2, 0, 123);
 
@@ -389,7 +389,7 @@ describe('Core_validate', () => {
           callb(true);
         }
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     expect(hot.validateCells).not.toThrow();
@@ -412,7 +412,7 @@ describe('Core_validate', () => {
           callb(true);
         }
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     hot.validateCells(() => {
@@ -433,7 +433,7 @@ describe('Core_validate', () => {
       validator(value, cb) {
         cb(false);
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     expect(this.$container.find('td:not(.htInvalid)').length).toEqual(4);
@@ -458,7 +458,7 @@ describe('Core_validate', () => {
       validator(value, cb) {
         cb(validator());
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     hot.validateCells(() => {});
@@ -491,7 +491,7 @@ describe('Core_validate', () => {
           callb(true);
         }
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(0, 0, 'test');
@@ -519,7 +519,7 @@ describe('Core_validate', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       type: 'numeric',
       validator,
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     setDataAtCell(0, 0, 123);
 
@@ -542,7 +542,7 @@ describe('Core_validate', () => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(0, 0, 'test');
@@ -556,7 +556,7 @@ describe('Core_validate', () => {
           } else {
             callb(true);
           }
-        }
+        },
       });
 
       onAfterValidate.calls.reset();
@@ -582,7 +582,7 @@ describe('Core_validate', () => {
           callb(true);
         }
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     hot.validateCells(() => {
@@ -609,7 +609,7 @@ describe('Core_validate', () => {
       validator(value, callback) {
         callback(true);
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     hot.validateCells(onValidate);
@@ -628,7 +628,7 @@ describe('Core_validate', () => {
       validator(value, callback) {
         callback(false);
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     hot.validateCells(onValidate);
@@ -658,13 +658,13 @@ describe('Core_validate', () => {
         if (source !== 'loadData') {
           validatedChanges = changes;
         }
-      }
+      },
     });
 
     populateFromArray(0, 0, [
       ['A1-new'],
       ['fail'],
-      ['A3-new']
+      ['A3-new'],
     ]);
 
     setTimeout(() => {
@@ -691,7 +691,7 @@ describe('Core_validate', () => {
         callback(true);
       },
       beforeChange: onBeforeChange,
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     expect(onBeforeChange.calls.count()).toEqual(0);
@@ -716,7 +716,7 @@ describe('Core_validate', () => {
         }, 10);
       },
       beforeChange: onBeforeChange,
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     expect(onBeforeChange.calls.count()).toEqual(0);
@@ -739,7 +739,7 @@ describe('Core_validate', () => {
         callback(true);
       },
       afterChange: onAfterChange,
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     expect(onAfterChange.calls.count()).toEqual(1); // loadData
@@ -764,7 +764,7 @@ describe('Core_validate', () => {
         }, 10);
       },
       afterChange: onAfterChange,
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     expect(onAfterChange.calls.count()).toEqual(1); // loadData
@@ -799,7 +799,7 @@ describe('Core_validate', () => {
         setTimeout(() => {
           callback(true);
         }, 100);
-      }
+      },
     });
 
     selectCell(0, 0);
@@ -832,7 +832,7 @@ describe('Core_validate', () => {
           validatedValue = value;
           callback(true);
         }, 100);
-      }
+      },
     });
 
     selectCell(0, 0);
@@ -859,7 +859,7 @@ describe('Core_validate', () => {
           validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
-      }
+      },
     });
 
     selectCell(0, 0);
@@ -885,7 +885,7 @@ describe('Core_validate', () => {
       validator(value, callback) {
         validationResult = value.length === 2;
         callback(validationResult);
-      }
+      },
     });
 
     selectCell(0, 0);
@@ -913,7 +913,7 @@ describe('Core_validate', () => {
           validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
-      }
+      },
     });
     selectCell(0, 0);
     keyDown('enter');
@@ -938,7 +938,7 @@ describe('Core_validate', () => {
       validator(value, callback) {
         validationResult = value.length === 2;
         callback(validationResult);
-      }
+      },
     });
     selectCell(0, 0);
     keyDown('enter');
@@ -959,14 +959,14 @@ describe('Core_validate', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       columnSorting: {
         column: 0,
-        sortOrder: false
+        sortOrder: false,
       },
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
           callback(value.length === 2);
         }, 100);
-      }
+      },
     });
 
     selectCell(0, 0);
@@ -994,7 +994,7 @@ describe('Core_validate', () => {
           validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
-      }
+      },
     });
     selectCell(0, 0);
     keyDown('enter');
@@ -1022,7 +1022,7 @@ describe('Core_validate', () => {
           validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
-      }
+      },
     });
 
     selectCell(0, 0);
@@ -1066,7 +1066,7 @@ describe('Core_validate', () => {
           validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
-      }
+      },
     });
     selectCell(0, 0);
     keyDown('enter');
@@ -1107,9 +1107,9 @@ describe('Core_validate', () => {
             cb(parseInt(val, 10) > 100);
           }},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     selectCell(2, 0);
 
@@ -1153,9 +1153,9 @@ describe('Core_validate', () => {
             }, 100);
           }},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     selectCell(2, 0);
 
@@ -1192,9 +1192,9 @@ describe('Core_validate', () => {
             }, 100);
           }},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     selectCell(2, 0);
@@ -1232,9 +1232,9 @@ describe('Core_validate', () => {
             }, 100);
           }},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     selectCell(2, 0);
@@ -1271,9 +1271,9 @@ describe('Core_validate', () => {
             setTimeout(() => {
               cb(parseInt(val, 10) > 100);
             }, 100);
-          }}
+          }},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     selectCell(2, 2);
@@ -1306,9 +1306,9 @@ describe('Core_validate', () => {
       columns: [
         {data: 'id'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     selectCell(0, 0);
@@ -1342,7 +1342,7 @@ describe('Core_validate', () => {
 
         return colMeta;
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     selectCell(0, 0);
@@ -1366,9 +1366,9 @@ describe('Core_validate', () => {
             cb(false);
           }},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(0, 0, 'foo');
@@ -1398,7 +1398,7 @@ describe('Core_validate', () => {
             data: 'id',
             validator(value, cb) {
               cb(false);
-            }
+            },
           };
 
         } else if (column === 1) {
@@ -1410,7 +1410,7 @@ describe('Core_validate', () => {
 
         return colMeta;
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(0, 0, 'foo');
@@ -1439,12 +1439,12 @@ describe('Core_validate', () => {
             // eslint-disable-next-line eqeqeq
             cb(value == parseInt(value, 10));
           },
-          allowInvalid: false
+          allowInvalid: false,
         },
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     selectCell(0, 0);
@@ -1496,7 +1496,7 @@ describe('Core_validate', () => {
               // eslint-disable-next-line eqeqeq
               cb(value == parseInt(value, 10));
             },
-            allowInvalid: false
+            allowInvalid: false,
           };
 
         } else if (column === 1) {
@@ -1509,7 +1509,7 @@ describe('Core_validate', () => {
 
         return colMeta;
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     selectCell(0, 0);
@@ -1553,18 +1553,18 @@ describe('Core_validate', () => {
     var hot = handsontable({
       data: [
         {id: 'sth', name: 'Steve'},
-        {id: 'sth else', name: 'Bob'}
+        {id: 'sth else', name: 'Bob'},
       ],
       columns: [
         {
           data: 'id',
           validator(value, cb) {
             cb(value === parseInt(value, 10));
-          }
+          },
         },
-        {data: 'name'}
+        {data: 'name'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     hot.validateCells(onValidate);
@@ -1583,7 +1583,7 @@ describe('Core_validate', () => {
     var hot = handsontable({
       data: [
         {id: 'sth', name: 'Steve'},
-        {id: 'sth else', name: 'Bob'}
+        {id: 'sth else', name: 'Bob'},
       ],
       columns(column) {
         var colMeta = null;
@@ -1593,7 +1593,7 @@ describe('Core_validate', () => {
             data: 'id',
             validator(value, cb) {
               cb(value === parseInt(value, 10));
-            }
+            },
           };
 
         } else if (column === 1) {
@@ -1602,7 +1602,7 @@ describe('Core_validate', () => {
 
         return colMeta;
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     hot.validateCells(onValidate);

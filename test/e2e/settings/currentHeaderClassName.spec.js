@@ -42,7 +42,7 @@ describe('settings', () => {
         rowHeaders: true,
         colHeaders: true,
         data: Handsontable.helper.createSpreadsheetData(5, 7),
-        currentHeaderClassName: 'currentHeaderClassName'
+        currentHeaderClassName: 'currentHeaderClassName',
       });
 
       selectCell(2, 2);

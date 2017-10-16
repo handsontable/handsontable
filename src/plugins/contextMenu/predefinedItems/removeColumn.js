@@ -22,6 +22,6 @@ export default function removeColumnItem() {
     },
     hidden() {
       return !this.getSettings().allowRemoveColumn;
-    }
+    },
   };
 }

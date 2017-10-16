@@ -15,7 +15,7 @@ describe('TextEditor', () => {
   it('should begin editing when enterBeginsEditing equals true', () => {
     handsontable({
       enterBeginsEditing: true,
-      editor: 'text'
+      editor: 'text',
     });
     selectCell(2, 2);
 
@@ -28,7 +28,7 @@ describe('TextEditor', () => {
 
   it('should move down after editing', () => {
     handsontable({
-      editor: 'text'
+      editor: 'text',
     });
     selectCell(2, 2);
 
@@ -41,7 +41,7 @@ describe('TextEditor', () => {
 
   it('should move down when enterBeginsEditing equals false', () => {
     handsontable({
-      enterBeginsEditing: false
+      enterBeginsEditing: false,
     });
     selectCell(2, 2);
 
@@ -92,7 +92,7 @@ describe('TextEditor', () => {
   it('should render textarea editor in specified size at cell 0, 0 with headers', (done) => {
     const hot = handsontable({
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
     });
 
     selectCell(0, 0);
@@ -112,16 +112,16 @@ describe('TextEditor', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
       columns: [{
         data: 'prop0',
-        title: 'Prop 0'
+        title: 'Prop 0',
       }, {
         data: 'prop1',
-        title: 'Prop 1'
+        title: 'Prop 1',
       }, {
         data: 'prop2',
-        title: 'Prop 2'
+        title: 'Prop 2',
       }, {
         data: 'prop3',
-        title: 'Prop 3'
+        title: 'Prop 3',
       }],
     });
 
@@ -141,7 +141,7 @@ describe('TextEditor', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
     });
 
     setDataAtCell(2, 2, 'string\nstring\nstring');
@@ -166,7 +166,7 @@ describe('TextEditor', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
     });
 
     setDataAtCell(2, 2, 'string\nstring\nstring');
@@ -266,22 +266,22 @@ describe('TextEditor', () => {
         name: {
           first: 'Tom',
           last: 'Kowalski',
-          obj: {}
-        }
+          obj: {},
+        },
       }, {
         name: {
           first: 'John',
           last: 'Cage',
           obj: {
-            foo: 'bar'
-          }
-        }
+            foo: 'bar',
+          },
+        },
       }],
       columns: [{
-        data: 'name.last'
+        data: 'name.last',
       }, {
-        data: 'name.obj.foo'
-      }]
+        data: 'name.obj.foo',
+      }],
     });
     selectCell(0, 0);
     keyDown('enter');
@@ -300,23 +300,23 @@ describe('TextEditor', () => {
         name: {
           first: 'Tom',
           last: 'Kowalski',
-          obj: {}
-        }
+          obj: {},
+        },
       }, {
         name: {
           first: 'John',
           last: 'Cage',
           obj: {
-            foo: 'bar'
-          }
-        }
+            foo: 'bar',
+          },
+        },
       }],
       columns: [{
-        data: 'name.last'
+        data: 'name.last',
       }, {
-        data: 'name.obj.foo'
+        data: 'name.obj.foo',
       }],
-      manualRowMove: true
+      manualRowMove: true,
     });
 
     hot.getPlugin('manualRowMove').moveRow(1, 0);
@@ -343,23 +343,23 @@ describe('TextEditor', () => {
         name: {
           first: 'Tom',
           last: 'Kowalski',
-          obj: {}
-        }
+          obj: {},
+        },
       }, {
         name: {
           first: 'John',
           last: 'Cage',
           obj: {
-            foo: 'bar'
-          }
-        }
+            foo: 'bar',
+          },
+        },
       }],
       columns: [{
-        data: 'name.last'
+        data: 'name.last',
       }, {
-        data: 'name.obj.foo'
+        data: 'name.obj.foo',
       }],
-      manualColumnMove: true
+      manualColumnMove: true,
     });
 
     hot.getPlugin('manualColumnMove').moveColumn(1, 0);
@@ -388,9 +388,9 @@ describe('TextEditor', () => {
         ['2013', 10],
       ],
       columns: [{
-        data: '1'
+        data: '1',
       }, {
-        data: '0'
+        data: '0',
       }],
     });
     selectCell(0, 0);
@@ -462,7 +462,7 @@ describe('TextEditor', () => {
 
     keyDown('f2');
     updateSettings({
-      data: getData()
+      data: getData(),
     });
 
     expect(isEditorVisible()).toEqual(true);
@@ -471,7 +471,7 @@ describe('TextEditor', () => {
   it('textarea should have cell dimensions (after render)', () => {
     var data = [
       ['a', 'b'],
-      ['c', 'd']
+      ['c', 'd'],
     ];
 
     handsontable({
@@ -480,7 +480,7 @@ describe('TextEditor', () => {
       minCols: 4,
       minSpareRows: 4,
       minSpareCols: 4,
-      enterMoves: false
+      enterMoves: false,
     });
 
     selectCell(1, 1);
@@ -502,7 +502,7 @@ describe('TextEditor', () => {
     keyDownUp('enter');
 
     keyDown(65, {
-      ctrlKey: true
+      ctrlKey: true,
     }); // CTRL+A should NOT select all table when cell is edited
 
     var selection = getSelected();
@@ -512,7 +512,7 @@ describe('TextEditor', () => {
 
   it('should open editor after double clicking on a cell', (done) => {
     var hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2)
+      data: Handsontable.helper.createSpreadsheetData(5, 2),
     });
 
     var cell = $(getCell(0, 0));
@@ -562,7 +562,7 @@ describe('TextEditor', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 5),
       width: 200,
-      height: 200
+      height: 200,
     });
 
     selectCell(2, 2);
@@ -625,7 +625,7 @@ describe('TextEditor', () => {
 
   it('should open editor after pressing a printable character', function() {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3)
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
     });
 
     selectCell(0, 0);
@@ -642,7 +642,7 @@ describe('TextEditor', () => {
     //    this.$container.trigger(keyboardEvent);
 
     this.$container.simulate('keydown', {
-      keyCode: 'a'.charCodeAt(0)
+      keyCode: 'a'.charCodeAt(0),
     });
 
     expect(editorHolder.is(':visible')).toBe(true);
@@ -650,7 +650,7 @@ describe('TextEditor', () => {
 
   it('should open editor after pressing a printable character with shift key', function() {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3)
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
     });
 
     selectCell(0, 0);
@@ -676,7 +676,7 @@ describe('TextEditor', () => {
 
     this.$container.simulate('keydown', {
       keyCode: 'a'.charCodeAt(0),
-      shiftKey: true
+      shiftKey: true,
     });
 
     //    this.$container.trigger(shiftKeyboardEvent);
@@ -687,7 +687,7 @@ describe('TextEditor', () => {
 
   it('should be able to open editor after clearing cell data with DELETE', function() {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3)
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
     });
 
     selectCell(0, 0);
@@ -697,18 +697,18 @@ describe('TextEditor', () => {
     expect(editorHolder.is(':visible')).toBe(false);
 
     this.$container.simulate('keydown', {
-      keyCode: 46
+      keyCode: 46,
     });
 
     this.$container.simulate('keydown', {
-      keyCode: 'a'.charCodeAt(0)
+      keyCode: 'a'.charCodeAt(0),
     });
     expect(editorHolder.is(':visible')).toBe(true);
   });
 
   it('should be able to open editor after clearing cell data with BACKSPACE', function() {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3)
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
     });
 
     selectCell(0, 0);
@@ -718,11 +718,11 @@ describe('TextEditor', () => {
     expect(editorHolder.is(':visible')).toBe(false);
 
     this.$container.simulate('keydown', {
-      keyCode: 8 // backspace
+      keyCode: 8, // backspace
     });
 
     this.$container.simulate('keydown', {
-      keyCode: 'a'.charCodeAt(0)
+      keyCode: 'a'.charCodeAt(0),
     });
 
     expect(editorHolder.is(':visible')).toBe(true);
@@ -732,7 +732,7 @@ describe('TextEditor', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 20),
       width: 100,
-      height: 50
+      height: 50,
     });
 
     selectCell(0, 0);
@@ -754,7 +754,7 @@ describe('TextEditor', () => {
 
   it('should open empty editor after clearing cell value width BACKSPACE', () => {
     var hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4)
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
     });
 
     expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -774,7 +774,7 @@ describe('TextEditor', () => {
 
   it('should open empty editor after clearing cell value width DELETE', () => {
     var hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4)
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
     });
 
     expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -794,7 +794,7 @@ describe('TextEditor', () => {
 
   it('should not open editor after hitting ALT (#1239)', () => {
     var hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4)
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
     });
 
     expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -811,7 +811,7 @@ describe('TextEditor', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(16, 8),
       fixedColumnsLeft: 2,
-      fixedRowsTop: 2
+      fixedRowsTop: 2,
     });
 
     var mainHolder = hot.view.wt.wtTable.holder;
@@ -848,7 +848,7 @@ describe('TextEditor', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(16, 8),
       fixedColumnsLeft: 2,
-      fixedRowsTop: 2
+      fixedRowsTop: 2,
     });
 
     var $holder = $(hot.view.wt.wtTable.holder);
@@ -874,7 +874,7 @@ describe('TextEditor', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       fixedColumnsLeft: 2,
-      fixedRowsTop: 2
+      fixedRowsTop: 2,
     });
 
     var $holder = $(hot.view.wt.wtTable.holder);
@@ -907,7 +907,7 @@ describe('TextEditor', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       fixedColumnsLeft: 2,
-      fixedRowsTop: 2
+      fixedRowsTop: 2,
     });
 
     var $holder = $(hot.view.wt.wtTable.holder);
@@ -933,7 +933,7 @@ describe('TextEditor', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       fixedColumnsLeft: 2,
-      fixedRowsTop: 2
+      fixedRowsTop: 2,
     });
 
     var $holder = $(hot.view.wt.wtTable.holder);
@@ -958,7 +958,7 @@ describe('TextEditor', () => {
   it('should display editor with the proper size, when the edited column is beyond the tables container', function() {
     this.$container.css('overflow', '');
     var hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 9)
+      data: Handsontable.helper.createSpreadsheetData(3, 9),
     });
 
     selectCell(0, 7);
@@ -971,7 +971,7 @@ describe('TextEditor', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 8),
       minSpareRows: 1,
-      height: 100
+      height: 100,
     });
 
     selectCell(0, 2);
@@ -996,7 +996,7 @@ describe('TextEditor', () => {
     this.$container.css('overflow', '');
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 9),
-      trimWhitespace: false
+      trimWhitespace: false,
     });
 
     selectCell(0, 2);
@@ -1010,11 +1010,11 @@ describe('TextEditor', () => {
   it('should insert new line on caret position when pressing ALT + ENTER', () => {
     var data = [
       ['Maserati', 'Mazda'],
-      ['Honda', 'Mini']
+      ['Honda', 'Mini'],
     ];
 
     var hot = handsontable({
-      data
+      data,
     });
 
     selectCell(0, 0);
@@ -1026,7 +1026,7 @@ describe('TextEditor', () => {
 
     $editorInput.simulate('keydown', {
       altKey: true,
-      keyCode: Handsontable.helper.KEY_CODES.ENTER
+      keyCode: Handsontable.helper.KEY_CODES.ENTER,
     });
 
     expect(hot.getActiveEditor().TEXTAREA.value).toEqual('Ma\nserati');
@@ -1037,7 +1037,7 @@ describe('TextEditor', () => {
       ['', '', '', '', ''],
       ['', 'The Dude abides. I don\'t know about you but I take comfort in that. It\'s good knowin\' he\'s out there. The ' +
            'Dude. Takin\' \'er easy for all us sinners. Shoosh. I sure hope he makes the finals.', '', '', ''],
-      ['', '', '', '', '']
+      ['', '', '', '', ''],
     ];
 
     var hot = handsontable({
@@ -1046,7 +1046,7 @@ describe('TextEditor', () => {
       width: 300,
       height: 200,
       minSpareRows: 20,
-      minSpareCols: 20
+      minSpareCols: 20,
     });
 
     selectCell(1, 1);
@@ -1081,7 +1081,7 @@ describe('TextEditor', () => {
       colWidths: 40,
       rowHeights: 25,
       width: 500,
-      height: 220
+      height: 220,
     });
 
     selectCell(4, 10);

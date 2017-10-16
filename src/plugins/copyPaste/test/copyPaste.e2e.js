@@ -17,7 +17,7 @@ describe('CopyPaste', () => {
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
       ['2009', 20, 11, 14, 13],
-      ['2010', 30, 15, 12, 13]
+      ['2010', 30, 15, 12, 13],
     ];
   };
 
@@ -31,7 +31,7 @@ describe('CopyPaste', () => {
 
     it('should do not create textarea element if copyPaste is disabled on initialization', () => {
       handsontable({
-        copyPaste: false
+        copyPaste: false,
       });
 
       expect($('#HandsontableCopyPaste').length).toEqual(0);
@@ -84,7 +84,7 @@ describe('CopyPaste', () => {
   describe('setting values copyable', () => {
     it('should set copyable text when selecting a single cell and hitting ctrl', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2)
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
       });
 
       const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
@@ -99,7 +99,7 @@ describe('CopyPaste', () => {
 
     it('should set copyable text when selecting a single cell and hitting left command', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2)
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
       });
 
       const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
@@ -114,7 +114,7 @@ describe('CopyPaste', () => {
 
     it('should set copyable text when selecting a single cell and hitting right command', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2)
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
       });
 
       const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
@@ -129,7 +129,7 @@ describe('CopyPaste', () => {
 
     it('should set copyable text when selecting multiple cells and hitting ctrl', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2)
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
       });
 
       const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
@@ -144,7 +144,7 @@ describe('CopyPaste', () => {
 
     it('should set copyable text when selecting all cells with CTRL+A', (done) => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2)
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
       });
 
       const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
@@ -164,7 +164,7 @@ describe('CopyPaste', () => {
 
     it('should not throw error when no cell is selected (#1221)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2)
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
       });
 
       selectCell(0, 0);
@@ -172,7 +172,7 @@ describe('CopyPaste', () => {
 
       function keydownCtrl() {
         $(document).simulate('keydown', {
-          keyCode: Handsontable.helper.KEY_CODES.COMMAND_LEFT
+          keyCode: Handsontable.helper.KEY_CODES.COMMAND_LEFT,
         });
       }
 
@@ -185,7 +185,7 @@ describe('CopyPaste', () => {
       // Unfortunately we cannot open the context menu, when event.target is not an TD element.
       // TODO: we have to looking for a solution for way to test contextMenu in similar use cases.
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2)
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
       });
 
       // expect no to throw any exception
@@ -197,8 +197,8 @@ describe('CopyPaste', () => {
         data: [['A', 1], ['B', 2]],
         columns: [
           { type: 'text' },
-          { type: 'numeric' }
-        ]
+          { type: 'numeric' },
+        ],
       });
 
       const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
@@ -216,8 +216,8 @@ describe('CopyPaste', () => {
         data: [['A', 1], ['B', 2]],
         columns: [
           { type: 'text' },
-          { editor: false }
-        ]
+          { editor: false },
+        ],
       });
 
       const copyPasteTextarea = $('#HandsontableCopyPaste')[0];
@@ -234,7 +234,7 @@ describe('CopyPaste', () => {
       handsontable({
         data: arrayOfArrays(),
         copyPaste: {
-          rowsLimit: 2
+          rowsLimit: 2,
         },
       });
 
@@ -249,7 +249,7 @@ describe('CopyPaste', () => {
       handsontable({
         data: arrayOfArrays(),
         copyPaste: {
-          columnsLimit: 2
+          columnsLimit: 2,
         },
       });
 
@@ -267,11 +267,11 @@ describe('CopyPaste', () => {
         data: arrayOfArrays(),
         copyPaste: {
           rowsLimit: 2,
-          columnsLimit: 2
+          columnsLimit: 2,
         },
         afterCopyLimit(selectedRowsCount, selectedColsCount, copyRowsLimit, copyColsLimit) {
           result = [selectedRowsCount, selectedColsCount, copyRowsLimit, copyColsLimit];
-        }
+        },
       });
 
       selectCell(0, 0, countRows() - 1, countCols() - 1); // selectAll
@@ -315,7 +315,7 @@ describe('CopyPaste', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         beforeCopy: beforeCopySpy,
-        contextMenu: ['copy']
+        contextMenu: ['copy'],
       });
 
       selectCell(0, 1);
@@ -336,7 +336,7 @@ describe('CopyPaste', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         beforeCopy: beforeCopySpy,
-        afterCopy: afterCopySpy
+        afterCopy: afterCopySpy,
       });
 
       selectCell(0, 0);
@@ -357,7 +357,7 @@ describe('CopyPaste', () => {
         beforeCopy() {
           return false;
         },
-        afterCopy: afterCopySpy
+        afterCopy: afterCopySpy,
       });
 
       selectCell(0, 0);
@@ -372,7 +372,7 @@ describe('CopyPaste', () => {
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         beforeCopy(changes) {
           changes.splice(0, 1);
-        }
+        },
       });
 
       selectCell(0, 0, 1, 0);
@@ -428,7 +428,7 @@ describe('CopyPaste', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         beforeCut: beforeCutSpy,
-        contextMenu: ['cut']
+        contextMenu: ['cut'],
       });
 
       selectCell(0, 1);
@@ -449,7 +449,7 @@ describe('CopyPaste', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         beforeCut: beforeCutSpy,
-        afterCut: afterCutSpy
+        afterCut: afterCutSpy,
       });
 
       selectCell(0, 0);
@@ -470,7 +470,7 @@ describe('CopyPaste', () => {
         beforeCut() {
           return false;
         },
-        afterCut: afterCutSpy
+        afterCut: afterCutSpy,
       });
 
       selectCell(0, 0);
@@ -489,7 +489,7 @@ describe('CopyPaste', () => {
           pasteMode: 'shift_down',
         },
         allowInsertRow: false,
-        allowInsertColumn: false
+        allowInsertColumn: false,
       });
 
       selectCell(3, 4); // selectAll
@@ -508,7 +508,7 @@ describe('CopyPaste', () => {
         copyPaste: {
           pasteMode: 'shift_down',
         },
-        allowInsertRow: false
+        allowInsertRow: false,
       });
 
       selectCell(1, 0); // selectAll
@@ -524,9 +524,9 @@ describe('CopyPaste', () => {
       handsontable({
         data: arrayOfArrays(),
         copyPaste: {
-          pasteMode: 'shift_down'
+          pasteMode: 'shift_down',
         },
-        minSpareRows: 1
+        minSpareRows: 1,
       });
 
       selectCell(1, 0); // selectAll
@@ -542,9 +542,9 @@ describe('CopyPaste', () => {
       handsontable({
         data: arrayOfArrays(),
         copyPaste: {
-          pasteMode: 'shift_right'
+          pasteMode: 'shift_right',
         },
-        allowInsertColumn: false
+        allowInsertColumn: false,
       });
 
       selectCell(1, 0); // selectAll
@@ -560,9 +560,9 @@ describe('CopyPaste', () => {
       handsontable({
         data: arrayOfArrays(),
         copyPaste: {
-          pasteMode: 'shift_right'
+          pasteMode: 'shift_right',
         },
-        minSpareCols: 1
+        minSpareCols: 1,
       });
 
       selectCell(1, 0); // selectAll
@@ -587,7 +587,7 @@ describe('CopyPaste', () => {
             }
 
             loadData(arrayOfArrays());
-          }
+          },
         });
 
         selectCell(1, 0); // selectAll
@@ -607,7 +607,7 @@ describe('CopyPaste', () => {
       const copiedData2 = 'bar';
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 1)
+        data: Handsontable.helper.createSpreadsheetData(3, 1),
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
@@ -641,7 +641,7 @@ describe('CopyPaste', () => {
       const copiedData = 'foo';
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 1)
+        data: Handsontable.helper.createSpreadsheetData(3, 1),
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
@@ -673,7 +673,7 @@ describe('CopyPaste', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         beforePaste: beforePasteSpy,
-        afterPaste: afterPasteSpy
+        afterPaste: afterPasteSpy,
       });
 
       selectCell(0, 0);
@@ -697,7 +697,7 @@ describe('CopyPaste', () => {
         beforePaste() {
           return false;
         },
-        afterPaste: afterPasteSpy
+        afterPaste: afterPasteSpy,
       });
 
       selectCell(0, 0);
@@ -714,7 +714,7 @@ describe('CopyPaste', () => {
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         beforePaste(changes) {
           changes.splice(0, 1);
-        }
+        },
       });
 
       selectCell(0, 0);

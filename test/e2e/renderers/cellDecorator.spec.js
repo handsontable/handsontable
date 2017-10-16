@@ -16,7 +16,7 @@ describe('CellDecorator', () => {
     return [
       {id: 1, name: 'Ted', lastName: 'Right'},
       {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'}
+      {id: 3, name: 'Joan', lastName: 'Well'},
     ];
   };
 
@@ -26,9 +26,9 @@ describe('CellDecorator', () => {
       columns: [
         {data: 'id'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      wordWrap: false
+      wordWrap: false,
     });
 
     var cols = countCols(),
@@ -47,8 +47,8 @@ describe('CellDecorator', () => {
       columns: [
         {data: 'id'},
         {data: 'name', wordWrap: false},
-        {data: 'lastName'}
-      ]
+        {data: 'lastName'},
+      ],
     });
 
     var rows = countRows();
@@ -69,8 +69,8 @@ describe('CellDecorator', () => {
       columns: [
         {data: 'id'},
         {data: 'name'},
-        {data: 'lastName'}
-      ]
+        {data: 'lastName'},
+      ],
     });
 
     expect($(getCell(1, 1)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(false);
@@ -88,8 +88,8 @@ describe('CellDecorator', () => {
       columns: [
         {data: 'id'},
         {data: 'name'},
-        {data: 'lastName'}
-      ]
+        {data: 'lastName'},
+      ],
     });
 
     expect(window.getComputedStyle(getCell(1, 1)).whiteSpace).not.toEqual('nowrap');
@@ -106,8 +106,8 @@ describe('CellDecorator', () => {
       columns: [
         {data: 'id'},
         {data: 'name'},
-        {data: 'salary', type: 'numeric', allowInvalid: false}
-      ]
+        {data: 'salary', type: 'numeric', allowInvalid: false},
+      ],
     });
 
     setDataAtCell(0, 2, 'non-numeric value');

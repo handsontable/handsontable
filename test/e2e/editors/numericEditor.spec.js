@@ -23,7 +23,7 @@ describe('NumericEditor', () => {
       {id: 7, name: 'Meg', lastName: 'Jansen'},
       {id: 8, name: 'Rob', lastName: 'Norris'},
       {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'}
+      {id: 10, name: 'Eve', lastName: 'Branson'},
     ];
   };
 
@@ -35,9 +35,9 @@ describe('NumericEditor', () => {
       columns: [
         {data: 'id', type: 'numeric'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     selectCell(2, 0);
 
@@ -58,7 +58,7 @@ describe('NumericEditor', () => {
       data: arrayOfObjects(),
       columns: [
         {data: 'id', type: 'numeric'},
-      ]
+      ],
     });
 
     selectCell(0, 0);
@@ -82,12 +82,12 @@ describe('NumericEditor', () => {
           type: 'numeric',
           validator(val, cb) {
             cb(parseInt(val, 10) > 100);
-          }
+          },
         },
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     selectCell(2, 0);
 
@@ -119,9 +119,9 @@ describe('NumericEditor', () => {
       columns: [
         {data: 'id', type: 'numeric'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     selectCell(2, 0);
 
@@ -146,9 +146,9 @@ describe('NumericEditor', () => {
       columns: [
         {data: 'id', type: 'numeric'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     selectCell(2, 0);
 
@@ -174,9 +174,9 @@ describe('NumericEditor', () => {
       columns: [
         {data: 'id', type: 'numeric', language: 'de-DE'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     selectCell(2, 0);
 
@@ -202,9 +202,9 @@ describe('NumericEditor', () => {
       columns: [
         {data: 'id', type: 'numeric', format: '$0,0.00', language: 'en-US'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     selectCell(2, 0);
 
@@ -230,9 +230,9 @@ describe('NumericEditor', () => {
       columns: [
         {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     selectCell(2, 0);
 
@@ -258,9 +258,9 @@ describe('NumericEditor', () => {
       columns: [
         {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     selectCell(2, 0);
 
@@ -285,9 +285,9 @@ describe('NumericEditor', () => {
       columns: [
         {data: 'id', type: 'numeric'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     selectCell(2, 0);
@@ -337,9 +337,9 @@ describe('NumericEditor', () => {
       columns: [
         {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     selectCell(2, 0);
 
@@ -371,15 +371,15 @@ describe('NumericEditor', () => {
         {id: 7, name: 'Meg', lastName: 'Jansen', money: 0},
         {id: 8, name: 'Rob', lastName: 'Norris', money: 0},
         {id: 9, name: 'Sean', lastName: 'O\'Hara', money: 0},
-        {id: 10, name: 'Eve', lastName: 'Branson', money: 0}
+        {id: 10, name: 'Eve', lastName: 'Branson', money: 0},
       ],
       columns: [
         {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
         {data: 'name'},
         {data: 'lastName'},
-        {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'}
+        {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'},
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     selectCell(2, 0);
@@ -415,7 +415,7 @@ describe('NumericEditor', () => {
       columns: [
         {data: 'id', type: 'numeric', format: '0,0.00'},
         {data: 'name'},
-        {data: 'lastName'}
+        {data: 'lastName'},
       ],
     });
 
@@ -435,11 +435,11 @@ describe('NumericEditor', () => {
       ],
       columns: [
         {
-          data: 'length', type: 'numeric'
+          data: 'length', type: 'numeric',
         },
         {},
-        {}
-      ]
+        {},
+      ],
     });
 
     selectCell(1, 0);
@@ -473,14 +473,14 @@ describe('NumericEditor', () => {
     it('Moving from numeric editor to text editor', function(done) {
       handsontable({
         data: [
-          {id: 1, name: 'Ted', lastName: 'Right', money: 0}
+          {id: 1, name: 'Ted', lastName: 'Right', money: 0},
         ],
         columns: [
           {data: 'id'},
           {data: 'name'},
           {data: 'lastName'},
-          {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'}
-        ]
+          {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'},
+        ],
       });
 
       isFocusedCellDisplayingCornerTest({
@@ -489,21 +489,21 @@ describe('NumericEditor', () => {
         moveToRow: 0,
         moveToCol: 0,
         $container: this.$container,
-        doneFunc: done
+        doneFunc: done,
       });
     });
 
     it('Moving from text editor to numeric editor', function(done) {
       handsontable({
         data: [
-          {id: 1, name: 'Ted', lastName: 'Right', money: 0}
+          {id: 1, name: 'Ted', lastName: 'Right', money: 0},
         ],
         columns: [
           {data: 'id'},
           {data: 'name'},
           {data: 'lastName'},
-          {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'}
-        ]
+          {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'},
+        ],
       });
 
       isFocusedCellDisplayingCornerTest({
@@ -512,7 +512,7 @@ describe('NumericEditor', () => {
         moveToRow: 0,
         moveToCol: 3,
         $container: this.$container,
-        doneFunc: done
+        doneFunc: done,
       });
     });
   });

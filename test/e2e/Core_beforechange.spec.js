@@ -18,7 +18,7 @@ describe('Core_beforechange', () => {
     handsontable({
       beforeChange() {
         output = this.rootElement;
-      }
+      },
     });
     setDataAtCell(0, 0, 'test');
 
@@ -35,7 +35,7 @@ describe('Core_beforechange', () => {
       },
       afterChange(changes) {
         output = changes;
-      }
+      },
     });
     setDataAtCell([[0, 0, 'test'], [1, 0, 'test'], [1, 1, 'test']]);
 
@@ -50,7 +50,7 @@ describe('Core_beforechange', () => {
       data: [['a', 'b'], ['c', 'd']],
       beforeChange() {
         return false;
-      }
+      },
     });
     setDataAtCell([[0, 0, 'test'], [1, 0, 'test'], [1, 1, 'test']]);
 
@@ -68,7 +68,7 @@ describe('Core_beforechange', () => {
           if (changes[0][2] === 'test' && changes[0][3] === '') {
             called = true;
           }
-        }
+        },
       });
 
       setDataAtCell(0, 0, 'test');

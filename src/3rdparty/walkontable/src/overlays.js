@@ -48,12 +48,12 @@ class Overlays {
       },
       bottom: {
         top: null,
-        left: 0
+        left: 0,
       },
       left: {
         top: 0,
-        left: null
-      }
+        left: null,
+      },
     };
 
     this.pendingScrollCallbacks = {
@@ -69,7 +69,7 @@ class Overlays {
       },
       left: {
         top: 0,
-      }
+      },
     };
 
     this.verticalScrolling = false;
@@ -744,7 +744,7 @@ class Overlays {
       this.leftOverlay,
       this.bottomOverlay,
       this.topLeftCornerOverlay,
-      this.bottomLeftCornerOverlay
+      this.bottomLeftCornerOverlay,
     ];
     let result = null;
 

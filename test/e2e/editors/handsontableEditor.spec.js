@@ -19,7 +19,7 @@ describe('HandsontableEditor', () => {
       {name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd'},
       {name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation'},
       {name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation'},
-      {name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group'}
+      {name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group'},
     ];
   }
 
@@ -30,10 +30,10 @@ describe('HandsontableEditor', () => {
           type: 'handsontable',
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
+            data: getManufacturerData(),
+          },
+        },
+      ],
     });
     selectCell(2, 0);
 
@@ -48,10 +48,10 @@ describe('HandsontableEditor', () => {
           type: 'handsontable',
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
+            data: getManufacturerData(),
+          },
+        },
+      ],
     });
     selectCell(2, 0);
 
@@ -66,10 +66,10 @@ describe('HandsontableEditor', () => {
           type: 'handsontable',
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
+            data: getManufacturerData(),
+          },
+        },
+      ],
     });
     selectCell(2, 0);
 
@@ -90,9 +90,9 @@ describe('HandsontableEditor', () => {
       columns: [{
         type: 'handsontable',
         handsontable: {
-          data: [['Marque'], ['Country'], ['Parent company']]
-        }
-      }]
+          data: [['Marque'], ['Country'], ['Parent company']],
+        },
+      }],
     });
 
     selectCell(0, 0);
@@ -112,10 +112,10 @@ describe('HandsontableEditor', () => {
           type: 'handsontable',
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
+            data: getManufacturerData(),
+          },
+        },
+      ],
     });
     selectCell(2, 0);
 
@@ -133,10 +133,10 @@ describe('HandsontableEditor', () => {
           type: 'handsontable',
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
+            data: getManufacturerData(),
+          },
+        },
+      ],
     });
     selectCell(2, 0);
 
@@ -152,10 +152,10 @@ describe('HandsontableEditor', () => {
           type: 'handsontable',
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
+            data: getManufacturerData(),
+          },
+        },
+      ],
     });
 
     selectCell(2, 0);
@@ -177,13 +177,13 @@ describe('HandsontableEditor', () => {
             data: getManufacturerData(),
             afterSelection(...args) {
               selections.push(['inner', args[0]]); // arguments[0] is selection start row
-            }
-          }
-        }
+            },
+          },
+        },
       ],
       afterSelection(...args) {
         selections.push(['outer', args[0]]); // arguments[0] is selection start row
-      }
+      },
     });
     expect(selections.length).toBe(0);
 
@@ -213,11 +213,11 @@ describe('HandsontableEditor', () => {
             type: 'handsontable',
             handsontable: {
               colHeaders: ['Marque', 'Country', 'Parent company'],
-              data: getManufacturerData()
+              data: getManufacturerData(),
             },
-            strict: true
-          }
-        ]
+            strict: true,
+          },
+        ],
       });
       selectCell(2, 0);
 
@@ -236,11 +236,11 @@ describe('HandsontableEditor', () => {
             type: 'handsontable',
             handsontable: {
               colHeaders: ['Marque', 'Country', 'Parent company'],
-              data: getManufacturerData()
+              data: getManufacturerData(),
             },
-            strict: true
-          }
-        ]
+            strict: true,
+          },
+        ],
       });
       selectCell(2, 0);
 
@@ -260,10 +260,10 @@ describe('HandsontableEditor', () => {
             type: 'handsontable',
             handsontable: {
               colHeaders: ['Marque', 'Country', 'Parent company'],
-              data: getManufacturerData()
-            }
-          }
-        ]
+              data: getManufacturerData(),
+            },
+          },
+        ],
       });
       selectCell(2, 0);
 
@@ -282,16 +282,15 @@ describe('HandsontableEditor', () => {
             type: 'handsontable',
             handsontable: {
               colHeaders: ['Marque', 'Country', 'Parent company'],
-              data: getManufacturerData()
-            }
-          }
-        ]
+              data: getManufacturerData(),
+            },
+          },
+        ],
       });
       selectCell(2, 0);
 
       keyDownUp('enter');
       expect(hot.getActiveEditor().TEXTAREA.style.visibility).toEqual('visible');
-
     });
   });
 });

@@ -344,13 +344,13 @@ class CellRange {
       top: Math.min(this.from.row, this.to.row),
       bottom: Math.max(this.from.row, this.to.row),
       left: Math.min(this.from.col, this.to.col),
-      right: Math.max(this.from.col, this.to.col)
+      right: Math.max(this.from.col, this.to.col),
     };
     const rangeBorders = {
       top: Math.min(range.from.row, range.to.row),
       bottom: Math.max(range.from.row, range.to.row),
       left: Math.min(range.from.col, range.to.col),
-      right: Math.max(range.from.col, range.to.col)
+      right: Math.max(range.from.col, range.to.col),
     };
     const result = [];
 

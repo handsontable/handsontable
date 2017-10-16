@@ -32,15 +32,15 @@ describe('WalkontableBorder', () => {
         new Walkontable.Selection({
           border: {
             width: 1,
-            color: 'red'
-          }
-        })
+            color: 'red',
+          },
+        }),
       ],
       onCellMouseDown(event, coords) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
-      }
+      },
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -97,16 +97,16 @@ describe('WalkontableBorder', () => {
             color: 'green',
             cornerVisible() {
               return true;
-            }
-          }
+            },
+          },
         }),
-        new Walkontable.Selection({})
+        new Walkontable.Selection({}),
       ],
       onCellMouseDown(event, coords) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
-      }
+      },
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -133,7 +133,7 @@ describe('WalkontableBorder', () => {
   it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', () => {
     $container.css({
       overflow: 'hidden',
-      width: '200px'
+      width: '200px',
     });
     var wt = new Walkontable.Core({
       table: $table[0],
@@ -147,16 +147,16 @@ describe('WalkontableBorder', () => {
             color: 'green',
             cornerVisible() {
               return true;
-            }
-          }
+            },
+          },
         }),
-        new Walkontable.Selection({})
+        new Walkontable.Selection({}),
       ],
       onCellMouseDown(event, coords) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
-      }
+      },
     });
     shimSelectionProperties(wt);
     wt.draw();

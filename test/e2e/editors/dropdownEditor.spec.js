@@ -32,8 +32,8 @@ describe('DropdownEditor', () => {
       handsontable({
         columns: [{
           editor: 'dropdown',
-          source: choices
-        }]
+          source: choices,
+        }],
       });
 
       selectCell(0, 0);
@@ -52,16 +52,16 @@ describe('DropdownEditor', () => {
       hot = handsontable({
         data: [
           ['', 'two', 'three'],
-          ['four', 'five', 'six']
+          ['four', 'five', 'six'],
         ],
         columns: [
           {
             type: 'dropdown',
-            source: choices
+            source: choices,
           },
           {},
-          {}
-        ]
+          {},
+        ],
       });
 
       selectCell(0, 0);
@@ -94,16 +94,16 @@ describe('DropdownEditor', () => {
     hot = handsontable({
       data: [
         ['', 'two', 'three'],
-        ['four', 'five', 'six']
+        ['four', 'five', 'six'],
       ],
       columns: [
         {
           type: 'dropdown',
-          source: choices
+          source: choices,
         },
         {},
-        {}
-      ]
+        {},
+      ],
     });
 
     populateFromArray(0, 0, [['invalid'], ['input']], null, null, 'paste');

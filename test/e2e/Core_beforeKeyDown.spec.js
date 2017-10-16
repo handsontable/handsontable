@@ -19,7 +19,7 @@ describe('Core_beforeKeyDown', () => {
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       beforeKeyDown() {
         called = true;
-      }
+      },
     });
     selectCell(0, 0);
 
@@ -38,7 +38,7 @@ describe('Core_beforeKeyDown', () => {
       },
       beforeKeyDown() {
         called.push('beforeKeyDown');
-      }
+      },
     });
     selectCell(0, 0);
 
@@ -54,7 +54,7 @@ describe('Core_beforeKeyDown', () => {
         event = serveImmediatePropagation(event);
 
         event.stopImmediatePropagation();
-      }
+      },
     });
     selectCell(0, 0);
 
@@ -72,7 +72,7 @@ describe('Core_beforeKeyDown', () => {
           event.stopImmediatePropagation();
           getInstance().alter('insert_row', 1, 1);
         }
-      }
+      },
     });
 
     selectCell(0, 0);
@@ -91,7 +91,7 @@ describe('Core_beforeKeyDown', () => {
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       beforeKeyDown() {
         called++;
-      }
+      },
     });
     selectCell(0, 0);
 

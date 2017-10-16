@@ -8,7 +8,7 @@ import {
   innerHeight,
   removeClass,
   setOverlayPosition,
-  resetCssTransform
+  resetCssTransform,
 } from './../../../../helpers/dom/element';
 import Overlay from './_base';
 

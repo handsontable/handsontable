@@ -125,7 +125,7 @@ AutocompleteEditor.prototype.open = function(...args) {
       }
 
       return trimDropdown ? width : width + 15;
-    }
+    },
   });
 
   // Add additional space for autocomplete holder
@@ -175,7 +175,7 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
     orderByRelevance = AutocompleteEditor.sortByRelevance(
       this.stripValueIfNeeded(this.getValue()),
       choices,
-      this.cellProperties.filteringCaseSensitive
+      this.cellProperties.filteringCaseSensitive,
     );
   }
   let orderByRelevanceLength = Array.isArray(orderByRelevance) ? orderByRelevance.length : 0;
@@ -227,7 +227,7 @@ AutocompleteEditor.prototype.flipDropdownIfNeeded = function() {
   let headersHeight = outerHeight(this.instance.view.wt.wtTable.THEAD);
   let containerOffset = {
     row: 0,
-    col: 0
+    col: 0,
   };
 
   if (trimmingContainer !== window) {
@@ -298,7 +298,7 @@ AutocompleteEditor.prototype.updateDropdownHeight = function() {
 
   this.htEditor.updateSettings({
     height: this.getDropdownHeight(),
-    width: trimDropdown ? void 0 : currentDropdownWidth
+    width: trimDropdown ? void 0 : currentDropdownWidth,
   });
 
   this.htEditor.view.wt.wtTable.alignOverlaysWithTrimmingContainer();
@@ -306,7 +306,7 @@ AutocompleteEditor.prototype.updateDropdownHeight = function() {
 
 AutocompleteEditor.prototype.setDropdownHeight = function(height) {
   this.htEditor.updateSettings({
-    height
+    height,
   });
 };
 
@@ -365,7 +365,7 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
         baseIndex: i,
         index: valueIndex,
         charsLeft,
-        value: currentItem
+        value: currentItem,
       });
     }
   }

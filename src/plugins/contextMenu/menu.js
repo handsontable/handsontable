@@ -30,7 +30,7 @@ class Menu {
       name: null,
       className: '',
       keepInViewport: true,
-      standalone: false
+      standalone: false,
     };
     this.eventManager = new EventManager(this);
     this.container = this.createContainer(this.options.name);
@@ -45,7 +45,7 @@ class Menu {
       above: 0,
       below: 0,
       left: 0,
-      right: 0
+      right: 0,
     };
     this._afterScrollCallback = null;
 
@@ -111,7 +111,7 @@ class Menu {
       copyPaste: false,
       columns: [{
         data: 'name',
-        renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value)
+        renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value),
       }],
       renderAllRows: true,
       fragmentSelection: 'cell',
@@ -124,7 +124,7 @@ class Menu {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: (row) => (filteredItems[row].name === SEPARATOR ? 1 : 23)
+      rowHeights: (row) => (filteredItems[row].name === SEPARATOR ? 1 : 23),
     };
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
@@ -185,7 +185,7 @@ class Menu {
       parent: this,
       name: dataItem.name,
       className: this.options.className,
-      keepInViewport: true
+      keepInViewport: true,
     });
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();

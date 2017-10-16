@@ -17,9 +17,9 @@ describe('SelectEditor', () => {
     handsontable({
       columns: [
         {
-          editor: 'select'
-        }
-      ]
+          editor: 'select',
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -43,9 +43,9 @@ describe('SelectEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(100, 100),
       columns: [
         {
-          editor: 'select'
-        }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {editor: 'select'}
-      ]
+          editor: 'select',
+        }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {editor: 'select'},
+      ],
     });
     var mainHolder = hot.view.wt.wtTable.holder;
 
@@ -66,16 +66,16 @@ describe('SelectEditor', () => {
 
   it('should populate select with given options (array)', () => {
     var options = [
-      'Misubishi', 'Chevrolet', 'Lamborgini'
+      'Misubishi', 'Chevrolet', 'Lamborgini',
     ];
 
     handsontable({
       columns: [
         {
           editor: 'select',
-          selectOptions: options
-        }
-      ]
+          selectOptions: options,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -99,16 +99,16 @@ describe('SelectEditor', () => {
     var options = {
       mit: 'Misubishi',
       che: 'Chevrolet',
-      lam: 'Lamborgini'
+      lam: 'Lamborgini',
     };
 
     handsontable({
       columns: [
         {
           editor: 'select',
-          selectOptions: options
-        }
-      ]
+          selectOptions: options,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -130,7 +130,7 @@ describe('SelectEditor', () => {
   it('should populate select with given options (function:array)', () => {
     var options = function() {
       return [
-        'Misubishi', 'Chevrolet', 'Lamborgini'
+        'Misubishi', 'Chevrolet', 'Lamborgini',
       ];
     };
 
@@ -138,9 +138,9 @@ describe('SelectEditor', () => {
       columns: [
         {
           editor: 'select',
-          selectOptions: options
-        }
-      ]
+          selectOptions: options,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -165,7 +165,7 @@ describe('SelectEditor', () => {
       return {
         mit: 'Misubishi',
         che: 'Chevrolet',
-        lam: 'Lamborgini'
+        lam: 'Lamborgini',
       };
     };
 
@@ -173,9 +173,9 @@ describe('SelectEditor', () => {
       columns: [
         {
           editor: 'select',
-          selectOptions: options
-        }
-      ]
+          selectOptions: options,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -196,21 +196,21 @@ describe('SelectEditor', () => {
 
   it('should mark option matching cell value as selected', () => {
     var options = [
-      'Misubishi', 'Chevrolet', 'Lamborgini'
+      'Misubishi', 'Chevrolet', 'Lamborgini',
     ];
 
     handsontable({
       data: [
         ['Misubishi'],
         ['Lamborgini'],
-        ['Chevrolet']
+        ['Chevrolet'],
       ],
       columns: [
         {
           editor: 'select',
-          selectOptions: options
-        }
-      ]
+          selectOptions: options,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -242,7 +242,7 @@ describe('SelectEditor', () => {
 
     var options = function() {
       return [
-        'Misubishi', 'Chevrolet', 'Lamborgini'
+        'Misubishi', 'Chevrolet', 'Lamborgini',
       ];
     };
 
@@ -250,9 +250,9 @@ describe('SelectEditor', () => {
       columns: [
         {
           editor: 'select',
-          selectOptions: options
-        }
-      ]
+          selectOptions: options,
+        },
+      ],
     });
 
     selectCell(0, 0);

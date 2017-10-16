@@ -17,7 +17,7 @@ describe('settings', () => {
       it('should show data properly when `maxCols` is set to 0', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          maxCols: 0
+          maxCols: 0,
         });
 
         expect(getSourceDataAtRow(0).length).toEqual(10);
@@ -33,7 +33,7 @@ describe('settings', () => {
       it('should show data properly when `maxCols` is set to value > 0', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          maxCols: 5
+          maxCols: 5,
         });
 
         expect(getSourceDataAtRow(0).length).toEqual(10);
@@ -48,7 +48,7 @@ describe('settings', () => {
       it('should show data properly when `maxCols` is set to infinity value', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          maxCols: Infinity
+          maxCols: Infinity,
         });
 
         expect(getSourceDataAtRow(0).length).toEqual(10);
@@ -71,7 +71,7 @@ describe('settings', () => {
               {type: 'text'},
             ],
             minRows: 10,
-            maxCols: 2
+            maxCols: 2,
           });
 
           expect(getSourceDataAtRow(0).length).toEqual(5);
@@ -87,11 +87,11 @@ describe('settings', () => {
     describe('update settings works', () => {
       it('should show data properly after maxCols is updated to 0', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10)
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
         });
 
         updateSettings({
-          maxCols: 0
+          maxCols: 0,
         });
 
         expect(getSourceDataAtRow(0).length).toEqual(10);
@@ -105,11 +105,11 @@ describe('settings', () => {
 
       it('should show data properly after maxCols is updated to value > 0 -> test no. 1', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10)
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
         });
 
         updateSettings({
-          maxCols: 2
+          maxCols: 2,
         });
 
         expect(getSourceDataAtRow(0).length).toEqual(10);
@@ -124,11 +124,11 @@ describe('settings', () => {
       it('should show data properly after maxCols is updated to value > 0 -> test no. 2', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          maxCols: 5
+          maxCols: 5,
         });
 
         updateSettings({
-          maxCols: 2
+          maxCols: 2,
         });
 
         expect(getSourceDataAtRow(0).length).toEqual(10);
@@ -143,11 +143,11 @@ describe('settings', () => {
       it('should show data properly after maxCols is updated to value > 0 -> test no. 3', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          maxCols: 2
+          maxCols: 2,
         });
 
         updateSettings({
-          maxCols: 5
+          maxCols: 5,
         });
 
         expect(getSourceDataAtRow(0).length).toEqual(10);
@@ -161,11 +161,11 @@ describe('settings', () => {
 
       it('should show data properly after maxCols is updated to infinity value -> test no. 1', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10)
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
         });
 
         updateSettings({
-          maxCols: Infinity
+          maxCols: Infinity,
         });
 
         expect(getSourceDataAtRow(0).length).toEqual(10);
@@ -180,11 +180,11 @@ describe('settings', () => {
       it('should show data properly after maxCols is updated to infinity value -> test no. 2', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          maxCols: 2
+          maxCols: 2,
         });
 
         updateSettings({
-          maxCols: Infinity
+          maxCols: Infinity,
         });
 
         expect(getSourceDataAtRow(0).length).toEqual(10);
@@ -206,11 +206,11 @@ describe('settings', () => {
               {type: 'text'},
               {type: 'text'},
             ],
-            minRows: 10
+            minRows: 10,
           });
 
           updateSettings({
-            maxCols: 2
+            maxCols: 2,
           });
 
           expect(getSourceDataAtRow(0).length).toEqual(5);

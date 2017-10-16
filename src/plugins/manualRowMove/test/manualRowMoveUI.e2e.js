@@ -17,7 +17,7 @@ describe('manualRowMove', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         rowHeaders: true,
-        manualRowMove: true
+        manualRowMove: true,
       });
 
       const $headerTH = spec().$container.find('tbody tr:eq(0) th:eq(0)');
@@ -34,7 +34,7 @@ describe('manualRowMove', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         rowHeaders: true,
-        manualRowMove: true
+        manualRowMove: true,
       });
 
       const $headerTH = spec().$container.find('tbody tr:eq(0) th:eq(0)');
@@ -51,7 +51,7 @@ describe('manualRowMove', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         rowHeaders: true,
-        manualRowMove: true
+        manualRowMove: true,
       });
 
       const $headers = [
@@ -75,7 +75,7 @@ describe('manualRowMove', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           rowHeaders: true,
-          manualRowMove: true
+          manualRowMove: true,
         });
 
         const $headerTH = spec().$container.find('tbody tr:eq(0) th:eq(0)');

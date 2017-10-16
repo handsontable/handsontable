@@ -1,7 +1,7 @@
 describe('GhostTable', () => {
 
   var hotSettings = {
-    data: [['A', '1', 'A\nB\nC'], ['B', '2', 'A-----B-------C'], ['C', '3', 'A---\n--B-------C']]
+    data: [['A', '1', 'A\nB\nC'], ['B', '2', 'A-----B-------C'], ['C', '3', 'A---\n--B-------C']],
   };
   var gt;
 

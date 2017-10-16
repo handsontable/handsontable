@@ -94,7 +94,7 @@ Search.global = (function() {
 
     setDefaultSearchResultClass(newSearchResultClass) {
       defaultSearchResultClass = newSearchResultClass;
-    }
+    },
   };
 
 }());

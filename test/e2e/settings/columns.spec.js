@@ -6,7 +6,7 @@ describe('settings', () => {
         ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
         ['2008', 10, 11, 12, 13],
         ['2009', 20, 11, 14, 13],
-        ['2010', 30, 15, 12, 13]
+        ['2010', 30, 15, 12, 13],
       ];
     };
     var arrayOfObjects = function() {
@@ -20,7 +20,7 @@ describe('settings', () => {
         {id: 7, name: 'Meg', lastName: 'Jansen', date: '41/01/2015'},
         {id: 8, name: 'Rob', lastName: 'Norris', date: '01/51/2015'},
         {id: 9, name: 'Sean', lastName: 'O\'Hara', date: '01/01/2015'},
-        {id: 10, name: 'Eve', lastName: 'Branson', date: '01/01/15'}
+        {id: 10, name: 'Eve', lastName: 'Branson', date: '01/01/15'},
       ];
     };
 
@@ -42,8 +42,8 @@ describe('settings', () => {
           columns: [
             {data: 0},
             {data: 1},
-            {data: 2}
-          ]
+            {data: 2},
+          ],
         });
 
         expect(() => {
@@ -57,7 +57,7 @@ describe('settings', () => {
           columns: [
             {data: 'id'},
             {data: 'name'},
-            {data: 'lastName'}
+            {data: 'lastName'},
           ],
         });
 
@@ -74,7 +74,7 @@ describe('settings', () => {
             data: arrayOfArrays(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
-            }
+            },
           });
 
           expect(hot.getData()[0].length).toEqual(2);
@@ -85,7 +85,7 @@ describe('settings', () => {
             data: arrayOfArrays(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
-            }
+            },
           });
 
           expect(hot.getDataAtCell(0, 0)).toEqual('');
@@ -97,7 +97,7 @@ describe('settings', () => {
             data: arrayOfObjects(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
-            }
+            },
           });
 
           expect(hot.getDataAtCell(0, 0)).toEqual(null);
@@ -109,7 +109,7 @@ describe('settings', () => {
             data: arrayOfArrays(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {data: column + 1} : null;
-            }
+            },
           });
 
           expect(hot.getDataAtCell(0, 0)).toEqual('Nissan');
@@ -123,7 +123,7 @@ describe('settings', () => {
               var keys = ['id', 'name', 'lastName'];
 
               return [1, 2].indexOf(column) > -1 ? {data: keys[column - 1]} : null;
-            }
+            },
           });
 
           expect(hot.getDataAtCell(0, 0)).toEqual(1);
@@ -137,7 +137,7 @@ describe('settings', () => {
             data: arrayOfArrays(),
             columns(column) {
               return [0, 1, 2].indexOf(column) > -1 ? {data: column} : null;
-            }
+            },
           });
 
           expect(() => {
@@ -152,7 +152,7 @@ describe('settings', () => {
               var keys = ['id', 'name', 'lasName'];
 
               return [0, 1, 2].indexOf(column) > -1 ? {data: keys[column]} : null;
-            }
+            },
           });
 
           expect(() => {
@@ -168,11 +168,11 @@ describe('settings', () => {
               ['Joe'],
               ['Timothy'],
               ['Margaret'],
-              ['Jerry']
+              ['Jerry'],
             ],
             columns(column) {
               return column === 0 ? { editor: Handsontable.editors.PasswordEditor } : null;
-            }
+            },
           });
 
           selectCell(0, 0);
@@ -191,7 +191,7 @@ describe('settings', () => {
             data: [[true], [false], [true]],
             columns(column) {
               return column === 0 ? { type: 'checkbox' } : null;
-            }
+            },
           });
 
           expect($(getRenderedValue(0, 0)).is(':checkbox')).toBe(true);
@@ -210,11 +210,11 @@ describe('settings', () => {
               var settings = [
                 {data: 'date', type: 'date'},
                 {data: 'name'},
-                {data: 'lastName'}
+                {data: 'lastName'},
               ];
               return [0, 1, 2].indexOf(column) > -1 ? settings[column] : null;
             },
-            afterValidate: onAfterValidate
+            afterValidate: onAfterValidate,
           });
 
           setDataAtCell(0, 0, '');

@@ -17,7 +17,7 @@ describe('Core.toVisualColumn', () => {
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       unmodifyCol(column) {
         return column + 3;
-      }
+      },
     });
 
     expect(hot.toVisualColumn(0)).toBe(3);

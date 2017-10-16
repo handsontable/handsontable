@@ -216,21 +216,21 @@ SelectEditor.prototype.getEditedCell = function() {
     case 'top':
       editedCell = this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.select.style.zIndex = 101;
       break;
     case 'corner':
       editedCell = this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.select.style.zIndex = 103;
       break;
     case 'left':
       editedCell = this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.select.style.zIndex = 102;
       break;

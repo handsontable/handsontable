@@ -16,20 +16,20 @@ describe('AutoRowSize', () => {
     return [
       {id: 'Short'},
       {id: 'Somewhat\nlong'},
-      {id: 'The\nvery\nvery\nvery\nlongest one'}
+      {id: 'The\nvery\nvery\nvery\nlongest one'},
     ];
   }
   function arrayOfObjects2() {
     return [
       {id: 'Short', name: 'Somewhat long'},
       {id: 'Somewhat long', name: 'The very very longest one'},
-      {id: 'The very very very longest one', name: 'Short'}
+      {id: 'The very very very longest one', name: 'Short'},
     ];
   }
 
   it('should apply auto size by default', function() {
     handsontable({
-      data: arrayOfObjects()
+      data: arrayOfObjects(),
     });
 
     var height0 = rowHeight(this.$container, 0);
@@ -55,7 +55,7 @@ describe('AutoRowSize', () => {
       colWidths() {
         return columnWidth;
       },
-      autoRowSize: true
+      autoRowSize: true,
     });
 
     var oldHeight = spec().$container[0].scrollHeight;
@@ -112,7 +112,7 @@ describe('AutoRowSize', () => {
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
-        autoRowSize: true
+        autoRowSize: true,
       });
 
       setTimeout(() => {
@@ -128,7 +128,7 @@ describe('AutoRowSize', () => {
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
-        autoRowSize: true
+        autoRowSize: true,
       });
 
       setTimeout(() => {
@@ -145,7 +145,7 @@ describe('AutoRowSize', () => {
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
-        autoRowSize: true
+        autoRowSize: true,
       });
 
       setTimeout(() => {
@@ -162,7 +162,7 @@ describe('AutoRowSize', () => {
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
-        autoRowSize: true
+        autoRowSize: true,
       });
 
       setTimeout(() => {
@@ -179,7 +179,7 @@ describe('AutoRowSize', () => {
     var hot = handsontable({
       data: arrayOfObjects(),
       rowHeaders: true,
-      autoRowSize: true
+      autoRowSize: true,
     });
 
     setTimeout(() => {
@@ -195,7 +195,7 @@ describe('AutoRowSize', () => {
 
   it('should be possible to disable plugin using updateSettings', function() {
     var hot = handsontable({
-      data: arrayOfObjects()
+      data: arrayOfObjects(),
     });
 
     var height0 = rowHeight(this.$container, 0);
@@ -206,7 +206,7 @@ describe('AutoRowSize', () => {
     expect(height1).toBeLessThan(height2);
 
     updateSettings({
-      autoRowSize: false
+      autoRowSize: false,
     });
     hot.setDataAtCell(0, 0, 'A\nB\nC');
 
@@ -218,7 +218,7 @@ describe('AutoRowSize', () => {
   it('should be possible to enable plugin using updateSettings', () => {
     handsontable({
       data: arrayOfObjects(),
-      autoRowSize: false
+      autoRowSize: false,
     });
 
     var height0 = parseInt(getCell(0, 0).style.height, 10);
@@ -230,7 +230,7 @@ describe('AutoRowSize', () => {
     expect(height1).toEqual(height2);
 
     updateSettings({
-      autoRowSize: true
+      autoRowSize: true,
     });
 
     height0 = parseInt(getCell(0, 0).style.height, 10);
@@ -245,11 +245,11 @@ describe('AutoRowSize', () => {
     var $style = $('<style>.big .htCore td {font-size: 40px;line-height: 1.1}</style>').appendTo('head');
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
       data: arrayOfObjects(),
-      autoRowSize: true
+      autoRowSize: true,
     });
     var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
       data: arrayOfObjects(),
-      autoRowSize: true
+      autoRowSize: true,
     });
     var hot1 = $container1.handsontable('getInstance');
     var hot2 = $container2.handsontable('getInstance');
@@ -281,7 +281,7 @@ describe('AutoRowSize', () => {
 
     var hot = handsontable({
       data: arrayOfObjects(),
-      autoRowSize: true
+      autoRowSize: true,
     });
     var height = parseInt(hot.getCell(2, 0).style.height, 10);
 
@@ -300,7 +300,7 @@ describe('AutoRowSize', () => {
       rowHeights: [70, 70, 70],
       width: 500,
       height: 100,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     setDataAtCell(0, 0, 'LongLongLongLong');
@@ -317,11 +317,11 @@ describe('AutoRowSize', () => {
       columns: [
         {height: 70},
         {height: 70},
-        {height: 70}
+        {height: 70},
       ],
       width: 500,
       height: 100,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     setDataAtCell(0, 0, 'LongLongLongLong');
@@ -337,7 +337,7 @@ describe('AutoRowSize', () => {
       data,
       columns: [
         {data: 'id'},
-        {data: 'name'}
+        {data: 'name'},
       ],
       autoRowSize: true,
       renderer(instance, td, row, col, prop, value, cellProperties) {
@@ -347,7 +347,7 @@ describe('AutoRowSize', () => {
         if (row === 1 && col === 0) {
           td.style.padding = '100px';
         }
-      }
+      },
     });
 
     expect(parseInt(hot.getCell(1, 0).style.height || 0, 10)).toBe(242);
@@ -355,7 +355,7 @@ describe('AutoRowSize', () => {
 
   it('should destroy temporary element', () => {
     handsontable({
-      autoRowSize: true
+      autoRowSize: true,
     });
 
     expect(document.querySelector('.htAutoSize')).toBe(null);
@@ -368,7 +368,7 @@ describe('AutoRowSize', () => {
       manualColumnResize: true,
       autoRowSize: true,
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
     });
 
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22); // -1px of cell border
@@ -401,7 +401,7 @@ describe('AutoRowSize', () => {
       manualColumnMove: true,
       autoRowSize: true,
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
     });
 
     var plugin = hot.getPlugin('manualColumnMove');
@@ -425,7 +425,7 @@ describe('AutoRowSize', () => {
       manualRowResize: [23, 50],
       autoRowSize: true,
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
     });
 
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22); // -1px of cell border
@@ -447,7 +447,7 @@ describe('AutoRowSize', () => {
       manualRowMove: true,
       autoRowSize: true,
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
     });
 
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22); // -1px of cell border
@@ -475,7 +475,7 @@ describe('AutoRowSize', () => {
       autoRowSize: true,
       rowHeaders: true,
       width: 300,
-      height: 300
+      height: 300,
     });
 
     expect(rowHeight(spec().$container, -1)).toBe(89);

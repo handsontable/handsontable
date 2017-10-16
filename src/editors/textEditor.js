@@ -10,7 +10,7 @@ import {
   resetCssTransform,
   setCaretPosition,
   hasVerticalScrollbar,
-  hasHorizontalScrollbar
+  hasHorizontalScrollbar,
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
 import BaseEditor, {EditorState} from './_baseEditor';
@@ -200,35 +200,35 @@ TextEditor.prototype.getEditedCell = function() {
     case 'top':
       editedCell = this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.textareaParentStyle.zIndex = 101;
       break;
     case 'top-left-corner':
       editedCell = this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.textareaParentStyle.zIndex = 103;
       break;
     case 'bottom-left-corner':
       editedCell = this.instance.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.textareaParentStyle.zIndex = 103;
       break;
     case 'left':
       editedCell = this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.textareaParentStyle.zIndex = 102;
       break;
     case 'bottom':
       editedCell = this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.textareaParentStyle.zIndex = 102;
       break;
@@ -344,7 +344,7 @@ TextEditor.prototype.refreshDimensions = function() {
     minHeight: Math.min(height, maxHeight),
     maxHeight, // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
     minWidth: Math.min(width, maxWidth),
-    maxWidth // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+    maxWidth, // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
   }, true);
 
   this.textareaParentStyle.display = 'block';

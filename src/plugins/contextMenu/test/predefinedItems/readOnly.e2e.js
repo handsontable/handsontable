@@ -22,7 +22,7 @@ describe('ContextMenuReadOnly', () => {
       rowHeaders: true,
       colHeaders: true,
       contextMenu: true,
-      afterSetCellMeta: afterSetCellMetaCallback
+      afterSetCellMeta: afterSetCellMetaCallback,
     });
 
     selectCell(2, 3);

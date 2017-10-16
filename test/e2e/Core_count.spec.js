@@ -15,7 +15,7 @@ describe('Core_count', () => {
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         height: 100,
-        width: 600
+        width: 600,
       });
       expect(instance.countVisibleRows()).toEqual(4);
     });
@@ -24,7 +24,7 @@ describe('Core_count', () => {
       this.$container.remove();
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
-        width: 100
+        width: 100,
       });
       expect(instance.countVisibleRows()).toEqual(-1);
     });
@@ -35,7 +35,7 @@ describe('Core_count', () => {
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         height: 100,
-        viewportRowRenderingOffset: 0
+        viewportRowRenderingOffset: 0,
       });
       expect(instance.countRenderedRows()).toEqual(5);
     });
@@ -44,7 +44,7 @@ describe('Core_count', () => {
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 10),
         height: 100,
-        viewportRowRenderingOffset: 20
+        viewportRowRenderingOffset: 20,
       });
       expect(instance.countRenderedRows()).toEqual(25);
     });
@@ -53,7 +53,7 @@ describe('Core_count', () => {
       this.$container.remove();
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
-        width: 100
+        width: 100,
       });
       expect(instance.countRenderedRows()).toEqual(-1);
     });
@@ -63,7 +63,7 @@ describe('Core_count', () => {
     it('should return number of visible columns', () => {
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
-        width: 100
+        width: 100,
       });
       expect(instance.countVisibleCols()).toEqual(10);
     });
@@ -72,7 +72,7 @@ describe('Core_count', () => {
       this.$container.remove();
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
-        width: 100
+        width: 100,
       });
 
       expect(instance.countVisibleCols()).toEqual(-1);

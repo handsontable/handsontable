@@ -123,7 +123,7 @@ describe('Core_onKeyDown', () => {
         validator(val, cb) {
           cb(true);
         },
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       selectCell(1, 1);
@@ -151,7 +151,7 @@ describe('Core_onKeyDown', () => {
             cb(true);
           }, 10);
         },
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
       selectCell(1, 1);
 
@@ -264,7 +264,7 @@ describe('Core_onKeyDown', () => {
         validator(val, cb) {
           cb(true);
         },
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       selectCell(1, 1);
@@ -292,7 +292,7 @@ describe('Core_onKeyDown', () => {
             cb(true);
           }, 10);
         },
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
       selectCell(1, 1);
 

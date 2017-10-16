@@ -19,10 +19,10 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          format: '$0,0.00'
+          format: '$0,0.00',
         };
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     setDataAtCell(2, 2, '1000.234');
 
@@ -39,10 +39,10 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          format: '$0,0.00'
+          format: '$0,0.00',
         };
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(2, 2, '-1000.234');
@@ -58,7 +58,7 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          format: '$0,0.00'
+          format: '$0,0.00',
         };
       },
     });
@@ -119,10 +119,10 @@ describe('NumericRenderer', () => {
         cells() {
           return {
             type: 'numeric',
-            format: '$0,0.00'
+            format: '$0,0.00',
           };
         },
-        height: 100
+        height: 100,
       });
 
       setDataAtCell(0, 0, '1000');

@@ -23,20 +23,20 @@ describe('autocompleteValidator', () => {
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
-          }
+            strict: true,
+          },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(0, 0, '');
@@ -57,21 +57,21 @@ describe('autocompleteValidator', () => {
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
-          }
+            strict: true,
+          },
         ],
         allowEmpty: true,
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(0, 0, '');
@@ -92,21 +92,21 @@ describe('autocompleteValidator', () => {
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
-          }
+            strict: true,
+          },
         ],
         allowEmpty: false,
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(0, 0, '');
@@ -121,27 +121,27 @@ describe('autocompleteValidator', () => {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
       handsontable({
         data: [
-          ['some', 'sample', 'data']
+          ['some', 'sample', 'data'],
         ],
         columns: [
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
             strict: true,
-            allowEmpty: false
+            allowEmpty: false,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
-          }
+            strict: true,
+          },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(0, 0, '');
@@ -160,13 +160,13 @@ describe('autocompleteValidator', () => {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
       handsontable({
         data: [
-          ['some', 'sample', 'data']
+          ['some', 'sample', 'data'],
         ],
         columns: [
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
@@ -176,11 +176,11 @@ describe('autocompleteValidator', () => {
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
-          }
+            strict: true,
+          },
         ],
         allowEmpty: false,
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(0, 0, null);
@@ -206,10 +206,10 @@ describe('autocompleteValidator', () => {
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
-          }
+            strict: true,
+          },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(0, 0, 'Some');

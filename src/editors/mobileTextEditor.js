@@ -168,12 +168,12 @@ MobileTextEditor.prototype.updateEditorPosition = function(x, y) {
     if (!domDimensionsCache.cellPointer) {
       domDimensionsCache.cellPointer = {
         height: outerHeight(this.cellPointer),
-        width: outerWidth(this.cellPointer)
+        width: outerWidth(this.cellPointer),
       };
     }
     if (!domDimensionsCache.editorContainer) {
       domDimensionsCache.editorContainer = {
-        width: outerWidth(this.editorContainer)
+        width: outerWidth(this.editorContainer),
       };
     }
 
@@ -187,7 +187,7 @@ MobileTextEditor.prototype.updateEditorPosition = function(x, y) {
         selectedCellWidth = outerWidth(selectedCell),
         currentScrollPosition = {
           x: scrollLeft,
-          y: scrollTop
+          y: scrollTop,
         };
 
       this.editorContainer.style.top = `${parseInt(selectedCellOffset.top + outerHeight(selectedCell) -
@@ -227,11 +227,11 @@ MobileTextEditor.prototype.prepareAndSave = function() {
 
   if (this.instance.getSettings().trimWhitespace) {
     val = [
-      [String.prototype.trim.call(this.getValue())]
+      [String.prototype.trim.call(this.getValue())],
     ];
   } else {
     val = [
-      [this.getValue()]
+      [this.getValue()],
     ];
   }
 
@@ -271,11 +271,11 @@ MobileTextEditor.prototype.bindEvents = function() {
       let touch = event.touches[0];
       let onTouchPosition = {
         x: that.editorContainer.offsetLeft,
-        y: that.editorContainer.offsetTop
+        y: that.editorContainer.offsetTop,
       };
       let onTouchOffset = {
         x: touch.pageX - onTouchPosition.x,
-        y: touch.pageY - onTouchPosition.y
+        y: touch.pageY - onTouchPosition.y,
       };
 
       that.eventManager.addEventListener(this, 'touchmove', (e) => {

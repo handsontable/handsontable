@@ -17,7 +17,7 @@ describe('Core.toPhysicalColumn', () => {
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       modifyCol(column) {
         return column + 3;
-      }
+      },
     });
 
     expect(hot.toPhysicalColumn(0)).toBe(3);

@@ -7,7 +7,7 @@ describe('Handsontable.Dom', () => {
         height: '4000px',
         width: '4000px',
         top: 0,
-        left: 0
+        left: 0,
       });
 
     beforeEach(function() {
@@ -218,7 +218,7 @@ describe('Handsontable.Dom', () => {
       var $html = $([
         '<div style="overflow: scroll"><span class="overflow"></span></div>',
         '<div style="overflow-x: scroll"><span class="overflowX"></span></div>',
-        '<div style="overflow-y: scroll"><span class="overflowY"></span></div>'
+        '<div style="overflow-y: scroll"><span class="overflowY"></span></div>',
       ].join('')).appendTo('body');
 
       expect(Handsontable.dom.getScrollableElement($html.find('.overflow')[0])).toBe($html[0]);
@@ -236,7 +236,7 @@ describe('Handsontable.Dom', () => {
         '<div>',
         '<div class="knob" style="height: 100px;"></div>',
         '</div>',
-        '</div>'
+        '</div>',
       ].join('')).appendTo('body');
 
       expect(Handsontable.dom.getScrollableElement($html.find('.knob')[0])).toBe($html[0]);
@@ -254,7 +254,7 @@ describe('Handsontable.Dom', () => {
         '<div>',
         '<div class="knob" style="width: 100px; height: 5px"></div>',
         '</div>',
-        '</div>'
+        '</div>',
       ].join('')).appendTo('body');
 
       expect(Handsontable.dom.getScrollableElement($html.find('.knob')[0])).toBe($html[0]);
@@ -267,7 +267,7 @@ describe('Handsontable.Dom', () => {
     it('should return window object as scrollable element', () => {
       var $html = $([
         '<div style="overflow: hidden; width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>',
-        '<div style="width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>'
+        '<div style="width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>',
       ].join('')).appendTo('body');
 
       expect(Handsontable.dom.getScrollableElement($html.find('.knob')[0])).toBe(window);

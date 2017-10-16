@@ -35,7 +35,7 @@ describe('stretchH option', () => {
       stretchH: 'all',
       rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -57,7 +57,7 @@ describe('stretchH option', () => {
       stretchH: 'all',
       rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -89,7 +89,7 @@ describe('stretchH option', () => {
 
     $wrapper.width(300);
     $wrapper.css({
-      overflow: 'hidden'
+      overflow: 'hidden',
     });
 
     var wt = new Walkontable.Core({
@@ -97,7 +97,7 @@ describe('stretchH option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      stretchH: 'all'
+      stretchH: 'all',
     });
     wt.draw();
 
@@ -122,7 +122,7 @@ describe('stretchH option', () => {
       stretchH: 'last',
       rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -148,7 +148,7 @@ describe('stretchH option', () => {
       }],
       columnWidth(index) {
         return index === 19 ? 100 : 50;
-      }
+      },
     });
     wt.draw();
     wt.scrollHorizontal(19);
@@ -172,7 +172,7 @@ describe('stretchH option', () => {
       stretchH: 'last',
       rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -193,7 +193,7 @@ describe('stretchH option', () => {
       stretchH: 'none',
       rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 

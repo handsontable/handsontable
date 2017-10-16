@@ -6,7 +6,7 @@ describe('DragToScroll', () => {
       width: 900,
       height: 900,
       bottom: 1000,
-      right: 1000
+      right: 1000,
     };
   }
   var dragToScroll = new Handsontable.plugins.DragToScroll();

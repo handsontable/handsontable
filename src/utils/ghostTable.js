@@ -51,7 +51,7 @@ class GhostTable {
      * @default {Object}
      */
     this.settings = {
-      useHeaders: true
+      useHeaders: true,
     };
   }
 

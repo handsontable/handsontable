@@ -217,7 +217,7 @@ describe('Function helper', () => {
         1,
         'text',
         /^\d+$/,
-        true
+        true,
       ];
 
       function namedFunc() {}

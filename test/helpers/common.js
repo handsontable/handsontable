@@ -2,7 +2,7 @@ export function sleep(delay = 100) {
   return Promise.resolve({
     then: (resolve) => {
       setTimeout(resolve, delay);
-    }
+    },
   });
 };
 
@@ -530,7 +530,7 @@ export function Model(opts) {
   var _data = $.extend({
     id: undefined,
     name: undefined,
-    address: undefined
+    address: undefined,
   }, opts);
 
   obj.attr = function(name, value) {
@@ -583,7 +583,7 @@ export function resizeColumn(displayedColumnIndex, width) {
   var delta = width - $th.width() - 2;
   var newPosition = resizerPosition.left + delta;
   $resizer.simulate('mousemove', {
-    clientX: newPosition
+    clientX: newPosition,
   });
 
   $resizer.simulate('mouseup');
@@ -599,7 +599,7 @@ export function resizeRow(displayedRowIndex, height) {
   var resizerPosition = $resizer.position();
 
   $resizer.simulate('mousedown', {
-    clientY: resizerPosition.top
+    clientY: resizerPosition.top,
   });
 
   var delta = height - $th.height() - 2;
@@ -609,7 +609,7 @@ export function resizeRow(displayedRowIndex, height) {
   }
 
   $resizer.simulate('mousemove', {
-    clientY: resizerPosition.top + delta
+    clientY: resizerPosition.top + delta,
   });
 
   $resizer.simulate('mouseup');
@@ -627,11 +627,11 @@ export function moveSecondDisplayedRowBeforeFirstRow(container, secondDisplayedR
 
   if ($manualRowMover.length) {
     $manualRowMover.simulate('mousedown', {
-      clientY: $manualRowMover[0].getBoundingClientRect().top
+      clientY: $manualRowMover[0].getBoundingClientRect().top,
     });
 
     $manualRowMover.simulate('mousemove', {
-      clientY: $manualRowMover[0].getBoundingClientRect().top - 20
+      clientY: $manualRowMover[0].getBoundingClientRect().top - 20,
     });
 
     $firstRowHeader.simulate('mouseover');
@@ -651,11 +651,11 @@ export function moveFirstDisplayedRowAfterSecondRow(container, firstDisplayedRow
 
   if ($manualRowMover.length) {
     $manualRowMover.simulate('mousedown', {
-      clientY: $manualRowMover[0].getBoundingClientRect().top
+      clientY: $manualRowMover[0].getBoundingClientRect().top,
     });
 
     $manualRowMover.simulate('mousemove', {
-      clientY: $manualRowMover[0].getBoundingClientRect().top + 20
+      clientY: $manualRowMover[0].getBoundingClientRect().top + 20,
     });
 
     $firstRowHeader.simulate('mouseover');

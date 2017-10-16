@@ -107,7 +107,7 @@ function HandsontablePersistentState() {
   var hooks = {
     persistentStateSave: plugin.saveValue,
     persistentStateLoad: plugin.loadValue,
-    persistentStateReset: plugin.resetValue
+    persistentStateReset: plugin.resetValue,
   };
 
   objectEach(hooks, (value, key) => {

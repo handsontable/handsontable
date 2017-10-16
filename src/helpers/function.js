@@ -20,7 +20,7 @@ export function isFunction(func) {
 export function throttle(func, wait = 200) {
   let lastCalled = 0;
   let result = {
-    lastCallThrottled: true
+    lastCallThrottled: true,
   };
   let lastTimer = null;
 

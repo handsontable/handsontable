@@ -44,7 +44,7 @@ export default function alignmentItem() {
               (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
-          disabled: false
+          disabled: false,
         },
         {
           key: `${KEY}:center`,
@@ -78,7 +78,7 @@ export default function alignmentItem() {
               (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
-          disabled: false
+          disabled: false,
         },
         {
           key: `${KEY}:right`,
@@ -112,7 +112,7 @@ export default function alignmentItem() {
               (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
-          disabled: false
+          disabled: false,
         },
         {
           key: `${KEY}:justify`,
@@ -146,10 +146,10 @@ export default function alignmentItem() {
               (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
-          disabled: false
+          disabled: false,
         },
         {
-          name: SEPARATOR
+          name: SEPARATOR,
         },
         {
           key: `${KEY}:top`,
@@ -182,7 +182,7 @@ export default function alignmentItem() {
               (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
-          disabled: false
+          disabled: false,
         },
         {
           key: `${KEY}:middle`,
@@ -216,7 +216,7 @@ export default function alignmentItem() {
               (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
-          disabled: false
+          disabled: false,
         },
         {
           key: `${KEY}:bottom`,
@@ -250,9 +250,9 @@ export default function alignmentItem() {
               (row, col, key, value) => this.setCellMeta(row, col, key, value));
             this.render();
           },
-          disabled: false
-        }
-      ]
-    }
+          disabled: false,
+        },
+      ],
+    },
   };
 }

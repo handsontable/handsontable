@@ -42,7 +42,7 @@ export const KEY_CODES = {
   A: 65,
   X: 88,
   C: 67,
-  V: 86
+  V: 86,
 };
 
 /**
@@ -94,7 +94,7 @@ export function isMetaKey(keyCode) {
     KEY_CODES.ESCAPE,
     KEY_CODES.SHIFT,
     KEY_CODES.CAPS_LOCK,
-    KEY_CODES.ALT
+    KEY_CODES.ALT,
   ];
 
   return metaKeys.indexOf(keyCode) !== -1;

@@ -17,7 +17,7 @@ describe('Core.toPhysicalRow', () => {
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       modifyRow(row) {
         return row + 3;
-      }
+      },
     });
 
     expect(hot.toPhysicalRow(0)).toBe(3);

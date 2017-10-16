@@ -11,7 +11,7 @@ describe('Walkontable.CellCoords', () => {
       table,
       data: [],
       totalRows: 10,
-      totalColumns: 5
+      totalColumns: 5,
     });
 
     it('should be false if one of the arguments is smaller than 0', () => {

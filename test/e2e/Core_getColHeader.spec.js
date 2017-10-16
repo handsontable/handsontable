@@ -19,14 +19,14 @@ describe('Core.getColHeader', () => {
 
   it('when configured as true, should return the Excel-style column title', () => {
     handsontable({
-      colHeaders: true
+      colHeaders: true,
     });
     expect(getColHeader(30)).toEqual('AE');
   });
 
   it('when configured as array, should return value at index', () => {
     handsontable({
-      colHeaders: ['One', 'Two', 'Three', 'Four', 'Five']
+      colHeaders: ['One', 'Two', 'Three', 'Four', 'Five'],
     });
     expect(getColHeader(1)).toEqual('Two');
   });
@@ -35,14 +35,14 @@ describe('Core.getColHeader', () => {
     handsontable({
       colHeaders(index) {
         return `col${index}`;
-      }
+      },
     });
     expect(getColHeader(1)).toEqual('col1');
   });
 
   it('when configured as static value, should return the value', () => {
     handsontable({
-      colHeaders: 'static'
+      colHeaders: 'static',
     });
     expect(getColHeader(1)).toEqual('static');
   });
@@ -51,7 +51,7 @@ describe('Core.getColHeader', () => {
     handsontable({
       colHeaders(index) {
         return `<b>col${index}</b>`;
-      }
+      },
     });
     expect(getColHeader(1)).toEqual('<b>col1</b>');
   });
@@ -59,7 +59,7 @@ describe('Core.getColHeader', () => {
   it('when no argument given, should return as much column headers as there are columns', () => {
     handsontable({
       colHeaders: true,
-      startCols: 3
+      startCols: 3,
     });
     expect(getColHeader()).toEqual(['A', 'B', 'C']);
   });

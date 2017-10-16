@@ -4,7 +4,7 @@ import {
   getScrollbarWidth,
   hasClass,
   innerHeight,
-  outerWidth
+  outerWidth,
 } from './../../../helpers/dom/element';
 import Overlay from './overlay/_base';
 

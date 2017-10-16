@@ -17,18 +17,18 @@ describe('Core_setDataAtCell', () => {
       {id: 1,
         name: {
           first: 'Ted',
-          last: 'Right'
+          last: 'Right',
         }},
       {id: 2,
         name: {
           first: 'Frank',
-          last: 'Honest'
+          last: 'Honest',
         }},
       {id: 3,
         name: {
           first: 'Joan',
-          last: 'Well'
-        }}
+          last: 'Well',
+        }},
     ];
   };
 
@@ -67,8 +67,8 @@ describe('Core_setDataAtCell', () => {
       dataSchema: {
         col1: null,
         col2: null,
-        col3: null
-      }
+        col3: null,
+      },
     });
     selectCell(0, 0);
     triggerPaste('1\tTest\t2');
@@ -141,7 +141,7 @@ describe('Core_setDataAtCell', () => {
       columns: [
         {data: 'id'},
         {data: 'name.last'},
-        {data: 'name.first'}
+        {data: 'name.first'},
       ],
       minSpareRows: 1,
     });
@@ -161,7 +161,7 @@ describe('Core_setDataAtCell', () => {
       data: [
         model({id: 1, name: 'Ted Right', address: ''}),
         model({id: 2, name: 'Frank Honest', address: ''}),
-        model({id: 3, name: 'Joan Well', address: ''})
+        model({id: 3, name: 'Joan Well', address: ''}),
       ],
       dataSchema: model,
       startRows: 5,
@@ -170,9 +170,9 @@ describe('Core_setDataAtCell', () => {
       columns: [
         {data: property('id')},
         {data: property('name')},
-        {data: property('address')}
+        {data: property('address')},
       ],
-      minSpareRows: 1
+      minSpareRows: 1,
     });
 
     function model(opts) {
@@ -180,7 +180,7 @@ describe('Core_setDataAtCell', () => {
         _priv = $.extend({
           id: undefined,
           name: undefined,
-          address: undefined
+          address: undefined,
         }, opts);
 
       _pub.attr = function(attr, val) {
@@ -212,7 +212,7 @@ describe('Core_setDataAtCell', () => {
     handsontable({
       afterChange(changes, source) {
         lastSource = source;
-      }
+      },
     });
 
     setDataAtCell([[0, 0, 'new value']], 'customSource');
@@ -228,7 +228,7 @@ describe('Core_setDataAtCell', () => {
       afterSetDataAtCell(changes, source) {
         _changes = changes;
         _source = source;
-      }
+      },
     });
 
     setDataAtCell(0, 0, 'foo bar', 'customSource');
@@ -248,7 +248,7 @@ describe('Core_setDataAtCell', () => {
         if (changes[0][3] === 22) {
           changes[0][3] = 33;
         }
-      }
+      },
     });
 
     setDataAtCell(0, 0, 'foo bar', 'customSource');
@@ -268,7 +268,7 @@ describe('Core_setDataAtCell', () => {
       afterSetDataAtRowProp(changes, source) {
         _changes = changes;
         _source = source;
-      }
+      },
     });
 
     setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
@@ -289,7 +289,7 @@ describe('Core_setDataAtCell', () => {
         if (changes[0][3] === 22) {
           changes[0][3] = 33;
         }
-      }
+      },
     });
 
     setDataAtRowProp(0, 'name', 'foo bar', 'customSource');

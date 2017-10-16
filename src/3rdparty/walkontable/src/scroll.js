@@ -264,7 +264,7 @@ class Scroll {
       totalColumns,
       fixedRowsTop,
       fixedRowsBottom,
-      fixedColumnsLeft
+      fixedColumnsLeft,
     };
   }
 }

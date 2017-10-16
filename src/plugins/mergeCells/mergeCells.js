@@ -198,7 +198,7 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
       this.lastDesiredCoords = nextPosition;
       newDelta = {
         row: nextParentIsMerged.row - currentPosition.row,
-        col: nextParentIsMerged.col - currentPosition.col
+        col: nextParentIsMerged.col - currentPosition.col,
       };
     }
   } else if (hook === 'modifyTransformEnd') {

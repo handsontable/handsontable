@@ -23,7 +23,7 @@ describe('Performance', () => {
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(1); // only for master table
@@ -37,7 +37,7 @@ describe('Performance', () => {
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(2); // 1 for autoColumnSize, 1 for actual cell render
@@ -51,7 +51,7 @@ describe('Performance', () => {
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(1); // 1 for actual cell render (colWidths prevent autoColumnSize to enable)
@@ -66,7 +66,7 @@ describe('Performance', () => {
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(3); // 1 for autoColumnSize, 1 for autoRowSize, 1 for actual cell render
@@ -80,7 +80,7 @@ describe('Performance', () => {
       rowHeights: 23,
       beforeGetCellMeta() {
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(7);
@@ -94,7 +94,7 @@ describe('Performance', () => {
       colWidths: 50,
       beforeGetCellMeta() {
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(5);
@@ -109,7 +109,7 @@ describe('Performance', () => {
       rowHeights: 23,
       beforeGetCellMeta() {
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(8);
@@ -124,7 +124,7 @@ describe('Performance', () => {
       colWidths: 50,
       beforeGetCellMeta() {
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(6);
@@ -139,7 +139,7 @@ describe('Performance', () => {
       rowHeights: 23,
       beforeGetCellMeta() {
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(7);
@@ -154,7 +154,7 @@ describe('Performance', () => {
       colWidths: 50,
       beforeGetCellMeta() {
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(5);
@@ -170,7 +170,7 @@ describe('Performance', () => {
       rowHeights: 23,
       beforeGetCellMeta() {
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(8);
@@ -186,7 +186,7 @@ describe('Performance', () => {
       colWidths: 50,
       beforeGetCellMeta() {
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(6);
@@ -201,7 +201,7 @@ describe('Performance', () => {
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(28);
@@ -216,7 +216,7 @@ describe('Performance', () => {
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(28); // 16 in main table and 4 rows for autoRowSize
@@ -231,7 +231,7 @@ describe('Performance', () => {
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
         count++;
-      }
+      },
     });
 
     expect(count).toEqual(40); // 16x2 in main table, 4 rows for autoRowSize and 4 cols for autoColumnSize

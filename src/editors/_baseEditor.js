@@ -5,7 +5,7 @@ export const EditorState = {
   VIRGIN: 'STATE_VIRGIN', // before editing
   EDITING: 'STATE_EDITING',
   WAITING: 'STATE_WAITING', // waiting for async validation
-  FINISHED: 'STATE_FINISHED'
+  FINISHED: 'STATE_FINISHED',
 };
 
 function BaseEditor(instance) {
@@ -161,11 +161,11 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
     if (this.instance.getSettings().trimWhitespace) {
       // We trim only string values
       val = [
-        [typeof value === 'string' ? String.prototype.trim.call(value || '') : value]
+        [typeof value === 'string' ? String.prototype.trim.call(value || '') : value],
       ];
     } else {
       val = [
-        [value]
+        [value],
       ];
     }
 

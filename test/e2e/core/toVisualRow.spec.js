@@ -17,7 +17,7 @@ describe('Core.toVisualRow', () => {
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       unmodifyRow(row) {
         return row + 3;
-      }
+      },
     });
 
     expect(hot.toVisualRow(0)).toBe(3);

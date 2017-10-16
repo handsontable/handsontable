@@ -17,7 +17,7 @@ describe('Core.countSourceCols', () => {
       data: [['', '', '', '', '', '', '', '', '', '', '', '', '', '', '']],
       columns(column) {
         return [1, 5, 9].indexOf(column) > -1 ? {} : null;
-      }
+      },
     });
 
     expect(hot.countSourceCols()).toBe(15);

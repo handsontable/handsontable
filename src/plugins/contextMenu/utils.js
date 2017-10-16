@@ -5,7 +5,7 @@ import {KEY as SEPARATOR} from './predefinedItems/separator';
 export function normalizeSelection(selRange) {
   return {
     start: selRange.getTopLeftCorner(),
-    end: selRange.getBottomRightCorner()
+    end: selRange.getBottomRightCorner(),
   };
 }
 

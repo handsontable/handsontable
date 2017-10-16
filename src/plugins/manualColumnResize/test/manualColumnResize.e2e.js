@@ -14,7 +14,7 @@ describe('manualColumnResize', () => {
 
   it('should change column widths at init', function() {
     handsontable({
-      manualColumnResize: [100, 150, 180]
+      manualColumnResize: [100, 150, 180],
     });
 
     expect(colWidth(this.$container, 0)).toBe(100);
@@ -29,9 +29,9 @@ describe('manualColumnResize', () => {
         {id: 2, name: 'Frank', lastName: 'Honest'},
         {id: 3, name: 'Joan', lastName: 'Well'},
         {id: 4, name: 'Sid', lastName: 'Strong'},
-        {id: 5, name: 'Jane', lastName: 'Neat'}
+        {id: 5, name: 'Jane', lastName: 'Neat'},
       ],
-      colHeaders: true
+      colHeaders: true,
     });
 
     updateSettings({manualColumnResize: true});
@@ -43,7 +43,7 @@ describe('manualColumnResize', () => {
 
   it('should change the default column widths with updateSettings', function() {
     handsontable({
-      manualColumnResize: true
+      manualColumnResize: true,
     });
 
     expect(colWidth(this.$container, 0)).toBe(50);
@@ -51,7 +51,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(this.$container, 2)).toBe(50);
 
     updateSettings({
-      manualColumnResize: [60, 50, 80]
+      manualColumnResize: [60, 50, 80],
     });
 
     expect(colWidth(this.$container, 0)).toBe(60);
@@ -61,7 +61,7 @@ describe('manualColumnResize', () => {
 
   it('should change column widths with updateSettings', function() {
     handsontable({
-      manualColumnResize: [100, 150, 180]
+      manualColumnResize: [100, 150, 180],
     });
 
     expect(colWidth(this.$container, 0)).toBe(100);
@@ -69,7 +69,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(this.$container, 2)).toBe(180);
 
     updateSettings({
-      manualColumnResize: [60, 50, 80]
+      manualColumnResize: [60, 50, 80],
     });
 
     expect(colWidth(this.$container, 0)).toBe(60);
@@ -79,7 +79,7 @@ describe('manualColumnResize', () => {
 
   it('should reset column widths when undefined is passed', function() {
     handsontable({
-      manualColumnResize: [100, 150, 180]
+      manualColumnResize: [100, 150, 180],
     });
 
     expect(colWidth(this.$container, 0)).toBe(100);
@@ -87,7 +87,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(this.$container, 2)).toBe(180);
 
     updateSettings({
-      manualColumnResize: void 0
+      manualColumnResize: void 0,
     });
 
     expect(colWidth(this.$container, 0)).toBe(50);
@@ -97,7 +97,7 @@ describe('manualColumnResize', () => {
 
   it('should not reset column widths when `true` is passed', function() {
     handsontable({
-      manualColumnResize: [100, 150, 180]
+      manualColumnResize: [100, 150, 180],
     });
 
     expect(colWidth(this.$container, 0)).toBe(100);
@@ -105,7 +105,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(this.$container, 2)).toBe(180);
 
     updateSettings({
-      manualColumnResize: true
+      manualColumnResize: true,
     });
 
     expect(colWidth(this.$container, 0)).toBe(100);
@@ -118,7 +118,7 @@ describe('manualColumnResize', () => {
     handsontable({
       colHeaders: true,
       manualColumnResize: true,
-      stretchH: 'all'
+      stretchH: 'all',
     });
 
     resizeColumn(1, 65);
@@ -137,7 +137,7 @@ describe('manualColumnResize', () => {
     handsontable({
       colHeaders: true,
       manualColumnResize: true,
-      stretchH: 'all'
+      stretchH: 'all',
     });
 
     resizeColumn(1, 400);
@@ -155,7 +155,7 @@ describe('manualColumnResize', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
-      manualColumnResize: true
+      manualColumnResize: true,
     });
 
     var $columnHeaders = this.$container.find('thead tr:eq(0) th');
@@ -187,7 +187,7 @@ describe('manualColumnResize', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
-      manualColumnResize: true
+      manualColumnResize: true,
     });
 
     var $columnHeaders = this.$container.find('thead tr:eq(0) th');
@@ -301,7 +301,7 @@ describe('manualColumnResize', () => {
     handsontable({
       colHeaders: ['First', 'Second', 'Third'],
       manualColumnMove: [2, 1, 0, 3],
-      manualColumnResize: true
+      manualColumnResize: true,
     });
 
     var $columnHeaders = this.$container.find('thead tr:eq(0) th');
@@ -331,7 +331,7 @@ describe('manualColumnResize', () => {
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
-      afterColumnResize: afterColumnResizeCallback
+      afterColumnResize: afterColumnResizeCallback,
     });
 
     expect(colWidth(this.$container, 0)).toEqual(50);
@@ -349,7 +349,7 @@ describe('manualColumnResize', () => {
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
-      afterColumnResize: afterColumnResizeCallback
+      afterColumnResize: afterColumnResizeCallback,
     });
 
     expect(colWidth(this.$container, 0)).toEqual(50);
@@ -367,7 +367,7 @@ describe('manualColumnResize', () => {
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
-      afterColumnResize: afterColumnResizeCallback
+      afterColumnResize: afterColumnResizeCallback,
     });
 
     expect(colWidth(this.$container, 0)).toEqual(50);
@@ -392,7 +392,7 @@ describe('manualColumnResize', () => {
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
-      afterColumnResize: afterColumnResizeCallback
+      afterColumnResize: afterColumnResizeCallback,
     });
 
     expect(colWidth(this.$container, 0)).toEqual(50);
@@ -425,7 +425,7 @@ describe('manualColumnResize', () => {
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
-      columns: [{width: 100}, {width: 200}, {}]
+      columns: [{width: 100}, {width: 200}, {}],
     });
 
     expect(colWidth(this.$container, 0)).toEqual(100);
@@ -491,7 +491,7 @@ describe('manualColumnResize', () => {
       stretchH: 'all',
       width() {
         return maxed ? 614 : 200;
-      }
+      },
     });
 
     this.$container.find('thead th:eq(0)').simulate('mouseover');
@@ -519,7 +519,7 @@ describe('manualColumnResize', () => {
       colHeaders: true,
       manualColumnResize: true,
       height: 100,
-      width: 200
+      width: 200,
     });
 
     var mainHolder = hot.view.wt.wtTable.holder;
@@ -549,10 +549,10 @@ describe('manualColumnResize', () => {
           {id: 2, name: 'Frank', lastName: 'Honest'},
           {id: 3, name: 'Joan', lastName: 'Well'},
           {id: 4, name: 'Sid', lastName: 'Strong'},
-          {id: 5, name: 'Jane', lastName: 'Neat'}
+          {id: 5, name: 'Jane', lastName: 'Neat'},
         ],
         colHeaders: true,
-        manualColumnResize: true
+        manualColumnResize: true,
       });
 
       var $headerTH = this.$container.find('thead tr:eq(0) th:eq(1)');

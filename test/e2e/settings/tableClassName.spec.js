@@ -17,7 +17,7 @@ describe('settings', () => {
       var hot = handsontable({
         colHeaders: false,
         rowHeaders: false,
-        tableClassName: 'foo'
+        tableClassName: 'foo',
       });
 
       var possibleCounts = [3, 4]; // 3 for non-pro, 4 for pro (bottom overlay)
@@ -30,7 +30,7 @@ describe('settings', () => {
       var hot = handsontable({
         colHeaders: true,
         rowHeaders: true,
-        tableClassName: 'foo'
+        tableClassName: 'foo',
       });
 
       var possibleCounts = [4, 5]; // 4 for non-pro, 5 for pro (bottom overlay)
@@ -42,7 +42,7 @@ describe('settings', () => {
       var hot = handsontable({
         colHeaders: false,
         rowHeaders: false,
-        tableClassName: 'foo bar'
+        tableClassName: 'foo bar',
       });
 
       var possibleCounts = [3, 4]; // 3 for non-pro, 4 for pro (bottom overlay)
@@ -56,7 +56,7 @@ describe('settings', () => {
       var hot = handsontable({
         colHeaders: true,
         rowHeaders: true,
-        tableClassName: 'foo bar'
+        tableClassName: 'foo bar',
       });
 
       var possibleCounts = [4, 5]; // 4 for non-pro, 5 for pro (bottom overlay)
@@ -69,7 +69,7 @@ describe('settings', () => {
       var hot = handsontable({
         colHeaders: false,
         rowHeaders: false,
-        tableClassName: ['foo', 'bar', 'baz']
+        tableClassName: ['foo', 'bar', 'baz'],
       });
 
       var possibleCounts = [3, 4]; // 3 for non-pro, 4 for pro (bottom overlay)
@@ -83,7 +83,7 @@ describe('settings', () => {
       var hot = handsontable({
         colHeaders: true,
         rowHeaders: true,
-        tableClassName: ['foo', 'bar', 'baz']
+        tableClassName: ['foo', 'bar', 'baz'],
       });
 
       var possibleCounts = [4, 5]; // 4 for non-pro, 5 for pro (bottom overlay)

@@ -74,7 +74,7 @@ describe('settings', () => {
       it('should disallow fragmentSelection when set to false', function() {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: false
+          fragmentSelection: false,
         });
         selectElementText(this.$container.find('tr:eq(0) td:eq(1)')[0], 3);
 
@@ -88,7 +88,7 @@ describe('settings', () => {
       it('should allow fragmentSelection when set to true', function() {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: true
+          fragmentSelection: true,
         });
         selectElementText(this.$container.find('td')[1], 3);
 
@@ -103,7 +103,7 @@ describe('settings', () => {
       it('should allow fragmentSelection from one cell when set to `cell`', function() {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: 'cell'
+          fragmentSelection: 'cell',
         });
         selectElementText(this.$container.find('td')[1], 1);
 
@@ -118,7 +118,7 @@ describe('settings', () => {
       it('should disallow fragmentSelection from one cell when set to `cell` and when user selects adjacent cell', function() {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: 'cell'
+          fragmentSelection: 'cell',
         });
         selectElementText(this.$container.find('td')[1], 1);
 
@@ -133,7 +133,7 @@ describe('settings', () => {
       it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to false', function() {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: false
+          fragmentSelection: false,
         });
         var $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
         this.$container.append($div);
@@ -148,7 +148,7 @@ describe('settings', () => {
       it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to true', function() {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: true
+          fragmentSelection: true,
         });
         var $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
         this.$container.append($div);
@@ -165,7 +165,7 @@ describe('settings', () => {
       it('should disallow fragmentSelection when set to false', function() {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: true
+          fragmentSelection: true,
         });
         updateSettings({fragmentSelection: false});
         selectElementText(this.$container.find('tr:eq(0) td:eq(1)')[0], 3);
@@ -180,7 +180,7 @@ describe('settings', () => {
       it('should allow fragmentSelection when set to true', function() {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: false
+          fragmentSelection: false,
         });
         updateSettings({fragmentSelection: true});
         selectElementText(this.$container.find('td')[1], 3);

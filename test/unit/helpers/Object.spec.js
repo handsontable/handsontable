@@ -68,7 +68,7 @@ describe('Object helper', () => {
         },
         mySetterFunction(value) {
           this.local = value;
-        }
+        },
       };
 
       mixin(Base, MixinFoo);
@@ -99,15 +99,15 @@ describe('Object helper', () => {
         },
         mySetterFunction(value) {
           this.local = value;
-        }
+        },
       };
       var MixinBar = {
-        test: {zzz: 2}
+        test: {zzz: 2},
       };
       var MixinBaz = {
         getTest() {
           return this.test;
-        }
+        },
       };
 
       mixin(Base, MixinFoo, MixinBar, MixinBaz);
@@ -132,7 +132,7 @@ describe('Object helper', () => {
           this.local.test = 1;
 
           return this.local.test;
-        }
+        },
       };
 
       mixin(Base, MixinFoo);
@@ -179,7 +179,7 @@ describe('Object helper', () => {
     it('should extend an object with all the properties of another object (recursively)', () => {
       var baseObject = {
         test: 'one',
-        anotherTest: ['one, two']
+        anotherTest: ['one, two'],
       };
       var date = new Date();
       var partial = {
@@ -189,18 +189,18 @@ describe('Object helper', () => {
           12,
           'test',
           {
-            prop: 'one'
+            prop: 'one',
           },
-          [0, 1]
+          [0, 1],
         ],
         prop4: {
           p1: 0,
           p2: [0, 1],
           p3: {
-            a: 'b'
-          }
+            a: 'b',
+          },
         },
-        prop5: date
+        prop5: date,
       };
 
       deepExtend(baseObject, partial);
@@ -228,7 +228,7 @@ describe('Object helper', () => {
       var toCount = [
         1,
         2,
-        3
+        3,
       ];
 
       expect(deepObjectSize(toCount)).toBeFalsy();
@@ -241,13 +241,13 @@ describe('Object helper', () => {
         prop3: {
           prop31: {
             prop311: 311,
-            prop312: 312
+            prop312: 312,
           },
           prop32: 32,
-          prop33: 33
+          prop33: 33,
         },
         prop4: 4,
-        prop5: 5
+        prop5: 5,
       };
 
       expect(deepObjectSize(toCount)).toEqual(8);

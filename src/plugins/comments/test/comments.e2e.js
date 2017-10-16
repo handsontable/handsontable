@@ -16,7 +16,7 @@ describe('Comments', () => {
     it('should enable the plugin in the initial config', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
-        comments: true
+        comments: true,
       });
 
       expect(hot.getPlugin('comments').isEnabled()).toBe(true);
@@ -24,13 +24,13 @@ describe('Comments', () => {
 
     it('should enable the plugin using updateSettings', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4)
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
       });
 
       expect(hot.getPlugin('comments').isEnabled()).toBe(false);
 
       updateSettings({
-        comments: true
+        comments: true,
       });
 
       expect(hot.getPlugin('comments').isEnabled()).toBe(true);
@@ -50,10 +50,10 @@ describe('Comments', () => {
         columns() {
           return {
             comment: {
-              value: 'test'
-            }
+              value: 'test',
+            },
           };
-        }
+        },
       });
 
       const plugin = hot.getPlugin('comments');
@@ -61,8 +61,8 @@ describe('Comments', () => {
 
       updateSettings({
         comments: {
-          displayDelay: 100
-        }
+          displayDelay: 100,
+        },
       });
 
       $(getCell(1, 1)).simulate('mouseover', {
@@ -84,8 +84,8 @@ describe('Comments', () => {
         comments: true,
         cell: [
           {row: 1, col: 1, comment: {value: 'test'}},
-          {row: 2, col: 2, comment: {value: 'test'}}
-        ]
+          {row: 2, col: 2, comment: {value: 'test'}},
+        ],
       });
 
       expect(getCell(1, 1).className.indexOf('htCommentCell')).toBeGreaterThan(-1);
@@ -107,10 +107,10 @@ describe('Comments', () => {
         columns() {
           return {
             comment: {
-              value: 'test'
-            }
+              value: 'test',
+            },
           };
-        }
+        },
       });
 
       $(getCell(1, 1)).simulate('mouseover', {
@@ -137,15 +137,15 @@ describe('Comments', () => {
         colHeaders: true,
         contextMenu: true,
         comments: {
-          displayDelay: 400
+          displayDelay: 400,
         },
         columns() {
           return {
             comment: {
-              value: 'test'
-            }
+              value: 'test',
+            },
           };
-        }
+        },
       });
 
       $(getCell(1, 1)).simulate('mouseover', {
@@ -172,12 +172,12 @@ describe('Comments', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: {
-          displayDelay: 400
+          displayDelay: 400,
         },
         cell: [
           {row: 1, col: 1, comment: {value: 'test'}},
-          {row: 2, col: 2, comment: {value: 'another test'}}
-        ]
+          {row: 2, col: 2, comment: {value: 'another test'}},
+        ],
       });
 
       const plugin = hot.getPlugin('comments');
@@ -192,8 +192,8 @@ describe('Comments', () => {
         comments: true,
         cell: [
           {row: 1, col: 1, comment: {value: 'test'}},
-          {row: 2, col: 2, comment: {value: 'another test'}}
-        ]
+          {row: 2, col: 2, comment: {value: 'another test'}},
+        ],
       });
 
       const plugin = hot.getPlugin('comments');
@@ -207,7 +207,7 @@ describe('Comments', () => {
     it('should allow inserting comments using the `setCommentAtCell` method', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
-        comments: true
+        comments: true,
       });
 
       const plugin = hot.getPlugin('comments');
@@ -224,7 +224,7 @@ describe('Comments', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
-        afterSetCellMeta: afterSetCellMetaCallback
+        afterSetCellMeta: afterSetCellMetaCallback,
       });
 
       const plugin = hot.getPlugin('comments');
@@ -238,8 +238,8 @@ describe('Comments', () => {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'test'}}
-        ]
+          {row: 1, col: 1, comment: {value: 'test'}},
+        ],
       });
 
       const plugin = hot.getPlugin('comments');
@@ -257,9 +257,9 @@ describe('Comments', () => {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'test'}}
+          {row: 1, col: 1, comment: {value: 'test'}},
         ],
-        afterSetCellMeta: afterSetCellMetaCallback
+        afterSetCellMeta: afterSetCellMetaCallback,
       });
 
       const plugin = hot.getPlugin('comments');
@@ -304,7 +304,7 @@ describe('Comments', () => {
   it('`updateCommentMeta` & `setComment` functions should extend cellMetaObject properly', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
-      comments: true
+      comments: true,
     });
     const plugin = hot.getPlugin('comments');
     let readOnly;
@@ -332,8 +332,8 @@ describe('Comments', () => {
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       comments: {
-        displayDelay: 0
-      }
+        displayDelay: 0,
+      },
     });
 
     selectCell(1, 1);
@@ -363,7 +363,7 @@ describe('Comments', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
-        comments: true
+        comments: true,
       });
 
       selectCell(1, 1);
@@ -386,8 +386,8 @@ describe('Comments', () => {
         contextMenu: true,
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'Test comment'}}
-        ]
+          {row: 1, col: 1, comment: {value: 'Test comment'}},
+        ],
       });
 
       expect(getCellMeta(1, 1).comment.value).toEqual('Test comment');
@@ -411,8 +411,8 @@ describe('Comments', () => {
         comments: true,
         cell: [
           {row: 1, col: 1, comment: {value: 'Test comment'}},
-          {row: 2, col: 2, comment: {value: 'Test comment 2'}}
-        ]
+          {row: 2, col: 2, comment: {value: 'Test comment 2'}},
+        ],
       });
 
       expect(getCellMeta(1, 1).comment.value).toEqual('Test comment');
@@ -437,8 +437,8 @@ describe('Comments', () => {
         contextMenu: true,
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'Test comment'}}
-        ]
+          {row: 1, col: 1, comment: {value: 'Test comment'}},
+        ],
       });
 
       selectCell(1, 1);
@@ -482,11 +482,11 @@ describe('Comments', () => {
         columns() {
           return {
             comment: {
-              value: 'test'
-            }
+              value: 'test',
+            },
           };
         },
-        afterSetCellMeta: afterSetCellMetaCallback
+        afterSetCellMeta: afterSetCellMetaCallback,
       });
 
       expect(afterSetCellMetaCallback).not.toHaveBeenCalled();
@@ -519,11 +519,11 @@ describe('Comments', () => {
         columns() {
           return {
             comment: {
-              value: 'test'
-            }
+              value: 'test',
+            },
           };
         },
-        afterSetCellMeta: afterSetCellMetaCallback
+        afterSetCellMeta: afterSetCellMetaCallback,
       });
 
       selectCell(0, 0);

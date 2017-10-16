@@ -18,7 +18,7 @@ describe('HTMLRenderer', () => {
       colHeaders: true,
       rowHeaders: true,
       minSpareRows: 5,
-      renderer: 'html'
+      renderer: 'html',
     });
 
     expect($('.handsontable table tr:last-child td:eq(0)').html()).toEqual('');

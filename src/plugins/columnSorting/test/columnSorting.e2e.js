@@ -30,7 +30,7 @@ describe('ColumnSorting', () => {
       {id: 7, name: 'Meg', lastName: 'Jansen'},
       {id: 8, name: 'Rob', lastName: 'Norris'},
       {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'}
+      {id: 10, name: 'Eve', lastName: 'Branson'},
     ];
   };
 
@@ -40,10 +40,10 @@ describe('ColumnSorting', () => {
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
         [9, 8, 7, 6, 5, 4, 3, 2, 1],
         [8, 7, 6, 5, 4, 3, 3, 1, 9],
-        [0, 3, 0, 5, 6, 7, 8, 9, 1]
+        [0, 3, 0, 5, 6, 7, 8, 9, 1],
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     var htCore = getHtCore();
@@ -82,13 +82,13 @@ describe('ColumnSorting', () => {
         {},
         {
           type: 'date',
-          dateFormat: 'mm/dd/yy'
+          dateFormat: 'mm/dd/yy',
         },
         {
-          type: 'numeric'
-        }
+          type: 'numeric',
+        },
       ],
-      columnSorting: true
+      columnSorting: true,
     });
 
     hot.sort(1, true); // ASC
@@ -97,7 +97,7 @@ describe('ColumnSorting', () => {
       'bmw1', 'bmw2', 'bmw3',
       'citroen1', 'citroen2', 'citroen3',
       'mercedes1', 'mercedes2', 'mercedes3',
-      'opel1', 'opel2', 'opel3'
+      'opel1', 'opel2', 'opel3',
     ]);
 
     hot.sort(1, false); // DESC
@@ -106,7 +106,7 @@ describe('ColumnSorting', () => {
       'opel1', 'opel2', 'opel3',
       'mercedes1', 'mercedes2', 'mercedes3',
       'citroen1', 'citroen2', 'citroen3',
-      'bmw1', 'bmw2', 'bmw3'
+      'bmw1', 'bmw2', 'bmw3',
     ]);
   });
 
@@ -117,7 +117,7 @@ describe('ColumnSorting', () => {
       handsontable({
         data: arrayOfObjects(),
         autoRowSize: true,
-        columnSorting: true
+        columnSorting: true,
       });
     } catch (e) {
       errors++;
@@ -130,7 +130,7 @@ describe('ColumnSorting', () => {
     handsontable({
       data: arrayOfObjects(),
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(0);
@@ -145,10 +145,10 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [3, 'D'],
         [2, 'A'],
-        [0, 'C']
+        [0, 'C'],
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(0);
@@ -179,10 +179,10 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'A'],
         [3, 'D'],
-        [2, 'C']
+        [2, 'C'],
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(0);
@@ -213,10 +213,10 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'A'],
         [3, 'D'],
-        [2, 'C']
+        [2, 'C'],
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     var htCore = getHtCore();
@@ -244,10 +244,10 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'A'],
         [3, 'D'],
-        [2, 'C']
+        [2, 'C'],
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     var htCore = getHtCore();
@@ -299,9 +299,9 @@ describe('ColumnSorting', () => {
         [8, 'Sid Strong'],
         [9, 'Chuck Jackson'],
         [10, 'Rob Norris'],
-        [11, 'Eve Well']
+        [11, 'Eve Well'],
       ],
-      columnSorting: true
+      columnSorting: true,
     });
 
     hot.sort(0, true); // ASC
@@ -352,11 +352,11 @@ describe('ColumnSorting', () => {
         [null, 'Meg Jansen'],
         [10, 'Rob Norris'],
         ['', 'Sean Hara'],
-        ['', 'Eve Branson']
+        ['', 'Eve Branson'],
       ],
       columnSorting: {
-        sortEmptyCells: true
-      }
+        sortEmptyCells: true,
+      },
     });
 
     hot.sort(0, true); // ASC
@@ -372,7 +372,7 @@ describe('ColumnSorting', () => {
       'Joan Well',
       'Sid Strong',
       'Chuck Jackson',
-      'Rob Norris'
+      'Rob Norris',
     ]);
 
     hot.sort(0, false); // DESC
@@ -405,13 +405,13 @@ describe('ColumnSorting', () => {
         [null, 'Meg Jansen'],
         [10, 'Rob Norris'],
         ['', 'Sean Hara'],
-        ['', 'Eve Branson']
+        ['', 'Eve Branson'],
       ],
       columnSorting: {
         sortEmptyCells: true,
         sortOrder: true,
-        column: 0
-      }
+        column: 0,
+      },
     });
 
     // ASC
@@ -427,7 +427,7 @@ describe('ColumnSorting', () => {
       'Joan Well',
       'Sid Strong',
       'Chuck Jackson',
-      'Rob Norris'
+      'Rob Norris',
     ]);
 
     if (this.$container) {
@@ -446,13 +446,13 @@ describe('ColumnSorting', () => {
         [null, 'Meg Jansen'],
         [10, 'Rob Norris'],
         ['', 'Sean Hara'],
-        ['', 'Eve Branson']
+        ['', 'Eve Branson'],
       ],
       columnSorting: {
         sortEmptyCells: true,
         sortOrder: false,
-        column: 0
-      }
+        column: 0,
+      },
     });
 
     // DESC
@@ -485,19 +485,19 @@ describe('ColumnSorting', () => {
         [null, 'Meg Jansen'],
         [10, 'Rob Norris'],
         ['', 'Sean Hara'],
-        ['', 'Eve Branson']
+        ['', 'Eve Branson'],
       ],
       columns: [
         {
-          type: 'numeric'
+          type: 'numeric',
         },
-        {}
+        {},
       ],
       columnSorting: {
         sortEmptyCells: true,
         sortOrder: true,
-        column: 0
-      }
+        column: 0,
+      },
     });
 
     // ASC
@@ -513,7 +513,7 @@ describe('ColumnSorting', () => {
       'Joan Well',
       'Sid Strong',
       'Chuck Jackson',
-      'Rob Norris'
+      'Rob Norris',
     ]);
 
     if (this.$container) {
@@ -532,13 +532,13 @@ describe('ColumnSorting', () => {
         [null, 'Meg Jansen'],
         [10, 'Rob Norris'],
         ['', 'Sean Hara'],
-        ['', 'Eve Branson']
+        ['', 'Eve Branson'],
       ],
       columnSorting: {
         sortEmptyCells: true,
         sortOrder: false,
-        column: 0
-      }
+        column: 0,
+      },
     });
 
     // DESC
@@ -597,14 +597,14 @@ describe('ColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'MM/DD/YYYY'
-          }
+            dateFormat: 'MM/DD/YYYY',
+          },
         ],
         columnSorting: {
           sortEmptyCells: true,
           sortOrder: true,
-          column: 2
-        }
+          column: 2,
+        },
       });
 
       // ASC
@@ -620,7 +620,7 @@ describe('ColumnSorting', () => {
         'Mercedes2',
         'Mercedes1',
         'BMW1',
-        'Audi1'
+        'Audi1',
       ]);
 
       if (this.$container) {
@@ -646,14 +646,14 @@ describe('ColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'MM/DD/YYYY'
-          }
+            dateFormat: 'MM/DD/YYYY',
+          },
         ],
         columnSorting: {
           sortEmptyCells: true,
           sortOrder: false,
-          column: 2
-        }
+          column: 2,
+        },
       });
 
       // DESC
@@ -669,7 +669,7 @@ describe('ColumnSorting', () => {
         'Citroen2',
         'Citroen3',
         'Citroen4',
-        'Citroen5'
+        'Citroen5',
       ]);
     });
 
@@ -680,21 +680,21 @@ describe('ColumnSorting', () => {
           ['Citroen', 'C4 Coupe', '12/01/2008', 8330],
           ['Audi', 'A4 Avant', '11/19/2011', 33900],
           ['Opel', 'Astra', '02/02/2004', 7000],
-          ['BMW', '320i Coupe', '07/24/2011', 30500]
+          ['BMW', '320i Coupe', '07/24/2011', 30500],
         ],
         columns: [
           {},
           {},
           {
             type: 'date',
-            dateFormat: 'MM/DD/YYYY'
+            dateFormat: 'MM/DD/YYYY',
           },
           {
-            type: 'numeric'
-          }
+            type: 'numeric',
+          },
         ],
         colHeaders: true,
-        columnSorting: true
+        columnSorting: true,
       });
 
       hot.sort(2, true); // ASC
@@ -721,21 +721,21 @@ describe('ColumnSorting', () => {
           ['Citroen', 'C4 Coupe', '12/01/2013', 8330],
           ['Audi', 'A4 Avant', '11/10/2014', 33900],
           ['Opel', 'Astra', '02/02/2015', 7000],
-          ['BMW', '320i Coupe', '07/02/2013', 30500]
+          ['BMW', '320i Coupe', '07/02/2013', 30500],
         ],
         columns: [
           {},
           {},
           {
             type: 'date',
-            dateFormat: 'DD/MM/YYYY'
+            dateFormat: 'DD/MM/YYYY',
           },
           {
-            type: 'numeric'
-          }
+            type: 'numeric',
+          },
         ],
         colHeaders: true,
-        columnSorting: true
+        columnSorting: true,
       });
 
       hot.sort(2, true); // ASC
@@ -762,21 +762,21 @@ describe('ColumnSorting', () => {
           ['Citroen', 'C4 Coupe', 'October 27th 2001', 8330],
           ['Audi', 'A4 Avant', 'July 8th 1999', 33900],
           ['Opel', 'Astra', 'June 1st 2001', 7000],
-          ['BMW', '320i Coupe', 'August 3rd 2001', 30500]
+          ['BMW', '320i Coupe', 'August 3rd 2001', 30500],
         ],
         columns: [
           {},
           {},
           {
             type: 'date',
-            dateFormat: 'MMMM Do YYYY'
+            dateFormat: 'MMMM Do YYYY',
           },
           {
-            type: 'numeric'
-          }
+            type: 'numeric',
+          },
         ],
         colHeaders: true,
-        columnSorting: true
+        columnSorting: true,
       });
 
       hot.sort(2, true); // ASC
@@ -805,21 +805,21 @@ describe('ColumnSorting', () => {
           ['Citroen', 'C4 Coupe empty', '', 8330],
           ['Audi', 'A4 Avant', '11/19/2011', 33900],
           ['Opel', 'Astra', '02/02/2004', 7000],
-          ['BMW', '320i Coupe', '07/24/2011', 30500]
+          ['BMW', '320i Coupe', '07/24/2011', 30500],
         ],
         columns: [
           {},
           {},
           {
             type: 'date',
-            dateFormat: 'mm/dd/yy'
+            dateFormat: 'mm/dd/yy',
           },
           {
-            type: 'numeric'
-          }
+            type: 'numeric',
+          },
         ],
         colHeaders: true,
-        columnSorting: true
+        columnSorting: true,
       });
 
       hot.sort(2, true); // ASC
@@ -848,20 +848,20 @@ describe('ColumnSorting', () => {
           ['5:30:14 pm'],
           ['8:00:00 pm'],
           ['11:15:05 am'],
-          ['4:07:48 am']
+          ['4:07:48 am'],
         ],
         columns: [
           {
             type: 'time',
             dateFormat: 'h:mm:ss a',
-            correctFormat: true
-          }
+            correctFormat: true,
+          },
         ],
         colHeaders: true,
         columnSorting: {
           column: 0,
-          sortOrder: false
-        }
+          sortOrder: false,
+        },
       });
 
       hot.setDataAtCell(0, 0, '19:55', 'edit');
@@ -882,18 +882,18 @@ describe('ColumnSorting', () => {
         ['Citroen', 'C4 Coupe empty', '', 8333],
         ['Audi', 'A4 Avant', '11/19/2011', '33900'],
         ['Opel', 'Astra', '02/02/2004', '7000'],
-        ['BMW', '320i Coupe', '07/24/2011', 30500]
+        ['BMW', '320i Coupe', '07/24/2011', 30500],
       ],
       columns: [
         {},
         {},
         {},
         {
-          type: 'numeric'
-        }
+          type: 'numeric',
+        },
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(3);
@@ -933,22 +933,22 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'D'],
         [3, 'A'],
-        [2, 'C']
+        [2, 'C'],
       ],
       columns: [
         {},
         {},
         {
           type: 'date',
-          dateFormat: 'mm/dd/yy'
+          dateFormat: 'mm/dd/yy',
         },
         {
-          type: 'numeric'
-        }
+          type: 'numeric',
+        },
       ],
       colHeaders: true,
       columnSorting: true,
-      removeRowPlugin: true // this plugin ads an extra row header, so now we have 2 instead of 1
+      removeRowPlugin: true, // this plugin ads an extra row header, so now we have 2 instead of 1
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
@@ -970,13 +970,13 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'D'],
         [3, 'A'],
-        [2, 'C']
+        [2, 'C'],
       ],
       colHeaders: true,
       columnSorting: {
         column: 0,
-        sortOrder: true
-      }
+        sortOrder: true,
+      },
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
@@ -989,13 +989,13 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'D'],
         [3, 'A'],
-        [2, 'C']
+        [2, 'C'],
       ],
       colHeaders: true,
       columnSorting: {
         column: 0,
-        sortOrder: true
-      }
+        sortOrder: true,
+      },
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
@@ -1004,8 +1004,8 @@ describe('ColumnSorting', () => {
     updateSettings({
       columnSorting: {
         column: 1,
-        sortOrder: true
-      }
+        sortOrder: true,
+      },
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
@@ -1018,13 +1018,13 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'D'],
         [3, 'A'],
-        [2, 'C']
+        [2, 'C'],
       ],
       colHeaders: true,
       columnSorting: {
         column: 0,
-        sortOrder: true
-      }
+        sortOrder: true,
+      },
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
@@ -1032,8 +1032,8 @@ describe('ColumnSorting', () => {
     updateSettings({
       columnSorting: {
         column: 0,
-        sortOrder: false
-      }
+        sortOrder: false,
+      },
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
@@ -1054,16 +1054,16 @@ describe('ColumnSorting', () => {
       columnSorting: {
         column: 1,
         sortOrder: false,
-        sortEmptyCells: false
-      }
+        sortEmptyCells: false,
+      },
     });
 
     updateSettings({
       columnSorting: {
         column: 1,
         sortOrder: true,
-        sortEmptyCells: true
-      }
+        sortEmptyCells: true,
+      },
     });
 
     // ASC with empty cells sorting
@@ -1073,8 +1073,8 @@ describe('ColumnSorting', () => {
       columnSorting: {
         column: 1,
         sortOrder: true,
-        sortEmptyCells: false
-      }
+        sortEmptyCells: false,
+      },
     });
 
     // ASC without empty cells sorting
@@ -1086,7 +1086,7 @@ describe('ColumnSorting', () => {
       {a: 'aaa', b: 2, c: 3},
       {a: 'z', b: 11, c: -4},
       {a: 'dddd', b: 13, c: 13},
-      {a: 'bbbb', b: 10, c: 11}
+      {a: 'bbbb', b: 10, c: 11},
     ];
 
     function customIsEmptyRow(row) {
@@ -1101,12 +1101,12 @@ describe('ColumnSorting', () => {
       columns: [
         {data: 'a', type: 'text'},
         {data: 'b', type: 'text'},
-        {data: 'c', type: 'text'}
+        {data: 'c', type: 'text'},
       ],
       dataSchema: {isNew: true, a: false}, // default for a to avoid #bad value#
       columnSorting: true,
       minSpareRows: 3,
-      isEmptyRow: customIsEmptyRow
+      isEmptyRow: customIsEmptyRow,
     });
 
     // ASC
@@ -1114,8 +1114,8 @@ describe('ColumnSorting', () => {
     updateSettings({
       columnSorting: {
         column: 0,
-        sortOrder: true
-      }
+        sortOrder: true,
+      },
     });
 
     expect(getData()).toEqual([
@@ -1125,14 +1125,14 @@ describe('ColumnSorting', () => {
       ['z', 11, -4],
       [false, null, null],
       [false, null, null],
-      [false, null, null]
+      [false, null, null],
     ]);
 
     updateSettings({
       columnSorting: {
         column: 0,
-        sortOrder: false
-      }
+        sortOrder: false,
+      },
     });
 
     expect(getData()).toEqual([
@@ -1142,7 +1142,7 @@ describe('ColumnSorting', () => {
       ['aaa', 2, 3],
       [false, null, null],
       [false, null, null],
-      [false, null, null]
+      [false, null, null],
     ]);
   });
 
@@ -1152,19 +1152,19 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'D'],
         [3, 'A'],
-        [2, 'C']
+        [2, 'C'],
       ],
       colHeaders: true,
       columnSorting: {
         column: 0,
-        sortOrder: true
-      }
+        sortOrder: true,
+      },
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
 
     updateSettings({
-      columnSorting: void 0
+      columnSorting: void 0,
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
@@ -1177,7 +1177,7 @@ describe('ColumnSorting', () => {
     expect(hot.sort).toBeUndefined();
 
     updateSettings({
-      columnSorting: true
+      columnSorting: true,
     });
 
     expect(hot.getSettings().columnSorting).toBe(true);
@@ -1185,7 +1185,7 @@ describe('ColumnSorting', () => {
     expect(typeof hot.sort).toBe('function');
 
     updateSettings({
-      columnSorting: false
+      columnSorting: false,
     });
 
     expect(hot.getSettings().columnSorting).toBeFalsy();
@@ -1198,9 +1198,9 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'D'],
         [3, 'A'],
-        [2, 'C']
+        [2, 'C'],
       ],
-      columnSorting: true
+      columnSorting: true,
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
@@ -1222,19 +1222,19 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'D'],
         [3, 'A'],
-        [2, 'C']
+        [2, 'C'],
       ],
       colHeaders: true,
       columnSorting: {
         column: 0,
-        sortOrder: true
-      }
+        sortOrder: true,
+      },
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
 
     updateSettings({
-      columnSorting: void 0
+      columnSorting: void 0,
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
@@ -1246,9 +1246,9 @@ describe('ColumnSorting', () => {
         [2],
         [4],
         [1],
-        [3]
+        [3],
       ],
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.beforeColumnSortHandler = function() {
@@ -1277,12 +1277,12 @@ describe('ColumnSorting', () => {
         [2],
         [4],
         [1],
-        [3]
+        [3],
       ],
       columnSorting: true,
       beforeColumnSort() {
         return false;
-      }
+      },
     });
 
     hot.sort(0, true);
@@ -1302,7 +1302,7 @@ describe('ColumnSorting', () => {
     var hot = handsontable({
       data: [[2], [4], [1], [3]],
       columnSorting: true,
-      beforeColumnSort: beforeColumnSortCallback
+      beforeColumnSort: beforeColumnSortCallback,
     });
 
     var sortColumn = 0;
@@ -1320,9 +1320,9 @@ describe('ColumnSorting', () => {
         [2],
         [4],
         [1],
-        [3]
+        [3],
       ],
-      columnSorting: true
+      columnSorting: true,
     });
     var rendered = false;
     var afterColumnSortHandler = jasmine.createSpy('afterColumnSortHandler');
@@ -1354,7 +1354,7 @@ describe('ColumnSorting', () => {
     var hot = handsontable({
       data: [[2], [4], [1], [3]],
       columnSorting: true,
-      afterColumnSort: afterColumnSortCallback
+      afterColumnSort: afterColumnSortCallback,
     });
 
     var sortColumn = 0;
@@ -1372,9 +1372,9 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'D'],
         [3, 'A'],
-        [2, 'C']
+        [2, 'C'],
       ],
-      columnSorting: true
+      columnSorting: true,
     });
 
     expect(countRows()).toEqual(4);
@@ -1391,9 +1391,9 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'D'],
         [3, 'A'],
-        [2, 'C']
+        [2, 'C'],
       ],
-      columnSorting: true
+      columnSorting: true,
     });
 
     expect(countRows()).toEqual(4);
@@ -1409,14 +1409,14 @@ describe('ColumnSorting', () => {
       [1, 'B'],
       [0, 'A'],
       [3, 'D'],
-      [2, 'C']
+      [2, 'C'],
     ];
 
     var hot = handsontable({
       data,
       colHeaders: true,
       columnSorting: true,
-      observeChanges: true
+      observeChanges: true,
     });
 
     var htCore = getHtCore();
@@ -1453,14 +1453,14 @@ describe('ColumnSorting', () => {
       [1, 'B'],
       [0, 'A'],
       [3, 'D'],
-      [2, 'C']
+      [2, 'C'],
     ];
 
     var hot = handsontable({
       data,
       colHeaders: true,
       columnSorting: true,
-      observeChanges: false
+      observeChanges: false,
     });
 
     var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
@@ -1499,7 +1499,7 @@ describe('ColumnSorting', () => {
       [1, 'B'],
       [0, 'A'],
       [3, 'D'],
-      [2, 'C']
+      [2, 'C'],
     ];
 
     var onUpdateSettings = jasmine.createSpy('onUpdateSettings');
@@ -1508,7 +1508,7 @@ describe('ColumnSorting', () => {
       data,
       colHeaders: true,
       columnSorting: true,
-      afterUpdateSettings: onUpdateSettings
+      afterUpdateSettings: onUpdateSettings,
     });
 
     var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
@@ -1548,11 +1548,11 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'D'],
         [3, 'A'],
-        [2, 'C']
+        [2, 'C'],
       ],
       columnSorting: {
-        column: 1
-      }
+        column: 1,
+      },
     });
 
     this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
@@ -1572,9 +1572,9 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'D'],
         [3, 'A'],
-        [2, 'C']
+        [2, 'C'],
       ],
-      columnSorting: true
+      columnSorting: true,
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
@@ -1595,7 +1595,7 @@ describe('ColumnSorting', () => {
       [30, 'F'],
       [60, 'I'],
       [40, 'J'],
-      [20, 'H']
+      [20, 'H'],
     ]);
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('50');
@@ -1613,12 +1613,12 @@ describe('ColumnSorting', () => {
         [1, 'B'],
         [0, 'D'],
         [3, 'A'],
-        [2, 'C']
+        [2, 'C'],
       ],
       columnSorting: {
         column: 1,
-        sortOrder: true
-      }
+        sortOrder: true,
+      },
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
@@ -1644,7 +1644,7 @@ describe('ColumnSorting', () => {
       [30, 'F'],
       [60, 'I'],
       [40, 'J'],
-      [20, 'H']
+      [20, 'H'],
     ]);
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('50');
@@ -1670,11 +1670,11 @@ describe('ColumnSorting', () => {
         [2, 'Frank', 'Honest'],
         [3, 'Joan', 'Well'],
         [4, 'Sid', 'Strong'],
-        [5, 'Jane', 'Neat']
+        [5, 'Jane', 'Neat'],
       ],
       colHeaders: true,
       rowHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(0);
@@ -1700,11 +1700,11 @@ describe('ColumnSorting', () => {
         [2, 'Frank', 'Honest'],
         [3, 'Joan', 'Well'],
         [4, 'Sid', 'Strong'],
-        [5, 'Jane', 'Neat']
+        [5, 'Jane', 'Neat'],
       ],
       colHeaders: true,
       rowHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(0);
@@ -1730,11 +1730,11 @@ describe('ColumnSorting', () => {
         [2, 'Frank', 'Honest'],
         [3, 'Joan', 'Well'],
         [4, 'Sid', 'Strong'],
-        [5, 'Jane', 'Neat']
+        [5, 'Jane', 'Neat'],
       ],
       colHeaders: true,
       rowHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(0);
@@ -1762,11 +1762,11 @@ describe('ColumnSorting', () => {
         [2, 'Frank', 'Honest'],
         [3, 'Joan', 'Well'],
         [4, 'Sid', 'Strong'],
-        [5, 'Jane', 'Neat']
+        [5, 'Jane', 'Neat'],
       ],
       colHeaders: true,
       rowHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(0);
@@ -1799,10 +1799,10 @@ describe('ColumnSorting', () => {
       data: [
         [1, 'albuquerque'],
         [2, 'Alabama'],
-        [3, 'Missouri']
+        [3, 'Missouri'],
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(1);
@@ -1827,7 +1827,7 @@ describe('ColumnSorting', () => {
       colHeaders: true,
       rowHeaders: true,
       columnSorting: true,
-      minSpareRows: 1
+      minSpareRows: 1,
     });
 
     this.sortByColumn(1);
@@ -1847,10 +1847,10 @@ describe('ColumnSorting', () => {
         [2, '', 'Some'],
         [3, '', 321],
         [4, 'Sid', 'String'],
-        [5, 'Jane', 46]
+        [5, 'Jane', 46],
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(2);
@@ -1871,7 +1871,7 @@ describe('ColumnSorting', () => {
         [5, 'Jane', 'Neat'],
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(1);
@@ -1886,7 +1886,7 @@ describe('ColumnSorting', () => {
     // ---------------------------------
 
     hot.updateSettings({
-      sortIndicator: true
+      sortIndicator: true,
     });
 
     this.sortByColumn(1);
@@ -1919,8 +1919,8 @@ describe('ColumnSorting', () => {
       columns: [
         {},
         {},
-        {sortIndicator: true}
-      ]
+        {sortIndicator: true},
+      ],
     });
 
     this.sortByColumn(0);
@@ -2061,7 +2061,7 @@ describe('ColumnSorting', () => {
       colHeaders: true,
       columnSorting: {
         column: 1,
-        sortOrder: false
+        sortOrder: false,
       },
       sortIndicator: true,
     });
@@ -2113,13 +2113,13 @@ describe('ColumnSorting', () => {
         'Marci Clay', 'Palmer Harrell', 'Ball Levy', 'Shelley Mendoza', 'Morrow Glass', 'Baker Knox', 'Adrian Holman'],
       ['Trisha Howell', 'Brooke Harrison', 'Anthony Watkins', 'Ellis Cobb', 'Sheppard Dillon', 'Mathis Bray',
         'Foreman Burns', 'Lina Glenn', 'Giles Pollard', 'Weiss Ballard', 'Lynnette Smith', 'Flores Kline', 'Graciela Singleton',
-        'Santiago Mcclure', 'Claudette Battle', 'Nita Holloway', 'Eula Wolfe', 'Pruitt Stokes', 'Felicia Briggs', 'Melba Bradshaw']
+        'Santiago Mcclure', 'Claudette Battle', 'Nita Holloway', 'Eula Wolfe', 'Pruitt Stokes', 'Felicia Briggs', 'Melba Bradshaw'],
     ];
 
     var hot = handsontable({
       data,
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     hot.view.wt.wtOverlays.leftOverlay.scrollTo(15);
@@ -2160,7 +2160,7 @@ describe('ColumnSorting', () => {
                 inch: 1,
                 yard: 36,
                 feet: 12,
-                miles: 63360
+                miles: 63360,
               };
 
               var newA = a[1],
@@ -2198,9 +2198,9 @@ describe('ColumnSorting', () => {
               }
               return 0;
             };
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     expect(getDataAtCell(0, 0)).toEqual('1 inch');
@@ -2239,10 +2239,10 @@ describe('ColumnSorting', () => {
         ['10'],
         ['-5'],
         [null],
-        ['1000']
+        ['1000'],
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(0);
@@ -2260,10 +2260,10 @@ describe('ColumnSorting', () => {
         ['-4.1'],
         ['-0.01'],
         ['-127'],
-        ['1000']
+        ['1000'],
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(0);
@@ -2284,10 +2284,10 @@ describe('ColumnSorting', () => {
         [null],
         ['-127'],
         ['1000'],
-        [null]
+        [null],
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(0);
@@ -2308,10 +2308,10 @@ describe('ColumnSorting', () => {
         ['b'],
         ['-127'],
         ['1000'],
-        ['hello']
+        ['hello'],
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(0);
@@ -2327,10 +2327,10 @@ describe('ColumnSorting', () => {
         [2],
         [4],
         [1],
-        [3]
+        [3],
       ],
       colHeaders: true,
-      columnSorting: true
+      columnSorting: true,
     });
 
     this.sortByColumn(0);
@@ -2354,8 +2354,8 @@ describe('ColumnSorting', () => {
           minSpareRows: config.minSpareRows,
           columnSorting: {
             column: config.sortByColumnIndex,
-            sortOrder: config.sortOrder
-          }
+            sortOrder: config.sortOrder,
+          },
         });
 
         expect(getData().length).toEqual(result.dataLength);
@@ -2369,31 +2369,31 @@ describe('ColumnSorting', () => {
     testSorting(
       'maxRows < data.length',
       {rows: 9, columns: 9, maxRow: 6, sortByColumnIndex: 1, sortOrder: false},
-      {dataLength: 6, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C6'}]}
+      {dataLength: 6, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C6'}]},
     );
 
     testSorting(
       'maxRows > data.length',
       {rows: 8, columns: 8, maxRow: 20, sortByColumnIndex: 1, sortOrder: false},
-      {dataLength: 8, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C8'}]}
+      {dataLength: 8, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C8'}]},
     );
 
     testSorting(
       'minSpareRows is set; maxRows < data.length',
       {rows: 9, columns: 9, maxRow: 5, minSpareRows: 3, sortByColumnIndex: 1, sortOrder: false},
-      {dataLength: 5, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C5'}]}
+      {dataLength: 5, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C5'}]},
     );
 
     testSorting(
       'minSpareRows is set; maxRows === data.length',
       {rows: 6, columns: 6, maxRow: 9, minSpareRows: 3, sortByColumnIndex: 1, sortOrder: false},
-      {dataLength: 6 + 3, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C6'}]}
+      {dataLength: 6 + 3, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C6'}]},
     );
 
     testSorting(
       'minSpareRows is set; maxRows > data.length',
       {rows: 9, columns: 9, maxRow: 15, minSpareRows: 2, sortByColumnIndex: 1, sortOrder: false},
-      {dataLength: 9 + 2, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C9'}]}
+      {dataLength: 9 + 2, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C9'}]},
     );
   });
 });

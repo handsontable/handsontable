@@ -242,7 +242,7 @@ class ColumnSorting extends BasePlugin {
     this.hot._registerTimeout(
       setTimeout(() => {
         _this.hot.updateSettings({
-          observeChanges: true
+          observeChanges: true,
         });
       }, 0));
   }

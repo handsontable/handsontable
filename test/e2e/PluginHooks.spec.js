@@ -19,7 +19,7 @@ describe('PluginHooks', () => {
     var handler3 = jasmine.createSpy('handler3');
 
     handsontable({
-      afterInit: [handler1, handler2, handler3]
+      afterInit: [handler1, handler2, handler3],
     });
 
     expect(handler1).toHaveBeenCalled();
@@ -105,7 +105,7 @@ describe('PluginHooks', () => {
     handsontable({
       afterInit() {
         test += 5;
-      }
+      },
     });
 
     expect(test).toEqual(10);
@@ -213,7 +213,7 @@ describe('PluginHooks', () => {
     };
 
     var hot = handsontable({
-      afterOnCellMouseOver: fn
+      afterOnCellMouseOver: fn,
     });
 
     hot.getInstance().updateSettings({afterOnCellMouseOver: fn});
@@ -227,7 +227,7 @@ describe('PluginHooks', () => {
     var fn2 = function() {};
 
     var hot = handsontable({
-      afterChange: fn
+      afterChange: fn,
     });
 
     hot.addHook('afterChange', fn2);
@@ -243,7 +243,7 @@ describe('PluginHooks', () => {
     var hot = handsontable();
 
     hot.updateSettings({
-      afterChange: fn
+      afterChange: fn,
     });
 
     hot.addHook('afterChange', fn2);
@@ -258,7 +258,7 @@ describe('PluginHooks', () => {
     var fn2 = function() {};
 
     var hot = handsontable({
-      afterGetCellMeta: fn
+      afterGetCellMeta: fn,
     });
 
     var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
@@ -266,17 +266,17 @@ describe('PluginHooks', () => {
     hot.updateSettings({
       afterGetCellMeta() {
         return 'another function';
-      }
+      },
     });
 
     hot.updateSettings({
       afterGetCellMeta() {
         return 'yet another function';
-      }
+      },
     });
 
     hot.updateSettings({
-      afterGetCellMeta: fn2
+      afterGetCellMeta: fn2,
     });
 
     expect(hot.pluginHookBucket.afterGetCellMeta.length).toEqual(initialCallbackCount);
@@ -293,7 +293,7 @@ describe('PluginHooks', () => {
     hot.addHook('afterGetCellMeta', () => 'doesn\'t matter 3');
 
     hot.updateSettings({
-      afterGetCellMeta: fn
+      afterGetCellMeta: fn,
     });
 
     var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
@@ -301,17 +301,17 @@ describe('PluginHooks', () => {
     hot.updateSettings({
       afterGetCellMeta() {
         return 'another function';
-      }
+      },
     });
 
     hot.updateSettings({
       afterGetCellMeta() {
         return 'yet another function';
-      }
+      },
     });
 
     hot.updateSettings({
-      afterGetCellMeta: fn2
+      afterGetCellMeta: fn2,
     });
 
     expect(hot.pluginHookBucket.afterGetCellMeta.length).toEqual(initialCallbackCount);
@@ -324,7 +324,7 @@ describe('PluginHooks', () => {
     var hot = handsontable();
 
     hot.updateSettings({
-      afterGetCellMeta: fn
+      afterGetCellMeta: fn,
     });
 
     var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;

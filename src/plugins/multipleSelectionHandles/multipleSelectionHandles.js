@@ -94,7 +94,7 @@ class MultipleSelectionHandles extends BasePlugin {
         _this.touchStartRange = {
           width: selectedRange.getWidth(),
           height: selectedRange.getHeight(),
-          direction: selectedRange.getDirection()
+          direction: selectedRange.getDirection(),
         };
 
         event.preventDefault();
@@ -108,7 +108,7 @@ class MultipleSelectionHandles extends BasePlugin {
         _this.touchStartRange = {
           width: selectedRange.getWidth(),
           height: selectedRange.getHeight(),
-          direction: selectedRange.getDirection()
+          direction: selectedRange.getDirection(),
         };
 
         event.preventDefault();
@@ -202,7 +202,7 @@ class MultipleSelectionHandles extends BasePlugin {
 
     let newCoords = {
       start: null,
-      end: null
+      end: null,
     };
 
     switch (touchStartDirection) {
@@ -213,12 +213,12 @@ class MultipleSelectionHandles extends BasePlugin {
             if (draggedHandle === 'topLeft') {
               newCoords = {
                 start: new CellCoords(currentTouch.row, selectedRange.highlight.col),
-                end: new CellCoords(bottomLeftCorner.row, currentTouch.col)
+                end: new CellCoords(bottomLeftCorner.row, currentTouch.col),
               };
             } else {
               newCoords = {
                 start: new CellCoords(selectedRange.highlight.row, currentTouch.col),
-                end: new CellCoords(currentTouch.row, topLeftCorner.col)
+                end: new CellCoords(currentTouch.row, topLeftCorner.col),
               };
             }
             break;
@@ -226,7 +226,7 @@ class MultipleSelectionHandles extends BasePlugin {
             if (draggedHandle === 'bottomRight') {
               newCoords = {
                 start: new CellCoords(bottomRightCorner.row, currentTouch.col),
-                end: new CellCoords(currentTouch.row, topLeftCorner.col)
+                end: new CellCoords(currentTouch.row, topLeftCorner.col),
               };
             }
             break;
@@ -240,7 +240,7 @@ class MultipleSelectionHandles extends BasePlugin {
             if (draggedHandle === 'topLeft') {
               newCoords = {
                 start: currentTouch,
-                end: bottomLeftCorner
+                end: bottomLeftCorner,
               };
             } else {
               newCoords.end = currentTouch;
@@ -250,7 +250,7 @@ class MultipleSelectionHandles extends BasePlugin {
             if (draggedHandle === 'topLeft') {
               newCoords = {
                 start: currentTouch,
-                end: bottomRightCorner
+                end: bottomRightCorner,
               };
             } else {
               newCoords.end = currentTouch;
@@ -260,7 +260,7 @@ class MultipleSelectionHandles extends BasePlugin {
             if (draggedHandle === 'topLeft') {
               newCoords = {
                 start: currentTouch,
-                end: topLeftCorner
+                end: topLeftCorner,
               };
             } else {
               newCoords.end = currentTouch;
@@ -270,7 +270,7 @@ class MultipleSelectionHandles extends BasePlugin {
             if (draggedHandle === 'topLeft') {
               newCoords = {
                 start: currentTouch,
-                end: topRightCorner
+                end: topRightCorner,
               };
             } else {
               newCoords.end = currentTouch;
@@ -286,12 +286,12 @@ class MultipleSelectionHandles extends BasePlugin {
             if (draggedHandle === 'bottomRight') {
               newCoords = {
                 start: new CellCoords(currentTouch.row, topLeftCorner.col),
-                end: new CellCoords(bottomLeftCorner.row, currentTouch.col)
+                end: new CellCoords(bottomLeftCorner.row, currentTouch.col),
               };
             } else {
               newCoords = {
                 start: new CellCoords(topLeftCorner.row, currentTouch.col),
-                end: new CellCoords(currentTouch.row, bottomRightCorner.col)
+                end: new CellCoords(currentTouch.row, bottomRightCorner.col),
               };
             }
             break;
@@ -302,12 +302,12 @@ class MultipleSelectionHandles extends BasePlugin {
             if (draggedHandle === 'topLeft') {
               newCoords = {
                 start: new CellCoords(selectedRange.highlight.row, currentTouch.col),
-                end: new CellCoords(currentTouch.row, bottomRightCorner.col)
+                end: new CellCoords(currentTouch.row, bottomRightCorner.col),
               };
             } else {
               newCoords = {
                 start: new CellCoords(currentTouch.row, topLeftCorner.col),
-                end: new CellCoords(topLeftCorner.row, currentTouch.col)
+                end: new CellCoords(topLeftCorner.row, currentTouch.col),
               };
             }
             break;
@@ -315,12 +315,12 @@ class MultipleSelectionHandles extends BasePlugin {
             if (draggedHandle === 'bottomRight') {
               newCoords = {
                 start: new CellCoords(currentTouch.row, topRightCorner.col),
-                end: new CellCoords(topLeftCorner.row, currentTouch.col)
+                end: new CellCoords(topLeftCorner.row, currentTouch.col),
               };
             } else if (draggedHandle === 'topLeft') {
               newCoords = {
                 start: bottomLeftCorner,
-                end: currentTouch
+                end: currentTouch,
               };
             }
             break;
@@ -343,7 +343,7 @@ class MultipleSelectionHandles extends BasePlugin {
             } else {
               newCoords = {
                 start: currentTouch,
-                end: topLeftCorner
+                end: topLeftCorner,
               };
             }
             break;

@@ -24,6 +24,6 @@ export default function clearColumnItem() {
       let rowSelected = entireRowSelection.join(',') === selected.join(',');
 
       return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
-    }
+    },
   };
 }

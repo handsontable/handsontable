@@ -97,7 +97,7 @@ var getSettingIndex = function(className) {
 var insertBorderIntoSettings = function(border) {
   var coordinates = {
     row: border.row,
-    col: border.col
+    col: border.col,
   };
   var selection = new Selection(border, new CellRange(coordinates, coordinates, coordinates));
   var index = getSettingIndex(border.className);
@@ -196,7 +196,7 @@ var createClassName = function(row, col) {
 var createDefaultCustomBorder = function() {
   return {
     width: 1,
-    color: '#000'
+    color: '#000',
   };
 };
 
@@ -207,7 +207,7 @@ var createDefaultCustomBorder = function() {
  */
 var createSingleEmptyBorder = function() {
   return {
-    hide: true
+    hide: true,
   };
 };
 
@@ -513,10 +513,10 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
           },
           disabled() {
             return !checkSelectionBorders(this);
-          }
-        }
-      ]
-    }
+          },
+        },
+      ],
+    },
   });
 };
 

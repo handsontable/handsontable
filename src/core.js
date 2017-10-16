@@ -432,7 +432,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
           let selected = { // selected range
             row: (end && start) ? (end.row - start.row + 1) : 1,
-            col: (end && start) ? (end.col - start.col + 1) : 1
+            col: (end && start) ? (end.col - start.col + 1) : 1,
           };
           let skippedRow = 0;
           let skippedColumn = 0;
@@ -507,7 +507,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               let orgValue = instance.getDataAtCell(current.row, current.col);
               let index = {
                 row: visualRow,
-                col: visualColumn
+                col: visualColumn,
               };
 
               if (source === 'Autofill.fill') {
@@ -988,7 +988,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           resolved = true;
           this.onQueueEmpty(this.valid);
         }
-      }
+      },
     };
   }
 
@@ -1188,7 +1188,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return row;
     }
     return [
-      [row, propOrCol, value]
+      [row, propOrCol, value],
     ];
   }
 

@@ -23,9 +23,9 @@ describe('Core_dataSchema', () => {
         columns: [
           {data: 'id'},
           {data: 'name.first'},
-          {data: 'name.last'}
+          {data: 'name.last'},
         ],
-        minSpareRows: 1
+        minSpareRows: 1,
       });
 
     expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
@@ -57,7 +57,7 @@ describe('Core_dataSchema', () => {
 
           return colMeta;
         },
-        minSpareRows: 1
+        minSpareRows: 1,
       });
 
     expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
@@ -76,9 +76,9 @@ describe('Core_dataSchema', () => {
         columns: [
           {data: 'id'},
           {data: 'name.first'},
-          {data: 'name.last'}
+          {data: 'name.last'},
         ],
-        minSpareRows: 1
+        minSpareRows: 1,
       });
     expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
   });
@@ -111,7 +111,7 @@ describe('Core_dataSchema', () => {
 
           return colMeta;
         },
-        minSpareRows: 1
+        minSpareRows: 1,
       });
     expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
   });
@@ -119,7 +119,7 @@ describe('Core_dataSchema', () => {
   it('should be equal to `hot.getSchema()` when dataSchema is generated based on data structure', () => {
     var hot = handsontable({
       data: [
-        {id: 1, name: {first: 'Alan', last: 'Pakoli'}, cars: [{brand: 'Ford'}]}
+        {id: 1, name: {first: 'Alan', last: 'Pakoli'}, cars: [{brand: 'Ford'}]},
       ],
       minRows: 5,
       minCols: 4,
@@ -127,9 +127,9 @@ describe('Core_dataSchema', () => {
       columns: [
         {data: 'id'},
         {data: 'name.first'},
-        {data: 'name.last'}
+        {data: 'name.last'},
       ],
-      minSpareRows: 1
+      minSpareRows: 1,
     });
 
     expect(JSON.stringify(hot.getSchema()))
@@ -139,7 +139,7 @@ describe('Core_dataSchema', () => {
   it('should be equal to `hot.getSchema()` when dataSchema is generated based on data structure when columns is a function', () => {
     var hot = handsontable({
       data: [
-        {id: 1, name: {first: 'Alan', last: 'Pakoli'}, cars: [{brand: 'Ford'}]}
+        {id: 1, name: {first: 'Alan', last: 'Pakoli'}, cars: [{brand: 'Ford'}]},
       ],
       minRows: 5,
       minCols: 4,
@@ -162,7 +162,7 @@ describe('Core_dataSchema', () => {
 
         return colMeta;
       },
-      minSpareRows: 1
+      minSpareRows: 1,
     });
 
     expect(JSON.stringify(hot.getSchema()))
@@ -180,9 +180,9 @@ describe('Core_dataSchema', () => {
         {data: 'id'},
         {data: 'name.first'},
         {data: 'name.last'},
-        {data: 'address'}
+        {data: 'address'},
       ],
-      minSpareRows: 1
+      minSpareRows: 1,
     });
     selectCell(0, 1);
 
@@ -221,7 +221,7 @@ describe('Core_dataSchema', () => {
 
         return colMeta;
       },
-      minSpareRows: 1
+      minSpareRows: 1,
     });
     selectCell(0, 1);
 
@@ -252,9 +252,9 @@ describe('Core_dataSchema', () => {
         {data: 'id'},
         {data: 'name.first'},
         {data: 'name.last'},
-        {data: 'address'}
+        {data: 'address'},
       ],
-      minSpareRows: 1
+      minSpareRows: 1,
     });
     selectCell(4, 1);
 
@@ -311,7 +311,7 @@ describe('Core_dataSchema', () => {
 
         return colMeta;
       },
-      minSpareRows: 1
+      minSpareRows: 1,
     });
     selectCell(4, 1);
 
@@ -339,26 +339,22 @@ describe('Core_dataSchema', () => {
       data: [
         Model({
           id: 1,
-          name: 'Tom'
+          name: 'Tom',
         }),
         Model({
           id: 2,
-          name: 'Hanna'
+          name: 'Hanna',
         }),
         Model({
           id: 3,
-          name: 'Jerry'
-        })
+          name: 'Jerry',
+        }),
       ],
       dataSchema: Model,
       columns: [
-        {
-          data: idAccessor
-        },
-        {
-          data: nameAccessor
-        }
-      ]
+        { data: idAccessor },
+        { data: nameAccessor },
+      ],
     });
 
     expect(hot.propToCol(idAccessor)).toEqual(0);
@@ -373,16 +369,16 @@ describe('Core_dataSchema', () => {
       data: [
         Model({
           id: 1,
-          name: 'Tom'
+          name: 'Tom',
         }),
         Model({
           id: 2,
-          name: 'Hanna'
+          name: 'Hanna',
         }),
         Model({
           id: 3,
-          name: 'Jerry'
-        })
+          name: 'Jerry',
+        }),
       ],
       dataSchema: Model,
       columns(column) {
@@ -399,7 +395,7 @@ describe('Core_dataSchema', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(hot.propToCol(idAccessor)).toEqual(0);
@@ -412,7 +408,7 @@ describe('Core_dataSchema', () => {
       data: [[{id: 1}]],
       dataSchema: [{id: null}],
       columns: [
-        {data: '0', renderer: spy}
+        {data: '0', renderer: spy},
       ],
       autoColumnSize: false,
       autoRowSize: false,
@@ -448,7 +444,7 @@ describe('Core_dataSchema', () => {
         return colMeta;
       },
       autoColumnSize: false,
-      autoRowSize: false
+      autoRowSize: false,
     });
 
     expect(spy.calls.count()).toBe(1);

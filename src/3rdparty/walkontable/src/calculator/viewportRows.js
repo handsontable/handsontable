@@ -33,7 +33,7 @@ class ViewportRowsCalculator {
       rowHeightFn,
       overrideFn,
       onlyFullyVisible,
-      horizontalScrollbarHeight
+      horizontalScrollbarHeight,
     });
 
     /**

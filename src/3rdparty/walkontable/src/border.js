@@ -47,7 +47,7 @@ class Border {
       height: '5px',
       borderWidth: '2px',
       borderStyle: 'solid',
-      borderColor: '#FFF'
+      borderColor: '#FFF',
     };
     this.corner = null;
     this.cornerStyle = null;
@@ -181,7 +181,7 @@ class Border {
     this.cornerStyle.border = [
       this.cornerDefaultStyle.borderWidth,
       this.cornerDefaultStyle.borderStyle,
-      this.cornerDefaultStyle.borderColor
+      this.cornerDefaultStyle.borderColor,
     ].join(' ');
 
     if (isMobileBrowser()) {
@@ -205,7 +205,7 @@ class Border {
       topLeft: document.createElement('DIV'),
       topLeftHitArea: document.createElement('DIV'),
       bottomRight: document.createElement('DIV'),
-      bottomRightHitArea: document.createElement('DIV')
+      bottomRightHitArea: document.createElement('DIV'),
     };
     let width = 10;
     let hitAreaWidth = 40;
@@ -219,7 +219,7 @@ class Border {
       topLeft: this.selectionHandles.topLeft.style,
       topLeftHitArea: this.selectionHandles.topLeftHitArea.style,
       bottomRight: this.selectionHandles.bottomRight.style,
-      bottomRightHitArea: this.selectionHandles.bottomRightHitArea.style
+      bottomRightHitArea: this.selectionHandles.bottomRightHitArea.style,
     };
 
     let hitAreaStyle = {
@@ -240,7 +240,7 @@ class Border {
       width: `${width}px`,
       'border-radius': `${parseInt(width / 1.5, 10)}px`,
       background: '#F5F5FF',
-      border: '1px solid #4285c8'
+      border: '1px solid #4285c8',
     };
 
     objectEach(handleStyle, (value, key) => {

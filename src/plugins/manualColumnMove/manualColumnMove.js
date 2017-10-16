@@ -58,8 +58,8 @@ class ManualColumnMove extends BasePlugin {
         eventPageX: void 0,
         coords: void 0,
         TD: void 0,
-        col: void 0
-      }
+        col: void 0,
+      },
     });
 
     /**

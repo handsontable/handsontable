@@ -3,7 +3,7 @@ import {arrayEach} from './../../helpers/array';
 import {
   SEPARATOR,
   ITEMS,
-  predefinedItems
+  predefinedItems,
 } from './predefinedItems';
 
 /**

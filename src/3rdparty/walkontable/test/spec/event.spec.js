@@ -26,7 +26,7 @@ describe('WalkontableEvent', () => {
         onCellMouseDown(event, coords, TD) {
           myCoords = coords;
           myTD = TD;
-        }
+        },
       });
     wt.draw();
 
@@ -49,7 +49,7 @@ describe('WalkontableEvent', () => {
         onCellMouseOver(event, coords, TD) {
           myCoords = coords;
           myTD = TD;
-        }
+        },
       });
     wt.draw();
 
@@ -93,7 +93,7 @@ describe('WalkontableEvent', () => {
         onCellMouseOut(event, coords, TD) {
           myCoords = coords;
           myTD = TD;
-        }
+        },
       });
     wt.draw();
 
@@ -139,7 +139,7 @@ describe('WalkontableEvent', () => {
         onCellDblClick(event, coords, TD) {
           myCoords = coords;
           myTD = TD;
-        }
+        },
       });
     wt.draw();
 
@@ -160,7 +160,7 @@ describe('WalkontableEvent', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
     wt.draw();
 
@@ -190,7 +190,7 @@ describe('WalkontableEvent', () => {
         }],
         onCellMouseDown() {
           called = true;
-        }
+        },
       });
     wt.draw();
 
@@ -213,7 +213,7 @@ describe('WalkontableEvent', () => {
       }],
       onCellMouseDown() {
         called = true;
-      }
+      },
     });
     wt.draw();
 
@@ -238,7 +238,7 @@ describe('WalkontableEvent', () => {
       },
       onCellMouseDown() {
         called = true;
-      }
+      },
     });
     wt.draw();
 
@@ -263,7 +263,7 @@ describe('WalkontableEvent', () => {
         }],
         onCellMouseOver(event, coords) {
           called = coords;
-        }
+        },
       });
     wt.draw();
 
@@ -286,7 +286,7 @@ describe('WalkontableEvent', () => {
         }],
         onCellDblClick() {
           called = true;
-        }
+        },
       });
     wt.draw();
 
@@ -310,13 +310,13 @@ describe('WalkontableEvent', () => {
         totalColumns: getTotalColumns,
         onCellDblClick() {
           called = true;
-        }
+        },
       });
     wt.draw();
 
     var $td = $table.find('tbody tr:first td:first');
     var options = {
-      button: 2
+      button: 2,
     };
 
     $td.simulate('mousedown', options);
@@ -337,7 +337,7 @@ describe('WalkontableEvent', () => {
         totalColumns: getTotalColumns,
         onCellDblClick() {
           called = true;
-        }
+        },
       });
     wt.draw();
 
@@ -367,14 +367,14 @@ describe('WalkontableEvent', () => {
             border: {
               width: 1,
               color: 'red',
-              style: 'solid'
-            }
-          })
+              style: 'solid',
+            },
+          }),
         ],
         onCellMouseDown(event, coords, TD) {
           myCoords = coords;
           myTD = TD;
-        }
+        },
       });
     shimSelectionProperties(wt);
     wt.selections.current.add(new Walkontable.CellCoords(1, 1));
@@ -404,14 +404,14 @@ describe('WalkontableEvent', () => {
             border: {
               width: 1,
               color: 'red',
-              style: 'solid'
-            }
-          })
+              style: 'solid',
+            },
+          }),
         ],
         onCellDblClick(event, coords, TD) {
           myCoords = coords;
           myTD = TD;
-        }
+        },
       });
     shimSelectionProperties(wt);
     wt.selections.current.add(new Walkontable.CellCoords(1, 1));
@@ -445,13 +445,13 @@ describe('WalkontableEvent', () => {
             border: {
               width: 1,
               color: 'red',
-              style: 'solid'
-            }
-          })
+              style: 'solid',
+            },
+          }),
         ],
         onCellCornerMouseDown() {
           clicked = true;
-        }
+        },
       });
     shimSelectionProperties(wt);
     wt.selections.current.add(new Walkontable.CellCoords(10, 2));
@@ -477,10 +477,10 @@ describe('WalkontableEvent', () => {
             border: {
               width: 1,
               color: 'red',
-              style: 'solid'
-            }
-          })
-        ]
+              style: 'solid',
+            },
+          }),
+        ],
       });
     shimSelectionProperties(wt);
     wt.selections.current.add(new Walkontable.CellCoords(10, 2));
@@ -509,7 +509,7 @@ describe('WalkontableEvent', () => {
         totalColumns: getTotalColumns,
         onDraw() {
           count++;
-        }
+        },
       });
     wt.draw();
     expect(count).toEqual(1);

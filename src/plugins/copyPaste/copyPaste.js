@@ -181,7 +181,7 @@ class CopyPaste extends BasePlugin {
       startRow,
       startCol,
       endRow: finalEndRow,
-      endCol: finalEndCol
+      endCol: finalEndCol,
     });
 
     this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
@@ -456,7 +456,7 @@ class CopyPaste extends BasePlugin {
         name: '---------',
       },
       copyItem(this),
-      cutItem(this)
+      cutItem(this),
     );
   }
 

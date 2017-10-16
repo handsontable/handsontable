@@ -21,7 +21,7 @@ describe('Core_updateSettings', () => {
       ],
       cells(row, col) {
         return row === 0 && col === 0 ? { type: 'numeric' } : {};
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).type).toEqual('numeric');
@@ -45,7 +45,7 @@ describe('Core_updateSettings', () => {
       },
       cells(row, col) {
         return row === 0 && col === 0 ? { type: 'numeric' } : {};
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).type).toEqual('numeric');
@@ -61,8 +61,8 @@ describe('Core_updateSettings', () => {
       data: [[1, true]],
       columns: [
         {type: 'numeric'},
-        {type: 'checkbox'}
-      ]
+        {type: 'checkbox'},
+      ],
     });
 
     expect(() => {
@@ -101,8 +101,8 @@ describe('Core_updateSettings', () => {
       data: [[1, true]],
       columns: [
         {type: 'numeric'},
-        {type: 'checkbox'}
-      ]
+        {type: 'checkbox'},
+      ],
     });
 
     const td = this.$container.find('td');
@@ -130,7 +130,7 @@ describe('Core_updateSettings', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     const td = this.$container.find('td');
@@ -151,7 +151,7 @@ describe('Core_updateSettings', () => {
       columns: [
         {},
         {},
-      ]
+      ],
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -161,7 +161,7 @@ describe('Core_updateSettings', () => {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
     updateSettings({
-      readOnly: false
+      readOnly: false,
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
@@ -183,7 +183,7 @@ describe('Core_updateSettings', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -193,7 +193,7 @@ describe('Core_updateSettings', () => {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
     updateSettings({
-      readOnly: false
+      readOnly: false,
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
@@ -208,8 +208,8 @@ describe('Core_updateSettings', () => {
       data: [['foo', true]],
       columns: [
         {type: 'text', readOnly: true},
-        {type: 'checkbox'}
-      ]
+        {type: 'checkbox'},
+      ],
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -221,8 +221,8 @@ describe('Core_updateSettings', () => {
     updateSettings({
       columns: [
         {type: 'text', readOnly: false},
-        {type: 'checkbox'}
-      ]
+        {type: 'checkbox'},
+      ],
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
@@ -245,7 +245,7 @@ describe('Core_updateSettings', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -265,7 +265,7 @@ describe('Core_updateSettings', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
@@ -281,8 +281,8 @@ describe('Core_updateSettings', () => {
       data: [['foo', true]],
       columns: [
         {type: 'text'},
-        {type: 'checkbox'}
-      ]
+        {type: 'checkbox'},
+      ],
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -294,8 +294,8 @@ describe('Core_updateSettings', () => {
     updateSettings({
       columns: [
         {type: 'text', readOnly: false},
-        {type: 'checkbox'}
-      ]
+        {type: 'checkbox'},
+      ],
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
@@ -320,7 +320,7 @@ describe('Core_updateSettings', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -341,7 +341,7 @@ describe('Core_updateSettings', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
@@ -354,14 +354,14 @@ describe('Core_updateSettings', () => {
   it('should not alter the columns object during init', () => {
     const columns = [
       {
-        type: 'text'
-      }
+        type: 'text',
+      },
     ];
 
     const columnsCopy = JSON.parse(JSON.stringify(columns));
 
     handsontable({
-      columns
+      columns,
     });
 
     expect(columns).toEqual(columnsCopy);
@@ -370,12 +370,12 @@ describe('Core_updateSettings', () => {
   it('should update column type', () => {
     const columns = [
       {
-        type: 'text'
-      }
+        type: 'text',
+      },
     ];
 
     handsontable({
-      columns
+      columns,
     });
 
     expect(getCellMeta(0, 0).type).toEqual('text');
@@ -385,7 +385,7 @@ describe('Core_updateSettings', () => {
     columns[0].type = 'date';
 
     updateSettings({
-      columns
+      columns,
     });
 
     expect(getCellMeta(0, 0).type).toEqual('date');
@@ -396,12 +396,12 @@ describe('Core_updateSettings', () => {
   it('should update cell type functions, even if new type does not implement all of those functions', () => {
     const columns = [
       {
-        type: 'numeric'
-      }
+        type: 'numeric',
+      },
     ];
 
     handsontable({
-      columns
+      columns,
     });
 
     expect(getCellMeta(0, 0).type).toEqual('numeric');
@@ -412,7 +412,7 @@ describe('Core_updateSettings', () => {
     columns[0].type = 'text';
 
     updateSettings({
-      columns
+      columns,
     });
 
     expect(getCellMeta(0, 0).type).toEqual('text');
@@ -425,13 +425,13 @@ describe('Core_updateSettings', () => {
   it('should allow updating the table height', function() {
     handsontable({
       startRows: 22,
-      startCols: 5
+      startCols: 5,
     });
 
     const initialHeight = parseInt(this.$container[0].style.height, 10);
 
     updateSettings({
-      height: 300
+      height: 300,
     });
 
     expect(parseInt(this.$container[0].style.height, 10)).toEqual(300);
@@ -442,13 +442,13 @@ describe('Core_updateSettings', () => {
     handsontable({
       startRows: 22,
       startCols: 5,
-      height: 300
+      height: 300,
     });
 
     const initialHeight = this.$container[0].style.height;
 
     updateSettings({
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     expect(parseInt(this.$container[0].style.height, 10)).toEqual(parseInt(initialHeight, 10));
@@ -458,13 +458,13 @@ describe('Core_updateSettings', () => {
     handsontable({
       startRows: 22,
       startCols: 5,
-      height: 300
+      height: 300,
     });
 
     const initialHeight = this.$container[0].style.height;
 
     updateSettings({
-      height: null
+      height: null,
     });
 
     expect(parseInt(this.$container[0].style.height, 10)).not.toEqual(parseInt(initialHeight, 10));
@@ -472,25 +472,25 @@ describe('Core_updateSettings', () => {
 
   it('should allow updating the stretching type', () => {
     const hot = handsontable({
-      stretchH: 'last'
+      stretchH: 'last',
     });
 
     expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
 
     updateSettings({
-      stretchH: 'all'
+      stretchH: 'all',
     });
 
     expect(hot.view.wt.getSetting('stretchH')).toEqual('all');
 
     updateSettings({
-      stretchH: 'none'
+      stretchH: 'none',
     });
 
     expect(hot.view.wt.getSetting('stretchH')).toEqual('none');
 
     updateSettings({
-      stretchH: 'last'
+      stretchH: 'last',
     });
 
     expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
@@ -499,14 +499,14 @@ describe('Core_updateSettings', () => {
   it('should change colHeader\'s row height if is needed', function() {
     handsontable({
       colHeaders: true,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     const rowHeights = [];
 
     rowHeights.push(this.$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
     updateSettings({
-      colHeaders: ['A<br/>A']
+      colHeaders: ['A<br/>A'],
     });
 
     rowHeights.push(this.$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
@@ -523,7 +523,7 @@ describe('Core_updateSettings', () => {
       columns(col) {
         const colProp = {
           data: `prop${col}`,
-          readOnly: true
+          readOnly: true,
         };
 
         if (col === 1) {
@@ -531,7 +531,7 @@ describe('Core_updateSettings', () => {
         }
 
         return colProp;
-      }
+      },
     });
 
     updateSettings({});
@@ -548,11 +548,11 @@ describe('Core_updateSettings', () => {
       columns(col) {
         const colProp = {
           data: `prop${col}`,
-          type: 'numeric'
+          type: 'numeric',
         };
 
         return colProp;
-      }
+      },
     });
     expect(getCellMeta(0, 1).type).toEqual('numeric');
     expect(getCellMeta(0, 1).readOnly).toEqual(false);
@@ -569,13 +569,13 @@ describe('Core_updateSettings', () => {
       columns: [
         {
           type: 'numeric',
-          format: '0,0.00 $'
+          format: '0,0.00 $',
         },
         {
           type: 'text',
-          readOnly: true
-        }
-      ]
+          readOnly: true,
+        },
+      ],
     });
 
     updateSettings({});
@@ -592,13 +592,13 @@ describe('Core_updateSettings', () => {
       columns: [
         {
           type: 'text',
-          readOnly: true
+          readOnly: true,
         },
         {
           type: 'numeric',
-          format: '0,0.00 $'
-        }
-      ]
+          format: '0,0.00 $',
+        },
+      ],
     });
     expect(getCellMeta(0, 0).type).toEqual('text');
     expect(getCellMeta(0, 0).readOnly).toEqual(true);
@@ -614,7 +614,7 @@ describe('Core_updateSettings', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
       readOnly: true,
-      afterUpdateSettings
+      afterUpdateSettings,
     });
 
     const newSettings = {readOnly: false};
@@ -633,7 +633,7 @@ describe('Core_updateSettings', () => {
       readOnly: true,
       afterUpdateSettings(settings) {
         newSettings = settings;
-      }
+      },
     });
 
     updateSettings(updatedSetting);

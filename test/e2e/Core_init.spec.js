@@ -24,12 +24,12 @@ describe('Core_init', () => {
   it('should respect width provided in inline style', function() {
     this.$container.css({
       overflow: 'auto',
-      width: '200px'
+      width: '200px',
     });
     handsontable({
       data: [
-        ['ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC']
-      ]
+        ['ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC'],
+      ],
     });
 
     expect(this.$container.width()).toEqual(200);
@@ -40,8 +40,8 @@ describe('Core_init', () => {
     this.$container.addClass('myTable');
     handsontable({
       data: [
-        ['ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC']
-      ]
+        ['ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC'],
+      ],
     });
 
     expect(this.$container.width()).toEqual(200);

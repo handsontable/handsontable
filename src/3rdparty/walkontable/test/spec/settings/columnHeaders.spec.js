@@ -27,7 +27,7 @@ describe('columnHeaders option', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 
@@ -42,7 +42,7 @@ describe('columnHeaders option', () => {
       totalColumns: getTotalColumns,
       columnHeaders: [function(col, TH) {
         TH.innerHTML = col + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -57,7 +57,7 @@ describe('columnHeaders option', () => {
       totalColumns: getTotalColumns,
       columnHeaders: [function(col, TH) {
         TH.innerHTML = col + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -82,7 +82,7 @@ describe('columnHeaders option', () => {
       columnHeaders: [function(col, TH) {
         TH.innerHTML = 'Client State State';
       }],
-      columnWidth: 80
+      columnWidth: 80,
     });
     wt.draw();
 
@@ -99,7 +99,7 @@ describe('columnHeaders option', () => {
       columnHeaders: [function(col, TH) {
         TH.innerHTML = 'Client State State';
       }],
-      columnWidth: 80
+      columnWidth: 80,
     });
     wt.draw();
 
@@ -115,7 +115,7 @@ describe('columnHeaders option', () => {
       totalColumns: getTotalColumns,
       columnHeaders: [function(column, TH) {
         TH.innerHTML = headers[column];
-      }]
+      }],
     });
     wt.draw();
 

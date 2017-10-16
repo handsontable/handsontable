@@ -4,7 +4,7 @@ import {CellCoords} from './../../3rdparty/walkontable/src';
 
 export const DIRECTIONS = {
   horizontal: 'horizontal',
-  vertical: 'vertical'
+  vertical: 'vertical',
 };
 
 /**
@@ -91,7 +91,7 @@ export function getDragDirectionAndRange(startSelection, endSelection) {
   return {
     directionOfDrag,
     startOfDragCoords,
-    endOfDragCoords
+    endOfDragCoords,
   };
 }
 

@@ -489,7 +489,7 @@ export function offset(elem) {
 
     return {
       top: box.top + (window.pageYOffset || docElem.scrollTop) - (docElem.clientTop || 0),
-      left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0)
+      left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0),
     };
   }
   offsetLeft = elem.offsetLeft;
@@ -516,7 +516,7 @@ export function offset(elem) {
 
   return {
     left: offsetLeft,
-    top: offsetTop
+    top: offsetTop,
   };
 }
 

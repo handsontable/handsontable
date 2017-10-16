@@ -19,7 +19,7 @@ import {
   REDO,
   READ_ONLY,
   ALIGNMENT,
-  SEPARATOR
+  SEPARATOR,
 } from './predefinedItems';
 
 import './contextMenu.css';
@@ -126,7 +126,7 @@ class ContextMenu extends BasePlugin {
 
     const settings = this.hot.getSettings().contextMenu;
     let predefinedItems = {
-      items: this.itemsFactory.getItems(settings)
+      items: this.itemsFactory.getItems(settings),
     };
     this.registerEvents();
 
@@ -143,7 +143,7 @@ class ContextMenu extends BasePlugin {
 
       this.menu = new Menu(this.hot, {
         className: 'htContextMenu',
-        keepInViewport: true
+        keepInViewport: true,
       });
       this.hot.runHooks('beforeContextMenuSetItems', menuItems);
 
@@ -317,7 +317,7 @@ class ContextMenu extends BasePlugin {
 }
 
 ContextMenu.SEPARATOR = {
-  name: SEPARATOR
+  name: SEPARATOR,
 };
 
 registerPlugin('contextMenu', ContextMenu);

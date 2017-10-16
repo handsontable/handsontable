@@ -46,7 +46,7 @@ class DataSource {
       result = this.getByRange(
         {row: 0, col: 0},
         {row: Math.max(this.countRows() - 1, 0), col: Math.max(this.countColumns() - 1, 0)},
-        true
+        true,
       );
     }
 

@@ -17,7 +17,7 @@ describe('Core_reCreate', () => {
       rowHeaders: true,
       colHeaders(col) {
         return `Column<br>${col}`;
-      }
+      },
     };
     handsontable(settings);
     destroy();

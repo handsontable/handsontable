@@ -30,14 +30,14 @@ describe('Walkontable.Selection', () => {
       totalColumns: getTotalColumns,
       selections: [
         new Walkontable.Selection({
-          className: 'current'
-        })
+          className: 'current',
+        }),
       ],
       onCellMouseDown(event, coords) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
-      }
+      },
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -64,14 +64,14 @@ describe('Walkontable.Selection', () => {
       totalColumns: getTotalColumns,
       selections: [
         new Walkontable.Selection({
-          className: 'current'
+          className: 'current',
         }),
         new Walkontable.Selection({
-          className: 'area'
-        })
+          className: 'area',
+        }),
       ],
       fixedColumnsLeft: 2,
-      fixedRowsTop: 2
+      fixedRowsTop: 2,
     });
     shimSelectionProperties(wt);
 
@@ -97,9 +97,9 @@ describe('Walkontable.Selection', () => {
       totalColumns: getTotalColumns,
       selections: [
         new Walkontable.Selection({
-          className: 'current'
-        })
-      ]
+          className: 'current',
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -123,15 +123,15 @@ describe('Walkontable.Selection', () => {
           border: {
             width: 1,
             color: 'red',
-            style: 'solid'
-          }
-        })
+            style: 'solid',
+          },
+        }),
       ],
       onCellMouseDown(event, coords) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
-      }
+      },
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -166,10 +166,10 @@ describe('Walkontable.Selection', () => {
           border: {
             width: 1,
             color: 'red',
-            style: 'solid'
-          }
-        })
-      ]
+            style: 'solid',
+          },
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -189,10 +189,10 @@ describe('Walkontable.Selection', () => {
           border: {
             width: 1,
             color: 'red',
-            style: 'solid'
-          }
-        })
-      ]
+            style: 'solid',
+          },
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -219,10 +219,10 @@ describe('Walkontable.Selection', () => {
           border: {
             width: 1,
             color: 'red',
-            style: 'solid'
-          }
-        })
-      ]
+            style: 'solid',
+          },
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -245,9 +245,9 @@ describe('Walkontable.Selection', () => {
       selections: [
         new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
-        })
-      ]
+          highlightColumnClassName: 'highlightColumn',
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -271,13 +271,13 @@ describe('Walkontable.Selection', () => {
       selections: [
         new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
+          highlightColumnClassName: 'highlightColumn',
         }),
         new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
-        })
-      ]
+          highlightColumnClassName: 'highlightColumn',
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -298,9 +298,9 @@ describe('Walkontable.Selection', () => {
       selections: [
         new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
-        })
-      ]
+          highlightColumnClassName: 'highlightColumn',
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -333,9 +333,9 @@ describe('Walkontable.Selection', () => {
       selections: [
         new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
-        })
-      ]
+          highlightColumnClassName: 'highlightColumn',
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -391,10 +391,10 @@ describe('Walkontable.Selection', () => {
             border: {
               width: 1,
               color: 'red',
-              style: 'solid'
-            }
-          })
-        ]
+              style: 'solid',
+            },
+          }),
+        ],
       });
       shimSelectionProperties(wt);
       wt.selections.current.add(new Walkontable.CellCoords(1, 1));

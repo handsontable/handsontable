@@ -20,10 +20,10 @@ class BasePlugin {
      * @type {Core}
      */
     defineGetter(this, 'hot', hotInstance, {
-      writable: false
+      writable: false,
     });
     defineGetter(this, 't', getTranslator(hotInstance), {
-      writable: false
+      writable: false,
     });
 
     privatePool.set(this, {hooks: {}});

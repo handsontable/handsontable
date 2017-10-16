@@ -29,7 +29,7 @@ describe('WalkontableScrollbarNative', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 
@@ -46,7 +46,7 @@ describe('WalkontableScrollbarNative', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 
@@ -63,7 +63,7 @@ describe('WalkontableScrollbarNative', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 
@@ -77,7 +77,7 @@ describe('WalkontableScrollbarNative', () => {
 
   it('should recognize the scrollHandler properly, even if the \'overflow\' property is assigned in an external stylesheet', () => {
     $wrapper.css({
-      overflow: ''
+      overflow: '',
     });
     $wrapper.addClass('testOverflowHidden');
 
@@ -86,7 +86,7 @@ describe('WalkontableScrollbarNative', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 

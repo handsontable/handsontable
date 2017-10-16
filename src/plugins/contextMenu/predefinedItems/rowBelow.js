@@ -17,6 +17,6 @@ export default function rowBelowItem() {
     },
     hidden() {
       return !this.getSettings().allowInsertRow;
-    }
+    },
   };
 }

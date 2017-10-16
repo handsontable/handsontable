@@ -19,7 +19,7 @@ describe('Core.setCellMeta', () => {
     handsontable({
       afterCellMetaReset() {
         this.setCellMeta(0, 0, 'className', className);
-      }
+      },
     });
 
     let cellMeta = getCellMeta(0, 0);
@@ -35,7 +35,7 @@ describe('Core.setCellMeta', () => {
       },
       modifyCol(col) {
         return col + 10;
-      }
+      },
     });
 
     setCellMeta(0, 1, 'key', 'value');
@@ -50,7 +50,7 @@ describe('Core.setCellMeta', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       afterCellMetaReset() {
         this.setCellMeta(100, 100, 'className', className);
-      }
+      },
     });
 
     let cellMeta = getCellMeta(100, 100);
@@ -62,14 +62,14 @@ describe('Core.setCellMeta', () => {
   it('should set correct meta classNames for cells using cell in configuration', function() {
     const classNames = [
       'htCenter htTop',
-      'htRight htBottom'
+      'htRight htBottom',
     ];
 
     handsontable({
       cell: [
         {row: 0, col: 0, className: classNames[0] },
-        {row: 1, col: 1, className: classNames[1] }
-      ]
+        {row: 1, col: 1, className: classNames[1] },
+      ],
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual(classNames[0]);
@@ -79,21 +79,21 @@ describe('Core.setCellMeta', () => {
   it('should change cell meta data with updateSettings when the cell option is defined', function() {
     const classNames = [
       'htCenter htTop',
-      'htRight htBottom'
+      'htRight htBottom',
     ];
 
     handsontable({
       cell: [
         {row: 0, col: 0, className: classNames[0] },
-        {row: 1, col: 1, className: classNames[1] }
-      ]
+        {row: 1, col: 1, className: classNames[1] },
+      ],
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual(classNames[0]);
     expect(this.$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[1]);
 
     updateSettings({
-      cell: []
+      cell: [],
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual('');
@@ -102,8 +102,8 @@ describe('Core.setCellMeta', () => {
     updateSettings({
       cell: [
         {row: 0, col: 0, className: classNames[1] },
-        {row: 1, col: 1, className: classNames[0] }
-      ]
+        {row: 1, col: 1, className: classNames[0] },
+      ],
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual(classNames[1]);
@@ -121,7 +121,7 @@ describe('Core.setCellMeta', () => {
       },
       modifyCol(col) {
         return col + 10;
-      }
+      },
     });
 
     hot.setCellMeta(0, 1, 'className', className);

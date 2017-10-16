@@ -31,7 +31,7 @@ describe('Core.getSourceDataAtCell', () => {
   it('should return cell value when provided data was an array of objects', () => {
     handsontable({
       data: [{a: 1, b: 2, c: 3}, {a: 'a', b: 'b', c: 'c'}],
-      copyable: true
+      copyable: true,
     });
 
     expect(getSourceDataAtCell(1, 'b')).toEqual('b');
@@ -45,7 +45,7 @@ describe('Core.getSourceDataAtCell', () => {
         {data: 'b.a'},
         {data: 'b.b'},
         {data: 'c'},
-      ]
+      ],
     });
 
     expect(getSourceDataAtCell(1, 'b.b')).toEqual('bb');
@@ -58,14 +58,14 @@ describe('Core.getSourceDataAtCell', () => {
         model({id: 2, name: 'Frank Honest', address: ''}),
         model({id: 3, name: 'Joan Well', address: ''}),
         model({id: 4, name: 'Gail Polite', address: ''}),
-        model({id: 5, name: 'Michael Fair', address: ''})
+        model({id: 5, name: 'Michael Fair', address: ''}),
       ],
       dataSchema: model,
       columns: [
         {data: property('id')},
         {data: property('name')},
-        {data: property('address')}
-      ]
+        {data: property('address')},
+      ],
     });
 
     function model(opts) {
@@ -74,7 +74,7 @@ describe('Core.getSourceDataAtCell', () => {
         _priv = {
           id: undefined,
           name: undefined,
-          address: undefined
+          address: undefined,
         };
 
       // eslint-disable-next-line no-restricted-syntax
@@ -112,7 +112,7 @@ describe('Core.getSourceDataAtCell', () => {
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
           ['2009', 20, 11, 14, 13],
-          ['2010', 30, 15, 12, 13]
+          ['2010', 30, 15, 12, 13],
         ],
         modifyRowData(row) {
           var newDataset = [];
@@ -122,7 +122,7 @@ describe('Core.getSourceDataAtCell', () => {
           }
 
           return newDataset.length ? newDataset : void 0;
-        }
+        },
       });
 
       expect(getSourceDataAtCell(1, 0)).toEqual('2016');

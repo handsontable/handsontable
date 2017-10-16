@@ -32,9 +32,9 @@ describe('settings', () => {
         handsontable({
           columns: [
             {
-              editor: 'checkbox'
-            }
-          ]
+              editor: 'checkbox',
+            },
+          ],
         });
         selectCell(0, 0);
         expect(textEditorPrototype.init).not.toHaveBeenCalled();
@@ -50,7 +50,7 @@ describe('settings', () => {
         handsontable({
           columns(column) {
             return column === 0 ? {editor: 'checkbox'} : null;
-          }
+          },
         });
         selectCell(0, 0);
         expect(textEditorPrototype.init).not.toHaveBeenCalled();
@@ -67,9 +67,9 @@ describe('settings', () => {
         handsontable({
           columns: [
             {
-              editor: customEditor
-            }
-          ]
+              editor: customEditor,
+            },
+          ],
         });
         selectCell(0, 0);
 
@@ -86,7 +86,7 @@ describe('settings', () => {
         handsontable({
           columns(column) {
             return column === 0 ? {editor: customEditor} : null;
-          }
+          },
         });
         selectCell(0, 0);
 
@@ -104,9 +104,9 @@ describe('settings', () => {
         handsontable({
           columns: [
             {
-              editor: 'myEditor'
-            }
-          ]
+              editor: 'myEditor',
+            },
+          ],
         });
         selectCell(0, 0);
 

@@ -54,7 +54,7 @@ describe('cellTypes', () => {
       },
       validator: (value, cb) => {
         cb(value === 10);
-      }
+      },
     });
 
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
@@ -65,7 +65,7 @@ describe('cellTypes', () => {
       columns: [{
         type: 'myCellType',
       }],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     hot.setDataAtCell(1, 0, 10);

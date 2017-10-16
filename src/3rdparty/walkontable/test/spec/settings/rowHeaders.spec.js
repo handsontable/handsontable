@@ -27,7 +27,7 @@ describe('rowHeaders option', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 
@@ -42,7 +42,7 @@ describe('rowHeaders option', () => {
       totalColumns: getTotalColumns,
       rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -57,7 +57,7 @@ describe('rowHeaders option', () => {
       totalColumns: getTotalColumns,
       rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -80,7 +80,7 @@ describe('rowHeaders option', () => {
       totalColumns: getTotalColumns,
       rowHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
 
     wt.draw();
@@ -102,7 +102,7 @@ describe('rowHeaders option', () => {
       }],
       columnHeaders: [function(col, TH) {
         TH.innerHTML = col + 1;
-      }]
+      }],
     });
     wt.draw();
 

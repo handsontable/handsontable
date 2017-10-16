@@ -17,7 +17,7 @@ describe('Core_getDataAt*', () => {
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
       ['2009', 20, 11, 14, 13],
-      ['2010', 30, 15, 12, 13]
+      ['2010', 30, 15, 12, 13],
     ];
   };
 
@@ -29,7 +29,7 @@ describe('Core_getDataAt*', () => {
         name: 'Nannie Patel',
         address: 'Jenkin ville',
         details: {
-          city: 'Chicago'
+          city: 'Chicago',
         },
       },
       {
@@ -38,7 +38,7 @@ describe('Core_getDataAt*', () => {
         name: 'Łucja Grożny and Środeńczak',
         address: 'Gardiner',
         details: {
-          city: 'New York'
+          city: 'New York',
         },
       },
     ];
@@ -46,7 +46,7 @@ describe('Core_getDataAt*', () => {
 
   it('should return data at specified row', () => {
     handsontable({
-      data: arrayOfArrays()
+      data: arrayOfArrays(),
     });
 
     expect(getDataAtRow(0)).toEqual(['', 'Kia', 'Nissan', 'Toyota', 'Honda']);
@@ -54,7 +54,7 @@ describe('Core_getDataAt*', () => {
 
   it('should return data at specified col', () => {
     handsontable({
-      data: arrayOfArrays()
+      data: arrayOfArrays(),
     });
 
     expect(getDataAtCol(1)).toEqual(['Kia', 10, 20, 30]);
@@ -63,7 +63,7 @@ describe('Core_getDataAt*', () => {
   describe('Core_getDataAtRowProp', () => {
     it('should return data at specified column', () => {
       handsontable({
-        data: arrayOfObjects()
+        data: arrayOfObjects(),
       });
 
       expect(getDataAtRowProp(1, 'id.a.b.c')).toBe(2);

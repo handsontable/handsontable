@@ -26,6 +26,6 @@ export default function readOnlyItem() {
     },
     disabled() {
       return !(this.getSelectedRange() && !this.selection.selectedHeader.corner);
-    }
+    },
   };
 }

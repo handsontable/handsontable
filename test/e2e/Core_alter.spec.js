@@ -17,7 +17,7 @@ describe('Core_alter', () => {
       {id: 1,
         name: {
           first: 'Ted',
-          last: 'Right'
+          last: 'Right',
         },
         address: 'Street Name',
         zip: '80410',
@@ -25,7 +25,7 @@ describe('Core_alter', () => {
       {id: 2,
         name: {
           first: 'Frank',
-          last: 'Honest'
+          last: 'Honest',
         },
         address: 'Street Name',
         zip: '80410',
@@ -33,11 +33,11 @@ describe('Core_alter', () => {
       {id: 3,
         name: {
           first: 'Joan',
-          last: 'Well'
+          last: 'Well',
         },
         address: 'Street Name',
         zip: '80410',
-        city: 'City Name'}
+        city: 'City Name'},
     ];
   };
 
@@ -46,7 +46,7 @@ describe('Core_alter', () => {
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
       ['2009', 20, 11, 14, 13],
-      ['2010', 30, 15, 12, 13]
+      ['2010', 30, 15, 12, 13],
     ];
   };
 
@@ -57,8 +57,8 @@ describe('Core_alter', () => {
         data: arrayOfNestedObjects(),
         columns: [
           {data: 'id'},
-          {data: 'name.first'}
-        ]
+          {data: 'name.first'},
+        ],
       });
       alter('remove_row', 1);
 
@@ -73,7 +73,7 @@ describe('Core_alter', () => {
         data: arrayOfNestedObjects(),
         columns: [
           {data: 'id'},
-          {data: 'name.first'}
+          {data: 'name.first'},
         ],
         beforeRemoveRow: onBeforeRemoveRow,
       });
@@ -91,9 +91,9 @@ describe('Core_alter', () => {
         data: arrayOfNestedObjects(),
         columns: [
           {data: 'id'},
-          {data: 'name.first'}
+          {data: 'name.first'},
         ],
-        beforeRemoveRow: onBeforeRemoveRow
+        beforeRemoveRow: onBeforeRemoveRow,
       });
 
       expect(countRows()).toEqual(3);
@@ -106,7 +106,7 @@ describe('Core_alter', () => {
     it('should not remove rows below minRows', () => {
       handsontable({
         startRows: 5,
-        minRows: 4
+        minRows: 4,
       });
       alter('remove_row', 1);
       alter('remove_row', 1);
@@ -118,7 +118,7 @@ describe('Core_alter', () => {
     it('should not remove cols below minCols', () => {
       handsontable({
         startCols: 5,
-        minCols: 4
+        minCols: 4,
       });
       alter('remove_col', 1);
       alter('remove_col', 1);
@@ -134,8 +134,8 @@ describe('Core_alter', () => {
           ['b1', 'b2', 'b3'],
           ['c1', 'c2', 'c3'],
           ['d1', 'd2', 'd3'],
-          ['e1', 'e2', 'e3']
-        ]
+          ['e1', 'e2', 'e3'],
+        ],
       });
       alter('remove_row', 1);
 
@@ -151,8 +151,8 @@ describe('Core_alter', () => {
           ['b1', 'b2', 'b3'],
           ['c1', 'c2', 'c3'],
           ['d1', 'd2', 'd3'],
-          ['e1', 'e2', 'e3']
-        ]
+          ['e1', 'e2', 'e3'],
+        ],
       });
       alter('remove_row', 1, 3);
 
@@ -168,8 +168,8 @@ describe('Core_alter', () => {
           ['b1', 'b2', 'b3'],
           ['c1', 'c2', 'c3'],
           ['d1', 'd2', 'd3'],
-          ['e1', 'e2', 'e3']
-        ]
+          ['e1', 'e2', 'e3'],
+        ],
       });
       alter('remove_row', 1, 10);
 
@@ -184,8 +184,8 @@ describe('Core_alter', () => {
           ['b1', 'b2', 'b3'],
           ['c1', 'c2', 'c3'],
           ['d1', 'd2', 'd3'],
-          ['e1', 'e2', 'e3']
-        ]
+          ['e1', 'e2', 'e3'],
+        ],
       });
       alter('remove_row');
 
@@ -200,8 +200,8 @@ describe('Core_alter', () => {
           ['b1', 'b2', 'b3'],
           ['c1', 'c2', 'c3'],
           ['d1', 'd2', 'd3'],
-          ['e1', 'e2', 'e3']
-        ]
+          ['e1', 'e2', 'e3'],
+        ],
       });
       alter('remove_row', null, 3);
 
@@ -213,10 +213,10 @@ describe('Core_alter', () => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
-          ['b1', 'b2', 'b3']
+          ['b1', 'b2', 'b3'],
         ],
         fixedRowsTop: 1,
-        minSpareRows: 0
+        minSpareRows: 0,
       });
 
       alter('remove_row', 1);
@@ -229,10 +229,10 @@ describe('Core_alter', () => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
-          ['b1', 'b2', 'b3']
+          ['b1', 'b2', 'b3'],
         ],
         fixedRowsTop: 1,
-        minSpareRows: 0
+        minSpareRows: 0,
       });
 
       alter('remove_row', 1);
@@ -245,7 +245,7 @@ describe('Core_alter', () => {
     it('should remove row\'s cellProperties', () => {
       handsontable({
         startCols: 1,
-        startRows: 3
+        startRows: 3,
       });
 
       getCellMeta(0, 0).someValue = [0, 0];
@@ -267,14 +267,14 @@ describe('Core_alter', () => {
         data: arrayOfNestedObjects(),
         columns: [
           {data: 'id'},
-          {data: 'name.first'}
+          {data: 'name.first'},
         ],
         beforeRemoveRow(index, amount, removedRows, source) {
           outputBefore = [index, amount, removedRows, source];
         },
         afterRemoveRow(index, amount, removedRows, source) {
           outputAfter = [index, amount, removedRows, source];
-        }
+        },
       });
       alter('remove_row', 1, 2, 'customSource');
 
@@ -286,7 +286,7 @@ describe('Core_alter', () => {
       var hot = handsontable({
         startCols: 1,
         startRows: 3,
-        fixedRowsTop: 4
+        fixedRowsTop: 4,
       });
 
       alter('remove_row', 1, 1);
@@ -298,7 +298,7 @@ describe('Core_alter', () => {
     it('should shift the cell meta according to the new row layout', () => {
       handsontable({
         startCols: 3,
-        startRows: 4
+        startRows: 4,
       });
 
       setCellMeta(2, 1, 'className', 'test');
@@ -310,7 +310,7 @@ describe('Core_alter', () => {
     it('should shift the cell meta according to the new rows (>1) layout', () => {
       handsontable({
         startCols: 3,
-        startRows: 4
+        startRows: 4,
       });
 
       setCellMeta(2, 1, 'className', 'test');
@@ -325,8 +325,8 @@ describe('Core_alter', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-        ]
+          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        ],
       });
       alter('remove_col', 1);
 
@@ -339,8 +339,8 @@ describe('Core_alter', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-        ]
+          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        ],
       });
       alter('remove_col', 1, 3);
 
@@ -353,8 +353,8 @@ describe('Core_alter', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-        ]
+          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        ],
       });
       alter('remove_col', 6, 3);
 
@@ -366,8 +366,8 @@ describe('Core_alter', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-        ]
+          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        ],
       });
       alter('remove_col');
 
@@ -379,8 +379,8 @@ describe('Core_alter', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-        ]
+          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        ],
       });
       alter('remove_col', null, 3);
 
@@ -392,7 +392,7 @@ describe('Core_alter', () => {
       var onBeforeRemoveCol = jasmine.createSpy('onBeforeRemoveCol');
 
       handsontable({
-        beforeRemoveCol: onBeforeRemoveCol
+        beforeRemoveCol: onBeforeRemoveCol,
       });
       alter('remove_col');
 
@@ -405,7 +405,7 @@ describe('Core_alter', () => {
       onBeforeRemoveCol.and.callFake(() => false);
 
       handsontable({
-        beforeRemoveCol: onBeforeRemoveCol
+        beforeRemoveCol: onBeforeRemoveCol,
       });
 
       expect(countCols()).toEqual(5);
@@ -427,7 +427,7 @@ describe('Core_alter', () => {
         },
         afterRemoveCol(index, amount, removedCols, source) {
           outputAfter = [index, amount, removedCols, source];
-        }
+        },
       });
       alter('remove_col', 1, 2, 'customSource');
 
@@ -438,7 +438,7 @@ describe('Core_alter', () => {
     it('should remove column\'s properties', () => {
       handsontable({
         startCols: 3,
-        startRows: 1
+        startRows: 1,
       });
 
       getCellMeta(0, 0).someValue = [0, 0];
@@ -454,12 +454,12 @@ describe('Core_alter', () => {
     it('should remove column when not all rows are visible in the viewport', function() {
       this.$container.css({
         height: '100',
-        overflow: 'auto'
+        overflow: 'auto',
       });
 
       handsontable({
         startCols: 3,
-        startRows: 20
+        startRows: 20,
       });
 
       expect(getHtCore().find('tbody tr').length).toBeLessThan(20);
@@ -475,7 +475,7 @@ describe('Core_alter', () => {
       handsontable({
         startCols: 3,
         startRows: 2,
-        colHeaders: true
+        colHeaders: true,
       });
 
       expect(getColHeader()).toEqual(['A', 'B', 'C']);
@@ -495,7 +495,7 @@ describe('Core_alter', () => {
       handsontable({
         startCols: 3,
         startRows: 2,
-        colHeaders: ['Header0', 'Header1', 'Header2']
+        colHeaders: ['Header0', 'Header1', 'Header2'],
       });
 
       expect(getColHeader()).toEqual(['Header0', 'Header1', 'Header2']);
@@ -514,7 +514,7 @@ describe('Core_alter', () => {
       var hot = handsontable({
         startCols: 1,
         startRows: 3,
-        fixedColumnsLeft: 4
+        fixedColumnsLeft: 4,
       });
 
       alter('remove_col', 1, 1);
@@ -526,7 +526,7 @@ describe('Core_alter', () => {
     it('should shift the cell meta according to the new column layout', () => {
       handsontable({
         startCols: 4,
-        startRows: 3
+        startRows: 3,
       });
 
       setCellMeta(1, 2, 'className', 'test');
@@ -538,7 +538,7 @@ describe('Core_alter', () => {
     it('should shift the cell meta according to the new columns (>1) layout', () => {
       handsontable({
         startCols: 4,
-        startRows: 3
+        startRows: 3,
       });
 
       setCellMeta(1, 2, 'className', 'test');
@@ -556,8 +556,8 @@ describe('Core_alter', () => {
           ['b1', 'b2', 'b3'],
           ['c1', 'c2', 'c3'],
           ['d1', 'd2', 'd3'],
-          ['e1', 'e2', 'e3']
-        ]
+          ['e1', 'e2', 'e3'],
+        ],
       });
       alter('insert_row', 1);
 
@@ -572,8 +572,8 @@ describe('Core_alter', () => {
           ['b1', 'b2', 'b3'],
           ['c1', 'c2', 'c3'],
           ['d1', 'd2', 'd3'],
-          ['e1', 'e2', 'e3']
-        ]
+          ['e1', 'e2', 'e3'],
+        ],
       });
       alter('insert_row');
 
@@ -594,16 +594,16 @@ describe('Core_alter', () => {
           [0, 'a', true],
           [1, 'b', false],
           [2, 'c', true],
-          [3, 'd', true]
+          [3, 'd', true],
         ],
         cell: [
-          {row: 0, col: 0, renderer: greenRenderer, type: 'text', readOnly: true}
+          {row: 0, col: 0, renderer: greenRenderer, type: 'text', readOnly: true},
         ],
         columns: [
           {type: 'numeric'},
           {type: 'text'},
-          {type: 'checkbox'}
-        ]
+          {type: 'checkbox'},
+        ],
       });
 
       alter('insert_row');
@@ -621,16 +621,16 @@ describe('Core_alter', () => {
           [0, 'a', true],
           [1, 'b', false],
           [2, 'c', true],
-          [3, 'd', true]
+          [3, 'd', true],
         ],
         cell: [
-          {row: 0, col: 0, type: 'text'}
+          {row: 0, col: 0, type: 'text'},
         ],
         columns: [
           {type: 'numeric'},
           {type: 'text'},
-          {type: 'checkbox'}
-        ]
+          {type: 'checkbox'},
+        ],
       });
 
       alter('insert_row');
@@ -651,8 +651,8 @@ describe('Core_alter', () => {
           ['b1', 'b2', 'b3'],
           ['c1', 'c2', 'c3'],
           ['d1', 'd2', 'd3'],
-          ['e1', 'e2', 'e3']
-        ]
+          ['e1', 'e2', 'e3'],
+        ],
       });
       alter('insert_row', 1, 3);
 
@@ -670,8 +670,8 @@ describe('Core_alter', () => {
           ['b1', 'b2', 'b3'],
           ['c1', 'c2', 'c3'],
           ['d1', 'd2', 'd3'],
-          ['e1', 'e2', 'e3']
-        ]
+          ['e1', 'e2', 'e3'],
+        ],
       });
       alter('insert_row', null, 3);
 
@@ -686,7 +686,7 @@ describe('Core_alter', () => {
     it('should insert not more rows than maxRows', () => {
       handsontable({
         startRows: 5,
-        maxRows: 7
+        maxRows: 7,
       });
       alter('insert_row', 1);
       alter('insert_row', 1);
@@ -702,9 +702,9 @@ describe('Core_alter', () => {
           ['b1', 'b2', 'b3'],
           ['c1', 'c2', 'c3'],
           ['d1', 'd2', 'd3'],
-          ['e1', 'e2', 'e3']
+          ['e1', 'e2', 'e3'],
         ],
-        maxRows: 10
+        maxRows: 10,
       });
       alter('insert_row', 1, 10);
 
@@ -718,7 +718,7 @@ describe('Core_alter', () => {
         modifyRow(row) {
           return [8, 9].indexOf(row) > -1 ? null : row;
         },
-        maxRows: 10
+        maxRows: 10,
       });
 
       expect(hot.countRows()).toEqual(8);
@@ -738,7 +738,7 @@ describe('Core_alter', () => {
         data: arrayOfNestedObjects(),
         columns: [
           {data: 'id'},
-          {data: 'name.first'}
+          {data: 'name.first'},
         ],
         beforeCreateRow(index, amount, source) {
           outputBefore = [index, amount, source];
@@ -759,8 +759,8 @@ describe('Core_alter', () => {
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-        ]
+          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        ],
       });
 
       selectCell(2, 2);
@@ -774,7 +774,7 @@ describe('Core_alter', () => {
     it('should shift the cell meta according to the new row layout', () => {
       handsontable({
         startCols: 4,
-        startRows: 3
+        startRows: 3,
       });
 
       setCellMeta(2, 1, 'className', 'test');
@@ -786,7 +786,7 @@ describe('Core_alter', () => {
     it('should shift the cell meta according to the new rows (>1) layout', () => {
       handsontable({
         startCols: 4,
-        startRows: 3
+        startRows: 3,
       });
 
       setCellMeta(2, 1, 'className', 'test');
@@ -801,8 +801,8 @@ describe('Core_alter', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-        ]
+          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        ],
       });
       alter('insert_col', 1);
 
@@ -814,8 +814,8 @@ describe('Core_alter', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-        ]
+          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        ],
       });
       alter('insert_col');
 
@@ -827,8 +827,8 @@ describe('Core_alter', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-        ]
+          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        ],
       });
       alter('insert_col', 1, 3);
 
@@ -840,8 +840,8 @@ describe('Core_alter', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-        ]
+          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        ],
       });
       alter('insert_col', null, 3);
 
@@ -856,7 +856,7 @@ describe('Core_alter', () => {
     it('should insert not more cols than maxCols', () => {
       handsontable({
         startCols: 5,
-        maxCols: 7
+        maxCols: 7,
       });
       alter('insert_col', 1);
       alter('insert_col', 1);
@@ -869,9 +869,9 @@ describe('Core_alter', () => {
       handsontable({
         data: [
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+          ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
         ],
-        maxCols: 10
+        maxCols: 10,
       });
       alter('insert_col', 1, 10);
 
@@ -906,7 +906,7 @@ describe('Core_alter', () => {
       handsontable({
         startCols: 3,
         startRows: 2,
-        colHeaders: true
+        colHeaders: true,
       });
 
       expect(getColHeader()).toEqual(['A', 'B', 'C']);
@@ -926,7 +926,7 @@ describe('Core_alter', () => {
       handsontable({
         startCols: 3,
         startRows: 2,
-        colHeaders: ['Header0', 'Header1', 'Header2']
+        colHeaders: ['Header0', 'Header1', 'Header2'],
       });
 
       expect(getColHeader()).toEqual(['Header0', 'Header1', 'Header2']);
@@ -949,7 +949,7 @@ describe('Core_alter', () => {
       var hot = handsontable({
         startCols: 5,
         startRows: 10,
-        stretchH: 'all'
+        stretchH: 'all',
       });
 
       expect(Handsontable.dom.outerWidth(hot.view.TBODY)).toEqual(500);
@@ -962,7 +962,7 @@ describe('Core_alter', () => {
     it('should shift the cell meta according to the new column layout', () => {
       handsontable({
         startCols: 4,
-        startRows: 3
+        startRows: 3,
       });
 
       setCellMeta(1, 2, 'className', 'test');
@@ -974,7 +974,7 @@ describe('Core_alter', () => {
     it('should shift the cell meta according to the new columns (>1) layout', () => {
       handsontable({
         startCols: 4,
-        startRows: 3
+        startRows: 3,
       });
 
       setCellMeta(1, 2, 'className', 'test');

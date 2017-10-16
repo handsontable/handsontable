@@ -14,7 +14,7 @@ describe('FillHandle', () => {
 
   it('should appear when fillHandle equals true', () => {
     handsontable({
-      fillHandle: true
+      fillHandle: true,
     });
 
     selectCell(2, 2);
@@ -24,7 +24,7 @@ describe('FillHandle', () => {
 
   it('should appear when fillHandle is enabled as `string` value', () => {
     handsontable({
-      fillHandle: 'horizontal'
+      fillHandle: 'horizontal',
     });
 
     selectCell(2, 2);
@@ -38,9 +38,9 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [7, 8, 9, 1, 2, 3],
         [4, 5, 6, 7, 8, 9],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
-      fillHandle: 'horizontal'
+      fillHandle: 'horizontal',
     });
 
     selectCell(0, 0);
@@ -56,9 +56,9 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [7, 8, 9, 1, 2, 3],
         [4, 5, 6, 7, 8, 9],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
-      fillHandle: 'vertical'
+      fillHandle: 'vertical',
     });
 
     selectCell(0, 0);
@@ -74,11 +74,11 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [7, 8, 9, 1, 2, 3],
         [4, 5, 6, 7, 8, 9],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
       fillHandle: {
-        direction: 'vertical'
-      }
+        direction: 'vertical',
+      },
     });
 
     selectCell(0, 0);
@@ -100,11 +100,11 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [7, 8, 9, 1, 2, 3],
         [4, 5, 6, 7, 8, 9],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
       fillHandle: {
-        direction: 'horizontal'
-      }
+        direction: 'horizontal',
+      },
     });
 
     selectCell(0, 0);
@@ -126,9 +126,9 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [7, 8, 9, 1, 2, 3],
         [4, 5, 6, 7, 8, 9],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
-      fillHandle: false
+      fillHandle: false,
     });
 
     // checking drag vertically - should not change cell value
@@ -154,9 +154,9 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [7, 8, 9, 1, 2, 3],
         [4, 5, 6, 7, 8, 9],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
-      fillHandle: 'horizontal'
+      fillHandle: 'horizontal',
     });
 
     updateSettings({ fillHandle: 'vertical' });
@@ -191,8 +191,8 @@ describe('FillHandle', () => {
   it('should appear when fillHandle is enabled as `object` value', () => {
     handsontable({
       fillHandle: {
-        allowInsertRow: true
-      }
+        allowInsertRow: true,
+      },
     });
 
     selectCell(2, 2);
@@ -202,7 +202,7 @@ describe('FillHandle', () => {
 
   it('should not appear when fillHandle equals false', () => {
     handsontable({
-      fillHandle: false
+      fillHandle: false,
     });
     selectCell(2, 2);
 
@@ -211,7 +211,7 @@ describe('FillHandle', () => {
 
   it('should disappear when beginediting is triggered', () => {
     handsontable({
-      fillHandle: true
+      fillHandle: true,
     });
     selectCell(2, 2);
 
@@ -222,7 +222,7 @@ describe('FillHandle', () => {
 
   it('should appear when finishediting is triggered', () => {
     handsontable({
-      fillHandle: true
+      fillHandle: true,
     });
     selectCell(2, 2);
 
@@ -234,7 +234,7 @@ describe('FillHandle', () => {
 
   it('should not appear when fillHandle equals false and finishediting is triggered', () => {
     handsontable({
-      fillHandle: false
+      fillHandle: false,
     });
     selectCell(2, 2);
 
@@ -246,7 +246,7 @@ describe('FillHandle', () => {
 
   it('should appear when editor is discarded using the ESC key', () => {
     handsontable({
-      fillHandle: true
+      fillHandle: true,
     });
     selectCell(2, 2);
 
@@ -262,11 +262,11 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
       beforeAutofill(start, end, data) {
         data[0][0] = 'test';
-      }
+      },
     });
     selectCell(0, 0);
 
@@ -288,11 +288,11 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
       beforeAutofill(start, end, data) {
         data[0][0] = 'test';
-      }
+      },
     });
     selectCell(1, 1);
 
@@ -312,8 +312,8 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, null, null, null, null],
-        [1, 2, null, null, null, null]
-      ]
+        [1, 2, null, null, null, null],
+      ],
     });
 
     selectCell(1, 3);
@@ -337,8 +337,8 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, null, null, null, null],
-        [1, 2, null, null, null, null]
-      ]
+        [1, 2, null, null, null, null],
+      ],
     });
 
     selectCell(1, 3, 1, 4);
@@ -366,8 +366,8 @@ describe('FillHandle', () => {
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
-      ]
+        [1, 2, 3, 4, 5, 6],
+      ],
     });
 
     selectCell(0, 2);
@@ -395,11 +395,11 @@ describe('FillHandle', () => {
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
       fillHandle: {
         autoInsertRow: true,
-      }
+      },
     });
 
     selectCell(0, 2);
@@ -427,12 +427,12 @@ describe('FillHandle', () => {
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
       fillHandle: {
         direction: 'vertical',
         autoInsertRow: true,
-      }
+      },
     });
 
     selectCell(0, 2);
@@ -460,12 +460,12 @@ describe('FillHandle', () => {
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
       fillHandle: {
         direction: 'horizontal',
         autoInsertRow: true,
-      }
+      },
     });
 
     selectCell(0, 2);
@@ -493,11 +493,11 @@ describe('FillHandle', () => {
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
       fillHandle: {
-        autoInsertRow: false
-      }
+        autoInsertRow: false,
+      },
     });
 
     selectCell(0, 2);
@@ -532,9 +532,9 @@ describe('FillHandle', () => {
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
-      maxRows: 5
+      maxRows: 5,
     });
 
     selectCell(0, 2);
@@ -562,8 +562,8 @@ describe('FillHandle', () => {
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
-      ]
+        [1, 2, 3, 4, 5, 6],
+      ],
     });
 
     selectCell(0, 2);
@@ -598,10 +598,10 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 7, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
       colHeaders: true,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     // col headers:
@@ -650,9 +650,9 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 'test', 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
-      afterOnCellMouseOver: mouseOverSpy
+      afterOnCellMouseOver: mouseOverSpy,
     });
 
     selectCell(3, 2);
@@ -688,8 +688,8 @@ describe('FillHandle', () => {
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
-      ]
+        [1, 2, 3, 4, 5, 6],
+      ],
     });
 
     selectCell(0, 2);
@@ -724,12 +724,12 @@ describe('FillHandle', () => {
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       ],
       fillHandle: {
         direction: 'horizontal',
-        autoInsertRow: true
-      }
+        autoInsertRow: true,
+      },
     });
 
     selectCell(0, 2);
@@ -762,7 +762,7 @@ describe('FillHandle', () => {
         [null, 1, 4, null],
         [null, 0, 5, null],
         [null, null, null, null],
-      ]
+      ],
     });
 
     expect(JSON.stringify(getData(0, 1, 3, 2))).toEqual(JSON.stringify([[null, null], [null, null], [null, null], [null, null]]));
@@ -781,7 +781,7 @@ describe('FillHandle', () => {
         [null, null, null, null, null, 0, 1, 2],
         [null, null, null, null, null, 3, 4, 5],
         [null, null, null, null, null, null, null, null],
-      ]
+      ],
     });
 
     expect(JSON.stringify(getData(1, 1, 2, 4))).toEqual(JSON.stringify([[null, null, null, null], [null, null, null, null]]));
@@ -804,18 +804,18 @@ describe('FillHandle', () => {
           [1, 2, 3, 4, 5, 6],
           [7, 8, 9, 1, 2, 3],
           [4, 5, 6, 7, 8, 9],
-          [1, 2, 3, 4, 5, 6]
+          [1, 2, 3, 4, 5, 6],
         ];
       };
 
       $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
         data: getData(),
-        fillHandle: true
+        fillHandle: true,
       });
 
       $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
         data: getData(),
-        fillHandle: 'horizontal'
+        fillHandle: 'horizontal',
       });
     });
 

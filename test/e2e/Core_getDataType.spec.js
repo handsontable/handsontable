@@ -17,13 +17,13 @@ describe('Core_getDataType', () => {
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
       ['2009', 20, 11, 14, 13],
-      ['2010', 30, 15, 12, 13]
+      ['2010', 30, 15, 12, 13],
     ];
   };
 
   it('should return data type at specyfied range (default type)', () => {
     handsontable({
-      data: arrayOfArrays()
+      data: arrayOfArrays(),
     });
 
     expect(getDataType(0, 0)).toEqual('text');
@@ -39,7 +39,7 @@ describe('Core_getDataType', () => {
         {type: 'date'},
         {type: 'autocomplete'},
         {type: 'dropdown'},
-      ]
+      ],
     });
 
     expect(getDataType(0, 0)).toEqual('numeric');
@@ -76,7 +76,7 @@ describe('Core_getDataType', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(getDataType(0, 0)).toEqual('numeric');
@@ -101,7 +101,7 @@ describe('Core_getDataType', () => {
         }
 
         return cellMeta;
-      }
+      },
     });
 
     expect(getDataType(0, 0)).toEqual('text');

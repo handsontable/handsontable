@@ -56,8 +56,8 @@ class ManualRowMove extends BasePlugin {
         eventPageY: void 0,
         coords: void 0,
         TD: void 0,
-        row: void 0
-      }
+        row: void 0,
+      },
     });
 
     /**

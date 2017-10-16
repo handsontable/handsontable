@@ -15,7 +15,7 @@ describe('Core.getCopyableText', () => {
   it('should return copyable string when `copyable` option is enabled', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
-      copyable: true
+      copyable: true,
     });
 
     expect(getCopyableText(0, 0)).toBe('A1');
@@ -25,7 +25,7 @@ describe('Core.getCopyableText', () => {
   it('should return empty string as copyable data when `copyable` option is disabled', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
-      copyable: false
+      copyable: false,
     });
 
     expect(getCopyableText(0, 0)).toBe('');

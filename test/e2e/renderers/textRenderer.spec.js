@@ -77,7 +77,7 @@ describe('TextRenderer', () => {
 
   it('should wrap text when column width is limited', () => {
     handsontable({
-      colWidths: [100]
+      colWidths: [100],
     });
     setDataAtCell(0, 0, 'short text');
     setDataAtCell(1, 0, 'long long long long long long long text');

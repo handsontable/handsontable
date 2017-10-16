@@ -3,7 +3,7 @@ import EventManager from 'handsontable/eventManager';
 describe('EventManager', () => {
   it('should add/remove/clear event for multiple instances', () => {
     var instance = {
-      subinstance: {}
+      subinstance: {},
     };
     var instance2 = {};
     var eM0 = new EventManager(instance);

@@ -17,7 +17,7 @@ describe('Core_keepEmptyRows', () => {
       {id: 1,
         name: {
           first: 'Ted',
-          last: 'Right'
+          last: 'Right',
         },
         address: 'Street Name',
         zip: '80410',
@@ -25,7 +25,7 @@ describe('Core_keepEmptyRows', () => {
       {id: 2,
         name: {
           first: 'Frank',
-          last: 'Honest'
+          last: 'Honest',
         },
         address: 'Street Name',
         zip: '80410',
@@ -33,11 +33,11 @@ describe('Core_keepEmptyRows', () => {
       {id: 3,
         name: {
           first: 'Joan',
-          last: 'Well'
+          last: 'Well',
         },
         address: 'Street Name',
         zip: '80410',
-        city: 'City Name'}
+        city: 'City Name'},
     ];
   };
 
@@ -46,8 +46,8 @@ describe('Core_keepEmptyRows', () => {
       data: arrayOfNestedObjects(),
       columns: [
         {data: 'id'},
-        {data: 'name.first'}
-      ]
+        {data: 'name.first'},
+      ],
     });
 
     expect(this.$container.find('tbody tr:first td').length).toEqual(2);
@@ -70,7 +70,7 @@ describe('Core_keepEmptyRows', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(this.$container.find('tbody tr:first td').length).toEqual(2);
@@ -85,8 +85,8 @@ describe('Core_keepEmptyRows', () => {
         {data: 'name.last'},
         {data: 'address'},
         {data: 'zip'},
-        {data: 'city'}
-      ]
+        {data: 'city'},
+      ],
     });
 
     expect(this.$container.find('tbody tr:first td').length).toEqual(6);
@@ -120,7 +120,7 @@ describe('Core_keepEmptyRows', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(this.$container.find('tbody tr:first td').length).toEqual(6);
@@ -130,12 +130,12 @@ describe('Core_keepEmptyRows', () => {
     handsontable({
       data: [
         ['one', 'two'],
-        ['three', 'four']
+        ['three', 'four'],
       ],
       minCols: 4,
       minRows: 4,
       minSpareRows: 4,
-      minSpareCols: 4
+      minSpareCols: 4,
     });
 
     expect(countCells()).toEqual(36);
@@ -145,7 +145,7 @@ describe('Core_keepEmptyRows', () => {
     handsontable({
       data: arrayOfNestedObjects(),
       minRows: 4,
-      minSpareRows: 1
+      minSpareRows: 1,
     });
 
     expect(countRows()).toEqual(4);
@@ -156,14 +156,14 @@ describe('Core_keepEmptyRows', () => {
   it('should create new row when last cell in last row is edited', () => {
     var data = [
       ['one', 'two'],
-      ['three', 'four']
+      ['three', 'four'],
     ];
 
     handsontable({
       data,
       minRows: 4,
       minCols: 4,
-      minSpareRows: 1
+      minSpareRows: 1,
     });
     setDataAtCell(3, 3, 'test');
 
@@ -173,14 +173,14 @@ describe('Core_keepEmptyRows', () => {
   it('should create new col when last cell in last row is edited', () => {
     var data = [
       ['one', 'two'],
-      ['three', 'four']
+      ['three', 'four'],
     ];
 
     handsontable({
       data,
       minRows: 4,
       minCols: 4,
-      minSpareCols: 1
+      minSpareCols: 1,
     });
     setDataAtCell(3, 3, 'test');
 
@@ -189,7 +189,7 @@ describe('Core_keepEmptyRows', () => {
 
   it('should create new row when last cell in last row is edited by autocomplete', (done) => {
     var data = [
-      {id: 1, color: 'orange' }
+      {id: 1, color: 'orange' },
     ];
 
     var syncSources = jasmine.createSpy('syncSources');
@@ -208,9 +208,9 @@ describe('Core_keepEmptyRows', () => {
         {
           data: 'color',
           editor: 'autocomplete',
-          source: syncSources
-        }
-      ]
+          source: syncSources,
+        },
+      ],
     });
 
     selectCell(1, 1);
@@ -227,7 +227,7 @@ describe('Core_keepEmptyRows', () => {
 
   it('should create new row when last cell in last row is edited by autocomplete when columns is a function', (done) => {
     var data = [
-      {id: 1, color: 'orange' }
+      {id: 1, color: 'orange' },
     ];
 
     var syncSources = jasmine.createSpy('syncSources');
@@ -258,7 +258,7 @@ describe('Core_keepEmptyRows', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     selectCell(1, 1);
@@ -277,7 +277,7 @@ describe('Core_keepEmptyRows', () => {
     handsontable({
       startRows: 4,
       maxRows: 6,
-      minSpareRows: 1
+      minSpareRows: 1,
     });
     setDataAtCell(3, 0, 'test');
     setDataAtCell(4, 0, 'test');
@@ -290,7 +290,7 @@ describe('Core_keepEmptyRows', () => {
     handsontable({
       startCols: 4,
       maxCols: 6,
-      minSpareCols: 1
+      minSpareCols: 1,
     });
     setDataAtCell(0, 3, 'test');
     setDataAtCell(0, 4, 'test');
@@ -305,8 +305,8 @@ describe('Core_keepEmptyRows', () => {
       minCols: 6,
       columns: [
         {},
-        {}
-      ]
+        {},
+      ],
     });
 
     expect(countCols()).toEqual(2);
@@ -324,7 +324,7 @@ describe('Core_keepEmptyRows', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(countCols()).toEqual(1);
@@ -336,8 +336,8 @@ describe('Core_keepEmptyRows', () => {
       minCols: 6,
       columns: [
         {},
-        {}
-      ]
+        {},
+      ],
     });
 
     expect(countCols()).toEqual(2);
@@ -355,7 +355,7 @@ describe('Core_keepEmptyRows', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(countCols()).toEqual(2);

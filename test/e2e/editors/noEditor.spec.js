@@ -18,7 +18,7 @@ describe('noEditor', () => {
 
     handsontable({
       enterBeginsEditing: true,
-      editor: false
+      editor: false,
     });
     selectCell(2, 2);
     keyDown('enter');
@@ -33,7 +33,7 @@ describe('noEditor', () => {
       selection;
 
     handsontable({
-      editor: false
+      editor: false,
     });
     selectCell(2, 2);
     keyDown('enter');
@@ -49,7 +49,7 @@ describe('noEditor', () => {
 
     handsontable({
       enterBeginsEditing: false,
-      editor: false
+      editor: false,
     });
     selectCell(2, 2);
     keyDown('enter');
@@ -61,7 +61,7 @@ describe('noEditor', () => {
 
   it('shouldn\'t render any value in editor', () => {
     handsontable({
-      editor: false
+      editor: false,
     });
     setDataAtCell(2, 2, 'string');
     selectCell(2, 2);
@@ -72,7 +72,7 @@ describe('noEditor', () => {
 
   it('shouldn\'t open editor after hitting F2', () => {
     handsontable({
-      editor: false
+      editor: false,
     });
     selectCell(2, 2);
 
@@ -85,7 +85,7 @@ describe('noEditor', () => {
 
   it('shouldn\'t open editor after hitting CapsLock', () => {
     handsontable({
-      editor: false
+      editor: false,
     });
     selectCell(2, 2);
 
@@ -99,7 +99,7 @@ describe('noEditor', () => {
   it('shouldn\'t open editor after double clicking on a cell', (done) => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
-      editor: false
+      editor: false,
     });
 
     const cell = $(getCell(0, 0));
@@ -129,7 +129,7 @@ describe('noEditor', () => {
   it('should not open editor after pressing a printable character', function() {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
-      editor: false
+      editor: false,
     });
     selectCell(0, 0);
 
@@ -143,7 +143,7 @@ describe('noEditor', () => {
   it('should not open editor after pressing a printable character with shift key', function() {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
-      editor: false
+      editor: false,
     });
     selectCell(0, 0);
 
@@ -157,7 +157,7 @@ describe('noEditor', () => {
   it('should not not open editor after hitting ALT', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
-      editor: false
+      editor: false,
     });
     expect(getDataAtCell(0, 0)).toEqual('A1');
 

@@ -26,7 +26,7 @@ describe('WalkontableScrollbar', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 
@@ -41,7 +41,7 @@ describe('WalkontableScrollbar', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw();
 

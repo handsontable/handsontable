@@ -15,7 +15,7 @@ describe('Core_navigation', () => {
   it('should move to the next cell', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
 
     selectCell(0, 0);
@@ -27,7 +27,7 @@ describe('Core_navigation', () => {
   it('should move to the previous cell', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
 
     selectCell(1, 2);
@@ -39,7 +39,7 @@ describe('Core_navigation', () => {
   it('should move to the cell above', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
 
     selectCell(1, 2);
@@ -51,7 +51,7 @@ describe('Core_navigation', () => {
   it('should move to the cell below', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
     });
 
     selectCell(1, 2);
@@ -65,7 +65,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapRow: false
+        autoWrapRow: false,
       });
 
       selectCell(0, 4);
@@ -78,7 +78,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapRow: false
+        autoWrapRow: false,
       });
 
       selectCell(1, 0);
@@ -91,7 +91,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapCol: false
+        autoWrapCol: false,
       });
 
       selectCell(4, 0);
@@ -104,7 +104,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapCol: false
+        autoWrapCol: false,
       });
 
       selectCell(0, 1);
@@ -120,7 +120,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapRow: true
+        autoWrapRow: true,
       });
 
       selectCell(0, 4);
@@ -133,7 +133,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapRow: true
+        autoWrapRow: true,
       });
 
       selectCell(1, 0);
@@ -146,7 +146,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapCol: true
+        autoWrapCol: true,
       });
 
       selectCell(4, 1);
@@ -159,7 +159,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapCol: true
+        autoWrapCol: true,
       });
 
       selectCell(0, 1);
@@ -172,7 +172,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapRow: true
+        autoWrapRow: true,
       });
 
       selectCell(4, 4);
@@ -185,7 +185,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapCol: true
+        autoWrapCol: true,
       });
 
       selectCell(4, 4);
@@ -198,7 +198,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapRow: true
+        autoWrapRow: true,
       });
 
       selectCell(0, 0);
@@ -211,7 +211,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapCol: true
+        autoWrapCol: true,
       });
 
       selectCell(0, 0);
@@ -224,7 +224,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapRow: true
+        autoWrapRow: true,
       });
 
       selectCell(0, 0);
@@ -243,7 +243,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapRow: true
+        autoWrapRow: true,
       });
 
       selectCell(4, 4);
@@ -262,7 +262,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapCol: true
+        autoWrapCol: true,
       });
 
       selectCell(0, 0);
@@ -281,7 +281,7 @@ describe('Core_navigation', () => {
       handsontable({
         startRows: 5,
         startCols: 5,
-        autoWrapCol: true
+        autoWrapCol: true,
       });
 
       selectCell(4, 4);

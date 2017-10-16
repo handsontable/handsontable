@@ -17,8 +17,8 @@ describe('Core.colToProp', () => {
       data: [{
         id: 1,
         firstName: 'Tobias',
-        lastName: 'Forge'
-      }]
+        lastName: 'Forge',
+      }],
     });
 
     expect(colToProp(0)).toBe('id');
@@ -31,8 +31,8 @@ describe('Core.colToProp', () => {
       data: [{
         id: 1,
         sort: true,
-        length: 2
-      }]
+        length: 2,
+      }],
     });
 
     expect(colToProp('id')).toBe('id');

@@ -7,7 +7,7 @@ import {
   removeClass,
   removeTextNodes,
   overlayContainsElement,
-  closest
+  closest,
 } from './../../../helpers/dom/element';
 import {isFunction} from './../../../helpers/function';
 import CellCoords from './cell/coords';

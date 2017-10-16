@@ -17,7 +17,7 @@ describe('HandsontableObserveChanges', () => {
       data,
       width: 200,
       height: 200,
-      observeChanges
+      observeChanges,
     });
   }
 
@@ -223,7 +223,7 @@ describe('HandsontableObserveChanges', () => {
         expect(htCore.find('td:eq(0)').html()).toEqual('A1');
 
         updateSettings({
-          observeChanges: true
+          observeChanges: true,
         });
         data[1][0] = 'another new string';
       }, 200);
@@ -246,7 +246,7 @@ describe('HandsontableObserveChanges', () => {
         expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A2');
 
         updateSettings({
-          observeChanges: false
+          observeChanges: false,
         });
 
         data[1][0] = 'another new string';

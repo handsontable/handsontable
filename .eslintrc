@@ -10,7 +10,7 @@
   "globals": {},
   "rules": {
     "class-methods-use-this": 0,
-    "comma-dangle": 0,
+
     "dot-notation": 2,
     "eol-last": 2,
     "func-names": 0,

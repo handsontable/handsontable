@@ -16,15 +16,15 @@ describe('settings', () => {
     it('by default, CTRL+C should NOT copy the password value', () => {
       handsontable({
         data: [
-          ['Joe', 'Secret', 'Jack']
+          ['Joe', 'Secret', 'Jack'],
         ],
         columns: [
           {},
           {
-            type: 'password'
+            type: 'password',
           },
-          {}
-        ]
+          {},
+        ],
       });
 
       expect(getCopyableText(0, 0, 0, 2)).toMatch('Joe\t\tJack');
@@ -33,16 +33,16 @@ describe('settings', () => {
     it('with copyable=true, CTRL+C should copy the password value', () => {
       handsontable({
         data: [
-          ['Joe', 'Secret', 'Jack']
+          ['Joe', 'Secret', 'Jack'],
         ],
         columns: [
           {},
           {
             type: 'password',
-            copyable: true
+            copyable: true,
           },
-          {}
-        ]
+          {},
+        ],
       });
 
       expect(getCopyableText(0, 0, 0, 2)).toMatch('Joe\tSecret\tJack');
@@ -51,16 +51,16 @@ describe('settings', () => {
     it('with copyable=false, CTRL+C should NOT copy the password value', () => {
       handsontable({
         data: [
-          ['Joe', 'Secret', 'Jack']
+          ['Joe', 'Secret', 'Jack'],
         ],
         columns: [
           {},
           {
             type: 'password',
-            copyable: false
+            copyable: false,
           },
-          {}
-        ]
+          {},
+        ],
       });
 
       expect(getCopyableText(0, 0, 0, 2)).toMatch('Joe\t\tJack');

@@ -297,7 +297,7 @@ export function createObjectPropListener(defaultValue, propertyToListen = 'value
     [privateProperty]: defaultValue,
     isTouched() {
       return this._touched;
-    }
+    },
   };
 
   Object.defineProperty(holder, propertyToListen, {
@@ -309,7 +309,7 @@ export function createObjectPropListener(defaultValue, propertyToListen = 'value
       this[privateProperty] = value;
     },
     enumerable: true,
-    configurable: true
+    configurable: true,
   });
 
   return holder;

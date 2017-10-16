@@ -22,7 +22,7 @@ describe('Core_render', () => {
     handsontable({
       data: [
         ['a', 'b'],
-        ['c', 'd']
+        ['c', 'd'],
       ],
       minRows: 4,
       minCols: 4,
@@ -30,9 +30,9 @@ describe('Core_render', () => {
       minSpareCols: 4,
       cells() {
         return {
-          renderer: greenCell
+          renderer: greenCell,
         };
-      }
+      },
     });
 
     var $tds = this.$container.find('.htCore tbody td');
@@ -44,7 +44,7 @@ describe('Core_render', () => {
   it('render should update border dimensions', function() {
     var data = [
       ['a', 'b'],
-      ['c', 'd']
+      ['c', 'd'],
     ];
 
     handsontable({
@@ -52,7 +52,7 @@ describe('Core_render', () => {
       minRows: 4,
       minCols: 4,
       minSpareRows: 4,
-      minSpareCols: 4
+      minSpareCols: 4,
     });
 
     selectCell(1, 1);
@@ -68,11 +68,11 @@ describe('Core_render', () => {
 
     handsontable({
       data: [
-        ['Joe Red']
+        ['Joe Red'],
       ],
       afterRender() {
         counter++;
-      }
+      },
     });
     populateFromArray(0, 0, [['t', 'e', 's', 't']]);
 
@@ -91,7 +91,7 @@ describe('Core_render', () => {
           throw new Error();
         }
         lastCellProperties = cellProperties;
-      }
+      },
     });
 
     expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('Changed by plugin');
@@ -107,7 +107,7 @@ describe('Core_render', () => {
       beforeRenderer(td, row, col, prop, value, cellProperties) {
         td.innerHTML = 'Changed by plugin';
         lastCellProperties = cellProperties;
-      }
+      },
     });
 
     // Value is overwritten by text renderer

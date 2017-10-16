@@ -221,7 +221,7 @@ class AutoColumnSize extends BasePlugin {
 
       this.calculateColumnsWidth({
         from: current,
-        to: Math.min(current + AutoColumnSize.CALCULATION_STEP, length)
+        to: Math.min(current + AutoColumnSize.CALCULATION_STEP, length),
       }, rowRange);
 
       current = current + AutoColumnSize.CALCULATION_STEP + 1;

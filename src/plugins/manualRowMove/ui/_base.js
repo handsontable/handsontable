@@ -102,7 +102,7 @@ class BaseUI {
   getPosition() {
     return {
       top: this._element.style.top ? parseInt(this._element.style.top, 10) : 0,
-      left: this._element.style.left ? parseInt(this._element.style.left, 10) : 0
+      left: this._element.style.left ? parseInt(this._element.style.left, 10) : 0,
     };
   }
 
@@ -129,7 +129,7 @@ class BaseUI {
   getSize() {
     return {
       width: this._element.style.width ? parseInt(this._element.style.width, 10) : 0,
-      height: this._element.style.height ? parseInt(this._element.style.height, 10) : 0
+      height: this._element.style.height ? parseInt(this._element.style.height, 10) : 0,
     };
   }
 
@@ -156,7 +156,7 @@ class BaseUI {
   getOffset() {
     return {
       top: this._element.style.marginTop ? parseInt(this._element.style.marginTop, 10) : 0,
-      left: this._element.style.marginLeft ? parseInt(this._element.style.marginLeft, 10) : 0
+      left: this._element.style.marginLeft ? parseInt(this._element.style.marginLeft, 10) : 0,
     };
   }
 }

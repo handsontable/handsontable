@@ -190,7 +190,7 @@ class ManualColumnFreeze extends BasePlugin {
     options.items.push(
       {name: '---------'},
       freezeColumnItem(this),
-      unfreezeColumnItem(this)
+      unfreezeColumnItem(this),
     );
   }
 

@@ -19,14 +19,14 @@ describe('Core.getRowHeader', () => {
 
   it('when configured as true, should return the index incremented by 1', () => {
     handsontable({
-      rowHeaders: true
+      rowHeaders: true,
     });
     expect(getRowHeader(1)).toEqual(2);
   });
 
   it('when configured as array, should return value at index', () => {
     handsontable({
-      rowHeaders: ['One', 'Two', 'Three', 'Four', 'Five']
+      rowHeaders: ['One', 'Two', 'Three', 'Four', 'Five'],
     });
     expect(getRowHeader(1)).toEqual('Two');
   });
@@ -35,14 +35,14 @@ describe('Core.getRowHeader', () => {
     handsontable({
       rowHeaders(index) {
         return `row${index}`;
-      }
+      },
     });
     expect(getRowHeader(1)).toEqual('row1');
   });
 
   it('when configured as static value, should return the value', () => {
     handsontable({
-      rowHeaders: 'static'
+      rowHeaders: 'static',
     });
     expect(getRowHeader(1)).toEqual('static');
   });
@@ -51,7 +51,7 @@ describe('Core.getRowHeader', () => {
     handsontable({
       rowHeaders(index) {
         return `<b>row${index}</b>`;
-      }
+      },
     });
     expect(getRowHeader(1)).toEqual('<b>row1</b>');
   });
@@ -59,7 +59,7 @@ describe('Core.getRowHeader', () => {
   it('when no argument given, should return as much row headers as there are rows', () => {
     handsontable({
       rowHeaders: true,
-      startRows: 3
+      startRows: 3,
     });
     expect(getRowHeader()).toEqual([1, 2, 3]);
   });

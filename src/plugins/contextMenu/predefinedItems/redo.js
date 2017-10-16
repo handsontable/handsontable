@@ -10,6 +10,6 @@ export default function redoItem() {
     },
     disabled() {
       return this.undoRedo && !this.undoRedo.isRedoAvailable();
-    }
+    },
   };
 }

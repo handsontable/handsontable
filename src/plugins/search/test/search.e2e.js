@@ -17,7 +17,7 @@ describe('Search plugin', () => {
     it('should expose `search` object when plugin is enabled', () => {
 
       var hot = handsontable({
-        search: true
+        search: true,
       });
 
       expect(hot.search).toBeDefined();
@@ -25,7 +25,7 @@ describe('Search plugin', () => {
 
     it('should NOT expose `search` object when plugin is disabled', () => {
       var hot = handsontable({
-        search: false
+        search: false,
       });
 
       expect(hot.search).not.toBeDefined();
@@ -39,13 +39,13 @@ describe('Search plugin', () => {
 
     it('should disable plugin using updateSettings', () => {
       var hot = handsontable({
-        search: true
+        search: true,
       });
 
       expect(hot.search).toBeDefined();
 
       updateSettings({
-        search: false
+        search: false,
       });
 
       expect(hot.search).not.toBeDefined();
@@ -53,13 +53,13 @@ describe('Search plugin', () => {
 
     it('should enable plugin using updateSettings', () => {
       var hot = handsontable({
-        search: false
+        search: false,
       });
 
       expect(hot.search).not.toBeDefined();
 
       updateSettings({
-        search: true
+        search: true,
       });
 
       expect(hot.search).toBeDefined();
@@ -80,7 +80,7 @@ describe('Search plugin', () => {
 
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       hot.search.query('A');
@@ -93,7 +93,7 @@ describe('Search plugin', () => {
 
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       Handsontable.plugins.Search.global.setDefaultQueryMethod(customDefaultQueryMethod);
@@ -109,8 +109,8 @@ describe('Search plugin', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: {
-          queryMethod: customQueryMethod
-        }
+          queryMethod: customQueryMethod,
+        },
       });
 
       hot.search.query('A');
@@ -123,7 +123,7 @@ describe('Search plugin', () => {
 
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       hot.search.query('A', null, customQueryMethod);
@@ -137,7 +137,7 @@ describe('Search plugin', () => {
     it('should use query method to find phrase', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       var searchResult = hot.search.query('A');
@@ -154,7 +154,7 @@ describe('Search plugin', () => {
     it('default query method should be case insensitive', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       var searchResult = hot.search.query('a');
@@ -170,9 +170,9 @@ describe('Search plugin', () => {
       var hot = handsontable({
         data: [
           [1, 2],
-          [22, 4]
+          [22, 4],
         ],
-        search: true
+        search: true,
       });
 
       var searchResult = hot.search.query('2');
@@ -183,7 +183,7 @@ describe('Search plugin', () => {
     it('default query method should interpret query as string, not regex', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       var searchResult = hot.search.query('A*');
@@ -194,7 +194,7 @@ describe('Search plugin', () => {
     it('default query method should always return false if query string is empty', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       var searchResult = hot.search.query('A');
@@ -209,7 +209,7 @@ describe('Search plugin', () => {
     it('default query method should always return false if no query string has been specified', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       var searchResult = hot.search.query('A');
@@ -224,7 +224,7 @@ describe('Search plugin', () => {
     it('default query method should always return false if no query string is not a string', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       var searchResult = hot.search.query('A');
@@ -251,7 +251,7 @@ describe('Search plugin', () => {
 
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       hot.search.query('A');
@@ -264,7 +264,7 @@ describe('Search plugin', () => {
 
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       var defaultCallback = jasmine.createSpy('defaultCallback');
@@ -282,8 +282,8 @@ describe('Search plugin', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: {
-          callback: searchCallback
-        }
+          callback: searchCallback,
+        },
       });
 
       hot.search.query('A');
@@ -294,7 +294,7 @@ describe('Search plugin', () => {
     it('should invoke custom callback for each cell which has been tested', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       var searchCallback = jasmine.createSpy('searchCallback');
@@ -325,7 +325,7 @@ describe('Search plugin', () => {
     it('should add isSearchResult = true, to cell properties of all matched cells', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       hot.search.query('2');
@@ -349,7 +349,7 @@ describe('Search plugin', () => {
 
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        search: true
+        search: true,
       });
 
       hot.search.query('2');
@@ -373,8 +373,8 @@ describe('Search plugin', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: {
-          searchResultClass: 'customSearchResultClass'
-        }
+          searchResultClass: 'customSearchResultClass',
+        },
       });
 
       hot.search.query('2');
@@ -401,7 +401,7 @@ describe('Search plugin', () => {
           data: Handsontable.helper.createSpreadsheetData(5, 5),
           colHeaders: true,
           search: true,
-          minSpareRows: 1
+          minSpareRows: 1,
         }),
         errorThrown = false;
 

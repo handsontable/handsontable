@@ -18,13 +18,13 @@ describe('PasswordEditor', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
         {
-          editor: Handsontable.editors.PasswordEditor
-        }
-      ]
+          editor: Handsontable.editors.PasswordEditor,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -43,13 +43,13 @@ describe('PasswordEditor', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
         {
-          editor: 'password'
-        }
-      ]
+          editor: 'password',
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -68,13 +68,13 @@ describe('PasswordEditor', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
         {
-          type: 'password'
-        }
-      ]
+          type: 'password',
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -94,13 +94,13 @@ describe('PasswordEditor', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
         {
-          editor: 'password'
-        }
-      ]
+          editor: 'password',
+        },
+      ],
     });
 
     selectCell(0, 0);

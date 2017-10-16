@@ -96,7 +96,7 @@ class Settings {
       groups: false,
       rowHeaderWidth: null,
       columnHeaderHeight: null,
-      headerClassName: null
+      headerClassName: null,
     };
 
     // reference to settings

@@ -6,7 +6,7 @@ describe('CustomBorders', () => {
     var wrapper = $('<div></div>').css({
       width: 400,
       height: 200,
-      overflow: 'scroll'
+      overflow: 'scroll',
     });
 
     this.$wrapper = this.$container.wrap(wrapper).parent();
@@ -31,13 +31,13 @@ describe('CustomBorders', () => {
           col: 2,
           left: {
             width: 2,
-            color: 'red'
+            color: 'red',
           },
           right: {
             width: 1,
-            color: 'green'
-          }
-        }]
+            color: 'green',
+          },
+        }],
     });
     // [top,left, bottom, right]
 
@@ -61,30 +61,30 @@ describe('CustomBorders', () => {
           range: {
             from: {
               row: 1,
-              col: 1
+              col: 1,
             },
             to: {
               row: 3,
-              col: 4
-            }
+              col: 4,
+            },
           },
           top: {
             width: 2,
-            color: 'black'
+            color: 'black',
           },
           left: {
             width: 2,
-            color: 'red'
+            color: 'red',
           },
           bottom: {
             width: 2,
-            color: 'red'
+            color: 'red',
           },
           right: {
             width: 3,
-            color: 'black'
-          }
-        }]
+            color: 'black',
+          },
+        }],
     });
 
     for (var row = 1; row <= 3; row++) {
@@ -121,15 +121,15 @@ describe('CustomBorders', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
-      customBorders: true
+      customBorders: true,
     });
 
     var defaultBorder = {
         color: '#000',
-        width: 1
+        width: 1,
       },
       empty = {
-        hide: true
+        hide: true,
       };
 
     contextMenu();
@@ -155,15 +155,15 @@ describe('CustomBorders', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
-      customBorders: true
+      customBorders: true,
     });
 
     var defaultBorder = {
         color: '#000',
-        width: 1
+        width: 1,
       },
       empty = {
-        hide: true
+        hide: true,
       };
 
     contextMenu();
@@ -190,15 +190,15 @@ describe('CustomBorders', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
-      customBorders: true
+      customBorders: true,
     });
 
     var defaultBorder = {
         color: '#000',
-        width: 1
+        width: 1,
       },
       empty = {
-        hide: true
+        hide: true,
       };
 
     contextMenu();
@@ -225,15 +225,15 @@ describe('CustomBorders', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
-      customBorders: true
+      customBorders: true,
     });
 
     var defaultBorder = {
         color: '#000',
-        width: 1
+        width: 1,
       },
       empty = {
-        hide: true
+        hide: true,
       };
 
     contextMenu();
@@ -260,19 +260,18 @@ describe('CustomBorders', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
-      customBorders: [
-        {
-          row: 0,
-          col: 0,
-          left: {
-            width: 2,
-            color: 'red'
-          },
-          right: {
-            width: 1,
-            color: 'green'
-          }
-        }]
+      customBorders: [{
+        row: 0,
+        col: 0,
+        left: {
+          width: 2,
+          color: 'red',
+        },
+        right: {
+          width: 1,
+          color: 'green',
+        },
+      }],
     });
 
     contextMenu();

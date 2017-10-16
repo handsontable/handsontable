@@ -16,7 +16,7 @@ describe('persistentState', () => {
 
   it('should save data, when persistentStateSave is run', () => {
     var hot = handsontable({
-      persistentState: true
+      persistentState: true,
     });
 
     hot.runHooks('persistentStateSave', 'testData', 100);
@@ -32,7 +32,7 @@ describe('persistentState', () => {
 
   it('should NOT save data, when persistentStateSave is run, if plugin is not enabled', () => {
     var hot = handsontable({
-      persistentState: false
+      persistentState: false,
     });
 
     hot.runHooks('persistentStateSave', 'testData', 100);
@@ -45,7 +45,7 @@ describe('persistentState', () => {
 
   it('should load data, when persistentStateLoad is run', () => {
     var hot = handsontable({
-      persistentState: true
+      persistentState: true,
     });
 
     hot.runHooks('persistentStateSave', 'testData', 100);
@@ -59,7 +59,7 @@ describe('persistentState', () => {
 
   it('should NOT load data, when persistentStateLoad is run, if plugin is not enabled', () => {
     var hot = handsontable({
-      persistentState: false
+      persistentState: false,
     });
 
     // We have to manually save data, as persistentStateSave won't work when the plugin is disabled
@@ -74,7 +74,7 @@ describe('persistentState', () => {
 
   it('should clear the data under the given key, when persistentStateReset is run', () => {
     var hot = handsontable({
-      persistentState: true
+      persistentState: true,
     });
 
     hot.runHooks('persistentStateSave', 'testData', 100);
@@ -94,7 +94,7 @@ describe('persistentState', () => {
 
   it('should NOT clear the data under the given key, when persistentStateReset is run', () => {
     var hot = handsontable({
-      persistentState: false
+      persistentState: false,
     });
 
     // We have to manually save data, as persistentStateSave won't work when the plugin is disabled
@@ -108,7 +108,7 @@ describe('persistentState', () => {
 
   it('should clear all data, when persistentStateReset is run without specifying a key to reset', () => {
     var hot = handsontable({
-      persistentState: true
+      persistentState: true,
     });
 
     hot.runHooks('persistentStateSave', 'testData0', 100);
@@ -118,7 +118,7 @@ describe('persistentState', () => {
     var storedData = [
       {},
       {},
-      {}
+      {},
     ];
     hot.runHooks('persistentStateLoad', 'testData0', storedData[0]);
     hot.runHooks('persistentStateLoad', 'testData1', storedData[1]);
@@ -133,7 +133,7 @@ describe('persistentState', () => {
     storedData = [
       {},
       {},
-      {}
+      {},
     ];
     hot.runHooks('persistentStateLoad', 'testData0', storedData[0]);
     hot.runHooks('persistentStateLoad', 'testData1', storedData[1]);
@@ -146,7 +146,7 @@ describe('persistentState', () => {
 
   it('should allow to DISABLE plugin with updateSettings', () => {
     var hot = handsontable({
-      persistentState: true
+      persistentState: true,
     });
 
     hot.runHooks('persistentStateSave', 'testData', 100);
@@ -157,7 +157,7 @@ describe('persistentState', () => {
     expect(storedData.value).toEqual(100);
 
     updateSettings({
-      persistentState: false
+      persistentState: false,
     });
 
     storedData = {};
@@ -169,7 +169,7 @@ describe('persistentState', () => {
 
   it('should allow to ENABLE plugin with updateSettings', () => {
     var hot = handsontable({
-      persistentState: false
+      persistentState: false,
     });
 
     hot.runHooks('persistentStateSave', 'testData', 100);
@@ -180,7 +180,7 @@ describe('persistentState', () => {
     expect(storedData.value).toBeUndefined();
 
     updateSettings({
-      persistentState: true
+      persistentState: true,
     });
 
     hot.runHooks('persistentStateSave', 'testData', 100);

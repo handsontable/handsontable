@@ -29,7 +29,7 @@ describe('validators', () => {
       columns: [{
         validator: 'myValidator',
       }],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     hot.setDataAtCell(1, 0, 10);
