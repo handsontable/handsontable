@@ -30,7 +30,7 @@
 		var a = typeof exports === 'object' ? factory(require("../../handsontable-pro")) : factory(root["Handsontable"]);
 		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
 	}
-})(this, function(__WEBPACK_EXTERNAL_MODULE_1__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_0__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -93,280 +93,104 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 6);
+/******/ 	return __webpack_require__(__webpack_require__.s = 5);
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/******/ ({
 
-"use strict";
-/**
- * Constants for parts of translation.
- */
-
-const CONTEXTMENU_ITEMS_ROW_ABOVE = 'ContextMenu:items.insertRowAbove';
-/* harmony export (immutable) */ __webpack_exports__["r"] = CONTEXTMENU_ITEMS_ROW_ABOVE;
-
-const CONTEXTMENU_ITEMS_ROW_BELOW = 'ContextMenu:items.insertRowBelow';
-/* harmony export (immutable) */ __webpack_exports__["s"] = CONTEXTMENU_ITEMS_ROW_BELOW;
-
-const CONTEXTMENU_ITEMS_INSERT_LEFT = 'ContextMenu:items.insertColumnOnTheLeft';
-/* harmony export (immutable) */ __webpack_exports__["l"] = CONTEXTMENU_ITEMS_INSERT_LEFT;
-
-const CONTEXTMENU_ITEMS_INSERT_RIGHT = 'ContextMenu:items.insertColumnOnTheRight';
-/* harmony export (immutable) */ __webpack_exports__["m"] = CONTEXTMENU_ITEMS_INSERT_RIGHT;
-
-const CONTEXTMENU_ITEMS_REMOVE_ROW = 'ContextMenu:items.removeRow';
-/* harmony export (immutable) */ __webpack_exports__["q"] = CONTEXTMENU_ITEMS_REMOVE_ROW;
-
-const CONTEXTMENU_ITEMS_REMOVE_COLUMN = 'ContextMenu:items.removeColumn';
-/* harmony export (immutable) */ __webpack_exports__["p"] = CONTEXTMENU_ITEMS_REMOVE_COLUMN;
-
-const CONTEXTMENU_ITEMS_UNDO = 'ContextMenu:items.undo';
-/* harmony export (immutable) */ __webpack_exports__["t"] = CONTEXTMENU_ITEMS_UNDO;
-
-const CONTEXTMENU_ITEMS_REDO = 'ContextMenu:items.redo';
-/* harmony export (immutable) */ __webpack_exports__["o"] = CONTEXTMENU_ITEMS_REDO;
-
-const CONTEXTMENU_ITEMS_READ_ONLY = 'ContextMenu:items.readOnly';
-/* harmony export (immutable) */ __webpack_exports__["n"] = CONTEXTMENU_ITEMS_READ_ONLY;
-
-const CONTEXTMENU_ITEMS_CLEAR_COLUMN = 'ContextMenu:items.clearColumn';
-/* harmony export (immutable) */ __webpack_exports__["i"] = CONTEXTMENU_ITEMS_CLEAR_COLUMN;
-
-const CONTEXTMENU_ITEMS_COPY = 'ContextMenu:items.copy';
-/* harmony export (immutable) */ __webpack_exports__["j"] = CONTEXTMENU_ITEMS_COPY;
-
-const CONTEXTMENU_ITEMS_CUT = 'ContextMenu:items.cut';
-/* harmony export (immutable) */ __webpack_exports__["k"] = CONTEXTMENU_ITEMS_CUT;
-
-
-const CONTEXTMENU_ITEMS_ALIGNMENT = 'ContextMenu:items.align';
-/* harmony export (immutable) */ __webpack_exports__["a"] = CONTEXTMENU_ITEMS_ALIGNMENT;
-
-const CONTEXTMENU_ITEMS_ALIGNMENT_LEFT = 'ContextMenu:items.align.left';
-/* harmony export (immutable) */ __webpack_exports__["e"] = CONTEXTMENU_ITEMS_ALIGNMENT_LEFT;
-
-const CONTEXTMENU_ITEMS_ALIGNMENT_CENTER = 'ContextMenu:items.align.center';
-/* harmony export (immutable) */ __webpack_exports__["c"] = CONTEXTMENU_ITEMS_ALIGNMENT_CENTER;
-
-const CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT = 'ContextMenu:items.align.right';
-/* harmony export (immutable) */ __webpack_exports__["g"] = CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT;
-
-const CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY = 'ContextMenu:items.align.justify';
-/* harmony export (immutable) */ __webpack_exports__["d"] = CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY;
-
-const CONTEXTMENU_ITEMS_ALIGNMENT_TOP = 'ContextMenu:items.align.top';
-/* harmony export (immutable) */ __webpack_exports__["h"] = CONTEXTMENU_ITEMS_ALIGNMENT_TOP;
-
-const CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE = 'ContextMenu:items.align.middle';
-/* harmony export (immutable) */ __webpack_exports__["f"] = CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE;
-
-const CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM = 'ContextMenu:items.align.bottom';
-/* harmony export (immutable) */ __webpack_exports__["b"] = CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM;
-
-
-const FILTERS_CONDITIONS_NAMESPACE = 'Filters:conditions';
-/* unused harmony export FILTERS_CONDITIONS_NAMESPACE */
-
-const FILTERS_CONDITIONS_NONE = 'Filters:conditions.none';
-/* harmony export (immutable) */ __webpack_exports__["O"] = FILTERS_CONDITIONS_NONE;
-
-const FILTERS_CONDITIONS_EMPTY = 'Filters:conditions.isEmpty';
-/* harmony export (immutable) */ __webpack_exports__["H"] = FILTERS_CONDITIONS_EMPTY;
-
-const FILTERS_CONDITIONS_NOT_EMPTY = 'Filters:conditions.isNotEmpty';
-/* harmony export (immutable) */ __webpack_exports__["R"] = FILTERS_CONDITIONS_NOT_EMPTY;
-
-const FILTERS_CONDITIONS_EQUAL = 'Filters:conditions.isEqualTo';
-/* harmony export (immutable) */ __webpack_exports__["J"] = FILTERS_CONDITIONS_EQUAL;
-
-const FILTERS_CONDITIONS_NOT_EQUAL = 'Filters:conditions.isNotEqualTo';
-/* harmony export (immutable) */ __webpack_exports__["S"] = FILTERS_CONDITIONS_NOT_EQUAL;
-
-const FILTERS_CONDITIONS_BEGINS_WITH = 'Filters:conditions.beginsWith';
-/* harmony export (immutable) */ __webpack_exports__["D"] = FILTERS_CONDITIONS_BEGINS_WITH;
-
-const FILTERS_CONDITIONS_ENDS_WITH = 'Filters:conditions.endsWith';
-/* harmony export (immutable) */ __webpack_exports__["I"] = FILTERS_CONDITIONS_ENDS_WITH;
-
-const FILTERS_CONDITIONS_CONTAINS = 'Filters:conditions.contains';
-/* harmony export (immutable) */ __webpack_exports__["G"] = FILTERS_CONDITIONS_CONTAINS;
-
-const FILTERS_CONDITIONS_NOT_CONTAIN = 'Filters:conditions.doesNotContain';
-/* harmony export (immutable) */ __webpack_exports__["Q"] = FILTERS_CONDITIONS_NOT_CONTAIN;
-
-const FILTERS_CONDITIONS_BY_VALUE = 'Filters:conditions.byValue';
-/* harmony export (immutable) */ __webpack_exports__["F"] = FILTERS_CONDITIONS_BY_VALUE;
-
-const FILTERS_CONDITIONS_GREATER_THAN = 'Filters:conditions.greaterThan';
-/* harmony export (immutable) */ __webpack_exports__["K"] = FILTERS_CONDITIONS_GREATER_THAN;
-
-const FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL = 'Filters:conditions.greaterThanOrEqualTo';
-/* harmony export (immutable) */ __webpack_exports__["L"] = FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL;
-
-const FILTERS_CONDITIONS_LESS_THAN = 'Filters:conditions.lessThan';
-/* harmony export (immutable) */ __webpack_exports__["M"] = FILTERS_CONDITIONS_LESS_THAN;
-
-const FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL = 'Filters:conditions.lessThanOrEqualTo';
-/* harmony export (immutable) */ __webpack_exports__["N"] = FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL;
-
-const FILTERS_CONDITIONS_BETWEEN = 'Filters:conditions.isBetween';
-/* harmony export (immutable) */ __webpack_exports__["E"] = FILTERS_CONDITIONS_BETWEEN;
-
-const FILTERS_CONDITIONS_NOT_BETWEEN = 'Filters:conditions.isNotBetween';
-/* harmony export (immutable) */ __webpack_exports__["P"] = FILTERS_CONDITIONS_NOT_BETWEEN;
-
-const FILTERS_CONDITIONS_AFTER = 'Filters:conditions.after';
-/* harmony export (immutable) */ __webpack_exports__["B"] = FILTERS_CONDITIONS_AFTER;
-
-const FILTERS_CONDITIONS_BEFORE = 'Filters:conditions.before';
-/* harmony export (immutable) */ __webpack_exports__["C"] = FILTERS_CONDITIONS_BEFORE;
-
-const FILTERS_CONDITIONS_TODAY = 'Filters:conditions.today';
-/* harmony export (immutable) */ __webpack_exports__["T"] = FILTERS_CONDITIONS_TODAY;
-
-const FILTERS_CONDITIONS_TOMORROW = 'Filters:conditions.tomorrow';
-/* harmony export (immutable) */ __webpack_exports__["U"] = FILTERS_CONDITIONS_TOMORROW;
-
-const FILTERS_CONDITIONS_YESTERDAY = 'Filters:conditions.yesterday';
-/* harmony export (immutable) */ __webpack_exports__["V"] = FILTERS_CONDITIONS_YESTERDAY;
-
-
-const FILTERS_LABELS_FILTER_BY_CONDITION = 'Filters:labels.filterByCondition';
-/* harmony export (immutable) */ __webpack_exports__["Y"] = FILTERS_LABELS_FILTER_BY_CONDITION;
-
-const FILTERS_LABELS_FILTER_BY_VALUE = 'Filters:labels.filterByValue';
-/* harmony export (immutable) */ __webpack_exports__["Z"] = FILTERS_LABELS_FILTER_BY_VALUE;
-
-const FILTERS_LABELS_CONJUNCTION = 'Filters:labels.conjunction';
-/* harmony export (immutable) */ __webpack_exports__["W"] = FILTERS_LABELS_CONJUNCTION;
-
-const FILTERS_LABELS_DISJUNCTION = 'Filters:labels.disjunction';
-/* harmony export (immutable) */ __webpack_exports__["X"] = FILTERS_LABELS_DISJUNCTION;
-
-
-const FILTERS_BUTTONS_SELECT_ALL = 'Filters:buttons.searchAll';
-/* harmony export (immutable) */ __webpack_exports__["A"] = FILTERS_BUTTONS_SELECT_ALL;
-
-const FILTERS_BUTTONS_CLEAR = 'Filters:buttons.clear';
-/* harmony export (immutable) */ __webpack_exports__["v"] = FILTERS_BUTTONS_CLEAR;
-
-const FILTERS_BUTTONS_OK = 'Filters:buttons.ok';
-/* harmony export (immutable) */ __webpack_exports__["w"] = FILTERS_BUTTONS_OK;
-
-const FILTERS_BUTTONS_CANCEL = 'Filters:buttons.cancel';
-/* harmony export (immutable) */ __webpack_exports__["u"] = FILTERS_BUTTONS_CANCEL;
-
-
-const FILTERS_BUTTONS_PLACEHOLDER_SEARCH = 'Filters:buttons.placeholder.search';
-/* harmony export (immutable) */ __webpack_exports__["x"] = FILTERS_BUTTONS_PLACEHOLDER_SEARCH;
-
-const FILTERS_BUTTONS_PLACEHOLDER_VALUE = 'Filters:buttons.placeholder.value';
-/* harmony export (immutable) */ __webpack_exports__["z"] = FILTERS_BUTTONS_PLACEHOLDER_VALUE;
-
-const FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE = 'Filters:buttons.placeholder.secondValue';
-/* harmony export (immutable) */ __webpack_exports__["y"] = FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE;
-
-
-
-/***/ }),
-/* 1 */
+/***/ 0:
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
+module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
 
 /***/ }),
-/* 2 */,
-/* 3 */,
-/* 4 */,
-/* 5 */,
-/* 6 */
+
+/***/ 5:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__constants__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__handsontable_pro__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__handsontable_pro___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__handsontable_pro__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__handsontable_pro__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__handsontable_pro___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__handsontable_pro__);
 /**
  * @preserve
  * Authors: Wojciech Szymański
  * Last updated: 12.10.2017
  *
- * Description: Definition file for Polish language.
+ * Description: Definition file for Polish - Poland language-country.
  */
 
 
+const C = __WEBPACK_IMPORTED_MODULE_0__handsontable_pro___default.a.languages.constants;
 
 const dictionary = {
   languageCode: 'pl-PL',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["r" /* CONTEXTMENU_ITEMS_ROW_ABOVE */]]: 'Umieść wiersz powyżej',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["s" /* CONTEXTMENU_ITEMS_ROW_BELOW */]]: 'Umieść wiersz poniżej',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["l" /* CONTEXTMENU_ITEMS_INSERT_LEFT */]]: 'Umieść kolumnę po lewej',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["m" /* CONTEXTMENU_ITEMS_INSERT_RIGHT */]]: 'Umieść kolumnę po prawej',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["q" /* CONTEXTMENU_ITEMS_REMOVE_ROW */]]: ['Usuń wiersz', 'Usuń wiersze'],
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["p" /* CONTEXTMENU_ITEMS_REMOVE_COLUMN */]]: ['Usuń kolumnę', 'Usuń kolumny'],
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["t" /* CONTEXTMENU_ITEMS_UNDO */]]: 'Cofnij',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["o" /* CONTEXTMENU_ITEMS_REDO */]]: 'Przywróć',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["n" /* CONTEXTMENU_ITEMS_READ_ONLY */]]: 'Tylko do odczytu',
+  [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Umieść wiersz powyżej',
+  [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Umieść wiersz poniżej',
+  [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Umieść kolumnę po lewej',
+  [C.CONTEXTMENU_ITEMS_INSERT_RIGHT]: 'Umieść kolumnę po prawej',
+  [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['Usuń wiersz', 'Usuń wiersze'],
+  [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['Usuń kolumnę', 'Usuń kolumny'],
+  [C.CONTEXTMENU_ITEMS_UNDO]: 'Cofnij',
+  [C.CONTEXTMENU_ITEMS_REDO]: 'Przywróć',
+  [C.CONTEXTMENU_ITEMS_READ_ONLY]: 'Tylko do odczytu',
 
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["a" /* CONTEXTMENU_ITEMS_ALIGNMENT */]]: 'Wyrównanie',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["e" /* CONTEXTMENU_ITEMS_ALIGNMENT_LEFT */]]: 'Lewo',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["c" /* CONTEXTMENU_ITEMS_ALIGNMENT_CENTER */]]: 'Środek',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["g" /* CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT */]]: 'Prawo',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["d" /* CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY */]]: 'Wyjustowane',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["h" /* CONTEXTMENU_ITEMS_ALIGNMENT_TOP */]]: 'Góra',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["f" /* CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE */]]: 'Środek',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["b" /* CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM */]]: 'Dół',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["i" /* CONTEXTMENU_ITEMS_CLEAR_COLUMN */]]: 'Wyczyść kolumnę',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT]: 'Wyrównanie',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT]: 'Lewo',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER]: 'Środek',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT]: 'Prawo',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY]: 'Wyjustowane',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP]: 'Góra',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE]: 'Środek',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM]: 'Dół',
+  [C.CONTEXTMENU_ITEMS_CLEAR_COLUMN]: 'Wyczyść kolumnę',
 
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["j" /* CONTEXTMENU_ITEMS_COPY */]]: 'Kopiuj',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["k" /* CONTEXTMENU_ITEMS_CUT */]]: 'Wytnij',
+  [C.CONTEXTMENU_ITEMS_COPY]: 'Kopiuj',
+  [C.CONTEXTMENU_ITEMS_CUT]: 'Wytnij',
 
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["O" /* FILTERS_CONDITIONS_NONE */]]: 'Brak',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["H" /* FILTERS_CONDITIONS_EMPTY */]]: 'Jest pusty',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["R" /* FILTERS_CONDITIONS_NOT_EMPTY */]]: 'Nie jest pusty',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["J" /* FILTERS_CONDITIONS_EQUAL */]]: 'Jest równy',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["S" /* FILTERS_CONDITIONS_NOT_EQUAL */]]: 'Nie jest równy',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["D" /* FILTERS_CONDITIONS_BEGINS_WITH */]]: 'Zaczyna się od',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["I" /* FILTERS_CONDITIONS_ENDS_WITH */]]: 'Kończy się na',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["G" /* FILTERS_CONDITIONS_CONTAINS */]]: 'Zawiera',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["Q" /* FILTERS_CONDITIONS_NOT_CONTAIN */]]: 'Nie zawiera',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["F" /* FILTERS_CONDITIONS_BY_VALUE */]]: 'By value',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["K" /* FILTERS_CONDITIONS_GREATER_THAN */]]: 'Większe niż',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["L" /* FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL */]]: 'Większe lub równe',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["M" /* FILTERS_CONDITIONS_LESS_THAN */]]: 'Mniejsze niż',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["N" /* FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL */]]: 'Mniejsze lub równe',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["E" /* FILTERS_CONDITIONS_BETWEEN */]]: 'Pomiędzy',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["P" /* FILTERS_CONDITIONS_NOT_BETWEEN */]]: 'Nie jest pomiędzy',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["B" /* FILTERS_CONDITIONS_AFTER */]]: 'Po',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["C" /* FILTERS_CONDITIONS_BEFORE */]]: 'Przed',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["T" /* FILTERS_CONDITIONS_TODAY */]]: 'Dzisiaj',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["U" /* FILTERS_CONDITIONS_TOMORROW */]]: 'Jutro',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["V" /* FILTERS_CONDITIONS_YESTERDAY */]]: 'Wczoraj',
+  [C.FILTERS_CONDITIONS_NONE]: 'Brak',
+  [C.FILTERS_CONDITIONS_EMPTY]: 'Jest pusty',
+  [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Nie jest pusty',
+  [C.FILTERS_CONDITIONS_EQUAL]: 'Jest równy',
+  [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Nie jest równy',
+  [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Zaczyna się od',
+  [C.FILTERS_CONDITIONS_ENDS_WITH]: 'Kończy się na',
+  [C.FILTERS_CONDITIONS_CONTAINS]: 'Zawiera',
+  [C.FILTERS_CONDITIONS_NOT_CONTAIN]: 'Nie zawiera',
+  [C.FILTERS_CONDITIONS_BY_VALUE]: 'By value',
+  [C.FILTERS_CONDITIONS_GREATER_THAN]: 'Większe niż',
+  [C.FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL]: 'Większe lub równe',
+  [C.FILTERS_CONDITIONS_LESS_THAN]: 'Mniejsze niż',
+  [C.FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL]: 'Mniejsze lub równe',
+  [C.FILTERS_CONDITIONS_BETWEEN]: 'Pomiędzy',
+  [C.FILTERS_CONDITIONS_NOT_BETWEEN]: 'Nie jest pomiędzy',
+  [C.FILTERS_CONDITIONS_AFTER]: 'Po',
+  [C.FILTERS_CONDITIONS_BEFORE]: 'Przed',
+  [C.FILTERS_CONDITIONS_TODAY]: 'Dzisiaj',
+  [C.FILTERS_CONDITIONS_TOMORROW]: 'Jutro',
+  [C.FILTERS_CONDITIONS_YESTERDAY]: 'Wczoraj',
 
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["Y" /* FILTERS_LABELS_FILTER_BY_CONDITION */]]: 'Filtruj na podstawie warunku',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["Z" /* FILTERS_LABELS_FILTER_BY_VALUE */]]: 'Filtruj na podstawie wartości',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["W" /* FILTERS_LABELS_CONJUNCTION */]]: 'Oraz',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["X" /* FILTERS_LABELS_DISJUNCTION */]]: 'Lub',
+  [C.FILTERS_LABELS_FILTER_BY_CONDITION]: 'Filtruj na podstawie warunku',
+  [C.FILTERS_LABELS_FILTER_BY_VALUE]: 'Filtruj na podstawie wartości',
+  [C.FILTERS_LABELS_CONJUNCTION]: 'Oraz',
+  [C.FILTERS_LABELS_DISJUNCTION]: 'Lub',
 
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["A" /* FILTERS_BUTTONS_SELECT_ALL */]]: 'Wybierz wszystkie',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["v" /* FILTERS_BUTTONS_CLEAR */]]: 'Wyczyść',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["w" /* FILTERS_BUTTONS_OK */]]: 'OK',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["u" /* FILTERS_BUTTONS_CANCEL */]]: 'Anuluj',
+  [C.FILTERS_BUTTONS_SELECT_ALL]: 'Wybierz wszystkie',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Wyczyść',
+  [C.FILTERS_BUTTONS_OK]: 'OK',
+  [C.FILTERS_BUTTONS_CANCEL]: 'Anuluj',
 
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["x" /* FILTERS_BUTTONS_PLACEHOLDER_SEARCH */]]: 'Szukaj...',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["z" /* FILTERS_BUTTONS_PLACEHOLDER_VALUE */]]: 'Wartość',
-  [__WEBPACK_IMPORTED_MODULE_0__constants__["y" /* FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE */]]: 'Druga wartość'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Szukaj...',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Wartość',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga wartość'
 };
 
-__WEBPACK_IMPORTED_MODULE_1__handsontable_pro___default.a.languages.registerLocaleDictionary(dictionary.languageCode, dictionary);
+__WEBPACK_IMPORTED_MODULE_0__handsontable_pro___default.a.languages.register(dictionary.languageCode, dictionary);
 
 /* harmony default export */ __webpack_exports__["default"] = (dictionary);
 
 
 /***/ })
-/******/ ])["default"];
+
+/******/ })["default"];
 });
