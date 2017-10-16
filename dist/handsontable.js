@@ -21,7 +21,7 @@
  * UNINTERRUPTED OR ERROR FREE.
  * 
  * Version: 1.14.2
- * Release date: 13/09/2017 (built at 16/10/2017 15:32:13)
+ * Release date: 13/09/2017 (built at 16/10/2017 15:38:36)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -31440,7 +31440,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '16/10/2017 15:32:13';
+Handsontable.buildDate = '16/10/2017 15:38:36';
 Handsontable.packageName = 'handsontable-pro';
 Handsontable.version = '1.14.2';
 
@@ -59699,7 +59699,7 @@ var _function = __webpack_require__(33);
 
 var _constants = __webpack_require__(3);
 
-var constants = _interopRequireWildcard(_constants);
+var C = _interopRequireWildcard(_constants);
 
 var _event = __webpack_require__(10);
 
@@ -59757,7 +59757,7 @@ var MultipleSelectUI = function (_BaseUI) {
      * @type {InputUI}
      */
     _this.searchInput = new _input2.default(_this.hot, {
-      placeholder: _this.hot.getTranslatedPhrase(constants.FILTERS_BUTTONS_PLACEHOLDER_SEARCH),
+      placeholder: _this.hot.getTranslatedPhrase(C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH),
       className: 'htUIMultipleSelectSearch'
     });
     /**
@@ -59767,7 +59767,7 @@ var MultipleSelectUI = function (_BaseUI) {
      */
     _this.selectAllUI = new _base2.default(_this.hot, {
       tagName: 'a',
-      textContent: _this.hot.getTranslatedPhrase(constants.FILTERS_BUTTONS_SELECT_ALL),
+      textContent: _this.hot.getTranslatedPhrase(C.FILTERS_BUTTONS_SELECT_ALL),
       href: '#',
       className: 'htUISelectAll'
     });
@@ -59778,7 +59778,7 @@ var MultipleSelectUI = function (_BaseUI) {
      */
     _this.clearAllUI = new _base2.default(_this.hot, {
       tagName: 'a',
-      textContent: _this.hot.getTranslatedPhrase(constants.FILTERS_BUTTONS_CLEAR),
+      textContent: _this.hot.getTranslatedPhrase(C.FILTERS_BUTTONS_CLEAR),
       href: '#',
       className: 'htUIClearAll'
     });
