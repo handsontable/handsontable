@@ -44,6 +44,8 @@ class Walkontable {
       this.wtEvent = new Event(this);
       this.selections = this.getSetting('selections');
       this.wtOverlays = new Overlays(this);
+
+      this.wtOverlays.updateMainScrollableElements();
       this.exportSettingsAsClassNames();
     }
 

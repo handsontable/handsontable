@@ -54,8 +54,8 @@ class EventManager {
 
     var supportsPassive = false;
     try {
-      addEventListener("test", null, { get passive() { supportsPassive = true; } });
-    } catch(e) {}
+      addEventListener('test', null, { get passive() { supportsPassive = true; }});
+    } catch (e) { /* empty */ }
 
     if (window.addEventListener) {
       if (supportsPassive) {

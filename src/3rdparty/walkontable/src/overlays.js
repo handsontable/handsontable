@@ -20,7 +20,6 @@ class Overlays {
   constructor(wotInstance) {
     this.wot = wotInstance;
 
-
     // legacy support
     this.instance = this.wot;
     this.eventManager = new EventManager(this.wot);
@@ -28,9 +27,12 @@ class Overlays {
     this.wot.update('scrollbarWidth', getScrollbarWidth());
     this.wot.update('scrollbarHeight', getScrollbarWidth());
 
-    this.scrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
+    this.scrollableElement = void 0;
+    this.scrollResizerY = void 0;
+    this.scrollResizerX = void 0;
 
     this.prepareOverlays();
+    this.prepareScrollableElement();
 
     this.destroyed = false;
     this.keyPressed = false;
@@ -82,6 +84,23 @@ class Overlays {
     this.registerListeners();
   }
 
+  prepareScrollableElement() {
+    this.scrollableElement = document.createElement('div');
+    this.scrollableElement.className = 'scroll-overlay';
+
+    this.scrollResizerY = document.createElement('div');
+    this.scrollResizerY.className = 'scroll-y';
+
+    this.scrollResizerX = document.createElement('div');
+    this.scrollResizerX.className = 'scroll-x';
+
+    this.scrollableElement.appendChild(this.scrollResizerY);
+    this.scrollableElement.appendChild(this.scrollResizerX);
+
+    this.wot.wtTable.wtRootElement.parentNode.appendChild(this.scrollableElement);
+
+    this.eventManager.addEventListener(this.scrollableElement, 'scroll', (event) => this.onTableScroll(event));
+  }
   /**
    * Prepare overlays based on user settings.
    *
@@ -183,7 +202,7 @@ class Overlays {
     listenersToRegister.push([document.documentElement, 'keyup', () => this.onKeyUp()]);
     listenersToRegister.push([document, 'visibilitychange', () => this.onKeyUp()]);
 
-    this.eventManager.addEventListener(document.querySelector('.ht_master'), 'wheel', (event) => this.onTableScroll(event), {passive: true});
+    this.eventManager.addEventListener(topOverlayScrollable, 'wheel', (event) => this.onTableScroll(event), {passive: true});
   }
 
   /**
@@ -222,6 +241,7 @@ class Overlays {
     if (event.type === 'scroll') {
       // event.preventDefault();
       this.syncScrollPositions(event);
+
     } else {
       this.translateMouseWheelToScroll(event);
     }
@@ -258,12 +278,8 @@ class Overlays {
       deltaY *= 15;
     }
 
-    if (!this.fatScrollable) {
-      this.fatScrollable = document.querySelector('.scroll-overlay');
-    }
-
-    this.fatScrollable.scrollLeft += deltaX;
-    this.fatScrollable.scrollTop += deltaY;
+    this.scrollableElement.scrollLeft += deltaX;
+    this.scrollableElement.scrollTop += deltaY;
   }
 
   /**
@@ -278,13 +294,22 @@ class Overlays {
     if (this.destroyed) {
       return;
     }
-    var top = getScrollTop(event.target);
-    var left = getScrollLeft(event.target);
 
-    this.wot.wtTable.holder.scrollTop = top;
-    this.wot.wtTable.holder.scrollLeft = left;
-    this.wot.wtOverlays.leftOverlay.clone.wtTable.holder.scrollTop = top;
-    this.wot.wtOverlays.topOverlay.clone.wtTable.holder.scrollLeft = left;
+    const top = getScrollTop(event.target);
+    const left = getScrollLeft(event.target);
+    const holder = this.wot.wtTable.holder;
+
+    if (holder.scrollTop !== top) {
+      holder.scrollTop = top;
+      this.wot.wtOverlays.leftOverlay.clone.wtTable.holder.scrollTop = top;
+      this.verticalScrolling = true;
+    }
+
+    if (holder.scrollLeft !== left) {
+      holder.scrollLeft = left;
+      this.horizontalScrolling = true;
+      this.wot.wtOverlays.topOverlay.clone.wtTable.holder.scrollLeft = left;
+    }
 
     this.refreshAll();
   }
@@ -319,8 +344,6 @@ class Overlays {
     if (this.bottomOverlay.needFullRender) {
       this.bottomOverlay.updateMainScrollableElement();
     }
-
-    this.scrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
 
     this.registerListeners();
   }
@@ -409,23 +432,10 @@ class Overlays {
       this.bottomOverlay.adjustElementsSize(force);
     }
 
-    var overlay = document.querySelector('.scroll-overlay');
-    var fatElement = document.querySelector('.fat-element');
-
-    if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.className = 'scroll-overlay';
-
-      fatElement = document.createElement('div');
-      fatElement.className = 'fat-element';
-
-      overlay.appendChild(fatElement);
-      this.wot.wtTable.holder.parentElement.parentElement.parentElement.appendChild(overlay);
-
-      this.eventManager.addEventListener(document.querySelector('.scroll-overlay'), 'scroll', (event) => this.onTableScroll(event));
-    }
-    fatElement.style.width = hiderStyle.width;
-    fatElement.style.height = hiderStyle.height;
+    this.scrollResizerY.style.height = hiderStyle.height;
+    this.scrollResizerX.style.width = hiderStyle.width;
+    this.wot.wtOverlays.leftOverlay.adjustRootElementSize();
+    this.wot.wtOverlays.topOverlay.adjustRootElementSize();
   }
 
   /**

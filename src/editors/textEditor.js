@@ -261,23 +261,22 @@ TextEditor.prototype.refreshDimensions = function() {
 
     return;
   }
-  var
-    currentOffset = offset(this.TD),
-    containerOffset = offset(this.instance.rootElement),
-    scrollableContainer = getScrollableElement(this.TD),
-    totalRowsCount = this.instance.countRows(),
+  let currentOffset = offset(this.TD);
+  let containerOffset = offset(this.instance.rootElement);
+  let scrollableContainer = this.instance.view.wt.wtOverlays.scrollableElement; // getScrollableElement(this.TD),
+  let totalRowsCount = this.instance.countRows();
 
-    // If colHeaders is disabled, cells in the first row have border-top
-    editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1,
-    editTop = currentOffset.top - containerOffset.top - editTopModifier - (scrollableContainer.scrollTop || 0),
-    editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
+  // If colHeaders is disabled, cells in the first row have border-top
+  let editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
+  let editTop = currentOffset.top - containerOffset.top - editTopModifier - (scrollableContainer.scrollTop || 0);
+  let editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
 
-    settings = this.instance.getSettings(),
-    rowHeadersCount = this.instance.hasRowHeaders(),
-    colHeadersCount = this.instance.hasColHeaders(),
-    editorSection = this.checkEditorSection(),
-    backgroundColor = this.TD.style.backgroundColor,
-    cssTransformOffset;
+  let settings = this.instance.getSettings();
+  let rowHeadersCount = this.instance.hasRowHeaders();
+  let colHeadersCount = this.instance.hasColHeaders();
+  let editorSection = this.checkEditorSection();
+  let backgroundColor = this.TD.style.backgroundColor;
+  let cssTransformOffset;
 
   // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
   switch (editorSection) {

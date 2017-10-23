@@ -1,6 +1,7 @@
 import {
   getStyle,
   getTrimmingContainer,
+  getScrollbarWidth,
   hasClass,
   index,
   offset,
@@ -175,8 +176,8 @@ class Table {
           this.wtRootElement.style.overflow = 'visible';
         }
       } else {
-        this.holder.style.width = getStyle(trimmingElement, 'width');
-        this.holder.style.height = getStyle(trimmingElement, 'height');
+        // this.holder.style.width = `${trimmingElement.offsetWidth - getScrollbarWidth()}px`;
+        this.holder.style.height = `${trimmingElement.offsetHeight - getScrollbarWidth()}px`;
         this.holder.style.overflow = '';
       }
     }

@@ -136,12 +136,16 @@ class LeftOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    let masterHolder = this.wot.wtTable.holder;
-    let scrollbarHeight = masterHolder.clientHeight === masterHolder.offsetHeight ? 0 : getScrollbarWidth();
+    let wtOverlays = this.wot.wtOverlays;
+    let scrollbarHeight = wtOverlays.scrollableElement.offsetWidth === wtOverlays.scrollResizerX.offsetWidth ? 0 : getScrollbarWidth();
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let overlayRootStyle = overlayRoot.style;
     let preventOverflow = this.wot.getSetting('preventOverflow');
     let tableWidth;
+
+    // if (scrollbarHeight) {
+    //   this.wot.wtTable.wtRootElement.parentNode.style.paddingBottom = `${scrollbarHeight}px`;
+    // }
 
     if (this.trimmingContainer !== window || preventOverflow === 'vertical') {
       let height = this.wot.wtViewport.getWorkspaceHeight() - scrollbarHeight;
@@ -154,25 +158,23 @@ class LeftOverlay extends Overlay {
       overlayRootStyle.height = '';
     }
 
-    this.clone.wtTable.holder.style.height = overlayRootStyle.height;
-
     tableWidth = outerWidth(this.clone.wtTable.TABLE);
-    overlayRootStyle.width = `${tableWidth === 0 ? tableWidth : tableWidth + 4}px`;
+    overlayRootStyle.width = `${tableWidth}px`;
   }
 
   /**
    * Adjust overlay root childs size
    */
   adjustRootChildrenSize() {
-    let scrollbarWidth = getScrollbarWidth();
+    // let scrollbarWidth = getScrollbarWidth();
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
-    this.clone.wtTable.holder.style.height = this.clone.wtTable.holder.parentNode.style.height;
+    // this.clone.wtTable.holder.style.height = this.clone.wtTable.holder.parentNode.style.height;
 
-    if (scrollbarWidth === 0) {
-      scrollbarWidth = 30;
-    }
-    this.clone.wtTable.holder.style.width = `${parseInt(this.clone.wtTable.holder.parentNode.style.width, 10) + scrollbarWidth}px`;
+    // if (scrollbarWidth === 0) {
+    //   scrollbarWidth = 30;
+    // }
+    // this.clone.wtTable.holder.style.width = `${parseInt(this.clone.wtTable.holder.parentNode.style.width, 10) + scrollbarWidth}px`;
   }
 
   /**
@@ -221,10 +223,10 @@ class LeftOverlay extends Overlay {
   scrollTo(sourceCol, beyondRendered) {
     let newX = this.getTableParentOffset();
     let sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
-    let mainHolder = sourceInstance.wtTable.holder;
+    let wtOverlays = this.wot.wtOverlays;
     let scrollbarCompensation = 0;
 
-    if (beyondRendered && mainHolder.offsetWidth !== mainHolder.clientWidth) {
+    if (beyondRendered && wtOverlays.scrollableElement.offsetWidth !== wtOverlays.scrollResizerX.clientWidth) {
       scrollbarCompensation = getScrollbarWidth();
     }
     if (beyondRendered) {

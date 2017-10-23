@@ -1,5 +1,9 @@
 .handsontable {
   position: relative;
+  z-index: 1;
+}
+.handsontable:not([class*=ht_]) {
+  box-sizing: border-box;
 }
 
 .handsontable .hide{
@@ -16,6 +20,21 @@
   top: -99000px;
 }
 
+.handsontable + .scroll-overlay {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 0;
+  overflow: auto;
+  width: 100%;
+  height: 100%;
+}
+.handsontable + .scroll-overlay .scroll-x {
+  height: 1px;
+}
+.handsontable + .scroll-overlay .scroll-y {
+  width: 1px;
+}
 .handsontable .wtHider {
   width: 0;
 }
@@ -79,9 +98,9 @@
   border-left-width: 0;
   border-right: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
-  height: 22px;
+  height: 25px;
   empty-cells: show;
-  line-height: 21px;
+  line-height: 24px;
   padding: 0 4px 0 4px;
   /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
   background-color: #FFF;
@@ -694,6 +713,14 @@ thead .htCollapseButton:after {
 .ht_clone_left .wtHolder {
   overflow-x: hidden;
   overflow-y: hidden;
+  width: 100%;
+  height: 100%;
+}
+.ht_clone_top .wtHolder {
+  overflow-x: hidden;
+  overflow-y: hidden;
+  width: 100%;
+  height: 100%;
 }
 
 .ht_clone_top .wtHolder,

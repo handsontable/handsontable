@@ -139,12 +139,16 @@ class TopOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    let masterHolder = this.wot.wtTable.holder;
-    let scrollbarWidth = masterHolder.clientWidth === masterHolder.offsetWidth ? 0 : getScrollbarWidth();
+    let wtOverlays = this.wot.wtOverlays;
+    let scrollbarWidth = wtOverlays.scrollableElement.offsetHeight === wtOverlays.scrollResizerY.offsetHeight ? 0 : getScrollbarWidth();
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let overlayRootStyle = overlayRoot.style;
     let preventOverflow = this.wot.getSetting('preventOverflow');
     let tableHeight;
+
+    // if (scrollbarWidth) {
+    //   this.wot.wtTable.wtRootElement.parentNode.style.paddingRight += `${scrollbarWidth}px`;
+    // }
 
     if (this.trimmingContainer !== window || preventOverflow === 'horizontal') {
       let width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth;
@@ -160,22 +164,20 @@ class TopOverlay extends Overlay {
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
     tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    overlayRootStyle.height = `${tableHeight === 0 ? tableHeight : tableHeight + 4}px`;
+    overlayRootStyle.height = `${tableHeight}px`;
   }
 
   /**
    * Adjust overlay root childs size
    */
   adjustRootChildrenSize() {
-    let scrollbarWidth = getScrollbarWidth();
+    // let scrollbarWidth = getScrollbarWidth();
 
-    this.clone.wtTable.hider.style.width = this.hider.style.width;
-    this.clone.wtTable.holder.style.width = this.clone.wtTable.holder.parentNode.style.width;
+    // this.clone.wtTable.hider.style.width = this.hider.style.width;
 
-    if (scrollbarWidth === 0) {
-      scrollbarWidth = 30;
-    }
-    this.clone.wtTable.holder.style.height = `${parseInt(this.clone.wtTable.holder.parentNode.style.height, 10) + scrollbarWidth}px`;
+    // if (scrollbarWidth === 0) {
+    //   scrollbarWidth = 30;
+    // }
   }
 
   /**
@@ -225,10 +227,10 @@ class TopOverlay extends Overlay {
   scrollTo(sourceRow, bottomEdge) {
     let newY = this.getTableParentOffset();
     let sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
-    let mainHolder = sourceInstance.wtTable.holder;
+    let wtOverlays = this.wot.wtOverlays;
     let scrollbarCompensation = 0;
 
-    if (bottomEdge && mainHolder.offsetHeight !== mainHolder.clientHeight) {
+    if (bottomEdge && wtOverlays.scrollableElement.offsetHeight !== wtOverlays.scrollResizerY.clientHeight) {
       scrollbarCompensation = getScrollbarWidth();
     }
 

@@ -184,7 +184,7 @@ class Overlay {
    * Update the main scrollable element.
    */
   updateMainScrollableElement() {
-    this.mainTableScrollableElement = getScrollableElement(this.wot.wtTable.TABLE);
+    this.mainTableScrollableElement = this.wot.wtOverlays.scrollableElement; // getScrollableElement(this.wot.wtTable.TABLE);
   }
 
   /**
