@@ -143,9 +143,9 @@ class LeftOverlay extends Overlay {
     let preventOverflow = this.wot.getSetting('preventOverflow');
     let tableWidth;
 
-    // if (scrollbarHeight) {
-    //   this.wot.wtTable.wtRootElement.parentNode.style.paddingBottom = `${scrollbarHeight}px`;
-    // }
+    if (scrollbarHeight) {
+      this.wot.wtTable.wtRootElement.parentNode.style.paddingBottom = `${scrollbarHeight}px`;
+    }
 
     if (this.trimmingContainer !== window || preventOverflow === 'vertical') {
       let height = this.wot.wtViewport.getWorkspaceHeight() - scrollbarHeight;
@@ -289,21 +289,21 @@ class LeftOverlay extends Overlay {
       addClass(masterParent, 'emptyRows');
     }
 
-    if (fixedColumnsLeft && !rowHeaders.length) {
-      addClass(masterParent, 'innerBorderLeft');
+    // if (fixedColumnsLeft && !rowHeaders.length) {
+    //   addClass(masterParent, 'innerBorderLeft');
 
-    } else if (!fixedColumnsLeft && rowHeaders.length) {
-      let previousState = hasClass(masterParent, 'innerBorderLeft');
+    // } else if (!fixedColumnsLeft && rowHeaders.length) {
+    //   let previousState = hasClass(masterParent, 'innerBorderLeft');
 
-      if (position) {
-        addClass(masterParent, 'innerBorderLeft');
-      } else {
-        removeClass(masterParent, 'innerBorderLeft');
-      }
-      if (!previousState && position || previousState && !position) {
-        this.wot.wtOverlays.adjustElementsSize();
-      }
-    }
+    //   if (position) {
+    //     addClass(masterParent, 'innerBorderLeft');
+    //   } else {
+    //     removeClass(masterParent, 'innerBorderLeft');
+    //   }
+    //   if (!previousState && position || previousState && !position) {
+    //     this.wot.wtOverlays.adjustElementsSize();
+    //   }
+    // }
   }
 }
 

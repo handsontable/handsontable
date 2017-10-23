@@ -172,8 +172,8 @@ class Table {
         let preventOverflow = this.wot.getSetting('preventOverflow');
 
         if (!preventOverflow) {
-          this.holder.style.overflow = 'visible';
-          this.wtRootElement.style.overflow = 'visible';
+          // this.holder.style.overflow = 'auto';
+          // this.wtRootElement.style.overflow = 'visible';
         }
       } else {
         // this.holder.style.width = `${trimmingElement.offsetWidth - getScrollbarWidth()}px`;
@@ -638,9 +638,6 @@ class Table {
   _correctRowHeaderWidth(width) {
     if (typeof width !== 'number') {
       width = this.wot.getSetting('defaultColumnWidth');
-    }
-    if (this.correctHeaderWidth) {
-      width++;
     }
 
     return width;

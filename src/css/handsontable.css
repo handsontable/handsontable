@@ -2,8 +2,20 @@
   position: relative;
   z-index: 1;
 }
-.handsontable:not([class*=ht_]) {
+.handsontable:not([class*=ht_]),
+.handsontable[class*=ht__] {
   box-sizing: border-box;
+  border-top: 1px solid #CCC;
+  border-left: 1px solid #CCC;
+  font-size: 1rem;
+}
+.handsontable table {
+  font-size: 1rem;
+}
+.handsontable * {
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
 }
 
 .handsontable .hide{
@@ -20,6 +32,9 @@
   top: -99000px;
 }
 
+/**
+* scrollbars helper
+*/
 .handsontable + .scroll-overlay {
   position: absolute;
   z-index: 0;
@@ -31,6 +46,7 @@
 }
 .handsontable + .scroll-overlay .scroll-x {
   height: 1px;
+  margin-top: -1px;
 }
 .handsontable + .scroll-overlay .scroll-y {
   width: 1px;
@@ -45,18 +61,6 @@
   height: auto;
 }
 
-.handsontable table,
-.handsontable tbody,
-.handsontable thead,
-.handsontable td,
-.handsontable th,
-.handsontable input,
-.handsontable textarea,
-.handsontable div {
-  box-sizing: content-box;
-  -webkit-box-sizing: content-box;
-  -moz-box-sizing: content-box;
-}
 
 .handsontable input,
 .handsontable textarea {
@@ -65,42 +69,23 @@
 
 .handsontable table.htCore {
   border-collapse: separate;
-  /* it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit */
-  /* this actually only changes appearance of user selection - does not make text unselectable */
-  /* -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -o-user-select: none;
-  -ms-user-select: none;
-  user-select: none; */ /* no browser supports unprefixed version */
+  border-left: 1px solid #CCC;
   border-spacing: 0;
   margin: 0;
   border-width: 0;
   table-layout: fixed;
   width: 0;
   outline-width: 0;
-  /* reset bootstrap table style. for more info see: https://github.com/handsontable/handsontable/issues/224 */
   max-width: none;
   max-height: none;
 }
 
-.handsontable col {
-  width: 50px;
-}
-
-.handsontable col.rowHeader {
-  width: 50px;
-}
-
 .handsontable th,
 .handsontable td {
-  border-top-width: 0;
-  border-left-width: 0;
   border-right: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
-  height: 25px;
   empty-cells: show;
-  line-height: 24px;
+  line-height: 1.5rem;
   padding: 0 4px 0 4px;
   /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
   background-color: #FFF;
@@ -120,47 +105,8 @@
   white-space: nowrap;
 }
 
-.handsontable th:last-child {
-  /*Foundation framework fix*/
-  border-right: 1px solid #CCC;
-  border-bottom: 1px solid #CCC;
-}
-
-.handsontable tr:first-child th.htNoFrame,
-.handsontable th:first-child.htNoFrame,
-.handsontable th.htNoFrame {
-  border-left-width: 0;
-  background-color: white;
-  border-color: #FFF;
-}
-
-.handsontable th:first-child,
-.handsontable th:nth-child(2),
-.handsontable td:first-of-type,
-.handsontable .htNoFrame + th,
-.handsontable .htNoFrame + td {
-  border-left: 1px solid #CCC;
-}
-
-.handsontable.htRowHeaders thead tr th:nth-child(2) {
-  border-left: 1px solid #CCC;
-}
-
-.handsontable tr:first-child th,
-.handsontable tr:first-child td {
-  border-top: 1px solid #CCC;
-}
-
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable tbody tr th,
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
-  border-right-width: 0;
-}
-
-.ht_master:not(.innerBorderTop) thead tr:last-child th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderTop) thead tr.lastChild th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr.lastChild th {
-  border-bottom-width: 0;
+.ht_clone_top {
+  width: 100%;
 }
 
 .handsontable th {

@@ -146,9 +146,9 @@ class TopOverlay extends Overlay {
     let preventOverflow = this.wot.getSetting('preventOverflow');
     let tableHeight;
 
-    // if (scrollbarWidth) {
-    //   this.wot.wtTable.wtRootElement.parentNode.style.paddingRight += `${scrollbarWidth}px`;
-    // }
+    if (scrollbarWidth) {
+      this.wot.wtTable.wtRootElement.parentNode.style.paddingRight += `${scrollbarWidth}px`;
+    }
 
     if (this.trimmingContainer !== window || preventOverflow === 'horizontal') {
       let width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth;
@@ -344,15 +344,15 @@ class TopOverlay extends Overlay {
     }
 
     // nasty workaround for double border in the header, TODO: find a pure-css solution
-    if (this.wot.getSetting('rowHeaders').length === 0) {
-      let secondHeaderCell = this.clone.wtTable.THEAD.querySelectorAll('th:nth-of-type(2)');
+    // if (this.wot.getSetting('rowHeaders').length === 0) {
+    //   let secondHeaderCell = this.clone.wtTable.THEAD.querySelectorAll('th:nth-of-type(2)');
 
-      if (secondHeaderCell) {
-        for (let i = 0; i < secondHeaderCell.length; i++) {
-          secondHeaderCell[i].style['border-left-width'] = 0;
-        }
-      }
-    }
+    //   if (secondHeaderCell) {
+    //     for (let i = 0; i < secondHeaderCell.length; i++) {
+    //       secondHeaderCell[i].style['border-left-width'] = 0;
+    //     }
+    //   }
+    // }
   }
 }
 
