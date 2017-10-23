@@ -2377,7 +2377,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const prop = datamap.colToProp(col);
     let cellProperties;
 
-    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
+    let [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
+
+    // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
+    if (physicalRow === null) {
+      physicalRow = row;
+    }
 
     if (!priv.columnSettings[physicalColumn]) {
       priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
