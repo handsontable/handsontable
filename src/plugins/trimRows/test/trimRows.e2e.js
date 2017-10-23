@@ -244,6 +244,32 @@ describe('TrimRows', function() {
     }.bind(this), 100);
   });
 
+  it('should not affect `afterValidate` hook #11', function (done) {
+    var hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      trimRows: true,
+      cells() {
+        return {type: 'numeric'};
+      }
+    });
+
+    hot.populateFromArray(5, 1, [
+      ['A1', 'A2'],
+      ['B1', 'B2'],
+      ['C1', 'C2'],
+      ['D1', 'D2'],
+      ['E1', 'E2'],
+    ]);
+
+    setTimeout(() => {
+      const $addedCell = $(getCell(5, 1));
+
+      expect($addedCell.hasClass('htInvalid')).toEqual(true);
+
+      done();
+    }, 100);
+  });
+
   describe('copy-paste functionality', function() {
     class DataTransferObject {
       constructor() {
