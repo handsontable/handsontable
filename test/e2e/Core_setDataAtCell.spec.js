@@ -240,7 +240,7 @@ describe('Core_setDataAtCell', () => {
     expect(getDataAtCell(0, 0)).toEqual('foo bar');
   });
 
-  it('should trigger `afterSetDataAtCell` hook with formattedChanges', () => {
+  it('should trigger `afterSetDataAtCell` hook with formatted changes', () => {
     var _changes;
     var _source;
 
@@ -255,8 +255,6 @@ describe('Core_setDataAtCell', () => {
     setDataAtCell(0, 0, '1', 'customSource');
 
     expect(_changes).toEqual([[0, 0, null, 1]]);
-    expect(_source).toBe('customSource');
-    expect(getDataAtCell(0, 0)).toEqual(1);
   });
 
   it('should modify value on the fly using `afterSetDataAtCell` hook', () => {
