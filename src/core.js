@@ -102,7 +102,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   priv = {
     cellSettings: [],
     columnSettings: [],
-    columnsSettingConflicts: ['data', 'width', 'locale'],
+    columnsSettingConflicts: ['data', 'width', 'language'],
     settings: new GridSettings(), // current settings instance
     selRange: null, // exposed by public method `getSelectedRange`
     isPopulated: null,
@@ -951,14 +951,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   };
 
-  function setLanguageCode(localeFromSettings) {
-    if (hasLanguageDictionary(localeFromSettings)) {
-      priv.languageCode = localeFromSettings;
+  function setLanguageCode(languageFromSettings) {
+    if (hasLanguageDictionary(languageFromSettings)) {
+      priv.languageCode = languageFromSettings;
 
       runOnLanguageChangeCallbacks(this);
 
     } else if (priv.languageCode !== null) {
-      console.error(`Language dictionary with "${localeFromSettings}" language code is not defined. Leaving previously chosen "${priv.languageCode}" language.`);
+      console.error(`Language dictionary with "${languageFromSettings}" language code is not defined. Leaving previously chosen "${priv.languageCode}" language.`);
 
     } else {
       priv.languageCode = DEFAULT_LANGUAGE_CODE;
@@ -968,9 +968,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.init = function() {
     dataSource.setData(priv.settings.data);
 
-    const localeFromSettings = priv.settings.locale;
+    const languageFromSettings = priv.settings.language;
 
-    setLanguageCode(localeFromSettings);
+    setLanguageCode(languageFromSettings);
     instance.runHooks('beforeInit');
 
     if (isMobileBrowser()) {
@@ -1822,8 +1822,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (!init) {
-      if (isDefined(settings.locale)) {
-        setLanguageCode(settings.locale);
+      if (isDefined(settings.language)) {
+        setLanguageCode(settings.language);
       }
 
       datamap.clearLengthCache(); // force clear cache length on updateSettings() #3416
