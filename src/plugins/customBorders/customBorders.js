@@ -537,3 +537,5 @@ Hooks.getSingleton().add('afterInit', function() {
     this.view.wt.draw(true);
   }
 });
+
+export default CustomBorders;
