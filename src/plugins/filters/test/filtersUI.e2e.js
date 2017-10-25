@@ -1512,7 +1512,7 @@ describe('Filters UI', function() {
         keyDownUp('enter');
         document.activeElement.value = '99';
         keyDownUp('enter');
-      }, 200);
+      }, 300);
 
       setTimeout(function () {
         dropdownMenu(0);
@@ -1520,7 +1520,7 @@ describe('Filters UI', function() {
 
         expect(getData().length).toBe(6);
         done();
-      }, 300);
+      }, 600);
     });
 
     it('should filter values again when data was changed (filter by value)', function(done) {
@@ -1578,7 +1578,7 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // begins_with
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
-      }, 200);
+      }, 300);
 
       setTimeout(function () {
         document.activeElement.value = 'b';
@@ -1589,7 +1589,7 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // eq
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown');
-      }, 400);
+      }, 600);
 
       setTimeout(function () {
         document.activeElement.value = 'green';
@@ -1612,7 +1612,7 @@ describe('Filters UI', function() {
         expect(getData()[1][5]).toBe(2437.58);
         expect(getData()[1][6]).toBe(false);
         done();
-      }, 600);
+      }, 900);
     });
 
     it('should filter values from 3 columns (2 conditional and 1 by value)', function(done) {
@@ -1640,7 +1640,7 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // begins_with
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
-      }, 200);
+      }, 300);
 
       setTimeout(function () {
         document.activeElement.value = 'b';
@@ -1648,12 +1648,12 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         dropdownMenu(4);
-      }, 400);
+      }, 600);
 
       setTimeout(function () {
         // uncheck first record
         $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-      }, 600);
+      }, 900);
 
       setTimeout(function () {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -1674,7 +1674,7 @@ describe('Filters UI', function() {
         expect(getData()[1][5]).toBe(2437.58);
         expect(getData()[1][6]).toBe(false);
         done();
-      }, 800);
+      }, 1200);
     });
 
     it('should filter values from few columns (after change first column condition)', function(done) {
@@ -1702,7 +1702,7 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // begins_with
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
-      }, 200);
+      }, 300);
 
       setTimeout(function () {
         document.activeElement.value = 'b';
@@ -1714,7 +1714,7 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // between
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(13) td')).simulate('mousedown');
-      }, 400);
+      }, 600);
 
       setTimeout(function () {
         const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition input');
@@ -1734,7 +1734,7 @@ describe('Filters UI', function() {
         expect(getData()[0][5]).toBe(3917.34);
         expect(getData()[0][6]).toBe(true);
         done();
-      }, 600);
+      }, 900);
     });
 
     it('should apply filtered values to the next "by value" component defined after edited conditions', function(done) {
@@ -1817,7 +1817,7 @@ describe('Filters UI', function() {
         expect(byValueMultipleSelect().getItems().length).toBe(3);
         expect(byValueMultipleSelect().getValue().length).toBe(1);
         done();
-      }, 1400);
+      }, 1500);
     });
   });
 
@@ -1847,7 +1847,7 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
         expect(getData().length).toBe(5);
         done();
-      }, 200);
+      }, 300);
     });
 
     it('should not change data when operation was changed from `disjunction` to `conjunction` ' +
@@ -1874,7 +1874,7 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         dropdownMenu(1);
-      }, 200);
+      }, 300);
 
       setTimeout(() => {
         expect(getData().length).toBe(5);
@@ -1882,12 +1882,12 @@ describe('Filters UI', function() {
         // disjunction
         $(conditionRadioInput(0).element).find('input[type="radio"]').simulate('click');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-      }, 400);
+      }, 600);
 
       setTimeout(() => {
         expect(getData().length).toBe(5);
         done();
-      }, 600);
+      }, 900);
     });
 
     it('should filter data properly after changing operator ' +
@@ -1912,7 +1912,7 @@ describe('Filters UI', function() {
 
         $(conditionSelectRootElements().second).simulate('click');
         $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
-      }, 200);
+      }, 300);
 
       setTimeout(() => {
         document.activeElement.value = 'e';
@@ -1921,7 +1921,7 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
         expect(getData().length).toBe(3);
         dropdownMenu(1);
-      }, 400);
+      }, 600);
 
       setTimeout(() => {
         // disjunction
@@ -1929,7 +1929,7 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
         expect(getData().length).toBe(7);
         dropdownMenu(1);
-      }, 600);
+      }, 900);
 
       setTimeout(() => {
         // conjunction
@@ -1937,7 +1937,7 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
         expect(getData().length).toBe(3);
         done();
-      }, 800);
+      }, 1200);
     });
 
     it('should filter data properly after clearing second input', function (done) {
@@ -1961,29 +1961,29 @@ describe('Filters UI', function() {
 
         $(conditionSelectRootElements().second).simulate('click');
         $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
-      }, 200);
+      }, 300);
 
       setTimeout(() => {
         document.activeElement.value = 'e';
         $(document.activeElement).simulate('keyup');
 
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-      }, 400);
+      }, 600);
 
       setTimeout(() => {
         dropdownMenu(1);
-      }, 600);
+      }, 900);
 
       setTimeout(() => {
         document.activeElement.value = '';
         $(document.activeElement).simulate('keyup');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-      }, 800);
+      }, 1200);
 
       setTimeout(() => {
         expect(getData().length).toBe(5);
         done();
-      }, 1000);
+      }, 1500);
     });
 
     it('should filter data properly after resetting second condition `SelectUI` (value set to `None`)', function (done) {
@@ -2007,30 +2007,30 @@ describe('Filters UI', function() {
 
         $(conditionSelectRootElements().second).simulate('click');
         $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
-      }, 200);
+      }, 300);
 
       setTimeout(() => {
         document.activeElement.value = 'e';
         $(document.activeElement).simulate('keyup');
 
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-      }, 400);
+      }, 600);
 
       setTimeout(() => {
         dropdownMenu(1);
-      }, 600);
+      }, 900);
 
       setTimeout(() => {
         $(conditionSelectRootElements().second).simulate('click');
         $(conditionMenuRootElements().second).find('tbody td:contains("None")').simulate('mousedown');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-      }, 800);
+      }, 1200);
 
       setTimeout(() => {
         expect(getData().length).toBe(5);
         expect($(conditionSelectRootElements().second).text()).toEqual('None');
         done();
-      }, 1000);
+      }, 1500);
     });
   });
 
@@ -2421,6 +2421,9 @@ describe('Filters UI', function() {
 
       setTimeout(function () {
         // Greater than 12
+
+        $(conditionSelectRootElements().first).next().find('input')[0].focus();
+
         document.activeElement.value = '12';
         $(document.activeElement).simulate('keyup');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -2435,10 +2438,13 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // ends_with
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown');
-      }, 500);
+      }, 600);
 
       setTimeout(function () {
         // Ends with 'e'
+
+        $(conditionSelectRootElements().first).next().find('input')[0].focus();
+
         document.activeElement.value = 'e';
         $(document.activeElement).simulate('keyup');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -2455,7 +2461,7 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // none
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(1) td')).simulate('mousedown');
-      }, 800);
+      }, 900);
 
       setTimeout(function () {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -2463,7 +2469,7 @@ describe('Filters UI', function() {
         expect(getData().length).toEqual(5);
         expect(getDataAtCol(0).join()).toBe('24,10,1,6,21');
         done();
-      }, 900);
+      }, 1200);
     });
 
     it('should correctly insert rows into filtered values when sorting is applied', function(done) {
@@ -2487,6 +2493,9 @@ describe('Filters UI', function() {
 
       setTimeout(function () {
         // Greater than 12
+
+        $(conditionSelectRootElements().first).next().find('input')[0].focus();
+
         document.activeElement.value = '12';
         $(document.activeElement).simulate('keyup');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -2501,10 +2510,13 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // ends_with
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(10) td')).simulate('mousedown');
-      }, 500);
+      }, 600);
 
       setTimeout(function () {
         // Ends with 'e'
+
+        $(conditionSelectRootElements().first).next().find('input')[0].focus();
+
         document.activeElement.value = 'e';
         $(document.activeElement).simulate('keyup');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -2521,14 +2533,14 @@ describe('Filters UI', function() {
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
         // is empty
         $(conditionMenuRootElements().first.querySelector('tbody :nth-child(3) td')).simulate('mousedown');
-      }, 800);
+      }, 900);
 
       setTimeout(function () {
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toBe(0);
         done();
-      }, 900);
+      }, 1200);
     });
   });
   describe('should display components inside filters dropdownMenu properly', function () {
