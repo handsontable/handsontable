@@ -1675,7 +1675,7 @@ describe('Filters UI', function() {
         expect(getData()[1][6]).toBe(false);
         done();
       }, 1200);
-    }, 1500);
+    });
 
     it('should filter values from few columns (after change first column condition)', function(done) {
       handsontable({
@@ -1818,7 +1818,7 @@ describe('Filters UI', function() {
         expect(byValueMultipleSelect().getValue().length).toBe(1);
         done();
       }, 1500);
-    }, 1800);
+    });
   });
 
   describe('Advanced filtering (conditions and operations combination #160)', function() {
@@ -1938,7 +1938,7 @@ describe('Filters UI', function() {
         expect(getData().length).toBe(3);
         done();
       }, 1200);
-    }, 1500);
+    });
 
     it('should filter data properly after clearing second input', function (done) {
       handsontable({
@@ -1984,7 +1984,7 @@ describe('Filters UI', function() {
         expect(getData().length).toBe(5);
         done();
       }, 1500);
-    }, 1800);
+    });
 
     it('should filter data properly after resetting second condition `SelectUI` (value set to `None`)', function (done) {
       handsontable({
@@ -2031,7 +2031,7 @@ describe('Filters UI', function() {
         expect($(conditionSelectRootElements().second).text()).toEqual('None');
         done();
       }, 1500);
-    }, 1800);
+    });
   });
 
   describe('Advanced filtering (conditions, operations and "by value" component #160)', function() {
@@ -2421,6 +2421,9 @@ describe('Filters UI', function() {
 
       setTimeout(function () {
         // Greater than 12
+
+        $(conditionSelectRootElements().first).next().find('input')[0].focus();
+
         document.activeElement.value = '12';
         $(document.activeElement).simulate('keyup');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -2439,6 +2442,9 @@ describe('Filters UI', function() {
 
       setTimeout(function () {
         // Ends with 'e'
+
+        $(conditionSelectRootElements().first).next().find('input')[0].focus();
+
         document.activeElement.value = 'e';
         $(document.activeElement).simulate('keyup');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -2464,7 +2470,7 @@ describe('Filters UI', function() {
         expect(getDataAtCol(0).join()).toBe('24,10,1,6,21');
         done();
       }, 1200);
-    }, 1500);
+    });
 
     it('should correctly insert rows into filtered values when sorting is applied', function(done) {
       handsontable({
@@ -2487,6 +2493,9 @@ describe('Filters UI', function() {
 
       setTimeout(function () {
         // Greater than 12
+
+        $(conditionSelectRootElements().first).next().find('input')[0].focus();
+
         document.activeElement.value = '12';
         $(document.activeElement).simulate('keyup');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -2505,6 +2514,9 @@ describe('Filters UI', function() {
 
       setTimeout(function () {
         // Ends with 'e'
+
+        $(conditionSelectRootElements().first).next().find('input')[0].focus();
+
         document.activeElement.value = 'e';
         $(document.activeElement).simulate('keyup');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -2529,7 +2541,7 @@ describe('Filters UI', function() {
         expect(getData().length).toBe(0);
         done();
       }, 1200);
-    }, 1500);
+    });
   });
   describe('should display components inside filters dropdownMenu properly', function () {
     it('should not display extra condition element at start', function () {
