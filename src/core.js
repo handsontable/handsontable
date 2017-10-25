@@ -958,7 +958,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       runOnLanguageChangeCallbacks(this);
 
     } else if (priv.languageCode !== null) {
-      console.error(`Language dictionary with "${languageFromSettings}" language code is not defined. Leaving previously chosen "${priv.languageCode}" language.`);
+      console.warn(`Language dictionary with "${languageFromSettings}" language code is not defined. Leaving previously chosen "${priv.languageCode}" language.`);
 
     } else {
       priv.languageCode = DEFAULT_LANGUAGE_CODE;
