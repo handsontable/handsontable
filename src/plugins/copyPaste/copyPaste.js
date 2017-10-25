@@ -282,7 +282,6 @@ class CopyPaste extends BasePlugin {
     priv.isTriggeredByCopy = true;
 
     this.textarea.select();
-    this.setCopyableText();
     document.execCommand('copy');
   }
 
@@ -295,7 +294,6 @@ class CopyPaste extends BasePlugin {
     priv.isTriggeredByCut = true;
 
     this.textarea.select();
-    this.setCopyableText();
     document.execCommand('cut');
   }
 
@@ -335,6 +333,7 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
+    this.setCopyableText();
     priv.isTriggeredByCopy = false;
 
     let rangedData = this.getRangedData(this.copyableRanges);
@@ -370,6 +369,7 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
+    this.setCopyableText();
     priv.isTriggeredByCut = false;
 
     let rangedData = this.getRangedData(this.copyableRanges);

@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 0.34.4
- * Release date: 13/09/2017 (built at 16/10/2017 15:10:07)
+ * Version: 0.34.5
+ * Release date: 12/10/2017 (built at 25/10/2017 08:57:33)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -5138,7 +5138,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment2.default)('13/09/2017', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment2.default)('12/10/2017', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       var keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
@@ -16106,27 +16106,25 @@ function Core(rootElement, userSettings) {
         var col = datamap.propToCol(changes[i][1]);
 
         var cellProperties = instance.getCellMeta(row, col);
+        var numericFormat = cellProperties.numericFormat;
+        var cellCulture = numericFormat && numericFormat.culture;
+        var cellFormatPattern = numericFormat && numericFormat.pattern;
 
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3]) || cellProperties.format)) {
+          if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3]) || cellFormatPattern)) {
             var len = changes[i][3].length;
 
-            if ((0, _mixed.isUndefined)(cellProperties.language)) {
+            if ((0, _mixed.isUndefined)(cellCulture)) {
               _numbro2.default.culture('en-US');
             } else if (changes[i][3].indexOf('.') === len - 3 && changes[i][3].indexOf(',') === -1) {
               // this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
               _numbro2.default.culture('en-US');
             } else {
 
-              _numbro2.default.culture(cellProperties.language);
+              _numbro2.default.culture(cellCulture);
             }
 
-            var _numbro$cultureData = _numbro2.default.cultureData(_numbro2.default.culture()),
-                delimiters = _numbro$cultureData.delimiters;
-
             // try to parse to float - https://github.com/foretagsplatsen/numbro/pull/183
-
-
             if (_numbro2.default.validate(changes[i][3]) && !isNaN(changes[i][3])) {
               changes[i][3] = parseFloat(changes[i][3]);
             } else {
@@ -18156,7 +18154,6 @@ function Core(rootElement, userSettings) {
       selection.setRangeEnd(new _src.CellCoords(endRow, endCol), scrollToCell);
     }
     instance.selection.finish();
-
     return true;
   };
 
@@ -30341,8 +30338,11 @@ DefaultSettings.prototype = {
   label: void 0,
 
   /**
-   * Display format. See [numbrojs](http://numbrojs.com). This option is desired for
-   * [numeric](http://docs.handsontable.com/demo-numeric.html)-typed cells.
+   * Display format. This option is desired for [numeric-typed](http://docs.handsontable.com/demo-numeric.html) cells. Format is described by two properties:
+   *
+   * - pattern, which is handled by `numbro` for purpose of formatting numbers to desired pattern. List of supported patterns can be found [here](http://numbrojs.com/format.html#numbers).
+   *
+   * - culture, which is handled by `numbro` for purpose of formatting currencies. Examples showing how it works can be found [here](http://numbrojs.com/format.html#currency). List of supported languages can be found [here](http://numbrojs.com/languages.html#supported-languages).
    *
    * Since 0.26.0 Handsontable uses [numbro](http://numbrojs.com/) as a main library for numbers formatting.
    *
@@ -30351,15 +30351,17 @@ DefaultSettings.prototype = {
    * ...
    * columns: [{
    *   type: 'numeric',
-   *   format: '0,00'
+   *   numericFormat: {
+   *     pattern: '0,00',
+   *     culture: 'en-US'
+   *   }
    * }]
    * ...
    * ```
    *
-   * @type {String}
-   * @default '0'
+   * @type {Object}
    */
-  format: void 0,
+  numericFormat: void 0,
 
   /**
    * Language display format. See [numbrojs](http://numbrojs.com/languages.html#supported-languages). This option is desired for
@@ -32533,9 +32535,9 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '16/10/2017 15:10:07';
+Handsontable.buildDate = '25/10/2017 08:57:33';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.34.4';
+Handsontable.version = '0.34.5';
 
 var baseVersion = '';
 
@@ -36865,12 +36867,17 @@ var NumericEditor = function (_TextEditor) {
      */
     value: function beginEditing(initialValue) {
       if (typeof initialValue === 'undefined' && this.originalValue) {
-        if (typeof this.cellProperties.language !== 'undefined') {
-          _numbro2.default.culture(this.cellProperties.language);
-        }
         var decimalDelimiter = _numbro2.default.cultureData().delimiters.decimal;
+        var numericFormat = this.cellProperties.numericFormat;
+        var cellCulture = numericFormat && numericFormat.culture;
+
+        if (typeof cellCulture !== 'undefined') {
+          _numbro2.default.culture(cellCulture);
+        }
+
         initialValue = ('' + this.originalValue).replace('.', decimalDelimiter);
       }
+
       _get(NumericEditor.prototype.__proto__ || Object.getPrototypeOf(NumericEditor.prototype), 'beginEditing', this).call(this, initialValue);
     }
   }]);
@@ -37784,15 +37791,17 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  */
 function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
   if ((0, _number.isNumeric)(value)) {
-    if (typeof cellProperties.language !== 'undefined') {
-      _numbro2.default.culture(cellProperties.language);
+    var numericFormat = cellProperties.numericFormat;
+    var cellCulture = numericFormat && numericFormat.culture;
+    var cellFormatPattern = numericFormat && numericFormat.pattern;
+    var className = cellProperties.className || '';
+    var classArr = className.length ? className.split(' ') : [];
+
+    if (typeof cellCulture !== 'undefined') {
+      _numbro2.default.culture(cellCulture);
     }
 
-    value = (0, _numbro2.default)(value).format(cellProperties.format || '0');
-
-    var className = cellProperties.className || '';
-
-    var classArr = className.length ? className.split(' ') : [];
+    value = (0, _numbro2.default)(value).format(cellFormatPattern || '0');
 
     if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 && classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
       classArr.push('htRight');
@@ -49123,7 +49132,6 @@ var CopyPaste = function (_BasePlugin) {
       priv.isTriggeredByCopy = true;
 
       this.textarea.select();
-      this.setCopyableText();
       document.execCommand('copy');
     }
 
@@ -49139,7 +49147,6 @@ var CopyPaste = function (_BasePlugin) {
       priv.isTriggeredByCut = true;
 
       this.textarea.select();
-      this.setCopyableText();
       document.execCommand('cut');
     }
 
@@ -49198,6 +49205,7 @@ var CopyPaste = function (_BasePlugin) {
         return;
       }
 
+      this.setCopyableText();
       priv.isTriggeredByCopy = false;
 
       var rangedData = this.getRangedData(this.copyableRanges);
@@ -49235,6 +49243,7 @@ var CopyPaste = function (_BasePlugin) {
         return;
       }
 
+      this.setCopyableText();
       priv.isTriggeredByCut = false;
 
       var rangedData = this.getRangedData(this.copyableRanges);

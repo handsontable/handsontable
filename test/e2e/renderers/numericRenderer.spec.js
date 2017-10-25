@@ -19,7 +19,7 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          format: '$0,0.00'
+          numericFormat: {pattern: '$0,0.00'}
         };
       },
       afterValidate: onAfterValidate
@@ -39,7 +39,7 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          format: '$0,0.00'
+          numericFormat: {pattern: '$0,0.00'}
         };
       },
       afterValidate: onAfterValidate
@@ -58,7 +58,7 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          format: '$0,0.00'
+          numericFormat: {pattern: '$0,0.00'}
         };
       },
     });
@@ -119,7 +119,7 @@ describe('NumericRenderer', () => {
         cells() {
           return {
             type: 'numeric',
-            format: '$0,0.00'
+            numericFormat: {pattern: '$0,0.00'}
           };
         },
         height: 100
