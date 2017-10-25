@@ -18,18 +18,20 @@ import {isNumeric} from './../helpers/number';
  */
 function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
   if (isNumeric(value)) {
-    if (typeof cellProperties.language !== 'undefined') {
-      numbro.culture(cellProperties.language);
-    }
-
-    value = numbro(value).format(cellProperties.format || '0');
-
+    const numericFormat = cellProperties.numericFormat;
+    const cellCulture = numericFormat && numericFormat.culture;
+    const cellFormatPattern = numericFormat && numericFormat.pattern;
     const className = cellProperties.className || '';
-
     let classArr = className.length ? className.split(' ') : [];
 
+    if (typeof cellCulture !== 'undefined') {
+      numbro.culture(cellCulture);
+    }
+
+    value = numbro(value).format(cellFormatPattern || '0');
+
     if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 &&
-        classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
+      classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
       classArr.push('htRight');
     }
 
