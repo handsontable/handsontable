@@ -27,6 +27,8 @@ export function registerLanguage(languageCode, dictionary) {
 
   extendLangDictionaryByDefaultLangDictionary(languageCode, dictionary);
   registerGloballyLanguageDictionary(languageCode, dictionary);
+
+  return dictionary;
 };
 
 /**
