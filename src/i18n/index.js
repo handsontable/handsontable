@@ -62,7 +62,7 @@ function getFormattedPhrase(phrasePropositions, ...args) {
  * @param {string} dictionaryKey Constant which is dictionary key.
  * @param {*} argumentsForFormatters Arguments which will be handled by formatters.
  * @param {Function} callback Function which will be executed after language change, as parameter gets phrase which is
- * created from `dictionaryKey` and `zippedVariableAndValues` parameters
+ * created from `dictionaryKey` and `zippedVariablesAndValues` parameters
  */
 export function registerLanguageChangeFn(hotInstance, dictionaryKey, argumentsForFormatters, callback) {
   const callbacks = hotOnLanguageChangeCallbacks.get(hotInstance) || [];

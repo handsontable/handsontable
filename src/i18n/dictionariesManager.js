@@ -30,7 +30,7 @@ export function registerLanguage(languageCode, dictionary) {
  */
 export function getLanguage(languageCode) {
   if (!hasLanguage(languageCode)) {
-    console.error(`Language dictionary with "${languageCode}" language code is not defined. It wasn't previously registered.`);
+    console.warn(`Language dictionary with "${languageCode}" language code is not defined. It wasn't previously registered.`);
 
     return null;
   }
