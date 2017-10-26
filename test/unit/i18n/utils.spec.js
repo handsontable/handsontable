@@ -43,35 +43,20 @@ describe('i18n helpers', () => {
   });
 
   describe('createCellHeadersRange', () => {
-    /**
-     * Create range of values basing on cell indexes. For example, it will create below ranges for specified function arguments:
-     *
-     * createCellHeadersRange(2, 7) => `2-7`
-     * createCellHeadersRange(7, 2) => `2-7`
-     * createCellHeadersRange(0, 4, 'A', 'D') => `A-D`
-     * createCellHeadersRange(4, 0, 'D', 'A') => `A-D`
-     *
-     * @param {number} firstRowIndex Index of "first" cell
-     * @param {number} nextRowIndex Index of "next" cell
-     * @param {*} fromValue Value which will represent "first" cell
-     * @param {*} toValue Value which will represent "next" cell
-     * @returns {string} Value representing range i.e. A-Z, 11-15.
-     */
-
-    it('should create range of values basing on cell indexes 1', () => {
+    it('should create range of values basing on cell indexes (index of first cell is lower then index of next cell', () => {
       expect(createCellHeadersRange(2, 7)).toEqual('2-7');
     });
 
-    it('should create range of values basing on cell indexes 2', () => {
+    it('should create range of values basing on cell indexes (index of first cell is higher then index of next cell', () => {
       expect(createCellHeadersRange(7, 2)).toEqual('2-7');
     });
 
-    it('should create range of values basing on cell indexes 3', () => {
+    it('should create range of values basing on cell indexes and corresponding headers (index of first cell is lower then index of next cell', () => {
       expect(createCellHeadersRange(0, 4, 'A', 'D')).toEqual('A-D');
     });
 
-    it('should create range of values basing on cell indexes 4', () => {
-      expect(createCellHeadersRange(4, 0, 'D', 'A')).toEqual('2-7');
+    it('should create range of values basing on cell indexes and corresponding headers (index of first cell is higher then index of next cell', () => {
+      expect(createCellHeadersRange(4, 0, 'D', 'A')).toEqual('A-D');
     });
   });
 });

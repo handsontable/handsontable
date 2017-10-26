@@ -1,25 +1,40 @@
-import pluralize from 'handsontable/i18n/phraseFormatters/pluralize';
+import substituteVariables from 'handsontable/i18n/phraseFormatters/substituteVariables';
 
-describe('i18n pluralize function', () => {
-  it('should return selected form of phrase when handling array of phrase propositions', () => {
-    const phrasePropositions = ['first', 'second', 'third'];
+describe('i18n substituteVariables function', () => {
+  it('should return substituted phrase when handling just one phrase proposition', () => {
+    const phraseProposition = 'hello [name]';
 
-    expect(pluralize(phrasePropositions, 0)).toEqual('first');
-    expect(pluralize(phrasePropositions, 1)).toEqual('second');
-    expect(pluralize(phrasePropositions, 2)).toEqual('third');
+    expect(substituteVariables(phraseProposition, {name: 'Tim'})).toEqual('hello Tim');
   });
 
-  it('should return untouched array of phrase propositions when function is called without second parameter', () => {
-    const phrasePropositions = ['first', 'second', 'third'];
+  it('should return substituted phrases propositions when handling array of phrase propositions', () => {
+    const phrasePropositions = ['hello [name]', 'hi [name] [surname]'];
 
-    expect(pluralize(phrasePropositions)).toEqual(phrasePropositions);
-    expect(pluralize(phrasePropositions, undefined)).toEqual(phrasePropositions);
+    expect(substituteVariables(phrasePropositions, {name: 'Tim', surname: 'Cook'})).toEqual(['hello Tim', 'hi Tim Cook']);
   });
 
-  it('should return untouched phrase when handling one phrase proposition', () => {
-    const phraseProposition = 'first';
+  it('should return phrase propositions with removed variables when variables do not exist in second function argument', () => {
+    const phraseProposition = 'hello';
+    const phraseProposition2 = 'hello [secondName]';
+    const phrasePropositions = ['hello'];
+    const phrasePropositions2 = ['hello [secondName]'];
 
-    expect(pluralize(phraseProposition)).toEqual(phraseProposition);
-    expect(pluralize(phraseProposition, 2)).toEqual(phraseProposition);
+    expect(substituteVariables(phraseProposition, {name: 'Tim', surname: 'Cook'})).toEqual('hello');
+    expect(substituteVariables(phraseProposition2, {name: 'Tim', surname: 'Cook'})).toEqual('hello ');
+
+    expect(substituteVariables(phrasePropositions, {name: 'Tim', surname: 'Cook'})).toEqual(['hello']);
+    expect(substituteVariables(phrasePropositions2, {name: 'Tim', surname: 'Cook'})).toEqual(['hello ']);
+  });
+
+  it('should return phrase propositions with removed variables when second function argument is not defined', () => {
+    const phraseProposition = 'hello';
+    const phraseProposition2 = 'hello [secondName]';
+    const phrasePropositions = ['hello'];
+    const phrasePropositions2 = ['hello [secondName]'];
+
+    expect(substituteVariables(phraseProposition)).toEqual('hello');
+    expect(substituteVariables(phraseProposition2)).toEqual('hello ');
+    expect(substituteVariables(phrasePropositions)).toEqual(['hello']);
+    expect(substituteVariables(phrasePropositions2)).toEqual(['hello ']);
   });
 });

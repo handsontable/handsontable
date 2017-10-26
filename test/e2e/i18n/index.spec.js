@@ -4,11 +4,10 @@ describe('i18n', () => {
   const DEFAULT_LANGUAGE_CODE = 'en-US';
   const NOT_EXISTING_LANGUAGE_CODE = 'bs-GY';
   const NOT_EXISTING_LANGUAGE_CODE2 = 'dd-Da';
-  const EXISTING_LANGUAGE_CODE = 'pl-PL';
-  const POLISH_LANGUAGE_CODE = EXISTING_LANGUAGE_CODE;
+  const POLISH_LANGUAGE_CODE = 'pl-PL';
 
   const INSERT_ROW_ABOVE_IN_DEFAULT_LANGUAGE = 'Insert row above';
-  const INSERT_ROW_ABOVE_IN_POLISH = 'Umieść wiersz powyżej';
+  const INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE = 'Umieść wiersz powyżej';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -85,7 +84,7 @@ describe('i18n', () => {
 
       const $contextMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 
-      expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_POLISH);
+      expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE);
     });
 
     it('should not change default contextMenu UI when trying to set not existing language at start', async () => {
@@ -118,7 +117,7 @@ describe('i18n', () => {
 
       const $contextMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 
-      expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_POLISH);
+      expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE);
     });
 
     it('should not change default contextMenu UI when trying to set not existing language by updateSettings #1', async () => {
@@ -171,7 +170,7 @@ describe('i18n', () => {
 
       const $contextMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 
-      expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_POLISH);
+      expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE);
     });
 
     it('should translate multi-level menu properly', async () => {
