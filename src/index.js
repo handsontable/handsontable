@@ -32,8 +32,9 @@ import * as plugins from './plugins/index';
 import {registerPlugin} from './plugins';
 import DefaultSettings from './defaultSettings';
 import {rootInstanceSymbol} from './utils/rootInstance';
-import {registerLanguage, getLanguages, getLanguage} from './i18n/dictionariesManager';
+import {getTranslatedPhrase} from './i18n';
 import * as constants from './i18n/constants';
+import {registerLanguage, getLanguages, getLanguage} from './i18n/dictionariesManager';
 
 function Handsontable(rootElement, userSettings) {
   const instance = new Core(rootElement, userSettings || {}, rootInstanceSymbol);
@@ -173,5 +174,8 @@ Handsontable.languages.constants = constants;
 Handsontable.languages.get = getLanguage;
 Handsontable.languages.getAll = getLanguages;
 Handsontable.languages.register = registerLanguage;
+
+// Alias to `getTranslatedPhrase` function, for more information check it API.
+Handsontable.languages.getTranslatedPhrase = (...args) => getTranslatedPhrase(...args);
 
 export default Handsontable;
