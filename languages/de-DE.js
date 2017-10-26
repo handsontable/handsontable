@@ -137,7 +137,7 @@ var dictionary = (_dictionary = {
   languageCode: 'de-DE'
 }, _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ROW_ABOVE, 'Legen Sie die Zeile oben'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_INSERT_LEFT, 'Spalte links einfügen'), _dictionary);
 
-_handsontable2.default.languages.register(dictionary.languageCode, dictionary);
+_handsontable2.default.languages.register(dictionary);
 
 exports.default = dictionary;
 
