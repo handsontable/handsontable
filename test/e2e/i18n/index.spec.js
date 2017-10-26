@@ -20,7 +20,15 @@ describe('i18n', () => {
     }
   });
 
-  describe('translation doesn\'t throw errors', () => {
+  it('should not propagate `language` key to meta of cells', () => {
+    handsontable({
+      language: POLISH_LANGUAGE_CODE
+    });
+
+    expect(getCellMeta(0, 0).language).toBeUndefined();
+  });
+
+  describe('translation does not throw errors', () => {
     it('should not throw error when setting not existing language at start', async () => {
       const spy = spyOn(window, 'onerror');
 
