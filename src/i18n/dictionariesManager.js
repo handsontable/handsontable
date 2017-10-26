@@ -14,10 +14,17 @@ const {
 /**
  * Register language dictionary for specific language code.
  *
- * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
- * @param {Object} dictionary Dictionary for specific language.
+ * @param {string|Object} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE' or object representing dictionary.
+ * @param {Object} dictionary Dictionary for specific language (optional if first parameter has already dictionary).
  */
 export function registerLanguage(languageCode, dictionary) {
+  if (arguments.length === 1) {
+    // Just dictionary passed.
+
+    dictionary = arguments[0]; // eslint-disable-line prefer-rest-params
+    languageCode = arguments[0].languageCode; // eslint-disable-line prefer-rest-params
+  }
+
   extendLangDictionaryByDefaultLangDictionary(languageCode, dictionary);
   registerGloballyLanguageDictionary(languageCode, dictionary);
 };
