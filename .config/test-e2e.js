@@ -58,6 +58,7 @@ module.exports.create = function create(envArgs) {
           '../dist/pikaday/pikaday.js',
           '../dist/hot-formula-parser/formula-parser.js',
           '../dist/handsontable.js', // <--- TODO: Add tests for handsontable.full.min.js also
+          '../languages/all.js',
         ],
       })
     );
