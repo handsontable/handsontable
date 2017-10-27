@@ -44,9 +44,9 @@ class Border {
     this.rightStyle = null;
 
     this.cornerDefaultStyle = {
-      width: '5px',
-      height: '5px',
-      borderWidth: '2px',
+      width: '6px',
+      height: '6px',
+      borderWidth: '1px',
       borderStyle: 'solid',
       borderColor: '#FFF'
     };
@@ -175,7 +175,8 @@ class Border {
     this.cornerStyle = this.corner.style;
     this.cornerStyle.width = this.cornerDefaultStyle.width;
     this.cornerStyle.height = this.cornerDefaultStyle.height;
-    this.cornerStyle.border = [
+    this.cornerStyle.zIndex = '1';
+    this.cornerStyle.outline = [
       this.cornerDefaultStyle.borderWidth,
       this.cornerDefaultStyle.borderStyle,
       this.cornerDefaultStyle.borderColor
@@ -392,18 +393,12 @@ class Border {
     minLeft = fromOffset.left;
     width = toOffset.left + outerWidth(toTD) - minLeft;
 
-    top = minTop - containerOffset.top - 1;
-    left = minLeft - containerOffset.left - 1;
-    let style = getComputedStyle(fromTD);
+    let mainElement = this.wot.wtTable.wtRootElement.parentNode;
+    let spreader = this.wot.wtTable.spreader;
+    let holder = this.wot.wtTable.holder;
 
-    if (parseInt(style.borderTopWidth, 10) > 0) {
-      top += 1;
-      height = height > 0 ? height - 1 : 0;
-    }
-    if (parseInt(style.borderLeftWidth, 10) > 0) {
-      left += 1;
-      width = width > 0 ? width - 1 : 0;
-    }
+    top = fromTD.getBoundingClientRect().top + holder.scrollTop - (parseInt(spreader.style.top, 10) || 0) - mainElement.getBoundingClientRect().top - 1;
+    left = fromTD.getBoundingClientRect().left + holder.scrollLeft - (parseInt(spreader.style.left, 10) || 0) - mainElement.getBoundingClientRect().left - 1;
 
     this.topStyle.top = `${top}px`;
     this.topStyle.left = `${left}px`;
@@ -430,10 +425,10 @@ class Border {
     if (isMobileBrowser() || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
       this.cornerStyle.display = 'none';
     } else {
-      this.cornerStyle.top = `${top + height - 4}px`;
-      this.cornerStyle.left = `${left + width - 4}px`;
-      this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
+      this.cornerStyle.top = `${top + height}px`;
+      this.cornerStyle.left = `${left + width}px`;
       this.cornerStyle.width = this.cornerDefaultStyle.width;
+      this.cornerStyle.transform = 'translate(-50%, -50%)';
 
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
       this.cornerStyle.display = 'none';
@@ -445,7 +440,6 @@ class Border {
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.left = `${Math.floor(left + width - 3 - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`;
-          this.cornerStyle.borderRightWidth = 0;
         }
       }
 
@@ -454,7 +448,6 @@ class Border {
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.top = `${Math.floor(top + height - 3 - (parseInt(this.cornerDefaultStyle.height, 10) / 2))}px`;
-          this.cornerStyle.borderBottomWidth = 0;
         }
       }
 

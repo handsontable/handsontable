@@ -287,10 +287,8 @@ class Overlays {
    *
    * @private
    * @param {Event|Object} event
-   * @param {Number} [fakeScrollValue=null]
-   * @param {String} [fakeScrollDirection=null] `x` or `y`.
    */
-  syncScrollPositions(event, fakeScrollValue = null, fakeScrollDirection = null) {
+  syncScrollPositions(event) {
     if (this.destroyed) {
       return;
     }
@@ -302,13 +300,15 @@ class Overlays {
     if (holder.scrollTop !== top) {
       holder.scrollTop = top;
       this.wot.wtOverlays.leftOverlay.clone.wtTable.holder.scrollTop = top;
+      this.topOverlay.mainTableScrollableElement.scrollTop = top;
       this.verticalScrolling = true;
     }
 
     if (holder.scrollLeft !== left) {
       holder.scrollLeft = left;
-      this.horizontalScrolling = true;
       this.wot.wtOverlays.topOverlay.clone.wtTable.holder.scrollLeft = left;
+      this.wot.wtTable.holder.scrollLeft = left;
+      this.horizontalScrolling = true;
     }
 
     this.refreshAll();

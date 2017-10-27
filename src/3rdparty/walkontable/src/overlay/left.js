@@ -137,14 +137,14 @@ class LeftOverlay extends Overlay {
    */
   adjustRootElementSize() {
     let wtOverlays = this.wot.wtOverlays;
-    let scrollbarHeight = wtOverlays.scrollableElement.offsetWidth === wtOverlays.scrollResizerX.offsetWidth ? 0 : getScrollbarWidth();
+    let scrollbarHeight = this.wot.wtTable.wtRootElement.offsetWidth >= wtOverlays.scrollResizerX.offsetWidth ? 0 : getScrollbarWidth();
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let overlayRootStyle = overlayRoot.style;
     let preventOverflow = this.wot.getSetting('preventOverflow');
     let tableWidth;
 
     if (scrollbarHeight) {
-      this.wot.wtTable.wtRootElement.parentNode.style.paddingBottom = `${scrollbarHeight}px`;
+      this.wot.wtTable.wtRootElement.parentNode.style.paddingRight = `${scrollbarHeight}px`;
     }
 
     if (this.trimmingContainer !== window || preventOverflow === 'vertical') {
@@ -278,31 +278,15 @@ class LeftOverlay extends Overlay {
    * @param {Number} position Header X position if trimming container is window or scroll top if not
    */
   adjustHeaderBordersPosition(position) {
-    const masterParent = this.wot.wtTable.holder.parentNode;
-    const rowHeaders = this.wot.getSetting('rowHeaders');
-    const fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
-    const totalRows = this.wot.getSetting('totalRows');
+    // const masterParent = this.wot.wtTable.holder.parentNode;
+    // const rowHeaders = this.wot.getSetting('rowHeaders');
+    // const fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
+    // const totalRows = this.wot.getSetting('totalRows');
 
-    if (totalRows) {
-      removeClass(masterParent, 'emptyRows');
-    } else {
-      addClass(masterParent, 'emptyRows');
-    }
-
-    // if (fixedColumnsLeft && !rowHeaders.length) {
-    //   addClass(masterParent, 'innerBorderLeft');
-
-    // } else if (!fixedColumnsLeft && rowHeaders.length) {
-    //   let previousState = hasClass(masterParent, 'innerBorderLeft');
-
-    //   if (position) {
-    //     addClass(masterParent, 'innerBorderLeft');
-    //   } else {
-    //     removeClass(masterParent, 'innerBorderLeft');
-    //   }
-    //   if (!previousState && position || previousState && !position) {
-    //     this.wot.wtOverlays.adjustElementsSize();
-    //   }
+    // if (totalRows) {
+    //   removeClass(masterParent, 'emptyRows');
+    // } else {
+    //   addClass(masterParent, 'emptyRows');
     // }
   }
 }

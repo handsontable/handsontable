@@ -181,7 +181,7 @@ function TableView(instance) {
       className: 'area',
       border: {
         width: 1,
-        color: '#89AFF9',
+        color: '#5292f7',
         // style: 'solid', // not used
         cornerVisible: function() {
           return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();

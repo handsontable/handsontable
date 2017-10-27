@@ -140,14 +140,14 @@ class TopOverlay extends Overlay {
    */
   adjustRootElementSize() {
     let wtOverlays = this.wot.wtOverlays;
-    let scrollbarWidth = wtOverlays.scrollableElement.offsetHeight === wtOverlays.scrollResizerY.offsetHeight ? 0 : getScrollbarWidth();
+    let scrollbarWidth = this.wot.wtTable.wtRootElement.offsetHeight >= wtOverlays.scrollResizerY.offsetHeight ? 0 : getScrollbarWidth();
     let overlayRoot = this.clone.wtTable.holder.parentNode;
     let overlayRootStyle = overlayRoot.style;
     let preventOverflow = this.wot.getSetting('preventOverflow');
     let tableHeight;
 
     if (scrollbarWidth) {
-      this.wot.wtTable.wtRootElement.parentNode.style.paddingRight += `${scrollbarWidth}px`;
+      this.wot.wtTable.wtRootElement.parentNode.style.paddingBottom += `${scrollbarWidth}px`;
     }
 
     if (this.trimmingContainer !== window || preventOverflow === 'horizontal') {

@@ -267,9 +267,10 @@ TextEditor.prototype.refreshDimensions = function() {
   let totalRowsCount = this.instance.countRows();
 
   // If colHeaders is disabled, cells in the first row have border-top
-  let editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
-  let editTop = currentOffset.top - containerOffset.top - editTopModifier - (scrollableContainer.scrollTop || 0);
-  let editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
+  // let editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
+
+  let editTop = this.TD.getBoundingClientRect().top - scrollableContainer.getBoundingClientRect().top - 1; // -1 -> this is a half of borderWidth
+  let editLeft = this.TD.getBoundingClientRect().left - scrollableContainer.getBoundingClientRect().left - 1; // -1 -> this is a half of borderWidth
 
   let settings = this.instance.getSettings();
   let rowHeadersCount = this.instance.hasRowHeaders();
@@ -299,15 +300,6 @@ TextEditor.prototype.refreshDimensions = function() {
       break;
   }
 
-  if (colHeadersCount && this.instance.getSelected()[0] === 0 ||
-      (settings.fixedRowsBottom && this.instance.getSelected()[0] === totalRowsCount - settings.fixedRowsBottom)) {
-    editTop += 1;
-  }
-
-  if (this.instance.getSelected()[1] === 0) {
-    editLeft += 1;
-  }
-
   if (cssTransformOffset && cssTransformOffset != -1) {
     this.textareaParentStyle[cssTransformOffset[0]] = cssTransformOffset[1];
   } else {
@@ -326,17 +318,20 @@ TextEditor.prototype.refreshDimensions = function() {
   let cellTopOffset = this.TD.offsetTop + firstRowOffset - verticalScrollPosition;
   let cellLeftOffset = this.TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
 
-  let width = innerWidth(this.TD) - 8;
+  let width = this.TD.offsetWidth + 1; // innerWidth(this.TD);
   let actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
   let actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainer) ? scrollbarWidth : 0;
-  let maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
-  let height = this.TD.scrollHeight + 1;
-  let maxHeight = Math.max(this.instance.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
+  let maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - actualVerticalScrollbarWidth;
+  let height = this.TD.offsetHeight + 1;
+  let maxHeight = Math.max(this.instance.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 25);
 
   const cellComputedStyle = getComputedStyle(this.TD);
 
-  this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
-  this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
+  this.TEXTAREA.style.font = cellComputedStyle.font;
+  this.TEXTAREA.style.maxHeight = `${maxHeight}px`;
+  this.TEXTAREA.style.maxWidth = `${maxWidth}px`;
+  this.TEXTAREA.style.minHeight = `${Math.min(height, maxHeight)}px`;
+  this.TEXTAREA.style.minWidth = `${Math.min(width, maxWidth)}px`;
   this.TEXTAREA.style.backgroundColor = ''; // RESET STYLE
   this.TEXTAREA.style.backgroundColor = backgroundColor ? backgroundColor : getComputedStyle(this.TEXTAREA).backgroundColor;
 

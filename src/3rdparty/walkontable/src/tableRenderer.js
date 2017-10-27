@@ -209,7 +209,7 @@ class TableRenderer {
 
         if (height) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top
-          height--;
+          // height--;
           TR.firstChild.style.height = `${height}px`;
         } else {
           TR.firstChild.style.height = '';

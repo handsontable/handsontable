@@ -177,8 +177,8 @@ class Table {
         }
       } else {
         // this.holder.style.width = `${trimmingElement.offsetWidth - getScrollbarWidth()}px`;
-        this.holder.style.height = `${trimmingElement.offsetHeight - getScrollbarWidth()}px`;
-        this.holder.style.overflow = '';
+        // this.holder.style.height = `${trimmingElement.offsetHeight - getScrollbarWidth()}px`;
+        // this.holder.style.overflow = '';
       }
     }
   }
