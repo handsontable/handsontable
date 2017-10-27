@@ -1,5 +1,6 @@
 import {getLanguage, getLanguages, registerLanguage, hasLanguage, DEFAULT_LANGUAGE_CODE} from 'handsontable/i18n/dictionariesManager';
 import plPL from 'handsontable/i18n/languages/pl-PL';
+import enUS from 'handsontable/i18n/languages/en-US';
 import * as constants from 'handsontable/i18n/constants';
 
 describe('i18n dictionariesManager', () => {
@@ -27,8 +28,21 @@ describe('i18n dictionariesManager', () => {
     expect(getLanguages().length).toEqual(2);
   });
 
+  it('should register language only once', () => {
+    registerLanguage(plPL);
+    registerLanguage(plPL);
+    registerLanguage(enUS);
+    registerLanguage(enUS);
+
+    expect(getLanguages().length).toEqual(2);
+  });
+
   it('should return `true` when checking existence of previously registered language', () => {
     expect(hasLanguage(plPL.languageCode)).toEqual(true);
+  });
+
+  it('should return `true` when checking existence of default language', () => {
+    expect(hasLanguage(DEFAULT_LANGUAGE_CODE)).toEqual(true);
   });
 
   it('should return object when getting previously registered language', () => {
