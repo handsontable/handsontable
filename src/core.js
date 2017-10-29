@@ -2496,6 +2496,58 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Function} [callback] The callback function.
    */
   this.validateCells = function(callback) {
+    this._validateCells(callback);
+  };
+
+  /**
+   * Validates rows using their validator functions and calls callback when finished.
+   *
+   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it would equal `true`.
+   *
+   * @memberof Core#
+   * @function validateRows
+   * @param {Array} [rows] Array of validation target visual row indexes.
+   * @param {Function} [callback] The callback function.
+   */
+  this.validateRows = function(rows, callback) {
+    if (!Array.isArray(rows)) {
+      throw new Error('validateRows parameter `rows` must be an array');
+    }
+    this._validateCells(callback, rows);
+  };
+
+  /**
+   * Validates columns using their validator functions and calls callback when finished.
+   *
+   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it would equal `true`.
+   *
+   * @memberof Core#
+   * @function validateColumns
+   * @param {Array} [columns] Array of validation target visual columns indexes.
+   * @param {Function} [callback] The callback function.
+   */
+  this.validateColumns = function(columns, callback) {
+    if (!Array.isArray(columns)) {
+      throw new Error('validateColumns parameter `columns` must be an array');
+    }
+    this._validateCells(callback, undefined, columns);
+  };
+
+  /**
+   * Validates all cells using their validator functions and calls callback when finished.
+   *
+   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it would equal `true`.
+   * 
+   * Private use intended.
+   *
+   * @private
+   * @memberof Core#
+   * @function _validateCells
+   * @param {Function} [callback] The callback function.
+   * @param {Array} [rows] Optional. Array of validation target visual row indexes.
+   * @param {Array} [columns] Optional. Array of validation target visual column indexes.
+   */
+  this._validateCells = function(callback, rows, columns) {
     var waitingForValidator = new ValidatorsQueue();
 
     if (callback) {
@@ -2505,9 +2557,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let i = instance.countRows() - 1;
 
     while (i >= 0) {
+      if (rows !== undefined && rows.indexOf(i) === -1) {
+        i--;
+        continue;
+      }
       let j = instance.countCols() - 1;
 
       while (j >= 0) {
+        if (columns !== undefined && columns.indexOf(j) === -1) {
+          j--;
+          continue;
+        }
         waitingForValidator.addValidatorToQueue();
 
         instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), (result) => {
