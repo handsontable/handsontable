@@ -61,7 +61,7 @@ class Settings {
       rowHeight(row) {
         // return undefined means use default size for the rendered cell content
       },
-      defaultRowHeight: 23,
+      defaultRowHeight: 25,
       defaultColumnWidth: 50,
       selections: null,
       hideBorderOnMouseDownOver: false,

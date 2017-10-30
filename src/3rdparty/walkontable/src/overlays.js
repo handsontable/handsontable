@@ -307,7 +307,7 @@ class Overlays {
     if (holder.scrollLeft !== left) {
       holder.scrollLeft = left;
       this.wot.wtOverlays.topOverlay.clone.wtTable.holder.scrollLeft = left;
-      this.wot.wtTable.holder.scrollLeft = left;
+      this.leftOverlay.mainTableScrollableElement.scrollLeft = left;
       this.horizontalScrolling = true;
     }
 

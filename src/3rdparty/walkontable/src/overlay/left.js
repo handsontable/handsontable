@@ -69,7 +69,6 @@ class LeftOverlay extends Overlay {
       headerPosition = this.getScrollPosition();
       resetCssTransform(overlayRoot);
     }
-    this.adjustHeaderBordersPosition(headerPosition);
 
     this.adjustElementsSize();
   }
@@ -144,7 +143,7 @@ class LeftOverlay extends Overlay {
     let tableWidth;
 
     if (scrollbarHeight) {
-      this.wot.wtTable.wtRootElement.parentNode.style.paddingRight = `${scrollbarHeight}px`;
+      this.wot.wtTable.wtRootElement.parentNode.style.paddingBottom = `${scrollbarHeight}px`;
     }
 
     if (this.trimmingContainer !== window || preventOverflow === 'vertical') {
@@ -166,15 +165,7 @@ class LeftOverlay extends Overlay {
    * Adjust overlay root childs size
    */
   adjustRootChildrenSize() {
-    // let scrollbarWidth = getScrollbarWidth();
-
     this.clone.wtTable.hider.style.height = this.hider.style.height;
-    // this.clone.wtTable.holder.style.height = this.clone.wtTable.holder.parentNode.style.height;
-
-    // if (scrollbarWidth === 0) {
-    //   scrollbarWidth = 30;
-    // }
-    // this.clone.wtTable.holder.style.width = `${parseInt(this.clone.wtTable.holder.parentNode.style.width, 10) + scrollbarWidth}px`;
   }
 
   /**
@@ -270,24 +261,6 @@ class LeftOverlay extends Overlay {
     }
 
     return getScrollLeft(element);
-  }
-
-  /**
-   * Adds css classes to hide the header border's header (cell-selection border hiding issue)
-   *
-   * @param {Number} position Header X position if trimming container is window or scroll top if not
-   */
-  adjustHeaderBordersPosition(position) {
-    // const masterParent = this.wot.wtTable.holder.parentNode;
-    // const rowHeaders = this.wot.getSetting('rowHeaders');
-    // const fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
-    // const totalRows = this.wot.getSetting('totalRows');
-
-    // if (totalRows) {
-    //   removeClass(masterParent, 'emptyRows');
-    // } else {
-    //   addClass(masterParent, 'emptyRows');
-    // }
   }
 }
 

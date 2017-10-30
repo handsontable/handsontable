@@ -13,7 +13,7 @@ class ViewportRowsCalculator {
    * @type {Number}
    */
   static get DEFAULT_HEIGHT() {
-    return 23;
+    return 25;
   }
 
   /**
