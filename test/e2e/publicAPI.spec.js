@@ -34,6 +34,7 @@ describe('Public API', () => {
       expect(Handsontable.plugins.ManualRowResize).toBeFunction();
       expect(Handsontable.plugins.MultipleSelectionHandles).toBeFunction();
       expect(Handsontable.plugins.TouchScroll).toBeFunction();
+      expect(Handsontable.plugins.UndoRedo).toBeFunction();
     });
   });
 
