@@ -13,8 +13,6 @@ const webpack = require('webpack');
 const StringReplacePlugin  = require('string-replace-webpack-plugin');
 const fs  = require('fs');
 
-const licenseBody = fs.readFileSync(path.resolve(__dirname, '../LICENSE'), 'utf8');
-
 function getEntryJsFiles() {
   const entryObject = {};
   const filesInLanguagesDirectory = fs.readdirSync(SOURCE_LANGUAGES_DIRECTORY);
@@ -82,10 +80,7 @@ module.exports.create = function create() {
         {test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader'},
         ruleForSnippetsInjection
       ]
-    },
-    plugins: [
-      new webpack.BannerPlugin(licenseBody)
-    ]
+    }
   };
 
   return [config];
