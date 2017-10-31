@@ -23,8 +23,8 @@ import {CellCoords, CellRange, ViewportColumnsCalculator} from './3rdparty/walko
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
 import {getCellType} from './cellTypes';
-import {getTranslatedPhrase, runOnLanguageChangeCallbacks} from './i18n';
-import {DEFAULT_LANGUAGE_CODE, hasLanguage as hasLanguageDictionary} from './i18n/dictionariesManager';
+import {getTranslatedPhrase} from './i18n';
+import {DEFAULT_LANGUAGE_CODE, hasLanguageDictionary} from './i18n/dictionariesManager';
 
 let activeGuid = null;
 
@@ -108,7 +108,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     isPopulated: null,
     scrollable: null,
     firstRun: true,
-    languageCode: null
+    languageCode: DEFAULT_LANGUAGE_CODE
   };
 
   grid = {
@@ -951,14 +951,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   };
 
-  function setLanguageCode(languageFromSettings) {
-    if (hasLanguageDictionary(languageFromSettings)) {
-      priv.languageCode = languageFromSettings;
+  function setLanguageCode(languageCode, runHook = true) {
+    if (hasLanguageDictionary(languageCode)) {
+      priv.languageCode = languageCode;
 
-      runOnLanguageChangeCallbacks(this);
-
-    } else if (priv.languageCode === null) {
-      priv.languageCode = DEFAULT_LANGUAGE_CODE;
+      if (runHook) {
+        instance.runHooks('afterLanguageChange', languageCode);
+      }
     }
   }
 
@@ -967,7 +966,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const languageFromSettings = priv.settings.language;
 
-    setLanguageCode(languageFromSettings);
+    setLanguageCode(languageFromSettings, false);
     instance.runHooks('beforeInit');
 
     if (isMobileBrowser()) {
@@ -1678,6 +1677,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
     }
 
+    if (!init) {
+      if (isDefined(settings.language)) {
+        setLanguageCode(settings.language);
+      }
+    }
+
     for (i in settings) {
       if (i === 'data') {
         /* eslint-disable-next-line no-continue */
@@ -1819,10 +1824,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (!init) {
-      if (isDefined(settings.language)) {
-        setLanguageCode(settings.language);
-      }
-
       datamap.clearLengthCache(); // force clear cache length on updateSettings() #3416
 
       if (instance.view) {

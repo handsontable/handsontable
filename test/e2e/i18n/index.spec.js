@@ -7,7 +7,7 @@ describe('i18n', () => {
   const POLISH_LANGUAGE_CODE = 'pl-PL';
 
   const INSERT_ROW_ABOVE_IN_DEFAULT_LANGUAGE = 'Insert row above';
-  const INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE = 'Umieść wiersz powyżej';
+  const INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE = 'Wstaw wiersz powyżej';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -26,6 +26,40 @@ describe('i18n', () => {
     });
 
     expect(getCellMeta(0, 0).language).toBeUndefined();
+  });
+
+  describe('Hook `afterLanguageChange`', () => {
+    it('should not call the `afterLanguageChange` at start', () => {
+      let afterLanguageChangeCalled = false;
+
+      handsontable({
+        language: POLISH_LANGUAGE_CODE,
+        afterLanguageChange() {
+          afterLanguageChangeCalled = true;
+        }
+      });
+
+      expect(afterLanguageChangeCalled).toEqual(false);
+    });
+
+    it('should call the `afterLanguageChange` before updating settings', () => {
+      let languageInsideHook;
+
+      handsontable({
+        language: DEFAULT_LANGUAGE_CODE,
+        afterLanguageChange() {
+          const settings = this.getSettings();
+
+          languageInsideHook = settings.language;
+        }
+      });
+
+      updateSettings({
+        language: POLISH_LANGUAGE_CODE
+      });
+
+      expect(languageInsideHook).toEqual(DEFAULT_LANGUAGE_CODE);
+    });
   });
 
   describe('translation does not throw errors', () => {

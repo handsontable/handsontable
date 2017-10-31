@@ -6,7 +6,7 @@ import {substitute} from './../../helpers/string';
  * @param {Array} phrasePropositions List of phrases propositions.
  * @param {Object} zippedVariablesAndValues Object containing variables and corresponding values.
  *
- * @returns {string} Phrases with substituted variables if it's possible, list of unchanged phrase propositions otherwise.
+ * @returns {String} Phrases with substituted variables if it's possible, list of unchanged phrase propositions otherwise.
  */
 export default function substituteVariables(phrasePropositions, zippedVariablesAndValues) {
   if (Array.isArray(phrasePropositions)) {

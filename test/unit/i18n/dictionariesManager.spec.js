@@ -1,61 +1,67 @@
-import {getLanguage, getLanguages, registerLanguage, hasLanguage, DEFAULT_LANGUAGE_CODE} from 'handsontable/i18n/dictionariesManager';
+import {
+  getLanguageDictionary,
+  getLanguagesDictionaries,
+  registerLanguageDictionary,
+  hasLanguageDictionary,
+  DEFAULT_LANGUAGE_CODE
+} from 'handsontable/i18n/dictionariesManager';
 import plPL from 'handsontable/i18n/languages/pl-PL';
 import enUS from 'handsontable/i18n/languages/en-US';
 import * as constants from 'handsontable/i18n/constants';
 
 describe('i18n dictionariesManager', () => {
   it('should register automatically default language', () => {
-    const allLanguages = getLanguages();
+    const allLanguages = getLanguagesDictionaries();
     const defaultLanguageIsRegistered = allLanguages.some((dictionary) => dictionary.languageCode === DEFAULT_LANGUAGE_CODE);
 
     expect(defaultLanguageIsRegistered).toEqual(true);
   });
 
   it('should not register automatically imported /src languages', () => {
-    expect(hasLanguage(plPL.languageCode)).toEqual(false);
+    expect(hasLanguageDictionary(plPL.languageCode)).toEqual(false);
   });
 
   it('should return `null` when trying to get not registered language', () => {
-    expect(getLanguage(plPL.languageCode)).toEqual(null);
+    expect(getLanguageDictionary(plPL.languageCode)).toEqual(null);
   });
 
   it('should register language', () => {
     // Note: please keep in mind that this language will be registered also for next unit tests!
     // It's stored globally for already loaded Handsontable library.
 
-    registerLanguage(plPL);
+    registerLanguageDictionary(plPL);
 
-    expect(getLanguages().length).toEqual(2);
+    expect(getLanguagesDictionaries().length).toEqual(2);
   });
 
   it('should register language only once', () => {
-    registerLanguage(plPL);
-    registerLanguage(plPL);
-    registerLanguage(enUS);
-    registerLanguage(enUS);
+    registerLanguageDictionary(plPL);
+    registerLanguageDictionary(plPL);
+    registerLanguageDictionary(enUS);
+    registerLanguageDictionary(enUS);
 
-    expect(getLanguages().length).toEqual(2);
+    expect(getLanguagesDictionaries().length).toEqual(2);
   });
 
   it('should return `true` when checking existence of previously registered language', () => {
-    expect(hasLanguage(plPL.languageCode)).toEqual(true);
+    expect(hasLanguageDictionary(plPL.languageCode)).toEqual(true);
   });
 
   it('should return `true` when checking existence of default language', () => {
-    expect(hasLanguage(DEFAULT_LANGUAGE_CODE)).toEqual(true);
+    expect(hasLanguageDictionary(DEFAULT_LANGUAGE_CODE)).toEqual(true);
   });
 
   it('should return object when getting previously registered language', () => {
-    expect(getLanguage(plPL.languageCode)).toEqual(plPL);
+    expect(getLanguageDictionary(plPL.languageCode)).toEqual(plPL);
   });
 
   it('should extend registered language by default language dictionary', () => {
-    const defaultLanguageDictionary = getLanguage(DEFAULT_LANGUAGE_CODE);
+    const defaultLanguageDictionary = getLanguageDictionary(DEFAULT_LANGUAGE_CODE);
 
     const dictionaryKey1 = constants.CONTEXTMENU_ITEMS_ROW_ABOVE;
     const dictionaryKey2 = constants.CONTEXTMENU_ITEMS_COLUMN_RIGHT;
 
-    const registeredLanguage = registerLanguage({
+    const registeredLanguage = registerLanguageDictionary({
       languageCode: 'kl-PU',
       [dictionaryKey1]: 'Hello world'
     });

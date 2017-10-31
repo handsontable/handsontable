@@ -1,8 +1,9 @@
-import staticRegister from '../utils/staticRegister';
+import {isObject} from '../helpers/object';
 import {extendNotExistingKeys} from './utils';
+import staticRegister from '../utils/staticRegister';
 import DEFAULT_DICTIONARY from './languages/en-US';
 
-export const DEFAULT_LANGUAGE_CODE = DEFAULT_DICTIONARY.languageCode;
+const DEFAULT_LANGUAGE_CODE = DEFAULT_DICTIONARY.languageCode;
 
 const {
   register: registerGloballyLanguageDictionary,
@@ -14,18 +15,19 @@ const {
 /**
  * Register language dictionary for specific language code.
  *
- * @param {string|Object} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE' or object representing dictionary.
+ * @param {String|Object} languageCodeOrDictionary Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE' or object representing dictionary.
  * @param {Object} dictionary Dictionary for specific language (optional if first parameter has already dictionary).
  */
-export function registerLanguage(languageCode, dictionary) {
-  if (arguments.length === 1) {
-    // Just dictionary passed.
+function registerLanguage(languageCodeOrDictionary, dictionary) {
+  let languageCode = languageCodeOrDictionary;
 
-    dictionary = arguments[0]; // eslint-disable-line prefer-rest-params
-    languageCode = arguments[0].languageCode; // eslint-disable-line prefer-rest-params
+  // Dictionary passed as first argument.
+  if (isObject(languageCodeOrDictionary)) {
+    dictionary = languageCodeOrDictionary;
+    languageCode = dictionary.languageCode;
   }
 
-  extendLangDictionaryByDefaultLangDictionary(languageCode, dictionary);
+  extendLanguageDictionary(languageCode, dictionary);
   registerGloballyLanguageDictionary(languageCode, dictionary);
 
   return dictionary;
@@ -37,7 +39,7 @@ export function registerLanguage(languageCode, dictionary) {
  * @param {String} languageCode Language code.
  * @returns {Object} Object with constants representing identifiers for translation (as keys) and corresponding translation phrases (as values).
  */
-export function getLanguage(languageCode) {
+function getLanguage(languageCode) {
   if (!hasLanguage(languageCode)) {
     return null;
   }
@@ -49,10 +51,10 @@ export function getLanguage(languageCode) {
  *
  * Get if language with specified language code was registered.
  *
- * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
+ * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @returns {Boolean}
  */
-export function hasLanguage(languageCode) {
+function hasLanguage(languageCode) {
   return hasGlobalLanguageDictionary(languageCode);
 }
 
@@ -61,7 +63,7 @@ export function hasLanguage(languageCode) {
  *
  * @returns {Object} Object with constants representing identifiers for translation (as keys) and corresponding translation phrases (as values).
  */
-export function getDefaultLanguage() {
+function getDefaultLanguage() {
   return DEFAULT_DICTIONARY;
 }
 
@@ -72,7 +74,7 @@ export function getDefaultLanguage() {
  * @param {String} languageCode Language code.
  * @param {Object} dictionary Dictionary which is extended.
  */
-function extendLangDictionaryByDefaultLangDictionary(languageCode, dictionary) {
+function extendLanguageDictionary(languageCode, dictionary) {
   if (languageCode !== DEFAULT_LANGUAGE_CODE) {
     extendNotExistingKeys(dictionary, getGlobalLanguageDictionary(DEFAULT_LANGUAGE_CODE));
   }
@@ -83,11 +85,20 @@ function extendLangDictionaryByDefaultLangDictionary(languageCode, dictionary) {
  *
  * @returns {Array}
  */
-export function getLanguages() {
+function getLanguages() {
   return getGlobalLanguagesDictionaries();
 }
+
+export {
+  registerLanguage as registerLanguageDictionary,
+  getLanguage as getLanguageDictionary,
+  hasLanguage as hasLanguageDictionary,
+  getDefaultLanguage as getDefaultLanguageDictionary,
+  getLanguages as getLanguagesDictionaries,
+  DEFAULT_LANGUAGE_CODE
+};
 
 /**
  * Automatically registers default dictionary.
  */
-registerLanguage(DEFAULT_LANGUAGE_CODE, DEFAULT_DICTIONARY);
+registerLanguage(DEFAULT_DICTIONARY);

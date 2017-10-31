@@ -9,7 +9,6 @@ const SOURCE_LANGUAGES_DIRECTORY = 'src/i18n/languages';
 const OUTPUT_LANGUAGES_DIRECTORY = 'languages';
 
 const path = require('path');
-const webpack = require('webpack');
 const StringReplacePlugin  = require('string-replace-webpack-plugin');
 const fs  = require('fs');
 
@@ -19,9 +18,8 @@ function getEntryJsFiles() {
 
   filesInLanguagesDirectory.forEach((fileName) => {
     const jsExtensionRegExp = /\.js$/
-    const isJsFile = (fileName) => jsExtensionRegExp.test(fileName);
 
-    if (isJsFile(fileName)) {
+    if (jsExtensionRegExp.test(fileName)) {
       const fileNameWithoutExtension = fileName.replace(jsExtensionRegExp, '');
 
       entryObject[fileNameWithoutExtension] = path.resolve(SOURCE_LANGUAGES_DIRECTORY, fileName);

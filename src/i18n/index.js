@@ -1,19 +1,18 @@
 import {arrayEach} from './../helpers/array';
-import {getLanguage as getLanguageDictionary} from './dictionariesManager';
-import {getAll as getPhraseFormatters} from './phraseFormatters';
+import {getLanguageDictionary} from './dictionariesManager';
+import {getPhraseFormatters} from './phraseFormatters';
 import {isUndefined} from '../helpers/mixed';
-
-const hotOnLanguageChangeCallbacks = new WeakMap();
 
 /**
  * Get phrase for specified dictionary key.
  *
- * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
- * @param {string} dictionaryKey Constant which is dictionary key.
+ * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
+ * @param {String} dictionaryKey Constant which is dictionary key.
  * @param {*} argumentsForFormatters Arguments which will be handled by formatters.
  *
- * @returns {string}
-*/
+ * @returns {String}
+ */
+// eslint-disable-next-line import/prefer-default-export
 export function getTranslatedPhrase(languageCode, dictionaryKey, argumentsForFormatters) {
   const languageDictionary = getLanguageDictionary(languageCode);
 
@@ -45,45 +44,12 @@ export function getTranslatedPhrase(languageCode, dictionaryKey, argumentsForFor
  *
  * @returns {Array|string}
  */
-function getFormattedPhrase(phrasePropositions, ...args) {
+function getFormattedPhrase(phrasePropositions, argumentsForFormatters) {
   let formattedPhrasePropositions = phrasePropositions;
 
   arrayEach(getPhraseFormatters(), (formatter) => {
-    formattedPhrasePropositions = formatter(phrasePropositions, ...args);
+    formattedPhrasePropositions = formatter(phrasePropositions, argumentsForFormatters);
   });
 
   return formattedPhrasePropositions;
-}
-
-/**
- * Register callback which will be executed after language change.
- *
- * @param {Object} hotInstance Instance of Handsontable for which we register language change callback.
- * @param {string} dictionaryKey Constant which is dictionary key.
- * @param {*} argumentsForFormatters Arguments which will be handled by formatters.
- * @param {Function} callback Function which will be executed after language change, as parameter gets phrase which is
- * created from `dictionaryKey` and `zippedVariablesAndValues` parameters
- */
-export function registerLanguageChangeFn(hotInstance, dictionaryKey, argumentsForFormatters, callback) {
-  const callbacks = hotOnLanguageChangeCallbacks.get(hotInstance) || [];
-
-  callbacks.push(() => {
-    const phrase = getPhrase(hotInstance, dictionaryKey, argumentsForFormatters);
-
-    callback.call(hotInstance, phrase);
-  });
-
-  hotOnLanguageChangeCallbacks.set(hotInstance, callbacks);
-}
-
-/**
- * Run callbacks on language change.
- *
- * @private
- * @param {Object} hotInstance Instance of Handsontable for which we set language.
- */
-export function runOnLanguageChangeCallbacks(hotInstance) {
-  arrayEach(hotOnLanguageChangeCallbacks.get(hotInstance) || [], (callback) => {
-    callback();
-  });
 }

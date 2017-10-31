@@ -9,10 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'pl-PL',
-  [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Umieść wiersz powyżej',
-  [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Umieść wiersz poniżej',
-  [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Umieść kolumnę po lewej',
-  [C.CONTEXTMENU_ITEMS_INSERT_RIGHT]: 'Umieść kolumnę po prawej',
+  [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Wstaw wiersz powyżej',
+  [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Wstaw wiersz poniżej',
+  [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Wstaw kolumnę po lewej',
+  [C.CONTEXTMENU_ITEMS_INSERT_RIGHT]: 'Wstaw kolumnę po prawej',
   [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['Usuń wiersz', 'Usuń wiersze'],
   [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['Usuń kolumnę', 'Usuń kolumny'],
   [C.CONTEXTMENU_ITEMS_UNDO]: 'Cofnij',
