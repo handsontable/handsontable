@@ -75,6 +75,7 @@ describe('i18n', () => {
 
   describe('translation does not throw exceptions', () => {
     it('should not throw error when setting not existing language code at start', async () => {
+      spyOn(console, 'error'); // overriding console.error
       const spy = spyOn(window, 'onerror');
 
       handsontable({
@@ -99,6 +100,7 @@ describe('i18n', () => {
     });
 
     it('should not throw error when trying to set not existing language code by updateSettings', async () => {
+      spyOn(console, 'error'); // overriding console.error
       const spy = spyOn(window, 'onerror');
 
       handsontable();
@@ -172,6 +174,8 @@ describe('i18n', () => {
     });
 
     it('should set proper `language` key when trying to set not existing language code at start', () => {
+      spyOn(console, 'error'); // overriding console.error
+
       const hot = handsontable({
         language: NOT_EXISTING_LANGUAGE_CODE
       });
@@ -180,6 +184,8 @@ describe('i18n', () => {
     });
 
     it('should set proper `language` key when trying to set not existing language code by updateSettings #1', () => {
+      spyOn(console, 'error'); // overriding console.error
+
       const hot = handsontable();
 
       updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
@@ -188,6 +194,8 @@ describe('i18n', () => {
     });
 
     it('should set proper `language` key when trying to set not existing language code by updateSettings #2', () => {
+      spyOn(console, 'error'); // overriding console.error
+
       const hot = handsontable({
         language: POLISH_LANGUAGE_CODE
       });
@@ -246,6 +254,8 @@ describe('i18n', () => {
     });
 
     it('should not change default contextMenu UI when trying to set not existing language code at start', async () => {
+      spyOn(console, 'error'); // overriding console.error
+
       handsontable({
         language: NOT_EXISTING_LANGUAGE_CODE,
         contextMenu: ['row_above']
@@ -279,6 +289,8 @@ describe('i18n', () => {
     });
 
     it('should not change default contextMenu UI when trying to set not existing language code by updateSettings #1', async () => {
+      spyOn(console, 'error'); // overriding console.error
+
       handsontable({
         contextMenu: ['row_above']
       });
@@ -296,6 +308,8 @@ describe('i18n', () => {
     });
 
     it('should not change default contextMenu UI when trying to set not existing language code by updateSettings #2', async () => {
+      spyOn(console, 'error'); // overriding console.error
+
       handsontable({
         language: NOT_EXISTING_LANGUAGE_CODE,
         contextMenu: ['row_above']
@@ -314,6 +328,8 @@ describe('i18n', () => {
     });
 
     it('should not change previously translated contextMenu UI when trying to set not existing language code by updateSettings', async () => {
+      spyOn(console, 'error'); // overriding console.error
+
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         contextMenu: ['row_above']
