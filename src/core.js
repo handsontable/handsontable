@@ -25,6 +25,7 @@ import DefaultSettings from './defaultSettings';
 import {getCellType} from './cellTypes';
 import {getTranslatedPhrase} from './i18n';
 import {DEFAULT_LANGUAGE_CODE, hasLanguageDictionary} from './i18n/dictionariesManager';
+import {toSingleLine} from './helpers/templateLiteralTag';
 
 let activeGuid = null;
 
@@ -73,11 +74,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
   extend(GridSettings.prototype, expandType(userSettings));
 
+  initProperLanguage(userSettings.language);
+
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
   }
-
-  GridSettings.prototype.language = getStartLanguage(userSettings.language);
 
   this.rootElement = rootElement;
   this.isHotTableEnv = isChildOfWebComponentTable(this.rootElement);
@@ -976,14 +977,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {String|undefined} languageCodeProposition Proposition of language code.
    * @returns {String}
    */
-  function getStartLanguage(languageCodeProposition) {
-    languageCodeProposition = getParsedLanguageCode(languageCodeProposition);
+  function initProperLanguage(languageCode) {
+    const parsedLanguageCode = getParsedLanguageCode(languageCode);
 
-    if (!hasLanguageDictionary(languageCodeProposition)) {
-      return DEFAULT_LANGUAGE_CODE;
+    if (hasLanguageDictionary(parsedLanguageCode)) {
+      GridSettings.prototype.language = parsedLanguageCode;
+
+    } else {
+      GridSettings.prototype.language = DEFAULT_LANGUAGE_CODE;
+
+      warnUserAboutLanguageRegistration(languageCode);
     }
-
-    return languageCodeProposition;
   }
 
   /**
@@ -993,12 +997,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterLanguageChange
    */
   function setLanguage(languageCode) {
-    languageCode = getParsedLanguageCode(languageCode);
+    const parsedLanguageCode = getParsedLanguageCode(languageCode);
 
-    if (hasLanguageDictionary(languageCode)) {
-      instance.runHooks('afterLanguageChange', languageCode);
+    if (hasLanguageDictionary(parsedLanguageCode)) {
+      instance.runHooks('afterLanguageChange', parsedLanguageCode);
 
-      priv.settings.language = languageCode;
+      priv.settings.language = parsedLanguageCode;
+
+    } else {
+      warnUserAboutLanguageRegistration(languageCode);
+    }
+  }
+
+  function warnUserAboutLanguageRegistration(handledLanguageCode) {
+    if (isDefined(handledLanguageCode)) {
+      console.error(toSingleLine`Language with code "${handledLanguageCode}" should be registered earlier. 
+      Please take a look at: https://docs.handsontable.com/pro/tutorial-features.html for more information.`);
     }
   }
 

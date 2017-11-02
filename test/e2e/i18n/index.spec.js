@@ -73,7 +73,7 @@ describe('i18n', () => {
     });
   });
 
-  describe('translation does not throw errors', () => {
+  describe('translation does not throw exceptions', () => {
     it('should not throw error when setting not existing language code at start', async () => {
       const spy = spyOn(window, 'onerror');
 
@@ -118,6 +118,47 @@ describe('i18n', () => {
       updateSettings({language: DEFAULT_LANGUAGE_CODE});
 
       await sleep(100);
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('translation log error when needed', () => {
+    it('should log error when setting not existing language code at start', () => {
+      const spy = spyOn(console, 'error');
+
+      handsontable({
+        language: NOT_EXISTING_LANGUAGE_CODE
+      });
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should log error when trying to set not existing language code by updateSettings', () => {
+      const spy = spyOn(console, 'error');
+
+      handsontable();
+
+      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should not log error when setting directly default language code at start', () => {
+      const spy = spyOn(console, 'error');
+
+      handsontable({
+        language: DEFAULT_LANGUAGE_CODE
+      });
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should not log error when trying to set directly default language code by updateSettings', () => {
+      const spy = spyOn(console, 'error');
+      handsontable();
+
+      updateSettings({language: DEFAULT_LANGUAGE_CODE});
 
       expect(spy).not.toHaveBeenCalled();
     });
