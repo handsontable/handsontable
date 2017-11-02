@@ -509,7 +509,7 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
         {
           key: 'borders:no_borders',
           name() {
-            this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_BORDERS);
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_BORDERS);
           },
           callback() {
             prepareBorder.call(this, this.getSelectedRange(), 'noBorders');

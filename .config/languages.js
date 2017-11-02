@@ -39,7 +39,7 @@ const ruleForSnippetsInjection = {
       pattern: /import.+constants.+/,
       replacement: function() {
         const snippet1 = `import Handsontable from '../../handsontable';`;
-        const snippet2 = `const C = Handsontable.languages.constants;`;
+        const snippet2 = `const C = Handsontable.languages.dictionaryKeys;`;
 
         return `${snippet1}${NEW_LINE_CHAR.repeat(2)}${snippet2}`;
       }
@@ -47,7 +47,7 @@ const ruleForSnippetsInjection = {
     {
       pattern: /export default dictionary.+/,
       replacement: function(matchingPhrase) {
-        const snippet = `Handsontable.languages.register(dictionary);`;
+        const snippet = `Handsontable.languages.registerLanguageDictionary(dictionary);`;
 
         return `${snippet}${NEW_LINE_CHAR.repeat(2)}${matchingPhrase}`;
       }

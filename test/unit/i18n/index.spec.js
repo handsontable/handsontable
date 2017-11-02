@@ -9,17 +9,17 @@ describe('i18n', () => {
     // Note: please keep in mind that this language will be registered for all unit tests!
     // It's stored globally for already loaded Handsontable library.
 
-    Handsontable.languages.register(plPL);
+    Handsontable.languages.registerLanguageDictionary(plPL);
   });
 
   const INSERT_ROW_ABOVE_DICTIONARY_KEY = 'ContextMenu:items.insertRowAbove';
   const INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE = 'Wstaw wiersz powyżej';
 
   it('should extend Handsontable by language keys containing functions and constants for translation', () => {
-    expect(Handsontable.languages.get).toBe(getLanguageDictionary);
-    expect(Handsontable.languages.getAll).toBe(getLanguagesDictionaries);
-    expect(Handsontable.languages.register).toBe(registerLanguageDictionary);
-    expect(Handsontable.languages.constants).toBe(constants);
+    expect(Handsontable.languages.getLanguageDictionary).toBe(getLanguageDictionary);
+    expect(Handsontable.languages.getLanguagesDictionaries).toBe(getLanguagesDictionaries);
+    expect(Handsontable.languages.registerLanguageDictionary).toBe(registerLanguageDictionary);
+    expect(Handsontable.languages.dictionaryKeys).toBe(constants);
   });
 
   it('should get translated phrase by `getTranslatedPhrase` function', () => {

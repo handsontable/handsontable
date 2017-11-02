@@ -29,7 +29,19 @@ describe('i18n', () => {
   });
 
   describe('Hook `afterLanguageChange`', () => {
-    it('should not call the `afterLanguageChange` at start', () => {
+    it('should not call the `afterLanguageChange` at start (`language` key have not been set)', () => {
+      let afterLanguageChangeCalled = false;
+
+      handsontable({
+        afterLanguageChange() {
+          afterLanguageChangeCalled = true;
+        }
+      });
+
+      expect(afterLanguageChangeCalled).toEqual(false);
+    });
+
+    it('should not call the `afterLanguageChange` at start (`language` key have been set)', () => {
       let afterLanguageChangeCalled = false;
 
       handsontable({
@@ -46,7 +58,6 @@ describe('i18n', () => {
       let languageInsideHook;
 
       handsontable({
-        language: DEFAULT_LANGUAGE_CODE,
         afterLanguageChange() {
           const settings = this.getSettings();
 
@@ -63,7 +74,7 @@ describe('i18n', () => {
   });
 
   describe('translation does not throw errors', () => {
-    it('should not throw error when setting not existing language at start', async () => {
+    it('should not throw error when setting not existing language code at start', async () => {
       const spy = spyOn(window, 'onerror');
 
       handsontable({
@@ -75,7 +86,7 @@ describe('i18n', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('should not throw error when setting directly default language at start', async () => {
+    it('should not throw error when setting directly default language code at start', async () => {
       const spy = spyOn(window, 'onerror');
 
       handsontable({
@@ -87,7 +98,7 @@ describe('i18n', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('should not throw error when trying to set not existing language by updateSettings', async () => {
+    it('should not throw error when trying to set not existing language code by updateSettings', async () => {
       const spy = spyOn(window, 'onerror');
 
       handsontable();
@@ -99,7 +110,7 @@ describe('i18n', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('should not throw error when trying to set directly default language by updateSettings', async () => {
+    it('should not throw error when trying to set directly default language code by updateSettings', async () => {
       const spy = spyOn(window, 'onerror');
 
       handsontable();
@@ -112,8 +123,72 @@ describe('i18n', () => {
     });
   });
 
+  describe('settings', () => {
+    it('should set default language code at start', () => {
+      const hot = handsontable();
+
+      expect(hot.getSettings().language).toEqual(DEFAULT_LANGUAGE_CODE);
+    });
+
+    it('should set proper `language` key when trying to set not existing language code at start', () => {
+      const hot = handsontable({
+        language: NOT_EXISTING_LANGUAGE_CODE
+      });
+
+      expect(hot.getSettings().language).toEqual(DEFAULT_LANGUAGE_CODE);
+    });
+
+    it('should set proper `language` key when trying to set not existing language code by updateSettings #1', () => {
+      const hot = handsontable();
+
+      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+
+      expect(hot.getSettings().language).toEqual(DEFAULT_LANGUAGE_CODE);
+    });
+
+    it('should set proper `language` key when trying to set not existing language code by updateSettings #2', () => {
+      const hot = handsontable({
+        language: POLISH_LANGUAGE_CODE
+      });
+
+      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+
+      expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
+    });
+
+    it('should cast second part of language code to uppercase by default #1', () => {
+      const hot = handsontable({
+        language: POLISH_LANGUAGE_CODE.toLowerCase()
+      });
+
+      expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
+    });
+
+    it('should cast second part of language code to uppercase by default #2', () => {
+      const hot = handsontable();
+
+      updateSettings({
+        language: POLISH_LANGUAGE_CODE.toLowerCase()
+      });
+
+      expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
+    });
+
+    it('should not change language when `language` key passed to `updateSettings` was not set', () => {
+      const hot = handsontable({
+        language: POLISH_LANGUAGE_CODE
+      });
+
+      updateSettings({
+        fillHandle: true
+      });
+
+      expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
+    });
+  });
+
   describe('contextMenu translation', () => {
-    it('should translate contextMenu UI when setting existing language at start', async () => {
+    it('should translate contextMenu UI when setting existing language code at start', async () => {
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         contextMenu: ['row_above']
@@ -129,7 +204,7 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE);
     });
 
-    it('should not change default contextMenu UI when trying to set not existing language at start', async () => {
+    it('should not change default contextMenu UI when trying to set not existing language code at start', async () => {
       handsontable({
         language: NOT_EXISTING_LANGUAGE_CODE,
         contextMenu: ['row_above']
@@ -145,7 +220,7 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_DEFAULT_LANGUAGE);
     });
 
-    it('should translate contextMenu UI when setting existing language by updateSettings', async () => {
+    it('should translate contextMenu UI when setting existing language code by updateSettings', async () => {
       handsontable({
         contextMenu: ['row_above']
       });
@@ -162,7 +237,7 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE);
     });
 
-    it('should not change default contextMenu UI when trying to set not existing language by updateSettings #1', async () => {
+    it('should not change default contextMenu UI when trying to set not existing language code by updateSettings #1', async () => {
       handsontable({
         contextMenu: ['row_above']
       });
@@ -179,7 +254,7 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_DEFAULT_LANGUAGE);
     });
 
-    it('should not change default contextMenu UI when trying to set not existing language by updateSettings #2', async () => {
+    it('should not change default contextMenu UI when trying to set not existing language code by updateSettings #2', async () => {
       handsontable({
         language: NOT_EXISTING_LANGUAGE_CODE,
         contextMenu: ['row_above']
@@ -197,7 +272,7 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_DEFAULT_LANGUAGE);
     });
 
-    it('should not change previously translated contextMenu UI when trying to set not existing language by updateSettings', async () => {
+    it('should not change previously translated contextMenu UI when trying to set not existing language code by updateSettings', async () => {
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         contextMenu: ['row_above']
@@ -259,7 +334,7 @@ describe('i18n', () => {
       expect($removeColumnItem.text()).toEqual(REMOVE_COLUMN_PLURAL_IN_DEFAULT_LANGUAGE);
     });
 
-    it('should translate item from enabled `freezeColumn` plugin when setting existing language at start', async () => {
+    it('should translate item from enabled `freezeColumn` plugin when setting existing language code at start', async () => {
       const FREEZE_COLUMN_IN_POLISH_LANGUAGE = 'Zamróź kolumnę';
 
       handsontable({
@@ -278,7 +353,7 @@ describe('i18n', () => {
       expect($freezeColumnMenuItem.text()).toEqual(FREEZE_COLUMN_IN_POLISH_LANGUAGE);
     });
 
-    it('should translate item from enabled `comments` plugin when setting existing language at start', async () => {
+    it('should translate item from enabled `comments` plugin when setting existing language code at start', async () => {
       const ADD_COMMENT_IN_POLISH_LANGUAGE = 'Dodaj komentarz';
 
       handsontable({
@@ -297,7 +372,7 @@ describe('i18n', () => {
       expect($addCommentMenuItem.text()).toEqual(ADD_COMMENT_IN_POLISH_LANGUAGE);
     });
 
-    it('should translate item from enabled `customBorders` plugin when setting existing language at start', async () => {
+    it('should translate item from enabled `customBorders` plugin when setting existing language code at start', async () => {
       const BORDERS_IN_POLISH = 'Obramowanie';
 
       handsontable({
@@ -314,7 +389,7 @@ describe('i18n', () => {
       expect($bordersMenuItem.text()).toEqual(BORDERS_IN_POLISH);
     });
 
-    it('should translate item from enabled `mergeCells` plugin when setting existing language at start', async () => {
+    it('should translate item from enabled `mergeCells` plugin when setting existing language code at start', async () => {
       const MERGE_CELLS_IN_POLISH = 'Scal komórki';
 
       handsontable({
@@ -331,7 +406,7 @@ describe('i18n', () => {
       expect($mergeCellsMenuItem.text()).toEqual(MERGE_CELLS_IN_POLISH);
     });
 
-    it('should translate item from enabled `copyPaste` plugin when setting existing language at start', async () => {
+    it('should translate item from enabled `copyPaste` plugin when setting existing language code at start', async () => {
       const COPY_IN_POLISH = 'Kopiuj';
 
       handsontable({

@@ -170,10 +170,10 @@ arrayHelpers.arrayEach(Object.getOwnPropertyNames(plugins), (pluginName) => {
 Handsontable.plugins.registerPlugin = registerPlugin;
 
 Handsontable.languages = {};
-Handsontable.languages.constants = constants;
-Handsontable.languages.get = getLanguageDictionary;
-Handsontable.languages.getAll = getLanguagesDictionaries;
-Handsontable.languages.register = registerLanguageDictionary;
+Handsontable.languages.dictionaryKeys = constants;
+Handsontable.languages.getLanguageDictionary = getLanguageDictionary;
+Handsontable.languages.getLanguagesDictionaries = getLanguagesDictionaries;
+Handsontable.languages.registerLanguageDictionary = registerLanguageDictionary;
 
 // Alias to `getTranslatedPhrase` function, for more information check it API.
 Handsontable.languages.getTranslatedPhrase = (...args) => getTranslatedPhrase(...args);

@@ -55,6 +55,10 @@ describe('i18n dictionariesManager', () => {
     expect(getLanguageDictionary(plPL.languageCode)).toEqual(plPL);
   });
 
+  it('should crate copy of object when getting previously registered language', () => {
+    expect(getLanguageDictionary(plPL.languageCode)).not.toBe(plPL);
+  });
+
   it('should extend registered language by default language dictionary', () => {
     const defaultLanguageDictionary = getLanguageDictionary(DEFAULT_LANGUAGE_CODE);
 

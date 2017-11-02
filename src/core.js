@@ -77,6 +77,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     registerAsRootInstance(this);
   }
 
+  GridSettings.prototype.language = getStartLanguage(userSettings.language);
+
   this.rootElement = rootElement;
   this.isHotTableEnv = isChildOfWebComponentTable(this.rootElement);
   EventManager.isHotTableEnv = this.isHotTableEnv;
@@ -951,22 +953,58 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   };
 
-  function setLanguageCode(languageCode, runHook = true) {
-    if (hasLanguageDictionary(languageCode)) {
-      priv.languageCode = languageCode;
+  /**
+   * Internal function to get parsed language code. It take part of language code after dash and transform it to upper case.
+   * For example, when it takes `en-us` as parameter it return `en-US`
+   *
+   * @param {String} languageCodeProposition Proposition of language code.
+   * @returns {String}
+   */
+  function getParsedLanguageCode(languageCodeProposition) {
+    const languageCodePattern = /([a-zA-Z]+)-([a-zA-Z]+)/;
+    const partsOfLanguageCode = languageCodePattern.exec(languageCodeProposition);
 
-      if (runHook) {
-        instance.runHooks('afterLanguageChange', languageCode);
-      }
+    if (partsOfLanguageCode) {
+      return `${partsOfLanguageCode[1]}-${partsOfLanguageCode[2].toUpperCase()}`;
+    }
+
+    return languageCodeProposition;
+  }
+
+  /**
+   * Internal function to get proper start language code. User may set language code which is not proper.
+   *
+   * @param {String|undefined} languageCodeProposition Proposition of language code.
+   * @returns {String}
+   */
+  function getStartLanguage(languageCodeProposition) {
+    languageCodeProposition = getParsedLanguageCode(languageCodeProposition);
+
+    if (!hasLanguageDictionary(languageCodeProposition)) {
+      return DEFAULT_LANGUAGE_CODE;
+    }
+
+    return languageCodeProposition;
+  }
+
+  /**
+   * Internal function to set `language` key of settings.
+   *
+   * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'
+   * @fires Hooks#afterLanguageChange
+   */
+  function setLanguage(languageCode) {
+    languageCode = getParsedLanguageCode(languageCode);
+
+    if (hasLanguageDictionary(languageCode)) {
+      instance.runHooks('afterLanguageChange', languageCode);
+
+      priv.settings.language = languageCode;
     }
   }
 
   this.init = function() {
     dataSource.setData(priv.settings.data);
-
-    const languageFromSettings = priv.settings.language;
-
-    setLanguageCode(languageFromSettings, false);
     instance.runHooks('beforeInit');
 
     if (isMobileBrowser()) {
@@ -1677,16 +1715,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
     }
 
-    if (!init) {
-      if (isDefined(settings.language)) {
-        setLanguageCode(settings.language);
-      }
-    }
-
     for (i in settings) {
       if (i === 'data') {
         /* eslint-disable-next-line no-continue */
         continue; // loadData will be triggered later
+
+      } else if (i === 'language') {
+        setLanguage(settings.language);
+
+        /* eslint-disable-next-line no-continue */
+        continue;
 
       } else if (Hooks.getSingleton().getRegistered().indexOf(i) > -1) {
         if (isFunction(settings[i]) || Array.isArray(settings[i])) {
@@ -3364,6 +3402,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return Hooks.getSingleton().run(instance, key, p1, p2, p3, p4, p5, p6);
   };
 
+  /**
+   * Get phrase for specified dictionary key.
+   *
+   * @param {String} dictionaryKey Constant which is dictionary key.
+   * @param {*} extraArguments Arguments which will be handled by formatters.
+   *
+   * @returns {String}
+   */
+  this.getTranslatedPhrase = function(dictionaryKey, extraArguments) {
+    return getTranslatedPhrase(priv.settings.language, dictionaryKey, extraArguments);
+  };
+
   this.timeouts = [];
 
   /**
@@ -3385,10 +3435,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     for (var i = 0, ilen = this.timeouts.length; i < ilen; i++) {
       clearTimeout(this.timeouts[i]);
     }
-  };
-
-  this.getTranslatedPhrase = function (dictionaryKey, extraArguments) {
-    return getTranslatedPhrase(priv.languageCode, dictionaryKey, extraArguments);
   };
 
   Hooks.getSingleton().run(instance, 'construct');
