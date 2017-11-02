@@ -697,7 +697,7 @@ class Comments extends BasePlugin {
       {
         key: 'commentsRemove',
         name() {
-          return this.hot.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
+          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
         },
         callback: (key, selection) => this.onContextMenuRemoveComment(selection),
         disabled: () => this.hot.selection.selectedHeader.corner
@@ -705,7 +705,7 @@ class Comments extends BasePlugin {
       {
         key: 'commentsReadOnly',
         name() {
-          let label = this.hot.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
+          let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
           let hasProperty = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
             let readOnlyProperty = this.getCellMeta(row, col)[META_COMMENT];
             if (readOnlyProperty) {
