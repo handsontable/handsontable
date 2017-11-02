@@ -258,5 +258,95 @@ describe('i18n', () => {
       expect($removeRowItem.text()).toEqual(REMOVE_ROW_PLURAL_IN_DEFAULT_LANGUAGE);
       expect($removeColumnItem.text()).toEqual(REMOVE_COLUMN_PLURAL_IN_DEFAULT_LANGUAGE);
     });
+
+    it('should translate item from enabled `freezeColumn` plugin when setting existing language at start', async () => {
+      const FREEZE_COLUMN_IN_POLISH_LANGUAGE = 'Zamróź kolumnę';
+
+      handsontable({
+        contextMenu: ['freeze_column'],
+        manualColumnFreeze: true,
+        language: POLISH_LANGUAGE_CODE,
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      await sleep(300);
+
+      const $freezeColumnMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+      expect($freezeColumnMenuItem.text()).toEqual(FREEZE_COLUMN_IN_POLISH_LANGUAGE);
+    });
+
+    it('should translate item from enabled `comments` plugin when setting existing language at start', async () => {
+      const ADD_COMMENT_IN_POLISH_LANGUAGE = 'Dodaj komentarz';
+
+      handsontable({
+        contextMenu: ['commentsAddEdit'],
+        comments: true,
+        language: POLISH_LANGUAGE_CODE,
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      await sleep(300);
+
+      const $addCommentMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+      expect($addCommentMenuItem.text()).toEqual(ADD_COMMENT_IN_POLISH_LANGUAGE);
+    });
+
+    it('should translate item from enabled `customBorders` plugin when setting existing language at start', async () => {
+      const BORDERS_IN_POLISH = 'Obramowanie';
+
+      handsontable({
+        language: POLISH_LANGUAGE_CODE,
+        contextMenu: ['borders'],
+        customBorders: true
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      const $bordersMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+      expect($bordersMenuItem.text()).toEqual(BORDERS_IN_POLISH);
+    });
+
+    it('should translate item from enabled `mergeCells` plugin when setting existing language at start', async () => {
+      const MERGE_CELLS_IN_POLISH = 'Scal komórki';
+
+      handsontable({
+        language: POLISH_LANGUAGE_CODE,
+        contextMenu: ['mergeCells'],
+        mergeCells: true
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      const $mergeCellsMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+      expect($mergeCellsMenuItem.text()).toEqual(MERGE_CELLS_IN_POLISH);
+    });
+
+
+    it('should translate item from enabled `copyPaste` plugin when setting existing language at start', async () => {
+      const COPY_IN_POLISH = 'Kopiuj';
+
+      handsontable({
+        language: POLISH_LANGUAGE_CODE,
+        contextMenu: ['copy'],
+        copyPaste: true
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      const $copyMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+      expect($copyMenuItem.text()).toEqual(COPY_IN_POLISH);
+    });
   });
 });

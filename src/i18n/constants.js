@@ -12,8 +12,20 @@ export const CONTEXTMENU_ITEMS_UNDO = 'ContextMenu:items.undo';
 export const CONTEXTMENU_ITEMS_REDO = 'ContextMenu:items.redo';
 export const CONTEXTMENU_ITEMS_READ_ONLY = 'ContextMenu:items.readOnly';
 export const CONTEXTMENU_ITEMS_CLEAR_COLUMN = 'ContextMenu:items.clearColumn';
+
 export const CONTEXTMENU_ITEMS_COPY = 'ContextMenu:items.copy';
 export const CONTEXTMENU_ITEMS_CUT = 'ContextMenu:items.cut';
+
+export const CONTEXTMENU_ITEMS_FREEZE_COLUMN = 'ContextMenu:items.freezeColumn';
+export const CONTEXTMENU_ITEMS_UNFREEZE_COLUMN = 'ContextMenu:items.unfreezeColumn';
+
+export const CONTEXTMENU_ITEMS_MERGE_CELLS = 'ContextMenu:items.mergeCells';
+export const CONTEXTMENU_ITEMS_UNMERGE_CELLS = 'ContextMenu:items.unmergeCells';
+
+export const CONTEXTMENU_ITEMS_ADD_COMMENT = 'ContextMenu:items.addComment';
+export const CONTEXTMENU_ITEMS_EDIT_COMMENT = 'ContextMenu:items.editComment';
+export const CONTEXTMENU_ITEMS_REMOVE_COMMENT = 'ContextMenu:items.removeComment';
+export const CONTEXTMENU_ITEMS_READ_ONLY_COMMENT = 'ContextMenu:items.readOnlyComment';
 
 export const CONTEXTMENU_ITEMS_ALIGNMENT = 'ContextMenu:items.align';
 export const CONTEXTMENU_ITEMS_ALIGNMENT_LEFT = 'ContextMenu:items.align.left';
@@ -23,6 +35,13 @@ export const CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY = 'ContextMenu:items.align.just
 export const CONTEXTMENU_ITEMS_ALIGNMENT_TOP = 'ContextMenu:items.align.top';
 export const CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE = 'ContextMenu:items.align.middle';
 export const CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM = 'ContextMenu:items.align.bottom';
+
+export const CONTEXTMENU_ITEMS_BORDERS = 'ContextMenu:items.borders';
+export const CONTEXTMENU_ITEMS_BORDERS_TOP = 'ContextMenu:items.borders.top';
+export const CONTEXTMENU_ITEMS_BORDERS_RIGHT = 'ContextMenu:items.borders.right';
+export const CONTEXTMENU_ITEMS_BORDERS_BOTTOM = 'ContextMenu:items.borders.bottom';
+export const CONTEXTMENU_ITEMS_BORDERS_LEFT = 'ContextMenu:items.borders.left';
+export const CONTEXTMENU_ITEMS_REMOVE_BORDERS = 'ContextMenu:items.borders.remove';
 
 export const FILTERS_CONDITIONS_NAMESPACE = 'Filters:conditions';
 export const FILTERS_CONDITIONS_NONE = 'Filters:conditions.none';
