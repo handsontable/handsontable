@@ -109,8 +109,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     selRange: null, // exposed by public method `getSelectedRange`
     isPopulated: null,
     scrollable: null,
-    firstRun: true,
-    languageCode: DEFAULT_LANGUAGE_CODE
+    firstRun: true
   };
 
   grid = {
