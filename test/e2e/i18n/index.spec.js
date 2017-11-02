@@ -331,7 +331,6 @@ describe('i18n', () => {
       expect($mergeCellsMenuItem.text()).toEqual(MERGE_CELLS_IN_POLISH);
     });
 
-
     it('should translate item from enabled `copyPaste` plugin when setting existing language at start', async () => {
       const COPY_IN_POLISH = 'Kopiuj';
 
