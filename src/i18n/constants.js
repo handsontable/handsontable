@@ -43,6 +43,15 @@ export const CONTEXTMENU_ITEMS_BORDERS_BOTTOM = 'ContextMenu:items.borders.botto
 export const CONTEXTMENU_ITEMS_BORDERS_LEFT = 'ContextMenu:items.borders.left';
 export const CONTEXTMENU_ITEMS_REMOVE_BORDERS = 'ContextMenu:items.borders.remove';
 
+export const CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD = 'ContextMenu:items.nestedHeaders.insertChildRow';
+export const CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD = 'ContextMenu:items.nestedHeaders.detachFromParent';
+
+export const CONTEXTMENU_ITEMS_HIDE_COLUMN = 'ContextMenu:items.hideColumn';
+export const CONTEXTMENU_ITEMS_SHOW_COLUMN = 'ContextMenu:items.showColumn';
+
+export const CONTEXTMENU_ITEMS_HIDE_ROW = 'ContextMenu:items.hideRow';
+export const CONTEXTMENU_ITEMS_SHOW_ROW = 'ContextMenu:items.showRow';
+
 export const FILTERS_CONDITIONS_NAMESPACE = 'Filters:conditions';
 export const FILTERS_CONDITIONS_NONE = 'Filters:conditions.none';
 export const FILTERS_CONDITIONS_EMPTY = 'Filters:conditions.isEmpty';

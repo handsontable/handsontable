@@ -20,7 +20,7 @@
     "lint": "eslint --rule \"no-restricted-globals: 0\" test && eslint --rule \"no-restricted-globals: 0\" --ext .unit.js --ext .e2e.js src/ && eslint --ignore-pattern \"src/plugins/**/test/**\" --ignore-pattern \"^languages/**\" src/",
     "test": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable && npm run test:e2e && npm run test:production",
     "test:walkontable": "npm run build:walkontable && npm run test:walkontable.dump && grunt test-walkontable",
-    "test:production": "npm run build:umd.min && npm run build:languages.min  && npm run test:production.dump && grunt test-handsontable",
+    "test:production": "npm run build:umd.min && npm run build:languages.min && npm run test:production.dump && grunt test-handsontable",
     "test:e2e": "npm run build:umd && npm run build:languages && npm run test:e2e.dump && grunt test-handsontable",
     "test:e2e.watch": "node ./.config/bin/trigger-on-stdout-change.js \"concurrently --raw --kill-others 'npm run build:umd -- --watch' 'npm run test:e2e.dump --testPathPattern=$npm_config_testPathPattern -- --watch'\" \"grunt test-handsontable\"",
     "test:unit": "cross-env npm_config_testPathPattern=. BABEL_ENV=commonjs env-cmd ./hot.config.js jest --testPathPattern=$npm_config_testPathPattern --runInBand",

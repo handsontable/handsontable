@@ -50,6 +50,15 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopiuj',
   [C.CONTEXTMENU_ITEMS_CUT]: 'Wytnij',
 
+  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Wstaw wiersz dziecko',
+  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Odłącz od ojca',
+
+  [C.CONTEXTMENU_ITEMS_HIDE_COLUMN]: 'Ukryj kolumnę',
+  [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: 'Pokaż kolumnę',
+
+  [C.CONTEXTMENU_ITEMS_HIDE_ROW]: 'Ukryj wiersz',
+  [C.CONTEXTMENU_ITEMS_SHOW_ROW]: 'Pokaż wiersz',
+
   [C.FILTERS_CONDITIONS_NONE]: 'Brak',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Jest pusty',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Nie jest pusty',

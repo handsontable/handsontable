@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Config responsible for building Handsontable minified `dist/languages/` files.
+ * Config responsible for building minified Handsontable `dist/languages/` files.
  */
 const path = require('path');
 const webpack  = require('webpack');
@@ -37,4 +37,4 @@ module.exports.create = function create() {
   });
 
   return [].concat(configs);
-}
+};

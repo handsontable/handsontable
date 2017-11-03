@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Config responsible for building Handsontable not minified `languages/` files.
+ * Config responsible for building not minified Handsontable `languages/` files.
  */
 const NEW_LINE_CHAR = '\n';
 const SOURCE_LANGUAGES_DIRECTORY = 'src/i18n/languages';
