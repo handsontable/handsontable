@@ -6,12 +6,12 @@
 const NEW_LINE_CHAR = '\n';
 const SOURCE_LANGUAGES_DIRECTORY = 'src/i18n/languages';
 const OUTPUT_LANGUAGES_DIRECTORY = 'languages';
-const COPIED_LANGUAGES_DIRECTORY = 'dist/languages';
 
 const path = require('path');
 const StringReplacePlugin  = require('string-replace-webpack-plugin');
 const WebpackOnBuildPlugin = require('on-build-webpack');
 const fs  = require('fs');
+const fsExtra  = require('fs-extra');
 
 function getEntryJsFiles() {
   const entryObject = {};
@@ -86,15 +86,11 @@ module.exports.create = function create() {
     plugins: [
       new WebpackOnBuildPlugin(() => {
         const filesInOutputLanguagesDirectory = fs.readdirSync(OUTPUT_LANGUAGES_DIRECTORY);
-
-        // create `languages` directory inside `dist` if needed
-        if (!fs.existsSync(COPIED_LANGUAGES_DIRECTORY)) {
-          fs.mkdirSync(COPIED_LANGUAGES_DIRECTORY);
-        }
+        const copiedLanguagesDictionary = 'dist/languages';
 
         // copy files from `languages` directory to `dist/languages` directory
         filesInOutputLanguagesDirectory.forEach((fileName) => {
-          fs.copyFileSync(`${OUTPUT_LANGUAGES_DIRECTORY}/${fileName}`, `${COPIED_LANGUAGES_DIRECTORY}/${fileName}`);
+          fsExtra.copySync(`${OUTPUT_LANGUAGES_DIRECTORY}/${fileName}`, `${copiedLanguagesDictionary}/${fileName}`);
         });
       })
     ]

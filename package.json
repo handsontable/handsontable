@@ -84,6 +84,7 @@
     "eslint-config-airbnb-base": "^11.3.1",
     "eslint-plugin-import": "^2.7.0",
     "extract-text-webpack-plugin": "^3.0.0",
+    "fs-extra": "^4.0.2",
     "glob": "^7.1.2",
     "grunt": "^1.0.1",
     "grunt-lib-phantomjs": "^1.1.0",
