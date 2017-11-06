@@ -31,7 +31,7 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 **handsontable.js** and **handsontable.css** are compiled ___without___ the needed dependencies.
 
 ## Internationalization
-Since Handsontable [35.0.0](https://docs.handsontable.com/0.34.5/tutorial-release-notes.html) it is possible to include files which will register languages dictionaries. They allow to translate parts of Handsontable UI. You can include only language dictionary you need **or** all possible language dictionaries. List of available translations can be found [here](https://docs.handsontable.com/0.35.0/internationalization.html).
+Since Handsontable [35.0.0](https://docs.handsontable.com/0.35.0/tutorial-release-notes.html) it is possible to include files which will register languages dictionaries. They allow to translate parts of Handsontable UI. You can include only language dictionary you need **or** all possible language dictionaries. List of available translations can be found [here](https://docs.handsontable.com/0.35.0/internationalization.html).
 
 ```html
 <!-- Internationalization, Polish - Poland language-country file -->
