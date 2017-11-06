@@ -1,4 +1,5 @@
 import {rangeEach} from 'handsontable/helpers/number';
+import * as C from 'handsontable/i18n/constants';
 
 export default function showRowItem(hiddenRowsPlugin) {
   const beforeHiddenRows = [];
@@ -6,8 +7,10 @@ export default function showRowItem(hiddenRowsPlugin) {
 
   return {
     key: 'hidden_rows_show',
-    name: 'Show row',
-    callback: function() {
+    name() {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_ROW);
+    },
+    callback() {
       let {from, to} = this.getSelectedRange();
       let start = Math.min(from.row, to.row);
       let end = Math.max(from.row, to.row);
@@ -30,7 +33,7 @@ export default function showRowItem(hiddenRowsPlugin) {
       this.view.wt.wtOverlays.adjustElementsSize(true);
     },
     disabled: false,
-    hidden: function() {
+    hidden() {
       if (!hiddenRowsPlugin.hiddenRows.length || !this.selection.selectedHeader.rows) {
         return true;
       }

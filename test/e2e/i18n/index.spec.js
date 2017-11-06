@@ -13,12 +13,8 @@ describe('i18n', () => {
   });
 
   const POLISH_LANGUAGE_CODE = 'pl-PL';
-  const INSERT_COLUMN_LEFT_IN_POLISH_LANGUAGE = 'Umieść kolumnę po lewej';
+  const INSERT_COLUMN_LEFT_IN_POLISH_LANGUAGE = 'Wstaw kolumnę po lewej';
   const FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE = 'Brak';
-  const FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE = 'Jest pusty';
-  const FILTERS_LABELS_FILTER_BY_CONDITION_IN_POLISH_LANGUAGE = 'Filtruj na podstawie warunku:';
-  const FILTERS_BUTTONS_SELECT_ALL_IN_POLISH_LANGUAGE = 'Wybierz wszystkie';
-  const FILTERS_BUTTONS_PLACEHOLDER_SEARCH_IN_POLISH_LANGUAGE = 'Szukaj...';
 
   describe('dropdown translation', () => {
     it('should translate dropdownMenu UI when setting existing language at start', async () => {
@@ -30,11 +26,7 @@ describe('i18n', () => {
 
       dropdownMenu(0);
 
-      const $dropdownMenuItem = $('.htDropdownMenu tbody td:not(.htSeparator)').eq(0);
-
-      expect($dropdownMenuItem.text()).toEqual(INSERT_COLUMN_LEFT_IN_POLISH_LANGUAGE);
-
-      await sleep(300);
+      expect($('.htDropdownMenu tbody td:not(.htSeparator)').eq(0).text()).toEqual(INSERT_COLUMN_LEFT_IN_POLISH_LANGUAGE);
     });
   });
 
@@ -49,12 +41,12 @@ describe('i18n', () => {
 
       dropdownMenu(0);
 
-      await sleep(300);
-
       expect($('.htFiltersMenuCondition .htUISelectCaption').eq(0).text()).toEqual(FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE);
     });
 
     it('should translate filters condition inside dropdownMenu UI when setting existing language at start #2', async () => {
+      const FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE = 'Jest pusty';
+
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         colHeaders: true,
@@ -64,11 +56,7 @@ describe('i18n', () => {
 
       dropdownMenu(0);
 
-      await sleep(300);
-
       $('.htUISelect').eq(0).simulate('click');
-
-      await sleep(300);
 
       const $contextMenuItems = $('.htFiltersConditionsMenu tbody td:not(.htSeparator)');
 
@@ -76,8 +64,9 @@ describe('i18n', () => {
       expect($contextMenuItems.eq(1).text()).toEqual(FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE);
     });
 
-
     it('should translate label inside dropdownMenu UI when setting existing language at start', async () => {
+      const FILTERS_LABELS_FILTER_BY_CONDITION_IN_POLISH_LANGUAGE = 'Filtruj na podstawie warunku:';
+
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         colHeaders: true,
@@ -86,8 +75,6 @@ describe('i18n', () => {
       });
 
       dropdownMenu(0);
-
-      await sleep(300);
 
       const $filterByConditionLabel = $('.htFiltersMenuLabel').eq(0);
 
@@ -95,6 +82,8 @@ describe('i18n', () => {
     });
 
     it('should translate button inside dropdownMenu UI when setting existing language at start', async () => {
+      const FILTERS_BUTTONS_SELECT_ALL_IN_POLISH_LANGUAGE = 'Wybierz wszystkie';
+
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         colHeaders: true,
@@ -103,8 +92,6 @@ describe('i18n', () => {
       });
 
       dropdownMenu(0);
-
-      await sleep(300);
 
       const $selectAllButton = $('.htUISelectAll').eq(0);
 
@@ -112,6 +99,8 @@ describe('i18n', () => {
     });
 
     it('should translate placeholder of button inside dropdownMenu UI when setting existing language at start', async () => {
+      const FILTERS_BUTTONS_PLACEHOLDER_SEARCH_IN_POLISH_LANGUAGE = 'Szukaj...';
+
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         colHeaders: true,
@@ -121,11 +110,73 @@ describe('i18n', () => {
 
       dropdownMenu(0);
 
-      await sleep(300);
-
       const $searchInputPlaceholder = $('.htUIMultipleSelectSearch.htUIInput input').eq(0);
 
       expect($searchInputPlaceholder.attr('placeholder')).toEqual(FILTERS_BUTTONS_PLACEHOLDER_SEARCH_IN_POLISH_LANGUAGE);
+    });
+  });
+
+  describe('contextMenu translation', () => {
+    it('should translate item from enabled `nestedRows` plugin when setting existing language code at start', async () => {
+      const NESTED_ROWS_INSERT_CHILD_IN_POLISH = 'Wstaw wiersz dziecko';
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        language: POLISH_LANGUAGE_CODE,
+        contextMenu: ['add_child'],
+        rowHeaders: true,
+        colHeaders: true,
+        nestedRows: true
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      const $copyMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+      expect($copyMenuItem.text()).toEqual(NESTED_ROWS_INSERT_CHILD_IN_POLISH);
+    });
+
+    it('should translate item from enabled `hiddenColumns` plugin when setting existing language code at start', async () => {
+      const HIDE_COLUMN_IN_POLISH = 'Ukryj kolumnę';
+
+      handsontable({
+        language: POLISH_LANGUAGE_CODE,
+        contextMenu: ['hidden_columns_hide'],
+        colHeaders: true,
+        hiddenColumns: true
+      });
+
+      const columnHeader = $('.ht_clone_top tr:eq(0) th:eq(0)');
+
+      columnHeader.simulate('mousedown');
+      columnHeader.simulate('mouseup');
+      contextMenu();
+
+      const $copyMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+      expect($copyMenuItem.text()).toEqual(HIDE_COLUMN_IN_POLISH);
+    });
+
+    it('should translate item from enabled `hiddenRows` plugin when setting existing language code at start', async () => {
+      const HIDE_ROW_IN_POLISH = 'Ukryj wiersz';
+
+      handsontable({
+        language: POLISH_LANGUAGE_CODE,
+        contextMenu: ['hidden_rows_hide'],
+        rowHeaders: true,
+        hiddenRows: true
+      });
+
+      const rowHeader = $('.ht_clone_left tr:eq(0) th:eq(0)');
+
+      rowHeader.simulate('mousedown');
+      rowHeader.simulate('mouseup');
+      contextMenu();
+
+      const $copyMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+      expect($copyMenuItem.text()).toEqual(HIDE_ROW_IN_POLISH);
     });
   });
 });
