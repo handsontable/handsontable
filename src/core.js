@@ -963,9 +963,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const parsedLanguageCode = getParsedLanguageCode(languageCode);
 
     if (hasLanguageDictionary(parsedLanguageCode)) {
-      instance.runHooks('afterLanguageChange', parsedLanguageCode);
+      instance.runHooks('beforeLanguageChange', parsedLanguageCode);
 
       priv.settings.language = parsedLanguageCode;
+
+      instance.runHooks('afterLanguageChange', parsedLanguageCode);
 
     } else {
       warnUserAboutLanguageRegistration(languageCode);

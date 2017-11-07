@@ -28,6 +28,51 @@ describe('i18n', () => {
     expect(getCellMeta(0, 0).language).toBeUndefined();
   });
 
+  describe('Hook `beforeLanguageChange`', () => {
+    it('should not call the `beforeLanguageChange` at start (`language` key have not been set)', () => {
+      let beforeLanguageChangeCalled = false;
+
+      handsontable({
+        beforeLanguageChange() {
+          beforeLanguageChangeCalled = true;
+        }
+      });
+
+      expect(beforeLanguageChangeCalled).toEqual(false);
+    });
+
+    it('should not call the `beforeLanguageChange` at start (`language` key have been set)', () => {
+      let beforeLanguageChangeCalled = false;
+
+      handsontable({
+        language: POLISH_LANGUAGE_CODE,
+        beforeLanguageChange() {
+          beforeLanguageChangeCalled = true;
+        }
+      });
+
+      expect(beforeLanguageChangeCalled).toEqual(false);
+    });
+
+    it('should call the `beforeLanguageChange` before updating settings', () => {
+      let languageInsideHook;
+
+      handsontable({
+        beforeLanguageChange() {
+          const settings = this.getSettings();
+
+          languageInsideHook = settings.language;
+        }
+      });
+
+      updateSettings({
+        language: POLISH_LANGUAGE_CODE
+      });
+
+      expect(languageInsideHook).toEqual(DEFAULT_LANGUAGE_CODE);
+    });
+  });
+
   describe('Hook `afterLanguageChange`', () => {
     it('should not call the `afterLanguageChange` at start (`language` key have not been set)', () => {
       let afterLanguageChangeCalled = false;
@@ -54,7 +99,7 @@ describe('i18n', () => {
       expect(afterLanguageChangeCalled).toEqual(false);
     });
 
-    it('should call the `afterLanguageChange` before updating settings', () => {
+    it('should call the `afterLanguageChange` after updating settings', () => {
       let languageInsideHook;
 
       handsontable({
@@ -69,7 +114,7 @@ describe('i18n', () => {
         language: POLISH_LANGUAGE_CODE
       });
 
-      expect(languageInsideHook).toEqual(DEFAULT_LANGUAGE_CODE);
+      expect(languageInsideHook).toEqual(POLISH_LANGUAGE_CODE);
     });
   });
 
