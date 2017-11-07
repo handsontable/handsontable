@@ -5,7 +5,7 @@
  */
 const path = require('path');
 const webpack  = require('webpack');
-const configFactory = require('./languages-dev');
+const configFactory = require('./languages-development');
 const OUTPUT_LANGUAGES_DIRECTORY = 'dist/languages';
 
 module.exports.create = function create() {

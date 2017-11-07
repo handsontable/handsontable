@@ -1,5 +1,7 @@
-import {isUndefined} from './../helpers/mixed';
+import {isUndefined, isDefined} from './../helpers/mixed';
 import {objectEach} from './../helpers/object';
+import {toSingleLine} from './../helpers/templateLiteralTag';
+import {DEFAULT_LANGUAGE_CODE, hasLanguageDictionary} from './dictionariesManager';
 
 /**
  * Perform shallow extend of a target object with only this extension's properties which doesn't exist in the target.
@@ -39,4 +41,55 @@ export function createCellHeadersRange(firstRowIndex, nextRowIndex, fromValue = 
   }
 
   return `${fromValue}-${toValue}`;
+}
+
+/**
+ * Get parsed language code. It take part of language code after dash and transform it to upper case.
+ * For example, when it takes `en-us` as parameter it return `en-US`
+ *
+ * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
+ * @returns {String}
+ */
+export function getParsedLanguageCode(languageCode) {
+  const languageCodePattern = /([a-zA-Z]{2})-([a-zA-Z]{2})/;
+  const partsOfLanguageCode = languageCodePattern.exec(languageCode);
+
+  if (partsOfLanguageCode) {
+    return `${partsOfLanguageCode[1]}-${partsOfLanguageCode[2].toUpperCase()}`;
+  }
+
+  return languageCode;
+}
+
+/**
+ * Set proper start language code. User may set language code which is not proper.
+ *
+ * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
+ * @param {Object} settings Settings object.
+ * @returns {String}
+ */
+export function initProperLanguage(languageCode, settings) {
+  const parsedLanguageCode = getParsedLanguageCode(languageCode);
+
+  if (hasLanguageDictionary(parsedLanguageCode)) {
+    settings.language = parsedLanguageCode;
+
+  } else {
+    settings.language = DEFAULT_LANGUAGE_CODE;
+
+    warnUserAboutLanguageRegistration(languageCode);
+  }
+}
+
+/**
+ *
+ * Warn user if there is no registered language.
+ *
+ * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
+ */
+export function warnUserAboutLanguageRegistration(languageCode) {
+  if (isDefined(languageCode)) {
+    console.error(toSingleLine`Language with code "${languageCode}" should be registered earlier. 
+      Please take a look at: https://docs.handsontable.com/pro/tutorial-features.html for more information.`);
+  }
 }

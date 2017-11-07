@@ -36,8 +36,8 @@
     "build:umd": "cross-env BABEL_ENV=commonjs NODE_ENV=development env-cmd ./hot.config.js webpack --hide-modules ./src/index.js",
     "build:umd.min": "cross-env BABEL_ENV=commonjs NODE_ENV=production env-cmd ./hot.config.js webpack --hide-modules ./src/index.js",
     "build:walkontable": "cross-env BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd ./hot.config.js webpack --hide-modules ./src/3rdparty/walkontable/src/index.js",
-    "build:languages": "cross-env BABEL_ENV=commonjs NODE_ENV=languages-dev env-cmd ./hot.config.js webpack",
-    "build:languages.min": "cross-env BABEL_ENV=commonjs NODE_ENV=languages-prod env-cmd ./hot.config.js webpack",
+    "build:languages": "cross-env BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd ./hot.config.js webpack",
+    "build:languages.min": "cross-env BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd ./hot.config.js webpack",
     "watch": "cross-env BABEL_ENV=commonjs NODE_ENV=watch env-cmd ./hot.config.js webpack --hide-modules --watch src/index.js",
     "prepublish": "npm run clean && npm run build:commonjs && npm run build:es"
   },

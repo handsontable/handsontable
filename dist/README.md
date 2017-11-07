@@ -38,7 +38,7 @@ Since Handsontable [35.0.0](https://docs.handsontable.com/0.35.0/tutorial-releas
 <!-- pl-PL language can be used after loading file -->
 <script src="languages/pl-PL.js"></script>
 
-<!-- Internationalization, all available language dictionaries
+<!-- Internationalization, all available language dictionaries in one file
 <!-- all possible languages can be used after loading file -->
 <script src="languages/all.js"></script>
 ```

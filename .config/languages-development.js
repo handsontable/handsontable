@@ -19,10 +19,13 @@ function getEntryJsFiles() {
 
   filesInLanguagesDirectory.forEach((fileName) => {
     const jsExtensionRegExp = /\.js$/;
-    const indexFileName = 'index.js';
 
-    if (jsExtensionRegExp.test(fileName) && fileName !== indexFileName) {
-      const fileNameWithoutExtension = fileName.replace(jsExtensionRegExp, '');
+    if (jsExtensionRegExp.test(fileName)) {
+      let fileNameWithoutExtension = fileName.replace(jsExtensionRegExp, '');
+
+      if (fileNameWithoutExtension === 'index') {
+        fileNameWithoutExtension = 'all';
+      }
 
       entryObject[fileNameWithoutExtension] = path.resolve(SOURCE_LANGUAGES_DIRECTORY, fileName);
     }
@@ -60,8 +63,10 @@ const ruleForSnippetsInjection = {
 };
 
 module.exports.create = function create() {
+  const entry = getEntryJsFiles();
+
   const config = {
-    entry: getEntryJsFiles(),
+    entry,
     output: {
       path: path.resolve(__dirname, '../' + OUTPUT_LANGUAGES_DIRECTORY),
       libraryTarget: 'umd',
@@ -86,12 +91,20 @@ module.exports.create = function create() {
     plugins: [
       new WebpackOnBuildPlugin(() => {
         const filesInOutputLanguagesDirectory = fs.readdirSync(OUTPUT_LANGUAGES_DIRECTORY);
-        const copiedLanguagesDictionary = 'dist/languages';
+        const indexFileName = 'index.js';
+        const allLanguagesFileName = 'all.js';
 
         // copy files from `languages` directory to `dist/languages` directory
         filesInOutputLanguagesDirectory.forEach((fileName) => {
-          fsExtra.copySync(`${OUTPUT_LANGUAGES_DIRECTORY}/${fileName}`, `${copiedLanguagesDictionary}/${fileName}`);
+          if (fileName !== indexFileName) {
+            fsExtra.copySync(`${OUTPUT_LANGUAGES_DIRECTORY}/${fileName}`, `dist/languages/${fileName}`);
+          }
         });
+
+        // copy from `languages/all.js` to `languages/index.js`
+        if (filesInOutputLanguagesDirectory.includes(allLanguagesFileName)) {
+          fsExtra.copySync(`${OUTPUT_LANGUAGES_DIRECTORY}/${allLanguagesFileName}`, `${OUTPUT_LANGUAGES_DIRECTORY}/${indexFileName}`);
+        }
       })
     ]
   };

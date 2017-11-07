@@ -24,8 +24,8 @@ import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
 import {getCellType} from './cellTypes';
 import {getTranslatedPhrase} from './i18n';
-import {DEFAULT_LANGUAGE_CODE, hasLanguageDictionary} from './i18n/dictionariesManager';
-import {toSingleLine} from './helpers/templateLiteralTag';
+import {hasLanguageDictionary} from './i18n/dictionariesManager';
+import {warnUserAboutLanguageRegistration, initProperLanguage, getParsedLanguageCode} from './i18n/utils';
 
 let activeGuid = null;
 
@@ -74,7 +74,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
   extend(GridSettings.prototype, expandType(userSettings));
 
-  initProperLanguage(userSettings.language);
+  initProperLanguage(userSettings.language, GridSettings.prototype);
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -954,43 +954,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Internal function to get parsed language code. It take part of language code after dash and transform it to upper case.
-   * For example, when it takes `en-us` as parameter it return `en-US`
-   *
-   * @param {String} languageCodeProposition Proposition of language code.
-   * @returns {String}
-   */
-  function getParsedLanguageCode(languageCodeProposition) {
-    const languageCodePattern = /([a-zA-Z]+)-([a-zA-Z]+)/;
-    const partsOfLanguageCode = languageCodePattern.exec(languageCodeProposition);
-
-    if (partsOfLanguageCode) {
-      return `${partsOfLanguageCode[1]}-${partsOfLanguageCode[2].toUpperCase()}`;
-    }
-
-    return languageCodeProposition;
-  }
-
-  /**
-   * Internal function to get proper start language code. User may set language code which is not proper.
-   *
-   * @param {String|undefined} languageCodeProposition Proposition of language code.
-   * @returns {String}
-   */
-  function initProperLanguage(languageCode) {
-    const parsedLanguageCode = getParsedLanguageCode(languageCode);
-
-    if (hasLanguageDictionary(parsedLanguageCode)) {
-      GridSettings.prototype.language = parsedLanguageCode;
-
-    } else {
-      GridSettings.prototype.language = DEFAULT_LANGUAGE_CODE;
-
-      warnUserAboutLanguageRegistration(languageCode);
-    }
-  }
-
-  /**
    * Internal function to set `language` key of settings.
    *
    * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'
@@ -1006,13 +969,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     } else {
       warnUserAboutLanguageRegistration(languageCode);
-    }
-  }
-
-  function warnUserAboutLanguageRegistration(handledLanguageCode) {
-    if (isDefined(handledLanguageCode)) {
-      console.error(toSingleLine`Language with code "${handledLanguageCode}" should be registered earlier. 
-      Please take a look at: https://docs.handsontable.com/pro/tutorial-features.html for more information.`);
     }
   }
 
@@ -3418,6 +3374,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Get phrase for specified dictionary key.
    *
+   * @memberof Core#
+   * @function getTranslatedPhrase
    * @param {String} dictionaryKey Constant which is dictionary key.
    * @param {*} extraArguments Arguments which will be handled by formatters.
    *
