@@ -605,30 +605,19 @@ thead .htCollapseButton:after {
   display: none;
 }
 
-.ht_master .wtHolder {
+.handsontable .wtHolder {
   overflow: hidden;
-  height: 100%;
 }
-
-.ht_clone_left .wtHolder {
-  overflow-x: hidden;
-  overflow-y: hidden;
-  width: 100%;
-  height: 100%;
-}
+.ht_master .wtHolder,
+.ht_clone_left .wtHolder,
 .ht_clone_top .wtHolder {
-  overflow-x: hidden;
-  overflow-y: hidden;
+  position: absolute;
   width: 100%;
   height: 100%;
 }
-
-.ht_clone_top .wtHolder,
-.ht_clone_bottom .wtHolder {
-  overflow-x: hidden;
-  overflow-y: hidden;
+.wtSpreader {
+  position: relative;
 }
-
 
 /*WalkontableDebugOverlay*/
 

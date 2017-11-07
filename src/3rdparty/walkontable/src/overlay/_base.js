@@ -52,25 +52,17 @@ class Overlay {
   }
 
   /**
-   * @type {String}
-   */
-  static get CLONE_DEBUG() {
-    return 'debug';
-  }
-
-  /**
    * List of all availables clone types
    *
    * @type {Array}
    */
   static get CLONE_TYPES() {
     return [
-      Overlay.CLONE_TOP,
-      Overlay.CLONE_BOTTOM,
-      Overlay.CLONE_LEFT,
       Overlay.CLONE_TOP_LEFT_CORNER,
+      Overlay.CLONE_TOP,
+      Overlay.CLONE_LEFT,
       Overlay.CLONE_BOTTOM_LEFT_CORNER,
-      Overlay.CLONE_DEBUG,
+      Overlay.CLONE_BOTTOM,
     ];
   }
 
@@ -191,7 +183,7 @@ class Overlay {
    * Make a clone of table for overlay
    *
    * @param {String} direction Can be `Overlay.CLONE_TOP`, `Overlay.CLONE_LEFT`,
-   *                           `Overlay.CLONE_TOP_LEFT_CORNER`, `Overlay.CLONE_DEBUG`
+   *                           `Overlay.CLONE_TOP_LEFT_CORNER`
    * @returns {Walkontable}
    */
   makeClone(direction) {

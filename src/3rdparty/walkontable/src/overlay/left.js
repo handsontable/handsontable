@@ -38,37 +38,12 @@ class LeftOverlay extends Overlay {
    */
   resetFixedPosition() {
     if (!this.needFullRender || !this.wot.wtTable.holder.parentNode) {
+      this.clone.wtTable.wtRootElement.style.height = '0';
       // removed from DOM
       return;
     }
-    let overlayRoot = this.clone.wtTable.holder.parentNode;
-    let headerPosition = 0;
-    let preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === window && (!preventOverflow || preventOverflow !== 'horizontal')) {
-      let box = this.wot.wtTable.hider.getBoundingClientRect();
-      let left = Math.ceil(box.left);
-      let right = Math.ceil(box.right);
-      let finalLeft;
-      let finalTop;
-
-      finalTop = this.wot.wtTable.hider.style.top;
-      finalTop = finalTop === '' ? 0 : finalTop;
-
-      if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
-        finalLeft = -left;
-      } else {
-        finalLeft = 0;
-      }
-      headerPosition = finalLeft;
-      finalLeft += 'px';
-
-      setOverlayPosition(overlayRoot, finalLeft, finalTop);
-
-    } else {
-      headerPosition = this.getScrollPosition();
-      resetCssTransform(overlayRoot);
-    }
+    this.clone.wtTable.wtRootElement.style.height = 'auto';
 
     this.adjustElementsSize();
   }

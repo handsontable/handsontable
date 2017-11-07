@@ -38,39 +38,12 @@ class TopOverlay extends Overlay {
    */
   resetFixedPosition() {
     if (!this.needFullRender || !this.wot.wtTable.holder.parentNode) {
+      this.clone.wtTable.wtRootElement.style.width = '0';
       // removed from DOM
       return;
     }
-    let overlayRoot = this.clone.wtTable.holder.parentNode;
-    let headerPosition = 0;
-    let preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === window && (!preventOverflow || preventOverflow !== 'vertical')) {
-      let box = this.wot.wtTable.hider.getBoundingClientRect();
-      let top = Math.ceil(box.top);
-      let bottom = Math.ceil(box.bottom);
-      let finalLeft;
-      let finalTop;
-
-      finalLeft = this.wot.wtTable.hider.style.left;
-      finalLeft = finalLeft === '' ? 0 : finalLeft;
-
-      if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
-        finalTop = -top;
-      } else {
-        finalTop = 0;
-      }
-      headerPosition = finalTop;
-      finalTop += 'px';
-
-      setOverlayPosition(overlayRoot, finalLeft, finalTop);
-
-    } else {
-      headerPosition = this.getScrollPosition();
-      resetCssTransform(overlayRoot);
-    }
-
-    this.adjustHeaderBordersPosition(headerPosition);
+    this.clone.wtTable.wtRootElement.style.width = 'auto';
 
     this.adjustElementsSize();
   }
@@ -302,40 +275,6 @@ class TopOverlay extends Overlay {
     this.redrawSelectionBorders(selections.area);
     this.redrawSelectionBorders(selections.fill);
     this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
-  }
-
-  /**
-   * Adds css classes to hide the header border's header (cell-selection border hiding issue)
-   *
-   * @param {Number} position Header Y position if trimming container is window or scroll top if not
-   */
-  adjustHeaderBordersPosition(position) {
-    const masterParent = this.wot.wtTable.holder.parentNode;
-    const totalColumns = this.wot.getSetting('totalColumns');
-
-    if (totalColumns) {
-      removeClass(masterParent, 'emptyColumns');
-    } else {
-      addClass(masterParent, 'emptyColumns');
-    }
-
-    if (this.wot.getSetting('fixedRowsTop') === 0 && this.wot.getSetting('columnHeaders').length > 0) {
-      let previousState = hasClass(masterParent, 'innerBorderTop');
-
-      if (position || this.wot.getSetting('totalRows') === 0) {
-        addClass(masterParent, 'innerBorderTop');
-      } else {
-        removeClass(masterParent, 'innerBorderTop');
-      }
-
-      if (!previousState && position || previousState && !position) {
-        this.wot.wtOverlays.adjustElementsSize();
-
-        // cell borders should be positioned once again,
-        // because we added / removed 1px border from table header
-        this.redrawAllSelectionsBorders();
-      }
-    }
   }
 }
 
