@@ -43,6 +43,25 @@ describe('i18n dictionariesManager', () => {
     expect(getLanguagesDictionaries().length).toEqual(2);
   });
 
+  it('should not give opportunity to change registered language by reference', () => {
+    const registeredLanguageDictionary1 = registerLanguageDictionary(plPL);
+    const registeredLanguageDictionary2 = registerLanguageDictionary(plPL);
+
+    registeredLanguageDictionary1.newExtraKey1 = 'hello world1';
+    registeredLanguageDictionary2.newExtraKey2 = 'hello world2';
+
+    expect(getLanguageDictionary(plPL.languageCode).newExtraKey).toBeUndefined();
+    expect(getLanguageDictionary(plPL.languageCode).newExtraKey2).toBeUndefined();
+    expect(registeredLanguageDictionary1).not.toBe(plPL);
+    expect(registeredLanguageDictionary2).not.toBe(plPL);
+    expect(registeredLanguageDictionary1).not.toBe(registeredLanguageDictionary2);
+
+    plPL.newExtraKey3 = 'hello world3';
+    expect(getLanguageDictionary(plPL.languageCode).newExtraKey3).toBeUndefined();
+
+    delete plPL.newExtraKey3;
+  });
+
   it('should return `true` when checking existence of previously registered language', () => {
     expect(hasLanguageDictionary(plPL.languageCode)).toEqual(true);
   });
@@ -51,11 +70,8 @@ describe('i18n dictionariesManager', () => {
     expect(hasLanguageDictionary(DEFAULT_LANGUAGE_CODE)).toEqual(true);
   });
 
-  it('should return object when getting previously registered language', () => {
+  it('should return copy of registered dictionary when getting previously registered language', () => {
     expect(getLanguageDictionary(plPL.languageCode)).toEqual(plPL);
-  });
-
-  it('should crate copy of object when getting previously registered language', () => {
     expect(getLanguageDictionary(plPL.languageCode)).not.toBe(plPL);
   });
 

@@ -28,9 +28,10 @@ function registerLanguage(languageCodeOrDictionary, dictionary) {
   }
 
   extendLanguageDictionary(languageCode, dictionary);
-  registerGloballyLanguageDictionary(languageCode, dictionary);
+  registerGloballyLanguageDictionary(languageCode, deepClone(dictionary));
 
-  return dictionary;
+  // We do not allow user to work with dictionary by reference, it can cause lot of bugs.
+  return deepClone(dictionary);
 };
 
 /**
