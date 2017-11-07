@@ -11,6 +11,10 @@ const RANGE_REGEX = /\$?[A-Z]+\$?\d+\s*:\s*\$?[A-Z]+\$?\d+/g;
 const CELL_AND_RANGE_REGEX = /((?:[^0-9A-Z$: ]|^)\s*(\$?[A-Z]+\$?\d+)\s*(?![0-9A-Z_: ]))|(\$?[A-Z]+\$?\d+\s*:\s*\$?[A-Z]+\$?\d+)/g;
 
 /**
+ * Component adds an ability to parse and modify formula expressions. It is designed for translating cell
+ * coordinates and cell ranges in any direction. By default, component translates only relative coordinates but this
+ * behavior can be overwritten by passing custom modifier which controls translating process.
+ *
  * @class ExpressionModifier
  * @util
  */
@@ -57,7 +61,21 @@ class ExpressionModifier {
   }
 
   /**
-   * Set function which can modify default behaviour of how cells and cell ranges will be translated.
+   * Set function which can modify default behavior of how cells and cell ranges will be translated.
+   * The passed function will be called with 4 arguments:
+   *  - cell, A cell object with structure
+   *            like this: {start: {row, column}, end: {row, column}, origLabel, type: 'cell|range', refError, toLabel: () => {}}
+   *  - axis, Type of currently processing axis ('row' or 'column')
+   *  - delta, Number as distance to translate. Can be positive or negative.
+   *  - startFromIndex, Base index which translation will be applied from.
+   *
+   * the function must return an array with 3 items, where:
+   *  [
+   *    deltaStart, Number as a delta to translate first part of coordinates.
+   *    deltaEnd,   Number as a delta to translate second part of coordinates (if cell range is modified).
+   *    refError,   Defines an error which refers to the situation when translated cell overcrossed the data boundary.
+   *  ]
+   *
    *
    * @param {Function} customModifier Function with custom logic.
    */

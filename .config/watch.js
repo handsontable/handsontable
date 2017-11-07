@@ -16,7 +16,7 @@ module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
 
   config.forEach(function(c) {
-    c.devtool = '#cheap-module-eval-source-map';
+    c.devtool = 'source-map';
     c.output.filename = PACKAGE_FILENAME + '.js';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css)
     c.externals = {

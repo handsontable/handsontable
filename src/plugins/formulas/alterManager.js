@@ -17,6 +17,14 @@ registerOperation(removeColumn.OPERATION_NAME, removeColumn);
 registerOperation(removeRow.OPERATION_NAME, removeRow);
 
 /**
+ * Alter Manager is a service that is responsible for changing the formula expressions (especially cell coordinates)
+ * based on specific alter operation applied into the table.
+ *
+ * For example, when a user adds a new row the algorithm that moves all the cells below the added row down by one row
+ * should be triggered (eq: cell A5 become A6 etc).
+ *
+ * All alter operations are defined in the "alterOperation/" directory.
+ *
  * @class AlterManager
  * @util
  */
@@ -48,6 +56,13 @@ class AlterManager {
     this.matrix = sheet.matrix;
   }
 
+  /**
+   * Prepare to execute an alter algorithm. This preparation can be useful for collecting some variables and
+   * states before specific algorithm will be executed.
+   *
+   * @param  {String} action One of the action defined in alterOperation.
+   * @param  {*} args Arguments pass to alter operation.
+   */
   prepareAlter(action, ...args) {
     if (!operations.has(action)) {
       throw Error(`Alter operation "${action}" not exist.`);
@@ -56,9 +71,9 @@ class AlterManager {
   }
 
   /**
-   * Trigger alter table action.
+   * Trigger an alter algorithm and after executing code trigger local hook ("afterAlter").
    *
-   * @param {String} action One of action defined in alterOperation.
+   * @param {String} action One of the action defined in alterOperation.
    * @param {*} args Arguments pass to alter operation.
    */
   triggerAlter(action, ...args) {

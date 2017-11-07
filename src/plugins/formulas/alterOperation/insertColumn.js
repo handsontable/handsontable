@@ -3,8 +3,24 @@ import {cellCoordFactory, isFormulaExpression} from './../utils';
 import CellValue from './../cell/value';
 import ExpressionModifier from './../expressionModifier';
 
+/**
+ * When "inser_column" is triggered the fallowing operations must be performed:
+ *
+ * - All formulas which contain cell coordinates must be updated and saved into source data - Column must be increased
+ *   by "amount" of times (eq: D4 to E4, $F$5 to $G$5);
+ * - Mark all formulas which need update with "STATE_OUT_OFF_DATE" flag, so they can be recalculated after the operation.
+ */
 export const OPERATION_NAME = 'insert_column';
 
+/**
+ * Execute changes.
+ *
+ * @param {Number} start Index column from which the operation starts.
+ * @param {Number} amount Count of columns to be inserted.
+ * @param {Boolean} [modifyFormula=true] If `true` all formula expressions will be modified according to the changes.
+ *                                       `false` value is used by UndoRedo plugin which saves snapshoots before alter
+ *                                       operation so it doesn't have to modify formulas if "undo" action was triggered.
+ */
 export function operate(start, amount, modifyFormula = true) {
   const {matrix, dataProvider} = this;
   const translate = [0, amount];

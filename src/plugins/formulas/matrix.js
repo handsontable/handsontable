@@ -2,6 +2,16 @@ import {arrayEach, arrayFilter, arrayReduce} from 'handsontable/helpers/array';
 import CellValue from './cell/value';
 
 /**
+ * This component is responsible for storing all calculated cells which contains formula expressions (CellValue) and
+ * register for all cell references (CellReference).
+ *
+ * CellValue is an object which represents a formula expression. It contains a calculated value of that formula,
+ * an error if applied and cell references. Cell references are CellReference object instances which represent a cell
+ * in a spreadsheet. One CellReference can be assigned to multiple CellValues as a precedent cell. Each cell
+ * modification triggers a search through CellValues that are dependent of the CellReference. After
+ * the match, the cells are marked as 'out of date'. In the next render cycle, all CellValues marked with
+ * that state are recalculated.
+ *
  * @class Matrix
  * @util
  */

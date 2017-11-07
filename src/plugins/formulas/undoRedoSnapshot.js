@@ -4,6 +4,8 @@ import Stack from 'handsontable/utils/dataStructures/stack';
 import CellValue from './cell/value';
 
 /**
+ * This components is a simple workaround to make Undo/Redo functionality work.
+ *
  * @class UndoRedoSnapshot
  * @util
  */

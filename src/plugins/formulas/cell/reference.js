@@ -2,6 +2,9 @@ import {toLabel} from 'hot-formula-parser';
 import BaseCell from './_base';
 
 /**
+ * Class which indicates formula expression precedents cells at specified cell
+ * coordinates (CellValue). This object uses visual cell coordinates.
+ *
  * @class CellReference
  * @util
  */
