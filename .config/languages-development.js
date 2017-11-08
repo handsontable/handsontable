@@ -63,10 +63,8 @@ const ruleForSnippetsInjection = {
 };
 
 module.exports.create = function create() {
-  const entry = getEntryJsFiles();
-
   const config = {
-    entry,
+    entry: getEntryJsFiles(),
     output: {
       path: path.resolve(__dirname, '../' + OUTPUT_LANGUAGES_DIRECTORY),
       libraryTarget: 'umd',
