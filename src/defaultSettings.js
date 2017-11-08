@@ -1594,6 +1594,7 @@ DefaultSettings.prototype = {
    * ...
    * ```
    *
+   * @since 0.35.0
    * @type {Object}
    */
   numericFormat: void 0,
