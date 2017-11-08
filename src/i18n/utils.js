@@ -44,18 +44,18 @@ export function createCellHeadersRange(firstRowIndex, nextRowIndex, fromValue = 
 }
 
 /**
- * Get parsed language code. It take part of language code after dash and transform it to upper case.
- * For example, when it takes `en-us` as parameter it return `en-US`
+ * Normalize language code. It takes handled languageCode proposition and change it to proper languageCode.
+ * For example, when it takes `eN-us` as parameter it return `en-US`
  *
  * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @returns {String}
  */
-export function getParsedLanguageCode(languageCode) {
-  const languageCodePattern = /([a-zA-Z]{2})-([a-zA-Z]{2})/;
+export function normalizeLanguageCode(languageCode) {
+  const languageCodePattern = /^([a-zA-Z]{2})-([a-zA-Z]{2})$/;
   const partsOfLanguageCode = languageCodePattern.exec(languageCode);
 
   if (partsOfLanguageCode) {
-    return `${partsOfLanguageCode[1]}-${partsOfLanguageCode[2].toUpperCase()}`;
+    return `${partsOfLanguageCode[1].toLowerCase()}-${partsOfLanguageCode[2].toUpperCase()}`;
   }
 
   return languageCode;
@@ -68,8 +68,8 @@ export function getParsedLanguageCode(languageCode) {
  * @param {Object} settings Settings object.
  * @returns {String}
  */
-export function initProperLanguage(languageCode, settings) {
-  const parsedLanguageCode = getParsedLanguageCode(languageCode);
+export function applyLanguageSetting(languageCode, settings) {
+  const parsedLanguageCode = normalizeLanguageCode(languageCode);
 
   if (hasLanguageDictionary(parsedLanguageCode)) {
     settings.language = parsedLanguageCode;
@@ -89,7 +89,7 @@ export function initProperLanguage(languageCode, settings) {
  */
 export function warnUserAboutLanguageRegistration(languageCode) {
   if (isDefined(languageCode)) {
-    console.error(toSingleLine`Language with code "${languageCode}" should be registered earlier. 
-      Please take a look at: https://docs.handsontable.com/pro/tutorial-features.html for more information.`);
+    console.error(toSingleLine`Language with code "${languageCode}" was not found. It should be registered earlier. 
+      Please take a look at: https://docs.handsontable.com/i18n/missing-language-code for more information.`);
   }
 }

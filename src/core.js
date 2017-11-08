@@ -25,7 +25,7 @@ import DefaultSettings from './defaultSettings';
 import {getCellType} from './cellTypes';
 import {getTranslatedPhrase} from './i18n';
 import {hasLanguageDictionary} from './i18n/dictionariesManager';
-import {warnUserAboutLanguageRegistration, initProperLanguage, getParsedLanguageCode} from './i18n/utils';
+import {warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLanguageCode} from './i18n/utils';
 
 let activeGuid = null;
 
@@ -74,7 +74,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
   extend(GridSettings.prototype, expandType(userSettings));
 
-  initProperLanguage(userSettings.language, GridSettings.prototype);
+  applyLanguageSetting(userSettings.language, GridSettings.prototype);
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -960,7 +960,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterLanguageChange
    */
   function setLanguage(languageCode) {
-    const parsedLanguageCode = getParsedLanguageCode(languageCode);
+    const parsedLanguageCode = normalizeLanguageCode(languageCode);
 
     if (hasLanguageDictionary(parsedLanguageCode)) {
       instance.runHooks('beforeLanguageChange', parsedLanguageCode);
