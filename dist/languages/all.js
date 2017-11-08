@@ -177,5 +177,5 @@ exports.enUS = _enUS2.default;
 exports.plPL = _plPL2.default;
 
 /***/ })
-/******/ ])["default"];
+/******/ ])["___"];
 });

@@ -71,7 +71,7 @@ module.exports.create = function create() {
       path: path.resolve(__dirname, '../' + OUTPUT_LANGUAGES_DIRECTORY),
       libraryTarget: 'umd',
       filename: '[name].js',
-      libraryExport: 'default',
+      libraryExport: '___',
       umdNamedDefine: true
     },
     externals: {

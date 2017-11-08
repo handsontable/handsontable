@@ -117,5 +117,5 @@ _handsontable2.default.languages.registerLanguageDictionary(dictionary);
 exports.default = dictionary;
 
 /***/ })
-/******/ ])["default"];
+/******/ ])["___"];
 });
