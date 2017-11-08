@@ -1,4 +1,13 @@
-import {extendNotExistingKeys, createCellHeadersRange} from 'handsontable/i18n/utils';
+import {
+  extendNotExistingKeys,
+  createCellHeadersRange,
+  normalizeLanguageCode,
+  warnUserAboutLanguageRegistration,
+  applyLanguageSetting
+} from 'handsontable/i18n/utils';
+
+import {DEFAULT_LANGUAGE_CODE, registerLanguageDictionary} from 'handsontable/i18n/dictionariesManager';
+import plPL from 'handsontable/i18n/languages/pl-PL';
 
 describe('i18n helpers', () => {
   describe('extendNotExistingKeys', () => {
@@ -57,6 +66,76 @@ describe('i18n helpers', () => {
 
     it('should create range of values basing on cell indexes and corresponding headers (index of first cell is higher then index of next cell', () => {
       expect(createCellHeadersRange(4, 0, 'D', 'A')).toEqual('A-D');
+    });
+  });
+
+  describe('normalizeLanguageCode', () => {
+    it('shoud not change proper language code', () => {
+      expect(normalizeLanguageCode('pl-PL')).toEqual('pl-PL');
+    });
+
+    it('should normlize properly langage code #1', () => {
+      expect(normalizeLanguageCode('pl-pl')).toEqual('pl-PL');
+    });
+
+    it('should normlize properly langage code #2', () => {
+      expect(normalizeLanguageCode('PL-pl')).toEqual('pl-PL');
+    });
+
+    it('should normlize properly langage code #3', () => {
+      expect(normalizeLanguageCode('PL-PL')).toEqual('pl-PL');
+    });
+  });
+
+  describe('applyLanguageSetting', () => {
+    beforeAll(() => {
+      // Note: please keep in mind that this language will be registered also for next unit tests (within this file)!
+      // It's stored globally for already loaded Handsontable library.
+
+      registerLanguageDictionary(plPL);
+    });
+
+    it('should set `language` key of settings object when handling existing language', () => {
+      const settings = {};
+
+      applyLanguageSetting(plPL.languageCode, settings);
+
+      expect(settings.language).toEqual(plPL.languageCode);
+    });
+
+    it('should set `language` key of settings object to default language code when handling not existing language', () => {
+      spyOn(console, 'error');
+      const settings = {};
+
+      applyLanguageSetting('aa-BB', settings);
+
+      expect(settings.language).toEqual(DEFAULT_LANGUAGE_CODE);
+    });
+
+    it('should log error when handling not existing language', () => {
+      const spy = spyOn(console, 'error');
+      const settings = {};
+
+      applyLanguageSetting('aa-BB', settings);
+      expect(spy).toHaveBeenCalled();
+    });
+  });
+
+  describe('warnUserAboutLanguageRegistration', () => {
+    it('should not log error in console when language code was not passed to function', () => {
+      const spy = spyOn(console, 'error');
+
+      warnUserAboutLanguageRegistration();
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should log error in console when language code was passed to function', () => {
+      const spy = spyOn(console, 'error');
+
+      warnUserAboutLanguageRegistration('pl-PL');
+
+      expect(spy).toHaveBeenCalled();
     });
   });
 });

@@ -250,7 +250,7 @@ describe('i18n', () => {
       expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
     });
 
-    it('should cast second part of language code to uppercase by default #1', () => {
+    it('should accept not normalized language code by default #1', () => {
       const hot = handsontable({
         language: POLISH_LANGUAGE_CODE.toLowerCase()
       });
@@ -258,11 +258,11 @@ describe('i18n', () => {
       expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
     });
 
-    it('should cast second part of language code to uppercase by default #2', () => {
+    it('should accept not normalized language code by default #2', () => {
       const hot = handsontable();
 
       updateSettings({
-        language: POLISH_LANGUAGE_CODE.toLowerCase()
+        language: POLISH_LANGUAGE_CODE.toUpperCase()
       });
 
       expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);

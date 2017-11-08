@@ -69,10 +69,10 @@ export function normalizeLanguageCode(languageCode) {
  * @returns {String}
  */
 export function applyLanguageSetting(languageCode, settings) {
-  const parsedLanguageCode = normalizeLanguageCode(languageCode);
+  const normalizedLanguageCode = normalizeLanguageCode(languageCode);
 
-  if (hasLanguageDictionary(parsedLanguageCode)) {
-    settings.language = parsedLanguageCode;
+  if (hasLanguageDictionary(normalizedLanguageCode)) {
+    settings.language = normalizedLanguageCode;
 
   } else {
     settings.language = DEFAULT_LANGUAGE_CODE;

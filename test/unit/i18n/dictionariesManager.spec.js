@@ -26,7 +26,7 @@ describe('i18n dictionariesManager', () => {
   });
 
   it('should register language', () => {
-    // Note: please keep in mind that this language will be registered also for next unit tests!
+    // Note: please keep in mind that this language will be registered also for next unit tests (within this file)!
     // It's stored globally for already loaded Handsontable library.
 
     registerLanguageDictionary(plPL);

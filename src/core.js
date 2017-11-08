@@ -960,14 +960,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterLanguageChange
    */
   function setLanguage(languageCode) {
-    const parsedLanguageCode = normalizeLanguageCode(languageCode);
+    const normalizedLanguageCode = normalizeLanguageCode(languageCode);
 
-    if (hasLanguageDictionary(parsedLanguageCode)) {
-      instance.runHooks('beforeLanguageChange', parsedLanguageCode);
+    if (hasLanguageDictionary(normalizedLanguageCode)) {
+      instance.runHooks('beforeLanguageChange', normalizedLanguageCode);
 
-      priv.settings.language = parsedLanguageCode;
+      priv.settings.language = normalizedLanguageCode;
 
-      instance.runHooks('afterLanguageChange', parsedLanguageCode);
+      instance.runHooks('afterLanguageChange', normalizedLanguageCode);
 
     } else {
       warnUserAboutLanguageRegistration(languageCode);
