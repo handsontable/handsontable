@@ -74,6 +74,10 @@ describe('i18n helpers', () => {
       expect(normalizeLanguageCode('pl-PL')).toEqual('pl-PL');
     });
 
+    it('should return language code not matching to pattern', () => {
+      expect(normalizeLanguageCode('too-Long')).toEqual('too-Long');
+    });
+
     it('should normlize properly langage code #1', () => {
       expect(normalizeLanguageCode('pl-pl')).toEqual('pl-PL');
     });
@@ -117,6 +121,7 @@ describe('i18n helpers', () => {
       const settings = {};
 
       applyLanguageSetting('aa-BB', settings);
+
       expect(spy).toHaveBeenCalled();
     });
   });
