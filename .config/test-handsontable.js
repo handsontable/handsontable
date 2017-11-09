@@ -67,4 +67,4 @@ module.exports.create = function create(envArgs) {
   });
 
   return [].concat(config);
-}
+};
