@@ -82,117 +82,40 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
 /***/ }),
 /* 1 */,
 /* 2 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__handsontable_pro__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__handsontable_pro___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__handsontable_pro__);
-/**
- * @preserve
- * Authors: Wojciech Szymański
- * Last updated: 12.10.2017
- *
- * Description: Definition file for Polish - Poland language-country.
- */
 
 
-const C = __WEBPACK_IMPORTED_MODULE_0__handsontable_pro___default.a.languages.dictionaryKeys;
+exports.__esModule = true;
 
-const dictionary = {
-  languageCode: 'pl-PL',
-  [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Wstaw wiersz powyżej',
-  [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Wstaw wiersz poniżej',
-  [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Wstaw kolumnę po lewej',
-  [C.CONTEXTMENU_ITEMS_INSERT_RIGHT]: 'Wstaw kolumnę po prawej',
-  [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['Usuń wiersz', 'Usuń wiersze'],
-  [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['Usuń kolumnę', 'Usuń kolumny'],
-  [C.CONTEXTMENU_ITEMS_UNDO]: 'Cofnij',
-  [C.CONTEXTMENU_ITEMS_REDO]: 'Przywróć',
-  [C.CONTEXTMENU_ITEMS_READ_ONLY]: 'Tylko do odczytu',
-  [C.CONTEXTMENU_ITEMS_CLEAR_COLUMN]: 'Wyczyść kolumnę',
+var _dictionary;
 
-  [C.CONTEXTMENU_ITEMS_ALIGNMENT]: 'Wyrównanie',
-  [C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT]: 'Lewo',
-  [C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER]: 'Środek',
-  [C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT]: 'Prawo',
-  [C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY]: 'Wyjustowane',
-  [C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP]: 'Góra',
-  [C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE]: 'Środek',
-  [C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM]: 'Dół',
+var _handsontablePro = __webpack_require__(0);
 
-  [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Zamróź kolumnę',
-  [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Odmróź kolumnę',
+var _handsontablePro2 = _interopRequireDefault(_handsontablePro);
 
-  [C.CONTEXTMENU_ITEMS_BORDERS]: 'Obramowanie',
-  [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Góra',
-  [C.CONTEXTMENU_ITEMS_BORDERS_RIGHT]: 'Prawo',
-  [C.CONTEXTMENU_ITEMS_BORDERS_BOTTOM]: 'Dół',
-  [C.CONTEXTMENU_ITEMS_BORDERS_LEFT]: 'Lewo',
-  [C.CONTEXTMENU_ITEMS_REMOVE_BORDERS]: 'Usuń obramowanie(a)',
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-  [C.CONTEXTMENU_ITEMS_ADD_COMMENT]: 'Dodaj komentarz',
-  [C.CONTEXTMENU_ITEMS_EDIT_COMMENT]: 'Edytuj komentarz',
-  [C.CONTEXTMENU_ITEMS_REMOVE_COMMENT]: 'Usuń komentarz',
-  [C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT]: 'Komentarz tylko do odczytu',
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; } /**
+                                                                                                                                                                                                                   * @preserve
+                                                                                                                                                                                                                   * Authors: Wojciech Szymański
+                                                                                                                                                                                                                   * Last updated: 12.10.2017
+                                                                                                                                                                                                                   *
+                                                                                                                                                                                                                   * Description: Definition file for Polish - Poland language-country.
+                                                                                                                                                                                                                   */
 
-  [C.CONTEXTMENU_ITEMS_MERGE_CELLS]: 'Scal komórki',
-  [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Rozłącz komórki',
 
-  [C.CONTEXTMENU_ITEMS_COPY]: 'Kopiuj',
-  [C.CONTEXTMENU_ITEMS_CUT]: 'Wytnij',
+var C = _handsontablePro2.default.languages.dictionaryKeys;
 
-  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Wstaw wiersz dziecko',
-  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Odłącz od ojca',
+var dictionary = (_dictionary = {
+  languageCode: 'pl-PL'
+}, _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ROW_ABOVE, 'Wstaw wiersz powyżej'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ROW_BELOW, 'Wstaw wiersz poniżej'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_INSERT_LEFT, 'Wstaw kolumnę po lewej'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_INSERT_RIGHT, 'Wstaw kolumnę po prawej'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REMOVE_ROW, ['Usuń wiersz', 'Usuń wiersze']), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, ['Usuń kolumnę', 'Usuń kolumny']), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_UNDO, 'Cofnij'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REDO, 'Przywróć'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_READ_ONLY, 'Tylko do odczytu'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_CLEAR_COLUMN, 'Wyczyść kolumnę'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT, 'Wyrównanie'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT, 'Lewo'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER, 'Środek'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT, 'Prawo'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY, 'Wyjustowane'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP, 'Góra'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE, 'Środek'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM, 'Dół'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_FREEZE_COLUMN, 'Zamróź kolumnę'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN, 'Odmróź kolumnę'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS, 'Obramowanie'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS_TOP, 'Góra'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS_RIGHT, 'Prawo'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS_BOTTOM, 'Dół'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS_LEFT, 'Lewo'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REMOVE_BORDERS, 'Usuń obramowanie(a)'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ADD_COMMENT, 'Dodaj komentarz'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_EDIT_COMMENT, 'Edytuj komentarz'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REMOVE_COMMENT, 'Usuń komentarz'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT, 'Komentarz tylko do odczytu'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_MERGE_CELLS, 'Scal komórki'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_UNMERGE_CELLS, 'Rozłącz komórki'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_COPY, 'Kopiuj'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_CUT, 'Wytnij'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD, 'Wstaw wiersz dziecko'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD, 'Odłącz od ojca'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_HIDE_COLUMN, 'Ukryj kolumnę'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_SHOW_COLUMN, 'Pokaż kolumnę'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_HIDE_ROW, 'Ukryj wiersz'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_SHOW_ROW, 'Pokaż wiersz'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NONE, 'Brak'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_EMPTY, 'Jest pusty'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NOT_EMPTY, 'Nie jest pusty'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_EQUAL, 'Jest równy'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NOT_EQUAL, 'Nie jest równy'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_BEGINS_WITH, 'Zaczyna się od'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_ENDS_WITH, 'Kończy się na'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_CONTAINS, 'Zawiera'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NOT_CONTAIN, 'Nie zawiera'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_BY_VALUE, 'By value'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_GREATER_THAN, 'Większe niż'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL, 'Większe lub równe'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_LESS_THAN, 'Mniejsze niż'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL, 'Mniejsze lub równe'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_BETWEEN, 'Pomiędzy'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NOT_BETWEEN, 'Nie jest pomiędzy'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_AFTER, 'Po'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_BEFORE, 'Przed'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_TODAY, 'Dzisiaj'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_TOMORROW, 'Jutro'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_YESTERDAY, 'Wczoraj'), _defineProperty(_dictionary, C.FILTERS_LABELS_FILTER_BY_CONDITION, 'Filtruj na podstawie warunku'), _defineProperty(_dictionary, C.FILTERS_LABELS_FILTER_BY_VALUE, 'Filtruj na podstawie wartości'), _defineProperty(_dictionary, C.FILTERS_LABELS_CONJUNCTION, 'Oraz'), _defineProperty(_dictionary, C.FILTERS_LABELS_DISJUNCTION, 'Lub'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_SELECT_ALL, 'Wybierz wszystkie'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_CLEAR, 'Wyczyść'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_OK, 'OK'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_CANCEL, 'Anuluj'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH, 'Szukaj...'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_PLACEHOLDER_VALUE, 'Wartość'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE, 'Druga wartość'), _dictionary);
 
-  [C.CONTEXTMENU_ITEMS_HIDE_COLUMN]: 'Ukryj kolumnę',
-  [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: 'Pokaż kolumnę',
+_handsontablePro2.default.languages.registerLanguageDictionary(dictionary);
 
-  [C.CONTEXTMENU_ITEMS_HIDE_ROW]: 'Ukryj wiersz',
-  [C.CONTEXTMENU_ITEMS_SHOW_ROW]: 'Pokaż wiersz',
-
-  [C.FILTERS_CONDITIONS_NONE]: 'Brak',
-  [C.FILTERS_CONDITIONS_EMPTY]: 'Jest pusty',
-  [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Nie jest pusty',
-  [C.FILTERS_CONDITIONS_EQUAL]: 'Jest równy',
-  [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Nie jest równy',
-  [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Zaczyna się od',
-  [C.FILTERS_CONDITIONS_ENDS_WITH]: 'Kończy się na',
-  [C.FILTERS_CONDITIONS_CONTAINS]: 'Zawiera',
-  [C.FILTERS_CONDITIONS_NOT_CONTAIN]: 'Nie zawiera',
-  [C.FILTERS_CONDITIONS_BY_VALUE]: 'By value',
-  [C.FILTERS_CONDITIONS_GREATER_THAN]: 'Większe niż',
-  [C.FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL]: 'Większe lub równe',
-  [C.FILTERS_CONDITIONS_LESS_THAN]: 'Mniejsze niż',
-  [C.FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL]: 'Mniejsze lub równe',
-  [C.FILTERS_CONDITIONS_BETWEEN]: 'Pomiędzy',
-  [C.FILTERS_CONDITIONS_NOT_BETWEEN]: 'Nie jest pomiędzy',
-  [C.FILTERS_CONDITIONS_AFTER]: 'Po',
-  [C.FILTERS_CONDITIONS_BEFORE]: 'Przed',
-  [C.FILTERS_CONDITIONS_TODAY]: 'Dzisiaj',
-  [C.FILTERS_CONDITIONS_TOMORROW]: 'Jutro',
-  [C.FILTERS_CONDITIONS_YESTERDAY]: 'Wczoraj',
-
-  [C.FILTERS_LABELS_FILTER_BY_CONDITION]: 'Filtruj na podstawie warunku',
-  [C.FILTERS_LABELS_FILTER_BY_VALUE]: 'Filtruj na podstawie wartości',
-  [C.FILTERS_LABELS_CONJUNCTION]: 'Oraz',
-  [C.FILTERS_LABELS_DISJUNCTION]: 'Lub',
-
-  [C.FILTERS_BUTTONS_SELECT_ALL]: 'Wybierz wszystkie',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Wyczyść',
-  [C.FILTERS_BUTTONS_OK]: 'OK',
-  [C.FILTERS_BUTTONS_CANCEL]: 'Anuluj',
-
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Szukaj...',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Wartość',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga wartość'
-};
-
-__WEBPACK_IMPORTED_MODULE_0__handsontable_pro___default.a.languages.registerLanguageDictionary(dictionary);
-
-/* harmony default export */ __webpack_exports__["default"] = (dictionary);
-
+exports.default = dictionary;
 
 /***/ })
-/******/ ])["default"];
+/******/ ])["___"];
 });
