@@ -15,6 +15,7 @@ describe('i18n', () => {
   const POLISH_LANGUAGE_CODE = 'pl-PL';
   const INSERT_COLUMN_LEFT_IN_POLISH_LANGUAGE = 'Wstaw kolumnę po lewej';
   const FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE = 'Brak';
+  const FILTERS_VALUES_BLANK_CELLS_IN_POLISH_LANGUAGE = '(Puste komórki)';
 
   describe('dropdown translation', () => {
     it('should translate dropdownMenu UI when setting existing language at start', async () => {
@@ -113,6 +114,23 @@ describe('i18n', () => {
       const $searchInputPlaceholder = $('.htUIMultipleSelectSearch.htUIInput input').eq(0);
 
       expect($searchInputPlaceholder.attr('placeholder')).toEqual(FILTERS_BUTTONS_PLACEHOLDER_SEARCH_IN_POLISH_LANGUAGE);
+    });
+
+    it('should translate empty value inside values component at start', () => {
+      const data = getDataForFilters();
+      data[0].name = '';
+
+      handsontable({
+        language: POLISH_LANGUAGE_CODE,
+        data,
+        columns: getColumnsForFilters(),
+        filters: true,
+        dropdownMenu: true
+      });
+
+      dropdownMenu(1);
+
+      expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe(FILTERS_VALUES_BLANK_CELLS_IN_POLISH_LANGUAGE);
     });
   });
 

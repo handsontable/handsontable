@@ -1,5 +1,5 @@
 import {getComparisonFunction} from 'handsontable/helpers/feature';
-import {arrayMap, arrayUnique, arrayEach} from 'handsontable/helpers/array';
+import {arrayUnique, arrayEach} from 'handsontable/helpers/array';
 
 const sortCompare = getComparisonFunction();
 
@@ -22,11 +22,12 @@ export function sortComparison(a, b) {
  * Convert raw value into visual value.
  *
  * @param {*} value
+ * @param {String} defaultEmptyValue Default value for empty cells.
  * @returns {*}
  */
-export function toVisualValue(value) {
+export function toVisualValue(value, defaultEmptyValue) {
   if (value === '') {
-    value = '(Blank cells)';
+    value = `(${defaultEmptyValue})`;
   }
 
   return value;
@@ -102,10 +103,11 @@ export function unifyColumnValues(values) {
  *
  * @param {Array} base An array of base values.
  * @param {Array} selected An array of selected values.
+ * @param {String} defaultEmptyValue Default value for empty cells.
  * @param {Function} [callback] A callback function which is invoked for every item in an array.
  * @returns {Array}
  */
-export function intersectValues(base, selected, callback) {
+export function intersectValues(base, selected, defaultEmptyValue, callback) {
   const result = [];
   const same = base === selected;
   let selectedItemsAssertion;
@@ -120,11 +122,13 @@ export function intersectValues(base, selected, callback) {
     if (same || selectedItemsAssertion(value)) {
       checked = true;
     }
-    const item = {checked, value, visualValue: toVisualValue(value)};
+
+    const item = {checked, value, visualValue: toVisualValue(value, defaultEmptyValue)};
 
     if (callback) {
       callback(item);
     }
+
     result.push(item);
   });
 
