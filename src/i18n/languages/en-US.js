@@ -81,6 +81,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_TOMORROW]: 'Tomorrow',
   [C.FILTERS_CONDITIONS_YESTERDAY]: 'Yesterday',
 
+  [C.FILTERS_VALUES_BLANK_CELLS]: 'Blank cells',
+
   [C.FILTERS_LABELS_FILTER_BY_CONDITION]: 'Filter by condition',
   [C.FILTERS_LABELS_FILTER_BY_VALUE]: 'Filter by value',
   [C.FILTERS_LABELS_CONJUNCTION]: 'And',

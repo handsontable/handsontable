@@ -80,6 +80,8 @@ export const FILTERS_LABELS_FILTER_BY_VALUE = 'Filters:labels.filterByValue';
 export const FILTERS_LABELS_CONJUNCTION = 'Filters:labels.conjunction';
 export const FILTERS_LABELS_DISJUNCTION = 'Filters:labels.disjunction';
 
+export const FILTERS_VALUES_BLANK_CELLS = 'Filters:values.blankCells';
+
 export const FILTERS_BUTTONS_SELECT_ALL = 'Filters:buttons.searchAll';
 export const FILTERS_BUTTONS_CLEAR = 'Filters:buttons.clear';
 export const FILTERS_BUTTONS_OK = 'Filters:buttons.ok';
