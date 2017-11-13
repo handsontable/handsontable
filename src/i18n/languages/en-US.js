@@ -53,11 +53,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Insert child row',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Detach from parent',
 
-  [C.CONTEXTMENU_ITEMS_HIDE_COLUMN]: 'Hide column',
-  [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: 'Show column',
+  [C.CONTEXTMENU_ITEMS_HIDE_COLUMN]: ['Hide column', 'Hide columns'],
+  [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: ['Show column', 'Show columns'],
 
-  [C.CONTEXTMENU_ITEMS_HIDE_ROW]: 'Hide row',
-  [C.CONTEXTMENU_ITEMS_SHOW_ROW]: 'Show row',
+  [C.CONTEXTMENU_ITEMS_HIDE_ROW]: ['Hide row', 'Hide rows'],
+  [C.CONTEXTMENU_ITEMS_SHOW_ROW]: ['Show row', 'Show rows'],
 
   [C.FILTERS_CONDITIONS_NONE]: 'None',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Is empty',

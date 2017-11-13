@@ -53,11 +53,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Wstaw wiersz dziecko',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Odłącz od ojca',
 
-  [C.CONTEXTMENU_ITEMS_HIDE_COLUMN]: 'Ukryj kolumnę',
-  [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: 'Pokaż kolumnę',
+  [C.CONTEXTMENU_ITEMS_HIDE_COLUMN]: ['Ukryj kolumnę', 'Ukryj kolumny'],
+  [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: ['Pokaż kolumnę', 'Pokaż kolumny'],
 
-  [C.CONTEXTMENU_ITEMS_HIDE_ROW]: 'Ukryj wiersz',
-  [C.CONTEXTMENU_ITEMS_SHOW_ROW]: 'Pokaż wiersz',
+  [C.CONTEXTMENU_ITEMS_HIDE_ROW]: ['Ukryj wiersz', 'Ukryj wiersze'],
+  [C.CONTEXTMENU_ITEMS_SHOW_ROW]: ['Pokaż wiersz', 'Pokaż wiersz'],
 
   [C.FILTERS_CONDITIONS_NONE]: 'Brak',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Jest pusty',
