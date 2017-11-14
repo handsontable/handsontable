@@ -153,7 +153,7 @@ class ValueComponent extends BaseComponent {
         let label = document.createElement('div');
 
         addClass(label, 'htFiltersMenuLabel');
-        label.textContent = this.name;
+        label.textContent = value;
 
         wrapper.appendChild(label);
         arrayEach(this.elements, (ui) => wrapper.appendChild(ui.element));

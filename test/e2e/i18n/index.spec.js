@@ -32,7 +32,8 @@ describe('i18n', () => {
   });
 
   describe('filters translation', () => {
-    it('should translate filters condition inside dropdownMenu UI when setting existing language at start #1', () => {
+    it('should translate filters condition inside dropdownMenu UI when setting existing language at start ' +
+      '(name visible inside the main drop-down menu)', () => {
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         colHeaders: true,
@@ -45,7 +46,8 @@ describe('i18n', () => {
       expect($('.htFiltersMenuCondition .htUISelectCaption').eq(0).text()).toEqual(FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE);
     });
 
-    it('should translate filters condition inside dropdownMenu UI when setting existing language at start #2', () => {
+    it('should translate filters condition inside dropdownMenu UI when setting existing language at start ' +
+      '(name visible inside condition selection drop-down menu)', () => {
       const FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE = 'Jest pusty';
 
       handsontable({
@@ -65,21 +67,41 @@ describe('i18n', () => {
       expect($contextMenuItems.eq(1).text()).toEqual(FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE);
     });
 
-    it('should translate label inside dropdownMenu UI when setting existing language at start', () => {
+    describe('should translate label inside dropdownMenu UI', () => {
       const FILTERS_LABELS_FILTER_BY_CONDITION_IN_POLISH_LANGUAGE = 'Filtruj na podstawie warunku:';
 
-      handsontable({
-        language: POLISH_LANGUAGE_CODE,
-        colHeaders: true,
-        dropdownMenu: true,
-        filters: true
+      it('when setting existing language at start', () => {
+
+        handsontable({
+          language: POLISH_LANGUAGE_CODE,
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true
+        });
+
+        dropdownMenu(0);
+
+        const $filterByConditionLabel = $('.htFiltersMenuLabel').eq(0);
+
+        expect($filterByConditionLabel.text()).toEqual(FILTERS_LABELS_FILTER_BY_CONDITION_IN_POLISH_LANGUAGE);
       });
 
-      dropdownMenu(0);
 
-      const $filterByConditionLabel = $('.htFiltersMenuLabel').eq(0);
+      it('when changing language by updateSettings', () => {
+        const hot = handsontable({
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true
+        });
 
-      expect($filterByConditionLabel.text()).toEqual(FILTERS_LABELS_FILTER_BY_CONDITION_IN_POLISH_LANGUAGE);
+        hot.updateSettings({language: POLISH_LANGUAGE_CODE});
+
+        dropdownMenu(0);
+
+        const $filterByConditionLabel = $('.htFiltersMenuLabel').eq(0);
+
+        expect($filterByConditionLabel.text()).toEqual(FILTERS_LABELS_FILTER_BY_CONDITION_IN_POLISH_LANGUAGE);
+      });
     });
 
     it('should translate button inside dropdownMenu UI when setting existing language at start', () => {

@@ -116,8 +116,8 @@ class Filters extends BasePlugin {
       return component;
     };
 
-    const filterByConditionLabel = `${this.hot.getTranslatedPhrase(constants.FILTERS_LABELS_FILTER_BY_CONDITION)}:`;
-    const filterValueLabel = `${this.hot.getTranslatedPhrase(constants.FILTERS_LABELS_FILTER_BY_VALUE)}:`;
+    const filterByConditionLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_LABELS_FILTER_BY_CONDITION)}:`;
+    const filterValueLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_LABELS_FILTER_BY_VALUE)}:`;
 
     if (!this.components.get('filter_by_condition')) {
       const conditionComponent = new ConditionComponent(this.hot, {id: 'filter_by_condition', name: filterByConditionLabel, addSeparator: false});
