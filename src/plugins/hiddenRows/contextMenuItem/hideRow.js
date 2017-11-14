@@ -5,7 +5,18 @@ export default function hideRowItem(hiddenRowsPlugin) {
   return {
     key: 'hidden_rows_hide',
     name() {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_ROW);
+      const selection = this.getSelected();
+      let pluralForm = 0;
+
+      if (Array.isArray(selection)) {
+        const [fromRow, , toRow] = selection;
+
+        if (fromRow - toRow !== 0) {
+          pluralForm = 1;
+        }
+      }
+
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_ROW, pluralForm);
     },
     callback() {
       let {from, to} = this.getSelectedRange();

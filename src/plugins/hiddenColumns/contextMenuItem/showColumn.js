@@ -8,7 +8,33 @@ export default function showColumnItem(hiddenColumnsPlugin) {
   return {
     key: 'hidden_columns_show',
     name() {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN);
+      const selection = this.getSelected();
+      let pluralForm = 0;
+
+      if (Array.isArray(selection)) {
+        let [, fromColumn, , toColumn] = selection;
+
+        if (fromColumn > toColumn) {
+          [fromColumn, toColumn] = [toColumn, fromColumn];
+        }
+
+        let hiddenColumns = 0;
+
+        if (fromColumn === toColumn) {
+          hiddenColumns = beforeHiddenColumns.length + afterHiddenColumns.length;
+
+        } else {
+          rangeEach(fromColumn, toColumn, (column) => {
+            if (hiddenColumnsPlugin.isHidden(column)) {
+              hiddenColumns += 1;
+            }
+          });
+        }
+
+        pluralForm = hiddenColumns <= 1 ? 0 : 1;
+      }
+
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN, pluralForm);
     },
     callback() {
       let {from, to} = this.getSelectedRange();

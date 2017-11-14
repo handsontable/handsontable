@@ -18,7 +18,7 @@ describe('i18n', () => {
   const FILTERS_VALUES_BLANK_CELLS_IN_POLISH_LANGUAGE = '(Puste komórki)';
 
   describe('dropdown translation', () => {
-    it('should translate dropdownMenu UI when setting existing language at start', async () => {
+    it('should translate dropdownMenu UI when setting existing language at start', () => {
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         colHeaders: true,
@@ -32,7 +32,7 @@ describe('i18n', () => {
   });
 
   describe('filters translation', () => {
-    it('should translate filters condition inside dropdownMenu UI when setting existing language at start #1', async () => {
+    it('should translate filters condition inside dropdownMenu UI when setting existing language at start #1', () => {
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         colHeaders: true,
@@ -45,7 +45,7 @@ describe('i18n', () => {
       expect($('.htFiltersMenuCondition .htUISelectCaption').eq(0).text()).toEqual(FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE);
     });
 
-    it('should translate filters condition inside dropdownMenu UI when setting existing language at start #2', async () => {
+    it('should translate filters condition inside dropdownMenu UI when setting existing language at start #2', () => {
       const FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE = 'Jest pusty';
 
       handsontable({
@@ -65,7 +65,7 @@ describe('i18n', () => {
       expect($contextMenuItems.eq(1).text()).toEqual(FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE);
     });
 
-    it('should translate label inside dropdownMenu UI when setting existing language at start', async () => {
+    it('should translate label inside dropdownMenu UI when setting existing language at start', () => {
       const FILTERS_LABELS_FILTER_BY_CONDITION_IN_POLISH_LANGUAGE = 'Filtruj na podstawie warunku:';
 
       handsontable({
@@ -82,7 +82,7 @@ describe('i18n', () => {
       expect($filterByConditionLabel.text()).toEqual(FILTERS_LABELS_FILTER_BY_CONDITION_IN_POLISH_LANGUAGE);
     });
 
-    it('should translate button inside dropdownMenu UI when setting existing language at start', async () => {
+    it('should translate button inside dropdownMenu UI when setting existing language at start', () => {
       const FILTERS_BUTTONS_SELECT_ALL_IN_POLISH_LANGUAGE = 'Wybierz wszystkie';
 
       handsontable({
@@ -99,7 +99,7 @@ describe('i18n', () => {
       expect($selectAllButton.text()).toEqual(FILTERS_BUTTONS_SELECT_ALL_IN_POLISH_LANGUAGE);
     });
 
-    it('should translate placeholder of button inside dropdownMenu UI when setting existing language at start', async () => {
+    it('should translate placeholder of button inside dropdownMenu UI when setting existing language at start', () => {
       const FILTERS_BUTTONS_PLACEHOLDER_SEARCH_IN_POLISH_LANGUAGE = 'Szukaj...';
 
       handsontable({
@@ -116,7 +116,7 @@ describe('i18n', () => {
       expect($searchInputPlaceholder.attr('placeholder')).toEqual(FILTERS_BUTTONS_PLACEHOLDER_SEARCH_IN_POLISH_LANGUAGE);
     });
 
-    it('should translate empty value inside values component at start', () => {
+    it('should translate empty value inside values component when setting existing language code at start', () => {
       const data = getDataForFilters();
       data[0].name = '';
 
@@ -135,7 +135,7 @@ describe('i18n', () => {
   });
 
   describe('contextMenu translation', () => {
-    it('should translate item from enabled `nestedRows` plugin when setting existing language code at start', async () => {
+    it('should translate item from enabled `nestedRows` plugin when setting existing language code at start', () => {
       const NESTED_ROWS_INSERT_CHILD_IN_POLISH = 'Wstaw wiersz dziecko';
 
       handsontable({
@@ -148,53 +148,527 @@ describe('i18n', () => {
       });
 
       selectCell(0, 0);
+
       contextMenu();
 
-      const $copyMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
+      const $showRowItem = $('.htContextMenu tbody td:not(.htSeparator)');
 
-      expect($copyMenuItem.text()).toEqual(NESTED_ROWS_INSERT_CHILD_IN_POLISH);
+      expect($showRowItem.text()).toEqual(NESTED_ROWS_INSERT_CHILD_IN_POLISH);
     });
 
-    it('should translate item from enabled `hiddenColumns` plugin when setting existing language code at start', async () => {
-      const HIDE_COLUMN_IN_POLISH = 'Ukryj kolumnę';
+    describe('hiddenRows plugin enabled', () => {
+      const HIDE_ROW_SINGULAR_IN_POLISH = 'Ukryj wiersz';
+      const HIDE_ROW_PLURAL_IN_POLISH = 'Ukryj wiersze';
 
-      handsontable({
-        language: POLISH_LANGUAGE_CODE,
-        contextMenu: ['hidden_columns_hide'],
-        colHeaders: true,
-        hiddenColumns: true
+      const SHOW_ROW_SINGULAR_IN_POLISH = 'Pokaż wiersz';
+      const SHOW_ROW_PLURAL_IN_POLISH = 'Pokaż wiersze';
+
+      it('should show singular form of phrase when choosing from `Hide row / Hide rows` options in the specific situation (selected one row)', () => {
+        handsontable({
+          language: POLISH_LANGUAGE_CODE,
+          contextMenu: ['hidden_rows_hide'],
+          rowHeaders: true,
+          hiddenRows: true
+        });
+
+        const rowHeader = $('.ht_clone_left tr:eq(0) th:eq(0)');
+
+        rowHeader.simulate('mousedown');
+        rowHeader.simulate('mouseup');
+
+        contextMenu();
+
+        const $hideRowItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+        expect($hideRowItem.text()).toEqual(HIDE_ROW_SINGULAR_IN_POLISH);
       });
 
-      const columnHeader = $('.ht_clone_top tr:eq(0) th:eq(0)');
+      describe('should show plural form of phrase when choosing from `Hide row / Hide rows` options in the specific situation (selected few rows)', () => {
+        it('selection started from lower to higher row index', () => {
+          handsontable({
+            language: POLISH_LANGUAGE_CODE,
+            contextMenu: ['hidden_rows_hide'],
+            rowHeaders: true,
+            hiddenRows: true
+          });
 
-      columnHeader.simulate('mousedown');
-      columnHeader.simulate('mouseup');
-      contextMenu();
+          const rowHeader1 = $('.ht_clone_left tr:eq(1) th:eq(0)');
+          const rowHeader2 = $('.ht_clone_left tr:eq(2) th:eq(0)');
 
-      const $copyMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
+          rowHeader1.simulate('mousedown');
+          rowHeader1.simulate('mouseup');
 
-      expect($copyMenuItem.text()).toEqual(HIDE_COLUMN_IN_POLISH);
+          rowHeader2.simulate('mousedown', { shiftKey: true });
+          rowHeader2.simulate('mouseup');
+
+          contextMenu();
+
+          const $hideRowItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+          expect($hideRowItem.text()).toEqual(HIDE_ROW_PLURAL_IN_POLISH);
+        });
+
+        it('selection started from higher to lower row index', () => {
+          handsontable({
+            language: POLISH_LANGUAGE_CODE,
+            contextMenu: ['hidden_rows_hide'],
+            rowHeaders: true,
+            hiddenRows: true
+          });
+
+          const rowHeader1 = $('.ht_clone_left tr:eq(1) th:eq(0)');
+          const rowHeader2 = $('.ht_clone_left tr:eq(2) th:eq(0)');
+
+
+          rowHeader2.simulate('mousedown');
+          rowHeader2.simulate('mouseup');
+
+          rowHeader1.simulate('mousedown', { shiftKey: true });
+          rowHeader1.simulate('mouseup');
+
+          contextMenu();
+
+          const $hideRowItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+          expect($hideRowItem.text()).toEqual(HIDE_ROW_PLURAL_IN_POLISH);
+        });
+      });
+
+      it('should show singular form of phrase when choosing from `Show row / Show rows` options in the specific situation (hidden first row)', () => {
+        handsontable({
+          language: POLISH_LANGUAGE_CODE,
+          contextMenu: ['hidden_rows_show'],
+          rowHeaders: true,
+          hiddenRows: {
+            rows: [0]
+          }
+        });
+
+        const $rowHeader = $('.ht_clone_left tr:eq(0) th:eq(0)');
+
+        $rowHeader.simulate('mousedown');
+        $rowHeader.simulate('mouseup');
+
+        contextMenu();
+
+        const $showRowItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+        expect($showRowItem.text()).toEqual(SHOW_ROW_SINGULAR_IN_POLISH);
+      });
+
+      it('should show singular form of phrase when choosing from `Show row / Show rows` options in the specific situation (hidden last row)', () => {
+        handsontable({
+          startRows: 5,
+          startCols: 5,
+          language: POLISH_LANGUAGE_CODE,
+          contextMenu: ['hidden_rows_show'],
+          rowHeaders: true,
+          hiddenRows: {
+            rows: [4]
+          }
+        });
+
+        const $rowHeader = $('.ht_clone_left tr:eq(3) th:eq(0)');
+
+        $rowHeader.simulate('mousedown');
+        $rowHeader.simulate('mouseup');
+
+        contextMenu();
+
+        const $showRowItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+        expect($showRowItem.text()).toEqual(SHOW_ROW_SINGULAR_IN_POLISH);
+      });
+
+      it('should show singular form of phrase when choosing from `Show row / Show rows` options in the specific situation (hidden row from the middle)', () => {
+        handsontable({
+          startRows: 6,
+          startCols: 6,
+          language: POLISH_LANGUAGE_CODE,
+          contextMenu: ['hidden_rows_show'],
+          rowHeaders: true,
+          hiddenRows: {
+            rows: [2]
+          }
+        });
+
+        const rowHeader1 = $('.ht_clone_left tr:eq(1) th:eq(0)');
+        const rowHeader2 = $('.ht_clone_left tr:eq(2) th:eq(0)');
+
+        rowHeader1.simulate('mousedown');
+        rowHeader1.simulate('mouseup');
+
+        rowHeader2.simulate('mousedown', { shiftKey: true });
+        rowHeader2.simulate('mouseup');
+
+        contextMenu();
+
+        const $showRowItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+        expect($showRowItem.text()).toEqual(SHOW_ROW_SINGULAR_IN_POLISH);
+      });
+
+      it('should show plural form of phrase when choosing from `Show row / Show rows` options in the specific situation (hidden first rows)', () => {
+        handsontable({
+          language: POLISH_LANGUAGE_CODE,
+          contextMenu: ['hidden_rows_show'],
+          rowHeaders: true,
+          hiddenRows: {
+            rows: [0, 1]
+          }
+        });
+
+        const $rowHeader = $('.ht_clone_left tr:eq(0) th:eq(0)');
+
+        $rowHeader.simulate('mousedown');
+        $rowHeader.simulate('mouseup');
+
+        contextMenu();
+
+        const $showRowItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+        expect($showRowItem.text()).toEqual(SHOW_ROW_PLURAL_IN_POLISH);
+      });
+
+      it('should show plural form of phrase when choosing from `Show row / Show rows` options in the specific situation (hidden last rows)', () => {
+        handsontable({
+          startRows: 5,
+          startCols: 5,
+          language: POLISH_LANGUAGE_CODE,
+          contextMenu: ['hidden_rows_show'],
+          rowHeaders: true,
+          hiddenRows: {
+            rows: [3, 4]
+          }
+        });
+
+        const $rowHeader = $('.ht_clone_left tr:eq(2) th:eq(0)');
+
+        $rowHeader.simulate('mousedown');
+        $rowHeader.simulate('mouseup');
+
+        contextMenu();
+
+        const $showRowItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+        expect($showRowItem.text()).toEqual(SHOW_ROW_PLURAL_IN_POLISH);
+      });
+
+      describe('should show plural form of phrase when choosing from `Show row / Show rows` options in the specific situation (hidden row from the middle)', () => {
+        it('selection started from lower to higher row index', () => {
+          handsontable({
+            startRows: 6,
+            startCols: 6,
+            language: POLISH_LANGUAGE_CODE,
+            contextMenu: ['hidden_rows_show'],
+            rowHeaders: true,
+            hiddenRows: {
+              rows: [2, 3]
+            }
+          });
+
+          const rowHeader1 = $('.ht_clone_left tr:eq(1) th:eq(0)');
+          const rowHeader2 = $('.ht_clone_left tr:eq(4) th:eq(0)');
+
+          rowHeader1.simulate('mousedown');
+          rowHeader1.simulate('mouseup');
+
+          rowHeader2.simulate('mousedown', {shiftKey: true});
+          rowHeader2.simulate('mouseup');
+
+          contextMenu();
+
+          const $showRowItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+          expect($showRowItem.text()).toEqual(SHOW_ROW_PLURAL_IN_POLISH);
+        });
+
+        it('selection started from higher to lower row index', () => {
+          handsontable({
+            startRows: 6,
+            startCols: 6,
+            language: POLISH_LANGUAGE_CODE,
+            contextMenu: ['hidden_rows_show'],
+            rowHeaders: true,
+            hiddenRows: {
+              rows: [2, 3]
+            }
+          });
+
+          const rowHeader1 = $('.ht_clone_left tr:eq(1) th:eq(0)');
+          const rowHeader2 = $('.ht_clone_left tr:eq(4) th:eq(0)');
+
+          rowHeader2.simulate('mousedown');
+          rowHeader2.simulate('mouseup');
+
+          rowHeader1.simulate('mousedown', {shiftKey: true});
+          rowHeader1.simulate('mouseup');
+
+          contextMenu();
+
+          const $showRowItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+          expect($showRowItem.text()).toEqual(SHOW_ROW_PLURAL_IN_POLISH);
+        });
+      });
     });
 
-    it('should translate item from enabled `hiddenRows` plugin when setting existing language code at start', async () => {
-      const HIDE_ROW_IN_POLISH = 'Ukryj wiersz';
+    describe('hiddenColumns plugin enabled', () => {
+      const HIDE_COLUMN_SINGULAR_IN_POLISH = 'Ukryj kolumnę';
+      const HIDE_COLUMN_PLURAL_IN_POLISH = 'Ukryj kolumny';
 
-      handsontable({
-        language: POLISH_LANGUAGE_CODE,
-        contextMenu: ['hidden_rows_hide'],
-        rowHeaders: true,
-        hiddenRows: true
+      const SHOW_COLUMN_SINGULAR_IN_POLISH = 'Pokaż kolumnę';
+      const SHOW_COLUMN_PLURAL_IN_POLISH = 'Pokaż kolumny';
+
+      it('should show singular form of phrase when choosing from `Hide column / Hide columns` options in the specific situation (selected one column)', () => {
+        handsontable({
+          language: POLISH_LANGUAGE_CODE,
+          contextMenu: ['hidden_columns_hide'],
+          colHeaders: true,
+          hiddenColumns: true
+        });
+
+        const columnHeader = $('.ht_clone_top tr:eq(0) th:eq(0)');
+
+        columnHeader.simulate('mousedown');
+        columnHeader.simulate('mouseup');
+
+        contextMenu();
+
+        const $hideColumnItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+        expect($hideColumnItem.text()).toEqual(HIDE_COLUMN_SINGULAR_IN_POLISH);
       });
 
-      const rowHeader = $('.ht_clone_left tr:eq(0) th:eq(0)');
+      describe('should show plural form of phrase when choosing from `Hide column / Hide columns` options in the specific situation (selected few columns)', () => {
+        it('selection started from lower to higher column index', () => {
+          handsontable({
+            language: POLISH_LANGUAGE_CODE,
+            contextMenu: ['hidden_columns_hide'],
+            colHeaders: true,
+            hiddenColumns: true
+          });
 
-      rowHeader.simulate('mousedown');
-      rowHeader.simulate('mouseup');
-      contextMenu();
+          const $columnHeader1 = $('.ht_clone_top tr:eq(0) th:eq(1)');
+          const $columnHeader2 = $('.ht_clone_top tr:eq(0) th:eq(2)');
 
-      const $copyMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
+          $columnHeader1.simulate('mousedown');
+          $columnHeader1.simulate('mouseup');
 
-      expect($copyMenuItem.text()).toEqual(HIDE_ROW_IN_POLISH);
+          $columnHeader2.simulate('mousedown', { shiftKey: true });
+          $columnHeader2.simulate('mouseup');
+
+          contextMenu();
+
+          const $hideColumnItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+          expect($hideColumnItem.text()).toEqual(HIDE_COLUMN_PLURAL_IN_POLISH);
+        });
+
+        it('selection started from higher to lower column index', () => {
+          handsontable({
+            language: POLISH_LANGUAGE_CODE,
+            contextMenu: ['hidden_columns_hide'],
+            colHeaders: true,
+            hiddenColumns: true
+          });
+
+          const $columnHeader1 = $('.ht_clone_top tr:eq(0) th:eq(1)');
+          const $columnHeader2 = $('.ht_clone_top tr:eq(0) th:eq(2)');
+
+
+          $columnHeader2.simulate('mousedown');
+          $columnHeader2.simulate('mouseup');
+
+          $columnHeader1.simulate('mousedown', { shiftKey: true });
+          $columnHeader1.simulate('mouseup');
+
+          contextMenu();
+
+          const $hideColumnItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+          expect($hideColumnItem.text()).toEqual(HIDE_COLUMN_PLURAL_IN_POLISH);
+        });
+      });
+
+      it('should show singular form of phrase when choosing from `Show column / Show columns` options in the specific situation (hidden first column)', () => {
+        handsontable({
+          language: POLISH_LANGUAGE_CODE,
+          contextMenu: ['hidden_columns_show'],
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [0]
+          }
+        });
+
+        const columnHeader = $('.ht_clone_top tr:eq(0) th:eq(0)');
+
+        columnHeader.simulate('mousedown');
+        columnHeader.simulate('mouseup');
+
+        contextMenu();
+
+        const $showColumnItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+        expect($showColumnItem.text()).toEqual(SHOW_COLUMN_SINGULAR_IN_POLISH);
+      });
+
+      it('should show singular form of phrase when choosing from `Show column / Show columns` options in the specific situation (hidden last column)', () => {
+        handsontable({
+          startRows: 5,
+          startCols: 5,
+          language: POLISH_LANGUAGE_CODE,
+          contextMenu: ['hidden_columns_show'],
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [4]
+          }
+        });
+
+        const $columnHeader = $('.ht_clone_top tr:eq(0) th:eq(3)');
+
+        $columnHeader.simulate('mousedown');
+        $columnHeader.simulate('mouseup');
+
+        contextMenu();
+
+        const $showColumnItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+        expect($showColumnItem.text()).toEqual(SHOW_COLUMN_SINGULAR_IN_POLISH);
+      });
+
+      it('should show singular form of phrase when choosing from `Show column / Show columns` options in the specific situation (hidden column from the middle)', () => {
+        handsontable({
+          startRows: 6,
+          startCols: 6,
+          language: POLISH_LANGUAGE_CODE,
+          contextMenu: ['hidden_columns_show'],
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [2]
+          }
+        });
+
+        const $columnHeader1 = $('.ht_clone_top tr:eq(0) th:eq(1)');
+        const $columnHeader2 = $('.ht_clone_top tr:eq(0) th:eq(2)');
+
+        $columnHeader1.simulate('mousedown');
+        $columnHeader1.simulate('mouseup');
+
+        $columnHeader2.simulate('mousedown', { shiftKey: true });
+        $columnHeader2.simulate('mouseup');
+
+        contextMenu();
+
+        const $showColumnItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+        expect($showColumnItem.text()).toEqual(SHOW_COLUMN_SINGULAR_IN_POLISH);
+      });
+
+      it('should show plural form of phrase when choosing from `Show column / Show columns` options in the specific situation (hidden first columns)', () => {
+        handsontable({
+          language: POLISH_LANGUAGE_CODE,
+          contextMenu: ['hidden_columns_show'],
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [0, 1]
+          }
+        });
+
+        const $columnHeader = $('.ht_clone_top tr:eq(0) th:eq(0)');
+
+        $columnHeader.simulate('mousedown');
+        $columnHeader.simulate('mouseup');
+
+        contextMenu();
+
+        const $showColumnItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+        expect($showColumnItem.text()).toEqual(SHOW_COLUMN_PLURAL_IN_POLISH);
+      });
+
+      it('should show plural form of phrase when choosing from `Show column / Show columns` options in the specific situation (hidden last columns)', () => {
+        handsontable({
+          startRows: 5,
+          startCols: 5,
+          language: POLISH_LANGUAGE_CODE,
+          contextMenu: ['hidden_columns_show'],
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [3, 4]
+          }
+        });
+
+        const $columnHeader = $('.ht_clone_top tr:eq(0) th:eq(2)');
+
+        $columnHeader.simulate('mousedown');
+        $columnHeader.simulate('mouseup');
+
+        contextMenu();
+
+        const $showColumnItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+        expect($showColumnItem.text()).toEqual(SHOW_COLUMN_PLURAL_IN_POLISH);
+      });
+
+      describe('should show plural form of phrase when choosing from `Show column / Show columns` options in the specific situation ' +
+        '(hidden column from the middle)', () => {
+        it('selection started from lower to higher column index', () => {
+          handsontable({
+            startRows: 6,
+            startCols: 6,
+            language: POLISH_LANGUAGE_CODE,
+            contextMenu: ['hidden_columns_show'],
+            colHeaders: true,
+            hiddenColumns: {
+              columns: [2, 3]
+            }
+          });
+
+          const $columnHeader1 = $('.ht_clone_top tr:eq(0) th:eq(1)');
+          const $columnHeader2 = $('.ht_clone_top tr:eq(0) th:eq(4)');
+
+          $columnHeader1.simulate('mousedown');
+          $columnHeader1.simulate('mouseup');
+
+          $columnHeader2.simulate('mousedown', {shiftKey: true});
+          $columnHeader2.simulate('mouseup');
+
+          contextMenu();
+
+          const $showColumnItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+          expect($showColumnItem.text()).toEqual(SHOW_COLUMN_PLURAL_IN_POLISH);
+        });
+
+        it('selection started from higher to lower column index', () => {
+          handsontable({
+            startRows: 6,
+            startCols: 6,
+            language: POLISH_LANGUAGE_CODE,
+            contextMenu: ['hidden_columns_show'],
+            colHeaders: true,
+            hiddenColumns: {
+              columns: [2, 3]
+            }
+          });
+
+          const $columnHeader1 = $('.ht_clone_top tr:eq(0) th:eq(1)');
+          const $columnHeader2 = $('.ht_clone_top tr:eq(0) th:eq(4)');
+
+          $columnHeader2.simulate('mousedown');
+          $columnHeader2.simulate('mouseup');
+
+          $columnHeader1.simulate('mousedown', {shiftKey: true});
+          $columnHeader1.simulate('mouseup');
+
+          contextMenu();
+
+          const $showColumnItem = $('.htContextMenu tbody td:not(.htSeparator)');
+
+          expect($showColumnItem.text()).toEqual(SHOW_COLUMN_PLURAL_IN_POLISH);
+        });
+      });
     });
   });
 });

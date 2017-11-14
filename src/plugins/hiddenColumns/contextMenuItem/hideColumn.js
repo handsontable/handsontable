@@ -5,7 +5,18 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
   return {
     key: 'hidden_columns_hide',
     name() {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_COLUMN);
+      const selection = this.getSelected();
+      let pluralForm = 0;
+
+      if (Array.isArray(selection)) {
+        const [, fromColumn, , toColumn] = selection;
+
+        if (fromColumn - toColumn !== 0) {
+          pluralForm = 1;
+        }
+      }
+
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_COLUMN, pluralForm);
     },
     callback() {
       let {from, to} = this.getSelectedRange();
