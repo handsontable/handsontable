@@ -57,7 +57,7 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: ['Pokaż kolumnę', 'Pokaż kolumny'],
 
   [C.CONTEXTMENU_ITEMS_HIDE_ROW]: ['Ukryj wiersz', 'Ukryj wiersze'],
-  [C.CONTEXTMENU_ITEMS_SHOW_ROW]: ['Pokaż wiersz', 'Pokaż wiersz'],
+  [C.CONTEXTMENU_ITEMS_SHOW_ROW]: ['Pokaż wiersz', 'Pokaż wiersze'],
 
   [C.FILTERS_CONDITIONS_NONE]: 'Brak',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Jest pusty',
