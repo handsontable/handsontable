@@ -75,14 +75,15 @@ export const FILTERS_CONDITIONS_TODAY = 'Filters:conditions.today';
 export const FILTERS_CONDITIONS_TOMORROW = 'Filters:conditions.tomorrow';
 export const FILTERS_CONDITIONS_YESTERDAY = 'Filters:conditions.yesterday';
 
-export const FILTERS_LABELS_FILTER_BY_CONDITION = 'Filters:labels.filterByCondition';
-export const FILTERS_LABELS_FILTER_BY_VALUE = 'Filters:labels.filterByValue';
+export const FILTERS_DIVS_FILTER_BY_CONDITION = 'Filters:labels.filterByCondition';
+export const FILTERS_DIVS_FILTER_BY_VALUE = 'Filters:labels.filterByValue';
+
 export const FILTERS_LABELS_CONJUNCTION = 'Filters:labels.conjunction';
 export const FILTERS_LABELS_DISJUNCTION = 'Filters:labels.disjunction';
 
 export const FILTERS_VALUES_BLANK_CELLS = 'Filters:values.blankCells';
 
-export const FILTERS_BUTTONS_SELECT_ALL = 'Filters:buttons.searchAll';
+export const FILTERS_BUTTONS_SELECT_ALL = 'Filters:buttons.selectAll';
 export const FILTERS_BUTTONS_CLEAR = 'Filters:buttons.clear';
 export const FILTERS_BUTTONS_OK = 'Filters:buttons.ok';
 export const FILTERS_BUTTONS_CANCEL = 'Filters:buttons.cancel';

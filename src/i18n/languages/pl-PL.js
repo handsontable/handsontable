@@ -83,8 +83,9 @@ const dictionary = {
 
   [C.FILTERS_VALUES_BLANK_CELLS]: 'Puste komórki',
 
-  [C.FILTERS_LABELS_FILTER_BY_CONDITION]: 'Filtruj na podstawie warunku',
-  [C.FILTERS_LABELS_FILTER_BY_VALUE]: 'Filtruj na podstawie wartości',
+  [C.FILTERS_DIVS_FILTER_BY_CONDITION]: 'Filtruj na podstawie warunku',
+  [C.FILTERS_DIVS_FILTER_BY_VALUE]: 'Filtruj na podstawie wartości',
+
   [C.FILTERS_LABELS_CONJUNCTION]: 'Oraz',
   [C.FILTERS_LABELS_DISJUNCTION]: 'Lub',
 
