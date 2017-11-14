@@ -15,7 +15,6 @@ describe('i18n', () => {
   const POLISH_LANGUAGE_CODE = 'pl-PL';
   const INSERT_COLUMN_LEFT_IN_POLISH_LANGUAGE = 'Wstaw kolumnę po lewej';
   const FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE = 'Brak';
-  const FILTERS_VALUES_BLANK_CELLS_IN_POLISH_LANGUAGE = '(Puste komórki)';
 
   describe('dropdown translation', () => {
     it('should translate dropdownMenu UI when setting existing language at start', () => {
@@ -32,46 +31,45 @@ describe('i18n', () => {
   });
 
   describe('filters translation', () => {
-    it('should translate filters condition inside dropdownMenu UI when setting existing language at start ' +
-      '(name visible inside the main drop-down menu)', () => {
-      handsontable({
-        language: POLISH_LANGUAGE_CODE,
-        colHeaders: true,
-        dropdownMenu: true,
-        filters: true
+    describe('should translate filters condition inside dropdownMenu UI when setting existing language at start', () => {
+      it('name visible inside the main drop-down menu', () => {
+        handsontable({
+          language: POLISH_LANGUAGE_CODE,
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true
+        });
+
+        dropdownMenu(0);
+
+        expect($('.htFiltersMenuCondition .htUISelectCaption').eq(0).text()).toEqual(FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE);
       });
 
-      dropdownMenu(0);
+      it('name visible inside condition selection drop-down menu', () => {
+        const FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE = 'Jest pusty';
 
-      expect($('.htFiltersMenuCondition .htUISelectCaption').eq(0).text()).toEqual(FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE);
-    });
+        handsontable({
+          language: POLISH_LANGUAGE_CODE,
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true
+        });
 
-    it('should translate filters condition inside dropdownMenu UI when setting existing language at start ' +
-      '(name visible inside condition selection drop-down menu)', () => {
-      const FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE = 'Jest pusty';
+        dropdownMenu(0);
 
-      handsontable({
-        language: POLISH_LANGUAGE_CODE,
-        colHeaders: true,
-        dropdownMenu: true,
-        filters: true
+        $('.htUISelect').eq(0).simulate('click');
+
+        const $contextMenuItems = $('.htFiltersConditionsMenu tbody td:not(.htSeparator)');
+
+        expect($contextMenuItems.eq(0).text()).toEqual(FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE);
+        expect($contextMenuItems.eq(1).text()).toEqual(FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE);
       });
-
-      dropdownMenu(0);
-
-      $('.htUISelect').eq(0).simulate('click');
-
-      const $contextMenuItems = $('.htFiltersConditionsMenu tbody td:not(.htSeparator)');
-
-      expect($contextMenuItems.eq(0).text()).toEqual(FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE);
-      expect($contextMenuItems.eq(1).text()).toEqual(FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE);
     });
 
-    describe('should translate label inside dropdownMenu UI', () => {
+    describe('should translate div inside dropdownMenu UI', () => {
       const FILTERS_LABELS_FILTER_BY_CONDITION_IN_POLISH_LANGUAGE = 'Filtruj na podstawie warunku:';
 
       it('when setting existing language at start', () => {
-
         handsontable({
           language: POLISH_LANGUAGE_CODE,
           colHeaders: true,
@@ -85,7 +83,6 @@ describe('i18n', () => {
 
         expect($filterByConditionLabel.text()).toEqual(FILTERS_LABELS_FILTER_BY_CONDITION_IN_POLISH_LANGUAGE);
       });
-
 
       it('when changing language by updateSettings', () => {
         const hot = handsontable({
@@ -104,41 +101,113 @@ describe('i18n', () => {
       });
     });
 
-    it('should translate button inside dropdownMenu UI when setting existing language at start', () => {
+    describe('should translate button inside dropdownMenu UI', () => {
       const FILTERS_BUTTONS_SELECT_ALL_IN_POLISH_LANGUAGE = 'Wybierz wszystkie';
 
-      handsontable({
-        language: POLISH_LANGUAGE_CODE,
-        colHeaders: true,
-        dropdownMenu: true,
-        filters: true
+      it('when setting existing language at start', () => {
+        handsontable({
+          language: POLISH_LANGUAGE_CODE,
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true
+        });
+
+        dropdownMenu(0);
+
+        const $selectAllButton = $('.htUISelectAll').eq(0);
+
+        expect($selectAllButton.text()).toEqual(FILTERS_BUTTONS_SELECT_ALL_IN_POLISH_LANGUAGE);
       });
 
-      dropdownMenu(0);
+      it('when changing language by updateSettings', () => {
+        const hot = handsontable({
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true
+        });
 
-      const $selectAllButton = $('.htUISelectAll').eq(0);
+        hot.updateSettings({language: POLISH_LANGUAGE_CODE});
 
-      expect($selectAllButton.text()).toEqual(FILTERS_BUTTONS_SELECT_ALL_IN_POLISH_LANGUAGE);
+        dropdownMenu(0);
+
+        const $selectAllButton = $('.htUISelectAll').eq(0);
+
+        expect($selectAllButton.text()).toEqual(FILTERS_BUTTONS_SELECT_ALL_IN_POLISH_LANGUAGE);
+      });
     });
 
-    it('should translate placeholder of button inside dropdownMenu UI when setting existing language at start', () => {
+    describe('should translate placeholder of button inside dropdownMenu UI', () => {
       const FILTERS_BUTTONS_PLACEHOLDER_SEARCH_IN_POLISH_LANGUAGE = 'Szukaj...';
 
-      handsontable({
-        language: POLISH_LANGUAGE_CODE,
-        colHeaders: true,
-        dropdownMenu: true,
-        filters: true
+      it('when setting existing language at start', () => {
+        handsontable({
+          language: POLISH_LANGUAGE_CODE,
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true
+        });
+
+        dropdownMenu(0);
+
+        const $searchInputPlaceholder = $('.htUIMultipleSelectSearch.htUIInput input').eq(0);
+
+        expect($searchInputPlaceholder.attr('placeholder')).toEqual(FILTERS_BUTTONS_PLACEHOLDER_SEARCH_IN_POLISH_LANGUAGE);
       });
 
-      dropdownMenu(0);
+      it('when changing language by updateSettings', () => {
+        const hot = handsontable({
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true
+        });
 
-      const $searchInputPlaceholder = $('.htUIMultipleSelectSearch.htUIInput input').eq(0);
+        hot.updateSettings({language: POLISH_LANGUAGE_CODE});
 
-      expect($searchInputPlaceholder.attr('placeholder')).toEqual(FILTERS_BUTTONS_PLACEHOLDER_SEARCH_IN_POLISH_LANGUAGE);
+        dropdownMenu(0);
+
+        const $searchInputPlaceholder = $('.htUIMultipleSelectSearch.htUIInput input').eq(0);
+
+        expect($searchInputPlaceholder.attr('placeholder')).toEqual(FILTERS_BUTTONS_PLACEHOLDER_SEARCH_IN_POLISH_LANGUAGE);
+      });
+    });
+
+    describe('should translate radio input\'s label inside dropdownMenu UI', () => {
+      const FILTERS_LABELS_CONJUNCTION_IN_POLISH_LANGUAGE = 'Oraz';
+
+      it('when setting existing language at start', () => {
+        handsontable({
+          language: POLISH_LANGUAGE_CODE,
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true
+        });
+
+        dropdownMenu(0);
+
+        const $label = $('.htUIRadio label').eq(0);
+
+        expect($label.text()).toEqual(FILTERS_LABELS_CONJUNCTION_IN_POLISH_LANGUAGE);
+      });
+
+      it('when changing language by updateSettings', () => {
+        const hot = handsontable({
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true
+        });
+
+        hot.updateSettings({language: POLISH_LANGUAGE_CODE});
+
+        dropdownMenu(0);
+
+        const $label = $('.htUIRadio label').eq(0);
+
+        expect($label.text()).toEqual(FILTERS_LABELS_CONJUNCTION_IN_POLISH_LANGUAGE);
+      });
     });
 
     it('should translate empty value inside values component when setting existing language code at start', () => {
+      const FILTERS_VALUES_BLANK_CELLS_IN_POLISH_LANGUAGE = '(Puste komórki)';
       const data = getDataForFilters();
       data[0].name = '';
 

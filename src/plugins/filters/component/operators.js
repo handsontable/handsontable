@@ -57,7 +57,7 @@ class OperatorsComponent extends BaseComponent {
         name: 'operator',
         label: {
           for: operation,
-          text: this.hot.getTranslatedPhrase(getOperationName(operation))
+          text: () => this.hot.getTranslatedPhrase(getOperationName(operation))
         },
         value: operation,
         checked: operation === operationKeys[0],

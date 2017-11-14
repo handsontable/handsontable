@@ -1,4 +1,5 @@
-import {clone, extend, mixin, objectEach} from 'handsontable/helpers/object';
+import {clone, extend, mixin, objectEach, isObject} from 'handsontable/helpers/object';
+import {isFunction} from 'handsontable/helpers/function';
 import localHooks from 'handsontable/mixins/localHooks';
 import EventManager from 'handsontable/eventManager';
 import {addClass} from 'handsontable/helpers/dom/element';
@@ -107,12 +108,30 @@ class BaseUI {
   }
 
   /**
+   * Parse values within options object.
+   *
+   * @param {Object} options List of element options.
+   */
+  parseValues(options) {
+    objectEach(options, (value, key) => {
+      if (isObject(value)) {
+        this.parseValues(value);
+
+      } else if (isFunction(value)) {
+        options[key] = value();
+      }
+    });
+  }
+
+  /**
    * Build DOM structure.
    */
   build() {
     const registerEvent = (element, eventName) => {
       this.eventManager.addEventListener(element, eventName, (event) => this.runLocalHooks(eventName, event, this));
     };
+
+    this.parseValues(this.options);
 
     if (!this.buildState) {
       this.buildState = STATE_BUILDING;
