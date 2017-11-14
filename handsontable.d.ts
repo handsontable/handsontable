@@ -1569,7 +1569,7 @@ declare namespace _Handsontable {
     getRowHeight(row: number): number;
     getSchema(): object;
     getSelected(): any[];
-    getSelectedRange(): Range;
+    getSelectedRange(): wt.CellRange;
     getSettings(): object;
     getSourceData(r?: number, c?: number, r2?: number, c2?: number): any[];
     getSourceDataArray(r?: number, c?: number, r2?: number, c2?: number): any[];
