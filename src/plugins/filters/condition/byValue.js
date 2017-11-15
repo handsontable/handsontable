@@ -9,7 +9,7 @@ export function condition(dataRow, [value] = inputValues) {
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: C.FILTERS_CONDITIONS_BY_VALUE,
+  name: 'By value',
   inputsCount: 0,
   inputValuesDecorator: function([data] = inputValues) {
     return [createArrayAssertion(data)];

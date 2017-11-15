@@ -13,7 +13,7 @@ describe('i18n', () => {
   });
 
   const POLISH_LANGUAGE_CODE = 'pl-PL';
-  const INSERT_COLUMN_LEFT_IN_POLISH_LANGUAGE = 'Wstaw kolumnę po lewej';
+  const INSERT_COLUMN_LEFT_IN_POLISH_LANGUAGE = 'Wstaw kolumnę z lewej';
   const FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE = 'Brak';
 
   describe('dropdown translation', () => {
@@ -46,7 +46,7 @@ describe('i18n', () => {
       });
 
       it('name visible inside condition selection drop-down menu', () => {
-        const FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE = 'Jest pusty';
+        const FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE = 'Komórka jest pusta';
 
         handsontable({
           language: POLISH_LANGUAGE_CODE,
@@ -67,7 +67,7 @@ describe('i18n', () => {
     });
 
     describe('should translate div inside dropdownMenu UI', () => {
-      const FILTERS_LABELS_FILTER_BY_CONDITION_IN_POLISH_LANGUAGE = 'Filtruj na podstawie warunku:';
+      const FILTERS_LABELS_FILTER_BY_CONDITION_IN_POLISH_LANGUAGE = 'Filtruj wg warunku:';
 
       it('when setting existing language at start', () => {
         handsontable({
@@ -102,7 +102,7 @@ describe('i18n', () => {
     });
 
     describe('should translate button inside dropdownMenu UI', () => {
-      const FILTERS_BUTTONS_SELECT_ALL_IN_POLISH_LANGUAGE = 'Wybierz wszystkie';
+      const FILTERS_BUTTONS_SELECT_ALL_IN_POLISH_LANGUAGE = 'Zaznacz wszystko';
 
       it('when setting existing language at start', () => {
         handsontable({
@@ -137,7 +137,7 @@ describe('i18n', () => {
     });
 
     describe('should translate placeholder of button inside dropdownMenu UI', () => {
-      const FILTERS_BUTTONS_PLACEHOLDER_SEARCH_IN_POLISH_LANGUAGE = 'Szukaj...';
+      const FILTERS_BUTTONS_PLACEHOLDER_SEARCH_IN_POLISH_LANGUAGE = 'Szukaj';
 
       it('when setting existing language at start', () => {
         handsontable({
