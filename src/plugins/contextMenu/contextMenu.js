@@ -226,8 +226,8 @@ class ContextMenu extends BasePlugin {
    * You can execute all predefined commands:
    *  * `'row_above'` - Insert row above
    *  * `'row_below'` - Insert row below
-   *  * `'col_left'` - Insert column on the left
-   *  * `'col_right'` - Insert column on the right
+   *  * `'col_left'` - Insert column left
+   *  * `'col_right'` - Insert column right
    *  * `'clear_column'` - Clear selected column
    *  * `'remove_row'` - Remove row
    *  * `'remove_col'` - Remove column

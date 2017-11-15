@@ -1,7 +1,7 @@
 /**
  * @preserve
- * Authors: Wojciech Szymański
- * Last updated: 12.10.2017
+ * Authors: Handsoncode
+ * Last updated: Nov 15, 2017
  *
  * Description: Definition file for English - United States language-country.
  */
@@ -11,8 +11,8 @@ const dictionary = {
   languageCode: 'en-US',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insert row above',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Insert row below',
-  [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Insert column on the left',
-  [C.CONTEXTMENU_ITEMS_INSERT_RIGHT]: 'Insert column on the right',
+  [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Insert column left',
+  [C.CONTEXTMENU_ITEMS_INSERT_RIGHT]: 'Insert column right',
   [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['Remove row', 'Remove rows'],
   [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['Remove column', 'Remove columns'],
   [C.CONTEXTMENU_ITEMS_UNDO]: 'Undo',
@@ -29,8 +29,8 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE]: 'Middle',
   [C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM]: 'Bottom',
 
-  [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Freeze this column',
-  [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Unfreeze this column',
+  [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Freeze column',
+  [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Unfreeze column',
 
   [C.CONTEXTMENU_ITEMS_BORDERS]: 'Borders',
   [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Top',
@@ -42,7 +42,7 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_ADD_COMMENT]: 'Add comment',
   [C.CONTEXTMENU_ITEMS_EDIT_COMMENT]: 'Edit comment',
   [C.CONTEXTMENU_ITEMS_REMOVE_COMMENT]: 'Delete comment',
-  [C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT]: 'Read only comment',
+  [C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT]: 'Read-only comment',
 
   [C.CONTEXTMENU_ITEMS_MERGE_CELLS]: 'Merge cells',
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Unmerge cells',
@@ -68,7 +68,6 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_ENDS_WITH]: 'Ends with',
   [C.FILTERS_CONDITIONS_CONTAINS]: 'Contains',
   [C.FILTERS_CONDITIONS_NOT_CONTAIN]: 'Does not contain',
-  [C.FILTERS_CONDITIONS_BY_VALUE]: 'By value',
   [C.FILTERS_CONDITIONS_GREATER_THAN]: 'Greater than',
   [C.FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL]: 'Greater than or equal to',
   [C.FILTERS_CONDITIONS_LESS_THAN]: 'Less than',
@@ -94,7 +93,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Cancel',
 
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Search...',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Search',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Value',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Second value'
 };

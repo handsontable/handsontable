@@ -717,8 +717,8 @@ describe('ContextMenu', () => {
       expect(actions.text()).toEqual([
         'Insert row above',
         'Insert row below',
-        'Insert column on the left',
-        'Insert column on the right',
+        'Insert column left',
+        'Insert column right',
         'Remove row',
         'Remove column',
         'Undo',
@@ -727,7 +727,7 @@ describe('ContextMenu', () => {
         'Alignment',
         'Add comment',
         'Delete comment',
-        'Read only comment',
+        'Read-only comment',
         'Copy',
         'Cut',
       ].join(''));
@@ -746,8 +746,8 @@ describe('ContextMenu', () => {
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
-        'Insert column on the left',
-        'Insert column on the right',
+        'Insert column left',
+        'Insert column right',
         'Remove columns',
         'Undo',
         'Redo',
@@ -860,8 +860,8 @@ describe('ContextMenu', () => {
       expect(separators.length).toEqual(5);
 
       expect(actions.text()).toEqual([
-        'Insert column on the left',
-        'Insert column on the right',
+        'Insert column left',
+        'Insert column right',
         'Remove row',
         'Remove column',
         'Undo',
@@ -989,7 +989,7 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it('should insert column on the left of selection', () => {
+    it('should Insert column left of selection', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -1011,7 +1011,7 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it('should insert column on the left of selection when initial data is empty', () => {
+    it('should Insert column left of selection when initial data is empty', () => {
       var hot = handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1030,14 +1030,14 @@ describe('ContextMenu', () => {
 
       cell.simulate('mousedown', {which: 3});
       contextMenu(cell[0]);
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3).simulate('mousedown'); // Insert column on the left
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3).simulate('mousedown'); // Insert column left
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight', undefined, undefined, undefined);
       expect(countCols()).toEqual(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it('should insert column on the left of selection (reverse selection)', () => {
+    it('should Insert column left of selection (reverse selection)', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -1058,7 +1058,7 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it('should insert column on the right of selection', () => {
+    it('should Insert column right of selection', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -1079,7 +1079,7 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it('should insert column on the right of selection when initial data is empty', () => {
+    it('should Insert column right of selection when initial data is empty', () => {
       var hot = handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1098,14 +1098,14 @@ describe('ContextMenu', () => {
 
       cell.simulate('mousedown', {which: 3});
       contextMenu(cell[0]);
-      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3).simulate('mousedown'); // Insert column on the right
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3).simulate('mousedown'); // Insert column right
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight', undefined, undefined, undefined);
       expect(countCols()).toEqual(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it('should insert column on the right of selection (reverse selection)', () => {
+    it('should Insert column right of selection (reverse selection)', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -1597,9 +1597,9 @@ describe('ContextMenu', () => {
       contextMenu();
       var $menu = $('.htContextMenu .ht_master .htCore');
 
-      expect($menu.find('tbody td:eq(3)').text()).toEqual('Insert column on the left');
+      expect($menu.find('tbody td:eq(3)').text()).toEqual('Insert column left');
       expect($menu.find('tbody td:eq(3)').hasClass('htDisabled')).toBe(false);
-      expect($menu.find('tbody td:eq(4)').text()).toEqual('Insert column on the right');
+      expect($menu.find('tbody td:eq(4)').text()).toEqual('Insert column right');
       expect($menu.find('tbody td:eq(4)').hasClass('htDisabled')).toBe(false);
 
       closeContextMenu();
@@ -1625,9 +1625,9 @@ describe('ContextMenu', () => {
       contextMenu();
       var $menu = $('.htContextMenu .ht_master .htCore');
 
-      expect($menu.find('tbody td:eq(3)').text()).toEqual('Insert column on the left');
+      expect($menu.find('tbody td:eq(3)').text()).toEqual('Insert column left');
       expect($menu.find('tbody td:eq(3)').hasClass('htDisabled')).toBe(false);
-      expect($menu.find('tbody td:eq(4)').text()).toEqual('Insert column on the right');
+      expect($menu.find('tbody td:eq(4)').text()).toEqual('Insert column right');
       expect($menu.find('tbody td:eq(4)').hasClass('htDisabled')).toBe(false);
     });
 

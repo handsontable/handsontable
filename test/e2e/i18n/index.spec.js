@@ -381,7 +381,7 @@ describe('i18n', () => {
     });
 
     it('should translate multi-level menu properly', async () => {
-      const ALIGN_LEFT_IN_POLISH = 'Lewo';
+      const ALIGN_LEFT_IN_POLISH = 'Do lewej';
 
       handsontable({
         language: POLISH_LANGUAGE_CODE,
@@ -421,7 +421,7 @@ describe('i18n', () => {
     });
 
     it('should translate item from enabled `freezeColumn` plugin when setting existing language code at start', () => {
-      const FREEZE_COLUMN_IN_POLISH_LANGUAGE = 'Zamróź kolumnę';
+      const FREEZE_COLUMN_IN_POLISH_LANGUAGE = 'Zablokuj kolumnę';
 
       handsontable({
         contextMenu: ['freeze_column'],
