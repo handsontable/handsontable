@@ -436,18 +436,24 @@ class Border {
       trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
-        cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2) >= innerWidth(trimmingContainer);
+        const halfCornerWidth = parseInt(this.cornerDefaultStyle.width, 10) / 2;
+        const halfRightBorderWidth = parseInt(this.rightStyle.width, 10) / 2;
+
+        cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) + (halfCornerWidth - halfRightBorderWidth) >= innerWidth(trimmingContainer);
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle.left = `${Math.floor(left + width - 3 - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`;
+          this.cornerStyle.left = `${Math.floor(left + width - (halfCornerWidth - halfRightBorderWidth))}px`;
         }
       }
 
       if (toRow === this.wot.getSetting('totalRows') - 1) {
-        cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2) >= innerHeight(trimmingContainer);
+        const halfCornerHeight = parseInt(this.cornerDefaultStyle.height, 10) / 2;
+        const halfBottomBorderHeight = parseInt(this.bottomStyle.height, 10) / 2;
+
+        cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) + (halfCornerHeight - halfBottomBorderHeight) >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle.top = `${Math.floor(top + height - 3 - (parseInt(this.cornerDefaultStyle.height, 10) / 2))}px`;
+          this.cornerStyle.top = `${Math.floor(top + height - (halfCornerHeight - halfBottomBorderHeight))}px`;
         }
       }
 

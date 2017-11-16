@@ -589,7 +589,7 @@ class Table {
    */
   _correctRowHeaderWidth(width) {
     if (typeof width !== 'number') {
-      width = this.wot.getSetting('defaultColumnWidth');
+      width = this.wot.getSetting('defaultRowHeaderWidth');
     }
 
     return width;

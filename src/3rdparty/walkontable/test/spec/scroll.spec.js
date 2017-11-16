@@ -5,7 +5,7 @@ describe('WalkontableScroll', () => {
     debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden'});
+    $wrapper = $('<div></div>').css({overflow: 'hidden'}).addClass('handsontable');
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
     $wrapper.append($container);
@@ -15,10 +15,6 @@ describe('WalkontableScroll', () => {
   });
 
   afterEach(() => {
-    if (!debug) {
-      $('.wtHolder').remove();
-    }
-
     $wrapper.remove();
   });
 
@@ -133,9 +129,9 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getCoords($table.find('tbody tr:first td:last')[0])).toEqual(new Walkontable.CellCoords(0, 3));
     });
 
-    it('scroll viewport to a cell that is visible should do nothing', () => {
+    it('scroll viewport to a cell that is visible should do nothing', (done) => {
 
-      $wrapper.height(201).width(120);
+      $wrapper.height(200).width(250);
       var wt = new Walkontable.Core({
         table: $table[0],
         data: getData,
@@ -145,11 +141,15 @@ describe('WalkontableScroll', () => {
       wt.draw();
       var tmp = wt.getViewport();
       wt.scrollViewport(new Walkontable.CellCoords(0, 1)).draw();
-      expect(wt.getViewport()).toEqual(tmp);
+
+      setTimeout(() => {
+        expect(wt.getViewport()).toEqual(tmp);
+        done();
+      }, 10);
     });
 
-    it('scroll viewport to a cell on far right should make it visible on right edge', () => {
-      $wrapper.width(125).height(201);
+    it('scroll viewport to a cell on far right should make it visible on right edge', (done) => {
+      $wrapper.width(250).height(201);
 
       var wt = new Walkontable.Core({
         table: $table[0],
@@ -157,15 +157,21 @@ describe('WalkontableScroll', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
-      var height = $wrapper[0].clientHeight;
-      var visibleRowCount = Math.floor(height / 23);
+
+      var height = $wrapper.find('.ht_master')[0].clientHeight;
+      var visibleRowCount = Math.floor(height / 25);
       wt.scrollViewport(new Walkontable.CellCoords(0, 2)).draw();
-      expect(wt.getViewport()).toEqual([0, 1, visibleRowCount - 1, 2]);
+
+      setTimeout(() => {
+        expect(wt.getViewport()).toEqual([0, 1, visibleRowCount - 1, 2]);
+        done();
+      });
     });
 
     it('scroll viewport to a cell on far left should make it visible on left edge', () => {
-      $wrapper.width(100).height(201);
+      $wrapper.width(200).height(200);
 
       var wt = new Walkontable.Core({
         table: $table[0],
@@ -174,17 +180,23 @@ describe('WalkontableScroll', () => {
         totalColumns: getTotalColumns
       });
       wt.draw();
-      var height = $wrapper[0].clientHeight;
-      var visibleRowCount = Math.floor(height / 23);
-      wt.scrollViewport(new Walkontable.CellCoords(0, 3)).draw();
-      expect(wt.getViewport()).toEqual([0, 3, visibleRowCount - 1, 3]);
+      var height = $wrapper.find('.ht_master')[0].clientHeight;
+      var visibleRowCount = Math.floor(height / 25);
 
-      wt.scrollViewport(new Walkontable.CellCoords(0, 1)).draw();
-      expect(wt.getViewport()).toEqual([0, 1, visibleRowCount - 1, 1]);
+      // setTimeout(() => {
+        wt.scrollViewport(new Walkontable.CellCoords(0, 3)).draw();
+        expect(wt.getViewport()).toEqual([0, 3, visibleRowCount - 1, 3]);
+      // }, 10);
+      // setTimeout(() => {
+        wt.scrollViewport(new Walkontable.CellCoords(0, 1)).draw();
+        expect(wt.getViewport()).toEqual([0, 1, visibleRowCount - 1, 1]);
+
+        // done();
+      // }, 30);
     });
 
-    it('scroll viewport to a cell on far left should make it visible on left edge (with row header)', () => {
-      $wrapper.width(140).height(201);
+    it('scroll viewport to a cell on far left should make it visible on left edge (with row header)', (done) => {
+      $wrapper.width(280).height(201);
 
       var wt = new Walkontable.Core({
         table: $table[0],
@@ -197,13 +209,19 @@ describe('WalkontableScroll', () => {
       });
       wt.draw();
 
-      var height = $wrapper[0].clientHeight;
-      var visibleRowCount = Math.floor(height / 23);
+      var height = $wrapper.find('.ht_master')[0].clientHeight;
+      var visibleRowCount = Math.floor(height / 25);
 
-      wt.scrollViewport(new Walkontable.CellCoords(0, 3)).draw();
-      expect(wt.getViewport()).toEqual([0, 3, visibleRowCount - 1, 3]);
-      wt.scrollViewport(new Walkontable.CellCoords(0, 1)).draw();
-      expect(wt.wtTable.getFirstVisibleColumn()).toEqual(1);
+
+      // setTimeout(() => {
+        wt.scrollViewport(new Walkontable.CellCoords(0, 3)).draw();
+        expect(wt.getViewport()).toEqual([0, 3, visibleRowCount - 1, 3]);
+      // }, 10);
+      // setTimeout(() => {
+        wt.scrollViewport(new Walkontable.CellCoords(0, 1)).draw();
+        expect(wt.wtTable.getFirstVisibleColumn()).toEqual(1);
+        done();
+      // }, 10);
     });
 
     it('scroll viewport to a cell on far right should make it visible on right edge (with row header)', () => {
@@ -239,7 +257,7 @@ describe('WalkontableScroll', () => {
     });
 
     it('scroll viewport to a cell on far top should make it visible on top edge', () => {
-      $wrapper.width(100).height(201);
+      $wrapper.width(200).height(200);
 
       var wt = new Walkontable.Core({
         table: $table[0],
@@ -258,7 +276,7 @@ describe('WalkontableScroll', () => {
       this.data.splice(20, this.data.length - 20);
 
       expect(() => {
-        $wrapper.width(100).height(201);
+        $wrapper.width(200).height(200);
         var wt = new Walkontable.Core({
           table: $table[0],
           data: getData,
@@ -273,7 +291,7 @@ describe('WalkontableScroll', () => {
 
     it('scroll viewport to a cell that does not exist (horizontally) should throw an error', () => {
       expect(() => {
-        $wrapper.width(100).height(201);
+        $wrapper.width(200).height(20);
         var wt = new Walkontable.Core({
           table: $table[0],
           data: getData,
@@ -287,7 +305,7 @@ describe('WalkontableScroll', () => {
 
     it('remove row from the last scroll page should scroll viewport a row up if needed', function() {
 
-      $wrapper.width(100).height(210);
+      $wrapper.width(200).height(200);
 
       var wt = new Walkontable.Core({
         table: $table[0],

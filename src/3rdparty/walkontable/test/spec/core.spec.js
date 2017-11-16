@@ -1,11 +1,10 @@
 describe('WalkontableCore', () => {
   var $table,
     $container,
-    $wrapper,
-    debug = false;
+    $wrapper;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden'});
+    $wrapper = $('<div></div>').addClass('handsontable');
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
     $wrapper.append($container);
@@ -15,10 +14,6 @@ describe('WalkontableCore', () => {
   });
 
   afterEach(() => {
-    if (!debug) {
-      $('.wtHolder').remove();
-    }
-
     $wrapper.remove();
   });
 
@@ -36,7 +31,7 @@ describe('WalkontableCore', () => {
   });
 
   it('should bootstrap table if empty TABLE is given', () => {
-    $wrapper.width(200).height(200);
+    $wrapper.width(400).height(200);
 
     var wt = new Walkontable.Core({
       table: $table[0],
@@ -53,7 +48,7 @@ describe('WalkontableCore', () => {
   it('should bootstrap column headers if THEAD is given', () => {
     $table.remove();
     $table = $('<table><thead><tr><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead></table>');
-    $table.appendTo('body');
+    $container.append($table);
 
     var wt = new Walkontable.Core({
       table: $table[0],
@@ -71,7 +66,7 @@ describe('WalkontableCore', () => {
   });
 
   it('should figure out how many columns to display if width param given', () => {
-    $wrapper.width(100);
+    $wrapper.width(200).css({overflow: 'hidden'});
 
     var wt = new Walkontable.Core({
       table: $table[0],
@@ -97,7 +92,7 @@ describe('WalkontableCore', () => {
   });
 
   it('should not render table that is `display: none`', () => {
-    var $div = $('<div style="display: none"></div>').appendTo('body');
+    var $div = $('<div style="display: none"></div>').appendTo($container);
     $div.append($table);
 
     var wt = new Walkontable.Core({

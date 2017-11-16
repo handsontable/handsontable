@@ -1,4 +1,4 @@
-describe('WalkontableScrollbarNative', () => {
+xdescribe('WalkontableScrollbarNative', () => {
   var $table,
     $container,
     $wrapper,

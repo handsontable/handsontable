@@ -1,17 +1,21 @@
 describe('WalkontableEvent', () => {
   var $table,
-    debug = false;
+      $container,
+      $wrapper;
 
   beforeEach(() => {
-    $table = $('<table></table>'); // create a table that is not attached to document
-    $table.appendTo('body');
+    $container = $('<div></div>');
+    $wrapper = $('<div></div>').css({overflow: 'hidden', position: 'relative'});
+    $table = $('<table></table>');
+    $container.append($wrapper);
+    $wrapper.append($table);
+    $container.appendTo('body');
+
     createDataArray();
   });
 
   afterEach(() => {
-    if (!debug) {
-      $('.wtHolder').remove();
-    }
+    $container.remove();
   });
 
   it('should call `onCellMouseDown` callback', () => {

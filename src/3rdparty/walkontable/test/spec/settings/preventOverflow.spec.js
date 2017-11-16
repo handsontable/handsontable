@@ -1,4 +1,4 @@
-describe('preventOverflow option', () => {
+xdescribe('preventOverflow option', () => {
   var $table,
     $container,
     $wrapper,

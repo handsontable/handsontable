@@ -52,14 +52,14 @@ class Scroll {
     if (coords.row >= fixedRowsTop && coords.row < this.getFirstVisibleRow()) {
       topOverlay.scrollTo(coords.row);
 
-    } else if (coords.row >= this.getLastVisibleRow() && coords.row < totalRows - fixedRowsBottom) {
+    } else if (coords.row > this.getLastVisibleRow() && coords.row < totalRows - fixedRowsBottom) {
       topOverlay.scrollTo(coords.row, true);
     }
 
     if (coords.col >= fixedColumnsLeft && coords.col < this.getFirstVisibleColumn()) {
       leftOverlay.scrollTo(coords.col);
 
-    } else if (coords.col >= this.getLastVisibleColumn()) {
+    } else if (coords.col > this.getLastVisibleColumn()) {
       leftOverlay.scrollTo(coords.col, true);
     }
   }

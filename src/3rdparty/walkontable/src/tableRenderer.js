@@ -7,6 +7,7 @@ import {
   outerWidth
 } from './../../../helpers/dom/element';
 import Overlay from './overlay/_base';
+import ViewportRowsCalculator from './calculator/viewportRows';
 
 let performanceWarningAppeared = false;
 
@@ -298,13 +299,13 @@ class TableRenderer {
     let oversizedColumnHeaders = this.wot.wtViewport.oversizedColumnHeaders;
 
     for (let i = 0, len = columnHeaders.length; i < len; i++) {
-      if (oversizedColumnHeaders[i]) {
-        if (!children[i] || children[i].childNodes.length === 0) {
-          return;
-        }
-        children[i].childNodes[0].style.height = `${oversizedColumnHeaders[i]}px`;
+      // if (oversizedColumnHeaders[i]) {
+      if (!children[i] || children[i].childNodes.length === 0) {
+        return;
       }
+      children[i].childNodes[0].style.height = `${oversizedColumnHeaders[i] || ViewportRowsCalculator.DEFAULT_HEIGHT}px`;
     }
+    // }
   }
 
   /**
@@ -331,7 +332,7 @@ class TableRenderer {
         /* eslint-disable no-continue */
         continue;
       }
-      currentHeaderHeight = innerHeight(currentHeader);
+      currentHeaderHeight = currentHeader.getBoundingClientRect().height;
 
       if (!previousColHeaderHeight && defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
@@ -521,6 +522,7 @@ class TableRenderer {
 
         this.renderColumnHeader(i, sourceCol, TR.childNodes[renderedColumnIndex + this.rowHeaderCount]);
       }
+
     }
   }
 

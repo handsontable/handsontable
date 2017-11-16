@@ -54,12 +54,7 @@ class TopOverlay extends Overlay {
    * @param {Number} pos
    */
   setScrollPosition(pos) {
-    if (this.mainTableScrollableElement === window) {
-      window.scrollTo(getWindowScrollLeft(), pos);
-
-    } else {
-      this.mainTableScrollableElement.scrollTop = pos;
-    }
+    this.mainTableScrollableElement.scrollTop = pos;
   }
 
   /**
@@ -124,7 +119,7 @@ class TopOverlay extends Overlay {
     }
 
     if (this.trimmingContainer !== window || preventOverflow === 'horizontal') {
-      let width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth;
+      let width = this.wot.wtViewport.getWorkspaceWidth();
 
       width = Math.min(width, innerWidth(this.wot.wtTable.wtRootElement));
 

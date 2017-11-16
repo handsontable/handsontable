@@ -1,13 +1,12 @@
 describe('WalkontableBorder', () => {
   var $table,
     $container,
-    $wrapper,
-    debug = false;
+    $wrapper;
 
   beforeEach(() => {
     $container = $('<div></div>');
-    $wrapper = $('<div></div>');
-    $container.width(100).height(200);
+    $wrapper = $('<div></div>').css({overflow: 'hidden', position: 'relative'});
+    $container.width(200).height(200);
     $table = $('<table></table>');
     $container.append($wrapper);
     $wrapper.append($table);
@@ -16,9 +15,6 @@ describe('WalkontableBorder', () => {
   });
 
   afterEach(() => {
-    if (!debug) {
-      $('.wtHolder').remove();
-    }
     $container.remove();
   });
 
@@ -56,32 +52,32 @@ describe('WalkontableBorder', () => {
     $td1.simulate('mousedown');
 
     expect($top.css('height')).toBe('1px');
-    expect($top.position().top).toBe(23);
+    expect($top.position().top).toBe(25);
     expect($top.position().left).toBe(0);
     expect($right.css('width')).toBe('1px');
-    expect($right.position().top).toBe(23);
-    expect($right.position().left).toBe(49);
+    expect($right.position().top).toBe(25);
+    expect($right.position().left).toBe(100);
     expect($bottom.css('height')).toBe('1px');
-    expect($bottom.position().top).toBe(46);
+    expect($bottom.position().top).toBe(50);
     expect($bottom.position().left).toBe(0);
     expect($left.css('width')).toBe('1px');
-    expect($left.position().top).toBe(23);
+    expect($left.position().top).toBe(25);
     expect($left.position().left).toBe(0);
 
     $td2.simulate('mousedown');
 
     expect($top.css('height')).toBe('1px');
-    expect($top.position().top).toBe(46);
-    expect($top.position().left).toBe(49);
+    expect($top.position().top).toBe(50);
+    expect($top.position().left).toBe(100);
     expect($right.css('width')).toBe('1px');
-    expect($right.position().top).toBe(46);
-    expect($right.position().left).toBe(99);
+    expect($right.position().top).toBe(50);
+    expect($right.position().left).toBe(200);
     expect($bottom.css('height')).toBe('1px');
-    expect($bottom.position().top).toBe(69);
-    expect($bottom.position().left).toBe(49);
+    expect($bottom.position().top).toBe(75);
+    expect($bottom.position().left).toBe(100);
     expect($left.css('width')).toBe('1px');
-    expect($left.position().top).toBe(46);
-    expect($left.position().left).toBe(49);
+    expect($left.position().top).toBe(50);
+    expect($left.position().left).toBe(100);
   });
 
   it('should add/remove corner to selection when cell is clicked', () => {
@@ -117,29 +113,29 @@ describe('WalkontableBorder', () => {
 
     $td1.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
-    expect($corner.position().top).toBe(42);
-    expect($corner.position().left).toBe(45);
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
+    expect($corner[0].offsetTop).toBe(50);
+    expect($corner[0].offsetLeft).toBe(100);
 
     $td2.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
-    expect($corner.position().top).toBe(65);
-    expect($corner.position().left).toBe(95);
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
+    expect($corner[0].offsetTop).toBe(75);
+    expect($corner[0].offsetLeft).toBe(200);
   });
 
   it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', () => {
     $container.css({
       overflow: 'hidden',
-      width: '200px'
+      width: '301px'
     });
     var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: 5,
-      totalColumns: 4,
+      totalColumns: 3,
       selections: [
         new Walkontable.Selection({
           border: {
@@ -162,32 +158,32 @@ describe('WalkontableBorder', () => {
     wt.draw();
 
     var $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
-    var $td2 = $table.find('tbody tr:eq(3) td:eq(3)');
+    var $td2 = $table.find('tbody tr:eq(3) td:eq(2)');
     var $td3 = $table.find('tbody tr:eq(2) td:eq(1)');
     var $corner = $(wt.selections.current.getBorder(wt).corner);
 
     $td1.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
-    expect($corner.position().top).toBe(42);
-    expect($corner.position().left).toBe(45);
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
+    expect($corner[0].offsetTop).toBe(50);
+    expect($corner[0].offsetLeft).toBe(100);
     expect($container[0].clientWidth === $container[0].scrollWidth).toBe(true);
 
     $td2.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
-    expect($corner.position().top).toBe(88);
-    expect($corner.position().left).toBe(193);
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
+    expect($corner[0].offsetTop).toBe(100);
+    expect($corner[0].offsetLeft).toBe(300 - 2);
     expect($container[0].clientWidth === $container[0].scrollWidth).toBe(true);
 
     $td3.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
-    expect($corner.position().top).toBe(65);
-    expect($corner.position().left).toBe(95);
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
+    expect($corner[0].offsetTop).toBe(75);
+    expect($corner[0].offsetLeft).toBe(200);
     expect($container[0].clientWidth === $container[0].scrollWidth).toBe(true);
   });
 });

@@ -59,49 +59,42 @@ class Viewport {
   }
 
   getWorkspaceWidth() {
-    let width;
-    let totalColumns = this.wot.getSetting('totalColumns');
-    let trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
-    let overflow;
-    let stretchSetting = this.wot.getSetting('stretchH');
-    let docOffsetWidth = document.documentElement.offsetWidth;
-    let preventOverflow = this.wot.getSetting('preventOverflow');
+    // let width;
+    // let totalColumns = this.wot.getSetting('totalColumns');
+    // let trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
+    // let overflow;
+    // let stretchSetting = this.wot.getSetting('stretchH');
+    // let preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (preventOverflow) {
-      return outerWidth(this.instance.wtTable.wtRootElement);
-    }
+    // if (preventOverflow) {
+      return this.instance.wtTable.wtRootElement.offsetWidth;
+    // }
 
-    if (this.wot.getSetting('freezeOverlays')) {
-      width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
-    } else {
-      width = Math.min(this.getContainerFillWidth(), docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
-    }
+    // width = Math.min(this.instance.wtTable.holder.offsetWidth, this.getContainerFillWidth());
 
-    if (trimmingContainer === window && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
-      // in case sum of column widths is higher than available stylesheet width, let's assume using the whole window
-      // otherwise continue below, which will allow stretching
-      // this is used in `scroll_window.html`
-      // TODO test me
-      return document.documentElement.clientWidth;
-    }
+    // if (trimmingContainer === window && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
+    //   // in case sum of column widths is higher than available stylesheet width, let's assume using the whole window
+    //   // otherwise continue below, which will allow stretching
+    //   // this is used in `scroll_window.html`
+    //   // TODO test me
+    //   return document.documentElement.clientWidth;
+    // }
 
-    if (trimmingContainer !== window) {
-      overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
+    // if (trimmingContainer !== window) {
+    //   overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
 
-      if (overflow == 'scroll' || overflow == 'hidden' || overflow == 'auto') {
-        // this is used in `scroll.html`
-        // TODO test me
-        return Math.max(width, trimmingContainer.clientWidth);
-      }
-    }
+    //   if (overflow == 'scroll' || overflow == 'hidden' || overflow == 'auto') {
+    //     return width;
+    //   }
+    // }
 
-    if (stretchSetting === 'none' || !stretchSetting) {
-      // if no stretching is used, return the maximum used workspace width
-      return Math.max(width, outerWidth(this.instance.wtTable.TABLE));
-    }
+    // if (stretchSetting === 'none' || !stretchSetting) {
+    //   // if no stretching is used, return the maximum used workspace width
+    //   return Math.max(width, outerWidth(this.instance.wtTable.TABLE));
+    // }
 
-    // if stretching is used, return the actual container width, so the columns can fit inside it
-    return width;
+    // // if stretching is used, return the actual container width, so the columns can fit inside it
+    // return width;
   }
 
   /**
@@ -307,6 +300,7 @@ class Viewport {
     if (pos < 0) {
       pos = 0;
     }
+
     fixedRowsTop = this.wot.getSetting('fixedRowsTop');
     fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
     totalRows = this.wot.getSetting('totalRows');
@@ -323,7 +317,7 @@ class Viewport {
       height -= fixedRowsHeight;
     }
 
-    if (this.wot.wtTable.holder.clientHeight === this.wot.wtTable.holder.offsetHeight) {
+    if (this.wot.wtOverlays.topOverlay.mainTableScrollableElement.offsetHeight === this.wot.wtTable.holder.offsetHeight) {
       scrollbarHeight = 0;
     } else {
       scrollbarHeight = getScrollbarWidth();

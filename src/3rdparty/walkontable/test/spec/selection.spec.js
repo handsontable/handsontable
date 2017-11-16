@@ -1,4 +1,4 @@
-describe('Walkontable.Selection', () => {
+describe('WalkontableSelection', () => {
   var $table,
     $container,
     $wrapper,

@@ -95,12 +95,15 @@ class ViewportColumnsCalculator {
     for (let i = 0; i < totalColumns; i++) {
       columnWidth = this._getColumnWidth(i);
 
+      if (viewportWidth < columnWidth) {
+        viewportWidth = columnWidth * 2;
+      }
+
       if (sum <= scrollOffset && !onlyFullyVisible) {
         this.startColumn = i;
       }
 
-      // +1 pixel for row header width compensation for horizontal scroll > 0
-      let compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
+      let compensatedViewportWidth = scrollOffset > 0 ? viewportWidth : viewportWidth;
 
       if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + compensatedViewportWidth) {
         if (this.startColumn == null) {
@@ -140,7 +143,7 @@ class ViewportColumnsCalculator {
     }
     this.startPosition = startPositions[this.startColumn];
 
-    if (this.startPosition == void 0) {
+    if (this.startPosition === void 0) {
       this.startPosition = null;
     }
     if (this.startColumn !== null) {

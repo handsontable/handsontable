@@ -100,7 +100,7 @@ class Overlays {
     this.wot.wtTable.wtRootElement.parentNode.appendChild(this.scrollableElement);
 
     this.eventManager.addEventListener(this.scrollableElement, 'scroll', (event) => this.onTableScroll(event));
-    // this.eventManager.addEventListener(this.scrollableElement, 'resize', (event) => this.onTableResize(event));
+    this.eventManager.addEventListener(window, 'resize', (event) => this.onTableResize(event));
   }
   /**
    * Prepare overlays based on user settings.
@@ -232,7 +232,7 @@ class Overlays {
    * @param {Event} event
    */
   onTableResize(event) {
-    console.info(event);
+    console.info('onTableResize');
   }
 
   /**

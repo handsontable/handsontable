@@ -61,7 +61,8 @@ class Settings {
         // return undefined means use default size for the rendered cell content
       },
       defaultRowHeight: 25,
-      defaultColumnWidth: 50,
+      defaultColumnWidth: 100,
+      defaultRowHeaderWidth: 50,
       selections: null,
       hideBorderOnMouseDownOver: false,
       viewportRowCalculatorOverride: null,

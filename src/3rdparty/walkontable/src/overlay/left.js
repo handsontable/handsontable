@@ -54,12 +54,7 @@ class LeftOverlay extends Overlay {
    * @param {Number} pos
    */
   setScrollPosition(pos) {
-    if (this.mainTableScrollableElement === window) {
-      window.scrollTo(pos, getWindowScrollTop());
-
-    } else {
-      this.mainTableScrollableElement.scrollLeft = pos;
-    }
+    this.mainTableScrollableElement.scrollLeft = pos;
   }
 
   /**
@@ -190,10 +185,10 @@ class LeftOverlay extends Overlay {
     let newX = this.getTableParentOffset();
     let sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     let wtOverlays = this.wot.wtOverlays;
-    let scrollbarCompensation = 0;
+    let scrollbarCompensation = beyondRendered ? 1 : 0;
 
     if (beyondRendered && wtOverlays.scrollableElement.offsetWidth !== wtOverlays.scrollResizerX.clientWidth) {
-      scrollbarCompensation = getScrollbarWidth();
+      // scrollbarCompensation = getScrollbarWidth();
     }
     if (beyondRendered) {
       newX += this.sumCellSizes(0, sourceCol + 1);
