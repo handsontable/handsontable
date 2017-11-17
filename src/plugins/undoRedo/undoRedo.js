@@ -241,7 +241,7 @@ UndoRedo.ChangeAction.prototype.undo = function (instance, undoneCallback) {
     emptyRowsAtTheEnd = instance.countEmptyRows(true),
     emptyColsAtTheEnd = instance.countEmptyCols(true);
 
-  for (let i = 0, len = data.length; i < len; i++) {
+  for (let i = 0, len = data.length; i < len; i += 1) {
     data[i].splice(3, 1);
   }
 
@@ -249,7 +249,7 @@ UndoRedo.ChangeAction.prototype.undo = function (instance, undoneCallback) {
 
   instance.setDataAtRowProp(data, null, null, 'UndoRedo.undo');
 
-  for (let i = 0, len = data.length; i < len; i++) {
+  for (let i = 0, len = data.length; i < len; i += 1) {
     if (instance.getSettings().minSpareRows && data[i][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
         emptyRowsAtTheEnd === instance.getSettings().minSpareRows) {
 
@@ -270,7 +270,7 @@ UndoRedo.ChangeAction.prototype.undo = function (instance, undoneCallback) {
 UndoRedo.ChangeAction.prototype.redo = function (instance, onFinishCallback) {
   let data = deepClone(this.changes);
 
-  for (let i = 0, len = data.length; i < len; i++) {
+  for (let i = 0, len = data.length; i < len; i += 1) {
     data[i].splice(2, 1);
   }
 
@@ -429,8 +429,8 @@ UndoRedo.CellAlignmentAction.prototype.undo = function (instance, undoneCallback
   if (!instance.getPlugin('contextMenu').isEnabled()) {
     return;
   }
-  for (var row = this.range.from.row; row <= this.range.to.row; row++) {
-    for (var col = this.range.from.col; col <= this.range.to.col; col++) {
+  for (var row = this.range.from.row; row <= this.range.to.row; row += 1) {
+    for (var col = this.range.from.col; col <= this.range.to.col; col += 1) {
       instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
     }
   }
@@ -494,7 +494,7 @@ UndoRedo.RowMoveAction.prototype.undo = function (instance, undoneCallback) {
   let newRows = [];
   let rowsLen = this.rows.length + mod;
 
-  for (let i = mod; i < rowsLen; i++) {
+  for (let i = mod; i < rowsLen; i += 1) {
     newRows.push(this.target + i);
   }
   manualRowMove.moveRows(newRows.slice(), newTarget);

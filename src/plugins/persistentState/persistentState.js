@@ -44,7 +44,7 @@ function Storage(prefix) {
   };
 
   this.resetAll = function () {
-    for (var index = 0; index < savedKeys.length; index++) {
+    for (var index = 0; index < savedKeys.length; index += 1) {
       window.localStorage.removeItem(`${prefix}_${savedKeys[index]}`);
     }
 

@@ -324,7 +324,7 @@ class ManualRowResize extends BasePlugin {
 
         this.hot._registerTimeout(this.autoresizeTimeout);
       }
-      this.dblclick++;
+      this.dblclick += 1;
 
       this.startY = pageY(event);
       this.newSize = this.startHeight;

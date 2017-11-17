@@ -108,7 +108,7 @@ class LeftOverlay extends Overlay {
 
     while (from < to) {
       sum += this.wot.wtTable.getStretchedColumnWidth(from) || defaultColumnWidth;
-      from++;
+      from += 1;
     }
 
     return sum;

@@ -87,8 +87,8 @@ describe('CustomBorders', () => {
         }],
     });
 
-    for (var row = 1; row <= 3; row++) {
-      for (var column = 1; column <= 4; column++) {
+    for (var row = 1; row <= 3; row += 1) {
+      for (var column = 1; column <= 4; column += 1) {
         if (row === 1) {
           var topRow = $(`.wtBorder.border_row${row}col${column}`);
           expect(topRow.length).toEqual(20); // borders for all tables (main and hiders)

@@ -231,7 +231,7 @@ class ManualColumnMove extends BasePlugin {
   getColumnsWidth(from, to) {
     let width = 0;
 
-    for (let i = from; i < to; i++) {
+    for (let i = from; i < to; i += 1) {
       let columnWidth = 0;
 
       if (i < 0) {
@@ -335,7 +335,7 @@ class ManualColumnMove extends BasePlugin {
 
     if ((priv.rootElementOffset + wtTable.holder.offsetWidth + scrollLeft) < priv.target.eventPageX) {
       if (priv.coordsColumn < priv.countCols) {
-        priv.coordsColumn++;
+        priv.coordsColumn += 1;
       }
     }
 

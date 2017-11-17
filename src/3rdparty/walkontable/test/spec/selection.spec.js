@@ -84,7 +84,7 @@ describe('Walkontable.Selection', () => {
 
     var tds = $wrapper.find('td:contains(B2), td:contains(B3), td:contains(C2), td:contains(C3)');
     expect(tds.length).toBeGreaterThan(4);
-    for (var i = 0, ilen = tds.length; i < ilen; i++) {
+    for (var i = 0, ilen = tds.length; i < ilen; i += 1) {
       expect(tds[i].className).toContain('area');
     }
   });

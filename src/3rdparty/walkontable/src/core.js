@@ -49,7 +49,7 @@ class Walkontable {
 
     // find original headers
     if (this.wtTable.THEAD.childNodes.length && this.wtTable.THEAD.childNodes[0].childNodes.length) {
-      for (let c = 0, clen = this.wtTable.THEAD.childNodes[0].childNodes.length; c < clen; c++) {
+      for (let c = 0, clen = this.wtTable.THEAD.childNodes[0].childNodes.length; c < clen; c += 1) {
         originalHeaders.push(this.wtTable.THEAD.childNodes[0].childNodes[c].innerHTML);
       }
       if (!this.getSetting('columnHeaders').length) {

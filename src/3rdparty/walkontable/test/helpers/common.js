@@ -7,13 +7,13 @@ export function createDataArray(rows, cols) {
   rows = typeof rows === 'number' ? rows : 100;
   cols = typeof cols === 'number' ? cols : 4;
 
-  for (var i = 0; i < rows; i++) {
+  for (var i = 0; i < rows; i += 1) {
     var row = [];
 
     if (cols > 0) {
       row.push(i);
 
-      for (var j = 0; j < cols - 1; j++) {
+      for (var j = 0; j < cols - 1; j += 1) {
         /* eslint-disable no-mixed-operators */
         /* eslint-disable no-bitwise */
         row.push(String.fromCharCode(65 + j % 20).toLowerCase() + (j / 20 | 0 || '')); // | 0 is parseInt - see http://jsperf.com/math-floor-vs-math-round-vs-parseint/18
@@ -107,7 +107,8 @@ export function range(from, to) {
 
   var result = [];
 
-  while (to++ < from) {
+  while (to < from) {
+    to += 1;
     result.push(to);
   }
 
@@ -153,10 +154,10 @@ export function createSpreadsheetData(rows, columns) {
     i,
     j;
 
-  for (i = 0; i < rows; i++) {
+  for (i = 0; i < rows; i += 1) {
     var row = [];
 
-    for (j = 0; j < columns; j++) {
+    for (j = 0; j < columns; j += 1) {
       row.push(spreadsheetColumnLabel(j) + (i + 1));
     }
     _rows.push(row);

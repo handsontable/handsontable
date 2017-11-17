@@ -186,8 +186,8 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     const topLeft = selRange.getTopLeftCorner();
     const bottomRight = selRange.getBottomRightCorner();
 
-    for (let r = topLeft.row; r <= bottomRight.row; r++) {
-      for (let c = topLeft.col; c <= bottomRight.col; c++) {
+    for (let r = topLeft.row; r <= bottomRight.row; r += 1) {
+      for (let c = topLeft.col; c <= bottomRight.col; c += 1) {
         let cellProps = instance.getCellMeta(r, c);
 
         if (cellProps.type !== 'checkbox') {

@@ -639,8 +639,8 @@ class Comments extends BasePlugin {
   onContextMenuRemoveComment(selection) {
     this.contextMenuEvent = true;
 
-    for (let i = selection.start.row; i <= selection.end.row; i++) {
-      for (let j = selection.start.col; j <= selection.end.col; j++) {
+    for (let i = selection.start.row; i <= selection.end.row; i += 1) {
+      for (let j = selection.start.col; j <= selection.end.col; j += 1) {
         this.removeCommentAtCell(i, j, false);
       }
     }
@@ -657,8 +657,8 @@ class Comments extends BasePlugin {
   onContextMenuMakeReadOnly(selection) {
     this.contextMenuEvent = true;
 
-    for (let i = selection.start.row; i <= selection.end.row; i++) {
-      for (let j = selection.start.col; j <= selection.end.col; j++) {
+    for (let i = selection.start.row; i <= selection.end.row; i += 1) {
+      for (let j = selection.start.col; j <= selection.end.col; j += 1) {
         let currentState = !!this.getCommentMeta(i, j, META_READONLY);
 
         this.updateCommentMeta(i, j, {[META_READONLY]: !currentState});

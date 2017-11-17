@@ -380,8 +380,8 @@ class CellRange {
     let bottomRight = this.getBottomRightCorner();
     let out = [];
 
-    for (let r = topLeft.row; r <= bottomRight.row; r++) {
-      for (let c = topLeft.col; c <= bottomRight.col; c++) {
+    for (let r = topLeft.row; r <= bottomRight.row; r += 1) {
+      for (let c = topLeft.col; c <= bottomRight.col; c += 1) {
         if (!(this.from.row === r && this.from.col === c) && !(this.to.row === r && this.to.col === c)) {
           out.push(new CellCoords(r, c));
         }
@@ -400,8 +400,8 @@ class CellRange {
     let bottomRight = this.getBottomRightCorner();
     let out = [];
 
-    for (let r = topLeft.row; r <= bottomRight.row; r++) {
-      for (let c = topLeft.col; c <= bottomRight.col; c++) {
+    for (let r = topLeft.row; r <= bottomRight.row; r += 1) {
+      for (let c = topLeft.col; c <= bottomRight.col; c += 1) {
         if (topLeft.row === r && topLeft.col === c) {
           out.push(topLeft);
 
@@ -427,8 +427,8 @@ class CellRange {
     let topLeft = this.getTopLeftCorner();
     let bottomRight = this.getBottomRightCorner();
 
-    for (let r = topLeft.row; r <= bottomRight.row; r++) {
-      for (let c = topLeft.col; c <= bottomRight.col; c++) {
+    for (let r = topLeft.row; r <= bottomRight.row; r += 1) {
+      for (let c = topLeft.col; c <= bottomRight.col; c += 1) {
         let breakIteration = callback(r, c);
 
         if (breakIteration === false) {

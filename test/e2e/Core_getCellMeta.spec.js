@@ -134,7 +134,7 @@ describe('Core_getCellMeta', () => {
 
     handsontable({
       cells(row) {
-        called++;
+        called += 1;
         _row = row;
         _this = this;
       },

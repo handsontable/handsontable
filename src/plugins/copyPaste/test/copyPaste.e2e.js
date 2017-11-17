@@ -594,7 +594,7 @@ describe('CopyPaste', () => {
         triggerPaste('Kia\tNissan\tToyota');
 
       } catch (e) {
-        errors++;
+        errors += 1;
       }
 
       await sleep(60);

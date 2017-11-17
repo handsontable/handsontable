@@ -40,7 +40,7 @@ function process(value, callback) {
   return function (source) {
     var found = false;
 
-    for (var s = 0, slen = source.length; s < slen; s++) {
+    for (var s = 0, slen = source.length; s < slen; s += 1) {
       if (originalVal === source[s]) {
         found = true; // perfect match
         break;

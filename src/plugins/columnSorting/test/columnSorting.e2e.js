@@ -120,7 +120,7 @@ describe('ColumnSorting', () => {
         columnSorting: true,
       });
     } catch (e) {
-      errors++;
+      errors += 1;
     }
 
     expect(errors).toBe(0);

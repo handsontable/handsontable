@@ -151,7 +151,7 @@ describe('settings', () => {
         renderer: rendererSpy,
       });
 
-      for (var i = 0, len = rendererSpy.calls.count(); i < len; i++) {
+      for (var i = 0, len = rendererSpy.calls.count(); i < len; i += 1) {
         var args = rendererSpy.calls.argsFor(i);
         var row = args[2];
         var col = args[3];
@@ -183,7 +183,7 @@ describe('settings', () => {
         },
       });
 
-      for (var i = 0, len = rendererSpy.calls.count(); i < len; i++) {
+      for (var i = 0, len = rendererSpy.calls.count(); i < len; i += 1) {
         var args = rendererSpy.calls.argsFor(i);
         var row = args[2];
         var col = args[3];

@@ -337,7 +337,7 @@ describe('WalkontableScroll', () => {
     it('should scroll to last row with very high rows', function () {
       createDataArray(20, 100);
 
-      for (var i = 0, ilen = this.data.length; i < ilen; i++) {
+      for (var i = 0, ilen = this.data.length; i < ilen; i += 1) {
         this.data[i][0] += '\n this \nis \na \nmultiline \ncell';
       }
 
@@ -356,7 +356,7 @@ describe('WalkontableScroll', () => {
     xit('should scroll to last row with very high rows (respecting fixedRows)', function () {
       createDataArray(20, 100);
 
-      for (var i = 0, ilen = this.data.length; i < ilen; i++) {
+      for (var i = 0, ilen = this.data.length; i < ilen; i += 1) {
         this.data[i][0] += '\n this \nis \na \nmultiline \ncell';
       }
 

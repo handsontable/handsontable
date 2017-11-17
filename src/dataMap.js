@@ -68,7 +68,7 @@ DataMap.prototype.recursiveDuckColumns = function (schema, lastCol, parent) {
         this.colToPropCache.push(prop);
         this.propToColCache.set(prop, lastCol);
 
-        lastCol++;
+        lastCol += 1;
       } else {
         lastCol = this.recursiveDuckColumns(value, lastCol, `${key}.`);
       }
@@ -103,7 +103,7 @@ DataMap.prototype.createMap = function () {
       columnsAsFunc = true;
     }
 
-    for (i = 0; i < columnsLen; i++) {
+    for (i = 0; i < columnsLen; i += 1) {
       let column = columnsAsFunc ? columns(i) : columns[i];
 
       if (isObject(column)) {
@@ -113,7 +113,7 @@ DataMap.prototype.createMap = function () {
           this.propToColCache.set(column.data, index);
         }
 
-        filteredIndex++;
+        filteredIndex += 1;
       }
     }
 
@@ -224,7 +224,7 @@ DataMap.prototype.createRow = function (index, amount, source) {
       this.spliceData(index, 0, row);
     }
 
-    numberOfCreatedRows++;
+    numberOfCreatedRows += 1;
   }
 
   this.instance.runHooks('afterCreateRow', index, numberOfCreatedRows, source);
@@ -271,7 +271,7 @@ DataMap.prototype.createCol = function (index, amount, source) {
 
     if (typeof index !== 'number' || index >= this.instance.countCols()) {
       if (rlen > 0) {
-        for (let r = 0; r < rlen; r++) {
+        for (let r = 0; r < rlen; r += 1) {
           if (typeof data[r] === 'undefined') {
             data[r] = [];
           }
@@ -284,15 +284,15 @@ DataMap.prototype.createCol = function (index, amount, source) {
       this.priv.columnSettings.push(constructor);
 
     } else {
-      for (let r = 0; r < rlen; r++) {
+      for (let r = 0; r < rlen; r += 1) {
         data[r].splice(currentIndex, 0, null);
       }
       // Add new column constructor at given index
       this.priv.columnSettings.splice(currentIndex, 0, constructor);
     }
 
-    numberOfCreatedCols++;
-    currentIndex++;
+    numberOfCreatedCols += 1;
+    currentIndex += 1;
   }
 
   this.instance.runHooks('afterCreateCol', index, numberOfCreatedCols, source);
@@ -378,25 +378,25 @@ DataMap.prototype.removeCol = function (index, amount, source) {
   let removedColumnsCount = descendingLogicColumns.length;
   let data = this.dataSource;
 
-  for (let c = 0; c < removedColumnsCount; c++) {
+  for (let c = 0; c < removedColumnsCount; c += 1) {
     if (isTableUniform && logicColumns[0] !== logicColumns[c] - c) {
       isTableUniform = false;
     }
   }
 
   if (isTableUniform) {
-    for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
+    for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r += 1) {
       data[r].splice(logicColumns[0], amount);
     }
 
   } else {
-    for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
-      for (let c = 0; c < removedColumnsCount; c++) {
+    for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r += 1) {
+      for (let c = 0; c < removedColumnsCount; c += 1) {
         data[r].splice(descendingLogicColumns[c], 1);
       }
     }
 
-    for (let c = 0; c < removedColumnsCount; c++) {
+    for (let c = 0; c < removedColumnsCount; c += 1) {
       this.priv.columnSettings.splice(logicColumns[c], 1);
     }
   }
@@ -425,7 +425,7 @@ DataMap.prototype.spliceCol = function (col, index, amount, ...elements) {
   var i = 0;
   while (i < amount) {
     elements.push(null); // add null in place of removed elements
-    i++;
+    i += 1;
   }
   to2dArray(elements);
   this.instance.populateFromArray(index, col, elements, null, null, 'spliceCol');
@@ -452,7 +452,7 @@ DataMap.prototype.spliceRow = function (row, index, amount, ...elements) {
   var i = 0;
   while (i < amount) {
     elements.push(null); // add null in place of removed elements
-    i++;
+    i += 1;
   }
   this.instance.populateFromArray(row, index, [elements], null, null, 'spliceRow');
 
@@ -523,7 +523,7 @@ DataMap.prototype.get = function (row, prop) {
     if (!out) {
       return null;
     }
-    for (let i = 0, ilen = sliced.length; i < ilen; i++) {
+    for (let i = 0, ilen = sliced.length; i < ilen; i += 1) {
       out = out[sliced[i]];
 
       if (typeof out === 'undefined') {
@@ -616,7 +616,7 @@ DataMap.prototype.set = function (row, prop, value, source) {
     let i = 0;
     let ilen;
 
-    for (i = 0, ilen = sliced.length - 1; i < ilen; i++) {
+    for (i = 0, ilen = sliced.length - 1; i < ilen; i += 1) {
       if (typeof out[sliced[i]] === 'undefined') {
         out[sliced[i]] = {};
       }
@@ -654,8 +654,8 @@ DataMap.prototype.visualRowsToPhysical = function (index, amount) {
     row = this.instance.runHooks('modifyRow', physicRow);
     logicRows.push(row);
 
-    rowsToRemove--;
-    physicRow++;
+    rowsToRemove -= 1;
+    physicRow += 1;
   }
 
   return logicRows;
@@ -678,8 +678,8 @@ DataMap.prototype.visualColumnsToPhysical = function (index, amount) {
 
     visualCols.push(col);
 
-    colsToRemove--;
-    physicalCol++;
+    colsToRemove -= 1;
+    physicalCol += 1;
   }
 
   return visualCols;
@@ -689,8 +689,8 @@ DataMap.prototype.visualColumnsToPhysical = function (index, amount) {
  * Clears the data array.
  */
 DataMap.prototype.clear = function () {
-  for (var r = 0; r < this.instance.countSourceRows(); r++) {
-    for (var c = 0; c < this.instance.countCols(); c++) {
+  for (var r = 0; r < this.instance.countSourceRows(); r += 1) {
+    for (var c = 0; c < this.instance.countCols(); c += 1) {
       this.set(r, this.colToProp(c), '');
     }
   }
@@ -734,7 +734,7 @@ DataMap.prototype.getLength = function () {
         row = this.instance.runHooks('modifyRow', row);
 
         if (row === null) {
-          --length;
+          length -= 1;
         }
       });
       this.cachedLength = length;
@@ -800,11 +800,11 @@ DataMap.prototype.getRange = function (start, end, destination) {
   rlen = Math.min(Math.max(maxRows - 1, 0), Math.max(start.row, end.row));
   clen = Math.min(Math.max(maxCols - 1, 0), Math.max(start.col, end.col));
 
-  for (r = Math.min(start.row, end.row); r <= rlen; r++) {
+  for (r = Math.min(start.row, end.row); r <= rlen; r += 1) {
     row = [];
     let physicalRow = this.instance.runHooks('modifyRow', r);
 
-    for (c = Math.min(start.col, end.col); c <= clen; c++) {
+    for (c = Math.min(start.col, end.col); c <= clen; c += 1) {
 
       if (physicalRow === null) {
         break;

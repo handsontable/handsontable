@@ -755,7 +755,7 @@ DefaultSettings.prototype = {
       value,
       meta;
 
-    for (col = 0, colLen = this.countCols(); col < colLen; col++) {
+    for (col = 0, colLen = this.countCols(); col < colLen; col += 1) {
       value = this.getDataAtCell(row, col);
 
       if (value !== '' && value !== null && isDefined(value)) {
@@ -783,7 +783,7 @@ DefaultSettings.prototype = {
       rowLen,
       value;
 
-    for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
+    for (row = 0, rowLen = this.countRows(); row < rowLen; row += 1) {
       value = this.getDataAtCell(row, col);
 
       if (value !== '' && value !== null && isDefined(value)) {

@@ -86,7 +86,7 @@ class ViewportRowsCalculator {
     let rowHeight;
 
     // Calculate the number (start and end index) of rows needed
-    for (let i = 0; i < totalRows; i++) {
+    for (let i = 0; i < totalRows; i += 1) {
       rowHeight = rowHeightFn(i);
 
       if (rowHeight === undefined) {
@@ -125,7 +125,7 @@ class ViewportRowsCalculator {
         let viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1];
 
         if (viewportSum <= viewportHeight - horizontalScrollbarHeight || !onlyFullyVisible) {
-          this.startRow--;
+          this.startRow -= 1;
         }
         if (viewportSum >= viewportHeight - horizontalScrollbarHeight) {
           break;

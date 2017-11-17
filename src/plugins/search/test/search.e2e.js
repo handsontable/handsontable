@@ -144,7 +144,7 @@ describe('Search plugin', () => {
 
       expect(searchResult.length).toEqual(5);
 
-      for (var i = 0; i < searchResult.length; i++) {
+      for (var i = 0; i < searchResult.length; i += 1) {
         expect(searchResult[i].row).toEqual(i);
         expect(searchResult[i].col).toEqual(0);
         expect(searchResult[i].data).toEqual(hot.getDataAtCell(i, 0));
@@ -303,8 +303,8 @@ describe('Search plugin', () => {
 
       expect(searchCallback.calls.count()).toEqual(25);
 
-      for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++) {
-        for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++) {
+      for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
+        for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
           var callArgs = searchCallback.calls.argsFor((rowIndex * 5) + colIndex);
           expect(callArgs[0]).toEqual(hot);
           expect(callArgs[1]).toEqual(rowIndex);
@@ -330,8 +330,8 @@ describe('Search plugin', () => {
 
       hot.search.query('2');
 
-      for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++) {
-        for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++) {
+      for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
+        for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
           var cellProperties = getCellMeta(rowIndex, colIndex);
 
           if (rowIndex === 1) {
@@ -356,8 +356,8 @@ describe('Search plugin', () => {
 
       render();
 
-      for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++) {
-        for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++) {
+      for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
+        for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
           var cell = getCell(rowIndex, colIndex);
 
           if (rowIndex === 1) {
@@ -381,8 +381,8 @@ describe('Search plugin', () => {
 
       render();
 
-      for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++) {
-        for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++) {
+      for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
+        for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
           var cell = getCell(rowIndex, colIndex);
 
           if (rowIndex === 1) {

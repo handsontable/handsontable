@@ -319,7 +319,7 @@ describe('manualColumnResize', () => {
     expect($resizedTh.outerWidth()).toEqual(100);
 
     // Sizes of remaining columns should stay the same
-    for (var i = 1; i < $columnHeaders.length; i++) {
+    for (var i = 1; i < $columnHeaders.length; i += 1) {
       expect($columnHeaders.eq(i).width()).toEqual(initialColumnWidths[i]);
     }
   });

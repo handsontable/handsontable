@@ -81,7 +81,7 @@ describe('stretchH option', () => {
   it('should stretch all visible columns when stretchH equals \'all\' (when rows are of variable height)', function () {
     createDataArray(20, 2);
 
-    for (var i = 0, ilen = this.data.length; i < ilen; i++) {
+    for (var i = 0, ilen = this.data.length; i < ilen; i += 1) {
       if (i % 2) {
         this.data[i][0] += ' this is a cell that contains a lot of text, which will make it multi-line';
       }

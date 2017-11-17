@@ -134,7 +134,7 @@ describe('Core_populateFromArray', () => {
     });
 
     hot.addHook('beforeAutofillInsidePopulate', () => {
-      called++;
+      called += 1;
     });
 
     populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 1, 1, 'Autofill.fill', 'overwrite');

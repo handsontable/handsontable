@@ -9,7 +9,7 @@ function CellInfoCollection() {
   collection.getInfo = function (row, col) {
     let result;
 
-    for (var i = 0, ilen = this.length; i < ilen; i++) {
+    for (var i = 0, ilen = this.length; i < ilen; i += 1) {
       if (this[i].row <= row && this[i].row + this[i].rowspan - 1 >= row &&
         this[i].col <= col && this[i].col + this[i].colspan - 1 >= col) {
         result = this[i];
@@ -21,7 +21,7 @@ function CellInfoCollection() {
   };
 
   collection.setInfo = function (info) {
-    for (var i = 0, ilen = this.length; i < ilen; i++) {
+    for (var i = 0, ilen = this.length; i < ilen; i += 1) {
       if (this[i].row === info.row && this[i].col === info.col) {
         this[i] = info;
         return;
@@ -31,7 +31,7 @@ function CellInfoCollection() {
   };
 
   collection.removeInfo = function (row, col) {
-    for (var i = 0, ilen = this.length; i < ilen; i++) {
+    for (var i = 0, ilen = this.length; i < ilen; i += 1) {
       if (this[i].row === row && this[i].col === col) {
         this.splice(i, 1);
         break;
@@ -53,7 +53,7 @@ function MergeCells(mergeCellsSetting) {
   this.mergedCellInfoCollection = new CellInfoCollection();
 
   if (Array.isArray(mergeCellsSetting)) {
-    for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
+    for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i += 1) {
       this.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
     }
   }
@@ -157,7 +157,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
     // if current position's parent is a merged range, returns it
     let mergedParent = this.mergedCellInfoCollection.getInfo(currentPosition.row, currentPosition.col);
 
-    for (let i = 0, mergesLength = this.mergedCellInfoCollection.length; i < mergesLength; i++) {
+    for (let i = 0, mergesLength = this.mergedCellInfoCollection.length; i < mergesLength; i += 1) {
       var range = this.mergedCellInfoCollection[i];
       range = new CellCoords(range.row + range.rowspan - 1, range.col + range.colspan - 1);
 
@@ -202,7 +202,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
       };
     }
   } else if (hook === 'modifyTransformEnd') {
-    for (let i = 0, mergesLength = this.mergedCellInfoCollection.length; i < mergesLength; i++) {
+    for (let i = 0, mergesLength = this.mergedCellInfoCollection.length; i < mergesLength; i += 1) {
       let currentMerge = this.mergedCellInfoCollection[i];
       let mergeTopLeft = new CellCoords(currentMerge.row, currentMerge.col);
       let mergeBottomRight = new CellCoords(currentMerge.row + currentMerge.rowspan - 1, currentMerge.col + currentMerge.colspan - 1);
@@ -286,7 +286,7 @@ MergeCells.prototype.shiftCollection = function (direction, index) {
       break;
   }
 
-  for (var i = 0; i < this.mergedCellInfoCollection.length; i++) {
+  for (var i = 0; i < this.mergedCellInfoCollection.length; i += 1) {
     var currentMerge = this.mergedCellInfoCollection[i];
 
     if (direction === 'right' || direction === 'left') {
@@ -338,7 +338,7 @@ var afterUpdateSettings = function () {
       instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
 
       if (Array.isArray(mergeCellsSetting)) {
-        for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
+        for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i += 1) {
           instance.mergeCells.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
         }
       }
@@ -444,7 +444,7 @@ var beforeSetRangeEnd = function (coords) {
     do {
       rangeExpanded = false;
 
-      for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
+      for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i += 1) {
         var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
         var mergedCellTopLeft = new CellCoords(cellInfo.row, cellInfo.col);
         var mergedCellBottomRight = new CellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
@@ -475,7 +475,7 @@ var beforeDrawAreaBorders = function (corners, className) {
       var startRange = new CellRange(selRange.from, selRange.from, selRange.from);
       var stopRange = new CellRange(selRange.to, selRange.to, selRange.to);
 
-      for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
+      for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i += 1) {
         var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
         var mergedCellTopLeft = new CellCoords(cellInfo.row, cellInfo.col);
         var mergedCellBottomRight = new CellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
@@ -513,7 +513,7 @@ var afterViewportRowCalculatorOverride = function (calc) {
     const colCount = this.countCols();
     let mergeParent;
 
-    for (var c = 0; c < colCount; c++) {
+    for (var c = 0; c < colCount; c += 1) {
       mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(calc.startRow, c);
       if (mergeParent) {
         if (mergeParent.row < calc.startRow) {
@@ -544,7 +544,7 @@ var afterViewportColumnCalculatorOverride = function (calc) {
   if (mergeCellsSetting) {
     const rowCount = this.countRows();
     let mergeParent;
-    for (var r = 0; r < rowCount; r++) {
+    for (var r = 0; r < rowCount; r += 1) {
       mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(r, calc.startColumn);
 
       if (mergeParent) {

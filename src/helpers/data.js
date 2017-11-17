@@ -38,7 +38,7 @@ export function spreadsheetColumnIndex(label) {
       result += Math.pow(COLUMN_LABEL_BASE_LENGTH, j) * (COLUMN_LABEL_BASE.indexOf(label[i]) + 1);
     }
   }
-  --result;
+  result -= 1;
 
   return result;
 }
@@ -55,10 +55,10 @@ export function createSpreadsheetData(rows = 100, columns = 4) {
     i,
     j;
 
-  for (i = 0; i < rows; i++) {
+  for (i = 0; i < rows; i += 1) {
     var row = [];
 
-    for (j = 0; j < columns; j++) {
+    for (j = 0; j < columns; j += 1) {
       row.push(spreadsheetColumnLabel(j) + (i + 1));
     }
     _rows.push(row);
@@ -79,10 +79,10 @@ export function createSpreadsheetObjectData(rows = 100, colCount = 4) {
     i,
     j;
 
-  for (i = 0; i < rows; i++) {
+  for (i = 0; i < rows; i += 1) {
     var row = {};
 
-    for (j = 0; j < colCount; j++) {
+    for (j = 0; j < colCount; j += 1) {
       row[`prop${j}`] = spreadsheetColumnLabel(j) + (i + 1);
     }
     _rows.push(row);
@@ -102,9 +102,9 @@ export function createEmptySpreadsheetData(rows, columns) {
   let data = [];
   let row;
 
-  for (let i = 0; i < rows; i++) {
+  for (let i = 0; i < rows; i += 1) {
     row = [];
-    for (let j = 0; j < columns; j++) {
+    for (let j = 0; j < columns; j += 1) {
       row.push('');
     }
     data.push(row);
@@ -121,11 +121,11 @@ export function translateRowsToColumns(input) {
     output = [],
     olen = 0;
 
-  for (i = 0, ilen = input.length; i < ilen; i++) {
-    for (j = 0, jlen = input[i].length; j < jlen; j++) {
+  for (i = 0, ilen = input.length; i < ilen; i += 1) {
+    for (j = 0, jlen = input[i].length; j < jlen; j += 1) {
       if (j === olen) {
         output.push([]);
-        olen++;
+        olen += 1;
       }
       output[j].push(input[i][j]);
     }

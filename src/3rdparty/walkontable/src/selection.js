@@ -145,7 +145,7 @@ class Selection {
       sourceCol,
       TH;
 
-    for (let column = 0; column < renderedColumns; column++) {
+    for (let column = 0; column < renderedColumns; column += 1) {
       sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column);
 
       if (sourceCol >= corners[1] && sourceCol <= corners[3]) {
@@ -167,7 +167,7 @@ class Selection {
       }
     }
 
-    for (let row = 0; row < renderedRows; row++) {
+    for (let row = 0; row < renderedRows; row += 1) {
       sourceRow = wotInstance.wtTable.rowFilter.renderedToSource(row);
 
       if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
@@ -188,7 +188,7 @@ class Selection {
         }
       }
 
-      for (let column = 0; column < renderedColumns; column++) {
+      for (let column = 0; column < renderedColumns; column += 1) {
         sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column);
 
         if (sourceRow >= corners[0] && sourceRow <= corners[2] && sourceCol >= corners[1] && sourceCol <= corners[3]) {

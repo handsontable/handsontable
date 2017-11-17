@@ -63,7 +63,7 @@ class Border {
     this.eventManager.addEventListener(document.body, 'mousedown', () => this.onMouseDown());
     this.eventManager.addEventListener(document.body, 'mouseup', () => this.onMouseUp());
 
-    for (let c = 0, len = this.main.childNodes.length; c < len; c++) {
+    for (let c = 0, len = this.main.childNodes.length; c < len; c += 1) {
       this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', event => this.onMouseEnter(event, this.main.childNodes[c]));
     }
   }
@@ -148,7 +148,7 @@ class Border {
     style.top = 0;
     style.left = 0;
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 5; i += 1) {
       let position = borderDivs[i];
       let div = document.createElement('div');
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
@@ -338,7 +338,7 @@ class Border {
 
     ilen = this.wot.wtTable.getRenderedRowsCount();
 
-    for (let i = 0; i < ilen; i++) {
+    for (let i = 0; i < ilen; i += 1) {
       let s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
@@ -347,7 +347,7 @@ class Border {
       }
     }
 
-    for (let i = ilen - 1; i >= 0; i--) {
+    for (let i = ilen - 1; i >= 0; i -= 1) {
       let s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
@@ -358,7 +358,7 @@ class Border {
 
     ilen = this.wot.wtTable.getRenderedColumnsCount();
 
-    for (let i = 0; i < ilen; i++) {
+    for (let i = 0; i < ilen; i += 1) {
       let s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
@@ -367,7 +367,7 @@ class Border {
       }
     }
 
-    for (let i = ilen - 1; i >= 0; i--) {
+    for (let i = ilen - 1; i >= 0; i -= 1) {
       let s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {

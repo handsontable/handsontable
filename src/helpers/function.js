@@ -75,7 +75,7 @@ export function throttleAfterHits(func, wait = 200, hits = 10) {
   }
   function _throttleAfterHits(...args) {
     if (remainHits) {
-      remainHits--;
+      remainHits -= 1;
 
       return func.apply(this, args);
     }

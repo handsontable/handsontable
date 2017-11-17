@@ -4,7 +4,7 @@ let vendors = ['ms', 'moz', 'webkit', 'o'];
 let _requestAnimationFrame = window.requestAnimationFrame;
 let _cancelAnimationFrame = window.cancelAnimationFrame;
 
-for (let x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
+for (let x = 0; x < vendors.length && !_requestAnimationFrame; x += 1) {
   _requestAnimationFrame = window[`${vendors[x]}RequestAnimationFrame`];
   _cancelAnimationFrame = window[`${vendors[x]}CancelAnimationFrame`] || window[`${vendors[x]}CancelRequestAnimationFrame`];
 }

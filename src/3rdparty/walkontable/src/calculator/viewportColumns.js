@@ -92,7 +92,7 @@ class ViewportColumnsCalculator {
     let totalColumns = priv.totalColumns;
     let viewportWidth = priv.viewportWidth;
 
-    for (let i = 0; i < totalColumns; i++) {
+    for (let i = 0; i < totalColumns; i += 1) {
       columnWidth = this._getColumnWidth(i);
 
       if (sum <= scrollOffset && !onlyFullyVisible) {
@@ -127,7 +127,7 @@ class ViewportColumnsCalculator {
         let viewportSum = startPositions[this.endColumn] + columnWidth - startPositions[this.startColumn - 1];
 
         if (viewportSum <= viewportWidth || !onlyFullyVisible) {
-          this.startColumn--;
+          this.startColumn -= 1;
         }
         if (viewportSum > viewportWidth) {
           break;
@@ -163,7 +163,7 @@ class ViewportColumnsCalculator {
     let totalColumns = priv.totalColumns;
     let sumAll = 0;
 
-    for (let i = 0; i < totalColumns; i++) {
+    for (let i = 0; i < totalColumns; i += 1) {
       let columnWidth = this._getColumnWidth(i);
       let permanentColumnWidth = priv.stretchingColumnWidthFn(void 0, i);
 
@@ -233,7 +233,7 @@ class ViewportColumnsCalculator {
     if (this.stretchAllColumnsWidth.length === totalColumns && this.needVerifyLastColumnWidth) {
       this.needVerifyLastColumnWidth = false;
 
-      for (let i = 0; i < this.stretchAllColumnsWidth.length; i++) {
+      for (let i = 0; i < this.stretchAllColumnsWidth.length; i += 1) {
         sumRatioWidth += this.stretchAllColumnsWidth[i];
       }
       if (sumRatioWidth !== this.totalTargetWidth) {

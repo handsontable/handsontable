@@ -4,7 +4,7 @@ export function to2dArray(arr) {
 
   while (i < ilen) {
     arr[i] = [arr[i]];
-    i++;
+    i += 1;
   }
 }
 
@@ -14,7 +14,7 @@ export function extendArray(arr, extension) {
 
   while (i < ilen) {
     arr.push(extension[i]);
-    i++;
+    i += 1;
   }
 }
 
@@ -28,8 +28,8 @@ export function pivot(arr) {
   var rowCount = arr.length;
   var colCount = arr[0].length;
 
-  for (var i = 0; i < rowCount; i++) {
-    for (var j = 0; j < colCount; j++) {
+  for (var i = 0; i < rowCount; i += 1) {
+    for (var j = 0; j < colCount; j += 1) {
       if (!pivotedArr[j]) {
         pivotedArr[j] = [];
       }
@@ -54,14 +54,15 @@ export function pivot(arr) {
  * @returns {*} Returns the accumulated value.
  */
 export function arrayReduce(array, iteratee, accumulator, initFromArray) {
-  let index = -1,
+  let index = 0,
     length = array.length;
 
   if (initFromArray && length) {
-    accumulator = array[++index];
+    accumulator = array[index];
   }
-  while (++index < length) {
+  while (index < length) {
     accumulator = iteratee(accumulator, array[index], index, array);
+    index += 1;
   }
 
   return accumulator;
@@ -78,17 +79,19 @@ export function arrayReduce(array, iteratee, accumulator, initFromArray) {
  * @returns {Array} Returns the new filtered array.
  */
 export function arrayFilter(array, predicate) {
-  let index = -1,
+  let index = 0,
     length = array.length,
     resIndex = -1,
     result = [];
 
-  while (++index < length) {
+  while (index < length) {
     let value = array[index];
 
     if (predicate(value, index, array)) {
-      result[++resIndex] = value;
+      result[(resIndex += 1)] = value;
     }
+
+    index += 1;
   }
 
   return result;
@@ -103,15 +106,16 @@ export function arrayFilter(array, predicate) {
  * @returns {Array} Returns the new filtered array.
  */
 export function arrayMap(array, iteratee) {
-  let index = -1,
+  let index = 0,
     length = array.length,
     resIndex = -1,
     result = [];
 
-  while (++index < length) {
+  while (index < length) {
     let value = array[index];
 
-    result[++resIndex] = iteratee(value, index, array);
+    result[(resIndex += 1)] = iteratee(value, index, array);
+    index += 1;
   }
 
   return result;
@@ -128,13 +132,15 @@ export function arrayMap(array, iteratee) {
  * @returns {Array} Returns `array`.
  */
 export function arrayEach(array, iteratee) {
-  let index = -1,
+  let index = 0,
     length = array.length;
 
-  while (++index < length) {
+  while (index < length) {
     if (iteratee(array[index], index, array) === false) {
       break;
     }
+
+    index += 1;
   }
 
   return array;

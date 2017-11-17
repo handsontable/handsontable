@@ -62,7 +62,7 @@ SelectEditor.prototype.prepareOptions = function (optionsToPrepare) {
   var preparedOptions = {};
 
   if (Array.isArray(optionsToPrepare)) {
-    for (var i = 0, len = optionsToPrepare.length; i < len; i++) {
+    for (var i = 0, len = optionsToPrepare.length; i < len; i += 1) {
       preparedOptions[optionsToPrepare[i]] = optionsToPrepare[i];
     }
   } else if (typeof optionsToPrepare === 'object') {

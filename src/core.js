@@ -173,7 +173,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'insert_col':
           delta = datamap.createCol(index, amount, source);
 
-          for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
+          for (let row = 0, len = instance.countSourceRows(); row < len; row += 1) {
             if (priv.cellSettings[row]) {
               spliceWith(priv.cellSettings[row], index, amount);
             }
@@ -219,7 +219,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
           datamap.removeCol(index, amount, source);
 
-          for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
+          for (let row = 0, len = instance.countSourceRows(); row < len; row += 1) {
             if (priv.cellSettings[row]) { // if row hasn't been rendered it wouldn't have cellSettings
               priv.cellSettings[row].splice(visualColumnIndex, amount);
             }
@@ -259,7 +259,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         let rows = instance.countRows();
 
         if (rows < priv.settings.minRows) {
-          for (let r = 0, minRows = priv.settings.minRows; r < minRows - rows; r++) {
+          for (let r = 0, minRows = priv.settings.minRows; r < minRows - rows; r += 1) {
             datamap.createRow(instance.countRows(), 1, 'auto');
           }
         }
@@ -269,7 +269,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         // should I add empty rows to meet minSpareRows?
         if (emptyRows < priv.settings.minSpareRows) {
-          for (; emptyRows < priv.settings.minSpareRows && instance.countSourceRows() < priv.settings.maxRows; emptyRows++) {
+          for (; emptyRows < priv.settings.minSpareRows && instance.countSourceRows() < priv.settings.maxRows; emptyRows += 1) {
             datamap.createRow(instance.countRows(), 1, 'auto');
           }
         }
@@ -284,14 +284,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         // should I add empty cols to meet minCols?
         if (priv.settings.minCols && !priv.settings.columns && instance.countCols() < priv.settings.minCols) {
-          for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
+          for (; instance.countCols() < priv.settings.minCols; emptyCols += 1) {
             datamap.createCol(instance.countCols(), 1, 'auto');
           }
         }
         // should I add empty cols to meet minSpareCols?
         if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' &&
             emptyCols < priv.settings.minSpareCols) {
-          for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
+          for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols += 1) {
             datamap.createCol(instance.countCols(), 1, 'auto');
           }
         }
@@ -393,9 +393,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           repeatCol = end ? end.col - start.col + 1 : 0;
           repeatRow = end ? end.row - start.row + 1 : 0;
           input = translateRowsToColumns(input);
-          for (c = 0, clen = input.length, cmax = Math.max(clen, repeatCol); c < cmax; c++) {
+          for (c = 0, clen = input.length, cmax = Math.max(clen, repeatCol); c < cmax; c += 1) {
             if (c < clen) {
-              for (r = 0, rlen = input[c].length; r < repeatRow - rlen; r++) {
+              for (r = 0, rlen = input[c].length; r < repeatRow - rlen; r += 1) {
                 input[c].push(input[c][r % rlen]);
               }
               input[c].unshift(start.col + c, start.row, 0);
@@ -410,9 +410,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'shift_right':
           repeatCol = end ? end.col - start.col + 1 : 0;
           repeatRow = end ? end.row - start.row + 1 : 0;
-          for (r = 0, rlen = input.length, rmax = Math.max(rlen, repeatRow); r < rmax; r++) {
+          for (r = 0, rlen = input.length, rmax = Math.max(rlen, repeatRow); r < rmax; r += 1) {
             if (r < rlen) {
-              for (c = 0, clen = input[r].length; c < repeatCol - clen; c++) {
+              for (c = 0, clen = input[r].length; c < repeatCol - clen; c += 1) {
                 input[r].push(input[r][c % clen]);
               }
               input[r].unshift(start.row + r, start.col, 0);
@@ -456,7 +456,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           } else {
             rlen = Math.max(rowInputLength, rowSelectionLength);
           }
-          for (r = 0; r < rlen; r++) {
+          for (r = 0; r < rlen; r += 1) {
             if ((end && current.row > end.row && rowSelectionLength > rowInputLength) ||
                 (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) ||
                 (current.row >= priv.settings.maxRows)) {
@@ -475,15 +475,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             cellMeta = instance.getCellMeta(current.row, current.col);
 
             if ((source === 'CopyPaste.paste' || source === 'Autofill.autofill') && cellMeta.skipRowOnPaste) {
-              skippedRow++;
-              current.row++;
-              rlen++;
+              skippedRow += 1;
+              current.row += 1;
+              rlen += 1;
               /* eslint-disable no-continue */
               continue;
             }
             skippedColumn = 0;
 
-            for (c = 0; c < clen; c++) {
+            for (c = 0; c < clen; c += 1) {
               if ((end && current.col > end.col && colSelectionLength > colInputLength) ||
                   (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) ||
                   (current.col >= priv.settings.maxCols)) {
@@ -492,13 +492,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               cellMeta = instance.getCellMeta(current.row, current.col);
 
               if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipColumnOnPaste) {
-                skippedColumn++;
-                current.col++;
-                clen++;
+                skippedColumn += 1;
+                current.col += 1;
+                clen += 1;
                 continue;
               }
               if (cellMeta.readOnly) {
-                current.col++;
+                current.col += 1;
                 /* eslint-disable no-continue */
                 continue;
               }
@@ -540,9 +540,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 setData.push([current.row, current.col, value]);
               }
               pushData = true;
-              current.col++;
+              current.col += 1;
             }
-            current.row++;
+            current.row += 1;
           }
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
           break;
@@ -932,8 +932,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         c,
         changes = [];
 
-      for (r = topLeft.row; r <= bottomRight.row; r++) {
-        for (c = topLeft.col; c <= bottomRight.col; c++) {
+      for (r = topLeft.row; r <= bottomRight.row; r += 1) {
+        for (c = topLeft.col; c <= bottomRight.col; c += 1) {
           if (!instance.getCellMeta(r, c).readOnly) {
             changes.push([r, c, '']);
           }
@@ -975,7 +975,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       validatorsInQueue: 0,
       valid: true,
       addValidatorToQueue() {
-        this.validatorsInQueue++;
+        this.validatorsInQueue += 1;
         resolved = false;
       },
       removeValidatorFormQueue() {
@@ -996,7 +996,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     var waitingForValidator = new ValidatorsQueue();
     waitingForValidator.onQueueEmpty = resolve;
 
-    for (var i = changes.length - 1; i >= 0; i--) {
+    for (var i = changes.length - 1; i >= 0; i -= 1) {
       if (changes[i] === null) {
         changes.splice(i, 1);
       } else {
@@ -1043,7 +1043,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 cellProps.valid = true; // we cancelled the change, so cell value is still valid
                 const cell = instance.getCell(cellProps.visualRow, cellProps.visualCol);
                 removeClass(cell, instance.getSettings().invalidCellClassName);
-                --index;
+                index -= 1;
               }
               waitingForValidator.removeValidatorFormQueue();
             };
@@ -1084,7 +1084,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return;
     }
 
-    for (; i >= 0; i--) {
+    for (; i >= 0; i -= 1) {
       let skipThisChange = false;
 
       if (changes[i] === null) {
@@ -1214,7 +1214,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       changes = [],
       prop;
 
-    for (i = 0, ilen = input.length; i < ilen; i++) {
+    for (i = 0, ilen = input.length; i < ilen; i += 1) {
       if (typeof input[i] !== 'object') {
         throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
       }
@@ -1260,7 +1260,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ilen,
       changes = [];
 
-    for (i = 0, ilen = input.length; i < ilen; i++) {
+    for (i = 0, ilen = input.length; i < ilen; i += 1) {
       changes.push([
         input[i][0],
         input[i][1],
@@ -1491,7 +1491,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       var rlen = 0;
       var dataSchema = datamap.getSchema();
 
-      for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
+      for (r = 0, rlen = priv.settings.startRows; r < rlen; r += 1) {
         if ((instance.dataType === 'object' || instance.dataType === 'function') && priv.settings.dataSchema) {
           row = deepClone(dataSchema);
           data.push(row);
@@ -1503,7 +1503,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         } else {
           row = [];
 
-          for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
+          for (var c = 0, clen = priv.settings.startCols; c < clen; c += 1) {
             row.push(null);
           }
 
@@ -1696,7 +1696,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       let proto;
       let column;
 
-      for (i = 0, j = 0; i < clen; i++) {
+      for (i = 0, j = 0; i < clen; i += 1) {
         if (columnsAsFunc && !columnSetting(i)) {
           /* eslint-disable no-continue */
           continue;
@@ -1721,7 +1721,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
         }
 
-        j++;
+        j += 1;
       }
     }
 
@@ -2507,9 +2507,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
-        j--;
+        j -= 1;
       }
-      i--;
+      i -= 1;
     }
     waitingForValidator.checkIfQueueIsEmpty();
   };
@@ -2572,7 +2572,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (priv.settings.colHeaders !== void 0 && priv.settings.colHeaders !== null) { // Polymer has empty value = null
       return !!priv.settings.colHeaders;
     }
-    for (var i = 0, ilen = instance.countCols(); i < ilen; i++) {
+    for (var i = 0, ilen = instance.countCols(); i < ilen; i += 1) {
       if (instance.getColHeader(i)) {
         return true;
       }
@@ -2600,7 +2600,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       let out = [];
       let ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
 
-      for (let i = 0; i < ilen; i++) {
+      for (let i = 0; i < ilen; i += 1) {
         out.push(instance.getColHeader(i));
       }
 
@@ -2612,7 +2612,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         let columnsLen = instance.countSourceCols();
         let index = 0;
 
-        for (; index < columnsLen; index++) {
+        for (; index < columnsLen; index += 1) {
           if (isFunction(instance.getSettings().columns) && instance.getSettings().columns(index)) {
             arr.push(index);
           }
@@ -2833,9 +2833,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         if (instance.dataType === 'array') {
           let columnLen = 0;
 
-          for (let i = 0; i < dataLen; i++) {
+          for (let i = 0; i < dataLen; i += 1) {
             if (priv.settings.columns(i)) {
-              columnLen++;
+              columnLen += 1;
             }
           }
 
@@ -2940,12 +2940,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       row = instance.runHooks('modifyRow', i);
 
       if (instance.isEmptyRow(row)) {
-        _empty++;
+        _empty += 1;
 
       } else if (ending) {
         break;
       }
-      i--;
+      i -= 1;
     }
 
     return _empty;
@@ -2969,11 +2969,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     while (i >= 0) {
       if (instance.isEmptyCol(i)) {
-        emptyCol++;
+        emptyCol += 1;
       } else if (ending) {
         break;
       }
-      i--;
+      i -= 1;
     }
 
     return emptyCol;
@@ -3345,7 +3345,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    */
   this._clearTimeouts = function () {
-    for (var i = 0, ilen = this.timeouts.length; i < ilen; i++) {
+    for (var i = 0, ilen = this.timeouts.length; i < ilen; i += 1) {
       clearTimeout(this.timeouts[i]);
     }
   };

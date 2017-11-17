@@ -20,8 +20,8 @@ function Search(instance) {
       queryMethod = Search.global.getDefaultQueryMethod();
     }
 
-    for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-      for (var colIndex = 0; colIndex < colCount; colIndex++) {
+    for (var rowIndex = 0; rowIndex < rowCount; rowIndex += 1) {
+      for (var colIndex = 0; colIndex < colCount; colIndex += 1) {
         var cellData = instance.getDataAtCell(rowIndex, colIndex);
         var cellProperties = instance.getCellMeta(rowIndex, colIndex);
         var cellCallback = cellProperties.search.callback || callback;

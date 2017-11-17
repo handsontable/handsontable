@@ -34,8 +34,8 @@ describe('CellDecorator', () => {
     var cols = countCols(),
       rows = countRows();
 
-    for (let i = 0; i < cols; i++) {
-      for (let j = 0; j < rows; j++) {
+    for (let i = 0; i < cols; i += 1) {
+      for (let j = 0; j < rows; j += 1) {
         expect($(getCell(i, j)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(true);
       }
     }
@@ -53,11 +53,11 @@ describe('CellDecorator', () => {
 
     var rows = countRows();
 
-    for (let i = 0; i < rows; i++) {
+    for (let i = 0; i < rows; i += 1) {
       expect($(getCell(i, 1)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(true);
     }
 
-    for (let i = 0; i < rows; i++) {
+    for (let i = 0; i < rows; i += 1) {
       expect($(getCell(i, 0)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(false); // no class added to other columns
       expect($(getCell(i, 2)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(false);
     }

@@ -57,7 +57,7 @@ class EventManager {
     } else {
       element.attachEvent(`on${eventName}`, callbackProxy);
     }
-    listenersCounter++;
+    listenersCounter += 1;
 
     return () => {
       this.removeEventListener(element, eventName, callback);
@@ -75,7 +75,8 @@ class EventManager {
     let len = this.context.eventListeners.length;
     let tmpEvent;
 
-    while (len--) {
+    while (len) {
+      len -= 1;
       tmpEvent = this.context.eventListeners[len];
 
       if (tmpEvent.event === eventName && tmpEvent.element === element) {
@@ -90,7 +91,8 @@ class EventManager {
         } else {
           tmpEvent.element.detachEvent(`on${tmpEvent.event}`, tmpEvent.callbackProxy);
         }
-        listenersCounter--;
+
+        listenersCounter -= 1;
       }
     }
   }
@@ -107,7 +109,9 @@ class EventManager {
     }
     let len = this.context.eventListeners.length;
 
-    while (len--) {
+    while (len) {
+      len -= 1;
+
       let event = this.context.eventListeners[len];
 
       if (event) {
@@ -206,7 +210,9 @@ function extendEvent(context, event) {
   event = polymerWrap(event);
   len = event.path ? event.path.length : 0;
 
-  while (len--) {
+  while (len) {
+    len -= 1;
+
     if (event.path[len].nodeName === componentName) {
       isHotTableSpotted = true;
 

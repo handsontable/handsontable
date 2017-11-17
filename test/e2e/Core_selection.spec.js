@@ -400,10 +400,10 @@ describe('Core_selection', () => {
       startRows: 5,
       startCols: 5,
       afterSelection() {
-        tick++;
+        tick += 1;
       },
       afterSelectionEnd() {
-        tickEnd++;
+        tickEnd += 1;
       },
     });
     selectCell(3, 0);
@@ -419,13 +419,13 @@ describe('Core_selection', () => {
       startRows: 5,
       startCols: 5,
       afterSelectionEnd() {
-        tick++;
+        tick += 1;
       },
     });
-    selectCell(3, 0); // makes tick++
-    keyDownUp('shift+arrow_down'); // makes tick++
-    keyDownUp('shift+arrow_down'); // makes tick++
-    keyDownUp('shift+arrow_down'); // makes tick++
+    selectCell(3, 0); // makes tick += 1
+    keyDownUp('shift+arrow_down'); // makes tick += 1
+    keyDownUp('shift+arrow_down'); // makes tick += 1
+    keyDownUp('shift+arrow_down'); // makes tick += 1
 
     expect(getSelected()).toEqual([3, 0, 4, 0]);
     expect(tick).toEqual(4);
@@ -437,13 +437,13 @@ describe('Core_selection', () => {
       startRows: 5,
       startCols: 5,
       afterSelectionEnd() {
-        tick++;
+        tick += 1;
       },
     });
-    selectCell(3, 0); // makes tick++
+    selectCell(3, 0); // makes tick += 1
     keyDown('shift+arrow_down');
     keyDown('shift+arrow_down');
-    keyDownUp('shift+arrow_down'); // makes tick++
+    keyDownUp('shift+arrow_down'); // makes tick += 1
 
     expect(getSelected()).toEqual([3, 0, 4, 0]);
     expect(tick).toEqual(2);
@@ -538,10 +538,10 @@ describe('Core_selection', () => {
       startRows: 5,
       startCols: 5,
       afterSelection() {
-        tick++;
+        tick += 1;
       },
       afterSelectionEnd() {
-        tickEnd++;
+        tickEnd += 1;
       },
     });
 
@@ -741,7 +741,7 @@ describe('Core_selection', () => {
   it('should allow to scroll the table when a whole column is selected and table is longer than it\'s container', function (done) {
     var errCount = 0;
     $(window).on('error.selectionTest', () => {
-      errCount++;
+      errCount += 1;
     });
 
     var onAfterScrollVertically = jasmine.createSpy('onAfterScrollVertically');

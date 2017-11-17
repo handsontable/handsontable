@@ -1699,14 +1699,15 @@ class Hooks {
   run(context, key, p1, p2, p3, p4, p5, p6) {
     {
       const globalHandlers = this.globalBucket[key];
-      let index = -1;
+      let index = 0;
       let length = globalHandlers ? globalHandlers.length : 0;
 
       if (length) {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-        while (++index < length) {
+        while (index < length) {
           if (!globalHandlers[index] || globalHandlers[index].skip) {
             /* eslint-disable no-continue */
+            index += 1;
             continue;
           }
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
@@ -1718,19 +1719,22 @@ class Hooks {
           if (globalHandlers[index] && globalHandlers[index].runOnce) {
             this.remove(key, globalHandlers[index]);
           }
+
+          index += 1;
         }
       }
     }
     {
       const localHandlers = this.getBucket(context)[key];
-      let index = -1;
+      let index = 0;
       let length = localHandlers ? localHandlers.length : 0;
 
       if (length) {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-        while (++index < length) {
+        while (index < length) {
           if (!localHandlers[index] || localHandlers[index].skip) {
             /* eslint-disable no-continue */
+            index += 1;
             continue;
           }
           // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
@@ -1742,6 +1746,8 @@ class Hooks {
           if (localHandlers[index] && localHandlers[index].runOnce) {
             this.remove(key, localHandlers[index], context);
           }
+
+          index += 1;
         }
       }
     }

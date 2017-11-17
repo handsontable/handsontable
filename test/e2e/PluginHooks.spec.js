@@ -209,7 +209,7 @@ describe('PluginHooks', () => {
   it('adding same hook twice should register it only once (without an error)', () => {
     var i = 0;
     var fn = function () {
-      i++;
+      i += 1;
     };
 
     var hot = handsontable({

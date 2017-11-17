@@ -505,10 +505,10 @@ export function createNumericData(rowCount, colCount) {
     i,
     j;
 
-  for (i = 0; i < rowCount; i++) {
+  for (i = 0; i < rowCount; i += 1) {
     var row = [];
 
-    for (j = 0; j < colCount; j++) {
+    for (j = 0; j < colCount; j += 1) {
       row.push((i + 1));
     }
     rows.push(row);

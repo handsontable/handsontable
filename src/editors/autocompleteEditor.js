@@ -187,7 +187,7 @@ AutocompleteEditor.prototype.updateChoicesList = function (choices) {
   } else {
     let sorted = [];
 
-    for (let i = 0, choicesCount = choices.length; i < choicesCount; i++) {
+    for (let i = 0, choicesCount = choices.length; i < choicesCount; i += 1) {
       if (sortByRelevanceSetting && orderByRelevanceLength <= i) {
         break;
       }
@@ -259,7 +259,7 @@ AutocompleteEditor.prototype.limitDropdownIfNeeded = function (spaceAvailable, d
     do {
       lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.wtSettings.settings.defaultRowHeight;
       tempHeight += lastRowHeight;
-      i++;
+      i += 1;
     } while (tempHeight < spaceAvailable);
 
     height = tempHeight - lastRowHeight;
@@ -343,13 +343,13 @@ AutocompleteEditor.sortByRelevance = function (value, choices, caseSensitive) {
   let choicesCount = choices.length;
 
   if (valueLength === 0) {
-    for (i = 0; i < choicesCount; i++) {
+    for (i = 0; i < choicesCount; i += 1) {
       result.push(i);
     }
     return result;
   }
 
-  for (i = 0; i < choicesCount; i++) {
+  for (i = 0; i < choicesCount; i += 1) {
     currentItem = stripTags(stringify(choices[i]));
 
     if (caseSensitive) {
@@ -394,7 +394,7 @@ AutocompleteEditor.sortByRelevance = function (value, choices, caseSensitive) {
     return 0;
   });
 
-  for (i = 0, choicesCount = choicesRelevance.length; i < choicesCount; i++) {
+  for (i = 0, choicesCount = choicesRelevance.length; i < choicesCount; i += 1) {
     result.push(choicesRelevance[i].baseIndex);
   }
 

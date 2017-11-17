@@ -2184,7 +2184,7 @@ describe('AutocompleteEditor', () => {
 
       expect(listLength).toBe(9);
 
-      for (var i = 1; i <= listLength; i++) {
+      for (var i = 1; i <= listLength; i += 1) {
         expect(dropdownList.find(`tr:nth-child(${i}) td`).text()).toEqual(choices2[i - 1]);
       }
       done();

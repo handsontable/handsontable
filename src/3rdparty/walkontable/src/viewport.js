@@ -131,7 +131,7 @@ class Viewport {
 
     while (from < length) {
       sum += this.wot.wtTable.getColumnWidth(from);
-      from++;
+      from += 1;
     }
 
     return sum;
@@ -223,7 +223,7 @@ class Viewport {
     if (rowHeadersHeightSetting) {
       this.rowHeaderWidth = 0;
 
-      for (let i = 0, len = rowHeaders.length; i < len; i++) {
+      for (let i = 0, len = rowHeaders.length; i < len; i += 1) {
         this.rowHeaderWidth += rowHeadersHeightSetting[i] || rowHeadersHeightSetting;
       }
     }
@@ -238,7 +238,7 @@ class Viewport {
         let TH = this.instance.wtTable.TABLE.querySelector('TH');
         this.rowHeaderWidth = 0;
 
-        for (let i = 0, len = rowHeaders.length; i < len; i++) {
+        for (let i = 0, len = rowHeaders.length; i < len; i += 1) {
           if (TH) {
             this.rowHeaderWidth += outerWidth(TH);
             TH = TH.nextSibling;

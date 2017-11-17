@@ -1296,8 +1296,8 @@ describe('ContextMenu', () => {
         height: 100,
       });
 
-      for (let i = 0; i < 2; i++) {
-        for (let j = 0; j < 2; j++) {
+      for (let i = 0; i < 2; i += 1) {
+        for (let j = 0; j < 2; j += 1) {
           expect(hot.getCellMeta(i, j).readOnly).toEqual(false);
         }
       }
@@ -1308,8 +1308,8 @@ describe('ContextMenu', () => {
       var menu = $('.htContextMenu .ht_master .htCore tbody');
       menu.find('td').not('.htSeparator').eq(8).simulate('mousedown');
 
-      for (let i = 0; i < 2; i++) {
-        for (let j = 0; j < 2; j++) {
+      for (let i = 0; i < 2; i += 1) {
+        for (let j = 0; j < 2; j += 1) {
           expect(hot.getCellMeta(i, j).readOnly).toEqual(true);
         }
       }
@@ -1337,8 +1337,8 @@ describe('ContextMenu', () => {
         height: 100,
       });
 
-      for (let i = 0; i < 2; i++) {
-        for (let j = 0; j < 2; j++) {
+      for (let i = 0; i < 2; i += 1) {
+        for (let j = 0; j < 2; j += 1) {
           expect(hot.getCellMeta(i, j).readOnly).toEqual(false);
         }
       }
@@ -1350,8 +1350,8 @@ describe('ContextMenu', () => {
       var menu = $('.htContextMenu .ht_master .htCore tbody');
       menu.find('td').not('.htSeparator').eq(8).simulate('mousedown'); // Make read-only
 
-      for (let i = 0; i < 2; i++) {
-        for (let j = 0; j < 2; j++) {
+      for (let i = 0; i < 2; i += 1) {
+        for (let j = 0; j < 2; j += 1) {
           expect(hot.getCellMeta(i, j).readOnly).toEqual(true);
         }
       }
@@ -1364,8 +1364,8 @@ describe('ContextMenu', () => {
         height: 100,
       });
 
-      for (let i = 0; i < 2; i++) {
-        for (let j = 0; j < 2; j++) {
+      for (let i = 0; i < 2; i += 1) {
+        for (let j = 0; j < 2; j += 1) {
           expect(hot.getCellMeta(i, j).readOnly).toEqual(false);
         }
       }
@@ -1378,8 +1378,8 @@ describe('ContextMenu', () => {
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(8)
         .simulate('mousedown'); // Make writable
 
-      for (let i = 0; i < 2; i++) {
-        for (let j = 0; j < 2; j++) {
+      for (let i = 0; i < 2; i += 1) {
+        for (let j = 0; j < 2; j += 1) {
           expect(hot.getCellMeta(i, j).readOnly).toEqual(false);
         }
       }
@@ -1392,8 +1392,8 @@ describe('ContextMenu', () => {
         height: 100,
       });
 
-      for (let i = 0; i < 2; i++) {
-        for (let j = 0; j < 2; j++) {
+      for (let i = 0; i < 2; i += 1) {
+        for (let j = 0; j < 2; j += 1) {
           expect(hot.getCellMeta(i, j).readOnly).toEqual(false);
         }
       }
@@ -1406,8 +1406,8 @@ describe('ContextMenu', () => {
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(8)
         .simulate('mousedown'); // Make writable
 
-      for (let i = 0; i < 2; i++) {
-        for (let j = 0; j < 2; j++) {
+      for (let i = 0; i < 2; i += 1) {
+        for (let j = 0; j < 2; j += 1) {
           expect(hot.getCellMeta(i, j).readOnly).toEqual(false);
         }
       }

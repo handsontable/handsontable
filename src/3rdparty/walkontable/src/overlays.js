@@ -428,13 +428,13 @@ class Overlays {
       scrollValueChanged = true;
 
       if (this.pendingScrollCallbacks.master.left > 0) {
-        this.pendingScrollCallbacks.master.left--;
+        this.pendingScrollCallbacks.master.left -= 1;
 
       } else {
         if (topOverlay && topOverlay.scrollLeft !== tempScrollValue) {
 
           if (fakeScrollValue === null || fakeScrollValue === void 0) {
-            this.pendingScrollCallbacks.top.left++;
+            this.pendingScrollCallbacks.top.left += 1;
           }
 
           topOverlay.scrollLeft = tempScrollValue;
@@ -444,7 +444,7 @@ class Overlays {
         if (bottomOverlay && bottomOverlay.scrollLeft !== tempScrollValue) {
 
           if (fakeScrollValue === null || fakeScrollValue === void 0) {
-            this.pendingScrollCallbacks.bottom.left++;
+            this.pendingScrollCallbacks.bottom.left += 1;
           }
 
           bottomOverlay.scrollLeft = tempScrollValue;
@@ -459,11 +459,11 @@ class Overlays {
       scrollValueChanged = true;
 
       if (this.pendingScrollCallbacks.master.top > 0) {
-        this.pendingScrollCallbacks.master.top--;
+        this.pendingScrollCallbacks.master.top -= 1;
 
       } else if (leftOverlay && leftOverlay.scrollTop !== tempScrollValue) {
         if (fakeScrollValue === null || fakeScrollValue === void 0) {
-          this.pendingScrollCallbacks.left.top++;
+          this.pendingScrollCallbacks.left.top += 1;
         }
 
         leftOverlay.scrollTop = tempScrollValue;
@@ -479,18 +479,18 @@ class Overlays {
       scrollValueChanged = true;
 
       if (this.pendingScrollCallbacks.bottom.left > 0) {
-        this.pendingScrollCallbacks.bottom.left--;
+        this.pendingScrollCallbacks.bottom.left -= 1;
 
       } else {
         if (fakeScrollValue === null || fakeScrollValue === void 0) {
-          this.pendingScrollCallbacks.master.left++;
+          this.pendingScrollCallbacks.master.left += 1;
         }
 
         masterHorizontal.scrollLeft = tempScrollValue;
 
         if (topOverlay && topOverlay.scrollLeft !== tempScrollValue) {
           if (fakeScrollValue === null || fakeScrollValue === void 0) {
-            this.pendingScrollCallbacks.top.left++;
+            this.pendingScrollCallbacks.top.left += 1;
           }
 
           topOverlay.scrollLeft = tempScrollValue;
@@ -514,12 +514,12 @@ class Overlays {
       scrollValueChanged = true;
 
       if (this.pendingScrollCallbacks.top.left > 0) {
-        this.pendingScrollCallbacks.top.left--;
+        this.pendingScrollCallbacks.top.left -= 1;
 
       } else {
 
         if (fakeScrollValue === null || fakeScrollValue === void 0) {
-          this.pendingScrollCallbacks.master.left++;
+          this.pendingScrollCallbacks.master.left += 1;
         }
 
         masterHorizontal.scrollLeft = tempScrollValue;
@@ -533,7 +533,7 @@ class Overlays {
 
       if (bottomOverlay && bottomOverlay.scrollLeft !== tempScrollValue) {
         if (fakeScrollValue === null || fakeScrollValue === void 0) {
-          this.pendingScrollCallbacks.bottom.left++;
+          this.pendingScrollCallbacks.bottom.left += 1;
         }
 
         bottomOverlay.scrollLeft = tempScrollValue;
@@ -550,11 +550,11 @@ class Overlays {
         scrollValueChanged = true;
 
         if (this.pendingScrollCallbacks.left.top > 0) {
-          this.pendingScrollCallbacks.left.top--;
+          this.pendingScrollCallbacks.left.top -= 1;
 
         } else {
           if (fakeScrollValue === null || fakeScrollValue === void 0) {
-            this.pendingScrollCallbacks.master.top++;
+            this.pendingScrollCallbacks.master.top += 1;
           }
 
           masterVertical.scrollTop = tempScrollValue;

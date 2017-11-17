@@ -1239,7 +1239,7 @@ describe('Walkontable.CellRange', () => {
       var range = new Walkontable.CellRange(from, from, to);
       var callCount = 0;
       range.forAll(() => {
-        callCount++;
+        callCount += 1;
         if (callCount === 2) {
           return false;
         }

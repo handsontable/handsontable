@@ -296,7 +296,7 @@ class Table {
   removeClassFromCells(className) {
     const nodes = this.TABLE.querySelectorAll(`.${className}`);
 
-    for (let i = 0, len = nodes.length; i < len; i++) {
+    for (let i = 0, len = nodes.length; i < len; i += 1) {
       removeClass(nodes[i], className);
     }
   }
@@ -308,7 +308,7 @@ class Table {
     let len = this.wot.selections.length;
 
     if (fastDraw) {
-      for (let i = 0; i < len; i++) {
+      for (let i = 0; i < len; i += 1) {
         // there was no rerender, so we need to remove classNames by ourselves
         if (this.wot.selections[i].settings.className) {
           this.removeClassFromCells(this.wot.selections[i].settings.className);
@@ -324,7 +324,7 @@ class Table {
         }
       }
     }
-    for (let i = 0; i < len; i++) {
+    for (let i = 0; i < len; i += 1) {
       this.wot.selections[i].draw(this.wot, fastDraw);
     }
   }
@@ -647,7 +647,7 @@ class Table {
       width = this.wot.getSetting('defaultColumnWidth');
     }
     if (this.correctHeaderWidth) {
-      width++;
+      width += 1;
     }
 
     return width;

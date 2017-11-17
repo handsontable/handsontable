@@ -31,7 +31,7 @@ export function rangeEach(rangeFrom, rangeTo, iteratee) {
   } else {
     index = rangeFrom - 1;
   }
-  while (++index <= rangeTo) {
+  while ((index += 1) <= rangeTo) {
     if (iteratee(index) === false) {
       break;
     }

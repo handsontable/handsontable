@@ -2189,8 +2189,8 @@ describe('UndoRedo', () => {
 
         // check if all cells are either non-adjusted or adjusted to the left (as default)
         var finish;
-        for (var i = 0; i < 9; i++) {
-          for (var j = 0; j < 9; j++) {
+        for (var i = 0; i < 9; i += 1) {
+          for (var j = 0; j < 9; j += 1) {
             cellMeta = hot.getCellMeta(i, j);
             finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' || cellMeta.className.trim() === 'htLeft';
             expect(finish).toBe(true);
@@ -2259,8 +2259,8 @@ describe('UndoRedo', () => {
 
         // check if all cells are either non-adjusted or adjusted to the left (as default)
         var finish;
-        for (var i = 0; i < 9; i++) {
-          for (var j = 0; j < 9; j++) {
+        for (var i = 0; i < 9; i += 1) {
+          for (var j = 0; j < 9; j += 1) {
             cellMeta = hot.getCellMeta(i, j);
             finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' || cellMeta.className.trim() === 'htLeft';
             expect(finish).toBe(true);

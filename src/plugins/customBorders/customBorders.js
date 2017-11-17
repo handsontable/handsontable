@@ -80,7 +80,7 @@ var init = function () {
  * @returns {Number}
  */
 var getSettingIndex = function (className) {
-  for (var i = 0; i < instance.view.wt.selections.length; i++) {
+  for (var i = 0; i < instance.view.wt.selections.length; i += 1) {
     if (instance.view.wt.selections[i].settings.className === className) {
       return i;
     }
@@ -132,13 +132,13 @@ var prepareBorderFromCustomAdded = function (row, col, borderObj) {
 var prepareBorderFromCustomAddedRange = function (rowObj) {
   var range = rowObj.range;
 
-  for (var row = range.from.row; row <= range.to.row; row++) {
-    for (var col = range.from.col; col <= range.to.col; col++) {
+  for (var row = range.from.row; row <= range.to.row; row += 1) {
+    for (var col = range.from.col; col <= range.to.col; col += 1) {
       var border = createEmptyBorders(row, col);
       var add = 0;
 
       if (row === range.from.row) {
-        add++;
+        add += 1;
 
         if (hasOwnProperty(rowObj, 'top')) {
           border.top = rowObj.top;
@@ -146,7 +146,7 @@ var prepareBorderFromCustomAddedRange = function (rowObj) {
       }
 
       if (row === range.to.row) {
-        add++;
+        add += 1;
 
         if (hasOwnProperty(rowObj, 'bottom')) {
           border.bottom = rowObj.bottom;
@@ -154,7 +154,7 @@ var prepareBorderFromCustomAddedRange = function (rowObj) {
       }
 
       if (col === range.from.col) {
-        add++;
+        add += 1;
 
         if (hasOwnProperty(rowObj, 'left')) {
           border.left = rowObj.left;
@@ -162,7 +162,7 @@ var prepareBorderFromCustomAddedRange = function (rowObj) {
       }
 
       if (col === range.to.col) {
-        add++;
+        add += 1;
 
         if (hasOwnProperty(rowObj, 'right')) {
           border.right = rowObj.right;
@@ -276,7 +276,7 @@ var extendDefaultBorder = function (defaultBorder, customBorder) {
 var removeBordersFromDom = function (borderClassName) {
   var borders = document.querySelectorAll(`.${borderClassName}`);
 
-  for (var i = 0; i < borders.length; i++) {
+  for (var i = 0; i < borders.length; i += 1) {
     if (borders[i]) {
       if (borders[i].nodeName !== 'TD') {
         var parent = borders[i].parentNode;
@@ -350,29 +350,29 @@ var prepareBorder = function (range, place, remove) {
   } else {
     switch (place) {
       case 'noBorders':
-        for (var column = range.from.col; column <= range.to.col; column++) {
-          for (var row = range.from.row; row <= range.to.row; row++) {
+        for (var column = range.from.col; column <= range.to.col; column += 1) {
+          for (var row = range.from.row; row <= range.to.row; row += 1) {
             removeAllBorders.call(this, row, column);
           }
         }
         break;
       case 'top':
-        for (var topCol = range.from.col; topCol <= range.to.col; topCol++) {
+        for (var topCol = range.from.col; topCol <= range.to.col; topCol += 1) {
           setBorder.call(this, range.from.row, topCol, place, remove);
         }
         break;
       case 'right':
-        for (var rowRight = range.from.row; rowRight <= range.to.row; rowRight++) {
+        for (var rowRight = range.from.row; rowRight <= range.to.row; rowRight += 1) {
           setBorder.call(this, rowRight, range.to.col, place);
         }
         break;
       case 'bottom':
-        for (var bottomCol = range.from.col; bottomCol <= range.to.col; bottomCol++) {
+        for (var bottomCol = range.from.col; bottomCol <= range.to.col; bottomCol += 1) {
           setBorder.call(this, range.to.row, bottomCol, place);
         }
         break;
       case 'left':
-        for (var rowLeft = range.from.row; rowLeft <= range.to.row; rowLeft++) {
+        for (var rowLeft = range.from.row; rowLeft <= range.to.row; rowLeft += 1) {
           setBorder.call(this, rowLeft, range.from.col, place);
         }
         break;
@@ -526,7 +526,7 @@ Hooks.getSingleton().add('afterInit', function () {
   var customBorders = this.getSettings().customBorders;
 
   if (customBorders) {
-    for (var i = 0; i < customBorders.length; i++) {
+    for (var i = 0; i < customBorders.length; i += 1) {
       if (customBorders[i].range) {
         prepareBorderFromCustomAddedRange.call(this, customBorders[i]);
 

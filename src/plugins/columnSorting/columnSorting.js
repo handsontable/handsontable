@@ -443,7 +443,7 @@ class ColumnSorting extends BasePlugin {
       nrOfRows = this.hot.countRows() - emptyRows;
     }
 
-    for (let i = 0, ilen = nrOfRows; i < ilen; i++) {
+    for (let i = 0, ilen = nrOfRows; i < ilen; i += 1) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
     }
 
@@ -466,7 +466,7 @@ class ColumnSorting extends BasePlugin {
     mergeSort(this.hot.sortIndex, sortFunction(this.hot.sortOrder, colMeta));
 
     // Append spareRows
-    for (let i = this.hot.sortIndex.length; i < this.hot.countRows(); i++) {
+    for (let i = this.hot.sortIndex.length; i < this.hot.countRows(); i += 1) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
     }
 
@@ -509,7 +509,7 @@ class ColumnSorting extends BasePlugin {
     let result;
 
     if (this.hot.sortingEnabled && this.hot.sortIndex && this.hot.sortIndex.length) {
-      for (var i = 0; i < this.hot.sortIndex.length; i++) {
+      for (var i = 0; i < this.hot.sortIndex.length; i += 1) {
         if (this.hot.sortIndex[i][0] === row) {
           result = i;
           break;
@@ -580,13 +580,13 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    for (let i = 0; i < this.hot.sortIndex.length; i++) {
+    for (let i = 0; i < this.hot.sortIndex.length; i += 1) {
       if (this.hot.sortIndex[i][0] >= index) {
         this.hot.sortIndex[i][0] += amount;
       }
     }
 
-    for (let i = 0; i < amount; i++) {
+    for (let i = 0; i < amount; i += 1) {
       this.hot.sortIndex.splice(index + i, 0, [index + i, this.hot.getSourceData()[index + i][this.hot.sortColumn + this.hot.colOffset()]]);
     }
 
@@ -612,7 +612,7 @@ class ColumnSorting extends BasePlugin {
       // Todo: compare perf between reduce vs sort->each->brake
       return arrayReduce(removedRows, (count, removedLogicalRow) => {
         if (logicalRow > removedLogicalRow) {
-          count++;
+          count += 1;
         }
 
         return count;

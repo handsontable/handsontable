@@ -508,7 +508,7 @@ describe('WalkontableEvent', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         onDraw() {
-          count++;
+          count += 1;
         },
       });
     wt.draw();

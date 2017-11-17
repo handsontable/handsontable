@@ -169,7 +169,7 @@ class Autofill extends BasePlugin {
           dragLength = endOfDragCoords.row - startOfDragCoords.row + 1;
           fillOffset = dragLength % selectionData.length;
 
-          for (let i = 0; i < dragLength; i++) {
+          for (let i = 0; i < dragLength; i += 1) {
             fillData.push(selectionData[(i + (selectionData.length - fillOffset)) % selectionData.length]);
           }
 
@@ -177,9 +177,9 @@ class Autofill extends BasePlugin {
           dragLength = endOfDragCoords.col - startOfDragCoords.col + 1;
           fillOffset = dragLength % selectionData[0].length;
 
-          for (let i = 0; i < selectionData.length; i++) {
+          for (let i = 0; i < selectionData.length; i += 1) {
             fillData.push([]);
-            for (let j = 0; j < dragLength; j++) {
+            for (let j = 0; j < dragLength; j += 1) {
               fillData[i].push(selectionData[i][(j + (selectionData[i].length - fillOffset)) % selectionData[i].length]);
             }
           }
@@ -328,8 +328,8 @@ class Autofill extends BasePlugin {
     const nrOfTableRows = this.hot.countRows();
     let lastFilledInRowIndex;
 
-    for (let rowIndex = cornersOfSelectedCells[2] + 1; rowIndex < nrOfTableRows; rowIndex++) {
-      for (let columnIndex = cornersOfSelectedCells[1]; columnIndex <= cornersOfSelectedCells[3]; columnIndex++) {
+    for (let rowIndex = cornersOfSelectedCells[2] + 1; rowIndex < nrOfTableRows; rowIndex += 1) {
+      for (let columnIndex = cornersOfSelectedCells[1]; columnIndex <= cornersOfSelectedCells[3]; columnIndex += 1) {
         const dataInCell = data[rowIndex][columnIndex];
 
         if (dataInCell) {
@@ -485,7 +485,7 @@ class Autofill extends BasePlugin {
    */
   onBeforeCellMouseOver(coords) {
     if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
-      this.handleDraggedCells++;
+      this.handleDraggedCells += 1;
 
       this.showBorder(coords);
       this.addNewRowIfNeeded();

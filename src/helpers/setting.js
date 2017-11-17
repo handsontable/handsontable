@@ -13,7 +13,7 @@ export function columnFactory(GridSettings, conflictList) {
   inherit(ColumnSettings, GridSettings);
 
   // Clear conflict settings
-  for (let i = 0, len = conflictList.length; i < len; i++) {
+  for (let i = 0, len = conflictList.length; i < len; i += 1) {
     ColumnSettings.prototype[conflictList[i]] = void 0;
   }
 

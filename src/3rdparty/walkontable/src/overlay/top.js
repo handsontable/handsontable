@@ -111,7 +111,7 @@ class TopOverlay extends Overlay {
       let height = this.wot.wtTable.getRowHeight(from);
 
       sum += height === void 0 ? defaultRowHeight : height;
-      from++;
+      from += 1;
     }
 
     return sum;
@@ -339,7 +339,7 @@ class TopOverlay extends Overlay {
       let secondHeaderCell = this.clone.wtTable.THEAD.querySelectorAll('th:nth-of-type(2)');
 
       if (secondHeaderCell) {
-        for (let i = 0; i < secondHeaderCell.length; i++) {
+        for (let i = 0; i < secondHeaderCell.length; i += 1) {
           secondHeaderCell[i].style['border-left-width'] = 0;
         }
       }

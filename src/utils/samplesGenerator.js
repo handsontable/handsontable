@@ -173,7 +173,7 @@ class SamplesGenerator {
 
           sample.strings.push({value, [computedKey]: index});
           sampledValues.push(value);
-          sample.needed--;
+          sample.needed -= 1;
         }
       }
     });
