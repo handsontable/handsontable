@@ -1,7 +1,7 @@
 /**
  * @preserve
  * Authors: Handsoncode
- * Last updated: Nov 15, 2017
+ * Last updated: Nov 17, 2017
  *
  * Description: Definition file for Polish - Poland language-country.
  */
@@ -50,8 +50,8 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopiuj',
   [C.CONTEXTMENU_ITEMS_CUT]: 'Wytnij',
 
-  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Wstaw wiersz dziecko',
-  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Odłącz od ojca',
+  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Wstaw wiersz podrzędny',
+  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Odłącz od nadrzędnego',
 
   [C.CONTEXTMENU_ITEMS_HIDE_COLUMN]: ['Ukryj kolumnę', 'Ukryj kolumny'],
   [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: ['Pokaż kolumnę', 'Pokaż kolumny'],
@@ -80,7 +80,7 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_TOMORROW]: 'Jutro',
   [C.FILTERS_CONDITIONS_YESTERDAY]: 'Wczoraj',
 
-  [C.FILTERS_VALUES_BLANK_CELLS]: 'Puste komórki',
+  [C.FILTERS_VALUES_BLANK_CELLS]: 'Puste miejsca',
 
   [C.FILTERS_DIVS_FILTER_BY_CONDITION]: 'Filtruj wg warunku',
   [C.FILTERS_DIVS_FILTER_BY_VALUE]: 'Filtruj wg wartości',
