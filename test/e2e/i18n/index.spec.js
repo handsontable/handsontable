@@ -91,6 +91,9 @@ describe('i18n', () => {
           filters: true
         });
 
+        // creating DOM elements
+        dropdownMenu(0);
+
         hot.updateSettings({language: POLISH_LANGUAGE_CODE});
 
         dropdownMenu(0);
@@ -125,6 +128,9 @@ describe('i18n', () => {
           dropdownMenu: true,
           filters: true
         });
+
+        // creating DOM elements
+        dropdownMenu(0);
 
         hot.updateSettings({language: POLISH_LANGUAGE_CODE});
 
@@ -161,6 +167,9 @@ describe('i18n', () => {
           filters: true
         });
 
+        // creating DOM elements
+        dropdownMenu(0);
+
         hot.updateSettings({language: POLISH_LANGUAGE_CODE});
 
         dropdownMenu(0);
@@ -196,6 +205,9 @@ describe('i18n', () => {
           filters: true
         });
 
+        // creating DOM elements
+        dropdownMenu(0);
+
         hot.updateSettings({language: POLISH_LANGUAGE_CODE});
 
         dropdownMenu(0);
@@ -207,7 +219,7 @@ describe('i18n', () => {
     });
 
     it('should translate empty value inside values component when setting existing language code at start', () => {
-      const FILTERS_VALUES_BLANK_CELLS_IN_POLISH_LANGUAGE = '(Puste komórki)';
+      const FILTERS_VALUES_BLANK_CELLS_IN_POLISH_LANGUAGE = '(Puste miejsca)';
       const data = getDataForFilters();
       data[0].name = '';
 
@@ -227,7 +239,7 @@ describe('i18n', () => {
 
   describe('contextMenu translation', () => {
     it('should translate item from enabled `nestedRows` plugin when setting existing language code at start', () => {
-      const NESTED_ROWS_INSERT_CHILD_IN_POLISH = 'Wstaw wiersz dziecko';
+      const NESTED_ROWS_INSERT_CHILD_IN_POLISH = 'Wstaw wiersz podrzędny';
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 1),

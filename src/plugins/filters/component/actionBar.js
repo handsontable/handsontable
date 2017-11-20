@@ -25,7 +25,7 @@ class ActionBarComponent extends BaseComponent {
     this.elements.push(
       new InputUI(this.hot, {
         type: 'button',
-        value: () => this.hot.getTranslatedPhrase(constants.FILTERS_BUTTONS_OK),
+        value: () => constants.FILTERS_BUTTONS_OK,
         className: 'htUIButton htUIButtonOK',
         identifier: ActionBarComponent.BUTTON_OK
       })
@@ -33,7 +33,7 @@ class ActionBarComponent extends BaseComponent {
     this.elements.push(
       new InputUI(this.hot, {
         type: 'button',
-        value: () => this.hot.getTranslatedPhrase(constants.FILTERS_BUTTONS_CANCEL),
+        value: () => constants.FILTERS_BUTTONS_CANCEL,
         className: 'htUIButton htUIButtonCancel',
         identifier: ActionBarComponent.BUTTON_CANCEL
       })

@@ -108,17 +108,36 @@ class BaseUI {
   }
 
   /**
-   * Parse values within options object.
+   * Parse properties within options object.
    *
    * @param {Object} options List of element options.
    */
-  parseValues(options) {
-    objectEach(options, (value, key) => {
+  parseProperties(options) {
+    const parsedOptions = clone(options);
+
+    objectEach(parsedOptions, (value, key) => {
       if (isObject(value)) {
-        this.parseValues(value);
+        parsedOptions[key] = this.parseProperties(value);
 
       } else if (isFunction(value)) {
-        options[key] = value();
+        parsedOptions[key] = this.hot.getTranslatedPhrase(value());
+      }
+    });
+
+    return parsedOptions;
+  }
+
+  /**
+   * Set DOM element properties.
+   *
+   * @param element
+   */
+  setElementProperties(element) {
+    const parsedOptions = this.parseProperties(this.options);
+
+    objectEach(parsedOptions, (value, key) => {
+      if (element[key] !== void 0 && key !== 'className' && key !== 'tagName' && key !== 'children') {
+        element[key] = value;
       }
     });
   }
@@ -130,8 +149,6 @@ class BaseUI {
     const registerEvent = (element, eventName) => {
       this.eventManager.addEventListener(element, eventName, (event) => this.runLocalHooks(eventName, event, this));
     };
-
-    this.parseValues(this.options);
 
     if (!this.buildState) {
       this.buildState = STATE_BUILDING;
@@ -145,11 +162,7 @@ class BaseUI {
     } else if (this.options.wrapIt) {
       const element = document.createElement(this.options.tagName);
 
-      objectEach(this.options, (value, key) => {
-        if (element[key] !== void 0 && key !== 'className' && key !== 'tagName' && key !== 'children') {
-          element[key] = value;
-        }
-      });
+      this.setElementProperties(element);
 
       this._element.appendChild(element);
 
@@ -158,13 +171,19 @@ class BaseUI {
     } else {
       arrayEach(EVENTS_TO_REGISTER, (eventName) => registerEvent(this._element, eventName));
     }
+
+    this.hot.addHook('afterLanguageChange', () => this.onAfterLanguageChange());
+  }
+
+  onAfterLanguageChange() {
+    this.update();
   }
 
   /**
    * Update DOM structure.
    */
   update() {
-
+    this.setElementProperties(this._element.firstChild);
   }
 
   /**
@@ -198,6 +217,9 @@ class BaseUI {
 
   destroy() {
     this.eventManager.destroy();
+
+    this.hot.removeHook('afterLanguageChange', this.onAfterLanguageChange);
+
     this.eventManager = null;
     this.hot = null;
 

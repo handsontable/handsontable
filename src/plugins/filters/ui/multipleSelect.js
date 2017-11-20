@@ -33,7 +33,7 @@ class MultipleSelectUI extends BaseUI {
      * @type {InputUI}
      */
     this.searchInput = new InputUI(this.hot, {
-      placeholder: () => this.hot.getTranslatedPhrase(C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH),
+      placeholder: () => C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH,
       className: 'htUIMultipleSelectSearch'
     });
     /**
@@ -43,7 +43,7 @@ class MultipleSelectUI extends BaseUI {
      */
     this.selectAllUI = new BaseUI(this.hot, {
       tagName: 'a',
-      textContent: () => this.hot.getTranslatedPhrase(C.FILTERS_BUTTONS_SELECT_ALL),
+      textContent: () => C.FILTERS_BUTTONS_SELECT_ALL,
       href: '#',
       className: 'htUISelectAll',
     });
@@ -54,7 +54,7 @@ class MultipleSelectUI extends BaseUI {
      */
     this.clearAllUI = new BaseUI(this.hot, {
       tagName: 'a',
-      textContent: () => this.hot.getTranslatedPhrase(C.FILTERS_BUTTONS_CLEAR),
+      textContent: () => C.FILTERS_BUTTONS_CLEAR,
       href: '#',
       className: 'htUIClearAll',
     });

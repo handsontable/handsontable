@@ -1,5 +1,6 @@
 import {addClass} from 'handsontable/helpers/dom/element';
 import {arrayEach} from 'handsontable/helpers/array';
+import {isObject} from 'handsontable/helpers/object';
 import {toSingleLine} from 'handsontable/helpers/templateLiteralTag';
 import BaseComponent from './_base';
 import {getOperationName} from '../logicalOperationRegisterer';
@@ -57,7 +58,7 @@ class OperatorsComponent extends BaseComponent {
         name: 'operator',
         label: {
           for: operation,
-          text: () => this.hot.getTranslatedPhrase(getOperationName(operation))
+          text: () => getOperationName(operation)
         },
         value: operation,
         checked: operation === operationKeys[0],

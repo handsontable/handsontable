@@ -58,10 +58,8 @@ class InputUI extends BaseUI {
     if (!this.isBuilt()) {
       return;
     }
-    let input = privatePool.get(this).input;
 
-    input.type = this.options.type;
-    input.value = this.options.value;
+    super.update();
   }
 
   /**

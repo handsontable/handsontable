@@ -32,8 +32,10 @@ class RadioInputUI extends BaseUI {
     priv.input = this._element.firstChild;
 
     let label = document.createElement('label');
-    label.textContent = this.options.label.text;
-    label.htmlFor = this.options.label.for;
+    const parsedOptions = this.parseProperties(this.options);
+
+    label.textContent = parsedOptions.label.text;
+    label.htmlFor = parsedOptions.label.for;
     priv.label = label;
 
     this._element.appendChild(label);
@@ -49,7 +51,10 @@ class RadioInputUI extends BaseUI {
       return;
     }
 
-    privatePool.get(this).input.checked = this.options.checked;
+    const parsedOptions = this.parseProperties(this.options);
+
+    privatePool.get(this).input.checked = parsedOptions.checked;
+    privatePool.get(this).label.textContent = parsedOptions.label.text;
   }
 
   /**
