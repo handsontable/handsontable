@@ -25,16 +25,16 @@ describe('manualColumnResize', () => {
   it('should be enabled after specifying it in updateSettings config', function () {
     handsontable({
       data: [
-        {id: 1, name: 'Ted', lastName: 'Right'},
-        {id: 2, name: 'Frank', lastName: 'Honest'},
-        {id: 3, name: 'Joan', lastName: 'Well'},
-        {id: 4, name: 'Sid', lastName: 'Strong'},
-        {id: 5, name: 'Jane', lastName: 'Neat'},
+        { id: 1, name: 'Ted', lastName: 'Right' },
+        { id: 2, name: 'Frank', lastName: 'Honest' },
+        { id: 3, name: 'Joan', lastName: 'Well' },
+        { id: 4, name: 'Sid', lastName: 'Strong' },
+        { id: 5, name: 'Jane', lastName: 'Neat' },
       ],
       colHeaders: true,
     });
 
-    updateSettings({manualColumnResize: true});
+    updateSettings({ manualColumnResize: true });
 
     this.$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseover');
 
@@ -171,8 +171,8 @@ describe('manualColumnResize', () => {
     this.$container.find('tr:eq(0) th:eq(3)').simulate('mousemove');
     this.$container.find('tr:eq(0) th:eq(3)').simulate('mouseup');
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
-    $resizer.simulate('mousemove', {clientX: this.$container.find('tr:eq(0) th:eq(1)').position().left + 29});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mousemove', { clientX: this.$container.find('tr:eq(0) th:eq(1)').position().left + 29 });
     $resizer.simulate('mouseup');
 
     setTimeout(() => {
@@ -203,8 +203,8 @@ describe('manualColumnResize', () => {
     this.$container.find('tr:eq(0) th:eq(3)').simulate('mousemove');
     this.$container.find('tr:eq(0) th:eq(3)').simulate('mouseup');
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
-    $resizer.simulate('mousemove', {clientX: this.$container.find('tr:eq(0) th:eq(1)').position().left + 150});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+    $resizer.simulate('mousemove', { clientX: this.$container.find('tr:eq(0) th:eq(1)').position().left + 150 });
     $resizer.simulate('mouseup');
 
     setTimeout(() => {
@@ -240,10 +240,10 @@ describe('manualColumnResize', () => {
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
     setTimeout(() => {
@@ -281,10 +281,10 @@ describe('manualColumnResize', () => {
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
     setTimeout(() => {
@@ -378,7 +378,7 @@ describe('manualColumnResize', () => {
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
@@ -404,10 +404,10 @@ describe('manualColumnResize', () => {
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
     setTimeout(() => {
@@ -425,7 +425,7 @@ describe('manualColumnResize', () => {
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
-      columns: [{width: 100}, {width: 200}, {}],
+      columns: [{ width: 100 }, { width: 200 }, {}],
     });
 
     expect(colWidth(this.$container, 0)).toEqual(100);
@@ -437,10 +437,10 @@ describe('manualColumnResize', () => {
     var $resizer = this.$container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
-    $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mouseup');
 
     setTimeout(() => {
@@ -468,9 +468,9 @@ describe('manualColumnResize', () => {
     var resizerPosition = $resizer.position();
 
     setTimeout(() => {
-      $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+      $resizer.simulate('mousedown', { clientX: resizerPosition.left });
       $resizer.simulate('mouseup');
-      $resizer.simulate('mousedown', {clientX: resizerPosition.left});
+      $resizer.simulate('mousedown', { clientX: resizerPosition.left });
       $resizer.simulate('mouseup');
     }, 600);
 
@@ -545,11 +545,11 @@ describe('manualColumnResize', () => {
     it('should display the resize handle in the proper position and with a proper size', function () {
       handsontable({
         data: [
-          {id: 1, name: 'Ted', lastName: 'Right'},
-          {id: 2, name: 'Frank', lastName: 'Honest'},
-          {id: 3, name: 'Joan', lastName: 'Well'},
-          {id: 4, name: 'Sid', lastName: 'Strong'},
-          {id: 5, name: 'Jane', lastName: 'Neat'},
+          { id: 1, name: 'Ted', lastName: 'Right' },
+          { id: 2, name: 'Frank', lastName: 'Honest' },
+          { id: 3, name: 'Joan', lastName: 'Well' },
+          { id: 4, name: 'Sid', lastName: 'Strong' },
+          { id: 5, name: 'Jane', lastName: 'Neat' },
         ],
         colHeaders: true,
         manualColumnResize: true,

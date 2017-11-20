@@ -1,7 +1,7 @@
-import {defineGetter, objectEach} from './../helpers/object';
-import {arrayEach} from './../helpers/array';
-import {getTranslator} from './../utils/recordTranslator';
-import {getRegistredPluginNames, getPluginName} from './../plugins';
+import { defineGetter, objectEach } from './../helpers/object';
+import { arrayEach } from './../helpers/array';
+import { getTranslator } from './../utils/recordTranslator';
+import { getRegistredPluginNames, getPluginName } from './../plugins';
 
 const privatePool = new WeakMap();
 let initializedPlugins = null;
@@ -26,7 +26,7 @@ class BasePlugin {
       writable: false,
     });
 
-    privatePool.set(this, {hooks: {}});
+    privatePool.set(this, { hooks: {} });
     initializedPlugins = null;
 
     this.pluginName = null;

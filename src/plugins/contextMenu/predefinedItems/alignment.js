@@ -1,5 +1,5 @@
-import {align, getAlignmentClasses, checkSelectionConsistency, markLabelAsSelected} from './../utils';
-import {KEY as SEPARATOR} from './separator';
+import { align, getAlignmentClasses, checkSelectionConsistency, markLabelAsSelected } from './../utils';
+import { KEY as SEPARATOR } from './separator';
 
 export const KEY = 'alignment';
 

@@ -1,5 +1,5 @@
-import {getCellType} from './../cellTypes';
-import {hasOwnProperty} from './object';
+import { getCellType } from './../cellTypes';
+import { hasOwnProperty } from './object';
 
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;

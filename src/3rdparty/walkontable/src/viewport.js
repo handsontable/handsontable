@@ -5,7 +5,7 @@ import {
   outerHeight,
   outerWidth,
 } from './../../../helpers/dom/element';
-import {objectEach} from './../../../helpers/object';
+import { objectEach } from './../../../helpers/object';
 import EventManager from './../../../eventManager';
 import ViewportColumnsCalculator from './calculator/viewportColumns';
 import ViewportRowsCalculator from './calculator/viewportRows';

@@ -1,28 +1,28 @@
 import numbro from 'numbro';
-import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
-import {columnFactory} from './helpers/setting';
-import {isFunction} from './helpers/function';
-import {isDefined, isUndefined, isRegExp, _injectProductInfo} from './helpers/mixed';
-import {isMobileBrowser} from './helpers/browser';
+import { addClass, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
+import { columnFactory } from './helpers/setting';
+import { isFunction } from './helpers/function';
+import { isDefined, isUndefined, isRegExp, _injectProductInfo } from './helpers/mixed';
+import { isMobileBrowser } from './helpers/browser';
 import DataMap from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
-import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize, hasOwnProperty, createObjectPropListener, objectEach} from './helpers/object';
-import {arrayFlatten, arrayMap} from './helpers/array';
-import {getPlugin} from './plugins';
-import {getRenderer} from './renderers';
-import {getValidator} from './validators';
-import {randomString} from './helpers/string';
-import {rangeEach} from './helpers/number';
+import { deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize, hasOwnProperty, createObjectPropListener, objectEach } from './helpers/object';
+import { arrayFlatten, arrayMap } from './helpers/array';
+import { getPlugin } from './plugins';
+import { getRenderer } from './renderers';
+import { getValidator } from './validators';
+import { randomString } from './helpers/string';
+import { rangeEach } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
-import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
-import {getTranslator} from './utils/recordTranslator';
-import {registerAsRootInstance, hasValidParameter, isRootInstance} from './utils/rootInstance';
-import {CellCoords, CellRange, ViewportColumnsCalculator} from './3rdparty/walkontable/src';
+import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
+import { getTranslator } from './utils/recordTranslator';
+import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
+import { CellCoords, CellRange, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
-import {getCellType} from './cellTypes';
+import { getCellType } from './cellTypes';
 
 let activeGuid = null;
 
@@ -3358,4 +3358,4 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   // this.version = Handsontable.version;
 
   Hooks.getSingleton().run(instance, 'construct');
-};
+}

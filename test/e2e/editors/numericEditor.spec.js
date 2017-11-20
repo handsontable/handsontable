@@ -14,16 +14,16 @@ describe('NumericEditor', () => {
 
   var arrayOfObjects = function () {
     return [
-      {id: 1, name: 'Ted', lastName: 'Right'},
-      {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'},
-      {id: 4, name: 'Sid', lastName: 'Strong'},
-      {id: 5, name: 'Jane', lastName: 'Neat'},
-      {id: 6, name: 'Chuck', lastName: 'Jackson'},
-      {id: 7, name: 'Meg', lastName: 'Jansen'},
-      {id: 8, name: 'Rob', lastName: 'Norris'},
-      {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'},
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' },
+      { id: 4, name: 'Sid', lastName: 'Strong' },
+      { id: 5, name: 'Jane', lastName: 'Neat' },
+      { id: 6, name: 'Chuck', lastName: 'Jackson' },
+      { id: 7, name: 'Meg', lastName: 'Jansen' },
+      { id: 8, name: 'Rob', lastName: 'Norris' },
+      { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+      { id: 10, name: 'Eve', lastName: 'Branson' },
     ];
   };
 
@@ -33,9 +33,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'},
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
       afterValidate: onAfterValidate,
     });
@@ -57,7 +57,7 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
+        { data: 'id', type: 'numeric' },
       ],
     });
 
@@ -84,8 +84,8 @@ describe('NumericEditor', () => {
             cb(parseInt(val, 10) > 100);
           },
         },
-        {data: 'name'},
-        {data: 'lastName'},
+        { data: 'name' },
+        { data: 'lastName' },
       ],
       afterValidate: onAfterValidate,
     });
@@ -117,9 +117,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'},
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
       afterValidate: onAfterValidate,
     });
@@ -144,9 +144,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'},
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
       afterValidate: onAfterValidate,
     });
@@ -172,9 +172,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', language: 'de-DE'},
-        {data: 'name'},
-        {data: 'lastName'},
+        { data: 'id', type: 'numeric', language: 'de-DE' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
       afterValidate: onAfterValidate,
     });
@@ -200,9 +200,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '$0,0.00', language: 'en-US'},
-        {data: 'name'},
-        {data: 'lastName'},
+        { data: 'id', type: 'numeric', format: '$0,0.00', language: 'en-US' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
       afterValidate: onAfterValidate,
     });
@@ -228,9 +228,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
-        {data: 'name'},
-        {data: 'lastName'},
+        { data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
       afterValidate: onAfterValidate,
     });
@@ -256,9 +256,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
-        {data: 'name'},
-        {data: 'lastName'},
+        { data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
       afterValidate: onAfterValidate,
     });
@@ -283,9 +283,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'},
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
       afterValidate: onAfterValidate,
     });
@@ -335,9 +335,9 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
-        {data: 'name'},
-        {data: 'lastName'},
+        { data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
       afterValidate: onAfterValidate,
     });
@@ -362,22 +362,22 @@ describe('NumericEditor', () => {
 
     handsontable({
       data: [
-        {id: 1, name: 'Ted', lastName: 'Right', money: 0},
-        {id: 2, name: 'Frank', lastName: 'Honest', money: 0},
-        {id: 3, name: 'Joan', lastName: 'Well', money: 0},
-        {id: 4, name: 'Sid', lastName: 'Strong', money: 0},
-        {id: 5, name: 'Jane', lastName: 'Neat', money: 0},
-        {id: 6, name: 'Chuck', lastName: 'Jackson', money: 0},
-        {id: 7, name: 'Meg', lastName: 'Jansen', money: 0},
-        {id: 8, name: 'Rob', lastName: 'Norris', money: 0},
-        {id: 9, name: 'Sean', lastName: 'O\'Hara', money: 0},
-        {id: 10, name: 'Eve', lastName: 'Branson', money: 0},
+        { id: 1, name: 'Ted', lastName: 'Right', money: 0 },
+        { id: 2, name: 'Frank', lastName: 'Honest', money: 0 },
+        { id: 3, name: 'Joan', lastName: 'Well', money: 0 },
+        { id: 4, name: 'Sid', lastName: 'Strong', money: 0 },
+        { id: 5, name: 'Jane', lastName: 'Neat', money: 0 },
+        { id: 6, name: 'Chuck', lastName: 'Jackson', money: 0 },
+        { id: 7, name: 'Meg', lastName: 'Jansen', money: 0 },
+        { id: 8, name: 'Rob', lastName: 'Norris', money: 0 },
+        { id: 9, name: 'Sean', lastName: 'O\'Hara', money: 0 },
+        { id: 10, name: 'Eve', lastName: 'Branson', money: 0 },
       ],
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
-        {data: 'name'},
-        {data: 'lastName'},
-        {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'},
+        { data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE' },
+        { data: 'name' },
+        { data: 'lastName' },
+        { data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US' },
       ],
       afterValidate: onAfterValidate,
     });
@@ -413,9 +413,9 @@ describe('NumericEditor', () => {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00'},
-        {data: 'name'},
-        {data: 'lastName'},
+        { data: 'id', type: 'numeric', format: '0,0.00' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
     });
 
@@ -430,8 +430,8 @@ describe('NumericEditor', () => {
   it('should not throw error on closing editor when column data is defined as \'length\'', () => {
     hot = handsontable({
       data: [
-        {length: 4},
-        {length: 5},
+        { length: 4 },
+        { length: 5 },
       ],
       columns: [
         {
@@ -473,13 +473,13 @@ describe('NumericEditor', () => {
     it('Moving from numeric editor to text editor', function (done) {
       handsontable({
         data: [
-          {id: 1, name: 'Ted', lastName: 'Right', money: 0},
+          { id: 1, name: 'Ted', lastName: 'Right', money: 0 },
         ],
         columns: [
-          {data: 'id'},
-          {data: 'name'},
-          {data: 'lastName'},
-          {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'},
+          { data: 'id' },
+          { data: 'name' },
+          { data: 'lastName' },
+          { data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US' },
         ],
       });
 
@@ -496,13 +496,13 @@ describe('NumericEditor', () => {
     it('Moving from text editor to numeric editor', function (done) {
       handsontable({
         data: [
-          {id: 1, name: 'Ted', lastName: 'Right', money: 0},
+          { id: 1, name: 'Ted', lastName: 'Right', money: 0 },
         ],
         columns: [
-          {data: 'id'},
-          {data: 'name'},
-          {data: 'lastName'},
-          {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'},
+          { data: 'id' },
+          { data: 'name' },
+          { data: 'lastName' },
+          { data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US' },
         ],
       });
 

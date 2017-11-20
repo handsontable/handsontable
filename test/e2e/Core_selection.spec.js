@@ -459,7 +459,7 @@ describe('Core_selection', () => {
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mouseup');
 
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', { shiftKey: true });
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
 
     expect(getSelected()).toEqual([0, 1, 4, 4]);
@@ -476,7 +476,7 @@ describe('Core_selection', () => {
     this.$container.find('.ht_clone_left tr:eq(1) th:eq(0)').simulate('mousedown');
     this.$container.find('.ht_clone_left tr:eq(1) th:eq(0)').simulate('mouseup');
 
-    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', { shiftKey: true });
     this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
 
     expect(getSelected()).toEqual([1, 0, 4, 4]);
@@ -493,7 +493,7 @@ describe('Core_selection', () => {
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mouseup');
 
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', { shiftKey: true });
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
 
     expect(getSelected()).toEqual([0, 1, 4, 4]);
@@ -509,7 +509,7 @@ describe('Core_selection', () => {
 
     selectCell(1, 1, 3, 3);
 
-    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', { shiftKey: true });
     this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
 
     expect(getSelected()).toEqual([1, 0, 4, 4]);
@@ -525,7 +525,7 @@ describe('Core_selection', () => {
 
     selectCell(1, 1, 3, 3);
 
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', { shiftKey: true });
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
 
     expect(getSelected()).toEqual([0, 1, 4, 4]);
@@ -605,7 +605,7 @@ describe('Core_selection', () => {
     // var keyDownEvent = $.Event('keydown', {ctrlKey: true, metaKey: true});
     // $input.trigger(keyDownEvent);
 
-    $input.simulate('keydown', {ctrlKey: true, metaKey: true});
+    $input.simulate('keydown', { ctrlKey: true, metaKey: true });
 
     expect(document.activeElement.nodeName).toBe('INPUT');
 

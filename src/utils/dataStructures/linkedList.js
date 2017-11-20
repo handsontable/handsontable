@@ -173,7 +173,7 @@ class LinkedList {
         return true;
       }
     }
-  };
+  }
 
   /**
    * Return last node from the linked list.
@@ -189,7 +189,7 @@ class LinkedList {
     this.last = this.last.prev;
 
     return temp;
-  };
+  }
 
   /**
    * Return first node from the linked list.
@@ -205,7 +205,7 @@ class LinkedList {
     this.first = this.first.next;
 
     return temp;
-  };
+  }
 
   /**
    * Reverses the linked list recursively
@@ -229,7 +229,7 @@ class LinkedList {
     const temp = this.first;
     this.first = this.last;
     this.last = temp;
-  };
+  }
 
   /**
    * Reverses the linked list iteratively
@@ -256,8 +256,8 @@ class LinkedList {
     temp = this.first;
     this.first = prev;
     this.last = temp;
-  };
-};
+  }
+}
 
-export {NodeStructure};
+export { NodeStructure };
 export default LinkedList;

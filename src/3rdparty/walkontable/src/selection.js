@@ -1,4 +1,4 @@
-import {addClass} from './../../../helpers/dom/element';
+import { addClass } from './../../../helpers/dom/element';
 import Border from './border';
 import CellCoords from './cell/coords';
 import CellRange from './cell/range';

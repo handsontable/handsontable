@@ -1,6 +1,6 @@
-import {fastInnerHTML} from './../helpers/dom/element';
-import {getRenderer} from './index';
-import {rangeEach} from './../helpers/number';
+import { fastInnerHTML } from './../helpers/dom/element';
+import { getRenderer } from './index';
+import { rangeEach } from './../helpers/number';
 
 /**
  * @private

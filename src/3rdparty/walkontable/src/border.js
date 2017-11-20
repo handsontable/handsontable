@@ -7,9 +7,9 @@ import {
   outerHeight,
   outerWidth,
 } from './../../../helpers/dom/element';
-import {stopImmediatePropagation} from './../../../helpers/dom/event';
-import {objectEach} from './../../../helpers/object';
-import {isMobileBrowser} from './../../../helpers/browser';
+import { stopImmediatePropagation } from './../../../helpers/dom/event';
+import { objectEach } from './../../../helpers/object';
+import { isMobileBrowser } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import CellCoords from './cell/coords';
 

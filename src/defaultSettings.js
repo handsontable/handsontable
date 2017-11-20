@@ -1,5 +1,5 @@
-import {isDefined} from './helpers/mixed';
-import {isObjectEquals} from './helpers/object';
+import { isDefined } from './helpers/mixed';
+import { isObjectEquals } from './helpers/object';
 
 /**
  * @alias Options
@@ -70,7 +70,7 @@ import {isObjectEquals} from './helpers/object';
  * ---
  * __Important notice:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
  */
-function DefaultSettings() {};
+function DefaultSettings() {}
 
 DefaultSettings.prototype = {
   /**
@@ -613,7 +613,7 @@ DefaultSettings.prototype = {
    * @type {Object|Function}
    * @default {row: 1, col: 0}
    */
-  enterMoves: {row: 1, col: 0},
+  enterMoves: { row: 1, col: 0 },
 
   /**
    * Defines the cursor movement after <kbd>TAB</kbd> is pressed (<kbd>SHIFT</kbd> + <kbd>TAB</kbd> uses a negative vector).
@@ -624,7 +624,7 @@ DefaultSettings.prototype = {
    * @type {Object}
    * @default {row: 0, col: 1}
    */
-  tabMoves: {row: 0, col: 1},
+  tabMoves: { row: 0, col: 1 },
 
   /**
    * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.

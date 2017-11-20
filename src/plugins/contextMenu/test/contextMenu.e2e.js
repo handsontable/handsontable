@@ -55,7 +55,7 @@ describe('ContextMenu', () => {
         items: {
           remove_col: true,
           hsep1: '---------',
-          custom: {name: 'My custom item'},
+          custom: { name: 'My custom item' },
         },
       },
     });
@@ -112,7 +112,7 @@ describe('ContextMenu', () => {
       var hot = handsontable({
         data: [],
         colHeaders: ['Year', 'Kia'],
-        columns: [{data: 0}, {data: 1}],
+        columns: [{ data: 0 }, { data: 1 }],
         contextMenu: true,
         height: 100,
       });
@@ -652,7 +652,7 @@ describe('ContextMenu', () => {
         .find('tbody')
         .find('th')
         .eq(0)
-        .simulate('mousedown', {which: 3});
+        .simulate('mousedown', { which: 3 });
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -674,7 +674,7 @@ describe('ContextMenu', () => {
       });
 
       $('.ht_clone_top .htCore').find('thead').find('th').eq(2)
-        .simulate('mousedown', {which: 3});
+        .simulate('mousedown', { which: 3 });
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -696,7 +696,7 @@ describe('ContextMenu', () => {
       });
 
       $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0)
-        .simulate('mousedown', {which: 3});
+        .simulate('mousedown', { which: 3 });
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -748,7 +748,7 @@ describe('ContextMenu', () => {
 
       var cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', {which: 3});
+      cell.simulate('mousedown', { which: 3 });
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
         .simulate('mousedown'); // Insert row above
@@ -875,7 +875,7 @@ describe('ContextMenu', () => {
 
       var cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', {which: 3});
+      cell.simulate('mousedown', { which: 3 });
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1)
         .simulate('mousedown'); // Insert row below
@@ -947,7 +947,7 @@ describe('ContextMenu', () => {
 
       var cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', {which: 3});
+      cell.simulate('mousedown', { which: 3 });
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3)
         .simulate('mousedown'); // Insert column on the left
@@ -1018,7 +1018,7 @@ describe('ContextMenu', () => {
 
       var cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', {which: 3});
+      cell.simulate('mousedown', { which: 3 });
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3)
         .simulate('mousedown'); // Insert column on the right

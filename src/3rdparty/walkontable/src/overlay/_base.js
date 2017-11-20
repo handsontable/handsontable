@@ -2,8 +2,8 @@ import {
   getScrollableElement,
   getTrimmingContainer,
 } from './../../../../helpers/dom/element';
-import {defineGetter} from './../../../../helpers/object';
-import {arrayEach} from './../../../../helpers/array';
+import { defineGetter } from './../../../../helpers/object';
+import { arrayEach } from './../../../../helpers/array';
 import EventManager from './../../../../eventManager';
 import Walkontable from './../core';
 

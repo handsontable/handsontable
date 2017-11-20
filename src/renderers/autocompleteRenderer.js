@@ -1,7 +1,7 @@
-import {addClass, hasClass} from './../helpers/dom/element';
+import { addClass, hasClass } from './../helpers/dom/element';
 import EventManager from './../eventManager';
-import {CellCoords} from './../3rdparty/walkontable/src';
-import {getRenderer} from './index';
+import { CellCoords } from './../3rdparty/walkontable/src';
+import { getRenderer } from './index';
 
 var clonableWRAPPER = document.createElement('DIV');
 clonableWRAPPER.className = 'htAutocompleteWrapper';

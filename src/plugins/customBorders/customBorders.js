@@ -1,6 +1,6 @@
 import Hooks from './../../pluginHooks';
-import {hasOwnProperty} from './../../helpers/object';
-import {CellRange, Selection} from './../../3rdparty/walkontable/src';
+import { hasOwnProperty } from './../../helpers/object';
+import { CellRange, Selection } from './../../3rdparty/walkontable/src';
 
 function CustomBorders() {}
 /** *

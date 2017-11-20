@@ -1,6 +1,6 @@
 export function spec() {
   return currentSpec;
-};
+}
 
 export function createDataArray(rows, cols) {
   spec().data = [];
@@ -21,19 +21,19 @@ export function createDataArray(rows, cols) {
     }
     spec().data.push(row);
   }
-};
+}
 
 export function getData(row, col) {
   return spec().data[row][col];
-};
+}
 
 export function getTotalRows() {
   return spec().data.length;
-};
+}
 
 export function getTotalColumns() {
   return spec().data[0] ? spec().data[0].length : 0;
-};
+}
 
 var currentSpec;
 
@@ -89,7 +89,7 @@ afterEach(() => {
 
 export function getTableWidth(elem) {
   return $(elem).outerWidth() || $(elem).find('tbody').outerWidth() || $(elem).find('thead').outerWidth(); // IE8 reports 0 as <table> offsetWidth
-};
+}
 
 export function range(from, to) {
   if (!arguments.length) {
@@ -113,7 +113,7 @@ export function range(from, to) {
   }
 
   return result;
-};
+}
 
 /**
  * Rewrite all existing selections from selections[0] etc. to selections.current etc

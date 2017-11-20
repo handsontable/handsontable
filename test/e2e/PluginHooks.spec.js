@@ -216,7 +216,7 @@ describe('PluginHooks', () => {
       afterOnCellMouseOver: fn,
     });
 
-    hot.getInstance().updateSettings({afterOnCellMouseOver: fn});
+    hot.getInstance().updateSettings({ afterOnCellMouseOver: fn });
     hot.runHooks('afterOnCellMouseOver');
 
     expect(i).toEqual(1);

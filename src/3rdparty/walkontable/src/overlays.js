@@ -4,9 +4,9 @@ import {
   getScrollLeft,
   getScrollTop,
 } from './../../../helpers/dom/element';
-import {arrayEach} from './../../../helpers/array';
-import {isKey} from './../../../helpers/unicode';
-import {isMobileBrowser} from './../../../helpers/browser';
+import { arrayEach } from './../../../helpers/array';
+import { isKey } from './../../../helpers/unicode';
+import { isMobileBrowser } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import Overlay from './overlay/_base.js';
 
@@ -324,7 +324,7 @@ class Overlays {
     let deltaY = event.wheelDeltaY || (-1) * event.deltaY;
     let deltaX = event.wheelDeltaX || (-1) * event.deltaX;
     let parentHolder = null;
-    let eventMockup = {type: 'wheel'};
+    let eventMockup = { type: 'wheel' };
     let tempElem = event.target;
     let delta = null;
 
@@ -596,7 +596,7 @@ class Overlays {
    */
   syncScrollWithMaster() {
     const master = this.topOverlay.mainTableScrollableElement;
-    const {scrollLeft, scrollTop} = master;
+    const { scrollLeft, scrollTop } = master;
 
     if (this.topOverlay.needFullRender) {
       this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;

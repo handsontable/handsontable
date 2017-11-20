@@ -1,29 +1,29 @@
-import {objectEach} from './../../helpers/object';
-import alignmentItem, {KEY as ALIGNMENT} from './predefinedItems/alignment';
-import clearColumnItem, {KEY as CLEAR_COLUMN} from './predefinedItems/clearColumn';
-import columnLeftItem, {KEY as COLUMN_LEFT} from './predefinedItems/columnLeft';
-import columnRightItem, {KEY as COLUMN_RIGHT} from './predefinedItems/columnRight';
-import readOnlyItem, {KEY as READ_ONLY} from './predefinedItems/readOnly';
-import redoItem, {KEY as REDO} from './predefinedItems/redo';
-import removeColumnItem, {KEY as REMOVE_COLUMN} from './predefinedItems/removeColumn';
-import removeRowItem, {KEY as REMOVE_ROW} from './predefinedItems/removeRow';
-import rowAboveItem, {KEY as ROW_ABOVE} from './predefinedItems/rowAbove';
-import rowBelowItem, {KEY as ROW_BELOW} from './predefinedItems/rowBelow';
-import separatorItem, {KEY as SEPARATOR} from './predefinedItems/separator';
-import undoItem, {KEY as UNDO} from './predefinedItems/undo';
+import { objectEach } from './../../helpers/object';
+import alignmentItem, { KEY as ALIGNMENT } from './predefinedItems/alignment';
+import clearColumnItem, { KEY as CLEAR_COLUMN } from './predefinedItems/clearColumn';
+import columnLeftItem, { KEY as COLUMN_LEFT } from './predefinedItems/columnLeft';
+import columnRightItem, { KEY as COLUMN_RIGHT } from './predefinedItems/columnRight';
+import readOnlyItem, { KEY as READ_ONLY } from './predefinedItems/readOnly';
+import redoItem, { KEY as REDO } from './predefinedItems/redo';
+import removeColumnItem, { KEY as REMOVE_COLUMN } from './predefinedItems/removeColumn';
+import removeRowItem, { KEY as REMOVE_ROW } from './predefinedItems/removeRow';
+import rowAboveItem, { KEY as ROW_ABOVE } from './predefinedItems/rowAbove';
+import rowBelowItem, { KEY as ROW_BELOW } from './predefinedItems/rowBelow';
+import separatorItem, { KEY as SEPARATOR } from './predefinedItems/separator';
+import undoItem, { KEY as UNDO } from './predefinedItems/undo';
 
-export {KEY as ALIGNMENT} from './predefinedItems/alignment';
-export {KEY as CLEAR_COLUMN} from './predefinedItems/clearColumn';
-export {KEY as COLUMN_LEFT} from './predefinedItems/columnLeft';
-export {KEY as COLUMN_RIGHT} from './predefinedItems/columnRight';
-export {KEY as READ_ONLY} from './predefinedItems/readOnly';
-export {KEY as REDO} from './predefinedItems/redo';
-export {KEY as REMOVE_COLUMN} from './predefinedItems/removeColumn';
-export {KEY as REMOVE_ROW} from './predefinedItems/removeRow';
-export {KEY as ROW_ABOVE} from './predefinedItems/rowAbove';
-export {KEY as ROW_BELOW} from './predefinedItems/rowBelow';
-export {KEY as SEPARATOR} from './predefinedItems/separator';
-export {KEY as UNDO} from './predefinedItems/undo';
+export { KEY as ALIGNMENT } from './predefinedItems/alignment';
+export { KEY as CLEAR_COLUMN } from './predefinedItems/clearColumn';
+export { KEY as COLUMN_LEFT } from './predefinedItems/columnLeft';
+export { KEY as COLUMN_RIGHT } from './predefinedItems/columnRight';
+export { KEY as READ_ONLY } from './predefinedItems/readOnly';
+export { KEY as REDO } from './predefinedItems/redo';
+export { KEY as REMOVE_COLUMN } from './predefinedItems/removeColumn';
+export { KEY as REMOVE_ROW } from './predefinedItems/removeRow';
+export { KEY as ROW_ABOVE } from './predefinedItems/rowAbove';
+export { KEY as ROW_BELOW } from './predefinedItems/rowBelow';
+export { KEY as SEPARATOR } from './predefinedItems/separator';
+export { KEY as UNDO } from './predefinedItems/undo';
 
 export const ITEMS = [
   ROW_ABOVE, ROW_BELOW, COLUMN_LEFT, COLUMN_RIGHT, CLEAR_COLUMN, REMOVE_ROW, REMOVE_COLUMN, UNDO, REDO, READ_ONLY,

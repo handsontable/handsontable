@@ -13,13 +13,6 @@
     "func-names": 0,
     "import/extensions": 0,
     "import/no-extraneous-dependencies": 0,
-    "no-extra-semi": 0,
-    "no-multiple-empty-lines": [
-      2,
-      {
-        "max": 1
-      }
-    ],
     "no-param-reassign": 0,
     "no-restricted-properties": 0,
     "no-undef": 0,
@@ -28,12 +21,10 @@
     "no-use-before-define": 0,
     "no-var": 0,
     "no-void": 0,
-    "object-curly-spacing": 0,
     "one-var": 0,
     "padded-blocks": 0,
     "prefer-const": 0,
     "vars-on-top": 0,
-    "linebreak-style": 0,
     "import/no-unresolved": [
       2,
       {

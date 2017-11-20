@@ -1,13 +1,13 @@
 import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
 import SheetClip from './../../../lib/SheetClip/SheetClip';
-import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
-import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
-import {getSelectionText} from './../../helpers/dom/element';
-import {arrayEach} from './../../helpers/array';
-import {rangeEach} from './../../helpers/number';
-import {stopImmediatePropagation, isImmediatePropagationStopped} from './../../helpers/dom/event';
-import {registerPlugin} from './../../plugins';
+import { CellCoords, CellRange } from './../../3rdparty/walkontable/src';
+import { KEY_CODES, isCtrlKey } from './../../helpers/unicode';
+import { getSelectionText } from './../../helpers/dom/element';
+import { arrayEach } from './../../helpers/array';
+import { rangeEach } from './../../helpers/number';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './../../helpers/dom/event';
+import { registerPlugin } from './../../plugins';
 import Textarea from './textarea';
 import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
@@ -420,7 +420,7 @@ class CopyPaste extends BasePlugin {
       let changesLength = changes ? changes.length : 0;
 
       if (changesLength) {
-        let offset = {row: 0, col: 0};
+        let offset = { row: 0, col: 0 };
         let highestColumnIndex = -1;
 
         arrayEach(changes, (change, index) => {

@@ -44,7 +44,7 @@ describe('SelectEditor', () => {
       columns: [
         {
           editor: 'select',
-        }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {editor: 'select'},
+        }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, { editor: 'select' },
       ],
     });
     var mainHolder = hot.view.wt.wtTable.holder;

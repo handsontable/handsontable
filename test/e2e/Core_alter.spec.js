@@ -14,30 +14,30 @@ describe('Core_alter', () => {
 
   var arrayOfNestedObjects = function () {
     return [
-      {id: 1,
+      { id: 1,
         name: {
           first: 'Ted',
           last: 'Right',
         },
         address: 'Street Name',
         zip: '80410',
-        city: 'City Name'},
-      {id: 2,
+        city: 'City Name' },
+      { id: 2,
         name: {
           first: 'Frank',
           last: 'Honest',
         },
         address: 'Street Name',
         zip: '80410',
-        city: 'City Name'},
-      {id: 3,
+        city: 'City Name' },
+      { id: 3,
         name: {
           first: 'Joan',
           last: 'Well',
         },
         address: 'Street Name',
         zip: '80410',
-        city: 'City Name'},
+        city: 'City Name' },
     ];
   };
 
@@ -56,8 +56,8 @@ describe('Core_alter', () => {
         minRows: 5,
         data: arrayOfNestedObjects(),
         columns: [
-          {data: 'id'},
-          {data: 'name.first'},
+          { data: 'id' },
+          { data: 'name.first' },
         ],
       });
       alter('remove_row', 1);
@@ -72,8 +72,8 @@ describe('Core_alter', () => {
       handsontable({
         data: arrayOfNestedObjects(),
         columns: [
-          {data: 'id'},
-          {data: 'name.first'},
+          { data: 'id' },
+          { data: 'name.first' },
         ],
         beforeRemoveRow: onBeforeRemoveRow,
       });
@@ -90,8 +90,8 @@ describe('Core_alter', () => {
       handsontable({
         data: arrayOfNestedObjects(),
         columns: [
-          {data: 'id'},
-          {data: 'name.first'},
+          { data: 'id' },
+          { data: 'name.first' },
         ],
         beforeRemoveRow: onBeforeRemoveRow,
       });
@@ -266,8 +266,8 @@ describe('Core_alter', () => {
         minRows: 5,
         data: arrayOfNestedObjects(),
         columns: [
-          {data: 'id'},
-          {data: 'name.first'},
+          { data: 'id' },
+          { data: 'name.first' },
         ],
         beforeRemoveRow(index, amount, removedRows, source) {
           outputBefore = [index, amount, removedRows, source];
@@ -597,12 +597,12 @@ describe('Core_alter', () => {
           [3, 'd', true],
         ],
         cell: [
-          {row: 0, col: 0, renderer: greenRenderer, type: 'text', readOnly: true},
+          { row: 0, col: 0, renderer: greenRenderer, type: 'text', readOnly: true },
         ],
         columns: [
-          {type: 'numeric'},
-          {type: 'text'},
-          {type: 'checkbox'},
+          { type: 'numeric' },
+          { type: 'text' },
+          { type: 'checkbox' },
         ],
       });
 
@@ -624,12 +624,12 @@ describe('Core_alter', () => {
           [3, 'd', true],
         ],
         cell: [
-          {row: 0, col: 0, type: 'text'},
+          { row: 0, col: 0, type: 'text' },
         ],
         columns: [
-          {type: 'numeric'},
-          {type: 'text'},
-          {type: 'checkbox'},
+          { type: 'numeric' },
+          { type: 'text' },
+          { type: 'checkbox' },
         ],
       });
 
@@ -737,8 +737,8 @@ describe('Core_alter', () => {
         minRows: 5,
         data: arrayOfNestedObjects(),
         columns: [
-          {data: 'id'},
-          {data: 'name.first'},
+          { data: 'id' },
+          { data: 'name.first' },
         ],
         beforeCreateRow(index, amount, source) {
           outputBefore = [index, amount, source];

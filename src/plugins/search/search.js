@@ -1,6 +1,6 @@
 import Hooks from './../../pluginHooks';
-import {addClass, removeClass} from './../../helpers/dom/element';
-import {registerRenderer, getRenderer} from './../../renderers';
+import { addClass, removeClass } from './../../helpers/dom/element';
+import { registerRenderer, getRenderer } from './../../renderers';
 
 /**
  * @private
@@ -46,7 +46,7 @@ function Search(instance) {
 
     return queryResult;
   };
-};
+}
 
 Search.DEFAULT_CALLBACK = function (instance, row, col, data, testResult) {
   instance.getCellMeta(row, col).isSearchResult = testResult;
@@ -108,7 +108,7 @@ function SearchCellDecorator(instance, TD, row, col, prop, value, cellProperties
   } else {
     removeClass(TD, searchResultClass);
   }
-};
+}
 
 var originalBaseRenderer = getRenderer('base');
 

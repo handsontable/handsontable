@@ -1,6 +1,6 @@
 import BasePlugin from './../_base';
-import {registerPlugin} from './../../plugins';
-import {arrayEach} from './../../helpers/array';
+import { registerPlugin } from './../../plugins';
+import { arrayEach } from './../../helpers/array';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 
@@ -189,7 +189,7 @@ class ManualColumnFreeze extends BasePlugin {
    */
   addContextMenuEntry(options) {
     options.items.push(
-      {name: '---------'},
+      { name: '---------' },
       freezeColumnItem(this),
       unfreezeColumnItem(this),
     );

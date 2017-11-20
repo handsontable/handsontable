@@ -104,7 +104,7 @@ describe('Core_view', () => {
     });
 
     expect(() => {
-      hot1.view.scrollViewport({row: 0, col: 0});
+      hot1.view.scrollViewport({ row: 0, col: 0 });
     }).not.toThrow();
   });
 
@@ -117,13 +117,13 @@ describe('Core_view', () => {
     });
 
     expect(() => {
-      hot1.view.scrollViewport({row: -1, col: 0});
+      hot1.view.scrollViewport({ row: -1, col: 0 });
     }).toThrow();
     expect(() => {
-      hot1.view.scrollViewport({row: 0, col: -1});
+      hot1.view.scrollViewport({ row: 0, col: -1 });
     }).toThrow();
     expect(() => {
-      hot1.view.scrollViewport({row: -1, col: -1});
+      hot1.view.scrollViewport({ row: -1, col: -1 });
     }).toThrow();
   });
 

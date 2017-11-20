@@ -1,13 +1,13 @@
 import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
-import {arrayEach} from './../../helpers/array';
+import { arrayEach } from './../../helpers/array';
 import CommandExecutor from './commandExecutor';
 import EventManager from './../../eventManager';
 import ItemsFactory from './itemsFactory';
 import Menu from './menu';
-import {registerPlugin} from './../../plugins';
-import {stopPropagation, pageX, pageY} from './../../helpers/dom/event';
-import {getWindowScrollLeft, getWindowScrollTop, hasClass} from './../../helpers/dom/element';
+import { registerPlugin } from './../../plugins';
+import { stopPropagation, pageX, pageY } from './../../helpers/dom/event';
+import { getWindowScrollLeft, getWindowScrollTop, hasClass } from './../../helpers/dom/element';
 import {
   ROW_ABOVE,
   ROW_BELOW,

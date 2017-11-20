@@ -1,7 +1,7 @@
 import Hooks from './../../pluginHooks';
-import {stopImmediatePropagation} from './../../helpers/dom/event';
-import {objectEach} from './../../helpers/object';
-import {CellCoords, CellRange, Table} from './../../3rdparty/walkontable/src';
+import { stopImmediatePropagation } from './../../helpers/dom/event';
+import { objectEach } from './../../helpers/object';
+import { CellCoords, CellRange, Table } from './../../3rdparty/walkontable/src';
 
 function CellInfoCollection() {
   var collection = [];
@@ -372,7 +372,7 @@ var addMergeActionsToContextMenu = function (defaultOptions) {
     return;
   }
 
-  defaultOptions.items.push({name: '---------'});
+  defaultOptions.items.push({ name: '---------' });
   defaultOptions.items.push({
     key: 'mergeCells',
     name() {

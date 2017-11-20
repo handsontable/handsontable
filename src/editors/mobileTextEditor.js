@@ -1,5 +1,5 @@
-import {KEY_CODES} from './../helpers/unicode';
-import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
+import { KEY_CODES } from './../helpers/unicode';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
 import {
   addClass,
   getScrollLeft,
@@ -12,7 +12,7 @@ import {
   removeClass,
   setCaretPosition,
 } from './../helpers/dom/element';
-import {objectEach} from './../helpers/object';
+import { objectEach } from './../helpers/object';
 import BaseEditor from './_baseEditor';
 import EventManager from './../eventManager';
 

@@ -1,5 +1,5 @@
-import {CellCoords} from './../3rdparty/walkontable/src';
-import {stringify} from './../helpers/mixed';
+import { CellCoords } from './../3rdparty/walkontable/src';
+import { stringify } from './../helpers/mixed';
 
 export const EditorState = {
   VIRGIN: 'STATE_VIRGIN', // before editing

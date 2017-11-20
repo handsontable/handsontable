@@ -1,6 +1,6 @@
 import numbro from 'numbro';
-import {getRenderer} from './index';
-import {isNumeric} from './../helpers/number';
+import { getRenderer } from './index';
+import { isNumeric } from './../helpers/number';
 
 /**
  * Numeric cell renderer

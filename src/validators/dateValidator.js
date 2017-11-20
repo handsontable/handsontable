@@ -1,6 +1,6 @@
 import moment from 'moment';
-import {getNormalizedDate} from '../helpers/date';
-import {getEditorInstance} from '../editors';
+import { getNormalizedDate } from '../helpers/date';
+import { getEditorInstance } from '../editors';
 
 /**
  * Date cell validator
@@ -47,7 +47,7 @@ export default function dateValidator(value, callback) {
   }
 
   callback(valid);
-};
+}
 
 /**
  * Format the given string using moment.js' format feature
@@ -72,4 +72,4 @@ export function correctFormat(value, dateFormat) {
   }
 
   return date.format(dateFormat);
-};
+}

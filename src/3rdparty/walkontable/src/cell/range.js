@@ -63,7 +63,7 @@ class CellRange {
    * @returns {Boolean}
    */
   includes(cellCoords) {
-    let {row, col} = cellCoords;
+    let { row, col } = cellCoords;
     let topLeft = this.getTopLeftCorner();
     let bottomRight = this.getBottomRightCorner();
 

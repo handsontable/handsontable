@@ -3,7 +3,7 @@ var currentSpec;
 
 export function spec() {
   return currentSpec;
-};
+}
 
 beforeEach(function () {
   currentSpec = this;

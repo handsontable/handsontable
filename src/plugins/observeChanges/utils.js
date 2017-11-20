@@ -1,4 +1,4 @@
-import {arrayFilter, arrayMap} from '../../helpers/array';
+import { arrayFilter, arrayMap } from '../../helpers/array';
 
 /**
  * Clean and extend patches from jsonpatch observer.

@@ -10,10 +10,10 @@ import {
   isInput,
   isOutsideInput,
 } from './helpers/dom/element';
-import {isChrome, isSafari} from './helpers/browser';
+import { isChrome, isSafari } from './helpers/browser';
 import EventManager from './eventManager';
-import {stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick} from './helpers/dom/event';
-import Walkontable, {CellCoords, Selection} from './3rdparty/walkontable/src';
+import { stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
+import Walkontable, { CellCoords, Selection } from './3rdparty/walkontable/src';
 
 /**
  * Handsontable TableView constructor
@@ -334,7 +334,7 @@ function TableView(instance) {
         let doNewSelection = true;
 
         if (actualSelection) {
-          let {from, to} = actualSelection;
+          let { from, to } = actualSelection;
           let coordsNotInSelection = !selection.inInSelection(coords);
 
           if (coords.row < 0 && selectedHeader.cols) {

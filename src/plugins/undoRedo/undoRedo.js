@@ -2,11 +2,11 @@
  * Handsontable UndoRedo class
  */
 import Hooks from './../../pluginHooks';
-import {arrayMap} from './../../helpers/array';
-import {rangeEach} from './../../helpers/number';
-import {inherit, deepClone} from './../../helpers/object';
-import {stopImmediatePropagation} from './../../helpers/dom/event';
-import {CellCoords} from './../../3rdparty/walkontable/src';
+import { arrayMap } from './../../helpers/array';
+import { rangeEach } from './../../helpers/number';
+import { inherit, deepClone } from './../../helpers/object';
+import { stopImmediatePropagation } from './../../helpers/dom/event';
+import { CellCoords } from './../../3rdparty/walkontable/src';
 
 /**
  * @description
@@ -123,7 +123,7 @@ function UndoRedo(instance) {
 
     plugin.done(new UndoRedo.RowMoveAction(movedRows, target));
   });
-};
+}
 
 UndoRedo.prototype.done = function (action) {
   if (!this.ignoreNewActions) {

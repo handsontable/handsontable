@@ -23,16 +23,16 @@ describe('Core_loadData', () => {
 
   var arrayOfObjects = function () {
     return [
-      {id: 1, name: 'Ted', lastName: 'Right'},
-      {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'},
-      {id: 4, name: 'Sid', lastName: 'Strong'},
-      {id: 5, name: 'Jane', lastName: 'Neat'},
-      {id: 6, name: 'Chuck', lastName: 'Jackson'},
-      {id: 7, name: 'Meg', lastName: 'Jansen'},
-      {id: 8, name: 'Rob', lastName: 'Norris'},
-      {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'},
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' },
+      { id: 4, name: 'Sid', lastName: 'Strong' },
+      { id: 5, name: 'Jane', lastName: 'Neat' },
+      { id: 6, name: 'Chuck', lastName: 'Jackson' },
+      { id: 7, name: 'Meg', lastName: 'Jansen' },
+      { id: 8, name: 'Rob', lastName: 'Norris' },
+      { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+      { id: 10, name: 'Eve', lastName: 'Branson' },
     ];
   };
 
@@ -78,9 +78,9 @@ describe('Core_loadData', () => {
   it('should allow array of objects', () => {
     handsontable({
       columns: [
-        {data: 'id'},
-        {data: 'lastName'},
-        {data: 'name'},
+        { data: 'id' },
+        { data: 'lastName' },
+        { data: 'name' },
       ],
     });
     loadData(arrayOfObjects());
@@ -114,10 +114,10 @@ describe('Core_loadData', () => {
       data: arrayOfNestedObjects(),
       colHeaders: true,
       columns: [
-        {data: 'id'},
-        {data: 'name.last'},
-        {data: 'name.first'},
-        {data: 'full.street'},
+        { data: 'id' },
+        { data: 'name.last' },
+        { data: 'name.first' },
+        { data: 'full.street' },
       ],
     });
     expect(getDataAtCell(0, 2)).toEqual('Ted');
@@ -434,9 +434,9 @@ describe('Core_loadData', () => {
     var cars = new CarCollection();
 
     cars.add([
-      {make: 'Dodge', model: 'Ram', year: 2012, weight: 6811},
-      {make: 'Toyota', model: 'Camry', year: 2012, weight: 3190},
-      {make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808},
+      { make: 'Dodge', model: 'Ram', year: 2012, weight: 6811 },
+      { make: 'Toyota', model: 'Camry', year: 2012, weight: 3190 },
+      { make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808 },
     ]);
 
     handsontable({
@@ -450,7 +450,7 @@ describe('Core_loadData', () => {
 
     // use the "good" Collection methods to emulate Array.splice
     function hackedSplice(index, howMany, ...models) {
-      var args = _.toArray(models).concat({at: index}),
+      var args = _.toArray(models).concat({ at: index }),
         removed = this.models.slice(index, index + howMany);
       this.remove(removed).add.apply(this, args);
 
@@ -486,9 +486,9 @@ describe('Core_loadData', () => {
     var cars = new CarCollection();
 
     cars.add([
-      {make: 'Dodge', model: 'Ram', year: 2012, weight: 6811},
-      {make: 'Toyota', model: 'Camry', year: 2012, weight: 3190},
-      {make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808},
+      { make: 'Dodge', model: 'Ram', year: 2012, weight: 6811 },
+      { make: 'Toyota', model: 'Camry', year: 2012, weight: 3190 },
+      { make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808 },
     ]);
 
     handsontable({
@@ -510,7 +510,7 @@ describe('Core_loadData', () => {
 
     // use the "good" Collection methods to emulate Array.splice
     function hackedSplice(index, howMany, ...models) {
-      var args = _.toArray(models).concat({at: index}),
+      var args = _.toArray(models).concat({ at: index }),
         removed = this.models.slice(index, index + howMany);
       this.remove(removed).add.apply(this, args);
 
@@ -567,17 +567,17 @@ describe('Core_loadData', () => {
   it('should correct behave with cell with no nested object data source corresponding to column mapping', () => {
 
     var objectData = [
-      {id: 1, user: {name: {first: 'Ted', last: 'Right'}}},
-      {id: 2, user: {name: {}}},
-      {id: 3},
+      { id: 1, user: { name: { first: 'Ted', last: 'Right' } } },
+      { id: 2, user: { name: {} } },
+      { id: 3 },
     ];
 
     handsontable({
       data: objectData,
       columns: [
-        {data: 'id'},
-        {data: 'user.name.first'},
-        {data: 'user.name.last'},
+        { data: 'id' },
+        { data: 'user.name.first' },
+        { data: 'user.name.last' },
       ],
     });
 
@@ -595,9 +595,9 @@ describe('Core_loadData', () => {
   it('should correct behave with cell with no nested object data source corresponding to column mapping when columns is a function', () => {
 
     var objectData = [
-      {id: 1, user: {name: {first: 'Ted', last: 'Right'}}},
-      {id: 2, user: {name: {}}},
-      {id: 3},
+      { id: 1, user: { name: { first: 'Ted', last: 'Right' } } },
+      { id: 2, user: { name: {} } },
+      { id: 3 },
     ];
 
     handsontable({
@@ -606,13 +606,13 @@ describe('Core_loadData', () => {
         var colMeta = null;
 
         if (column === 0) {
-          colMeta = {data: 'id'};
+          colMeta = { data: 'id' };
 
         } else if (column === 1) {
-          colMeta = {data: 'user.name.first'};
+          colMeta = { data: 'user.name.first' };
 
         } else if (column === 2) {
-          colMeta = {data: 'user.name.last'};
+          colMeta = { data: 'user.name.last' };
         }
 
         return colMeta;

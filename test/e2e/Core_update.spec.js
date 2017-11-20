@@ -17,7 +17,7 @@ describe('Core_updateSettings', () => {
       data: [[1, 2]],
       columns: [
         {},
-        {type: 'checkbox'},
+        { type: 'checkbox' },
       ],
       cells(row, col) {
         return row === 0 && col === 0 ? { type: 'numeric' } : {};
@@ -38,7 +38,7 @@ describe('Core_updateSettings', () => {
           colMeta = {};
 
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
@@ -60,13 +60,13 @@ describe('Core_updateSettings', () => {
     handsontable({
       data: [[1, true]],
       columns: [
-        {type: 'numeric'},
-        {type: 'checkbox'},
+        { type: 'numeric' },
+        { type: 'checkbox' },
       ],
     });
 
     expect(() => {
-      updateSettings({cell: new Array()});
+      updateSettings({ cell: new Array() });
     }).not.toThrow();
   });
 
@@ -81,10 +81,10 @@ describe('Core_updateSettings', () => {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {type: 'numeric'};
+          colMeta = { type: 'numeric' };
 
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
@@ -92,7 +92,7 @@ describe('Core_updateSettings', () => {
     });
 
     expect(() => {
-      updateSettings({cell: new Array()});
+      updateSettings({ cell: new Array() });
     }).not.toThrow();
   });
 
@@ -100,8 +100,8 @@ describe('Core_updateSettings', () => {
     handsontable({
       data: [[1, true]],
       columns: [
-        {type: 'numeric'},
-        {type: 'checkbox'},
+        { type: 'numeric' },
+        { type: 'checkbox' },
       ],
     });
 
@@ -123,10 +123,10 @@ describe('Core_updateSettings', () => {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {type: 'numeric'};
+          colMeta = { type: 'numeric' };
 
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
@@ -207,8 +207,8 @@ describe('Core_updateSettings', () => {
     handsontable({
       data: [['foo', true]],
       columns: [
-        {type: 'text', readOnly: true},
-        {type: 'checkbox'},
+        { type: 'text', readOnly: true },
+        { type: 'checkbox' },
       ],
     });
 
@@ -220,8 +220,8 @@ describe('Core_updateSettings', () => {
 
     updateSettings({
       columns: [
-        {type: 'text', readOnly: false},
-        {type: 'checkbox'},
+        { type: 'text', readOnly: false },
+        { type: 'checkbox' },
       ],
     });
 
@@ -239,9 +239,9 @@ describe('Core_updateSettings', () => {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {type: 'text', readOnly: true};
+          colMeta = { type: 'text', readOnly: true };
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
@@ -259,9 +259,9 @@ describe('Core_updateSettings', () => {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {type: 'text', readOnly: false};
+          colMeta = { type: 'text', readOnly: false };
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
@@ -280,8 +280,8 @@ describe('Core_updateSettings', () => {
       readOnly: true,
       data: [['foo', true]],
       columns: [
-        {type: 'text'},
-        {type: 'checkbox'},
+        { type: 'text' },
+        { type: 'checkbox' },
       ],
     });
 
@@ -293,8 +293,8 @@ describe('Core_updateSettings', () => {
 
     updateSettings({
       columns: [
-        {type: 'text', readOnly: false},
-        {type: 'checkbox'},
+        { type: 'text', readOnly: false },
+        { type: 'checkbox' },
       ],
     });
 
@@ -313,10 +313,10 @@ describe('Core_updateSettings', () => {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {type: 'text'};
+          colMeta = { type: 'text' };
 
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
@@ -334,10 +334,10 @@ describe('Core_updateSettings', () => {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {type: 'text', readOnly: false};
+          colMeta = { type: 'text', readOnly: false };
 
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
@@ -540,7 +540,7 @@ describe('Core_updateSettings', () => {
 
     rows = 100;
 
-    updateSettings({data: Handsontable.helper.createSpreadsheetObjectData(columns, rows)});
+    updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(columns, rows) });
     expect(getCellMeta(rows, 0).readOnly).toEqual(true);
     expect(getCellMeta(rows, 1).type).toEqual('checkbox');
 
@@ -584,7 +584,7 @@ describe('Core_updateSettings', () => {
 
     rows = 100;
 
-    updateSettings({data: Handsontable.helper.createSpreadsheetObjectData(columns, rows)});
+    updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(columns, rows) });
     expect(getCellMeta(rows, 0).type).toEqual('numeric');
     expect(getCellMeta(rows, 1).readOnly).toEqual(true);
 
@@ -617,7 +617,7 @@ describe('Core_updateSettings', () => {
       afterUpdateSettings,
     });
 
-    const newSettings = {readOnly: false};
+    const newSettings = { readOnly: false };
 
     updateSettings(newSettings);
 
@@ -625,7 +625,7 @@ describe('Core_updateSettings', () => {
   });
 
   it('should not extend parameter passed to `afterUpdateSettings` hook by another properties', () => {
-    const updatedSetting = {fillHandle: true};
+    const updatedSetting = { fillHandle: true };
     let newSettings;
 
     handsontable({

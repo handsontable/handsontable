@@ -140,9 +140,9 @@ describe('manualColumnMove', () => {
 
       updateSettings({
         columns: [
-          {data: 2},
-          {data: 0},
-          {data: 1},
+          { data: 2 },
+          { data: 0 },
+          { data: 1 },
         ],
       });
 
@@ -396,7 +396,7 @@ describe('manualColumnMove', () => {
         colHeaders: true,
         manualColumnMove: true,
         cell: [
-          {row: 1, col: 0, readOnly: true},
+          { row: 1, col: 0, readOnly: true },
         ],
       });
 

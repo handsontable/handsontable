@@ -7,16 +7,16 @@ import {
   isChildOf,
   removeClass,
 } from './../../helpers/dom/element';
-import {arrayEach, arrayFilter, arrayReduce} from './../../helpers/array';
+import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
 import Cursor from './cursor';
 import EventManager from './../../eventManager';
-import {mixin, hasOwnProperty} from './../../helpers/object';
-import {debounce} from './../../helpers/function';
-import {filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection} from './utils';
-import {KEY_CODES} from './../../helpers/unicode';
+import { mixin, hasOwnProperty } from './../../helpers/object';
+import { debounce } from './../../helpers/function';
+import { filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection } from './utils';
+import { KEY_CODES } from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
-import {SEPARATOR} from './predefinedItems';
-import {stopImmediatePropagation} from './../../helpers/dom/event';
+import { SEPARATOR } from './predefinedItems';
+import { stopImmediatePropagation } from './../../helpers/dom/event';
 
 /**
  * @class Menu

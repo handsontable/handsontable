@@ -13,10 +13,10 @@ import {
   hasHorizontalScrollbar,
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
-import BaseEditor, {EditorState} from './_baseEditor';
+import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
-import {KEY_CODES} from './../helpers/unicode';
-import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
+import { KEY_CODES } from './../helpers/unicode';
+import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
 
 const TextEditor = BaseEditor.prototype.extend();
 

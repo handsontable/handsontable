@@ -1,6 +1,6 @@
-import {arrayReduce, arrayMap, arrayMax} from './../helpers/array';
-import {defineGetter} from './../helpers/object';
-import {rangeEach} from './../helpers/number';
+import { arrayReduce, arrayMap, arrayMax } from './../helpers/array';
+import { defineGetter } from './../helpers/object';
+import { rangeEach } from './../helpers/number';
 
 const MIXIN_NAME = 'arrayMapper';
 

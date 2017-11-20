@@ -1,4 +1,4 @@
-import {stringify} from './mixed';
+import { stringify } from './mixed';
 
 /**
  * Convert string to upper case first letter.

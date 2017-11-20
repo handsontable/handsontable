@@ -1,5 +1,5 @@
 import Hooks from './../../pluginHooks';
-import {hasOwnProperty, objectEach} from './../../helpers/object';
+import { hasOwnProperty, objectEach } from './../../helpers/object';
 
 function Storage(prefix) {
   var savedKeys;

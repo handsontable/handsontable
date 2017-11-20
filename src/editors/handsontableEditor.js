@@ -1,7 +1,7 @@
-import {KEY_CODES} from './../helpers/unicode';
-import {extend} from './../helpers/object';
-import {setCaretPosition} from './../helpers/dom/element';
-import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
+import { KEY_CODES } from './../helpers/unicode';
+import { extend } from './../helpers/object';
+import { setCaretPosition } from './../helpers/dom/element';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
 import TextEditor from './textEditor';
 
 const HandsontableEditor = TextEditor.prototype.extend();

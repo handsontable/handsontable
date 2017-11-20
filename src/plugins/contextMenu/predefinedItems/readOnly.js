@@ -1,4 +1,4 @@
-import {checkSelectionConsistency, markLabelAsSelected} from './../utils';
+import { checkSelectionConsistency, markLabelAsSelected } from './../utils';
 
 export const KEY = 'make_read_only';
 

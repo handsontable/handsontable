@@ -21,16 +21,16 @@ describe('ColumnSorting', () => {
 
   var arrayOfObjects = function () {
     return [
-      {id: 1, name: 'Ted', lastName: 'Right'},
-      {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'},
-      {id: 4, name: 'Sid', lastName: 'Strong'},
-      {id: 5, name: 'Jane', lastName: 'Neat'},
-      {id: 6, name: 'Chuck', lastName: 'Jackson'},
-      {id: 7, name: 'Meg', lastName: 'Jansen'},
-      {id: 8, name: 'Rob', lastName: 'Norris'},
-      {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'},
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' },
+      { id: 4, name: 'Sid', lastName: 'Strong' },
+      { id: 5, name: 'Jane', lastName: 'Neat' },
+      { id: 6, name: 'Chuck', lastName: 'Jackson' },
+      { id: 7, name: 'Meg', lastName: 'Jansen' },
+      { id: 8, name: 'Rob', lastName: 'Norris' },
+      { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+      { id: 10, name: 'Eve', lastName: 'Branson' },
     ];
   };
 
@@ -1083,10 +1083,10 @@ describe('ColumnSorting', () => {
 
   it('should NOT sort spare rows', () => {
     var myData = [
-      {a: 'aaa', b: 2, c: 3},
-      {a: 'z', b: 11, c: -4},
-      {a: 'dddd', b: 13, c: 13},
-      {a: 'bbbb', b: 10, c: 11},
+      { a: 'aaa', b: 2, c: 3 },
+      { a: 'z', b: 11, c: -4 },
+      { a: 'dddd', b: 13, c: 13 },
+      { a: 'bbbb', b: 10, c: 11 },
     ];
 
     function customIsEmptyRow(row) {
@@ -1099,11 +1099,11 @@ describe('ColumnSorting', () => {
       rowHeaders: true,
       colHeaders: ['A', 'B', 'C'],
       columns: [
-        {data: 'a', type: 'text'},
-        {data: 'b', type: 'text'},
-        {data: 'c', type: 'text'},
+        { data: 'a', type: 'text' },
+        { data: 'b', type: 'text' },
+        { data: 'c', type: 'text' },
       ],
-      dataSchema: {isNew: true, a: false}, // default for a to avoid #bad value#
+      dataSchema: { isNew: true, a: false }, // default for a to avoid #bad value#
       columnSorting: true,
       minSpareRows: 3,
       isEmptyRow: customIsEmptyRow,
@@ -1919,7 +1919,7 @@ describe('ColumnSorting', () => {
       columns: [
         {},
         {},
-        {sortIndicator: true},
+        { sortIndicator: true },
       ],
     });
 
@@ -2368,32 +2368,32 @@ describe('ColumnSorting', () => {
 
     testSorting(
       'maxRows < data.length',
-      {rows: 9, columns: 9, maxRow: 6, sortByColumnIndex: 1, sortOrder: false},
-      {dataLength: 6, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C6'}]},
+      { rows: 9, columns: 9, maxRow: 6, sortByColumnIndex: 1, sortOrder: false },
+      { dataLength: 6, expectations: [{ rowIndex: 0, columnIndex: 2, value: 'C6' }] },
     );
 
     testSorting(
       'maxRows > data.length',
-      {rows: 8, columns: 8, maxRow: 20, sortByColumnIndex: 1, sortOrder: false},
-      {dataLength: 8, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C8'}]},
+      { rows: 8, columns: 8, maxRow: 20, sortByColumnIndex: 1, sortOrder: false },
+      { dataLength: 8, expectations: [{ rowIndex: 0, columnIndex: 2, value: 'C8' }] },
     );
 
     testSorting(
       'minSpareRows is set; maxRows < data.length',
-      {rows: 9, columns: 9, maxRow: 5, minSpareRows: 3, sortByColumnIndex: 1, sortOrder: false},
-      {dataLength: 5, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C5'}]},
+      { rows: 9, columns: 9, maxRow: 5, minSpareRows: 3, sortByColumnIndex: 1, sortOrder: false },
+      { dataLength: 5, expectations: [{ rowIndex: 0, columnIndex: 2, value: 'C5' }] },
     );
 
     testSorting(
       'minSpareRows is set; maxRows === data.length',
-      {rows: 6, columns: 6, maxRow: 9, minSpareRows: 3, sortByColumnIndex: 1, sortOrder: false},
-      {dataLength: 6 + 3, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C6'}]},
+      { rows: 6, columns: 6, maxRow: 9, minSpareRows: 3, sortByColumnIndex: 1, sortOrder: false },
+      { dataLength: 6 + 3, expectations: [{ rowIndex: 0, columnIndex: 2, value: 'C6' }] },
     );
 
     testSorting(
       'minSpareRows is set; maxRows > data.length',
-      {rows: 9, columns: 9, maxRow: 15, minSpareRows: 2, sortByColumnIndex: 1, sortOrder: false},
-      {dataLength: 9 + 2, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C9'}]},
+      { rows: 9, columns: 9, maxRow: 15, minSpareRows: 2, sortByColumnIndex: 1, sortOrder: false },
+      { dataLength: 9 + 2, expectations: [{ rowIndex: 0, columnIndex: 2, value: 'C9' }] },
     );
   });
 });

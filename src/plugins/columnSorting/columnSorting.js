@@ -4,11 +4,11 @@ import {
   hasClass,
   removeClass,
 } from './../../helpers/dom/element';
-import {arrayMap, arrayReduce} from './../../helpers/array';
-import {isEmpty} from './../../helpers/mixed';
-import {hasOwnProperty} from './../../helpers/object';
+import { arrayMap, arrayReduce } from './../../helpers/array';
+import { isEmpty } from './../../helpers/mixed';
+import { hasOwnProperty } from './../../helpers/object';
 import BasePlugin from './../_base';
-import {registerPlugin} from './../../plugins';
+import { registerPlugin } from './../../plugins';
 import mergeSort from './../../utils/sortingAlgorithms/mergeSort';
 import Hooks from './../../pluginHooks';
 
@@ -434,7 +434,7 @@ class ColumnSorting extends BasePlugin {
     this.hot.sortIndex.length = 0;
 
     if (typeof colMeta.columnSorting.sortEmptyCells === 'undefined') {
-      colMeta.columnSorting = {sortEmptyCells: this.sortEmptyCells};
+      colMeta.columnSorting = { sortEmptyCells: this.sortEmptyCells };
     }
 
     if (this.hot.getSettings().maxRows === Number.POSITIVE_INFINITY) {

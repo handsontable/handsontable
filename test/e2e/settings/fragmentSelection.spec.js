@@ -167,7 +167,7 @@ describe('settings', () => {
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: true,
         });
-        updateSettings({fragmentSelection: false});
+        updateSettings({ fragmentSelection: false });
         selectElementText(this.$container.find('tr:eq(0) td:eq(1)')[0], 3);
 
         mouseDown(this.$container.find('tr:eq(0) td:eq(3)'));
@@ -182,7 +182,7 @@ describe('settings', () => {
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: false,
         });
-        updateSettings({fragmentSelection: true});
+        updateSettings({ fragmentSelection: true });
         selectElementText(this.$container.find('td')[1], 3);
 
         mouseDown(this.$container.find('tr:eq(0) td:eq(3)'));

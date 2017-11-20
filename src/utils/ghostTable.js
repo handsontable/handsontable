@@ -1,5 +1,5 @@
-import {addClass, outerHeight, outerWidth} from './../helpers/dom/element';
-import {arrayEach} from './../helpers/array';
+import { addClass, outerHeight, outerWidth } from './../helpers/dom/element';
+import { arrayEach } from './../helpers/array';
 
 /**
  * @class GhostTable
@@ -68,7 +68,7 @@ class GhostTable {
     if (!this.rows.length) {
       this.container = this.createContainer(this.hot.rootElement.className);
     }
-    const rowObject = {row};
+    const rowObject = { row };
     this.rows.push(rowObject);
 
     this.samples = samples;
@@ -85,7 +85,7 @@ class GhostTable {
    */
   addColumnHeadersRow(samples) {
     if (this.hot.getColHeader(0) !== null) {
-      const rowObject = {row: -1};
+      const rowObject = { row: -1 };
       this.rows.push(rowObject);
 
       this.container = this.createContainer(this.hot.rootElement.className);
@@ -113,7 +113,7 @@ class GhostTable {
     if (!this.columns.length) {
       this.container = this.createContainer(this.hot.rootElement.className);
     }
-    const columnObject = {col: column};
+    const columnObject = { col: column };
     this.columns.push(columnObject);
 
     this.samples = samples;
@@ -403,7 +403,7 @@ class GhostTable {
     addClass(table, className);
     fragment.appendChild(table);
 
-    return {fragment, table, tHead, tBody, colGroup, tr, th};
+    return { fragment, table, tHead, tBody, colGroup, tr, th };
   }
 
   /**
@@ -421,7 +421,7 @@ class GhostTable {
     addClass(container, className);
     fragment.appendChild(container);
 
-    return {fragment, container};
+    return { fragment, container };
   }
 
   /**

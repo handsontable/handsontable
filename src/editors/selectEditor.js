@@ -10,10 +10,10 @@ import {
   outerWidth,
   resetCssTransform,
 } from './../helpers/dom/element';
-import {stopImmediatePropagation} from './../helpers/dom/event';
-import {objectEach} from './../helpers/object';
-import {KEY_CODES} from './../helpers/unicode';
-import BaseEditor, {EditorState} from './_baseEditor';
+import { stopImmediatePropagation } from './../helpers/dom/event';
+import { objectEach } from './../helpers/object';
+import { KEY_CODES } from './../helpers/unicode';
+import BaseEditor, { EditorState } from './_baseEditor';
 
 const SelectEditor = BaseEditor.prototype.extend();
 

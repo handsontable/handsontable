@@ -50,9 +50,9 @@ describe('PluginHooks', () => {
     hooks.add('test', [fn1, fn2, fn3, fn3, fn3], context);
 
     expect(hooks.getBucket.calls.count()).toBe(5);
-    expect(hooks.getBucket.calls.mostRecent()).toEqual({object: hooks, args: [{}], returnValue: bucket});
+    expect(hooks.getBucket.calls.mostRecent()).toEqual({ object: hooks, args: [{}], returnValue: bucket });
     expect(hooks.register.calls.count()).toBe(1);
-    expect(hooks.register.calls.mostRecent()).toEqual({object: hooks, args: ['test'], returnValue: void 0});
+    expect(hooks.register.calls.mostRecent()).toEqual({ object: hooks, args: ['test'], returnValue: void 0 });
 
     expect(bucket.test.length).toBe(3);
     expect(bucket.test[0]).toBe(fn1);
@@ -65,7 +65,7 @@ describe('PluginHooks', () => {
     var fn1 = function () {};
     var fn2 = function () {};
     var context = {};
-    var bucket = {test: []};
+    var bucket = { test: [] };
 
     spyOn(hooks, 'getBucket').and.returnValue(bucket);
     spyOn(hooks, 'register');
@@ -100,7 +100,7 @@ describe('PluginHooks', () => {
     expect(fn2.runOnce).toBe(true);
     expect(fn3.runOnce).toBe(true);
     expect(hooks.add.calls.count()).toBe(5);
-    expect(hooks.add.calls.mostRecent()).toEqual({object: hooks, args: ['test', fn3, context], returnValue: void 0});
+    expect(hooks.add.calls.mostRecent()).toEqual({ object: hooks, args: ['test', fn3, context], returnValue: void 0 });
   });
 
   it('should add hook once as function', () => {
@@ -130,7 +130,7 @@ describe('PluginHooks', () => {
     var fn1 = function () {};
     var fn2 = function () {};
     var fn3 = function () {};
-    var bucket = {test: [fn1, fn2]};
+    var bucket = { test: [fn1, fn2] };
     var result;
 
     spyOn(hooks, 'getBucket').and.returnValue(bucket);
@@ -158,7 +158,7 @@ describe('PluginHooks', () => {
     var fn2 = jasmine.createSpy('fn2').and.returnValue('Bar');
     var fn3 = jasmine.createSpy('fn3');
     var context = {};
-    var bucket = {test: [fn1, fn2]};
+    var bucket = { test: [fn1, fn2] };
     var result;
 
     hooks.globalBucket.test = [fn3];
@@ -193,12 +193,12 @@ describe('PluginHooks', () => {
     var fn1 = jasmine.createSpy('fn1').and.returnValue('Foo');
     var fn2 = jasmine.createSpy('fn2').and.returnValue('Bar');
     var fn3 = jasmine.createSpy('fn3');
-    var context = {pluginHookBucket: {test: [fn1, fn2]}};
+    var context = { pluginHookBucket: { test: [fn1, fn2] } };
 
     fn1.runOnce = true;
     fn2.runOnce = true;
     fn3.runOnce = true;
-    hooks.globalBucket = {test: [fn3]};
+    hooks.globalBucket = { test: [fn3] };
 
     hooks.run(context, 'test');
     hooks.run(context, 'test');
@@ -215,7 +215,7 @@ describe('PluginHooks', () => {
     var fn2 = jasmine.createSpy('fn2').and.returnValue('Bar');
     var fn3 = jasmine.createSpy('fn3');
     var context = {};
-    var bucket = {test: [fn1, fn2, fn3], test2: [fn3]};
+    var bucket = { test: [fn1, fn2, fn3], test2: [fn3] };
 
     spyOn(hooks, 'getBucket').and.returnValue(bucket);
 

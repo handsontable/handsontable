@@ -1,5 +1,5 @@
-import {getWindowScrollLeft, getWindowScrollTop} from './../../helpers/dom/element';
-import {pageX, pageY} from './../../helpers/dom/event';
+import { getWindowScrollLeft, getWindowScrollTop } from './../../helpers/dom/element';
+import { pageX, pageY } from './../../helpers/dom/event';
 
 /**
  * Helper class for checking if element will fit at the desired side of cursor.

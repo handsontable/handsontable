@@ -1,7 +1,7 @@
 import BasePlugin from './../_base';
 import DataObserver from './dataObserver';
-import {arrayEach} from './../../helpers/array';
-import {registerPlugin} from './../../plugins';
+import { arrayEach } from './../../helpers/array';
+import { registerPlugin } from './../../plugins';
 
 // Handsontable.hooks.register('afterChangesObserved');
 

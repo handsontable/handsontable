@@ -20,7 +20,7 @@ describe('manualRowMove', () => {
 
       mapper.destroy();
 
-      expect(mapper._arrayMap).toBe(null); ;
+      expect(mapper._arrayMap).toBe(null);
     });
 
     it('should create map with pairs index->value', () => {

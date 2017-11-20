@@ -1371,9 +1371,9 @@ describe('UndoRedo', () => {
 
       function createObjectData() {
         return [
-          {name: 'Timothy', surname: 'Dalton'},
-          {name: 'Sean', surname: 'Connery'},
-          {name: 'Roger', surname: 'Moore'},
+          { name: 'Timothy', surname: 'Dalton' },
+          { name: 'Sean', surname: 'Connery' },
+          { name: 'Roger', surname: 'Moore' },
         ];
       }
 
@@ -2358,7 +2358,7 @@ describe('UndoRedo', () => {
         selectCell(0, 0);
         setDataAtCell(0, 0, 'new value');
 
-        this.$container.simulate('keydown', {ctrlKey: true, keyCode: 'Z'.charCodeAt(0)});
+        this.$container.simulate('keydown', { ctrlKey: true, keyCode: 'Z'.charCodeAt(0) });
         expect(getDataAtCell(0, 0)).toBe('A1');
       });
 
@@ -2376,7 +2376,7 @@ describe('UndoRedo', () => {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        this.$container.simulate('keydown', {ctrlKey: true, keyCode: 'Y'.charCodeAt(0)});
+        this.$container.simulate('keydown', { ctrlKey: true, keyCode: 'Y'.charCodeAt(0) });
 
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
@@ -2395,7 +2395,7 @@ describe('UndoRedo', () => {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        this.$container.simulate('keydown', {ctrlKey: true, shiftKey: true, keyCode: 'Z'.charCodeAt(0)});
+        this.$container.simulate('keydown', { ctrlKey: true, shiftKey: true, keyCode: 'Z'.charCodeAt(0) });
 
         expect(getDataAtCell(0, 0)).toBe('new value');
       });

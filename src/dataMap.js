@@ -1,10 +1,10 @@
 import SheetClip from './../lib/SheetClip/SheetClip.js';
-import {cellMethodLookupFactory} from './helpers/data';
-import {columnFactory} from './helpers/setting';
-import {createObjectPropListener, duckSchema, deepExtend, deepClone, isObject, deepObjectSize, hasOwnProperty, objectEach} from './helpers/object';
-import {extendArray, to2dArray} from './helpers/array';
+import { cellMethodLookupFactory } from './helpers/data';
+import { columnFactory } from './helpers/setting';
+import { createObjectPropListener, duckSchema, deepExtend, deepClone, isObject, deepObjectSize, hasOwnProperty, objectEach } from './helpers/object';
+import { extendArray, to2dArray } from './helpers/array';
 import Interval from './utils/interval';
-import {rangeEach} from './helpers/number';
+import { rangeEach } from './helpers/number';
 import MultiMap from './multiMap';
 
 /**

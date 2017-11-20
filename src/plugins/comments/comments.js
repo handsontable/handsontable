@@ -8,13 +8,13 @@ import {
   outerHeight,
   getScrollableElement,
 } from './../../helpers/dom/element';
-import {deepClone, deepExtend, isObject} from './../../helpers/object';
+import { deepClone, deepExtend, isObject } from './../../helpers/object';
 import EventManager from './../../eventManager';
-import {CellCoords} from './../../3rdparty/walkontable/src';
-import {registerPlugin} from './../../plugins';
+import { CellCoords } from './../../3rdparty/walkontable/src';
+import { registerPlugin } from './../../plugins';
 import BasePlugin from './../_base';
 import CommentEditor from './commentEditor';
-import {checkSelectionConsistency, markLabelAsSelected} from './../contextMenu/utils';
+import { checkSelectionConsistency, markLabelAsSelected } from './../contextMenu/utils';
 import DisplaySwitch from './displaySwitch';
 
 import './comments.css';
@@ -264,7 +264,7 @@ class Comments extends BasePlugin {
     let row = this.range.from.row;
     let col = this.range.from.col;
 
-    this.updateCommentMeta(row, col, {[META_COMMENT_VALUE]: comment});
+    this.updateCommentMeta(row, col, { [META_COMMENT_VALUE]: comment });
     this.hot.render();
   }
 
@@ -661,7 +661,7 @@ class Comments extends BasePlugin {
       for (let j = selection.start.col; j <= selection.end.col; j += 1) {
         let currentState = !!this.getCommentMeta(i, j, META_READONLY);
 
-        this.updateCommentMeta(i, j, {[META_READONLY]: !currentState});
+        this.updateCommentMeta(i, j, { [META_READONLY]: !currentState });
       }
     }
   }

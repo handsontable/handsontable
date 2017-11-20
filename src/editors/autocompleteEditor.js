@@ -1,7 +1,7 @@
-import {KEY_CODES, isPrintableChar} from './../helpers/unicode';
-import {stringify, isDefined} from './../helpers/mixed';
-import {stripTags} from './../helpers/string';
-import {pivot, arrayMap} from './../helpers/array';
+import { KEY_CODES, isPrintableChar } from './../helpers/unicode';
+import { stringify, isDefined } from './../helpers/mixed';
+import { stripTags } from './../helpers/string';
+import { pivot, arrayMap } from './../helpers/array';
 import {
   addClass,
   getCaretPosition,
@@ -99,7 +99,7 @@ AutocompleteEditor.prototype.open = function (...args) {
     colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
     width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
     afterRenderer(TD, row, col, prop, value) {
-      let {filteringCaseSensitive, allowHtml} = _this.cellProperties;
+      let { filteringCaseSensitive, allowHtml } = _this.cellProperties;
       let indexOfMatch;
       let match;
 
@@ -413,7 +413,7 @@ AutocompleteEditor.prototype.stripValueIfNeeded = function (value) {
 };
 
 AutocompleteEditor.prototype.stripValuesIfNeeded = function (values) {
-  const {allowHtml} = this.cellProperties;
+  const { allowHtml } = this.cellProperties;
 
   const stringifiedValues = arrayMap(values, value => stringify(value));
   const strippedValues = arrayMap(stringifiedValues, value => (allowHtml ? value : stripTags(value)));
@@ -422,7 +422,7 @@ AutocompleteEditor.prototype.stripValuesIfNeeded = function (values) {
 };
 
 AutocompleteEditor.prototype.allowKeyEventPropagation = function (keyCode) {
-  let selected = {row: this.htEditor.getSelectedRange() ? this.htEditor.getSelectedRange().from.row : -1};
+  let selected = { row: this.htEditor.getSelectedRange() ? this.htEditor.getSelectedRange().from.row : -1 };
   let allowed = false;
 
   if (keyCode === KEY_CODES.ARROW_DOWN && selected.row > 0 && selected.row < this.htEditor.countRows() - 1) {

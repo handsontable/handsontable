@@ -1,5 +1,5 @@
-import {fastInnerText} from './../../../helpers/dom/element';
-import {objectEach} from './../../../helpers/object';
+import { fastInnerText } from './../../../helpers/dom/element';
+import { objectEach } from './../../../helpers/object';
 
 /**
  * @class Settings

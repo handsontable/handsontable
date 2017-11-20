@@ -5,7 +5,7 @@ import {
   getScrollTop,
   offset,
 } from './../../../helpers/dom/element';
-import {rangeEach, rangeEachReverse} from './../../../helpers/number';
+import { rangeEach, rangeEachReverse } from './../../../helpers/number';
 
 /**
  * @class Scroll
