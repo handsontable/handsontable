@@ -215,7 +215,7 @@ describe('AutocompleteEditor', () => {
 
     it('should NOT update choices list, after cursor leaves and enters the list (#1330)', (done) => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').and.callThrough();
-      var updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
+      let { updateChoicesList } = Handsontable.editors.AutocompleteEditor.prototype;
 
       var hot = handsontable({
         columns: [
@@ -245,7 +245,7 @@ describe('AutocompleteEditor', () => {
 
     it('should update choices list exactly once after a key is pressed (#1330)', (done) => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').and.callThrough();
-      var updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
+      let { updateChoicesList } = Handsontable.editors.AutocompleteEditor.prototype;
 
       var hot = handsontable({
         columns: [
@@ -278,7 +278,7 @@ describe('AutocompleteEditor', () => {
 
     it('should not initialize the dropdown with unneeded scrollbars (scrollbar causing a scrollbar issue)', (done) => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').and.callThrough();
-      var updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
+      let { updateChoicesList } = Handsontable.editors.AutocompleteEditor.prototype;
 
       var hot = handsontable({
         data: [
@@ -1657,7 +1657,7 @@ describe('AutocompleteEditor', () => {
 
     it('text in textarea should not be interpreted as regexp', (done) => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'queryChoices').and.callThrough();
-      var queryChoices = Handsontable.editors.AutocompleteEditor.prototype.queryChoices;
+      let { queryChoices } = Handsontable.editors.AutocompleteEditor.prototype;
 
       hot = handsontable({
         columns: [
@@ -1734,7 +1734,7 @@ describe('AutocompleteEditor', () => {
 
     it('should allow any value if filter === false and allowInvalid === true', (done) => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'queryChoices').and.callThrough();
-      var queryChoices = Handsontable.editors.AutocompleteEditor.prototype.queryChoices;
+      let { queryChoices } = Handsontable.editors.AutocompleteEditor.prototype;
 
       handsontable({
         columns: [

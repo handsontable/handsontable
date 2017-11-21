@@ -42,7 +42,7 @@ class CommandExecutor {
    */
   execute(commandName, ...params) {
     let commandSplit = commandName.split(':');
-    commandName = commandSplit[0];
+    [commandName] = commandSplit;
 
     let subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
     let command = this.commands[commandName];

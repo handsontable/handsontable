@@ -97,12 +97,11 @@ export function range(from, to) {
   }
 
   if (arguments.length === 1) {
-    to = from;
-    from = 0;
+    [from, to] = [0, from];
   }
 
   if (to > from) {
-    from = [to, to = from][0]; // one-liner for swapping two values
+    [from, to] = [to, from];
   }
 
   var result = [];
@@ -121,18 +120,10 @@ export function range(from, to) {
  * @returns {object} modified instance
  */
 export function shimSelectionProperties(instance) {
-  if (instance.selections[0]) {
-    instance.selections.current = instance.selections[0];
-  }
-  if (instance.selections[1]) {
-    instance.selections.area = instance.selections[1];
-  }
-  if (instance.selections[2]) {
-    instance.selections.highlight = instance.selections[2];
-  }
-  if (instance.selections[3]) {
-    instance.selections.fill = instance.selections[3];
-  }
+  [
+    instance.selections.current, instance.selections.area,
+    instance.selections.highlight, instance.selections.fill,
+  ] = instance.selections;
 
   return instance;
 }

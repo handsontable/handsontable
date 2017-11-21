@@ -18,7 +18,7 @@ export function toUpperCaseFirst(string) {
  */
 export function equalsIgnoreCase(...strings) {
   let unique = [];
-  let length = strings.length;
+  let { length } = strings;
 
   while (length) {
     length -= 1;

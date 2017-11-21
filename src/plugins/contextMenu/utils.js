@@ -72,8 +72,11 @@ export function prepareHorizontalAlignClass(className, alignment) {
 export function getAlignmentClasses(range, callback) {
   const classes = {};
 
-  for (let row = range.from.row; row <= range.to.row; row += 1) {
-    for (let col = range.from.col; col <= range.to.col; col += 1) {
+  let { row: startRow, col: startColumn } = range.from;
+  const { row: endRow, col: endColumn } = range.to;
+
+  for (let row = startRow; row <= endRow; row += 1) {
+    for (let col = startColumn; col <= endColumn; col += 1) {
       if (!classes[row]) {
         classes[row] = [];
       }
@@ -87,9 +90,13 @@ export function getAlignmentClasses(range, callback) {
 export function align(range, type, alignment, cellDescriptor, propertySetter) {
   if (range.from.row === range.to.row && range.from.col === range.to.col) {
     applyAlignClassName(range.from.row, range.from.col, type, alignment, cellDescriptor, propertySetter);
+
   } else {
-    for (let row = range.from.row; row <= range.to.row; row += 1) {
-      for (let col = range.from.col; col <= range.to.col; col += 1) {
+    let { row: startRow, col: startColumn } = range.from;
+    const { row: endRow, col: endColumn } = range.to;
+
+    for (let row = startRow; row <= endRow; row += 1) {
+      for (let col = startColumn; col <= endColumn; col += 1) {
         applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter);
       }
     }

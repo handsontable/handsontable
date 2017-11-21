@@ -270,7 +270,7 @@ describe('ColumnSorting', () => {
 
   it('defaultSort comparing function shouldn\'t change order when comparing empty string, null and undefined', () => {
     var hot = handsontable({});
-    var defaultSort = hot.getPlugin('columnSorting').defaultSort;
+    let { defaultSort } = hot.getPlugin('columnSorting');
 
     expect(defaultSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
     expect(defaultSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
@@ -561,7 +561,7 @@ describe('ColumnSorting', () => {
   describe('data type: date', () => {
     it('dateSort comparing function shouldn\'t change order when comparing empty string, null and undefined', () => {
       var hot = handsontable({});
-      var dateSort = hot.getPlugin('columnSorting').dateSort;
+      let { dateSort } = hot.getPlugin('columnSorting');
 
       expect(dateSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
       expect(dateSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
@@ -911,7 +911,7 @@ describe('ColumnSorting', () => {
 
   it('numericSort comparing function shouldn\'t change order when comparing empty string, null and undefined', () => {
     var hot = handsontable({});
-    var numericSort = hot.getPlugin('columnSorting').numericSort;
+    let { numericSort } = hot.getPlugin('columnSorting');
 
     expect(numericSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
     expect(numericSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
@@ -1876,8 +1876,8 @@ describe('ColumnSorting', () => {
 
     this.sortByColumn(1);
 
-    var sortedColumn = this.$container.find('th span.columnSorting')[1],
-      afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    let sortedColumn = this.$container.find('th span.columnSorting').get(1);
+    let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
 
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
@@ -1892,20 +1892,20 @@ describe('ColumnSorting', () => {
     this.sortByColumn(1);
 
     // descending (updateSettings doesn't reset sorting stack)
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    sortedColumn = this.$container.find('th span.columnSorting').get(1);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
     this.sortByColumn(1);
 
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    sortedColumn = this.$container.find('th span.columnSorting').get(1);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
     this.sortByColumn(1);
 
     // ascending
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    sortedColumn = this.$container.find('th span.columnSorting').get(1);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
 
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
@@ -1925,20 +1925,20 @@ describe('ColumnSorting', () => {
 
     this.sortByColumn(0);
 
-    sortedColumn = this.$container.find('th span.columnSorting')[0];
+    sortedColumn = this.$container.find('th span.columnSorting').get(0);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
     this.sortByColumn(1);
 
     // descending
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    sortedColumn = this.$container.find('th span.columnSorting').get(1);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
     this.sortByColumn(2);
 
-    sortedColumn = this.$container.find('th span.columnSorting')[2];
+    sortedColumn = this.$container.find('th span.columnSorting').get(2);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
   });
@@ -1960,34 +1960,34 @@ describe('ColumnSorting', () => {
     hot.sort(1);
 
     // ascending
-    var sortedColumn = this.$container.find('th span.columnSorting')[1];
+    var sortedColumn = this.$container.find('th span.columnSorting').get(1);
     var afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
     hot.sort(1);
 
     // descending
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    sortedColumn = this.$container.find('th span.columnSorting').get(1);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
     hot.sort(1);
 
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    sortedColumn = this.$container.find('th span.columnSorting').get(1);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
     hot.sort(1);
 
     // ascending
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    sortedColumn = this.$container.find('th span.columnSorting').get(1);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
     hot.sort(1);
 
     // descending
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    sortedColumn = this.$container.find('th span.columnSorting').get(1);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
   });
@@ -2009,42 +2009,42 @@ describe('ColumnSorting', () => {
     hot.sort(1);
 
     // ascending
-    var sortedColumn = this.$container.find('th span.columnSorting')[1];
+    let sortedColumn = this.$container.find('th span.columnSorting').get(1);
     var afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
     hot.sort(2);
 
     // ascending
-    sortedColumn = this.$container.find('th span.columnSorting')[2];
+    sortedColumn = this.$container.find('th span.columnSorting').get(2);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
     hot.sort(1);
 
     // ascending
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    sortedColumn = this.$container.find('th span.columnSorting').get(1);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
     hot.sort(2, false);
 
     // descending
-    sortedColumn = this.$container.find('th span.columnSorting')[2];
+    sortedColumn = this.$container.find('th span.columnSorting').get(2);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
     hot.sort(2, false);
 
     // descending
-    sortedColumn = this.$container.find('th span.columnSorting')[2];
+    sortedColumn = this.$container.find('th span.columnSorting').get(2);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
     hot.sort(2, true);
 
     // ascending
-    sortedColumn = this.$container.find('th span.columnSorting')[2];
+    sortedColumn = this.$container.find('th span.columnSorting').get(2);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
   });
@@ -2067,35 +2067,35 @@ describe('ColumnSorting', () => {
     });
 
     // descending
-    var sortedColumn = this.$container.find('th span.columnSorting')[1];
+    let sortedColumn = this.$container.find('th span.columnSorting').get(1);
     var afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
     hot.sort(1);
 
     // default
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    sortedColumn = this.$container.find('th span.columnSorting').get(1);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
     hot.sort(1);
 
     // ascending
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    sortedColumn = this.$container.find('th span.columnSorting').get(1);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
     hot.sort(1);
 
     // descending
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    sortedColumn = this.$container.find('th span.columnSorting').get(1);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
     hot.sort(1);
 
     // default
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
+    sortedColumn = this.$container.find('th span.columnSorting').get(1);
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
   });

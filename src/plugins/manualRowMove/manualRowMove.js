@@ -212,7 +212,7 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} endRow Visual row index for the end of the selection.
    */
   changeSelection(startRow, endRow) {
-    let selection = this.hot.selection;
+    let { selection } = this.hot;
     let lastColIndex = this.hot.countCols() - 1;
 
     selection.setRangeStartOnly(new CellCoords(startRow, 0));
@@ -336,7 +336,7 @@ class ManualRowMove extends BasePlugin {
    */
   refreshPositions() {
     let priv = privatePool.get(this);
-    let coords = priv.target.coords;
+    let { coords } = priv.target;
     let firstVisible = this.hot.view.wt.wtTable.getFirstVisibleRow();
     let lastVisible = this.hot.view.wt.wtTable.getLastVisibleRow();
     let fixedRows = this.hot.getSettings().fixedRowsTop;
@@ -349,8 +349,8 @@ class ManualRowMove extends BasePlugin {
       this.hot.scrollViewportTo(lastVisible + 1, undefined, true);
     }
 
-    let wtTable = this.hot.view.wt.wtTable;
-    let TD = priv.target.TD;
+    let { wtTable } = this.hot.view.wt;
+    let { TD } = priv.target;
     let rootElementOffset = offset(this.hot.rootElement);
     let tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row);
     let mouseOffsetTop = priv.target.eventPageY - rootElementOffset.top + wtTable.holder.scrollTop;
@@ -486,7 +486,7 @@ class ManualRowMove extends BasePlugin {
    * @param {Object} blockCalculations
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
-    let wtTable = this.hot.view.wt.wtTable;
+    let { wtTable } = this.hot.view.wt;
     let isHeaderSelection = this.hot.selection.selectedHeader.rows;
     let selection = this.hot.getSelectedRange();
     let priv = privatePool.get(this);
@@ -550,7 +550,7 @@ class ManualRowMove extends BasePlugin {
 
     // callback for browser which doesn't supports CSS pointer-event: none
     if (event.realTarget === this.backlight.element) {
-      let height = this.backlight.getSize().height;
+      let { height } = this.backlight.getSize();
       this.backlight.setSize(null, 0);
 
       setTimeout(function () {
@@ -637,9 +637,9 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   onAfterScrollHorizontally() {
-    let wtTable = this.hot.view.wt.wtTable;
+    let { wtTable } = this.hot.view.wt;
     let headerWidth = this.hot.view.wt.wtViewport.getRowHeaderWidth();
-    let scrollLeft = wtTable.holder.scrollLeft;
+    let { scrollLeft } = wtTable.holder;
     let posLeft = headerWidth + scrollLeft;
 
     this.backlight.setPosition(null, posLeft);

@@ -105,7 +105,7 @@ class TopOverlay extends Overlay {
    */
   sumCellSizes(from, to) {
     let sum = 0;
-    let defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
+    let { defaultRowHeight } = this.wot.wtSettings.settings;
 
     while (from < to) {
       let height = this.wot.wtTable.getRowHeight(from);
@@ -293,11 +293,11 @@ class TopOverlay extends Overlay {
    * Redrawing borders of all selections
    */
   redrawAllSelectionsBorders() {
-    const selections = this.wot.selections;
+    const { current, area, fill } = this.wot.selections;
 
-    this.redrawSelectionBorders(selections.current);
-    this.redrawSelectionBorders(selections.area);
-    this.redrawSelectionBorders(selections.fill);
+    this.redrawSelectionBorders(current);
+    this.redrawSelectionBorders(area);
+    this.redrawSelectionBorders(fill);
     this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
   }
 

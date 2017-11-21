@@ -89,10 +89,10 @@ DataMap.prototype.createMap = function () {
   this.colToPropCache = [];
   this.propToColCache = new MultiMap();
 
-  let columns = this.instance.getSettings().columns;
+  let { columns } = this.instance.getSettings();
 
   if (columns) {
-    const maxCols = this.instance.getSettings().maxCols;
+    const { maxCols } = this.instance.getSettings();
     let columnsLen = Math.min(maxCols, columns.length);
     let filteredIndex = 0;
     let columnsAsFunc = false;
@@ -195,7 +195,7 @@ DataMap.prototype.createRow = function (index, amount, source) {
   }
   this.instance.runHooks('beforeCreateRow', index, amount, source);
 
-  var maxRows = this.instance.getSettings().maxRows;
+  let { maxRows } = this.instance.getSettings();
 
   while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
     if (this.instance.dataType === 'array') {
@@ -265,7 +265,7 @@ DataMap.prototype.createCol = function (index, amount, source) {
 
   currentIndex = index;
 
-  var maxCols = this.instance.getSettings().maxCols;
+  let { maxCols } = this.instance.getSettings();
   while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
     constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
 
@@ -555,7 +555,7 @@ DataMap.prototype.get = function (row, prop) {
     this.instance.runHooks('modifyData', row, this.propToCol(prop), valueHolder, 'get');
 
     if (valueHolder.isTouched()) {
-      value = valueHolder.value;
+      ({ value } = valueHolder);
     }
   }
 
@@ -602,7 +602,7 @@ DataMap.prototype.set = function (row, prop, value, source) {
     this.instance.runHooks('modifyData', row, this.propToCol(prop), valueHolder, 'set');
 
     if (valueHolder.isTouched()) {
-      value = valueHolder.value;
+      ({ value } = valueHolder);
     }
   }
 
@@ -788,8 +788,7 @@ DataMap.prototype.getRange = function (start, end, destination) {
     output = [],
     row;
 
-  const maxRows = this.instance.getSettings().maxRows;
-  const maxCols = this.instance.getSettings().maxCols;
+  const { maxRows, maxCols } = this.instance.getSettings();
 
   if (maxRows === 0 || maxCols === 0) {
     return [];

@@ -73,7 +73,7 @@ var onBeforeKeyDown = function (event) {
       if (innerHOT.flipped) {
         rowToSelect = innerHOT.getSelected()[0] + 1;
       } else if (!innerHOT.flipped) {
-        selectedRow = innerHOT.getSelected()[0];
+        [selectedRow] = innerHOT.getSelected();
         var lastRow = innerHOT.countRows() - 1;
         rowToSelect = Math.min(lastRow, selectedRow + 1);
       }
@@ -84,10 +84,10 @@ var onBeforeKeyDown = function (event) {
 
     } else if (innerHOT.getSelected()) {
       if (innerHOT.flipped) {
-        selectedRow = innerHOT.getSelected()[0];
+        [selectedRow] = innerHOT.getSelected();
         rowToSelect = Math.max(0, selectedRow - 1);
       } else {
-        selectedRow = innerHOT.getSelected()[0];
+        [selectedRow] = innerHOT.getSelected();
         rowToSelect = selectedRow - 1;
       }
     }
@@ -145,7 +145,7 @@ HandsontableEditor.prototype.focus = function (...args) {
 };
 
 HandsontableEditor.prototype.beginEditing = function (initialValue) {
-  var onBeginEditing = this.instance.getSettings().onBeginEditing;
+  let { onBeginEditing } = this.instance.getSettings();
 
   if (onBeginEditing && onBeginEditing() === false) {
     return;

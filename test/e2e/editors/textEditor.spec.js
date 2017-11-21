@@ -861,8 +861,7 @@ describe('TextEditor', () => {
     // corner
     selectCell(1, 1);
     var currentCell = hot.getCell(1, 1, true);
-    var left = $(currentCell).offset().left;
-    var top = $(currentCell).offset().top;
+    let { left, top } = $(currentCell).offset();
 
     var $inputHolder = $('.handsontableInputHolder');
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
@@ -892,8 +891,7 @@ describe('TextEditor', () => {
 
     setTimeout(() => {
       var currentCell = hot.getCell(1, 6, true);
-      var left = $(currentCell).offset().left;
-      var top = $(currentCell).offset().top;
+      let { left, top } = $(currentCell).offset();
 
       var $inputHolder = $('.handsontableInputHolder');
       keyDown(Handsontable.helper.KEY_CODES.ENTER);
@@ -920,8 +918,7 @@ describe('TextEditor', () => {
     // left
     selectCell(6, 1);
     var currentCell = hot.getCell(6, 1, true);
-    var left = $(currentCell).offset().left;
-    var top = $(currentCell).offset().top;
+    let { left, top } = $(currentCell).offset();
 
     var $inputHolder = $('.handsontableInputHolder');
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
@@ -946,8 +943,7 @@ describe('TextEditor', () => {
     // non-fixed
     selectCell(7, 7);
     var currentCell = hot.getCell(7, 7, true);
-    var left = $(currentCell).offset().left;
-    var top = $(currentCell).offset().top;
+    let { left, top } = $(currentCell).offset();
 
     var $inputHolder = $('.handsontableInputHolder');
     keyDown(Handsontable.helper.KEY_CODES.ENTER);

@@ -358,12 +358,12 @@ class Autofill extends BasePlugin {
     this.hot.view.wt.selections.fill.clear();
     this.hot.view.wt.selections.fill.add(new CellCoords(
       selectStartArea[0],
-      selectStartArea[1]),
-    );
+      selectStartArea[1],
+    ));
     this.hot.view.wt.selections.fill.add(new CellCoords(
       rowIndex,
-      selectStartArea[3]),
-    );
+      selectStartArea[3],
+    ));
   }
 
   /**
@@ -375,12 +375,12 @@ class Autofill extends BasePlugin {
   setSelection(cornersOfArea) {
     this.hot.selection.setRangeStart(new CellCoords(
       cornersOfArea[0],
-      cornersOfArea[1]),
-    );
+      cornersOfArea[1],
+    ));
     this.hot.selection.setRangeEnd(new CellCoords(
       cornersOfArea[2],
-      cornersOfArea[3]),
-    );
+      cornersOfArea[3],
+    ));
   }
 
   /**

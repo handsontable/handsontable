@@ -77,7 +77,7 @@ describe('Core_datachange', () => {
 
   it('this.rootElement should point to handsontable rootElement', function () {
     var output = null;
-    var $container = this.$container;
+    let { $container } = this;
 
     handsontable({
       afterChange() {
@@ -91,7 +91,7 @@ describe('Core_datachange', () => {
 
   it('onChange should be triggered after data is rendered to DOM (init)', function () {
     var output = null;
-    var $container = this.$container;
+    let { $container } = this;
 
     handsontable({
       data: [
@@ -109,7 +109,7 @@ describe('Core_datachange', () => {
 
   it('onChange should be triggered after data is rendered to DOM (setDataAtCell)', function () {
     var output = null;
-    var $container = this.$container;
+    let { $container } = this;
 
     handsontable({
       data: [

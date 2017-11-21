@@ -62,7 +62,7 @@ describe('Core_view', () => {
     });
 
     var htCore = getHtCore();
-    var scrollTop = hot.rootElement.querySelector('.wtHolder').scrollTop;
+    let { scrollTop } = hot.rootElement.querySelector('.wtHolder');
 
     expect(scrollTop).toBe(0);
     expect(this.$container.height()).toEqual(60);
@@ -138,7 +138,7 @@ describe('Core_view', () => {
     });
 
     var htCore = getHtCore();
-    var scrollTop = hot.rootElement.querySelector('.wtHolder').scrollTop;
+    let { scrollTop } = hot.rootElement.querySelector('.wtHolder');
 
     expect(scrollTop).toBe(0);
     expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');

@@ -41,7 +41,7 @@ class Viewport {
    * @returns {number}
    */
   getWorkspaceHeight() {
-    let trimmingContainer = this.instance.wtOverlays.topOverlay.trimmingContainer;
+    let { trimmingContainer } = this.instance.wtOverlays.topOverlay;
     let elemHeight;
     let height = 0;
 
@@ -60,7 +60,7 @@ class Viewport {
   getWorkspaceWidth() {
     let width;
     let totalColumns = this.wot.getSetting('totalColumns');
-    let trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
+    let { trimmingContainer } = this.instance.wtOverlays.leftOverlay;
     let overflow;
     let stretchSetting = this.wot.getSetting('stretchH');
     let docOffsetWidth = document.documentElement.offsetWidth;

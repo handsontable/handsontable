@@ -21,9 +21,9 @@ function Event(instance) {
   this.dblClickTimeout = [null, null];
 
   var onMouseDown = function (event) {
-    const activeElement = document.activeElement;
+    const { activeElement } = document;
     const getParentNode = partial(getParent, event.realTarget);
-    const realTarget = event.realTarget;
+    const { realTarget } = event;
 
     // ignore focusable element from mouse down processing (https://github.com/handsontable/handsontable/issues/3555)
     if (realTarget === activeElement ||
@@ -208,7 +208,7 @@ function Event(instance) {
 
 Event.prototype.parentCell = function (elem) {
   var cell = {};
-  var TABLE = this.instance.wtTable.TABLE;
+  let { TABLE } = this.instance.wtTable;
   var TD = closestDown(elem, ['TD', 'TH'], TABLE);
 
   if (TD) {

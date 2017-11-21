@@ -76,13 +76,15 @@ class ViewportRowsCalculator {
     let startPositions = [];
 
     let priv = privatePool.get(this);
-    let onlyFullyVisible = priv.onlyFullyVisible;
-    let overrideFn = priv.overrideFn;
-    let rowHeightFn = priv.rowHeightFn;
-    let scrollOffset = priv.scrollOffset;
-    let totalRows = priv.totalRows;
-    let viewportHeight = priv.viewportHeight;
-    let horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
+    let {
+      onlyFullyVisible,
+      overrideFn,
+      rowHeightFn,
+      scrollOffset,
+      totalRows,
+      viewportHeight,
+      horizontalScrollbarHeight = 0,
+    } = priv;
     let rowHeight;
 
     // Calculate the number (start and end index) of rows needed

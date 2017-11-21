@@ -274,9 +274,9 @@ TextEditor.prototype.refreshDimensions = function () {
 
     settings = this.instance.getSettings(),
     colHeadersCount = this.instance.hasColHeaders(),
-    editorSection = this.checkEditorSection(),
-    backgroundColor = this.TD.style.backgroundColor,
-    cssTransformOffset;
+    editorSection = this.checkEditorSection();
+  let { backgroundColor } = this.TD.style;
+  let cssTransformOffset;
 
   // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
   switch (editorSection) {
@@ -309,7 +309,7 @@ TextEditor.prototype.refreshDimensions = function () {
   }
 
   if (cssTransformOffset && cssTransformOffset !== -1) {
-    this.textareaParentStyle[cssTransformOffset[0]] = cssTransformOffset[1];
+    [, this.textareaParentStyle[cssTransformOffset[0]]] = cssTransformOffset;
   } else {
     resetCssTransform(this.TEXTAREA_PARENT);
   }

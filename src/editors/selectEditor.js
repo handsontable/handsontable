@@ -40,7 +40,7 @@ SelectEditor.prototype.registerHooks = function () {
 SelectEditor.prototype.prepare = function (...args) {
   BaseEditor.prototype.prepare.apply(this, args);
 
-  var selectOptions = this.cellProperties.selectOptions;
+  let { selectOptions } = this.cellProperties;
   var options;
 
   if (typeof selectOptions === 'function') {
@@ -188,7 +188,7 @@ SelectEditor.prototype.refreshDimensions = function () {
   var selectStyle = this.select.style;
 
   if (cssTransformOffset && cssTransformOffset !== -1) {
-    selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
+    [, selectStyle[cssTransformOffset[0]]] = cssTransformOffset;
   } else {
     resetCssTransform(this.select);
   }

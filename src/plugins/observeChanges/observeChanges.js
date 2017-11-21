@@ -162,7 +162,7 @@ class ObserveChanges extends BasePlugin {
    * @private
    */
   _exposePublicApi() {
-    const hot = this.hot;
+    const { hot } = this;
 
     hot.pauseObservingChanges = () => this.observer.pause();
     hot.resumeObservingChanges = () => this.observer.resume();
@@ -175,7 +175,7 @@ class ObserveChanges extends BasePlugin {
    * @private
    */
   _deletePublicApi() {
-    const hot = this.hot;
+    const { hot } = this;
 
     delete hot.pauseObservingChanges;
     delete hot.resumeObservingChanges;

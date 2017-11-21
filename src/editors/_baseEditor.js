@@ -75,22 +75,18 @@ BaseEditor.prototype.extend = function () {
 
 BaseEditor.prototype.saveValue = function (value, ctrlDown) {
   let selection;
-  let tmp;
 
   // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
   if (ctrlDown) {
     selection = this.instance.getSelected();
 
     if (selection[0] > selection[2]) {
-      tmp = selection[0];
-      selection[0] = selection[2];
-      selection[2] = tmp;
+      [selection[2], selection[0]] = [selection[0], selection[2]];
     }
     if (selection[1] > selection[3]) {
-      tmp = selection[1];
-      selection[1] = selection[3];
-      selection[3] = tmp;
+      [selection[3], selection[1]] = [selection[1], selection[3]];
     }
+
   } else {
     selection = [this.row, this.col, null, null];
   }

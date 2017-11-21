@@ -137,7 +137,7 @@ class ManualColumnResize extends BasePlugin {
 
     this.currentTH = TH;
 
-    let col = this.hot.view.wt.wtTable.getCoords(TH).col; // getCoords returns CellCoords
+    let { col } = this.hot.view.wt.wtTable.getCoords(TH); // getCoords returns CellCoords
     let headerHeight = outerHeight(this.currentTH);
 
     if (col >= 0) { // if not col header

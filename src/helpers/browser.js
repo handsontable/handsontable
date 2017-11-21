@@ -25,7 +25,7 @@ export function isChrome() {
 
 export function isMobileBrowser(userAgent) {
   if (!userAgent) {
-    userAgent = navigator.userAgent;
+    ({ userAgent } = navigator);
   }
 
   return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent));

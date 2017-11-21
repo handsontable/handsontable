@@ -107,7 +107,7 @@ class BasePlugin {
    * Clear all hooks.
    */
   clearHooks() {
-    const hooks = privatePool.get(this).hooks;
+    const { hooks } = privatePool.get(this);
 
     objectEach(hooks, (callbacks, name) => this.removeHooks(name));
     hooks.length = 0;

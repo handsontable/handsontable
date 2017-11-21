@@ -143,7 +143,7 @@ class Border {
     this.main = document.createElement('div');
 
     let borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
-    let style = this.main.style;
+    let { style } = this.main;
     style.position = 'absolute';
     style.top = 0;
     style.left = 0;
@@ -156,24 +156,20 @@ class Border {
       if (this.settings[position] && this.settings[position].hide) {
         div.className += ' hidden';
       }
-      style = div.style;
+      ({ style } = div);
       style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
       style.height = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
       style.width = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
 
       this.main.appendChild(div);
     }
-    this.top = this.main.childNodes[0];
-    this.left = this.main.childNodes[1];
-    this.bottom = this.main.childNodes[2];
-    this.right = this.main.childNodes[3];
+    [this.top, this.left, this.bottom, this.right, this.corner] = this.main.childNodes;
 
     this.topStyle = this.top.style;
     this.leftStyle = this.left.style;
     this.bottomStyle = this.bottom.style;
     this.rightStyle = this.right.style;
 
-    this.corner = this.main.childNodes[4];
     this.corner.className += ' corner';
     this.cornerStyle = this.corner.style;
     this.cornerStyle.width = this.cornerDefaultStyle.width;

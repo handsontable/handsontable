@@ -242,7 +242,7 @@ class Table {
           Overlay.isOverlayTypeOf(this.instance.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startRow = Math.max(totalRows - this.wot.getSetting('fixedRowsBottom'), 0);
       } else {
-        startRow = wtViewport.rowsRenderCalculator.startRow;
+        ({ startRow } = wtViewport.rowsRenderCalculator);
       }
       let startColumn;
 
@@ -252,7 +252,7 @@ class Table {
           Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startColumn = 0;
       } else {
-        startColumn = wtViewport.columnsRenderCalculator.startColumn;
+        ({ startColumn } = wtViewport.columnsRenderCalculator);
       }
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeaders);
       this.columnFilter = new ColumnFilter(startColumn, this.wot.getSetting('totalColumns'), rowHeaders);
@@ -389,7 +389,7 @@ class Table {
     let result;
 
     if (TR) {
-      result = TR.childNodes[0];
+      [result] = TR.childNodes;
     }
 
     return result;

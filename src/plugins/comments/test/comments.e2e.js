@@ -313,7 +313,7 @@ describe('Comments', () => {
     setCellMeta(0, 0, 'comment', { readOnly: true });
     plugin.updateCommentMeta(0, 0, { value: 'Test' });
 
-    comment = getCellMeta(0, 0).comment;
+    ({ comment } = getCellMeta(0, 0));
     readOnly = comment && comment.readOnly;
 
     expect(readOnly).toEqual(true);
@@ -321,7 +321,7 @@ describe('Comments', () => {
     plugin.setRange({ from: { row: 0, col: 0 }, to: { row: 0, col: 0 } });
     plugin.setComment('Test2');
 
-    comment = getCellMeta(0, 0).comment;
+    ({ comment } = getCellMeta(0, 0));
     readOnly = comment && comment.readOnly;
 
     expect(readOnly).toEqual(true);

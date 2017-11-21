@@ -200,12 +200,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           priv.cellSettings.splice(index, amount);
 
           var totalRows = instance.countRows();
-          var fixedRowsTop = instance.getSettings().fixedRowsTop;
+          let { fixedRowsTop } = instance.getSettings();
           if (fixedRowsTop >= index + 1) {
             instance.getSettings().fixedRowsTop -= Math.min(amount, fixedRowsTop - index);
           }
 
-          var fixedRowsBottom = instance.getSettings().fixedRowsBottom;
+          let { fixedRowsBottom } = instance.getSettings();
           if (fixedRowsBottom && index >= totalRows - fixedRowsBottom) {
             instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom);
           }
@@ -224,7 +224,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               priv.cellSettings[row].splice(visualColumnIndex, amount);
             }
           }
-          var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
+          let { fixedColumnsLeft } = instance.getSettings();
 
           if (fixedColumnsLeft >= index + 1) {
             instance.getSettings().fixedColumnsLeft -= Math.min(amount, fixedColumnsLeft - index);
@@ -255,11 +255,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      */
     adjustRowsAndCols() {
       if (priv.settings.minRows) {
+        const { minRows } = priv.settings;
         // should I add empty rows to data source to meet minRows?
         let rows = instance.countRows();
 
-        if (rows < priv.settings.minRows) {
-          for (let r = 0, minRows = priv.settings.minRows; r < minRows - rows; r += 1) {
+        if (rows < minRows) {
+          const lastRow = minRows - rows;
+
+          for (let r = 0; r < lastRow; r += 1) {
             datamap.createRow(instance.countRows(), 1, 'auto');
           }
         }
@@ -389,7 +392,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       /* eslint-disable no-case-declarations */
       // insert data with specified pasteMode method
       switch (method) {
-        case 'shift_down' :
+        case 'shift_down':
           repeatCol = end ? end.col - start.col + 1 : 0;
           repeatRow = end ? end.row - start.row + 1 : 0;
           input = translateRowsToColumns(input);
@@ -656,7 +659,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       // set up current selection
       instance.view.wt.selections.current.clear();
 
-      disableVisualSelection = instance.getCellMeta(priv.selRange.highlight.row, priv.selRange.highlight.col).disableVisualSelection;
+      ({ disableVisualSelection } = instance.getCellMeta(priv.selRange.highlight.row, priv.selRange.highlight.col));
 
       if (typeof disableVisualSelection === 'string') {
         disableVisualSelection = [disableVisualSelection];
@@ -685,10 +688,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       const preventScrolling = createObjectPropListener('value');
 
       // trigger handlers
-      instance.runHooks('afterSelection',
-        priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col, preventScrolling);
-      instance.runHooks('afterSelectionByProp',
-        priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col), preventScrolling);
+      instance.runHooks(
+        'afterSelection', priv.selRange.from.row, priv.selRange.from.col,
+        priv.selRange.to.row, priv.selRange.to.col, preventScrolling,
+      );
+      instance.runHooks(
+        'afterSelectionByProp', priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col),
+        priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col), preventScrolling,
+      );
 
       if ((priv.selRange.from.row === 0 && priv.selRange.to.row === instance.countRows() - 1 && instance.countRows() > 1) ||
         (priv.selRange.from.col === 0 && priv.selRange.to.col === instance.countCols() - 1 && instance.countCols() > 1)) {
@@ -773,7 +780,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.runHooks('modifyTransformStart', delta);
       totalRows = instance.countRows();
       totalCols = instance.countCols();
-      fixedRowsBottom = instance.getSettings().fixedRowsBottom;
+      ({ fixedRowsBottom } = instance.getSettings());
 
       if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
         if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
@@ -1747,7 +1754,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       currentHeight = parseInt(instance.rootElement.style.height, 10);
     }
 
-    let height = settings.height;
+    let { height } = settings;
     if (isFunction(height)) {
       height = height();
     }
@@ -1777,7 +1784,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (typeof settings.width !== 'undefined') {
-      var width = settings.width;
+      let { width } = settings;
 
       if (isFunction(width)) {
         width = width();
@@ -1842,7 +1849,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let expandedType = {};
 
     if (typeof obj.type === 'object') {
-      type = obj.type;
+      ({ type } = obj);
     } else if (typeof obj.type === 'string') {
       type = getCellType(obj.type);
     }
@@ -2064,7 +2071,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getDataAtCol = function (col) {
     var out = [];
     return out.concat(...datamap.getRange(
-      new CellCoords(0, col), new CellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
+      new CellCoords(0, col),
+      new CellCoords(priv.settings.data.length - 1, col),
+      datamap.DESTINATION_RENDERER,
+    ));
   };
 
   /**
@@ -2085,7 +2095,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     range = datamap.getRange(
       new CellCoords(0, datamap.propToCol(prop)),
       new CellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)),
-      datamap.DESTINATION_RENDERER);
+      datamap.DESTINATION_RENDERER,
+    );
 
     return out.concat(...range);
   };
@@ -2657,7 +2668,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this._getColWidthFromSettings = function (col) {
     var cellProperties = instance.getCellMeta(0, col);
-    var width = cellProperties.width;
+    let { width } = cellProperties;
 
     if (width === void 0 || width === priv.settings.width) {
       width = cellProperties.colWidths;
@@ -2814,7 +2825,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number} Total number of columns.
    */
   this.countCols = function () {
-    const maxCols = this.getSettings().maxCols;
+    const { maxCols } = this.getSettings();
     let dataHasLength = false;
     let dataLen = 0;
 

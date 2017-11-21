@@ -13,7 +13,7 @@ describe('Handsontable.Dom', () => {
     beforeEach(function () {
       $forceScrollbar.appendTo(document.body);
       this.$div = $('<div id="test"></div>').appendTo($forceScrollbar);
-      this.div = this.$div[0];
+      this.div = this.$div.get(0);
     });
 
     afterEach(function () {

@@ -17,7 +17,7 @@ export default function alignmentItem() {
           name() {
             let label = 'Left';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let { className } = this.getCellMeta(row, col);
               let result = false;
 
               if (className && className.indexOf('htLeft') !== -1) {
@@ -40,8 +40,11 @@ export default function alignmentItem() {
             let alignment = 'htLeft';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-              (row, col, key, value) => this.setCellMeta(row, col, key, value));
+            align(
+              range, type, alignment,
+              (row, col) => this.getCellMeta(row, col),
+              (row, col, key, value) => this.setCellMeta(row, col, key, value),
+            );
             this.render();
           },
           disabled: false,
@@ -51,7 +54,7 @@ export default function alignmentItem() {
           name() {
             let label = 'Center';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let { className } = this.getCellMeta(row, col);
               let result = false;
 
               if (className && className.indexOf('htCenter') !== -1) {
@@ -74,8 +77,11 @@ export default function alignmentItem() {
             let alignment = 'htCenter';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-              (row, col, key, value) => this.setCellMeta(row, col, key, value));
+            align(
+              range, type, alignment,
+              (row, col) => this.getCellMeta(row, col),
+              (row, col, key, value) => this.setCellMeta(row, col, key, value),
+            );
             this.render();
           },
           disabled: false,
@@ -85,7 +91,7 @@ export default function alignmentItem() {
           name() {
             let label = 'Right';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let { className } = this.getCellMeta(row, col);
               let result = false;
 
               if (className && className.indexOf('htRight') !== -1) {
@@ -108,8 +114,11 @@ export default function alignmentItem() {
             let alignment = 'htRight';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-              (row, col, key, value) => this.setCellMeta(row, col, key, value));
+            align(
+              range, type, alignment,
+              (row, col) => this.getCellMeta(row, col),
+              (row, col, key, value) => this.setCellMeta(row, col, key, value),
+            );
             this.render();
           },
           disabled: false,
@@ -119,7 +128,7 @@ export default function alignmentItem() {
           name() {
             let label = 'Justify';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let { className } = this.getCellMeta(row, col);
               let result = false;
 
               if (className && className.indexOf('htJustify') !== -1) {
@@ -142,8 +151,11 @@ export default function alignmentItem() {
             let alignment = 'htJustify';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-              (row, col, key, value) => this.setCellMeta(row, col, key, value));
+            align(
+              range, type, alignment,
+              (row, col) => this.getCellMeta(row, col),
+              (row, col, key, value) => this.setCellMeta(row, col, key, value),
+            );
             this.render();
           },
           disabled: false,
@@ -156,7 +168,7 @@ export default function alignmentItem() {
           name() {
             let label = 'Top';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let { className } = this.getCellMeta(row, col);
               let result = false;
 
               if (className && className.indexOf('htTop') !== -1) {
@@ -178,8 +190,11 @@ export default function alignmentItem() {
             let alignment = 'htTop';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-              (row, col, key, value) => this.setCellMeta(row, col, key, value));
+            align(
+              range, type, alignment,
+              (row, col) => this.getCellMeta(row, col),
+              (row, col, key, value) => this.setCellMeta(row, col, key, value),
+            );
             this.render();
           },
           disabled: false,
@@ -189,7 +204,7 @@ export default function alignmentItem() {
           name() {
             let label = 'Middle';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let { className } = this.getCellMeta(row, col);
               let result = false;
 
               if (className && className.indexOf('htMiddle') !== -1) {
@@ -212,8 +227,11 @@ export default function alignmentItem() {
             let alignment = 'htMiddle';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-              (row, col, key, value) => this.setCellMeta(row, col, key, value));
+            align(
+              range, type, alignment,
+              (row, col) => this.getCellMeta(row, col),
+              (row, col, key, value) => this.setCellMeta(row, col, key, value),
+            );
             this.render();
           },
           disabled: false,
@@ -223,7 +241,7 @@ export default function alignmentItem() {
           name() {
             let label = 'Bottom';
             let hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              let className = this.getCellMeta(row, col).className;
+              let { className } = this.getCellMeta(row, col);
               let result = false;
 
               if (className && className.indexOf('htBottom') !== -1) {
@@ -246,8 +264,11 @@ export default function alignmentItem() {
             let alignment = 'htBottom';
 
             this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-            align(range, type, alignment, (row, col) => this.getCellMeta(row, col),
-              (row, col, key, value) => this.setCellMeta(row, col, key, value));
+            align(
+              range, type, alignment,
+              (row, col) => this.getCellMeta(row, col),
+              (row, col, key, value) => this.setCellMeta(row, col, key, value),
+            );
             this.render();
           },
           disabled: false,

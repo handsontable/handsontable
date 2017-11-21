@@ -297,7 +297,7 @@ class GhostTable {
 
     this.samples.forEach((sample) => {
       arrayEach(sample.strings, (string) => {
-        let row = string.row;
+        let { row } = string;
         let cellProperties = this.hot.getCellMeta(row, column);
 
         cellProperties.col = column;

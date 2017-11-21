@@ -148,13 +148,13 @@ class SamplesGenerator {
       }
 
       if (isObject(value)) {
-        length = Object.keys(value).length;
+        ({ length } = Object.keys(value));
 
       } else if (Array.isArray(value)) {
-        length = value.length;
+        ({ length } = value);
 
       } else {
-        length = stringify(value).length;
+        ({ length } = stringify(value));
       }
 
       if (!samples.has(length)) {

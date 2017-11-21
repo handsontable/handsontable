@@ -253,8 +253,7 @@ class Overlay {
     if (!this.clone) {
       return;
     }
-    const holder = this.clone.wtTable.holder;
-    const hider = this.clone.wtTable.hider;
+    const { holder, hider } = this.clone.wtTable;
     let holderStyle = holder.style;
     let hidderStyle = hider.style;
     let rootStyle = holder.parentNode.style;

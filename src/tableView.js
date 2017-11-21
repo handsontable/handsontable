@@ -206,10 +206,8 @@ function TableView(instance) {
       },
     }),
   ];
-  selections.current = selections[0];
-  selections.area = selections[1];
-  selections.highlight = selections[2];
-  selections.fill = selections[3];
+
+  [selections.current, selections.area, selections.highlight, selections.fill] = selections;
 
   var walkontableConfig = {
     debug() {
@@ -300,8 +298,8 @@ function TableView(instance) {
       }
 
       let actualSelection = instance.getSelectedRange();
-      let selection = instance.selection;
-      let selectedHeader = selection.selectedHeader;
+      let { selection } = instance;
+      let { selectedHeader } = selection;
 
       if (event.shiftKey && actualSelection) {
         if (coords.row >= 0 && coords.col >= 0 && !blockCalculations.cells) {

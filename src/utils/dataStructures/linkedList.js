@@ -117,8 +117,8 @@ class LinkedList {
 
     while (temp) {
       if (temp.data === data) {
-        next = temp.next;
-        prev = temp.prev;
+        ({ next } = temp);
+        ({ prev } = temp);
 
         if (next) {
           next.prev = prev;

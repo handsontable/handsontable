@@ -453,11 +453,13 @@ describe('NumericEditor', () => {
 
   describe('Cell corner is showed properly when changing focused cells #3877', () => {
     var isFocusedCellDisplayingCornerTest = function (settings) {
-      var moveFromRow = settings.moveFromRow;
-      var moveFromCol = settings.moveFromCol;
-      var moveToRow = settings.moveToRow;
-      var moveToCol = settings.moveToCol;
-      var doneFunc = settings.doneFunc;
+      let {
+        moveFromRow,
+        moveFromCol,
+        moveToRow,
+        moveToCol,
+        doneFunc,
+      } = settings;
       var $corner = settings.$container.find('.wtBorder.current.corner');
 
       selectCell(moveFromRow, moveFromCol);

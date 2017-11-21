@@ -400,7 +400,7 @@ class AutoRowSize extends BasePlugin {
     let force = this.hot.renderCall;
     this.calculateRowsHeight({ from: this.getFirstVisibleRow(), to: this.getLastVisibleRow() }, void 0, force);
 
-    let fixedRowsBottom = this.hot.getSettings().fixedRowsBottom;
+    let { fixedRowsBottom } = this.hot.getSettings();
 
     // Calculate rows height synchronously for bottom overlay
     if (fixedRowsBottom) {
@@ -471,7 +471,7 @@ class AutoRowSize extends BasePlugin {
     let range = null;
 
     if (changes.length === 1) {
-      range = changes[0][0];
+      [[range]] = changes;
     } else if (changes.length > 1) {
       range = {
         from: changes[0][0],

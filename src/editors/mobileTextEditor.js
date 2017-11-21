@@ -212,8 +212,7 @@ MobileTextEditor.prototype.updateEditorData = function () {
   var selected = this.instance.getSelected(),
     selectedValue = this.instance.getDataAtCell(selected[0], selected[1]);
 
-  this.row = selected[0];
-  this.col = selected[1];
+  [this.row, this.col] = selected;
   this.setValue(selectedValue);
   this.updateEditorPosition();
 };

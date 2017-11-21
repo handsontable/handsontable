@@ -146,7 +146,7 @@ AutocompleteEditor.prototype.close = function (...args) {
 
 AutocompleteEditor.prototype.queryChoices = function (query) {
   this.query = query;
-  const source = this.cellProperties.source;
+  const { source } = this.cellProperties;
 
   if (typeof source === 'function') {
     source.call(this.cellProperties, query, (choices) => {
@@ -182,7 +182,7 @@ AutocompleteEditor.prototype.updateChoicesList = function (choices) {
 
   if (filterSetting === false) {
     if (orderByRelevanceLength) {
-      highlightIndex = orderByRelevance[0];
+      [highlightIndex] = orderByRelevance;
     }
   } else {
     let sorted = [];
@@ -294,7 +294,7 @@ AutocompleteEditor.prototype.unflipDropdown = function () {
 
 AutocompleteEditor.prototype.updateDropdownHeight = function () {
   var currentDropdownWidth = this.htEditor.getColWidth(0) + getScrollbarWidth() + 2;
-  var trimDropdown = this.cellProperties.trimDropdown;
+  let { trimDropdown } = this.cellProperties;
 
   this.htEditor.updateSettings({
     height: this.getDropdownHeight(),
@@ -403,7 +403,7 @@ AutocompleteEditor.sortByRelevance = function (value, choices, caseSensitive) {
 
 AutocompleteEditor.prototype.getDropdownHeight = function () {
   let firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
-  let visibleRows = this.cellProperties.visibleRows;
+  let { visibleRows } = this.cellProperties;
 
   return this.strippedChoices.length >= visibleRows ? (visibleRows * firstRowHeight) : (this.strippedChoices.length * firstRowHeight) + 8;
 };

@@ -142,7 +142,7 @@ UndoRedo.prototype.undo = function () {
   if (this.isUndoAvailable()) {
     let action = this.doneActions.pop();
     let actionClone = deepClone(action);
-    let instance = this.instance;
+    let { instance } = this;
 
     let continueAction = instance.runHooks('beforeUndo', actionClone);
 
@@ -171,7 +171,7 @@ UndoRedo.prototype.redo = function () {
   if (this.isRedoAvailable()) {
     let action = this.undoneActions.pop();
     let actionClone = deepClone(action);
-    let instance = this.instance;
+    let { instance } = this;
 
     let continueAction = instance.runHooks('beforeRedo', actionClone);
 
@@ -289,8 +289,8 @@ UndoRedo.CreateRowAction = function (index, amount) {
 inherit(UndoRedo.CreateRowAction, UndoRedo.Action);
 
 UndoRedo.CreateRowAction.prototype.undo = function (instance, undoneCallback) {
-  let rowCount = instance.countRows(),
-    minSpareRows = instance.getSettings().minSpareRows;
+  let rowCount = instance.countRows();
+  let { minSpareRows } = instance.getSettings();
 
   if (this.index >= rowCount && this.index - minSpareRows < rowCount) {
     this.index -= minSpareRows; // work around the situation where the needed row was removed due to an 'undo' of a made change
@@ -429,8 +429,12 @@ UndoRedo.CellAlignmentAction.prototype.undo = function (instance, undoneCallback
   if (!instance.getPlugin('contextMenu').isEnabled()) {
     return;
   }
-  for (var row = this.range.from.row; row <= this.range.to.row; row += 1) {
-    for (var col = this.range.from.col; col <= this.range.to.col; col += 1) {
+
+  let { row: startRow, col: startColumn } = this.range.from;
+  const { row: endRow, col: endColumn } = this.range.to;
+
+  for (let row = startRow; row <= endRow; row += 1) {
+    for (let col = startColumn; col <= endColumn; col += 1) {
       instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
     }
   }

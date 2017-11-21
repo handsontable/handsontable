@@ -130,10 +130,13 @@ var prepareBorderFromCustomAdded = function (row, col, borderObj) {
  * @param {Object} rowObj
  */
 var prepareBorderFromCustomAddedRange = function (rowObj) {
-  var range = rowObj.range;
+  let { range } = rowObj;
 
-  for (var row = range.from.row; row <= range.to.row; row += 1) {
-    for (var col = range.from.col; col <= range.to.col; col += 1) {
+  let { row: startRow, col: startColumn } = range.from;
+  const { row: endRow, col: endColumn } = range.to;
+
+  for (let row = startRow; row <= endRow; row += 1) {
+    for (let col = startColumn; col <= endColumn; col += 1) {
       var border = createEmptyBorders(row, col);
       var add = 0;
 
@@ -145,7 +148,7 @@ var prepareBorderFromCustomAddedRange = function (rowObj) {
         }
       }
 
-      if (row === range.to.row) {
+      if (row === endRow) {
         add += 1;
 
         if (hasOwnProperty(rowObj, 'bottom')) {
@@ -161,7 +164,7 @@ var prepareBorderFromCustomAddedRange = function (rowObj) {
         }
       }
 
-      if (col === range.to.col) {
+      if (col === endColumn) {
         add += 1;
 
         if (hasOwnProperty(rowObj, 'right')) {
@@ -340,40 +343,43 @@ var setBorder = function (row, col, place, remove) {
  * @param remove
  */
 var prepareBorder = function (range, place, remove) {
+  let { row: startRow, col: startColumn } = range.from;
+  const { row: endRow, col: endColumn } = range.to;
 
-  if (range.from.row === range.to.row && range.from.col === range.to.col) {
+  if (startRow === endRow && startColumn === endColumn) {
     if (place === 'noBorders') {
-      removeAllBorders.call(this, range.from.row, range.from.col);
+      removeAllBorders.call(this, startRow, startColumn);
     } else {
-      setBorder.call(this, range.from.row, range.from.col, place, remove);
+      setBorder.call(this, startRow, startColumn, place, remove);
     }
   } else {
+
     switch (place) {
       case 'noBorders':
-        for (var column = range.from.col; column <= range.to.col; column += 1) {
-          for (var row = range.from.row; row <= range.to.row; row += 1) {
+        for (let column = startColumn; column <= endColumn; column += 1) {
+          for (let row = startRow; row <= endRow; row += 1) {
             removeAllBorders.call(this, row, column);
           }
         }
         break;
       case 'top':
-        for (var topCol = range.from.col; topCol <= range.to.col; topCol += 1) {
-          setBorder.call(this, range.from.row, topCol, place, remove);
+        for (var topCol = startColumn; topCol <= endColumn; topCol += 1) {
+          setBorder.call(this, startRow, topCol, place, remove);
         }
         break;
       case 'right':
-        for (var rowRight = range.from.row; rowRight <= range.to.row; rowRight += 1) {
-          setBorder.call(this, rowRight, range.to.col, place);
+        for (var rowRight = startRow; rowRight <= endRow; rowRight += 1) {
+          setBorder.call(this, rowRight, endColumn, place);
         }
         break;
       case 'bottom':
-        for (var bottomCol = range.from.col; bottomCol <= range.to.col; bottomCol += 1) {
-          setBorder.call(this, range.to.row, bottomCol, place);
+        for (var bottomCol = startColumn; bottomCol <= endColumn; bottomCol += 1) {
+          setBorder.call(this, endRow, bottomCol, place);
         }
         break;
       case 'left':
-        for (var rowLeft = range.from.row; rowLeft <= range.to.row; rowLeft += 1) {
-          setBorder.call(this, rowLeft, range.from.col, place);
+        for (var rowLeft = startRow; rowLeft <= endRow; rowLeft += 1) {
+          setBorder.call(this, rowLeft, startColumn, place);
         }
         break;
       default:
@@ -523,7 +529,7 @@ var addBordersOptionsToContextMenu = function (defaultOptions) {
 Hooks.getSingleton().add('beforeInit', init);
 Hooks.getSingleton().add('afterContextMenuDefaultOptions', addBordersOptionsToContextMenu);
 Hooks.getSingleton().add('afterInit', function () {
-  var customBorders = this.getSettings().customBorders;
+  let { customBorders } = this.getSettings();
 
   if (customBorders) {
     for (var i = 0; i < customBorders.length; i += 1) {

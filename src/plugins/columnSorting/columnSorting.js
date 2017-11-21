@@ -239,12 +239,11 @@ class ColumnSorting extends BasePlugin {
   enableObserveChangesPlugin() {
     let _this = this;
 
-    this.hot._registerTimeout(
-      setTimeout(() => {
-        _this.hot.updateSettings({
-          observeChanges: true,
-        });
-      }, 0));
+    this.hot._registerTimeout(setTimeout(() => {
+      _this.hot.updateSettings({
+        observeChanges: true,
+      });
+    }, 0));
   }
 
   /**
@@ -448,7 +447,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (colMeta.sortFunction) {
-      sortFunction = colMeta.sortFunction;
+      ({ sortFunction } = colMeta);
 
     } else {
       switch (colMeta.type) {
@@ -638,7 +637,7 @@ class ColumnSorting extends BasePlugin {
    * @private
    */
   setPluginOptions() {
-    const columnSorting = this.hot.getSettings().columnSorting;
+    const { columnSorting } = this.hot.getSettings();
 
     if (typeof columnSorting === 'object') {
       this.sortEmptyCells = columnSorting.sortEmptyCells || false;

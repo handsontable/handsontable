@@ -330,8 +330,7 @@ function EditorManager(instance, priv, selection) {
 
       return;
     }
-    row = priv.selRange.highlight.row;
-    col = priv.selRange.highlight.col;
+    ({ row, col } = priv.selRange.highlight);
     prop = instance.colToProp(col);
     td = instance.getCell(row, col);
 

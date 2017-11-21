@@ -261,8 +261,7 @@ class Comments extends BasePlugin {
       comment = editorValue;
     }
 
-    let row = this.range.from.row;
-    let col = this.range.from.col;
+    let { row, col } = this.range.from;
 
     this.updateCommentMeta(row, col, { [META_COMMENT_VALUE]: comment });
     this.hot.render();
@@ -319,8 +318,7 @@ class Comments extends BasePlugin {
    * Get comment from a cell at the predefined range.
    */
   getComment() {
-    const row = this.range.from.row;
-    const column = this.range.from.col;
+    const { row, col: column } = this.range.from;
 
     return this.getCommentMeta(row, column, META_COMMENT_VALUE);
   }
@@ -391,8 +389,7 @@ class Comments extends BasePlugin {
     }
     const scrollableElement = getScrollableElement(this.hot.view.wt.wtTable.TABLE);
     const TD = this.hot.view.wt.wtTable.getCell(this.range.from);
-    const row = this.range.from.row;
-    const column = this.range.from.col;
+    const { row, col: column } = this.range.from;
     let cellOffset = offset(TD);
     let lastColWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(column);
     let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;

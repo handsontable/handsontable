@@ -300,7 +300,7 @@ class TableRenderer {
   adjustColumnHeaderHeights() {
     let columnHeaders = this.wot.getSetting('columnHeaders');
     let children = this.wot.wtTable.THEAD.childNodes;
-    let oversizedColumnHeaders = this.wot.wtViewport.oversizedColumnHeaders;
+    let { oversizedColumnHeaders } = this.wot.wtViewport;
 
     for (let i = 0, len = columnHeaders.length; i < len; i += 1) {
       if (oversizedColumnHeaders[i]) {
@@ -320,7 +320,7 @@ class TableRenderer {
   markIfOversizedColumnHeader(col) {
     let sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
     let level = this.columnHeaderCount;
-    let defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
+    let { defaultRowHeight } = this.wot.wtSettings.settings;
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;

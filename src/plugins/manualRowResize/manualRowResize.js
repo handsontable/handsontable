@@ -131,7 +131,7 @@ class ManualRowResize extends BasePlugin {
    */
   setupHandlePosition(TH) {
     this.currentTH = TH;
-    let row = this.hot.view.wt.wtTable.getCoords(TH).row; // getCoords returns CellCoords
+    let { row } = this.hot.view.wt.wtTable.getCoords(TH); // getCoords returns CellCoords
     let headerWidth = outerWidth(this.currentTH);
 
     if (row >= 0) { // if not col header

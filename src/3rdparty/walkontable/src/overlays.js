@@ -274,7 +274,7 @@ class Overlays {
     }
     const masterHorizontal = this.leftOverlay.mainTableScrollableElement;
     const masterVertical = this.topOverlay.mainTableScrollableElement;
-    const target = event.target;
+    const { target } = event;
 
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
@@ -380,7 +380,7 @@ class Overlays {
     }
     let masterHorizontal = this.leftOverlay.mainTableScrollableElement;
     let masterVertical = this.topOverlay.mainTableScrollableElement;
-    let target = event.target;
+    let { target } = event;
     let tempScrollValue = 0;
     let scrollValueChanged = false;
     let topOverlay;

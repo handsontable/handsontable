@@ -73,16 +73,15 @@ describe('AutoRowSize', () => {
     var nrOfColumns = 200,
       style;
 
-    var SYNC_CALCULATION_LIMIT = Handsontable.plugins.AutoRowSize.SYNC_CALCULATION_LIMIT;
-    var CALCULATION_STEP = Handsontable.plugins.AutoRowSize.CALCULATION_STEP;
+    let { SYNC_CALCULATION_LIMIT, CALCULATION_STEP } = Handsontable.plugins.AutoRowSize;
 
     beforeEach(function () {
       if (!this.$container) {
         this.$container = $(`<div id="${id}"></div>`).appendTo('body');
       }
 
-      var css = `.handsontable table td { height: ${cellHeightInPx}px !important }`,
-        head = document.head;
+      let css = `.handsontable table td { height: ${cellHeightInPx}px !important }`;
+      let { head } = document;
 
       style = document.createElement('style');
       style.type = 'text/css';

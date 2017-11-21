@@ -26,8 +26,10 @@ class ViewportColumnsCalculator {
    * @param {Boolean} stretchH
    * @param {Function} [stretchingColumnWidthFn] Function that returns the new width of the stretched column.
    */
-  constructor(viewportWidth, scrollOffset, totalColumns, columnWidthFn, overrideFn, onlyFullyVisible, stretchH,
-              stretchingColumnWidthFn = width => width) {
+  constructor(
+    viewportWidth, scrollOffset, totalColumns, columnWidthFn, overrideFn,
+    onlyFullyVisible, stretchH, stretchingColumnWidthFn = width => width,
+  ) {
     privatePool.set(this, {
       viewportWidth,
       scrollOffset,
@@ -86,11 +88,13 @@ class ViewportColumnsCalculator {
     let columnWidth;
 
     let priv = privatePool.get(this);
-    let onlyFullyVisible = priv.onlyFullyVisible;
-    let overrideFn = priv.overrideFn;
-    let scrollOffset = priv.scrollOffset;
-    let totalColumns = priv.totalColumns;
-    let viewportWidth = priv.viewportWidth;
+    let {
+      onlyFullyVisible,
+      overrideFn,
+      scrollOffset,
+      totalColumns,
+      viewportWidth,
+    } = priv;
 
     for (let i = 0; i < totalColumns; i += 1) {
       columnWidth = this._getColumnWidth(i);
@@ -160,7 +164,7 @@ class ViewportColumnsCalculator {
     this.totalTargetWidth = totalWidth;
 
     let priv = privatePool.get(this);
-    let totalColumns = priv.totalColumns;
+    let { totalColumns } = priv;
     let sumAll = 0;
 
     for (let i = 0; i < totalColumns; i += 1) {
@@ -217,7 +221,7 @@ class ViewportColumnsCalculator {
   _getStretchedAllColumnWidth(column, baseWidth) {
     let sumRatioWidth = 0;
     let priv = privatePool.get(this);
-    let totalColumns = priv.totalColumns;
+    let { totalColumns } = priv;
 
     if (!this.stretchAllColumnsWidth[column]) {
       let stretchedWidth = Math.round(baseWidth * this.stretchAllRatio);
@@ -251,7 +255,7 @@ class ViewportColumnsCalculator {
    */
   _getStretchedLastColumnWidth(column) {
     let priv = privatePool.get(this);
-    let totalColumns = priv.totalColumns;
+    let { totalColumns } = priv;
 
     if (column === totalColumns - 1) {
       return this.stretchLastWidth;

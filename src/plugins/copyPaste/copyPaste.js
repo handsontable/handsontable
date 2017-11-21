@@ -411,7 +411,8 @@ class CopyPaste extends BasePlugin {
     areaStart = topLeftCorner;
     areaEnd = new CellCoords(
       Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
-      Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
+      Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col),
+    );
 
     let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
     let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
@@ -431,7 +432,7 @@ class CopyPaste extends BasePlugin {
               offset.row += Math.max(nextChange[0] - change[0] - 1, 0);
             }
             if (!isSelColAreaCoverInputValue && change[1] > highestColumnIndex) {
-              highestColumnIndex = change[1];
+              [, highestColumnIndex] = change;
               offset.col += Math.max(nextChange[1] - change[1] - 1, 0);
             }
           }

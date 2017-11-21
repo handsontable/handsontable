@@ -156,7 +156,8 @@ class MultipleSelectionHandles extends BasePlugin {
 
       endTarget = document.elementFromPoint(
         event.touches[0].screenX - scrollLeft,
-        event.touches[0].screenY - scrollTop);
+        event.touches[0].screenY - scrollTop,
+      );
 
       if (!endTarget || endTarget === _this.lastSetCell) {
         return;

@@ -244,11 +244,9 @@ class Scroll {
    * @private
    */
   _getVariables() {
-    const wot = this.wot;
-    const topOverlay = wot.wtOverlays.topOverlay;
-    const leftOverlay = wot.wtOverlays.leftOverlay;
-    const wtTable = wot.wtTable;
-    const wtViewport = wot.wtViewport;
+    const { wot } = this;
+    const { topOverlay, leftOverlay } = wot.wtOverlays;
+    const { wtTable, wtViewport } = wot;
     const totalRows = wot.getSetting('totalRows');
     const totalColumns = wot.getSetting('totalColumns');
     const fixedRowsTop = wot.getSetting('fixedRowsTop');

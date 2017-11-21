@@ -631,7 +631,7 @@ class Menu {
    * @private
    */
   onAfterInit() {
-    const data = this.hotMenu.getSettings().data;
+    const { data } = this.hotMenu.getSettings();
     const hiderStyle = this.hotMenu.view.wt.wtTable.hider.style;
     const holderStyle = this.hotMenu.view.wt.wtTable.holder.style;
     let currentHiderWidth = parseInt(hiderStyle.width, 10);

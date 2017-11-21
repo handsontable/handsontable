@@ -1040,8 +1040,8 @@ describe('Core_selection', () => {
     expect(hot.selection.selectedHeader.corner).toBe(true);
   });
 
-  it('should redraw selection when option `colHeaders` is set and user scrolled', (done) => {
-    var hot = handsontable({
+  it('should redraw selection when option `colHeaders` is set and user scrolled', async () => {
+    const hot = handsontable({
       startRows: 20,
       startCols: 20,
       colHeaders: true,
@@ -1049,29 +1049,28 @@ describe('Core_selection', () => {
       width: 400,
       height: 200,
     });
-    var cellVerticalPosition;
-    var borderOffsetInPixels = 1;
-    var topBorder;
+    let cellVerticalPosition;
+    let borderOffsetInPixels = 1;
+    let topBorder;
 
     selectCell(5, 5);
     hot.view.wt.wtOverlays.topOverlay.scrollTo(2);
 
-    setTimeout(() => {
-      cellVerticalPosition = hot.getCell(5, 5).offsetTop;
-      topBorder = $('.wtBorder.current')[0];
-      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-      hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
-    }, 100);
+    await 100;
 
-    setTimeout(() => {
-      cellVerticalPosition = hot.getCell(5, 5).offsetTop;
-      topBorder = $('.wtBorder.current')[0];
-      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-      done();
-    }, 200);
+    cellVerticalPosition = hot.getCell(5, 5).offsetTop;
+    topBorder = $('.wtBorder.current').get(0);
+    expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+    hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
+
+    await 200;
+
+    cellVerticalPosition = hot.getCell(5, 5).offsetTop;
+    topBorder = $('.wtBorder.current').get(0);
+    expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
-  it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled', (done) => {
+  it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled', async () => {
     var hot = handsontable({
       fixedColumnsLeft: 2,
       startRows: 20,
@@ -1088,18 +1087,15 @@ describe('Core_selection', () => {
     selectCell(1, 0);
     hot.view.wt.wtOverlays.topOverlay.scrollTo(5);
 
-    setTimeout(() => {
-      cellVerticalPosition = hot.getCell(1, 0).offsetTop;
-      topBorder = $('.wtBorder.current')[0];
-      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-      hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
-    }, 100);
+    await 100;
+    cellVerticalPosition = hot.getCell(1, 0).offsetTop;
+    topBorder = $('.wtBorder.current').get(0);
+    expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+    hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
 
-    setTimeout(() => {
-      cellVerticalPosition = hot.getCell(1, 0).offsetTop;
-      topBorder = $('.wtBorder.current')[0];
-      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-      done();
-    }, 200);
+    await 200;
+    cellVerticalPosition = hot.getCell(1, 0).offsetTop;
+    topBorder = $('.wtBorder.current').get(0);
+    expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 });

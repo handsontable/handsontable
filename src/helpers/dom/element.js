@@ -81,7 +81,7 @@ export function closestDown(element, nodes, until) {
       element = element.parentNode;
     }
   }
-  const length = matched.length;
+  const { length } = matched;
 
   return length ? matched[length - 1] : null;
 }
@@ -143,7 +143,7 @@ export function isChildOfWebComponentTable(element) {
       }
       parentNode = parentNode.host;
     }
-    parentNode = parentNode.parentNode;
+    ({ parentNode } = parentNode);
   }
 
   return result;
@@ -492,8 +492,7 @@ export function offset(elem) {
       left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0),
     };
   }
-  offsetLeft = elem.offsetLeft;
-  offsetTop = elem.offsetTop;
+  ({ offsetLeft, offsetTop } = elem);
   lastElem = elem;
 
   /* eslint-disable no-cond-assign */
@@ -595,9 +594,7 @@ export function getScrollableElement(element) {
     computedOverflowX = '';
 
   while (el && el.style && document.body !== el) {
-    overflow = el.style.overflow;
-    overflowX = el.style.overflowX;
-    overflowY = el.style.overflowY;
+    ({ overflow, overflowX, overflowY } = el.style);
 
     if (overflow === 'scroll' || overflowX === 'scroll' || overflowY === 'scroll') {
       return el;

@@ -54,8 +54,8 @@ export function pivot(arr) {
  * @returns {*} Returns the accumulated value.
  */
 export function arrayReduce(array, iteratee, accumulator, initFromArray) {
-  let index = 0,
-    length = array.length;
+  const { length } = array;
+  let index = 0;
 
   if (initFromArray && length) {
     accumulator = array[index];
@@ -79,10 +79,10 @@ export function arrayReduce(array, iteratee, accumulator, initFromArray) {
  * @returns {Array} Returns the new filtered array.
  */
 export function arrayFilter(array, predicate) {
-  let index = 0,
-    length = array.length,
-    resIndex = -1,
-    result = [];
+  const { length } = array;
+  let index = 0;
+  let resIndex = -1;
+  let result = [];
 
   while (index < length) {
     let value = array[index];
@@ -106,10 +106,10 @@ export function arrayFilter(array, predicate) {
  * @returns {Array} Returns the new filtered array.
  */
 export function arrayMap(array, iteratee) {
-  let index = 0,
-    length = array.length,
-    resIndex = -1,
-    result = [];
+  const { length } = array;
+  let index = 0;
+  let resIndex = -1;
+  let result = [];
 
   while (index < length) {
     let value = array[index];
@@ -132,8 +132,8 @@ export function arrayMap(array, iteratee) {
  * @returns {Array} Returns `array`.
  */
 export function arrayEach(array, iteratee) {
-  let index = 0,
-    length = array.length;
+  let index = 0;
+  const { length } = array;
 
   while (index < length) {
     if (iteratee(array[index], index, array) === false) {
