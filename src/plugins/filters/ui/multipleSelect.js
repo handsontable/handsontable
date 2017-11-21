@@ -7,6 +7,7 @@ import * as C from 'handsontable/i18n/constants';
 import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
 import BaseUI from './_base';
 import InputUI from './input';
+import LinkUI from './link';
 import {createArrayAssertion} from './../utils';
 
 const privatePool = new WeakMap();
@@ -33,7 +34,7 @@ class MultipleSelectUI extends BaseUI {
      * @type {InputUI}
      */
     this.searchInput = new InputUI(this.hot, {
-      placeholder: () => C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH,
+      placeholder: () => this.hot.getTranslatedPhrase(C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH),
       className: 'htUIMultipleSelectSearch'
     });
     /**
@@ -41,10 +42,9 @@ class MultipleSelectUI extends BaseUI {
      *
      * @type {BaseUI}
      */
-    this.selectAllUI = new BaseUI(this.hot, {
+    this.selectAllUI = new LinkUI(this.hot, {
       tagName: 'a',
-      textContent: () => C.FILTERS_BUTTONS_SELECT_ALL,
-      href: '#',
+      textContent: () => this.hot.getTranslatedPhrase(C.FILTERS_BUTTONS_SELECT_ALL),
       className: 'htUISelectAll',
     });
     /**
@@ -52,10 +52,9 @@ class MultipleSelectUI extends BaseUI {
      *
      * @type {BaseUI}
      */
-    this.clearAllUI = new BaseUI(this.hot, {
+    this.clearAllUI = new LinkUI(this.hot, {
       tagName: 'a',
-      textContent: () => C.FILTERS_BUTTONS_CLEAR,
-      href: '#',
+      textContent: () => this.hot.getTranslatedPhrase(C.FILTERS_BUTTONS_CLEAR),
       className: 'htUIClearAll',
     });
     /**

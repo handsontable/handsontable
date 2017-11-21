@@ -59,6 +59,8 @@ class InputUI extends BaseUI {
       return;
     }
 
+    this.setElementProperties(this._element.firstChild);
+
     super.update();
   }
 

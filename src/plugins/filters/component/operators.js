@@ -9,6 +9,8 @@ import {OPERATION_ID as OPERATION_OR} from '../logicalOperations/disjunction';
 import {OPERATION_ID as OPERATION_OR_THEN_VARIABLE} from '../logicalOperations/disjunctionAndVariable';
 import RadioInputUI from './../ui/radioInput';
 
+const SELECTED_AT_START_ELEMENT_INDEX = 0;
+
 /**
  * @class OperatorsComponent
  * @plugin Filters
@@ -57,11 +59,11 @@ class OperatorsComponent extends BaseComponent {
       const radioInput = new RadioInputUI(this.hot, {
         name: 'operator',
         label: {
-          for: operation,
-          text: () => getOperationName(operation)
+          htmlFor: operation,
+          textContent: () => this.hot.getTranslatedPhrase(getOperationName(operation))
         },
         value: operation,
-        checked: operation === operationKeys[0],
+        checked: operation === operationKeys[SELECTED_AT_START_ELEMENT_INDEX],
         id: operation
       });
 
@@ -141,7 +143,7 @@ class OperatorsComponent extends BaseComponent {
    * Reset elements to their initial state.
    */
   reset() {
-    this.setChecked(0);
+    this.setChecked(SELECTED_AT_START_ELEMENT_INDEX);
   }
 
   /**

@@ -120,7 +120,7 @@ class BaseUI {
         parsedOptions[key] = this.parseProperties(value);
 
       } else if (isFunction(value)) {
-        parsedOptions[key] = this.hot.getTranslatedPhrase(value());
+        parsedOptions[key] = value();
       }
     });
 
@@ -130,10 +130,11 @@ class BaseUI {
   /**
    * Set DOM element properties.
    *
-   * @param element
+   * @param {Object} element DOM element which should be changed.
+   * @param {Object} [options] Options which should be parsed and then set.
    */
-  setElementProperties(element) {
-    const parsedOptions = this.parseProperties(this.options);
+  setElementProperties(element, options = this.options) {
+    const parsedOptions = this.parseProperties(options);
 
     objectEach(parsedOptions, (value, key) => {
       if (element[key] !== void 0 && key !== 'className' && key !== 'tagName' && key !== 'children') {
@@ -183,7 +184,7 @@ class BaseUI {
    * Update DOM structure.
    */
   update() {
-    this.setElementProperties(this._element.firstChild);
+
   }
 
   /**

@@ -1,6 +1,6 @@
 import {addClass} from 'handsontable/helpers/dom/element';
 import {arrayEach} from 'handsontable/helpers/array';
-import * as constants from 'handsontable/i18n/constants';
+import * as C from 'handsontable/i18n/constants';
 import BaseComponent from './_base';
 import InputUI from './../ui/input';
 
@@ -25,7 +25,7 @@ class ActionBarComponent extends BaseComponent {
     this.elements.push(
       new InputUI(this.hot, {
         type: 'button',
-        value: () => constants.FILTERS_BUTTONS_OK,
+        value: () => this.hot.getTranslatedPhrase(C.FILTERS_BUTTONS_OK),
         className: 'htUIButton htUIButtonOK',
         identifier: ActionBarComponent.BUTTON_OK
       })
@@ -33,7 +33,7 @@ class ActionBarComponent extends BaseComponent {
     this.elements.push(
       new InputUI(this.hot, {
         type: 'button',
-        value: () => constants.FILTERS_BUTTONS_CANCEL,
+        value: () => this.hot.getTranslatedPhrase(C.FILTERS_BUTTONS_CANCEL),
         className: 'htUIButton htUIButtonCancel',
         identifier: ActionBarComponent.BUTTON_CANCEL
       })

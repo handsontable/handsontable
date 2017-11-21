@@ -22,8 +22,8 @@ class ConditionComponent extends BaseComponent {
     this.addSeparator = options.addSeparator;
 
     this.elements.push(new SelectUI(this.hot));
-    this.elements.push(new InputUI(this.hot, {placeholder: () => C.FILTERS_BUTTONS_PLACEHOLDER_VALUE}));
-    this.elements.push(new InputUI(this.hot, {placeholder: () => C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE}));
+    this.elements.push(new InputUI(this.hot, {placeholder: () => this.hot.getTranslatedPhrase(C.FILTERS_BUTTONS_PLACEHOLDER_VALUE)}));
+    this.elements.push(new InputUI(this.hot, {placeholder: () => this.hot.getTranslatedPhrase(C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE)}));
     this.registerHooks();
   }
 
