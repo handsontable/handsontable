@@ -2537,7 +2537,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Validates all cells using their validator functions and calls callback when finished.
    *
    * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it would equal `true`.
-   * 
+   *
    * Private use intended.
    *
    * @private
