@@ -1,146 +1,141 @@
-import Hooks from './../../pluginHooks';
+import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
-import {hasOwnProperty} from './../../helpers/object';
-
-function Storage(prefix) {
-  var savedKeys;
-
-  var saveSavedKeys = function() {
-    window.localStorage[`${prefix}__persistentStateKeys`] = JSON.stringify(savedKeys);
-  };
-
-  var loadSavedKeys = function() {
-    var keysJSON = window.localStorage[`${prefix}__persistentStateKeys`];
-    var keys = typeof keysJSON == 'string' ? JSON.parse(keysJSON) : void 0;
-    savedKeys = keys ? keys : [];
-  };
-
-  var clearSavedKeys = function() {
-    savedKeys = [];
-    saveSavedKeys();
-  };
-
-  loadSavedKeys();
-
-  this.saveValue = function(key, value) {
-    window.localStorage[`${prefix}_${key}`] = JSON.stringify(value);
-    if (savedKeys.indexOf(key) == -1) {
-      savedKeys.push(key);
-      saveSavedKeys();
-    }
-
-  };
-
-  this.loadValue = function(key, defaultValue) {
-
-    key = typeof key === 'undefined' ? defaultValue : key;
-
-    var value = window.localStorage[`${prefix}_${key}`];
-
-    return typeof value == 'undefined' ? void 0 : JSON.parse(value);
-  };
-
-  this.reset = function(key) {
-    window.localStorage.removeItem(`${prefix}_${key}`);
-  };
-
-  this.resetAll = function() {
-    for (var index = 0; index < savedKeys.length; index++) {
-      window.localStorage.removeItem(`${prefix}_${savedKeys[index]}`);
-    }
-
-    clearSavedKeys();
-  };
-}
+import Storage from './storage';
 
 /**
- * @private
- * @class PersistentState
- * @plugin PersistentState
+ *  Save the state of column sorting, column positions and column sizes in local storage.
+ *
+ *
+ * @plugin persistentState
  */
-function HandsontablePersistentState() {
-  var plugin = this;
+class PersistentState extends BasePlugin {
+  constructor(hotInstance) {
+    super(hotInstance);
 
-  this.init = function() {
-    var instance = this,
-      pluginSettings = instance.getSettings().persistentState;
+    this.hot.addHook('beforeInit', () => this.onBeforeInit());
+    this.hot.addHook('afterUpdateSettings', () => this.onBeforeInit());
+  }
 
-    plugin.enabled = !!(pluginSettings);
+  /**
+   * Check if the plugin is enabled in the Handsontable settings.
+   *
+   * @returns {Boolean}
+   */
+  isEnabled() {
+    return !!this.hot.getSettings().persistentState;
+  }
 
-    if (!plugin.enabled) {
-      removeHooks.call(instance);
+  /**
+   * Enable plugin for this Handsontable instance.
+   */
+  enablePlugin() {
+    if (this.enabled) {
       return;
     }
 
-    if (!instance.storage) {
-      instance.storage = new Storage(instance.rootElement.id);
+    super.enablePlugin();
+  }
+
+  /**
+   * Disable plugin for this Handsontable instance.
+   */
+  disablePlugin() {
+    if (this.storage) {
+      this.storage = null;
+      this.storage.savedKeys.length = 0;
     }
 
-    instance.resetState = plugin.resetValue;
+    super.disablePlugin();
+  }
 
-    addHooks.call(instance);
+  /**
+   * Updates the plugin to use the latest options you have specified.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
 
-  };
+    super.updatePlugin();
+  }
 
-  this.saveValue = function(key, value) {
-    var instance = this;
+  /**
+   * Save data to localStorage
+   *
+   * @param {String} key Key string.
+   * @param {Mixed} value Value to save.
+   */
+  saveValue(key, value) {
+    this.storage.saveValue(key, value);
+  }
 
-    instance.storage.saveValue(key, value);
-  };
+  /**
+   * Load value from localStorage
+   *
+   * @param {String} key Key string.
+   * @param {} saveTo
+   */
+  loadValue(key, saveTo) {
+    saveTo.value = this.storage.loadValue(key);
+  }
 
-  this.loadValue = function(key, saveTo) {
-    var instance = this;
-
-    saveTo.value = instance.storage.loadValue(key);
-  };
-
-  this.resetValue = function(key) {
-    var instance = this;
-
+  /**
+   * Reset given data or all data from localStorage.
+   *
+   * @param {String} key Key string.
+   */
+  resetValue(key) {
     if (typeof key === 'undefined') {
-      instance.storage.resetAll();
+      this.storage.resetAll();
+
     } else {
-      instance.storage.reset(key);
-    }
-
-  };
-
-  var hooks = {
-    persistentStateSave: plugin.saveValue,
-    persistentStateLoad: plugin.loadValue,
-    persistentStateReset: plugin.resetValue
-  };
-
-  for (var hookName in hooks) {
-    if (hasOwnProperty(hooks, hookName)) {
-      Hooks.getSingleton().register(hookName);
+      this.storage.reset(key);
     }
   }
 
-  function addHooks() {
-    var instance = this;
-
-    for (var hookName in hooks) {
-      if (hasOwnProperty(hooks, hookName)) {
-        instance.addHook(hookName, hooks[hookName]);
-      }
-    }
+  /**
+   * `afterInit` hook.
+   *
+   * @private
+   */
+  onAfterInit() {
+    this.hot.storage.loadSavedKeys();
   }
 
-  function removeHooks() {
-    var instance = this;
+  /**
+   * `beforeInit` hook.
+   *
+   * @private
+   */
+  onBeforeInit() {
+    let pluginSettings = this.hot.getSettings().persistentState;
 
-    for (var hookName in hooks) {
-      if (hasOwnProperty(hooks, hookName)) {
-        instance.removeHook(hookName, hooks[hookName]);
-      }
+    if (!pluginSettings) {
+      this.hot.removeHook('persistentStateLoad', this.loadValue);
+      this.hot.removeHook('persistentStateSave', this.saveValue);
+      this.hot.removeHook('persistentStateReset', this.resetValue);
+
+      return;
     }
+
+    if (!this.hot.storage) {
+      this.hot.storage = new Storage(this.hot.rootElement.id);
+    }
+
+    this.hot.resetState = this.resetValue;
+
+    this.addHook('persistentStateLoad', this.loadValue);
+    this.addHook('persistentStateSave', this.saveValue);
+    this.addHook('persistentStateReset', this.resetValue);
+  }
+
+  /**
+   * Destroy plugin instance.
+   */
+  destroy() {
+    super.destroy();
   }
 }
 
-var htPersistentState = new HandsontablePersistentState();
+registerPlugin('persistentState', PersistentState);
 
-Hooks.getSingleton().add('beforeInit', htPersistentState.init);
-Hooks.getSingleton().add('afterUpdateSettings', htPersistentState.init);
-
-export default HandsontablePersistentState;
+export default PersistentState;
