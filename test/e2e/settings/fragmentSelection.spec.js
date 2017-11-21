@@ -19,7 +19,7 @@ describe('settings', () => {
      */
     function getSelected() {
       /* eslint-disable no-else-return */
-      var text = '';
+      let text = '';
 
       // IE8
       if (window.getSelection && window.getSelection().toString() && $(window.getSelection()).attr('type') !== 'Caret') {
@@ -31,7 +31,7 @@ describe('settings', () => {
         var selection = document.selection && document.selection.createRange();
 
         if (!(typeof selection === 'undefined') && selection.text && selection.text.toString()) {
-          text = selection.text;
+          ({ text } = selection);
 
           return text.toString();
         }

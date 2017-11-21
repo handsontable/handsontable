@@ -568,7 +568,7 @@ export function createAccessorForProperty(name) {
 }
 
 export function resizeColumn(displayedColumnIndex, width) {
-  var $container = spec().$container;
+  const { $container } = spec();
   var $th = $container.find(`thead tr:eq(0) th:eq(${displayedColumnIndex})`);
 
   $th.simulate('mouseover');
@@ -590,7 +590,7 @@ export function resizeColumn(displayedColumnIndex, width) {
 }
 
 export function resizeRow(displayedRowIndex, height) {
-  var $container = spec().$container;
+  const { $container } = spec();
   var $th = $container.find(`tbody tr:eq(${displayedRowIndex}) th:eq(0)`);
 
   $th.simulate('mouseover');
