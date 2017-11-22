@@ -10,10 +10,10 @@ const privatePool = new WeakMap();
 class RadioInputUI extends BaseUI {
   static get DEFAULTS() {
     return clone({
-      type: 'radio',
-      tagName: 'input',
       className: 'htUIRadio',
-      label: {}
+      label: {},
+      input: {},
+      wrapIt: false
     });
   }
 
@@ -28,19 +28,19 @@ class RadioInputUI extends BaseUI {
    */
   build() {
     super.build();
-    let priv = privatePool.get(this);
-    priv.input = this._element.firstChild;
 
-    let label = document.createElement('label');
-    const parsedOptions = this.parseProperties(this.options);
+    const input = document.createElement('input');
+    const label = document.createElement('label');
+    const priv = privatePool.get(this);
 
-    label.textContent = parsedOptions.label.textContent;
-    label.htmlFor = parsedOptions.label.htmlFor;
+    priv.input = input;
     priv.label = label;
 
-    this._element.appendChild(label);
+    this.setElementProperties(input, this.options.input);
+    this.setElementProperties(label, this.options.label);
 
-    this.update();
+    this._element.appendChild(input);
+    this._element.appendChild(label);
   }
 
   /**
@@ -51,10 +51,17 @@ class RadioInputUI extends BaseUI {
       return;
     }
 
-    const parsedOptions = this.parseProperties(this.options);
+    this.setElementProperties(privatePool.get(this).input, this.options.input);
+    this.setElementProperties(privatePool.get(this).label, this.options.label);
+  }
 
-    privatePool.get(this).input.checked = parsedOptions.checked;
-    privatePool.get(this).label.textContent = parsedOptions.label.textContent;
+  /**
+   * Get the inpput element value.
+   *
+   * @returns {*}
+   */
+  getValue() {
+    return this.options.input.value;
   }
 
   /**
@@ -63,7 +70,7 @@ class RadioInputUI extends BaseUI {
    * @returns {Boolean}
    */
   isChecked() {
-    return this.options.checked;
+    return this.options.input.checked;
   }
 
   /**
@@ -72,7 +79,7 @@ class RadioInputUI extends BaseUI {
    * @param value {Boolean} value
    */
   setChecked(value = true) {
-    this.options.checked = value;
+    this.options.input.checked = value;
     this.update();
   }
 

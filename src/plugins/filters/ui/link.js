@@ -1,8 +1,6 @@
 import {clone, extend} from 'handsontable/helpers/object';
 import BaseUI from './_base';
 
-const privatePool = new WeakMap();
-
 /**
  * @class LinkUI
  * @util
@@ -17,8 +15,6 @@ class LinkUI extends BaseUI {
 
   constructor(hotInstance, options) {
     super(hotInstance, extend(LinkUI.DEFAULTS, options));
-
-    privatePool.set(this, {});
   }
 
   /**
