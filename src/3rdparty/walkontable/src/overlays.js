@@ -378,6 +378,7 @@ class Overlays {
 
       return;
     }
+
     let masterHorizontal = this.leftOverlay.mainTableScrollableElement;
     let masterVertical = this.topOverlay.mainTableScrollableElement;
     let target = event.target;
@@ -423,7 +424,7 @@ class Overlays {
       }
 
       // if scrolling the master table - populate the scroll values to both top and left overlays
-      this.horizontalScrolling = true;
+      this.horizontalScrolling = this.overlayScrollPositions.master.left !== tempScrollValue;
       this.overlayScrollPositions.master.left = tempScrollValue;
       scrollValueChanged = true;
 
@@ -454,7 +455,7 @@ class Overlays {
 
       tempScrollValue = getScrollTop(target);
 
-      this.verticalScrolling = true;
+      this.verticalScrolling = this.overlayScrollPositions.master.top !== tempScrollValue;
       this.overlayScrollPositions.master.top = tempScrollValue;
       scrollValueChanged = true;
 
@@ -474,7 +475,7 @@ class Overlays {
       tempScrollValue = getScrollLeft(target);
 
       // if scrolling the bottom overlay - populate the horizontal scroll to the master table
-      this.horizontalScrolling = true;
+      this.horizontalScrolling = this.overlayScrollPositions.bottom.left !== tempScrollValue;
       this.overlayScrollPositions.bottom.left = tempScrollValue;
       scrollValueChanged = true;
 
@@ -509,7 +510,7 @@ class Overlays {
       tempScrollValue = getScrollLeft(target);
 
       // if scrolling the top overlay - populate the horizontal scroll to the master table
-      this.horizontalScrolling = true;
+      this.horizontalScrolling = this.overlayScrollPositions.top.left !== tempScrollValue;
       this.overlayScrollPositions.top.left = tempScrollValue;
       scrollValueChanged = true;
 
@@ -545,7 +546,7 @@ class Overlays {
 
       // if scrolling the left overlay - populate the vertical scroll to the master table
       if (this.overlayScrollPositions.left.top !== tempScrollValue) {
-        this.verticalScrolling = true;
+        this.verticalScrolling = this.overlayScrollPositions.left.top !== tempScrollValue;
         this.overlayScrollPositions.left.top = tempScrollValue;
         scrollValueChanged = true;
 
