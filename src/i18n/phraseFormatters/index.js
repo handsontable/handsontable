@@ -26,7 +26,7 @@ export function getAll() {
 }
 
 export {
-  register as registerFormatter,
+  register as registerPhraseFormatter,
   getAll as getPhraseFormatters
 };
 

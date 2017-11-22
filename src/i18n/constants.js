@@ -52,6 +52,7 @@ export const CONTEXTMENU_ITEMS_SHOW_COLUMN = 'ContextMenu:items.showColumn';
 export const CONTEXTMENU_ITEMS_HIDE_ROW = 'ContextMenu:items.hideRow';
 export const CONTEXTMENU_ITEMS_SHOW_ROW = 'ContextMenu:items.showRow';
 
+export const FILTERS_NAMESPACE = 'Filters:';
 export const FILTERS_CONDITIONS_NAMESPACE = 'Filters:conditions';
 export const FILTERS_CONDITIONS_NONE = 'Filters:conditions.none';
 export const FILTERS_CONDITIONS_EMPTY = 'Filters:conditions.isEmpty';

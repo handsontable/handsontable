@@ -1,4 +1,4 @@
-import {getAll as getAllFormatters, register as registerFormatter} from 'handsontable/i18n/phraseFormatters';
+import {getAll as getAllFormatters, register as registerPhraseFormatter} from 'handsontable/i18n/phraseFormatters';
 
 describe('i18n phraseFormatters', () => {
   it('should register formatters at start', () => {
@@ -8,7 +8,7 @@ describe('i18n phraseFormatters', () => {
   });
 
   it('should register formatter by `register` function', () => {
-    registerFormatter('exampleFormatterName', () => {});
+    registerPhraseFormatter('exampleFormatterName', () => {});
 
     expect(getAllFormatters().length).toEqual(2);
   });

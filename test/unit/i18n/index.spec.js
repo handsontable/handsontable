@@ -1,5 +1,5 @@
 import {getLanguageDictionary, getLanguagesDictionaries, registerLanguageDictionary} from 'handsontable/i18n/dictionariesManager';
-import {register as registerFormatter} from 'handsontable/i18n/phraseFormatters';
+import {register as registerPhraseFormatter} from 'handsontable/i18n/phraseFormatters';
 import plPL from 'handsontable/i18n/languages/pl-PL';
 import * as constants from 'handsontable/i18n/constants';
 import Handsontable from 'handsontable';
@@ -36,7 +36,7 @@ describe('i18n', () => {
   it('should call formatters when `getTranslatedPhrase` function is called', () => {
     let formatterWasRun = false;
 
-    registerFormatter('formatterChangingVariable', () => { formatterWasRun = true; });
+    registerPhraseFormatter('formatterChangingVariable', () => { formatterWasRun = true; });
 
     expect(formatterWasRun).toEqual(false);
 
