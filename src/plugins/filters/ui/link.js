@@ -1,6 +1,8 @@
 import {clone, extend} from 'handsontable/helpers/object';
 import BaseUI from './_base';
 
+const privatePool = new WeakMap();
+
 /**
  * @class LinkUI
  * @util
@@ -15,6 +17,8 @@ class LinkUI extends BaseUI {
 
   constructor(hotInstance, options) {
     super(hotInstance, extend(LinkUI.DEFAULTS, options));
+
+    privatePool.set(this, {});
   }
 
   /**
@@ -22,6 +26,9 @@ class LinkUI extends BaseUI {
    */
   build() {
     super.build();
+
+    const priv = privatePool.get(this);
+    priv.link = this._element.firstChild;
   }
 
   /**
@@ -32,9 +39,7 @@ class LinkUI extends BaseUI {
       return;
     }
 
-    this.setElementProperties(this._element.firstChild);
-
-    super.update();
+    privatePool.get(this).link.textContent = this.hot.getTranslatedPhrase(this.options.textContent);
   }
 }
 

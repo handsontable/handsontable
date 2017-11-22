@@ -1,6 +1,6 @@
 import {addClass} from 'handsontable/helpers/dom/element';
 import {clone, extend} from 'handsontable/helpers/object';
-import {arrayEach} from 'handsontable/helpers/array';
+import * as C from 'handsontable/i18n/constants';
 import BaseUI from './_base';
 
 const privatePool = new WeakMap();
@@ -59,9 +59,17 @@ class InputUI extends BaseUI {
       return;
     }
 
-    this.setElementProperties(this._element.firstChild);
+    let input = privatePool.get(this).input;
 
-    super.update();
+    input.type = this.options.type;
+    input.placeholder = this.hot.getTranslatedPhrase(this.options.placeholder);
+
+    if (typeof this.options.value === 'string' && this.options.value.includes(C.FILTERS_NAMESPACE)) {
+      input.value = this.hot.getTranslatedPhrase(this.options.value);
+
+    } else {
+      input.value = this.options.value;
+    }
   }
 
   /**

@@ -75,21 +75,21 @@ class ValueComponent extends BaseComponent {
    */
   updateState(stateInfo) {
     const updateColumnState = (column, conditions, conditionArgsChange, filteredRowsFactory, conditionsStack) => {
-      const [condition] = arrayFilter(conditions, (condition) => condition.name === CONDITION_BY_VALUE);
+      const [firstByValueCondition] = arrayFilter(conditions, (condition) => condition.name === CONDITION_BY_VALUE);
       const state = {};
       const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
 
-      if (condition) {
+      if (firstByValueCondition) {
         let rowValues = arrayMap(filteredRowsFactory(column, conditionsStack), (row) => row.value);
 
         rowValues = unifyColumnValues(rowValues);
 
         if (conditionArgsChange) {
-          condition.args[0] = conditionArgsChange;
+          firstByValueCondition.args[0] = conditionArgsChange;
         }
 
         const selectedValues = [];
-        const itemsSnapshot = intersectValues(rowValues, condition.args[0], defaultBlankCellValue, (item) => {
+        const itemsSnapshot = intersectValues(rowValues, firstByValueCondition.args[0], defaultBlankCellValue, (item) => {
           if (item.checked) {
             selectedValues.push(item.value);
           }

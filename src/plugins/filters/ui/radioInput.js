@@ -10,10 +10,10 @@ const privatePool = new WeakMap();
 class RadioInputUI extends BaseUI {
   static get DEFAULTS() {
     return clone({
+      type: 'radio',
+      tagName: 'input',
       className: 'htUIRadio',
-      label: {},
-      input: {},
-      wrapIt: false
+      label: {}
     });
   }
 
@@ -28,19 +28,17 @@ class RadioInputUI extends BaseUI {
    */
   build() {
     super.build();
+    let priv = privatePool.get(this);
+    priv.input = this._element.firstChild;
 
-    const input = document.createElement('input');
-    const label = document.createElement('label');
-    const priv = privatePool.get(this);
-
-    priv.input = input;
+    let label = document.createElement('label');
+    label.textContent = this.options.label.textContent;
+    label.htmlFor = this.options.label.htmlFor;
     priv.label = label;
 
-    this.setElementProperties(input, this.options.input);
-    this.setElementProperties(label, this.options.label);
-
-    this._element.appendChild(input);
     this._element.appendChild(label);
+
+    this.update();
   }
 
   /**
@@ -51,17 +49,8 @@ class RadioInputUI extends BaseUI {
       return;
     }
 
-    this.setElementProperties(privatePool.get(this).input, this.options.input);
-    this.setElementProperties(privatePool.get(this).label, this.options.label);
-  }
-
-  /**
-   * Get the inpput element value.
-   *
-   * @returns {*}
-   */
-  getValue() {
-    return this.options.input.value;
+    privatePool.get(this).input.checked = this.options.checked;
+    privatePool.get(this).label.textContent = this.hot.getTranslatedPhrase(this.options.label.textContent);
   }
 
   /**
@@ -70,7 +59,7 @@ class RadioInputUI extends BaseUI {
    * @returns {Boolean}
    */
   isChecked() {
-    return this.options.input.checked;
+    return this.options.checked;
   }
 
   /**
@@ -79,7 +68,7 @@ class RadioInputUI extends BaseUI {
    * @param value {Boolean} value
    */
   setChecked(value = true) {
-    this.options.input.checked = value;
+    this.options.checked = value;
     this.update();
   }
 

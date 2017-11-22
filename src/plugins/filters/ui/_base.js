@@ -1,5 +1,4 @@
-import {clone, extend, mixin, objectEach, isObject} from 'handsontable/helpers/object';
-import {isFunction} from 'handsontable/helpers/function';
+import {clone, extend, mixin, objectEach} from 'handsontable/helpers/object';
 import localHooks from 'handsontable/mixins/localHooks';
 import EventManager from 'handsontable/eventManager';
 import {addClass} from 'handsontable/helpers/dom/element';
@@ -108,42 +107,6 @@ class BaseUI {
   }
 
   /**
-   * Parse properties within options object.
-   *
-   * @param {Object} options List of element options.
-   */
-  parseProperties(options) {
-    const parsedOptions = clone(options);
-
-    objectEach(parsedOptions, (value, key) => {
-      if (isObject(value)) {
-        parsedOptions[key] = this.parseProperties(value);
-
-      } else if (isFunction(value)) {
-        parsedOptions[key] = value();
-      }
-    });
-
-    return parsedOptions;
-  }
-
-  /**
-   * Set DOM element properties.
-   *
-   * @param {Object} element DOM element which should be changed.
-   * @param {Object} [options] Options which should be parsed and then set.
-   */
-  setElementProperties(element, options = this.options) {
-    const parsedOptions = this.parseProperties(options);
-
-    objectEach(parsedOptions, (value, key) => {
-      if (element[key] !== void 0 && key !== 'className' && key !== 'tagName' && key !== 'children') {
-        element[key] = value;
-      }
-    });
-  }
-
-  /**
    * Build DOM structure.
    */
   build() {
@@ -163,7 +126,11 @@ class BaseUI {
     } else if (this.options.wrapIt) {
       const element = document.createElement(this.options.tagName);
 
-      this.setElementProperties(element);
+      objectEach(this.options, (value, key) => {
+        if (element[key] !== void 0 && key !== 'className' && key !== 'tagName' && key !== 'children') {
+          element[key] = value;
+        }
+      });
 
       this._element.appendChild(element);
 
@@ -172,12 +139,6 @@ class BaseUI {
     } else {
       arrayEach(EVENTS_TO_REGISTER, (eventName) => registerEvent(this._element, eventName));
     }
-
-    this.hot.addHook('afterLanguageChange', () => this.onAfterLanguageChange());
-  }
-
-  onAfterLanguageChange() {
-    this.update();
   }
 
   /**
@@ -218,9 +179,6 @@ class BaseUI {
 
   destroy() {
     this.eventManager.destroy();
-
-    this.hot.removeHook('afterLanguageChange', this.onAfterLanguageChange);
-
     this.eventManager = null;
     this.hot = null;
 

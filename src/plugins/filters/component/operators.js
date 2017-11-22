@@ -56,17 +56,14 @@ class OperatorsComponent extends BaseComponent {
 
     arrayEach(operationKeys, (operation) => {
       const radioInput = new RadioInputUI(this.hot, {
+        name: 'operator',
         label: {
           htmlFor: operation,
-          textContent: () => this.hot.getTranslatedPhrase(getOperationName(operation))
+          textContent: getOperationName(operation)
         },
-        input: {
-          id: operation,
-          type: 'radio',
-          name: 'operator',
-          checked: operation === operationKeys[SELECTED_AT_START_ELEMENT_INDEX],
-          value: operation
-        },
+        value: operation,
+        checked: operation === operationKeys[SELECTED_AT_START_ELEMENT_INDEX],
+        id: operation
       });
 
       radioInput.addLocalHook('change', (event) => this.onRadioInputChange(event));
