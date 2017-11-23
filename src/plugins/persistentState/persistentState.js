@@ -11,9 +11,12 @@ import Storage from './storage';
 class PersistentState extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
-
-    this.hot.addHook('beforeInit', () => this.onBeforeInit());
-    this.hot.addHook('afterUpdateSettings', () => this.onBeforeInit());
+    /**
+     * Instance of {@link Storage}.
+     *
+     * @type {Storage}
+     */
+    this.storage = void 0;
   }
 
   /**
@@ -33,6 +36,13 @@ class PersistentState extends BasePlugin {
       return;
     }
 
+    this.storage = new Storage(this.hot.rootElement.id);
+
+    this.addHook('persistentStateLoad', (key, saveTo) => this.loadValue(key, saveTo));
+    this.addHook('persistentStateSave', (key, value) => this.saveValue(key, value));
+    this.addHook('persistentStateReset', () => this.resetValue());
+    this.addHook('afterInit', () => this.onAfterInit());
+
     super.enablePlugin();
   }
 
@@ -40,10 +50,8 @@ class PersistentState extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    if (this.storage) {
-      this.storage = null;
-      this.storage.savedKeys.length = 0;
-    }
+    this.storage.savedKeys.length = 0;
+    this.storage = void 0;
 
     super.disablePlugin();
   }
@@ -59,6 +67,16 @@ class PersistentState extends BasePlugin {
   }
 
   /**
+   * Load value from localStorage
+   *
+   * @param {String} key Key string.
+   * @param {Object} saveTo localStorage object.
+   */
+  loadValue(key, saveTo) {
+    saveTo.value = this.storage.loadValue(key);
+  }
+
+  /**
    * Save data to localStorage
    *
    * @param {String} key Key string.
@@ -66,16 +84,6 @@ class PersistentState extends BasePlugin {
    */
   saveValue(key, value) {
     this.storage.saveValue(key, value);
-  }
-
-  /**
-   * Load value from localStorage
-   *
-   * @param {String} key Key string.
-   * @param {} saveTo
-   */
-  loadValue(key, saveTo) {
-    saveTo.value = this.storage.loadValue(key);
   }
 
   /**
@@ -98,34 +106,7 @@ class PersistentState extends BasePlugin {
    * @private
    */
   onAfterInit() {
-    this.hot.storage.loadSavedKeys();
-  }
-
-  /**
-   * `beforeInit` hook.
-   *
-   * @private
-   */
-  onBeforeInit() {
-    let pluginSettings = this.hot.getSettings().persistentState;
-
-    if (!pluginSettings) {
-      this.hot.removeHook('persistentStateLoad', this.loadValue);
-      this.hot.removeHook('persistentStateSave', this.saveValue);
-      this.hot.removeHook('persistentStateReset', this.resetValue);
-
-      return;
-    }
-
-    if (!this.hot.storage) {
-      this.hot.storage = new Storage(this.hot.rootElement.id);
-    }
-
-    this.hot.resetState = this.resetValue;
-
-    this.addHook('persistentStateLoad', this.loadValue);
-    this.addHook('persistentStateSave', this.saveValue);
-    this.addHook('persistentStateReset', this.resetValue);
+    this.storage.loadSavedKeys();
   }
 
   /**
