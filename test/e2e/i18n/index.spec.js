@@ -272,22 +272,46 @@ describe('i18n', () => {
       });
     });
 
-    it('should translate empty value inside values component when setting existing language code at start', () => {
+    describe('should translate empty value inside values component', () => {
       const FILTERS_VALUES_BLANK_CELLS_IN_POLISH_LANGUAGE = '(Puste miejsca)';
-      const data = getDataForFilters();
-      data[0].name = '';
 
-      handsontable({
-        language: POLISH_LANGUAGE_CODE,
-        data,
-        columns: getColumnsForFilters(),
-        filters: true,
-        dropdownMenu: true
+      it('when setting existing language code at start', () => {
+        const data = getDataForFilters();
+        data[0].name = '';
+
+        handsontable({
+          language: POLISH_LANGUAGE_CODE,
+          data,
+          columns: getColumnsForFilters(),
+          filters: true,
+          dropdownMenu: true
+        });
+
+        dropdownMenu(1);
+
+        expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe(FILTERS_VALUES_BLANK_CELLS_IN_POLISH_LANGUAGE);
       });
 
-      dropdownMenu(1);
+      it('when changing language by updateSettings', () => {
+        const data = getDataForFilters();
+        data[0].name = '';
 
-      expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe(FILTERS_VALUES_BLANK_CELLS_IN_POLISH_LANGUAGE);
+        const hot = handsontable({
+          data,
+          columns: getColumnsForFilters(),
+          filters: true,
+          dropdownMenu: true
+        });
+
+        // creating DOM elements
+        dropdownMenu(1);
+
+        hot.updateSettings({language: POLISH_LANGUAGE_CODE});
+
+        dropdownMenu(1);
+
+        expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe(FILTERS_VALUES_BLANK_CELLS_IN_POLISH_LANGUAGE);
+      });
     });
   });
 
