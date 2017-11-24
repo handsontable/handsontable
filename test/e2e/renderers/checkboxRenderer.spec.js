@@ -328,22 +328,22 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false], [1, 0, false, true], [2, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should open cell editors of cell that does not have checkboxRenderer (#1199)', () => {
+  it('should toggle checkbox even if cell value is in another datatype', () => {
+    // TODO: we MUST add additional layer in data transport, to filter stored data types into their defined data type (cellMeta.type)
     var hot = handsontable({
-      data: [[true, 'B0'], [true, 'B1'], [true, 'B2']],
+      data: [['true']],
       columns: [
         {type: 'checkbox'},
-        {type: 'text'}
       ]
     });
 
-    selectCell(0, 1);
+    selectCell(0, 0);
 
-    expect(hot.getActiveEditor().isOpened()).toBe(false);
+    expect(getDataAtCell(0, 0)).toBe('true');
 
     keyDown('space');
 
-    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(getDataAtCell(0, 0)).toBe(false);
   });
 
   it('double click on checkbox cell should invert the value', () => {
