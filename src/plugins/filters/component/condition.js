@@ -2,6 +2,7 @@ import {addClass} from 'handsontable/helpers/dom/element';
 import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
 import {arrayEach} from 'handsontable/helpers/array';
 import {isKey} from 'handsontable/helpers/unicode';
+import {clone} from 'handsontable/helpers/object';
 import * as C from 'handsontable/i18n/constants';
 import BaseComponent from './_base';
 import getOptionsList, {CONDITION_NONE} from './../constants';
@@ -50,16 +51,22 @@ class ConditionComponent extends BaseComponent {
     this.reset();
 
     if (value) {
-      this.getSelectElement().setValue(value.command);
+      const copyOfCommand = clone(value.command);
+
+      if (copyOfCommand.name.startsWith(C.FILTERS_CONDITIONS_NAMESPACE)) {
+        copyOfCommand.name = this.hot.getTranslatedPhrase(copyOfCommand.name);
+      }
+
+      this.getSelectElement().setValue(copyOfCommand);
       arrayEach(value.args, (arg, index) => {
-        if (index > value.command.inputsCount - 1) {
+        if (index > copyOfCommand.inputsCount - 1) {
           return false;
         }
 
         let element = this.getInputElement(index);
 
         element.setValue(arg);
-        element[value.command.inputsCount > index ? 'show' : 'hide']();
+        element[copyOfCommand.inputsCount > index ? 'show' : 'hide']();
 
         if (!index) {
           setTimeout(() => element.focus(), 10);
@@ -98,10 +105,6 @@ class ConditionComponent extends BaseComponent {
    */
   updateState(condition, column) {
     let command = condition ? getConditionDescriptor(condition.name) : getConditionDescriptor(CONDITION_NONE);
-
-    if (command.name.startsWith(C.FILTERS_CONDITIONS_NAMESPACE)) {
-      command.name = this.hot.getTranslatedPhrase(command.name);
-    }
 
     this.setCachedState(column, {
       command,

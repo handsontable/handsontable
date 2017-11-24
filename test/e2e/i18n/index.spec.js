@@ -15,6 +15,7 @@ describe('i18n', () => {
   const POLISH_LANGUAGE_CODE = 'pl-PL';
   const INSERT_COLUMN_LEFT_IN_POLISH_LANGUAGE = 'Wstaw kolumnę z lewej';
   const FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE = 'Brak';
+  const FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE = 'Komórka jest pusta';
 
   describe('dropdown translation', () => {
     it('should translate dropdownMenu UI when setting existing language at start', () => {
@@ -31,38 +32,91 @@ describe('i18n', () => {
   });
 
   describe('filters translation', () => {
-    describe('should translate filters condition inside dropdownMenu UI when setting existing language at start', () => {
-      it('name visible inside the main drop-down menu', () => {
-        handsontable({
-          language: POLISH_LANGUAGE_CODE,
-          colHeaders: true,
-          dropdownMenu: true,
-          filters: true
+    describe('should translate filters condition inside dropdownMenu UI', () => {
+      describe('when setting existing language at start', () => {
+        it('name visible inside the main drop-down menu', () => {
+          handsontable({
+            language: POLISH_LANGUAGE_CODE,
+            colHeaders: true,
+            dropdownMenu: true,
+            filters: true
+          });
+
+          dropdownMenu(0);
+
+          expect($('.htFiltersMenuCondition .htUISelectCaption').eq(0).text()).toEqual(FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE);
         });
 
-        dropdownMenu(0);
+        it('name visible inside condition selection drop-down menu', () => {
+          handsontable({
+            language: POLISH_LANGUAGE_CODE,
+            colHeaders: true,
+            dropdownMenu: true,
+            filters: true
+          });
 
-        expect($('.htFiltersMenuCondition .htUISelectCaption').eq(0).text()).toEqual(FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE);
+          dropdownMenu(0);
+
+          $('.htUISelect').eq(0).simulate('click');
+
+          const $contextMenuItems = $('.htFiltersConditionsMenu tbody td:not(.htSeparator)');
+
+          expect($contextMenuItems.eq(0).text()).toEqual(FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE);
+          expect($contextMenuItems.eq(1).text()).toEqual(FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE);
+        });
       });
 
-      it('name visible inside condition selection drop-down menu', () => {
-        const FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE = 'Komórka jest pusta';
+      describe('when changing language by updateSettings', () => {
+        it('name visible inside the main drop-down menu', () => {
+          const hot = handsontable({
+            colHeaders: true,
+            dropdownMenu: true,
+            filters: true
+          });
 
-        handsontable({
-          language: POLISH_LANGUAGE_CODE,
-          colHeaders: true,
-          dropdownMenu: true,
-          filters: true
+          dropdownMenu(0);
+
+          $('.htUISelect').eq(0).simulate('click');
+
+          const $contextMenuItems = $('.htFiltersConditionsMenu tbody td:not(.htSeparator)');
+
+          $contextMenuItems.eq(1).simulate('mousedown');
+          $('.htUIButton.htUIButtonOK input').simulate('click');
+
+          hot.updateSettings({language: POLISH_LANGUAGE_CODE});
+
+          dropdownMenu(0);
+
+          expect($('.htFiltersMenuCondition .htUISelectCaption').eq(0).text()).toEqual(FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE);
         });
 
-        dropdownMenu(0);
+        it('name visible inside condition selection drop-down menu', () => {
+          const hot = handsontable({
+            colHeaders: true,
+            dropdownMenu: true,
+            filters: true
+          });
 
-        $('.htUISelect').eq(0).simulate('click');
+          dropdownMenu(0);
 
-        const $contextMenuItems = $('.htFiltersConditionsMenu tbody td:not(.htSeparator)');
+          $('.htUISelect').eq(0).simulate('click');
 
-        expect($contextMenuItems.eq(0).text()).toEqual(FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE);
-        expect($contextMenuItems.eq(1).text()).toEqual(FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE);
+          let $contextMenuItems = $('.htFiltersConditionsMenu tbody td:not(.htSeparator)');
+
+          $contextMenuItems.eq(1).simulate('mousedown');
+          $('.htUIButton.htUIButtonOK input').simulate('click');
+
+          hot.updateSettings({language: POLISH_LANGUAGE_CODE});
+
+          dropdownMenu(0);
+
+          $('.htUISelect').eq(0).simulate('click');
+
+          $contextMenuItems = $('.htFiltersConditionsMenu tbody td:not(.htSeparator)');
+
+          expect($contextMenuItems.eq(0).text()).toEqual(FILTERS_CONDITIONS_NONE_IN_POLISH_LANGUAGE);
+          expect($contextMenuItems.eq(1).text()).toEqual(FILTERS_CONDITIONS_EMPTY_IN_POLISH_LANGUAGE);
+        });
       });
     });
 
