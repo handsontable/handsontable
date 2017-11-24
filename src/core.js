@@ -692,8 +692,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.runHooks('afterSelectionByProp',
         priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col), preventScrolling);
 
-      if ((priv.selRange.from.row === 0 && priv.selRange.to.row === instance.countRows() - 1 && instance.countRows() > 1) ||
-        (priv.selRange.from.col === 0 && priv.selRange.to.col === instance.countCols() - 1 && instance.countCols() > 1)) {
+      if (instance.selection.selectedHeader.cols || instance.selection.selectedHeader.rows) {
         isHeaderSelected = true;
       }
 
@@ -2537,7 +2536,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Validates all cells using their validator functions and calls callback when finished.
    *
    * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it would equal `true`.
-   * 
+   *
    * Private use intended.
    *
    * @private
