@@ -519,7 +519,7 @@ describe('WalkontableScroll', () => {
       });
 
       wt.draw();
-      wt.wtTable.holder.scrollTop = 400;
+      wt.wtOverlays.leftOverlay.clone.wtTable.holder.scrollTop = 400;
 
       wt.draw();
 
@@ -549,7 +549,7 @@ describe('WalkontableScroll', () => {
       });
 
       wt.draw();
-      wt.wtTable.holder.scrollLeft = 400;
+      wt.wtOverlays.topOverlay.clone.wtTable.holder.scrollLeft = 400;
 
       wt.draw();
 

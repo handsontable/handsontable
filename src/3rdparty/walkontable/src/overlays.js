@@ -475,7 +475,6 @@ class Overlays {
       tempScrollValue = getScrollLeft(target);
 
       // if scrolling the bottom overlay - populate the horizontal scroll to the master table
-      this.horizontalScrolling = this.overlayScrollPositions.bottom.left !== tempScrollValue;
       this.overlayScrollPositions.bottom.left = tempScrollValue;
       scrollValueChanged = true;
 
@@ -510,7 +509,6 @@ class Overlays {
       tempScrollValue = getScrollLeft(target);
 
       // if scrolling the top overlay - populate the horizontal scroll to the master table
-      this.horizontalScrolling = this.overlayScrollPositions.top.left !== tempScrollValue;
       this.overlayScrollPositions.top.left = tempScrollValue;
       scrollValueChanged = true;
 
@@ -546,7 +544,6 @@ class Overlays {
 
       // if scrolling the left overlay - populate the vertical scroll to the master table
       if (this.overlayScrollPositions.left.top !== tempScrollValue) {
-        this.verticalScrolling = this.overlayScrollPositions.left.top !== tempScrollValue;
         this.overlayScrollPositions.left.top = tempScrollValue;
         scrollValueChanged = true;
 
