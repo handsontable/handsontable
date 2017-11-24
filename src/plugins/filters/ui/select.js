@@ -67,7 +67,7 @@ class SelectUI extends BaseUI {
    */
   translateNames(items) {
     arrayEach(items, (item) => {
-      if (typeof item.name === 'string' && item.name.includes(C.FILTERS_CONDITIONS_NAMESPACE)) {
+      if (typeof item.name === 'string' && item.name.startsWith(C.FILTERS_CONDITIONS_NAMESPACE)) {
         item.name = this.menu.hot.getTranslatedPhrase(item.name);
       }
     });

@@ -64,7 +64,7 @@ class InputUI extends BaseUI {
     input.type = this.options.type;
     input.placeholder = this.hot.getTranslatedPhrase(this.options.placeholder);
 
-    if (typeof this.options.value === 'string' && this.options.value.includes(C.FILTERS_NAMESPACE)) {
+    if (typeof this.options.value === 'string' && this.options.value.startsWith(C.FILTERS_NAMESPACE)) {
       input.value = this.hot.getTranslatedPhrase(this.options.value);
 
     } else {

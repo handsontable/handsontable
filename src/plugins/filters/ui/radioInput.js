@@ -49,8 +49,10 @@ class RadioInputUI extends BaseUI {
       return;
     }
 
-    privatePool.get(this).input.checked = this.options.checked;
-    privatePool.get(this).label.textContent = this.hot.getTranslatedPhrase(this.options.label.textContent);
+    const priv = privatePool.get(this);
+
+    priv.input.checked = this.options.checked;
+    priv.label.textContent = this.hot.getTranslatedPhrase(this.options.label.textContent);
   }
 
   /**

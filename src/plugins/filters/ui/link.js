@@ -28,6 +28,7 @@ class LinkUI extends BaseUI {
     super.build();
 
     const priv = privatePool.get(this);
+
     priv.link = this._element.firstChild;
   }
 

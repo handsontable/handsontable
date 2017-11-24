@@ -43,9 +43,7 @@ class MultipleSelectUI extends BaseUI {
      * @type {BaseUI}
      */
     this.selectAllUI = new LinkUI(this.hot, {
-      tagName: 'a',
       textContent: C.FILTERS_BUTTONS_SELECT_ALL,
-      href: '#',
       className: 'htUISelectAll',
     });
     /**
@@ -54,9 +52,7 @@ class MultipleSelectUI extends BaseUI {
      * @type {BaseUI}
      */
     this.clearAllUI = new LinkUI(this.hot, {
-      tagName: 'a',
       textContent: C.FILTERS_BUTTONS_CLEAR,
-      href: '#',
       className: 'htUIClearAll',
     });
     /**

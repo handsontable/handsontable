@@ -99,7 +99,7 @@ class ConditionComponent extends BaseComponent {
   updateState(condition, column) {
     let command = condition ? getConditionDescriptor(condition.name) : getConditionDescriptor(CONDITION_NONE);
 
-    if (command.name.includes(C.FILTERS_CONDITIONS_NAMESPACE)) {
+    if (command.name.startsWith(C.FILTERS_CONDITIONS_NAMESPACE)) {
       command.name = this.hot.getTranslatedPhrase(command.name);
     }
 
