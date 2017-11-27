@@ -1,13 +1,13 @@
 import {addClass} from 'handsontable/helpers/dom/element';
-import Menu from 'handsontable/plugins/contextMenu/menu';
 import {clone, extend} from 'handsontable/helpers/object';
 import {arrayFilter, arrayMap, arrayEach} from 'handsontable/helpers/array';
-import {startsWith} from 'handsontable/helpers/string';
 import {isKey} from 'handsontable/helpers/unicode';
 import {partial} from 'handsontable/helpers/function';
+import * as C from 'handsontable/i18n/constants';
 import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
 import BaseUI from './_base';
 import InputUI from './input';
+import LinkUI from './link';
 import {createArrayAssertion} from './../utils';
 
 const privatePool = new WeakMap();
@@ -34,7 +34,7 @@ class MultipleSelectUI extends BaseUI {
      * @type {InputUI}
      */
     this.searchInput = new InputUI(this.hot, {
-      placeholder: 'Search...',
+      placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH,
       className: 'htUIMultipleSelectSearch'
     });
     /**
@@ -42,10 +42,8 @@ class MultipleSelectUI extends BaseUI {
      *
      * @type {BaseUI}
      */
-    this.selectAllUI = new BaseUI(this.hot, {
-      tagName: 'a',
-      textContent: 'Select all',
-      href: '#',
+    this.selectAllUI = new LinkUI(this.hot, {
+      textContent: C.FILTERS_BUTTONS_SELECT_ALL,
       className: 'htUISelectAll',
     });
     /**
@@ -53,10 +51,8 @@ class MultipleSelectUI extends BaseUI {
      *
      * @type {BaseUI}
      */
-    this.clearAllUI = new BaseUI(this.hot, {
-      tagName: 'a',
-      textContent: 'Clear',
-      href: '#',
+    this.clearAllUI = new LinkUI(this.hot, {
+      textContent: C.FILTERS_BUTTONS_CLEAR,
       className: 'htUIClearAll',
     });
     /**
@@ -181,6 +177,8 @@ class MultipleSelectUI extends BaseUI {
    */
   reset() {
     this.searchInput.reset();
+    this.selectAllUI.reset();
+    this.clearAllUI.reset();
   }
 
   /**
@@ -190,6 +188,7 @@ class MultipleSelectUI extends BaseUI {
     if (!this.isBuilt()) {
       return;
     }
+
     this.itemsBox.loadData(valueToItems(this.items, this.options.value));
     super.update();
   }

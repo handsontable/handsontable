@@ -1,4 +1,5 @@
 import {rangeEach} from 'handsontable/helpers/number';
+import * as C from 'handsontable/i18n/constants';
 
 export default function showRowItem(hiddenRowsPlugin) {
   const beforeHiddenRows = [];
@@ -6,8 +7,36 @@ export default function showRowItem(hiddenRowsPlugin) {
 
   return {
     key: 'hidden_rows_show',
-    name: 'Show row',
-    callback: function() {
+    name() {
+      const selection = this.getSelected();
+      let pluralForm = 0;
+
+      if (Array.isArray(selection)) {
+        let [fromRow, , toRow] = selection;
+
+        if (fromRow > toRow) {
+          [fromRow, toRow] = [toRow, fromRow];
+        }
+
+        let hiddenRows = 0;
+
+        if (fromRow === toRow) {
+          hiddenRows = beforeHiddenRows.length + afterHiddenRows.length;
+
+        } else {
+          rangeEach(fromRow, toRow, (column) => {
+            if (hiddenRowsPlugin.isHidden(column)) {
+              hiddenRows += 1;
+            }
+          });
+        }
+
+        pluralForm = hiddenRows <= 1 ? 0 : 1;
+      }
+
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_ROW, pluralForm);
+    },
+    callback() {
       let {from, to} = this.getSelectedRange();
       let start = Math.min(from.row, to.row);
       let end = Math.max(from.row, to.row);
@@ -30,7 +59,7 @@ export default function showRowItem(hiddenRowsPlugin) {
       this.view.wt.wtOverlays.adjustElementsSize(true);
     },
     disabled: false,
-    hidden: function() {
+    hidden() {
       if (!hiddenRowsPlugin.hiddenRows.length || !this.selection.selectedHeader.rows) {
         return true;
       }

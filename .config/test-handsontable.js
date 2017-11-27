@@ -58,6 +58,7 @@ module.exports.create = function create(envArgs) {
           '../dist/pikaday/pikaday.js',
           '../dist/hot-formula-parser/formula-parser.js',
           '../dist/handsontable.js',
+          '../dist/languages/all.js',
         ],
       })
     );
@@ -66,4 +67,4 @@ module.exports.create = function create(envArgs) {
   });
 
   return [].concat(config);
-}
+};

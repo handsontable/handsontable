@@ -1,3 +1,4 @@
+import * as C from 'handsontable/i18n/constants';
 import {registerCondition} from './../conditionRegisterer';
 
 export const CONDITION_NAME = 'lt';
@@ -11,7 +12,7 @@ export function condition(dataRow, [value] = inputValues) {
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: 'Less than',
+  name: C.FILTERS_CONDITIONS_LESS_THAN,
   inputsCount: 1,
   showOperators: true
 });

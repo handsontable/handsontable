@@ -646,7 +646,8 @@ describe('Filters UI', function() {
       }, 400);
     });
 
-    it('should work properly when user added condition with too many arguments #179', function () {
+    it('should work properly when user added condition with too many arguments #179', async () => {
+      const spy = spyOn(window, 'onerror');
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -658,12 +659,13 @@ describe('Filters UI', function() {
 
       const plugin = hot.getPlugin('filters');
       const th = hot.view.wt.wtTable.getColumnHeader(1);
+      const filterButton = $(th).find('button');
 
       plugin.addCondition(1, 'begins_with', ['a', 'b', 'c', 'd']);
 
-      $(th).simulate('click');
+      $(filterButton).simulate('click');
 
-      expect(() => plugin.onAfterDropdownMenuShow()).not.toThrow();
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 

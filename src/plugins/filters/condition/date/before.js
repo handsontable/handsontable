@@ -1,4 +1,5 @@
 import moment from 'moment';
+import * as C from 'handsontable/i18n/constants';
 import {registerCondition} from './../../conditionRegisterer';
 
 export const CONDITION_NAME = 'date_before';
@@ -15,6 +16,7 @@ export function condition(dataRow, [value] = inputValues) {
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: 'Before',
-  inputsCount: 1
+  name: C.FILTERS_CONDITIONS_BEFORE,
+  inputsCount: 1,
+  showOperators: true
 });

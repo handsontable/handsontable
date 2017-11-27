@@ -1,4 +1,5 @@
 import {rangeEach} from 'handsontable/helpers/number';
+import * as C from 'handsontable/i18n/constants';
 
 export default function showColumnItem(hiddenColumnsPlugin) {
   const beforeHiddenColumns = [];
@@ -6,8 +7,36 @@ export default function showColumnItem(hiddenColumnsPlugin) {
 
   return {
     key: 'hidden_columns_show',
-    name: 'Show column',
-    callback: function() {
+    name() {
+      const selection = this.getSelected();
+      let pluralForm = 0;
+
+      if (Array.isArray(selection)) {
+        let [, fromColumn, , toColumn] = selection;
+
+        if (fromColumn > toColumn) {
+          [fromColumn, toColumn] = [toColumn, fromColumn];
+        }
+
+        let hiddenColumns = 0;
+
+        if (fromColumn === toColumn) {
+          hiddenColumns = beforeHiddenColumns.length + afterHiddenColumns.length;
+
+        } else {
+          rangeEach(fromColumn, toColumn, (column) => {
+            if (hiddenColumnsPlugin.isHidden(column)) {
+              hiddenColumns += 1;
+            }
+          });
+        }
+
+        pluralForm = hiddenColumns <= 1 ? 0 : 1;
+      }
+
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN, pluralForm);
+    },
+    callback() {
       let {from, to} = this.getSelectedRange();
       let start = Math.min(from.col, to.col);
       let end = Math.max(from.col, to.col);
@@ -30,7 +59,7 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       this.view.wt.wtOverlays.adjustElementsSize(true);
     },
     disabled: false,
-    hidden: function() {
+    hidden() {
       if (!hiddenColumnsPlugin.hiddenColumns.length || !this.selection.selectedHeader.cols) {
         return true;
       }

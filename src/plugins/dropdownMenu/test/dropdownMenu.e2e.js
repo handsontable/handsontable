@@ -223,8 +223,8 @@ describe('DropdownMenu', function () {
       expect(separators.length).toEqual(4);
 
       expect(actions.text()).toEqual([
-        'Insert column on the left',
-        'Insert column on the right',
+        'Insert column left',
+        'Insert column right',
         'Remove column',
         'Clear column',
         'Read only',
@@ -255,7 +255,7 @@ describe('DropdownMenu', function () {
       expect(countCols()).toEqual(5);
     });
 
-    it('should insert column on the right of selection', function () {
+    it('should Insert column right of selection', function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         dropdownMenu: true,

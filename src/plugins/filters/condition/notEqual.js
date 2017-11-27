@@ -1,3 +1,4 @@
+import * as C from 'handsontable/i18n/constants';
 import {registerCondition, getCondition} from './../conditionRegisterer';
 import {CONDITION_NAME as CONDITION_EQUAL} from './equal';
 
@@ -8,7 +9,7 @@ export function condition(dataRow, inputValues) {
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: 'Is not equal to',
+  name: C.FILTERS_CONDITIONS_NOT_EQUAL,
   inputsCount: 1,
   showOperators: true
 });

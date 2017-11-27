@@ -1,10 +1,24 @@
 import {rangeEach} from 'handsontable/helpers/number';
+import * as C from 'handsontable/i18n/constants';
 
 export default function hideColumnItem(hiddenColumnsPlugin) {
   return {
     key: 'hidden_columns_hide',
-    name: 'Hide column',
-    callback: function() {
+    name() {
+      const selection = this.getSelected();
+      let pluralForm = 0;
+
+      if (Array.isArray(selection)) {
+        const [, fromColumn, , toColumn] = selection;
+
+        if (fromColumn - toColumn !== 0) {
+          pluralForm = 1;
+        }
+      }
+
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_COLUMN, pluralForm);
+    },
+    callback() {
       let {from, to} = this.getSelectedRange();
       let start = Math.min(from.col, to.col);
       let end = Math.max(from.col, to.col);
@@ -16,7 +30,7 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
 
     },
     disabled: false,
-    hidden: function() {
+    hidden() {
       return !this.selection.selectedHeader.cols;
     }
   };

@@ -1,10 +1,8 @@
 import {addClass} from 'handsontable/helpers/dom/element';
 import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
-import {arrayEach, arrayUnique, arrayFilter, arrayMap, arrayIncludes} from 'handsontable/helpers/array';
-import {mergeSort} from 'handsontable/utils/sortingAlgorithms/mergeSort';
-import {deepClone} from 'handsontable/helpers/object';
-import {stringify} from 'handsontable/helpers/string';
+import {arrayEach, arrayFilter, arrayMap} from 'handsontable/helpers/array';
 import {isKey} from 'handsontable/helpers/unicode';
+import * as C from 'handsontable/i18n/constants';
 import {unifyColumnValues, intersectValues, toEmptyString} from './../utils';
 import BaseComponent from './_base';
 import MultipleSelectUI from './../ui/multipleSelect';
@@ -77,20 +75,21 @@ class ValueComponent extends BaseComponent {
    */
   updateState(stateInfo) {
     const updateColumnState = (column, conditions, conditionArgsChange, filteredRowsFactory, conditionsStack) => {
-      const [condition] = arrayFilter(conditions, (condition) => condition.name === CONDITION_BY_VALUE);
+      const [firstByValueCondition] = arrayFilter(conditions, (condition) => condition.name === CONDITION_BY_VALUE);
       const state = {};
+      const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
 
-      if (condition) {
+      if (firstByValueCondition) {
         let rowValues = arrayMap(filteredRowsFactory(column, conditionsStack), (row) => row.value);
 
         rowValues = unifyColumnValues(rowValues);
 
         if (conditionArgsChange) {
-          condition.args[0] = conditionArgsChange;
+          firstByValueCondition.args[0] = conditionArgsChange;
         }
 
         const selectedValues = [];
-        const itemsSnapshot = intersectValues(rowValues, condition.args[0], (item) => {
+        const itemsSnapshot = intersectValues(rowValues, firstByValueCondition.args[0], defaultBlankCellValue, (item) => {
           if (item.checked) {
             selectedValues.push(item.value);
           }
@@ -154,7 +153,7 @@ class ValueComponent extends BaseComponent {
         let label = document.createElement('div');
 
         addClass(label, 'htFiltersMenuLabel');
-        label.textContent = 'Filter by value:';
+        label.textContent = value;
 
         wrapper.appendChild(label);
         arrayEach(this.elements, (ui) => wrapper.appendChild(ui.element));
@@ -168,8 +167,9 @@ class ValueComponent extends BaseComponent {
    * Reset elements to their initial state.
    */
   reset() {
+    const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
     let values = unifyColumnValues(this._getColumnVisibleValues());
-    let items = intersectValues(values, values);
+    let items = intersectValues(values, values, defaultBlankCellValue);
 
     this.getMultipleSelectElement().setItems(items);
     super.reset();
