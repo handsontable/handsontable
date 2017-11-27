@@ -312,14 +312,15 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_DEFAULT_LANGUAGE);
     });
 
-    it('should translate contextMenu UI when setting existing language code by updateSettings', () => {
+    it('should translate contextMenu UI when setting existing language code by updateSettings', async () => {
       handsontable({
         contextMenu: ['row_above']
       });
 
       updateSettings({language: POLISH_LANGUAGE_CODE});
 
-      selectCell(0, 0);
+      await sleep(0);
+
       contextMenu();
 
       const $contextMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
@@ -327,7 +328,7 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE);
     });
 
-    it('should not change default contextMenu UI when trying to set not existing language code by updateSettings #1', () => {
+    it('should not change default contextMenu UI when trying to set not existing language code by updateSettings #1', async () => {
       spyOn(console, 'error'); // overriding console.error
 
       handsontable({
@@ -336,7 +337,8 @@ describe('i18n', () => {
 
       updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
 
-      selectCell(0, 0);
+      await sleep(0);
+
       contextMenu();
 
       const $contextMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
@@ -344,7 +346,7 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_DEFAULT_LANGUAGE);
     });
 
-    it('should not change default contextMenu UI when trying to set not existing language code by updateSettings #2', () => {
+    it('should not change default contextMenu UI when trying to set not existing language code by updateSettings #2', async () => {
       spyOn(console, 'error'); // overriding console.error
 
       handsontable({
@@ -354,7 +356,8 @@ describe('i18n', () => {
 
       updateSettings({language: NOT_EXISTING_LANGUAGE_CODE2});
 
-      selectCell(0, 0);
+      await sleep(0);
+
       contextMenu();
 
       const $contextMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
@@ -362,7 +365,7 @@ describe('i18n', () => {
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_DEFAULT_LANGUAGE);
     });
 
-    it('should not change previously translated contextMenu UI when trying to set not existing language code by updateSettings', () => {
+    it('should not change previously translated contextMenu UI when trying to set not existing language code by updateSettings', async () => {
       spyOn(console, 'error'); // overriding console.error
 
       handsontable({
@@ -372,7 +375,8 @@ describe('i18n', () => {
 
       updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
 
-      selectCell(0, 0);
+      await sleep(0);
+
       contextMenu();
 
       const $contextMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
