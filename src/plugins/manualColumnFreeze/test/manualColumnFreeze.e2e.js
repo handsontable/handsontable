@@ -201,8 +201,6 @@ describe('manualColumnFreeze', () => {
         manualColumnMove: [0, 2, 5, 3, 4, 1, 6, 7, 8, 9],
       });
 
-      await sleep(300);
-
       hot.getSettings().fixedColumnsLeft = 0;
 
       selectCell(1, 2);
