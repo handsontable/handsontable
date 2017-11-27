@@ -1361,6 +1361,7 @@ declare namespace Handsontable {
     data?: any | any[];
     dataSchema?: object;
     dateFormat?: string;
+    numericFormat?: object;
     debug?: boolean;
     defaultDate?: string;
     disableVisualSelection?: boolean | string | any[];
@@ -1375,7 +1376,6 @@ declare namespace Handsontable {
     fixedColumnsLeft?: number;
     fixedRowsBottom?: number; // pro
     fixedRowsTop?: number;
-    format?: string;
     fragmentSelection?: boolean | string;
     ganttChart?: object; // pro
     headerTooltips?: boolean | object; // pro

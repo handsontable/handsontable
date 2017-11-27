@@ -16,6 +16,7 @@ import BasePlugin from './../_base';
 import CommentEditor from './commentEditor';
 import {checkSelectionConsistency, markLabelAsSelected} from './../contextMenu/utils';
 import DisplaySwitch from './displaySwitch';
+import * as C from './../../i18n/constants';
 
 import './comments.css';
 
@@ -681,7 +682,13 @@ class Comments extends BasePlugin {
       },
       {
         key: 'commentsAddEdit',
-        name: () => (this.checkSelectionCommentsConsistency() ? 'Edit comment' : 'Add comment'),
+        name: () => {
+          if (this.checkSelectionCommentsConsistency()) {
+            return this.hot.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_EDIT_COMMENT);
+          }
+
+          return this.hot.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ADD_COMMENT);
+        },
         callback: () => this.onContextMenuAddComment(),
         disabled() {
           return !(this.getSelected() && !this.selection.selectedHeader.corner);
@@ -690,7 +697,7 @@ class Comments extends BasePlugin {
       {
         key: 'commentsRemove',
         name() {
-          return 'Delete comment';
+          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
         },
         callback: (key, selection) => this.onContextMenuRemoveComment(selection),
         disabled: () => this.hot.selection.selectedHeader.corner
@@ -698,7 +705,7 @@ class Comments extends BasePlugin {
       {
         key: 'commentsReadOnly',
         name() {
-          let label = 'Read only comment';
+          let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
           let hasProperty = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
             let readOnlyProperty = this.getCellMeta(row, col)[META_COMMENT];
             if (readOnlyProperty) {

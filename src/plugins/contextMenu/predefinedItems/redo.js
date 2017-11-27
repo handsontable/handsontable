@@ -1,9 +1,13 @@
+import * as C from './../../../i18n/constants';
+
 export const KEY = 'redo';
 
 export default function redoItem() {
   return {
     key: KEY,
-    name: 'Redo',
+    name() {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REDO);
+    },
 
     callback() {
       this.redo();
