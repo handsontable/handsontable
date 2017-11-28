@@ -55,8 +55,8 @@
     "data-spreadsheet"
   ],
   "dependencies": {
-    "handsontable": "handsontable/handsontable#feature/issue-4457",
-    "hot-formula-parser": "^2.2.0",
+    "handsontable": "handsontable/handsontable#develop",
+    "hot-formula-parser": "^2.3.1",
     "moment": "2.18.1",
     "numbro": "1.11.0",
     "pikaday": "1.5.1"
@@ -92,6 +92,7 @@
     "jasmine-core": "2.5.2",
     "jasmine-terminal-reporter": "^1.0.3",
     "jest": "^19.0.0",
+    "jest-cli": "^19.0.0",
     "loader-utils": "^1.1.0",
     "on-build-webpack": "^0.1.0",
     "optimize-css-assets-webpack-plugin": "^3.1.1",
