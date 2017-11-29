@@ -420,6 +420,19 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
+   * Boolean sorting algorithm.
+   *
+   * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending).
+   * @param {Object} columnMeta Column meta object.
+   * @returns {Function} The compare function.
+   */
+  booleanSort(sortOrder, columnMeta) {
+    return function(a, b) {
+      return sortOrder ? (b[1] - a[1]) : (a[1] - b[1]);
+    };
+  }
+
+  /**
    * Perform the sorting.
    */
   sort() {
@@ -461,6 +474,9 @@ class ColumnSorting extends BasePlugin {
           break;
         case 'numeric':
           sortFunction = this.numericSort;
+          break;
+        case 'checkbox':
+          sortFunction = this.booleanSort;
           break;
         default:
           sortFunction = this.defaultSort;
