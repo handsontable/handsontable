@@ -52,7 +52,7 @@ npm install handsontable
 ```
 
 **Alternative ways to install**
-- See the [download section](//handsontable.com/ce-download.html) on how to install Handsontable CE using nuget, bower, yarn and more.
+- See the [download section](//handsontable.com/community-download) on how to install Handsontable CE using nuget, bower, yarn and more.
 
 <br/>
 
