@@ -47,6 +47,16 @@ import {createClassName, createDefaultCustomBorder, createSingleEmptyBorder, cre
  * @class CustomBorders
  */
 class CustomBorders extends BasePlugin {
+  constructor(hotInstance) {
+    super(hotInstance);
+
+    /**
+     * initial settings
+     *
+     * @type {Array}
+     */
+    this.initialSettings = void 0;
+  }
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -75,7 +85,21 @@ class CustomBorders extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
+    this.removeBorders();
+
     super.disablePlugin();
+  }
+
+  /**
+   * Updates the plugin to use the latest options you have specified.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    this.onAfterUpdateSettings();
+
+    super.updatePlugin();
   }
 
   /**
@@ -297,6 +321,39 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
+   * Create borders from settings.
+   *
+   * @private
+   * @param {Array} customBorders
+   */
+  createCustomBorders(customBorders) {
+    for (let i = 0; i < customBorders.length; i++) {
+      if (customBorders[i].range) {
+        this.prepareBorderFromCustomAddedRange(customBorders[i]);
+
+      } else {
+        this.prepareBorderFromCustomAdded(customBorders[i].row, customBorders[i].col, customBorders[i]);
+      }
+    }
+
+    this.hot.render();
+    this.hot.view.wt.draw(true);
+  }
+
+  /**
+   * Remove border.
+   *
+   * @private
+   */
+  removeBorders() {
+    let borders = document.querySelectorAll('[class^="border"]');
+
+    for (let i = 0; i < borders.length; i++) {
+      this.removeBordersFromDom(borders[i].className);
+    }
+  }
+
+  /**
    * Add border options to context menu
    *
    * @private
@@ -336,18 +393,28 @@ class CustomBorders extends BasePlugin {
   onAfterInit() {
     let customBorders = this.hot.getSettings().customBorders;
 
+    this.initialSettings = customBorders;
+
     if (customBorders) {
-      for (let i = 0; i < customBorders.length; i++) {
-        if (customBorders[i].range) {
-          this.prepareBorderFromCustomAddedRange(customBorders[i]);
+      this.createCustomBorders(customBorders);
+    }
+  }
 
-        } else {
-          this.prepareBorderFromCustomAdded(customBorders[i].row, customBorders[i].col, customBorders[i]);
-        }
-      }
+  /**
+   * `afterUpdateSettings` hook callback.
+   *
+   * @private
+   */
+  onAfterUpdateSettings() {
+    let customBorders = this.hot.getSettings().customBorders;
 
-      this.hot.render();
-      this.hot.view.wt.draw(true);
+    this.removeBorders();
+
+    if (Array.isArray(customBorders)) {
+      this.createCustomBorders(customBorders);
+
+    } else if (customBorders !== void 0) {
+      this.createCustomBorders(this.initialSettings);
     }
   }
 
