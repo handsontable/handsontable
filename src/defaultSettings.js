@@ -2075,6 +2075,27 @@ DefaultSettings.prototype = {
    * @default: false
    */
   filteringCaseSensitive: false,
+
+  /**
+   * If defined as 'true', scrolling on the column header scrolls the table. Otherwise
+   * the scroll event is allowed to bubble up to parent elements.
+   *
+   * @type {Boolean}
+   * @default: true
+   */
+  scrollColHeaders: true,
+
+  /**
+   * If defined as 'true', an alternative scrolling implementation is enabled for browsers other than
+   * Chrome and Safari. This compatibility mode fixes the scroll sync issue #2350 on IE9. However,
+   * up-to-date browsers (tested with Firefox 57, Chrome 62, Safari 11 and IE 11) work fine with the default
+   * implementation, so disabling this compatibility mode makes the up-to-date browsers work more alike, especially
+   * Firefox when trying to scroll the page on the column header.
+   *
+   * @type {Boolean}
+   * @default: true
+   */
+  scrollCompatibilityMode: true,
 };
 
 export default DefaultSettings;
