@@ -2075,6 +2075,22 @@ DefaultSettings.prototype = {
    * @default: false
    */
   filteringCaseSensitive: false,
+
+  /**
+   * @description
+   * Disable or enable the drag to scroll functionality.
+   *
+   * @example
+   * ```js
+   * ...
+   * dragToScroll: false,
+   * ...
+   * ```
+   *
+   * @type {Boolean}
+   * @default true
+   */
+  dragToScroll: true,
 };
 
 export default DefaultSettings;

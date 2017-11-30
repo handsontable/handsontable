@@ -20,17 +20,24 @@ class DragToScroll extends BasePlugin {
      */
     this.eventManager = new EventManager(this);
     /**
+     * DOMRect - size of an element and its position relative to the viewport,
+     * e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y:8}.
+     *
      * @type {Object}
      */
     this.boundaries = null;
     /**
+     * Callback function.
+     *
      * @type {Function}
      */
     this.callback = null;
     /**
+     * Flag indicates mouseDown/mouseUp.
+     *
      * @type {Boolean}
      */
-    this.dragToScrollListening = false;
+    this.listening = false;
   }
 
   /**
@@ -78,6 +85,8 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
+   * Sets the value of the visible element.
+   *
    * @param boundaries {Object} compatible with getBoundingClientRect
    */
   setBoundaries(boundaries) {
@@ -85,6 +94,8 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
+   * Change callback function.
+   *
    * @param callback {Function}
    */
   setCallback(callback) {
@@ -92,17 +103,19 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Check if mouse position (x, y) is outside of the viewport
+   * Check if mouse position (x, y) is outside of the viewport.
+   *
    * @param {Number} x
    * @param {Number} y
    */
   check(x, y) {
-    var diffX = 0;
-    var diffY = 0;
+    let diffX = 0;
+    let diffY = 0;
 
     if (y < this.boundaries.top) {
       // y is less than top
       diffY = y - this.boundaries.top;
+
     } else if (y > this.boundaries.bottom) {
       // y is more than bottom
       diffY = y - this.boundaries.bottom;
@@ -111,6 +124,7 @@ class DragToScroll extends BasePlugin {
     if (x < this.boundaries.left) {
       // x is less than left
       diffX = x - this.boundaries.left;
+
     } else if (x > this.boundaries.right) {
       // x is more than right
       diffX = x - this.boundaries.right;
@@ -155,18 +169,20 @@ class DragToScroll extends BasePlugin {
     this.setCallback((scrollX, scrollY) => {
       if (scrollX < 0) {
         scrollHandler.scrollLeft -= 50;
+
       } else if (scrollX > 0) {
         scrollHandler.scrollLeft += 50;
       }
 
       if (scrollY < 0) {
         scrollHandler.scrollTop -= 20;
+
       } else if (scrollY > 0) {
         scrollHandler.scrollTop += 20;
       }
     });
 
-    this.dragToScrollListening = true;
+    this.listening = true;
   }
 
   /**
@@ -176,7 +192,7 @@ class DragToScroll extends BasePlugin {
    * @param {MouseEvent} event `mousemove` event properties.
    */
   onMouseMove(event) {
-    if (this.dragToScrollListening) {
+    if (this.listening) {
       this.check(event.clientX, event.clientY);
     }
   }
@@ -187,7 +203,7 @@ class DragToScroll extends BasePlugin {
    * @private
    */
   onMouseUp() {
-    this.dragToScrollListening = false;
+    this.listening = false;
   }
 
   /**
