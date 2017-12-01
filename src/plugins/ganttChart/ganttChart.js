@@ -25,7 +25,7 @@ import './ganttChart.css';
  *     dataSource: data,
  *     firstWeekDay: 'monday', // sets the first day of the week to either 'monday' or 'sunday'
  *     startYear: 2015 // sets the displayed year to the provided value
- *     weekHeaderGenerator: function(start, end) { return start + ' - ' + end; } // sets the label on the week column headers (optional)
+ *     weekHeaderGenerator: function(start, end) { return start + ' - ' + end; } // sets the label on the week column headers (optional). The `start` and `end` arguments are numbers representing the beginning and end day of the week.
  *   }
  *
  * // Where data can be either an data object or an object containing information about another Handsontable instance, which
