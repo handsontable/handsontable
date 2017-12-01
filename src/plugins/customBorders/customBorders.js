@@ -51,11 +51,11 @@ class CustomBorders extends BasePlugin {
     super(hotInstance);
 
     /**
-     * initial settings
+     * Saved borders settings.
      *
      * @type {Array}
      */
-    this.initialSettings = void 0;
+    this.savedSettings = void 0;
   }
 
   /**
@@ -76,7 +76,7 @@ class CustomBorders extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', (options) => this.addBordersOptionsToContextMenu(options));
-    this.addHook('afterInit', () => this.onAfterInit());
+    this.addHook('afterInit', () => this.setsBordersSettings());
 
     super.enablePlugin();
   }
@@ -97,7 +97,7 @@ class CustomBorders extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
-    this.onAfterUpdateSettings();
+    this.setsBordersSettings();
 
     super.updatePlugin();
   }
@@ -121,7 +121,7 @@ class CustomBorders extends BasePlugin {
   /**
    * Insert WalkontableSelection instance into Walkontable settings.
    *
-   * @param border
+   * @param {Object} border
    */
   insertBorderIntoSettings(border) {
     let coordinates = {
@@ -143,7 +143,7 @@ class CustomBorders extends BasePlugin {
    *
    * @param {Number} row Visual row index.
    * @param {Number} col Visual column index.
-   * @param borderObj
+   * @param {Object} borderObj
    */
   prepareBorderFromCustomAdded(row, col, borderObj) {
     let border = createEmptyBorders(row, col);
@@ -210,7 +210,7 @@ class CustomBorders extends BasePlugin {
   /**
    * Remove borders divs from DOM.
    *
-   * @param borderClassName
+   * @param {String} borderClassName
    */
   removeBordersFromDom(borderClassName) {
     let borders = document.querySelectorAll(`.${borderClassName}`);
@@ -242,12 +242,12 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Set borders for each cell re. to border position
+   * Set borders for each cell re. to border position.
    *
-   * @param row Visual row index.
-   * @param col Visual column index.
-   * @param place
-   * @param remove
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
+   * @param {String} place
+   * @param {Boolean} remove
    */
   setBorder(row, col, place, remove) {
     let bordersMeta = this.hot.getCellMeta(row, col).borders;
@@ -272,11 +272,11 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Prepare borders based on cell and border position
+   * Prepare borders based on cell and border position.
    *
-   * @param range
-   * @param place
-   * @param remove
+   * @param {Object} range CellRange object
+   * @param {String} place
+   * @param {Boolean} remove
    */
   prepareBorder(range, place, remove) {
     if (range.from.row == range.to.row && range.from.col == range.to.col) {
@@ -354,10 +354,10 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Add border options to context menu
+   * Add border options to context menu.
    *
    * @private
-   * @param defaultOptions
+   * @param {Object} defaultOptions Context menu items.
    */
   addBordersOptionsToContextMenu(defaultOptions) {
     if (!this.hot.getSettings().customBorders) {
@@ -386,35 +386,25 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * `afterInit` hook.
+   * `afterInit` and `afterUpdateSettings` hook callback.
    *
    * @private
    */
-  onAfterInit() {
-    let customBorders = this.hot.getSettings().customBorders;
-
-    this.initialSettings = customBorders;
-
-    if (customBorders) {
-      this.createCustomBorders(customBorders);
-    }
-  }
-
-  /**
-   * `afterUpdateSettings` hook callback.
-   *
-   * @private
-   */
-  onAfterUpdateSettings() {
+  setsBordersSettings() {
     let customBorders = this.hot.getSettings().customBorders;
 
     this.removeBorders();
 
-    if (Array.isArray(customBorders)) {
-      this.createCustomBorders(customBorders);
+    if (customBorders) {
+      if (Array.isArray(customBorders)) {
+        this.savedSettings = customBorders;
+        this.createCustomBorders(customBorders);
 
-    } else if (customBorders !== void 0) {
-      this.createCustomBorders(this.initialSettings);
+      } else if (customBorders !== void 0) {
+        let borders = this.savedSettings ? this.savedSettings : customBorders;
+
+        this.createCustomBorders(borders);
+      }
     }
   }
 
