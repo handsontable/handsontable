@@ -1320,15 +1320,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function listen
    * @since 0.11
+   * @param {Boolean} [modifyDocumentFocus=true] If `true`, currently focused element will be blured (which returns focus
+   *                                             to the document.body). Otherwise the active element does not lose its focus.
    */
-  this.listen = function() {
-    let invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
+  this.listen = function(modifyDocumentFocus = true) {
+    if (modifyDocumentFocus) {
+      let invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
 
-    if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
-      document.activeElement.blur();
+      if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
+        document.activeElement.blur();
 
-    } else if (invalidActiveElement) { // IE
-      document.body.focus();
+      } else if (invalidActiveElement) { // IE
+        document.body.focus();
+      }
     }
 
     if (instance && !instance.isListening()) {
