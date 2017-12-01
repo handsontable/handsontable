@@ -25,6 +25,7 @@ import './ganttChart.css';
  *     dataSource: data,
  *     firstWeekDay: 'monday', // sets the first day of the week to either 'monday' or 'sunday'
  *     startYear: 2015 // sets the displayed year to the provided value
+ *     weekHeaderGenerator: function(start, end) { return start + ' - ' + end; } // sets the label on the week column headers (optional). The `start` and `end` arguments are numbers representing the beginning and end day of the week.
  *   }
  *
  * // Where data can be either an data object or an object containing information about another Handsontable instance, which
@@ -271,6 +272,10 @@ class GanttChart extends BasePlugin {
     if (this.settings.allowSplitWeeks === void 0) {
       this.settings.allowSplitWeeks = true;
     }
+
+    if (typeof this.settings.weekHeaderGenerator !== 'function') {
+      this.settings.weekHeaderGenerator = null;
+    }
   }
 
   /**
@@ -345,6 +350,7 @@ class GanttChart extends BasePlugin {
    * @param {String} type Granulation type ('months'/'weeks'/'days')
    */
   generateHeaderSet(type) {
+    const weekHeaderGenerator = this.settings.weekHeaderGenerator;
     let headers = [];
 
     objectEach(this.monthList, (month, index) => {
@@ -353,6 +359,7 @@ class GanttChart extends BasePlugin {
       let headerCount = month.fullWeeks + (this.settings.allowSplitWeeks ? areDaysBeforeFullWeeks + areDaysAfterFullWeeks : 0);
       let monthNumber = parseInt(index, 10);
       let allowSplitWeeks = this.settings.allowSplitWeeks;
+      let headerLabel = '';
 
 
       if (type === 'months') {
@@ -377,10 +384,13 @@ class GanttChart extends BasePlugin {
           }
 
           if (start === end) {
-            headers.push(start);
+            headerLabel = start;
+
           } else {
-            headers.push(start + ' - ' + end);
+            headerLabel = `${start} -  ${end}`;
           }
+
+          headers.push(weekHeaderGenerator ? weekHeaderGenerator.call(this, start, end) : headerLabel);
 
           this.dateCalculator.addDaysToCache(monthNumber, headers.length - 1, start, end);
         }
