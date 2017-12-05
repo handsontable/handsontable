@@ -290,7 +290,9 @@ DefaultSettings.prototype = {
    *   {
    *     // column options for the first column
    *     type: 'numeric',
-   *     format: '0,0.00 $'
+   *     numericFormat: {
+   *       pattern: '0,0.00 $'
+   *     }
    *   },
    *   {
    *     // column options for the second column
