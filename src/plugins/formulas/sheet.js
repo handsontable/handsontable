@@ -296,6 +296,7 @@ class Sheet {
           throw Error(cellData);
         }
       }
+
       if (isFormulaExpression(cellData)) {
         const {error, result} = this.parser.parse(cellData.substr(1));
 

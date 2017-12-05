@@ -4,7 +4,7 @@ import CellValue from './../cell/value';
 import ExpressionModifier from './../expressionModifier';
 
 /**
- * When "column_sorting" is triggered the fallowing operations must be performed:
+ * When "column_sorting" is triggered the following operations must be performed:
  *
  * - All formulas which contain cell coordinates must be updated and saved into source data - Column must be changed
  *   (decreased or increased) depends on new target position - previous position.

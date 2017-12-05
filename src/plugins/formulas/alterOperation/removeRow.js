@@ -4,7 +4,7 @@ import CellValue from './../cell/value';
 import ExpressionModifier from './../expressionModifier';
 
 /**
- * When "remove_row" is triggered the fallowing operations must be performed:
+ * When "remove_row" is triggered the following operations must be performed:
  *
  * - All formulas which contain cell coordinates must be updated and saved into source data - Row must be decreased
  *   by "amount" of times (eq: D4 to D3, $F$5 to $F$4);

@@ -4,7 +4,7 @@ import CellValue from './../cell/value';
 import ExpressionModifier from './../expressionModifier';
 
 /**
- * When "inser_column" is triggered the fallowing operations must be performed:
+ * When "inser_column" is triggered the following operations must be performed:
  *
  * - All formulas which contain cell coordinates must be updated and saved into source data - Column must be increased
  *   by "amount" of times (eq: D4 to E4, $F$5 to $G$5);

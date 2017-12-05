@@ -2,7 +2,7 @@ import {arrayEach, arrayFilter, arrayReduce} from 'handsontable/helpers/array';
 import CellValue from './cell/value';
 
 /**
- * This component is responsible for storing all calculated cells which contains formula expressions (CellValue) and
+ * This component is responsible for storing all calculated cells which contain formula expressions (CellValue) and
  * register for all cell references (CellReference).
  *
  * CellValue is an object which represents a formula expression. It contains a calculated value of that formula,
