@@ -1,4 +1,4 @@
-import {Parser, ERROR_REF} from 'hot-formula-parser';
+import {Parser, ERROR_REF, error as isFormulaError} from 'hot-formula-parser';
 import {arrayEach, arrayMap} from 'handsontable/helpers/array';
 import {rangeEach} from 'handsontable/helpers/number';
 import localHooks from 'handsontable/mixins/localHooks';
@@ -15,6 +15,8 @@ const STATE_NEED_REBUILD = 2;
 const STATE_NEED_FULL_REBUILD = 3;
 
 /**
+ * Sheet component responsible for whole spreadsheet calculations.
+ *
  * @class Sheet
  * @util
  */
@@ -189,9 +191,14 @@ class Sheet {
 
     const {error, result} = this.parser.parse(toUpperCaseFormula(formula));
 
-    cellValue.setValue(result);
-    cellValue.setError(error);
-    cellValue.setState(CellValue.STATE_UP_TO_DATE);
+    if (isFormulaExpression(result)) {
+      this.parseExpression(cellValue, result.substr(1));
+
+    } else {
+      cellValue.setValue(result);
+      cellValue.setError(error);
+      cellValue.setState(CellValue.STATE_UP_TO_DATE);
+    }
 
     this.matrix.add(cellValue);
     this._processingCell = null;
@@ -236,7 +243,27 @@ class Sheet {
     this.matrix.registerCellRef(cell);
     this._processingCell.addPrecedent(cell);
 
-    done(this.dataProvider.getDataAtCell(row.index, column.index));
+    const cellValue = this.dataProvider.getRawDataAtCell(row.index, column.index);
+
+    if (isFormulaError(cellValue)) {
+      const computedCell = this.matrix.getCellAt(row.index, column.index);
+
+      if (computedCell && computedCell.hasError()) {
+        throw Error(cellValue);
+      }
+    }
+
+    if (isFormulaExpression(cellValue)) {
+      const {error, result} = this.parser.parse(cellValue.substr(1));
+
+      if (error) {
+        throw Error(error);
+      }
+
+      done(result);
+    } else {
+      done(cellValue);
+    }
   }
 
   /**
@@ -248,16 +275,44 @@ class Sheet {
    * @param {Function} done Function to call with valid cells values.
    */
   _onCallRangeValue({row: startRow, column: startColumn}, {row: endRow, column: endColumn}, done) {
-    rangeEach(startRow.index, endRow.index, (row) => {
-      rangeEach(startColumn.index, endColumn.index, (column) => {
-        let cell = new CellReference(row, column);
+    const cellValues = this.dataProvider.getRawDataByRange(startRow.index, startColumn.index, endRow.index, endColumn.index);
 
-        this.matrix.registerCellRef(cell);
-        this._processingCell.addPrecedent(cell);
-      });
+    const mapRowData = (rowData, rowIndex) => arrayMap(rowData, (cellData, columnIndex) => {
+      const rowCellCoord = startRow.index + rowIndex;
+      const columnCellCoord = startColumn.index + columnIndex;
+      const cell = new CellReference(rowCellCoord, columnCellCoord);
+
+      if (!this.dataProvider.isInDataRange(cell.row, cell.column)) {
+        throw Error(ERROR_REF);
+      }
+
+      this.matrix.registerCellRef(cell);
+      this._processingCell.addPrecedent(cell);
+
+      if (isFormulaError(cellData)) {
+        const computedCell = this.matrix.getCellAt(cell.row, cell.column);
+
+        if (computedCell && computedCell.hasError()) {
+          throw Error(cellData);
+        }
+      }
+
+      if (isFormulaExpression(cellData)) {
+        const {error, result} = this.parser.parse(cellData.substr(1));
+
+        if (error) {
+          throw Error(error);
+        }
+
+        cellData = result;
+      }
+
+      return cellData;
     });
 
-    done(this.dataProvider.getDataByRange(startRow.index, startColumn.index, endRow.index, endColumn.index));
+    const calculatedCellValues = arrayMap(cellValues, (rowData, rowIndex) => mapRowData(rowData, rowIndex));
+
+    done(calculatedCellValues);
   }
 
   /**
