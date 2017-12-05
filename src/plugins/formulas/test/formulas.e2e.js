@@ -92,6 +92,36 @@ describe('Formulas general', function() {
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, '\'=SUM(E5)']);
   });
 
+  it('should recalculate table with formulas defined where the next cell is depend on the previous cell', function() {
+    var afterChange = jasmine.createSpy();
+    var hot = handsontable({
+      data: getDataSimpleExampleFormulas(),
+      formulas: true,
+      width: 500,
+      height: 300,
+      afterChange: afterChange,
+    });
+
+    hot.setDataAtCell(0, 1, '=B5');
+    hot.setDataAtCell(0, 2, '=B1');
+    hot.setDataAtCell(0, 3, '=C1');
+    hot.setDataAtCell(4, 5, '=D1');
+
+    expect(hot.getDataAtRow(0)).toEqual([0, 8042, 8042, 8042, 'Mini', 0]);
+    expect(hot.getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
+    expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 8042]);
+    expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
+    expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, 8042]);
+
+    hot.setDataAtCell(1, 0, 10);
+
+    expect(hot.getDataAtRow(0)).toEqual([0, 6043, 6043, 6043, 'Mini', 0]);
+    expect(hot.getDataAtRow(1)).toEqual([10, 0, 2941, 4303, 354, 5814]);
+    expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 6043]);
+    expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
+    expect(hot.getDataAtRow(4)).toEqual([2012, 6043, 8059, '#DIV/0!', 12, 6043]);
+  });
+
   it('should throw error while parsing invalid cell coordinates syntax', function() {
     var data = getDataSimpleExampleFormulas();
 
@@ -112,9 +142,9 @@ describe('Formulas general', function() {
 
     expect(hot.getDataAtRow(0)).toEqual(['#ERROR!', '#ERROR!', '#ERROR!', '#ERROR!', 'Mini', '#ERROR!']);
     expect(hot.getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-    expect(hot.getDataAtRow(2)).toEqual(['#ERROR!', 5, 2905, 2867, 5, '#ERROR!']);
+    expect(hot.getDataAtRow(2)).toEqual(['#ERROR!', 5, 2905, 2867, '#ERROR!', '#ERROR!']);
     expect(hot.getDataAtRow(3)).toEqual(['#ERROR!', 4, 2517, 4822, 552, 6127]);
-    expect(hot.getDataAtRow(4)).toEqual([2012, 4021, 4026, '#DIV/0!', 12, '\'=SUM(E5)']);
+    expect(hot.getDataAtRow(4)).toEqual([2012, '#ERROR!', '#ERROR!', '#DIV/0!', 12, '\'=SUM(E5)']);
   });
 
   it('should return correct values according to plugin state updated by updateSettings()', function() {
@@ -611,7 +641,7 @@ describe('Formulas general', function() {
       expect(hot.getSourceDataAtRow(2)).toEqual([2012, '=SUM(A1:A2)', '=SUM(B3,E1)', '=#REF!/#REF!', 12, '\'=SUM(E5)']);
       expect(hot.getDataAtRow(0)).toEqual([2010, 5, 2905, 2867, 2016, '#REF!']);
       expect(hot.getDataAtRow(1)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(hot.getDataAtRow(2)).toEqual([2012, 4021, 8046, '#REF!', 12, '\'=SUM(E5)']);
+      expect(hot.getDataAtRow(2)).toEqual([2012, 4021, 6037, '#REF!', 12, '\'=SUM(E5)']);
     });
 
     it('should recalculate table and update formula expression after removing rows contains whole cell range', function() {
