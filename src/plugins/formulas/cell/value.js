@@ -8,6 +8,10 @@ const STATE_UP_TO_DATE = 3;
 const states = [STATE_OUT_OFF_DATE, STATE_COMPUTING, STATE_UP_TO_DATE];
 
 /**
+ * Class responsible for wrapping formula expression. It contains calculated value of
+ * the formula, an error if it has happened and cell references which indicates a relationship with regular
+ * cells. This object uses physical cell coordinates.
+ *
  * @class CellValue
  * @util
  */

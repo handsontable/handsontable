@@ -1,5 +1,6 @@
 import {rangeEach} from 'handsontable/helpers/number';
 import {arrayEach} from 'handsontable/helpers/array';
+import * as C from 'handsontable/i18n/constants';
 import BaseUI from './_base';
 
 const privatePool = new WeakMap();
@@ -30,7 +31,6 @@ class ContextMenuUI extends BaseUI {
      */
     this.dataManager = this.plugin.dataManager;
   }
-
   /**
    * Append options to the context menu. (Propagated from the `afterContextMenuDefaultOptions` hook callback)
    * f
@@ -42,7 +42,9 @@ class ContextMenuUI extends BaseUI {
     const newEntries = [
       {
         key: 'add_child',
-        name: () => 'Insert child row',
+        name() {
+          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD);
+        },
         callback: () => {
           const translatedRowIndex = this.dataManager.translateTrimmedRow(this.hot.getSelected()[0]);
           const parent = this.dataManager.getDataObject(translatedRowIndex);
@@ -56,7 +58,9 @@ class ContextMenuUI extends BaseUI {
       },
       {
         key: 'detach_from_parent',
-        name: () => 'Detach from parent',
+        name() {
+          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD);
+        },
         callback: () => {
           const translatedRowIndex = this.dataManager.translateTrimmedRow(this.hot.getSelected()[0]);
           const element = this.dataManager.getDataObject(translatedRowIndex);

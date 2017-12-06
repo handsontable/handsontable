@@ -1,3 +1,4 @@
+import * as C from 'handsontable/i18n/constants';
 import {registerCondition, getCondition} from './../conditionRegisterer';
 import {CONDITION_NAME as CONDITION_CONTAINS} from './contains';
 
@@ -8,7 +9,7 @@ export function condition(dataRow, inputValues) {
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: 'Does not contain',
+  name: C.FILTERS_CONDITIONS_NOT_CONTAIN,
   inputsCount: 1,
   showOperators: true
 });

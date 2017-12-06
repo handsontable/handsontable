@@ -407,7 +407,7 @@ export function getColumnsForFormulas() {
     {data: 'address', type: 'text', title: 'Address'},
     {data: 'registered', type: 'date', title: 'Registered', dateFormat: FORMULAS_DATE_FORMAT},
     {data: 'eyeColor.color', type: 'dropdown', title: 'Eye color', source: ['blue', 'brown', 'green']},
-    {data: 'balance', type: 'numeric', title: 'Balance', format: '0,00.00 $'},
+    {data: 'balance', type: 'numeric', title: 'Balance', numericFormat: {pattern: '0,00.00 $'}},
     {data: 'active', type: 'checkbox', title: 'Active'},
   ];
 }

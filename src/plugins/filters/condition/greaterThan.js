@@ -1,3 +1,4 @@
+import * as C from 'handsontable/i18n/constants';
 import {registerCondition} from './../conditionRegisterer';
 
 export const CONDITION_NAME = 'gt';
@@ -11,7 +12,7 @@ export function condition(dataRow, [value] = inputValues) {
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: 'Greater than',
+  name: C.FILTERS_CONDITIONS_GREATER_THAN,
   inputsCount: 1,
   showOperators: true
 });

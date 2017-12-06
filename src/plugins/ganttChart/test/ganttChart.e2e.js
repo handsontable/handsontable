@@ -242,6 +242,55 @@ describe('GanttChart', function() {
       }
 
     });
+
+    describe('the `weekHeaderGenerator` option', () => {
+      it('should display the week header labels accordingly to the definition of the `weekHeaderGenerator` function', () => {
+        const hot = handsontable({
+          colHeaders: true,
+          height: 250,
+          ganttChart: {
+            startYear: 2017,
+          }
+        });
+
+        let weekHeaders = $(hot.rootElement).find('.ht_master thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+        expect(weekHeaders[0].querySelector('span').innerText).toEqual('1');
+        expect(weekHeaders[1].querySelector('span').innerText).toEqual('2 - 8');
+        expect(weekHeaders[2].querySelector('span').innerText).toEqual('9 - 15');
+        expect(weekHeaders[3].querySelector('span').innerText).toEqual('16 - 22');
+
+        hot.updateSettings({
+          ganttChart: {
+            startYear: 2017,
+            weekHeaderGenerator: function(start, end) {
+              return `${start} -> ${end}`;
+            }
+          }
+        });
+
+        weekHeaders = $(hot.rootElement).find('.ht_master thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+        expect(weekHeaders[0].querySelector('span').innerText).toEqual('1 -> 1');
+        expect(weekHeaders[1].querySelector('span').innerText).toEqual('2 -> 8');
+        expect(weekHeaders[2].querySelector('span').innerText).toEqual('9 -> 15');
+        expect(weekHeaders[3].querySelector('span').innerText).toEqual('16 -> 22');
+
+        hot.updateSettings({
+          ganttChart: {
+            startYear: 2017,
+            weekHeaderGenerator: function(start, end) {
+              return `some text -> ${start}, ${end} (${end - start + 1})`;
+            }
+          }
+        });
+
+        weekHeaders = $(hot.rootElement).find('.ht_master thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+        expect(weekHeaders[0].querySelector('span').innerText).toEqual('some text -> 1, 1 (1)');
+        expect(weekHeaders[1].querySelector('span').innerText).toEqual('some text -> 2, 8 (7)');
+        expect(weekHeaders[2].querySelector('span').innerText).toEqual('some text -> 9, 15 (7)');
+        expect(weekHeaders[3].querySelector('span').innerText).toEqual('some text -> 16, 22 (7)');
+
+      });
+    });
   });
 
   describe('data sources', function() {

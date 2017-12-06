@@ -1,4 +1,5 @@
 import moment from 'moment';
+import * as C from 'handsontable/i18n/constants';
 import {registerCondition} from './../../conditionRegisterer';
 
 export const CONDITION_NAME = 'date_today';
@@ -14,6 +15,6 @@ export function condition(dataRow) {
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: 'Today',
+  name: C.FILTERS_CONDITIONS_TODAY,
   inputsCount: 0
 });

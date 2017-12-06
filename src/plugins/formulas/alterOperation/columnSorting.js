@@ -3,10 +3,20 @@ import {isFormulaExpression} from './../utils';
 import CellValue from './../cell/value';
 import ExpressionModifier from './../expressionModifier';
 
+/**
+ * When "column_sorting" is triggered the following operations must be performed:
+ *
+ * - All formulas which contain cell coordinates must be updated and saved into source data - Column must be changed
+ *   (decreased or increased) depends on new target position - previous position.
+ * - Mark all formulas which need update with "STATE_OUT_OFF_DATE" flag, so they can be recalculated after the operation.
+ */
 export const OPERATION_NAME = 'column_sorting';
 
 let visualRows;
 
+/**
+ * Collect all previous visual rows from CellValues.
+ */
 export function prepare() {
   const {matrix, dataProvider} = this;
 
@@ -17,6 +27,9 @@ export function prepare() {
   });
 }
 
+/**
+ * Translate all CellValues depends on previous position.
+ */
 export function operate() {
   const {matrix, dataProvider} = this;
 

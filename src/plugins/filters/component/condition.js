@@ -1,8 +1,9 @@
 import {addClass} from 'handsontable/helpers/dom/element';
 import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
-import {arrayEach, arrayFilter} from 'handsontable/helpers/array';
-import {extend} from 'handsontable/helpers/object';
+import {arrayEach} from 'handsontable/helpers/array';
 import {isKey} from 'handsontable/helpers/unicode';
+import {clone} from 'handsontable/helpers/object';
+import * as C from 'handsontable/i18n/constants';
 import BaseComponent from './_base';
 import getOptionsList, {CONDITION_NONE} from './../constants';
 import InputUI from './../ui/input';
@@ -22,8 +23,8 @@ class ConditionComponent extends BaseComponent {
     this.addSeparator = options.addSeparator;
 
     this.elements.push(new SelectUI(this.hot));
-    this.elements.push(new InputUI(this.hot, {placeholder: 'Value'}));
-    this.elements.push(new InputUI(this.hot, {placeholder: 'Second Value'}));
+    this.elements.push(new InputUI(this.hot, {placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_VALUE}));
+    this.elements.push(new InputUI(this.hot, {placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE}));
     this.registerHooks();
   }
 
@@ -50,16 +51,22 @@ class ConditionComponent extends BaseComponent {
     this.reset();
 
     if (value) {
-      this.getSelectElement().setValue(value.command);
+      const copyOfCommand = clone(value.command);
+
+      if (copyOfCommand.name.startsWith(C.FILTERS_CONDITIONS_NAMESPACE)) {
+        copyOfCommand.name = this.hot.getTranslatedPhrase(copyOfCommand.name);
+      }
+
+      this.getSelectElement().setValue(copyOfCommand);
       arrayEach(value.args, (arg, index) => {
-        if (index > value.command.inputsCount - 1) {
+        if (index > copyOfCommand.inputsCount - 1) {
           return false;
         }
 
         let element = this.getInputElement(index);
 
         element.setValue(arg);
-        element[value.command.inputsCount > index ? 'show' : 'hide']();
+        element[copyOfCommand.inputsCount > index ? 'show' : 'hide']();
 
         if (!index) {
           setTimeout(() => element.focus(), 10);
@@ -97,8 +104,10 @@ class ConditionComponent extends BaseComponent {
    * @param column Physical column index.
    */
   updateState(condition, column) {
+    let command = condition ? getConditionDescriptor(condition.name) : getConditionDescriptor(CONDITION_NONE);
+
     this.setCachedState(column, {
-      command: condition ? getConditionDescriptor(condition.name) : getConditionDescriptor(CONDITION_NONE),
+      command,
       args: condition ? condition.args : [],
     });
 
@@ -157,7 +166,8 @@ class ConditionComponent extends BaseComponent {
         let label = document.createElement('div');
 
         addClass(label, 'htFiltersMenuLabel');
-        label.textContent = this.name;
+
+        label.textContent = value;
 
         wrapper.appendChild(label);
         arrayEach(this.elements, (ui) => wrapper.appendChild(ui.element));

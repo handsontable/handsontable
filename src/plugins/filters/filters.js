@@ -6,6 +6,7 @@ import EventManager from 'handsontable/eventManager';
 import {addClass, removeClass, closest} from 'handsontable/helpers/dom/element';
 import {registerPlugin} from 'handsontable/plugins';
 import {SEPARATOR} from 'handsontable/plugins/contextMenu/predefinedItems';
+import * as constants from 'handsontable/i18n/constants';
 import ConditionComponent from './component/condition';
 import OperatorsComponent from './component/operators';
 import ValueComponent from './component/value';
@@ -115,8 +116,11 @@ class Filters extends BasePlugin {
       return component;
     };
 
+    const filterByConditionLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_CONDITION)}:`;
+    const filterValueLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_VALUE)}:`;
+
     if (!this.components.get('filter_by_condition')) {
-      const conditionComponent = new ConditionComponent(this.hot, {id: 'filter_by_condition', name: 'Filter by condition:', addSeparator: false});
+      const conditionComponent = new ConditionComponent(this.hot, {id: 'filter_by_condition', name: filterByConditionLabel, addSeparator: false});
       conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
 
       this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
@@ -131,7 +135,7 @@ class Filters extends BasePlugin {
       this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));
     }
     if (!this.components.get('filter_by_value')) {
-      this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {id: 'filter_by_value', name: 'Filter by value'})));
+      this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {id: 'filter_by_value', name: filterValueLabel})));
     }
     if (!this.components.get('filter_action_bar')) {
       this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, {id: 'filter_action_bar', name: 'Action bar'})));
