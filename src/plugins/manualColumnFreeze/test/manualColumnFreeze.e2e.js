@@ -73,7 +73,7 @@ describe('manualColumnFreeze', () => {
 
   describe('functionality', () => {
 
-    it('should add a \'freeze this column\' context menu entry for non-fixed columns', () => {
+    it('should add a \'freeze column\' context menu entry for non-fixed columns', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -84,14 +84,14 @@ describe('manualColumnFreeze', () => {
       contextMenu();
 
       var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
-        return $(this).text() === 'Freeze this column';
+        return $(this).text() === 'Freeze column';
 
       });
 
       expect(freezeEntry.size()).toEqual(1);
     });
 
-    it('should add a \'unfreeze this column\' context menu entry for fixed columns', () => {
+    it('should add a \'unfreeze column\' context menu entry for fixed columns', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -103,14 +103,14 @@ describe('manualColumnFreeze', () => {
       contextMenu();
 
       var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
-        return $(this).text() === 'Unfreeze this column';
+        return $(this).text() === 'Unfreeze column';
 
       });
 
       expect(freezeEntry.size()).toEqual(1);
     });
 
-    it('should fix the desired column after clicking the \'freeze this column\' context menu entry', () => {
+    it('should fix the desired column after clicking the \'freeze column\' context menu entry', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -125,7 +125,7 @@ describe('manualColumnFreeze', () => {
       contextMenu();
 
       var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
-        if ($(this).text() === 'Freeze this column') {
+        if ($(this).text() === 'Freeze column') {
           return true;
         }
         return false;
@@ -139,7 +139,7 @@ describe('manualColumnFreeze', () => {
 
     });
 
-    it('should unfix the desired column (and revert it to it\'s original position) after clicking the \'unfreeze this column\' context menu entry', () => {
+    it('should unfix the desired column (and revert it to it\'s original position) after clicking the \'unfreeze column\' context menu entry', async () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
@@ -160,7 +160,7 @@ describe('manualColumnFreeze', () => {
       contextMenu();
 
       var freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
-        return $(this).text() === 'Unfreeze this column';
+        return $(this).text() === 'Unfreeze column';
 
       });
       freezeEntry.eq(0).simulate('mousedown');
@@ -177,7 +177,7 @@ describe('manualColumnFreeze', () => {
       contextMenu();
 
       freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
-        if ($(this).text() === 'Unfreeze this column') {
+        if ($(this).text() === 'Unfreeze column') {
           return true;
         }
         return false;
@@ -201,12 +201,14 @@ describe('manualColumnFreeze', () => {
         manualColumnMove: [0, 2, 5, 3, 4, 1, 6, 7, 8, 9],
       });
 
+      await sleep(300);
+
       hot.getSettings().fixedColumnsLeft = 0;
 
       selectCell(1, 2);
       contextMenu();
       freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
-        return $(this).text() === 'Freeze this column';
+        return $(this).text() === 'Freeze column';
       });
 
       freezeEntry.eq(0).simulate('mousedown');
@@ -218,7 +220,7 @@ describe('manualColumnFreeze', () => {
       selectCell(1, 0);
       contextMenu();
       freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
-        return $(this).text() === 'Unfreeze this column';
+        return $(this).text() === 'Unfreeze column';
       });
 
       freezeEntry.eq(0).simulate('mousedown');

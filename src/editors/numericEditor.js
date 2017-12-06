@@ -13,12 +13,17 @@ class NumericEditor extends TextEditor {
    */
   beginEditing(initialValue) {
     if (typeof initialValue === 'undefined' && this.originalValue) {
-      if (typeof this.cellProperties.language !== 'undefined') {
-        numbro.culture(this.cellProperties.language);
+      const decimalDelimiter = numbro.cultureData().delimiters.decimal;
+      const numericFormat = this.cellProperties.numericFormat;
+      const cellCulture = numericFormat && numericFormat.culture;
+
+      if (typeof cellCulture !== 'undefined') {
+        numbro.culture(cellCulture);
       }
-      let decimalDelimiter = numbro.cultureData().delimiters.decimal;
+
       initialValue = (`${this.originalValue}`).replace('.', decimalDelimiter);
     }
+
     super.beginEditing(initialValue);
   }
 }
