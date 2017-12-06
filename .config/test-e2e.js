@@ -54,6 +54,7 @@ module.exports.create = function create(envArgs) {
           '../dist/moment/moment.js',
           '../dist/pikaday/pikaday.js',
           '../dist/handsontable.js',
+          '../dist/languages/all.js',
         ],
       })
     );

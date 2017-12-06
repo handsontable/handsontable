@@ -1,11 +1,14 @@
 import {getValidSelection} from './../utils';
+import * as C from './../../../i18n/constants';
 
 export const KEY = 'row_below';
 
 export default function rowBelowItem() {
   return {
     key: KEY,
-    name: 'Insert row below',
+    name() {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_BELOW);
+    },
 
     callback(key, selection) {
       this.alter('insert_row', selection.end.row + 1, 1, 'ContextMenu.rowBelow');

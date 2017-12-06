@@ -36,6 +36,7 @@ module.exports.create = function create(envArgs) {
           'lib/backbone.js',
           '../dist/handsontable.full.min.js',
           '../dist/numbro/languages.js',
+          '../dist/languages/all.min.js',
         ],
       })
     );

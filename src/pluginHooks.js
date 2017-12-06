@@ -537,6 +537,24 @@ const REGISTERED_HOOKS = [
   'afterValidate',
 
   /**
+   * Fired before successful change of language (when proper language code was set)
+   *
+   * @event Hooks#beforeLanguageChange
+   * @since 0.35.0
+   * @param {String} languageCode New language code.
+   */
+  'beforeLanguageChange',
+
+  /**
+   * Fired after successful change of language (when proper language code was set)
+   *
+   * @event Hooks#afterLanguageChange
+   * @since 0.35.0
+   * @param {String} languageCode New language code.
+   */
+  'afterLanguageChange',
+
+  /**
    * Fired before populating the data in the autofill feature.
    *
    * @event Hooks#beforeAutofill

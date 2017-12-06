@@ -172,7 +172,7 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', language: 'de-DE'},
+        {data: 'id', type: 'numeric', numericFormat: {culture: 'de-DE'}},
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -200,7 +200,7 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '$0,0.00', language: 'en-US'},
+        {data: 'id', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -228,7 +228,7 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
+        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00 $', culture: 'de-DE'}},
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -256,7 +256,7 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
+        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00 $', culture: 'de-DE'}},
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -335,7 +335,7 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
+        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00 $', culture: 'de-DE'}},
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -374,10 +374,10 @@ describe('NumericEditor', () => {
         {id: 10, name: 'Eve', lastName: 'Branson', money: 0}
       ],
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de-DE'},
+        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00 $', culture: 'de-DE'}},
         {data: 'name'},
         {data: 'lastName'},
-        {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'}
+        {data: 'money', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}}
       ],
       afterValidate: onAfterValidate
     });
@@ -413,7 +413,7 @@ describe('NumericEditor', () => {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', format: '0,0.00'},
+        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00', culture: 'en-US'}},
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -425,6 +425,39 @@ describe('NumericEditor', () => {
       expect(hot.getDataAtCell(0, 0)).toEqual('abc');
       done();
     }, 200);
+  });
+
+  // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
+  it('should not lose the focus on input element while inserting new characters (#839)', async () => {
+    let blured = false;
+    const listener = () => {
+      blured = true;
+    };
+    const hot = handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00', culture: 'en-US'}},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    hot.getActiveEditor().TEXTAREA.addEventListener('blur', listener);
+
+    await sleep(200);
+
+    hot.getActiveEditor().TEXTAREA.value = '1';
+    keyDownUp('1'.charCodeAt(0));
+    hot.getActiveEditor().TEXTAREA.value = '12';
+    keyDownUp('2'.charCodeAt(0));
+    hot.getActiveEditor().TEXTAREA.value = '123';
+    keyDownUp('3'.charCodeAt(0));
+
+    expect(blured).toBeFalsy();
+
+    hot.getActiveEditor().TEXTAREA.removeEventListener('blur', listener);
   });
 
   it('should not throw error on closing editor when column data is defined as \'length\'', () => {
@@ -479,7 +512,7 @@ describe('NumericEditor', () => {
           {data: 'id'},
           {data: 'name'},
           {data: 'lastName'},
-          {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'}
+          {data: 'money', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}}
         ]
       });
 
@@ -502,7 +535,7 @@ describe('NumericEditor', () => {
           {data: 'id'},
           {data: 'name'},
           {data: 'lastName'},
-          {data: 'money', type: 'numeric', format: '$0,0.00', language: 'en-US'}
+          {data: 'money', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}}
         ]
       });
 

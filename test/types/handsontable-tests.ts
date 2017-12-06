@@ -2,7 +2,7 @@ import Handsontable from '../../handsontable';
 
 var test = Handsontable.plugins.CopyPaste.columnsLimit;
 var elem = document.createElement('div');
-var hot = new Handsontable(elem, {
+var hotSettings: Handsontable.GridSettings = {
   allowEmpty: true,
   allowHtml: true,
   allowInsertColumn: true,
@@ -59,7 +59,7 @@ var hot = new Handsontable(elem, {
   fixedColumnsLeft: 123,
   fixedRowsBottom: 123,
   fixedRowsTop: 123,
-  format: 'foo',
+  numericFormat: {},
   fragmentSelection: true,
   ganttChart: {},
   headerTooltips: true,
@@ -254,7 +254,8 @@ var hot = new Handsontable(elem, {
   skipLengthCache: (delay) => {},
   unmodifyCol: () => {},
   unmodifyRow: (row) => {},
-});
+}
+var hot = new Handsontable(elem, hotSettings);
 
 function test_HandsontableMethods() {
   var elem = document.createElement('div');
@@ -341,7 +342,7 @@ function test_HandsontableMethods() {
   let buildDate = Handsontable.buildDate;
   let version = Handsontable.version;
 
-  let gridSettingsObj = {
+  let gridSettingsObj: Handsontable.GridSettings = {
     valid: true,
     className: 'foo'
   };
@@ -489,4 +490,22 @@ function test_HandsontableMethods() {
   Handsontable.helper.toUpperCaseFirst('foo');
   Handsontable.helper.translateRowsToColumns([1, 'foo', true]);
   Handsontable.helper.valueAccordingPercent(1, 90);
+}
+class PasswordEditor extends Handsontable.editors.TextEditor {
+  createElements() {
+    // Call the original createElements method
+    super.createElements.apply(this, arguments);
+
+    // Create password input and update relevant properties
+    this.TEXTAREA = document.createElement('input');
+    this.TEXTAREA.setAttribute('type', 'password');
+    this.TEXTAREA.className = 'handsontableInput';
+    this.textareaStyle =  this.TEXTAREA.style;
+    this.textareaStyle.width = '0';
+    this.textareaStyle.height = '0';
+
+    //replace textarea with password input
+    Handsontable.dom.empty(this.TEXTAREA_PARENT);
+    this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
+  }
 }
