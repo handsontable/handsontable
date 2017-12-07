@@ -18,7 +18,8 @@ class Storage {
      *
      * @type {Array}
      */
-    this.savedKeys = [];
+    this.savedKeys = void 0;
+    this.loadSavedKeys();
   }
 
   /**
@@ -100,7 +101,7 @@ class Storage {
    * @private
    */
   clearSavedKeys() {
-    this.savedKeys = [];
+    this.savedKeys.length = 0;
     this.saveSavedKeys();
   };
 }

@@ -1,6 +1,11 @@
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
 import Storage from './storage';
+import Hooks from './../../pluginHooks';
+
+Hooks.getSingleton().register('persistentStateSave');
+Hooks.getSingleton().register('persistentStateLoad');
+Hooks.getSingleton().register('persistentStateReset');
 
 /**
  *  Save the state of column sorting, column positions and column sizes in local storage.
@@ -36,12 +41,13 @@ class PersistentState extends BasePlugin {
       return;
     }
 
-    this.storage = new Storage(this.hot.rootElement.id);
+    if (!this.storage) {
+      this.storage = new Storage(this.hot.rootElement.id);
+    }
 
-    this.addHook('persistentStateLoad', (key, saveTo) => this.loadValue(key, saveTo));
     this.addHook('persistentStateSave', (key, value) => this.saveValue(key, value));
+    this.addHook('persistentStateLoad', (key, saveTo) => this.loadValue(key, saveTo));
     this.addHook('persistentStateReset', () => this.resetValue());
-    this.addHook('afterInit', () => this.onAfterInit());
 
     super.enablePlugin();
   }
@@ -98,15 +104,6 @@ class PersistentState extends BasePlugin {
     } else {
       this.storage.reset(key);
     }
-  }
-
-  /**
-   * `afterInit` hook.
-   *
-   * @private
-   */
-  onAfterInit() {
-    this.storage.loadSavedKeys();
   }
 
   /**
