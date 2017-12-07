@@ -955,6 +955,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Internal function to set `language` key of settings.
    *
+   * @private
    * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'
    * @fires Hooks#afterLanguageChange
    */
@@ -3441,6 +3442,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getTranslatedPhrase
+   * @since 0.35.0
    * @param {String} dictionaryKey Constant which is dictionary key.
    * @param {*} extraArguments Arguments which will be handled by formatters.
    *
