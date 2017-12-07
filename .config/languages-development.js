@@ -3,15 +3,16 @@
 /**
  * Config responsible for building not minified Handsontable `languages/` files.
  */
-const NEW_LINE_CHAR = '\n';
-const SOURCE_LANGUAGES_DIRECTORY = './node_modules/handsontable/src/i18n/languages';
-const OUTPUT_LANGUAGES_DIRECTORY = 'languages';
 
 const path = require('path');
 const fs  = require('fs');
 const fsExtra  = require('fs-extra');
 const StringReplacePlugin  = require('string-replace-webpack-plugin');
 const WebpackOnBuildPlugin = require('on-build-webpack');
+
+const SOURCE_LANGUAGES_DIRECTORY = fs.realpathSync('./node_modules/handsontable/src/i18n/languages');
+const NEW_LINE_CHAR = '\n';
+const OUTPUT_LANGUAGES_DIRECTORY = 'languages';
 
 function getEntryJsFiles() {
   const entryObject = {};
@@ -37,7 +38,7 @@ function getEntryJsFiles() {
 const ruleForSnippetsInjection = {
   test: /\.js$/,
   include: [
-    path.resolve(__dirname, '../', SOURCE_LANGUAGES_DIRECTORY),
+    SOURCE_LANGUAGES_DIRECTORY,
   ],
   loader: StringReplacePlugin.replace({
     replacements: [
