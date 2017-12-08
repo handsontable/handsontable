@@ -1,135 +1,219 @@
-import Hooks from './../../pluginHooks';
-import {addClass, removeClass} from './../../helpers/dom/element';
+import BasePlugin from './../_base';
+import SearchCellDecorator from './cellDecorator';
+import {registerPlugin} from './../../plugins';
 import {registerRenderer, getRenderer} from './../../renderers';
+
+const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
+
+const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
+  instance.getCellMeta(row, col).isSearchResult = testResult;
+};
+
+const DEFAULT_QUERY_METHOD = function(query, value) {
+  if (typeof query === 'undefined' || query === null || !query.toLowerCase || query.length === 0) {
+    return false;
+  }
+  if (typeof value === 'undefined' || value === null) {
+    return false;
+  }
+
+  return value.toString().toLowerCase().indexOf(query.toLowerCase()) !== -1;
+};
+
+const originalBaseRenderer = getRenderer('base');
 
 /**
  * @private
  * @plugin Search
  */
-function Search(instance) {
-  this.query = function(queryStr, callback, queryMethod) {
-    var rowCount = instance.countRows();
-    var colCount = instance.countCols();
-    var queryResult = [];
+class Search extends BasePlugin {
+  constructor(hotInstance) {
+    super(hotInstance);
+    /**
+     * Query method.
+     *
+     * @type {Function}
+     */
+    this.query = void 0;
+    /**
+     * Default Callback function.
+     *
+     * @type {Function}
+     */
+    this.defaultCallback = DEFAULT_CALLBACK;
+    /**
+     * Default Query function.
+     *
+     * @type {Function}
+     */
+    this.defaultQueryMethod = DEFAULT_QUERY_METHOD;
+    /**
+     * Default search class.
+     *
+     * @type {String}
+     */
+    this.defaultSearchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
+  }
 
-    if (!callback) {
-      callback = Search.global.getDefaultCallback();
+  /**
+   * Check if the plugin is enabled in the Handsontable settings.
+   *
+   * @returns {Boolean}
+   */
+  isEnabled() {
+    return this.hot.getSettings().search;
+  }
+
+  /**
+   * Enable plugin for this Handsontable instance.
+   */
+  enablePlugin() {
+    if (this.enabled) {
+      return;
     }
 
-    if (!queryMethod) {
-      queryMethod = Search.global.getDefaultQueryMethod();
-    }
+    const searchSettings = this.hot.getSettings().search;
 
-    for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-      for (var colIndex = 0; colIndex < colCount; colIndex++) {
-        var cellData = instance.getDataAtCell(rowIndex, colIndex);
-        var cellProperties = instance.getCellMeta(rowIndex, colIndex);
-        var cellCallback = cellProperties.search.callback || callback;
-        var cellQueryMethod = cellProperties.search.queryMethod || queryMethod;
-        var testResult = cellQueryMethod(queryStr, cellData);
-
-        if (testResult) {
-          var singleResult = {
-            row: rowIndex,
-            col: colIndex,
-            data: cellData,
-          };
-
-          queryResult.push(singleResult);
-        }
-
-        if (cellCallback) {
-          cellCallback(instance, rowIndex, colIndex, cellData, testResult);
-        }
+    if (typeof searchSettings === 'object') {
+      if (searchSettings.searchResultClass) {
+        this.setDefaultSearchResultClass(searchSettings.searchResultClass);
       }
     }
 
-    return queryResult;
-  };
-};
+    this.addHook('beforeRenderer', () => this.onBeforeRenderer());
 
-Search.DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
-  instance.getCellMeta(row, col).isSearchResult = testResult;
-};
+    this.query = function(queryStr, callback, queryMethod) {
+      const rowCount = this.hot.countRows();
+      const colCount = this.hot.countCols();
+      const queryResult = [];
+      const instance = this.hot;
 
-Search.DEFAULT_QUERY_METHOD = function(query, value) {
-  if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length === 0) {
-    return false;
+      if (!callback) {
+        callback = this.getDefaultCallback();
+      }
+
+      if (!queryMethod) {
+        queryMethod = this.getDefaultQueryMethod();
+      }
+
+      for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+        for (let colIndex = 0; colIndex < colCount; colIndex++) {
+          let cellData = this.hot.getDataAtCell(rowIndex, colIndex);
+          let cellProperties = this.hot.getCellMeta(rowIndex, colIndex);
+          let cellCallback = cellProperties.search.callback || callback;
+          let cellQueryMethod = cellProperties.search.queryMethod || queryMethod;
+          let testResult = cellQueryMethod(queryStr, cellData);
+
+          if (testResult) {
+            let singleResult = {
+              row: rowIndex,
+              col: colIndex,
+              data: cellData,
+            };
+
+            queryResult.push(singleResult);
+          }
+
+          if (cellCallback) {
+            cellCallback(instance, rowIndex, colIndex, cellData, testResult);
+          }
+        }
+      }
+
+      return queryResult;
+    };
+
+    super.enablePlugin();
   }
-  if (typeof value == 'undefined' || value == null) {
-    return false;
+
+  /**
+   * Disable plugin for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
   }
 
-  return value.toString().toLowerCase().indexOf(query.toLowerCase()) != -1;
-};
+  /**
+   * Updates the plugin to use the latest options you have specified.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
 
-Search.DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
-
-Search.global = (function() {
-
-  var defaultCallback = Search.DEFAULT_CALLBACK;
-  var defaultQueryMethod = Search.DEFAULT_QUERY_METHOD;
-  var defaultSearchResultClass = Search.DEFAULT_SEARCH_RESULT_CLASS;
-
-  return {
-    getDefaultCallback() {
-      return defaultCallback;
-    },
-
-    setDefaultCallback(newDefaultCallback) {
-      defaultCallback = newDefaultCallback;
-    },
-
-    getDefaultQueryMethod() {
-      return defaultQueryMethod;
-    },
-
-    setDefaultQueryMethod(newDefaultQueryMethod) {
-      defaultQueryMethod = newDefaultQueryMethod;
-    },
-
-    getDefaultSearchResultClass() {
-      return defaultSearchResultClass;
-    },
-
-    setDefaultSearchResultClass(newSearchResultClass) {
-      defaultSearchResultClass = newSearchResultClass;
-    }
-  };
-
-}());
-
-function SearchCellDecorator(instance, TD, row, col, prop, value, cellProperties) {
-  var searchResultClass = (cellProperties.search !== null && typeof cellProperties.search == 'object' &&
-      cellProperties.search.searchResultClass) || Search.global.getDefaultSearchResultClass();
-
-  if (cellProperties.isSearchResult) {
-    addClass(TD, searchResultClass);
-  } else {
-    removeClass(TD, searchResultClass);
+    super.updatePlugin();
   }
-};
 
-var originalBaseRenderer = getRenderer('base');
+  /**
+   * Get defaultCallback function.
+   *
+   */
+  getDefaultCallback() {
+    return this.defaultCallback;
+  }
 
-registerRenderer('base', function(instance, TD, row, col, prop, value, cellProperties) {
-  originalBaseRenderer.apply(this, arguments);
-  SearchCellDecorator.apply(this, arguments);
-});
+  /**
+   * Set defaultCallback function.
+   *
+   * @param {Function} newDefaultCallback
+   */
+  setDefaultCallback(newDefaultCallback) {
+    this.defaultCallback = newDefaultCallback;
+  }
 
-function init() {
-  var instance = this;
+  /**
+   * Get defaultQueryMethod function.
+   *
+   */
+  getDefaultQueryMethod() {
+    return this.defaultQueryMethod;
+  }
 
-  var pluginEnabled = !!instance.getSettings().search;
+  /**
+   * Set defaultQueryMethod function.
+   *
+   * @param {Function} newDefaultQueryMethod
+   */
+  setDefaultQueryMethod(newDefaultQueryMethod) {
+    this.defaultQueryMethod = newDefaultQueryMethod;
+  }
 
-  if (pluginEnabled) {
-    instance.search = new Search(instance);
-  } else {
-    delete instance.search;
+  /**
+   * Get defaultSearchResultClass class.
+   *
+   */
+  getDefaultSearchResultClass() {
+    return this.defaultSearchResultClass;
+  }
+
+  /**
+   * Set defaultSearchResultClass class.
+   *
+   * @param {String} newSearchResultClass
+   */
+  setDefaultSearchResultClass(newSearchResultClass) {
+    this.defaultSearchResultClass = newSearchResultClass;
+  }
+
+  /**
+   * On before renderer.
+   *
+   * @private
+   */
+  onBeforeRenderer(TD, row, col, prop, value, cellProperties) {
+    registerRenderer('base', function(instance, TD, row, col, prop, value, cellProperties) {
+      originalBaseRenderer.apply(instance, arguments);
+      SearchCellDecorator.apply(instance, arguments);
+    });
+  }
+
+  /**
+   * Destroy plugin instance.
+   */
+  destroy() {
+    super.destroy();
   }
 }
 
-Hooks.getSingleton().add('afterInit', init);
-Hooks.getSingleton().add('afterUpdateSettings', init);
+registerPlugin('search', Search);
 
 export default Search;

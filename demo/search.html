@@ -129,7 +129,8 @@
                       }
 
                       Handsontable.dom.addEvent(searchFiled, 'keyup', function (event) {
-                          var queryResult = hot.search.query(this.value);
+                          var search = hot.getPlugin('search');
+                          var queryResult = search.query(this.value);
 
                           console.log(queryResult);
                           hot.render();
@@ -184,7 +185,8 @@
 
                       var searchFiled2 = document.getElementById('search_field2');
                       Handsontable.dom.addEvent(searchFiled2,'keyup', function (event) {
-                          var queryResult = hot2.search.query(this.value);
+                          var search = hot2.getPlugin('search');
+                          var queryResult = search.query(this.value);
                           console.log(queryResult);
                           hot2.render();
                       });
@@ -235,10 +237,8 @@
 
                       var searchFiled3 = document.getElementById('search_field3');
                       Handsontable.dom.addEvent(searchFiled3,'keyup', function (event) {
-
-
-
-                          var queryResult = hot3.search.query(this.value);
+                          var search3 = hot3.getPlugin('search');
+                          var queryResult = search3.query(this.value);
 
                           console.log(queryResult);
 
@@ -282,8 +282,9 @@
                       var searchResultCount = 0;
 
                       var searchResultCounter = function (instance, row, col, value, result) {
+                          var search = instance.getPlugin('search');
 
-                          Handsontable.Search.DEFAULT_CALLBACK.apply(this, arguments);
+                          search.getDefaultCallback.apply(this, arguments);
 
                           if (result) {
                               searchResultCount++;
@@ -303,7 +304,8 @@
 
                       Handsontable.dom.addEvent(searchFiled4, 'keyup', function (event) {
                         searchResultCount = 0;
-                        var queryResult = hot4.search.query(this.value);
+                        var search4 = hot4.getPlugin('search');
+                        var queryResult = search4.query(this.value);
                         console.log(queryResult);
                         resultCount.innerText = searchResultCount.toString();
                         hot4.render();
