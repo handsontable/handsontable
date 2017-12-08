@@ -1513,7 +1513,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterMergeCells
    * @param {CellRange} cellRange Selection cell range.
-   * @param mergeParent
+   * @param {Object} mergeParent The parent collection of the provided cell range.
    * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
    */
   'afterMergeCells',

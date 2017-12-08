@@ -80,7 +80,7 @@ class CollectionContainer {
    *
    * @param {CellRange|Object} range The range to search collections in.
    * @param [countPartials=false] If set to `true`, all the collections overlapping the range will be taken into calculation.
-   * @return {*}
+   * @return {Array|Boolean}
    */
   getWithinRange(range, countPartials = false) {
     const collections = this.collections;
@@ -212,6 +212,27 @@ class CollectionContainer {
       let currentRange = new CellRange(null, new CellCoords(col.row, col.col), new CellCoords(col.row + col.rowspan - 1, col.col + col.colspan - 1));
 
       if (currentRange.overlaps(collectionRange)) {
+        result = true;
+        return false;
+      }
+    });
+
+    return result;
+  }
+
+  /**
+   * Check whether the provided row/col coordinates direct to a merged parent.
+   *
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
+   * @returns {Boolean}
+   */
+  isMergedParent(row, column) {
+    const collections = this.collections;
+    let result = false;
+
+    arrayEach(collections, (collection) => {
+      if (collection.row === row && collection.col === column) {
         result = true;
         return false;
       }

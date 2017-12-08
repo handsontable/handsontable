@@ -1,3 +1,5 @@
+import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
+
 /**
  * The `Collection` class represents a single merged cells collection.
  *
@@ -186,6 +188,33 @@ class Collection {
     } else if (direction === 'left') {
       return collection.col > this.col;
     }
+  }
+
+  /**
+   * Get the bottom row index of the collection.
+   *
+   * @returns {Number}
+   */
+  getLastRow() {
+    return this.row + this.rowspan - 1;
+  }
+
+  /**
+   * Get the rightmost column index of the collection.
+   *
+   * @returns {Number}
+   */
+  getLastColumn() {
+    return this.col + this.colspan - 1;
+  }
+
+  /**
+   * Get the range coordinates of the collection.
+   *
+   * @return {CellRange}
+   */
+  getRange() {
+    return new CellRange(new CellCoords(this.row, this.col), new CellCoords(this.row, this.col), new CellCoords(this.getLastRow(), this.getLastColumn()));
   }
 }
 
