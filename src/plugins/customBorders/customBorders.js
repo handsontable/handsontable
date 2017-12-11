@@ -76,7 +76,8 @@ class CustomBorders extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', (options) => this.addBordersOptionsToContextMenu(options));
-    this.addHook('afterInit', () => this.setsBordersSettings());
+    this.addHook('afterInit', () => this.onAfterInit());
+    this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
 
     super.enablePlugin();
   }
@@ -121,7 +122,7 @@ class CustomBorders extends BasePlugin {
   /**
    * Insert WalkontableSelection instance into Walkontable settings.
    *
-   * @param {Object} border
+   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `className` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    */
   insertBorderIntoSettings(border) {
     let coordinates = {
@@ -143,7 +144,7 @@ class CustomBorders extends BasePlugin {
    *
    * @param {Number} row Visual row index.
    * @param {Number} col Visual column index.
-   * @param {Object} borderObj
+   * @param {Object} borderObj Object with `row` and `col`, `left`, `right`, `top` and `bottom` properties.
    */
   prepareBorderFromCustomAdded(row, col, borderObj) {
     let border = createEmptyBorders(row, col);
@@ -157,7 +158,7 @@ class CustomBorders extends BasePlugin {
   /** *
    * Prepare borders from setting (object).
    *
-   * @param {Object} rowObj
+   * @param {Object} rowObj Object with `range`, `left`, `right`, `top` and `bottom` properties.
    */
   prepareBorderFromCustomAddedRange(rowObj) {
     let range = rowObj.range;
@@ -246,8 +247,8 @@ class CustomBorders extends BasePlugin {
    *
    * @param {Number} row Visual row index.
    * @param {Number} col Visual column index.
-   * @param {String} place
-   * @param {Boolean} remove
+   * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right` and `noBorders`.
+   * @param {Boolean} remove True when remove borders, and false when add borders.
    */
   setBorder(row, col, place, remove) {
     let bordersMeta = this.hot.getCellMeta(row, col).borders;
@@ -274,9 +275,9 @@ class CustomBorders extends BasePlugin {
   /**
    * Prepare borders based on cell and border position.
    *
-   * @param {Object} range CellRange object
-   * @param {String} place
-   * @param {Boolean} remove
+   * @param {Object} range CellRange object.
+   * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right` and `noBorders`.
+   * @param {Boolean} remove True when remove borders, and false when add borders.
    */
   prepareBorder(range, place, remove) {
     if (range.from.row == range.to.row && range.from.col == range.to.col) {
@@ -285,6 +286,7 @@ class CustomBorders extends BasePlugin {
       } else {
         this.setBorder(range.from.row, range.from.col, place, remove);
       }
+
     } else {
       switch (place) {
         case 'noBorders':
@@ -294,26 +296,31 @@ class CustomBorders extends BasePlugin {
             }
           }
           break;
+
         case 'top':
           for (let topCol = range.from.col; topCol <= range.to.col; topCol++) {
             this.setBorder(range.from.row, topCol, place, remove);
           }
           break;
+
         case 'right':
           for (let rowRight = range.from.row; rowRight <= range.to.row; rowRight++) {
             this.setBorder(rowRight, range.to.col, place);
           }
           break;
+
         case 'bottom':
           for (let bottomCol = range.from.col; bottomCol <= range.to.col; bottomCol++) {
             this.setBorder(range.to.row, bottomCol, place);
           }
           break;
+
         case 'left':
           for (let rowLeft = range.from.row; rowLeft <= range.to.row; rowLeft++) {
             this.setBorder(rowLeft, range.from.col, place);
           }
           break;
+
         default:
           break;
       }
@@ -346,7 +353,7 @@ class CustomBorders extends BasePlugin {
    * @private
    */
   removeBorders() {
-    let borders = document.querySelectorAll('[class^="border"]');
+    let borders = document.querySelectorAll('table.htCore td[class^="border"]');
 
     for (let i = 0; i < borders.length; i++) {
       this.removeBordersFromDom(borders[i].className);
@@ -386,7 +393,7 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * `afterInit` and `afterUpdateSettings` hook callback.
+   * Sets borders from settings.
    *
    * @private
    */
@@ -406,6 +413,24 @@ class CustomBorders extends BasePlugin {
         this.createCustomBorders(borders);
       }
     }
+  }
+
+  /**
+   * `afterInit` hook callback.
+   *
+   * @private
+   */
+  onAfterInit() {
+    this.setsBordersSettings();
+  }
+
+  /**
+   * `afterUpdateSettings` hook callback.
+   *
+   * @private
+   */
+  onAfterUpdateSettings() {
+    this.setsBordersSettings();
   }
 
   /**

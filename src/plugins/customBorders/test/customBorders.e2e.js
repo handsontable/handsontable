@@ -1,9 +1,9 @@
 describe('CustomBorders', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-    var wrapper = $('<div></div>').css({
+    let wrapper = $('<div></div>').css({
       width: 400,
       height: 200,
       overflow: 'scroll'
@@ -41,7 +41,7 @@ describe('CustomBorders', () => {
     });
     // [top,left, bottom, right]
 
-    var borders = $('.wtBorder.border_row2col2');
+    let borders = $('.wtBorder.border_row2col2');
     expect(borders.length).toEqual(20); // 4 times 5 elements (top,right, bottom, left, corner)
     expect(borders[0].className).toContain('hidden'); // hidden top
     expect(borders[1].style.backgroundColor).toEqual('red'); // left red
@@ -87,28 +87,28 @@ describe('CustomBorders', () => {
         }]
     });
 
-    for (var row = 1; row <= 3; row++) {
-      for (var column = 1; column <= 4; column++) {
+    for (let row = 1; row <= 3; row++) {
+      for (let column = 1; column <= 4; column++) {
         if (row == 1) {
-          var topRow = $(`.wtBorder.border_row${row}col${column}`);
+          let topRow = $(`.wtBorder.border_row${row}col${column}`);
           expect(topRow.length).toEqual(20); // borders for all tables (main and hiders)
           expect(topRow[0].style.backgroundColor).toEqual('black');
           expect(topRow[0].style.height).toEqual('2px');
         }
         if (column == 1) {
-          var leftColumn = $(`.wtBorder.border_row${row}col${column}`);
+          let leftColumn = $(`.wtBorder.border_row${row}col${column}`);
           expect(leftColumn.length).toEqual(20); // borders for all tables (main and hiders)
           expect(leftColumn[1].style.backgroundColor).toEqual('red');
           expect(leftColumn[1].style.width).toEqual('2px');
         }
         if (row == 3) {
-          var bottomRow = $(`.wtBorder.border_row${row}col${column}`);
+          let bottomRow = $(`.wtBorder.border_row${row}col${column}`);
           expect(bottomRow.length).toEqual(20); // borders for all tables (main and hiders)
           expect(bottomRow[2].style.backgroundColor).toEqual('red');
           expect(bottomRow[2].style.height).toEqual('2px');
         }
         if (column == 4) {
-          var rightColumn = $(`.wtBorder.border_row${row}col${column}`);
+          let rightColumn = $(`.wtBorder.border_row${row}col${column}`);
           expect(rightColumn.length).toEqual(20); // borders for all tables (main and hiders)
           expect(rightColumn[3].style.backgroundColor).toEqual('black');
           expect(rightColumn[3].style.width).toEqual('3px');
@@ -118,13 +118,13 @@ describe('CustomBorders', () => {
   });
 
   it('should draw top border from context menu options', async () => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
     });
 
-    var defaultBorder = {
+    const defaultBorder = {
         color: '#000',
         width: 1
       },
@@ -133,13 +133,13 @@ describe('CustomBorders', () => {
       };
 
     contextMenu();
-    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
+    let item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
     await sleep(300);
 
-    var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
+    let contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    let button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
 
     button.simulate('mousedown');
 
@@ -151,13 +151,13 @@ describe('CustomBorders', () => {
   });
 
   it('should draw left border from context menu options', async () => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
     });
 
-    var defaultBorder = {
+    const defaultBorder = {
         color: '#000',
         width: 1
       },
@@ -166,13 +166,13 @@ describe('CustomBorders', () => {
       };
 
     contextMenu();
-    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
+    let item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
     await sleep(300);
 
-    var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
+    let contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    let button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
 
     button.simulate('mousedown');
 
@@ -185,13 +185,13 @@ describe('CustomBorders', () => {
   });
 
   it('should draw right border from context menu options', async () => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
     });
 
-    var defaultBorder = {
+    const defaultBorder = {
         color: '#000',
         width: 1
       },
@@ -200,13 +200,13 @@ describe('CustomBorders', () => {
       };
 
     contextMenu();
-    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
+    let item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
     await sleep(300);
 
-    var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
+    let contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    let button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
 
     button.simulate('mousedown');
 
@@ -219,13 +219,13 @@ describe('CustomBorders', () => {
   });
 
   it('should draw bottom border from context menu options', async () => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
     });
 
-    var defaultBorder = {
+    const defaultBorder = {
         color: '#000',
         width: 1
       },
@@ -234,13 +234,13 @@ describe('CustomBorders', () => {
       };
 
     contextMenu();
-    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
+    let item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
     await sleep(300);
 
-    var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
+    let contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    let button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
 
     button.simulate('mousedown');
 
@@ -253,7 +253,7 @@ describe('CustomBorders', () => {
   });
 
   it('should remove all bottoms border from context menu options', async () => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: [
@@ -272,13 +272,13 @@ describe('CustomBorders', () => {
     });
 
     contextMenu();
-    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
+    let item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
     await sleep(300);
 
-    var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
+    let contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    let button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
 
     button.simulate('mousedown');
 
@@ -286,7 +286,7 @@ describe('CustomBorders', () => {
   });
 
   it('should disable `Borders` context menu item when menu was triggered from corner header', () => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
       colHeaders: true,
