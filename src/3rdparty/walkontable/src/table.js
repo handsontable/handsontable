@@ -339,19 +339,27 @@ class Table {
    *  -2 row after viewport
    */
   getCell(coords) {
-    if (this.isRowBeforeRenderedRows(coords.row)) {
+    let row = coords.row;
+    let column = coords.col;
+    const hookResult = this.wot.getSetting('onModifyGetCellCoords', row, column);
+
+    if (hookResult && Object.prototype.toString.call(hookResult) === '[object Array]') {
+      [row, column] = hookResult;
+    }
+
+    if (this.isRowBeforeRenderedRows(row)) {
       // row before rendered rows
       return -1;
 
-    } else if (this.isRowAfterRenderedRows(coords.row)) {
+    } else if (this.isRowAfterRenderedRows(row)) {
       // row after rendered rows
       return -2;
     }
 
-    const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(coords.row)];
+    const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
 
     if (TR) {
-      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
+      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
     }
   }
 

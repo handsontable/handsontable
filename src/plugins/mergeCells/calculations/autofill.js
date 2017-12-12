@@ -239,6 +239,10 @@ class AutofillCalculations {
    * @param {Array} changes Changes made.
    */
   recreateAfterDataPopulation(changes) {
+    if (!this.currentFillData) {
+      return;
+    }
+
     const fillRange = this.getRangeFromChanges(changes);
     const foundCollections = this.currentFillData.foundCollections;
     const dragDirection = this.currentFillData.dragDirection;

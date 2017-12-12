@@ -120,7 +120,6 @@ class MergeCells extends BasePlugin {
     this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterChange', (...args) => this.onAfterChange(...args));
-
     this.addHook('beforeDrawBorders', (...args) => this.onBeforeDrawAreaBorders(...args));
 
     super.enablePlugin();
@@ -242,7 +241,6 @@ class MergeCells extends BasePlugin {
    * @param {CellRange} cellRange Cell range to test.
    */
   canMergeRange(cellRange) {
-    // is more than one cell selected
     return !cellRange.isSingle();
   }
 
@@ -268,11 +266,11 @@ class MergeCells extends BasePlugin {
     const mergeParent = {
       row: topLeft.row,
       col: topLeft.col,
-      // TD has rowspan == 1 by default. rowspan == 2 means spread over 2 cells
       rowspan: bottomRight.row - topLeft.row + 1,
       colspan: bottomRight.col - topLeft.col + 1
     };
     const clearedData = [];
+    let populationInfo = null;
 
     this.hot.runHooks('beforeMergeCells', cellRange, auto);
 
@@ -298,14 +296,16 @@ class MergeCells extends BasePlugin {
 
     if (collectionAdded) {
       if (preventPopulation) {
-        return [mergeParent.row, mergeParent.col, clearedData];
+        populationInfo = [mergeParent.row, mergeParent.col, clearedData];
+
+      } else {
+        this.hot.populateFromArray(mergeParent.row, mergeParent.col, clearedData, void 0, void 0, this.pluginName);
       }
 
-      this.hot.populateFromArray(mergeParent.row, mergeParent.col, clearedData, void 0, void 0, this.pluginName);
+      this.hot.runHooks('afterMergeCells', cellRange, mergeParent, auto);
 
+      return populationInfo;
     }
-
-    this.hot.runHooks('afterMergeCells', cellRange, mergeParent, auto);
   }
 
   /**
@@ -360,11 +360,9 @@ class MergeCells extends BasePlugin {
       collection.row + collection.rowspan - 1 === cellRange.to.row && collection.col + collection.colspan - 1 === cellRange.to.col;
 
     if (collectionCoversWholeRange) {
-      // unmerge
       this.unmergeRange(cellRange);
 
     } else {
-      // merge
       this.mergeSelection(cellRange);
     }
   }
