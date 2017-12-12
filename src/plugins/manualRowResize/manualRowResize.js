@@ -72,6 +72,20 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
+   * Updates the plugin to use the latest options you have specified.
+   */
+  updatePlugin() {
+    let initialRowHeights = this.hot.getSettings().manualRowResize;
+
+    if (Array.isArray(initialRowHeights)) {
+      this.manualRowHeights = initialRowHeights;
+
+    } else if (!initialRowHeights) {
+      this.manualRowHeights = [];
+    }
+  }
+
+  /**
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {

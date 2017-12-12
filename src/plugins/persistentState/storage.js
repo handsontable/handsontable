@@ -7,7 +7,7 @@ import {arrayEach} from './../../helpers/array';
 class Storage {
   constructor(prefix) {
     /**
-     * Prefix.
+     * Prefix for key (id element).
      *
      * @type {String}
      */

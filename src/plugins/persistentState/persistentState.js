@@ -8,8 +8,23 @@ Hooks.getSingleton().register('persistentStateLoad');
 Hooks.getSingleton().register('persistentStateReset');
 
 /**
- *  Save the state of column sorting, column positions and column sizes in local storage.
+ * Save the state of column sorting, column positions and column sizes in local storage
+ * to preserve table state between page reloads.
  *
+ * In order to enable data storage mechanism, persistentState option must be set to true.
+ *
+ * When persistentState is enabled it exposes 3 hooks:
+ *
+ * persistentStateSave (key: String, value: Mixed) -
+ * Saves value under given key in browser local storage.
+ *
+ * persistentStateLoad (key: String, saveTo: Object) -
+ * Loads value, saved under given key, form browser local storage.
+ * The loaded value will be saved in saveTo.value.
+ *
+ * persistentStateReset (key: String) -
+ * Clears the value saved under key.
+ * If no key is given, all values associated with table will be cleared.
  *
  * @plugin persistentState
  */
@@ -76,7 +91,7 @@ class PersistentState extends BasePlugin {
    * Load value from localStorage
    *
    * @param {String} key Key string.
-   * @param {Object} saveTo localStorage object.
+   * @param {Object} saveTo Saved value from browser local storage.
    */
   loadValue(key, saveTo) {
     saveTo.value = this.storage.loadValue(key);

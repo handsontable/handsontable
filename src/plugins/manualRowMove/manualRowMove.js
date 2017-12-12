@@ -119,7 +119,7 @@ class ManualRowMove extends BasePlugin {
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeColumnSort', (column, order) => this.onBeforeColumnSort(column, order));
     this.addHook('unmodifyRow', (row) => this.onUnmodifyRow(row));
-    this.addHook('afterUpdateSettings', () => this.initialSettings());
+    this.hot.addHook('afterUpdateSettings', () => this.initialSettings());
 
     this.registerEvents();
 
@@ -127,6 +127,17 @@ class ManualRowMove extends BasePlugin {
     addClass(this.hot.rootElement, CSS_PLUGIN);
 
     super.enablePlugin();
+  }
+
+  /**
+   * Updates the plugin to use the latest options you have specified.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+    this.onAfterPluginsInitialized();
+
+    super.updatePlugin();
   }
 
   /**
