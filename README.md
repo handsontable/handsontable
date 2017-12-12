@@ -101,6 +101,7 @@ var hot = new Handsontable(container, {
 - Context menu
 - Adding comments to cells
 - Dragging fill handle to populate data
+- Internationalization
 
 [See a comparison table](//docs.handsontable.com/tutorial-features.html)
 
