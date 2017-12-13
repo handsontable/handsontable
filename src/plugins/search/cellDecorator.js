@@ -2,12 +2,12 @@ import {addClass, removeClass} from './../../helpers/dom/element';
 
 export default function SearchCellDecorator(instance, TD, row, col, prop, value, cellProperties) {
   let search = instance.getPlugin('search');
-  let searchClass = search.getDefaultSearchResultClass();
+  let searchResultClass = search.getSearchResultClass();
 
   if (cellProperties.isSearchResult) {
-    addClass(TD, searchClass);
+    addClass(TD, searchResultClass);
 
   } else {
-    removeClass(TD, searchClass);
+    removeClass(TD, searchResultClass);
   }
 };

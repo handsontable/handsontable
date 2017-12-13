@@ -2,6 +2,8 @@ import BasePlugin from './../_base';
 import SearchCellDecorator from './cellDecorator';
 import {registerPlugin} from './../../plugins';
 import {registerRenderer, getRenderer} from './../../renderers';
+import {isObject} from './../../helpers/object';
+import {rangeEach} from './../../helpers/number';
 
 const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
@@ -36,23 +38,23 @@ class Search extends BasePlugin {
      */
     this.query = void 0;
     /**
-     * Default Callback function.
+     * Callback function - by default DEFAULT_CALLBACK.
      *
      * @type {Function}
      */
-    this.defaultCallback = DEFAULT_CALLBACK;
+    this.callback = DEFAULT_CALLBACK;
     /**
-     * Default Query function.
+     * Query function - by default DEFAULT_QUERY_METHOD.
      *
      * @type {Function}
      */
-    this.defaultQueryMethod = DEFAULT_QUERY_METHOD;
+    this.queryMethod = DEFAULT_QUERY_METHOD;
     /**
-     * Default search class.
+     * Search class - by default DEFAULT_SEARCH_RESULT_CLASS.
      *
      * @type {String}
      */
-    this.defaultSearchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
+    this.searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
   }
 
   /**
@@ -74,13 +76,22 @@ class Search extends BasePlugin {
 
     const searchSettings = this.hot.getSettings().search;
 
-    if (typeof searchSettings === 'object') {
+    if (isObject(searchSettings)) {
+
       if (searchSettings.searchResultClass) {
-        this.setDefaultSearchResultClass(searchSettings.searchResultClass);
+        this.setSearchResultClass(searchSettings.searchResultClass);
+      }
+
+      if (searchSettings.queryMethod) {
+        this.setQueryMethod(searchSettings.queryMethod);
+      }
+
+      if (searchSettings.callback) {
+        this.setCallback(searchSettings.callback);
       }
     }
 
-    this.addHook('beforeRenderer', () => this.onBeforeRenderer());
+    this.addHook('afterInit', () => this.onAfterInit());
 
     this.query = function(queryStr, callback, queryMethod) {
       const rowCount = this.hot.countRows();
@@ -89,15 +100,15 @@ class Search extends BasePlugin {
       const instance = this.hot;
 
       if (!callback) {
-        callback = this.getDefaultCallback();
+        callback = this.getCallback();
       }
 
       if (!queryMethod) {
-        queryMethod = this.getDefaultQueryMethod();
+        queryMethod = this.getQueryMethod();
       }
 
-      for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-        for (let colIndex = 0; colIndex < colCount; colIndex++) {
+      rangeEach(0, rowCount - 1, (rowIndex) => {
+        rangeEach(0, colCount - 1, (colIndex) => {
           let cellData = this.hot.getDataAtCell(rowIndex, colIndex);
           let cellProperties = this.hot.getCellMeta(rowIndex, colIndex);
           let cellCallback = cellProperties.search.callback || callback;
@@ -117,8 +128,8 @@ class Search extends BasePlugin {
           if (cellCallback) {
             cellCallback(instance, rowIndex, colIndex, cellData, testResult);
           }
-        }
-      }
+        });
+      });
 
       return queryResult;
     };
@@ -144,62 +155,62 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Get defaultCallback function.
+   * Get callback function.
    *
    */
-  getDefaultCallback() {
-    return this.defaultCallback;
+  getCallback() {
+    return this.callback;
   }
 
   /**
-   * Set defaultCallback function.
+   * Set callback function.
    *
-   * @param {Function} newDefaultCallback
+   * @param {Function} newCallback
    */
-  setDefaultCallback(newDefaultCallback) {
-    this.defaultCallback = newDefaultCallback;
+  setCallback(newCallback) {
+    this.callback = newCallback;
   }
 
   /**
-   * Get defaultQueryMethod function.
+   * Get queryMethod function.
    *
    */
-  getDefaultQueryMethod() {
-    return this.defaultQueryMethod;
+  getQueryMethod() {
+    return this.queryMethod;
   }
 
   /**
-   * Set defaultQueryMethod function.
+   * Set queryMethod function.
    *
-   * @param {Function} newDefaultQueryMethod
+   * @param {Function} newQueryMethod
    */
-  setDefaultQueryMethod(newDefaultQueryMethod) {
-    this.defaultQueryMethod = newDefaultQueryMethod;
+  setQueryMethod(newQueryMethod) {
+    this.queryMethod = newQueryMethod;
   }
 
   /**
-   * Get defaultSearchResultClass class.
+   * Get searchResultClass class.
    *
    */
-  getDefaultSearchResultClass() {
-    return this.defaultSearchResultClass;
+  getSearchResultClass() {
+    return this.searchResultClass;
   }
 
   /**
-   * Set defaultSearchResultClass class.
+   * Set searchResultClass class.
    *
    * @param {String} newSearchResultClass
    */
-  setDefaultSearchResultClass(newSearchResultClass) {
-    this.defaultSearchResultClass = newSearchResultClass;
+  setSearchResultClass(newSearchResultClass) {
+    this.searchResultClass = newSearchResultClass;
   }
 
   /**
-   * On before renderer.
+   * On `afterInit` hook callback.
    *
    * @private
    */
-  onBeforeRenderer(TD, row, col, prop, value, cellProperties) {
+  onAfterInit(TD, row, col, prop, value, cellProperties) {
     registerRenderer('base', function(instance, TD, row, col, prop, value, cellProperties) {
       originalBaseRenderer.apply(instance, arguments);
       SearchCellDecorator.apply(instance, arguments);

@@ -72,34 +72,34 @@ describe('Search plugin', () => {
         search: true
       });
 
-      spyOn(hot.getPlugin('search'), 'defaultQueryMethod');
+      spyOn(hot.getPlugin('search'), 'queryMethod');
 
-      const defaultQueryMethod = hot.getPlugin('search').getDefaultQueryMethod();
+      const queryMethod = hot.getPlugin('search').getQueryMethod();
 
-      hot.getPlugin('search').setDefaultQueryMethod(defaultQueryMethod);
+      hot.getPlugin('search').setQueryMethod(queryMethod);
 
       hot.getPlugin('search').query('A');
 
-      expect(defaultQueryMethod.calls.count()).toEqual(25);
+      expect(queryMethod.calls.count()).toEqual(25);
     });
 
     it('should use the custom default query method if no queryMethod is passed to query function', () => {
-      const customDefaultQueryMethod = jasmine.createSpy('customDefaultQueryMethod');
+      const customQueryMethod = jasmine.createSpy('customQueryMethod');
 
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: true
       });
 
-      hot.getPlugin('search').setDefaultQueryMethod(customDefaultQueryMethod);
+      hot.getPlugin('search').setQueryMethod(customQueryMethod);
 
       hot.getPlugin('search').query('A');
 
-      expect(customDefaultQueryMethod.calls.count()).toEqual(25);
+      expect(customQueryMethod.calls.count()).toEqual(25);
     });
 
     it('should use the query method from the constructor if no queryMethod is passed to query function', () => {
-      const customQueryMethod = jasmine.createSpy('customDefaultQueryMethod');
+      const customQueryMethod = jasmine.createSpy('customQueryMethod');
 
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -240,15 +240,15 @@ describe('Search plugin', () => {
         search: true
       });
 
-      spyOn(hot.getPlugin('search'), 'defaultCallback');
+      spyOn(hot.getPlugin('search'), 'callback');
 
-      const defaultCallback = hot.getPlugin('search').defaultCallback;
+      const callback = hot.getPlugin('search').callback;
 
-      hot.getPlugin('search').setDefaultCallback(defaultCallback);
+      hot.getPlugin('search').setCallback(callback);
 
       hot.getPlugin('search').query('A');
 
-      expect(defaultCallback.calls.count()).toEqual(25);
+      expect(callback.calls.count()).toEqual(25);
     });
 
     it('should change the default callback', () => {
@@ -259,16 +259,16 @@ describe('Search plugin', () => {
 
       let search = hot.getPlugin('search');
 
-      spyOn(search, 'defaultCallback');
+      spyOn(search, 'callback');
 
-      let defaultCallback = search.defaultCallback;
+      let callback = search.callback;
       let newCallback = jasmine.createSpy('newCallback');
 
-      search.setDefaultCallback(newCallback);
+      search.setCallback(newCallback);
 
       search.query('A');
 
-      expect(defaultCallback).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
       expect(newCallback.calls.count()).toEqual(25);
     });
 
@@ -357,9 +357,9 @@ describe('Search plugin', () => {
           const cell = getCell(rowIndex, colIndex);
 
           if (rowIndex == 1) {
-            expect($(cell).hasClass(hot.getPlugin('search').defaultSearchResultClass)).toBe(true);
+            expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(true);
           } else {
-            expect($(cell).hasClass(hot.getPlugin('search').defaultSearchResultClass)).toBe(false);
+            expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
           }
         }
       }

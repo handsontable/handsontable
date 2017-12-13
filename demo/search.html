@@ -121,7 +121,7 @@
                       hot = new Handsontable(example, {
                         data: data,
                         colHeaders: true,
-                        search: true
+                        search: true,
                       });
 
                       function onlyExactMatch(queryStr, value) {
@@ -284,7 +284,7 @@
                       var searchResultCounter = function (instance, row, col, value, result) {
                           var search = instance.getPlugin('search');
 
-                          search.getDefaultCallback.apply(this, arguments);
+                          search.getCallback.apply(this, arguments);
 
                           if (result) {
                               searchResultCount++;
