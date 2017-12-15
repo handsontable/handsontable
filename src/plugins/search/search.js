@@ -4,18 +4,19 @@ import {registerPlugin} from './../../plugins';
 import {registerRenderer, getRenderer} from './../../renderers';
 import {isObject} from './../../helpers/object';
 import {rangeEach} from './../../helpers/number';
+import {isUndefined} from './../../helpers/mixed';
 
-const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
+const DEFAULT_ELEMENT_CLASS = 'htSearchResult';
 
 const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
   instance.getCellMeta(row, col).isSearchResult = testResult;
 };
 
 const DEFAULT_QUERY_METHOD = function(query, value) {
-  if (typeof query === 'undefined' || query === null || !query.toLowerCase || query.length === 0) {
+  if (isUndefined(query) || query === null || !query.toLowerCase || query.length === 0) {
     return false;
   }
-  if (typeof value === 'undefined' || value === null) {
+  if (isUndefined(value) || value === null) {
     return false;
   }
 
@@ -50,11 +51,11 @@ class Search extends BasePlugin {
      */
     this.queryMethod = DEFAULT_QUERY_METHOD;
     /**
-     * Search class - by default DEFAULT_SEARCH_RESULT_CLASS.
+     * Element class - by default DEFAULT_SEARCH_RESULT_CLASS.
      *
      * @type {String}
      */
-    this.searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
+    this.elementClass = DEFAULT_ELEMENT_CLASS;
   }
 
   /**
@@ -77,9 +78,8 @@ class Search extends BasePlugin {
     const searchSettings = this.hot.getSettings().search;
 
     if (isObject(searchSettings)) {
-
-      if (searchSettings.searchResultClass) {
-        this.setSearchResultClass(searchSettings.searchResultClass);
+      if (searchSettings.elementClass) {
+        this.setElementClass(searchSettings.elementClass);
       }
 
       if (searchSettings.queryMethod) {
@@ -109,14 +109,14 @@ class Search extends BasePlugin {
 
       rangeEach(0, rowCount - 1, (rowIndex) => {
         rangeEach(0, colCount - 1, (colIndex) => {
-          let cellData = this.hot.getDataAtCell(rowIndex, colIndex);
-          let cellProperties = this.hot.getCellMeta(rowIndex, colIndex);
-          let cellCallback = cellProperties.search.callback || callback;
-          let cellQueryMethod = cellProperties.search.queryMethod || queryMethod;
-          let testResult = cellQueryMethod(queryStr, cellData);
+          const cellData = this.hot.getDataAtCell(rowIndex, colIndex);
+          const cellProperties = this.hot.getCellMeta(rowIndex, colIndex);
+          const cellCallback = cellProperties.search.callback || callback;
+          const cellQueryMethod = cellProperties.search.queryMethod || queryMethod;
+          const testResult = cellQueryMethod(queryStr, cellData);
 
           if (testResult) {
-            let singleResult = {
+            const singleResult = {
               row: rowIndex,
               col: colIndex,
               data: cellData,
@@ -189,20 +189,20 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Get searchResultClass class.
+   * Get elementClass class.
    *
    */
-  getSearchResultClass() {
-    return this.searchResultClass;
+  getElementClass() {
+    return this.elementClass;
   }
 
   /**
-   * Set searchResultClass class.
+   * Set elementClass class.
    *
-   * @param {String} newSearchResultClass
+   * @param {String} newElementClass
    */
-  setSearchResultClass(newSearchResultClass) {
-    this.searchResultClass = newSearchResultClass;
+  setElementClass(newElementClass) {
+    this.elementClass = newElementClass;
   }
 
   /**
@@ -210,7 +210,7 @@ class Search extends BasePlugin {
    *
    * @private
    */
-  onAfterInit(TD, row, col, prop, value, cellProperties) {
+  onAfterInit() {
     registerRenderer('base', function(instance, TD, row, col, prop, value, cellProperties) {
       originalBaseRenderer.apply(instance, arguments);
       SearchCellDecorator.apply(instance, arguments);

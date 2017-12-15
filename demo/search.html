@@ -179,7 +179,7 @@
                           data: data,
                           colHeaders: true,
                           search: {
-                              searchResultClass: 'customClass'
+                              elementClass: 'customClass'
                           }
                       });
 
@@ -284,7 +284,7 @@
                       var searchResultCounter = function (instance, row, col, value, result) {
                           var search = instance.getPlugin('search');
 
-                          search.getCallback.apply(this, arguments);
+                          search.getCallback();
 
                           if (result) {
                               searchResultCount++;
