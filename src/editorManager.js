@@ -181,11 +181,11 @@ function EditorManager(instance, priv, selection) {
 
       case KEY_CODES.F2:
         /* F2 */
-        _this.openEditor(null, event);
-
         if (activeEditor) {
           activeEditor.enableFullEditMode();
         }
+        _this.openEditor(null, event);
+
         event.preventDefault(); // prevent Opera from opening 'Go to Page dialog'
         break;
 
@@ -199,11 +199,11 @@ function EditorManager(instance, priv, selection) {
           moveSelectionAfterEnter(event.shiftKey);
 
         } else if (instance.getSettings().enterBeginsEditing) {
-          _this.openEditor(null, event);
-
           if (activeEditor) {
             activeEditor.enableFullEditMode();
           }
+          _this.openEditor(null, event);
+
         } else {
           moveSelectionAfterEnter(event.shiftKey);
         }
@@ -267,14 +267,20 @@ function EditorManager(instance, priv, selection) {
       }
     });
 
+    // FF only
+    eventManager.addEventListener(document.documentElement, 'compositionstart', (event) => {
+      if (!destroyed && activeEditor && !activeEditor.isWaiting()) {
+        _this.openEditor('', event);
+      }
+    });
+
     function onDblClick(event, coords, elem) {
       // may be TD or TH
       if (elem.nodeName == 'TD') {
-        _this.openEditor();
-
         if (activeEditor) {
           activeEditor.enableFullEditMode();
         }
+        _this.openEditor();
       }
     }
     instance.view.wt.update('onCellDblClick', onDblClick);

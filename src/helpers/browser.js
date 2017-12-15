@@ -1,23 +1,39 @@
 
-var _isIE8 = !(document.createTextNode('test').textContent);
+const _isIE8 = !(document.createTextNode('test').textContent);
 
 export function isIE8() {
   return _isIE8;
 }
 
-var _isIE9 = !!(document.documentMode);
+const _isIE9 = !!(document.documentMode);
 
 export function isIE9() {
   return _isIE9;
 }
 
-var _isSafari = (/Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor));
+const _isIE = /Trident/.test(navigator.userAgent);
+
+export function isIE() {
+  return _isIE;
+}
+
+const _isEdge = /Edge/.test(navigator.userAgent);
+
+export function isEdge() {
+  return _isEdge;
+}
+
+export function isMSBrowser() {
+  return _isIE || _isEdge;
+}
+
+const _isSafari = (/Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor));
 
 export function isSafari() {
   return _isSafari;
 }
 
-var _isChrome = (/Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor));
+const _isChrome = (/Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor));
 
 export function isChrome() {
   return _isChrome;

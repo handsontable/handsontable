@@ -103,11 +103,16 @@ BaseEditor.prototype.beginEditing = function(initialValue, event) {
     return;
   }
   this.instance.view.scrollViewport(new CellCoords(this.row, this.col));
-  this.instance.view.render();
+  // this.instance.view.render();
   this.state = EditorState.EDITING;
 
   initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
-  this.setValue(stringify(initialValue));
+
+  // Set the editor value only in the full edit mode. In other type the focusable element has to be empty,
+  // otherwise IME (editor for Asia users) doesn't work.
+  if (this.isInFullEditMode()) {
+    this.setValue(stringify(initialValue));
+  }
 
   this.open(event);
   this._opened = true;
@@ -193,6 +198,7 @@ BaseEditor.prototype.discardEditor = function(result) {
   if (this.state !== EditorState.FINISHED) {
     return;
   }
+
   // validator was defined and failed
   if (result === false && this.cellProperties.allowInvalid !== true) {
     this.instance.selectCell(this.row, this.col);
