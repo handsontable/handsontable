@@ -211,9 +211,9 @@ class Search extends BasePlugin {
    * @private
    */
   onAfterInit() {
-    registerRenderer('base', function(instance, TD, row, col, prop, value, cellProperties) {
-      originalBaseRenderer.apply(instance, arguments);
-      SearchCellDecorator.apply(instance, arguments);
+    registerRenderer('base', (instance, ...params) => {
+      originalBaseRenderer(instance, ...params);
+      SearchCellDecorator(instance, ...params);
     });
   }
 
