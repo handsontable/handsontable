@@ -1083,6 +1083,68 @@ describe('ColumnSorting', () => {
     expect(hot.getDataAtCol(0)).toEqual([3, 1, 6, 8, 2, 4, 7]);
   });
 
+  it('should sort checkboxes properly #4047', () => {
+    var myData = [
+      {a: false, b: 2, c: 3},
+      {a: true, b: 11, c: -4},
+      {a: false, b: 10, c: 11}
+    ];
+
+    function customIsEmptyRow(row) {
+      var data = this.getSourceData();
+      return data[row].isNew;
+    }
+
+    handsontable({
+      data: myData,
+      rowHeaders: true,
+      colHeaders: ['A', 'B', 'C'],
+      columns: [
+        {data: 'a', type: 'checkbox'},
+        {data: 'b', type: 'text'},
+        {data: 'c', type: 'text'}
+      ],
+      dataSchema: {isNew: true, a: false}, // default for a to avoid #bad value#
+      columnSorting: true,
+      minSpareRows: 3,
+      isEmptyRow: customIsEmptyRow
+    });
+
+    // ASC
+    updateSettings({
+      columnSorting: {
+        column: 0,
+        sortOrder: true
+      }
+    });
+
+    expect(getData()).toEqual([
+      [false, 2, 3],
+      [false, 10, 11],
+      [true, 11, -4],
+      [false, null, null],
+      [false, null, null],
+      [false, null, null]
+    ]);
+
+    // DSC
+    updateSettings({
+      columnSorting: {
+        column: 0,
+        sortOrder: false
+      }
+    });
+
+    expect(getData()).toEqual([
+      [true, 11, -4],
+      [false, 2, 3],
+      [false, 10, 11],
+      [false, null, null],
+      [false, null, null],
+      [false, null, null]
+    ]);
+  });
+
   it('should NOT sort spare rows', () => {
     var myData = [
       {a: 'aaa', b: 2, c: 3},
