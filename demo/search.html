@@ -124,13 +124,8 @@
                         search: true,
                       });
 
-                      function onlyExactMatch(queryStr, value) {
-                        return queryStr.toString() === value.toString();
-                      }
-
                       Handsontable.dom.addEvent(searchFiled, 'keyup', function (event) {
-                          var search = hot.getPlugin('search');
-                          var queryResult = search.query(this.value);
+                          var queryResult = hot.getPlugin('search').query(this.value);
 
                           console.log(queryResult);
                           hot.render();
@@ -184,9 +179,9 @@
                       });
 
                       var searchFiled2 = document.getElementById('search_field2');
-                      Handsontable.dom.addEvent(searchFiled2,'keyup', function (event) {
-                          var search = hot2.getPlugin('search');
-                          var queryResult = search.query(this.value);
+                      Handsontable.dom.addEvent(searchFiled2, 'keyup', function (event) {
+                          var queryResult = hot2.getPlugin('search').query(this.value);
+
                           console.log(queryResult);
                           hot2.render();
                       });
@@ -236,12 +231,10 @@
                       });
 
                       var searchFiled3 = document.getElementById('search_field3');
-                      Handsontable.dom.addEvent(searchFiled3,'keyup', function (event) {
-                          var search3 = hot3.getPlugin('search');
-                          var queryResult = search3.query(this.value);
+                      Handsontable.dom.addEvent(searchFiled3, 'keyup', function (event) {
+                          var queryResult = hot3.getPlugin('search').query(this.value);
 
                           console.log(queryResult);
-
                           hot3.render();
                       });
 
@@ -282,8 +275,6 @@
                       var searchResultCount = 0;
 
                       var searchResultCounter = function (instance, row, col, value, result) {
-                          var search = instance.getPlugin('search');
-
                           if (result) {
                               searchResultCount++;
                           }
@@ -302,8 +293,8 @@
 
                       Handsontable.dom.addEvent(searchFiled4, 'keyup', function (event) {
                         searchResultCount = 0;
-                        var search4 = hot4.getPlugin('search');
-                        var queryResult = search4.query(this.value);
+                        var queryResult = hot4.getPlugin('search').query(this.value);
+
                         console.log(queryResult);
                         resultCount.innerText = searchResultCount.toString();
                         hot4.render();
