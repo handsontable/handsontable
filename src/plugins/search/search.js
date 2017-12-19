@@ -33,25 +33,31 @@ class Search extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Query method.
+     * Query method - query(queryStr, [callback], [queryMethod]),
+     * where queryStr is a string to find within the table.
+     * Use the query() method inside search input listener.
      *
      * @type {Function}
      */
     this.query = void 0;
     /**
-     * Callback function - by default DEFAULT_CALLBACK.
+     * Callback function is responsible for setting the isSearchResult property
+     * - by default DEFAULT_CALLBACK.
      *
      * @type {Function}
      */
     this.callback = DEFAULT_CALLBACK;
     /**
-     * Query function - by default DEFAULT_QUERY_METHOD.
+     * Query function is responsible for determining
+     * whether a queryStr matches the value stored in a cell
+     * - by default DEFAULT_QUERY_METHOD.
      *
      * @type {Function}
      */
     this.queryMethod = DEFAULT_QUERY_METHOD;
     /**
-     * Element class - by default DEFAULT_SEARCH_RESULT_CLASS.
+     * Element class adds htSearchResult class to every cell which isSearchResult property is true
+     * - by default DEFAULT_ELEMENT_CLASS.
      *
      * @type {String}
      */
@@ -93,19 +99,11 @@ class Search extends BasePlugin {
 
     this.addHook('afterInit', () => this.onAfterInit());
 
-    this.query = function(queryStr, callback, queryMethod) {
+    this.query = function(queryStr, callback = this.getCallback(), queryMethod = this.getQueryMethod()) {
       const rowCount = this.hot.countRows();
       const colCount = this.hot.countCols();
       const queryResult = [];
       const instance = this.hot;
-
-      if (!callback) {
-        callback = this.getCallback();
-      }
-
-      if (!queryMethod) {
-        queryMethod = this.getQueryMethod();
-      }
 
       rangeEach(0, rowCount - 1, (rowIndex) => {
         rangeEach(0, colCount - 1, (colIndex) => {
@@ -157,6 +155,7 @@ class Search extends BasePlugin {
   /**
    * Get callback function.
    *
+   * @returns {Function} Return the callback function.
    */
   getCallback() {
     return this.callback;
@@ -164,6 +163,14 @@ class Search extends BasePlugin {
 
   /**
    * Set callback function.
+   *
+   * The change can be done in two ways: in the configuration object -
+   * hot.updateSettings(id,
+   *   search: {
+   *     callback: myNewCallbackFunction
+   *   }
+   * ),
+   * or by calling it itself - hot.getPlugin('search').setCallback(myNewCallbackFunction).
    *
    * @param {Function} newCallback
    */
@@ -174,6 +181,7 @@ class Search extends BasePlugin {
   /**
    * Get queryMethod function.
    *
+   * @returns {Function} Return the query method.
    */
   getQueryMethod() {
     return this.queryMethod;
@@ -181,6 +189,14 @@ class Search extends BasePlugin {
 
   /**
    * Set queryMethod function.
+   *
+   * The change can be done in two ways: in the configuration object -
+   * hot.updateSettings(id,
+   *   search: {
+   *     queryMethod: myNewQueryMethod
+   *   }
+   * ),
+   * or by calling it itself - hot.getPlugin('search').setQueryMethod(myNewQueryMethod).
    *
    * @param {Function} newQueryMethod
    */
@@ -191,6 +207,7 @@ class Search extends BasePlugin {
   /**
    * Get elementClass class.
    *
+   * @returns {Function} Return the element class.
    */
   getElementClass() {
     return this.elementClass;
@@ -198,6 +215,14 @@ class Search extends BasePlugin {
 
   /**
    * Set elementClass class.
+   *
+   * The change can be done in two ways: in the configuration object -
+   * hot.updateSettings(id,
+   *   search: {
+   *     elementClass: 'customClass'
+   *   }
+   * ),
+   * or by calling it itself - hot.getPlugin('search').setElementClass(myNewQueryMethod).
    *
    * @param {String} newElementClass
    */

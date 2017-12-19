@@ -76,8 +76,6 @@ describe('Search plugin', () => {
 
       const queryMethod = hot.getPlugin('search').getQueryMethod();
 
-      hot.getPlugin('search').setQueryMethod(queryMethod);
-
       hot.getPlugin('search').query('A');
 
       expect(queryMethod.calls.count()).toEqual(25);
@@ -243,8 +241,6 @@ describe('Search plugin', () => {
       spyOn(hot.getPlugin('search'), 'callback');
 
       const callback = hot.getPlugin('search').callback;
-
-      hot.getPlugin('search').setCallback(callback);
 
       hot.getPlugin('search').query('A');
 
