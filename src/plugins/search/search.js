@@ -205,7 +205,7 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Get elementClass class.
+   * Get cell (TD) class.
    *
    * @returns {Function} Return the element class.
    */
@@ -214,7 +214,7 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Set elementClass class.
+   * Set cell (TD) class.
    *
    * The change can be done in two ways: in the configuration object -
    * hot.updateSettings(id,
