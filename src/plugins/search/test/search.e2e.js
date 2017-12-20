@@ -353,9 +353,9 @@ describe('Search plugin', () => {
           const cell = getCell(rowIndex, colIndex);
 
           if (rowIndex == 1) {
-            expect($(cell).hasClass(hot.getPlugin('search').elementClass)).toBe(true);
+            expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(true);
           } else {
-            expect($(cell).hasClass(hot.getPlugin('search').elementClass)).toBe(false);
+            expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
           }
         }
       }
@@ -365,7 +365,7 @@ describe('Search plugin', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         search: {
-          elementClass: 'customSearchResultClass'
+          searchResultClass: 'customSearchResultClass'
         }
       });
 
