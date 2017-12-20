@@ -6,7 +6,7 @@ import {isObject} from './../../helpers/object';
 import {rangeEach} from './../../helpers/number';
 import {isUndefined} from './../../helpers/mixed';
 
-const DEFAULT_ELEMENT_CLASS = 'htSearchResult';
+const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
 const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
   instance.getCellMeta(row, col).isSearchResult = testResult;
@@ -56,12 +56,12 @@ class Search extends BasePlugin {
      */
     this.queryMethod = DEFAULT_QUERY_METHOD;
     /**
-     * Element class adds htSearchResult class to every cell which isSearchResult property is true
-     * - by default DEFAULT_ELEMENT_CLASS.
+     *  Adds htSearchResult class (or custom) to every cell which isSearchResult property is true
+     * - by default DEFAULT_SEARCH_RESULT_CLASS.
      *
      * @type {String}
      */
-    this.elementClass = DEFAULT_ELEMENT_CLASS;
+    this.searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
   }
 
   /**
@@ -84,8 +84,8 @@ class Search extends BasePlugin {
     const searchSettings = this.hot.getSettings().search;
 
     if (isObject(searchSettings)) {
-      if (searchSettings.elementClass) {
-        this.setElementClass(searchSettings.elementClass);
+      if (searchSettings.searchResultClass) {
+        this.setSearchResultClass(searchSettings.searchResultClass);
       }
 
       if (searchSettings.queryMethod) {
@@ -205,29 +205,29 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Get cell (TD) class.
+   * Get search result cells class.
    *
-   * @returns {Function} Return the element class.
+   * @returns {Function} Return the cell class.
    */
-  getElementClass() {
-    return this.elementClass;
+  getSearchResultClass() {
+    return this.searchResultClass;
   }
 
   /**
-   * Set cell (TD) class.
+   * Set search result cells class.
    *
    * The change can be done in two ways: in the configuration object -
    * hot.updateSettings(id,
    *   search: {
-   *     elementClass: 'customClass'
+   *     searchResultClass: 'customClass'
    *   }
    * ),
-   * or by calling it itself - hot.getPlugin('search').setElementClass(myNewQueryMethod).
+   * or by calling it itself - hot.getPlugin('search').setSearchResultClass(myNewQueryMethod).
    *
    * @param {String} newElementClass
    */
-  setElementClass(newElementClass) {
-    this.elementClass = newElementClass;
+  setSearchResultClass(newElementClass) {
+    this.searchResultClass = newElementClass;
   }
 
   /**
