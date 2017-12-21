@@ -52,7 +52,7 @@ npm install handsontable
 ```
 
 **Alternative ways to install**
-- See the [download section](//handsontable.com/ce-download.html) on how to install Handsontable CE using nuget, bower, yarn and more.
+- See the [download section](//handsontable.com/community-download) on how to install Handsontable CE using nuget, bower, yarn and more.
 
 <br/>
 
@@ -101,6 +101,7 @@ var hot = new Handsontable(container, {
 - Context menu
 - Adding comments to cells
 - Dragging fill handle to populate data
+- Internationalization
 
 [See a comparison table](//docs.handsontable.com/tutorial-features.html)
 

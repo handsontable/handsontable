@@ -81,13 +81,13 @@ function TableView(instance) {
   };
 
   this.eventManager.addEventListener(document.documentElement, 'mouseup', function(event) {
-    if (instance.selection.isInProgress() && event.which === 1) { // is left mouse button
+    if (instance.selection.isInProgress() && isLeftClick(event)) { // is left mouse button
       instance.selection.finish();
     }
 
     isMouseDown = false;
 
-    if (isOutsideInput(document.activeElement) || !instance.selection.isSelected()) {
+    if (isOutsideInput(document.activeElement) || (!instance.selection.isSelected() && !isRightClick(event))) {
       instance.unlisten();
     }
   });

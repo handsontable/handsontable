@@ -704,3 +704,5 @@ hook.register('beforeUndo');
 hook.register('afterUndo');
 hook.register('beforeRedo');
 hook.register('afterRedo');
+
+export default UndoRedo;

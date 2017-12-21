@@ -28,12 +28,14 @@ describe('Public API', () => {
       expect(Handsontable.plugins.Comments).toBeFunction();
       expect(Handsontable.plugins.ContextMenu).toBeFunction();
       expect(Handsontable.plugins.CopyPaste).toBeFunction();
+      expect(Handsontable.plugins.CustomBorders).toBeFunction();
       expect(Handsontable.plugins.DragToScroll).toBeFunction();
       expect(Handsontable.plugins.ManualColumnFreeze).toBeFunction();
       expect(Handsontable.plugins.ManualColumnResize).toBeFunction();
       expect(Handsontable.plugins.ManualRowResize).toBeFunction();
       expect(Handsontable.plugins.MultipleSelectionHandles).toBeFunction();
       expect(Handsontable.plugins.TouchScroll).toBeFunction();
+      expect(Handsontable.plugins.UndoRedo).toBeFunction();
     });
   });
 

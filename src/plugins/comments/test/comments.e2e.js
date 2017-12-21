@@ -431,7 +431,7 @@ describe('Comments', () => {
       expect(getCellMeta(2, 2).comment).toEqual(void 0);
     });
 
-    it('should make the comment editor\'s textarea read-only after clicking the "Read only comment" entry', (done) => {
+    it('should make the comment editor\'s textarea read-only after clicking the "Read-only comment" entry', (done) => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -449,7 +449,7 @@ describe('Comments', () => {
       expect($(editor)[0].readOnly).toBe(false);
 
       const readOnlyComment = $('.htItemWrapper').filter(function() {
-        return $(this).text() === 'Read only comment';
+        return $(this).text() === 'Read-only comment';
       })[0];
 
       $(readOnlyComment).simulate('mousedown');
