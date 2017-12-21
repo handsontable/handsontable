@@ -61,7 +61,7 @@ class ManualRowResize extends BasePlugin {
     }
 
     this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
-    this.addHook('afterUpdateSettings', () => this.initialSettings());
+    this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
 
     // Handsontable.hooks.register('beforeRowResize');
     // Handsontable.hooks.register('afterRowResize');
@@ -463,10 +463,16 @@ class ManualRowResize extends BasePlugin {
    */
   onAfterPluginsInitialized() {
     this.initialSettings();
-
-    super.onAfterPluginsInitialized();
   }
 
+  /**
+   * `afterUpdateSettings` hook callback.
+   *
+   * @private
+   */
+  onAfterUpdateSettings() {
+    this.initialSettings();
+  }
 }
 
 registerPlugin('manualRowResize', ManualRowResize);

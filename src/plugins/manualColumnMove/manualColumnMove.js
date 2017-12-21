@@ -120,7 +120,7 @@ class ManualColumnMove extends BasePlugin {
     this.addHook('afterCreateCol', (index, amount) => this.onAfterCreateCol(index, amount));
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('unmodifyCol', (column) => this.onUnmodifyCol(column));
-    this.hot.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
+    this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
 
     this.registerEvents();
 
@@ -128,17 +128,6 @@ class ManualColumnMove extends BasePlugin {
     addClass(this.hot.rootElement, CSS_PLUGIN);
 
     super.enablePlugin();
-  }
-
-  /**
-   * Updates the plugin to use the latest options you have specified.
-   */
-  updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
-    this.onAfterPluginsInitialized();
-
-    super.updatePlugin();
   }
 
   /**
@@ -725,8 +714,6 @@ class ManualColumnMove extends BasePlugin {
     this.initialSettings();
     this.backlight.build();
     this.guideline.build();
-
-    super.onAfterPluginsInitialized();
   }
 
   /**

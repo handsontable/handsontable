@@ -63,7 +63,7 @@ class ManualColumnResize extends BasePlugin {
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
     this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
     this.addHook('beforeColumnResize', (currentColumn, newSize, isDoubleClick) => this.onBeforeColumnResize(currentColumn, newSize, isDoubleClick));
-    this.addHook('afterUpdateSettings', () => this.initialSettings());
+    this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
 
     // Handsontable.hooks.register('beforeColumnResize');
     // Handsontable.hooks.register('afterColumnResize');
@@ -528,8 +528,15 @@ class ManualColumnResize extends BasePlugin {
    */
   onAfterPluginsInitialized() {
     this.initialSettings();
+  }
 
-    super.onAfterPluginsInitialized();
+  /**
+   * `afterUpdateSettings` hook callback.
+   *
+   * @private
+   */
+  onAfterUpdateSettings() {
+    this.initialSettings();
   }
 }
 
