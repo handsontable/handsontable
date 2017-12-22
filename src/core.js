@@ -126,7 +126,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       amount = amount || 1;
 
-      function spliceWith(data, i, count, toInject) {
+      function spliceWith(data, _index, count, toInject) {
         let valueFactory = () => {
           let result;
 
@@ -141,7 +141,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         };
         let spliceArgs = arrayMap(new Array(count), () => valueFactory());
 
-        spliceArgs.unshift(i, 0);
+        spliceArgs.unshift(_index, 0);
         data.splice(...spliceArgs);
       }
 
@@ -2314,13 +2314,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Object} prop Meta object.
    */
   this.setCellMetaObject = function (row, col, prop) {
-    if (typeof prop !== 'object') {
-      return;
+    if (typeof prop === 'object') {
+      objectEach(prop, (value, key) => {
+        this.setCellMeta(row, col, key, value);
+      });
     }
-
-    objectEach(prop, (value, key) => {
-      this.setCellMeta(row, col, key, value);
-    });
   };
 
   /**

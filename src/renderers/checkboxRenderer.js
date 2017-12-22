@@ -130,9 +130,9 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     const bottomRight = selRange.getBottomRightCorner();
     const changes = [];
 
-    for (let r = topLeft.row; r <= bottomRight.row; r += 1) {
-      for (let c = topLeft.col; c <= bottomRight.col; c += 1) {
-        const cellProps = instance.getCellMeta(r, c);
+    for (let _row = topLeft.row; _row <= bottomRight.row; _row += 1) {
+      for (let _col = topLeft.col; _col <= bottomRight.col; _col += 1) {
+        const cellProps = instance.getCellMeta(_row, _col);
 
         if (cellProps.type !== 'checkbox') {
           return;
@@ -150,18 +150,18 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
           cellProps.uncheckedTemplate = false;
         }
 
-        const dataAtCell = instance.getDataAtCell(r, c);
+        const dataAtCell = instance.getDataAtCell(_row, _col);
 
         if (uncheckCheckbox === false) {
           if (dataAtCell === cellProps.checkedTemplate) {
-            changes.push([r, c, cellProps.uncheckedTemplate]);
+            changes.push([_row, _col, cellProps.uncheckedTemplate]);
 
           } else if ([cellProps.uncheckedTemplate, null, void 0].indexOf(dataAtCell) !== -1) {
-            changes.push([r, c, cellProps.checkedTemplate]);
+            changes.push([_row, _col, cellProps.checkedTemplate]);
           }
 
         } else {
-          changes.push([r, c, cellProps.uncheckedTemplate]);
+          changes.push([_row, _col, cellProps.uncheckedTemplate]);
         }
       }
     }
@@ -186,19 +186,19 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     const topLeft = selRange.getTopLeftCorner();
     const bottomRight = selRange.getBottomRightCorner();
 
-    for (let r = topLeft.row; r <= bottomRight.row; r += 1) {
-      for (let c = topLeft.col; c <= bottomRight.col; c += 1) {
-        let cellProps = instance.getCellMeta(r, c);
+    for (let _row = topLeft.row; _row <= bottomRight.row; _row += 1) {
+      for (let _col = topLeft.col; _col <= bottomRight.col; _col += 1) {
+        let cellProps = instance.getCellMeta(_row, _col);
 
         if (cellProps.type !== 'checkbox') {
           return;
         }
 
-        let cell = instance.getCell(r, c);
+        let cell = instance.getCell(_row, _col);
 
         if (cell === null) {
 
-          callback(r, c, cellProps);
+          callback(_row, _col, cellProps);
 
         } else {
           let checkboxes = cell.querySelectorAll('input[type=checkbox]');

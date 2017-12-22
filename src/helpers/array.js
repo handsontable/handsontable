@@ -88,7 +88,8 @@ export function arrayFilter(array, predicate) {
     let value = array[index];
 
     if (predicate(value, index, array)) {
-      result[(resIndex += 1)] = value;
+      resIndex += 1;
+      result[resIndex] = value;
     }
 
     index += 1;

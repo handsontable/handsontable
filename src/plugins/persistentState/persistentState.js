@@ -1,5 +1,5 @@
 import Hooks from './../../pluginHooks';
-import { hasOwnProperty, objectEach } from './../../helpers/object';
+import { objectEach } from './../../helpers/object';
 
 function Storage(prefix) {
   var savedKeys;
@@ -110,29 +110,23 @@ function HandsontablePersistentState() {
     persistentStateReset: plugin.resetValue,
   };
 
-  objectEach(hooks, (value, key) => {
-    if (hasOwnProperty(hooks, key)) {
-      Hooks.getSingleton().register(key);
-    }
+  objectEach(hooks, (value, _hookName) => {
+    Hooks.getSingleton().register(_hookName);
   });
 
   function addHooks() {
     var instance = this;
 
-    objectEach(hooks, (value, key) => {
-      if (hasOwnProperty(hooks, key)) {
-        instance.addHook(key, hooks[key]);
-      }
+    objectEach(hooks, (value, _hookName) => {
+      instance.addHook(_hookName, hooks[_hookName]);
     });
   }
 
   function removeHooks() {
     var instance = this;
 
-    objectEach(hooks, (value, key) => {
-      if (hasOwnProperty(hooks, key)) {
-        instance.removeHook(key, hooks[key]);
-      }
+    objectEach(hooks, (value, _hookName) => {
+      instance.removeHook(_hookName, hooks[_hookName]);
     });
   }
 }

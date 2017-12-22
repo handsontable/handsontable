@@ -65,10 +65,12 @@ DataMap.prototype.recursiveDuckColumns = function (schema, lastCol, parent) {
     objectEach(schema, (value, key) => {
       if (value === null) {
         let prop = parent + key;
+
         this.colToPropCache.push(prop);
         this.propToColCache.set(prop, lastCol);
 
         lastCol += 1;
+
       } else {
         lastCol = this.recursiveDuckColumns(value, lastCol, `${key}.`);
       }

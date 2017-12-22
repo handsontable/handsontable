@@ -348,13 +348,8 @@ class Table {
     }
 
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(coords.row)];
-    let result;
 
-    if (TR) {
-      result = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
-    }
-
-    return result;
+    return TR ? TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)] : void 0;
   }
 
   /**
@@ -366,13 +361,8 @@ class Table {
    */
   getColumnHeader(col, level = 0) {
     const TR = this.THEAD.childNodes[level];
-    let result;
 
-    if (TR) {
-      result = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
-    }
-
-    return result;
+    return TR ? TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)] : void 0;
   }
 
   /**
@@ -385,14 +375,10 @@ class Table {
     if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
       return null;
     }
+
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
-    let result;
 
-    if (TR) {
-      [result] = TR.childNodes;
-    }
-
-    return result;
+    return TR ? TR.childNodes[0] : void 0;
   }
 
   /**

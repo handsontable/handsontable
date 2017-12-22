@@ -1238,13 +1238,13 @@ describe('Walkontable.CellRange', () => {
       var to = new Walkontable.CellCoords(2, 2);
       var range = new Walkontable.CellRange(from, from, to);
       var callCount = 0;
+
       range.forAll(() => {
         callCount += 1;
-        if (callCount === 2) {
-          return false;
-        }
-        return true;
+
+        return callCount !== 2;
       });
+
       expect(callCount).toBe(2);
     });
   });

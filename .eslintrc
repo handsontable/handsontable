@@ -19,7 +19,6 @@
     "no-underscore-dangle": 0,
     "no-restricted-globals": ["error", "Handsontable"],
     "no-use-before-define": 0,
-    "object-curly-newline": 0,
     "no-var": 0,
     "no-void": 0,
     "one-var": 0,

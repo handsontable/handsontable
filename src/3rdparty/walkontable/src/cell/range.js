@@ -296,22 +296,18 @@ class CellRange {
 
     let result;
 
-    if (expandedRange) {
-      if (expandedRange.includes(coords)) {
-        if (this.getTopLeftCorner().isEqual(new CellCoords(expandedRange.from.row, expandedRange.from.col))) {
-          result = this.getBottomRightCorner();
+    if (expandedRange && expandedRange.includes(coords)) {
+      if (this.getTopLeftCorner().isEqual(new CellCoords(expandedRange.from.row, expandedRange.from.col))) {
+        result = this.getBottomRightCorner();
 
-        } else if (this.getTopRightCorner().isEqual(new CellCoords(expandedRange.from.row, expandedRange.to.col))) {
-          result = this.getBottomLeftCorner();
+      } else if (this.getTopRightCorner().isEqual(new CellCoords(expandedRange.from.row, expandedRange.to.col))) {
+        result = this.getBottomLeftCorner();
 
-        } else if (this.getBottomLeftCorner().isEqual(new CellCoords(expandedRange.to.row, expandedRange.from.col))) {
-          result = this.getTopRightCorner();
+      } else if (this.getBottomLeftCorner().isEqual(new CellCoords(expandedRange.to.row, expandedRange.from.col))) {
+        result = this.getTopRightCorner();
 
-        } else if (this.getBottomRightCorner().isEqual(new CellCoords(expandedRange.to.row, expandedRange.to.col))) {
-          result = this.getTopLeftCorner();
-        }
-
-        return result;
+      } else if (this.getBottomRightCorner().isEqual(new CellCoords(expandedRange.to.row, expandedRange.to.col))) {
+        result = this.getTopLeftCorner();
       }
     }
 

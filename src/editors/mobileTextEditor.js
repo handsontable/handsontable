@@ -277,11 +277,11 @@ MobileTextEditor.prototype.bindEvents = function () {
         y: touch.pageY - onTouchPosition.y,
       };
 
-      that.eventManager.addEventListener(this, 'touchmove', (e) => {
-        let touchMove = e.touches[0];
+      that.eventManager.addEventListener(this, 'touchmove', (_event) => {
+        let touchMove = _event.touches[0];
         that.updateEditorPosition(touchMove.pageX - onTouchOffset.x, touchMove.pageY - onTouchOffset.y);
         that.hideCellPointer();
-        e.preventDefault();
+        _event.preventDefault();
       });
 
     }

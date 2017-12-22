@@ -20,7 +20,7 @@ describe('Core_updateSettings', () => {
         { type: 'checkbox' },
       ],
       cells(row, col) {
-        return row === 0 && col === 0 ? { type: 'numeric' } : {};
+        return row === 0 && col === 0 ? { type: 'numeric' } : void 0;
       },
     });
 

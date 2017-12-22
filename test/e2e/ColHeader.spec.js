@@ -198,7 +198,15 @@ describe('ColHeader', () => {
     handsontable({
       startCols: 2,
       colHeaders(col) {
-        return col === 0 ? 'One' : 'Two';
+        let header;
+
+        if (col === 0) {
+          header = 'One';
+        } else if (col === 1) {
+          header = 'Two';
+        }
+
+        return header;
       },
     });
 

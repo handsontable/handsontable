@@ -182,8 +182,8 @@ class AutoRowSize extends BasePlugin {
       if (force || this.heights[row] === void 0) {
         const samples = this.samplesGenerator.generateRowSamples(row, colRange);
 
-        samples.forEach((sample, r) => {
-          this.ghostTable.addRow(r, sample);
+        samples.forEach((sample, _row) => {
+          this.ghostTable.addRow(_row, sample);
         });
       }
     });

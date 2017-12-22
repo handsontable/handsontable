@@ -362,7 +362,7 @@ export function handsontableMethodFactory(method) {
       }
     } else {
       if (method === 'destroy') {
-        return false; // we can forgive this... maybe it was destroyed in the test
+        return void 0; // we can forgive this... maybe it was destroyed in the test
       }
       throw new Error('Something wrong with the test spec: Handsontable instance not found');
     }
