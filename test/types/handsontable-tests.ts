@@ -210,7 +210,7 @@ var hotSettings: Handsontable.GridSettings = {
   beforeDetachChild: (parent, element) => {},
   beforeDrawBorders: (corners, borderClassName) => {},
   beforeFilter: (formulasStack) => {},
-  beforeGetCellMeta: (row, col, cellProperties) => {},
+  beforeGetCellMeta: (row, col, cellProperties) => { },
   beforeInit: () => {},
   beforeInitWalkontable: (walkontableConfig) => {},
   beforeKeyDown: (event) => {},
@@ -262,7 +262,7 @@ function test_HandsontableMethods() {
   var hot = new Handsontable(elem, {});
   hot.addHook('foo', []);
   hot.addHookOnce('foo', []);
-  hot.alter('foo', 123, 123, 'foo', true);
+  hot.alter('insert_row', 123, 123, 'foo', true);
   hot.clear();
   hot.colOffset();
   hot.colToProp(123);
@@ -500,7 +500,7 @@ class PasswordEditor extends Handsontable.editors.TextEditor {
     this.TEXTAREA = document.createElement('input');
     this.TEXTAREA.setAttribute('type', 'password');
     this.TEXTAREA.className = 'handsontableInput';
-    this.textareaStyle =  this.TEXTAREA.style;
+    this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = '0';
     this.textareaStyle.height = '0';
 

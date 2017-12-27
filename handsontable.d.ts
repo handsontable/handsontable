@@ -1,9 +1,10 @@
 declare namespace _Handsontable {
+
   class Core {
     constructor(element: Element, options: Handsontable.DefaultSettings);
     addHook(key: string, callback: (() => void) | any[]): void;
     addHookOnce(key: string, callback: (() => void) | any[]): void;
-    alter(action: string, index: number, amount?: number, source?: string, keepEmptyRows?: boolean): void;
+    alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index: number, amount?: number, source?: string, keepEmptyRows?: boolean): void;
     clear(): void;
     colOffset(): number;
     colToProp(col: number): string | number;
@@ -41,12 +42,12 @@ declare namespace _Handsontable {
     getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
     getInstance(): any;
     getPlugin(pluginName: string): any;
-    getRowHeader(row?: number): any[]|string;
+    getRowHeader(row?: number): any[] | string;
     getRowHeight(row: number): number;
     getSchema(): object;
     getSelected(): any[];
     getSelectedRange(): Range;
-    getSettings(): object;
+    getSettings(): Handsontable.DefaultSettings;
     getSourceData(r?: number, c?: number, r2?: number, c2?: number): any[];
     getSourceDataArray(r?: number, c?: number, r2?: number, c2?: number): any[];
     getSourceDataAtCell(row: number, column: number): any;
@@ -83,7 +84,7 @@ declare namespace _Handsontable {
     toVisualRow(row: number): number;
     unlisten(): void;
     updateSettings(settings: object, init: boolean): void;
-    validateCells(callback: () => void): void;
+    validateCells(callback: (valid: boolean) => void): void;
   }
 }
 
@@ -163,7 +164,7 @@ declare namespace Handsontable {
       TD: HTMLElement;
       cellProperties: object;
 
-      constructor (hotInstance: _Handsontable.Core, row: number, col: number, prop: string | number, TD: HTMLElement, cellProperties: object)
+      constructor(hotInstance: _Handsontable.Core, row: number, col: number, prop: string | number, TD: HTMLElement, cellProperties: object)
 
       beginEditing(initialValue?: string): void;
       cancelChanges(): void;
@@ -213,7 +214,7 @@ declare namespace Handsontable {
       focus(): void;
       getEditedCell(): void;
       refreshDimensions(): void;
-      refreshValue():void;
+      refreshValue(): void;
       TEXTAREA: HTMLInputElement;
       TEXTAREA_PARENT: HTMLElement;
       textareaStyle: CSSStyleDeclaration;
@@ -522,7 +523,7 @@ declare namespace Handsontable {
       isHorizontal(): boolean;
       isVertical(): boolean;
       removeTable(): void;
-      setSettings(settings: object): void;
+      setSettings(settings: DefaultSettings): void;
       setSetting(name: string, value: any): void;
     }
 
@@ -776,7 +777,7 @@ declare namespace Handsontable {
     }
 
     type PasteModeType = 'overwrite' | 'shift_down' | 'shift_right';
-    type RangeType = {startRow: number, startCol: number, endRow: number, endCol: number};
+    type RangeType = { startRow: number, startCol: number, endRow: number, endCol: number };
     interface CopyPaste extends Base {
       eventManager: EventManager;
       columnsLimit: number;
@@ -891,7 +892,7 @@ declare namespace Handsontable {
       getCellAt(row: number, column: number): CellValue | void;
       getOutOfDateCells(): any[];
       add(cellValue: CellValue | object): void;
-      remove(cellValue: CellValue | object| any[]): void;
+      remove(cellValue: CellValue | object | any[]): void;
       getDependencies(cellCoord: object): void;
       registerCellRef(cellReference: CellReference | object): void;
       removeCellRefsAtRange(start: object, end: object): any[];
@@ -1390,7 +1391,7 @@ declare namespace Handsontable {
     manualColumnFreeze?: boolean;
     manualColumnMove?: boolean | any[];
     manualColumnResize?: boolean | any[];
-    manualRowMove?: boolean | any[ ];
+    manualRowMove?: boolean | any[];
     manualRowResize?: boolean | any[];
     maxCols?: number;
     maxRows?: number;
@@ -1492,7 +1493,7 @@ declare namespace Handsontable {
     afterRemoveCol?: (index: number, amount: number) => void;
     afterRemoveRow?: (index: number, amount: number) => void;
     afterRender?: (isForced: boolean) => void;
-    afterRenderer?: (TD: Element, row: number, col: number, prop: string|number, value: string, cellProperties: object) => void;
+    afterRenderer?: (TD: Element, row: number, col: number, prop: string | number, value: string, cellProperties: object) => void;
     afterRowMove?: (startRow: number, endRow: number) => void;
     afterRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => void;
     afterScrollHorizontally?: () => void;
@@ -1508,7 +1509,7 @@ declare namespace Handsontable {
     afterUndo?: (action: object) => void;
     afterUntrimRow?: (rows: any[]) => void;
     afterUpdateSettings?: () => void;
-    afterValidate?: (isValid: boolean, value: any, row: number, prop: string|number, source: string) => void|boolean;
+    afterValidate?: (isValid: boolean, value: any, row: number, prop: string | number, source: string) => void | boolean;
     afterViewportColumnCalculatorOverride?: (calc: object) => void;
     afterViewportRowCalculatorOverride?: (calc: object) => void;
     beforeAddChild?: (parent: object, element: object | void, index: number | void) => void;
@@ -1541,7 +1542,7 @@ declare namespace Handsontable {
     beforeRemoveCol?: (index: number, amount: number, logicalCols?: any[]) => void;
     beforeRemoveRow?: (index: number, amount: number, logicalRows?: any[]) => void;
     beforeRender?: (isForced: boolean, skipRender: object) => void;
-    beforeRenderer?: (TD: Element, row: number, col: number, prop: string|number, value: string, cellProperties: object) => void;
+    beforeRenderer?: (TD: Element, row: number, col: number, prop: string | number, value: string, cellProperties: object) => void;
     beforeRowMove?: (startRow: number, endRow: number) => void;
     beforeRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => any;
     beforeSetRangeEnd?: (coords: any[]) => void;
@@ -1575,6 +1576,14 @@ declare namespace Handsontable {
     skipLengthCache?: (delay: number) => void;
     unmodifyCol?: (col: number) => void;
     unmodifyRow?: (row: number) => void;
+  }
+
+  interface I18n {
+    dictionaryKeys: object;
+    registerLanguageDictionary: (languageCodeOrDictionary: any, dictionary: Object) => object;
+    getTranslatedPhrase: (dictionaryKey: string, extraArguments?: any) => object;
+    getLanguagesDictionaries: () => any[];
+    getLanguageDictionary: (languageCode: string) => object;
   }
 
   interface CellTypes {
@@ -1862,6 +1871,7 @@ declare class Handsontable extends _Handsontable.Core {
   static baseVersion: string;
   static buildDate: string;
   static cellTypes: Handsontable.CellTypes;
+  static languages: Handsontable.I18n;
   static dom: Handsontable.Dom;
   static editors: Handsontable.Editors;
   static helper: Handsontable.Helper;
