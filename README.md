@@ -148,6 +148,15 @@ If you would like to help us to develop Handsontable, please take a look at this
 
 <br/>
 
+### Translation
+We’re looking for contributors who would like to help us with translating Handsontable to other languages. 
+
+How to do that? You can:
+- add a pull request with your own translation. If you need some guidance here's a [short tutorial about our Internationalization](https://docs.handsontable.com/tutorial-internationalization.html).
+- vote for translation. You can find all the [pending translations behind the `translation` label on our Github board](https://github.com/handsontable/handsontable/issues?q=is%3Aopen+is%3Aissue+label%3ATranslation).
+
+<br/>
+
 ### Community
 - [GitHub issues](//github.com/handsontable/handsontable/issues)
 - [Stackoverflow](//stackoverflow.com/tags/handsontable)
