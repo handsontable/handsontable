@@ -119,7 +119,6 @@ class ManualRowMove extends BasePlugin {
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeColumnSort', (column, order) => this.onBeforeColumnSort(column, order));
     this.addHook('unmodifyRow', (row) => this.onUnmodifyRow(row));
-    this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettingss());
 
     this.registerEvents();
 
@@ -135,6 +134,7 @@ class ManualRowMove extends BasePlugin {
   updatePlugin() {
     this.disablePlugin();
     this.enablePlugin();
+
     this.onAfterPluginsInitialized();
 
     super.updatePlugin();
@@ -245,11 +245,9 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   initialSettings() {
-    let countRows = this.hot.countSourceRows();
     let pluginSettings = this.hot.getSettings().manualRowMove;
 
     if (Array.isArray(pluginSettings)) {
-      this.rowsMapper.createMap(countRows);
       this.moveRows(pluginSettings, 0);
 
     } else if (pluginSettings !== void 0) {
@@ -734,15 +732,6 @@ class ManualRowMove extends BasePlugin {
     this.initialSettings();
     this.backlight.build();
     this.guideline.build();
-  }
-
-  /**
-   * `afterUpdateSettings` hook callback.
-   *
-   * @private
-   */
-  onAfterUpdateSettings() {
-    this.initialSettings();
   }
 
   /**

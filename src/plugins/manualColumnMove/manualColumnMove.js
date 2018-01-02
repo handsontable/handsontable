@@ -120,7 +120,6 @@ class ManualColumnMove extends BasePlugin {
     this.addHook('afterCreateCol', (index, amount) => this.onAfterCreateCol(index, amount));
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('unmodifyCol', (column) => this.onUnmodifyCol(column));
-    this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
 
     this.registerEvents();
 
@@ -128,6 +127,18 @@ class ManualColumnMove extends BasePlugin {
     addClass(this.hot.rootElement, CSS_PLUGIN);
 
     super.enablePlugin();
+  }
+
+  /**
+   * Updates the plugin to use the latest options you have specified.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    this.onAfterPluginsInitialized();
+
+    super.updatePlugin();
   }
 
   /**
@@ -241,12 +252,9 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   initialSettings() {
-    let colsLength = Array.isArray(this.hot.getSettings().colHeaders) ? this.hot.getSettings().colHeaders.length : 0;
-    let countCols = this.hot.countSourceCols() ? this.hot.countSourceCols() : colsLength;
     let pluginSettings = this.hot.getSettings().manualColumnMove;
 
     if (Array.isArray(pluginSettings)) {
-      this.columnsMapper.createMap(countCols);
       this.moveColumns(pluginSettings, 0);
 
     } else if (pluginSettings !== void 0) {
@@ -714,15 +722,6 @@ class ManualColumnMove extends BasePlugin {
     this.initialSettings();
     this.backlight.build();
     this.guideline.build();
-  }
-
-  /**
-   * `afterUpdateSettings` hook callback.
-   *
-   * @private
-   */
-  onAfterUpdateSettings() {
-    this.initialSettings();
   }
 
   /**

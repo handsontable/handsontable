@@ -60,8 +60,20 @@ class ManualRowResize extends BasePlugin {
       return;
     }
 
+    this.manualRowHeights = [];
+
+    let initialRowHeights = this.hot.getSettings().manualRowResize;
+    let loadedManualRowHeights = this.loadManualRowHeights();
+
+    if (typeof loadedManualRowHeights != 'undefined') {
+      this.manualRowHeights = loadedManualRowHeights;
+    } else if (Array.isArray(initialRowHeights)) {
+      this.manualRowHeights = initialRowHeights;
+    } else {
+      this.manualRowHeights = [];
+    }
+
     this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
-    this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
 
     // Handsontable.hooks.register('beforeRowResize');
     // Handsontable.hooks.register('afterRowResize');
@@ -433,45 +445,6 @@ class ManualRowResize extends BasePlugin {
     }
 
     return height;
-  }
-
-  /**
-   * Load initial settings when persistent state is saved or when plugin was initialized as an array.
-   *
-   * @private
-   */
-  initialSettings() {
-    let manualRowHeights = this.manualRowHeights;
-    let initialRowHeights = this.hot.getSettings().manualRowResize;
-    let loadedManualRowHeights = this.loadManualRowHeights();
-
-    if (typeof loadedManualRowHeights !== 'undefined') {
-      this.manualRowHeights = loadedManualRowHeights;
-
-    } else if (Array.isArray(initialRowHeights)) {
-      this.manualRowHeights = initialRowHeights;
-
-    } else {
-      this.manualRowHeights = manualRowHeights;
-    }
-  }
-
-  /**
-   * `afterPluginsInitialized` hook callback.
-   *
-   * @private
-   */
-  onAfterPluginsInitialized() {
-    this.initialSettings();
-  }
-
-  /**
-   * `afterUpdateSettings` hook callback.
-   *
-   * @private
-   */
-  onAfterUpdateSettings() {
-    this.initialSettings();
   }
 }
 

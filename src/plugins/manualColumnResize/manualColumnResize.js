@@ -60,10 +60,21 @@ class ManualColumnResize extends BasePlugin {
       return;
     }
 
+    this.manualColumnWidths = [];
+    let initialColumnWidth = this.hot.getSettings().manualColumnResize;
+    let loadedManualColumnWidths = this.loadManualColumnWidths();
+
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
     this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
     this.addHook('beforeColumnResize', (currentColumn, newSize, isDoubleClick) => this.onBeforeColumnResize(currentColumn, newSize, isDoubleClick));
-    this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
+
+    if (typeof loadedManualColumnWidths != 'undefined') {
+      this.manualColumnWidths = loadedManualColumnWidths;
+    } else if (Array.isArray(initialColumnWidth)) {
+      this.manualColumnWidths = initialColumnWidth;
+    } else {
+      this.manualColumnWidths = [];
+    }
 
     // Handsontable.hooks.register('beforeColumnResize');
     // Handsontable.hooks.register('afterColumnResize');
@@ -498,45 +509,6 @@ class ManualColumnResize extends BasePlugin {
   onBeforeColumnResize() {
     // clear the header height cache information
     this.hot.view.wt.wtViewport.hasOversizedColumnHeadersMarked = {};
-  }
-
-  /**
-   * Load initial settings when persistent state is saved or when plugin was initialized as an array.
-   *
-   * @private
-   */
-  initialSettings() {
-    let manualColumnWidths = this.manualColumnWidths;
-    let initialColumnWidth = this.hot.getSettings().manualColumnResize;
-    let loadedManualColumnWidths = this.loadManualColumnWidths();
-
-    if (typeof loadedManualColumnWidths !== 'undefined') {
-      this.manualColumnWidths = loadedManualColumnWidths;
-
-    } else if (Array.isArray(initialColumnWidth)) {
-      this.manualColumnWidths = initialColumnWidth;
-
-    } else {
-      this.manualColumnWidths = manualColumnWidths;
-    }
-  }
-
-  /**
-   * `afterPluginsInitialized` hook callback.
-   *
-   * @private
-   */
-  onAfterPluginsInitialized() {
-    this.initialSettings();
-  }
-
-  /**
-   * `afterUpdateSettings` hook callback.
-   *
-   * @private
-   */
-  onAfterUpdateSettings() {
-    this.initialSettings();
   }
 }
 
