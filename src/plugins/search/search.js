@@ -33,31 +33,25 @@ class Search extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Query method - query(queryStr, [callback], [queryMethod]),
-     * where queryStr is a string to find within the table.
-     * Use the query() method inside search input listener.
+     * Query method - used inside search input listener.
      *
      * @type {Function}
      */
     this.query = void 0;
     /**
-     * Callback function is responsible for setting the isSearchResult property
-     * - by default DEFAULT_CALLBACK.
+     * Callback function is responsible for setting the cell's isSearchResult property.
      *
      * @type {Function}
      */
     this.callback = DEFAULT_CALLBACK;
     /**
-     * Query function is responsible for determining
-     * whether a queryStr matches the value stored in a cell
-     * - by default DEFAULT_QUERY_METHOD.
+     * Query function is responsible for determining whether a query matches the value stored in a cell.
      *
      * @type {Function}
      */
     this.queryMethod = DEFAULT_QUERY_METHOD;
     /**
-     *  Adds htSearchResult class (or custom) to every cell which isSearchResult property is true
-     * - by default DEFAULT_SEARCH_RESULT_CLASS.
+     *  Adds class to every cell which isSearchResult property is true.
      *
      * @type {String}
      */
@@ -222,7 +216,7 @@ class Search extends BasePlugin {
    *     searchResultClass: 'customClass'
    *   }
    * ),
-   * or by calling it itself - hot.getPlugin('search').setSearchResultClass(myNewQueryMethod).
+   * or by calling it itself - hot.getPlugin('search').setSearchResultClass(customClass).
    *
    * @param {String} newElementClass
    */
