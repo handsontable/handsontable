@@ -1,4 +1,6 @@
-import Handsontable from '../../handsontable';
+import * as Handsontable from '../../handsontable';
+import * as DICTIONARY_CONSTANTS from '../../src/i18n/constants';
+import {isObjectEquals} from '../../src/helpers/object';
 
 var test = Handsontable.plugins.CopyPaste.columnsLimit;
 var elem = document.createElement('div');
@@ -259,7 +261,7 @@ var hot = new Handsontable(elem, hotSettings);
 
 function test_HandsontableMethods() {
   var elem = document.createElement('div');
-  var hot = new Handsontable(elem, {});
+  var hot = new Handsontable(elem, hotSettings);
   hot.addHook('foo', []);
   hot.addHookOnce('foo', []);
   hot.alter('insert_row', 123, 123, 'foo', true);
@@ -303,7 +305,11 @@ function test_HandsontableMethods() {
   hot.getSchema();
   hot.getSelected();
   hot.getSelectedRange();
-  hot.getSettings();
+
+  let currentSettings : Handsontable.DefaultSettings = hot.getSettings();
+  currentSettings.readOnly = false;
+  hot.updateSettings(currentSettings, true);
+
   hot.getSourceData(123, 123, 123, 123);
   hot.getSourceDataAtCell(123, 123);
   hot.getSourceDataAtCol(123);
@@ -335,8 +341,7 @@ function test_HandsontableMethods() {
   hot.spliceCol(123, 123, 123, 'foo');
   hot.spliceRow(123, 123, 123, 'foo');
   hot.unlisten();
-  hot.updateSettings({}, true);
-  hot.validateCells(function() {});
+  hot.validateCells(function(valid: boolean) {});
 
   let baseVersion = Handsontable.baseVersion;
   let buildDate = Handsontable.buildDate;
@@ -490,6 +495,17 @@ function test_HandsontableMethods() {
   Handsontable.helper.toUpperCaseFirst('foo');
   Handsontable.helper.translateRowsToColumns([1, 'foo', true]);
   Handsontable.helper.valueAccordingPercent(1, 90);
+
+  // i18n tests
+  const dictionary: Handsontable.I18n.LanguageDictionary = Handsontable.languages.dictionaryKeys;
+  const arDict: Handsontable.I18n.LanguageDictionary = Handsontable.languages.registerLanguageDictionary("ar-SA",{
+    languageCode: "ar-SA",
+    [DICTIONARY_CONSTANTS.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT]: "يسار",
+    [DICTIONARY_CONSTANTS.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT]: "يمين",
+  });
+  const fetchedDict: Handsontable.I18n.LanguageDictionary =  Handsontable.languages.getLanguageDictionary("ar-SA")
+  isObjectEquals(arDict, fetchedDict);
+  
 }
 class PasswordEditor extends Handsontable.editors.TextEditor {
   createElements() {
