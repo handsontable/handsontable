@@ -218,6 +218,22 @@ describe('i18n', () => {
       expect(hot.getSettings().language).toEqual(DEFAULT_LANGUAGE_CODE);
     });
 
+    it('should not set language code as own property of settings object at start', () => {
+      const hot = handsontable();
+
+      // eslint-disable-next-line no-prototype-builtins
+      expect(hot.getSettings().hasOwnProperty('language')).toEqual(false);
+    });
+
+    it('should not set language code as own property of settings object when using updateSettings', () => {
+      const hot = handsontable();
+
+      updateSettings({language: POLISH_LANGUAGE_CODE});
+
+      // eslint-disable-next-line no-prototype-builtins
+      expect(hot.getSettings().hasOwnProperty('language')).toEqual(false);
+    });
+
     it('should set proper `language` key when trying to set not existing language code at start', () => {
       spyOn(console, 'error'); // overriding console.error
 
