@@ -83,7 +83,7 @@ declare namespace _Handsontable {
     toVisualColumn(column: number): number;
     toVisualRow(row: number): number;
     unlisten(): void;
-    updateSettings(settings: object, init: boolean): void;
+    updateSettings(settings: Handsontable.DefaultSettings, init: boolean): void;
     validateCells(callback: (valid: boolean) => void): void;
   }
 }
