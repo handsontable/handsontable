@@ -1578,12 +1578,18 @@ declare namespace Handsontable {
     unmodifyRow?: (row: number) => void;
   }
 
-  interface I18n {
-    dictionaryKeys: object;
-    registerLanguageDictionary: (languageCodeOrDictionary: any, dictionary: Object) => object;
-    getTranslatedPhrase: (dictionaryKey: string, extraArguments?: any) => object;
-    getLanguagesDictionaries: () => any[];
-    getLanguageDictionary: (languageCode: string) => object;
+  namespace I18n {
+    type LanguageDictionary = {
+      [phraseKey: string]: string | string[];
+      languageCode: string;
+    };
+    interface Internationalization {
+      dictionaryKeys: I18n.LanguageDictionary;
+      registerLanguageDictionary: (languageCodeOrDictionary: LanguageDictionary | string, dictionary?: LanguageDictionary) => LanguageDictionary;
+      getTranslatedPhrase: (dictionaryKey: string, extraArguments?: any) => string | null;
+      getLanguagesDictionaries: () => LanguageDictionary[];
+      getLanguageDictionary: (languageCode: string) => LanguageDictionary;
+    }
   }
 
   interface CellTypes {
@@ -1871,7 +1877,7 @@ declare class Handsontable extends _Handsontable.Core {
   static baseVersion: string;
   static buildDate: string;
   static cellTypes: Handsontable.CellTypes;
-  static languages: Handsontable.I18n;
+  static languages: Handsontable.I18n.Internationalization;
   static dom: Handsontable.Dom;
   static editors: Handsontable.Editors;
   static helper: Handsontable.Helper;
