@@ -214,6 +214,8 @@ function EditorManager(instance, priv, selection) {
       case KEY_CODES.ESCAPE:
         if (_this.isEditorOpened()) {
           _this.closeEditorAndRestoreOriginalValue(ctrlDown);
+
+          activeEditor.focus();
         }
         event.preventDefault();
         break;
@@ -267,9 +269,8 @@ function EditorManager(instance, priv, selection) {
       }
     });
 
-    // FF only
     eventManager.addEventListener(document.documentElement, 'compositionstart', (event) => {
-      if (!destroyed && activeEditor && !activeEditor.isWaiting()) {
+      if (!destroyed && activeEditor && !activeEditor.isWaiting() && instance.isListening()) {
         _this.openEditor('', event);
       }
     });

@@ -43,19 +43,24 @@ TextEditor.prototype.init = function() {
 TextEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellProperties) {
   BaseEditor.prototype.prepare.apply(this, arguments);
 
-  this.refreshDimensions(true);
-  this.hideEditableElement();
-  this.setValue('');
-
-  setImmediate(() => this.focus());
+  if (!cellProperties.readOnly) {
+    // this.hideEditableElement();
+    // this.setValue('');
+    this.refreshDimensions(true);
+    this.instance._registerImmediate(() => this.focus());
+  }
 };
 
 TextEditor.prototype.hideEditableElement = function() {
   // IE and Edge have the bug where the caret of the editable elements (eg. input, texarea) is always visible
-  // despite the element is overlapped by another element.
+  // despite the element is overlapped by another element. To hide element we need to move element out of the viewport.
   if (isMSBrowser()) {
     this.textareaParentStyle.top = '-9999px';
     this.textareaParentStyle.left = '-9999px';
+  } else {
+    // For other browsers hide element under Handsontable itself.
+    this.textareaParentStyle.top = '0px';
+    this.textareaParentStyle.left = '0px';
   }
 
   this.textareaParentStyle.zIndex = '-1';
@@ -181,13 +186,16 @@ TextEditor.prototype.close = function(tdOutside) {
     this.instance.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
   }
 
-  setImmediate(() => this.focus());
   this.hideEditableElement();
+  this.setValue('');
+
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
 };
 
 TextEditor.prototype.focus = function() {
-  this.TEXTAREA.focus();
+  // For IME editor textarea element must be focused using ".select" method. Using ".focus" browser automatically scroll into
+  // focused element which is undesire effect.
+  this.TEXTAREA.select();
   setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
 };
 
@@ -276,7 +284,9 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
 
   // TD is outside of the viewport.
   if (!this.TD) {
-    this.close(true);
+    if (!force) {
+      this.close(true);
+    }
 
     return;
   }
@@ -357,7 +367,6 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
 
   this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
   this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
-  this.TEXTAREA.style.backgroundColor = ''; // RESET STYLE
   this.TEXTAREA.style.backgroundColor = backgroundColor ? backgroundColor : getComputedStyle(this.TEXTAREA).backgroundColor;
 
   this.autoResize.init(this.TEXTAREA, {

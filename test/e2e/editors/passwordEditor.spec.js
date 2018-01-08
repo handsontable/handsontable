@@ -113,13 +113,13 @@ describe('PasswordEditor', () => {
     var editorHolder = $('.handsontableInputHolder');
     var editor = editorHolder.find('.handsontableInput');
 
-    expect(editorHolder.is(':visible')).toBe(true);
+    expect(parseInt(editorHolder.css('z-index'))).toBeGreaterThan(0);
 
     editor.val('Edgar');
 
     selectCell(1, 0); // closes editor and saves current value
 
-    expect(editorHolder.is(':visible')).toBe(false);
+    expect(editorHolder.css('z-index')).toBe('-1');
 
     expect(getDataAtCell(0, 0)).toMatch('Edgar');
     expect(getRenderedValue(0, 0)).toMatch('Edgar');

@@ -119,28 +119,30 @@ HandsontableEditor.prototype.open = function() {
   }
   // Construct and initialise a new Handsontable
   this.htEditor = new this.instance.constructor(this.htContainer, this.htOptions);
+  this.htEditor.rootElement.style.display = '';
   this.htEditor.init();
 
   if (this.cellProperties.strict) {
     this.htEditor.selectCell(0, 0);
-    this.TEXTAREA.style.visibility = 'hidden';
   } else {
     this.htEditor.deselectCell();
-    this.TEXTAREA.style.visibility = 'visible';
   }
 
   setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
 };
 
 HandsontableEditor.prototype.close = function() {
+  this.htEditor.rootElement.style.display = 'none';
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-  this.instance.listen();
+  // this.instance.listen();
 
   TextEditor.prototype.close.apply(this, arguments);
 };
 
 HandsontableEditor.prototype.focus = function() {
-  this.instance.listen();
+  if (!this.instance.isDestroyed) {
+    this.instance.listen();
+  }
   TextEditor.prototype.focus.apply(this, arguments);
 };
 
@@ -155,7 +157,6 @@ HandsontableEditor.prototype.beginEditing = function(initialValue) {
 
 HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
   if (this.htEditor && this.htEditor.isListening()) { // if focus is still in the HOT editor
-
     this.instance.listen(); // return the focus to the parent HOT instance
   }
 

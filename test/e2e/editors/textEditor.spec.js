@@ -162,7 +162,7 @@ describe('TextEditor', () => {
     }, 200);
   });
 
-  it('should hide editor when quick navigation by click scrollbar was triggered', (done) => {
+  it('should hide editor when quick navigation by click scrollbar was triggered', async () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       rowHeaders: true,
@@ -176,10 +176,9 @@ describe('TextEditor', () => {
     keyUp('enter');
     hot.scrollViewportTo(49);
 
-    setTimeout(() => {
-      expect(hot.getActiveEditor().textareaParentStyle.display).toBe('none');
-      done();
-    }, 100);
+    await sleep(100);
+
+    expect(isEditorVisible()).toBe(false);
   });
 
   it('should render textarea editor in specified height (single line)', (done) => {
@@ -599,12 +598,13 @@ describe('TextEditor', () => {
 
     // Open editor in HOT1
     keyDown('enter');
-    var editor = $('.handsontableInputHolder');
-    expect(editor.is(':visible')).toBe(true);
+
+    expect(isEditorVisible($(hot1.getActiveEditor().TEXTAREA))).toBe(true);
 
     // Close editor in HOT1
     keyDown('enter');
-    expect(editor.is(':visible')).toBe(false);
+
+    expect(isEditorVisible($(hot1.getActiveEditor().TEXTAREA))).toBe(false);
 
     this.$container2.find('tbody tr:eq(0) td:eq(0)').simulate('mousedown');
     this.$container2.find('tbody tr:eq(0) td:eq(0)').simulate('mouseup');
@@ -614,19 +614,20 @@ describe('TextEditor', () => {
 
     // Open editor in HOT2
     keyDown('enter');
-    editor = $('.handsontableInputHolder');
-    expect(editor.is(':visible')).toBe(true);
+
+    expect(isEditorVisible($(hot2.getActiveEditor().TEXTAREA))).toBe(true);
 
     this.$container2.handsontable('destroy');
     this.$container2.remove();
 
     function handsontable2(options) {
       var container = this.$container2;
+
       container.handsontable(options);
       container[0].focus(); // otherwise TextEditor tests do not pass in IE8
+
       return container.data('handsontable');
     }
-
   });
 
   it('should open editor after pressing a printable character', function() {
@@ -636,22 +637,13 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    var editorHolder = $('.handsontableInputHolder');
-    //    var editorInput = editorHolder.find('.handsontableInput');
-
-    expect(editorHolder.is(':visible')).toBe(false);
-
-    //    var keyboardEvent = $.Event('keydown', {
-    //      keyCode: 'a'.charCodeAt(0)
-    //    });
-
-    //    this.$container.trigger(keyboardEvent);
+    expect(isEditorVisible()).toBe(false);
 
     this.$container.simulate('keydown', {
-      keyCode: 'a'.charCodeAt(0)
+      keyCode: 'A'.charCodeAt(0)
     });
 
-    expect(editorHolder.is(':visible')).toBe(true);
+    expect(isEditorVisible()).toBe(true);
   });
 
   it('should open editor after pressing a printable character with shift key', function() {
@@ -661,34 +653,14 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    var editorHolder = $('.handsontableInputHolder');
-
-    expect(editorHolder.is(':visible')).toBe(false);
-
-    /**
-     * To reliably mimic SHIFT+SOME_KEY combination we have to trigger two events.
-     * First we need to trigger keydown event with SHIFT keyCode (16)
-     * and then trigger a keydown event with keyCode of SOME_KEY and shiftKey property set to true
-     */
-    //    var shiftKeyboardEvent = $.Event('keydown', {
-    //      keyCode: 16, //shift
-    //      shiftKey: true
-    //    });
-    //
-    //    var keyboardEvent = $.Event('keydown', {
-    //      keyCode: 'a'.charCodeAt(0),
-    //      shiftKey: true
-    //    });
+    expect(isEditorVisible()).toBe(false);
 
     this.$container.simulate('keydown', {
-      keyCode: 'a'.charCodeAt(0),
+      keyCode: 'A'.charCodeAt(0),
       shiftKey: true
     });
 
-    //    this.$container.trigger(shiftKeyboardEvent);
-    //    this.$container.trigger(keyboardEvent);
-
-    expect(editorHolder.is(':visible')).toBe(true);
+    expect(isEditorVisible()).toBe(true);
   });
 
   it('should be able to open editor after clearing cell data with DELETE', function() {
@@ -698,18 +670,16 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    var editorHolder = $('.handsontableInputHolder');
-
-    expect(editorHolder.is(':visible')).toBe(false);
+    expect(isEditorVisible()).toBe(false);
 
     this.$container.simulate('keydown', {
       keyCode: 46
     });
-
     this.$container.simulate('keydown', {
-      keyCode: 'a'.charCodeAt(0)
+      keyCode: 'A'.charCodeAt(0)
     });
-    expect(editorHolder.is(':visible')).toBe(true);
+
+    expect(isEditorVisible()).toBe(true);
   });
 
   it('should be able to open editor after clearing cell data with BACKSPACE', function() {
@@ -719,19 +689,16 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    var editorHolder = $('.handsontableInputHolder');
-
-    expect(editorHolder.is(':visible')).toBe(false);
+    expect(isEditorVisible()).toBe(false);
 
     this.$container.simulate('keydown', {
       keyCode: 8 // backspace
     });
-
     this.$container.simulate('keydown', {
-      keyCode: 'a'.charCodeAt(0)
+      keyCode: 'A'.charCodeAt(0)
     });
 
-    expect(editorHolder.is(':visible')).toBe(true);
+    expect(isEditorVisible()).toBe(true);
   });
 
   it('should scroll editor to a cell, if trying to edit cell that is outside of the viewport', () => {

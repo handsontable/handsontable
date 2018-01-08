@@ -69,10 +69,10 @@ function onBeforeKeyDown(event) {
     }
 
     if (editor.htEditor) {
-      editor.instance._registerTimeout(setTimeout(() => {
+      editor.instance._registerTimeout(() => {
         editor.queryChoices(editor.TEXTAREA.value);
         skipOne = true;
-      }, timeOffset));
+      }, timeOffset);
     }
   }
 }
@@ -92,7 +92,7 @@ AutocompleteEditor.prototype.open = function() {
   let _this = this;
   let trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
 
-  this.TEXTAREA.style.visibility = 'visible';
+  this.showEditableElement();
   this.focus();
 
   choicesListHot.updateSettings({
@@ -135,14 +135,11 @@ AutocompleteEditor.prototype.open = function() {
     skipOne = false;
   }
 
-  _this.instance._registerTimeout(setTimeout(() => {
+  _this.instance._registerTimeout(() => {
     _this.queryChoices(_this.TEXTAREA.value);
-  }, 0));
+  });
 };
 
-AutocompleteEditor.prototype.close = function() {
-  HandsontableEditor.prototype.close.apply(this, arguments);
-};
 AutocompleteEditor.prototype.queryChoices = function(query) {
   this.query = query;
   const source = this.cellProperties.source;

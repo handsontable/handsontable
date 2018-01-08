@@ -8,7 +8,7 @@ import DataMap from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize, hasOwnProperty, createObjectPropListener} from './helpers/object';
-import {arrayFlatten, arrayMap} from './helpers/array';
+import {arrayFlatten, arrayMap, arrayEach} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {getValidator} from './validators';
@@ -80,6 +80,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     registerAsRootInstance(this);
   }
 
+  this.isDestroyed = false;
   this.rootElement = rootElement;
   this.isHotTableEnv = isChildOfWebComponentTable(this.rootElement);
   EventManager.isHotTableEnv = this.isHotTableEnv;
@@ -3245,8 +3246,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterDestroy
    */
   this.destroy = function() {
-
     instance._clearTimeouts();
+    instance._clearImmediates();
+
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();
     }
@@ -3272,7 +3274,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (hasOwnProperty(instance, i)) {
         // replace instance methods with post mortem
         if (isFunction(instance[i])) {
-          instance[i] = postMortem;
+          instance[i] = postMortem(i);
 
         } else if (i !== 'guid') {
           // replace instance properties with null (restores memory)
@@ -3281,6 +3283,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         }
       }
     }
+    instance.isDestroyed = true;
 
     // replace private properties with null (restores memory)
     // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
@@ -3301,8 +3304,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @private
    */
-  function postMortem() {
-    throw new Error('This method cannot be called because this Handsontable instance has been destroyed');
+  function postMortem(method) {
+    return () => {
+      throw new Error(`The "${method}" method cannot be called because this Handsontable instance has been destroyed`);
+    };
   }
 
   /**
@@ -3457,10 +3462,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called.
    *
-   * @param {*} handle
+   * @param {Number|Function} handle Handler returned from setTimeout or function to execute (it will be automatically wraped
+   *                                 by setTimeout function).
+   * @param {Number} [delay=0] If first argument is passed as a function this argument set delay of the execution of that function.
    * @private
    */
-  this._registerTimeout = function(handle) {
+  this._registerTimeout = function(handle, delay = 0) {
+    if (typeof handle === 'function') {
+      handle = setTimeout(handle, delay);
+    }
+
     this.timeouts.push(handle);
   };
 
@@ -3470,9 +3481,32 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    */
   this._clearTimeouts = function() {
-    for (var i = 0, ilen = this.timeouts.length; i < ilen; i++) {
-      clearTimeout(this.timeouts[i]);
-    }
+    arrayEach(this.timeouts, (handler) => {
+      clearTimeout(handler);
+    });
+  };
+
+  this.immediates = [];
+
+  /**
+   * Execute function execution to the next event loop cycle. Purpose of this method is to clear all known timeouts when `destroy` method is called.
+   *
+   * @param {Function} callback Function to be delayed in execution.
+   * @private
+   */
+  this._registerImmediate = function(callback) {
+    this.immediates.push(setImmediate(callback));
+  };
+
+  /**
+   * Clears all known timeouts.
+   *
+   * @private
+   */
+  this._clearImmediates = function() {
+    arrayEach(this.immediates, (handler) => {
+      clearImmediate(handler);
+    });
   };
 
   Hooks.getSingleton().run(instance, 'construct');

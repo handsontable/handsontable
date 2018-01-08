@@ -1402,7 +1402,7 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('should close the editor and save the new value after double clicking on a cell, if the previously edited cell validated correctly', (done) => {
+  it('should close the editor and save the new value after double clicking on a cell, if the previously edited cell validated correctly', async () => {
     var validated = false;
     var validationResult;
 
@@ -1422,8 +1422,7 @@ describe('Core_validate', () => {
     selectCell(0, 0);
     keyDown('enter');
 
-    var editor = $('.handsontableInputHolder');
-    expect(editor.is(':visible')).toBe(true);
+    expect(isEditorVisible()).toBe(true);
 
     document.activeElement.value = 'AA';
 
@@ -1432,24 +1431,23 @@ describe('Core_validate', () => {
     var cell = $(getCell(1, 0));
     var clicks = 0;
 
-    setTimeout(() => {
-      mouseDown(cell);
-      mouseUp(cell);
-      clicks++;
-    }, 0);
+    await sleep();
 
-    setTimeout(() => {
-      mouseDown(cell);
-      mouseUp(cell);
-      clicks++;
-    }, 100);
+    mouseDown(cell);
+    mouseUp(cell);
+    clicks++;
 
-    setTimeout(() => {
-      expect(editor.is(':visible')).toBe(false);
-      expect(validationResult).toBe(true);
-      expect(getDataAtCell(0, 0)).toEqual('AA');
-      done();
-    }, 300);
+    await sleep(100);
+
+    mouseDown(cell);
+    mouseUp(cell);
+    clicks++;
+
+    await sleep(200);
+
+    expect(isEditorVisible()).toBe(false);
+    expect(validationResult).toBe(true);
+    expect(getDataAtCell(0, 0)).toEqual('AA');
   });
 
   it('should close the editor and restore the original value after double clicking on a cell, if the previously edited cell have not validated', (done) => {

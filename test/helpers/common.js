@@ -60,8 +60,14 @@ export function countCells() {
   return getHtCore().find('tbody td').length;
 };
 
-export function isEditorVisible() {
-  return !!(keyProxy().is(':visible') && keyProxy().parent().is(':visible') && !keyProxy().parent().is('.htHidden'));
+export function isEditorVisible(editableElement) {
+  if (editableElement && !(editableElement.hasClass('handsontableInput') || editableElement.hasClass('handsontableEditor'))) {
+    throw new Error('Editable element of the editor was not found.');
+  }
+
+  const keyProxyHolder = (editableElement || keyProxy()).parent();
+
+  return keyProxyHolder.size() > 0 ? keyProxyHolder.css('z-index') !== '-1' : false;
 };
 
 export function isFillHandleVisible() {

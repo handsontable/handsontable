@@ -228,27 +228,6 @@ describe('HandsontableEditor', () => {
 
       expect(innerHot.getSelected()).toEqual([0, 0, 0, 0]);
     });
-
-    it('should hide textarea', () => {
-      var hot = handsontable({
-        columns: [
-          {
-            type: 'handsontable',
-            handsontable: {
-              colHeaders: ['Marque', 'Country', 'Parent company'],
-              data: getManufacturerData()
-            },
-            strict: true
-          }
-        ]
-      });
-      selectCell(2, 0);
-
-      keyDownUp('enter');
-
-      expect(hot.getActiveEditor().TEXTAREA.style.visibility).toEqual('hidden');
-
-    });
   });
 
   describe('non strict mode', () => {
@@ -290,8 +269,9 @@ describe('HandsontableEditor', () => {
       selectCell(2, 0);
 
       keyDownUp('enter');
-      expect(hot.getActiveEditor().TEXTAREA.style.visibility).toEqual('visible');
 
+      expect(hot.getActiveEditor().TEXTAREA.parentElement.style.zIndex).toEqual('');
+      expect(hot.getActiveEditor().TEXTAREA.style.visibility).toEqual('');
     });
   });
 });

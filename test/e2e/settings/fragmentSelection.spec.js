@@ -84,6 +84,7 @@ describe('settings', () => {
         mouseUp(this.$container.find('tr:eq(0) td:eq(3)'));
 
         var sel = getSelected();
+
         expect(sel).toEqual(' '); // copyPaste has selected space in textarea
       });
 
@@ -100,6 +101,7 @@ describe('settings', () => {
 
         var sel = getSelected();
         sel = sel.replace(/\s/g, ''); // tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
+
         expect(sel).toEqual('B1C1D1');
       });
 
