@@ -113,7 +113,7 @@ describe('PasswordEditor', () => {
     var editorHolder = $('.handsontableInputHolder');
     var editor = editorHolder.find('.handsontableInput');
 
-    expect(parseInt(editorHolder.css('z-index'))).toBeGreaterThan(0);
+    expect(parseInt(editorHolder.css('z-index'), 10)).toBeGreaterThan(0);
 
     editor.val('Edgar');
 

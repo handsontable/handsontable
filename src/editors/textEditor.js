@@ -44,9 +44,12 @@ TextEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
   BaseEditor.prototype.prepare.apply(this, arguments);
 
   if (!cellProperties.readOnly) {
-    // this.hideEditableElement();
-    // this.setValue('');
     this.refreshDimensions(true);
+
+    if (isMSBrowser()) {
+      // Move textarea element out off the viewport due to the cursor overlapping bug on IE.
+      this.hideEditableElement();
+    }
     this.instance._registerImmediate(() => this.focus());
   }
 };

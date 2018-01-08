@@ -503,8 +503,8 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
-    this.setCopyableText();
-    this.textarea.select();
+    // this.setCopyableText();
+    // this.textarea.select();
   }
 
   /**

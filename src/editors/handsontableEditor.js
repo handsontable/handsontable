@@ -119,8 +119,8 @@ HandsontableEditor.prototype.open = function() {
   }
   // Construct and initialise a new Handsontable
   this.htEditor = new this.instance.constructor(this.htContainer, this.htOptions);
-  this.htEditor.rootElement.style.display = '';
   this.htEditor.init();
+  this.htEditor.rootElement.style.display = '';
 
   if (this.cellProperties.strict) {
     this.htEditor.selectCell(0, 0);
@@ -172,11 +172,9 @@ HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
 };
 
 HandsontableEditor.prototype.assignHooks = function() {
-  var _this = this;
-
   this.instance.addHook('afterDestroy', () => {
-    if (_this.htEditor) {
-      _this.htEditor.destroy();
+    if (this.htEditor) {
+      this.htEditor.destroy();
     }
   });
 };
