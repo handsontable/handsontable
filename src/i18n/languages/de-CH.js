@@ -1,7 +1,7 @@
 /**
  * @preserve
  * Authors: Stefan Salzl
- * Last updated: Dec 12, 2017
+ * Last updated: Jan 08, 2018
  *
  * Description: Definition file for German - Switzerland language-country.
  */
@@ -26,7 +26,7 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT]: 'Rechtsbündig',
   [C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY]: 'Blocksatz',
   [C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP]: 'Oben',
-  [C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE]: 'Zentriert',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE]: 'Mitte',
   [C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM]: 'Unten',
 
   [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Spalte fixieren',
@@ -42,7 +42,7 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_ADD_COMMENT]: 'Kommentar hinzufügen',
   [C.CONTEXTMENU_ITEMS_EDIT_COMMENT]: 'Kommentar bearbeiten',
   [C.CONTEXTMENU_ITEMS_REMOVE_COMMENT]: 'Kommentar löschen',
-  [C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT]: 'Kommentar sperren',
+  [C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT]: 'Schreibschutz Kommentar',
 
   [C.CONTEXTMENU_ITEMS_MERGE_CELLS]: 'Zellen verbinden',
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Zellen teilen',
