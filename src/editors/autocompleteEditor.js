@@ -212,8 +212,8 @@ AutocompleteEditor.prototype.updateChoicesList = function(choices) {
     this.highlightBestMatchingChoice(highlightIndex);
   }
 
-  this.instance.listen();
-  this.TEXTAREA.focus();
+  this.instance.listen(false);
+
   setCaretPosition(this.TEXTAREA, pos, (pos === endPos ? void 0 : endPos));
 };
 
@@ -318,7 +318,7 @@ AutocompleteEditor.prototype.finishEditing = function(restoreOriginalValue) {
 
 AutocompleteEditor.prototype.highlightBestMatchingChoice = function(index) {
   if (typeof index === 'number') {
-    this.htEditor.selectCell(index, 0);
+    this.htEditor.selectCell(index, 0, void 0, void 0, void 0, false);
   } else {
     this.htEditor.deselectCell();
   }

@@ -59,7 +59,7 @@ var hotSettings: Handsontable.GridSettings = {
   fixedColumnsLeft: 123,
   fixedRowsBottom: 123,
   fixedRowsTop: 123,
-  format: 'foo',
+  numericFormat: {},
   fragmentSelection: true,
   ganttChart: {},
   headerTooltips: true,

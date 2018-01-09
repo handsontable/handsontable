@@ -6,6 +6,7 @@ import {
   CellRange,
   Selection
 } from './../../3rdparty/walkontable/src';
+import * as C from './../../i18n/constants';
 import bottom from './contextMenuItem/bottom';
 import left from './contextMenuItem/left';
 import noBorders from './contextMenuItem/noBorders';
@@ -18,7 +19,6 @@ import {
   createEmptyBorders,
   extendDefaultBorder
 } from './utils';
-
 /**
  * @plugin CustomBorders
  *

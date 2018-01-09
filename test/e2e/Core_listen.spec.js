@@ -46,6 +46,39 @@ describe('Core_listen', () => {
     expect(hot.isListening()).toEqual(true);
   });
 
+  it('should change focus on active element, when listen without arguments was called', () => {
+    let hot = handsontable();
+    let input = document.createElement('input');
+
+    document.body.appendChild(input);
+
+    hot.selectCell(0, 0);
+    input.focus();
+    hot.listen();
+
+    expect(hot.isListening()).toEqual(true);
+    expect(document.activeElement).not.toBe(input);
+    expect(document.activeElement).toBe(document.body);
+
+    document.body.removeChild(input);
+  });
+
+  it('should not change focus on active element, when listen with first argument as `false` was called', () => {
+    let hot = handsontable();
+    let input = document.createElement('input');
+
+    document.body.appendChild(input);
+
+    hot.selectCell(0, 0);
+    input.focus();
+    hot.listen(false);
+
+    expect(hot.isListening()).toEqual(true);
+    expect(document.activeElement).toBe(input);
+
+    document.body.removeChild(input);
+  });
+
   it('when second instance is created, first should unlisten automatically', () => {
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
     $container1.handsontable('selectCell', 0, 0);

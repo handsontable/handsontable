@@ -23,6 +23,9 @@ import {CellCoords, CellRange, ViewportColumnsCalculator} from './3rdparty/walko
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
 import {getCellType} from './cellTypes';
+import {getTranslatedPhrase} from './i18n';
+import {hasLanguageDictionary} from './i18n/dictionariesManager';
+import {warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLanguageCode} from './i18n/utils';
 
 let activeGuid = null;
 
@@ -71,6 +74,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
   extend(GridSettings.prototype, expandType(userSettings));
 
+  applyLanguageSetting(userSettings.language, GridSettings.prototype);
+
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
   }
@@ -100,12 +105,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   priv = {
     cellSettings: [],
     columnSettings: [],
-    columnsSettingConflicts: ['data', 'width'],
+    columnsSettingConflicts: ['data', 'width', 'language'],
     settings: new GridSettings(), // current settings instance
     selRange: null, // exposed by public method `getSelectedRange`
     isPopulated: null,
     scrollable: null,
-    firstRun: true,
+    firstRun: true
   };
 
   grid = {
@@ -692,8 +697,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.runHooks('afterSelectionByProp',
         priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col), preventScrolling);
 
-      if ((priv.selRange.from.row === 0 && priv.selRange.to.row === instance.countRows() - 1 && instance.countRows() > 1) ||
-        (priv.selRange.from.col === 0 && priv.selRange.to.col === instance.countCols() - 1 && instance.countCols() > 1)) {
+      if (instance.selection.selectedHeader.cols || instance.selection.selectedHeader.rows) {
         isHeaderSelected = true;
       }
 
@@ -947,6 +951,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.setDataAtCell(changes);
     },
   };
+
+  /**
+   * Internal function to set `language` key of settings.
+   *
+   * @private
+   * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'
+   * @fires Hooks#afterLanguageChange
+   */
+  function setLanguage(languageCode) {
+    const normalizedLanguageCode = normalizeLanguageCode(languageCode);
+
+    if (hasLanguageDictionary(normalizedLanguageCode)) {
+      instance.runHooks('beforeLanguageChange', normalizedLanguageCode);
+
+      priv.settings.language = normalizedLanguageCode;
+
+      instance.runHooks('afterLanguageChange', normalizedLanguageCode);
+
+    } else {
+      warnUserAboutLanguageRegistration(languageCode);
+    }
+  }
 
   this.init = function() {
     dataSource.setData(priv.settings.data);
@@ -1295,15 +1321,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function listen
    * @since 0.11
+   * @param {Boolean} [modifyDocumentFocus=true] If `true`, currently focused element will be blured (which returns focus
+   *                                             to the document.body). Otherwise the active element does not lose its focus.
    */
-  this.listen = function() {
-    let invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
+  this.listen = function(modifyDocumentFocus = true) {
+    if (modifyDocumentFocus) {
+      let invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
 
-    if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
-      document.activeElement.blur();
+      if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
+        document.activeElement.blur();
 
-    } else if (invalidActiveElement) { // IE
-      document.body.focus();
+      } else if (invalidActiveElement) { // IE
+        document.body.focus();
+      }
     }
 
     if (instance && !instance.isListening()) {
@@ -1662,8 +1692,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     for (i in settings) {
       if (i === 'data') {
-        /* eslint-disable no-continue */
+        /* eslint-disable-next-line no-continue */
         continue; // loadData will be triggered later
+
+      } else if (i === 'language') {
+        setLanguage(settings.language);
+
+        /* eslint-disable-next-line no-continue */
+        continue;
 
       } else if (Hooks.getSingleton().getRegistered().indexOf(i) > -1) {
         if (isFunction(settings[i]) || Array.isArray(settings[i])) {
@@ -2378,7 +2414,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const prop = datamap.colToProp(col);
     let cellProperties;
 
-    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
+    let [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
+
+    // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
+    if (physicalRow === null) {
+      physicalRow = row;
+    }
 
     if (!priv.columnSettings[physicalColumn]) {
       priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
@@ -3401,6 +3442,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return Hooks.getSingleton().run(instance, key, p1, p2, p3, p4, p5, p6);
   };
 
+  /**
+   * Get phrase for specified dictionary key.
+   *
+   * @memberof Core#
+   * @function getTranslatedPhrase
+   * @since 0.35.0
+   * @param {String} dictionaryKey Constant which is dictionary key.
+   * @param {*} extraArguments Arguments which will be handled by formatters.
+   *
+   * @returns {String}
+   */
+  this.getTranslatedPhrase = function(dictionaryKey, extraArguments) {
+    return getTranslatedPhrase(priv.settings.language, dictionaryKey, extraArguments);
+  };
+
   this.timeouts = [];
 
   /**
@@ -3423,13 +3479,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       clearTimeout(this.timeouts[i]);
     }
   };
-
-  /**
-   * Handsontable version
-   *
-   * @type {String}
-   */
-  // this.version = Handsontable.version;
 
   Hooks.getSingleton().run(instance, 'construct');
 };

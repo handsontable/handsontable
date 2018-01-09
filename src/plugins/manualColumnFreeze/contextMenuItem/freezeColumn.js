@@ -1,7 +1,11 @@
+import * as C from './../../../i18n/constants';
+
 export default function freezeColumnItem(manualColumnFreezePlugin) {
   return {
     key: 'freeze_column',
-    name: 'Freeze this column',
+    name() {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_FREEZE_COLUMN);
+    },
     callback() {
       let selectedColumn = this.getSelectedRange().from.col;
 
