@@ -41,7 +41,7 @@ describe('CustomBorders', () => {
     });
     // [top,left, bottom, right]
 
-    let borders = $('.wtBorder.border_row2col2');
+    const borders = $('.wtBorder.border_row2col2');
     expect(borders.length).toEqual(20); // 4 times 5 elements (top,right, bottom, left, corner)
     expect(borders[0].className).toContain('hidden'); // hidden top
     expect(borders[1].style.backgroundColor).toEqual('red'); // left red
@@ -87,27 +87,27 @@ describe('CustomBorders', () => {
         }]
     });
 
-    for (let row = 1; row <= 3; row++) {
-      for (let column = 1; column <= 4; column++) {
-        if (row == 1) {
+    for (let row = 1; row <= 3; row += 1) {
+      for (let column = 1; column <= 4; column += 1) {
+        if (row === 1) {
           let topRow = $(`.wtBorder.border_row${row}col${column}`);
           expect(topRow.length).toEqual(20); // borders for all tables (main and hiders)
           expect(topRow[0].style.backgroundColor).toEqual('black');
           expect(topRow[0].style.height).toEqual('2px');
         }
-        if (column == 1) {
+        if (column === 1) {
           let leftColumn = $(`.wtBorder.border_row${row}col${column}`);
           expect(leftColumn.length).toEqual(20); // borders for all tables (main and hiders)
           expect(leftColumn[1].style.backgroundColor).toEqual('red');
           expect(leftColumn[1].style.width).toEqual('2px');
         }
-        if (row == 3) {
+        if (row === 3) {
           let bottomRow = $(`.wtBorder.border_row${row}col${column}`);
           expect(bottomRow.length).toEqual(20); // borders for all tables (main and hiders)
           expect(bottomRow[2].style.backgroundColor).toEqual('red');
           expect(bottomRow[2].style.height).toEqual('2px');
         }
-        if (column == 4) {
+        if (column === 4) {
           let rightColumn = $(`.wtBorder.border_row${row}col${column}`);
           expect(rightColumn.length).toEqual(20); // borders for all tables (main and hiders)
           expect(rightColumn[3].style.backgroundColor).toEqual('black');
@@ -133,13 +133,13 @@ describe('CustomBorders', () => {
       };
 
     contextMenu();
-    let item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
+    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
     await sleep(300);
 
-    let contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    let button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
+    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
 
     button.simulate('mousedown');
 
@@ -166,13 +166,13 @@ describe('CustomBorders', () => {
       };
 
     contextMenu();
-    let item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
+    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
     await sleep(300);
 
-    let contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    let button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
+    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
 
     button.simulate('mousedown');
 
@@ -200,13 +200,13 @@ describe('CustomBorders', () => {
       };
 
     contextMenu();
-    let item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
+    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
     await sleep(300);
 
-    let contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    let button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
+    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
 
     button.simulate('mousedown');
 
@@ -234,13 +234,13 @@ describe('CustomBorders', () => {
       };
 
     contextMenu();
-    let item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
+    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
     await sleep(300);
 
-    let contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    let button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
+    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
 
     button.simulate('mousedown');
 
@@ -272,13 +272,13 @@ describe('CustomBorders', () => {
     });
 
     contextMenu();
-    let item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
+    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
     await sleep(300);
 
-    let contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-    let button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
+    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
 
     button.simulate('mousedown');
 

@@ -19,7 +19,7 @@ export function createClassName(row, col) {
 export function createDefaultCustomBorder() {
   return {
     width: 1,
-    color: '#000'
+    color: '#000',
   };
 }
 
@@ -29,9 +29,7 @@ export function createDefaultCustomBorder() {
  * @returns {Object} `{{hide: boolean}}`
  */
 export function createSingleEmptyBorder() {
-  return {
-    hide: true
-  };
+  return { hide: true };
 }
 
 /**
@@ -115,6 +113,7 @@ export function checkSelectionBorders(hot, direction) {
       }
     }
   });
+
   return atLeastOneHasBorder;
 }
 

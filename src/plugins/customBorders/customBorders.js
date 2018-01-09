@@ -1,14 +1,23 @@
 import BasePlugin from './../_base';
-import {registerPlugin} from './../../plugins';
-import {hasOwnProperty} from './../../helpers/object';
-import {rangeEach} from './../../helpers/number';
-import {CellRange, Selection} from './../../3rdparty/walkontable/src';
+import { registerPlugin } from './../../plugins';
+import { hasOwnProperty } from './../../helpers/object';
+import { rangeEach } from './../../helpers/number';
+import {
+  CellRange,
+  Selection
+} from './../../3rdparty/walkontable/src';
 import bottom from './contextMenuItem/bottom';
 import left from './contextMenuItem/left';
 import noBorders from './contextMenuItem/noBorders';
 import right from './contextMenuItem/right';
 import top from './contextMenuItem/top';
-import {createClassName, createDefaultCustomBorder, createSingleEmptyBorder, createEmptyBorders, extendDefaultBorder} from './utils';
+import {
+  createClassName,
+  createDefaultCustomBorder,
+  createSingleEmptyBorder,
+  createEmptyBorders,
+  extendDefaultBorder
+} from './utils';
 
 /**
  * @plugin CustomBorders
@@ -74,7 +83,7 @@ class CustomBorders extends BasePlugin {
      *
      * @type {Array}
      */
-    this.savedSettings = void 0;
+    this.savedBorderSettings = void 0;
   }
 
   /**
@@ -94,7 +103,7 @@ class CustomBorders extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options) => this.addBordersOptionsToContextMenu(options));
+    this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
     this.addHook('afterInit', () => this.onAfterInit());
 
     super.enablePlugin();
@@ -104,7 +113,7 @@ class CustomBorders extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    this.setsBordersSettings();
+    this.clearBorders();
 
     super.disablePlugin();
   }
@@ -116,7 +125,7 @@ class CustomBorders extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
-    this.setsBordersSettings();
+    this.changeBorderSettings();
 
     super.updatePlugin();
   }
@@ -128,11 +137,7 @@ class CustomBorders extends BasePlugin {
    * @returns {Number}
    */
   getSettingIndex(className) {
-    rangeEach(0, this.hot.view.wt.selections.length - 1, (index) => {
-      if (this.hot.view.wt.selections[index].settings.className === className) {
-        return index;
-      }
-    });
+    this.hot.view.wt.selections.findIndex((element) => element.settings.className === className);
 
     return -1;
   }
@@ -187,7 +192,7 @@ class CustomBorders extends BasePlugin {
         let add = 0;
 
         if (rowIndex === range.from.row) {
-          add++;
+          add += 1;
 
           if (hasOwnProperty(rowObj, 'top')) {
             border.top = rowObj.top;
@@ -195,7 +200,7 @@ class CustomBorders extends BasePlugin {
         }
 
         if (rowIndex === range.to.row) {
-          add++;
+          add += 1;
 
           if (hasOwnProperty(rowObj, 'bottom')) {
             border.bottom = rowObj.bottom;
@@ -203,7 +208,7 @@ class CustomBorders extends BasePlugin {
         }
 
         if (colIndex === range.from.col) {
-          add++;
+          add += 1;
 
           if (hasOwnProperty(rowObj, 'left')) {
             border.left = rowObj.left;
@@ -211,7 +216,7 @@ class CustomBorders extends BasePlugin {
         }
 
         if (colIndex === range.to.col) {
-          add++;
+          add += 1;
 
           if (hasOwnProperty(rowObj, 'right')) {
             border.right = rowObj.right;
@@ -232,17 +237,13 @@ class CustomBorders extends BasePlugin {
    * @param {String} borderClassName Border class name as string.
    */
   removeBordersFromDom(borderClassName) {
-    let borders = this.hot.rootElement.querySelectorAll(`.${borderClassName}`);
+    let borders = this.hot.rootElement.querySelectorAll(`.${borderClassName}:not(td)`);
 
     rangeEach(0, borders.length - 1, (index) => {
-      if (borders[index]) {
-        if (borders[index].nodeName !== 'TD') {
-          let parent = borders[index].parentNode;
+      let parent = borders[index].parentNode;
 
-          if (parent.parentNode) {
-            parent.parentNode.removeChild(parent);
-          }
-        }
+      if (parent.parentNode) {
+        parent.parentNode.removeChild(parent);
       }
     });
   }
@@ -371,15 +372,14 @@ class CustomBorders extends BasePlugin {
    * @private
    * @param {Object} defaultOptions Context menu items.
    */
-  addBordersOptionsToContextMenu(defaultOptions) {
+  onAfterContextMenuDefaultOptions(defaultOptions) {
     if (!this.hot.getSettings().customBorders) {
       return;
     }
 
     defaultOptions.items.push({
       name: '---------',
-    });
-    defaultOptions.items.push({
+    }, {
       key: 'borders',
       name: 'Borders',
       disabled() {
@@ -398,25 +398,33 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Sets borders from settings.
-   *
-   * @private
-   */
-  setsBordersSettings() {
-    let customBorders = this.hot.getSettings().customBorders;
+    * Clear borders.
+    *
+    * @private
+    */
+  clearBorders() {
     let bordersFromTable = this.hot.rootElement.querySelectorAll('td[class^="border"]');
 
     rangeEach(0, bordersFromTable.length - 1, (index) => {
       this.removeBordersFromDom(bordersFromTable[index].className);
     });
+  }
+
+  /**
+   * Change borders from settings.
+   *
+   * @private
+   */
+  changeBorderSettings() {
+    let customBorders = this.hot.getSettings().customBorders;
 
     if (customBorders) {
       if (Array.isArray(customBorders)) {
-        this.savedSettings = customBorders;
+        this.savedBorderSettings = customBorders;
         this.createCustomBorders(customBorders);
 
       } else if (customBorders !== void 0) {
-        let borders = this.savedSettings ? this.savedSettings : customBorders;
+        let borders = this.savedBorderSettings ? this.savedBorderSettings : customBorders;
 
         this.createCustomBorders(borders);
       }
@@ -429,7 +437,7 @@ class CustomBorders extends BasePlugin {
    * @private
    */
   onAfterInit() {
-    this.setsBordersSettings();
+    this.changeBorderSettings();
   }
 
   /**
