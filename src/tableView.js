@@ -533,6 +533,9 @@ function TableView(instance) {
     columnHeaderHeight: function() {
       const columnHeaderHeight = instance.runHooks('modifyColumnHeaderHeight');
       return that.settings.columnHeaderHeight || columnHeaderHeight;
+    },
+    scrollColHeaders: function() {
+      return that.settings.scrollColHeaders;
     }
   };
 
@@ -541,7 +544,7 @@ function TableView(instance) {
   this.wt = new Walkontable(walkontableConfig);
   this.activeWt = this.wt;
 
-  if (!isChrome() && !isSafari()) {
+  if (!isChrome() && !isSafari() && this.settings.scrollCompatibilityMode) {
     this.eventManager.addEventListener(instance.rootElement, 'wheel', (event) => {
       event.preventDefault();
 

@@ -234,7 +234,7 @@ class Overlays {
           overlay = 'bottomLeft';
         }
 
-        if ((overlay == 'top' && deltaY !== 0) ||
+        if ((overlay == 'top' && deltaY !== 0 && this.wot.getSetting('scrollColHeaders')) ||
           (overlay == 'left' && deltaX !== 0) ||
           (overlay == 'bottom' && deltaY !== 0) ||
           ((overlay === 'topLeft' || overlay === 'bottomLeft') && (deltaY !== 0 || deltaX !== 0))) {
@@ -525,7 +525,7 @@ class Overlays {
       }
 
       // "fake" scroll value calculated from the mousewheel event
-      if (fakeScrollValue !== null) {
+      if (fakeScrollValue !== null && this.wot.getSetting('scrollColHeaders')) {
         scrollValueChanged = true;
         masterVertical.scrollTop += fakeScrollValue;
       }
