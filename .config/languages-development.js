@@ -36,9 +36,6 @@ function getEntryJsFiles() {
 
 const ruleForSnippetsInjection = {
   test: /\.js$/,
-  include: [
-    path.resolve(__dirname, '../', SOURCE_LANGUAGES_DIRECTORY),
-  ],
   loader: StringReplacePlugin.replace({
     replacements: [
       {
@@ -69,6 +66,7 @@ module.exports.create = function create() {
       path: path.resolve(__dirname, '../' + OUTPUT_LANGUAGES_DIRECTORY),
       libraryTarget: 'umd',
       filename: '[name].js',
+      // Workaround below: Without this option webpack would export all language packs as globals
       libraryExport: '___',
       umdNamedDefine: true
     },
