@@ -18,7 +18,7 @@ class Storage {
      *
      * @type {Array}
      */
-    this.savedKeys = void 0;
+    this.savedKeys = [];
     this.loadSavedKeys();
   }
 
@@ -29,7 +29,7 @@ class Storage {
    * @param {Mixed} value Value to save.
    */
   saveValue(key, value) {
-    window.localStorage[`${this.prefix}_${key}`] = JSON.stringify(value);
+    window.localStorage.setItem(`${this.prefix}_${key}`, JSON.stringify(value));
 
     if (this.savedKeys.indexOf(key) === -1) {
       this.savedKeys.push(key);
@@ -48,9 +48,9 @@ class Storage {
   loadValue(key, defaultValue) {
     key = typeof key === 'undefined' ? defaultValue : key;
 
-    let value = window.localStorage[`${this.prefix}_${key}`];
+    let value = window.localStorage.getItem(`${this.prefix}_${key}`);
 
-    return typeof value === 'undefined' ? void 0 : JSON.parse(value);
+    return value === null ? void 0 : JSON.parse(value);
   }
 
   /**
@@ -92,7 +92,7 @@ class Storage {
    * @private
    */
   saveSavedKeys() {
-    window.localStorage[`${this.prefix}__persistentStateKeys`] = JSON.stringify(this.savedKeys);
+    window.localStorage.setItem(`${this.prefix}__persistentStateKeys`, JSON.stringify(this.savedKeys));
   };
 
   /**

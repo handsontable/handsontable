@@ -71,7 +71,6 @@ class PersistentState extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    this.storage.savedKeys.length = 0;
     this.storage = void 0;
 
     super.disablePlugin();
@@ -88,7 +87,7 @@ class PersistentState extends BasePlugin {
   }
 
   /**
-   * Load value from localStorage
+   * Load value from localStorage.
    *
    * @param {String} key Key string.
    * @param {Object} saveTo Saved value from browser local storage.
@@ -98,7 +97,7 @@ class PersistentState extends BasePlugin {
   }
 
   /**
-   * Save data to localStorage
+   * Save data to localStorage.
    *
    * @param {String} key Key string.
    * @param {Mixed} value Value to save.
@@ -110,7 +109,7 @@ class PersistentState extends BasePlugin {
   /**
    * Reset given data or all data from localStorage.
    *
-   * @param {String} key Key string.
+   * @param {String} key [optional] Key string.
    */
   resetValue(key) {
     if (typeof key === 'undefined') {

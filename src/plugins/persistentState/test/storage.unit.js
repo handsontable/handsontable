@@ -7,7 +7,8 @@ describe('persistentState', () => {
 
       return {
         setItem: (key, value) => { store[key] = value.toString(); },
-        removeItem: (key) => { delete store[key]; }
+        getItem: (key) => store[key],
+        removeItem: (key) => { delete store[key]; },
       };
     })();
 
@@ -50,6 +51,28 @@ describe('persistentState', () => {
       storage.saveValue(1, 'one');
 
       expect(storage.savedKeys).toContain(1);
+    });
+
+    it('should load data from localStorage when call loadValue method', () => {
+      const storage = new Storage('example');
+
+      localStorage.setItem(1, 'one');
+
+      const value = storage.loadValue(1);
+
+      expect(value).toEqual('one');
+    });
+
+    it('should remove data from localStorage when call reset method', () => {
+      const storage = new Storage('example');
+
+      storage.saveValue(1, 'one');
+
+      expect(localStorage.getItem('example_1')).toContain('one');
+
+      storage.reset(1);
+
+      expect(localStorage.getItem('example_1')).toBeUndefined();
     });
 
     it('should remove all data from savedKeys array when call resetAll method', () => {
