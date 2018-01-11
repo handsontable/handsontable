@@ -1024,6 +1024,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     };
   }
 
+  /**
+   * Parsing part of change and updating value from "float like" string to number.
+   * Note: We update that by reference, that's why we pass whole object.
+   *
+   * @param {Array} singleChange Array in form of [row, prop, oldValue, newValue]
+   */
+  function parseNewValueInsideSingleChange(singleChange) {
+    let newValue = singleChange[3];
+
+    // Unifying "float like" string. Change from value with comma determiners to value with dot determiners,
+    // for example from `450,65` to `450.65`.
+    newValue = newValue.replace(',', '.');
+
+    if (isNaN(parseFloat(newValue)) === false) {
+      singleChange[3] = parseFloat(newValue);
+    }
+  }
+
   function validateChanges(changes, source, callback) {
     var waitingForValidator = new ValidatorsQueue();
     waitingForValidator.onQueueEmpty = resolve;
@@ -1038,10 +1056,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         var cellProperties = instance.getCellMeta(row, col);
         const numericFormat = cellProperties.numericFormat;
         const cellCulture = numericFormat && numericFormat.culture;
-        const cellFormatPattern = numericFormat && numericFormat.pattern;
 
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3]) || cellFormatPattern)) {
+          if (changes[i][3].length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3])) {
             var len = changes[i][3].length;
 
             if (isUndefined(cellCulture)) {
@@ -1055,13 +1072,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               numbro.culture(cellCulture);
             }
 
-            // try to parse to float - https://github.com/foretagsplatsen/numbro/pull/183
-            if (numbro.validate(changes[i][3]) && !isNaN(changes[i][3])) {
-              changes[i][3] = parseFloat(changes[i][3]);
-
-            } else {
-              changes[i][3] = numbro().unformat(changes[i][3]) || changes[i][3];
-            }
+            parseNewValueInsideSingleChange(changes[i]);
           }
         }
 
