@@ -49,7 +49,7 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(2, 0)).toEqual(999);
   });
 
-  it('should not convert "float like" formatted input value to number (object data source) #4706', async () => {
+  it('should not convert formatted "float like" input value to number (object data source) #4706', async () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -209,10 +209,12 @@ describe('NumericEditor', () => {
       data: arrayOfObjects(),
       columns: [
         {data: 'id', type: 'numeric'},
-        {data: 'name'},
+        {data: 'price', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}},
         {data: 'lastName'}
       ]
     });
+
+    // Column with default formatting
 
     selectCell(0, 0);
     keyDown('enter');
@@ -239,6 +241,35 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
+    // Column with specified formatting
+
+    await sleep(100);
+
+    selectCell(0, 1);
+    keyDown('enter');
+
+    document.activeElement.value = '12aaa34';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    selectCell(1, 1);
+    keyDown('enter');
+
+    document.activeElement.value = 'aaa34';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    selectCell(2, 1);
+    keyDown('enter');
+
+    document.activeElement.value = '12aaa';
+
+    destroyEditor();
+
     await sleep(100);
 
     expect($(getCell(0, 0)).hasClass('htInvalid')).toBe(true);
@@ -249,6 +280,15 @@ describe('NumericEditor', () => {
 
     expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(true);
     expect(getDataAtCell(2, 0)).toEqual('12aaa');
+
+    expect($(getCell(0, 1)).hasClass('htInvalid')).toBe(true);
+    expect(getDataAtCell(0, 1)).toEqual('12aaa34');
+
+    expect($(getCell(1, 1)).hasClass('htInvalid')).toBe(true);
+    expect(getDataAtCell(1, 1)).toEqual('aaa34');
+
+    expect($(getCell(2, 1)).hasClass('htInvalid')).toBe(true);
+    expect(getDataAtCell(2, 1)).toEqual('12aaa');
   });
 
   it('should display a string in a format \'$X,XXX.XX\' when using language=en, appropriate format in column settings and \'XXXX.XX\' as ' +
