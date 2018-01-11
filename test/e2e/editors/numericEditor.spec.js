@@ -411,6 +411,117 @@ describe('NumericEditor', () => {
     expect(getCell(2, 3).innerHTML).toEqual('$2,456.22');
   });
 
+  it('should display values as "float like" string with dot as determiner after pressing enter ' +
+    'and not change value after closing editor', async () => {
+    handsontable({
+      data: [
+        {id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5}
+      ],
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'price_eur', type: 'numeric'},
+        {data: 'price_pln', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
+        {data: 'price_aud', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}}
+      ]
+    });
+
+    selectCell(0, 1);
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(document.activeElement.value).toEqual('222.5');
+
+    // closing editor
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(getDataAtCell(0, 1)).toEqual(222.5);
+
+    selectCell(0, 2);
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(document.activeElement.value).toEqual('1222.6');
+
+    // closing editor
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(getDataAtCell(0, 2)).toEqual(1222.6);
+
+    selectCell(0, 3);
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(document.activeElement.value).toEqual('1333.5');
+
+    // closing editor
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(getDataAtCell(0, 3)).toEqual(1333.5);
+  });
+
+  it('should display values as "float like" string with dot as determiner after double click ' +
+    'and not change value after closing editor', async () => {
+    handsontable({
+      data: [
+        {id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5}
+      ],
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'price_eur', type: 'numeric'},
+        {data: 'price_pln', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
+        {data: 'price_aud', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}}
+      ]
+    });
+
+    mouseDoubleClick(getCell(0, 1));
+
+    await sleep(100);
+
+    expect(document.activeElement.value).toEqual('222.5');
+
+    // closing editor
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(getDataAtCell(0, 1)).toEqual(222.5);
+
+    mouseDoubleClick(getCell(0, 2));
+
+    await sleep(100);
+
+    expect(document.activeElement.value).toEqual('1222.6');
+
+    // closing editor
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(getDataAtCell(0, 2)).toEqual(1222.6);
+
+    mouseDoubleClick(getCell(0, 3));
+
+    await sleep(100);
+
+    expect(document.activeElement.value).toEqual('1333.5');
+
+    // closing editor
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(getDataAtCell(0, 3)).toEqual(1333.5);
+  });
+
   it('should mark text as invalid without removing when using `setDataAtCell`', async () => {
     const hot = handsontable({
       data: arrayOfObjects(),
