@@ -1581,7 +1581,7 @@ DefaultSettings.prototype = {
    * - pattern, which is handled by `numbro` for purpose of formatting numbers to desired pattern. List of supported patterns can be found [here](http://numbrojs.com/format.html#numbers).
    * - culture, which is handled by `numbro` for purpose of formatting currencies. Examples showing how it works can be found [here](http://numbrojs.com/format.html#currency). List of supported cultures can be found [here](http://numbrojs.com/languages.html#supported-languages).
    *
-   * Note: Please keep in mind that this option is used only to format the displayed output! It has no effect on the input data provided for the cell. Numbers can be entered to the table only as floats (separated by a dot or a comma) or integers, and are stored in the dataset in the same way.
+   * Note: Please keep in mind that this option is used only to format the displayed output! It has no effect on the input data provided for the cell. Numbers can be entered to the table only as floats (separated by a dot or a comma) or integers, and are stored in the dataset as JavaScript numbers.
    *
    * Since 0.26.0 Handsontable uses [numbro](http://numbrojs.com/) as a main library for numbers formatting.
    *
