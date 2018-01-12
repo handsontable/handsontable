@@ -1026,7 +1026,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Get parsed number from numeric string.
    *
    * @param {String} numericData Float (separated by a dot or a comma) or integer.
-   * @returns {Number} Number if we get data in "float like" or "integer like" format, not changed value otherwise.
+   * @returns {Number} Number if we get data in parsable format, not changed value otherwise.
    */
   function getParsedNumber(numericData) {
     // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
@@ -1040,22 +1040,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return numericData;
   }
 
+  /**
+   * Checks if given value is numeric.
+   *
+   * @param {String} value Checked value.
+   * @returns {Boolean}
+   */
+  function isNumericData(value) {
+    return value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
+  }
+
   function validateChanges(changes, source, callback) {
-    var waitingForValidator = new ValidatorsQueue();
+    const waitingForValidator = new ValidatorsQueue();
+
     waitingForValidator.onQueueEmpty = resolve;
 
-    for (var i = changes.length - 1; i >= 0; i--) {
+    for (let i = changes.length - 1; i >= 0; i--) {
       if (changes[i] === null) {
         changes.splice(i, 1);
       } else {
-        var row = changes[i][0];
-        var col = datamap.propToCol(changes[i][1]);
-        var cellProperties = instance.getCellMeta(row, col);
+        const [row, prop, , newValue] = changes[i];
+        const col = datamap.propToCol(prop);
+        const cellProperties = instance.getCellMeta(row, col);
 
-        if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3])) {
-            changes[i][3] = getParsedNumber(changes[i][3]);
-          }
+        if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericData(newValue)) {
+          changes[i][3] = getParsedNumber(newValue);
         }
 
         /* eslint-disable no-loop-func */
