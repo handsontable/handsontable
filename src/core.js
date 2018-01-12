@@ -1,4 +1,3 @@
-import numbro from 'numbro';
 import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
 import {columnFactory} from './helpers/setting';
 import {isFunction} from './helpers/function';
@@ -33,7 +32,6 @@ let activeGuid = null;
  * Handsontable constructor
  *
  * @core
- * @dependencies numbro
  * @constructor Core
  * @description
  *
@@ -1025,21 +1023,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   /**
-   * Parsing part of change and updating value from "float like" string to number.
-   * Note: We update that by reference, that's why we pass whole object.
+   * Get parsed number from numeric string.
    *
-   * @param {Array} singleChange Array in form of [row, prop, oldValue, newValue]
+   * @param {String} numericData Float (separated by a dot or a comma) or integer.
+   * @returns {Number} Number if we get data in "float like" or "integer like" format, not changed value otherwise.
    */
-  function parseNewValueInsideSingleChange(singleChange) {
-    let newValue = singleChange[3];
-
-    // Unifying "float like" string. Change from value with comma determiners to value with dot determiners,
+  function getParsedNumber(numericData) {
+    // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
     // for example from `450,65` to `450.65`.
-    newValue = newValue.replace(',', '.');
+    const unifiedNumericData = numericData.replace(',', '.');
 
-    if (isNaN(parseFloat(newValue)) === false) {
-      singleChange[3] = parseFloat(newValue);
+    if (isNaN(parseFloat(unifiedNumericData)) === false) {
+      return parseFloat(unifiedNumericData);
     }
+
+    return numericData;
   }
 
   function validateChanges(changes, source, callback) {
@@ -1052,27 +1050,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       } else {
         var row = changes[i][0];
         var col = datamap.propToCol(changes[i][1]);
-
         var cellProperties = instance.getCellMeta(row, col);
-        const numericFormat = cellProperties.numericFormat;
-        const cellCulture = numericFormat && numericFormat.culture;
 
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3])) {
-            var len = changes[i][3].length;
-
-            if (isUndefined(cellCulture)) {
-              numbro.culture('en-US');
-
-            } else if (changes[i][3].indexOf('.') === len - 3 && changes[i][3].indexOf(',') === -1) {
-              // this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
-              numbro.culture('en-US');
-            } else {
-
-              numbro.culture(cellCulture);
-            }
-
-            parseNewValueInsideSingleChange(changes[i]);
+            changes[i][3] = getParsedNumber(changes[i][3]);
           }
         }
 
