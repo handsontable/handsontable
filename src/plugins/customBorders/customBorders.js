@@ -381,7 +381,9 @@ class CustomBorders extends BasePlugin {
       name: '---------',
     }, {
       key: 'borders',
-      name: 'Borders',
+      name() {
+        return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS);
+      },
       disabled() {
         return this.selection.selectedHeader.corner;
       },
