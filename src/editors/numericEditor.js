@@ -1,4 +1,3 @@
-import numbro from 'numbro';
 import TextEditor from './textEditor';
 
 /**
@@ -8,23 +7,11 @@ import TextEditor from './textEditor';
  * @dependencies TextEditor numbro
  */
 class NumericEditor extends TextEditor {
-  /**
-   * @param {*} initialValue
-   */
-  beginEditing(initialValue) {
-    if (typeof initialValue === 'undefined' && this.originalValue) {
-      const decimalDelimiter = numbro.cultureData().delimiters.decimal;
-      const numericFormat = this.cellProperties.numericFormat;
-      const cellCulture = numericFormat && numericFormat.culture;
-
-      if (typeof cellCulture !== 'undefined') {
-        numbro.culture(cellCulture);
-      }
-
-      initialValue = (`${this.originalValue}`).replace('.', decimalDelimiter);
-    }
-
-    super.beginEditing(initialValue);
+  beginEditing(initialValue, event) {
+    // There is a problem with `initialValue` property which gets other value when we press `enter`, other when we perform the double click.
+    // It was discovered within #4706. Property `event` should be probably removed, but now it's handled by `open` function of `BaseEditor`
+    // (called inside inherited `beginEditing` function).
+    super.beginEditing(this.originalValue, event);
   }
 }
 

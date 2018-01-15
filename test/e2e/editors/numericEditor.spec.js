@@ -1,5 +1,5 @@
 describe('NumericEditor', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('NumericEditor', () => {
     }
   });
 
-  var arrayOfObjects = function() {
+  const arrayOfObjects = function() {
     return [
       {id: 1, name: 'Ted', lastName: 'Right'},
       {id: 2, name: 'Frank', lastName: 'Honest'},
@@ -27,17 +27,14 @@ describe('NumericEditor', () => {
     ];
   };
 
-  it('should convert numeric value to number (object data source)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-
+  it('should convert "integer like" input value to number (object data source)', async () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
         {data: 'id', type: 'numeric'},
         {data: 'name'},
         {data: 'lastName'}
-      ],
-      afterValidate: onAfterValidate
+      ]
     });
     selectCell(2, 0);
 
@@ -46,14 +43,152 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    setTimeout(() => {
-      expect(typeof getDataAtCell(2, 0)).toEqual('number');
-      expect(getDataAtCell(2, 0)).toEqual(999);
-      done();
-    }, 100);
+    await sleep(100);
+
+    expect(typeof getDataAtCell(2, 0)).toEqual('number');
+    expect(getDataAtCell(2, 0)).toEqual(999);
   });
 
-  it('should apply changes to editor after validation', (done) => {
+  it('should not convert formatted "float like" input value to number (object data source) #4706', async () => {
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id'},
+        {data: 'price_eur', type: 'numeric'},
+        {data: 'price_pln', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
+        {data: 'price_aud', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}}
+      ]
+    });
+
+    selectCell(0, 1);
+    keyDown('enter');
+
+    document.activeElement.value = '100.000,0';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    selectCell(1, 1);
+    keyDown('enter');
+
+    document.activeElement.value = '200,000.5';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    selectCell(0, 2);
+    keyDown('enter');
+
+    document.activeElement.value = '300,000.5';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    selectCell(1, 2);
+    keyDown('enter');
+
+    document.activeElement.value = '300.000,5';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    selectCell(0, 3);
+    keyDown('enter');
+
+    document.activeElement.value = '400.000,5';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    selectCell(1, 3);
+    keyDown('enter');
+
+    document.activeElement.value = '400,000.5';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    expect(getDataAtCell(0, 1)).toEqual('100.000,0');
+    expect(getDataAtCell(1, 1)).toEqual('200,000.5');
+    expect(getDataAtCell(0, 2)).toEqual('300,000.5');
+    expect(getDataAtCell(1, 2)).toEqual('300.000,5');
+    expect(getDataAtCell(0, 3)).toEqual('400.000,5');
+    expect(getDataAtCell(1, 3)).toEqual('400,000.5');
+  });
+
+  it('should convert "float like" input value with dot as determiner to number (object data source)', async () => {
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'price'},
+        {data: 'lastName'}
+      ]
+    });
+    selectCell(2, 0);
+
+    keyDown('enter');
+    document.activeElement.value = '77.70';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    expect(typeof getDataAtCell(2, 0)).toEqual('number');
+    expect(getDataAtCell(2, 0)).toEqual(77.7);
+  });
+
+  it('should convert "float like" input value with comma as determiner to number (object data source)', async () => {
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ]
+    });
+    selectCell(2, 0);
+
+    keyDown('enter');
+    document.activeElement.value = '77,70';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    expect(typeof getDataAtCell(2, 0)).toEqual('number');
+    expect(getDataAtCell(2, 0)).toEqual(77.7);
+  });
+
+  it('should convert "float like" input without leading zero to a float', async () => {
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ]
+    });
+
+    selectCell(2, 0);
+    keyDown('enter');
+
+    document.activeElement.value = '.74';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    expect(getDataAtCell(2, 0)).toEqual(0.74);
+  });
+
+  it('should apply changes to editor after validation', async () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -64,147 +199,107 @@ describe('NumericEditor', () => {
     selectCell(0, 0);
     keyDown('delete');
 
-    setTimeout(() => {
-      expect(getActiveEditor().originalValue).toEqual('');
-      done();
-    }, 100);
+    await sleep(100);
+
+    expect(getActiveEditor().originalValue).toEqual('');
   });
 
-  it('should allow custom validator', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-
-    handsontable({
-      data: arrayOfObjects(),
-      allowInvalid: false,
-      columns: [
-        {
-          data: 'id',
-          type: 'numeric',
-          validator(val, cb) {
-            cb(parseInt(val, 10) > 100);
-          }
-        },
-        {data: 'name'},
-        {data: 'lastName'}
-      ],
-      afterValidate: onAfterValidate
-    });
-    selectCell(2, 0);
-
-    keyDown('enter');
-    document.activeElement.value = '99';
-
-    destroyEditor();
-
-    setTimeout(() => {
-      expect(getDataAtCell(2, 0)).not.toEqual(99); // should be ignored
-
-      document.activeElement.value = '999';
-
-      onAfterValidate.calls.reset();
-      destroyEditor();
-    }, 100);
-
-    setTimeout(() => {
-      expect(getDataAtCell(2, 0)).toEqual(999);
-      done();
-    }, 200);
-  });
-
-  it('should convert string in format \'XX.XX\' to a float with the same value', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-
+  it('should not validate string input data containing numbers ', async () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
         {data: 'id', type: 'numeric'},
-        {data: 'name'},
+        {data: 'price', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}},
         {data: 'lastName'}
-      ],
-      afterValidate: onAfterValidate
+      ]
     });
-    selectCell(2, 0);
 
+    // Column with default formatting
+
+    selectCell(0, 0);
     keyDown('enter');
 
-    document.activeElement.value = '99.99';
+    document.activeElement.value = '12aaa34';
 
-    onAfterValidate.calls.reset();
     destroyEditor();
 
-    setTimeout(() => {
-      expect(getDataAtCell(2, 0)).toEqual(parseFloat(99.99));
-      done();
-    }, 100);
-  });
+    await sleep(100);
 
-  it('should convert string in format \'XX.XX\' to a float when passing float without leading zero', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-
-    handsontable({
-      data: arrayOfObjects(),
-      columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
-      ],
-      afterValidate: onAfterValidate
-    });
-    selectCell(2, 0);
-
+    selectCell(1, 0);
     keyDown('enter');
 
-    document.activeElement.value = '.74';
+    document.activeElement.value = 'aaa34';
 
-    onAfterValidate.calls.reset();
     destroyEditor();
 
-    setTimeout(() => {
-      expect(getDataAtCell(2, 0)).toEqual(parseFloat(0.74));
-      done();
-    }, 100);
-  });
+    await sleep(100);
 
-  it('should convert string in format \'XX,XX\' (with comma as separator) to a float with the same value if the numeric locale ' +
-     'specifies comma as the precision delimiter (language=de)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-
-    handsontable({
-      data: arrayOfObjects(),
-      columns: [
-        {data: 'id', type: 'numeric', numericFormat: {culture: 'de-DE'}},
-        {data: 'name'},
-        {data: 'lastName'}
-      ],
-      afterValidate: onAfterValidate
-    });
     selectCell(2, 0);
-
     keyDown('enter');
 
-    document.activeElement.value = '99,99';
+    document.activeElement.value = '12aaa';
 
-    onAfterValidate.calls.reset();
     destroyEditor();
 
-    setTimeout(() => {
-      expect(getDataAtCell(2, 0)).toEqual(parseFloat(99.99));
-      done();
-    }, 100);
+    // Column with specified formatting
+
+    await sleep(100);
+
+    selectCell(0, 1);
+    keyDown('enter');
+
+    document.activeElement.value = '12aaa34';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    selectCell(1, 1);
+    keyDown('enter');
+
+    document.activeElement.value = 'aaa34';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    selectCell(2, 1);
+    keyDown('enter');
+
+    document.activeElement.value = '12aaa';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    expect($(getCell(0, 0)).hasClass('htInvalid')).toBe(true);
+    expect(getDataAtCell(0, 0)).toEqual('12aaa34');
+
+    expect($(getCell(1, 0)).hasClass('htInvalid')).toBe(true);
+    expect(getDataAtCell(1, 0)).toEqual('aaa34');
+
+    expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(true);
+    expect(getDataAtCell(2, 0)).toEqual('12aaa');
+
+    expect($(getCell(0, 1)).hasClass('htInvalid')).toBe(true);
+    expect(getDataAtCell(0, 1)).toEqual('12aaa34');
+
+    expect($(getCell(1, 1)).hasClass('htInvalid')).toBe(true);
+    expect(getDataAtCell(1, 1)).toEqual('aaa34');
+
+    expect($(getCell(2, 1)).hasClass('htInvalid')).toBe(true);
+    expect(getDataAtCell(2, 1)).toEqual('12aaa');
   });
 
   it('should display a string in a format \'$X,XXX.XX\' when using language=en, appropriate format in column settings and \'XXXX.XX\' as ' +
-     'an input string', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-
+     'an input string', async () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
         {data: 'id', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
         {data: 'name'},
         {data: 'lastName'}
-      ],
-      afterValidate: onAfterValidate
+      ]
     });
     selectCell(2, 0);
 
@@ -212,27 +307,22 @@ describe('NumericEditor', () => {
 
     document.activeElement.value = '2456.22';
 
-    onAfterValidate.calls.reset();
     destroyEditor();
 
-    setTimeout(() => {
-      expect(getCell(2, 0).innerHTML).toEqual('$2,456.22');
-      done();
-    }, 100);
+    await sleep(100);
+
+    expect(getCell(2, 0).innerHTML).toEqual('$2,456.22');
   });
 
   it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
-     'input string (that comes from manual input)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-
+     'input string (that comes from manual input)', async () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
         {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00 $', culture: 'de-DE'}},
         {data: 'name'},
         {data: 'lastName'}
-      ],
-      afterValidate: onAfterValidate
+      ]
     });
     selectCell(2, 0);
 
@@ -240,18 +330,16 @@ describe('NumericEditor', () => {
 
     document.activeElement.value = '2456,22';
 
-    onAfterValidate.calls.reset();
     destroyEditor();
 
-    setTimeout(() => {
-      expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
-      done();
-    }, 100);
+    await sleep(100);
+
+    expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
   });
 
   it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX.XX\' as an ' +
-     'input string (that comes from paste)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+     'input string (that comes from paste)', async () => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -268,98 +356,15 @@ describe('NumericEditor', () => {
 
     document.activeElement.value = '2456.22';
 
-    onAfterValidate.calls.reset();
     destroyEditor();
 
-    setTimeout(() => {
-      expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
-      done();
-    }, 100);
-  });
+    await sleep(100);
 
-  it('should not validate input values in different formats than \'XX.XX\' and \'XX,XX\'', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-
-    handsontable({
-      data: arrayOfObjects(),
-      columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
-      ],
-      afterValidate: onAfterValidate
-    });
-
-    selectCell(2, 0);
-
-    function manuallySetValueTo(val) {
-      keyDown('enter');
-
-      document.activeElement.value = val;
-
-      onAfterValidate.calls.reset();
-      destroyEditor();
-    }
-
-    manuallySetValueTo('22.22');
-
-    setTimeout(() => {
-      expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(false); // should validate alright
-      manuallySetValueTo('2,000,000.22');
-    }, 100);
-
-    setTimeout(() => {
-      expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(true);
-      manuallySetValueTo('11,11');
-    }, 200);
-
-    setTimeout(() => {
-      expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(false); // should validate alright
-      manuallySetValueTo('one thounsand');
-    }, 300);
-
-    setTimeout(() => {
-      expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(true);
-      manuallySetValueTo('99d99');
-    }, 400);
-
-    setTimeout(() => {
-      expect($(getCell(2, 0)).hasClass('htInvalid')).toBe(true);
-      done();
-    }, 500);
-  });
-
-  it('should paste formatted data if source cell has format', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-
-    handsontable({
-      data: arrayOfObjects(),
-      columns: [
-        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00 $', culture: 'de-DE'}},
-        {data: 'name'},
-        {data: 'lastName'}
-      ],
-      afterValidate: onAfterValidate
-    });
-    selectCell(2, 0);
-
-    keyDown('enter');
-
-    document.activeElement.value = '€123,00';
-
-    onAfterValidate.calls.reset();
-    destroyEditor();
-
-    setTimeout(() => {
-      expect(getCell(2, 0).innerHTML).toEqual('123,00 €');
-      done();
-    }, 100);
+    expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
   });
 
   it('should display a string in a format \'X XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
-     'input string and ignore not needed zeros at the end', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-
+     'input string and ignore not needed zeros at the end', async () => {
     handsontable({
       data: [
         {id: 1, name: 'Ted', lastName: 'Right', money: 0},
@@ -378,42 +383,150 @@ describe('NumericEditor', () => {
         {data: 'name'},
         {data: 'lastName'},
         {data: 'money', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}}
-      ],
-      afterValidate: onAfterValidate
+      ]
     });
 
     selectCell(2, 0);
 
-    function manuallySetValueTo(val) {
-      keyDown('enter');
+    keyDown('enter');
 
-      document.activeElement.value = val;
+    document.activeElement.value = '2456,220';
 
-      onAfterValidate.calls.reset();
-      destroyEditor();
-    }
+    destroyEditor();
 
-    manuallySetValueTo('2456,220');
+    await sleep(100);
 
-    setTimeout(() => {
-      expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
+    expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
 
-      deselectCell();
-      selectCell(2, 3);
-      manuallySetValueTo('2456.220');
-    }, 100);
+    selectCell(2, 3);
 
-    setTimeout(() => {
-      expect(getCell(2, 3).innerHTML).toEqual('$2,456.22');
-      done();
-    }, 200);
+    keyDown('enter');
+
+    document.activeElement.value = '2456.220';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    expect(getCell(2, 3).innerHTML).toEqual('$2,456.22');
   });
 
-  it('should mark text as invalid without removing', (done) => {
-    var hot = handsontable({
+  it('should display values as "float like" string with dot as determiner after pressing enter ' +
+    'and not change value after closing editor', async () => {
+    handsontable({
+      data: [
+        {id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5}
+      ],
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'price_eur', type: 'numeric'},
+        {data: 'price_pln', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
+        {data: 'price_aud', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}}
+      ]
+    });
+
+    selectCell(0, 1);
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(document.activeElement.value).toEqual('222.5');
+
+    // closing editor
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(getDataAtCell(0, 1)).toEqual(222.5);
+
+    selectCell(0, 2);
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(document.activeElement.value).toEqual('1222.6');
+
+    // closing editor
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(getDataAtCell(0, 2)).toEqual(1222.6);
+
+    selectCell(0, 3);
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(document.activeElement.value).toEqual('1333.5');
+
+    // closing editor
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(getDataAtCell(0, 3)).toEqual(1333.5);
+  });
+
+  it('should display values as "float like" string with dot as determiner after double click ' +
+    'and not change value after closing editor', async () => {
+    handsontable({
+      data: [
+        {id: 1, price_eur: 222.5, price_pln: 1222.6, price_aud: 1333.5}
+      ],
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'price_eur', type: 'numeric'},
+        {data: 'price_pln', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}},
+        {data: 'price_aud', type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'de-DE'}}
+      ]
+    });
+
+    mouseDoubleClick(getCell(0, 1));
+
+    await sleep(100);
+
+    expect(document.activeElement.value).toEqual('222.5');
+
+    // closing editor
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(getDataAtCell(0, 1)).toEqual(222.5);
+
+    mouseDoubleClick(getCell(0, 2));
+
+    await sleep(100);
+
+    expect(document.activeElement.value).toEqual('1222.6');
+
+    // closing editor
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(getDataAtCell(0, 2)).toEqual(1222.6);
+
+    mouseDoubleClick(getCell(0, 3));
+
+    await sleep(100);
+
+    expect(document.activeElement.value).toEqual('1333.5');
+
+    // closing editor
+    keyDown('enter');
+
+    await sleep(100);
+
+    expect(getDataAtCell(0, 3)).toEqual(1333.5);
+  });
+
+  it('should mark text as invalid without removing when using `setDataAtCell`', async () => {
+    const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric', numericFormat: {pattern: '0,0.00', culture: 'en-US'}},
+        {data: 'id', type: 'numeric'},
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -421,10 +534,46 @@ describe('NumericEditor', () => {
 
     hot.setDataAtCell(0, 0, 'abc');
 
-    setTimeout(() => {
-      expect(hot.getDataAtCell(0, 0)).toEqual('abc');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(hot.getDataAtCell(0, 0)).toEqual('abc');
+    expect($(getCell(0, 0)).hasClass('htInvalid')).toBe(true);
+  });
+
+  it('should allow custom validator', async () => {
+    handsontable({
+      data: arrayOfObjects(),
+      allowInvalid: false,
+      columns: [
+        {
+          data: 'id',
+          type: 'numeric',
+          validator(val, cb) {
+            cb(parseInt(val, 10) > 100);
+          }
+        },
+        {data: 'name'},
+        {data: 'lastName'}
+      ]
+    });
+    selectCell(2, 0);
+
+    keyDown('enter');
+    document.activeElement.value = '99';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    expect(getDataAtCell(2, 0)).not.toEqual(99); // should be ignored
+
+    document.activeElement.value = '999';
+
+    destroyEditor();
+
+    await sleep(100);
+
+    expect(getDataAtCell(2, 0)).toEqual(999);
   });
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
@@ -485,13 +634,13 @@ describe('NumericEditor', () => {
   });
 
   describe('Cell corner is showed properly when changing focused cells #3877', () => {
-    var isFocusedCellDisplayingCornerTest = function(settings) {
-      var moveFromRow = settings.moveFromRow;
-      var moveFromCol = settings.moveFromCol;
-      var moveToRow = settings.moveToRow;
-      var moveToCol = settings.moveToCol;
-      var doneFunc = settings.doneFunc;
-      var $corner = settings.$container.find('.wtBorder.current.corner');
+    const isFocusedCellDisplayingCornerTest = function(settings) {
+      const moveFromRow = settings.moveFromRow;
+      const moveFromCol = settings.moveFromCol;
+      const moveToRow = settings.moveToRow;
+      const moveToCol = settings.moveToCol;
+      const doneFunc = settings.doneFunc;
+      const $corner = settings.$container.find('.wtBorder.current.corner');
 
       selectCell(moveFromRow, moveFromCol);
       keyDown('enter');
