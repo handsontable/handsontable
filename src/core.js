@@ -1040,18 +1040,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return numericData;
   }
 
-  /**
-   * Checks if given value is numeric.
-   *
-   * @param {String} value Checked value.
-   * @returns {Boolean}
-   */
-  function isNumericData(value) {
-    return value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
-  }
-
   function validateChanges(changes, source, callback) {
     const waitingForValidator = new ValidatorsQueue();
+    const isNumericData = (value) => value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
 
     waitingForValidator.onQueueEmpty = resolve;
 

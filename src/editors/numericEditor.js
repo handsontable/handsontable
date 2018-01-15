@@ -7,8 +7,11 @@ import TextEditor from './textEditor';
  * @dependencies TextEditor numbro
  */
 class NumericEditor extends TextEditor {
-  beginEditing() {
-    super.beginEditing(this.originalValue);
+  beginEditing(initialValue, event) {
+    // There is problem with `initialValue` property which get other value when we press `enter`, other when we perform double click.
+    // It was described within #4706. Property `event` should be probably removed, but now it's handled by `open` function of `BaseEditor`
+    // (called inside inherited `beginEditing` function).
+    super.beginEditing(this.originalValue, event);
   }
 }
 
