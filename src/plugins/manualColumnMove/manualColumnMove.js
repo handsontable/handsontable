@@ -177,8 +177,9 @@ class ManualColumnMove extends BasePlugin {
    * @param {Number} target Visual column index being a target for the moved columns.
    */
   moveColumns(columns, target) {
+    const visualColumns = [...columns];
     let priv = privatePool.get(this);
-    let beforeColumnHook = this.hot.runHooks('beforeColumnMove', columns, target);
+    let beforeColumnHook = this.hot.runHooks('beforeColumnMove', visualColumns, target);
 
     priv.disallowMoving = !beforeColumnHook;
 
@@ -201,7 +202,7 @@ class ManualColumnMove extends BasePlugin {
       this.columnsMapper.clearNull();
     }
 
-    this.hot.runHooks('afterColumnMove', columns, target);
+    this.hot.runHooks('afterColumnMove', visualColumns, target);
   }
 
   /**
