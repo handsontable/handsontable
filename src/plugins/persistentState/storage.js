@@ -80,7 +80,7 @@ class Storage {
    * @private
    */
   loadSavedKeys() {
-    let keysJSON = window.localStorage[`${this.prefix}__persistentStateKeys`];
+    let keysJSON = window.localStorage.getItem(`${this.prefix}__persistentStateKeys`);
     let keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : void 0;
 
     this.savedKeys = keys ? keys : [];

@@ -2,13 +2,17 @@ import Storage from 'handsontable/plugins/persistentState/storage';
 
 describe('persistentState', () => {
   describe('storage', () => {
+    afterAll(() => {
+      Object.defineProperty(window, 'localStorage', { value: window.localStorage });
+    });
+
     const localStorageMock = (() => {
       let store = {};
 
       return {
         setItem: (key, value) => { store[key] = value.toString(); },
         getItem: (key) => store[key],
-        removeItem: (key) => { delete store[key]; },
+        removeItem: (key) => { delete store[key]; }
       };
     })();
 
@@ -87,6 +91,52 @@ describe('persistentState', () => {
       storage.resetAll();
 
       expect(storage.savedKeys).toEqual([]);
+    });
+
+    it('should load and save all keys from localStorage when call loadSavedKeys method', () => {
+      const storage = new Storage('example');
+      const testArray = [1, 2, 3];
+
+      localStorage.setItem('example__persistentStateKeys', JSON.stringify(testArray));
+
+      storage.loadSavedKeys();
+
+      expect(storage.savedKeys).toEqual([1, 2, 3]);
+      expect(storage.savedKeys.length).toEqual(3);
+    });
+
+    it('should save saved key in localStorage when call saveSavedKeys method', () => {
+      const storage = new Storage('example');
+
+      storage.saveValue(1, 'one');
+      storage.saveValue(2, 'two');
+      storage.saveValue(3, 'three');
+
+      storage.saveSavedKeys();
+
+      expect(localStorage.getItem('example__persistentStateKeys')).toEqual('[1,2,3]');
+    });
+
+    it('should clear saved key from localStorage when call clearSavedKeys method', () => {
+      const storage = new Storage('example');
+
+      storage.saveValue(1, 'one');
+      storage.saveValue(2, 'two');
+      storage.saveValue(3, 'three');
+
+      expect(storage.savedKeys).toContain(1);
+      expect(storage.savedKeys).toContain(2);
+      expect(storage.savedKeys).toContain(3);
+      expect(storage.savedKeys.length).toEqual(3);
+      expect(localStorage.getItem('example__persistentStateKeys')).toEqual('[1,2,3]');
+
+      storage.clearSavedKeys();
+
+      expect(storage.savedKeys).not.toContain(1);
+      expect(storage.savedKeys).not.toContain(2);
+      expect(storage.savedKeys).not.toContain(3);
+      expect(storage.savedKeys.length).toEqual(0);
+      expect(localStorage.getItem('example__persistentStateKeys')).toEqual('[]');
     });
   });
 });
