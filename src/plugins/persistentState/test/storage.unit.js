@@ -2,10 +2,6 @@ import Storage from 'handsontable/plugins/persistentState/storage';
 
 describe('persistentState', () => {
   describe('storage', () => {
-    afterAll(() => {
-      Object.defineProperty(window, 'localStorage', { value: window.localStorage });
-    });
-
     const localStorageMock = (() => {
       let store = {};
 
