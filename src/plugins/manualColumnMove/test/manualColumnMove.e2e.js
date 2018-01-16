@@ -197,7 +197,7 @@ describe('manualColumnMove', () => {
     });
   });
 
-  describe('moving', function() {
+  describe('moving', () => {
     it('should move column by API', function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -284,6 +284,72 @@ describe('manualColumnMove', () => {
       expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('H1');
 
       expect(afterMoveColumnCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
+    });
+
+    it('should run `beforeColumnMove` with proper visual `columns` parameter', () => {
+      let columnsParameterInsideCallback;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        manualColumnMove: true,
+        beforeColumnMove: (columns, target) => {
+          columnsParameterInsideCallback = columns;
+        }
+      });
+
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseup');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
+
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mousemove');
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
+
+      expect(columnsParameterInsideCallback).toEqual([0]);
+
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseup');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
+
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mousemove');
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
+
+      expect(columnsParameterInsideCallback).toEqual([0]);
+    });
+
+    it('should run `afterColumnMove` with proper visual `columns` parameter', () => {
+      let columnsParameterInsideCallback;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        manualColumnMove: true,
+        afterColumnMove: (columns, target) => {
+          columnsParameterInsideCallback = columns;
+        }
+      });
+
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseup');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
+
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mousemove');
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
+
+      expect(columnsParameterInsideCallback).toEqual([0]);
+
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseup');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
+
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mousemove');
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
+
+      expect(columnsParameterInsideCallback).toEqual([0]);
     });
 
     it('should move the second column to the first column', function() {
