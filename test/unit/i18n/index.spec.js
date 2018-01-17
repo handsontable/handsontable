@@ -49,7 +49,7 @@ describe('i18n', () => {
 
   it('should contain dictionaries with predefined keys as parts of dictionary (checking for typo)', () => {
     // If you would like to extend any dictionary by a custom key, define also corresponding,
-    // exported constants for it inside `src/i18n/constants.js` file.
+    // exported constant for it inside `src/i18n/constants.js` file.
 
     const predefinedDictionaryKeys = Object.values(constants);
 
