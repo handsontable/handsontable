@@ -431,72 +431,6 @@ describe('manualRowMove', () => {
       expect(targetParameterInsideCallback).toEqual(2);
     });
 
-    it('should run `beforeRowMove` with proper visual `rows` parameter', () => {
-      let rowsParameterInsideCallback;
-
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
-        rowHeaders: true,
-        manualRowMove: true,
-        beforeRowMove: (rows, target) => {
-          rowsParameterInsideCallback = rows;
-        }
-      });
-
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-
-      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseover');
-      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousemove');
-      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
-
-      expect(rowsParameterInsideCallback).toEqual([0]);
-
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-
-      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseover');
-      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousemove');
-      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
-
-      expect(rowsParameterInsideCallback).toEqual([0]);
-    });
-
-    it('should run `afterRowMove` with proper visual `rows` parameter', () => {
-      let rowsParameterInsideCallback;
-
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
-        rowHeaders: true,
-        manualRowMove: true,
-        afterRowMove: (rows, target) => {
-          rowsParameterInsideCallback = rows;
-        }
-      });
-
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-
-      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseover');
-      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousemove');
-      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
-
-      expect(rowsParameterInsideCallback).toEqual([0]);
-
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
-      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-
-      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseover');
-      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousemove');
-      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
-
-      expect(rowsParameterInsideCallback).toEqual([0]);
-    });
-
     it('should move the second row to the first row', () => {
       handsontable({
         data: arrayOfObjects,
@@ -641,6 +575,37 @@ describe('manualRowMove', () => {
       hot.render();
 
       expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
+    });
+  });
+
+  describe('callbacks', () => {
+    it('should run `beforeRowMove` and `afterRowMove` with proper visual `rows` parameter', () => {
+      let rowsParameterInsideBeforeRowMoveCallback;
+      let rowsParameterInsideAfterRowMoveCallback;
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        manualRowMove: true,
+        beforeRowMove: (rows, target) => {
+          rowsParameterInsideBeforeRowMoveCallback = rows;
+        },
+        afterRowMove: (rows, target) => {
+          rowsParameterInsideAfterRowMoveCallback = rows;
+        }
+      });
+
+      hot.getPlugin('manualRowMove').moveRow(2, 0);
+
+      expect(rowsParameterInsideBeforeRowMoveCallback).toEqual([2]);
+      expect(rowsParameterInsideAfterRowMoveCallback).toEqual([2]);
+      expect(rowsParameterInsideBeforeRowMoveCallback).toEqual(rowsParameterInsideAfterRowMoveCallback);
+
+      hot.getPlugin('manualRowMove').moveRow(2, 0);
+
+      expect(rowsParameterInsideBeforeRowMoveCallback).toEqual([2]);
+      expect(rowsParameterInsideAfterRowMoveCallback).toEqual([2]);
+      expect(rowsParameterInsideBeforeRowMoveCallback).toEqual(rowsParameterInsideAfterRowMoveCallback);
     });
   });
 
