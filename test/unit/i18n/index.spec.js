@@ -64,7 +64,7 @@ describe('i18n', () => {
     });
   });
 
-  it('should contain dictionaries values without unnecessary space characters', () => {
+  it('should contain dictionaries values without unnecessary whitespace characters', () => {
     const twoOrMoreWhiteSpace = / {2,}/;
 
     objectEach(allLanguages, (dictionary) => {
