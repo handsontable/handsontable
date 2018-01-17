@@ -4,6 +4,7 @@ import plPL from 'handsontable/i18n/languages/pl-PL';
 import * as allLanguages from 'handsontable/i18n/languages';
 import * as constants from 'handsontable/i18n/constants';
 import {isObject, objectEach} from 'handsontable/helpers/object';
+import {arrayEach} from 'handsontable/helpers/array';
 import Handsontable from 'handsontable';
 
 describe('i18n', () => {
@@ -58,6 +59,28 @@ describe('i18n', () => {
         if (key !== 'languageCode') {
           expect(key).toBeDefined();
           expect(predefinedDictionaryKeys.includes(key)).toEqual(true);
+        }
+      });
+    });
+  });
+
+  it('should contain dictionaries values without unnecessary space characters', () => {
+    const twoOrMoreWhiteSpace = / {2,}/;
+
+    objectEach(allLanguages, (dictionary) => {
+      objectEach(dictionary, (value) => {
+        if (isObject(dictionary)) {
+          if (Array.isArray(value)) {
+            arrayEach(value, (singleValue) => {
+              expect(singleValue.trim()).toEqual(singleValue);
+              expect(singleValue.replace(twoOrMoreWhiteSpace, ' ')).toEqual(singleValue);
+            });
+
+          } else {
+
+            expect(value.trim()).toEqual(value);
+            expect(value.replace(twoOrMoreWhiteSpace, ' ')).toEqual(value);
+          }
         }
       });
     });
