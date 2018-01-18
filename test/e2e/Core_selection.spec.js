@@ -13,30 +13,36 @@ describe('Core_selection', () => {
   });
 
   it('should call onSelection callback', () => {
-    var output = null;
+    let output = null;
 
     handsontable({
-      afterSelection(r, c) {
-        output = [r, c];
+      afterSelection(selectedCells) {
+        output = selectedCells;
       }
     });
     selectCell(1, 2);
 
-    expect(output[0]).toEqual(1);
-    expect(output[1]).toEqual(2);
+    expect(output.length).toBe(1);
+    expect(output[0].from.row).toBe(1);
+    expect(output[0].from.col).toBe(2);
+    expect(output[0].to.row).toBe(1);
+    expect(output[0].to.col).toBe(2);
   });
 
   it('should trigger selection event', () => {
-    var output = null;
+    let output = null;
 
     handsontable();
-    Handsontable.hooks.add('afterSelection', (r, c) => {
-      output = [r, c];
+    Handsontable.hooks.add('afterSelection', (selectedCells) => {
+      output = selectedCells;
     });
     selectCell(1, 2);
 
-    expect(output[0]).toEqual(1);
-    expect(output[1]).toEqual(2);
+    expect(output.length).toBe(1);
+    expect(output[0].from.row).toBe(1);
+    expect(output[0].from.col).toBe(2);
+    expect(output[0].to.row).toBe(1);
+    expect(output[0].to.col).toBe(2);
   });
 
   it('this.rootElement should point to handsontable rootElement (onSelection)', function() {

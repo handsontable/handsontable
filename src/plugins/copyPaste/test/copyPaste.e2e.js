@@ -147,7 +147,7 @@ describe('CopyPaste', () => {
       expect(copyPasteTextarea.value.length).toEqual(0);
 
       selectCell(0, 0, 1, 1);
-      keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
+      keyDownUp(Handsontable.helper.KEY_CODES.CONTROL);
 
       expect(copyPasteTextarea.value).toEqual('A\t1\nB\t2');
     });

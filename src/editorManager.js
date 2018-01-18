@@ -174,7 +174,7 @@ function EditorManager(instance, priv, selection) {
 
       case KEY_CODES.BACKSPACE:
       case KEY_CODES.DELETE:
-        selection.empty(event);
+        instance.emptySelectedCells();
         _this.prepareEditor();
         event.preventDefault();
         break;
@@ -221,9 +221,9 @@ function EditorManager(instance, priv, selection) {
       case KEY_CODES.HOME:
         selection.setSelectedHeaders(false, false, false);
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier(new CellCoords(0, priv.selRange.from.col));
+          rangeModifier.call(selection, new CellCoords(0, selection.selectedRange.current().from.col));
         } else {
-          rangeModifier(new CellCoords(priv.selRange.from.row, 0));
+          rangeModifier.call(selection, new CellCoords(selection.selectedRange.current().from.row, 0));
         }
         event.preventDefault(); // don't scroll the window
         stopPropagation(event);
@@ -232,9 +232,9 @@ function EditorManager(instance, priv, selection) {
       case KEY_CODES.END:
         selection.setSelectedHeaders(false, false, false);
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier(new CellCoords(instance.countRows() - 1, priv.selRange.from.col));
+          rangeModifier.call(selection, new CellCoords(instance.countRows() - 1, selection.selectedRange.current().from.col));
         } else {
-          rangeModifier(new CellCoords(priv.selRange.from.row, instance.countCols() - 1));
+          rangeModifier.call(selection, new CellCoords(selection.selectedRange.current().from.row, instance.countCols() - 1));
         }
         event.preventDefault(); // don't scroll the window
         stopPropagation(event);
@@ -330,8 +330,8 @@ function EditorManager(instance, priv, selection) {
 
       return;
     }
-    row = priv.selRange.highlight.row;
-    col = priv.selRange.highlight.col;
+    row = instance.selection.selectedRange.current().highlight.row;
+    col = instance.selection.selectedRange.current().highlight.col;
     prop = instance.colToProp(col);
     td = instance.getCell(row, col);
 

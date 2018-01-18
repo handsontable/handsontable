@@ -386,7 +386,7 @@ class CopyPaste extends BasePlugin {
         window.clipboardData.setData('Text', value);
       }
 
-      this.hot.selection.empty();
+      this.hot.emptySelectedCells();
       this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
     }
 

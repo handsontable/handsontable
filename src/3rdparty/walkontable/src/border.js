@@ -255,8 +255,8 @@ class Border {
   }
 
   isPartRange(row, col) {
-    if (this.wot.selections.area.cellRange) {
-      if (row != this.wot.selections.area.cellRange.to.row || col != this.wot.selections.area.cellRange.to.col) {
+    if (this.wot.selections.getArea().cellRange) {
+      if (row != this.wot.selections.getArea().cellRange.to.row || col != this.wot.selections.getArea().cellRange.to.col) {
         return true;
       }
     }
@@ -316,29 +316,15 @@ class Border {
     if (this.disabled) {
       return;
     }
-    var isMultiple,
-      fromTD,
-      toTD,
-      fromOffset,
-      toOffset,
-      containerOffset,
-      top,
-      minTop,
-      left,
-      minLeft,
-      height,
-      width,
-      fromRow,
-      fromColumn,
-      toRow,
-      toColumn,
-      trimmingContainer,
-      cornerOverlappingContainer,
-      ilen;
 
-    ilen = this.wot.wtTable.getRenderedRowsCount();
+    let fromRow;
+    let toRow;
+    let fromColumn;
+    let toColumn;
 
-    for (let i = 0; i < ilen; i++) {
+    const rowsCount = this.wot.wtTable.getRenderedRowsCount();
+
+    for (let i = 0; i < rowsCount; i++) {
       let s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
@@ -347,7 +333,7 @@ class Border {
       }
     }
 
-    for (let i = ilen - 1; i >= 0; i--) {
+    for (let i = rowsCount - 1; i >= 0; i--) {
       let s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
@@ -356,9 +342,9 @@ class Border {
       }
     }
 
-    ilen = this.wot.wtTable.getRenderedColumnsCount();
+    const columnsCount = this.wot.wtTable.getRenderedColumnsCount();
 
-    for (let i = 0; i < ilen; i++) {
+    for (let i = 0; i < columnsCount; i++) {
       let s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
@@ -367,7 +353,7 @@ class Border {
       }
     }
 
-    for (let i = ilen - 1; i >= 0; i--) {
+    for (let i = columnsCount - 1; i >= 0; i--) {
       let s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
@@ -380,20 +366,20 @@ class Border {
 
       return;
     }
-    isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    fromTD = this.wot.wtTable.getCell(new CellCoords(fromRow, fromColumn));
-    toTD = isMultiple ? this.wot.wtTable.getCell(new CellCoords(toRow, toColumn)) : fromTD;
-    fromOffset = offset(fromTD);
-    toOffset = isMultiple ? offset(toTD) : fromOffset;
-    containerOffset = offset(this.wot.wtTable.TABLE);
+    const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
+    const fromTD = this.wot.wtTable.getCell(new CellCoords(fromRow, fromColumn));
+    const toTD = isMultiple ? this.wot.wtTable.getCell(new CellCoords(toRow, toColumn)) : fromTD;
+    const fromOffset = offset(fromTD);
+    const toOffset = isMultiple ? offset(toTD) : fromOffset;
+    const containerOffset = offset(this.wot.wtTable.TABLE);
 
-    minTop = fromOffset.top;
-    height = toOffset.top + outerHeight(toTD) - minTop;
-    minLeft = fromOffset.left;
-    width = toOffset.left + outerWidth(toTD) - minLeft;
+    const minTop = fromOffset.top;
+    const minLeft = fromOffset.left;
+    let height = toOffset.top + outerHeight(toTD) - minTop;
+    let width = toOffset.left + outerWidth(toTD) - minLeft;
 
-    top = minTop - containerOffset.top - 1;
-    left = minLeft - containerOffset.left - 1;
+    let top = minTop - containerOffset.top - 1;
+    let left = minLeft - containerOffset.left - 1;
     let style = getComputedStyle(fromTD);
 
     if (parseInt(style.borderTopWidth, 10) > 0) {
@@ -415,7 +401,7 @@ class Border {
     this.leftStyle.height = `${height}px`;
     this.leftStyle.display = 'block';
 
-    let delta = Math.floor(this.settings.border.width / 2);
+    const delta = Math.floor(this.settings.border.width / 2);
 
     this.bottomStyle.top = `${top + height - delta}px`;
     this.bottomStyle.left = `${left}px`;
@@ -438,10 +424,10 @@ class Border {
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
       this.cornerStyle.display = 'none';
 
-      trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
+      const trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
-        cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2) >= innerWidth(trimmingContainer);
+        const cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2) >= innerWidth(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.left = `${Math.floor(left + width - 3 - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`;
@@ -450,7 +436,7 @@ class Border {
       }
 
       if (toRow === this.wot.getSetting('totalRows') - 1) {
-        cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2) >= innerHeight(trimmingContainer);
+        const cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2) >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.top = `${Math.floor(top + height - 3 - (parseInt(this.cornerDefaultStyle.height, 10) / 2))}px`;

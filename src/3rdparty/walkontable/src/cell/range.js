@@ -15,8 +15,41 @@ class CellRange {
    */
   constructor(highlight, from, to) {
     this.highlight = highlight;
-    this.from = from;
-    this.to = to;
+    this.from = from === void 0 ? highlight : from;
+    this.to = to === void 0 ? highlight : to;
+  }
+
+  /**
+   * Set the new coordinates for highlighting selection.
+   *
+   * @param {CellCoords} coords Coordinates to use.
+   */
+  setHighlight(coords) {
+    this.highlight = coords;
+
+    return this;
+  }
+
+  /**
+   * Set the new coordinates where selection starts from.
+   *
+   * @param {CellCoords} coords Coordinates to use.
+   */
+  setFrom(coords) {
+    this.from = coords;
+
+    return this;
+  }
+
+  /**
+   * Set new coordinates where selection ends from.
+   *
+   * @param {CellCoords} coords Coordinates to use.
+   */
+  setTo(coords) {
+    this.to = coords;
+
+    return this;
   }
 
   /**
@@ -63,12 +96,11 @@ class CellRange {
    * @returns {Boolean}
    */
   includes(cellCoords) {
-    let {row, col} = cellCoords;
-    let topLeft = this.getTopLeftCorner();
-    let bottomRight = this.getBottomRightCorner();
+    const {row, col} = cellCoords;
+    const topLeft = this.getTopLeftCorner();
+    const bottomRight = this.getBottomRightCorner();
 
-    return topLeft.row <= row && bottomRight.row >= row &&
-        topLeft.col <= col && bottomRight.col >= col;
+    return topLeft.row <= row && bottomRight.row >= row && topLeft.col <= col && bottomRight.col >= col;
   }
 
   /**
@@ -128,8 +160,8 @@ class CellRange {
    * @returns {Boolean}
    */
   expand(cellCoords) {
-    let topLeft = this.getTopLeftCorner();
-    let bottomRight = this.getBottomRightCorner();
+    const topLeft = this.getTopLeftCorner();
+    const bottomRight = this.getBottomRightCorner();
 
     if (cellCoords.row < topLeft.row || cellCoords.col < topLeft.col ||
         cellCoords.row > bottomRight.row || cellCoords.col > bottomRight.col) {
@@ -428,6 +460,13 @@ class CellRange {
         }
       }
     }
+  }
+
+  toObject() {
+    return {
+      from: this.from.toObject(),
+      to: this.to.toObject(),
+    };
   }
 }
 

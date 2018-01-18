@@ -13,7 +13,7 @@ import {
 import {isChrome, isSafari} from './helpers/browser';
 import EventManager from './eventManager';
 import {stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick} from './helpers/dom/event';
-import Walkontable, {CellCoords, Selection} from './3rdparty/walkontable/src';
+import Walkontable, {CellCoords} from './3rdparty/walkontable/src';
 
 /**
  * Handsontable TableView constructor
@@ -162,55 +162,6 @@ function TableView(instance) {
     }
   };
 
-  var selections = [
-    new Selection({
-      className: 'current',
-      border: {
-        width: 2,
-        color: '#5292F7',
-        // style: 'solid', // not used
-        cornerVisible: function() {
-          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
-        },
-        multipleSelectionHandlesVisible: function() {
-          return !that.isCellEdited() && !instance.selection.isMultiple();
-        },
-      },
-    }),
-    new Selection({
-      className: 'area',
-      border: {
-        width: 1,
-        color: '#89AFF9',
-        // style: 'solid', // not used
-        cornerVisible: function() {
-          return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
-        },
-        multipleSelectionHandlesVisible: function() {
-          return !that.isCellEdited() && instance.selection.isMultiple();
-        },
-      },
-    }),
-    new Selection({
-      className: 'highlight',
-      highlightHeaderClassName: that.settings.currentHeaderClassName,
-      highlightRowClassName: that.settings.currentRowClassName,
-      highlightColumnClassName: that.settings.currentColClassName,
-    }),
-    new Selection({
-      className: 'fill',
-      border: {
-        width: 1,
-        color: 'red',
-        // style: 'solid' // not used
-      },
-    }),
-  ];
-  selections.current = selections[0];
-  selections.area = selections[1];
-  selections.highlight = selections[2];
-  selections.fill = selections[3];
-
   var walkontableConfig = {
     debug: function() {
       return that.settings.debug;
@@ -277,7 +228,7 @@ function TableView(instance) {
       that.instance.runHooks('afterRenderer', TD, row, col, prop, value, cellProperties);
 
     },
-    selections: selections,
+    selections: that.instance.selection.highlight,
     hideBorderOnMouseDownOver: function() {
       return that.settings.fragmentSelection;
     },
@@ -417,7 +368,7 @@ function TableView(instance) {
         return;
       }
 
-      if (event.button === 0 && isMouseDown) {
+      if (isLeftClick(event) && isMouseDown) {
         if (coords.row >= 0 && coords.col >= 0) { // is not a header
           if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
             instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col), false);

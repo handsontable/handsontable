@@ -11,8 +11,8 @@ export const KEY_CODES = {
   END: 35,
   ENTER: 13,
   ESCAPE: 27,
-  CONTROL_LEFT: 91,
-  COMMAND_LEFT: 17,
+  CONTROL: 17,
+  COMMAND_LEFT: 91,
   COMMAND_RIGHT: 93,
   ALT: 18,
   HOME: 36,
@@ -105,7 +105,7 @@ export function isMetaKey(keyCode) {
  * @returns {Boolean}
  */
 export function isCtrlKey(keyCode) {
-  return [KEY_CODES.CONTROL_LEFT, 224, KEY_CODES.COMMAND_LEFT, KEY_CODES.COMMAND_RIGHT].indexOf(keyCode) !== -1;
+  return [KEY_CODES.CONTROL, 224, KEY_CODES.COMMAND_LEFT, KEY_CODES.COMMAND_RIGHT].indexOf(keyCode) !== -1;
 }
 
 /**

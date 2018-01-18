@@ -123,17 +123,30 @@ export function arrayMap(array, iteratee) {
  *
  * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
  *
- * @param {Array} array The array to iterate over.
+ * @param {Array|*} array The array to iterate over or an any element with implemented iterator protocol.
  * @param {Function} iteratee The function invoked per iteration.
  * @returns {Array} Returns `array`.
  */
 export function arrayEach(array, iteratee) {
-  let index = -1,
-    length = array.length;
+  let index = -1;
 
-  while (++index < length) {
-    if (iteratee(array[index], index, array) === false) {
-      break;
+  if (Array.isArray(array)) {
+    const length = array.length;
+
+    while (++index < length) {
+      if (iteratee(array[index], index, array) === false) {
+        break;
+      }
+    }
+  } else if (array[Symbol.iterator]) {
+    const iterable = array[Symbol.iterator]();
+
+    for (let variable of iterable) {
+      index++;
+
+      if (iteratee(variable, index, iterable) === false) {
+        break;
+      }
     }
   }
 

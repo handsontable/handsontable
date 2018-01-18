@@ -25,12 +25,11 @@ class Selection {
    * @returns {Border}
    */
   getBorder(wotInstance) {
-    if (this.instanceBorders[wotInstance.guid]) {
-      return this.instanceBorders[wotInstance.guid];
+    if (!this.instanceBorders[wotInstance.guid]) {
+      this.instanceBorders[wotInstance.guid] = new Border(wotInstance, this.settings);
     }
 
-    // where is this returned?
-    this.instanceBorders[wotInstance.guid] = new Border(wotInstance, this.settings);
+    return this.instanceBorders[wotInstance.guid];
   }
 
   /**
@@ -54,6 +53,8 @@ class Selection {
     } else {
       this.cellRange.expand(coords);
     }
+
+    return this;
   }
 
   /**
@@ -86,6 +87,8 @@ class Selection {
    */
   clear() {
     this.cellRange = null;
+
+    return this;
   }
 
   /**
@@ -119,6 +122,8 @@ class Selection {
     if (typeof TD === 'object') {
       addClass(TD, className);
     }
+
+    return this;
   }
 
   /**
@@ -127,11 +132,7 @@ class Selection {
   draw(wotInstance) {
     if (this.isEmpty()) {
       if (this.settings.border) {
-        let border = this.getBorder(wotInstance);
-
-        if (border) {
-          border.disappear();
-        }
+        this.getBorder(wotInstance).disappear();
       }
 
       return;
@@ -210,12 +211,8 @@ class Selection {
     wotInstance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
 
     if (this.settings.border) {
-      let border = this.getBorder(wotInstance);
-
-      if (border) {
-        // warning! border.appear modifies corners!
-        border.appear(corners);
-      }
+      // warning! border.appear modifies corners!
+      this.getBorder(wotInstance).appear(corners);
     }
   }
 }

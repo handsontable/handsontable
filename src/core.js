@@ -7,7 +7,7 @@ import DataMap from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize, hasOwnProperty, createObjectPropListener} from './helpers/object';
-import {arrayFlatten, arrayMap} from './helpers/array';
+import {arrayFlatten, arrayMap, arrayEach} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {getValidator} from './validators';
@@ -25,6 +25,8 @@ import {getCellType} from './cellTypes';
 import {getTranslatedPhrase} from './i18n';
 import {hasLanguageDictionary} from './i18n/dictionariesManager';
 import {warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLanguageCode} from './i18n/utils';
+import {startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving} from './utils/keyStateObserver';
+import {Selection} from './selection';
 
 let activeGuid = null;
 
@@ -77,6 +79,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
   }
+
+  keyStateStartObserving();
 
   this.rootElement = rootElement;
   this.isHotTableEnv = isChildOfWebComponentTable(this.rootElement);
@@ -164,11 +168,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           spliceWith(priv.cellSettings, index, amount, 'array');
 
           if (delta) {
-            if (selection.isSelected() && priv.selRange.from.row >= index) {
-              priv.selRange.from.row += delta;
+            if (selection.isSelected() && selection.selectedRange.current().from.row >= index) {
+              selection.selectedRange.current().from.row += delta;
               selection.transformEnd(delta, 0); // will call render() internally
             } else {
-              selection.refreshBorders(); // it will call render and prepare methods
+              instance._refreshBorders(); // it will call render and prepare methods
             }
           }
           break;
@@ -189,11 +193,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
             }
 
-            if (selection.isSelected() && priv.selRange.from.col >= index) {
-              priv.selRange.from.col += delta;
+            if (selection.isSelected() && selection.selectedRange.current().from.col >= index) {
+              selection.selectedRange.current().from.col += delta;
               selection.transformEnd(0, delta); // will call render() internally
             } else {
-              selection.refreshBorders(); // it will call render and prepare methods
+              instance._refreshBorders(); // it will call render and prepare methods
             }
           }
           break;
@@ -214,7 +218,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
 
           grid.adjustRowsAndCols();
-          selection.refreshBorders(); // it will call render and prepare methods
+          instance._refreshBorders(); // it will call render and prepare methods
           break;
 
         case 'remove_col':
@@ -241,7 +245,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
 
           grid.adjustRowsAndCols();
-          selection.refreshBorders(); // it will call render and prepare methods
+          instance._refreshBorders(); // it will call render and prepare methods
 
           break;
         default:
@@ -308,10 +312,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (selection.isSelected()) {
         let selectionChanged = false;
-        let fromRow = priv.selRange.from.row;
-        let fromCol = priv.selRange.from.col;
-        let toRow = priv.selRange.to.row;
-        let toCol = priv.selRange.to.col;
+        let fromRow = selection.selectedRange.current().from.row;
+        let fromCol = selection.selectedRange.current().from.col;
+        let toRow = selection.selectedRange.current().to.row;
+        let toCol = selection.selectedRange.current().to.col;
 
         // if selection is outside, move selection to last row
         if (fromRow > rowCount - 1) {
@@ -557,399 +561,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   };
 
-  /* eslint-disable no-multi-assign */
-  this.selection = selection = { // this public assignment is only temporary
-    inProgress: false,
-
-    selectedHeader: {
-      cols: false,
-      rows: false,
-    },
-
-    /**
-     * @param {Boolean} [rows=false]
-     * @param {Boolean} [cols=false]
-     * @param {Boolean} [corner=false]
-     */
-    setSelectedHeaders(rows = false, cols = false, corner = false) {
-      instance.selection.selectedHeader.rows = rows;
-      instance.selection.selectedHeader.cols = cols;
-      instance.selection.selectedHeader.corner = corner;
-    },
-
-    /**
-     * Sets inProgress to `true`. This enables onSelectionEnd and onSelectionEndByProp to function as desired.
-     */
-    begin() {
-      instance.selection.inProgress = true;
-    },
-
-    /**
-     * Sets inProgress to `false`. Triggers onSelectionEnd and onSelectionEndByProp.
-     */
-    finish() {
-      var sel = instance.getSelected();
-      instance.runHooks('afterSelectionEnd', sel[0], sel[1], sel[2], sel[3]);
-      instance.runHooks('afterSelectionEndByProp', sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
-      instance.selection.inProgress = false;
-    },
-
-    /**
-     * @returns {Boolean}
-     */
-    isInProgress() {
-      return instance.selection.inProgress;
-    },
-
-    /**
-     * Starts selection range on given td object.
-     *
-     * @param {CellCoords} coords Visual coords.
-     * @param keepEditorOpened
-     */
-    setRangeStart(coords, keepEditorOpened) {
-      instance.runHooks('beforeSetRangeStart', coords);
-      priv.selRange = new CellRange(coords, coords, coords);
-      selection.setRangeEnd(coords, null, keepEditorOpened);
-    },
-
-    /**
-     * Starts selection range on given td object.
-     *
-     * @param {CellCoords} coords Visual coords.
-     * @param keepEditorOpened
-     */
-    setRangeStartOnly(coords) {
-      instance.runHooks('beforeSetRangeStartOnly', coords);
-      priv.selRange = new CellRange(coords, coords, coords);
-    },
-
-    /**
-     * Ends selection range on given td object.
-     *
-     * @param {CellCoords} coords Visual coords.
-     * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to range end
-     * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range
-     */
-    setRangeEnd(coords, scrollToCell, keepEditorOpened) {
-      if (priv.selRange === null) {
-        return;
-      }
-      var disableVisualSelection,
-        isHeaderSelected = false,
-        areCoordsPositive = true;
-
-      var firstVisibleRow = instance.view.wt.wtTable.getFirstVisibleRow();
-      var firstVisibleColumn = instance.view.wt.wtTable.getFirstVisibleColumn();
-      var newRangeCoords = {
-        row: null,
-        col: null,
-      };
-
-      // trigger handlers
-      instance.runHooks('beforeSetRangeEnd', coords);
-      instance.selection.begin();
-
-      newRangeCoords.row = coords.row < 0 ? firstVisibleRow : coords.row;
-      newRangeCoords.col = coords.col < 0 ? firstVisibleColumn : coords.col;
-
-      priv.selRange.to = new CellCoords(newRangeCoords.row, newRangeCoords.col);
-
-      if (!priv.settings.multiSelect) {
-        priv.selRange.from = coords;
-      }
-      // set up current selection
-      instance.view.wt.selections.current.clear();
-
-      disableVisualSelection = instance.getCellMeta(priv.selRange.highlight.row, priv.selRange.highlight.col).disableVisualSelection;
-
-      if (typeof disableVisualSelection === 'string') {
-        disableVisualSelection = [disableVisualSelection];
-      }
-
-      if (disableVisualSelection === false ||
-          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('current') === -1) {
-        instance.view.wt.selections.current.add(priv.selRange.highlight);
-      }
-      // set up area selection
-      instance.view.wt.selections.area.clear();
-
-      if ((disableVisualSelection === false ||
-          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) &&
-          selection.isMultiple()) {
-        instance.view.wt.selections.area.add(priv.selRange.from);
-        instance.view.wt.selections.area.add(priv.selRange.to);
-      }
-      // set up highlight
-      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
-        instance.view.wt.selections.highlight.clear();
-        instance.view.wt.selections.highlight.add(priv.selRange.from);
-        instance.view.wt.selections.highlight.add(priv.selRange.to);
-      }
-
-      const preventScrolling = createObjectPropListener('value');
-
-      // trigger handlers
-      instance.runHooks('afterSelection',
-        priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col, preventScrolling);
-      instance.runHooks('afterSelectionByProp',
-        priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col), preventScrolling);
-
-      if (instance.selection.selectedHeader.cols || instance.selection.selectedHeader.rows) {
-        isHeaderSelected = true;
-      }
-
-      if (coords.row < 0 || coords.col < 0) {
-        areCoordsPositive = false;
-      }
-
-      if (preventScrolling.isTouched()) {
-        scrollToCell = !preventScrolling.value;
-      }
-
-      if (scrollToCell !== false && !isHeaderSelected && areCoordsPositive) {
-        if (priv.selRange.from && !selection.isMultiple()) {
-          instance.view.scrollViewport(priv.selRange.from);
-        } else {
-          instance.view.scrollViewport(coords);
-        }
-      }
-
-      if (selection.selectedHeader.rows && selection.selectedHeader.cols) {
-        addClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-
-      } else if (selection.selectedHeader.rows) {
-        removeClass(instance.rootElement, 'ht__selection--columns');
-        addClass(instance.rootElement, 'ht__selection--rows');
-
-      } else if (selection.selectedHeader.cols) {
-        removeClass(instance.rootElement, 'ht__selection--rows');
-        addClass(instance.rootElement, 'ht__selection--columns');
-
-      } else {
-        removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-      }
-
-      selection.refreshBorders(null, keepEditorOpened);
-    },
-
-    /**
-     * Destroys editor, redraws borders around cells, prepares editor.
-     *
-     * @param {Boolean} [revertOriginal]
-     * @param {Boolean} [keepEditor]
-     */
-    refreshBorders(revertOriginal, keepEditor) {
-      if (!keepEditor) {
-        editorManager.destroyEditor(revertOriginal);
-      }
-      instance.view.render();
-
-      if (selection.isSelected() && !keepEditor) {
-        editorManager.prepareEditor();
-      }
-    },
-
-    /**
-     * Returns information if we have a multiselection.
-     *
-     * @returns {Boolean}
-     */
-    isMultiple() {
-      var
-        isMultiple = !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row),
-        modifier = instance.runHooks('afterIsMultipleSelection', isMultiple);
-
-      if (isMultiple) {
-        return modifier;
-      }
-    },
-
-    /**
-     * Selects cell relative to current cell (if possible).
-     */
-    transformStart(rowDelta, colDelta, force, keepEditorOpened) {
-      var delta = new CellCoords(rowDelta, colDelta),
-        rowTransformDir = 0,
-        colTransformDir = 0,
-        totalRows,
-        totalCols,
-        coords,
-        fixedRowsBottom;
-
-      instance.runHooks('modifyTransformStart', delta);
-      totalRows = instance.countRows();
-      totalCols = instance.countCols();
-      fixedRowsBottom = instance.getSettings().fixedRowsBottom;
-
-      if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
-        if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
-          instance.alter('insert_row', totalRows, 1, 'auto');
-          totalRows = instance.countRows();
-
-        } else if (priv.settings.autoWrapCol) {
-          delta.row = 1 - totalRows;
-          delta.col = priv.selRange.highlight.col + delta.col == totalCols - 1 ? 1 - totalCols : 1;
-        }
-      } else if (priv.settings.autoWrapCol && priv.selRange.highlight.row + delta.row < 0 && priv.selRange.highlight.col + delta.col >= 0) {
-        delta.row = totalRows - 1;
-        delta.col = priv.selRange.highlight.col + delta.col == 0 ? totalCols - 1 : -1;
-      }
-
-      if (priv.selRange.highlight.col + delta.col > totalCols - 1) {
-        if (force && priv.settings.minSpareCols > 0) {
-          instance.alter('insert_col', totalCols, 1, 'auto');
-          totalCols = instance.countCols();
-
-        } else if (priv.settings.autoWrapRow) {
-          delta.row = priv.selRange.highlight.row + delta.row == totalRows - 1 ? 1 - totalRows : 1;
-          delta.col = 1 - totalCols;
-        }
-      } else if (priv.settings.autoWrapRow && priv.selRange.highlight.col + delta.col < 0 && priv.selRange.highlight.row + delta.row >= 0) {
-        delta.row = priv.selRange.highlight.row + delta.row == 0 ? totalRows - 1 : -1;
-        delta.col = totalCols - 1;
-      }
-
-      coords = new CellCoords(priv.selRange.highlight.row + delta.row, priv.selRange.highlight.col + delta.col);
-
-      if (coords.row < 0) {
-        rowTransformDir = -1;
-        coords.row = 0;
-
-      } else if (coords.row > 0 && coords.row >= totalRows) {
-        rowTransformDir = 1;
-        coords.row = totalRows - 1;
-      }
-
-      if (coords.col < 0) {
-        colTransformDir = -1;
-        coords.col = 0;
-
-      } else if (coords.col > 0 && coords.col >= totalCols) {
-        colTransformDir = 1;
-        coords.col = totalCols - 1;
-      }
-      instance.runHooks('afterModifyTransformStart', coords, rowTransformDir, colTransformDir);
-      selection.setRangeStart(coords, keepEditorOpened);
-    },
-
-    /**
-     * Sets selection end cell relative to current selection end cell (if possible).
-     */
-    transformEnd(rowDelta, colDelta) {
-      var delta = new CellCoords(rowDelta, colDelta),
-        rowTransformDir = 0,
-        colTransformDir = 0,
-        totalRows,
-        totalCols,
-        coords;
-
-      instance.runHooks('modifyTransformEnd', delta);
-
-      totalRows = instance.countRows();
-      totalCols = instance.countCols();
-      coords = new CellCoords(priv.selRange.to.row + delta.row, priv.selRange.to.col + delta.col);
-
-      if (coords.row < 0) {
-        rowTransformDir = -1;
-        coords.row = 0;
-
-      } else if (coords.row > 0 && coords.row >= totalRows) {
-        rowTransformDir = 1;
-        coords.row = totalRows - 1;
-      }
-
-      if (coords.col < 0) {
-        colTransformDir = -1;
-        coords.col = 0;
-
-      } else if (coords.col > 0 && coords.col >= totalCols) {
-        colTransformDir = 1;
-        coords.col = totalCols - 1;
-      }
-      instance.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
-      selection.setRangeEnd(coords, true);
-    },
-
-    /**
-     * Returns `true` if currently there is a selection on screen, `false` otherwise.
-     *
-     * @returns {Boolean}
-     */
-    isSelected() {
-      return (priv.selRange !== null);
-    },
-
-    /**
-     * Returns `true` if coords is within current selection coords.
-     *
-     * @param {CellCoords} coords
-     * @returns {Boolean}
-     */
-    inInSelection(coords) {
-      if (!selection.isSelected()) {
-        return false;
-      }
-
-      return priv.selRange.includes(coords);
-    },
-
-    /**
-     * Deselects all selected cells
-     */
-    deselect() {
-      if (!selection.isSelected()) {
-        return;
-      }
-      instance.selection.inProgress = false; // needed by HT inception
-      priv.selRange = null;
-      instance.view.wt.selections.current.clear();
-      instance.view.wt.selections.area.clear();
-      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
-        instance.view.wt.selections.highlight.clear();
-      }
-      editorManager.destroyEditor();
-      selection.refreshBorders();
-      removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-      instance.runHooks('afterDeselect');
-    },
-
-    /**
-     * Select all cells
-     */
-    selectAll() {
-      if (!priv.settings.multiSelect) {
-        return;
-      }
-      selection.setSelectedHeaders(true, true, true);
-      selection.setRangeStart(new CellCoords(0, 0));
-      selection.setRangeEnd(new CellCoords(instance.countRows() - 1, instance.countCols() - 1), false);
-    },
-
-    /**
-     * Deletes data from selected cells
-     */
-    empty() {
-      if (!selection.isSelected()) {
-        return;
-      }
-      var topLeft = priv.selRange.getTopLeftCorner();
-      var bottomRight = priv.selRange.getBottomRightCorner();
-      var r,
-        c,
-        changes = [];
-
-      for (r = topLeft.row; r <= bottomRight.row; r++) {
-        for (c = topLeft.col; c <= bottomRight.col; c++) {
-          if (!instance.getCellMeta(r, c).readOnly) {
-            changes.push([r, c, '']);
-          }
-        }
-      }
-      instance.setDataAtCell(changes);
-    },
-  };
-
   /**
    * Internal function to set `language` key of settings.
    *
@@ -984,6 +595,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.view = new TableView(this);
     editorManager = new EditorManager(instance, priv, selection, datamap);
+
+    this.editorManager = editorManager;
 
     this.forceFullRender = true; // used when data was changed
 
@@ -1154,7 +767,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.forceFullRender = true; // used when data was changed
     grid.adjustRowsAndCols();
     instance.runHooks('beforeChangeRender', changes, source);
-    selection.refreshBorders(null, true);
+    instance._refreshBorders(null, true);
     instance.view.wt.wtOverlays.adjustElementsSize();
     instance.runHooks('afterChange', changes, source || 'edit');
 
@@ -1369,7 +982,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Boolean} [revertOriginal] If != `true`, edited data is saved. Otherwise the previous value is restored.
    */
   this.destroyEditor = function(revertOriginal) {
-    selection.refreshBorders(revertOriginal);
+    instance._refreshBorders(revertOriginal);
   };
 
   /**
@@ -1457,7 +1070,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return [priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col];
+      const cellRange = selection.selectedRange.current();
+
+      return [cellRange.from.row, cellRange.from.col, cellRange.to.row, cellRange.to.col];
     }
   };
 
@@ -1471,7 +1086,38 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getSelectedRange = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return priv.selRange;
+      return selection.selectedRange.current();
+    }
+  };
+
+  /**
+   * Erases content from cells that have been selected in the table.
+   *
+   * @memberof Core#
+   * @function emptySelectedCells
+   * @since 0.36.0
+   */
+  this.emptySelectedCells = function() {
+    if (!selection.isSelected()) {
+      return;
+    }
+    const changes = [];
+
+    arrayEach(selection.getSelectedRange(), (cellRange) => {
+      const topLeft = cellRange.getTopLeftCorner();
+      const bottomRight = cellRange.getBottomRightCorner();
+
+      rangeEach(topLeft.row, bottomRight.row, (row) => {
+        rangeEach(topLeft.col, bottomRight.col, (column) => {
+          if (!this.getCellMeta(row, column).readOnly) {
+            changes.push([row, column, '']);
+          }
+        });
+      });
+    });
+
+    if (changes.length > 0) {
+      this.setDataAtCell(changes);
     }
   };
 
@@ -1485,7 +1131,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (instance.view) {
       instance.renderCall = true;
       instance.forceFullRender = true; // used when data was changed
-      selection.refreshBorders(null, true);
+      instance._refreshBorders(null, true);
     }
   };
 
@@ -1842,7 +1488,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     grid.adjustRowsAndCols();
     if (instance.view && !priv.firstRun) {
       instance.forceFullRender = true; // used when data was changed
-      selection.refreshBorders(null, true);
+      instance._refreshBorders(null, true);
     }
 
     if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
@@ -1908,7 +1554,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Clears the data from the grid. (The table settings remain intact.)
+   * Clears the data from the grid (the table settings remain intact).
    *
    * @memberof Core#
    * @function clear
@@ -1916,7 +1562,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.clear = function() {
     selection.selectAll();
-    selection.empty();
+    this.emptySelectedCells();
   };
 
   /**
@@ -3125,8 +2771,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectCell = function(row, col, endRow, endCol, scrollToCell, changeListener) {
-    var coords;
-
     changeListener = isUndefined(changeListener) || changeListener === true;
 
     if (typeof row !== 'number' || row < 0 || row >= instance.countRows()) {
@@ -3143,20 +2787,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         return false;
       }
     }
-    coords = new CellCoords(row, col);
-    priv.selRange = new CellRange(coords, coords, coords);
+    selection.selectedRange.set(new CellCoords(row, col));
 
     if (changeListener) {
       instance.listen();
     }
 
     if (isUndefined(endRow)) {
-      selection.setRangeEnd(priv.selRange.from, scrollToCell);
+      selection.setRangeEnd(selection.selectedRange.current().from, scrollToCell);
 
     } else {
       selection.setRangeEnd(new CellCoords(endRow, endCol), scrollToCell);
     }
-    instance.selection.finish();
+    selection.finish();
+
     return true;
   };
 
@@ -3252,6 +2896,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       dataSource.destroy();
     }
     dataSource = null;
+
+    keyStateStopObserving();
 
     if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(instance)) {
       const licenseInfo = document.querySelector('#hot-display-license-info');
@@ -3472,6 +3118,176 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       clearTimeout(this.timeouts[i]);
     }
   };
+
+  this._refreshBorders = function(revertOriginal, keepEditor) {
+    if (!keepEditor) {
+      editorManager.destroyEditor(revertOriginal);
+    }
+    instance.view.render();
+
+    if (selection.isSelected() && !keepEditor) {
+      editorManager.prepareEditor();
+    }
+  };
+
+  selection = new Selection(instance.getSettings(), {
+    countCols: () => instance.countCols(),
+    countRows: () => instance.countRows(),
+    isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
+  });
+
+  this.selection = selection;
+
+  this.selection.addLocalHook('afterSelectionFinished', (cellRanges) => {
+    const selectedCellRanges = [];
+    const selectedCellRangesByProp = [];
+
+    arrayEach(cellRanges, (cellRange) => {
+      const literalRange = cellRange.toObject();
+      const literalRangeByProp = {
+        from: {
+          row: literalRange.from.row,
+          col: this.colToProp(literalRange.from.col),
+        },
+        to: {
+          row: literalRange.to.row,
+          col: this.colToProp(literalRange.to.col),
+        },
+      };
+
+      selectedCellRanges.push(literalRange);
+      selectedCellRangesByProp.push(literalRangeByProp);
+    });
+
+    this.runHooks('afterSelectionEnd', selectedCellRanges);
+    this.runHooks('afterSelectionEndByProp', selectedCellRangesByProp);
+  });
+
+  this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
+    this.runHooks('beforeSetRangeStart', cellCoords);
+  });
+
+  this.selection.addLocalHook('beforeSetRangeStartOnly', (cellCoords) => {
+    this.runHooks('beforeSetRangeStartOnly', cellCoords);
+  });
+
+  this.selection.addLocalHook('beforeSetRangeEnd', (cellCoords) => {
+    this.runHooks('beforeSetRangeEnd', cellCoords);
+
+    if (cellCoords.row < 0) {
+      cellCoords.row = this.view.wt.wtTable.getFirstVisibleRow();
+    }
+    if (cellCoords.col < 0) {
+      cellCoords.col = this.view.wt.wtTable.getFirstVisibleColumn();
+    }
+  });
+
+  this.selection.addLocalHook('afterSetRangeEnd', (cellCoords, scrollToCell, keepEditorOpened) => {
+    const preventScrolling = createObjectPropListener('value');
+    const selectedCellRanges = [];
+    const selectedCellRangesByProp = [];
+
+    arrayEach(this.selection.selectedRange, (cellRange) => {
+      const literalRange = cellRange.toObject();
+      const literalRangeByProp = {
+        from: {
+          row: literalRange.from.row,
+          col: this.colToProp(literalRange.from.col),
+        },
+        to: {
+          row: literalRange.to.row,
+          col: this.colToProp(literalRange.to.col),
+        },
+      };
+
+      selectedCellRanges.push(literalRange);
+      selectedCellRangesByProp.push(literalRangeByProp);
+    });
+
+    this.runHooks('afterSelection', selectedCellRanges, preventScrolling);
+    this.runHooks('afterSelectionByProp', selectedCellRangesByProp, preventScrolling);
+
+    let isHeaderSelected = false;
+    let areCoordsPositive = true;
+
+    if (this.selection.selectedHeader.cols || this.selection.selectedHeader.rows) {
+      isHeaderSelected = true;
+    }
+
+    if (cellCoords.row < 0 || cellCoords.col < 0) {
+      areCoordsPositive = false;
+    }
+
+    if (preventScrolling.isTouched()) {
+      scrollToCell = !preventScrolling.value;
+    }
+
+    if (scrollToCell !== false && !isHeaderSelected && areCoordsPositive) {
+      // if (cellRange.from && !this.selection.isMultiple()) {
+      //   this.hot.view.scrollViewport(cellRange.from);
+      // } else {
+      //   this.hot.view.scrollViewport(coords);
+      // }
+
+      if (!this.selection.isMultiple()) {
+        this.view.scrollViewport(this.selection.selectedRange.current().from);
+      } else {
+        this.view.scrollViewport(cellCoords);
+      }
+    }
+
+    if (this.selection.selectedHeader.rows && this.selection.selectedHeader.cols) {
+      addClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+
+    } else if (this.selection.selectedHeader.rows) {
+      removeClass(this.rootElement, 'ht__selection--columns');
+      addClass(this.rootElement, 'ht__selection--rows');
+
+    } else if (this.selection.selectedHeader.cols) {
+      removeClass(this.rootElement, 'ht__selection--rows');
+      addClass(this.rootElement, 'ht__selection--columns');
+
+    } else {
+      removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+    }
+
+    this._refreshBorders(null, keepEditorOpened);
+  });
+
+  this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple) => {
+    const changedIsMultiple = this.runHooks('afterIsMultipleSelection', isMultiple.value);
+
+    if (isMultiple.value) {
+      isMultiple.value = changedIsMultiple;
+    }
+  });
+
+  this.selection.addLocalHook('beforeModifyTransformStart', (cellCoordsDelta) => {
+    this.runHooks('modifyTransformStart', cellCoordsDelta);
+  });
+  this.selection.addLocalHook('afterModifyTransformStart', (coords, rowTransformDir, colTransformDir) => {
+    this.runHooks('afterModifyTransformStart', coords, rowTransformDir, colTransformDir);
+  });
+  this.selection.addLocalHook('beforeModifyTransformEnd', (cellCoordsDelta) => {
+    this.runHooks('modifyTransformEnd', cellCoordsDelta);
+  });
+  this.selection.addLocalHook('afterModifyTransformEnd', (coords, rowTransformDir, colTransformDir) => {
+    this.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
+  });
+  this.selection.addLocalHook('afterDeselect', (coords, rowTransformDir, colTransformDir) => {
+    editorManager.destroyEditor();
+
+    this._refreshBorders();
+    removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+
+    this.runHooks('afterDeselect');
+  });
+  this.selection.addLocalHook('insertRowRequire', (totalRows) => {
+    this.alter('insert_row', totalRows);
+  });
+  this.selection.addLocalHook('insertColRequire', (totalCols) => {
+    this.alter('insert_col', totalCols);
+  });
 
   Hooks.getSingleton().run(instance, 'construct');
 };

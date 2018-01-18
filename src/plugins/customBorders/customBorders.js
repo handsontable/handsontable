@@ -1,5 +1,6 @@
 import Hooks from './../../pluginHooks';
 import {hasOwnProperty} from './../../helpers/object';
+import {arrayEach} from './../../helpers/array';
 import {CellRange, Selection} from './../../3rdparty/walkontable/src';
 import * as C from './../../i18n/constants';
 
@@ -81,13 +82,17 @@ var init = function() {
  * @returns {Number}
  */
 var getSettingIndex = function(className) {
-  for (var i = 0; i < instance.view.wt.selections.length; i++) {
-    if (instance.view.wt.selections[i].settings.className == className) {
-      return i;
-    }
-  }
+  let index = -1;
 
-  return -1;
+  arrayEach(instance.selection.highlight.borders, (selection, i) => {
+    if (selection.settings.className == className) {
+      index = i;
+
+      return false;
+    }
+  });
+
+  return index;
 };
 
 /** *
@@ -104,9 +109,9 @@ var insertBorderIntoSettings = function(border) {
   var index = getSettingIndex(border.className);
 
   if (index >= 0) {
-    instance.view.wt.selections[index] = selection;
+    instance.selection.highlight.borders[index] = selection;
   } else {
-    instance.view.wt.selections.push(selection);
+    instance.selection.highlight.borders.push(selection);
   }
 };
 

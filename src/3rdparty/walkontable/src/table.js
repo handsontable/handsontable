@@ -306,27 +306,30 @@ class Table {
     if (!this.wot.selections) {
       return;
     }
-    let len = this.wot.selections.length;
+    const highlights = Array.from(this.wot.selections);
+    const len = highlights.length;
 
     if (fastDraw) {
+      // TODO(budnix): Non-consecutive cells feature doubles iteration while removing classNames from the DOM elements.
+      // This line should be optmized to remove specyfied className only once.
       for (let i = 0; i < len; i++) {
         // there was no rerender, so we need to remove classNames by ourselves
-        if (this.wot.selections[i].settings.className) {
-          this.removeClassFromCells(this.wot.selections[i].settings.className);
+        if (highlights[i].settings.className) {
+          this.removeClassFromCells(highlights[i].settings.className);
         }
-        if (this.wot.selections[i].settings.highlightHeaderClassName) {
-          this.removeClassFromCells(this.wot.selections[i].settings.highlightHeaderClassName);
+        if (highlights[i].settings.highlightHeaderClassName) {
+          this.removeClassFromCells(highlights[i].settings.highlightHeaderClassName);
         }
-        if (this.wot.selections[i].settings.highlightRowClassName) {
-          this.removeClassFromCells(this.wot.selections[i].settings.highlightRowClassName);
+        if (highlights[i].settings.highlightRowClassName) {
+          this.removeClassFromCells(highlights[i].settings.highlightRowClassName);
         }
-        if (this.wot.selections[i].settings.highlightColumnClassName) {
-          this.removeClassFromCells(this.wot.selections[i].settings.highlightColumnClassName);
+        if (highlights[i].settings.highlightColumnClassName) {
+          this.removeClassFromCells(highlights[i].settings.highlightColumnClassName);
         }
       }
     }
     for (let i = 0; i < len; i++) {
-      this.wot.selections[i].draw(this.wot, fastDraw);
+      highlights[i].draw(this.wot, fastDraw);
     }
   }
 

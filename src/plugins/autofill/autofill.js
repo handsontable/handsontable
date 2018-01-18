@@ -139,11 +139,11 @@ class Autofill extends BasePlugin {
    * @returns {Boolean} reports if fill was applied.
    */
   fillIn() {
-    if (this.hot.view.wt.selections.fill.isEmpty()) {
+    if (this.hot.selection.highlight.getFill().isEmpty()) {
       return false;
     }
 
-    const cornersOfSelectionAndDragAreas = this.hot.view.wt.selections.fill.getCorners();
+    const cornersOfSelectionAndDragAreas = this.hot.selection.highlight.getFill().getCorners();
 
     this.resetSelectionOfDraggedArea();
 
@@ -202,7 +202,7 @@ class Autofill extends BasePlugin {
 
     } else {
       // reset to avoid some range bug
-      this.hot.selection.refreshBorders();
+      this.hot._refreshBorders();
     }
 
     return true;
@@ -287,9 +287,9 @@ class Autofill extends BasePlugin {
    * @private
    */
   addNewRowIfNeeded() {
-    if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && this.autoInsertRow) {
+    if (this.hot.selection.highlight.getFill().cellRange && this.addingStarted === false && this.autoInsertRow) {
       const cornersOfSelectedCells = this.hot.getSelected();
-      const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
+      const cornersOfSelectedDragArea = this.hot.selection.highlight.getFill().getCorners();
       const nrOfTableRows = this.hot.countRows();
 
       if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
@@ -308,10 +308,10 @@ class Autofill extends BasePlugin {
    */
   getCornersOfSelectedCells() {
     if (this.hot.selection.isMultiple()) {
-      return this.hot.view.wt.selections.area.getCorners();
+      return this.hot.selection.highlight.getArea().getCorners();
 
     }
-    return this.hot.view.wt.selections.current.getCorners();
+    return this.hot.selection.highlight.getCell().getCorners();
 
   }
 
@@ -355,15 +355,16 @@ class Autofill extends BasePlugin {
    * @param {Number} rowIndex
    */
   addSelectionFromStartAreaToSpecificRowIndex(selectStartArea, rowIndex) {
-    this.hot.view.wt.selections.fill.clear();
-    this.hot.view.wt.selections.fill.add(new CellCoords(
-      selectStartArea[0],
-      selectStartArea[1])
-    );
-    this.hot.view.wt.selections.fill.add(new CellCoords(
-      rowIndex,
-      selectStartArea[3])
-    );
+    this.hot.selection.highlight.getFill()
+      .clear()
+      .add(new CellCoords(
+        selectStartArea[0],
+        selectStartArea[1])
+      )
+      .add(new CellCoords(
+        rowIndex,
+        selectStartArea[3])
+      );
   }
 
   /**
@@ -411,7 +412,7 @@ class Autofill extends BasePlugin {
   resetSelectionOfDraggedArea() {
     this.handleDraggedCells = 0;
 
-    this.hot.view.wt.selections.fill.clear();
+    this.hot.selection.highlight.getFill().clear();
   }
 
   /**
@@ -421,10 +422,12 @@ class Autofill extends BasePlugin {
    * @param {CellCoords} coords `CellCoords` coord object.
    */
   redrawBorders(coords) {
-    this.hot.view.wt.selections.fill.clear();
-    this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().from);
-    this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().to);
-    this.hot.view.wt.selections.fill.add(coords);
+    this.hot.selection.highlight.getFill()
+      .clear()
+      .add(this.hot.getSelectedRange().from)
+      .add(this.hot.getSelectedRange().to)
+      .add(coords);
+
     this.hot.view.render();
   }
 
