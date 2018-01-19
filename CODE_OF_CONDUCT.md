@@ -1,4 +1,4 @@
-#Handsontable Contributor Covenant Code of Conduct
+# Handsontable Contributor Covenant Code of Conduct
 
 ## Our Pledge
 
