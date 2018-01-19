@@ -1,15 +1,12 @@
-<br/>
 <div align="center">
   <a href="//handsontable.com" target="_blank"><img src="https://raw.githubusercontent.com/handsontable/static-files/master/Images/Logo/Handsontable/handsontable-logo-300-74-new-pro.png" alt="Handsontable Pro logo" /></a>
 </div>
 
-<br/><br/>
+<br/>
 
-[**Handsontable Pro**](//handsontable.com) is a JavaScript/HTML5 UI Spreadsheet component for web apps. It easily integrates with any data source and comes with premium features like Filtering, Nested Headers, Dropdown Menu, Collapsing Columns and Export to File.
+[**Handsontable Pro**](//handsontable.com) is a JavaScript/HTML5 UI Spreadsheet component for web apps. It easily integrates with any data source and comes with premium features like Filtering, Nested Headers, Dropdown Menu, Collapsing Columns and Export to File.  It is available for [Vue](//github.com/handsontable/vue-handsontable-official), [React](//github.com/handsontable/react-handsontable), [Angular](//github.com/handsontable/angular-handsontable) and [Polymer](//github.com/handsontable/hot-table).
 
 **This is a commercial, paid software available for evaluation purposes only. To use it in a production environment you need to purchase a license and pass a valid [license key](#license-key) in the configuration object.**
-
-If you are looking for an open source version, head to [Handsontable Community Edition](//github.com/handsontable/handsontable).
 
 <br/>
 
