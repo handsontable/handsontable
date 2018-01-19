@@ -4,6 +4,7 @@ import plPL from 'handsontable/i18n/languages/pl-PL';
 import * as allLanguages from 'handsontable/i18n/languages';
 import * as constants from 'handsontable/i18n/constants';
 import Handsontable from 'handsontable';
+import fs from 'fs';
 
 describe('i18n', () => {
   beforeAll(() => {
@@ -61,6 +62,15 @@ describe('i18n', () => {
     const dictionariesValuesWithArrays = [].concat([], ...valuesGroupedByDictionary);
     const dictionariesValuesWithoutArrays = [].concat([], ...dictionariesValuesWithArrays);
 
+    it('should export sorted alphabetically dictionaries from `src/i18n/languages` folder', () => {
+      // Every file inside `src/i18n/languages` folder should be exported inside `src/i18n/languages/index.js` file.
+
+      const filesInsideLanguageDictionary = fs.readdirSync('./src/i18n/languages');
+      const languagePacks = filesInsideLanguageDictionary.filter((name) => name !== 'index.js');
+
+      expect(languagePacks.map((languagePack) => languagePack.replace('.js', '')).sort()).toEqual(languageCodes);
+    });
+
     it('should not contain not matching elements', () => {
       // Checking if only dictionaries was exported.
       expect(dictionaries.every(
@@ -71,11 +81,11 @@ describe('i18n', () => {
       // Checking if collection contains more than one dictionary (not only default language pack).
       expect(dictionaries.length).toBeGreaterThan(1);
 
-      // Checking if keys inside dictionaries are strings
+      // Checking if keys inside dictionaries are strings.
       expect(keysGroupedByDictionary.every((groupOfDictionaryKeys) => Array.isArray(groupOfDictionaryKeys))).toBeTruthy();
       expect(dictionariesKeys.every((key) => typeof key === 'string')).toBeTruthy();
 
-      // Checking if values inside dictionaries are strings or arrays
+      // Checking if values inside dictionaries are strings or arrays.
       expect(valuesGroupedByDictionary.every((groupOfDictionaryValues) =>
         Array.isArray(groupOfDictionaryValues))).toBeTruthy();
       expect(dictionariesValuesWithArrays.every((value) => typeof value === 'string' || Array.isArray(value))).toBeTruthy();
