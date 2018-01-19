@@ -98,4 +98,4 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Segundo valor'
 };
 
-export default dictionary;​
+export default dictionary;
