@@ -3,8 +3,6 @@ import {register as registerPhraseFormatter} from 'handsontable/i18n/phraseForma
 import plPL from 'handsontable/i18n/languages/pl-PL';
 import * as allLanguages from 'handsontable/i18n/languages';
 import * as constants from 'handsontable/i18n/constants';
-import {isObject, objectEach} from 'handsontable/helpers/object';
-import {arrayEach} from 'handsontable/helpers/array';
 import Handsontable from 'handsontable';
 
 describe('i18n', () => {
@@ -48,64 +46,77 @@ describe('i18n', () => {
     expect(formatterWasRun).toEqual(true);
   });
 
-  it('should contain dictionaries with predefined keys as parts of dictionary (checking for typo)', () => {
-    // If you would like to extend any dictionary by a custom key, define also corresponding,
-    // exported constant for it inside `src/i18n/constants.js` file.
+  describe('Collection of language packs', () => {
+    // One of keys can be `__esModule` added by Babel. We separate out it.
+    const dictionariesExportNames = Object.keys(allLanguages).filter(
+      (exportedKey) => exportedKey !== '__esModule'
+    );
+    const dictionaries = dictionariesExportNames.map((exportName) => allLanguages[exportName]);
+    const languageCodes = dictionaries.map((dictionary) => dictionary.languageCode);
 
-    const predefinedDictionaryKeys = Object.values(constants);
+    const keysGroupedByDictionary = dictionaries.map((dictionary) => Object.keys(dictionary));
+    const dictionariesKeys = [].concat([], ...keysGroupedByDictionary);
 
-    objectEach(allLanguages, (dictionary) => {
-      objectEach(dictionary, (value, key) => {
-        if (key !== 'languageCode') {
-          expect(key).toBeDefined();
-          expect(predefinedDictionaryKeys.includes(key)).toEqual(true);
-        }
-      });
+    const valuesGroupedByDictionary = dictionaries.map((dictionary) => Object.values(dictionary));
+    const dictionariesValuesWithArrays = [].concat([], ...valuesGroupedByDictionary);
+    const dictionariesValuesWithoutArrays = [].concat([], ...dictionariesValuesWithArrays);
+
+    it('should not contain not matching elements', () => {
+      // Checking if only dictionaries was exported.
+      expect(dictionaries.every(
+        (dictionaryCandidate) => typeof dictionaryCandidate === 'object' &&
+          dictionaryCandidate.languageCode !== undefined
+      )).toBeTruthy();
+
+      // Checking if collection contains more than one dictionary (not only default language pack).
+      expect(dictionaries.length).toBeGreaterThan(1);
+
+      // Checking if keys inside dictionaries are strings
+      expect(keysGroupedByDictionary.every((groupOfDictionaryKeys) => Array.isArray(groupOfDictionaryKeys))).toBeTruthy();
+      expect(dictionariesKeys.every((key) => typeof key === 'string')).toBeTruthy();
+
+      // Checking if values inside dictionaries are strings or arrays
+      expect(valuesGroupedByDictionary.every((groupOfDictionaryValues) =>
+        Array.isArray(groupOfDictionaryValues))).toBeTruthy();
+      expect(dictionariesValuesWithArrays.every((value) => typeof value === 'string' || Array.isArray(value))).toBeTruthy();
+      expect(dictionariesValuesWithoutArrays.every((value) => typeof value === 'string')).toBeTruthy();
     });
-  });
 
-  it('should contain dictionaries values without unnecessary whitespace characters', () => {
-    const twoOrMoreWhiteSpace = / {2,}/;
-
-    objectEach(allLanguages, (dictionary) => {
-      objectEach(dictionary, (value) => {
-        if (isObject(dictionary)) {
-          if (Array.isArray(value)) {
-            arrayEach(value, (singleValue) => {
-              expect(singleValue.trim()).toEqual(singleValue);
-              expect(singleValue.replace(twoOrMoreWhiteSpace, ' ')).toEqual(singleValue);
-            });
-
-          } else {
-
-            expect(value.trim()).toEqual(value);
-            expect(value.replace(twoOrMoreWhiteSpace, ' ')).toEqual(value);
-          }
-        }
-      });
+    it('should not contain two or more dictionaries with the same language code', () => {
+      expect(Array.from(new Set(languageCodes).values())).toEqual(languageCodes);
     });
-  });
 
-  it('should contain dictionaries with proper language code and be named properly inside exports collection', () => {
-    // Connected with:
-    // b) name of language code inside separate language file from `src/i18n/languages` folder; it should be defined in format:
-    // two lowercase letters, hyphen, two uppercase letters, for example: `es-PY`.
-    // a) name of exports inside `src/i18n/languages/index.js` file; it should be defined in format:
-    // two lowercase letters, two uppercase letters, for example: `esPY`.
-    //
-    // For more information check language creation steps from the documentation:
-    // https://docs.handsontable.com/tutorial-internationalization.html#custom-languages
+    it('should contain dictionaries with proper language code and', () => {
+      // Every languageCode should have proper format.
+      // Name of language code inside separate language file from `src/i18n/languages` folder should match to a pattern:
+      // two lowercase letters, hyphen, two uppercase letters, for example: `es-PY`.
+      expect(languageCodes.find((languageCode) =>
+        /^([a-z]{2})-([A-Z]{2})$/.test(languageCode) === false
+      )).not.toBeDefined();
+    });
 
-    const properLanguageCode = /^([a-z]{2})-([A-Z]{2})$/;
+    it('should named properly export of dictionary inside exports object', () => {
+      // Every dictionary should have export with name corresponding to it's language code.
+      // Name of exports inside `src/i18n/languages/index.js` file should match to a pattern:
+      // two lowercase letters, two uppercase letters, for example: `esPY`.
+      expect(languageCodes.find((languageCode) =>
+        allLanguages[languageCode.replace('-', '')] === undefined
+      )).not.toBeDefined();
+    });
 
-    objectEach(allLanguages, (dictionary, exportName) => {
-      if (isObject(dictionary)) {
-        const languageCode = dictionary.languageCode;
-        const correspondingExportName = languageCode && languageCode.replace('-', '');
+    it('should contain dictionaries with predefined keys as parts of dictionary (checking for typo)', () => {
+      // If you would like to extend any dictionary by a custom key, define also corresponding,
+      // exported constant for it inside `src/i18n/constants.js` file.
+      const predefinedDictionaryKeys = Object.values(constants);
 
-        expect(properLanguageCode.test(languageCode)).toEqual(true);
-        expect(exportName).toEqual(correspondingExportName);
-      }
+      expect(dictionariesKeys.find((dictionaryKey) =>
+        dictionaryKey !== 'languageCode' && predefinedDictionaryKeys.includes(dictionaryKey) === false
+      )).not.toBeDefined();
+    });
+
+    it('should contain dictionaries values without unnecessary whitespace characters', () => {
+      expect(dictionariesValuesWithoutArrays.find((value) => value !== value.trim())).not.toBeDefined();
+      expect(dictionariesValuesWithoutArrays.find((value) => / {2,}/.test(value))).not.toBeDefined();
     });
   });
 });
