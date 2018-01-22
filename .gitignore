@@ -1,6 +1,7 @@
 *
 
 !.gitignore
+!CNAME
 !/demo/
 !LICENSE
 !README.md
