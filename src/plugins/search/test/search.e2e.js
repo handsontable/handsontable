@@ -13,22 +13,6 @@ describe('Search plugin', () => {
   });
 
   describe('enabling/disabling plugin', () => {
-    it('should expose `search` plugin when plugin is enabled', () => {
-      const hot = handsontable({
-        search: true
-      });
-
-      expect(hot.getPlugin('search')).toBeDefined();
-    });
-
-    it('should NOT expose `search` plugin when plugin is disabled', () => {
-      const hot = handsontable({
-        search: false
-      });
-
-      expect(hot.getPlugin('search').isEnabled()).toBe(false);
-    });
-
     it('should be disabled by default', () => {
       const hot = handsontable();
 
@@ -39,8 +23,6 @@ describe('Search plugin', () => {
       const hot = handsontable({
         search: true
       });
-
-      expect(hot.getPlugin('search')).toBeDefined();
 
       hot.updateSettings({
         search: false
@@ -53,8 +35,6 @@ describe('Search plugin', () => {
       const hot = handsontable({
         search: false
       });
-
-      expect(hot.getPlugin('search').isEnabled()).toBe(false);
 
       hot.updateSettings({
         search: true
@@ -133,11 +113,11 @@ describe('Search plugin', () => {
         search: true
       });
 
-      let searchResult = hot.getPlugin('search').query('A');
+      const searchResult = hot.getPlugin('search').query('A');
 
       expect(searchResult.length).toEqual(5);
 
-      for (let i = 0; i < searchResult.length; i++) {
+      for (let i = 0; i < searchResult.length; i += 1) {
         expect(searchResult[i].row).toEqual(i);
         expect(searchResult[i].col).toEqual(0);
         expect(searchResult[i].data).toEqual(hot.getDataAtCell(i, 0));
@@ -168,7 +148,7 @@ describe('Search plugin', () => {
         search: true
       });
 
-      let searchResult = hot.getPlugin('search').query('2');
+      const searchResult = hot.getPlugin('search').query('2');
 
       expect(searchResult.length).toEqual(2);
     });
@@ -179,7 +159,7 @@ describe('Search plugin', () => {
         search: true
       });
 
-      let searchResult = hot.getPlugin('search').query('A*');
+      const searchResult = hot.getPlugin('search').query('A*');
 
       expect(searchResult.length).toEqual(0);
     });
@@ -253,12 +233,12 @@ describe('Search plugin', () => {
         search: true
       });
 
-      let search = hot.getPlugin('search');
+      const search = hot.getPlugin('search');
 
       spyOn(search, 'callback');
 
-      let callback = search.callback;
-      let newCallback = jasmine.createSpy('newCallback');
+      const callback = search.callback;
+      const newCallback = jasmine.createSpy('newCallback');
 
       search.setCallback(newCallback);
 
@@ -295,15 +275,15 @@ describe('Search plugin', () => {
 
       expect(searchCallback.calls.count()).toEqual(25);
 
-      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++) {
-        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++) {
+      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
+        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
           const callArgs = searchCallback.calls.argsFor((rowIndex * 5) + colIndex);
           expect(callArgs[0]).toEqual(hot);
           expect(callArgs[1]).toEqual(rowIndex);
           expect(callArgs[2]).toEqual(colIndex);
           expect(callArgs[3]).toEqual(hot.getDataAtCell(rowIndex, colIndex));
 
-          if (colIndex == 0) {
+          if (colIndex === 0) {
             expect(callArgs[4]).toBe(true);
           } else {
             expect(callArgs[4]).toBe(false);
@@ -322,11 +302,11 @@ describe('Search plugin', () => {
 
       hot.getPlugin('search').query('2');
 
-      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++) {
-        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++) {
+      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
+        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
           const cellProperties = getCellMeta(rowIndex, colIndex);
 
-          if (rowIndex == 1) {
+          if (rowIndex === 1) {
             expect(cellProperties.isSearchResult).toBeTruthy();
           } else {
             expect(cellProperties.isSearchResult).toBeFalsy();
@@ -348,11 +328,11 @@ describe('Search plugin', () => {
 
       render();
 
-      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++) {
-        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++) {
+      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
+        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
           const cell = getCell(rowIndex, colIndex);
 
-          if (rowIndex == 1) {
+          if (rowIndex === 1) {
             expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(true);
           } else {
             expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
@@ -373,11 +353,11 @@ describe('Search plugin', () => {
 
       render();
 
-      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++) {
-        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++) {
+      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
+        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
           const cell = getCell(rowIndex, colIndex);
 
-          if (rowIndex == 1) {
+          if (rowIndex === 1) {
             expect($(cell).hasClass('customSearchResultClass')).toBe(true);
           } else {
             expect($(cell).hasClass('customSearchResultClass')).toBe(false);

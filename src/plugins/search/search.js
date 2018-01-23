@@ -26,20 +26,39 @@ const DEFAULT_QUERY_METHOD = function(query, value) {
 const originalBaseRenderer = getRenderer('base');
 
 /**
- * @private
  * @plugin Search
+ *
+ * @example
+ *
+ * ```js
+ * ...
+ *  // as boolean
+ *  search: true
+ *
+ *  // as a object with one or more options
+ *  search: {
+ *    callback: myNewCallbackFunction,
+ *    queryMethod: myNewQueryMethod,
+ *    searchResultClass: 'customClass'
+ *  }
+ *
+ * // Access to search plugin instance:
+ * var searchPlugin = hot.getPlugin('search');
+ *
+ * // Set callback programmatically:
+ * searchPlugin.setCallback(myNewCallbackFunction);
+ * // Set query method programmatically:
+ * searchPlugin.setQueryMethod(myNewQueryMethod);
+ * // Set search result cells class programmatically:
+ * searchPlugin.setSearchResultClass(customClass);
+ * ...
+ * ```
  */
 class Search extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Query method - used inside search input listener.
-     *
-     * @type {Function}
-     */
-    this.query = void 0;
-    /**
-     * Callback function is responsible for setting the cell's isSearchResult property.
+     * Callback function is responsible for setting the cell's `isSearchResult` property.
      *
      * @type {Function}
      */
@@ -51,7 +70,7 @@ class Search extends BasePlugin {
      */
     this.queryMethod = DEFAULT_QUERY_METHOD;
     /**
-     *  Adds class to every cell which isSearchResult property is true.
+     *  Class added to every cell which `isSearchResult` property is true.
      *
      * @type {String}
      */
@@ -76,55 +95,9 @@ class Search extends BasePlugin {
     }
 
     const searchSettings = this.hot.getSettings().search;
-
-    if (isObject(searchSettings)) {
-      if (searchSettings.searchResultClass) {
-        this.setSearchResultClass(searchSettings.searchResultClass);
-      }
-
-      if (searchSettings.queryMethod) {
-        this.setQueryMethod(searchSettings.queryMethod);
-      }
-
-      if (searchSettings.callback) {
-        this.setCallback(searchSettings.callback);
-      }
-    }
+    this.checkPluginSettings(searchSettings);
 
     this.addHook('afterInit', () => this.onAfterInit());
-
-    this.query = function(queryStr, callback = this.getCallback(), queryMethod = this.getQueryMethod()) {
-      const rowCount = this.hot.countRows();
-      const colCount = this.hot.countCols();
-      const queryResult = [];
-      const instance = this.hot;
-
-      rangeEach(0, rowCount - 1, (rowIndex) => {
-        rangeEach(0, colCount - 1, (colIndex) => {
-          const cellData = this.hot.getDataAtCell(rowIndex, colIndex);
-          const cellProperties = this.hot.getCellMeta(rowIndex, colIndex);
-          const cellCallback = cellProperties.search.callback || callback;
-          const cellQueryMethod = cellProperties.search.queryMethod || queryMethod;
-          const testResult = cellQueryMethod(queryStr, cellData);
-
-          if (testResult) {
-            const singleResult = {
-              row: rowIndex,
-              col: colIndex,
-              data: cellData,
-            };
-
-            queryResult.push(singleResult);
-          }
-
-          if (cellCallback) {
-            cellCallback(instance, rowIndex, colIndex, cellData, testResult);
-          }
-        });
-      });
-
-      return queryResult;
-    };
 
     super.enablePlugin();
   }
@@ -147,6 +120,48 @@ class Search extends BasePlugin {
   }
 
   /**
+   * Query method - used inside search input listener.
+   *
+   * @param {String} queryStr Searched value.
+   * @param {Function} [callback=DEFAULT_CALLBACK] Callback function responsible for setting the cell's `isSearchResult` property.
+   * @param {Function} [queryMethod=DEFAULT_QUERY_METHOD] Query function responsible for determining whether a query matches the value stored in a cell.
+   *
+   * @returns {Array} Return array of objects with `row`, `col`, `data` properties or empty array.
+   */
+  query(queryStr, callback = this.getCallback(), queryMethod = this.getQueryMethod()) {
+    const rowCount = this.hot.countRows();
+    const colCount = this.hot.countCols();
+    const queryResult = [];
+    const instance = this.hot;
+
+    rangeEach(0, rowCount - 1, (rowIndex) => {
+      rangeEach(0, colCount - 1, (colIndex) => {
+        const cellData = this.hot.getDataAtCell(rowIndex, colIndex);
+        const cellProperties = this.hot.getCellMeta(rowIndex, colIndex);
+        const cellCallback = cellProperties.search.callback || callback;
+        const cellQueryMethod = cellProperties.search.queryMethod || queryMethod;
+        const testResult = cellQueryMethod(queryStr, cellData);
+
+        if (testResult) {
+          const singleResult = {
+            row: rowIndex,
+            col: colIndex,
+            data: cellData,
+          };
+
+          queryResult.push(singleResult);
+        }
+
+        if (cellCallback) {
+          cellCallback(instance, rowIndex, colIndex, cellData, testResult);
+        }
+      });
+    });
+
+    return queryResult;
+  };
+
+  /**
    * Get callback function.
    *
    * @returns {Function} Return the callback function.
@@ -157,14 +172,6 @@ class Search extends BasePlugin {
 
   /**
    * Set callback function.
-   *
-   * The change can be done in two ways: in the configuration object -
-   * hot.updateSettings(id,
-   *   search: {
-   *     callback: myNewCallbackFunction
-   *   }
-   * ),
-   * or by calling it itself - hot.getPlugin('search').setCallback(myNewCallbackFunction).
    *
    * @param {Function} newCallback
    */
@@ -184,14 +191,6 @@ class Search extends BasePlugin {
   /**
    * Set queryMethod function.
    *
-   * The change can be done in two ways: in the configuration object -
-   * hot.updateSettings(id,
-   *   search: {
-   *     queryMethod: myNewQueryMethod
-   *   }
-   * ),
-   * or by calling it itself - hot.getPlugin('search').setQueryMethod(myNewQueryMethod).
-   *
    * @param {Function} newQueryMethod
    */
   setQueryMethod(newQueryMethod) {
@@ -210,18 +209,32 @@ class Search extends BasePlugin {
   /**
    * Set search result cells class.
    *
-   * The change can be done in two ways: in the configuration object -
-   * hot.updateSettings(id,
-   *   search: {
-   *     searchResultClass: 'customClass'
-   *   }
-   * ),
-   * or by calling it itself - hot.getPlugin('search').setSearchResultClass(customClass).
-   *
    * @param {String} newElementClass
    */
   setSearchResultClass(newElementClass) {
     this.searchResultClass = newElementClass;
+  }
+
+  /**
+   * Checks the settings of the plugin.
+   *
+   * @param {Object} searchSettings The plugin settings, taken from Handsontable configuration.
+   * @private
+   */
+  checkPluginSettings(searchSettings) {
+    if (isObject(searchSettings)) {
+      if (searchSettings.searchResultClass) {
+        this.setSearchResultClass(searchSettings.searchResultClass);
+      }
+
+      if (searchSettings.queryMethod) {
+        this.setQueryMethod(searchSettings.queryMethod);
+      }
+
+      if (searchSettings.callback) {
+        this.setCallback(searchSettings.callback);
+      }
+    }
   }
 
   /**
