@@ -198,45 +198,6 @@ class CopyPaste extends BasePlugin {
   /**
    * Create copyable text releated to range objects.
    *
-   * @since 0.19.0
-   * @param {Array} ranges Array of Objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
-   * @returns {String} Returns string which will be copied into clipboard.
-   */
-  getRangedCopyableData(ranges) {
-    let dataSet = [];
-    let copyableRows = [];
-    let copyableColumns = [];
-
-    // Count all copyable rows and columns
-    arrayEach(ranges, (range) => {
-      rangeEach(range.startRow, range.endRow, (row) => {
-        if (copyableRows.indexOf(row) === -1) {
-          copyableRows.push(row);
-        }
-      });
-      rangeEach(range.startCol, range.endCol, (column) => {
-        if (copyableColumns.indexOf(column) === -1) {
-          copyableColumns.push(column);
-        }
-      });
-    });
-    // Concat all rows and columns data defined in ranges into one copyable string
-    arrayEach(copyableRows, (row) => {
-      let rowSet = [];
-
-      arrayEach(copyableColumns, (column) => {
-        rowSet.push(this.hot.getCopyableData(row, column));
-      });
-
-      dataSet.push(rowSet);
-    });
-
-    return SheetClip.stringify(dataSet);
-  }
-
-  /**
-   * Create copyable text releated to range objects.
-   *
    * @since 0.31.1
    * @param {Array} ranges Array of Objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
    * @returns {Array} Returns array of arrays which will be copied into clipboard.
@@ -332,28 +293,56 @@ class CopyPaste extends BasePlugin {
     if (!this.hot.isListening() && !priv.isTriggeredByCopy) {
       return;
     }
-
     this.setCopyableText();
     priv.isTriggeredByCopy = false;
 
     let rangedData = this.getRangedData(this.copyableRanges);
     let allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
-    let value = '';
+    let textPlain = '';
 
     if (allowCopying) {
-      value = SheetClip.stringify(rangedData);
+      textPlain = SheetClip.stringify(rangedData);
+
+      let textHtml = '<table><tbody>';
+
+      for (let y = 0; y < rangedData.length; y += 1) {
+        textHtml += '<tr>';
+
+        for (let x = 0; x < rangedData[0].length; x += 1) {
+          textHtml += `<td>${rangedData[y][x] || ''}</td>`;
+        }
+
+        textHtml += '</tr>';
+      }
+
+      textHtml += '</tbody></table>';
 
       if (event && event.clipboardData) {
-        event.clipboardData.setData('text/plain', value);
+        event.clipboardData.setData('text/plain', textPlain);
+        event.clipboardData.setData('text/html', textHtml);
+        event.preventDefault();
 
       } else if (typeof ClipboardEvent === 'undefined') {
-        window.clipboardData.setData('Text', value);
+        // window.clipboardData.setData('Text', value);
+
+        let ghostContainer = document.createElement('div');
+        ghostContainer.innerHTML = textHtml;
+        this.hot.rootElement.appendChild(ghostContainer);
+
+        const range = document.createRange();
+
+        range.selectNode(ghostContainer);
+
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+
+        setTimeout(() => {
+          this.hot.rootElement.removeChild(ghostContainer);
+        }, 0);
       }
 
       this.hot.runHooks('afterCopy', rangedData, this.copyableRanges);
     }
-
-    event.preventDefault();
   }
 
   /**

@@ -14,13 +14,13 @@ describe('CopyPaste', () => {
 
   class DataTransferObject {
     constructor() {
-      this.data = '';
+      this.data = {};
     }
-    getData() {
-      return this.data;
+    getData(type) {
+      return this.data[type] || void 0;
     }
     setData(type, value) {
-      this.data = value;
+      this.data[type] = value;
     }
   };
 
@@ -223,7 +223,7 @@ describe('CopyPaste', () => {
       plugin.setCopyableText();
       plugin.onCopy(copyEvent);
 
-      expect(copyEvent.clipboardData.getData()).toBe('A2');
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('A2');
     });
 
     it('should call beforeCopy and afterCopy during copying operation', () => {
@@ -290,7 +290,7 @@ describe('CopyPaste', () => {
       plugin.setCopyableText();
       plugin.onCopy(copyEvent);
 
-      expect(copyEvent.clipboardData.getData()).toEqual('A2');
+      expect(copyEvent.clipboardData.getData('text/plain')).toEqual('A2');
     });
   });
 
@@ -315,7 +315,7 @@ describe('CopyPaste', () => {
       plugin.setCopyableText();
       plugin.onCut(cutEvent);
 
-      expect(cutEvent.clipboardData.getData()).toBe('A2');
+      expect(cutEvent.clipboardData.getData('text/plain')).toBe('A2');
 
       // await sleep(100);
       expect(hot.getDataAtCell(1, 0)).toBe('');
