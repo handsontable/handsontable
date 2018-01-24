@@ -187,10 +187,11 @@ DataMap.prototype.getSchema = function() {
  * @returns {Number} Returns number of created rows.
  */
 DataMap.prototype.createRow = function(index, amount, source) {
-  var row,
-    colCount = this.instance.countCols(),
-    numberOfCreatedRows = 0,
-    currentIndex;
+  let row = null;
+  let colCount = this.instance.countCols();
+  let numberOfCreatedRows = 0;
+  let currentIndex = null;
+  let continueProcess = null;
 
   if (!amount) {
     amount = 1;
@@ -199,44 +200,47 @@ DataMap.prototype.createRow = function(index, amount, source) {
   if (typeof index !== 'number' || index >= this.instance.countSourceRows()) {
     index = this.instance.countSourceRows();
   }
-  this.instance.runHooks('beforeCreateRow', index, amount, source);
 
-  currentIndex = index;
-  var maxRows = this.instance.getSettings().maxRows;
+  continueProcess = this.instance.runHooks('beforeCreateRow', index, amount, source);
 
-  while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
-    if (this.instance.dataType === 'array') {
-      if (this.instance.getSettings().dataSchema) {
-        // Clone template array
-        row = deepClone(this.getSchema());
+  if (continueProcess !== false) {
+    currentIndex = index;
+    let maxRows = this.instance.getSettings().maxRows;
+
+    while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
+      if (this.instance.dataType === 'array') {
+        if (this.instance.getSettings().dataSchema) {
+          // Clone template array
+          row = deepClone(this.getSchema());
+
+        } else {
+          row = [];
+          /* eslint-disable no-loop-func */
+          rangeEach(colCount - 1, () => row.push(null));
+        }
+
+      } else if (this.instance.dataType === 'function') {
+        row = this.instance.getSettings().dataSchema(index);
 
       } else {
-        row = [];
-        /* eslint-disable no-loop-func */
-        rangeEach(colCount - 1, () => row.push(null));
+        row = {};
+        deepExtend(row, this.getSchema());
       }
 
-    } else if (this.instance.dataType === 'function') {
-      row = this.instance.getSettings().dataSchema(index);
+      if (index === this.instance.countSourceRows()) {
+        this.dataSource.push(row);
 
-    } else {
-      row = {};
-      deepExtend(row, this.getSchema());
+      } else {
+        this.spliceData(index, 0, row);
+      }
+
+      numberOfCreatedRows++;
+      currentIndex++;
     }
 
-    if (index === this.instance.countSourceRows()) {
-      this.dataSource.push(row);
-
-    } else {
-      this.spliceData(index, 0, row);
-    }
-
-    numberOfCreatedRows++;
-    currentIndex++;
+    this.instance.runHooks('afterCreateRow', index, numberOfCreatedRows, source);
+    this.instance.forceFullRender = true; // used when data was changed
   }
-
-  this.instance.runHooks('afterCreateRow', index, numberOfCreatedRows, source);
-  this.instance.forceFullRender = true; // used when data was changed
 
   return numberOfCreatedRows;
 };

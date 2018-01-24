@@ -784,7 +784,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
         if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
-          instance.alter('insert_row', totalRows);
+          instance.alter('insert_row', totalRows, 1, 'auto');
           totalRows = instance.countRows();
 
         } else if (priv.settings.autoWrapCol) {
@@ -798,7 +798,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (priv.selRange.highlight.col + delta.col > totalCols - 1) {
         if (force && priv.settings.minSpareCols > 0) {
-          instance.alter('insert_col', totalCols);
+          instance.alter('insert_col', totalCols, 1, 'auto');
           totalCols = instance.countCols();
 
         } else if (priv.settings.autoWrapRow) {
