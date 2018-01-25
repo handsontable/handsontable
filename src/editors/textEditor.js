@@ -94,7 +94,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       break;
 
     case KEY_CODES.ENTER:
-      var selected = that.instance.getSelected();
+      var selected = that.instance.getSelectedRecently();
       var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
       if ((ctrlDown && !isMultipleSelection) || event.altKey) { // if ctrl+enter or alt+enter, add new line
         if (that.isOpened()) {
@@ -300,12 +300,12 @@ TextEditor.prototype.refreshDimensions = function() {
       break;
   }
 
-  if (colHeadersCount && this.instance.getSelected()[0] === 0 ||
-      (settings.fixedRowsBottom && this.instance.getSelected()[0] === totalRowsCount - settings.fixedRowsBottom)) {
+  if (colHeadersCount && this.instance.getSelectedRecently()[0] === 0 ||
+      (settings.fixedRowsBottom && this.instance.getSelectedRecently()[0] === totalRowsCount - settings.fixedRowsBottom)) {
     editTop += 1;
   }
 
-  if (this.instance.getSelected()[1] === 0) {
+  if (this.instance.getSelectedRecently()[1] === 0) {
     editLeft += 1;
   }
 

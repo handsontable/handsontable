@@ -1,4 +1,5 @@
 import {getValidSelection} from './../utils';
+import {arrayEach} from './../../../helpers/array';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'remove_row';
@@ -10,26 +11,35 @@ export default function removeRowItem() {
       const selection = this.getSelected();
       let pluralForm = 0;
 
-      if (Array.isArray(selection)) {
-        const [fromRow, , toRow] = selection;
-
-        if (fromRow - toRow !== 0) {
+      if (selection) {
+        if (selection.length > 1) {
           pluralForm = 1;
+        } else {
+          const [fromRow, , toRow] = selection[0];
+
+          if (fromRow - toRow !== 0) {
+            pluralForm = 1;
+          }
         }
       }
 
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_ROW, pluralForm);
     },
     callback(key, selection) {
-      let amount = selection.end.row - selection.start.row + 1;
+      const [{start, end}] = selection;
+      const amount = end.row - start.row + 1;
 
-      this.alter('remove_row', selection.start.row, amount, 'ContextMenu.removeRow');
+      this.alter('remove_row', start.row, amount, 'ContextMenu.removeRow');
     },
     disabled() {
       const selected = getValidSelection(this);
       const totalRows = this.countRows();
 
-      return !selected || this.selection.selectedHeader.cols || this.selection.selectedHeader.corner || !totalRows;
+      if (!selected || selected.length > 1) {
+        return true;
+      }
+
+      return this.selection.selectedHeader.cols || this.selection.selectedHeader.corner || !totalRows;
     },
     hidden() {
       return !this.getSettings().allowRemoveRow;

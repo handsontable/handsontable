@@ -75,10 +75,10 @@ describe('Walkontable.Selection', () => {
     });
     shimSelectionProperties(wt);
 
-    wt.selections.getArea().add(new Walkontable.CellCoords(1, 1));
-    wt.selections.getArea().add(new Walkontable.CellCoords(1, 2));
-    wt.selections.getArea().add(new Walkontable.CellCoords(2, 1));
-    wt.selections.getArea().add(new Walkontable.CellCoords(2, 2));
+    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(1, 1));
+    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(1, 2));
+    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(2, 1));
+    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(2, 2));
 
     wt.draw();
 

@@ -2,14 +2,36 @@ import {CellCoords} from './../3rdparty/walkontable/src';
 import {mixin} from './../helpers/object';
 import localHooks from './../mixins/localHooks';
 
+/**
+ * The Transformation class implements algorithms for transforming coordinates based on current settings
+ * passed to the Handsontable.
+ *
+ * Transformation is always applied relative to the current selection.
+ */
 class Transformation {
   constructor(range, options) {
+    /**
+     * Instance of the SelectionRange, holder for coordinates applied to the table.
+     *
+     * @type {SelectionRange}
+     */
     this.range = range;
+    /**
+     * Additional options which define the state of the settings which can infer transformation.
+     *
+     * @type {Object}
+     */
     this.options = options;
   }
 
   /**
    * Selects cell relative to current cell (if possible).
+   *
+   * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
+   * @param {Number} colDelta Columns number to move, value can be passed as negative number.
+   * @param {Boolean} force If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
+   *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
+   * @returns {CellCoords}
    */
   transformStart(rowDelta, colDelta, force) {
     const delta = new CellCoords(rowDelta, colDelta);
@@ -81,6 +103,10 @@ class Transformation {
 
   /**
    * Sets selection end cell relative to current selection end cell (if possible).
+   *
+   * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
+   * @param {Number} colDelta Columns number to move, value can be passed as negative number.
+   * @returns {CellCoords}
    */
   transformEnd(rowDelta, colDelta) {
     const delta = new CellCoords(rowDelta, colDelta);

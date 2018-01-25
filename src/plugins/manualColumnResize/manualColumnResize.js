@@ -147,7 +147,7 @@ class ManualColumnResize extends BasePlugin {
       this.selectedCols = [];
 
       if (this.hot.selection.isSelected() && this.hot.selection.selectedHeader.cols) {
-        let {from, to} = this.hot.getSelectedRange();
+        let {from, to} = this.hot.getSelectedRecentlyRange();
         let start = from.col;
         let end = to.col;
 

@@ -250,7 +250,7 @@ function TableView(instance) {
         return;
       }
 
-      let actualSelection = instance.getSelectedRange();
+      let actualSelection = instance.getSelectedRecentlyRange();
       let selection = instance.selection;
       let selectedHeader = selection.selectedHeader;
 
@@ -568,7 +568,7 @@ TableView.prototype.isTextSelectionAllowed = function(el) {
  * @returns {Boolean}
  */
 TableView.prototype.isSelectedOnlyCell = function() {
-  var [row, col, rowEnd, colEnd] = this.instance.getSelected() || [];
+  var [row, col, rowEnd, colEnd] = this.instance.getSelectedRecently() || [];
 
   return row !== void 0 && row === rowEnd && col === colEnd;
 };

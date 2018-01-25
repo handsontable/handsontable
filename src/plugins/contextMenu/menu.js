@@ -252,18 +252,18 @@ class Menu {
    * @param {Event} [event]
    */
   executeCommand(event) {
-    if (!this.isOpened() || !this.hotMenu.getSelected()) {
+    if (!this.isOpened() || !this.hotMenu.getSelectedRecently()) {
       return;
     }
-    const selectedItem = this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelected()[0]);
+    const selectedItem = this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelectedRecently()[0]);
 
     this.runLocalHooks('select', selectedItem, event);
 
     if (selectedItem.isCommand === false || selectedItem.name === SEPARATOR) {
       return;
     }
-    const selRange = this.hot.getSelectedRange();
-    const normalizedSelection = selRange ? normalizeSelection(selRange) : {};
+    const selRanges = this.hot.getSelectedRange();
+    const normalizedSelection = selRanges ? normalizeSelection(selRanges) : [];
     let autoClose = true;
 
     // Don't close context menu if item is disabled or it has submenu
@@ -567,7 +567,7 @@ class Menu {
    * @param {Event} event
    */
   onBeforeKeyDown(event) {
-    let selection = this.hotMenu.getSelected();
+    let selection = this.hotMenu.getSelectedRecently();
     let stopEvent = false;
     this.keyEvent = true;
 

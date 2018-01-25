@@ -222,8 +222,8 @@ Event.prototype.parentCell = function(elem) {
     cell.TD = this.instance.wtTable.getCell(cell.coords);
 
   } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'area')) {
-    if (this.instance.selections.getArea().cellRange) {
-      cell.coords = this.instance.selections.getArea().cellRange.to;
+    if (this.instance.selections.createOrGetArea().cellRange) {
+      cell.coords = this.instance.selections.createOrGetArea().cellRange.to;
       cell.TD = this.instance.wtTable.getCell(cell.coords);
     }
   }

@@ -11,12 +11,16 @@ export default function rowBelowItem() {
     },
 
     callback(key, selection) {
-      this.alter('insert_row', selection.end.row + 1, 1, 'ContextMenu.rowBelow');
+      this.alter('insert_row', selection[0].end.row + 1, 1, 'ContextMenu.rowBelow');
     },
     disabled() {
       let selected = getValidSelection(this);
 
-      return !selected || this.selection.selectedHeader.cols || this.countRows() >= this.getSettings().maxRows;
+      if (!selected || selected.length > 1) {
+        return true;
+      }
+
+      return this.selection.selectedHeader.cols || this.countRows() >= this.getSettings().maxRows;
     },
     hidden() {
       return !this.getSettings().allowInsertRow;

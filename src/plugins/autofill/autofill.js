@@ -125,8 +125,8 @@ class Autofill extends BasePlugin {
    */
   getSelectionData() {
     const selRange = {
-      from: this.hot.getSelectedRange().from,
-      to: this.hot.getSelectedRange().to,
+      from: this.hot.getSelectedRecentlyRange().from,
+      to: this.hot.getSelectedRecentlyRange().to,
     };
 
     return this.hot.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
@@ -235,8 +235,8 @@ class Autofill extends BasePlugin {
    */
 
   getCoordsOfDragAndDropBorders(coordsOfSelection) {
-    const topLeftCorner = this.hot.getSelectedRange().getTopLeftCorner();
-    const bottomRightCorner = this.hot.getSelectedRange().getBottomRightCorner();
+    const topLeftCorner = this.hot.getSelectedRecentlyRange().getTopLeftCorner();
+    const bottomRightCorner = this.hot.getSelectedRecentlyRange().getBottomRightCorner();
     let coords;
 
     if (this.directions.includes(DIRECTIONS.vertical) &&
@@ -288,7 +288,7 @@ class Autofill extends BasePlugin {
    */
   addNewRowIfNeeded() {
     if (this.hot.selection.highlight.getFill().cellRange && this.addingStarted === false && this.autoInsertRow) {
-      const cornersOfSelectedCells = this.hot.getSelected();
+      const cornersOfSelectedCells = this.hot.getSelectedRecently();
       const cornersOfSelectedDragArea = this.hot.selection.highlight.getFill().getCorners();
       const nrOfTableRows = this.hot.countRows();
 
@@ -308,7 +308,7 @@ class Autofill extends BasePlugin {
    */
   getCornersOfSelectedCells() {
     if (this.hot.selection.isMultiple()) {
-      return this.hot.selection.highlight.getArea().getCorners();
+      return this.hot.selection.highlight.createOrGetArea().getCorners();
 
     }
     return this.hot.selection.highlight.getCell().getCorners();
@@ -424,8 +424,8 @@ class Autofill extends BasePlugin {
   redrawBorders(coords) {
     this.hot.selection.highlight.getFill()
       .clear()
-      .add(this.hot.getSelectedRange().from)
-      .add(this.hot.getSelectedRange().to)
+      .add(this.hot.getSelectedRecentlyRange().from)
+      .add(this.hot.getSelectedRecentlyRange().to)
       .add(coords);
 
     this.hot.view.render();

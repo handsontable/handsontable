@@ -356,7 +356,7 @@ var onBeforeKeyDown = function(event) {
 
   if (ctrlDown) {
     if (event.keyCode === 77) { // CTRL + M
-      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
+      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRecentlyRange());
       this.render();
       stopImmediatePropagation(event);
     }
@@ -372,7 +372,7 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
   defaultOptions.items.push({
     key: 'mergeCells',
     name() {
-      var sel = this.getSelected();
+      var sel = this.getSelectedRecentlyRange();
       var info = this.mergeCells.mergedCellInfoCollection.getInfo(sel[0], sel[1]);
 
       if (info) {
@@ -382,7 +382,7 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_MERGE_CELLS);
     },
     callback() {
-      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
+      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRecentlyRange());
       this.render();
     },
     disabled() {
@@ -401,7 +401,7 @@ var modifyTransformFactory = function(hook) {
   return function(delta) {
     var mergeCellsSetting = this.getSettings().mergeCells;
     if (mergeCellsSetting) {
-      var currentSelectedRange = this.getSelectedRange();
+      var currentSelectedRange = this.getSelectedRecentlyRange();
       this.mergeCells.modifyTransform(hook, currentSelectedRange, delta);
 
       if (hook === 'modifyTransformEnd') {
@@ -433,7 +433,7 @@ var beforeSetRangeEnd = function(coords) {
   this.lastDesiredCoords = null; // unset lastDesiredCoords when selection is changed with mouse
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
-    var selRange = this.getSelectedRange();
+    var selRange = this.getSelectedRecentlyRange();
     selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
     selRange.to = coords;
 
@@ -468,7 +468,7 @@ var beforeDrawAreaBorders = function(corners, className) {
   if (className && className == 'area') {
     var mergeCellsSetting = this.getSettings().mergeCells;
     if (mergeCellsSetting) {
-      var selRange = this.getSelectedRange();
+      var selRange = this.getSelectedRecentlyRange();
       var startRange = new CellRange(selRange.from, selRange.from, selRange.from);
       var stopRange = new CellRange(selRange.to, selRange.to, selRange.to);
 
@@ -556,7 +556,7 @@ var afterViewportColumnCalculatorOverride = function(calc) {
 var isMultipleSelection = function(isMultiple) {
   if (isMultiple && this.mergeCells) {
     var mergedCells = this.mergeCells.mergedCellInfoCollection,
-      selectionRange = this.getSelectedRange();
+      selectionRange = this.getSelectedRecentlyRange();
 
     for (var group in mergedCells) {
       if (selectionRange.highlight.row == mergedCells[group].row &&

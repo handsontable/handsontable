@@ -1,32 +1,70 @@
-import Highlight from './highlight/highlight';
+import Highlight, {AREA_TYPE, HEADER_TYPE, CELL_TYPE} from './highlight/highlight';
 import SelectionRange from './range';
 import {CellRange, CellCoords} from './../3rdparty/walkontable/src';
-import {isPressed} from './../utils/keyStateObserver';
+import {isPressedCtrlKey} from './../utils/keyStateObserver';
 import {createObjectPropListener, mixin} from './../helpers/object';
 import {addClass, removeClass} from './../helpers/dom/element';
 import {arrayEach} from './../helpers/array';
 import localHooks from './../mixins/localHooks';
 import Transformation from './transformation';
 
+/**
+ * [Selection description]
+ */
 class Selection {
   constructor(settings, tableProps) {
+    /**
+     * Handsontable settings instance.
+     *
+     * @type {GridSettings}
+     */
     this.settings = settings;
+    /**
+     * An additional object with dynamically defined properties which describes table state.
+     *
+     * @type {Object}
+     */
     this.tableProps = tableProps;
+    /**
+     * The flag which determines if the selection is in progress.
+     *
+     * @type {Boolean}
+     */
     this.inProgress = false;
+    /**
+     * An object with flags which indicates what header is currently selected.
+     *
+     * @type {Object}
+     */
     this.selectedHeader = {
       cols: false,
       rows: false,
       corner: false,
     };
-
+    /**
+     * Selection data layer.
+     *
+     * @type {SelectionRange}
+     */
     this.selectedRange = new SelectionRange();
+    /**
+     * Visualization layer.
+     *
+     * @type {Highlight}
+     */
     this.highlight = new Highlight({
       headerClassName: settings.currentHeaderClassName,
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
+      disableHighlight: this.settings.disableVisualSelection,
       cellCornerVisible: () => this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.isMultiple(),
       areaCornerVisible: () => this.settings.fillHandle && !this.tableProps.isEditorOpened() && this.isMultiple(),
     });
+    /**
+     * The module for modifying coordinates.
+     *
+     * @type {Transformation}
+     */
     this.transformation = new Transformation(this.selectedRange, {
       countRows: () => this.tableProps.countRows(),
       countCols: () => this.tableProps.countCols(),
@@ -45,14 +83,21 @@ class Selection {
     this.transformation.addLocalHook('insertColRequire', (...args) => this.runLocalHooks('insertColRequire', ...args));
   }
 
+  /**
+   * Get data layer for current selection.
+   *
+   * @return {SelectionRange}
+   */
   getSelectedRange() {
     return this.selectedRange;
   }
 
   /**
-   * @param {Boolean} [rows=false]
-   * @param {Boolean} [cols=false]
-   * @param {Boolean} [corner=false]
+   * Set indication of what table header is currently selected.
+   *
+   * @param {Boolean} [rows=false] Indication for row header.
+   * @param {Boolean} [cols=false] Indication for column header.
+   * @param {Boolean} [corner=false] Indication for corner.
    */
   setSelectedHeaders(rows = false, cols = false, corner = false) {
     this.selectedHeader.rows = rows;
@@ -61,14 +106,14 @@ class Selection {
   }
 
   /**
-   * Sets inProgress to `true`. This enables onSelectionEnd and onSelectionEndByProp to function as desired.
+   * Indicate that selection process began. It sets internaly `.inProgress` property to `true`.
    */
   begin() {
     this.inProgress = true;
   }
 
   /**
-   * Sets inProgress to `false`. Triggers onSelectionEnd and onSelectionEndByProp.
+   * Indicate that selection process finished. It sets internaly `.inProgress` property to `false`.
    */
   finish() {
     this.runLocalHooks('afterSelectionFinished', this.selectedRange);
@@ -76,6 +121,8 @@ class Selection {
   }
 
   /**
+   * Check if the process of selecting the cell/cells is in progress.
+   *
    * @returns {Boolean}
    */
   isInProgress() {
@@ -86,10 +133,10 @@ class Selection {
    * Starts selection range on given coordinate object.
    *
    * @param {CellCoords} coords Visual coords.
-   * @param keepEditorOpened
+   * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range.
    */
   setRangeStart(coords, keepEditorOpened) {
-    if (!isPressed('COMMAND_LEFT')) {
+    if (!isPressedCtrlKey()) {
       this.selectedRange.clear();
     }
 
@@ -100,13 +147,13 @@ class Selection {
   }
 
   /**
-   * Starts selection range on given td object.
+   * Starts selection range on given coordinate object.
    *
    * @param {CellCoords} coords Visual coords.
-   * @param keepEditorOpened
+   * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range.
    */
   setRangeStartOnly(coords) {
-    if (!isPressed('COMMAND_LEFT')) {
+    if (!isPressedCtrlKey()) {
       this.selectedRange.clear();
     }
 
@@ -115,11 +162,11 @@ class Selection {
   }
 
   /**
-   * Ends selection range on given td object.
+   * Ends selection range on given coordinate object.
    *
    * @param {CellCoords} coords Visual coords.
-   * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to range end
-   * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range
+   * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the range end.
+   * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range.
    */
   setRangeEnd(coords, scrollToCell = true, keepEditorOpened = false) {
     if (this.selectedRange.isEmpty()) {
@@ -137,24 +184,17 @@ class Selection {
       cellRange.setFrom(coords);
     }
 
-    let disableVisualSelection = this.settings.disableVisualSelection;
-
-    if (typeof disableVisualSelection === 'string') {
-      disableVisualSelection = [disableVisualSelection];
-    }
-
     // set up current selection
     this.highlight.getCell().clear();
 
-    if (disableVisualSelection === false ||
-        Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('current') === -1) {
+    if (this.highlight.isEnabledFor(CELL_TYPE)) {
       this.highlight.getCell().add(this.selectedRange.current().highlight);
     }
 
     const highlightLayerLevel = this.selectedRange.size() - 1;
 
-    // If the next layer level is lower than previous then clear all area and header highlights. The new
-    // selection is performing.
+    // If the next layer level is lower than previous then clear all area and header highlights. This is the
+    // indication that the new selection is performing.
     if (highlightLayerLevel < this.highlight.layerLevel) {
       arrayEach(this.highlight.getAreas(), (area) => {
         area.clear();
@@ -166,24 +206,42 @@ class Selection {
 
     this.highlight.useLayerLevel(highlightLayerLevel);
 
-    this.highlight.getArea().clear();
-    this.highlight.getHeader().clear();
+    const areaHighlight = this.highlight.createOrGetArea();
+    const headerHighlight = this.highlight.createOrGetHeader();
 
-    if ((disableVisualSelection === false ||
-        Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) && this.isMultiple()) {
-      this.highlight.getArea()
+    areaHighlight.clear();
+    headerHighlight.clear();
+
+    if (this.highlight.isEnabledFor(AREA_TYPE)) {
+      if (this.isMultiple()) {
+        areaHighlight
+          .add(cellRange.from)
+          .add(cellRange.to);
+
+      } else if (highlightLayerLevel >= 1) {
+        // For single cell selection in the same layer we do not create area selection to prevent blue background.
+        // When non-consecutive selection is performed we have to add that missing area selection to the previous layer
+        // based on previous coordinates. It only occurs when previous selection wasn't select multiple cells.
+        this.highlight
+          .useLayerLevel(highlightLayerLevel - 1)
+          .createOrGetArea()
+          .add(this.selectedRange.previous().from);
+
+        this.highlight.useLayerLevel(highlightLayerLevel);
+      }
+    }
+    if (this.highlight.isEnabledFor(HEADER_TYPE)) {
+      headerHighlight
         .add(cellRange.from)
         .add(cellRange.to);
     }
-    this.highlight.getHeader()
-      .add(cellRange.from)
-      .add(cellRange.to);
 
     this.runLocalHooks('afterSetRangeEnd', coords, scrollToCell, keepEditorOpened);
   }
 
   /**
-   * Returns information if we have a multiselection.
+   * Returns information if we have a multiselection. This method check multiselection only on the latest layer of
+   * the selection.
    *
    * @returns {Boolean}
    */
@@ -196,7 +254,13 @@ class Selection {
   }
 
   /**
-   * Selects cell relative to current cell (if possible).
+   * Selects cell relative to the current cell (if possible).
+   *
+   * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
+   * @param {Number} colDelta Columns number to move, value can be passed as negative number.
+   * @param {Boolean} force If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
+   *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
+   * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after transforming the selection.
    */
   transformStart(rowDelta, colDelta, force, keepEditorOpened) {
     const newCoords = this.transformation.transformStart(rowDelta, colDelta, force);
@@ -205,7 +269,10 @@ class Selection {
   }
 
   /**
-   * Sets selection end cell relative to current selection end cell (if possible).
+   * Sets selection end cell relative to the current selection end cell (if possible).
+   *
+   * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
+   * @param {Number} colDelta Columns number to move, value can be passed as negative number.
    */
   transformEnd(rowDelta, colDelta) {
     const newCoords = this.transformation.transformEnd(rowDelta, colDelta);
@@ -214,7 +281,7 @@ class Selection {
   }
 
   /**
-   * Returns `true` if currently there is a selection on screen, `false` otherwise.
+   * Returns `true` if currently there is a selection on the screen, `false` otherwise.
    *
    * @returns {Boolean}
    */
@@ -223,9 +290,10 @@ class Selection {
   }
 
   /**
-   * Returns `true` if coords is within current selection coords.
+   * Returns `true` if coords is within current selection coords. This method only checks the latest
+   * layer of the selection.
    *
-   * @param {CellCoords} coords
+   * @param {CellCoords} coords Visual coordinates to check.
    * @returns {Boolean}
    */
   inInSelection(coords) {
@@ -233,12 +301,12 @@ class Selection {
       return false;
     }
 
-    // TODO(budnix): `includes` in all ranges need to be implemented not only current one.
+    // TODO(budnix): This ".includes" should be checked for all layers?
     return this.selectedRange.current().includes(coords);
   }
 
   /**
-   * Deselects all selected cells
+   * Deselects all selected cells.
    */
   deselect() {
     if (!this.isSelected()) {
@@ -252,13 +320,14 @@ class Selection {
   }
 
   /**
-   * Select all cells
+   * Select all cells.
    */
   selectAll() {
     if (!this.settings.multiSelect) {
       return;
     }
     this.setSelectedHeaders(true, true, true);
+    this.highlight.clear();
     this.setRangeStart(new CellCoords(0, 0));
     this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, this.tableProps.countCols() - 1), false);
   }

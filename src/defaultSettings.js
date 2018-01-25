@@ -1407,8 +1407,9 @@ DefaultSettings.prototype = {
    * Possible values:
    *  * `true` - Disables any type of visual selection (current and area selection),
    *  * `false` - Enables any type of visual selection. This is default value.
-   *  * `current` - Disables the selection of a currently selected cell, the area selection is still present.
-   *  * `area` - Disables the area selection, the currently selected cell selection is still present.
+   *  * `'current'` - Disables the selection of a currently selected cell, the area selection is still present.
+   *  * `'area'` - Disables the area selection, the currently selected cell selection is still present.
+   *  * `'header'` - Disables the headers selection, the currently selected cell selection is still present (available since 0.36.0).
    *
    * @type {Boolean|String|Array}
    * @default false
@@ -1421,7 +1422,7 @@ DefaultSettings.prototype = {
    * ...
    *
    * ...
-   * // as string ('current' or 'area')
+   * // as string ('current', 'area' or 'header')
    * disableVisualSelection: 'current',
    * ...
    *

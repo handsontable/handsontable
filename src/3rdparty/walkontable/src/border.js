@@ -255,8 +255,10 @@ class Border {
   }
 
   isPartRange(row, col) {
-    if (this.wot.selections.getArea().cellRange) {
-      if (row != this.wot.selections.getArea().cellRange.to.row || col != this.wot.selections.getArea().cellRange.to.col) {
+    const areaSelection = this.wot.selections.createOrGetArea();
+
+    if (areaSelection.cellRange) {
+      if (row != areaSelection.cellRange.to.row || col != areaSelection.cellRange.to.col) {
         return true;
       }
     }

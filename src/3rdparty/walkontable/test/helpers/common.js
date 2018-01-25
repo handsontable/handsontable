@@ -124,11 +124,11 @@ export function shimSelectionProperties(instance) {
     instance.selections.getCell = () => instance.selections[0];
   }
   if (instance.selections[1]) {
-    instance.selections.getArea = () => instance.selections[1];
+    instance.selections.createOrGetArea = () => instance.selections[1];
     instance.selections.getAreas = () => [instance.selections[1]];
   }
   if (instance.selections[2]) {
-    instance.selections.getHeader = () => instance.selections[2];
+    instance.selections.createOrGetHeader = () => instance.selections[2];
   }
   if (instance.selections[3]) {
     instance.selections.getFill = () => instance.selections[3];

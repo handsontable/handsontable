@@ -10,10 +10,10 @@ export default function columnLeftItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_LEFT);
     },
     callback(key, selection) {
-      this.alter('insert_col', selection.start.col, 1, 'ContextMenu.columnLeft');
+      this.alter('insert_col', selection[0].start.col, 1, 'ContextMenu.columnLeft');
     },
     disabled() {
-      let selected = getValidSelection(this);
+      const selected = getValidSelection(this);
 
       if (!selected) {
         return true;
@@ -21,11 +21,15 @@ export default function columnLeftItem() {
       if (!this.isColumnModificationAllowed()) {
         return true;
       }
-      let entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
-      let rowSelected = entireRowSelection.join(',') === selected.join(',');
-      let onlyOneColumn = this.countCols() === 1;
+      if (selected.length > 1) {
+        return true;
+      }
+      const [startRow, startColumn, endRow, endColumn] = selected[0];
+      const entireRowSelection = [startRow, 0, endRow, this.countCols() - 1];
+      const rowSelected = entireRowSelection.join(',') === selected.join(',');
+      const onlyOneColumn = this.countCols() === 1;
 
-      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
+      return startColumn < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
     },
     hidden() {
       return !this.getSettings().allowInsertColumn;

@@ -2,7 +2,7 @@
  * Handsontable UndoRedo class
  */
 import Hooks from './../../pluginHooks';
-import {arrayMap} from './../../helpers/array';
+import {arrayMap, arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
 import {inherit, deepClone} from './../../helpers/object';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
@@ -429,11 +429,14 @@ UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback)
   if (!instance.getPlugin('contextMenu').isEnabled()) {
     return;
   }
-  for (var row = this.range.from.row; row <= this.range.to.row; row++) {
-    for (var col = this.range.from.col; col <= this.range.to.col; col++) {
-      instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
+
+  arrayEach(this.range, ({from, to}) => {
+    for (var row = from.row; row <= to.row; row++) {
+      for (var col = from.col; col <= to.col; col++) {
+        instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
+      }
     }
-  }
+  });
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
@@ -442,8 +445,10 @@ UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback)
   if (!instance.getPlugin('contextMenu').isEnabled()) {
     return;
   }
-  instance.selectCell(this.range.from.row, this.range.from.col, this.range.to.row, this.range.to.col);
-  instance.getPlugin('contextMenu').executeCommand(`alignment:${this.alignment.replace('ht', '').toLowerCase()}`);
+  arrayEach(this.range, ({from, to}) => {
+    instance.selectCell(from.row, from.col, to.row, to.col);
+    instance.getPlugin('contextMenu').executeCommand(`alignment:${this.alignment.replace('ht', '').toLowerCase()}`);
+  });
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();

@@ -63,7 +63,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     datamap,
     dataSource,
     grid,
-    selection,
     editorManager,
     instance = this,
     GridSettings = function() {
@@ -114,6 +113,159 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     scrollable: null,
     firstRun: true
   };
+
+  let selection = new Selection(priv.settings, {
+    countCols: () => instance.countCols(),
+    countRows: () => instance.countRows(),
+    isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
+  });
+
+  this.selection = selection;
+
+  this.selection.addLocalHook('afterSelectionFinished', (cellRanges) => {
+    const selectedCellRanges = [];
+    const selectedCellRangesByProp = [];
+
+    arrayEach(cellRanges, (cellRange) => {
+      const literalRange = cellRange.toObject();
+      const literalRangeByProp = {
+        from: {
+          row: literalRange.from.row,
+          col: this.colToProp(literalRange.from.col),
+        },
+        to: {
+          row: literalRange.to.row,
+          col: this.colToProp(literalRange.to.col),
+        },
+      };
+
+      selectedCellRanges.push(literalRange);
+      selectedCellRangesByProp.push(literalRangeByProp);
+    });
+
+    this.runHooks('afterSelectionEnd', selectedCellRanges);
+    this.runHooks('afterSelectionEndByProp', selectedCellRangesByProp);
+  });
+
+  this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
+    this.runHooks('beforeSetRangeStart', cellCoords);
+  });
+
+  this.selection.addLocalHook('beforeSetRangeStartOnly', (cellCoords) => {
+    this.runHooks('beforeSetRangeStartOnly', cellCoords);
+  });
+
+  this.selection.addLocalHook('beforeSetRangeEnd', (cellCoords) => {
+    this.runHooks('beforeSetRangeEnd', cellCoords);
+
+    if (cellCoords.row < 0) {
+      cellCoords.row = this.view.wt.wtTable.getFirstVisibleRow();
+    }
+    if (cellCoords.col < 0) {
+      cellCoords.col = this.view.wt.wtTable.getFirstVisibleColumn();
+    }
+  });
+
+  this.selection.addLocalHook('afterSetRangeEnd', (cellCoords, scrollToCell, keepEditorOpened) => {
+    const preventScrolling = createObjectPropListener('value');
+    const selectedCellRanges = [];
+    const selectedCellRangesByProp = [];
+
+    arrayEach(this.selection.selectedRange, (cellRange) => {
+      const literalRange = cellRange.toObject();
+      const literalRangeByProp = {
+        from: {
+          row: literalRange.from.row,
+          col: this.colToProp(literalRange.from.col),
+        },
+        to: {
+          row: literalRange.to.row,
+          col: this.colToProp(literalRange.to.col),
+        },
+      };
+
+      selectedCellRanges.push(literalRange);
+      selectedCellRangesByProp.push(literalRangeByProp);
+    });
+
+    this.runHooks('afterSelection', selectedCellRanges, preventScrolling);
+    this.runHooks('afterSelectionByProp', selectedCellRangesByProp, preventScrolling);
+
+    let isHeaderSelected = false;
+    let areCoordsPositive = true;
+
+    if (this.selection.selectedHeader.cols || this.selection.selectedHeader.rows) {
+      isHeaderSelected = true;
+    }
+
+    if (cellCoords.row < 0 || cellCoords.col < 0) {
+      areCoordsPositive = false;
+    }
+
+    if (preventScrolling.isTouched()) {
+      scrollToCell = !preventScrolling.value;
+    }
+
+    if (scrollToCell !== false && !isHeaderSelected && areCoordsPositive) {
+      if (this.selection.selectedRange.current().from && !this.selection.isMultiple()) {
+        this.view.scrollViewport(this.selection.selectedRange.current().from);
+      } else {
+        this.view.scrollViewport(cellCoords);
+      }
+    }
+
+    if (this.selection.selectedHeader.rows && this.selection.selectedHeader.cols) {
+      addClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+
+    } else if (this.selection.selectedHeader.rows) {
+      removeClass(this.rootElement, 'ht__selection--columns');
+      addClass(this.rootElement, 'ht__selection--rows');
+
+    } else if (this.selection.selectedHeader.cols) {
+      removeClass(this.rootElement, 'ht__selection--rows');
+      addClass(this.rootElement, 'ht__selection--columns');
+
+    } else {
+      removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+    }
+
+    this._refreshBorders(null, keepEditorOpened);
+  });
+
+  this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple) => {
+    const changedIsMultiple = this.runHooks('afterIsMultipleSelection', isMultiple.value);
+
+    if (isMultiple.value) {
+      isMultiple.value = changedIsMultiple;
+    }
+  });
+
+  this.selection.addLocalHook('beforeModifyTransformStart', (cellCoordsDelta) => {
+    this.runHooks('modifyTransformStart', cellCoordsDelta);
+  });
+  this.selection.addLocalHook('afterModifyTransformStart', (coords, rowTransformDir, colTransformDir) => {
+    this.runHooks('afterModifyTransformStart', coords, rowTransformDir, colTransformDir);
+  });
+  this.selection.addLocalHook('beforeModifyTransformEnd', (cellCoordsDelta) => {
+    this.runHooks('modifyTransformEnd', cellCoordsDelta);
+  });
+  this.selection.addLocalHook('afterModifyTransformEnd', (coords, rowTransformDir, colTransformDir) => {
+    this.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
+  });
+  this.selection.addLocalHook('afterDeselect', (coords, rowTransformDir, colTransformDir) => {
+    editorManager.destroyEditor();
+
+    this._refreshBorders();
+    removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+
+    this.runHooks('afterDeselect');
+  });
+  this.selection.addLocalHook('insertRowRequire', (totalRows) => {
+    this.alter('insert_row', totalRows);
+  });
+  this.selection.addLocalHook('insertColRequire', (totalCols) => {
+    this.alter('insert_col', totalCols);
+  });
 
   grid = {
     /**
@@ -1060,34 +1212,69 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns indexes of the currently selected cells as an array `[startRow, startCol, endRow, endCol]`.
+   * Returns indexes of the currently selected cells as an array of arrays `[[startRow, startCol, endRow, endCol], ...]`.
    *
    * Start row and start col are the coordinates of the active cell (where the selection was started).
    *
    * @memberof Core#
    * @function getSelected
-   * @returns {Array} Array of the selection's indexes.
+   * @returns {Array[]} An array of arrays of the selection's indexes.
    */
   this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      const cellRange = selection.selectedRange.current();
-
-      return [cellRange.from.row, cellRange.from.col, cellRange.to.row, cellRange.to.col];
+      return arrayMap(selection.getSelectedRange(), ({from, to}) => [from.row, from.col, to.row, to.col]);
     }
   };
 
   /**
-   * Returns the current selection as a CellRange object.
+   * Returns the last coordinates applied to the table as a an array `[startRow, startCol, endRow, endCol]`.
+   *
+   * @memberof Core#
+   * @function getSelectedRecently
+   * @returns {Array|undefined} An array of the selection's coordinates.
+   */
+  this.getSelectedRecently = function() {
+    const selected = this.getSelected();
+    let result;
+
+    if (selected && selected.length > 0) {
+      result = selected[selected.length - 1];
+    }
+
+    return result;
+  };
+
+  /**
+   * Returns the current selection as an array of CellRange objects.
    *
    * @memberof Core#
    * @function getSelectedRange
    * @since 0.11
-   * @returns {CellRange} Selected range object or undefined` if there is no selection.
+   * @returns {CellRange[]} Selected range object or undefined` if there is no selection.
    */
   this.getSelectedRange = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return selection.selectedRange.current();
+      return Array.from(selection.getSelectedRange());
     }
+  };
+
+  /**
+  * Returns the last coordinates applied to the table as a CellRange object.
+  *
+  * @memberof Core#
+  * @function getSelectedRecentlyRange
+  * @since 0.36.0
+  * @returns {CellRange|undefined} Selected range object or undefined` if there is no selection.
+   */
+  this.getSelectedRecentlyRange = function() {
+    const selectedRange = this.getSelectedRange();
+    let result;
+
+    if (selectedRange && selectedRange.length > 0) {
+      result = selectedRange[selectedRange.length - 1];
+    }
+
+    return result;
   };
 
   /**
@@ -1505,12 +1692,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {*} Value of selected cell.
    */
   this.getValue = function() {
-    var sel = instance.getSelected();
+    var sel = instance.getSelectedRecently();
+
     if (GridSettings.prototype.getValue) {
       if (isFunction(GridSettings.prototype.getValue)) {
         return GridSettings.prototype.getValue.call(instance);
       } else if (sel) {
-        return instance.getData()[sel[0]][GridSettings.prototype.getValue];
+        return instance.getData()[sel[0][0]][GridSettings.prototype.getValue];
       }
     } else if (sel) {
       return instance.getDataAtCell(sel[0], sel[1]);
@@ -3119,6 +3307,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   };
 
+  /**
+   * Refresh selection borders. This is temporary method relic after selection rewrite.
+   *
+   * @private
+   * @param {Boolean} revertOriginal
+   * @param {Boolean} keepEditor
+   */
   this._refreshBorders = function(revertOriginal, keepEditor) {
     if (!keepEditor) {
       editorManager.destroyEditor(revertOriginal);
@@ -3129,165 +3324,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.prepareEditor();
     }
   };
-
-  selection = new Selection(instance.getSettings(), {
-    countCols: () => instance.countCols(),
-    countRows: () => instance.countRows(),
-    isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
-  });
-
-  this.selection = selection;
-
-  this.selection.addLocalHook('afterSelectionFinished', (cellRanges) => {
-    const selectedCellRanges = [];
-    const selectedCellRangesByProp = [];
-
-    arrayEach(cellRanges, (cellRange) => {
-      const literalRange = cellRange.toObject();
-      const literalRangeByProp = {
-        from: {
-          row: literalRange.from.row,
-          col: this.colToProp(literalRange.from.col),
-        },
-        to: {
-          row: literalRange.to.row,
-          col: this.colToProp(literalRange.to.col),
-        },
-      };
-
-      selectedCellRanges.push(literalRange);
-      selectedCellRangesByProp.push(literalRangeByProp);
-    });
-
-    this.runHooks('afterSelectionEnd', selectedCellRanges);
-    this.runHooks('afterSelectionEndByProp', selectedCellRangesByProp);
-  });
-
-  this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
-    this.runHooks('beforeSetRangeStart', cellCoords);
-  });
-
-  this.selection.addLocalHook('beforeSetRangeStartOnly', (cellCoords) => {
-    this.runHooks('beforeSetRangeStartOnly', cellCoords);
-  });
-
-  this.selection.addLocalHook('beforeSetRangeEnd', (cellCoords) => {
-    this.runHooks('beforeSetRangeEnd', cellCoords);
-
-    if (cellCoords.row < 0) {
-      cellCoords.row = this.view.wt.wtTable.getFirstVisibleRow();
-    }
-    if (cellCoords.col < 0) {
-      cellCoords.col = this.view.wt.wtTable.getFirstVisibleColumn();
-    }
-  });
-
-  this.selection.addLocalHook('afterSetRangeEnd', (cellCoords, scrollToCell, keepEditorOpened) => {
-    const preventScrolling = createObjectPropListener('value');
-    const selectedCellRanges = [];
-    const selectedCellRangesByProp = [];
-
-    arrayEach(this.selection.selectedRange, (cellRange) => {
-      const literalRange = cellRange.toObject();
-      const literalRangeByProp = {
-        from: {
-          row: literalRange.from.row,
-          col: this.colToProp(literalRange.from.col),
-        },
-        to: {
-          row: literalRange.to.row,
-          col: this.colToProp(literalRange.to.col),
-        },
-      };
-
-      selectedCellRanges.push(literalRange);
-      selectedCellRangesByProp.push(literalRangeByProp);
-    });
-
-    this.runHooks('afterSelection', selectedCellRanges, preventScrolling);
-    this.runHooks('afterSelectionByProp', selectedCellRangesByProp, preventScrolling);
-
-    let isHeaderSelected = false;
-    let areCoordsPositive = true;
-
-    if (this.selection.selectedHeader.cols || this.selection.selectedHeader.rows) {
-      isHeaderSelected = true;
-    }
-
-    if (cellCoords.row < 0 || cellCoords.col < 0) {
-      areCoordsPositive = false;
-    }
-
-    if (preventScrolling.isTouched()) {
-      scrollToCell = !preventScrolling.value;
-    }
-
-    if (scrollToCell !== false && !isHeaderSelected && areCoordsPositive) {
-      // if (cellRange.from && !this.selection.isMultiple()) {
-      //   this.hot.view.scrollViewport(cellRange.from);
-      // } else {
-      //   this.hot.view.scrollViewport(coords);
-      // }
-
-      if (!this.selection.isMultiple()) {
-        this.view.scrollViewport(this.selection.selectedRange.current().from);
-      } else {
-        this.view.scrollViewport(cellCoords);
-      }
-    }
-
-    if (this.selection.selectedHeader.rows && this.selection.selectedHeader.cols) {
-      addClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-
-    } else if (this.selection.selectedHeader.rows) {
-      removeClass(this.rootElement, 'ht__selection--columns');
-      addClass(this.rootElement, 'ht__selection--rows');
-
-    } else if (this.selection.selectedHeader.cols) {
-      removeClass(this.rootElement, 'ht__selection--rows');
-      addClass(this.rootElement, 'ht__selection--columns');
-
-    } else {
-      removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-    }
-
-    this._refreshBorders(null, keepEditorOpened);
-  });
-
-  this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple) => {
-    const changedIsMultiple = this.runHooks('afterIsMultipleSelection', isMultiple.value);
-
-    if (isMultiple.value) {
-      isMultiple.value = changedIsMultiple;
-    }
-  });
-
-  this.selection.addLocalHook('beforeModifyTransformStart', (cellCoordsDelta) => {
-    this.runHooks('modifyTransformStart', cellCoordsDelta);
-  });
-  this.selection.addLocalHook('afterModifyTransformStart', (coords, rowTransformDir, colTransformDir) => {
-    this.runHooks('afterModifyTransformStart', coords, rowTransformDir, colTransformDir);
-  });
-  this.selection.addLocalHook('beforeModifyTransformEnd', (cellCoordsDelta) => {
-    this.runHooks('modifyTransformEnd', cellCoordsDelta);
-  });
-  this.selection.addLocalHook('afterModifyTransformEnd', (coords, rowTransformDir, colTransformDir) => {
-    this.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
-  });
-  this.selection.addLocalHook('afterDeselect', (coords, rowTransformDir, colTransformDir) => {
-    editorManager.destroyEditor();
-
-    this._refreshBorders();
-    removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-
-    this.runHooks('afterDeselect');
-  });
-  this.selection.addLocalHook('insertRowRequire', (totalRows) => {
-    this.alter('insert_row', totalRows);
-  });
-  this.selection.addLocalHook('insertColRequire', (totalCols) => {
-    this.alter('insert_col', totalCols);
-  });
 
   Hooks.getSingleton().run(instance, 'construct');
 };

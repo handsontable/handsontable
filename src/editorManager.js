@@ -1,5 +1,5 @@
 import {CellCoords} from './3rdparty/walkontable/src';
-import {KEY_CODES, isMetaKey, isCtrlKey} from './helpers/unicode';
+import {KEY_CODES, isMetaKey, isCtrlMetaKey} from './helpers/unicode';
 import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './helpers/dom/event';
 import {getEditorInstance} from './editors';
 import EventManager from './eventManager';
@@ -96,7 +96,7 @@ function EditorManager(instance, priv, selection) {
     ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (activeEditor && !activeEditor.isWaiting()) {
-      if (!isMetaKey(event.keyCode) && !isCtrlKey(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
+      if (!isMetaKey(event.keyCode) && !isCtrlMetaKey(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
         _this.openEditor('', event);
 
         return;

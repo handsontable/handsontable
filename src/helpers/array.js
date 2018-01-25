@@ -54,14 +54,19 @@ export function pivot(arr) {
  * @returns {*} Returns the accumulated value.
  */
 export function arrayReduce(array, iteratee, accumulator, initFromArray) {
-  let index = -1,
-    length = array.length;
+  let index = -1;
+  let iterable = array;
+
+  if (!Array.isArray(array)) {
+    iterable = Array.from(array);
+  }
+  const length = iterable.length;
 
   if (initFromArray && length) {
-    accumulator = array[++index];
+    accumulator = iterable[++index];
   }
   while (++index < length) {
-    accumulator = iteratee(accumulator, array[index], index, array);
+    accumulator = iteratee(accumulator, iterable[index], index, iterable);
   }
 
   return accumulator;
@@ -78,15 +83,20 @@ export function arrayReduce(array, iteratee, accumulator, initFromArray) {
  * @returns {Array} Returns the new filtered array.
  */
 export function arrayFilter(array, predicate) {
-  let index = -1,
-    length = array.length,
-    resIndex = -1,
-    result = [];
+  let index = -1;
+  let iterable = array;
+
+  if (!Array.isArray(array)) {
+    iterable = Array.from(array);
+  }
+  const length = iterable.length;
+  const result = [];
+  let resIndex = -1;
 
   while (++index < length) {
-    let value = array[index];
+    const value = iterable[index];
 
-    if (predicate(value, index, array)) {
+    if (predicate(value, index, iterable)) {
       result[++resIndex] = value;
     }
   }
@@ -103,15 +113,21 @@ export function arrayFilter(array, predicate) {
  * @returns {Array} Returns the new filtered array.
  */
 export function arrayMap(array, iteratee) {
-  let index = -1,
-    length = array.length,
-    resIndex = -1,
-    result = [];
+  let index = -1;
+  let iterable = array;
+
+  if (!Array.isArray(array)) {
+    iterable = Array.from(array);
+  }
+
+  const length = iterable.length;
+  const result = [];
+  let resIndex = -1;
 
   while (++index < length) {
-    let value = array[index];
+    const value = iterable[index];
 
-    result[++resIndex] = iteratee(value, index, array);
+    result[++resIndex] = iteratee(value, index, iterable);
   }
 
   return result;
@@ -129,24 +145,17 @@ export function arrayMap(array, iteratee) {
  */
 export function arrayEach(array, iteratee) {
   let index = -1;
+  let iterable = array;
 
-  if (Array.isArray(array)) {
-    const length = array.length;
+  if (!Array.isArray(array)) {
+    iterable = Array.from(array);
+  }
 
-    while (++index < length) {
-      if (iteratee(array[index], index, array) === false) {
-        break;
-      }
-    }
-  } else if (array[Symbol.iterator]) {
-    const iterable = array[Symbol.iterator]();
+  const length = iterable.length;
 
-    for (let variable of iterable) {
-      index++;
-
-      if (iteratee(variable, index, iterable) === false) {
-        break;
-      }
+  while (++index < length) {
+    if (iteratee(iterable[index], index, iterable) === false) {
+      break;
     }
   }
 

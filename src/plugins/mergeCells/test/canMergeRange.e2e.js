@@ -134,13 +134,13 @@ describe('MergeCells', () => {
 
       hot.selectCell(0, 0);
 
-      expect(hot.getSelected()).toEqual([0, 0, 0, 3]);
+      expect(hot.getSelected()).toEqual([[0, 0, 0, 3]]);
 
       deselectCell();
 
       hot.selectCell(0, 1);
 
-      expect(hot.getSelected()).toEqual([0, 0, 0, 3]);
+      expect(hot.getSelected()).toEqual([[0, 0, 0, 3]]);
     });
 
     it('should always make a rectangular selection, when selecting merged and not merged cells', function() {
@@ -166,20 +166,20 @@ describe('MergeCells', () => {
 
       hot.selectCell(0, 0);
 
-      expect(hot.getSelected()).toEqual([0, 0, 0, 0]);
+      expect(hot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
       deselectCell();
 
       hot.selectCell(0, 0, 1, 1);
 
-      expect(hot.getSelected()).not.toEqual([0, 0, 1, 1]);
-      expect(hot.getSelected()).toEqual([0, 0, 2, 3]);
+      expect(hot.getSelected()).not.toEqual([[0, 0, 1, 1]]);
+      expect(hot.getSelected()).toEqual([[0, 0, 2, 3]]);
 
       deselectCell();
 
       hot.selectCell(0, 1, 1, 1);
 
-      expect(hot.getSelected()).toEqual([0, 1, 2, 3]);
+      expect(hot.getSelected()).toEqual([[0, 1, 2, 3]]);
     });
 
     it('should not switch the selection start point when selecting from non-merged cells to merged cells', () => {
@@ -193,23 +193,23 @@ describe('MergeCells', () => {
 
       $(hot.getCell(6, 6)).simulate('mousedown');
 
-      expect(hot.getSelectedRange().from.col).toEqual(6);
-      expect(hot.getSelectedRange().from.row).toEqual(6);
+      expect(hot.getSelectedRecentlyRange().from.col).toEqual(6);
+      expect(hot.getSelectedRecentlyRange().from.row).toEqual(6);
 
       $(hot.getCell(1, 1)).simulate('mouseenter');
 
-      expect(hot.getSelectedRange().from.col).toEqual(6);
-      expect(hot.getSelectedRange().from.row).toEqual(6);
+      expect(hot.getSelectedRecentlyRange().from.col).toEqual(6);
+      expect(hot.getSelectedRecentlyRange().from.row).toEqual(6);
 
       $(hot.getCell(3, 3)).simulate('mouseenter');
 
-      expect(hot.getSelectedRange().from.col).toEqual(6);
-      expect(hot.getSelectedRange().from.row).toEqual(6);
+      expect(hot.getSelectedRecentlyRange().from.col).toEqual(6);
+      expect(hot.getSelectedRecentlyRange().from.row).toEqual(6);
 
       $(hot.getCell(4, 4)).simulate('mouseenter');
 
-      expect(hot.getSelectedRange().from.col).toEqual(6);
-      expect(hot.getSelectedRange().from.row).toEqual(6);
+      expect(hot.getSelectedRecentlyRange().from.col).toEqual(6);
+      expect(hot.getSelectedRecentlyRange().from.row).toEqual(6);
 
     });
 
@@ -222,16 +222,16 @@ describe('MergeCells', () => {
       });
 
       hot.selectCell(5, 5, 5, 2);
-      expect(hot.getSelectedRange().getDirection()).toEqual('SE-NW');
+      expect(hot.getSelectedRecentlyRange().getDirection()).toEqual('SE-NW');
 
       hot.selectCell(4, 4, 2, 5);
-      expect(hot.getSelectedRange().getDirection()).toEqual('SW-NE');
+      expect(hot.getSelectedRecentlyRange().getDirection()).toEqual('SW-NE');
 
       hot.selectCell(4, 4, 5, 7);
-      expect(hot.getSelectedRange().getDirection()).toEqual('NW-SE');
+      expect(hot.getSelectedRecentlyRange().getDirection()).toEqual('NW-SE');
 
       hot.selectCell(4, 5, 7, 5);
-      expect(hot.getSelectedRange().getDirection()).toEqual('NE-SW');
+      expect(hot.getSelectedRecentlyRange().getDirection()).toEqual('NE-SW');
     });
 
     it('should not add an area class to the selected cell if a single merged cell is selected', () => {

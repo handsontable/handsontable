@@ -120,14 +120,14 @@ describe('Core_selection', () => {
       clientY: verticalScrollbarCoords.y
     });
 
-    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
 
     $(hot.view.wt.wtTable.holder).simulate('mousedown', {
       clientX: horizontalScrollbarCoords.x,
       clientY: horizontalScrollbarCoords.y
     });
 
-    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
   });
 
   it('should not deselect currently selected cell', () => {
@@ -138,7 +138,7 @@ describe('Core_selection', () => {
 
     $('html').simulate('mousedown');
 
-    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
   });
 
   it('should allow to focus on external input and hold current selection informations', () => {
@@ -153,7 +153,7 @@ describe('Core_selection', () => {
     textarea.focus();
 
     expect(document.activeElement.id).toEqual('test_textarea');
-    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     textarea.remove();
   });
 
@@ -184,7 +184,7 @@ describe('Core_selection', () => {
     expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
     // should preserve selection, close editor and save changes
-    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     expect(getDataAtCell(0, 0)).toBeNull();
 
     textarea.remove();
@@ -219,7 +219,7 @@ describe('Core_selection', () => {
     expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
     // should preserve selection, close editor and save changes
-    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     expect(getDataAtCell(0, 0)).toEqual('Foo');
 
     textarea.remove();
@@ -254,7 +254,7 @@ describe('Core_selection', () => {
     expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
     // should NOT preserve selection
-    expect(getSelected()).toEqual(undefined);
+    expect(getSelected()).toBeUndefined();
     expect(getDataAtCell(0, 0)).toEqual('Foo');
 
     textarea.remove();
@@ -289,7 +289,7 @@ describe('Core_selection', () => {
     expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
     // should preserve selection, close editor and save changes
-    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     expect(getDataAtCell(0, 0)).toEqual('Foo');
 
     textarea.remove();
@@ -303,7 +303,7 @@ describe('Core_selection', () => {
     selectCell(0, 0);
     keyDownUp('arrow_left');
 
-    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
   });
 
   it('should fix start range if provided is out of bounds (to the top)', () => {
@@ -314,7 +314,7 @@ describe('Core_selection', () => {
     selectCell(0, 0);
     keyDownUp('arrow_up');
 
-    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
   });
 
   it('should fix start range if provided is out of bounds (to the right)', () => {
@@ -325,7 +325,7 @@ describe('Core_selection', () => {
     selectCell(0, 4);
     keyDownUp('arrow_right');
 
-    expect(getSelected()).toEqual([0, 4, 0, 4]);
+    expect(getSelected()).toEqual([[0, 4, 0, 4]]);
   });
 
   it('should fix start range if provided is out of bounds (to the bottom)', () => {
@@ -336,7 +336,7 @@ describe('Core_selection', () => {
     selectCell(4, 0);
     keyDownUp('arrow_down');
 
-    expect(getSelected()).toEqual([4, 0, 4, 0]);
+    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
   });
 
   it('should fix end range if provided is out of bounds (to the left)', () => {
@@ -348,7 +348,7 @@ describe('Core_selection', () => {
     keyDownUp('shift+arrow_left');
     keyDownUp('shift+arrow_left');
 
-    expect(getSelected()).toEqual([0, 1, 0, 0]);
+    expect(getSelected()).toEqual([[0, 1, 0, 0]]);
   });
 
   it('should fix end range if provided is out of bounds (to the top)', () => {
@@ -360,7 +360,7 @@ describe('Core_selection', () => {
     keyDownUp('shift+arrow_up');
     keyDownUp('shift+arrow_up');
 
-    expect(getSelected()).toEqual([1, 0, 0, 0]);
+    expect(getSelected()).toEqual([[1, 0, 0, 0]]);
   });
 
   it('should fix end range if provided is out of bounds (to the right)', () => {
@@ -372,7 +372,7 @@ describe('Core_selection', () => {
     keyDownUp('shift+arrow_right');
     keyDownUp('shift+arrow_right');
 
-    expect(getSelected()).toEqual([0, 3, 0, 4]);
+    expect(getSelected()).toEqual([[0, 3, 0, 4]]);
   });
 
   it('should fix end range if provided is out of bounds (to the bottom)', () => {
@@ -385,7 +385,7 @@ describe('Core_selection', () => {
     keyDownUp('shift+arrow_down');
     keyDownUp('shift+arrow_down');
 
-    expect(getSelected()).toEqual([3, 0, 4, 0]);
+    expect(getSelected()).toEqual([[3, 0, 4, 0]]);
   });
 
   it('should select multiple cells', () => {
@@ -395,7 +395,7 @@ describe('Core_selection', () => {
     });
     selectCell(3, 0, 4, 1);
 
-    expect(getSelected()).toEqual([3, 0, 4, 1]);
+    expect(getSelected()).toEqual([[3, 0, 4, 1]]);
   });
 
   it('should call onSelectionEnd as many times as onSelection when `selectCell` is called', () => {
@@ -433,7 +433,7 @@ describe('Core_selection', () => {
     keyDownUp('shift+arrow_down'); // makes tick++
     keyDownUp('shift+arrow_down'); // makes tick++
 
-    expect(getSelected()).toEqual([3, 0, 4, 0]);
+    expect(getSelected()).toEqual([[3, 0, 4, 0]]);
     expect(tick).toEqual(4);
   });
 
@@ -451,7 +451,7 @@ describe('Core_selection', () => {
     keyDown('shift+arrow_down');
     keyDownUp('shift+arrow_down'); // makes tick++
 
-    expect(getSelected()).toEqual([3, 0, 4, 0]);
+    expect(getSelected()).toEqual([[3, 0, 4, 0]]);
     expect(tick).toEqual(2);
   });
 
@@ -468,7 +468,7 @@ describe('Core_selection', () => {
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([0, 1, 4, 4]);
+    expect(getSelected()).toEqual([[0, 1, 4, 4]]);
 
   });
 
@@ -485,7 +485,7 @@ describe('Core_selection', () => {
     this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', {shiftKey: true});
     this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([1, 0, 4, 4]);
+    expect(getSelected()).toEqual([[1, 0, 4, 4]]);
 
   });
 
@@ -502,7 +502,7 @@ describe('Core_selection', () => {
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([0, 1, 4, 4]);
+    expect(getSelected()).toEqual([[0, 1, 4, 4]]);
 
   });
 
@@ -518,7 +518,7 @@ describe('Core_selection', () => {
     this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', {shiftKey: true});
     this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([1, 0, 4, 4]);
+    expect(getSelected()).toEqual([[1, 0, 4, 4]]);
 
   });
 
@@ -534,7 +534,7 @@ describe('Core_selection', () => {
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
     this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([0, 1, 4, 4]);
+    expect(getSelected()).toEqual([[0, 1, 4, 4]]);
   });
 
   it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', function() {
@@ -557,7 +557,7 @@ describe('Core_selection', () => {
 
     this.$container.find('tr:eq(1) td:eq(3)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([0, 0, 1, 3]);
+    expect(getSelected()).toEqual([[0, 0, 1, 3]]);
     expect(tick).toEqual(3);
     expect(tickEnd).toEqual(1);
   });
@@ -576,7 +576,7 @@ describe('Core_selection', () => {
     this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseover');
     this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([0, 1, 4, 1]);
+    expect(getSelected()).toEqual([[0, 1, 4, 1]]);
   });
 
   it('should move focus to selected cell', () => {
@@ -629,7 +629,7 @@ describe('Core_selection', () => {
 
     this.$container.find('thead th:eq(0)').simulate('mousedown');
 
-    expect(getSelected()).toEqual([0, 0, 49, 0]);
+    expect(getSelected()).toEqual([[0, 0, 49, 0]]);
     expect(hot.selection.selectedHeader.rows).toBe(false);
     expect(hot.selection.selectedHeader.cols).toBe(true);
     expect(hot.selection.selectedHeader.corner).toBe(false);
@@ -663,7 +663,7 @@ describe('Core_selection', () => {
 
     this.$container.find('.ht_master thead th:eq(1)').simulate('mousedown');
 
-    expect(getSelected()).toEqual([0, 0, 49, 0]);
+    expect(getSelected()).toEqual([[0, 0, 49, 0]]);
     expect(hot.selection.selectedHeader.rows).toBe(false);
     expect(hot.selection.selectedHeader.cols).toBe(true);
     expect(hot.selection.selectedHeader.corner).toBe(false);
@@ -686,7 +686,7 @@ describe('Core_selection', () => {
     this.$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
     this.$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([0, 1, 49, 1]);
+    expect(getSelected()).toEqual([[0, 1, 49, 1]]);
     expect(hot.selection.selectedHeader.rows).toBe(false);
     expect(hot.selection.selectedHeader.cols).toBe(true);
     expect(hot.selection.selectedHeader.corner).toBe(false);
@@ -713,7 +713,7 @@ describe('Core_selection', () => {
     }, 30);
 
     setTimeout(() => {
-      expect(getSelected()).toEqual([12, 11, 10, 11]);
+      expect(getSelected()).toEqual([[12, 11, 10, 11]]);
       done();
     }, 60);
   });
@@ -739,7 +739,7 @@ describe('Core_selection', () => {
     }, 30);
 
     setTimeout(() => {
-      expect(getSelected()).toEqual([12, 11, 12, 10]);
+      expect(getSelected()).toEqual([[12, 11, 12, 10]]);
       done();
     }, 60);
   });
@@ -841,7 +841,7 @@ describe('Core_selection', () => {
 
     this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
 
-    expect(getSelected()).toEqual([1, 0, 1, 4]);
+    expect(getSelected()).toEqual([[1, 0, 1, 4]]);
     expect(hot.selection.selectedHeader.rows).toBe(true);
     expect(hot.selection.selectedHeader.cols).toBe(false);
     expect(hot.selection.selectedHeader.corner).toBe(false);
@@ -872,9 +872,9 @@ describe('Core_selection', () => {
     });
 
     this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
-    expect(getSelected()).toEqual([1, 0, 1, 4]);
+    expect(getSelected()).toEqual([[1, 0, 1, 4]]);
     this.$container.find('tr:eq(3) th:eq(0)').simulate('mousedown');
-    expect(getSelected()).toEqual([2, 0, 2, 4]);
+    expect(getSelected()).toEqual([[2, 0, 2, 4]]);
   });
 
   it('should select a cell in a newly added row after automatic row adding, triggered by editing a cell in the last row with minSpareRows > 0, ' +
@@ -896,7 +896,7 @@ describe('Core_selection', () => {
 
     setTimeout(() => {
       expect(countRows()).toEqual(6);
-      expect(getSelected()).toEqual([5, 0, 5, 0]);
+      expect(getSelected()).toEqual([[5, 0, 5, 0]]);
     }, 200);
 
     setTimeout(() => {
@@ -917,7 +917,7 @@ describe('Core_selection', () => {
     });
     keyDown('arrow_down');
 
-    expect(getSelected()).toEqual([2, 1, 2, 1]);
+    expect(getSelected()).toEqual([[2, 1, 2, 1]]);
   });
 
   it('should change selected coords by modifying coords object via `modifyTransformEnd` hook', () => {
@@ -933,7 +933,7 @@ describe('Core_selection', () => {
     });
     keyDown('shift+arrow_down');
 
-    expect(getSelected()).toEqual([0, 0, 2, 2]);
+    expect(getSelected()).toEqual([[0, 0, 2, 2]]);
   });
 
   it('should indicate is coords is out of bounds via `afterModifyTransformStart` hook', () => {
@@ -1022,12 +1022,12 @@ describe('Core_selection', () => {
     cells.eq(18).simulate('mouseover');
     cells.eq(18).simulate('mouseup');
 
-    expect(hot.getSelected()).toEqual([1, 1, 3, 3]);
+    expect(hot.getSelected()).toEqual([[1, 1, 3, 3]]);
 
     cells.eq(16).simulate('mousedown');
     cells.eq(16).simulate('mouseup');
 
-    expect(hot.getSelected()).toEqual([3, 1, 3, 1]);
+    expect(hot.getSelected()).toEqual([[3, 1, 3, 1]]);
   });
 
   it('should select the first row after corner header is clicked', function() {
@@ -1040,7 +1040,7 @@ describe('Core_selection', () => {
 
     this.$container.find('thead').find('th').eq(0).simulate('mousedown');
 
-    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     expect(hot.selection.selectedHeader.rows).toBe(false);
     expect(hot.selection.selectedHeader.cols).toBe(false);
     expect(hot.selection.selectedHeader.corner).toBe(true);

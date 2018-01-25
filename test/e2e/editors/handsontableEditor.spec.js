@@ -162,7 +162,7 @@ describe('HandsontableEditor', () => {
     keyDownUp('arrow_down');
     keyDownUp('arrow_down');
 
-    expect(getSelected()).toEqual([4, 0, 4, 0]);
+    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
   });
 
   it('should focus the TD after HT editor is prepared, finished (by keyboard) and destroyed', () => {
@@ -226,7 +226,7 @@ describe('HandsontableEditor', () => {
       var ht = hot.getActiveEditor();
       var innerHot = ht.htEditor;
 
-      expect(innerHot.getSelected()).toEqual([0, 0, 0, 0]);
+      expect(innerHot.getSelected()).toEqual([[0, 0, 0, 0]]);
     });
 
     it('should hide textarea', () => {

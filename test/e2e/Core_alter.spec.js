@@ -804,8 +804,10 @@ describe('Core_alter', () => {
       alter('insert_row', 2);
 
       const selected = getSelected();
-      expect(selected[0]).toEqual(3);
-      expect(selected[2]).toEqual(3);
+
+      expect(selected[0][0]).toBe(3);
+      expect(selected[0][2]).toBe(3);
+      expect(selected.length).toBe(1);
     });
 
     it('should shift the cell meta according to the new row layout', () => {

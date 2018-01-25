@@ -1,10 +1,27 @@
 import {createHighlight} from './types';
-import {arrayEach} from './../../helpers/array';
+import {arrayEach, arrayFilter} from './../../helpers/array';
 
+export const CELL_TYPE = 'cell';
+export const FILL_TYPE = 'fill';
+export const AREA_TYPE = 'area';
+export const HEADER_TYPE = 'header';
+
+/**
+ * Highlight class responsible for managing Walkontable Selection classes.
+ *
+ * With Highlight object you can manipulate four different highlight types:
+ *  - `cell` can be added only to a single cell at a time and it defines currently selected cell;
+ *  - `fill` can occur only once and its highlight defines selection of autofill functionality (managed by the plugin with the same name);
+ *  - `areas` can be added to multiple cells at a time. This type highlights selected cell or multiple cells.
+ *    The multiple cells have to be defined as an uninterrupted order (regular shape). Otherwise, the new layer of
+ *    that type should be created to manage not-consecutive selection;
+ *  - `header` can occur multiple times. This type is designed to highlight only headers. Like `area` type it
+ *    can appear with multiple highlights (accessed under different level layers).
+ */
 class Highlight {
   constructor(options) {
     /**
-     * Options passed to the Walkontable Selection class.
+     * Options consumed by Highlight class and Walkontable Selection classes.
      *
      * @type {Object}
      */
@@ -26,14 +43,14 @@ class Highlight {
      *
      * @type {Selection}
      */
-    this.cell = createHighlight('cell', options);
+    this.cell = createHighlight(CELL_TYPE, options);
     /**
      * `fill` highlight object which describes attributes for the borders for autofill functionality.
      * It can only occur only once on the table.
      *
      * @type {Selection}
      */
-    this.fill = createHighlight('fill', options);
+    this.fill = createHighlight(FILL_TYPE, options);
     /**
      * Collection of the `area` highlights. That objects describes attributes for the borders and selection of
      * the multiple selected cells. It can occur multiple times on the table.
@@ -57,12 +74,36 @@ class Highlight {
   }
 
   /**
+   * Check if highlight cell rendering is disabled for specyfied highlight type.
+   *
+   * @param {String} highlightType Highlight type. Possible values are: `cell`, `area`, `fill` or `header`.
+   * @return {Boolean}
+   */
+  isEnabledFor(highlightType) {
+    let disableHighlight = this.options.disableHighlight;
+
+    // Legacy compatibility.
+    if (highlightType === 'current') {
+      highlightType = CELL_TYPE;
+    }
+
+    if (typeof disableHighlight === 'string') {
+      disableHighlight = [disableHighlight];
+    }
+
+    return disableHighlight === false || Array.isArray(disableHighlight) && !disableHighlight.includes(highlightType);
+  }
+
+  /**
    * Set a new layer level to make access to the desire `area` and `header` highlights.
    *
    * @param {Number} [level=0] Layer level to use.
+   * @returns {Highlight}
    */
   useLayerLevel(level = 0) {
     this.layerLevel = level;
+
+    return this;
   }
 
   /**
@@ -84,18 +125,19 @@ class Highlight {
   }
 
   /**
-   * Get Walkontable Selection instance created for controlling highlight of the multiple selected cells.
+   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
+   * of the multiple selected cells.
    *
    * @return {Selection}
    */
-  getArea() {
-    let area;
+  createOrGetArea() {
     const layerLevel = this.layerLevel;
+    let area;
 
     if (this.areas.has(layerLevel)) {
       area = this.areas.get(layerLevel);
     } else {
-      area = createHighlight('area', this.options);
+      area = createHighlight(AREA_TYPE, this.options);
 
       this.areas.set(layerLevel, area);
     }
@@ -113,18 +155,19 @@ class Highlight {
   }
 
   /**
-   * Get Walkontable Selection instance created for controlling highlight of the multiple selected header cells.
+   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
+   * of the multiple selected header cells.
    *
    * @return {Selection}
    */
-  getHeader() {
+  createOrGetHeader() {
     let header;
     const layerLevel = this.layerLevel;
 
     if (this.headers.has(layerLevel)) {
       header = this.headers.get(layerLevel);
     } else {
-      header = createHighlight('header', this.options);
+      header = createHighlight(HEADER_TYPE, this.options);
 
       this.headers.set(layerLevel, header);
     }
@@ -142,18 +185,16 @@ class Highlight {
   }
 
   /**
-   * Perform cleaning visual highlights of the whole table.
-   *
-   * @return {[type]}
+   * Perform cleaning visual highlights for the whole table.
    */
   clear() {
     this.cell.clear();
     this.fill.clear();
 
-    arrayEach(Array.from(this.areas.entries()), ([, area]) => {
+    arrayEach(this.areas.values(), (area) => {
       area.clear();
     });
-    arrayEach(Array.from(this.headers.entries()), ([, header]) => {
+    arrayEach(this.headers.values(), (header) => {
       header.clear();
     });
   }

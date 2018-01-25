@@ -143,7 +143,8 @@ MobileTextEditor.prototype.close = function() {
 };
 
 MobileTextEditor.prototype.scrollToView = function() {
-  var coords = this.instance.getSelectedRange().highlight;
+  var coords = this.instance.getSelectedRecentlyRange().highlight;
+
   this.instance.view.scrollViewport(coords);
 };
 
@@ -162,7 +163,7 @@ MobileTextEditor.prototype.updateEditorPosition = function(x, y) {
     this.editorContainer.style.left = `${x}px`;
 
   } else {
-    var selection = this.instance.getSelected(),
+    var selection = this.instance.getSelectedRecently(),
       selectedCell = this.instance.getCell(selection[0], selection[1]);
 
     // cache sizes
@@ -210,7 +211,7 @@ MobileTextEditor.prototype.updateEditorPosition = function(x, y) {
 };
 
 MobileTextEditor.prototype.updateEditorData = function() {
-  var selected = this.instance.getSelected(),
+  var selected = this.instance.getSelectedRecently(),
     selectedValue = this.instance.getDataAtCell(selected[0], selected[1]);
 
   this.row = selected[0];
