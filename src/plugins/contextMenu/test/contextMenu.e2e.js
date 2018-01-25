@@ -358,6 +358,7 @@ describe('ContextMenu', () => {
       var header = $('.ht_clone_top thead th').eq(1);
 
       header.simulate('mousedown');
+      header.simulate('mouseup');
       contextMenu();
 
       items = $('.htContextMenu tbody td');
@@ -566,7 +567,7 @@ describe('ContextMenu', () => {
         width: window.innerWidth
       });
 
-      selectCell(0, countCols() - 9);
+      selectCell(0, countCols() - 10);
       contextMenu();
 
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
@@ -619,7 +620,7 @@ describe('ContextMenu', () => {
       });
 
       window.scrollTo(0, document.body.clientHeight);
-      selectCell(0, countCols() - 9);
+      selectCell(0, countCols() - 10);
 
       contextMenu();
 
@@ -672,7 +673,7 @@ describe('ContextMenu', () => {
         height: window.innerHeight
       });
 
-      selectCell(countRows() - 1, countCols() - 9);
+      selectCell(countRows() - 1, countCols() - 10);
       contextMenu();
 
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);

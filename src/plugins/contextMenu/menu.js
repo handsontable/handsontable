@@ -106,7 +106,7 @@ class Menu {
     let settings = {
       data: filteredItems,
       colHeaders: false,
-      colWidths: [200],
+      colWidths: [215],
       autoRowSize: false,
       readOnly: true,
       copyPaste: false,

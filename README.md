@@ -1,18 +1,25 @@
-<br/>
 <div align="center">
   <a href="//handsontable.com" target="_blank"><img src="https://raw.githubusercontent.com/handsontable/static-files/master/Images/Logo/Handsontable/Handsontable-logo-300-74-new.png" alt="Handsontable Community Edition logo" /></a>
 </div>
 
-<br/><br/>
+<br/>
 
-[**Handsontable Community Edition (CE)**](//handsontable.com) is an open source JavaScript/HTML5 UI Spreadsheet component for web apps. It easily integrates with any data source and comes with a variety of useful features like data binding, validation, sorting or powerful context menu. Actively supported by the Handsoncode team and many contributors.
+[**Handsontable Community Edition (CE)**](//handsontable.com) is an open source JavaScript/HTML5 UI Spreadsheet component for web apps. It easily integrates with any data source and comes with a variety of useful features like data binding, validation, sorting or powerful context menu. It is available for [Vue](//github.com/handsontable/vue-handsontable-official), [React](//github.com/handsontable/react-handsontable), [Angular](//github.com/handsontable/angular-handsontable) and [Polymer](//github.com/handsontable/hot-table).
 
-If you are looking for a commercial version, try out [Handsontable Pro](//github.com/handsontable/handsontable-pro).
+If you are looking for an extended version, try out [Handsontable Pro](//github.com/handsontable/handsontable-pro).
 
 [![Build status](https://travis-ci.org/handsontable/handsontable.png?branch=master)](//travis-ci.org/handsontable/handsontable)
-[![Known Vulnerabilities](https://snyk.io/test/github/handsontable/handsontable/badge.svg)](//snyk.io/test/github/handsontable/handsontable)
 [![npm](https://img.shields.io/npm/dm/handsontable.svg)](//npmjs.com/package/handsontable)
 [![npm](https://img.shields.io/github/contributors/handsontable/handsontable.svg)](//github.com/handsontable/handsontable/graphs/contributors)
+
+
+----
+
+**We are looking for Contributors who would like to help us with translations. [Learn more](https://github.com/handsontable/handsontable/issues/4696)**
+<br/>
+Most wanted languages: Japanese, French, Chinese, Italian, Spanish, Portuguese, Swedish and Russian.
+
+---
 
 <br/>
 
@@ -101,6 +108,7 @@ var hot = new Handsontable(container, {
 - Context menu
 - Adding comments to cells
 - Dragging fill handle to populate data
+- Localization
 
 [See a comparison table](//docs.handsontable.com/tutorial-features.html)
 
@@ -118,7 +126,7 @@ var hot = new Handsontable(container, {
 ### Resources
 - [API Reference](//docs.handsontable.com/Core.html)
 - [Compatibility](//docs.handsontable.com/tutorial-compatibility.html)
-- [Change log](//docs.handsontable.com/tutorial-release-notes.html)
+- [Change log](//github.com/handsontable/handsontable/releases)
 - [Roadmap](//trello.com/b/PztR4hpj)
 - [Newsroom](//twitter.com/handsontable)
 
@@ -157,6 +165,6 @@ If you would like to help us to develop Handsontable, please take a look at this
 <br/>
 
 ### License
-Handsontable Community Edition is released under the MIT license. [Learn more](//github.com/handsontable/handsontable/blob/master/LICENSE).
+Handsontable Community Edition is released under the MIT license. [Read license](//github.com/handsontable/handsontable/blob/master/LICENSE).
 
 Copyrights belong to Handsoncode sp. z o.o.
