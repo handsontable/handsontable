@@ -126,7 +126,7 @@ class ContextMenu extends BasePlugin {
 
     const settings = this.hot.getSettings().contextMenu;
     let predefinedItems = {
-      items: this.itemsFactory.getItems(settings)
+      items: this.itemsFactory.getItems(true)
     };
     this.registerEvents();
 
