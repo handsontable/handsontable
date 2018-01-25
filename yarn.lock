@@ -230,6 +230,10 @@ async@^2.1.2, async@^2.1.4, async@^2.4.1:
   dependencies:
     lodash "^4.14.0"
 
+async@~0.2.10:
+  version "0.2.10"
+  resolved "https://registry.yarnpkg.com/async/-/async-0.2.10.tgz#b6bbe0b0674b9d719708ca38de8c237cb526c3d1"
+
 asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
@@ -1448,6 +1452,14 @@ css-loader@^0.28.1:
     postcss-value-parser "^3.3.0"
     source-list-map "^0.1.7"
 
+css-loader@^0.9.1:
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/css-loader/-/css-loader-0.9.1.tgz#2e1aa00ce7e30ef2c6a7a4b300a080a7c979e0dc"
+  dependencies:
+    csso "1.3.x"
+    loader-utils "~0.2.2"
+    source-map "~0.1.38"
+
 css-select@^1.1.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/css-select/-/css-select-1.2.0.tgz#2b3a110539c5355f1cd8d314623e870b121ec858"
@@ -1509,6 +1521,10 @@ cssesc@^0.1.0:
     postcss-unique-selectors "^2.0.2"
     postcss-value-parser "^3.2.3"
     postcss-zindex "^2.0.1"
+
+csso@1.3.x:
+  version "1.3.12"
+  resolved "https://registry.yarnpkg.com/csso/-/csso-1.3.12.tgz#fc628694a2d38938aaac4996753218fd311cdb9e"
 
 csso@~2.3.1:
   version "2.3.2"
@@ -2128,6 +2144,12 @@ file-entry-cache@^2.0.0:
     flat-cache "^1.2.1"
     object-assign "^4.0.1"
 
+file-loader@^0.8.1:
+  version "0.8.5"
+  resolved "https://registry.yarnpkg.com/file-loader/-/file-loader-0.8.5.tgz#9275d031fe780f27d47f5f4af02bd43713cc151b"
+  dependencies:
+    loader-utils "~0.2.5"
+
 filename-regex@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/filename-regex/-/filename-regex-2.0.1.tgz#c1c4b9bee3e09725ddb106b75c1e301fe2f18b26"
@@ -2487,11 +2509,11 @@ handlebars@^4.0.3:
   optionalDependencies:
     uglify-js "^2.6"
 
-handsontable@0.34.5:
-  version "0.34.5"
-  resolved "https://registry.yarnpkg.com/handsontable/-/handsontable-0.34.5.tgz#9cb1a85f6b497902a094c5715595b2de51ede00c"
+handsontable@handsontable/handsontable#develop:
+  version "0.35.0"
+  resolved "https://codeload.github.com/handsontable/handsontable/tar.gz/9043eb7884afbd3b52e9c79e75c34320b46a81b3"
   dependencies:
-    moment "2.18.1"
+    moment "2.20.1"
     numbro "1.11.0"
     pikaday "1.5.1"
 
@@ -3454,7 +3476,7 @@ loader-runner@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/loader-runner/-/loader-runner-2.3.0.tgz#f482aea82d543e07921700d5a46ef26fdac6b8a2"
 
-loader-utils@^0.2.15, loader-utils@^0.2.16:
+loader-utils@^0.2.15, loader-utils@^0.2.16, loader-utils@^0.2.5, loader-utils@~0.2.2, loader-utils@~0.2.3, loader-utils@~0.2.5:
   version "0.2.17"
   resolved "https://registry.yarnpkg.com/loader-utils/-/loader-utils-0.2.17.tgz#f86e6374d43205a6e6c60e9196f17c0299bfb348"
   dependencies:
@@ -3667,7 +3689,11 @@ mkdirp@0.5.0:
   dependencies:
     minimist "0.0.8"
 
-moment@2.18.1, moment@2.x:
+moment@2.20.1:
+  version "2.20.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.20.1.tgz#d6eb1a46cbcc14a2b2f9434112c1ff8907f313fd"
+
+moment@2.x:
   version "2.18.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
 
@@ -3868,6 +3894,10 @@ object.omit@^2.0.0:
   dependencies:
     for-own "^0.1.4"
     is-extendable "^0.1.1"
+
+on-build-webpack@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/on-build-webpack/-/on-build-webpack-0.1.0.tgz#a287c0e17766e6141926e5f2cbb0d8bb53b76814"
 
 once@^1.3.0, once@^1.3.3, once@^1.4.0:
   version "1.4.0"
@@ -4923,6 +4953,12 @@ source-map@^0.4.2, source-map@^0.4.4:
   dependencies:
     amdefine ">=0.0.4"
 
+source-map@~0.1.38:
+  version "0.1.43"
+  resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.1.43.tgz#c24bc146ca517c1471f5dacbe2571b2b7f9e3346"
+  dependencies:
+    amdefine ">=0.0.4"
+
 source-map@~0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.2.0.tgz#dab73fbcfc2ba819b4de03bd6f6eaa48164b3f9d"
@@ -4991,6 +5027,17 @@ string-length@^1.0.1:
   resolved "https://registry.yarnpkg.com/string-length/-/string-length-1.0.1.tgz#56970fb1c38558e9e70b728bf3de269ac45adfac"
   dependencies:
     strip-ansi "^3.0.0"
+
+string-replace-webpack-plugin@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/string-replace-webpack-plugin/-/string-replace-webpack-plugin-0.1.3.tgz#73c657e759d66cfe80ae1e0cf091aa256d0e715c"
+  dependencies:
+    async "~0.2.10"
+    loader-utils "~0.2.3"
+  optionalDependencies:
+    css-loader "^0.9.1"
+    file-loader "^0.8.1"
+    style-loader "^0.8.3"
 
 string-width@^1.0.1, string-width@^1.0.2:
   version "1.0.2"
@@ -5069,6 +5116,12 @@ style-loader@^0.18.2:
   dependencies:
     loader-utils "^1.0.2"
     schema-utils "^0.3.0"
+
+style-loader@^0.8.3:
+  version "0.8.3"
+  resolved "https://registry.yarnpkg.com/style-loader/-/style-loader-0.8.3.tgz#f4f92eb7db63768748f15065cd6700f5a1c85357"
+  dependencies:
+    loader-utils "^0.2.5"
 
 supports-color@^0.2.0:
   version "0.2.0"
