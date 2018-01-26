@@ -410,7 +410,7 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   updateColumnsMapper() {
-    let countCols = this.hot.countSourceCols();
+    let countCols = Math.max(this.hot.countCols(), this.hot.countSourceCols());
     let columnsMapperLen = this.columnsMapper._arrayMap.length;
 
     if (columnsMapperLen === 0) {
