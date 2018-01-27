@@ -298,48 +298,9 @@ class CopyPaste extends BasePlugin {
 
     let rangedData = this.getRangedData(this.copyableRanges);
     let allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
-    let textPlain = '';
 
     if (allowCopying) {
-      textPlain = SheetClip.stringify(rangedData);
-
-      let textHtml = '<table><tbody>';
-
-      for (let y = 0; y < rangedData.length; y += 1) {
-        textHtml += '<tr>';
-
-        for (let x = 0; x < rangedData[0].length; x += 1) {
-          textHtml += `<td>${rangedData[y][x] || ''}</td>`;
-        }
-
-        textHtml += '</tr>';
-      }
-
-      textHtml += '</tbody></table>';
-
-      if (event && event.clipboardData) {
-        event.clipboardData.setData('text/plain', textPlain);
-        event.clipboardData.setData('text/html', textHtml);
-        event.preventDefault();
-
-      } else if (typeof ClipboardEvent === 'undefined') {
-        // window.clipboardData.setData('Text', value);
-
-        let ghostContainer = document.createElement('div');
-        ghostContainer.innerHTML = textHtml;
-        this.hot.rootElement.appendChild(ghostContainer);
-
-        const range = document.createRange();
-
-        range.selectNode(ghostContainer);
-
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-
-        setTimeout(() => {
-          this.hot.rootElement.removeChild(ghostContainer);
-        }, 0);
-      }
+      this.prepareDataForClipboard(event, rangedData);
 
       this.hot.runHooks('afterCopy', rangedData, this.copyableRanges);
     }
@@ -363,23 +324,13 @@ class CopyPaste extends BasePlugin {
 
     let rangedData = this.getRangedData(this.copyableRanges);
     let allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
-    let value;
 
     if (allowCuttingOut) {
-      value = SheetClip.stringify(rangedData);
-
-      if (event && event.clipboardData) {
-        event.clipboardData.setData('text/plain', value);
-
-      } else if (typeof ClipboardEvent === 'undefined') {
-        window.clipboardData.setData('Text', value);
-      }
+      this.prepareDataForClipboard(event, rangedData);
 
       this.hot.selection.empty();
       this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
     }
-
-    event.preventDefault();
   }
 
   /**
@@ -460,6 +411,46 @@ class CopyPaste extends BasePlugin {
     this.hot.runHooks('afterPaste', inputArray, this.copyableRanges);
   }
 
+  prepareDataForClipboard(event, rangedData) {
+    let textPlain = SheetClip.stringify(rangedData);
+    let textHtml = '<table><tbody>';
+
+    for (let y = 0; y < rangedData.length; y += 1) {
+      textHtml += '<tr>';
+
+      for (let x = 0; x < rangedData[0].length; x += 1) {
+        textHtml += `<td>${rangedData[y][x] || ''}</td>`;
+      }
+
+      textHtml += '</tr>';
+    }
+
+    textHtml += '</tbody></table>';
+
+    if (event && event.clipboardData) {
+      event.clipboardData.setData('text/plain', textPlain);
+      event.clipboardData.setData('text/html', textHtml);
+      event.preventDefault();
+
+    } else if (typeof ClipboardEvent === 'undefined') {
+      // window.clipboardData.setData('Text', value);
+
+      let ghostContainer = document.createElement('div');
+      ghostContainer.innerHTML = textHtml;
+      this.hot.rootElement.appendChild(ghostContainer);
+
+      const range = document.createRange();
+
+      range.selectNode(ghostContainer);
+
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+
+      setTimeout(() => {
+        this.hot.rootElement.removeChild(ghostContainer);
+      }, 0);
+    }
+  }
   /**
    * Add copy, cut and paste options to the Context Menu.
    *
