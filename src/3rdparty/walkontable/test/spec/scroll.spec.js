@@ -500,6 +500,66 @@ describe('WalkontableScroll', () => {
       }, 100);
     });
 
+    it('should call onScrollVertically hook, if scrollTop was changed', (done) => {
+      createDataArray(100, 100);
+      $wrapper.width(260).height(201);
+
+      var scrollHorizontally = jasmine.createSpy('scrollHorizontal');
+      var scrollVertically = jasmine.createSpy('scrollVertically');
+
+      var wt = new Walkontable.Core({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2,
+        fixedRowsTop: 2,
+        onScrollVertically: scrollVertically,
+        onScrollHorizontally: scrollHorizontally,
+      });
+
+      wt.draw();
+      wt.wtOverlays.leftOverlay.clone.wtTable.holder.scrollTop = 400;
+
+      wt.draw();
+
+      setTimeout(() => {
+        expect(scrollVertically.calls.count()).toEqual(1);
+        expect(scrollHorizontally.calls.count()).toEqual(0);
+        done();
+      }, 50);
+    });
+
+    it('should call onScrollHorizontally hook, if scrollLeft was changed', (done) => {
+      createDataArray(100, 100);
+      $wrapper.width(260).height(201);
+
+      var scrollHorizontally = jasmine.createSpy('scrollHorizontal');
+      var scrollVertically = jasmine.createSpy('scrollVertically');
+
+      var wt = new Walkontable.Core({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsLeft: 2,
+        fixedRowsTop: 2,
+        onScrollVertically: scrollVertically,
+        onScrollHorizontally: scrollHorizontally,
+      });
+
+      wt.draw();
+      wt.wtOverlays.topOverlay.clone.wtTable.holder.scrollLeft = 400;
+
+      wt.draw();
+
+      setTimeout(() => {
+        expect(scrollVertically.calls.count()).toEqual(0);
+        expect(scrollHorizontally.calls.count()).toEqual(1);
+        done();
+      }, 50);
+    });
+
     // Commented due to PhantomJS WheelEvent problem.
     // Throws an error: TypeError: '[object WheelEventConstructor]' is not a constructor
     xit('should scroll the table when the `wheel` event is triggered on the corner overlay', () => {

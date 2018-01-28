@@ -33,6 +33,29 @@ describe('Core_view', () => {
     expect(isEditorVisible()).toEqual(true);
   });
 
+  it('should scroll viewport if selected cell is out of the viewport and renderAllRows is enabled', () => {
+    spec().$container[0].style.width = '400px';
+    spec().$container[0].style.height = '50px';
+    spec().$container[0].style.overflow = 'hidden';
+
+    const hot = handsontable({
+      startRows: 20,
+      renderAllRows: true,
+    });
+
+    selectCell(0, 0);
+
+    const scrollableElement = hot.view.wt.wtOverlays.topOverlay.mainTableScrollableElement;
+    const initialScrollTop = scrollableElement.scrollTop;
+
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+
+    expect(scrollableElement.scrollTop).toBeGreaterThan(initialScrollTop);
+  });
+
   it('should not render "undefined" class name', function() {
     this.$container[0].style.width = '501px';
     this.$container[0].style.height = '100px';

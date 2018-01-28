@@ -2336,6 +2336,80 @@ describe('AutocompleteEditor', () => {
     }, 400);
   });
 
+  // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
+  it('should not lose the focus on input element while inserting new characters (#839)', async () => {
+    let blured = false;
+    const listener = () => {
+      blured = true;
+    };
+    const hot = handsontable({
+      data: [
+        ['one', 'two'],
+        ['three', 'four']
+      ],
+      columns: [
+        {
+          type: 'autocomplete',
+          source: choices,
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    hot.getActiveEditor().TEXTAREA.addEventListener('blur', listener);
+
+    await sleep(200);
+
+    hot.getActiveEditor().TEXTAREA.value = 't';
+    keyDownUp('t'.charCodeAt(0));
+    hot.getActiveEditor().TEXTAREA.value = 'te';
+    keyDownUp('e'.charCodeAt(0));
+    hot.getActiveEditor().TEXTAREA.value = 'teo';
+    keyDownUp('o'.charCodeAt(0));
+
+    expect(blured).toBeFalsy();
+
+    hot.getActiveEditor().TEXTAREA.removeEventListener('blur', listener);
+  });
+
+  it('should not lose the focus from the editor after selecting items from the choice list', async () => {
+    const hot = handsontable({
+      data: [
+        ['', 'two'],
+        ['three', 'four']
+      ],
+      columns: [
+        {
+          type: 'autocomplete',
+          source: ['brown', 'yellow', 'green'],
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    await sleep(0);
+
+    keyDownUp('arrow_down');
+    keyDownUp('arrow_down');
+    keyDownUp('arrow_down');
+
+    hot.getActiveEditor().TEXTAREA.value = 'r';
+    keyDownUp('R'.charCodeAt(0));
+
+    await sleep(0);
+
+    // Check if ESCAPE key is responsive.
+    keyDownUp('esc');
+
+    expect(hot.isListening()).toBeTruthy();
+    expect(Handsontable.dom.isVisible(hot.getActiveEditor().htEditor.rootElement)).toBeFalsy();
+  });
+
   it('should not call the `source` has been selected', () => {
     var syncSources = jasmine.createSpy('syncSources');
 

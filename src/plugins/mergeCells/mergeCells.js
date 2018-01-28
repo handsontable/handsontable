@@ -1,7 +1,7 @@
 import Hooks from './../../pluginHooks';
-import {registerPlugin} from './../../plugins';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {CellCoords, CellRange, Table} from './../../3rdparty/walkontable/src';
+import * as C from './../../i18n/constants';
 
 function CellInfoCollection() {
   var collection = [];
@@ -374,11 +374,12 @@ var addMergeActionsToContextMenu = function(defaultOptions) {
     name() {
       var sel = this.getSelected();
       var info = this.mergeCells.mergedCellInfoCollection.getInfo(sel[0], sel[1]);
-      if (info) {
-        return 'Unmerge cells';
-      }
-      return 'Merge cells';
 
+      if (info) {
+        return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNMERGE_CELLS);
+      }
+
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_MERGE_CELLS);
     },
     callback() {
       this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());

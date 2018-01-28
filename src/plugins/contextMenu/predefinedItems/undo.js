@@ -1,9 +1,13 @@
+import * as C from './../../../i18n/constants';
+
 export const KEY = 'undo';
 
 export default function undoItem() {
   return {
     key: KEY,
-    name: 'Undo',
+    name() {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNDO);
+    },
 
     callback() {
       this.undo();

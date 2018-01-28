@@ -664,8 +664,8 @@ describe('MergeCells', () => {
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
-        'Insert column on the left',
-        'Insert column on the right',
+        'Insert column left',
+        'Insert column right',
         'Remove row',
         'Remove column',
         'Undo',
