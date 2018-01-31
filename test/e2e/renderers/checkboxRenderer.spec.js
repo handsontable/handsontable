@@ -620,6 +620,25 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback.calls.count()).toEqual(0);
   });
 
+  it('should not change checkbox state after hitting F2 key', () => {
+    const onAfterChange = jasmine.createSpy('afterChangeCallback');
+
+    handsontable({
+      data: [[false], [true], [true]],
+      columns: [
+        {type: 'checkbox'}
+      ],
+      onAfterChange
+    });
+
+    selectCell(0, 0);
+    keyDown('f2');
+
+    expect(getDataAtCell(0, 0)).toBe(false);
+
+    expect(onAfterChange.calls.count()).toEqual(0);
+  });
+
   it('should not change checkbox state after hitting other keys then SPACE, ENTER, DELETE or BACKSPACE', () => {
     handsontable({
       data: [[false], [true], [true]],
