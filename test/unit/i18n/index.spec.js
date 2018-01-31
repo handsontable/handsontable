@@ -49,7 +49,7 @@ describe('i18n', () => {
 
   describe('Collection of language packs', () => {
     // One of keys can be `__esModule` added by Babel. We separate it.
-    const indexFileExportNames = Object.keys(allLanguages).filter((exportedKey) => exportedKey !== '__esModule');
+    const indexFileExportNames = Object.getOwnPropertyNames(allLanguages).filter((exportedKey) => exportedKey !== '__esModule');
     const dictionaries = indexFileExportNames.map((exportName) => allLanguages[exportName]);
     const languageCodes = dictionaries.map((dictionary) => dictionary.languageCode);
 
@@ -64,7 +64,8 @@ describe('i18n', () => {
     const languagePacks = filesInsideLanguageDictionary.filter((name) => name !== 'index.js');
 
     describe('with every dictionary from `src/i18n/languages` folder', () => {
-      // We take all dictionaries from export inside `src/i18n/languages/index.js` file. We do not use dynamic import to take them from particular language files.
+      // We take all dictionaries from export inside `src/i18n/languages/index.js` file.
+      // We do not use dynamic import to take them from particular language files.
       // Workaround to stop next tests when below expectations fail. Without the conditions rest of tests is useless.
       // Jasmine problem described: https://github.com/jasmine/jasmine/issues/414
       expect(indexFileExportNames.length).toBeGreaterThan(0);
@@ -76,8 +77,9 @@ describe('i18n', () => {
       });
 
       describe('File `src/i18n/languages/index.js`', () => {
-        xit('should provide export names sorted alphabetically', () => {
-          // Does JavaScript Guarantee Object Property Order?: https://stackoverflow.com/a/32149345
+        it('should provide export names sorted alphabetically', () => {
+          // Does ES6 introduce a well-defined order of enumeration for object properties?
+          // https://stackoverflow.com/a/30919039
           expect(indexFileExportNames.length).toBeGreaterThan(0);
           expect(indexFileExportNames).toEqual(indexFileExportNames.slice().sort());
         });
@@ -96,12 +98,13 @@ describe('i18n', () => {
         });
 
         it('should have file name corresponding to its language code', () => {
-          // two lowercase letters, hyphen, two uppercase letters and file extension, for example: `es-PY.js`.
+          // two lowercase letters, hyphen, two uppercase letters and JavaScript file extension, for example: `es-PY.js`.
           expect(languagePacks).toBeListFulfillingCondition((languagePack) => languageCodes.includes(languagePack.replace('.js', '')));
         });
 
         it('should contain only predefined keys (checking for typo)', () => {
-          // If you would like to extend any dictionary by a custom key, define also corresponding, exported constant for it inside the `src/i18n/constants.js` file.
+          // If you would like to extend any dictionary by a custom key, define also corresponding, exported constant
+          // for it inside the `src/i18n/constants.js` file.
           const predefinedDictionaryKeys = Object.values(constants);
 
           expect(dictionariesKeys).toBeListFulfillingCondition((dictionaryKey) => predefinedDictionaryKeys.includes(dictionaryKey));
