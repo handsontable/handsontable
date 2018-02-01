@@ -187,11 +187,7 @@ DataMap.prototype.getSchema = function() {
  * @returns {Number} Returns number of created rows.
  */
 DataMap.prototype.createRow = function(index, amount, source) {
-  let row = null;
-  let colCount = this.instance.countCols();
   let numberOfCreatedRows = 0;
-  let currentIndex = null;
-  let continueProcess = null;
 
   if (!amount) {
     amount = 1;
@@ -201,46 +197,51 @@ DataMap.prototype.createRow = function(index, amount, source) {
     index = this.instance.countSourceRows();
   }
 
-  continueProcess = this.instance.runHooks('beforeCreateRow', index, amount, source);
+  const continueProcess = this.instance.runHooks('beforeCreateRow', index, amount, source);
 
-  if (continueProcess !== false) {
-    currentIndex = index;
-    let maxRows = this.instance.getSettings().maxRows;
+  if (continueProcess === false) {
+    return 0;
+  }
 
-    while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
-      if (this.instance.dataType === 'array') {
-        if (this.instance.getSettings().dataSchema) {
-          // Clone template array
-          row = deepClone(this.getSchema());
+  let currentIndex = index;
+  let maxRows = this.instance.getSettings().maxRows;
+  let colCount = this.instance.countCols();
 
-        } else {
-          row = [];
-          /* eslint-disable no-loop-func */
-          rangeEach(colCount - 1, () => row.push(null));
-        }
+  while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
+    let row = null;
 
-      } else if (this.instance.dataType === 'function') {
-        row = this.instance.getSettings().dataSchema(index);
+    if (this.instance.dataType === 'array') {
+      if (this.instance.getSettings().dataSchema) {
+        // Clone template array
+        row = deepClone(this.getSchema());
 
       } else {
-        row = {};
-        deepExtend(row, this.getSchema());
+        row = [];
+        /* eslint-disable no-loop-func */
+        rangeEach(colCount - 1, () => row.push(null));
       }
 
-      if (index === this.instance.countSourceRows()) {
-        this.dataSource.push(row);
+    } else if (this.instance.dataType === 'function') {
+      row = this.instance.getSettings().dataSchema(index);
 
-      } else {
-        this.spliceData(index, 0, row);
-      }
-
-      numberOfCreatedRows++;
-      currentIndex++;
+    } else {
+      row = {};
+      deepExtend(row, this.getSchema());
     }
 
-    this.instance.runHooks('afterCreateRow', index, numberOfCreatedRows, source);
-    this.instance.forceFullRender = true; // used when data was changed
+    if (index === this.instance.countSourceRows()) {
+      this.dataSource.push(row);
+
+    } else {
+      this.spliceData(index, 0, row);
+    }
+
+    numberOfCreatedRows++;
+    currentIndex++;
   }
+
+  this.instance.runHooks('afterCreateRow', index, numberOfCreatedRows, source);
+  this.instance.forceFullRender = true; // used when data was changed
 
   return numberOfCreatedRows;
 };
