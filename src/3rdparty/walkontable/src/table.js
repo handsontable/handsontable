@@ -337,6 +337,7 @@ class Table {
    * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:
    *  -1 row before viewport
    *  -2 row after viewport
+   *  -3 no rows rendered
    */
   getCell(coords) {
     if (this.isRowBeforeRenderedRows(coords.row)) {
@@ -346,6 +347,8 @@ class Table {
     } else if (this.isRowAfterRenderedRows(coords.row)) {
       // row after rendered rows
       return -2;
+    } else if (this.TBODY.childElementCount === 0) {
+      return -3;
     }
 
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(coords.row)];
