@@ -2,16 +2,15 @@ import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
 import SheetClip from './../../../lib/SheetClip/SheetClip';
 import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
-import {KEY_CODES, isCtrlKey} from './../../helpers/unicode';
 import {getSelectionText} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
-import {stopImmediatePropagation, stopPropagation, isImmediatePropagationStopped} from './../../helpers/dom/event';
 import {registerPlugin} from './../../plugins';
 import Textarea from './textarea';
 import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import EventManager from './../../eventManager';
+import PasteEvent from './pasteEvent';
 
 import './copyPaste.css';
 
@@ -94,7 +93,10 @@ class CopyPaste extends BasePlugin {
     this.textarea = void 0;
 
     privatePool.set(this, {
-      isTriggeredByPaste: false,
+      isTriggeredByCopy: false,
+      isTriggeredByCut: false,
+      isBeginEditing: false,
+      isFragmentSelectionEnabled: false,
     });
   }
 
@@ -114,10 +116,11 @@ class CopyPaste extends BasePlugin {
     if (this.enabled) {
       return;
     }
-
     const settings = this.hot.getSettings();
+    const priv = privatePool.get(this);
 
     this.textarea = Textarea.getSingleton();
+    priv.isFragmentSelectionEnabled = settings.fragmentSelection;
 
     if (typeof settings.copyPaste === 'object') {
       this.pasteMode = settings.copyPaste.pasteMode || this.pasteMode;
@@ -126,12 +129,13 @@ class CopyPaste extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
-    this.addHook('beforeKeyDown', (event) => this.onBeforeKeyDown(event));
+    this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
 
     this.registerEvents();
 
     super.enablePlugin();
   }
+
   /**
    * Updates the plugin to use the latest options you have specified.
    */
@@ -185,10 +189,6 @@ class CopyPaste extends BasePlugin {
     });
 
     this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
-
-    let copyableData = this.getRangedCopyableData(this.copyableRanges);
-
-    this.textarea.setValue(copyableData);
 
     if (endRow !== finalEndRow || endCol !== finalEndCol) {
       this.hot.runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, this.rowsLimit, this.columnsLimit);
@@ -275,53 +275,26 @@ class CopyPaste extends BasePlugin {
 
   /**
    * Copy action.
-   *
-   * @param {Boolean} isTriggeredByClick Flag to determine that copy action was executed by the mouse click.
    */
-  copy(isTriggeredByClick) {
-    let rangedData = this.getRangedData(this.copyableRanges);
+  copy() {
+    const priv = privatePool.get(this);
 
-    let allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
+    priv.isTriggeredByCopy = true;
 
-    if (allowCopying) {
-      this.textarea.setValue(SheetClip.stringify(rangedData));
-      this.textarea.select();
-
-      if (isTriggeredByClick) {
-        document.execCommand('copy');
-      }
-
-      this.hot.runHooks('afterCopy', rangedData, this.copyableRanges);
-
-    } else {
-      this.textarea.setValue('');
-    }
+    this.textarea.select();
+    document.execCommand('copy');
   }
 
   /**
    * Cut action.
-   *
-   * @param {Boolean} isTriggeredByClick Flag to determine that cut action was executed by the mouse click.
    */
-  cut(isTriggeredByClick) {
-    let rangedData = this.getRangedData(this.copyableRanges);
+  cut() {
+    const priv = privatePool.get(this);
 
-    let allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
+    priv.isTriggeredByCut = true;
 
-    if (allowCuttingOut) {
-      this.textarea.setValue(SheetClip.stringify(rangedData));
-      this.hot.selection.empty();
-      this.textarea.select();
-
-      if (isTriggeredByClick) {
-        document.execCommand('cut');
-      }
-
-      this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
-
-    } else {
-      this.textarea.setValue('');
-    }
+    this.textarea.select();
+    document.execCommand('cut');
   }
 
   /**
@@ -330,10 +303,10 @@ class CopyPaste extends BasePlugin {
    * @param {String} [value=''] New value, which should be `pasted`.
    */
   paste(value = '') {
-    this.textarea.setValue(value);
+    let pasteData = new PasteEvent();
+    pasteData.clipboardData.setData('text/plain', value);
 
-    this.onPaste();
-    this.onInput();
+    this.onPaste(pasteData);
   }
 
   /**
@@ -343,58 +316,112 @@ class CopyPaste extends BasePlugin {
    */
   registerEvents() {
     this.eventManager.addEventListener(this.textarea.element, 'paste', (event) => this.onPaste(event));
-    this.eventManager.addEventListener(this.textarea.element, 'input', (event) => this.onInput(event));
+    this.eventManager.addEventListener(this.textarea.element, 'cut', (event) => this.onCut(event));
+    this.eventManager.addEventListener(this.textarea.element, 'copy', (event) => this.onCopy(event));
   }
 
   /**
-   * Trigger to make possible observe `onInput` in textarea.
+   * `copy` event callback on textarea element.
    *
+   * @param {Event} event ClipboardEvent.
    * @private
    */
-  triggerPaste() {
-    this.textarea.select();
+  onCopy(event) {
+    const priv = privatePool.get(this);
 
-    this.onPaste();
+    if (!this.hot.isListening() && !priv.isTriggeredByCopy) {
+      return;
+    }
+
+    this.setCopyableText();
+    priv.isTriggeredByCopy = false;
+
+    let rangedData = this.getRangedData(this.copyableRanges);
+    let allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
+    let value = '';
+
+    if (allowCopying) {
+      value = SheetClip.stringify(rangedData);
+
+      if (event && event.clipboardData) {
+        event.clipboardData.setData('text/plain', value);
+
+      } else if (typeof ClipboardEvent === 'undefined') {
+        window.clipboardData.setData('Text', value);
+      }
+
+      this.hot.runHooks('afterCopy', rangedData, this.copyableRanges);
+    }
+
+    event.preventDefault();
+  }
+
+  /**
+   * `cut` event callback on textarea element.
+   *
+   * @param {Event} event ClipboardEvent.
+   * @private
+   */
+  onCut(event) {
+    const priv = privatePool.get(this);
+
+    if (!this.hot.isListening() && !priv.isTriggeredByCut) {
+      return;
+    }
+
+    this.setCopyableText();
+    priv.isTriggeredByCut = false;
+
+    let rangedData = this.getRangedData(this.copyableRanges);
+    let allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
+    let value;
+
+    if (allowCuttingOut) {
+      value = SheetClip.stringify(rangedData);
+
+      if (event && event.clipboardData) {
+        event.clipboardData.setData('text/plain', value);
+
+      } else if (typeof ClipboardEvent === 'undefined') {
+        window.clipboardData.setData('Text', value);
+      }
+
+      this.hot.selection.empty();
+      this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
+    }
+
+    event.preventDefault();
   }
 
   /**
    * `paste` event callback on textarea element.
    *
+   * @param {Event} event ClipboardEvent or pseudo ClipboardEvent, if paste was called manually.
    * @private
    */
-  onPaste() {
-    const priv = privatePool.get(this);
-
-    priv.isTriggeredByPaste = true;
-  }
-
-  /**
-   * `input` event callback is called after `paste` event callback.
-   *
-   * @private
-   */
-  onInput() {
-    const priv = privatePool.get(this);
-
-    if (!this.hot.isListening() || !priv.isTriggeredByPaste) {
+  onPaste(event) {
+    if (!this.hot.isListening()) {
       return;
     }
+    if (event && event.preventDefault) {
+      event.preventDefault();
+    }
 
-    priv.isTriggeredByPaste = false;
+    let inputArray;
 
-    let input,
-      inputArray,
-      selected,
-      coordsFrom,
-      coordsTo,
-      cellRange,
-      topLeftCorner,
-      bottomRightCorner,
-      areaStart,
-      areaEnd;
+    if (event && typeof event.clipboardData !== 'undefined') {
+      this.textarea.setValue(event.clipboardData.getData('text/plain'));
 
-    input = this.textarea.getValue();
-    inputArray = SheetClip.parse(input);
+    } else if (typeof ClipboardEvent === 'undefined' && typeof window.clipboardData !== 'undefined') {
+      this.textarea.setValue(window.clipboardData.getData('Text'));
+    }
+
+    inputArray = SheetClip.parse(this.textarea.getValue());
+    this.textarea.setValue(' ');
+
+    if (inputArray.length === 0) {
+      return;
+    }
 
     let allowPasting = !!this.hot.runHooks('beforePaste', inputArray, this.copyableRanges);
 
@@ -402,21 +429,21 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
-    selected = this.hot.getSelected();
-    coordsFrom = new CellCoords(selected[0], selected[1]);
-    coordsTo = new CellCoords(selected[2], selected[3]);
-    cellRange = new CellRange(coordsFrom, coordsFrom, coordsTo);
-    topLeftCorner = cellRange.getTopLeftCorner();
-    bottomRightCorner = cellRange.getBottomRightCorner();
-    areaStart = topLeftCorner;
-    areaEnd = new CellCoords(
+    let selected = this.hot.getSelected();
+    let coordsFrom = new CellCoords(selected[0], selected[1]);
+    let coordsTo = new CellCoords(selected[2], selected[3]);
+    let cellRange = new CellRange(coordsFrom, coordsFrom, coordsTo);
+    let topLeftCorner = cellRange.getTopLeftCorner();
+    let bottomRightCorner = cellRange.getBottomRightCorner();
+    let areaStart = topLeftCorner;
+    let areaEnd = new CellCoords(
       Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
       Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
 
     let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
     let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
 
-    this.hot.addHookOnce('afterChange', (changes, source) => {
+    this.hot.addHookOnce('afterChange', (changes) => {
       let changesLength = changes ? changes.length : 0;
 
       if (changesLength) {
@@ -461,57 +488,23 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * beforeKeyDown callback.
+   * We have to keep focus on textarea element, to make possible use of the browser tools (copy, cut, paste).
    *
    * @private
-   * @param {Event} event
    */
-  onBeforeKeyDown(event) {
-    if (!this.hot.getSelected()) {
+  onAfterSelectionEnd() {
+    const priv = privatePool.get(this);
+    const editor = this.hot.getActiveEditor();
+
+    if (editor && typeof editor.isOpened !== 'undefined' && editor.isOpened()) {
       return;
     }
-    if (this.hot.getActiveEditor() && this.hot.getActiveEditor().isOpened()) {
-      return;
-    }
-    if (isImmediatePropagationStopped(event)) {
-      return;
-    }
-    if (!this.textarea.isActive() && getSelectionText()) {
+    if (priv.isFragmentSelectionEnabled && !this.textarea.isActive() && getSelectionText()) {
       return;
     }
 
-    if (isCtrlKey(event.keyCode)) {
-      // When fragmentSelection is enabled and some text is selected then don't blur selection calling 'setCopyableText'
-      if (this.hot.getSettings().fragmentSelection && getSelectionText()) {
-        return;
-      }
-
-      // when CTRL is pressed, prepare selectable text in textarea
-      this.setCopyableText();
-      stopImmediatePropagation(event);
-
-      return;
-    }
-
-    // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    let ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
-
-    if (ctrlDown) {
-      if (event.keyCode == KEY_CODES.A) {
-        setTimeout(() => {
-          this.setCopyableText();
-        }, 0);
-      }
-      if (event.keyCode == KEY_CODES.X) {
-        this.cut();
-      }
-      if (event.keyCode == KEY_CODES.C) {
-        this.copy();
-      }
-      if (event.keyCode == KEY_CODES.V) {
-        this.triggerPaste();
-      }
-    }
+    this.setCopyableText();
+    this.textarea.select();
   }
 
   /**

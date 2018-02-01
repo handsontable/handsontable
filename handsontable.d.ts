@@ -1,5 +1,93 @@
-
 declare namespace _Handsontable {
+  class Core {
+    constructor(element: Element, options: Handsontable.DefaultSettings);
+    addHook(key: string, callback: (() => void) | any[]): void;
+    addHookOnce(key: string, callback: (() => void) | any[]): void;
+    alter(action: string, index: number, amount?: number, source?: string, keepEmptyRows?: boolean): void;
+    clear(): void;
+    colOffset(): number;
+    colToProp(col: number): string | number;
+    countCols(): number;
+    countEmptyCols(ending?: boolean): number;
+    countEmptyRows(ending?: boolean): number;
+    countRenderedCols(): number;
+    countRenderedRows(): number;
+    countRows(): number;
+    countSourceCols(): number;
+    countSourceRows(): number;
+    countVisibleCols(): number;
+    countVisibleRows(): number;
+    deselectCell(): void;
+    destroy(): void;
+    destroyEditor(revertOriginal?: boolean): void;
+    getActiveEditor(): object;
+    getCell(row: number, col: number, topmost?: boolean): Element;
+    getCellEditor(row: number, col: number): object;
+    getCellMeta(row: number, col: number): object;
+    getCellMetaAtRow(row: number): any[];
+    getCellRenderer(row: number, col: number): () => void;
+    getCellValidator(row: number, col: number): any;
+    getColHeader(col?: number): any[] | string;
+    getColWidth(col: number): number;
+    getCoords(elem: Element): object;
+    getCopyableData(row: number, column: number): string;
+    getCopyableText(startRow: number, startCol: number, endRow: number, endCol: number): string;
+    getData(r?: number, c?: number, r2?: number, c2?: number): any[];
+    getDataAtCell(row: number, col: number): any;
+    getDataAtCol(col: number): any[];
+    getDataAtProp(prop: string | number): any[];
+    getDataAtRow(row: number): any[];
+    getDataAtRowProp(row: number, prop: string): any;
+    getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
+    getInstance(): any;
+    getPlugin(pluginName: string): any;
+    getRowHeader(row?: number): any[]|string;
+    getRowHeight(row: number): number;
+    getSchema(): object;
+    getSelected(): any[];
+    getSelectedRange(): Range;
+    getSettings(): object;
+    getSourceData(r?: number, c?: number, r2?: number, c2?: number): any[];
+    getSourceDataArray(r?: number, c?: number, r2?: number, c2?: number): any[];
+    getSourceDataAtCell(row: number, column: number): any;
+    getSourceDataAtCol(column: number): any[];
+    getSourceDataAtRow(row: number): any[] | object;
+    getValue(): any;
+    hasColHeaders(): boolean;
+    hasHook(key: string): boolean;
+    hasRowHeaders(): boolean;
+    isEmptyCol(col: number): boolean;
+    isEmptyRow(row: number): boolean;
+    isListening(): boolean;
+    listen(): void;
+    loadData(data: any[]): void;
+    populateFromArray(row: number, col: number, input: any[], endRow?: number, endCol?: number, source?: string, method?: string, direction?: string, deltas?: any[]): any;
+    propToCol(prop: string | number): number;
+    removeCellMeta(row: number, col: number, key: string): void;
+    removeHook(key: string, callback: () => void): void;
+    render(): void;
+    rowOffset(): number;
+    runHooks(key: string, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
+    scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean): boolean;
+    selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
+    selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
+    setCellMeta(row: number, col: number, key: string, val: string): void;
+    setCellMetaObject(row: number, col: number, prop: object): void;
+    setDataAtCell(row: number | any[], col: number, value: string | object, source?: string): void;
+    setDataAtRowProp(row: number | any[], prop: string, value: string, source?: string): void;
+    spliceCol(col: number, index: number, amount: number, elements?: any): void;
+    spliceRow(row: number, index: number, amount: number, elements?: any): void;
+    toPhysicalColumn(column: number): number;
+    toPhysicalRow(row: number): number;
+    toVisualColumn(column: number): number;
+    toVisualRow(row: number): number;
+    unlisten(): void;
+    updateSettings(settings: object, init: boolean): void;
+    validateCells(callback: () => void): void;
+  }
+}
+
+declare namespace Handsontable {
   namespace wot {
     interface CellCoords {
       col: number,
@@ -14,68 +102,68 @@ declare namespace _Handsontable {
 
   namespace cellTypes {
     interface Autocomplete {
-      editor: editors.Autocomplete;
+      editor: _editors.Autocomplete;
       renderer: renderers.Autocomplete;
       validator: (value: any, callback: () => void) => boolean;
     }
 
     interface Checkbox {
-      editor: editors.Checkbox;
+      editor: _editors.Checkbox;
       renderer: renderers.Checkbox;
     }
 
     interface Date {
-      editor: editors.Date;
+      editor: _editors.Date;
       renderer: renderers.Autocomplete;
       validator: (value: any, callback: () => void) => boolean;
     }
 
     interface Dropdown {
-      editor: editors.Dropdown;
+      editor: _editors.Dropdown;
       renderer: renderers.Autocomplete;
       validator: (value: any, callback: () => void) => boolean;
     }
 
     interface Handsontable {
-      editor: editors.Handsontable;
+      editor: _editors.Handsontable;
       renderer: renderers.Autocomplete;
     }
 
     interface Numeric {
       dataType: string;
-      editor: editors.Numeric;
+      editor: _editors.Numeric;
       renderer: renderers.Numeric;
       validator: (value: any, callback: () => void) => boolean;
     }
 
     interface Password {
       copyable: boolean;
-      editor: editors.Password;
+      editor: _editors.Password;
       renderer: renderers.Password;
     }
 
     interface Text {
-      editor: editors.Text;
+      editor: _editors.Text;
       renderer: renderers.Text;
     }
 
     interface Time {
-      editor: editors.Text;
+      editor: _editors.Text;
       renderer: renderers.Text;
       validator: (value: any, callback: () => void) => boolean;
     }
   }
 
-  namespace editors {
+  namespace _editors {
     class Base {
-      instance: Core;
+      instance: _Handsontable.Core;
       row: number;
       col: number;
       prop: string | number;
       TD: HTMLElement;
       cellProperties: object;
 
-      constructor (hotInstance: Core, row: number, col: number, prop: string | number, TD: HTMLElement, cellProperties: object)
+      constructor (hotInstance: _Handsontable.Core, row: number, col: number, prop: string | number, TD: HTMLElement, cellProperties: object)
 
       beginEditing(initialValue?: string): void;
       cancelChanges(): void;
@@ -126,6 +214,9 @@ declare namespace _Handsontable {
       getEditedCell(): void;
       refreshDimensions(): void;
       refreshValue():void;
+      TEXTAREA: HTMLInputElement;
+      TEXTAREA_PARENT: HTMLElement;
+      textareaStyle: CSSStyleDeclaration;
     }
 
     class Date extends Text {
@@ -219,7 +310,7 @@ declare namespace _Handsontable {
           visualCol: number,
           visualRow: number,
           type: string,
-          instance: Core,
+          instance: _Handsontable.Core,
           dateFormat?: string
         },
         value: string
@@ -260,7 +351,7 @@ declare namespace _Handsontable {
       interface BaseUI {
         buildState: boolean;
         eventManager: EventManager;
-        hot: Core;
+        hot: _Handsontable.Core;
         options: object;
 
         build(): void;
@@ -279,7 +370,7 @@ declare namespace _Handsontable {
       interface MultipleSelectUI extends BaseUI {
         clearAllUI: BaseUI;
         items: any[];
-        itemsBox: Core;
+        itemsBox: _Handsontable.Core;
         searchInput: InputUI;
         selectAllUI: BaseUI;
 
@@ -344,7 +435,7 @@ declare namespace _Handsontable {
     }
 
     interface CommandExecutor {
-      hot: Core;
+      hot: _Handsontable.Core;
       commands: object;
       commonCallback: (() => void) | void;
 
@@ -373,7 +464,7 @@ declare namespace _Handsontable {
 
     interface Endpoints {
       plugin: plugins.ColumnSummary;
-      hot: Core;
+      hot: _Handsontable.Core;
       endpoints: any[];
       settings: object | (() => void);
       settingsType: string;
@@ -406,7 +497,7 @@ declare namespace _Handsontable {
     interface GhostTable {
       columns: number[];
       container: HTMLElement | null;
-      hot: Core;
+      hot: _Handsontable.Core;
       injected: boolean;
       rows: object[];
       samples: object | null;
@@ -437,7 +528,7 @@ declare namespace _Handsontable {
 
     interface ItemsFactory {
       defaultOrderPattern: any[] | void;
-      hot: Core;
+      hot: _Handsontable.Core;
       predefinedItems: object;
 
       getItems(pattern?: any[] | object | boolean): any[];
@@ -447,8 +538,8 @@ declare namespace _Handsontable {
     interface Menu {
       container: HTMLElement;
       eventManager: EventManager;
-      hot: Core;
-      hotMenu: Core;
+      hot: _Handsontable.Core;
+      hotMenu: _Handsontable.Core;
       hotSubMenus: object;
       keyEvent: boolean;
       menuItems: any[] | null;
@@ -501,7 +592,7 @@ declare namespace _Handsontable {
       enabled: boolean;
       initialized: boolean;
 
-      constructor(hotInstance?: Core);
+      constructor(hotInstance?: _Handsontable.Core);
 
       addHook(name: string, callback: () => void): void;
       callOnPluginsReady(callback: () => void): void;
@@ -634,7 +725,7 @@ declare namespace _Handsontable {
     interface Comments extends Base {
       contextMenuEvent: boolean;
       displayDelay: number;
-      editor: editors.CommentEditor;
+      editor: _editors.CommentEditor;
       eventManager: EventManager;
       mouseDown: boolean;
       range: CommentsRangeObject;
@@ -753,7 +844,7 @@ declare namespace _Handsontable {
     }
 
     interface RecordTranslator {
-      hot: Core;
+      hot: _Handsontable.Core;
 
       toPhysical(row: number | object, column?: number): object | any[];
       toPhysicalColumn(column: number): number;
@@ -765,7 +856,7 @@ declare namespace _Handsontable {
 
     interface DataProvider {
       changes: object;
-      hot: Core;
+      hot: _Handsontable.Core;
       t: RecordTranslator;
 
       clearChanges(): void;
@@ -783,7 +874,7 @@ declare namespace _Handsontable {
 
     interface AlterManager {
       sheet: Sheet;
-      hot: Core;
+      hot: _Handsontable.Core;
       dataProvider: DataProvider;
       matrix: Matrix;
 
@@ -843,7 +934,7 @@ declare namespace _Handsontable {
     interface Sheet {
       alterManager: AlterManager
       dataProvider: DataProvider;
-      hot: Core;
+      hot: _Handsontable.Core;
       matrix: Matrix;
       parser: Parser;
       t: RecordTranslator;
@@ -900,7 +991,7 @@ declare namespace _Handsontable {
       currentYear: number | void;
       dateCalculator: object | void;
       dataFeed: object | void;
-      hotSource: Core | void;
+      hotSource: _Handsontable.Core | void;
       initialSettings: object | void;
       monthHeadersArray: any[];
       monthList: any[];
@@ -924,7 +1015,7 @@ declare namespace _Handsontable {
       removeAllRangeBars(): void;
       setRangeBarColors(rows: object): void;
       setYear(year: number): void;
-      uniformBackgroundRenderer(instance: Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: string | number, cellProperties: object): void;
+      uniformBackgroundRenderer(instance: _Handsontable.Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: string | number, cellProperties: object): void;
       unrenderRangeBar(row: number, startDateColumn: number, endDateColumn: number): void;
       updateRangeBarData(row: number, column: number, data: object): void;
     }
@@ -1003,7 +1094,7 @@ declare namespace _Handsontable {
 
     namespace moveUI {
       interface BaseUI {
-        hot: Core;
+        hot: _Handsontable.Core;
         state: number;
 
         appendTo(wrapper: HTMLElement): void;
@@ -1045,7 +1136,7 @@ declare namespace _Handsontable {
       handle: HTMLElement;
       manualColumnWidths: any[];
       newSize: number | void;
-      pressed: Core | void;
+      pressed: _Handsontable.Core | void;
       selectedCols: any[];
       startOffset: number | void;
       startWidth: number | void;
@@ -1086,7 +1177,7 @@ declare namespace _Handsontable {
       handle: HTMLElement;
       manualRowHeights: any[];
       newSize: number | void;
-      pressed: Core | void;
+      pressed: _Handsontable.Core | void;
       selectedRows: any[];
       startOffset: number | void;
       startWidth: number | void;
@@ -1144,7 +1235,7 @@ declare namespace _Handsontable {
     interface DataManager {
       cache: object;
       data: object;
-      hot: Core;
+      hot: _Handsontable.Core;
       parentReference: any; //WeakMap
       plugin: NestedRows;
 
@@ -1210,7 +1301,7 @@ declare namespace _Handsontable {
 
   namespace renderers {
     interface Base {
-      (instance: Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: any, cellProperties: GridSettings): HTMLElement;
+      (instance: _Handsontable.Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: any, cellProperties: GridSettings): HTMLElement;
     }
 
     interface Autocomplete extends Base { }
@@ -1229,7 +1320,7 @@ declare namespace _Handsontable {
   interface DefaultSettings extends GridSettings { }
   interface DefaultSettings extends Hooks { }
 
-  interface GridSettings {
+  interface GridSettings extends Hooks {
     allowEmpty?: boolean;
     allowHtml?: boolean;
     allowInsertColumn?: boolean;
@@ -1270,6 +1361,7 @@ declare namespace _Handsontable {
     data?: any | any[];
     dataSchema?: object;
     dateFormat?: string;
+    numericFormat?: object;
     debug?: boolean;
     defaultDate?: string;
     disableVisualSelection?: boolean | string | any[];
@@ -1284,7 +1376,6 @@ declare namespace _Handsontable {
     fixedColumnsLeft?: number;
     fixedRowsBottom?: number; // pro
     fixedRowsTop?: number;
-    format?: string;
     fragmentSelection?: boolean | string;
     ganttChart?: object; // pro
     headerTooltips?: boolean | object; // pro
@@ -1346,6 +1437,7 @@ declare namespace _Handsontable {
     type?: string;
     uncheckedTemplate?: boolean | string;
     undo?: boolean;
+    valid?: boolean;
     validator?: (() => void) | RegExp;
     viewportColumnRenderingOffset?: number | string;
     viewportRowRenderingOffset?: number | string;
@@ -1498,18 +1590,18 @@ declare namespace _Handsontable {
   }
 
   interface Editors {
-    AutocompleteEditor: editors.Autocomplete;
-    BaseEditor: editors.Base;
-    CheckboxEditor: editors.Checkbox;
-    DateEditor: editors.Date;
-    DropdownEditor: editors.Dropdown;
-    HandsontableEditor: editors.Handsontable;
-    MobileEditor: editors.Mobile;
-    NumericEditor: editors.Numeric;
-    PasswordEditor: editors.Password;
-    SelectEditor: editors.Select;
-    TextEditor: editors.Text | editors.Mobile;
-    getEditor: (editorName: string, hotInstance: Core) => any;
+    AutocompleteEditor: typeof Handsontable._editors.Autocomplete;
+    BaseEditor: typeof Handsontable._editors.Base;
+    CheckboxEditor: typeof Handsontable._editors.Checkbox;
+    DateEditor: typeof Handsontable._editors.Date;
+    DropdownEditor: typeof Handsontable._editors.Dropdown;
+    HandsontableEditor: typeof Handsontable._editors.Handsontable;
+    MobileEditor: typeof Handsontable._editors.Mobile;
+    NumericEditor: typeof Handsontable._editors.Numeric;
+    PasswordEditor: typeof Handsontable._editors.Password;
+    SelectEditor: typeof Handsontable._editors.Select;
+    TextEditor: typeof Handsontable._editors.Text;
+    getEditor: (editorName: string, hotInstance: Handsontable) => any;
     registerEditor: (editorName: string, editorClass: any) => void;
   }
 
@@ -1521,93 +1613,6 @@ declare namespace _Handsontable {
     NumericRenderer: renderers.Numeric;
     PasswordRenderer: renderers.Password;
     TextRenderer: renderers.Text;
-  }
-
-  class Core {
-    constructor(element: Element, options: DefaultSettings);
-    addHook(key: string, callback: (() => void) | any[]): void;
-    addHookOnce(key: string, callback: (() => void) | any[]): void;
-    alter(action: string, index: number, amount?: number, source?: string, keepEmptyRows?: boolean): void;
-    clear(): void;
-    colOffset(): number;
-    colToProp(col: number): string | number;
-    countCols(): number;
-    countEmptyCols(ending?: boolean): number;
-    countEmptyRows(ending?: boolean): number;
-    countRenderedCols(): number;
-    countRenderedRows(): number;
-    countRows(): number;
-    countSourceCols(): number;
-    countSourceRows(): number;
-    countVisibleCols(): number;
-    countVisibleRows(): number;
-    deselectCell(): void;
-    destroy(): void;
-    destroyEditor(revertOriginal?: boolean): void;
-    getActiveEditor(): object;
-    getCell(row: number, col: number, topmost?: boolean): Element;
-    getCellEditor(row: number, col: number): object;
-    getCellMeta(row: number, col: number): object;
-    getCellMetaAtRow(row: number): any[];
-    getCellRenderer(row: number, col: number): () => void;
-    getCellValidator(row: number, col: number): any;
-    getColHeader(col?: number): any[] | string;
-    getColWidth(col: number): number;
-    getCoords(elem: Element): object;
-    getCopyableData(row: number, column: number): string;
-    getCopyableText(startRow: number, startCol: number, endRow: number, endCol: number): string;
-    getData(r?: number, c?: number, r2?: number, c2?: number): any[];
-    getDataAtCell(row: number, col: number): any;
-    getDataAtCol(col: number): any[];
-    getDataAtProp(prop: string | number): any[];
-    getDataAtRow(row: number): any[];
-    getDataAtRowProp(row: number, prop: string): any;
-    getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
-    getInstance(): any;
-    getPlugin(pluginName: string): any;
-    getRowHeader(row?: number): any[]|string;
-    getRowHeight(row: number): number;
-    getSchema(): object;
-    getSelected(): any[];
-    getSelectedRange(): Range;
-    getSettings(): object;
-    getSourceData(r?: number, c?: number, r2?: number, c2?: number): any[];
-    getSourceDataArray(r?: number, c?: number, r2?: number, c2?: number): any[];
-    getSourceDataAtCell(row: number, column: number): any;
-    getSourceDataAtCol(column: number): any[];
-    getSourceDataAtRow(row: number): any[] | object;
-    getValue(): any;
-    hasColHeaders(): boolean;
-    hasHook(key: string): boolean;
-    hasRowHeaders(): boolean;
-    isEmptyCol(col: number): boolean;
-    isEmptyRow(row: number): boolean;
-    isListening(): boolean;
-    listen(): void;
-    loadData(data: any[]): void;
-    populateFromArray(row: number, col: number, input: any[], endRow?: number, endCol?: number, source?: string, method?: string, direction?: string, deltas?: any[]): any;
-    propToCol(prop: string | number): number;
-    removeCellMeta(row: number, col: number, key: string): void;
-    removeHook(key: string, callback: () => void): void;
-    render(): void;
-    rowOffset(): number;
-    runHooks(key: string, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
-    scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean): boolean;
-    selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
-    selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
-    setCellMeta(row: number, col: number, key: string, val: string): void;
-    setCellMetaObject(row: number, col: number, prop: object): void;
-    setDataAtCell(row: number | any[], col: number, value: string | object, source?: string): void;
-    setDataAtRowProp(row: number | any[], prop: string, value: string, source?: string): void;
-    spliceCol(col: number, index: number, amount: number, elements?: any): void;
-    spliceRow(row: number, index: number, amount: number, elements?: any): void;
-    toPhysicalColumn(column: number): number;
-    toPhysicalRow(row: number): number;
-    toVisualColumn(column: number): number;
-    toVisualRow(row: number): number;
-    unlisten(): void;
-    updateSettings(settings: object, init: boolean): void;
-    validateCells(callback: () => void): void;
   }
 
   interface Helper {
@@ -1853,16 +1858,18 @@ declare namespace _Handsontable {
 }
 
 
-export default class Handsontable extends _Handsontable.Core {
+declare class Handsontable extends _Handsontable.Core {
   static baseVersion: string;
   static buildDate: string;
-  static cellTypes: _Handsontable.CellTypes;
-  static Core: _Handsontable.Core;
-  static dom: _Handsontable.Dom;
-  static editors: _Handsontable.Editors;
-  static helper: _Handsontable.Helper;
-  static hooks: _Handsontable.Hooks;
-  static plugins: _Handsontable.Plugins;
-  static renderers: _Handsontable.Renderers;
+  static cellTypes: Handsontable.CellTypes;
+  static dom: Handsontable.Dom;
+  static editors: Handsontable.Editors;
+  static helper: Handsontable.Helper;
+  static hooks: Handsontable.Hooks;
+  static plugins: Handsontable.Plugins;
+  static renderers: Handsontable.Renderers;
   static version: string;
 }
+
+export = Handsontable;
+export as namespace Handsontable;

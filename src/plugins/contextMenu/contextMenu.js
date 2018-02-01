@@ -135,7 +135,11 @@ class ContextMenu extends BasePlugin {
     }
     super.enablePlugin();
 
-    this.callOnPluginsReady(() => {
+    const delayedInitialization = () => {
+      if (!this.hot) {
+        return;
+      }
+
       this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
 
       this.itemsFactory.setPredefinedItems(predefinedItems.items);
@@ -155,6 +159,14 @@ class ContextMenu extends BasePlugin {
 
       // Register all commands. Predefined and added by user or by plugins
       arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
+    };
+
+    this.callOnPluginsReady(() => {
+      if (this.isPluginsReady) {
+        setTimeout(delayedInitialization, 0);
+      } else {
+        delayedInitialization();
+      }
     });
   }
 
@@ -226,8 +238,8 @@ class ContextMenu extends BasePlugin {
    * You can execute all predefined commands:
    *  * `'row_above'` - Insert row above
    *  * `'row_below'` - Insert row below
-   *  * `'col_left'` - Insert column on the left
-   *  * `'col_right'` - Insert column on the right
+   *  * `'col_left'` - Insert column left
+   *  * `'col_right'` - Insert column right
    *  * `'clear_column'` - Clear selected column
    *  * `'remove_row'` - Remove row
    *  * `'remove_col'` - Remove column

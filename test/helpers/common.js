@@ -94,15 +94,17 @@ export function contextMenu(cell) {
   }
   var cellOffset = $(cell).offset();
 
+  $(cell).simulate('mousedown', { button: 2 });
   $(cell).simulate('contextmenu', {
     clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
     clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(),
   });
+  $(cell).simulate('mouseup', { button: 2 });
 };
 
 export function closeContextMenu() {
   $(document).simulate('mousedown');
-  //  $(document).trigger('mousedown');
+  // $(document).trigger('mousedown');
 };
 
 /**

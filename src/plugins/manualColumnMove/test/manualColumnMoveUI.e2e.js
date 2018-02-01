@@ -99,10 +99,10 @@ describe('manualColumnMove', () => {
           { data: 'id', type: 'numeric', width: 40 },
           { data: 'currencyCode', type: 'text' },
           { data: 'currency', type: 'text' },
-          { data: 'level', type: 'numeric', format: '0.0000' },
+          { data: 'level', type: 'numeric', numericFormat: { pattern: '0.0000' } },
           { data: 'units', type: 'text' },
           { data: 'asOf', type: 'date', dateFormat: 'MM/DD/YYYY' },
-          { data: 'onedChng', type: 'numeric', format: '0.00%' }
+          { data: 'onedChng', type: 'numeric', numericFormat: { pattern: '0.00%' } }
         ]
       });
 
@@ -114,6 +114,41 @@ describe('manualColumnMove', () => {
       $headerTH.simulate('mousedown');
 
       expect(this.$container.find('.ht__manualColumnMove--backlight')[0].offsetWidth).toBe($headerTH[0].offsetWidth);
+    });
+
+    it('should set proper left position of the backlight element when colWidths is undefined', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      let header = spec().$container.find('thead tr:eq(0) th:eq(2)');
+
+      header.simulate('mousedown');
+      header.simulate('mouseup');
+      header.simulate('mousedown');
+
+      expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetLeft).toBe(100);
+    });
+
+    it('should set proper left position of the backlight element when colWidths is defined', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnMove: true,
+        rowHeaders: true,
+        colWidths: 100,
+        colHeaders: true,
+      });
+
+      let header = spec().$container.find('thead tr:eq(0) th:eq(2)');
+
+      header.simulate('mousedown');
+      header.simulate('mouseup');
+      header.simulate('mousedown');
+
+      expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetLeft).toBe(150);
     });
 
     it('should not run moving ui if mousedown was fired on sorting element', function() {

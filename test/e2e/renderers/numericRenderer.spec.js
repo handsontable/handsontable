@@ -19,7 +19,7 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          format: '$0,0.00'
+          numericFormat: {pattern: '$0,0.00'}
         };
       },
       afterValidate: onAfterValidate
@@ -39,7 +39,7 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          format: '$0,0.00'
+          numericFormat: {pattern: '$0,0.00'}
         };
       },
       afterValidate: onAfterValidate
@@ -53,12 +53,12 @@ describe('NumericRenderer', () => {
     }, 200);
   });
 
-  it('should try to render string as numeral', (done) => {
+  it('should not try to render string as numeral', (done) => {
     handsontable({
       cells() {
         return {
           type: 'numeric',
-          format: '$0,0.00'
+          numericFormat: {pattern: '$0,0.00'}
         };
       },
     });
@@ -66,7 +66,7 @@ describe('NumericRenderer', () => {
     setDataAtCell(2, 2, '123 simple test');
 
     setTimeout(() => {
-      expect(getCell(2, 2).innerHTML).toEqual('$123.00');
+      expect(getCell(2, 2).innerHTML).toEqual('123 simple test');
       done();
     }, 100);
   });
@@ -119,7 +119,7 @@ describe('NumericRenderer', () => {
         cells() {
           return {
             type: 'numeric',
-            format: '$0,0.00'
+            numericFormat: {pattern: '$0,0.00'}
           };
         },
         height: 100
