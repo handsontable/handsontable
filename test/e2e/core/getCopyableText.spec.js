@@ -28,7 +28,7 @@ describe('Core.getCopyableText', () => {
       copyable: false
     });
 
-    expect(getCopyableText(0, 0)).toBe('');
-    expect(getCopyableText(0, 0, 1, 2)).toBe('\t\t\n\t\t');
+    expect(getCopyableText(0, 0)).toBe(' ');
+    expect(getCopyableText(0, 0, 1, 2)).toBe(' \t \t \n \t \t ');
   });
 });

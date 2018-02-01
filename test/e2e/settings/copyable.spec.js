@@ -27,7 +27,7 @@ describe('settings', () => {
         ]
       });
 
-      expect(getCopyableText(0, 0, 0, 2)).toMatch('Joe\t\tJack');
+      expect(getCopyableText(0, 0, 0, 2)).toMatch('Joe\t \tJack');
     });
 
     it('with copyable=true, CTRL+C should copy the password value', () => {
@@ -63,7 +63,7 @@ describe('settings', () => {
         ]
       });
 
-      expect(getCopyableText(0, 0, 0, 2)).toMatch('Joe\t\tJack');
+      expect(getCopyableText(0, 0, 0, 2)).toMatch('Joe\t \tJack');
     });
   });
 });
