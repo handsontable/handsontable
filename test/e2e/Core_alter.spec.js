@@ -565,6 +565,43 @@ describe('Core_alter', () => {
       expect(this.$container.find('tr:eq(2) td:eq(0)').html()).toEqual('b1');
     });
 
+    it('should fire the beforeCreateRow hook before creating a row', () => {
+      const onBeforeCreateRow = jasmine.createSpy('beforeCreateRow');
+
+      const hot = handsontable({
+        data: arrayOfNestedObjects(),
+        columns: [
+          {data: 'id'},
+          {data: 'name.first'}
+        ],
+        beforeCreateRow: onBeforeCreateRow,
+      });
+      alter('insert_row', 2, 1, 'customSource');
+
+      expect(onBeforeCreateRow).toHaveBeenCalledWith(2, 1, 'customSource', void 0, void 0, void 0);
+    });
+
+    it('should not create row if removing has been canceled by beforeCreateRow hook handler', () => {
+      const beforeCreateRow = jasmine.createSpy('beforeCreateRow');
+
+      beforeCreateRow.and.callFake(() => false);
+
+      const hot = handsontable({
+        data: arrayOfNestedObjects(),
+        columns: [
+          {data: 'id'},
+          {data: 'name.first'}
+        ],
+        beforeCreateRow: beforeCreateRow
+      });
+
+      expect(countRows()).toEqual(3);
+
+      alter('insert_row');
+
+      expect(countRows()).toEqual(3);
+    });
+
     it('should insert row at the end if index is not given', () => {
       handsontable({
         data: [
@@ -584,7 +621,7 @@ describe('Core_alter', () => {
     });
 
     it('should not change cellMeta after executing `insert row` without parameters (#3581, #3989, #2114)', () => {
-      var greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      const greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
         Handsontable.renderers.TextRenderer.apply(this, arguments);
         td.style.backgroundColor = 'green';
       };
@@ -713,7 +750,7 @@ describe('Core_alter', () => {
     });
 
     it('should not add more source rows than defined in maxRows when trimming rows using the modifyRow hook', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 4),
         modifyRow(row) {
           return [8, 9].indexOf(row) > -1 ? null : row;
@@ -730,8 +767,8 @@ describe('Core_alter', () => {
     });
 
     it('should fire callback on create row', () => {
-      var outputBefore;
-      var outputAfter;
+      let outputBefore;
+      let outputAfter;
 
       handsontable({
         minRows: 5,
@@ -766,13 +803,13 @@ describe('Core_alter', () => {
       selectCell(2, 2);
       alter('insert_row', 2);
 
-      var selected = getSelected();
+      const selected = getSelected();
       expect(selected[0]).toEqual(3);
       expect(selected[2]).toEqual(3);
     });
 
     it('should shift the cell meta according to the new row layout', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         startCols: 4,
         startRows: 3
       });
@@ -784,7 +821,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new rows (>1) layout', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         startCols: 4,
         startRows: 3
       });
@@ -882,8 +919,8 @@ describe('Core_alter', () => {
     });
 
     it('should fire callback on create col', () => {
-      var outputBefore;
-      var outputAfter;
+      let outputBefore;
+      let outputAfter;
 
       handsontable({
         minRows: 5,
@@ -946,7 +983,7 @@ describe('Core_alter', () => {
         width: 500,
       });
 
-      var hot = handsontable({
+      const hot = handsontable({
         startCols: 5,
         startRows: 10,
         stretchH: 'all'
@@ -960,7 +997,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new column layout', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         startCols: 4,
         startRows: 3
       });
@@ -972,7 +1009,7 @@ describe('Core_alter', () => {
     });
 
     it('should shift the cell meta according to the new columns (>1) layout', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         startCols: 4,
         startRows: 3
       });
