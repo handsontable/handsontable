@@ -88,6 +88,7 @@ class TrimRows extends BasePlugin {
 
     this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
     this.addHook('unmodifyRow', (row, source) => this.onUnmodifyRow(row, source));
+    this.addHook('beforeCreateRow', (index, amount, source) => this.onBeforeCreateRow(index, amount, source));
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
@@ -222,6 +223,18 @@ class TrimRows extends BasePlugin {
     }
 
     return row;
+  }
+
+  /**
+   * `beforeCreateRow` hook callback.
+   *
+   * @private
+   * @param {Number} index Index of the newly created row.
+   * @param {Number} amount Amount of created rows.
+   * @param {String} source Source of the change.
+   */
+  onBeforeCreateRow(index, amount, source) {
+    return !(this.isEnabled() && this.trimmedRows.length > 0 && source === 'auto');
   }
 
   /**
