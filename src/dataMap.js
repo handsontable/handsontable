@@ -181,17 +181,13 @@ DataMap.prototype.getSchema = function() {
  * Creates row at the bottom of the data array.
  *
  * @param {Number} [index] Physical index of the row before which the new row will be inserted.
- * @param {Number} [amount] An amount of rows to add.
+ * @param {Number} [amount=1] An amount of rows to add.
  * @param {String} [source] Source of method call.
  * @fires Hooks#afterCreateRow
  * @returns {Number} Returns number of created rows.
  */
-DataMap.prototype.createRow = function(index, amount, source) {
+DataMap.prototype.createRow = function(index, amount = 1, source) {
   let numberOfCreatedRows = 0;
-
-  if (!amount) {
-    amount = 1;
-  }
 
   if (typeof index !== 'number' || index >= this.instance.countSourceRows()) {
     index = this.instance.countSourceRows();
