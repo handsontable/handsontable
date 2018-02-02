@@ -203,9 +203,8 @@ DataMap.prototype.createRow = function(index, amount, source) {
     return 0;
   }
 
-  let currentIndex = index;
-  let maxRows = this.instance.getSettings().maxRows;
-  let colCount = this.instance.countCols();
+  const maxRows = this.instance.getSettings().maxRows;
+  const columnCount = this.instance.countCols();
 
   while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
     let row = null;
@@ -218,7 +217,7 @@ DataMap.prototype.createRow = function(index, amount, source) {
       } else {
         row = [];
         /* eslint-disable no-loop-func */
-        rangeEach(colCount - 1, () => row.push(null));
+        rangeEach(columnCount - 1, () => row.push(null));
       }
 
     } else if (this.instance.dataType === 'function') {
@@ -237,7 +236,6 @@ DataMap.prototype.createRow = function(index, amount, source) {
     }
 
     numberOfCreatedRows++;
-    currentIndex++;
   }
 
   this.instance.runHooks('afterCreateRow', index, numberOfCreatedRows, source);
