@@ -61,7 +61,7 @@ const dictionary = {
 
   [C.FILTERS_CONDITIONS_NONE]: 'Aucun',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Est vide',
-  [C.FILTERS_CONDITIONS_NOT_EMPTY]: "N'est pas vide",
+  [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'N\'est pas vide',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Egal à',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Est différent de',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Commence par',
@@ -73,10 +73,10 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_LESS_THAN]: 'Plus petit que',
   [C.FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL]: 'Plus petit ou égal à',
   [C.FILTERS_CONDITIONS_BETWEEN]: 'Est compris entre',
-  [C.FILTERS_CONDITIONS_NOT_BETWEEN]: "N'est pas compris entre",
+  [C.FILTERS_CONDITIONS_NOT_BETWEEN]: 'N\'est pas compris entre',
   [C.FILTERS_CONDITIONS_AFTER]: 'Après le',
   [C.FILTERS_CONDITIONS_BEFORE]: 'Avant le',
-  [C.FILTERS_CONDITIONS_TODAY]: "Aujourd'hui",
+  [C.FILTERS_CONDITIONS_TODAY]: 'Aujourd\'hui',
   [C.FILTERS_CONDITIONS_TOMORROW]: 'Demain',
   [C.FILTERS_CONDITIONS_YESTERDAY]: 'Hier',
 
