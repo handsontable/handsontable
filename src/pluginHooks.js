@@ -537,6 +537,24 @@ const REGISTERED_HOOKS = [
   'afterValidate',
 
   /**
+   * Fired before successful change of language (when proper language code was set)
+   *
+   * @event Hooks#beforeLanguageChange
+   * @since 0.35.0
+   * @param {String} languageCode New language code.
+   */
+  'beforeLanguageChange',
+
+  /**
+   * Fired after successful change of language (when proper language code was set)
+   *
+   * @event Hooks#afterLanguageChange
+   * @since 0.35.0
+   * @param {String} languageCode New language code.
+   */
+  'afterLanguageChange',
+
+  /**
    * Fired before populating the data in the autofill feature.
    *
    * @event Hooks#beforeAutofill
@@ -1107,7 +1125,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after values are pasted into table.
    *
-   * @event Hooks#afterePaste
+   * @event Hooks#afterPaste
    * @since 0.31.1
    * @param {Array} data An array of arrays which contains the pasted data.
    * @param {Array} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
@@ -1485,6 +1503,22 @@ const REGISTERED_HOOKS = [
    * @param {Number} column Column index of the edited cell.
    */
   'afterBeginEditing',
+
+  /**
+   * Fired after the listening is turned on.
+   *
+   * @event Hooks#afterListen
+   * @since 0.34.5
+   */
+  'afterListen',
+
+  /**
+   * Fired after the listening is turned off.
+   *
+   * @event Hooks#afterUnlisten
+   * @since 0.34.5
+   */
+  'afterUnlisten',
 ];
 
 class Hooks {

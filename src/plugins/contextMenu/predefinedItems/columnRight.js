@@ -1,11 +1,14 @@
 import { getValidSelection } from './../utils';
+import * as C from './../../../i18n/constants';
 
 export const KEY = 'col_right';
 
 export default function columnRightItem() {
   return {
     key: KEY,
-    name: 'Insert column on the right',
+    name() {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
+    },
 
     callback(key, selection) {
       this.alter('insert_col', selection.end.col + 1, 1, 'ContextMenu.columnRight');

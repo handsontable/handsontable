@@ -1,3 +1,4 @@
+import PersistentState from './persistentState/persistentState';
 import AutoColumnSize from './autoColumnSize/autoColumnSize';
 import AutoFill from './autofill/autofill';
 import AutoRowSize from './autoRowSize/autoRowSize';
@@ -15,7 +16,6 @@ import ManualRowResize from './manualRowResize/manualRowResize';
 import MergeCells from './mergeCells/mergeCells';
 import MultipleSelectionHandles from './multipleSelectionHandles/multipleSelectionHandles';
 import ObserveChanges from './observeChanges/observeChanges';
-import PersistentState from './persistentState/persistentState';
 import Search from './search/search';
 import TouchScroll from './touchScroll/touchScroll';
 import UndoRedo from './undoRedo/undoRedo';

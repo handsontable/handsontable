@@ -58,7 +58,8 @@ class Textarea {
     this.element.className = 'copyPaste';
     this.element.tabIndex = -1;
     this.element.autocomplete = 'off';
-    this.element.wrap = 'off';
+    this.element.wrap = 'hard';
+    this.element.value = ' ';
   }
 
   /**

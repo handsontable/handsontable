@@ -3,17 +3,11 @@ describe('DropdownEditor', () => {
 
   var choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
 
-  var hot;
-
   beforeEach(function () {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
   afterEach(function () {
-    if (hot) {
-      hot = null;
-    }
-
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -49,7 +43,7 @@ describe('DropdownEditor', () => {
 
   describe('closing the editor', () => {
     it('should not close editor on scrolling', (done) => {
-      hot = handsontable({
+      const hot = handsontable({
         data: [
           ['', 'two', 'three'],
           ['four', 'five', 'six'],
@@ -91,7 +85,7 @@ describe('DropdownEditor', () => {
   });
 
   it('should mark all invalid values as invalid, after pasting them into dropdown-type cells', (done) => {
-    hot = handsontable({
+    handsontable({
       data: [
         ['', 'two', 'three'],
         ['four', 'five', 'six'],
@@ -113,5 +107,43 @@ describe('DropdownEditor', () => {
       expect(Handsontable.dom.hasClass(getCell(1, 0), 'htInvalid')).toBe(true);
       done();
     }, 40);
+  });
+
+  // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
+  it('should not lose the focus on input element while inserting new characters (#839)', async () => {
+    let blured = false;
+    const listener = () => {
+      blured = true;
+    };
+    const hot = handsontable({
+      data: [
+        ['one', 'two'],
+        ['three', 'four'],
+      ],
+      columns: [
+        {
+          type: 'dropdown',
+          source: choices,
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    hot.getActiveEditor().TEXTAREA.addEventListener('blur', listener);
+
+    await sleep(200);
+
+    hot.getActiveEditor().TEXTAREA.value = 't';
+    keyDownUp('t'.charCodeAt(0));
+    hot.getActiveEditor().TEXTAREA.value = 'te';
+    keyDownUp('e'.charCodeAt(0));
+    hot.getActiveEditor().TEXTAREA.value = 'teo';
+    keyDownUp('o'.charCodeAt(0));
+
+    expect(blured).toBeFalsy();
+
+    hot.getActiveEditor().TEXTAREA.removeEventListener('blur', listener);
   });
 });

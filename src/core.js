@@ -1,4 +1,3 @@
-import numbro from 'numbro';
 import { addClass, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
 import { columnFactory } from './helpers/setting';
 import { isFunction } from './helpers/function';
@@ -23,6 +22,9 @@ import { CellCoords, CellRange, ViewportColumnsCalculator } from './3rdparty/wal
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
 import { getCellType } from './cellTypes';
+import { getTranslatedPhrase } from './i18n';
+import { hasLanguageDictionary } from './i18n/dictionariesManager';
+import { warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLanguageCode } from './i18n/utils';
 
 let activeGuid = null;
 
@@ -30,7 +32,6 @@ let activeGuid = null;
  * Handsontable constructor
  *
  * @core
- * @dependencies numbro
  * @constructor Core
  * @description
  *
@@ -71,6 +72,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
   extend(GridSettings.prototype, expandType(userSettings));
 
+  applyLanguageSetting(GridSettings.prototype, userSettings.language);
+
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
   }
@@ -100,7 +103,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   priv = {
     cellSettings: [],
     columnSettings: [],
-    columnsSettingConflicts: ['data', 'width'],
+    columnsSettingConflicts: ['data', 'width', 'language'],
     settings: new GridSettings(), // current settings instance
     selRange: null, // exposed by public method `getSelectedRange`
     isPopulated: null,
@@ -697,8 +700,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col), preventScrolling,
       );
 
-      if ((priv.selRange.from.row === 0 && priv.selRange.to.row === instance.countRows() - 1 && instance.countRows() > 1) ||
-        (priv.selRange.from.col === 0 && priv.selRange.to.col === instance.countCols() - 1 && instance.countCols() > 1)) {
+      if (instance.selection.selectedHeader.cols || instance.selection.selectedHeader.rows) {
         isHeaderSelected = true;
       }
 
@@ -784,7 +786,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
         if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
-          instance.alter('insert_row', totalRows);
+          instance.alter('insert_row', totalRows, 1, 'auto');
           totalRows = instance.countRows();
 
         } else if (priv.settings.autoWrapCol) {
@@ -798,7 +800,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (priv.selRange.highlight.col + delta.col > totalCols - 1) {
         if (force && priv.settings.minSpareCols > 0) {
-          instance.alter('insert_col', totalCols);
+          instance.alter('insert_col', totalCols, 1, 'auto');
           totalCols = instance.countCols();
 
         } else if (priv.settings.autoWrapRow) {
@@ -950,6 +952,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   };
 
+  /**
+   * Internal function to set `language` key of settings.
+   *
+   * @private
+   * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'
+   * @fires Hooks#afterLanguageChange
+   */
+  function setLanguage(languageCode) {
+    const normalizedLanguageCode = normalizeLanguageCode(languageCode);
+
+    if (hasLanguageDictionary(normalizedLanguageCode)) {
+      instance.runHooks('beforeLanguageChange', normalizedLanguageCode);
+
+      GridSettings.prototype.language = normalizedLanguageCode;
+
+      instance.runHooks('afterLanguageChange', normalizedLanguageCode);
+
+    } else {
+      warnUserAboutLanguageRegistration(languageCode);
+    }
+  }
+
   this.init = function () {
     dataSource.setData(priv.settings.data);
     instance.runHooks('beforeInit');
@@ -999,42 +1023,40 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     };
   }
 
+  /**
+   * Get parsed number from numeric string.
+   *
+   * @param {String} numericData Float (separated by a dot or a comma) or integer.
+   * @returns {Number} Number if we get data in parsable format, not changed value otherwise.
+   */
+  function getParsedNumber(numericData) {
+    // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
+    // for example from `450,65` to `450.65`.
+    const unifiedNumericData = numericData.replace(',', '.');
+
+    if (isNaN(parseFloat(unifiedNumericData)) === false) {
+      return parseFloat(unifiedNumericData);
+    }
+
+    return numericData;
+  }
+
   function validateChanges(changes, source, callback) {
-    var waitingForValidator = new ValidatorsQueue();
+    const waitingForValidator = new ValidatorsQueue();
+    const isNumericData = value => value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
+
     waitingForValidator.onQueueEmpty = resolve;
 
-    for (var i = changes.length - 1; i >= 0; i -= 1) {
+    for (let i = changes.length - 1; i >= 0; i -= 1) {
       if (changes[i] === null) {
         changes.splice(i, 1);
       } else {
-        var row = changes[i][0];
-        var col = datamap.propToCol(changes[i][1]);
+        const [row, prop, , newValue] = changes[i];
+        const col = datamap.propToCol(prop);
+        const cellProperties = instance.getCellMeta(row, col);
 
-        var cellProperties = instance.getCellMeta(row, col);
-
-        if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3]) || cellProperties.format)) {
-            var len = changes[i][3].length;
-
-            if (isUndefined(cellProperties.language)) {
-              numbro.culture('en-US');
-
-            } else if (changes[i][3].indexOf('.') === len - 3 && changes[i][3].indexOf(',') === -1) {
-              // this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
-              numbro.culture('en-US');
-            } else {
-
-              numbro.culture(cellProperties.language);
-            }
-
-            // try to parse to float - https://github.com/foretagsplatsen/numbro/pull/183
-            if (numbro.validate(changes[i][3]) && !isNaN(changes[i][3])) {
-              changes[i][3] = parseFloat(changes[i][3]);
-
-            } else {
-              changes[i][3] = numbro().unformat(changes[i][3]) || changes[i][3];
-            }
-          }
+        if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericData(newValue)) {
+          changes[i][3] = getParsedNumber(newValue);
         }
 
         /* eslint-disable no-loop-func */
@@ -1293,18 +1315,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function listen
    * @since 0.11
+   * @param {Boolean} [modifyDocumentFocus=true] If `true`, currently focused element will be blured (which returns focus
+   *                                             to the document.body). Otherwise the active element does not lose its focus.
    */
-  this.listen = function () {
-    let invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
+  this.listen = function (modifyDocumentFocus = true) {
+    if (modifyDocumentFocus) {
+      let invalidActiveElement = !document.activeElement || (document.activeElement && document.activeElement.nodeName === void 0);
 
-    if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
-      document.activeElement.blur();
+      if (document.activeElement && document.activeElement !== document.body && !invalidActiveElement) {
+        document.activeElement.blur();
 
-    } else if (invalidActiveElement) { // IE
-      document.body.focus();
+      } else if (invalidActiveElement) { // IE
+        document.body.focus();
+      }
     }
 
-    activeGuid = instance.guid;
+    if (instance && !instance.isListening()) {
+      activeGuid = instance.guid;
+      instance.runHooks('afterListen');
+    }
   };
 
   /**
@@ -1317,6 +1346,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.unlisten = function () {
     if (this.isListening()) {
       activeGuid = null;
+      instance.runHooks('afterUnlisten');
     }
   };
 
@@ -1659,8 +1689,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
       if (i === 'data') {
-        /* eslint-disable no-continue */
+        /* eslint-disable-next-line no-continue */
         continue; // loadData will be triggered later
+
+      } else if (i === 'language') {
+        setLanguage(settings.language);
+
+        /* eslint-disable-next-line no-continue */
+        continue;
 
       } else if (Hooks.getSingleton().getRegistered().indexOf(i) > -1) {
         if (isFunction(settings[i]) || Array.isArray(settings[i])) {
@@ -2375,7 +2411,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const prop = datamap.colToProp(col);
     let cellProperties;
 
-    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
+    let [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
+
+    // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
+    if (physicalRow === null) {
+      physicalRow = row;
+    }
 
     if (!priv.columnSettings[physicalColumn]) {
       priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
@@ -2493,6 +2534,58 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Function} [callback] The callback function.
    */
   this.validateCells = function (callback) {
+    this._validateCells(callback);
+  };
+
+  /**
+   * Validates rows using their validator functions and calls callback when finished.
+   *
+   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it would equal `true`.
+   *
+   * @memberof Core#
+   * @function validateRows
+   * @param {Array} [rows] Array of validation target visual row indexes.
+   * @param {Function} [callback] The callback function.
+   */
+  this.validateRows = function (rows, callback) {
+    if (!Array.isArray(rows)) {
+      throw new Error('validateRows parameter `rows` must be an array');
+    }
+    this._validateCells(callback, rows);
+  };
+
+  /**
+   * Validates columns using their validator functions and calls callback when finished.
+   *
+   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it would equal `true`.
+   *
+   * @memberof Core#
+   * @function validateColumns
+   * @param {Array} [columns] Array of validation target visual columns indexes.
+   * @param {Function} [callback] The callback function.
+   */
+  this.validateColumns = function (columns, callback) {
+    if (!Array.isArray(columns)) {
+      throw new Error('validateColumns parameter `columns` must be an array');
+    }
+    this._validateCells(callback, undefined, columns);
+  };
+
+  /**
+   * Validates all cells using their validator functions and calls callback when finished.
+   *
+   * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it would equal `true`.
+   *
+   * Private use intended.
+   *
+   * @private
+   * @memberof Core#
+   * @function _validateCells
+   * @param {Function} [callback] The callback function.
+   * @param {Array} [rows] Optional. Array of validation target visual row indexes.
+   * @param {Array} [columns] Optional. Array of validation target visual column indexes.
+   */
+  this._validateCells = function (callback, rows, columns) {
     var waitingForValidator = new ValidatorsQueue();
 
     if (callback) {
@@ -2502,9 +2595,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let i = instance.countRows() - 1;
 
     while (i >= 0) {
+      if (rows !== undefined && rows.indexOf(i) === -1) {
+        i -= 1;
+        continue;
+      }
       let j = instance.countCols() - 1;
 
       while (j >= 0) {
+        if (columns !== undefined && columns.indexOf(j) === -1) {
+          j -= 1;
+          continue;
+        }
         waitingForValidator.addValidatorToQueue();
 
         instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), (result) => {
@@ -3060,7 +3161,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.setRangeEnd(new CellCoords(endRow, endCol), scrollToCell);
     }
     instance.selection.finish();
-
     return true;
   };
 
@@ -3336,6 +3436,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return Hooks.getSingleton().run(instance, key, p1, p2, p3, p4, p5, p6);
   };
 
+  /**
+   * Get phrase for specified dictionary key.
+   *
+   * @memberof Core#
+   * @function getTranslatedPhrase
+   * @since 0.35.0
+   * @param {String} dictionaryKey Constant which is dictionary key.
+   * @param {*} extraArguments Arguments which will be handled by formatters.
+   *
+   * @returns {String}
+   */
+  this.getTranslatedPhrase = function (dictionaryKey, extraArguments) {
+    return getTranslatedPhrase(priv.settings.language, dictionaryKey, extraArguments);
+  };
+
   this.timeouts = [];
 
   /**
@@ -3358,13 +3473,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       clearTimeout(this.timeouts[i]);
     }
   };
-
-  /**
-   * Handsontable version
-   *
-   * @type {String}
-   */
-  // this.version = Handsontable.version;
 
   Hooks.getSingleton().run(instance, 'construct');
 }

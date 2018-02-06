@@ -1,5 +1,4 @@
 import arrayMapper from './../../mixins/arrayMapper';
-import { arrayFilter } from './../../helpers/array';
 import { mixin } from './../../helpers/object';
 import { rangeEach } from './../../helpers/number';
 
@@ -37,25 +36,6 @@ class ColumnsMapper {
    */
   destroy() {
     this._arrayMap = null;
-  }
-
-  /**
-   * Moving elements in columnsMapper.
-   *
-   * @param {Number} from Column index to move.
-   * @param {Number} to Target index.
-   */
-  moveColumn(from, to) {
-    let indexToMove = this._arrayMap[from];
-    this._arrayMap[from] = null;
-    this._arrayMap.splice(to, 0, indexToMove);
-  }
-
-  /**
-   * Clearing arrayMap from `null` entries.
-   */
-  clearNull() {
-    this._arrayMap = arrayFilter(this._arrayMap, i => i !== null);
   }
 }
 

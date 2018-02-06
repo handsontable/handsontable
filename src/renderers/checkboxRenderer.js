@@ -126,12 +126,12 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       return;
     }
 
-    const topLeft = selRange.getTopLeftCorner();
-    const bottomRight = selRange.getBottomRightCorner();
+    const { row: startRow, col: startColumn } = selRange.getTopLeftCorner();
+    const { row: endRow, col: endColumn } = selRange.getBottomRightCorner();
     const changes = [];
 
-    for (let _row = topLeft.row; _row <= bottomRight.row; _row += 1) {
-      for (let _col = topLeft.col; _col <= bottomRight.col; _col += 1) {
+    for (let _row = startRow; _row <= endRow; _row += 1) {
+      for (let _col = startColumn; _col <= endColumn; _col += 1) {
         const cellProps = instance.getCellMeta(_row, _col);
 
         if (cellProps.type !== 'checkbox') {
@@ -153,10 +153,10 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
         const dataAtCell = instance.getDataAtCell(_row, _col);
 
         if (uncheckCheckbox === false) {
-          if (dataAtCell === cellProps.checkedTemplate) {
+          if ([cellProps.checkedTemplate, cellProps.checkedTemplate.toString()].includes(dataAtCell)) {
             changes.push([_row, _col, cellProps.uncheckedTemplate]);
 
-          } else if ([cellProps.uncheckedTemplate, null, void 0].indexOf(dataAtCell) !== -1) {
+          } else if ([cellProps.uncheckedTemplate, cellProps.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) {
             changes.push([_row, _col, cellProps.checkedTemplate]);
           }
 

@@ -1,6 +1,7 @@
 .DS_Store
 .grunt
 .idea
+.vscode
 _SpecRunner.html
 test/E2ERunner.html
 test/UnitRunner.html

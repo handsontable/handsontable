@@ -8,9 +8,11 @@ node_js:
 before_script:
   - export TZ=Europe/Warsaw
   - chmod ugo+x test/scripts/trigger-hot-builder-tests.sh
+  - chmod ugo+x test/scripts/trigger-pro-tests.sh
 
 after_success:
   - "./test/scripts/trigger-hot-builder-tests.sh"
+  - "./test/scripts/trigger-pro-tests.sh"
 
 notifications:
   email: false

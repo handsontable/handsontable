@@ -270,7 +270,7 @@ function EditorManager(instance, priv, selection) {
     function onDblClick(event, coords, elem) {
       // may be TD or TH
       if (elem.nodeName === 'TD') {
-        _this.openEditor();
+        _this.openEditor(null, event);
 
         if (activeEditor) {
           activeEditor.enableFullEditMode();
@@ -363,12 +363,12 @@ function EditorManager(instance, priv, selection) {
    *
    * @function openEditor
    * @memberof! Handsontable.EditorManager#
-   * @param {String} initialValue
+   * @param {null|String} newInitialValue new value from which editor will start if handled property it's not the `null`.
    * @param {DOMEvent} event
    */
-  this.openEditor = function (initialValue, event) {
+  this.openEditor = function (newInitialValue, event) {
     if (activeEditor && !activeEditor.cellProperties.readOnly) {
-      activeEditor.beginEditing(initialValue, event);
+      activeEditor.beginEditing(newInitialValue, event);
     } else if (activeEditor && activeEditor.cellProperties.readOnly) {
 
       // move the selection after opening the editor with ENTER key

@@ -130,7 +130,7 @@ class ManualColumnFreeze extends BasePlugin {
     priv.moveByFreeze = true;
     settings.fixedColumnsLeft -= 1;
 
-    this.getMovePlugin().moveColumn(column, returnCol + 1);
+    this.getMovePlugin().moveColumn(column, returnCol);
   }
 
   /**
@@ -160,10 +160,10 @@ class ManualColumnFreeze extends BasePlugin {
     let j = movePlugin.columnsMapper.getValueByIndex(i);
     let initialCol;
 
-    if (this.frozenColumnsBasePositions[column] === void 0) {
+    if (this.frozenColumnsBasePositions[column] === null || this.frozenColumnsBasePositions[column] === void 0) {
       initialCol = movePlugin.columnsMapper.getValueByIndex(column);
 
-      while (j < initialCol) {
+      while (j !== null && j <= initialCol) {
         i += 1;
         j = movePlugin.columnsMapper.getValueByIndex(i);
       }
@@ -172,7 +172,7 @@ class ManualColumnFreeze extends BasePlugin {
       initialCol = this.frozenColumnsBasePositions[column];
       this.frozenColumnsBasePositions[column] = void 0;
 
-      while (j <= initialCol) {
+      while (j !== null && j <= initialCol) {
         i += 1;
         j = movePlugin.columnsMapper.getValueByIndex(i);
       }

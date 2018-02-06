@@ -1,6 +1,7 @@
 import Hooks from './../../pluginHooks';
 import { hasOwnProperty } from './../../helpers/object';
 import { CellRange, Selection } from './../../3rdparty/walkontable/src';
+import * as C from './../../i18n/constants';
 
 function CustomBorders() {}
 /** *
@@ -443,7 +444,9 @@ var addBordersOptionsToContextMenu = function (defaultOptions) {
   });
   defaultOptions.items.push({
     key: 'borders',
-    name: 'Borders',
+    name() {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS);
+    },
     disabled() {
       return this.selection.selectedHeader.corner;
     },
@@ -452,7 +455,8 @@ var addBordersOptionsToContextMenu = function (defaultOptions) {
         {
           key: 'borders:top',
           name() {
-            var label = 'Top';
+            var label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_TOP);
+
             var hasBorder = checkSelectionBorders(this, 'top');
             if (hasBorder) {
               label = markSelected(label);
@@ -468,7 +472,7 @@ var addBordersOptionsToContextMenu = function (defaultOptions) {
         {
           key: 'borders:right',
           name() {
-            var label = 'Right';
+            var label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_RIGHT);
             var hasBorder = checkSelectionBorders(this, 'right');
             if (hasBorder) {
               label = markSelected(label);
@@ -483,7 +487,7 @@ var addBordersOptionsToContextMenu = function (defaultOptions) {
         {
           key: 'borders:bottom',
           name() {
-            var label = 'Bottom';
+            var label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_BOTTOM);
             var hasBorder = checkSelectionBorders(this, 'bottom');
             if (hasBorder) {
               label = markSelected(label);
@@ -498,7 +502,7 @@ var addBordersOptionsToContextMenu = function (defaultOptions) {
         {
           key: 'borders:left',
           name() {
-            var label = 'Left';
+            var label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_LEFT);
             var hasBorder = checkSelectionBorders(this, 'left');
             if (hasBorder) {
               label = markSelected(label);
@@ -513,7 +517,9 @@ var addBordersOptionsToContextMenu = function (defaultOptions) {
         },
         {
           key: 'borders:no_borders',
-          name: 'Remove border(s)',
+          name() {
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_BORDERS);
+          },
           callback() {
             prepareBorder.call(this, this.getSelectedRange(), 'noBorders');
           },
@@ -545,3 +551,5 @@ Hooks.getSingleton().add('afterInit', function () {
     this.view.wt.draw(true);
   }
 });
+
+export default CustomBorders;

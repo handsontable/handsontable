@@ -569,7 +569,9 @@ describe('Core_updateSettings', () => {
       columns: [
         {
           type: 'numeric',
-          format: '0,0.00 $',
+          numericFormat: {
+            pattern: '0,0.00 $',
+          },
         },
         {
           type: 'text',
@@ -586,6 +588,7 @@ describe('Core_updateSettings', () => {
 
     updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(columns, rows) });
     expect(getCellMeta(rows, 0).type).toEqual('numeric');
+    expect(typeof getCellMeta(rows, 0).numericFormat).toEqual('object');
     expect(getCellMeta(rows, 1).readOnly).toEqual(true);
 
     updateSettings({
@@ -596,13 +599,16 @@ describe('Core_updateSettings', () => {
         },
         {
           type: 'numeric',
-          format: '0,0.00 $',
+          numericFormat: {
+            pattern: '0,0.00 $',
+          },
         },
       ],
     });
     expect(getCellMeta(0, 0).type).toEqual('text');
     expect(getCellMeta(0, 0).readOnly).toEqual(true);
     expect(getCellMeta(0, 1).type).toEqual('numeric');
+    expect(typeof getCellMeta(0, 1).numericFormat).toEqual('object');
     expect(getCellMeta(0, 1).readOnly).toEqual(false);
     expect(getCellMeta(rows, 0).type).toEqual('text');
     expect(getCellMeta(rows, 1).type).toEqual('numeric');

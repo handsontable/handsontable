@@ -296,7 +296,7 @@ class Viewport {
 
     this.rowHeaderWidth = NaN;
 
-    if (this.wot.wtSettings.settings.renderAllRows) {
+    if (this.wot.wtSettings.settings.renderAllRows && !visible) {
       height = Infinity;
     } else {
       height = this.getViewportHeight();

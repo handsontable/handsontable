@@ -445,7 +445,6 @@ class ManualRowResize extends BasePlugin {
 
     return height;
   }
-
 }
 
 registerPlugin('manualRowResize', ManualRowResize);

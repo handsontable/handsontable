@@ -55,7 +55,14 @@ describe('CheckboxRenderer', () => {
     expect($(getRenderedContent(2, 0)).prop('checked')).toBe(true);
   });
 
-  it('should select cell after checkbox click', function () {
+  it('should select cell after checkbox click', (done) => {
+    var spy = jasmine.createSpyObj('error', ['test']);
+
+    window.onerror = function () {
+      spy.test();
+      return false;
+    };
+
     var hot = handsontable({
       data: [[true], [false], [true]],
       columns: [
@@ -65,9 +72,16 @@ describe('CheckboxRenderer', () => {
 
     hot.selectCell(0, 0);
 
-    this.$container.find(':checkbox').eq(2).simulate('mousedown');
+    spec().$container.find(':checkbox').eq(2).simulate('mousedown');
+    spec().$container.find(':checkbox').eq(2).simulate('mouseup');
+    spec().$container.find(':checkbox').eq(2).simulate('click');
 
-    expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
+    setTimeout(() => {
+      expect(spy.test.calls.count()).toBe(0);
+      expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
+
+      done();
+    }, 100);
   });
 
   it('should select cell after label click', function () {
@@ -315,22 +329,22 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false], [1, 0, false, true], [2, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should open cell editors of cell that does not have checkboxRenderer (#1199)', () => {
-    var hot = handsontable({
-      data: [[true, 'B0'], [true, 'B1'], [true, 'B2']],
+  it('should toggle checkbox even if cell value is in another datatype', () => {
+    // TODO: we MUST add additional layer in data transport, to filter stored data types into their defined data type (cellMeta.type)
+    handsontable({
+      data: [['true']],
       columns: [
         { type: 'checkbox' },
-        { type: 'text' },
       ],
     });
 
-    selectCell(0, 1);
+    selectCell(0, 0);
 
-    expect(hot.getActiveEditor().isOpened()).toBe(false);
+    expect(getDataAtCell(0, 0)).toBe('true');
 
     keyDown('space');
 
-    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(getDataAtCell(0, 0)).toBe(false);
   });
 
   it('double click on checkbox cell should invert the value', () => {
@@ -605,6 +619,25 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([['foo'], ['bar']]);
 
     expect(afterChangeCallback.calls.count()).toEqual(0);
+  });
+
+  it('should not change checkbox state after hitting F2 key', () => {
+    const onAfterChange = jasmine.createSpy('afterChangeCallback');
+
+    handsontable({
+      data: [[false], [true], [true]],
+      columns: [
+        { type: 'checkbox' },
+      ],
+      onAfterChange,
+    });
+
+    selectCell(0, 0);
+    keyDown('f2');
+
+    expect(getDataAtCell(0, 0)).toBe(false);
+
+    expect(onAfterChange.calls.count()).toEqual(0);
   });
 
   it('should not change checkbox state after hitting other keys then SPACE, ENTER, DELETE or BACKSPACE', () => {

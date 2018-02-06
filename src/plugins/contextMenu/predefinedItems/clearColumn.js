@@ -1,11 +1,14 @@
 import { getValidSelection } from './../utils';
+import * as C from './../../../i18n/constants';
 
 export const KEY = 'clear_column';
 
 export default function clearColumnItem() {
   return {
     key: KEY,
-    name: 'Clear column',
+    name() {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CLEAR_COLUMN);
+    },
 
     callback(key, selection) {
       let column = selection.start.col;
