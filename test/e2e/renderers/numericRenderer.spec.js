@@ -1,11 +1,11 @@
 describe('NumericRenderer', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -19,10 +19,10 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          numericFormat: {pattern: '$0,0.00'}
+          numericFormat: { pattern: '$0,0.00' },
         };
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     setDataAtCell(2, 2, '1000.234');
 
@@ -39,10 +39,10 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          numericFormat: {pattern: '$0,0.00'}
+          numericFormat: { pattern: '$0,0.00' },
         };
       },
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(2, 2, '-1000.234');
@@ -58,7 +58,7 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           type: 'numeric',
-          numericFormat: {pattern: '$0,0.00'}
+          numericFormat: { pattern: '$0,0.00' },
         };
       },
     });
@@ -105,7 +105,7 @@ describe('NumericRenderer', () => {
     var DIV = document.createElement('DIV');
     var instance = new Handsontable(DIV, {});
     var TD = document.createElement('TD');
-    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, {readOnly: true, readOnlyCellClassName: 'htDimmed'});
+    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, { readOnly: true, readOnlyCellClassName: 'htDimmed' });
     expect(TD.className).toContain('htDimmed');
     instance.destroy();
   });
@@ -119,10 +119,10 @@ describe('NumericRenderer', () => {
         cells() {
           return {
             type: 'numeric',
-            numericFormat: {pattern: '$0,0.00'}
+            numericFormat: { pattern: '$0,0.00' },
           };
         },
-        height: 100
+        height: 100,
       });
 
       setDataAtCell(0, 0, '1000');

@@ -10,13 +10,13 @@ import {
   resetCssTransform,
   setCaretPosition,
   hasVerticalScrollbar,
-  hasHorizontalScrollbar
+  hasHorizontalScrollbar,
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
-import BaseEditor, {EditorState} from './_baseEditor';
+import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
-import {KEY_CODES} from './../helpers/unicode';
-import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
+import { KEY_CODES } from './../helpers/unicode';
+import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
 
 const TextEditor = BaseEditor.prototype.extend();
 
@@ -26,7 +26,7 @@ const TextEditor = BaseEditor.prototype.extend();
  * @class TextEditor
  * @dependencies autoResize
  */
-TextEditor.prototype.init = function() {
+TextEditor.prototype.init = function () {
   var that = this;
   this.createElements();
   this.eventManager = new EventManager(this);
@@ -38,11 +38,11 @@ TextEditor.prototype.init = function() {
   });
 };
 
-TextEditor.prototype.getValue = function() {
+TextEditor.prototype.getValue = function () {
   return this.TEXTAREA.value;
 };
 
-TextEditor.prototype.setValue = function(newValue) {
+TextEditor.prototype.setValue = function (newValue) {
   this.TEXTAREA.value = newValue;
 };
 
@@ -140,13 +140,13 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
   }
 };
 
-TextEditor.prototype.open = function() {
+TextEditor.prototype.open = function () {
   this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
 
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-TextEditor.prototype.close = function(tdOutside) {
+TextEditor.prototype.close = function () {
   this.textareaParentStyle.display = 'none';
 
   this.autoResize.unObserve();
@@ -157,12 +157,12 @@ TextEditor.prototype.close = function(tdOutside) {
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-TextEditor.prototype.focus = function() {
+TextEditor.prototype.focus = function () {
   this.TEXTAREA.focus();
   setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
 };
 
-TextEditor.prototype.createElements = function() {
+TextEditor.prototype.createElements = function () {
   //    this.$body = $(document.body);
 
   this.TEXTAREA = document.createElement('TEXTAREA');
@@ -191,7 +191,7 @@ TextEditor.prototype.createElements = function() {
   }, 0));
 };
 
-TextEditor.prototype.getEditedCell = function() {
+TextEditor.prototype.getEditedCell = function () {
   var
     editorSection = this.checkEditorSection(),
     editedCell;
@@ -200,35 +200,35 @@ TextEditor.prototype.getEditedCell = function() {
     case 'top':
       editedCell = this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.textareaParentStyle.zIndex = 101;
       break;
     case 'top-left-corner':
       editedCell = this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.textareaParentStyle.zIndex = 103;
       break;
     case 'bottom-left-corner':
       editedCell = this.instance.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.textareaParentStyle.zIndex = 103;
       break;
     case 'left':
       editedCell = this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.textareaParentStyle.zIndex = 102;
       break;
     case 'bottom':
       editedCell = this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.textareaParentStyle.zIndex = 102;
       break;
@@ -238,10 +238,10 @@ TextEditor.prototype.getEditedCell = function() {
       break;
   }
 
-  return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
+  return editedCell !== -1 && editedCell !== -2 ? editedCell : void 0;
 };
 
-TextEditor.prototype.refreshValue = function() {
+TextEditor.prototype.refreshValue = function () {
   let sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
   this.originalValue = sourceData;
 
@@ -249,7 +249,7 @@ TextEditor.prototype.refreshValue = function() {
   this.refreshDimensions();
 };
 
-TextEditor.prototype.refreshDimensions = function() {
+TextEditor.prototype.refreshDimensions = function () {
   if (this.state !== EditorState.EDITING) {
     return;
   }
@@ -257,7 +257,7 @@ TextEditor.prototype.refreshDimensions = function() {
 
   // TD is outside of the viewport.
   if (!this.TD) {
-    this.close(true);
+    this.close();
 
     return;
   }
@@ -273,11 +273,10 @@ TextEditor.prototype.refreshDimensions = function() {
     editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
 
     settings = this.instance.getSettings(),
-    rowHeadersCount = this.instance.hasRowHeaders(),
     colHeadersCount = this.instance.hasColHeaders(),
-    editorSection = this.checkEditorSection(),
-    backgroundColor = this.TD.style.backgroundColor,
-    cssTransformOffset;
+    editorSection = this.checkEditorSection();
+  let { backgroundColor } = this.TD.style;
+  let cssTransformOffset;
 
   // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
   switch (editorSection) {
@@ -309,8 +308,8 @@ TextEditor.prototype.refreshDimensions = function() {
     editLeft += 1;
   }
 
-  if (cssTransformOffset && cssTransformOffset != -1) {
-    this.textareaParentStyle[cssTransformOffset[0]] = cssTransformOffset[1];
+  if (cssTransformOffset && cssTransformOffset !== -1) {
+    [, this.textareaParentStyle[cssTransformOffset[0]]] = cssTransformOffset;
   } else {
     resetCssTransform(this.TEXTAREA_PARENT);
   }
@@ -339,19 +338,19 @@ TextEditor.prototype.refreshDimensions = function() {
   this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
   this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
   this.TEXTAREA.style.backgroundColor = ''; // RESET STYLE
-  this.TEXTAREA.style.backgroundColor = backgroundColor ? backgroundColor : getComputedStyle(this.TEXTAREA).backgroundColor;
+  this.TEXTAREA.style.backgroundColor = backgroundColor || getComputedStyle(this.TEXTAREA).backgroundColor;
 
   this.autoResize.init(this.TEXTAREA, {
     minHeight: Math.min(height, maxHeight),
     maxHeight, // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
     minWidth: Math.min(width, maxWidth),
-    maxWidth // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+    maxWidth, // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
   }, true);
 
   this.textareaParentStyle.display = 'block';
 };
 
-TextEditor.prototype.bindEvents = function() {
+TextEditor.prototype.bindEvents = function () {
   var editor = this;
 
   this.eventManager.addEventListener(this.TEXTAREA, 'cut', (event) => {
@@ -385,7 +384,7 @@ TextEditor.prototype.bindEvents = function() {
   });
 };
 
-TextEditor.prototype.destroy = function() {
+TextEditor.prototype.destroy = function () {
   this.eventManager.destroy();
 };
 

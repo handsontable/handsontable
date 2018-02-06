@@ -1,34 +1,34 @@
 describe('Core_setDataAtCell', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfNestedObjects = function() {
+  var arrayOfNestedObjects = function () {
     return [
-      {id: 1,
+      { id: 1,
         name: {
           first: 'Ted',
-          last: 'Right'
-        }},
-      {id: 2,
+          last: 'Right',
+        } },
+      { id: 2,
         name: {
           first: 'Frank',
-          last: 'Honest'
-        }},
-      {id: 3,
+          last: 'Honest',
+        } },
+      { id: 3,
         name: {
           first: 'Joan',
-          last: 'Well'
-        }}
+          last: 'Well',
+        } },
     ];
   };
 
@@ -67,8 +67,8 @@ describe('Core_setDataAtCell', () => {
       dataSchema: {
         col1: null,
         col2: null,
-        col3: null
-      }
+        col3: null,
+      },
     });
     selectCell(0, 0);
     triggerPaste('1\tTest\t2');
@@ -139,9 +139,9 @@ describe('Core_setDataAtCell', () => {
       data: arrayOfNestedObjects(),
       colHeaders: true,
       columns: [
-        {data: 'id'},
-        {data: 'name.last'},
-        {data: 'name.first'}
+        { data: 'id' },
+        { data: 'name.last' },
+        { data: 'name.first' },
       ],
       minSpareRows: 1,
     });
@@ -159,20 +159,20 @@ describe('Core_setDataAtCell', () => {
   it('should work with functional data source', () => {
     handsontable({
       data: [
-        model({id: 1, name: 'Ted Right', address: ''}),
-        model({id: 2, name: 'Frank Honest', address: ''}),
-        model({id: 3, name: 'Joan Well', address: ''})
+        model({ id: 1, name: 'Ted Right', address: '' }),
+        model({ id: 2, name: 'Frank Honest', address: '' }),
+        model({ id: 3, name: 'Joan Well', address: '' }),
       ],
       dataSchema: model,
       startRows: 5,
       startCols: 3,
       colHeaders: ['ID', 'Name', 'Address'],
       columns: [
-        {data: property('id')},
-        {data: property('name')},
-        {data: property('address')}
+        { data: property('id') },
+        { data: property('name') },
+        { data: property('address') },
       ],
-      minSpareRows: 1
+      minSpareRows: 1,
     });
 
     function model(opts) {
@@ -180,10 +180,10 @@ describe('Core_setDataAtCell', () => {
         _priv = $.extend({
           id: undefined,
           name: undefined,
-          address: undefined
+          address: undefined,
         }, opts);
 
-      _pub.attr = function(attr, val) {
+      _pub.attr = function (attr, val) {
         if (typeof val === 'undefined') {
           return _priv[attr];
         }
@@ -196,7 +196,7 @@ describe('Core_setDataAtCell', () => {
     }
 
     function property(attr) {
-      return function(row, value) {
+      return function (row, value) {
         return row.attr(attr, value);
       };
     }
@@ -207,14 +207,12 @@ describe('Core_setDataAtCell', () => {
   });
 
   it('should accept changes array as 1st param and source as 2nd param', () => {
-    var callCount = 0,
-      lastSource = '';
+    let lastSource = '';
 
     handsontable({
       afterChange(changes, source) {
-        callCount++;
         lastSource = source;
-      }
+      },
     });
 
     setDataAtCell([[0, 0, 'new value']], 'customSource');
@@ -230,7 +228,7 @@ describe('Core_setDataAtCell', () => {
       afterSetDataAtCell(changes, source) {
         _changes = changes;
         _source = source;
-      }
+      },
     });
 
     setDataAtCell(0, 0, 'foo bar', 'customSource');
@@ -243,14 +241,14 @@ describe('Core_setDataAtCell', () => {
   it('should modify value on the fly using `afterSetDataAtCell` hook', () => {
     handsontable({
       data: [['a', 'b', 'c'], [1, 2, 3]],
-      afterSetDataAtCell(changes, source) {
+      afterSetDataAtCell(changes) {
         if (changes[0][3] === 'foo bar') {
           changes[0][3] = 'bar';
         }
         if (changes[0][3] === 22) {
           changes[0][3] = 33;
         }
-      }
+      },
     });
 
     setDataAtCell(0, 0, 'foo bar', 'customSource');
@@ -266,11 +264,11 @@ describe('Core_setDataAtCell', () => {
     var _source;
 
     handsontable({
-      columns: [{data: 'name'}, {data: 'id'}],
+      columns: [{ data: 'name' }, { data: 'id' }],
       afterSetDataAtRowProp(changes, source) {
         _changes = changes;
         _source = source;
-      }
+      },
     });
 
     setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
@@ -282,16 +280,16 @@ describe('Core_setDataAtCell', () => {
 
   it('should modify value on the fly using `afterSetDataAtRowProp` hook', () => {
     handsontable({
-      data: [{name: 'a', id: 1}, {name: 'b', id: 2}, {name: 'c', id: 3}],
-      columns: [{data: 'name'}, {data: 'id'}],
-      afterSetDataAtRowProp(changes, source) {
+      data: [{ name: 'a', id: 1 }, { name: 'b', id: 2 }, { name: 'c', id: 3 }],
+      columns: [{ data: 'name' }, { data: 'id' }],
+      afterSetDataAtRowProp(changes) {
         if (changes[0][3] === 'foo bar') {
           changes[0][3] = 'bar';
         }
         if (changes[0][3] === 22) {
           changes[0][3] = 33;
         }
-      }
+      },
     });
 
     setDataAtRowProp(0, 'name', 'foo bar', 'customSource');

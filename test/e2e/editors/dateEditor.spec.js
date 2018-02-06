@@ -1,11 +1,11 @@
 describe('DateEditor', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -18,7 +18,7 @@ describe('DateEditor', () => {
       ['12/01/2008'],
       ['11/19/2011'],
       ['02/02/2004'],
-      ['07/24/2011']
+      ['07/24/2011'],
     ];
   }
 
@@ -27,9 +27,9 @@ describe('DateEditor', () => {
       data: getDates(),
       columns: [
         {
-          type: 'date'
-        }
-      ]
+          type: 'date',
+        },
+      ],
     });
 
     expect($('.pika-single').is(':visible')).toBe(false);
@@ -59,13 +59,13 @@ describe('DateEditor', () => {
               nextMonth: 'Następny',
               months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
               weekdays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-              weekdaysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+              weekdaysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
             },
             onOpen: onOpenSpy,
-            onClose: onCloseSpy
-          }
-        }
-      ]
+            onClose: onCloseSpy,
+          },
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -90,9 +90,9 @@ describe('DateEditor', () => {
       data: getDates(),
       columns: [
         {
-          type: 'date'
-        }
-      ]
+          type: 'date',
+        },
+      ],
     });
 
     expect($('.pika-single').length).toBe(0);
@@ -113,9 +113,9 @@ describe('DateEditor', () => {
       columns: [
         {
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
-        }
-      ]
+          dateFormat: 'MM/DD/YYYY',
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -134,9 +134,9 @@ describe('DateEditor', () => {
       columns: [
         {
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
-        }
-      ]
+          dateFormat: 'MM/DD/YYYY',
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -158,9 +158,9 @@ describe('DateEditor', () => {
       columns: [
         {
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
-        }
-      ]
+          dateFormat: 'MM/DD/YYYY',
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -185,9 +185,9 @@ describe('DateEditor', () => {
         {
           type: 'date',
           dateFormat: 'MM/DD/YYYY',
-          defaultDate: '01/01/1900'
-        }
-      ]
+          defaultDate: '01/01/1900',
+        },
+      ],
     });
 
     selectCell(5, 0);
@@ -215,9 +215,9 @@ describe('DateEditor', () => {
       columns: [
         {
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
-        }
-      ]
+          dateFormat: 'MM/DD/YYYY',
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -235,9 +235,9 @@ describe('DateEditor', () => {
       data: getDates(),
       columns: [
         {
-          type: 'date'
-        }
-      ]
+          type: 'date',
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -270,7 +270,7 @@ describe('DateEditor', () => {
     const hot = handsontable({
       data: [
         ['one', 'two'],
-        ['three', 'four']
+        ['three', 'four'],
       ],
       columns: [
         {
@@ -303,9 +303,9 @@ describe('DateEditor', () => {
       data: getDates(),
       columns: [
         {
-          type: 'date'
-        }
-      ]
+          type: 'date',
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -331,13 +331,13 @@ describe('DateEditor', () => {
   });
 
   it('should display a calendar based on a current date, even if a date in a wrong format was entered previously', (done) => {
-    const hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       columns: [
-        {type: 'date'},
-        {type: 'date', dateFormat: 'YYYY-MM-DD'}
+        { type: 'date' },
+        { type: 'date', dateFormat: 'YYYY-MM-DD' },
       ],
-      minSpareRows: 1
+      minSpareRows: 1,
     });
 
     setDataAtCell(4, 1, '15-11-11');
@@ -364,9 +364,9 @@ describe('DateEditor', () => {
     var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 2),
         columns: [
-          {type: 'date'},
-          {type: 'date'}
-        ]
+          { type: 'date' },
+          { type: 'date' },
+        ],
       }),
       cellOffset,
       datePickerOffset;
@@ -393,14 +393,14 @@ describe('DateEditor', () => {
         data: Handsontable.helper.createSpreadsheetData(30, 10),
         colWidths: 60,
         columns: [
-          {type: 'date'},
-          {type: 'date'},
-          {type: 'date'},
-          {type: 'date'},
-          {type: 'date'},
-          {type: 'date'},
-          {type: 'date'}
-        ]
+          { type: 'date' },
+          { type: 'date' },
+          { type: 'date' },
+          { type: 'date' },
+          { type: 'date' },
+          { type: 'date' },
+          { type: 'date' },
+        ],
       }),
       cellOffset,
       datePickerOffset;
@@ -425,8 +425,8 @@ describe('DateEditor', () => {
             correctFormat: true,
             defaultDate: '01/01/1900',
             allowEmpty: false,
-          }
-        ]
+          },
+        ],
       }),
       editor,
       cellValue;

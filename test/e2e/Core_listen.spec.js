@@ -1,11 +1,11 @@
 describe('Core_listen', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -115,7 +115,7 @@ describe('Core_listen', () => {
       var afterListenCallback = jasmine.createSpy('afterListenCallback');
 
       handsontable({
-        afterListen: afterListenCallback
+        afterListen: afterListenCallback,
       });
 
       expect(afterListenCallback.calls.count()).toBe(0);
@@ -129,7 +129,7 @@ describe('Core_listen', () => {
       var afterUnlistenCallback = jasmine.createSpy('afterListenCallback');
 
       handsontable({
-        afterUnlisten: afterUnlistenCallback
+        afterUnlisten: afterUnlistenCallback,
       });
 
       spec().$container.handsontable('listen');

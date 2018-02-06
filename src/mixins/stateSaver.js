@@ -1,15 +1,14 @@
-import {arrayEach} from './../helpers/array';
-import {defineGetter} from './../helpers/object';
+import { defineGetter } from './../helpers/object';
 
 const MIXIN_NAME = 'stateSaver';
 const STATE_PREFIX = 'state_';
 const PROP_PREFIX = '_states';
 
-const getState = function(object, stateId) {
+const getState = function (object, stateId) {
   return object[PROP_PREFIX][STATE_PREFIX + stateId];
 };
 
-const setState = function(object, stateId, value) {
+const setState = function (object, stateId, value) {
   object[PROP_PREFIX][STATE_PREFIX + stateId] = value;
 };
 
@@ -86,7 +85,7 @@ const stateSaver = {
    */
   clearStates() {
     this[PROP_PREFIX] = {};
-  }
+  },
 };
 
 defineGetter(stateSaver, 'MIXIN_NAME', MIXIN_NAME, {

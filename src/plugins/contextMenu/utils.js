@@ -1,11 +1,11 @@
-import {arrayEach} from './../../helpers/array';
-import {hasClass} from './../../helpers/dom/element';
-import {KEY as SEPARATOR} from './predefinedItems/separator';
+import { arrayEach } from './../../helpers/array';
+import { hasClass } from './../../helpers/dom/element';
+import { KEY as SEPARATOR } from './predefinedItems/separator';
 
 export function normalizeSelection(selRange) {
   return {
     start: selRange.getTopLeftCorner(),
-    end: selRange.getBottomRightCorner()
+    end: selRange.getBottomRightCorner(),
   };
 }
 
@@ -39,7 +39,7 @@ export function getValidSelection(hot) {
 }
 
 export function prepareVerticalAlignClass(className, alignment) {
-  if (className.indexOf(alignment) != -1) {
+  if (className.indexOf(alignment) !== -1) {
     return className;
   }
   className = className
@@ -54,7 +54,7 @@ export function prepareVerticalAlignClass(className, alignment) {
 }
 
 export function prepareHorizontalAlignClass(className, alignment) {
-  if (className.indexOf(alignment) != -1) {
+  if (className.indexOf(alignment) !== -1) {
     return className;
   }
   className = className
@@ -72,8 +72,11 @@ export function prepareHorizontalAlignClass(className, alignment) {
 export function getAlignmentClasses(range, callback) {
   const classes = {};
 
-  for (let row = range.from.row; row <= range.to.row; row++) {
-    for (let col = range.from.col; col <= range.to.col; col++) {
+  let { row: startRow, col: startColumn } = range.from;
+  const { row: endRow, col: endColumn } = range.to;
+
+  for (let row = startRow; row <= endRow; row += 1) {
+    for (let col = startColumn; col <= endColumn; col += 1) {
       if (!classes[row]) {
         classes[row] = [];
       }
@@ -85,11 +88,15 @@ export function getAlignmentClasses(range, callback) {
 }
 
 export function align(range, type, alignment, cellDescriptor, propertySetter) {
-  if (range.from.row == range.to.row && range.from.col == range.to.col) {
+  if (range.from.row === range.to.row && range.from.col === range.to.col) {
     applyAlignClassName(range.from.row, range.from.col, type, alignment, cellDescriptor, propertySetter);
+
   } else {
-    for (let row = range.from.row; row <= range.to.row; row++) {
-      for (let col = range.from.col; col <= range.to.col; col++) {
+    let { row: startRow, col: startColumn } = range.from;
+    const { row: endRow, col: endColumn } = range.to;
+
+    for (let row = startRow; row <= endRow; row += 1) {
+      for (let col = startColumn; col <= endColumn; col += 1) {
         applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter);
       }
     }
@@ -121,6 +128,8 @@ export function checkSelectionConsistency(range, comparator) {
 
         return false;
       }
+
+      return true;
     });
   }
 
@@ -133,7 +142,7 @@ export function markLabelAsSelected(label) {
 }
 
 export function isItemHidden(item, instance) {
-  return !item.hidden || !(typeof item.hidden == 'function' && item.hidden.call(instance));
+  return !item.hidden || !(typeof item.hidden === 'function' && item.hidden.call(instance));
 }
 
 function shiftSeparators(items, separator) {

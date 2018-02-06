@@ -1,24 +1,24 @@
 describe('Core_beforechange', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('this.rootElement should point to handsontable rootElement', function() {
+  it('this.rootElement should point to handsontable rootElement', function () {
     var output = null;
 
     handsontable({
       beforeChange() {
         output = this.rootElement;
-      }
+      },
     });
     setDataAtCell(0, 0, 'test');
 
@@ -35,7 +35,7 @@ describe('Core_beforechange', () => {
       },
       afterChange(changes) {
         output = changes;
-      }
+      },
     });
     setDataAtCell([[0, 0, 'test'], [1, 0, 'test'], [1, 1, 'test']]);
 
@@ -46,14 +46,11 @@ describe('Core_beforechange', () => {
   });
 
   it('should drop all changes when beforeChange return false', () => {
-    var fired = false;
-
     handsontable({
       data: [['a', 'b'], ['c', 'd']],
-      beforeChange(changes) {
-        fired = true;
+      beforeChange() {
         return false;
-      }
+      },
     });
     setDataAtCell([[0, 0, 'test'], [1, 0, 'test'], [1, 1, 'test']]);
 
@@ -63,7 +60,7 @@ describe('Core_beforechange', () => {
   });
 
   function beforechangeOnKeyFactory(keyCode) {
-    return function() {
+    return function () {
       var called = false;
 
       handsontable({
@@ -71,7 +68,7 @@ describe('Core_beforechange', () => {
           if (changes[0][2] === 'test' && changes[0][3] === '') {
             called = true;
           }
-        }
+        },
       });
 
       setDataAtCell(0, 0, 'test');

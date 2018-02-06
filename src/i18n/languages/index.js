@@ -9,5 +9,5 @@ export {
   deCH,
   deDE,
   enUS,
-  plPL
+  plPL,
 };

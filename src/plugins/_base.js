@@ -1,7 +1,7 @@
-import {defineGetter, objectEach} from './../helpers/object';
-import {arrayEach} from './../helpers/array';
-import {registerIdentity, getTranslator} from './../utils/recordTranslator';
-import {getRegistredPluginNames, getPluginName} from './../plugins';
+import { defineGetter, objectEach } from './../helpers/object';
+import { arrayEach } from './../helpers/array';
+import { getTranslator } from './../utils/recordTranslator';
+import { getRegistredPluginNames, getPluginName } from './../plugins';
 
 const privatePool = new WeakMap();
 let initializedPlugins = null;
@@ -20,13 +20,13 @@ class BasePlugin {
      * @type {Core}
      */
     defineGetter(this, 'hot', hotInstance, {
-      writable: false
+      writable: false,
     });
     defineGetter(this, 't', getTranslator(hotInstance), {
-      writable: false
+      writable: false,
     });
 
-    privatePool.set(this, {hooks: {}});
+    privatePool.set(this, { hooks: {} });
     initializedPlugins = null;
 
     this.pluginName = null;
@@ -107,7 +107,7 @@ class BasePlugin {
    * Clear all hooks.
    */
   clearHooks() {
-    const hooks = privatePool.get(this).hooks;
+    const { hooks } = privatePool.get(this);
 
     objectEach(hooks, (callbacks, name) => this.removeHooks(name));
     hooks.length = 0;
@@ -132,7 +132,7 @@ class BasePlugin {
    * @private
    */
   onAfterPluginsInitialized() {
-    arrayEach(this.pluginsInitializedCallbacks, (callback) => callback());
+    arrayEach(this.pluginsInitializedCallbacks, callback => callback());
     this.pluginsInitializedCallbacks.length = 0;
     this.isPluginsReady = true;
   }

@@ -1,6 +1,6 @@
-import {fastInnerHTML} from './../helpers/dom/element';
-import {getRenderer} from './index';
-import {rangeEach} from './../helpers/number';
+import { fastInnerHTML } from './../helpers/dom/element';
+import { getRenderer } from './index';
+import { rangeEach } from './../helpers/number';
 
 /**
  * @private
@@ -14,7 +14,7 @@ import {rangeEach} from './../helpers/number';
  * @param cellProperties
  */
 function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  getRenderer('text').apply(this, arguments);
+  getRenderer('text').apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 
   value = TD.innerHTML;
 

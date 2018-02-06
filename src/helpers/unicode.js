@@ -1,4 +1,4 @@
-import {arrayEach} from './array';
+import { arrayEach } from './array';
 
 export const KEY_CODES = {
   MOUSE_LEFT: 1,
@@ -42,7 +42,7 @@ export const KEY_CODES = {
   A: 65,
   X: 88,
   C: 67,
-  V: 86
+  V: 86,
 };
 
 /**
@@ -52,7 +52,7 @@ export const KEY_CODES = {
  * @returns {Boolean}
  */
 export function isPrintableChar(keyCode) {
-  return ((keyCode == 32) || // space
+  return ((keyCode === 32) || // space
       (keyCode >= 48 && keyCode <= 57) || // 0-9
       (keyCode >= 96 && keyCode <= 111) || // numpad
       (keyCode >= 186 && keyCode <= 192) || // ;=,-./`
@@ -94,7 +94,7 @@ export function isMetaKey(keyCode) {
     KEY_CODES.ESCAPE,
     KEY_CODES.SHIFT,
     KEY_CODES.CAPS_LOCK,
-    KEY_CODES.ALT
+    KEY_CODES.ALT,
   ];
 
   return metaKeys.indexOf(keyCode) !== -1;
@@ -123,6 +123,8 @@ export function isKey(keyCode, baseCode) {
 
       return false;
     }
+
+    return true;
   });
 
   return result;

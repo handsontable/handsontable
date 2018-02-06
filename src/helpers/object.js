@@ -1,4 +1,4 @@
-import {arrayEach} from './array';
+import { arrayEach } from './array';
 
 /**
  * Generate schema for passed object.
@@ -137,10 +137,10 @@ export function mixin(Base, ...mixins) {
   if (!Base.MIXINS) {
     Base.MIXINS = [];
   }
-  arrayEach(mixins, (mixin) => {
-    Base.MIXINS.push(mixin.MIXIN_NAME);
+  arrayEach(mixins, (_mixin) => {
+    Base.MIXINS.push(_mixin.MIXIN_NAME);
 
-    objectEach(mixin, (value, key) => {
+    objectEach(_mixin, (value, key) => {
       if (Base.prototype[key] !== void 0) {
         throw new Error(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`);
       }
@@ -151,15 +151,15 @@ export function mixin(Base, ...mixins) {
         let getter = function _getter(propertyName, initialValue) {
           propertyName = `_${propertyName}`;
 
-          let initValue = (value) => {
-            if (Array.isArray(value) || isObject(value)) {
-              value = deepClone(value);
+          let initValue = (_value) => {
+            if (Array.isArray(_value) || isObject(_value)) {
+              _value = deepClone(_value);
             }
 
-            return value;
+            return _value;
           };
 
-          return function() {
+          return function () {
             if (this[propertyName] === void 0) {
               this[propertyName] = initValue(initialValue);
             }
@@ -170,8 +170,8 @@ export function mixin(Base, ...mixins) {
         let setter = function _setter(propertyName) {
           propertyName = `_${propertyName}`;
 
-          return function(value) {
-            this[propertyName] = value;
+          return function (_value) {
+            this[propertyName] = _value;
           };
         };
         Object.defineProperty(Base.prototype, key, {
@@ -204,7 +204,7 @@ export function isObjectEquals(object1, object2) {
  * @returns {boolean}
  */
 export function isObject(obj) {
-  return Object.prototype.toString.call(obj) == '[object Object]';
+  return Object.prototype.toString.call(obj) === '[object Object]';
 }
 
 export function defineGetter(object, property, value, options) {
@@ -224,6 +224,7 @@ export function defineGetter(object, property, value, options) {
  * @returns {Object} Returns `object`.
  */
 export function objectEach(object, iteratee) {
+  // eslint-disable-next-line no-restricted-syntax
   for (let key in object) {
     if (!object.hasOwnProperty || (object.hasOwnProperty && Object.prototype.hasOwnProperty.call(object, key))) {
       if (iteratee(object[key], key, object) === false) {
@@ -246,14 +247,10 @@ export function getProperty(object, name) {
   let names = name.split('.');
   let result = object;
 
-  objectEach(names, (name) => {
-    result = result[name];
+  objectEach(names, (_name) => {
+    result = result[_name];
 
-    if (result === void 0) {
-      result = void 0;
-
-      return false;
-    }
+    return result !== void 0;
   });
 
   return result;
@@ -269,7 +266,7 @@ export function deepObjectSize(object) {
   if (!isObject(object)) {
     return 0;
   }
-  let recursObjLen = function(obj) {
+  let recursObjLen = function (obj) {
     let result = 0;
 
     if (isObject(obj)) {
@@ -277,7 +274,7 @@ export function deepObjectSize(object) {
         result += recursObjLen(key);
       });
     } else {
-      result++;
+      result += 1;
     }
 
     return result;
@@ -300,7 +297,7 @@ export function createObjectPropListener(defaultValue, propertyToListen = 'value
     [privateProperty]: defaultValue,
     isTouched() {
       return this._touched;
-    }
+    },
   };
 
   Object.defineProperty(holder, propertyToListen, {
@@ -312,7 +309,7 @@ export function createObjectPropListener(defaultValue, propertyToListen = 'value
       this[privateProperty] = value;
     },
     enumerable: true,
-    configurable: true
+    configurable: true,
   });
 
   return holder;

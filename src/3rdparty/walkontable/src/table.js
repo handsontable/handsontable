@@ -7,11 +7,10 @@ import {
   removeClass,
   removeTextNodes,
   overlayContainsElement,
-  closest
+  closest,
 } from './../../../helpers/dom/element';
-import {isFunction} from './../../../helpers/function';
+import { isFunction } from './../../../helpers/function';
 import CellCoords from './cell/coords';
-import CellRange from './cell/range';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 import TableRenderer from './tableRenderer';
@@ -193,7 +192,7 @@ class Table {
    * @returns {Table}
    */
   draw(fastDraw) {
-    const {wtOverlays, wtViewport} = this.wot;
+    const { wtOverlays, wtViewport } = this.wot;
     let totalRows = this.instance.getSetting('totalRows');
     let rowHeaders = this.wot.getSetting('rowHeaders').length;
     let columnHeaders = this.wot.getSetting('columnHeaders').length;
@@ -243,7 +242,7 @@ class Table {
           Overlay.isOverlayTypeOf(this.instance.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startRow = Math.max(totalRows - this.wot.getSetting('fixedRowsBottom'), 0);
       } else {
-        startRow = wtViewport.rowsRenderCalculator.startRow;
+        ({ startRow } = wtViewport.rowsRenderCalculator);
       }
       let startColumn;
 
@@ -253,7 +252,7 @@ class Table {
           Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
         startColumn = 0;
       } else {
-        startColumn = wtViewport.columnsRenderCalculator.startColumn;
+        ({ startColumn } = wtViewport.columnsRenderCalculator);
       }
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeaders);
       this.columnFilter = new ColumnFilter(startColumn, this.wot.getSetting('totalColumns'), rowHeaders);
@@ -297,7 +296,7 @@ class Table {
   removeClassFromCells(className) {
     const nodes = this.TABLE.querySelectorAll(`.${className}`);
 
-    for (let i = 0, len = nodes.length; i < len; i++) {
+    for (let i = 0, len = nodes.length; i < len; i += 1) {
       removeClass(nodes[i], className);
     }
   }
@@ -309,7 +308,7 @@ class Table {
     let len = this.wot.selections.length;
 
     if (fastDraw) {
-      for (let i = 0; i < len; i++) {
+      for (let i = 0; i < len; i += 1) {
         // there was no rerender, so we need to remove classNames by ourselves
         if (this.wot.selections[i].settings.className) {
           this.removeClassFromCells(this.wot.selections[i].settings.className);
@@ -325,7 +324,7 @@ class Table {
         }
       }
     }
-    for (let i = 0; i < len; i++) {
+    for (let i = 0; i < len; i += 1) {
       this.wot.selections[i].draw(this.wot, fastDraw);
     }
   }
@@ -350,9 +349,7 @@ class Table {
 
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(coords.row)];
 
-    if (TR) {
-      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
-    }
+    return TR ? TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)] : void 0;
   }
 
   /**
@@ -365,9 +362,7 @@ class Table {
   getColumnHeader(col, level = 0) {
     const TR = this.THEAD.childNodes[level];
 
-    if (TR) {
-      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
-    }
+    return TR ? TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)] : void 0;
   }
 
   /**
@@ -380,11 +375,10 @@ class Table {
     if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
       return null;
     }
+
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
 
-    if (TR) {
-      return TR.childNodes[0];
-    }
+    return TR ? TR.childNodes[0] : void 0;
   }
 
   /**
@@ -543,7 +537,7 @@ class Table {
   }
 
   allRowsInViewport() {
-    return this.wot.getSetting('totalRows') == this.getVisibleRowsCount();
+    return this.wot.getSetting('totalRows') === this.getVisibleRowsCount();
   }
 
   /**
@@ -579,7 +573,7 @@ class Table {
   }
 
   allColumnsInViewport() {
-    return this.wot.getSetting('totalColumns') == this.getVisibleColumnsCount();
+    return this.wot.getSetting('totalColumns') === this.getVisibleColumnsCount();
   }
 
   getColumnWidth(sourceColumn) {
@@ -597,7 +591,7 @@ class Table {
 
   getStretchedColumnWidth(sourceColumn) {
     let columnWidth = this.getColumnWidth(sourceColumn);
-    let width = columnWidth == null ? this.instance.wtSettings.settings.defaultColumnWidth : columnWidth;
+    let width = (columnWidth === null || columnWidth === void 0) ? this.instance.wtSettings.settings.defaultColumnWidth : columnWidth;
     let calculator = this.wot.wtViewport.columnsRenderCalculator;
 
     if (calculator) {
@@ -639,7 +633,7 @@ class Table {
       width = this.wot.getSetting('defaultColumnWidth');
     }
     if (this.correctHeaderWidth) {
-      width++;
+      width += 1;
     }
 
     return width;

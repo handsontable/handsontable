@@ -1,12 +1,11 @@
 import {
   getScrollbarWidth,
-  getScrollTop,
   getStyle,
   offset,
   outerHeight,
   outerWidth,
 } from './../../../helpers/dom/element';
-import {objectEach} from './../../../helpers/object';
+import { objectEach } from './../../../helpers/object';
 import EventManager from './../../../eventManager';
 import ViewportColumnsCalculator from './calculator/viewportColumns';
 import ViewportRowsCalculator from './calculator/viewportRows';
@@ -42,7 +41,7 @@ class Viewport {
    * @returns {number}
    */
   getWorkspaceHeight() {
-    let trimmingContainer = this.instance.wtOverlays.topOverlay.trimmingContainer;
+    let { trimmingContainer } = this.instance.wtOverlays.topOverlay;
     let elemHeight;
     let height = 0;
 
@@ -61,7 +60,7 @@ class Viewport {
   getWorkspaceWidth() {
     let width;
     let totalColumns = this.wot.getSetting('totalColumns');
-    let trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
+    let { trimmingContainer } = this.instance.wtOverlays.leftOverlay;
     let overflow;
     let stretchSetting = this.wot.getSetting('stretchH');
     let docOffsetWidth = document.documentElement.offsetWidth;
@@ -88,7 +87,7 @@ class Viewport {
     if (trimmingContainer !== window) {
       overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
 
-      if (overflow == 'scroll' || overflow == 'hidden' || overflow == 'auto') {
+      if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
         // this is used in `scroll.html`
         // TODO test me
         return Math.max(width, trimmingContainer.clientWidth);
@@ -132,7 +131,7 @@ class Viewport {
 
     while (from < length) {
       sum += this.wot.wtTable.getColumnWidth(from);
-      from++;
+      from += 1;
     }
 
     return sum;
@@ -224,7 +223,7 @@ class Viewport {
     if (rowHeadersHeightSetting) {
       this.rowHeaderWidth = 0;
 
-      for (let i = 0, len = rowHeaders.length; i < len; i++) {
+      for (let i = 0, len = rowHeaders.length; i < len; i += 1) {
         this.rowHeaderWidth += rowHeadersHeightSetting[i] || rowHeadersHeightSetting;
       }
     }
@@ -239,7 +238,7 @@ class Viewport {
         let TH = this.instance.wtTable.TABLE.querySelector('TH');
         this.rowHeaderWidth = 0;
 
-        for (let i = 0, len = rowHeaders.length; i < len; i++) {
+        for (let i = 0, len = rowHeaders.length; i < len; i += 1) {
           if (TH) {
             this.rowHeaderWidth += outerWidth(TH);
             TH = TH.nextSibling;
@@ -333,10 +332,10 @@ class Viewport {
       height,
       pos,
       this.wot.getSetting('totalRows'),
-      (sourceRow) => this.wot.wtTable.getRowHeight(sourceRow),
+      sourceRow => this.wot.wtTable.getRowHeight(sourceRow),
       visible ? null : this.wot.wtSettings.settings.viewportRowCalculatorOverride,
       visible,
-      scrollbarHeight
+      scrollbarHeight,
     );
   }
 
@@ -374,11 +373,11 @@ class Viewport {
       width,
       pos,
       this.wot.getSetting('totalColumns'),
-      (sourceCol) => this.wot.wtTable.getColumnWidth(sourceCol),
+      sourceCol => this.wot.wtTable.getColumnWidth(sourceCol),
       visible ? null : this.wot.wtSettings.settings.viewportColumnCalculatorOverride,
       visible,
       this.wot.getSetting('stretchH'),
-      (stretchedWidth, column) => this.wot.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column)
+      (stretchedWidth, column) => this.wot.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column),
     );
   }
 

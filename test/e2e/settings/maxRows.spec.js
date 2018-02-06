@@ -2,11 +2,11 @@ describe('settings', () => {
   describe('maxRows', () => {
     const id = 'testContainer';
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (this.$container) {
         destroy();
         this.$container.remove();
@@ -17,7 +17,7 @@ describe('settings', () => {
       it('should show data properly when `maxRows` is set to 0', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          maxRows: 0
+          maxRows: 0,
         });
 
         expect(getSourceDataAtCol(0).length).toEqual(10);
@@ -33,7 +33,7 @@ describe('settings', () => {
       it('should show data properly when `maxRows` is set to value > 0', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          maxRows: 5
+          maxRows: 5,
         });
 
         expect(getSourceDataAtCol(0).length).toEqual(10);
@@ -48,7 +48,7 @@ describe('settings', () => {
       it('should show data properly when `maxRows` is set to infinity value', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          maxRows: Infinity
+          maxRows: Infinity,
         });
 
         expect(getSourceDataAtCol(0).length).toEqual(10);
@@ -64,11 +64,11 @@ describe('settings', () => {
     describe('update settings works', () => {
       it('should show data properly after maxRows is updated to 0', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10)
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
         });
 
         updateSettings({
-          maxRows: 0
+          maxRows: 0,
         });
 
         expect(getSourceDataAtCol(0).length).toEqual(10);
@@ -83,11 +83,11 @@ describe('settings', () => {
 
       it('should show data properly after maxRows is updated to value > 0 -> test no. 1', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10)
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
         });
 
         updateSettings({
-          maxRows: 2
+          maxRows: 2,
         });
 
         expect(getSourceDataAtCol(0).length).toEqual(10);
@@ -102,11 +102,11 @@ describe('settings', () => {
       it('should show data properly after maxRows is updated to value > 0 -> test no. 2', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          maxRows: 5
+          maxRows: 5,
         });
 
         updateSettings({
-          maxRows: 2
+          maxRows: 2,
         });
 
         expect(getSourceDataAtCol(0).length).toEqual(10);
@@ -121,11 +121,11 @@ describe('settings', () => {
       it('should show data properly after maxRows is updated to value > 0 -> test no. 3', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          maxRows: 2
+          maxRows: 2,
         });
 
         updateSettings({
-          maxRows: 5
+          maxRows: 5,
         });
 
         expect(getSourceDataAtCol(0).length).toEqual(10);
@@ -139,11 +139,11 @@ describe('settings', () => {
 
       it('should show data properly after maxRows is updated to infinity value -> test no. 1', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10)
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
         });
 
         updateSettings({
-          maxRows: Infinity
+          maxRows: Infinity,
         });
 
         expect(getSourceDataAtCol(0).length).toEqual(10);
@@ -158,11 +158,11 @@ describe('settings', () => {
       it('should show data properly after maxRows is updated to infinity value -> test no. 2', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          maxRows: 2
+          maxRows: 2,
         });
 
         updateSettings({
-          maxRows: Infinity
+          maxRows: Infinity,
         });
 
         expect(getSourceDataAtCol(0).length).toEqual(10);

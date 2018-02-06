@@ -1,23 +1,23 @@
 describe('manualRowMove', () => {
   var id = 'testContainer';
   var arrayOfObjects = [
-    {id: 1, name: 'Ted', lastName: 'Right'},
-    {id: 2, name: 'Frank', lastName: 'Honest'},
-    {id: 3, name: 'Joan', lastName: 'Well'},
-    {id: 4, name: 'Sid', lastName: 'Strong'},
-    {id: 5, name: 'Jane', lastName: 'Neat'},
-    {id: 6, name: 'Chuck', lastName: 'Jackson'},
-    {id: 7, name: 'Meg', lastName: 'Jansen'},
-    {id: 8, name: 'Rob', lastName: 'Norris'},
-    {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-    {id: 10, name: 'Eve', lastName: 'Branson'}
+    { id: 1, name: 'Ted', lastName: 'Right' },
+    { id: 2, name: 'Frank', lastName: 'Honest' },
+    { id: 3, name: 'Joan', lastName: 'Well' },
+    { id: 4, name: 'Sid', lastName: 'Strong' },
+    { id: 5, name: 'Jane', lastName: 'Neat' },
+    { id: 6, name: 'Chuck', lastName: 'Jackson' },
+    { id: 7, name: 'Meg', lastName: 'Jansen' },
+    { id: 8, name: 'Rob', lastName: 'Norris' },
+    { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+    { id: 10, name: 'Eve', lastName: 'Branson' },
   ];
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -28,7 +28,7 @@ describe('manualRowMove', () => {
     it('should change row order at init', () => {
       handsontable({
         data: arrayOfObjects,
-        manualRowMove: [1, 2, 0]
+        manualRowMove: [1, 2, 0],
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
@@ -41,11 +41,11 @@ describe('manualRowMove', () => {
     it('should be enabled after specifying it in updateSettings config', () => {
       handsontable({
         data: arrayOfObjects,
-        rowHeaders: true
+        rowHeaders: true,
       });
 
       updateSettings({
-        manualRowMove: true
+        manualRowMove: true,
       });
 
       spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
@@ -57,7 +57,7 @@ describe('manualRowMove', () => {
     it('should change the default row order with updateSettings', () => {
       handsontable({
         data: arrayOfObjects,
-        manualRowMove: true
+        manualRowMove: true,
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
@@ -65,7 +65,7 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
       updateSettings({
-        manualRowMove: [2, 1, 0]
+        manualRowMove: [2, 1, 0],
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
@@ -76,7 +76,7 @@ describe('manualRowMove', () => {
     it('should change row order with updateSettings', () => {
       handsontable({
         data: arrayOfObjects,
-        manualRowMove: [1, 2, 0]
+        manualRowMove: [1, 2, 0],
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
@@ -84,7 +84,7 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
 
       updateSettings({
-        manualRowMove: [2, 1, 0]
+        manualRowMove: [2, 1, 0],
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
@@ -95,7 +95,7 @@ describe('manualRowMove', () => {
     it('should reset row order with updateSettings when undefined is passed', () => {
       handsontable({
         data: arrayOfObjects,
-        manualRowMove: [1, 2, 0]
+        manualRowMove: [1, 2, 0],
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
@@ -103,7 +103,7 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
 
       updateSettings({
-        manualRowMove: void 0
+        manualRowMove: void 0,
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
@@ -114,7 +114,7 @@ describe('manualRowMove', () => {
     it('should not change row order with updateSettings when `true` is passed', () => {
       handsontable({
         data: arrayOfObjects,
-        manualRowMove: [1, 2, 0]
+        manualRowMove: [1, 2, 0],
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
@@ -122,7 +122,7 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
 
       updateSettings({
-        manualRowMove: true
+        manualRowMove: true,
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
@@ -135,7 +135,7 @@ describe('manualRowMove', () => {
     it('should increase numbers of rows if it is necessary', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        manualRowMove: true
+        manualRowMove: true,
       });
 
       hot.loadData(Handsontable.helper.createSpreadsheetData(10, 10));
@@ -146,7 +146,7 @@ describe('manualRowMove', () => {
     it('should decrease numbers of rows if it is necessary', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        manualRowMove: true
+        manualRowMove: true,
       });
 
       hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
@@ -161,7 +161,7 @@ describe('manualRowMove', () => {
       const hot = handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
-        manualRowMove: true
+        manualRowMove: true,
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
@@ -180,7 +180,7 @@ describe('manualRowMove', () => {
       const hot = handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
-        manualRowMove: true
+        manualRowMove: true,
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
@@ -205,7 +205,7 @@ describe('manualRowMove', () => {
         beforeRowMove: beforeMoveRowCallback,
         modifyRow(row) {
           return row + 10;
-        }
+        },
       });
 
       hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
@@ -224,7 +224,7 @@ describe('manualRowMove', () => {
         afterRowMove: afterMoveRowCallback,
         modifyRow(row) {
           return row + 10;
-        }
+        },
       });
 
       hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
@@ -243,7 +243,7 @@ describe('manualRowMove', () => {
         manualRowMove: true,
         beforeRowMove: (rows, target) => {
           targetParameterInsideCallback = target;
-        }
+        },
       });
       const $fistHeader = spec().$container.find('tbody tr:eq(0) th:eq(0)');
 
@@ -253,7 +253,7 @@ describe('manualRowMove', () => {
 
       $fistHeader.simulate('mouseover');
       $fistHeader.simulate('mousemove', {
-        clientY: $fistHeader.offset().bottom - $fistHeader.height() - 50
+        clientY: $fistHeader.offset().bottom - $fistHeader.height() - 50,
       });
       $fistHeader.simulate('mouseup');
 
@@ -270,7 +270,7 @@ describe('manualRowMove', () => {
         colHeaders: true,
         beforeRowMove: (rows, target) => {
           targetParameterInsideCallback = target;
-        }
+        },
       });
       const $fistHeader = spec().$container.find('tbody tr:eq(0) th:eq(0)');
 
@@ -280,7 +280,7 @@ describe('manualRowMove', () => {
 
       $fistHeader.simulate('mouseover');
       $fistHeader.simulate('mousemove', {
-        clientY: $fistHeader.offset().bottom - $fistHeader.height()
+        clientY: $fistHeader.offset().bottom - $fistHeader.height(),
       });
       $fistHeader.simulate('mouseup');
 
@@ -296,7 +296,7 @@ describe('manualRowMove', () => {
         manualRowMove: true,
         beforeRowMove: (rows, target) => {
           targetParameterInsideCallback = target;
-        }
+        },
       });
 
       spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
@@ -319,7 +319,7 @@ describe('manualRowMove', () => {
         manualRowMove: true,
         beforeRowMove: (rows, target) => {
           targetParameterInsideCallback = target;
-        }
+        },
       });
 
       spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
@@ -342,7 +342,7 @@ describe('manualRowMove', () => {
         manualRowMove: true,
         beforeRowMove: (rows, target) => {
           targetParameterInsideCallback = target;
-        }
+        },
       });
       const $lastHeader = spec().$container.find('tbody tr:eq(29) th:eq(0)');
 
@@ -352,7 +352,7 @@ describe('manualRowMove', () => {
 
       $lastHeader.simulate('mouseover');
       $lastHeader.simulate('mousemove', {
-        clientY: $lastHeader.offset().top + $lastHeader.height()
+        clientY: $lastHeader.offset().top + $lastHeader.height(),
       });
       $lastHeader.simulate('mouseup');
 
@@ -368,7 +368,7 @@ describe('manualRowMove', () => {
         manualRowMove: true,
         beforeRowMove: (rows, target) => {
           targetParameterInsideCallback = target;
-        }
+        },
       });
       const $lastHeader = spec().$container.find('tbody tr:eq(29) th:eq(0)');
 
@@ -378,7 +378,7 @@ describe('manualRowMove', () => {
 
       $lastHeader.simulate('mouseover');
       $lastHeader.simulate('mousemove', {
-        clientY: $lastHeader.offset().top + $lastHeader.height() + 200
+        clientY: $lastHeader.offset().top + $lastHeader.height() + 200,
       });
       $lastHeader.simulate('mouseup');
 
@@ -394,7 +394,7 @@ describe('manualRowMove', () => {
         manualRowMove: [1, 2, 0],
         beforeRowMove: (rows, target) => {
           targetParameterInsideCallback = target;
-        }
+        },
       });
 
       spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
@@ -417,7 +417,7 @@ describe('manualRowMove', () => {
         manualRowMove: [1, 2, 0],
         afterRowMove: (rows, target) => {
           targetParameterInsideCallback = target;
-        }
+        },
       });
 
       spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
@@ -435,7 +435,7 @@ describe('manualRowMove', () => {
       handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
-        manualRowMove: true
+        manualRowMove: true,
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
@@ -460,7 +460,7 @@ describe('manualRowMove', () => {
       handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
-        manualRowMove: true
+        manualRowMove: true,
       });
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
@@ -488,9 +488,9 @@ describe('manualRowMove', () => {
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true,
-        afterRowMove(rows, target) {
+        afterRowMove(rows) {
           cache.push(rows);
-        }
+        },
       });
 
       const $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
@@ -511,7 +511,7 @@ describe('manualRowMove', () => {
         manualRowMove: true,
         width: 600,
         height: 600,
-        rowHeights: 47
+        rowHeights: 47,
       });
 
       hot.selectCell(19, 0);
@@ -541,10 +541,10 @@ describe('manualRowMove', () => {
         rowHeaders: true,
         manualRowMove: true,
         cells(row, col) {
-          if (row == 1 && col == 0) {
+          if (row === 1 && col === 0) {
             this.readOnly = true;
           }
-        }
+        },
       });
 
       const htCore = getHtCore();
@@ -563,8 +563,8 @@ describe('manualRowMove', () => {
         rowHeaders: true,
         manualRowMove: true,
         cell: [
-          {row: 1, col: 0, readOnly: true}
-        ]
+          { row: 1, col: 0, readOnly: true },
+        ],
       });
 
       var htCore = getHtCore();
@@ -592,7 +592,7 @@ describe('manualRowMove', () => {
         },
         afterRowMove: (rows, target) => {
           targetParameterInsideAfterRowMoveCallback = target;
-        }
+        },
       });
 
       spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');

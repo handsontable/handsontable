@@ -1,14 +1,14 @@
 import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
-import {arrayEach} from './../../helpers/array';
-import {addClass, removeClass, offset} from './../../helpers/dom/element';
-import {rangeEach} from './../../helpers/number';
+import { arrayEach } from './../../helpers/array';
+import { addClass, removeClass, offset } from './../../helpers/dom/element';
+import { rangeEach } from './../../helpers/number';
 import EventManager from './../../eventManager';
-import {registerPlugin} from './../../plugins';
+import { registerPlugin } from './../../plugins';
 import ColumnsMapper from './columnsMapper';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
-import {CellCoords} from './../../3rdparty/walkontable/src';
+import { CellCoords } from './../../3rdparty/walkontable/src';
 
 import './manualColumnMove.css';
 
@@ -58,8 +58,8 @@ class ManualColumnMove extends BasePlugin {
         eventPageX: void 0,
         coords: void 0,
         TD: void 0,
-        col: void 0
-      }
+        col: void 0,
+      },
     });
 
     /**
@@ -119,7 +119,7 @@ class ManualColumnMove extends BasePlugin {
     this.addHook('afterRemoveCol', () => this.onAfterRemoveCol());
     this.addHook('afterCreateCol', (index, amount) => this.onAfterCreateCol(index, amount));
     this.addHook('afterLoadData', () => this.onAfterLoadData());
-    this.addHook('unmodifyCol', (column) => this.onUnmodifyCol(column));
+    this.addHook('unmodifyCol', column => this.onUnmodifyCol(column));
 
     this.registerEvents();
 
@@ -210,7 +210,7 @@ class ManualColumnMove extends BasePlugin {
    * @param {Number} endColumn Visual column index for the end of the selection.
    */
   changeSelection(startColumn, endColumn) {
-    let selection = this.hot.selection;
+    let { selection } = this.hot;
     let lastRowIndex = this.hot.countRows() - 1;
 
     selection.setRangeStartOnly(new CellCoords(0, startColumn));
@@ -228,7 +228,7 @@ class ManualColumnMove extends BasePlugin {
   getColumnsWidth(from, to) {
     let width = 0;
 
-    for (let i = from; i < to; i++) {
+    for (let i = from; i < to; i += 1) {
       let columnWidth = 0;
 
       if (i < 0) {
@@ -317,10 +317,10 @@ class ManualColumnMove extends BasePlugin {
    */
   refreshPositions() {
     let priv = privatePool.get(this);
-    let firstVisible = this.hot.view.wt.wtTable.getFirstVisibleColumn();
-    let lastVisible = this.hot.view.wt.wtTable.getLastVisibleColumn();
-    let wtTable = this.hot.view.wt.wtTable;
-    let scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
+    let { wtTable } = this.hot.view.wt;
+    let firstVisible = wtTable.getFirstVisibleColumn();
+    let lastVisible = wtTable.getLastVisibleColumn();
+    let { scrollableElement } = this.hot.view.wt.wtOverlays;
     let scrollLeft = typeof scrollableElement.scrollX === 'number' ? scrollableElement.scrollX : scrollableElement.scrollLeft;
     let tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.coordsColumn);
     let mouseOffsetLeft = priv.target.eventPageX - (priv.rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollLeft : 0));
@@ -332,7 +332,7 @@ class ManualColumnMove extends BasePlugin {
 
     if ((priv.rootElementOffset + wtTable.holder.offsetWidth + scrollLeft) < priv.target.eventPageX) {
       if (priv.coordsColumn < priv.countCols) {
-        priv.coordsColumn++;
+        priv.coordsColumn += 1;
       }
     }
 
@@ -441,7 +441,7 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', event => this.onMouseMove(event));
     this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
   }
 
@@ -464,7 +464,7 @@ class ManualColumnMove extends BasePlugin {
    * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
-    let wtTable = this.hot.view.wt.wtTable;
+    let { wtTable } = this.hot.view.wt;
     let isHeaderSelection = this.hot.selection.selectedHeader.cols;
     let selection = this.hot.getSelectedRange();
     let priv = privatePool.get(this);
@@ -485,7 +485,7 @@ class ManualColumnMove extends BasePlugin {
       this.backlight.appendTo(wtTable.hider);
     }
 
-    let {from, to} = selection;
+    let { from, to } = selection;
     let start = Math.min(from.col, to.col);
     let end = Math.max(from.col, to.col);
 
@@ -505,7 +505,7 @@ class ManualColumnMove extends BasePlugin {
       let countColumnsFrom = priv.hasRowHeaders ? -1 : 0;
       let topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
       let fixedColumns = coords.col < priv.fixedColumns;
-      let scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
+      let { scrollableElement } = this.hot.view.wt.wtOverlays;
       let wrapperIsWindow = scrollableElement.scrollX ? scrollableElement.scrollX - priv.rootElementOffset : 0;
 
       let mouseOffset = event.layerX - (fixedColumns ? wrapperIsWindow : 0);
@@ -539,10 +539,10 @@ class ManualColumnMove extends BasePlugin {
 
     // callback for browser which doesn't supports CSS pointer-event: none
     if (event.realTarget === this.backlight.element) {
-      let width = this.backlight.getSize().width;
+      let { width } = this.backlight.getSize();
       this.backlight.setSize(0);
 
-      setTimeout(function() {
+      setTimeout(function () {
         this.backlight.setPosition(width);
       });
     }
@@ -622,9 +622,9 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   onAfterScrollVertically() {
-    let wtTable = this.hot.view.wt.wtTable;
+    let { wtTable } = this.hot.view.wt;
     let headerHeight = wtTable.getColumnHeaderHeight(0) + 1;
-    let scrollTop = wtTable.holder.scrollTop;
+    let { scrollTop } = wtTable.holder;
     let posTop = headerHeight + scrollTop;
 
     this.backlight.setPosition(posTop);

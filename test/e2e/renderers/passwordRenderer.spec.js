@@ -1,11 +1,11 @@
 describe('passwordRenderer', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -18,13 +18,13 @@ describe('passwordRenderer', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
         {
-          renderer: Handsontable.renderers.PasswordRenderer
-        }
-      ]
+          renderer: Handsontable.renderers.PasswordRenderer,
+        },
+      ],
     });
 
     expect(getRenderedValue(0, 0)).toMatch(/^[*]+$/ig);
@@ -39,13 +39,13 @@ describe('passwordRenderer', () => {
         [1],
         [1234],
         [9090],
-        [0]
+        [0],
       ],
       columns: [
         {
-          renderer: Handsontable.renderers.PasswordRenderer
-        }
-      ]
+          renderer: Handsontable.renderers.PasswordRenderer,
+        },
+      ],
     });
 
     expect(getRenderedValue(0, 0)).toMatch(/^[*]+$/ig);
@@ -60,13 +60,13 @@ describe('passwordRenderer', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
         {
-          type: 'password'
-        }
-      ]
+          type: 'password',
+        },
+      ],
     });
 
     expect(getRenderedValue(0, 0)).toMatch(/^[*]+$/ig);
@@ -81,13 +81,13 @@ describe('passwordRenderer', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
         {
-          renderer: 'password'
-        }
-      ]
+          renderer: 'password',
+        },
+      ],
     });
 
     expect(getRenderedValue(0, 0)).toMatch(/^[*]+$/ig);
@@ -102,13 +102,13 @@ describe('passwordRenderer', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
         {
-          renderer: Handsontable.renderers.PasswordRenderer
-        }
-      ]
+          renderer: Handsontable.renderers.PasswordRenderer,
+        },
+      ],
     });
 
     expect(getRenderedValue(0, 0).length).toEqual(getDataAtCell(0, 0).length);
@@ -123,14 +123,14 @@ describe('passwordRenderer', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
         {
           renderer: Handsontable.renderers.PasswordRenderer,
-          hashLength: 10
-        }
-      ]
+          hashLength: 10,
+        },
+      ],
     });
 
     expect(getRenderedValue(0, 0).length).toEqual(10);
@@ -145,18 +145,18 @@ describe('passwordRenderer', () => {
         [1, 'Joe'],
         [2, 'Timothy'],
         [3, 'Margaret'],
-        [4, 'Jerry']
+        [4, 'Jerry'],
       ],
       columns: [
         {
           renderer: Handsontable.renderers.PasswordRenderer,
-          hashSymbol: '#'
+          hashSymbol: '#',
         },
         {
           renderer: Handsontable.renderers.PasswordRenderer,
-          hashSymbol: 'x'
-        }
-      ]
+          hashSymbol: 'x',
+        },
+      ],
     });
 
     expect(getRenderedValue(0, 0)).toMatch(/^[#]+$/ig);

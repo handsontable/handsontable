@@ -1,4 +1,4 @@
-import {checkSelectionConsistency, markLabelAsSelected} from './../utils';
+import { checkSelectionConsistency, markLabelAsSelected } from './../utils';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'make_read_only';
@@ -27,6 +27,6 @@ export default function readOnlyItem() {
     },
     disabled() {
       return !(this.getSelectedRange() && !this.selection.selectedHeader.corner);
-    }
+    },
   };
 }

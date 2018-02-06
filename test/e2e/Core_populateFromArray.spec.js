@@ -1,23 +1,23 @@
 describe('Core_populateFromArray', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfArrays = function() {
+  var arrayOfArrays = function () {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda', 'Mix'],
-      ['2008', 10, 11, 12, 13, {a: 1, b: 2}],
-      ['2009', 20, 11, 14, 13, {a: 1, b: 2}],
-      ['2010', 30, 15, 12, 13, {a: 1, b: 2}]
+      ['2008', 10, 11, 12, 13, { a: 1, b: 2 }],
+      ['2009', 20, 11, 14, 13, { a: 1, b: 2 }],
+      ['2010', 30, 15, 12, 13, { a: 1, b: 2 }],
     ];
   };
 
@@ -28,7 +28,7 @@ describe('Core_populateFromArray', () => {
       data: arrayOfArrays(),
       afterChange(changes) {
         output = changes;
-      }
+      },
     });
     populateFromArray(0, 0, [['test', 'test'], ['test', 'test']], 1, 1);
 
@@ -42,7 +42,7 @@ describe('Core_populateFromArray', () => {
       data: arrayOfArrays(),
       afterChange(changes) {
         output = changes;
-      }
+      },
     });
     populateFromArray(0, 0, [['test']], 3, 0);
 
@@ -56,7 +56,7 @@ describe('Core_populateFromArray', () => {
       data: arrayOfArrays(),
       afterChange(changes) {
         output = changes;
-      }
+      },
     });
     populateFromArray(0, 0, [['test'], [[1, 2, 3]]], 3, 0);
 
@@ -70,9 +70,9 @@ describe('Core_populateFromArray', () => {
       data: arrayOfArrays(),
       afterChange(changes) {
         output = changes;
-      }
+      },
     });
-    populateFromArray(0, 0, [['test'], [{test: 1}]], 3, 0);
+    populateFromArray(0, 0, [['test'], [{ test: 1 }]], 3, 0);
 
     expect(output).toEqual([[0, 0, '', 'test'], [2, 0, '2009', 'test']]);
   });
@@ -84,7 +84,7 @@ describe('Core_populateFromArray', () => {
       data: arrayOfArrays(),
       afterChange(changes) {
         output = changes;
-      }
+      },
     });
     populateFromArray(1, 3, [['test']], 1, 5);
 
@@ -92,14 +92,9 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should shift values down', () => {
-    var output = null;
-
     handsontable({
       data: arrayOfArrays(),
-      afterChange(changes) {
-        output = changes;
-      },
-      minSpareRows: 1
+      minSpareRows: 1,
     });
     populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_down');
 
@@ -111,27 +106,23 @@ describe('Core_populateFromArray', () => {
       ['2008', 10, 11, null, null, null],
       ['2009', 20, 11, null, null, null],
       ['2010', 30, 15, null, null, null],
-      [null, null, null, null, null, null]
+      [null, null, null, null, null, null],
     ]);
   });
 
   it('should shift values right', () => {
-    var output = null;
 
     handsontable({
       data: arrayOfArrays(),
-      afterChange(changes) {
-        output = changes;
-      },
-      minSpareCols: 1
+      minSpareCols: 1,
     });
     populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_right');
 
     expect(getData()).toEqual([
       ['test', 'test2', 'test', '', 'Kia', 'Nissan', 'Toyota', 'Honda', 'Mix', null],
-      ['test3', 'test4', 'test3', '2008', 10, {a: 1, b: 2}, 12, 13, null, null],
-      ['test', 'test2', 'test', '2009', 20, {a: 1, b: 2}, 14, 13, null, null],
-      ['2010', 30, 15, 12, 13, {a: 1, b: 2}, null, null, null, null]
+      ['test3', 'test4', 'test3', '2008', 10, { a: 1, b: 2 }, 12, 13, null, null],
+      ['test', 'test2', 'test', '2009', 20, { a: 1, b: 2 }, 14, 13, null, null],
+      ['2010', 30, 15, 12, 13, { a: 1, b: 2 }, null, null, null, null],
     ]);
   });
 
@@ -139,11 +130,11 @@ describe('Core_populateFromArray', () => {
     var called = 0;
 
     var hot = handsontable({
-      data: arrayOfArrays()
+      data: arrayOfArrays(),
     });
 
-    hot.addHook('beforeAutofillInsidePopulate', (index) => {
-      called++;
+    hot.addHook('beforeAutofillInsidePopulate', () => {
+      called += 1;
     });
 
     populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 1, 1, 'Autofill.fill', 'overwrite');
@@ -154,11 +145,11 @@ describe('Core_populateFromArray', () => {
   it('should run beforeAutofillInsidePopulate hook and could change cell data before insert if returned object with value property', () => {
 
     var hot = handsontable({
-      data: arrayOfArrays()
+      data: arrayOfArrays(),
     });
 
-    hot.addHook('beforeAutofillInsidePopulate', (index) => ({
-      value: 'my_test'
+    hot.addHook('beforeAutofillInsidePopulate', () => ({
+      value: 'my_test',
     }));
 
     populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 1, 1, 'Autofill.fill', 'overwrite');
@@ -167,8 +158,8 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should populate 1 row from 2 selected rows', () => {
-    var hot = handsontable({
-      data: arrayOfArrays()
+    handsontable({
+      data: arrayOfArrays(),
     });
 
     populateFromArray(2, 0, [['A1'], ['A2']], 2, 0, 'autofill', null, 'down', [[0]]);
@@ -178,8 +169,8 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should populate 1 column from 2 selected columns`', () => {
-    var hot = handsontable({
-      data: arrayOfArrays()
+    handsontable({
+      data: arrayOfArrays(),
     });
 
     populateFromArray(0, 2, [['A1', 'A2']], 0, 2, 'autofill', null, 'right', [[0]]);

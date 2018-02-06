@@ -1,5 +1,5 @@
-import {fastInnerText} from './../../../helpers/dom/element';
-import {hasOwnProperty} from './../../../helpers/object';
+import { fastInnerText } from './../../../helpers/dom/element';
+import { objectEach } from './../../../helpers/object';
 
 /**
  * @class Settings
@@ -55,10 +55,10 @@ class Settings {
       },
 
       // columnWidth: 50,
-      columnWidth(col) {
+      columnWidth() {
         // return undefined means use default size for the rendered cell content
       },
-      rowHeight(row) {
+      rowHeight() {
         // return undefined means use default size for the rendered cell content
       },
       defaultRowHeight: 23,
@@ -85,7 +85,7 @@ class Settings {
       onScrollHorizontally: null,
       onBeforeTouchScroll: null,
       onAfterMomentumScroll: null,
-      onBeforeStretchingColumnWidth: (width) => width,
+      onBeforeStretchingColumnWidth: width => width,
       onModifyRowHeaderWidth: null,
 
       // constants
@@ -96,25 +96,23 @@ class Settings {
       groups: false,
       rowHeaderWidth: null,
       columnHeaderHeight: null,
-      headerClassName: null
+      headerClassName: null,
     };
 
     // reference to settings
     this.settings = {};
 
-    for (let i in this.defaults) {
-      if (hasOwnProperty(this.defaults, i)) {
-        if (settings[i] !== void 0) {
-          this.settings[i] = settings[i];
+    objectEach(this.defaults, (value, key, obj) => {
+      if (settings[key] !== void 0) {
+        this.settings[key] = settings[key];
 
-        } else if (this.defaults[i] === void 0) {
-          throw new Error(`A required setting "${i}" was not provided`);
+      } else if (value === void 0) {
+        throw new Error(`A required setting "${key}" was not provided`);
 
-        } else {
-          this.settings[i] = this.defaults[i];
-        }
+      } else {
+        this.settings[key] = obj[key];
       }
-    }
+    });
   }
 
   /**
@@ -126,11 +124,10 @@ class Settings {
    */
   update(settings, value) {
     if (value === void 0) { // settings is object
-      for (let i in settings) {
-        if (hasOwnProperty(settings, i)) {
-          this.settings[i] = settings[i];
-        }
-      }
+      objectEach(settings, (_value, key, obj) => {
+        this.settings[key] = obj[i];
+      });
+
     } else { // if value is defined then settings is the key
       this.settings[settings] = value;
     }

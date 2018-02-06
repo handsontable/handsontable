@@ -1,11 +1,11 @@
 import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
 import SheetClip from './../../../lib/SheetClip/SheetClip';
-import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
-import {getSelectionText} from './../../helpers/dom/element';
-import {arrayEach} from './../../helpers/array';
-import {rangeEach} from './../../helpers/number';
-import {registerPlugin} from './../../plugins';
+import { CellCoords, CellRange } from './../../3rdparty/walkontable/src';
+import { getSelectionText } from './../../helpers/dom/element';
+import { arrayEach } from './../../helpers/array';
+import { rangeEach } from './../../helpers/number';
+import { registerPlugin } from './../../plugins';
 import Textarea from './textarea';
 import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
@@ -128,7 +128,7 @@ class CopyPaste extends BasePlugin {
       this.columnsLimit = settings.copyPaste.columnsLimit || this.columnsLimit;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
+    this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
 
     this.registerEvents();
@@ -185,7 +185,7 @@ class CopyPaste extends BasePlugin {
       startRow,
       startCol,
       endRow: finalEndRow,
-      endCol: finalEndCol
+      endCol: finalEndCol,
     });
 
     this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
@@ -315,9 +315,9 @@ class CopyPaste extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.textarea.element, 'paste', (event) => this.onPaste(event));
-    this.eventManager.addEventListener(this.textarea.element, 'cut', (event) => this.onCut(event));
-    this.eventManager.addEventListener(this.textarea.element, 'copy', (event) => this.onCopy(event));
+    this.eventManager.addEventListener(this.textarea.element, 'paste', event => this.onPaste(event));
+    this.eventManager.addEventListener(this.textarea.element, 'cut', event => this.onCut(event));
+    this.eventManager.addEventListener(this.textarea.element, 'copy', event => this.onCopy(event));
   }
 
   /**
@@ -438,7 +438,8 @@ class CopyPaste extends BasePlugin {
     let areaStart = topLeftCorner;
     let areaEnd = new CellCoords(
       Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
-      Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col));
+      Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col),
+    );
 
     let isSelRowAreaCoverInputValue = coordsTo.row - coordsFrom.row >= inputArray.length - 1;
     let isSelColAreaCoverInputValue = coordsTo.col - coordsFrom.col >= inputArray[0].length - 1;
@@ -447,7 +448,7 @@ class CopyPaste extends BasePlugin {
       let changesLength = changes ? changes.length : 0;
 
       if (changesLength) {
-        let offset = {row: 0, col: 0};
+        let offset = { row: 0, col: 0 };
         let highestColumnIndex = -1;
 
         arrayEach(changes, (change, index) => {
@@ -458,7 +459,7 @@ class CopyPaste extends BasePlugin {
               offset.row += Math.max(nextChange[0] - change[0] - 1, 0);
             }
             if (!isSelColAreaCoverInputValue && change[1] > highestColumnIndex) {
-              highestColumnIndex = change[1];
+              [, highestColumnIndex] = change;
               offset.col += Math.max(nextChange[1] - change[1] - 1, 0);
             }
           }
@@ -483,7 +484,7 @@ class CopyPaste extends BasePlugin {
         name: '---------',
       },
       copyItem(this),
-      cutItem(this)
+      cutItem(this),
     );
   }
 

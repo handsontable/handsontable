@@ -1,6 +1,6 @@
 import BasePlugin from './../_base';
-import {registerPlugin} from './../../plugins';
-import {arrayEach} from './../../helpers/array';
+import { registerPlugin } from './../../plugins';
+import { arrayEach } from './../../helpers/array';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 
@@ -51,7 +51,7 @@ class ManualColumnFreeze extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options) => this.addContextMenuEntry(options));
+    this.addHook('afterContextMenuDefaultOptions', options => this.addContextMenuEntry(options));
     this.addHook('afterInit', () => this.onAfterInit());
     this.addHook('beforeColumnMove', (rows, target) => this.onBeforeColumnMove(rows, target));
 
@@ -103,8 +103,9 @@ class ManualColumnFreeze extends BasePlugin {
       this.frozenColumnsBasePositions[settings.fixedColumnsLeft] = column;
     }
 
-    this.getMovePlugin().moveColumn(column, settings.fixedColumnsLeft++);
+    this.getMovePlugin().moveColumn(column, settings.fixedColumnsLeft);
 
+    settings.fixedColumnsLeft += 1;
   }
 
   /**
@@ -127,7 +128,7 @@ class ManualColumnFreeze extends BasePlugin {
     let returnCol = this.getBestColumnReturnPosition(column);
 
     priv.moveByFreeze = true;
-    settings.fixedColumnsLeft--;
+    settings.fixedColumnsLeft -= 1;
 
     this.getMovePlugin().moveColumn(column, returnCol);
   }
@@ -163,7 +164,7 @@ class ManualColumnFreeze extends BasePlugin {
       initialCol = movePlugin.columnsMapper.getValueByIndex(column);
 
       while (j !== null && j <= initialCol) {
-        i++;
+        i += 1;
         j = movePlugin.columnsMapper.getValueByIndex(i);
       }
 
@@ -172,7 +173,7 @@ class ManualColumnFreeze extends BasePlugin {
       this.frozenColumnsBasePositions[column] = void 0;
 
       while (j !== null && j <= initialCol) {
-        i++;
+        i += 1;
         j = movePlugin.columnsMapper.getValueByIndex(i);
       }
       i = j;
@@ -188,9 +189,9 @@ class ManualColumnFreeze extends BasePlugin {
    */
   addContextMenuEntry(options) {
     options.items.push(
-      {name: '---------'},
+      { name: '---------' },
       freezeColumnItem(this),
-      unfreezeColumnItem(this)
+      unfreezeColumnItem(this),
     );
   }
 
@@ -220,11 +221,13 @@ class ManualColumnFreeze extends BasePlugin {
       let disallowMoving = target < frozenLen;
 
       if (!disallowMoving) {
-        arrayEach(rows, (value, index, array) => {
+        arrayEach(rows, (value) => {
           if (value < frozenLen) {
             disallowMoving = true;
             return false;
           }
+
+          return true;
         });
       }
 
@@ -236,6 +239,8 @@ class ManualColumnFreeze extends BasePlugin {
     if (priv.moveByFreeze) {
       priv.moveByFreeze = false;
     }
+
+    return true;
   }
 
   /**

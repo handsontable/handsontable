@@ -1,11 +1,11 @@
 describe('PasswordEditor', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 300px;"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -18,13 +18,13 @@ describe('PasswordEditor', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
         {
-          editor: Handsontable.editors.PasswordEditor
-        }
-      ]
+          editor: Handsontable.editors.PasswordEditor,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -43,13 +43,13 @@ describe('PasswordEditor', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
         {
-          editor: 'password'
-        }
-      ]
+          editor: 'password',
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -68,13 +68,13 @@ describe('PasswordEditor', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
         {
-          type: 'password'
-        }
-      ]
+          type: 'password',
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -94,13 +94,13 @@ describe('PasswordEditor', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
         {
-          editor: 'password'
-        }
-      ]
+          editor: 'password',
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -136,10 +136,10 @@ describe('PasswordEditor', () => {
         ['Joe'],
         ['Timothy'],
         ['Margaret'],
-        ['Jerry']
+        ['Jerry'],
       ],
       columns: [
-        {data: 'id', type: 'password'},
+        { data: 'id', type: 'password' },
       ],
     });
 

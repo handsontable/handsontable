@@ -1,13 +1,13 @@
 import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
-import {arrayEach} from './../../helpers/array';
+import { arrayEach } from './../../helpers/array';
 import CommandExecutor from './commandExecutor';
 import EventManager from './../../eventManager';
 import ItemsFactory from './itemsFactory';
 import Menu from './menu';
-import {registerPlugin} from './../../plugins';
-import {stopPropagation, pageX, pageY} from './../../helpers/dom/event';
-import {getWindowScrollLeft, getWindowScrollTop, hasClass} from './../../helpers/dom/element';
+import { registerPlugin } from './../../plugins';
+import { stopPropagation, pageX, pageY } from './../../helpers/dom/event';
+import { getWindowScrollLeft, getWindowScrollTop, hasClass } from './../../helpers/dom/element';
 import {
   ROW_ABOVE,
   ROW_BELOW,
@@ -19,7 +19,7 @@ import {
   REDO,
   READ_ONLY,
   ALIGNMENT,
-  SEPARATOR
+  SEPARATOR,
 } from './predefinedItems';
 
 import './contextMenu.css';
@@ -126,7 +126,7 @@ class ContextMenu extends BasePlugin {
 
     const settings = this.hot.getSettings().contextMenu;
     let predefinedItems = {
-      items: this.itemsFactory.getItems(settings)
+      items: this.itemsFactory.getItems(settings),
     };
     this.registerEvents();
 
@@ -147,7 +147,7 @@ class ContextMenu extends BasePlugin {
 
       this.menu = new Menu(this.hot, {
         className: 'htContextMenu',
-        keepInViewport: true
+        keepInViewport: true,
       });
       this.hot.runHooks('beforeContextMenuSetItems', menuItems);
 
@@ -155,10 +155,10 @@ class ContextMenu extends BasePlugin {
 
       this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
-      this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.apply(this, params));
+      this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand(...params));
 
       // Register all commands. Predefined and added by user or by plugins
-      arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
+      arrayEach(menuItems, command => this.commandExecutor.registerCommand(command.key, command));
     };
 
     this.callOnPluginsReady(() => {
@@ -199,7 +199,7 @@ class ContextMenu extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'contextmenu', (event) => this.onContextMenu(event));
+    this.eventManager.addEventListener(this.hot.rootElement, 'contextmenu', event => this.onContextMenu(event));
   }
 
   /**
@@ -259,7 +259,7 @@ class ContextMenu extends BasePlugin {
    * @param {*} params
    */
   executeCommand(...params) {
-    this.commandExecutor.execute.apply(this.commandExecutor, params);
+    this.commandExecutor.execute(...params);
   }
 
   /**
@@ -329,7 +329,7 @@ class ContextMenu extends BasePlugin {
 }
 
 ContextMenu.SEPARATOR = {
-  name: SEPARATOR
+  name: SEPARATOR,
 };
 
 registerPlugin('contextMenu', ContextMenu);

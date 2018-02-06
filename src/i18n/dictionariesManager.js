@@ -1,5 +1,5 @@
-import {isObject, deepClone} from '../helpers/object';
-import {extendNotExistingKeys} from './utils';
+import { isObject, deepClone } from '../helpers/object';
+import { extendNotExistingKeys } from './utils';
 import staticRegister from '../utils/staticRegister';
 import DEFAULT_DICTIONARY from './languages/en-US';
 
@@ -9,7 +9,7 @@ const {
   register: registerGloballyLanguageDictionary,
   getItem: getGlobalLanguageDictionary,
   hasItem: hasGlobalLanguageDictionary,
-  getValues: getGlobalLanguagesDictionaries
+  getValues: getGlobalLanguagesDictionaries,
 } = staticRegister('languagesDictionaries');
 
 /**
@@ -24,7 +24,7 @@ function registerLanguage(languageCodeOrDictionary, dictionary) {
   // Dictionary passed as first argument.
   if (isObject(languageCodeOrDictionary)) {
     dictionary = languageCodeOrDictionary;
-    languageCode = dictionary.languageCode;
+    ({ languageCode } = dictionary);
   }
 
   extendLanguageDictionary(languageCode, dictionary);
@@ -32,7 +32,7 @@ function registerLanguage(languageCodeOrDictionary, dictionary) {
 
   // We do not allow user to work with dictionary by reference, it can cause lot of bugs.
   return deepClone(dictionary);
-};
+}
 
 /**
  * Get language dictionary for specific language code.
@@ -96,7 +96,7 @@ export {
   hasLanguage as hasLanguageDictionary,
   getDefaultLanguage as getDefaultLanguageDictionary,
   getLanguages as getLanguagesDictionaries,
-  DEFAULT_LANGUAGE_CODE
+  DEFAULT_LANGUAGE_CODE,
 };
 
 /**

@@ -8,7 +8,7 @@ import {
   innerWidth,
   removeClass,
   setOverlayPosition,
-  resetCssTransform
+  resetCssTransform,
 } from './../../../../helpers/dom/element';
 import Overlay from './_base';
 
@@ -105,13 +105,13 @@ class TopOverlay extends Overlay {
    */
   sumCellSizes(from, to) {
     let sum = 0;
-    let defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
+    let { defaultRowHeight } = this.wot.wtSettings.settings;
 
     while (from < to) {
       let height = this.wot.wtTable.getRowHeight(from);
 
       sum += height === void 0 ? defaultRowHeight : height;
-      from++;
+      from += 1;
     }
 
     return sum;
@@ -234,7 +234,6 @@ class TopOverlay extends Overlay {
 
     if (bottomEdge) {
       let fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
-      let fixedRowsTop = this.wot.getSetting('fixedRowsTop');
       let totalRows = this.wot.getSetting('totalRows');
 
       newY += this.sumCellSizes(0, sourceRow + 1);
@@ -294,11 +293,11 @@ class TopOverlay extends Overlay {
    * Redrawing borders of all selections
    */
   redrawAllSelectionsBorders() {
-    const selections = this.wot.selections;
+    const { current, area, fill } = this.wot.selections;
 
-    this.redrawSelectionBorders(selections.current);
-    this.redrawSelectionBorders(selections.area);
-    this.redrawSelectionBorders(selections.fill);
+    this.redrawSelectionBorders(current);
+    this.redrawSelectionBorders(area);
+    this.redrawSelectionBorders(fill);
     this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
   }
 
@@ -340,7 +339,7 @@ class TopOverlay extends Overlay {
       let secondHeaderCell = this.clone.wtTable.THEAD.querySelectorAll('th:nth-of-type(2)');
 
       if (secondHeaderCell) {
-        for (let i = 0; i < secondHeaderCell.length; i++) {
+        for (let i = 0; i < secondHeaderCell.length; i += 1) {
           secondHeaderCell[i].style['border-left-width'] = 0;
         }
       }

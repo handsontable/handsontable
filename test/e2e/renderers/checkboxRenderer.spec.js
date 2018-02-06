@@ -1,11 +1,11 @@
 describe('CheckboxRenderer', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px;"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -16,8 +16,8 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     expect($(getRenderedValue(0, 0)).is(':checkbox')).toBe(true);
@@ -29,8 +29,8 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     expect($(getRenderedContent(0, 0)).prop('checked')).toBe(true);
@@ -45,9 +45,9 @@ describe('CheckboxRenderer', () => {
         {
           type: 'checkbox',
           checkedTemplate: 'yes',
-          uncheckedTemplate: 'no'
-        }
-      ]
+          uncheckedTemplate: 'no',
+        },
+      ],
     });
 
     expect($(getRenderedContent(0, 0)).prop('checked')).toBe(true);
@@ -55,9 +55,10 @@ describe('CheckboxRenderer', () => {
     expect($(getRenderedContent(2, 0)).prop('checked')).toBe(true);
   });
 
-  it('should select cell after checkbox click', function(done) {
+  it('should select cell after checkbox click', (done) => {
     var spy = jasmine.createSpyObj('error', ['test']);
-    window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+
+    window.onerror = function () {
       spy.test();
       return false;
     };
@@ -65,8 +66,8 @@ describe('CheckboxRenderer', () => {
     var hot = handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     hot.selectCell(0, 0);
@@ -83,12 +84,12 @@ describe('CheckboxRenderer', () => {
     }, 100);
   });
 
-  it('should select cell after label click', function() {
+  it('should select cell after label click', function () {
     var hot = handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox', label: {position: 'before', value: 'Sure? '}}
-      ]
+        { type: 'checkbox', label: { position: 'before', value: 'Sure? ' } },
+      ],
     });
 
     hot.selectCell(0, 0);
@@ -98,12 +99,12 @@ describe('CheckboxRenderer', () => {
     expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
   });
 
-  it('should reverse selection in checkboxes', function() {
+  it('should reverse selection in checkboxes', function () {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     this.$container.find(':checkbox').eq(0).simulate('click');
@@ -113,12 +114,12 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[false], [true], [false]]);
   });
 
-  it('shouldn\'t uncheck checkboxes', function() {
+  it('shouldn\'t uncheck checkboxes', function () {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
-        {type: 'checkbox', readOnly: true}
-      ]
+        { type: 'checkbox', readOnly: true },
+      ],
     });
 
     this.$container.find(':checkbox').trigger('click');
@@ -126,12 +127,12 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[true], [true], [true]]);
   });
 
-  it('should check single box after hitting space', function() {
+  it('should check single box after hitting space', function () {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -162,12 +163,12 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should not check single box after hitting space, if cell is readOnly', function() {
+  it('should not check single box after hitting space, if cell is readOnly', function () {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
-        {type: 'checkbox', readOnly: true}
-      ]
+        { type: 'checkbox', readOnly: true },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -193,13 +194,13 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).not.toHaveBeenCalled();
   });
 
-  it('should not check single box after hitting space, if last column is readOnly (#3562)', function() {
+  it('should not check single box after hitting space, if last column is readOnly (#3562)', function () {
     handsontable({
       data: [[true, true], [false, false], [true, true]],
       columns: [
-        {type: 'checkbox'},
-        {type: 'checkbox', readOnly: true}
-      ]
+        { type: 'checkbox' },
+        { type: 'checkbox', readOnly: true },
+      ],
     });
 
     selectCell(0, 0);
@@ -231,9 +232,9 @@ describe('CheckboxRenderer', () => {
       colHeaders: true,
       columns: [
         {
-          type: 'checkbox'
-        }
-      ]
+          type: 'checkbox',
+        },
+      ],
     });
 
     selectCell(0, 0, 1, 0);
@@ -253,9 +254,9 @@ describe('CheckboxRenderer', () => {
       colHeaders: true,
       columns: [
         {
-          type: 'checkbox'
-        }
-      ]
+          type: 'checkbox',
+        },
+      ],
     });
 
     selectCell(0, 0, 199, 0);
@@ -264,12 +265,12 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(199, 0)).toEqual(true);
   });
 
-  it('should reverse checkboxes state after hitting space, when multiple cells are selected', function() {
-    var hot = handsontable({
+  it('should reverse checkboxes state after hitting space, when multiple cells are selected', function () {
+    handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -296,12 +297,12 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false], [1, 0, false, true], [2, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should reverse checkboxes state after hitting space, when multiple cells are selected and selStart > selEnd', function() {
+  it('should reverse checkboxes state after hitting space, when multiple cells are selected and selStart > selEnd', function () {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -330,11 +331,11 @@ describe('CheckboxRenderer', () => {
 
   it('should toggle checkbox even if cell value is in another datatype', () => {
     // TODO: we MUST add additional layer in data transport, to filter stored data types into their defined data type (cellMeta.type)
-    var hot = handsontable({
+    handsontable({
       data: [['true']],
       columns: [
-        {type: 'checkbox'},
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     selectCell(0, 0);
@@ -351,11 +352,11 @@ describe('CheckboxRenderer', () => {
       data: [
         [true],
         [false],
-        [true]
+        [true],
       ],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     selectCell(0, 0);
@@ -370,12 +371,12 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(0, 0)).toBe(false);
   });
 
-  it('should change checkbox state from checked to unchecked after hitting ENTER', function() {
+  it('should change checkbox state from checked to unchecked after hitting ENTER', function () {
     handsontable({
       data: [[true], [true], [true]],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -402,16 +403,16 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates', function() {
+  it('should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates', function () {
     handsontable({
       data: [['yes'], ['yes'], ['no']],
       columns: [
         {
           type: 'checkbox',
           checkedTemplate: 'yes',
-          uncheckedTemplate: 'no'
-        }
-      ]
+          uncheckedTemplate: 'no',
+        },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -438,16 +439,16 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'yes', 'no']], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates in numeric format', function() {
+  it('should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates in numeric format', function () {
     handsontable({
       data: [[1], [1], [0]],
       columns: [
         {
           type: 'checkbox',
           checkedTemplate: 1,
-          uncheckedTemplate: 0
-        }
-      ]
+          uncheckedTemplate: 0,
+        },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -474,12 +475,12 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 1, 0]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should change checkbox state to unchecked after hitting DELETE', function() {
+  it('should change checkbox state to unchecked after hitting DELETE', function () {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -508,12 +509,12 @@ describe('CheckboxRenderer', () => {
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('should change checkbox notte to unchecked after hitting BACKSPACE', function() {
+  it('should change checkbox notte to unchecked after hitting BACKSPACE', function () {
     handsontable({
       data: [[true], [false], [true]],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -546,8 +547,8 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [['foo'], ['bar']],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -573,8 +574,8 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [['foo'], ['bar']],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -600,8 +601,8 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [['foo'], ['bar']],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -626,9 +627,9 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[false], [true], [true]],
       columns: [
-        {type: 'checkbox'}
+        { type: 'checkbox' },
       ],
-      onAfterChange
+      onAfterChange,
     });
 
     selectCell(0, 0);
@@ -643,8 +644,8 @@ describe('CheckboxRenderer', () => {
     handsontable({
       data: [[false], [true], [true]],
       columns: [
-        {type: 'checkbox'}
-      ]
+        { type: 'checkbox' },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -664,10 +665,10 @@ describe('CheckboxRenderer', () => {
 
   it('should add label on the beginning of a checkbox element', () => {
     handsontable({
-      data: [{checked: true, label: 'myLabel'}, {checked: false, label: 'myLabel'}],
+      data: [{ checked: true, label: 'myLabel' }, { checked: false, label: 'myLabel' }],
       columns: [
-        {type: 'checkbox', data: 'checked', label: {position: 'before', property: 'label'}}
-      ]
+        { type: 'checkbox', data: 'checked', label: { position: 'before', property: 'label' } },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -684,10 +685,10 @@ describe('CheckboxRenderer', () => {
 
   it('should add label on the end of a checkbox element', () => {
     handsontable({
-      data: [{checked: true, label: 'myLabel'}, {checked: false, label: 'myLabel'}],
+      data: [{ checked: true, label: 'myLabel' }, { checked: false, label: 'myLabel' }],
       columns: [
-        {type: 'checkbox', data: 'checked', label: {position: 'after', property: 'label'}}
-      ]
+        { type: 'checkbox', data: 'checked', label: { position: 'after', property: 'label' } },
+      ],
     });
 
     var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
@@ -704,10 +705,10 @@ describe('CheckboxRenderer', () => {
 
   it('should not add label when value is incorrect (#bad-value)', () => {
     handsontable({
-      data: [{checked: 1, label: 'myLabel'}, {checked: 0, label: 'myLabel'}],
+      data: [{ checked: 1, label: 'myLabel' }, { checked: 0, label: 'myLabel' }],
       columns: [
-        {type: 'checkbox', data: 'checked', label: {position: 'after', property: 'label'}}
-      ]
+        { type: 'checkbox', data: 'checked', label: { position: 'after', property: 'label' } },
+      ],
     });
 
     expect(getCell(0, 0).querySelector('label')).toBe(null);
@@ -715,10 +716,10 @@ describe('CheckboxRenderer', () => {
 
   it('by default should add label on the end of a checkbox element', () => {
     handsontable({
-      data: [{checked: true, label: {test: 'Baz'}}, {checked: false, label: {test: 'Baz'}}],
+      data: [{ checked: true, label: { test: 'Baz' } }, { checked: false, label: { test: 'Baz' } }],
       columns: [
-        {type: 'checkbox', data: 'checked', label: {property: 'label.test'}}
-      ]
+        { type: 'checkbox', data: 'checked', label: { property: 'label.test' } },
+      ],
     });
 
     expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('Baz');
@@ -726,10 +727,10 @@ describe('CheckboxRenderer', () => {
 
   it('should add label with text filled from `value` label setting (passed as string)', () => {
     handsontable({
-      data: [{checked: true}, {checked: false}],
+      data: [{ checked: true }, { checked: false }],
       columns: [
-        {type: 'checkbox', data: 'checked', label: {value: 'myLabel'}}
-      ]
+        { type: 'checkbox', data: 'checked', label: { value: 'myLabel' } },
+      ],
     });
 
     expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
@@ -742,10 +743,10 @@ describe('CheckboxRenderer', () => {
     handsontable({
       autoRowSize: false,
       autoColumnSize: false,
-      data: [{checked: true}, {checked: false}],
+      data: [{ checked: true }, { checked: false }],
       columns: [
-        {type: 'checkbox', data: 'checked', label: {value: labelFunction}}
-      ]
+        { type: 'checkbox', data: 'checked', label: { value: labelFunction } },
+      ],
     });
 
     expect(labelFunction.calls.count()).toBe(2);
@@ -762,10 +763,10 @@ describe('CheckboxRenderer', () => {
         contextMenu: ['alignment'],
         cells() {
           return {
-            type: 'checkbox'
+            type: 'checkbox',
           };
         },
-        height: 100
+        height: 100,
       });
 
       selectCell(0, 0);

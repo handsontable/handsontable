@@ -1,5 +1,4 @@
-import {stringify} from './mixed';
-import {rangeEach} from './number';
+import { stringify } from './mixed';
 
 /**
  * Convert string to upper case first letter.
@@ -19,9 +18,11 @@ export function toUpperCaseFirst(string) {
  */
 export function equalsIgnoreCase(...strings) {
   let unique = [];
-  let length = strings.length;
+  let { length } = strings;
 
-  while (length--) {
+  while (length) {
+    length -= 1;
+
     let string = stringify(strings[length]).toLowerCase();
 
     if (unique.indexOf(string) === -1) {

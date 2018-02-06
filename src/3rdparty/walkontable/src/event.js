@@ -4,8 +4,8 @@ import {
   isChildOf,
   getParent,
 } from './../../../helpers/dom/element';
-import {partial} from './../../../helpers/function';
-import {isMobileBrowser} from './../../../helpers/browser';
+import { partial } from './../../../helpers/function';
+import { isMobileBrowser } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 
 /**
@@ -20,10 +20,10 @@ function Event(instance) {
   var dblClickOrigin = [null, null];
   this.dblClickTimeout = [null, null];
 
-  var onMouseDown = function(event) {
-    const activeElement = document.activeElement;
+  var onMouseDown = function (event) {
+    const { activeElement } = document;
     const getParentNode = partial(getParent, event.realTarget);
-    const realTarget = event.realTarget;
+    const { realTarget } = event;
 
     // ignore focusable element from mouse down processing (https://github.com/handsontable/handsontable/issues/3555)
     if (realTarget === activeElement ||
@@ -53,15 +53,13 @@ function Event(instance) {
     }
   };
 
-  var onTouchMove = function(event) {
+  var onTouchMove = function () {
     that.instance.touchMoving = true;
   };
 
   var longTouchTimeout;
 
-  var onTouchStart = function(event) {
-    var container = this;
-
+  var onTouchStart = function (event) {
     eventManager.addEventListener(this, 'touchmove', onTouchMove);
 
     // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
@@ -77,7 +75,7 @@ function Event(instance) {
     }, 30);
   };
 
-  var onMouseOver = function(event) {
+  var onMouseOver = function (event) {
     var table,
       td,
       mainWOT;
@@ -95,7 +93,7 @@ function Event(instance) {
     }
   };
 
-  var onMouseOut = function(event) {
+  var onMouseOut = function (event) {
     let table;
     let lastTD;
     let nextTD;
@@ -111,7 +109,7 @@ function Event(instance) {
     }
   };
 
-  var onMouseUp = function(event) {
+  var onMouseUp = function (event) {
     if (event.button !== 2) { // if not right mouse button
       var cell = that.parentCell(event.realTarget);
 
@@ -141,7 +139,7 @@ function Event(instance) {
     }
   };
 
-  var onTouchEnd = function(event) {
+  var onTouchEnd = function (event) {
     clearTimeout(longTouchTimeout);
     // that.instance.longTouch == void 0;
 
@@ -176,7 +174,7 @@ function Event(instance) {
     if (!that.instance.momentumScrolling) {
       that.instance.momentumScrolling = {};
     }
-    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', (event) => {
+    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', () => {
       clearTimeout(that.instance.momentumScrolling._timeout);
 
       if (!that.instance.momentumScrolling.ongoing) {
@@ -200,7 +198,7 @@ function Event(instance) {
     }
   });
 
-  this.destroy = function() {
+  this.destroy = function () {
     clearTimeout(this.dblClickTimeout[0]);
     clearTimeout(this.dblClickTimeout[1]);
 
@@ -208,9 +206,9 @@ function Event(instance) {
   };
 }
 
-Event.prototype.parentCell = function(elem) {
+Event.prototype.parentCell = function (elem) {
   var cell = {};
-  var TABLE = this.instance.wtTable.TABLE;
+  let { TABLE } = this.instance.wtTable;
   var TD = closestDown(elem, ['TD', 'TH'], TABLE);
 
   if (TD) {

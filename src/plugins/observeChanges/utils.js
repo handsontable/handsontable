@@ -1,4 +1,4 @@
-import {arrayFilter, arrayMap} from '../../helpers/array';
+import { arrayFilter, arrayMap } from '../../helpers/array';
 
 /**
  * Clean and extend patches from jsonpatch observer.
@@ -69,6 +69,6 @@ export function parsePath(path) {
 
   return {
     row: parseInt(row, 10),
-    col: /^\d*$/.test(column) ? parseInt(column, 10) : column
+    col: /^\d*$/.test(column) ? parseInt(column, 10) : column,
   };
 }

@@ -2,11 +2,11 @@ describe('SelectEditor', () => {
 
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -17,9 +17,9 @@ describe('SelectEditor', () => {
     handsontable({
       columns: [
         {
-          editor: 'select'
-        }
-      ]
+          editor: 'select',
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -43,9 +43,9 @@ describe('SelectEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(100, 100),
       columns: [
         {
-          editor: 'select'
-        }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {editor: 'select'}
-      ]
+          editor: 'select',
+        }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, { editor: 'select' },
+      ],
     });
     var mainHolder = hot.view.wt.wtTable.holder;
 
@@ -66,16 +66,16 @@ describe('SelectEditor', () => {
 
   it('should populate select with given options (array)', () => {
     var options = [
-      'Misubishi', 'Chevrolet', 'Lamborgini'
+      'Misubishi', 'Chevrolet', 'Lamborgini',
     ];
 
     handsontable({
       columns: [
         {
           editor: 'select',
-          selectOptions: options
-        }
-      ]
+          selectOptions: options,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -99,16 +99,16 @@ describe('SelectEditor', () => {
     var options = {
       mit: 'Misubishi',
       che: 'Chevrolet',
-      lam: 'Lamborgini'
+      lam: 'Lamborgini',
     };
 
     handsontable({
       columns: [
         {
           editor: 'select',
-          selectOptions: options
-        }
-      ]
+          selectOptions: options,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -128,9 +128,9 @@ describe('SelectEditor', () => {
   });
 
   it('should populate select with given options (function:array)', () => {
-    var options = function() {
+    var options = function () {
       return [
-        'Misubishi', 'Chevrolet', 'Lamborgini'
+        'Misubishi', 'Chevrolet', 'Lamborgini',
       ];
     };
 
@@ -138,9 +138,9 @@ describe('SelectEditor', () => {
       columns: [
         {
           editor: 'select',
-          selectOptions: options
-        }
-      ]
+          selectOptions: options,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -161,11 +161,11 @@ describe('SelectEditor', () => {
   });
 
   it('should populate select with given options (function:object)', () => {
-    var options = function() {
+    var options = function () {
       return {
         mit: 'Misubishi',
         che: 'Chevrolet',
-        lam: 'Lamborgini'
+        lam: 'Lamborgini',
       };
     };
 
@@ -173,9 +173,9 @@ describe('SelectEditor', () => {
       columns: [
         {
           editor: 'select',
-          selectOptions: options
-        }
-      ]
+          selectOptions: options,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -196,21 +196,21 @@ describe('SelectEditor', () => {
 
   it('should mark option matching cell value as selected', () => {
     var options = [
-      'Misubishi', 'Chevrolet', 'Lamborgini'
+      'Misubishi', 'Chevrolet', 'Lamborgini',
     ];
 
     handsontable({
       data: [
         ['Misubishi'],
         ['Lamborgini'],
-        ['Chevrolet']
+        ['Chevrolet'],
       ],
       columns: [
         {
           editor: 'select',
-          selectOptions: options
-        }
-      ]
+          selectOptions: options,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -240,9 +240,9 @@ describe('SelectEditor', () => {
 
   it('should not prevent the default event action when select is clicked', () => {
 
-    var options = function() {
+    var options = function () {
       return [
-        'Misubishi', 'Chevrolet', 'Lamborgini'
+        'Misubishi', 'Chevrolet', 'Lamborgini',
       ];
     };
 
@@ -250,9 +250,9 @@ describe('SelectEditor', () => {
       columns: [
         {
           editor: 'select',
-          selectOptions: options
-        }
-      ]
+          selectOptions: options,
+        },
+      ],
     });
 
     selectCell(0, 0);
@@ -260,7 +260,6 @@ describe('SelectEditor', () => {
     var editor = $('.htSelectEditor');
 
     keyDown('enter');
-    var select = editor.find('select');
 
     var selectMouseDownListener = jasmine.createSpy('selectMouseDownListener');
     $('body').on('mousedown', selectMouseDownListener);

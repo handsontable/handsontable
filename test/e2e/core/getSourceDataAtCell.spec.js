@@ -1,11 +1,11 @@
 describe('Core.getSourceDataAtCell', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -30,8 +30,8 @@ describe('Core.getSourceDataAtCell', () => {
 
   it('should return cell value when provided data was an array of objects', () => {
     handsontable({
-      data: [{a: 1, b: 2, c: 3}, {a: 'a', b: 'b', c: 'c'}],
-      copyable: true
+      data: [{ a: 1, b: 2, c: 3 }, { a: 'a', b: 'b', c: 'c' }],
+      copyable: true,
     });
 
     expect(getSourceDataAtCell(1, 'b')).toEqual('b');
@@ -39,13 +39,13 @@ describe('Core.getSourceDataAtCell', () => {
 
   it('should return cell value when provided data was an array of objects (nested structure)', () => {
     handsontable({
-      data: [{a: 1, b: {a: 21, b: 22}, c: 3}, {a: 'a', b: {a: 'ba', b: 'bb'}, c: 'c'}],
+      data: [{ a: 1, b: { a: 21, b: 22 }, c: 3 }, { a: 'a', b: { a: 'ba', b: 'bb' }, c: 'c' }],
       columns: [
-        {data: 'a'},
-        {data: 'b.a'},
-        {data: 'b.b'},
-        {data: 'c'},
-      ]
+        { data: 'a' },
+        { data: 'b.a' },
+        { data: 'b.b' },
+        { data: 'c' },
+      ],
     });
 
     expect(getSourceDataAtCell(1, 'b.b')).toEqual('bb');
@@ -54,18 +54,18 @@ describe('Core.getSourceDataAtCell', () => {
   it('should return cell value when data is provided by dataSchema', () => {
     handsontable({
       data: [
-        model({id: 1, name: 'Ted Right', address: ''}),
-        model({id: 2, name: 'Frank Honest', address: ''}),
-        model({id: 3, name: 'Joan Well', address: ''}),
-        model({id: 4, name: 'Gail Polite', address: ''}),
-        model({id: 5, name: 'Michael Fair', address: ''})
+        model({ id: 1, name: 'Ted Right', address: '' }),
+        model({ id: 2, name: 'Frank Honest', address: '' }),
+        model({ id: 3, name: 'Joan Well', address: '' }),
+        model({ id: 4, name: 'Gail Polite', address: '' }),
+        model({ id: 5, name: 'Michael Fair', address: '' }),
       ],
       dataSchema: model,
       columns: [
-        {data: property('id')},
-        {data: property('name')},
-        {data: property('address')}
-      ]
+        { data: property('id') },
+        { data: property('name') },
+        { data: property('address') },
+      ],
     });
 
     function model(opts) {
@@ -74,16 +74,17 @@ describe('Core.getSourceDataAtCell', () => {
         _priv = {
           id: undefined,
           name: undefined,
-          address: undefined
+          address: undefined,
         };
 
+      // eslint-disable-next-line no-restricted-syntax
       for (var i in opts) {
         if (Object.prototype.hasOwnProperty.call(opts, i)) {
           _priv[i] = opts[i];
         }
       }
 
-      _pub.attr = function(attr, val) {
+      _pub.attr = function (attr, val) {
         if (typeof val === 'undefined') {
           return _priv[attr];
         }
@@ -96,7 +97,7 @@ describe('Core.getSourceDataAtCell', () => {
     }
 
     function property(attr) {
-      return function(row, value) {
+      return function (row, value) {
         return row.attr(attr, value);
       };
     }
@@ -111,7 +112,7 @@ describe('Core.getSourceDataAtCell', () => {
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
           ['2009', 20, 11, 14, 13],
-          ['2010', 30, 15, 12, 13]
+          ['2010', 30, 15, 12, 13],
         ],
         modifyRowData(row) {
           var newDataset = [];
@@ -121,7 +122,7 @@ describe('Core.getSourceDataAtCell', () => {
           }
 
           return newDataset.length ? newDataset : void 0;
-        }
+        },
       });
 
       expect(getSourceDataAtCell(1, 0)).toEqual('2016');

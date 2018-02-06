@@ -1,11 +1,11 @@
 describe('noEditor', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -18,7 +18,7 @@ describe('noEditor', () => {
 
     handsontable({
       enterBeginsEditing: true,
-      editor: false
+      editor: false,
     });
     selectCell(2, 2);
     keyDown('enter');
@@ -33,7 +33,7 @@ describe('noEditor', () => {
       selection;
 
     handsontable({
-      editor: false
+      editor: false,
     });
     selectCell(2, 2);
     keyDown('enter');
@@ -49,7 +49,7 @@ describe('noEditor', () => {
 
     handsontable({
       enterBeginsEditing: false,
-      editor: false
+      editor: false,
     });
     selectCell(2, 2);
     keyDown('enter');
@@ -61,7 +61,7 @@ describe('noEditor', () => {
 
   it('shouldn\'t render any value in editor', () => {
     handsontable({
-      editor: false
+      editor: false,
     });
     setDataAtCell(2, 2, 'string');
     selectCell(2, 2);
@@ -72,7 +72,7 @@ describe('noEditor', () => {
 
   it('shouldn\'t open editor after hitting F2', () => {
     handsontable({
-      editor: false
+      editor: false,
     });
     selectCell(2, 2);
 
@@ -85,7 +85,7 @@ describe('noEditor', () => {
 
   it('shouldn\'t open editor after hitting CapsLock', () => {
     handsontable({
-      editor: false
+      editor: false,
     });
     selectCell(2, 2);
 
@@ -99,7 +99,7 @@ describe('noEditor', () => {
   it('shouldn\'t open editor after double clicking on a cell', (done) => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
-      editor: false
+      editor: false,
     });
 
     const cell = $(getCell(0, 0));
@@ -109,13 +109,13 @@ describe('noEditor', () => {
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
+      clicks += 1;
     }, 0);
 
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
+      clicks += 1;
     }, 100);
 
     setTimeout(() => {
@@ -126,30 +126,30 @@ describe('noEditor', () => {
     }, 200);
   });
 
-  it('should not open editor after pressing a printable character', function() {
+  it('should not open editor after pressing a printable character', function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
-      editor: false
+      editor: false,
     });
     selectCell(0, 0);
 
     expect(isEditorVisible()).toBe(false);
 
-    this.$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0)});
+    this.$container.simulate('keydown', { keyCode: 'a'.charCodeAt(0) });
 
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should not open editor after pressing a printable character with shift key', function() {
+  it('should not open editor after pressing a printable character with shift key', function () {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
-      editor: false
+      editor: false,
     });
     selectCell(0, 0);
 
     expect(isEditorVisible()).toBe(false);
 
-    this.$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0), shiftKey: true});
+    this.$container.simulate('keydown', { keyCode: 'a'.charCodeAt(0), shiftKey: true });
 
     expect(isEditorVisible()).toBe(false);
   });
@@ -157,7 +157,7 @@ describe('noEditor', () => {
   it('should not not open editor after hitting ALT', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
-      editor: false
+      editor: false,
     });
     expect(getDataAtCell(0, 0)).toEqual('A1');
 

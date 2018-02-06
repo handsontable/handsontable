@@ -1,11 +1,11 @@
 describe('ContextMenuReadOnly', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -22,13 +22,13 @@ describe('ContextMenuReadOnly', () => {
       rowHeaders: true,
       colHeaders: true,
       contextMenu: true,
-      afterSetCellMeta: afterSetCellMetaCallback
+      afterSetCellMeta: afterSetCellMetaCallback,
     });
 
     selectCell(2, 3);
     contextMenu();
 
-    var changeToReadOnluButton = $('.htItemWrapper').filter(function() {
+    var changeToReadOnluButton = $('.htItemWrapper').filter(function () {
       return $(this).text() === 'Read only';
     })[0];
 

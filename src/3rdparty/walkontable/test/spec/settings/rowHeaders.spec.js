@@ -5,7 +5,7 @@ describe('rowHeaders option', () => {
     debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden', position: 'relative'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden', position: 'relative' });
     $wrapper.width(500).height(201);
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
@@ -27,7 +27,7 @@ describe('rowHeaders option', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 
@@ -40,9 +40,9 @@ describe('rowHeaders option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -55,9 +55,9 @@ describe('rowHeaders option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -78,9 +78,9 @@ describe('rowHeaders option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
 
     wt.draw();
@@ -97,12 +97,12 @@ describe('rowHeaders option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
-      }]
+      }],
     });
     wt.draw();
 

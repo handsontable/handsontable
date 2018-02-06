@@ -1,15 +1,15 @@
 describe('GhostTable', () => {
 
   var hotSettings = {
-    data: [['A', '1', 'A\nB\nC'], ['B', '2', 'A-----B-------C'], ['C', '3', 'A---\n--B-------C']]
+    data: [['A', '1', 'A\nB\nC'], ['B', '2', 'A-----B-------C'], ['C', '3', 'A---\n--B-------C']],
   };
   var gt;
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -63,7 +63,7 @@ describe('GhostTable', () => {
       expect(gt.rows.length).toBe(0);
 
       samples.clear();
-      samples.set(0, {strings: [{value: 'Foo', row: 0}, {value: 'Foo Bar', row: 0}]});
+      samples.set(0, { strings: [{ value: 'Foo', row: 0 }, { value: 'Foo Bar', row: 0 }] });
 
       gt.addRow(0, samples);
 
@@ -75,7 +75,7 @@ describe('GhostTable', () => {
       expect(gt.rows[0].table.querySelector('tbody > tr > td').innerHTML).toBe('Foo');
 
       samples.clear();
-      samples.set(0, {strings: [{value: 'Bar', row: 1}, {value: 'Baz1234', row: 1}]});
+      samples.set(0, { strings: [{ value: 'Bar', row: 1 }, { value: 'Baz1234', row: 1 }] });
 
       gt.addRow(1, samples);
 
@@ -94,17 +94,17 @@ describe('GhostTable', () => {
       gt = new Handsontable.__GhostTable(hot);
 
       samples.clear();
-      samples.set(0, {strings: [{value: 'Foo', row: 0}, {value: 'Foo.....Bar', row: 0}]});
+      samples.set(0, { strings: [{ value: 'Foo', row: 0 }, { value: 'Foo.....Bar', row: 0 }] });
 
       gt.addRow(0, samples);
 
       samples.clear();
-      samples.set(0, {strings: [{value: 'Foo\nBar\nsqw', row: 1}]});
+      samples.set(0, { strings: [{ value: 'Foo\nBar\nsqw', row: 1 }] });
 
       gt.addRow(1, samples);
 
       samples.clear();
-      samples.set(0, {strings: [{value: 'Foo', row: 0}, {value: 'Foo Bar', row: 0}]});
+      samples.set(0, { strings: [{ value: 'Foo', row: 0 }, { value: 'Foo Bar', row: 0 }] });
 
       gt.addRow(2, samples);
       gt.getHeights(heightSpy);
@@ -162,7 +162,7 @@ describe('GhostTable', () => {
       expect(gt.columns.length).toBe(0);
 
       samples.clear();
-      samples.set(0, {strings: [{value: 'Foo', col: 0}, {value: 'Foo Bar', col: 0}]});
+      samples.set(0, { strings: [{ value: 'Foo', col: 0 }, { value: 'Foo Bar', col: 0 }] });
 
       gt.addColumn(0, samples);
 
@@ -176,7 +176,7 @@ describe('GhostTable', () => {
       expect(gt.columns[0].table.querySelector('tbody > tr > td').innerHTML).toBe('Foo');
 
       samples.clear();
-      samples.set(0, {strings: [{value: 'Bar', row: 1}, {value: 'Baz1234', row: 1}]});
+      samples.set(0, { strings: [{ value: 'Bar', row: 1 }, { value: 'Baz1234', row: 1 }] });
 
       gt.addColumn(1, samples);
 
@@ -195,17 +195,17 @@ describe('GhostTable', () => {
       gt = new Handsontable.__GhostTable(hot);
 
       samples.clear();
-      samples.set(0, {strings: [{value: 'Foo', col: 0}, {value: 'Foo.....Bar', col: 0}]});
+      samples.set(0, { strings: [{ value: 'Foo', col: 0 }, { value: 'Foo.....Bar', col: 0 }] });
 
       gt.addColumn(0, samples);
 
       samples.clear();
-      samples.set(0, {strings: [{value: 'Foo\nBar\nsqw', col: 1}]});
+      samples.set(0, { strings: [{ value: 'Foo\nBar\nsqw', col: 1 }] });
 
       gt.addColumn(1, samples);
 
       samples.clear();
-      samples.set(0, {strings: [{value: 'Foo', col: 0}, {value: 'Foo Bar', col: 0}]});
+      samples.set(0, { strings: [{ value: 'Foo', col: 0 }, { value: 'Foo Bar', col: 0 }] });
 
       gt.addColumn(2, samples);
       gt.getWidths(widthSpy);
@@ -247,7 +247,7 @@ describe('GhostTable', () => {
   it('should be detected as vertical if at least one row is added', () => {
     var hot = handsontable(hotSettings);
     var samples = new Map();
-    var gt = new Handsontable.__GhostTable(hot);
+    gt = new Handsontable.__GhostTable(hot);
 
     gt.addRow(0, samples);
 
@@ -256,9 +256,9 @@ describe('GhostTable', () => {
   });
 
   it('should be detected as horizontal if at least one column is added', () => {
-    var hot = handsontable(hotSettings);
-    var samples = new Map();
-    var gt = new Handsontable.__GhostTable(hot);
+    const hot = handsontable(hotSettings);
+    const samples = new Map();
+    gt = new Handsontable.__GhostTable(hot);
 
     gt.addColumn(0, samples);
 

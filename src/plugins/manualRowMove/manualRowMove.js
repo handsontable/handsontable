@@ -1,14 +1,14 @@
 import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
-import {arrayEach} from './../../helpers/array';
-import {addClass, removeClass, offset} from './../../helpers/dom/element';
-import {rangeEach} from './../../helpers/number';
+import { arrayEach } from './../../helpers/array';
+import { addClass, removeClass, offset } from './../../helpers/dom/element';
+import { rangeEach } from './../../helpers/number';
 import EventManager from './../../eventManager';
-import {registerPlugin} from './../../plugins';
+import { registerPlugin } from './../../plugins';
 import RowsMapper from './rowsMapper';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
-import {CellCoords} from './../../3rdparty/walkontable/src';
+import { CellCoords } from './../../3rdparty/walkontable/src';
 
 import './manualRowMove.css';
 
@@ -56,8 +56,8 @@ class ManualRowMove extends BasePlugin {
         eventPageY: void 0,
         coords: void 0,
         TD: void 0,
-        row: void 0
-      }
+        row: void 0,
+      },
     });
 
     /**
@@ -118,7 +118,7 @@ class ManualRowMove extends BasePlugin {
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeColumnSort', (column, order) => this.onBeforeColumnSort(column, order));
-    this.addHook('unmodifyRow', (row) => this.onUnmodifyRow(row));
+    this.addHook('unmodifyRow', row => this.onUnmodifyRow(row));
 
     this.registerEvents();
 
@@ -209,7 +209,7 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} endRow Visual row index for the end of the selection.
    */
   changeSelection(startRow, endRow) {
-    let selection = this.hot.selection;
+    let { selection } = this.hot;
     let lastColIndex = this.hot.countCols() - 1;
 
     selection.setRangeStartOnly(new CellCoords(startRow, 0));
@@ -227,7 +227,7 @@ class ManualRowMove extends BasePlugin {
   getRowsHeight(from, to) {
     let height = 0;
 
-    for (let i = from; i < to; i++) {
+    for (let i = from; i < to; i += 1) {
       let rowHeight = this.hot.view.wt.wtTable.getRowHeight(i) || 23;
 
       height += rowHeight;
@@ -315,7 +315,7 @@ class ManualRowMove extends BasePlugin {
       return selectedRows;
     }
 
-    let {from, to} = selection;
+    let { from, to } = selection;
     let start = Math.min(from.row, to.row);
     let end = Math.max(from.row, to.row);
 
@@ -333,7 +333,7 @@ class ManualRowMove extends BasePlugin {
    */
   refreshPositions() {
     let priv = privatePool.get(this);
-    let coords = priv.target.coords;
+    let { coords } = priv.target;
     let firstVisible = this.hot.view.wt.wtTable.getFirstVisibleRow();
     let lastVisible = this.hot.view.wt.wtTable.getLastVisibleRow();
     let fixedRows = this.hot.getSettings().fixedRowsTop;
@@ -346,8 +346,8 @@ class ManualRowMove extends BasePlugin {
       this.hot.scrollViewportTo(lastVisible + 1, undefined, true);
     }
 
-    let wtTable = this.hot.view.wt.wtTable;
-    let TD = priv.target.TD;
+    let { wtTable } = this.hot.view.wt;
+    let { TD } = priv.target;
     let rootElementOffset = offset(this.hot.rootElement);
     let tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row);
     let mouseOffsetTop = priv.target.eventPageY - rootElementOffset.top + wtTable.holder.scrollTop;
@@ -447,7 +447,7 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
+    this.eventManager.addEventListener(document.documentElement, 'mousemove', event => this.onMouseMove(event));
     this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
   }
 
@@ -483,7 +483,7 @@ class ManualRowMove extends BasePlugin {
    * @param {Object} blockCalculations
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
-    let wtTable = this.hot.view.wt.wtTable;
+    let { wtTable } = this.hot.view.wt;
     let isHeaderSelection = this.hot.selection.selectedHeader.rows;
     let selection = this.hot.getSelectedRange();
     let priv = privatePool.get(this);
@@ -503,7 +503,7 @@ class ManualRowMove extends BasePlugin {
       this.backlight.appendTo(wtTable.hider);
     }
 
-    let {from, to} = selection;
+    let { from, to } = selection;
     let start = Math.min(from.row, to.row);
     let end = Math.max(from.row, to.row);
 
@@ -547,10 +547,10 @@ class ManualRowMove extends BasePlugin {
 
     // callback for browser which doesn't supports CSS pointer-event: none
     if (event.realTarget === this.backlight.element) {
-      let height = this.backlight.getSize().height;
+      let { height } = this.backlight.getSize();
       this.backlight.setSize(null, 0);
 
-      setTimeout(function() {
+      setTimeout(function () {
         this.backlight.setPosition(null, height);
       });
     }
@@ -633,9 +633,9 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   onAfterScrollHorizontally() {
-    let wtTable = this.hot.view.wt.wtTable;
+    let { wtTable } = this.hot.view.wt;
     let headerWidth = this.hot.view.wt.wtViewport.getRowHeaderWidth();
-    let scrollLeft = wtTable.holder.scrollLeft;
+    let { scrollLeft } = wtTable.holder;
     let posLeft = headerWidth + scrollLeft;
 
     this.backlight.setPosition(null, posLeft);

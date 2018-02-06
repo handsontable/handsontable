@@ -1,5 +1,5 @@
-import {isIE8, isIE9, isSafari} from '../browser';
-import {hasCaptionProblem} from '../feature';
+import { isIE8, isIE9, isSafari } from '../browser';
+import { hasCaptionProblem } from '../feature';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -12,7 +12,7 @@ export function getParent(element, level = 0) {
   let iteration = -1;
   let parent = null;
 
-  while (element != null) {
+  while (element !== null) {
     if (iteration === level) {
       parent = element;
       break;
@@ -22,7 +22,7 @@ export function getParent(element, level = 0) {
       element = element.host;
 
     } else {
-      iteration++;
+      iteration += 1;
       element = element.parentNode;
     }
   }
@@ -40,7 +40,7 @@ export function getParent(element, level = 0) {
  * @returns {HTMLElement|null}
  */
 export function closest(element, nodes, until) {
-  while (element != null && element !== until) {
+  while (element !== null && element !== until) {
     if (element.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
       return element;
     }
@@ -81,7 +81,7 @@ export function closestDown(element, nodes, until) {
       element = element.parentNode;
     }
   }
-  const length = matched.length;
+  const { length } = matched;
 
   return length ? matched[length - 1] : null;
 }
@@ -104,7 +104,7 @@ export function isChildOf(child, parent) {
     queriedParents.push(parent);
   }
 
-  while (node != null) {
+  while (node !== null) {
     if (queriedParents.indexOf(node) > -1) {
       return true;
     }
@@ -127,11 +127,11 @@ export function isChildOfWebComponentTable(element) {
 
   parentNode = polymerWrap(element);
 
-  function isHotTable(element) {
-    return element.nodeType === Node.ELEMENT_NODE && element.nodeName === hotTableName.toUpperCase();
+  function isHotTable(_element) {
+    return _element.nodeType === Node.ELEMENT_NODE && _element.nodeName === hotTableName.toUpperCase();
   }
 
-  while (parentNode != null) {
+  while (parentNode !== null) {
     if (isHotTable(parentNode)) {
       result = true;
       break;
@@ -143,7 +143,7 @@ export function isChildOfWebComponentTable(element) {
       }
       parentNode = parentNode.host;
     }
-    parentNode = parentNode.parentNode;
+    ({ parentNode } = parentNode);
   }
 
   return result;
@@ -186,7 +186,7 @@ export function index(element) {
   if (element.previousSibling) {
     /* eslint-disable no-cond-assign */
     while (element = element.previousSibling) {
-      ++i;
+      i += 1;
     }
   }
 
@@ -219,14 +219,14 @@ function filterEmptyClassNames(classNames) {
   }
   while (classNames[len]) {
     result.push(classNames[len]);
-    len++;
+    len += 1;
   }
 
   return result;
 }
 
 if (classListSupport) {
-  var isSupportMultipleClassesArg = (function() {
+  var isSupportMultipleClassesArg = (function () {
     var element = document.createElement('div');
 
     element.classList.add('test', 'test2');
@@ -234,7 +234,7 @@ if (classListSupport) {
     return element.classList.contains('test2');
   }());
 
-  _hasClass = function _hasClass(element, className) {
+  _hasClass = function (element, className) {
     if (element.classList === void 0 || className === '') {
       return false;
     }
@@ -242,7 +242,7 @@ if (classListSupport) {
     return element.classList.contains(className);
   };
 
-  _addClass = function _addClass(element, className) {
+  _addClass = function (element, className) {
     var len = 0;
 
     if (typeof className === 'string') {
@@ -251,17 +251,17 @@ if (classListSupport) {
     className = filterEmptyClassNames(className);
 
     if (isSupportMultipleClassesArg) {
-      element.classList.add.apply(element.classList, className);
+      element.classList.add(...className);
 
     } else {
       while (className && className[len]) {
         element.classList.add(className[len]);
-        len++;
+        len += 1;
       }
     }
   };
 
-  _removeClass = function _removeClass(element, className) {
+  _removeClass = function (element, className) {
     var len = 0;
 
     if (typeof className === 'string') {
@@ -270,27 +270,27 @@ if (classListSupport) {
     className = filterEmptyClassNames(className);
 
     if (isSupportMultipleClassesArg) {
-      element.classList.remove.apply(element.classList, className);
+      element.classList.remove(...className);
 
     } else {
       while (className && className[len]) {
         element.classList.remove(className[len]);
-        len++;
+        len += 1;
       }
     }
   };
 
 } else {
-  var createClassNameRegExp = function createClassNameRegExp(className) {
+  var createClassNameRegExp = function (className) {
     return new RegExp(`(\\s|^)${className}(\\s|$)`);
   };
 
-  _hasClass = function _hasClass(element, className) {
+  _hasClass = function (element, className) {
     // http://snipplr.com/view/3561/addclass-removeclass-hasclass/
     return element.className !== void 0 && createClassNameRegExp(className).test(element.className);
   };
 
-  _addClass = function _addClass(element, className) {
+  _addClass = function (element, className) {
     var len = 0,
       _className = element.className;
 
@@ -305,13 +305,13 @@ if (classListSupport) {
         if (!createClassNameRegExp(className[len]).test(_className)) {
           _className += ` ${className[len]}`;
         }
-        len++;
+        len += 1;
       }
     }
     element.className = _className;
   };
 
-  _removeClass = function _removeClass(element, className) {
+  _removeClass = function (element, className) {
     var len = 0,
       _className = element.className;
 
@@ -321,7 +321,7 @@ if (classListSupport) {
     while (className && className[len]) {
       // String.prototype.trim is defined in polyfill.js
       _className = _className.replace(createClassNameRegExp(className[len]), ' ').trim();
-      len++;
+      len += 1;
     }
     if (element.className !== _className) {
       element.className = _className;
@@ -366,7 +366,7 @@ export function removeTextNodes(element, parent) {
 
   } else if (['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].indexOf(element.nodeName) > -1) {
     var childs = element.childNodes;
-    for (var i = childs.length - 1; i >= 0; i--) {
+    for (var i = childs.length - 1; i >= 0; i -= 1) {
       removeTextNodes(childs[i], element);
     }
   }
@@ -489,11 +489,10 @@ export function offset(elem) {
 
     return {
       top: box.top + (window.pageYOffset || docElem.scrollTop) - (docElem.clientTop || 0),
-      left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0)
+      left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0),
     };
   }
-  offsetLeft = elem.offsetLeft;
-  offsetTop = elem.offsetTop;
+  ({ offsetLeft, offsetTop } = elem);
   lastElem = elem;
 
   /* eslint-disable no-cond-assign */
@@ -516,7 +515,7 @@ export function offset(elem) {
 
   return {
     left: offsetLeft,
-    top: offsetTop
+    top: offsetTop,
   };
 }
 
@@ -595,11 +594,9 @@ export function getScrollableElement(element) {
     computedOverflowX = '';
 
   while (el && el.style && document.body !== el) {
-    overflow = el.style.overflow;
-    overflowX = el.style.overflowX;
-    overflowY = el.style.overflowY;
+    ({ overflow, overflowX, overflowY } = el.style);
 
-    if (overflow == 'scroll' || overflowX == 'scroll' || overflowY == 'scroll') {
+    if (overflow === 'scroll' || overflowX === 'scroll' || overflowY === 'scroll') {
       return el;
 
     } else if (window.getComputedStyle) {

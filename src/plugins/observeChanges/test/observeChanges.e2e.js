@@ -1,11 +1,11 @@
 describe('HandsontableObserveChanges', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -17,7 +17,7 @@ describe('HandsontableObserveChanges', () => {
       data,
       width: 200,
       height: 200,
-      observeChanges
+      observeChanges,
     });
   }
 
@@ -25,7 +25,7 @@ describe('HandsontableObserveChanges', () => {
     describe('array data', () => {
       it('should render newly added row', (done) => {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
 
         data.push(['A3', 'B3']);
 
@@ -40,7 +40,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render newly added column', (done) => {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data[0].push('C1');
@@ -55,7 +55,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render removed row', (done) => {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data.splice(0, 1); // removes one row at index 0
@@ -69,7 +69,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render removed column', (done) => {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data[0].splice(0, 1); // removes one column at index 0 in first row
@@ -84,7 +84,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render cell change from string to string', (done) => {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data[0][0] = 'new string';
@@ -97,7 +97,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render cell change in a new row', (done) => {
         var data = Handsontable.helper.createSpreadsheetData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data.push(['A3', 'B3']);
@@ -129,10 +129,10 @@ describe('HandsontableObserveChanges', () => {
     describe('object data', () => {
       it('should render newly added row', (done) => {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
-        data.push({prop0: 'A3', prop1: 'B3'});
+        data.push({ prop0: 'A3', prop1: 'B3' });
 
         setTimeout(() => {
           expect(htCore.find('tr').length).toEqual(3);
@@ -143,7 +143,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render removed row', (done) => {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data.splice(0, 1); // removes one row at index 0
@@ -157,7 +157,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render cell change from string to string', (done) => {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
         data[0].prop0 = 'new string';
@@ -170,10 +170,10 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render cell change in a new row', (done) => {
         var data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
-        var hot = createHOT(data, true);
+        createHOT(data, true);
         var htCore = getHtCore();
 
-        data.push({prop0: 'A3', prop1: 'B3'});
+        data.push({ prop0: 'A3', prop1: 'B3' });
 
         setTimeout(() => {
           expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
@@ -191,8 +191,8 @@ describe('HandsontableObserveChanges', () => {
         data[0].prop0 = undefined;
 
         expect(() => {
-          var hot = createHOT(data, true);
-          var htCore = getHtCore();
+          createHOT(data, true);
+          getHtCore();
         }).not.toThrow();
       });
 
@@ -214,7 +214,7 @@ describe('HandsontableObserveChanges', () => {
   describe('enabling/disabling plugin', () => {
     it('should be possible to enable plugin using updateSettings', (done) => {
       var data = Handsontable.helper.createSpreadsheetData(2, 2);
-      var hot = createHOT(data, false);
+      createHOT(data, false);
       var htCore = getHtCore();
 
       data[0][0] = 'new string';
@@ -223,7 +223,7 @@ describe('HandsontableObserveChanges', () => {
         expect(htCore.find('td:eq(0)').html()).toEqual('A1');
 
         updateSettings({
-          observeChanges: true
+          observeChanges: true,
         });
         data[1][0] = 'another new string';
       }, 200);
@@ -246,7 +246,7 @@ describe('HandsontableObserveChanges', () => {
         expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A2');
 
         updateSettings({
-          observeChanges: false
+          observeChanges: false,
         });
 
         data[1][0] = 'another new string';
@@ -486,7 +486,7 @@ describe('HandsontableObserveChanges', () => {
         var afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
         hot.addHook('afterCreateRow', afterCreateRowCallback);
 
-        data.push({prop0: 'A2', prop1: 'B2'});
+        data.push({ prop0: 'A2', prop1: 'B2' });
 
         setTimeout(() => {
           expect(afterCreateRowCallback.calls.count()).toEqual(1);

@@ -1,4 +1,4 @@
-import {requestAnimationFrame, cancelAnimationFrame} from './../helpers/feature';
+import { requestAnimationFrame, cancelAnimationFrame } from './../helpers/feature';
 
 /**
  * @class Interval

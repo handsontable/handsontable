@@ -1,11 +1,11 @@
 describe('Core.countSourceCols', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -17,7 +17,7 @@ describe('Core.countSourceCols', () => {
       data: [['', '', '', '', '', '', '', '', '', '', '', '', '', '', '']],
       columns(column) {
         return [1, 5, 9].indexOf(column) > -1 ? {} : null;
-      }
+      },
     });
 
     expect(hot.countSourceCols()).toBe(15);

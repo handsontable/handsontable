@@ -12,6 +12,6 @@ export default function copyItem(copyPastePlugin) {
     disabled() {
       return !copyPastePlugin.hot.getSelected();
     },
-    hidden: false
+    hidden: false,
   };
 }

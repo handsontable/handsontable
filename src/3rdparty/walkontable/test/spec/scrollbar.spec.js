@@ -5,7 +5,7 @@ describe('WalkontableScrollbar', () => {
     debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden' });
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
     $wrapper.append($container);
@@ -26,14 +26,14 @@ describe('WalkontableScrollbar', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 
     expect($table.parents('.wtHolder').length).toEqual(1);
   });
 
-  it('scrolling should have no effect when totalRows is smaller than height', function() {
+  it('scrolling should have no effect when totalRows is smaller than height', function () {
     this.data.splice(5, this.data.length - 5);
 
     try {
@@ -41,7 +41,7 @@ describe('WalkontableScrollbar', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw();
 

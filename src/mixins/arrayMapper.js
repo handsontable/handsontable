@@ -1,6 +1,6 @@
-import {arrayReduce, arrayMap, arrayMax} from './../helpers/array';
-import {defineGetter} from './../helpers/object';
-import {rangeEach} from './../helpers/number';
+import { arrayReduce, arrayMap, arrayMax } from './../helpers/array';
+import { defineGetter } from './../helpers/object';
+import { rangeEach } from './../helpers/number';
 
 const MIXIN_NAME = 'arrayMapper';
 
@@ -17,7 +17,7 @@ const arrayMapper = {
    * @return {Number|null} Returns translated index mapped by passed physical index.
    */
   getValueByIndex(physicalIndex) {
-    const length = this._arrayMap.length;
+    const { length } = this._arrayMap;
     let translatedIndex = null;
 
     if (physicalIndex < length) {
@@ -100,14 +100,14 @@ const arrayMapper = {
       // Todo: compare perf between reduce vs sort->each->brake
       return arrayReduce(removedItems, (count, removedLogicalRow) => {
         if (logicalRow > removedLogicalRow) {
-          count++;
+          count += 1;
         }
 
         return count;
       }, 0);
     }
 
-    this._arrayMap = arrayMap(this._arrayMap, (logicalRow, physicalRow) => {
+    this._arrayMap = arrayMap(this._arrayMap, (logicalRow) => {
       let rowShift = countRowShift(logicalRow);
 
       if (rowShift) {
@@ -152,7 +152,7 @@ const arrayMapper = {
    */
   clearMap() {
     this._arrayMap.length = 0;
-  }
+  },
 };
 
 defineGetter(arrayMapper, 'MIXIN_NAME', MIXIN_NAME, {

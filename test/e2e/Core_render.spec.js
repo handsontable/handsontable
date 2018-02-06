@@ -1,20 +1,20 @@
 describe('Core_render', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('all cells should get green background', function() {
+  it('all cells should get green background', function () {
     function greenCell(instance, td, row, col, prop, value, cellProperties) {
-      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
       td.style.backgroundColor = 'green';
 
     }
@@ -22,7 +22,7 @@ describe('Core_render', () => {
     handsontable({
       data: [
         ['a', 'b'],
-        ['c', 'd']
+        ['c', 'd'],
       ],
       minRows: 4,
       minCols: 4,
@@ -30,21 +30,21 @@ describe('Core_render', () => {
       minSpareCols: 4,
       cells() {
         return {
-          renderer: greenCell
+          renderer: greenCell,
         };
-      }
+      },
     });
 
     var $tds = this.$container.find('.htCore tbody td');
-    $tds.each(function() {
+    $tds.each(function () {
       expect(this.style.backgroundColor).toEqual('green');
     });
   });
 
-  it('render should update border dimensions', function() {
+  it('render should update border dimensions', function () {
     var data = [
       ['a', 'b'],
-      ['c', 'd']
+      ['c', 'd'],
     ];
 
     handsontable({
@@ -52,7 +52,7 @@ describe('Core_render', () => {
       minRows: 4,
       minCols: 4,
       minSpareRows: 4,
-      minSpareCols: 4
+      minSpareCols: 4,
     });
 
     selectCell(1, 1);
@@ -68,18 +68,18 @@ describe('Core_render', () => {
 
     handsontable({
       data: [
-        ['Joe Red']
+        ['Joe Red'],
       ],
       afterRender() {
-        counter++;
-      }
+        counter += 1;
+      },
     });
     populateFromArray(0, 0, [['t', 'e', 's', 't']]);
 
     expect(counter).toEqual(2); // 1 from load and 1 from populateFromArray
   });
 
-  it('should run afterRenderer hook', function() {
+  it('should run afterRenderer hook', function () {
     var lastCellProperties;
 
     handsontable({
@@ -91,7 +91,7 @@ describe('Core_render', () => {
           throw new Error();
         }
         lastCellProperties = cellProperties;
-      }
+      },
     });
 
     expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('Changed by plugin');
@@ -99,7 +99,7 @@ describe('Core_render', () => {
     expect(lastCellProperties.col).toEqual(4);
   });
 
-  it('should run beforeRenderer hook', function() {
+  it('should run beforeRenderer hook', function () {
     var lastCellProperties;
 
     handsontable({
@@ -107,7 +107,7 @@ describe('Core_render', () => {
       beforeRenderer(td, row, col, prop, value, cellProperties) {
         td.innerHTML = 'Changed by plugin';
         lastCellProperties = cellProperties;
-      }
+      },
     });
 
     // Value is overwritten by text renderer

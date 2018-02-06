@@ -1,4 +1,4 @@
-import {getValidSelection} from './../utils';
+import { getValidSelection } from './../utils';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'remove_row';
@@ -33,6 +33,6 @@ export default function removeRowItem() {
     },
     hidden() {
       return !this.getSettings().allowRemoveRow;
-    }
+    },
   };
 }

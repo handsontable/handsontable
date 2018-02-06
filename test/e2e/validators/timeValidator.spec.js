@@ -1,23 +1,23 @@
 describe('timeValidator', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfObjects = function() {
+  var arrayOfObjects = function () {
     return [
-      {time: '4:10:05 am', name: 'Ted', lastName: 'Right'},
-      {time: '17:15:25', name: 'Frank', lastName: 'Honest'},
-      {time: '14:65:45 am', name: 'Joan', lastName: 'Well'},
-      {time: '33:25:05', name: 'Sid', lastName: 'Strong'}
+      { time: '4:10:05 am', name: 'Ted', lastName: 'Right' },
+      { time: '17:15:25', name: 'Frank', lastName: 'Honest' },
+      { time: '14:65:45 am', name: 'Joan', lastName: 'Well' },
+      { time: '33:25:05', name: 'Sid', lastName: 'Strong' },
     ];
   };
 
@@ -27,11 +27,11 @@ describe('timeValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'time', type: 'time'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'time', type: 'time' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(0, 0, '');
@@ -48,11 +48,11 @@ describe('timeValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'time', type: 'time'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'time', type: 'time' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(0, 0, 'nd');
@@ -69,11 +69,11 @@ describe('timeValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'time', type: 'time'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'time', type: 'time' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(0, 0, '30:10:25');
@@ -90,11 +90,11 @@ describe('timeValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'time', type: 'time'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'time', type: 'time' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(1, 0, '20:20:01');
@@ -111,11 +111,11 @@ describe('timeValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'time', type: 'time', timeFormat: 'HH:mm:ss'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'time', type: 'time', timeFormat: 'HH:mm:ss' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(1, 0, '5:10:15 am');
@@ -132,11 +132,11 @@ describe('timeValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'time', type: 'time', timeFormat: 'HH:mm:ss'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'time', type: 'time', timeFormat: 'HH:mm:ss' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     setDataAtCell(1, 0, '16:32:03');
@@ -154,11 +154,11 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', dateFormat: 'HH:mm', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'time', type: 'time', dateFormat: 'HH:mm', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, '');
@@ -175,11 +175,11 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', dateFormat: 'HH:mm', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'time', type: 'time', dateFormat: 'HH:mm', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, null);
@@ -196,11 +196,11 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', dateFormat: 'HH:mm', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'time', type: 'time', dateFormat: 'HH:mm', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, void 0);
@@ -219,11 +219,11 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: 'h:mm:ss a'},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'time', type: 'time', timeFormat: 'h:mm:ss a' },
+          { data: 'name' },
+          { data: 'lastName' },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, '13:00:00');
@@ -240,11 +240,11 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: 'h:mm:ss a', correctFormat: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'time', type: 'time', timeFormat: 'h:mm:ss a', correctFormat: false },
+          { data: 'name' },
+          { data: 'lastName' },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, '13:00:00');
@@ -261,10 +261,10 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: 'h:mm:ss a', correctFormat: true},
-          {data: 'lastName'}
+          { data: 'time', type: 'time', timeFormat: 'h:mm:ss a', correctFormat: true },
+          { data: 'lastName' },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, '16:35:01');
@@ -285,10 +285,10 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: 'HH:mm:ss', correctFormat: true},
-          {data: 'lastName'}
+          { data: 'time', type: 'time', timeFormat: 'HH:mm:ss', correctFormat: true },
+          { data: 'lastName' },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       var currentDateTime = new Date();
@@ -300,7 +300,7 @@ describe('timeValidator', () => {
       }, 100);
 
       setTimeout(() => {
-        var addLeadingZero = function(number) {
+        var addLeadingZero = function (number) {
           return number < 10 ? `0${number}` : number;
         };
         expect(getDataAtCell(1, 0)).toEqual(`${addLeadingZero(currentDateTime.getHours())}:${addLeadingZero(currentDateTime.getMinutes())}:${
@@ -315,10 +315,10 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: 'HH:mm:ss', correctFormat: true},
-          {data: 'lastName'}
+          { data: 'time', type: 'time', timeFormat: 'HH:mm:ss', correctFormat: true },
+          { data: 'lastName' },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       var currentDateTime = new Date();
@@ -330,7 +330,7 @@ describe('timeValidator', () => {
       }, 100);
 
       setTimeout(() => {
-        var addLeadingZero = function(number) {
+        var addLeadingZero = function (number) {
           return number < 10 ? `0${number}` : number;
         };
 
@@ -346,10 +346,10 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: 'hh:mm:ss a', correctFormat: true},
-          {data: 'lastName'}
+          { data: 'time', type: 'time', timeFormat: 'hh:mm:ss a', correctFormat: true },
+          { data: 'lastName' },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, '19');
@@ -370,10 +370,10 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: 'mm:ss', correctFormat: true},
-          {data: 'lastName'}
+          { data: 'time', type: 'time', timeFormat: 'mm:ss', correctFormat: true },
+          { data: 'lastName' },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, '57');
@@ -394,11 +394,11 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'time', type: 'time', timeFormat: 'HH:mm:ss', correctFormat: true},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'time', type: 'time', timeFormat: 'HH:mm:ss', correctFormat: true },
+          { data: 'name' },
+          { data: 'lastName' },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(1, 0, 'test non-time string');

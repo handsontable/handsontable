@@ -1,11 +1,11 @@
 describe('Core.toPhysicalRow', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -17,7 +17,7 @@ describe('Core.toPhysicalRow', () => {
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       modifyRow(row) {
         return row + 3;
-      }
+      },
     });
 
     expect(hot.toPhysicalRow(0)).toBe(3);

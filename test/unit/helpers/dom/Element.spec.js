@@ -1,4 +1,4 @@
-import {isInput, closestDown, getParent, hasClass} from 'handsontable/helpers/dom/element';
+import { isInput, closestDown, getParent, hasClass } from 'handsontable/helpers/dom/element';
 
 describe('DomElement helper', () => {
   //

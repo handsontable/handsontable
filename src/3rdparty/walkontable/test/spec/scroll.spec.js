@@ -5,7 +5,7 @@ describe('WalkontableScroll', () => {
     debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden' });
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
     $wrapper.append($container);
@@ -28,7 +28,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw().scrollHorizontal(999).draw();
       expect($table.find('tbody tr:eq(0) td:last')[0].innerHTML).toBe('c');
@@ -44,18 +44,18 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        columnHeaders: [function(col, TH) {
+        columnHeaders: [function (col, TH) {
           TH.innerHTML = plusOne(col);
         }],
-        rowHeaders: [function(row, TH) {
+        rowHeaders: [function (row, TH) {
           TH.innerHTML = plusOne(row);
-        }]
+        }],
       });
       wt.draw().scrollHorizontal(999).draw();
       expect($table.find('tbody tr:eq(0) td:last')[0].innerHTML).toBe('c');
     });
 
-    it('scroll not scroll the viewport if all rows are visible', function() {
+    it('scroll not scroll the viewport if all rows are visible', function () {
       this.data.splice(5);
 
       $wrapper.height(201).width(100);
@@ -64,7 +64,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
 
       wt.draw();
@@ -80,7 +80,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw().scrollHorizontal(999).draw();
       expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0])).toEqual(new Walkontable.CellCoords(0, 0));
@@ -91,20 +91,20 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw().scrollVertical(-1).draw();
       expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new Walkontable.CellCoords(0, 0));
     });
 
-    it('scroll vertical should scroll to last row if given number bigger than totalRows', function() {
+    it('scroll vertical should scroll to last row if given number bigger than totalRows', function () {
       this.data.splice(20, this.data.length - 20);
 
       var wt = new Walkontable.Core({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw().scrollVertical(999).draw();
       expect(wt.wtTable.getCoords($table.find('tbody tr:last td:first')[0])).toEqual(new Walkontable.CellCoords(19, 0));
@@ -116,7 +116,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw().scrollHorizontal(-1).draw();
       expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new Walkontable.CellCoords(0, 0));
@@ -127,7 +127,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw().scrollHorizontal(999).draw();
       expect(wt.wtTable.getCoords($table.find('tbody tr:first td:last')[0])).toEqual(new Walkontable.CellCoords(0, 3));
@@ -140,7 +140,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw();
       var tmp = wt.getViewport();
@@ -155,7 +155,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw();
       var height = $wrapper[0].clientHeight;
@@ -171,7 +171,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw();
       var height = $wrapper[0].clientHeight;
@@ -191,9 +191,9 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        rowHeaders: [function(row, TH) {
+        rowHeaders: [function (row, TH) {
           TH.innerHTML = row + 1;
-        }]
+        }],
       });
       wt.draw();
 
@@ -212,9 +212,9 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        rowHeaders: [function(row, TH) {
+        rowHeaders: [function (row, TH) {
           TH.innerHTML = row + 1;
-        }]
+        }],
       });
       wt.draw().scrollViewport(new Walkontable.CellCoords(0, 2)).draw();
       expect(wt.wtTable.getCoords($table.find('tbody tr:first td:last')[0])).toEqual(new Walkontable.CellCoords(0, 3));
@@ -227,7 +227,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw();
 
@@ -245,7 +245,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw();
       wt.scrollViewport(new Walkontable.CellCoords(20, 0)).draw();
@@ -254,7 +254,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new Walkontable.CellCoords(12, 0));
     });
 
-    it('scroll viewport to a cell that does not exist (vertically) should throw an error', function() {
+    it('scroll viewport to a cell that does not exist (vertically) should throw an error', function () {
       this.data.splice(20, this.data.length - 20);
 
       expect(() => {
@@ -263,7 +263,7 @@ describe('WalkontableScroll', () => {
           table: $table[0],
           data: getData,
           totalRows: getTotalRows,
-          totalColumns: getTotalColumns
+          totalColumns: getTotalColumns,
         });
         wt.draw();
         wt.scrollViewport(new Walkontable.CellCoords(40, 0)).draw();
@@ -278,14 +278,14 @@ describe('WalkontableScroll', () => {
           table: $table[0],
           data: getData,
           totalRows: getTotalRows,
-          totalColumns: getTotalColumns
+          totalColumns: getTotalColumns,
         });
         wt.draw();
         wt.scrollViewport(new Walkontable.CellCoords(0, 40)).draw();
       }).toThrow();
     });
 
-    it('remove row from the last scroll page should scroll viewport a row up if needed', function() {
+    it('remove row from the last scroll page should scroll viewport a row up if needed', function () {
 
       $wrapper.width(100).height(210);
 
@@ -293,7 +293,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw().scrollViewport(new Walkontable.CellCoords(getTotalRows() - 1, 0)).draw();
 
@@ -305,13 +305,13 @@ describe('WalkontableScroll', () => {
       expect(originalViewportStartRow - 1).toEqual(wt.getViewport()[0]);
     });
 
-    it('should scroll to last row if smaller data source is loaded that does not have currently displayed row', function() {
+    it('should scroll to last row if smaller data source is loaded that does not have currently displayed row', function () {
       $wrapper.width(100).height(260);
       var wt = new Walkontable.Core({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw();
       wt.scrollVertical(50).draw();
@@ -326,7 +326,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw().scrollHorizontal(50).draw();
       createDataArray(100, 30);
@@ -334,10 +334,10 @@ describe('WalkontableScroll', () => {
       expect($table.find('tbody tr:first td').length).toBeGreaterThan(3);
     });
 
-    it('should scroll to last row with very high rows', function() {
+    it('should scroll to last row with very high rows', function () {
       createDataArray(20, 100);
 
-      for (var i = 0, ilen = this.data.length; i < ilen; i++) {
+      for (var i = 0, ilen = this.data.length; i < ilen; i += 1) {
         this.data[i][0] += '\n this \nis \na \nmultiline \ncell';
       }
 
@@ -346,17 +346,17 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw();
       wt.scrollVertical(20).draw();
       expect($table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell(new Walkontable.CellCoords(this.data.length - 1, 0))); // last rendered row should be last data row
     });
 
-    xit('should scroll to last row with very high rows (respecting fixedRows)', function() {
+    xit('should scroll to last row with very high rows (respecting fixedRows)', function () {
       createDataArray(20, 100);
 
-      for (var i = 0, ilen = this.data.length; i < ilen; i++) {
+      for (var i = 0, ilen = this.data.length; i < ilen; i += 1) {
         this.data[i][0] += '\n this \nis \na \nmultiline \ncell';
       }
 
@@ -365,7 +365,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedRowsTop: 2
+        fixedRowsTop: 2,
       });
 
       wt.draw().scrollVertical(2000).draw();
@@ -384,7 +384,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw().scrollHorizontal(50).draw();
       createDataArray(100, 30);
@@ -400,7 +400,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsLeft: 2
+        fixedColumnsLeft: 2,
       });
 
       wt.draw().scrollViewport(new Walkontable.CellCoords(8, 1)).draw();
@@ -424,7 +424,7 @@ describe('WalkontableScroll', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         fixedColumnsLeft: 2,
-        fixedRowsTop: 2
+        fixedRowsTop: 2,
       });
 
       var masterHolder = wt.wtTable.holder;
@@ -455,7 +455,6 @@ describe('WalkontableScroll', () => {
       $wrapper.width(260).height(201);
 
       var masterCallback = jasmine.createSpy('masterCallback');
-      var topOverlayCallback = jasmine.createSpy('topOverlayCallback');
       var leftOverlayCallback = jasmine.createSpy('leftOverlayCallback');
 
       var wt = new Walkontable.Core({
@@ -464,7 +463,7 @@ describe('WalkontableScroll', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         fixedColumnsLeft: 2,
-        fixedRowsTop: 2
+        fixedRowsTop: 2,
       });
 
       var masterHolder = wt.wtTable.holder;
@@ -576,7 +575,7 @@ describe('WalkontableScroll', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         fixedColumnsLeft: 2,
-        fixedRowsTop: 2
+        fixedRowsTop: 2,
       });
 
       wt.draw();
@@ -591,7 +590,7 @@ describe('WalkontableScroll', () => {
       leftHolder.addEventListener('scroll', leftCallback);
 
       var wheelEvent = new WheelEvent('wheel', {
-        deltaX: 400
+        deltaX: 400,
       });
 
       topLeftCornerOverlayHolder.dispatchEvent(wheelEvent);
@@ -606,7 +605,7 @@ describe('WalkontableScroll', () => {
         expect(leftCallback.callCount).toEqual(0);
 
         wheelEvent = new WheelEvent('wheel', {
-          deltaY: 400
+          deltaY: 400,
         });
 
         topLeftCornerOverlayHolder.dispatchEvent(wheelEvent);
@@ -629,7 +628,7 @@ describe('WalkontableScroll', () => {
       $wrapper.width(201).height(201);
     });
 
-    it('should scroll to last column on the right', function() {
+    it('should scroll to last column on the right', function () {
       this.data = createSpreadsheetData(10, 10);
 
       $wrapper.width(201).height(201);
@@ -638,7 +637,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        columnWidth: 50
+        columnWidth: 50,
       });
       wt.draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(2);
@@ -646,7 +645,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(9);
     });
 
-    it('should not scroll back to a column that is in viewport', function() {
+    it('should not scroll back to a column that is in viewport', function () {
       this.data = createSpreadsheetData(10, 10);
 
       var wt = new Walkontable.Core({
@@ -654,7 +653,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        columnWidth: 50
+        columnWidth: 50,
       });
       wt.draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(2);
@@ -671,7 +670,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(9); // nothing changed
     });
 
-    it('should scroll back to a column that is before viewport', function() {
+    it('should scroll back to a column that is before viewport', function () {
       this.data = createSpreadsheetData(10, 10);
 
       var wt = new Walkontable.Core({
@@ -679,7 +678,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        columnWidth: 50
+        columnWidth: 50,
       });
       wt.draw();
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(2);
@@ -696,7 +695,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(9);
     });
 
-    it('should scroll to a column that is after viewport', function() {
+    it('should scroll to a column that is after viewport', function () {
       this.data = createSpreadsheetData(10, 10);
 
       var wt = new Walkontable.Core({
@@ -704,7 +703,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        columnWidth: 50
+        columnWidth: 50,
       });
       wt.draw();
       wt.scrollViewport(new Walkontable.CellCoords(0, 2)).draw();
@@ -714,7 +713,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getLastVisibleColumn()).toEqual(4);
     });
 
-    it('should scroll to a wide column that is after viewport', function() {
+    it('should scroll to a wide column that is after viewport', function () {
       this.data = createSpreadsheetData(10, 10);
 
       var wt = new Walkontable.Core({
@@ -728,7 +727,7 @@ describe('WalkontableScroll', () => {
           }
 
           return 50;
-        }
+        },
       });
 
       wt.draw();
@@ -739,7 +738,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getFirstVisibleColumn()).toEqual(2);
     });
 
-    xit('should scroll to a very wide column that is after viewport', function() {
+    xit('should scroll to a very wide column that is after viewport', function () {
       this.data = createSpreadsheetData(10, 10);
 
       var wt = new Walkontable.Core({
@@ -753,7 +752,7 @@ describe('WalkontableScroll', () => {
           }
 
           return 50;
-        }
+        },
       });
 
       wt.draw();
@@ -777,7 +776,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getFirstVisibleColumn()).toEqual(3);
     });
 
-    xit('should scroll to a very wide column that is after viewport (with fixedColumnsLeft)', function() {
+    xit('should scroll to a very wide column that is after viewport (with fixedColumnsLeft)', function () {
       this.data = createSpreadsheetData(1, 10);
 
       var wt = new Walkontable.Core({
@@ -792,7 +791,7 @@ describe('WalkontableScroll', () => {
 
           return 50;
         },
-        fixedColumnsLeft: 2
+        fixedColumnsLeft: 2,
       });
 
       wt.draw();
@@ -817,7 +816,7 @@ describe('WalkontableScroll', () => {
       $wrapper.width(201).height(201);
     });
 
-    xit('should scroll to a very high row that is after viewport', function() {
+    xit('should scroll to a very high row that is after viewport', function () {
       this.data = createSpreadsheetData(20, 1);
 
       var txt = 'Very very very very very very very very very very very very very very very very very long text.';
@@ -827,7 +826,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
 
       wt.draw();
@@ -846,7 +845,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getFirstVisibleRow()).toEqual(3);
     });
 
-    xit('should scroll to a very high row that is after viewport (at the end)', function() {
+    xit('should scroll to a very high row that is after viewport (at the end)', function () {
       this.data = createSpreadsheetData(20, 1);
 
       var txt = 'Very very very very very very very very very very very very very very very very very long text.';
@@ -856,7 +855,7 @@ describe('WalkontableScroll', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
 
       wt.draw().scrollViewport(new Walkontable.CellCoords(18, 0)).draw();

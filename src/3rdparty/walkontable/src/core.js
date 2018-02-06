@@ -4,8 +4,8 @@ import {
   isVisible,
   removeClass,
 } from './../../../helpers/dom/element';
-import {objectEach} from './../../../helpers/object';
-import {toUpperCaseFirst, randomString} from './../../../helpers/string';
+import { objectEach } from './../../../helpers/object';
+import { toUpperCaseFirst, randomString } from './../../../helpers/string';
 import Event from './event';
 import Overlays from './overlays';
 import Scroll from './scroll';
@@ -49,14 +49,14 @@ class Walkontable {
 
     // find original headers
     if (this.wtTable.THEAD.childNodes.length && this.wtTable.THEAD.childNodes[0].childNodes.length) {
-      for (let c = 0, clen = this.wtTable.THEAD.childNodes[0].childNodes.length; c < clen; c++) {
+      for (let c = 0, clen = this.wtTable.THEAD.childNodes[0].childNodes.length; c < clen; c += 1) {
         originalHeaders.push(this.wtTable.THEAD.childNodes[0].childNodes[c].innerHTML);
       }
       if (!this.getSetting('columnHeaders').length) {
         this.update('columnHeaders', [
-          function(column, TH) {
+          function (column, TH) {
             fastInnerText(TH, originalHeaders[column]);
-          }
+          },
         ]);
       }
     }
@@ -182,7 +182,7 @@ class Walkontable {
       this.wtTable.getFirstVisibleRow(),
       this.wtTable.getFirstVisibleColumn(),
       this.wtTable.getLastVisibleRow(),
-      this.wtTable.getLastVisibleColumn()
+      this.wtTable.getLastVisibleColumn(),
     ];
   }
 
@@ -215,7 +215,7 @@ class Walkontable {
   exportSettingsAsClassNames() {
     let toExport = {
       rowHeaders: ['array'],
-      columnHeaders: ['array']
+      columnHeaders: ['array'],
     };
     let allClassNames = [];
     let newClassNames = [];

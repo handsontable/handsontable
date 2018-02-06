@@ -1,4 +1,4 @@
-import {getValidSelection} from './../utils';
+import { getValidSelection } from './../utils';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'col_left';
@@ -29,6 +29,6 @@ export default function columnLeftItem() {
     },
     hidden() {
       return !this.getSettings().allowInsertColumn;
-    }
+    },
   };
 }

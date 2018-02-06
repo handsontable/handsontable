@@ -1,14 +1,14 @@
 import BasePlugin from './../_base';
-import {arrayEach, arrayFilter, arrayReduce, arrayMap} from './../../helpers/array';
-import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/feature';
-import {isVisible} from './../../helpers/dom/element';
+import { arrayEach, arrayFilter, arrayReduce, arrayMap } from './../../helpers/array';
+import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
+import { isVisible } from './../../helpers/dom/element';
 import GhostTable from './../../utils/ghostTable';
-import {isObject, objectEach, hasOwnProperty} from './../../helpers/object';
-import {valueAccordingPercent, rangeEach} from './../../helpers/number';
-import {registerPlugin} from './../../plugins';
+import { isObject, hasOwnProperty } from './../../helpers/object';
+import { valueAccordingPercent, rangeEach } from './../../helpers/number';
+import { registerPlugin } from './../../plugins';
 import SamplesGenerator from './../../utils/samplesGenerator';
-import {isPercentValue} from './../../helpers/string';
-import {ViewportColumnsCalculator} from './../../3rdparty/walkontable/src';
+import { isPercentValue } from './../../helpers/string';
+import { ViewportColumnsCalculator } from './../../3rdparty/walkontable/src';
 
 const privatePool = new WeakMap();
 
@@ -135,14 +135,14 @@ class AutoColumnSize extends BasePlugin {
 
     let setting = this.hot.getSettings().autoColumnSize;
 
-    if (setting && setting.useHeaders != null) {
+    if (setting && setting.useHeaders !== void 0 && setting.useHeaders !== null) {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
-    this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
+    this.addHook('beforeChange', changes => this.onBeforeChange(changes));
 
-    this.addHook('beforeRender', (force) => this.onBeforeRender(force));
+    this.addHook('beforeRender', force => this.onBeforeRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
     this.addHook('afterInit', () => this.onAfterInit());
     super.enablePlugin();
@@ -174,19 +174,19 @@ class AutoColumnSize extends BasePlugin {
    * @param {Number|Object} rowRange Row range object.
    * @param {Boolean} [force=false] If `true` force calculate width even when value was cached earlier.
    */
-  calculateColumnsWidth(colRange = {from: 0, to: this.hot.countCols() - 1}, rowRange = {from: 0, to: this.hot.countRows() - 1}, force = false) {
+  calculateColumnsWidth(colRange = { from: 0, to: this.hot.countCols() - 1 }, rowRange = { from: 0, to: this.hot.countRows() - 1 }, force = false) {
     if (typeof colRange === 'number') {
-      colRange = {from: colRange, to: colRange};
+      colRange = { from: colRange, to: colRange };
     }
     if (typeof rowRange === 'number') {
-      rowRange = {from: rowRange, to: rowRange};
+      rowRange = { from: rowRange, to: rowRange };
     }
 
     rangeEach(colRange.from, colRange.to, (col) => {
       if (force || (this.widths[col] === void 0 && !this.hot._getColWidthFromSettings(col))) {
         const samples = this.samplesGenerator.generateColumnSamples(col, rowRange);
 
-        samples.forEach((sample, col) => this.ghostTable.addColumn(col, sample));
+        samples.forEach((sample, c) => this.ghostTable.addColumn(c, sample));
       }
     });
 
@@ -203,7 +203,7 @@ class AutoColumnSize extends BasePlugin {
    *
    * @param {Object|Number} rowRange Row range object.
    */
-  calculateAllColumnsWidth(rowRange = {from: 0, to: this.hot.countRows() - 1}) {
+  calculateAllColumnsWidth(rowRange = { from: 0, to: this.hot.countRows() - 1 }) {
     let current = 0;
     let length = this.hot.countCols() - 1;
     let timer = null;
@@ -221,7 +221,7 @@ class AutoColumnSize extends BasePlugin {
 
       this.calculateColumnsWidth({
         from: current,
-        to: Math.min(current + AutoColumnSize.CALCULATION_STEP, length)
+        to: Math.min(current + AutoColumnSize.CALCULATION_STEP, length),
       }, rowRange);
 
       current = current + AutoColumnSize.CALCULATION_STEP + 1;
@@ -242,7 +242,7 @@ class AutoColumnSize extends BasePlugin {
     };
     // sync
     if (this.firstCalculation && this.getSyncCalculationLimit()) {
-      this.calculateColumnsWidth({from: 0, to: this.getSyncCalculationLimit()}, rowRange);
+      this.calculateColumnsWidth({ from: 0, to: this.getSyncCalculationLimit() }, rowRange);
       this.firstCalculation = false;
       current = this.getSyncCalculationLimit() + 1;
     }
@@ -372,7 +372,7 @@ class AutoColumnSize extends BasePlugin {
    */
   findColumnsWhereHeaderWasChanged() {
     const columnHeaders = this.hot.getColHeader();
-    const {cachedColumnHeaders} = privatePool.get(this);
+    const { cachedColumnHeaders } = privatePool.get(this);
 
     const changedColumns = arrayReduce(columnHeaders, (acc, columnTitle, physicalColumn) => {
       const cachedColumnsLength = cachedColumnHeaders.length;
@@ -414,7 +414,7 @@ class AutoColumnSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.widths, (item) => (item === void 0)).length;
+    return !!arrayFilter(this.widths, item => (item === void 0)).length;
   }
 
   /**
@@ -431,7 +431,7 @@ class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    this.calculateColumnsWidth({from: this.getFirstVisibleColumn(), to: this.getLastVisibleColumn()}, void 0, force);
+    this.calculateColumnsWidth({ from: this.getFirstVisibleColumn(), to: this.getLastVisibleColumn() }, void 0, force);
 
     if (this.isNeedRecalculate() && !this.inProgress) {
       this.calculateAllColumnsWidth();
@@ -463,7 +463,7 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    const changedColumns = arrayMap(changes, ([row, column]) => this.hot.propToCol(column));
+    const changedColumns = arrayMap(changes, ([, column]) => this.hot.propToCol(column));
 
     this.clearCache(changedColumns);
   }

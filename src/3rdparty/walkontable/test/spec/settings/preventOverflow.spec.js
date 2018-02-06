@@ -5,7 +5,7 @@ describe('preventOverflow option', () => {
     debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({position: 'relative'});
+    $wrapper = $('<div></div>').css({ position: 'relative' });
     $wrapper.width(500).height(201);
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
@@ -30,7 +30,7 @@ describe('preventOverflow option', () => {
       totalColumns: getTotalColumns,
       preventOverflow() {
         return 'horizontal';
-      }
+      },
     });
     wt.draw();
 
@@ -44,12 +44,12 @@ describe('preventOverflow option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      columnHeaders: [function(column, TH) {
+      columnHeaders: [function (column, TH) {
         TH.innerHTML = column + 1;
       }],
       preventOverflow() {
         return 'horizontal';
-      }
+      },
     });
     wt.draw();
 

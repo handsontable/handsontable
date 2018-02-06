@@ -2,11 +2,11 @@ describe('settings', () => {
   describe('fragmentSelection', () => {
     var id = 'testContainer';
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (this.$container) {
         destroy();
         this.$container.remove();
@@ -19,10 +19,10 @@ describe('settings', () => {
      */
     function getSelected() {
       /* eslint-disable no-else-return */
-      var text = '';
+      let text = '';
 
       // IE8
-      if (window.getSelection && window.getSelection().toString() && $(window.getSelection()).attr('type') != 'Caret') {
+      if (window.getSelection && window.getSelection().toString() && $(window.getSelection()).attr('type') !== 'Caret') {
         text = window.getSelection();
 
         return text.toString();
@@ -31,7 +31,7 @@ describe('settings', () => {
         var selection = document.selection && document.selection.createRange();
 
         if (!(typeof selection === 'undefined') && selection.text && selection.text.toString()) {
-          text = selection.text;
+          ({ text } = selection);
 
           return text.toString();
         }
@@ -57,7 +57,7 @@ describe('settings', () => {
         range.setStartBefore(fromEl, 0);
         while (siblings > 1) {
           fromEl = fromEl.nextSibling;
-          siblings--;
+          siblings -= 1;
         }
         range.setEndAfter(fromEl, 0);
         sel.removeAllRanges();
@@ -72,10 +72,10 @@ describe('settings', () => {
     }
 
     describe('constructor', () => {
-      it('should disallow fragmentSelection when set to false', function() {
-        const hot = handsontable({
+      it('should disallow fragmentSelection when set to false', function () {
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: false
+          fragmentSelection: false,
         });
 
         selectElementText(this.$container.find('tr:eq(0) td:eq(1)')[0], 3);
@@ -87,11 +87,11 @@ describe('settings', () => {
         expect(sel).toEqual(' '); // copyPaste has selected space in textarea
       });
 
-      xit('should allow fragmentSelection when set to true', function() {
+      xit('should allow fragmentSelection when set to true', function () {
         // We have to try another way to simulate text selection.
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: true
+          fragmentSelection: true,
         });
         selectElementText(this.$container.find('td')[1], 3);
 
@@ -103,11 +103,11 @@ describe('settings', () => {
         expect(sel).toEqual('B1C1D1');
       });
 
-      xit('should allow fragmentSelection from one cell when set to `cell`', function() {
+      xit('should allow fragmentSelection from one cell when set to `cell`', function () {
         // We have to try another way to simulate text selection.
-        var hot = handsontable({
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: 'cell'
+          fragmentSelection: 'cell',
         });
         selectElementText(this.$container.find('td')[1], 1);
 
@@ -117,10 +117,10 @@ describe('settings', () => {
         expect(getSelected().replace(/\s/g, '')).toEqual('B1');
       });
 
-      it('should disallow fragmentSelection from one cell when set to `cell` and when user selects adjacent cell', function() {
-        var hot = handsontable({
+      it('should disallow fragmentSelection from one cell when set to `cell` and when user selects adjacent cell', function () {
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: 'cell'
+          fragmentSelection: 'cell',
         });
         selectElementText(this.$container.find('td')[1], 1);
 
@@ -132,10 +132,10 @@ describe('settings', () => {
         expect(getSelected()).toEqual(' '); // copyPaste has selected space in textarea
       });
 
-      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to false', function() {
+      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to false', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: false
+          fragmentSelection: false,
         });
         var $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
         this.$container.append($div);
@@ -147,10 +147,10 @@ describe('settings', () => {
         expect(sel).toEqual(false);
       });
 
-      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to true', function() {
+      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to true', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: true
+          fragmentSelection: true,
         });
         var $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
         this.$container.append($div);
@@ -164,12 +164,12 @@ describe('settings', () => {
     });
 
     describe('dynamic', () => {
-      it('should disallow fragmentSelection when set to false', function() {
+      it('should disallow fragmentSelection when set to false', function () {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: true
+          fragmentSelection: true,
         });
-        updateSettings({fragmentSelection: false});
+        updateSettings({ fragmentSelection: false });
         selectElementText(this.$container.find('tr:eq(0) td:eq(1)')[0], 3);
 
         mouseDown(this.$container.find('tr:eq(0) td:eq(3)'));
@@ -179,13 +179,13 @@ describe('settings', () => {
         expect(sel).toEqual(' '); // copyPaste has selected space in textarea
       });
 
-      xit('should allow fragmentSelection when set to true', function() {
+      xit('should allow fragmentSelection when set to true', function () {
         // We have to try another way to simulate text selection.
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
-          fragmentSelection: false
+          fragmentSelection: false,
         });
-        updateSettings({fragmentSelection: true});
+        updateSettings({ fragmentSelection: true });
         selectElementText(this.$container.find('td')[1], 3);
 
         mouseDown(this.$container.find('tr:eq(0) td:eq(3)'));

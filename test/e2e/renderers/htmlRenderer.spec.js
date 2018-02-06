@@ -1,11 +1,11 @@
 describe('HTMLRenderer', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px;"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -18,7 +18,7 @@ describe('HTMLRenderer', () => {
       colHeaders: true,
       rowHeaders: true,
       minSpareRows: 5,
-      renderer: 'html'
+      renderer: 'html',
     });
 
     expect($('.handsontable table tr:last-child td:eq(0)').html()).toEqual('');

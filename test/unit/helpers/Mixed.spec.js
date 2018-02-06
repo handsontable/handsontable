@@ -33,7 +33,7 @@ describe('Mixed helper', () => {
     });
 
     it('should convert properly `object` to `string`', () => {
-      var toConvert = {id: null};
+      var toConvert = { id: null };
 
       expect(stringify(toConvert)).toBe('[object Object]');
     });
@@ -51,7 +51,7 @@ describe('Mixed helper', () => {
     });
 
     it('should convert properly `function` to `string`', () => {
-      var toConvert = function() {};
+      var toConvert = function () {};
 
       expect(stringify(toConvert)).toMatch(/function/i);
     });
@@ -115,7 +115,7 @@ describe('Mixed helper', () => {
       expect(isRegExp(0)).toBeFalsy();
       expect(isRegExp(1)).toBeFalsy();
       expect(isRegExp('foo')).toBeFalsy();
-      expect(isRegExp({a: /\d+/})).toBeFalsy();
+      expect(isRegExp({ a: /\d+/ })).toBeFalsy();
 
       expect(isRegExp(/\d+/)).toBeTruthy();
       expect(isRegExp(new RegExp('d+'))).toBeTruthy();

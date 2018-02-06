@@ -3,7 +3,7 @@ import {
   getLanguagesDictionaries,
   registerLanguageDictionary,
   hasLanguageDictionary,
-  DEFAULT_LANGUAGE_CODE
+  DEFAULT_LANGUAGE_CODE,
 } from 'handsontable/i18n/dictionariesManager';
 import plPL from 'handsontable/i18n/languages/pl-PL';
 import enUS from 'handsontable/i18n/languages/en-US';
@@ -12,7 +12,7 @@ import * as constants from 'handsontable/i18n/constants';
 describe('i18n dictionariesManager', () => {
   it('should register automatically default language', () => {
     const allLanguages = getLanguagesDictionaries();
-    const defaultLanguageIsRegistered = allLanguages.some((dictionary) => dictionary.languageCode === DEFAULT_LANGUAGE_CODE);
+    const defaultLanguageIsRegistered = allLanguages.some(dictionary => dictionary.languageCode === DEFAULT_LANGUAGE_CODE);
 
     expect(defaultLanguageIsRegistered).toEqual(true);
   });
@@ -83,7 +83,7 @@ describe('i18n dictionariesManager', () => {
 
     const registeredLanguage = registerLanguageDictionary({
       languageCode: 'kl-PU',
-      [dictionaryKey1]: 'Hello world'
+      [dictionaryKey1]: 'Hello world',
     });
 
     expect(registeredLanguage[dictionaryKey1]).toEqual('Hello world');

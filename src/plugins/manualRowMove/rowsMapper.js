@@ -1,7 +1,6 @@
 import arrayMapper from './../../mixins/arrayMapper';
-import {arrayFilter} from './../../helpers/array';
-import {mixin} from './../../helpers/object';
-import {rangeEach} from './../../helpers/number';
+import { mixin } from './../../helpers/object';
+import { rangeEach } from './../../helpers/number';
 
 /**
  * @class RowsMapper

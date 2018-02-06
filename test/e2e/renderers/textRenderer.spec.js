@@ -1,11 +1,11 @@
 describe('TextRenderer', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -50,7 +50,7 @@ describe('TextRenderer', () => {
   it('should render undefined', () => {
     handsontable();
     /* eslint-disable wrap-iife */
-    setDataAtCell(2, 2, (function() {})());
+    setDataAtCell(2, 2, (function () {})());
 
     expect(getCell(2, 2).innerHTML).toEqual('');
   });
@@ -61,7 +61,7 @@ describe('TextRenderer', () => {
 
     var TD = document.createElement('TD');
     TD.className = 'someClass';
-    Handsontable.renderers.TextRenderer(instance, TD, 0, 0, 0, '', {readOnly: true, readOnlyCellClassName: 'htDimmed'});
+    Handsontable.renderers.TextRenderer(instance, TD, 0, 0, 0, '', { readOnly: true, readOnlyCellClassName: 'htDimmed' });
     expect(TD.className).toEqual('someClass htDimmed');
 
     instance.destroy();
@@ -77,7 +77,7 @@ describe('TextRenderer', () => {
 
   it('should wrap text when column width is limited', () => {
     handsontable({
-      colWidths: [100]
+      colWidths: [100],
     });
     setDataAtCell(0, 0, 'short text');
     setDataAtCell(1, 0, 'long long long long long long long text');

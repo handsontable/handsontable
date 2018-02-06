@@ -4,9 +4,9 @@ import {
   getScrollLeft,
   getScrollTop,
 } from './../../../helpers/dom/element';
-import {arrayEach} from './../../../helpers/array';
-import {isKey} from './../../../helpers/unicode';
-import {isMobileBrowser} from './../../../helpers/browser';
+import { arrayEach } from './../../../helpers/array';
+import { isKey } from './../../../helpers/unicode';
+import { isMobileBrowser } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import Overlay from './overlay/_base.js';
 
@@ -48,12 +48,12 @@ class Overlays {
       },
       bottom: {
         top: null,
-        left: 0
+        left: 0,
       },
       left: {
         top: 0,
-        left: null
-      }
+        left: null,
+      },
     };
 
     this.pendingScrollCallbacks = {
@@ -69,7 +69,7 @@ class Overlays {
       },
       left: {
         top: 0,
-      }
+      },
     };
 
     this.verticalScrolling = false;
@@ -178,36 +178,36 @@ class Overlays {
     const leftOverlayScrollable = this.leftOverlay.mainTableScrollableElement;
 
     let listenersToRegister = [];
-    listenersToRegister.push([document.documentElement, 'keydown', (event) => this.onKeyDown(event)]);
+    listenersToRegister.push([document.documentElement, 'keydown', event => this.onKeyDown(event)]);
     listenersToRegister.push([document.documentElement, 'keyup', () => this.onKeyUp()]);
     listenersToRegister.push([document, 'visibilitychange', () => this.onKeyUp()]);
-    listenersToRegister.push([topOverlayScrollable, 'scroll', (event) => this.onTableScroll(event)]);
+    listenersToRegister.push([topOverlayScrollable, 'scroll', event => this.onTableScroll(event)]);
 
     if (topOverlayScrollable !== leftOverlayScrollable) {
-      listenersToRegister.push([leftOverlayScrollable, 'scroll', (event) => this.onTableScroll(event)]);
+      listenersToRegister.push([leftOverlayScrollable, 'scroll', event => this.onTableScroll(event)]);
     }
 
     if (this.topOverlay.needFullRender) {
-      listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event)]);
-      listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event)]);
+      listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'scroll', event => this.onTableScroll(event)]);
+      listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', event => this.onTableScroll(event)]);
     }
 
     if (this.bottomOverlay.needFullRender) {
-      listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event)]);
-      listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event)]);
+      listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'scroll', event => this.onTableScroll(event)]);
+      listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', event => this.onTableScroll(event)]);
     }
 
     if (this.leftOverlay.needFullRender) {
-      listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'scroll', (event) => this.onTableScroll(event)]);
-      listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event)]);
+      listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'scroll', event => this.onTableScroll(event)]);
+      listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', event => this.onTableScroll(event)]);
     }
 
     if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.needFullRender) {
-      listenersToRegister.push([this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event)]);
+      listenersToRegister.push([this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onTableScroll(event)]);
     }
 
     if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.needFullRender) {
-      listenersToRegister.push([this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', (event) => this.onTableScroll(event)]);
+      listenersToRegister.push([this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', event => this.onTableScroll(event)]);
     }
 
     if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
@@ -234,9 +234,9 @@ class Overlays {
           overlay = 'bottomLeft';
         }
 
-        if ((overlay == 'top' && deltaY !== 0) ||
-          (overlay == 'left' && deltaX !== 0) ||
-          (overlay == 'bottom' && deltaY !== 0) ||
+        if ((overlay === 'top' && deltaY !== 0) ||
+          (overlay === 'left' && deltaX !== 0) ||
+          (overlay === 'bottom' && deltaY !== 0) ||
           ((overlay === 'topLeft' || overlay === 'bottomLeft') && (deltaY !== 0 || deltaX !== 0))) {
 
           event.preventDefault();
@@ -274,7 +274,7 @@ class Overlays {
     }
     const masterHorizontal = this.leftOverlay.mainTableScrollableElement;
     const masterVertical = this.topOverlay.mainTableScrollableElement;
-    const target = event.target;
+    const { target } = event;
 
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
@@ -324,7 +324,7 @@ class Overlays {
     let deltaY = event.wheelDeltaY || (-1) * event.deltaY;
     let deltaX = event.wheelDeltaX || (-1) * event.deltaX;
     let parentHolder = null;
-    let eventMockup = {type: 'wheel'};
+    let eventMockup = { type: 'wheel' };
     let tempElem = event.target;
     let delta = null;
 
@@ -334,7 +334,7 @@ class Overlays {
       deltaX *= 120;
     }
 
-    while (tempElem != document && tempElem != null) {
+    while (tempElem !== document && tempElem !== null) {
       if (tempElem.className.indexOf('wtHolder') > -1) {
         parentHolder = tempElem;
         break;
@@ -381,7 +381,7 @@ class Overlays {
 
     let masterHorizontal = this.leftOverlay.mainTableScrollableElement;
     let masterVertical = this.topOverlay.mainTableScrollableElement;
-    let target = event.target;
+    let { target } = event;
     let tempScrollValue = 0;
     let scrollValueChanged = false;
     let topOverlay;
@@ -429,13 +429,13 @@ class Overlays {
       scrollValueChanged = true;
 
       if (this.pendingScrollCallbacks.master.left > 0) {
-        this.pendingScrollCallbacks.master.left--;
+        this.pendingScrollCallbacks.master.left -= 1;
 
       } else {
         if (topOverlay && topOverlay.scrollLeft !== tempScrollValue) {
 
-          if (fakeScrollValue == null) {
-            this.pendingScrollCallbacks.top.left++;
+          if (fakeScrollValue === null || fakeScrollValue === void 0) {
+            this.pendingScrollCallbacks.top.left += 1;
           }
 
           topOverlay.scrollLeft = tempScrollValue;
@@ -444,8 +444,8 @@ class Overlays {
 
         if (bottomOverlay && bottomOverlay.scrollLeft !== tempScrollValue) {
 
-          if (fakeScrollValue == null) {
-            this.pendingScrollCallbacks.bottom.left++;
+          if (fakeScrollValue === null || fakeScrollValue === void 0) {
+            this.pendingScrollCallbacks.bottom.left += 1;
           }
 
           bottomOverlay.scrollLeft = tempScrollValue;
@@ -460,11 +460,11 @@ class Overlays {
       scrollValueChanged = true;
 
       if (this.pendingScrollCallbacks.master.top > 0) {
-        this.pendingScrollCallbacks.master.top--;
+        this.pendingScrollCallbacks.master.top -= 1;
 
       } else if (leftOverlay && leftOverlay.scrollTop !== tempScrollValue) {
-        if (fakeScrollValue == null) {
-          this.pendingScrollCallbacks.left.top++;
+        if (fakeScrollValue === null || fakeScrollValue === void 0) {
+          this.pendingScrollCallbacks.left.top += 1;
         }
 
         leftOverlay.scrollTop = tempScrollValue;
@@ -479,18 +479,18 @@ class Overlays {
       scrollValueChanged = true;
 
       if (this.pendingScrollCallbacks.bottom.left > 0) {
-        this.pendingScrollCallbacks.bottom.left--;
+        this.pendingScrollCallbacks.bottom.left -= 1;
 
       } else {
-        if (fakeScrollValue == null) {
-          this.pendingScrollCallbacks.master.left++;
+        if (fakeScrollValue === null || fakeScrollValue === void 0) {
+          this.pendingScrollCallbacks.master.left += 1;
         }
 
         masterHorizontal.scrollLeft = tempScrollValue;
 
         if (topOverlay && topOverlay.scrollLeft !== tempScrollValue) {
-          if (fakeScrollValue == null) {
-            this.pendingScrollCallbacks.top.left++;
+          if (fakeScrollValue === null || fakeScrollValue === void 0) {
+            this.pendingScrollCallbacks.top.left += 1;
           }
 
           topOverlay.scrollLeft = tempScrollValue;
@@ -513,12 +513,12 @@ class Overlays {
       scrollValueChanged = true;
 
       if (this.pendingScrollCallbacks.top.left > 0) {
-        this.pendingScrollCallbacks.top.left--;
+        this.pendingScrollCallbacks.top.left -= 1;
 
       } else {
 
-        if (fakeScrollValue == null) {
-          this.pendingScrollCallbacks.master.left++;
+        if (fakeScrollValue === null || fakeScrollValue === void 0) {
+          this.pendingScrollCallbacks.master.left += 1;
         }
 
         masterHorizontal.scrollLeft = tempScrollValue;
@@ -531,8 +531,8 @@ class Overlays {
       }
 
       if (bottomOverlay && bottomOverlay.scrollLeft !== tempScrollValue) {
-        if (fakeScrollValue == null) {
-          this.pendingScrollCallbacks.bottom.left++;
+        if (fakeScrollValue === null || fakeScrollValue === void 0) {
+          this.pendingScrollCallbacks.bottom.left += 1;
         }
 
         bottomOverlay.scrollLeft = tempScrollValue;
@@ -548,11 +548,11 @@ class Overlays {
         scrollValueChanged = true;
 
         if (this.pendingScrollCallbacks.left.top > 0) {
-          this.pendingScrollCallbacks.left.top--;
+          this.pendingScrollCallbacks.left.top -= 1;
 
         } else {
-          if (fakeScrollValue == null) {
-            this.pendingScrollCallbacks.master.top++;
+          if (fakeScrollValue === null || fakeScrollValue === void 0) {
+            this.pendingScrollCallbacks.master.top += 1;
           }
 
           masterVertical.scrollTop = tempScrollValue;
@@ -594,7 +594,7 @@ class Overlays {
    */
   syncScrollWithMaster() {
     const master = this.topOverlay.mainTableScrollableElement;
-    const {scrollLeft, scrollTop} = master;
+    const { scrollLeft, scrollTop } = master;
 
     if (this.topOverlay.needFullRender) {
       this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
@@ -742,11 +742,11 @@ class Overlays {
       this.leftOverlay,
       this.bottomOverlay,
       this.topLeftCornerOverlay,
-      this.bottomLeftCornerOverlay
+      this.bottomLeftCornerOverlay,
     ];
     let result = null;
 
-    arrayEach(overlays, (elem, i) => {
+    arrayEach(overlays, (elem) => {
       if (!elem) {
         return;
       }

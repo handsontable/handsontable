@@ -1,10 +1,10 @@
-import {empty, addClass, hasClass} from './../helpers/dom/element';
-import {equalsIgnoreCase} from './../helpers/string';
+import { empty, addClass } from './../helpers/dom/element';
+import { equalsIgnoreCase } from './../helpers/string';
 import EventManager from './../eventManager';
-import {isKey} from './../helpers/unicode';
-import {partial} from './../helpers/function';
-import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
-import {getRenderer} from './index';
+import { isKey } from './../helpers/unicode';
+import { partial } from './../helpers/function';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
+import { getRenderer } from './index';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -23,9 +23,10 @@ const BAD_VALUE_CLASS = 'htBadValue';
  * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
 function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  getRenderer('base').apply(this, arguments);
+  getRenderer('base').apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 
-  const eventManager = registerEvents(instance);
+  registerEvents(instance);
+
   let input = createInput();
   const labelOptions = cellProperties.label;
   let badValue = false;
@@ -125,42 +126,42 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
       return;
     }
 
-    const {row: startRow, col: startColumn} = selRange.getTopLeftCorner();
-    const {row: endRow, col: endColumn} = selRange.getBottomRightCorner();
+    const { row: startRow, col: startColumn } = selRange.getTopLeftCorner();
+    const { row: endRow, col: endColumn } = selRange.getBottomRightCorner();
     const changes = [];
 
-    for (let row = startRow; row <= endRow; row += 1) {
-      for (let col = startColumn; col <= endColumn; col += 1) {
-        const cellProperties = instance.getCellMeta(row, col);
+    for (let _row = startRow; _row <= endRow; _row += 1) {
+      for (let _col = startColumn; _col <= endColumn; _col += 1) {
+        const cellProps = instance.getCellMeta(_row, _col);
 
-        if (cellProperties.type !== 'checkbox') {
+        if (cellProps.type !== 'checkbox') {
           return;
         }
 
         /* eslint-disable no-continue */
-        if (cellProperties.readOnly === true) {
+        if (cellProps.readOnly === true) {
           continue;
         }
 
-        if (typeof cellProperties.checkedTemplate === 'undefined') {
-          cellProperties.checkedTemplate = true;
+        if (typeof cellProps.checkedTemplate === 'undefined') {
+          cellProps.checkedTemplate = true;
         }
-        if (typeof cellProperties.uncheckedTemplate === 'undefined') {
-          cellProperties.uncheckedTemplate = false;
+        if (typeof cellProps.uncheckedTemplate === 'undefined') {
+          cellProps.uncheckedTemplate = false;
         }
 
-        const dataAtCell = instance.getDataAtCell(row, col);
+        const dataAtCell = instance.getDataAtCell(_row, _col);
 
         if (uncheckCheckbox === false) {
-          if ([cellProperties.checkedTemplate, cellProperties.checkedTemplate.toString()].includes(dataAtCell)) {
-            changes.push([row, col, cellProperties.uncheckedTemplate]);
+          if ([cellProps.checkedTemplate, cellProps.checkedTemplate.toString()].includes(dataAtCell)) {
+            changes.push([_row, _col, cellProps.uncheckedTemplate]);
 
-          } else if ([cellProperties.uncheckedTemplate, cellProperties.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) {
-            changes.push([row, col, cellProperties.checkedTemplate]);
+          } else if ([cellProps.uncheckedTemplate, cellProps.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) {
+            changes.push([_row, _col, cellProps.checkedTemplate]);
           }
 
         } else {
-          changes.push([row, col, cellProperties.uncheckedTemplate]);
+          changes.push([_row, _col, cellProps.uncheckedTemplate]);
         }
       }
     }
@@ -185,24 +186,24 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     const topLeft = selRange.getTopLeftCorner();
     const bottomRight = selRange.getBottomRightCorner();
 
-    for (let row = topLeft.row; row <= bottomRight.row; row++) {
-      for (let col = topLeft.col; col <= bottomRight.col; col++) {
-        let cellProperties = instance.getCellMeta(row, col);
+    for (let _row = topLeft.row; _row <= bottomRight.row; _row += 1) {
+      for (let _col = topLeft.col; _col <= bottomRight.col; _col += 1) {
+        let cellProps = instance.getCellMeta(_row, _col);
 
-        if (cellProperties.type !== 'checkbox') {
+        if (cellProps.type !== 'checkbox') {
           return;
         }
 
-        let cell = instance.getCell(row, col);
+        let cell = instance.getCell(_row, _col);
 
-        if (cell == null) {
+        if (cell === null) {
 
-          callback(row, col, cellProperties);
+          callback(_row, _col, cellProps);
 
         } else {
           let checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
-          if (checkboxes.length > 0 && !cellProperties.readOnly) {
+          if (checkboxes.length > 0 && !cellProps.readOnly) {
             callback(checkboxes);
           }
         }
@@ -222,9 +223,9 @@ function registerEvents(instance) {
 
   if (!eventManager) {
     eventManager = new EventManager(instance);
-    eventManager.addEventListener(instance.rootElement, 'click', (event) => onClick(event, instance));
-    eventManager.addEventListener(instance.rootElement, 'mouseup', (event) => onMouseUp(event, instance));
-    eventManager.addEventListener(instance.rootElement, 'change', (event) => onChange(event, instance));
+    eventManager.addEventListener(instance.rootElement, 'click', event => onClick(event, instance));
+    eventManager.addEventListener(instance.rootElement, 'mouseup', event => onMouseUp(event, instance));
+    eventManager.addEventListener(instance.rootElement, 'change', event => onChange(event, instance));
 
     isCheckboxListenerAdded.set(instance, eventManager);
   }
@@ -282,6 +283,7 @@ function onMouseUp(event, instance) {
  * @private
  * @param {Event} event `click` event.
  * @param {Object} instance Handsontable instance.
+ * @returns {Boolean}
  */
 function onClick(event, instance) {
   if (!isCheckboxInput(event.target)) {
@@ -295,6 +297,8 @@ function onClick(event, instance) {
   if (cellProperties.readOnly) {
     event.preventDefault();
   }
+
+  return true;
 }
 
 /**
@@ -326,6 +330,8 @@ function onChange(event, instance) {
 
     instance.setDataAtCell(row, col, newCheckboxValue);
   }
+
+  return true;
 }
 
 /**

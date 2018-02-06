@@ -1,11 +1,11 @@
 describe('BaseEditor', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -14,8 +14,8 @@ describe('BaseEditor', () => {
 
   describe('ctrl + enter when editor is active', () => {
     it('should populate value from the currently active cell to every cell in the selected range', () => {
-      var hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(6, 6)
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
       });
 
       selectCell(1, 1, 2, 2);

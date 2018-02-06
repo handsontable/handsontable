@@ -33,7 +33,7 @@ class ViewportRowsCalculator {
       rowHeightFn,
       overrideFn,
       onlyFullyVisible,
-      horizontalScrollbarHeight
+      horizontalScrollbarHeight,
     });
 
     /**
@@ -76,17 +76,19 @@ class ViewportRowsCalculator {
     let startPositions = [];
 
     let priv = privatePool.get(this);
-    let onlyFullyVisible = priv.onlyFullyVisible;
-    let overrideFn = priv.overrideFn;
-    let rowHeightFn = priv.rowHeightFn;
-    let scrollOffset = priv.scrollOffset;
-    let totalRows = priv.totalRows;
-    let viewportHeight = priv.viewportHeight;
-    let horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
+    let {
+      onlyFullyVisible,
+      overrideFn,
+      rowHeightFn,
+      scrollOffset,
+      totalRows,
+      viewportHeight,
+      horizontalScrollbarHeight = 0,
+    } = priv;
     let rowHeight;
 
     // Calculate the number (start and end index) of rows needed
-    for (let i = 0; i < totalRows; i++) {
+    for (let i = 0; i < totalRows; i += 1) {
       rowHeight = rowHeightFn(i);
 
       if (rowHeight === undefined) {
@@ -125,7 +127,7 @@ class ViewportRowsCalculator {
         let viewportSum = startPositions[this.endRow] + rowHeight - startPositions[this.startRow - 1];
 
         if (viewportSum <= viewportHeight - horizontalScrollbarHeight || !onlyFullyVisible) {
-          this.startRow--;
+          this.startRow -= 1;
         }
         if (viewportSum >= viewportHeight - horizontalScrollbarHeight) {
           break;
@@ -138,7 +140,7 @@ class ViewportRowsCalculator {
     }
     this.startPosition = startPositions[this.startRow];
 
-    if (this.startPosition == void 0) {
+    if (this.startPosition === void 0) {
       this.startPosition = null;
     }
     if (this.startRow !== null) {

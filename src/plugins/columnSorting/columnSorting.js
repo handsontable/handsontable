@@ -4,11 +4,11 @@ import {
   hasClass,
   removeClass,
 } from './../../helpers/dom/element';
-import {arrayMap, arrayReduce} from './../../helpers/array';
-import {isEmpty} from './../../helpers/mixed';
-import {hasOwnProperty} from './../../helpers/object';
+import { arrayMap, arrayReduce } from './../../helpers/array';
+import { isEmpty } from './../../helpers/mixed';
+import { hasOwnProperty } from './../../helpers/object';
 import BasePlugin from './../_base';
-import {registerPlugin} from './../../plugins';
+import { registerPlugin } from './../../plugins';
 import mergeSort from './../../utils/sortingAlgorithms/mergeSort';
 import Hooks from './../../pluginHooks';
 
@@ -73,8 +73,8 @@ class ColumnSorting extends BasePlugin {
     const _this = this;
     this.hot.sortIndex = [];
 
-    this.hot.sort = function() {
-      let args = Array.prototype.slice.call(arguments);
+    this.hot.sort = function (...params) {
+      let args = Array.prototype.slice.call(params);
 
       return _this.sortByColumn(...args);
     };
@@ -83,19 +83,15 @@ class ColumnSorting extends BasePlugin {
       this.enableObserveChangesPlugin();
     }
 
-    this.addHook('afterTrimRow', (row) => this.sort());
-    this.addHook('afterUntrimRow', (row) => this.sort());
-    this.addHook('modifyRow', (row) => this.translateRow(row));
-    this.addHook('unmodifyRow', (row) => this.untranslateRow(row));
+    this.addHook('afterTrimRow', () => this.sort());
+    this.addHook('afterUntrimRow', () => this.sort());
+    this.addHook('modifyRow', row => this.translateRow(row));
+    this.addHook('unmodifyRow', row => this.untranslateRow(row));
     this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
     this.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
-    this.addHook('afterCreateRow', function() {
-      _this.afterCreateRow(...arguments);
-    });
-    this.addHook('afterRemoveRow', function() {
-      _this.afterRemoveRow(...arguments);
-    });
+    this.addHook('afterCreateRow', (...args) => this.afterCreateRow(...args));
+    this.addHook('afterRemoveRow', (...args) => this.afterRemoveRow(...args));
     this.addHook('afterInit', () => this.sortBySettings());
     this.addHook('afterLoadData', () => {
       this.hot.sortIndex = [];
@@ -153,12 +149,12 @@ class ColumnSorting extends BasePlugin {
    * @param {boolean|undefined} order Sorting order (`true` for ascending, `false` for descending).
    */
   setSortingColumn(col, order) {
-    if (typeof col == 'undefined') {
+    if (typeof col === 'undefined') {
       this.hot.sortColumn = void 0;
       this.hot.sortOrder = void 0;
 
       return;
-    } else if (this.hot.sortColumn === col && typeof order == 'undefined') {
+    } else if (this.hot.sortColumn === col && typeof order === 'undefined') {
       if (this.hot.sortOrder === false) {
         this.hot.sortOrder = void 0;
       } else {
@@ -175,7 +171,7 @@ class ColumnSorting extends BasePlugin {
   sortByColumn(col, order) {
     this.setSortingColumn(col, order);
 
-    if (typeof this.hot.sortColumn == 'undefined') {
+    if (typeof this.hot.sortColumn === 'undefined') {
       return;
     }
 
@@ -199,11 +195,11 @@ class ColumnSorting extends BasePlugin {
   saveSortingState() {
     let sortingState = {};
 
-    if (typeof this.hot.sortColumn != 'undefined') {
+    if (typeof this.hot.sortColumn !== 'undefined') {
       sortingState.sortColumn = this.hot.sortColumn;
     }
 
-    if (typeof this.hot.sortOrder != 'undefined') {
+    if (typeof this.hot.sortOrder !== 'undefined') {
       sortingState.sortOrder = this.hot.sortOrder;
     }
 
@@ -243,12 +239,11 @@ class ColumnSorting extends BasePlugin {
   enableObserveChangesPlugin() {
     let _this = this;
 
-    this.hot._registerTimeout(
-      setTimeout(() => {
-        _this.hot.updateSettings({
-          observeChanges: true
-        });
-      }, 0));
+    this.hot._registerTimeout(setTimeout(() => {
+      _this.hot.updateSettings({
+        observeChanges: true,
+      });
+    }, 0));
   }
 
   /**
@@ -259,11 +254,11 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The comparing function.
    */
   defaultSort(sortOrder, columnMeta) {
-    return function(a, b) {
-      if (typeof a[1] == 'string') {
+    return function (a, b) {
+      if (typeof a[1] === 'string') {
         a[1] = a[1].toLowerCase();
       }
-      if (typeof b[1] == 'string') {
+      if (typeof b[1] === 'string') {
         b[1] = b[1].toLowerCase();
       }
 
@@ -322,7 +317,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The compare function.
    */
   dateSort(sortOrder, columnMeta) {
-    return function(a, b) {
+    return function (a, b) {
       if (a[1] === b[1]) {
         return 0;
       }
@@ -380,7 +375,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Function} The compare function.
    */
   numericSort(sortOrder, columnMeta) {
-    return function(a, b) {
+    return function (a, b) {
       const parsedA = parseFloat(a[1]);
       const parsedB = parseFloat(b[1]);
 
@@ -423,7 +418,7 @@ class ColumnSorting extends BasePlugin {
    * Perform the sorting.
    */
   sort() {
-    if (typeof this.hot.sortOrder == 'undefined') {
+    if (typeof this.hot.sortOrder === 'undefined') {
       this.hot.sortIndex.length = 0;
 
       return;
@@ -438,7 +433,7 @@ class ColumnSorting extends BasePlugin {
     this.hot.sortIndex.length = 0;
 
     if (typeof colMeta.columnSorting.sortEmptyCells === 'undefined') {
-      colMeta.columnSorting = {sortEmptyCells: this.sortEmptyCells};
+      colMeta.columnSorting = { sortEmptyCells: this.sortEmptyCells };
     }
 
     if (this.hot.getSettings().maxRows === Number.POSITIVE_INFINITY) {
@@ -447,12 +442,12 @@ class ColumnSorting extends BasePlugin {
       nrOfRows = this.hot.countRows() - emptyRows;
     }
 
-    for (let i = 0, ilen = nrOfRows; i < ilen; i++) {
+    for (let i = 0, ilen = nrOfRows; i < ilen; i += 1) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
     }
 
     if (colMeta.sortFunction) {
-      sortFunction = colMeta.sortFunction;
+      ({ sortFunction } = colMeta);
 
     } else {
       switch (colMeta.type) {
@@ -470,7 +465,7 @@ class ColumnSorting extends BasePlugin {
     mergeSort(this.hot.sortIndex, sortFunction(this.hot.sortOrder, colMeta));
 
     // Append spareRows
-    for (let i = this.hot.sortIndex.length; i < this.hot.countRows(); i++) {
+    for (let i = this.hot.sortIndex.length; i < this.hot.countRows(); i += 1) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
     }
 
@@ -481,7 +476,7 @@ class ColumnSorting extends BasePlugin {
    * Update indicator states.
    */
   updateSortIndicator() {
-    if (typeof this.hot.sortOrder == 'undefined') {
+    if (typeof this.hot.sortOrder === 'undefined') {
       return;
     }
     const colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
@@ -507,16 +502,21 @@ class ColumnSorting extends BasePlugin {
    * Translates sorted row index to physical row index.
    *
    * @param {Number} row Sorted (visual) row index.
-   * @returns {number} Physical row index.
+   * @returns {Number|undefined} Physical row index.
    */
   untranslateRow(row) {
+    let result;
+
     if (this.hot.sortingEnabled && this.hot.sortIndex && this.hot.sortIndex.length) {
-      for (var i = 0; i < this.hot.sortIndex.length; i++) {
-        if (this.hot.sortIndex[i][0] == row) {
-          return i;
+      for (var i = 0; i < this.hot.sortIndex.length; i += 1) {
+        if (this.hot.sortIndex[i][0] === row) {
+          result = i;
+          break;
         }
       }
     }
+
+    return result;
   }
 
   /**
@@ -528,11 +528,10 @@ class ColumnSorting extends BasePlugin {
    */
   getColHeader(col, TH) {
     if (col < 0 || !TH.parentNode) {
-      return false;
+      return;
     }
 
     let headerLink = TH.querySelector('.colHeader');
-    let colspan = TH.getAttribute('colspan');
     let TRs = TH.parentNode.parentNode.childNodes;
     let headerLevel = Array.prototype.indexOf.call(TRs, TH.parentNode);
     headerLevel -= TRs.length;
@@ -565,7 +564,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Boolean}
    */
   isSorted() {
-    return typeof this.hot.sortColumn != 'undefined';
+    return typeof this.hot.sortColumn !== 'undefined';
   }
 
   /**
@@ -580,13 +579,13 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    for (let i = 0; i < this.hot.sortIndex.length; i++) {
+    for (let i = 0; i < this.hot.sortIndex.length; i += 1) {
       if (this.hot.sortIndex[i][0] >= index) {
         this.hot.sortIndex[i][0] += amount;
       }
     }
 
-    for (let i = 0; i < amount; i++) {
+    for (let i = 0; i < amount; i += 1) {
       this.hot.sortIndex.splice(index + i, 0, [index + i, this.hot.getSourceData()[index + i][this.hot.sortColumn + this.hot.colOffset()]]);
     }
 
@@ -606,20 +605,20 @@ class ColumnSorting extends BasePlugin {
     }
     let removedRows = this.hot.sortIndex.splice(index, amount);
 
-    removedRows = arrayMap(removedRows, (row) => row[0]);
+    removedRows = arrayMap(removedRows, row => row[0]);
 
     function countRowShift(logicalRow) {
       // Todo: compare perf between reduce vs sort->each->brake
       return arrayReduce(removedRows, (count, removedLogicalRow) => {
         if (logicalRow > removedLogicalRow) {
-          count++;
+          count += 1;
         }
 
         return count;
       }, 0);
     }
 
-    this.hot.sortIndex = arrayMap(this.hot.sortIndex, (logicalRow, physicalRow) => {
+    this.hot.sortIndex = arrayMap(this.hot.sortIndex, (logicalRow) => {
       let rowShift = countRowShift(logicalRow[0]);
 
       if (rowShift) {
@@ -638,7 +637,7 @@ class ColumnSorting extends BasePlugin {
    * @private
    */
   setPluginOptions() {
-    const columnSorting = this.hot.getSettings().columnSorting;
+    const { columnSorting } = this.hot.getSettings();
 
     if (typeof columnSorting === 'object') {
       this.sortEmptyCells = columnSorting.sortEmptyCells || false;

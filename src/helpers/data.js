@@ -1,5 +1,5 @@
-import {getCellType} from './../cellTypes';
-import {hasOwnProperty} from './object';
+import { getCellType } from './../cellTypes';
+import { hasOwnProperty } from './object';
 
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
@@ -38,7 +38,7 @@ export function spreadsheetColumnIndex(label) {
       result += Math.pow(COLUMN_LABEL_BASE_LENGTH, j) * (COLUMN_LABEL_BASE.indexOf(label[i]) + 1);
     }
   }
-  --result;
+  result -= 1;
 
   return result;
 }
@@ -55,10 +55,10 @@ export function createSpreadsheetData(rows = 100, columns = 4) {
     i,
     j;
 
-  for (i = 0; i < rows; i++) {
+  for (i = 0; i < rows; i += 1) {
     var row = [];
 
-    for (j = 0; j < columns; j++) {
+    for (j = 0; j < columns; j += 1) {
       row.push(spreadsheetColumnLabel(j) + (i + 1));
     }
     _rows.push(row);
@@ -79,10 +79,10 @@ export function createSpreadsheetObjectData(rows = 100, colCount = 4) {
     i,
     j;
 
-  for (i = 0; i < rows; i++) {
+  for (i = 0; i < rows; i += 1) {
     var row = {};
 
-    for (j = 0; j < colCount; j++) {
+    for (j = 0; j < colCount; j += 1) {
       row[`prop${j}`] = spreadsheetColumnLabel(j) + (i + 1);
     }
     _rows.push(row);
@@ -102,9 +102,9 @@ export function createEmptySpreadsheetData(rows, columns) {
   let data = [];
   let row;
 
-  for (let i = 0; i < rows; i++) {
+  for (let i = 0; i < rows; i += 1) {
     row = [];
-    for (let j = 0; j < columns; j++) {
+    for (let j = 0; j < columns; j += 1) {
       row.push('');
     }
     data.push(row);
@@ -121,11 +121,11 @@ export function translateRowsToColumns(input) {
     output = [],
     olen = 0;
 
-  for (i = 0, ilen = input.length; i < ilen; i++) {
-    for (j = 0, jlen = input[i].length; j < jlen; j++) {
-      if (j == olen) {
+  for (i = 0, ilen = input.length; i < ilen; i += 1) {
+    for (j = 0, jlen = input[i].length; j < jlen; j += 1) {
+      if (j === olen) {
         output.push([]);
-        olen++;
+        olen += 1;
       }
       output[j].push(input[i][j]);
     }
@@ -153,13 +153,13 @@ export function translateRowsToColumns(input) {
  */
 export function cellMethodLookupFactory(methodName, allowUndefined) {
 
-  allowUndefined = typeof allowUndefined == 'undefined' ? true : allowUndefined;
+  allowUndefined = typeof allowUndefined === 'undefined' ? true : allowUndefined;
 
   return function cellMethodLookup(row, col) {
     return (function getMethodFromProperties(properties) {
 
       if (!properties) {
-        return; // method not found
+        return void 0; // method not found
 
       } else if (hasOwnProperty(properties, methodName) && properties[methodName] !== void 0) { // check if it is own and is not empty
         return properties[methodName]; // method defined directly
@@ -167,7 +167,7 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
       } else if (hasOwnProperty(properties, 'type') && properties.type) { // check if it is own and is not empty
         var type;
 
-        if (typeof properties.type != 'string') {
+        if (typeof properties.type !== 'string') {
           throw new Error('Cell type must be a string ');
         }
         type = getCellType(properties.type);
@@ -175,12 +175,12 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
         if (hasOwnProperty(type, methodName)) {
           return type[methodName]; // method defined in type.
         } else if (allowUndefined) {
-          return; // method does not defined in type (eg. validator), returns undefined
+          return void 0; // method does not defined in type (eg. validator), returns undefined
         }
       }
 
       return getMethodFromProperties(Object.getPrototypeOf(properties));
 
-    }(typeof row == 'number' ? this.getCellMeta(row, col) : row));
+    }(typeof row === 'number' ? this.getCellMeta(row, col) : row));
   };
 }

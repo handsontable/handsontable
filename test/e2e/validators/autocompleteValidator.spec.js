@@ -1,11 +1,11 @@
 describe('autocompleteValidator', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -15,7 +15,7 @@ describe('autocompleteValidator', () => {
   describe('allowEmpty', () => {
     it('should validate empty cells positively (by default)', (done) => {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
-      var hot = handsontable({
+      handsontable({
         data: [
           ['some', 'sample', 'data'],
         ],
@@ -23,20 +23,20 @@ describe('autocompleteValidator', () => {
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
-          }
+            strict: true,
+          },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(0, 0, '');
@@ -49,7 +49,7 @@ describe('autocompleteValidator', () => {
 
     it('should validate empty cells positively when allowEmpty is set to true', (done) => {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
-      var hot = handsontable({
+      handsontable({
         data: [
           ['some', 'sample', 'data'],
         ],
@@ -57,21 +57,21 @@ describe('autocompleteValidator', () => {
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
-          }
+            strict: true,
+          },
         ],
         allowEmpty: true,
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(0, 0, '');
@@ -84,7 +84,7 @@ describe('autocompleteValidator', () => {
 
     it('should validate empty cells negatively when allowEmpty is set to false', (done) => {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
-      var hot = handsontable({
+      handsontable({
         data: [
           ['some', 'sample', 'data'],
         ],
@@ -92,21 +92,21 @@ describe('autocompleteValidator', () => {
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
-          }
+            strict: true,
+          },
         ],
         allowEmpty: false,
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(0, 0, '');
@@ -119,29 +119,29 @@ describe('autocompleteValidator', () => {
 
     it('should respect the allowEmpty property for a single column', (done) => {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
-      var hot = handsontable({
+      handsontable({
         data: [
-          ['some', 'sample', 'data']
+          ['some', 'sample', 'data'],
         ],
         columns: [
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
             strict: true,
-            allowEmpty: false
+            allowEmpty: false,
           },
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
-          }
+            strict: true,
+          },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(0, 0, '');
@@ -158,15 +158,15 @@ describe('autocompleteValidator', () => {
 
     it('should work for null and undefined values in cells', (done) => {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
-      var hot = handsontable({
+      handsontable({
         data: [
-          ['some', 'sample', 'data']
+          ['some', 'sample', 'data'],
         ],
         columns: [
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
+            strict: true,
           },
           {
             type: 'autocomplete',
@@ -176,11 +176,11 @@ describe('autocompleteValidator', () => {
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
-          }
+            strict: true,
+          },
         ],
         allowEmpty: false,
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(0, 0, null);
@@ -198,7 +198,7 @@ describe('autocompleteValidator', () => {
   describe('strict mode', () => {
     it('sshould validate negatively when chars have different size', (done) => {
       var onAfterValidate = jasmine.createSpy('onAfterValidate');
-      var hot = handsontable({
+      handsontable({
         data: [
           ['some', 'sample', 'data'],
         ],
@@ -206,10 +206,10 @@ describe('autocompleteValidator', () => {
           {
             type: 'autocomplete',
             source: ['some', 'sample', 'data'],
-            strict: true
-          }
+            strict: true,
+          },
         ],
-        afterValidate: onAfterValidate
+        afterValidate: onAfterValidate,
       });
 
       setDataAtCell(0, 0, 'Some');

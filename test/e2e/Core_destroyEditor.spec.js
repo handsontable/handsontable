@@ -1,11 +1,11 @@
 describe('Core_destroyEditor', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -54,14 +54,14 @@ describe('Core_destroyEditor', () => {
     expect(getDataAtCell(1, 1)).toEqual(null);
   });
 
-  it('should not destroy editor on scroll', function() {
+  it('should not destroy editor on scroll', function () {
     this.$container.css({
       width: 200,
-      height: 100
+      height: 100,
     });
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(20, 10)
+      data: Handsontable.helper.createSpreadsheetData(20, 10),
     });
 
     selectCell(0, 0);

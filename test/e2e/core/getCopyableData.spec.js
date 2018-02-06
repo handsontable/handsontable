@@ -1,11 +1,11 @@
 describe('Core.getCopyableData', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -15,7 +15,7 @@ describe('Core.getCopyableData', () => {
   it('should return copyable data when `copyable` option is enabled', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
-      copyable: true
+      copyable: true,
     });
 
     expect(getCopyableData(0, 0)).toBe('A1');
@@ -27,7 +27,7 @@ describe('Core.getCopyableData', () => {
   it('should return empty string as copyable data when `copyable` option is disabled', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
-      copyable: false
+      copyable: false,
     });
 
     expect(getCopyableData(0, 0)).toBe('');

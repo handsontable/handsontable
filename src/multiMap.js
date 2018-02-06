@@ -6,11 +6,15 @@ function MultiMap() {
 
   return {
     get(key) {
+      let result;
+
       if (canBeAnArrayMapKey(key)) {
-        return map.arrayMap[key];
+        result = map.arrayMap[key];
       } else if (canBeAWeakMapKey(key)) {
-        return map.weakMap.get(key);
+        result = map.weakMap.get(key);
       }
+
+      return result;
     },
 
     set(key, value) {
@@ -33,11 +37,11 @@ function MultiMap() {
   };
 
   function canBeAnArrayMapKey(obj) {
-    return obj !== null && !isNaNSymbol(obj) && (typeof obj == 'string' || typeof obj == 'number');
+    return obj !== null && !isNaNSymbol(obj) && (typeof obj === 'string' || typeof obj === 'number');
   }
 
   function canBeAWeakMapKey(obj) {
-    return obj !== null && (typeof obj == 'object' || typeof obj == 'function');
+    return obj !== null && (typeof obj === 'object' || typeof obj === 'function');
   }
 
   function isNaNSymbol(obj) {

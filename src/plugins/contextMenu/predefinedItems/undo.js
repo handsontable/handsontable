@@ -14,6 +14,6 @@ export default function undoItem() {
     },
     disabled() {
       return this.undoRedo && !this.undoRedo.isUndoAvailable();
-    }
+    },
   };
 }

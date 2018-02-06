@@ -19,14 +19,14 @@ describe('DragToScroll', () => {
       width: 900,
       height: 900,
       bottom: 1000,
-      right: 1000
+      right: 1000,
     };
   }
 
   it('exact top, exact left should be in boundaries', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
-      dragToScroll: true
+      dragToScroll: true,
     });
 
     const dragToScroll = hot.getPlugin('dragToScroll');
@@ -44,7 +44,7 @@ describe('DragToScroll', () => {
   it('exact bottom, exact right should be in boundaries', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
-      dragToScroll: true
+      dragToScroll: true,
     });
 
     const dragToScroll = hot.getPlugin('dragToScroll');
@@ -62,7 +62,7 @@ describe('DragToScroll', () => {
   it('less than top, less than left should be out in "top" direction', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
-      dragToScroll: true
+      dragToScroll: true,
     });
 
     const dragToScroll = hot.getPlugin('dragToScroll');
@@ -80,7 +80,7 @@ describe('DragToScroll', () => {
   it('exact top, less than left should be out in "left" direction', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
-      dragToScroll: true
+      dragToScroll: true,
     });
 
     const dragToScroll = hot.getPlugin('dragToScroll');
@@ -98,7 +98,7 @@ describe('DragToScroll', () => {
   it('less than top, more than right should be out in "top" direction', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
-      dragToScroll: true
+      dragToScroll: true,
     });
 
     const dragToScroll = hot.getPlugin('dragToScroll');
@@ -116,7 +116,7 @@ describe('DragToScroll', () => {
   it('more than bottom, more than right should be out in "bottom" direction', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
-      dragToScroll: true
+      dragToScroll: true,
     });
 
     const dragToScroll = hot.getPlugin('dragToScroll');
@@ -134,7 +134,7 @@ describe('DragToScroll', () => {
   it('exact bottom, more than right should be out in "right" direction', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
-      dragToScroll: true
+      dragToScroll: true,
     });
 
     const dragToScroll = hot.getPlugin('dragToScroll');
@@ -152,7 +152,7 @@ describe('DragToScroll', () => {
   it('more than bottom, less than left should be out in "bottom" direction', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
-      dragToScroll: true
+      dragToScroll: true,
     });
 
     const dragToScroll = hot.getPlugin('dragToScroll');

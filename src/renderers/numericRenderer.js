@@ -1,6 +1,6 @@
 import numbro from 'numbro';
-import {getRenderer} from './index';
-import {isNumeric} from './../helpers/number';
+import { getRenderer } from './index';
+import { isNumeric } from './../helpers/number';
 
 /**
  * Numeric cell renderer
@@ -18,7 +18,7 @@ import {isNumeric} from './../helpers/number';
  */
 function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
   if (isNumeric(value)) {
-    const numericFormat = cellProperties.numericFormat;
+    const { numericFormat } = cellProperties;
     const cellCulture = numericFormat && numericFormat.culture;
     const cellFormatPattern = numericFormat && numericFormat.pattern;
     const className = cellProperties.className || '';

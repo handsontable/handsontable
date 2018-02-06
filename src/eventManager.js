@@ -1,7 +1,7 @@
-import {polymerWrap, closest} from './helpers/dom/element';
-import {hasOwnProperty} from './helpers/object';
-import {isWebComponentSupportedNatively} from './helpers/feature';
-import {stopImmediatePropagation as _stopImmediatePropagation} from './helpers/dom/event';
+import { polymerWrap, closest } from './helpers/dom/element';
+import { hasOwnProperty } from './helpers/object';
+import { isWebComponentSupportedNatively } from './helpers/feature';
+import { stopImmediatePropagation as _stopImmediatePropagation } from './helpers/dom/event';
 
 /**
  * Counter which tracks unregistered listeners (useful for detecting memory leaks).
@@ -38,7 +38,7 @@ class EventManager {
    * @returns {Function} Returns function which you can easily call to remove that event
    */
   addEventListener(element, eventName, callback) {
-    let context = this.context;
+    let { context } = this;
 
     function callbackProxy(event) {
       event = extendEvent(context, event);
@@ -57,7 +57,7 @@ class EventManager {
     } else {
       element.attachEvent(`on${eventName}`, callbackProxy);
     }
-    listenersCounter++;
+    listenersCounter += 1;
 
     return () => {
       this.removeEventListener(element, eventName, callback);
@@ -75,11 +75,12 @@ class EventManager {
     let len = this.context.eventListeners.length;
     let tmpEvent;
 
-    while (len--) {
+    while (len) {
+      len -= 1;
       tmpEvent = this.context.eventListeners[len];
 
-      if (tmpEvent.event == eventName && tmpEvent.element == element) {
-        if (callback && callback != tmpEvent.callback) {
+      if (tmpEvent.event === eventName && tmpEvent.element === element) {
+        if (callback && callback !== tmpEvent.callback) {
           /* eslint-disable no-continue */
           continue;
         }
@@ -90,7 +91,8 @@ class EventManager {
         } else {
           tmpEvent.element.detachEvent(`on${tmpEvent.event}`, tmpEvent.callbackProxy);
         }
-        listenersCounter--;
+
+        listenersCounter -= 1;
       }
     }
   }
@@ -107,7 +109,9 @@ class EventManager {
     }
     let len = this.context.eventListeners.length;
 
-    while (len--) {
+    while (len) {
+      len -= 1;
+
       let event = this.context.eventListeners[len];
 
       if (event) {
@@ -158,11 +162,13 @@ class EventManager {
 
     if (document.createEvent) {
       event = document.createEvent('MouseEvents');
-      event.initMouseEvent(eventName, options.bubbles, options.cancelable,
+      event.initMouseEvent(
+        eventName, options.bubbles, options.cancelable,
         options.view, options.detail,
         options.screenX, options.screenY, options.clientX, options.clientY,
         options.ctrlKey, options.altKey, options.shiftKey, options.metaKey,
-        options.button, options.relatedTarget || document.body.parentNode);
+        options.button, options.relatedTarget || document.body.parentNode,
+      );
 
     } else {
       event = document.createEventObject();
@@ -195,7 +201,7 @@ function extendEvent(context, event) {
   event.realTarget = event.target;
 
   nativeStopImmediatePropagation = event.stopImmediatePropagation;
-  event.stopImmediatePropagation = function() {
+  event.stopImmediatePropagation = function () {
     nativeStopImmediatePropagation.apply(this);
     _stopImmediatePropagation(this);
   };
@@ -206,7 +212,9 @@ function extendEvent(context, event) {
   event = polymerWrap(event);
   len = event.path ? event.path.length : 0;
 
-  while (len--) {
+  while (len) {
+    len -= 1;
+
     if (event.path[len].nodeName === componentName) {
       isHotTableSpotted = true;
 
@@ -220,7 +228,7 @@ function extendEvent(context, event) {
     }
   }
   if (!target) {
-    target = event.target;
+    ({ target } = event);
   }
   event.isTargetWebComponent = true;
 
@@ -265,4 +273,4 @@ export default EventManager;
 
 export function getListenersCounter() {
   return listenersCounter;
-};
+}

@@ -8,7 +8,7 @@ import {
   innerHeight,
   removeClass,
   setOverlayPosition,
-  resetCssTransform
+  resetCssTransform,
 } from './../../../../helpers/dom/element';
 import Overlay from './_base';
 
@@ -104,11 +104,11 @@ class LeftOverlay extends Overlay {
    */
   sumCellSizes(from, to) {
     let sum = 0;
-    let defaultColumnWidth = this.wot.wtSettings.defaultColumnWidth;
+    let { defaultColumnWidth } = this.wot.wtSettings;
 
     while (from < to) {
       sum += this.wot.wtTable.getStretchedColumnWidth(from) || defaultColumnWidth;
-      from++;
+      from += 1;
     }
 
     return sum;

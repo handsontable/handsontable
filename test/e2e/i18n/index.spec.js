@@ -9,11 +9,11 @@ describe('i18n', () => {
   const INSERT_ROW_ABOVE_IN_DEFAULT_LANGUAGE = 'Insert row above';
   const INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE = 'Wstaw wiersz powyżej';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -22,7 +22,7 @@ describe('i18n', () => {
 
   it('should not propagate `language` key to meta of cells', () => {
     handsontable({
-      language: POLISH_LANGUAGE_CODE
+      language: POLISH_LANGUAGE_CODE,
     });
 
     expect(getCellMeta(0, 0).language).toBeUndefined();
@@ -35,7 +35,7 @@ describe('i18n', () => {
       handsontable({
         beforeLanguageChange() {
           beforeLanguageChangeCalled = true;
-        }
+        },
       });
 
       expect(beforeLanguageChangeCalled).toEqual(false);
@@ -48,7 +48,7 @@ describe('i18n', () => {
         language: POLISH_LANGUAGE_CODE,
         beforeLanguageChange() {
           beforeLanguageChangeCalled = true;
-        }
+        },
       });
 
       expect(beforeLanguageChangeCalled).toEqual(false);
@@ -62,11 +62,11 @@ describe('i18n', () => {
           const settings = this.getSettings();
 
           languageInsideHook = settings.language;
-        }
+        },
       });
 
       updateSettings({
-        language: POLISH_LANGUAGE_CODE
+        language: POLISH_LANGUAGE_CODE,
       });
 
       expect(languageInsideHook).toEqual(DEFAULT_LANGUAGE_CODE);
@@ -80,7 +80,7 @@ describe('i18n', () => {
       handsontable({
         afterLanguageChange() {
           afterLanguageChangeCalled = true;
-        }
+        },
       });
 
       expect(afterLanguageChangeCalled).toEqual(false);
@@ -93,7 +93,7 @@ describe('i18n', () => {
         language: POLISH_LANGUAGE_CODE,
         afterLanguageChange() {
           afterLanguageChangeCalled = true;
-        }
+        },
       });
 
       expect(afterLanguageChangeCalled).toEqual(false);
@@ -107,11 +107,11 @@ describe('i18n', () => {
           const settings = this.getSettings();
 
           languageInsideHook = settings.language;
-        }
+        },
       });
 
       updateSettings({
-        language: POLISH_LANGUAGE_CODE
+        language: POLISH_LANGUAGE_CODE,
       });
 
       expect(languageInsideHook).toEqual(POLISH_LANGUAGE_CODE);
@@ -124,7 +124,7 @@ describe('i18n', () => {
       const spy = spyOn(window, 'onerror');
 
       handsontable({
-        language: NOT_EXISTING_LANGUAGE_CODE
+        language: NOT_EXISTING_LANGUAGE_CODE,
       });
 
       await sleep(100);
@@ -136,7 +136,7 @@ describe('i18n', () => {
       const spy = spyOn(window, 'onerror');
 
       handsontable({
-        language: DEFAULT_LANGUAGE_CODE
+        language: DEFAULT_LANGUAGE_CODE,
       });
 
       await sleep(100);
@@ -150,7 +150,7 @@ describe('i18n', () => {
 
       handsontable();
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       await sleep(100);
 
@@ -162,7 +162,7 @@ describe('i18n', () => {
 
       handsontable();
 
-      updateSettings({language: DEFAULT_LANGUAGE_CODE});
+      updateSettings({ language: DEFAULT_LANGUAGE_CODE });
 
       await sleep(100);
 
@@ -175,7 +175,7 @@ describe('i18n', () => {
       const spy = spyOn(console, 'error');
 
       handsontable({
-        language: NOT_EXISTING_LANGUAGE_CODE
+        language: NOT_EXISTING_LANGUAGE_CODE,
       });
 
       expect(spy).toHaveBeenCalled();
@@ -186,7 +186,7 @@ describe('i18n', () => {
 
       handsontable();
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       expect(spy).toHaveBeenCalled();
     });
@@ -195,7 +195,7 @@ describe('i18n', () => {
       const spy = spyOn(console, 'error');
 
       handsontable({
-        language: DEFAULT_LANGUAGE_CODE
+        language: DEFAULT_LANGUAGE_CODE,
       });
 
       expect(spy).not.toHaveBeenCalled();
@@ -205,7 +205,7 @@ describe('i18n', () => {
       const spy = spyOn(console, 'error');
       handsontable();
 
-      updateSettings({language: DEFAULT_LANGUAGE_CODE});
+      updateSettings({ language: DEFAULT_LANGUAGE_CODE });
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -228,7 +228,7 @@ describe('i18n', () => {
     it('should not set language code as own property of settings object when using updateSettings', () => {
       const hot = handsontable();
 
-      updateSettings({language: POLISH_LANGUAGE_CODE});
+      updateSettings({ language: POLISH_LANGUAGE_CODE });
 
       // eslint-disable-next-line no-prototype-builtins
       expect(hot.getSettings().hasOwnProperty('language')).toEqual(false);
@@ -238,7 +238,7 @@ describe('i18n', () => {
       spyOn(console, 'error'); // overriding console.error
 
       const hot = handsontable({
-        language: NOT_EXISTING_LANGUAGE_CODE
+        language: NOT_EXISTING_LANGUAGE_CODE,
       });
 
       expect(hot.getSettings().language).toEqual(DEFAULT_LANGUAGE_CODE);
@@ -249,7 +249,7 @@ describe('i18n', () => {
 
       const hot = handsontable();
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       expect(hot.getSettings().language).toEqual(DEFAULT_LANGUAGE_CODE);
     });
@@ -258,17 +258,17 @@ describe('i18n', () => {
       spyOn(console, 'error'); // overriding console.error
 
       const hot = handsontable({
-        language: POLISH_LANGUAGE_CODE
+        language: POLISH_LANGUAGE_CODE,
       });
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
     });
 
     it('should accept not normalized language code by default #1', () => {
       const hot = handsontable({
-        language: POLISH_LANGUAGE_CODE.toLowerCase()
+        language: POLISH_LANGUAGE_CODE.toLowerCase(),
       });
 
       expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
@@ -278,7 +278,7 @@ describe('i18n', () => {
       const hot = handsontable();
 
       updateSettings({
-        language: POLISH_LANGUAGE_CODE.toUpperCase()
+        language: POLISH_LANGUAGE_CODE.toUpperCase(),
       });
 
       expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
@@ -286,11 +286,11 @@ describe('i18n', () => {
 
     it('should not change language when `language` key passed to `updateSettings` was not set', () => {
       const hot = handsontable({
-        language: POLISH_LANGUAGE_CODE
+        language: POLISH_LANGUAGE_CODE,
       });
 
       updateSettings({
-        fillHandle: true
+        fillHandle: true,
       });
 
       expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
@@ -301,7 +301,7 @@ describe('i18n', () => {
     it('should translate contextMenu UI when setting existing language code at start', () => {
       handsontable({
         language: POLISH_LANGUAGE_CODE,
-        contextMenu: ['row_above']
+        contextMenu: ['row_above'],
       });
 
       selectCell(0, 0);
@@ -317,7 +317,7 @@ describe('i18n', () => {
 
       handsontable({
         language: NOT_EXISTING_LANGUAGE_CODE,
-        contextMenu: ['row_above']
+        contextMenu: ['row_above'],
       });
 
       selectCell(0, 0);
@@ -330,10 +330,10 @@ describe('i18n', () => {
 
     it('should translate contextMenu UI when setting existing language code by updateSettings', async () => {
       handsontable({
-        contextMenu: ['row_above']
+        contextMenu: ['row_above'],
       });
 
-      updateSettings({language: POLISH_LANGUAGE_CODE});
+      updateSettings({ language: POLISH_LANGUAGE_CODE });
 
       await sleep(0);
 
@@ -348,10 +348,10 @@ describe('i18n', () => {
       spyOn(console, 'error'); // overriding console.error
 
       handsontable({
-        contextMenu: ['row_above']
+        contextMenu: ['row_above'],
       });
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       await sleep(0);
 
@@ -367,10 +367,10 @@ describe('i18n', () => {
 
       handsontable({
         language: NOT_EXISTING_LANGUAGE_CODE,
-        contextMenu: ['row_above']
+        contextMenu: ['row_above'],
       });
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE2});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE2 });
 
       await sleep(0);
 
@@ -386,10 +386,10 @@ describe('i18n', () => {
 
       handsontable({
         language: POLISH_LANGUAGE_CODE,
-        contextMenu: ['row_above']
+        contextMenu: ['row_above'],
       });
 
-      updateSettings({language: NOT_EXISTING_LANGUAGE_CODE});
+      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       await sleep(0);
 
@@ -405,7 +405,7 @@ describe('i18n', () => {
 
       handsontable({
         language: POLISH_LANGUAGE_CODE,
-        contextMenu: ['alignment']
+        contextMenu: ['alignment'],
       });
 
       selectCell(0, 0);
@@ -427,7 +427,7 @@ describe('i18n', () => {
       const REMOVE_COLUMN_PLURAL_IN_DEFAULT_LANGUAGE = 'Remove columns';
 
       handsontable({
-        contextMenu: ['remove_row', 'remove_col']
+        contextMenu: ['remove_row', 'remove_col'],
       });
 
       selectCell(0, 0, 2, 2);
@@ -480,7 +480,7 @@ describe('i18n', () => {
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         contextMenu: ['borders'],
-        customBorders: true
+        customBorders: true,
       });
 
       selectCell(0, 0);
@@ -497,7 +497,7 @@ describe('i18n', () => {
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         contextMenu: ['mergeCells'],
-        mergeCells: true
+        mergeCells: true,
       });
 
       selectCell(0, 0);
@@ -514,7 +514,7 @@ describe('i18n', () => {
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         contextMenu: ['copy'],
-        copyPaste: true
+        copyPaste: true,
       });
 
       selectCell(0, 0);

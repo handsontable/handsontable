@@ -1,11 +1,11 @@
 describe('Core_beforeKeyDown', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -17,9 +17,9 @@ describe('Core_beforeKeyDown', () => {
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
-      beforeKeyDown(event) {
+      beforeKeyDown() {
         called = true;
-      }
+      },
     });
     selectCell(0, 0);
 
@@ -38,7 +38,7 @@ describe('Core_beforeKeyDown', () => {
       },
       beforeKeyDown() {
         called.push('beforeKeyDown');
-      }
+      },
     });
     selectCell(0, 0);
 
@@ -48,17 +48,13 @@ describe('Core_beforeKeyDown', () => {
   });
 
   it('should prevent hook from running default action', () => {
-    var called = false;
-
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       beforeKeyDown(event) {
-
         event = serveImmediatePropagation(event);
 
         event.stopImmediatePropagation();
-        called = true;
-      }
+      },
     });
     selectCell(0, 0);
 
@@ -69,8 +65,6 @@ describe('Core_beforeKeyDown', () => {
   });
 
   it('should overwrite default behavior of delete key, but not this of right arrow', () => {
-    var called = 0;
-
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       beforeKeyDown(event) {
@@ -78,9 +72,7 @@ describe('Core_beforeKeyDown', () => {
           event.stopImmediatePropagation();
           getInstance().alter('insert_row', 1, 1);
         }
-
-        called++;
-      }
+      },
     });
 
     selectCell(0, 0);
@@ -97,9 +89,9 @@ describe('Core_beforeKeyDown', () => {
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
-      beforeKeyDown(event) {
-        called++;
-      }
+      beforeKeyDown() {
+        called += 1;
+      },
     });
     selectCell(0, 0);
 

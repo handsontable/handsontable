@@ -1,4 +1,4 @@
-import {getValidSelection} from './../utils';
+import { getValidSelection } from './../utils';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'row_below';
@@ -20,6 +20,6 @@ export default function rowBelowItem() {
     },
     hidden() {
       return !this.getSettings().allowInsertRow;
-    }
+    },
   };
 }

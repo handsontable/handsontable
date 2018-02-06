@@ -1,6 +1,6 @@
 import Hooks from './../../pluginHooks';
-import {hasOwnProperty} from './../../helpers/object';
-import {CellRange, Selection} from './../../3rdparty/walkontable/src';
+import { hasOwnProperty } from './../../helpers/object';
+import { CellRange, Selection } from './../../3rdparty/walkontable/src';
 import * as C from './../../i18n/constants';
 
 function CustomBorders() {}
@@ -47,7 +47,7 @@ var instance;
 /** *
  * Check if plugin should be enabled.
  */
-var checkEnable = function(customBorders) {
+var checkEnable = function (customBorders) {
   if (typeof customBorders === 'boolean') {
     if (customBorders === true) {
       return true;
@@ -65,7 +65,7 @@ var checkEnable = function(customBorders) {
 /** *
  * Initialize plugin.
  */
-var init = function() {
+var init = function () {
   if (checkEnable(this.getSettings().customBorders)) {
     if (!this.customBorders) {
       instance = this;
@@ -80,9 +80,9 @@ var init = function() {
  * @param {String} className
  * @returns {Number}
  */
-var getSettingIndex = function(className) {
-  for (var i = 0; i < instance.view.wt.selections.length; i++) {
-    if (instance.view.wt.selections[i].settings.className == className) {
+var getSettingIndex = function (className) {
+  for (var i = 0; i < instance.view.wt.selections.length; i += 1) {
+    if (instance.view.wt.selections[i].settings.className === className) {
       return i;
     }
   }
@@ -95,10 +95,10 @@ var getSettingIndex = function(className) {
  *
  * @param border
  */
-var insertBorderIntoSettings = function(border) {
+var insertBorderIntoSettings = function (border) {
   var coordinates = {
     row: border.row,
-    col: border.col
+    col: border.col,
   };
   var selection = new Selection(border, new CellRange(coordinates, coordinates, coordinates));
   var index = getSettingIndex(border.className);
@@ -117,7 +117,7 @@ var insertBorderIntoSettings = function(border) {
  * @param {Number} col Visual column index.
  * @param borderObj
  */
-var prepareBorderFromCustomAdded = function(row, col, borderObj) {
+var prepareBorderFromCustomAdded = function (row, col, borderObj) {
   var border = createEmptyBorders(row, col);
   border = extendDefaultBorder(border, borderObj);
   this.setCellMeta(row, col, 'borders', border);
@@ -130,40 +130,43 @@ var prepareBorderFromCustomAdded = function(row, col, borderObj) {
  *
  * @param {Object} rowObj
  */
-var prepareBorderFromCustomAddedRange = function(rowObj) {
-  var range = rowObj.range;
+var prepareBorderFromCustomAddedRange = function (rowObj) {
+  let { range } = rowObj;
 
-  for (var row = range.from.row; row <= range.to.row; row++) {
-    for (var col = range.from.col; col <= range.to.col; col++) {
+  let { row: startRow, col: startColumn } = range.from;
+  const { row: endRow, col: endColumn } = range.to;
+
+  for (let row = startRow; row <= endRow; row += 1) {
+    for (let col = startColumn; col <= endColumn; col += 1) {
       var border = createEmptyBorders(row, col);
       var add = 0;
 
-      if (row == range.from.row) {
-        add++;
+      if (row === range.from.row) {
+        add += 1;
 
         if (hasOwnProperty(rowObj, 'top')) {
           border.top = rowObj.top;
         }
       }
 
-      if (row == range.to.row) {
-        add++;
+      if (row === endRow) {
+        add += 1;
 
         if (hasOwnProperty(rowObj, 'bottom')) {
           border.bottom = rowObj.bottom;
         }
       }
 
-      if (col == range.from.col) {
-        add++;
+      if (col === range.from.col) {
+        add += 1;
 
         if (hasOwnProperty(rowObj, 'left')) {
           border.left = rowObj.left;
         }
       }
 
-      if (col == range.to.col) {
-        add++;
+      if (col === endColumn) {
+        add += 1;
 
         if (hasOwnProperty(rowObj, 'right')) {
           border.right = rowObj.right;
@@ -185,7 +188,7 @@ var prepareBorderFromCustomAddedRange = function(rowObj) {
  * @param {Number} col Visual column index.
  * @returns {String}
  */
-var createClassName = function(row, col) {
+var createClassName = function (row, col) {
   return `border_row${row}col${col}`;
 };
 
@@ -194,10 +197,10 @@ var createClassName = function(row, col) {
  *
  * @returns {Object} `{{width: number, color: string}}`
  */
-var createDefaultCustomBorder = function() {
+var createDefaultCustomBorder = function () {
   return {
     width: 1,
-    color: '#000'
+    color: '#000',
   };
 };
 
@@ -206,9 +209,9 @@ var createDefaultCustomBorder = function() {
  *
  * @returns {Object} `{{hide: boolean}}`
  */
-var createSingleEmptyBorder = function() {
+var createSingleEmptyBorder = function () {
   return {
-    hide: true
+    hide: true,
   };
 };
 
@@ -217,7 +220,7 @@ var createSingleEmptyBorder = function() {
  *
  * @returns {Object} `{{width: number, color: string, cornerVisible: boolean}}`
  */
-var createDefaultHtBorder = function() {
+var createDefaultHtBorder = function () {
   return {
     width: 1,
     color: '#000',
@@ -232,7 +235,7 @@ var createDefaultHtBorder = function() {
  * @param {Number} col Visual column index.
  * @returns {Object} `{{className: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`
  */
-var createEmptyBorders = function(row, col) {
+var createEmptyBorders = function (row, col) {
   return {
     className: createClassName(row, col),
     border: createDefaultHtBorder(),
@@ -245,7 +248,7 @@ var createEmptyBorders = function(row, col) {
   };
 };
 
-var extendDefaultBorder = function(defaultBorder, customBorder) {
+var extendDefaultBorder = function (defaultBorder, customBorder) {
   if (hasOwnProperty(customBorder, 'border')) {
     defaultBorder.border = customBorder.border;
   }
@@ -274,12 +277,12 @@ var extendDefaultBorder = function(defaultBorder, customBorder) {
  *
  * @param borderClassName
  */
-var removeBordersFromDom = function(borderClassName) {
+var removeBordersFromDom = function (borderClassName) {
   var borders = document.querySelectorAll(`.${borderClassName}`);
 
-  for (var i = 0; i < borders.length; i++) {
+  for (var i = 0; i < borders.length; i += 1) {
     if (borders[i]) {
-      if (borders[i].nodeName != 'TD') {
+      if (borders[i].nodeName !== 'TD') {
         var parent = borders[i].parentNode;
 
         if (parent.parentNode) {
@@ -296,7 +299,7 @@ var removeBordersFromDom = function(borderClassName) {
  * @param {Number} row Visual row index.
  * @param {Number} col Visual column index.
  */
-var removeAllBorders = function(row, col) {
+var removeAllBorders = function (row, col) {
   var borderClassName = createClassName(row, col);
   removeBordersFromDom(borderClassName);
   this.removeCellMeta(row, col, 'borders');
@@ -310,11 +313,11 @@ var removeAllBorders = function(row, col) {
  * @param place
  * @param remove
  */
-var setBorder = function(row, col, place, remove) {
+var setBorder = function (row, col, place, remove) {
 
   var bordersMeta = this.getCellMeta(row, col).borders;
 
-  if (!bordersMeta || bordersMeta.border == undefined) {
+  if (!bordersMeta || bordersMeta.border === void 0) {
     bordersMeta = createEmptyBorders(row, col);
   }
 
@@ -340,41 +343,44 @@ var setBorder = function(row, col, place, remove) {
  * @param place
  * @param remove
  */
-var prepareBorder = function(range, place, remove) {
+var prepareBorder = function (range, place, remove) {
+  let { row: startRow, col: startColumn } = range.from;
+  const { row: endRow, col: endColumn } = range.to;
 
-  if (range.from.row == range.to.row && range.from.col == range.to.col) {
-    if (place == 'noBorders') {
-      removeAllBorders.call(this, range.from.row, range.from.col);
+  if (startRow === endRow && startColumn === endColumn) {
+    if (place === 'noBorders') {
+      removeAllBorders.call(this, startRow, startColumn);
     } else {
-      setBorder.call(this, range.from.row, range.from.col, place, remove);
+      setBorder.call(this, startRow, startColumn, place, remove);
     }
   } else {
+
     switch (place) {
       case 'noBorders':
-        for (var column = range.from.col; column <= range.to.col; column++) {
-          for (var row = range.from.row; row <= range.to.row; row++) {
+        for (let column = startColumn; column <= endColumn; column += 1) {
+          for (let row = startRow; row <= endRow; row += 1) {
             removeAllBorders.call(this, row, column);
           }
         }
         break;
       case 'top':
-        for (var topCol = range.from.col; topCol <= range.to.col; topCol++) {
-          setBorder.call(this, range.from.row, topCol, place, remove);
+        for (var topCol = startColumn; topCol <= endColumn; topCol += 1) {
+          setBorder.call(this, startRow, topCol, place, remove);
         }
         break;
       case 'right':
-        for (var rowRight = range.from.row; rowRight <= range.to.row; rowRight++) {
-          setBorder.call(this, rowRight, range.to.col, place);
+        for (var rowRight = startRow; rowRight <= endRow; rowRight += 1) {
+          setBorder.call(this, rowRight, endColumn, place);
         }
         break;
       case 'bottom':
-        for (var bottomCol = range.from.col; bottomCol <= range.to.col; bottomCol++) {
-          setBorder.call(this, range.to.row, bottomCol, place);
+        for (var bottomCol = startColumn; bottomCol <= endColumn; bottomCol += 1) {
+          setBorder.call(this, endRow, bottomCol, place);
         }
         break;
       case 'left':
-        for (var rowLeft = range.from.row; rowLeft <= range.to.row; rowLeft++) {
-          setBorder.call(this, rowLeft, range.from.col, place);
+        for (var rowLeft = startRow; rowLeft <= endRow; rowLeft += 1) {
+          setBorder.call(this, rowLeft, startColumn, place);
         }
         break;
       default:
@@ -389,7 +395,7 @@ var prepareBorder = function(range, place, remove) {
  * @param hot
  * @param direction
  */
-var checkSelectionBorders = function(hot, direction) {
+var checkSelectionBorders = function (hot, direction) {
   var atLeastOneHasBorder = false;
 
   hot.getSelectedRange().forAll((r, c) => {
@@ -406,7 +412,10 @@ var checkSelectionBorders = function(hot, direction) {
         return false; // breaks forAll
       }
     }
+
+    return true;
   });
+
   return atLeastOneHasBorder;
 };
 
@@ -416,7 +425,7 @@ var checkSelectionBorders = function(hot, direction) {
  * @param label
  * @returns {string}
  */
-var markSelected = function(label) {
+var markSelected = function (label) {
   return `<span class="selected">${String.fromCharCode(10003)}</span>${label}`; // workaround for https://github.com/handsontable/handsontable/issues/1946
 };
 
@@ -425,7 +434,7 @@ var markSelected = function(label) {
  *
  * @param defaultOptions
  */
-var addBordersOptionsToContextMenu = function(defaultOptions) {
+var addBordersOptionsToContextMenu = function (defaultOptions) {
   if (!this.getSettings().customBorders) {
     return;
   }
@@ -516,20 +525,20 @@ var addBordersOptionsToContextMenu = function(defaultOptions) {
           },
           disabled() {
             return !checkSelectionBorders(this);
-          }
-        }
-      ]
-    }
+          },
+        },
+      ],
+    },
   });
 };
 
 Hooks.getSingleton().add('beforeInit', init);
 Hooks.getSingleton().add('afterContextMenuDefaultOptions', addBordersOptionsToContextMenu);
-Hooks.getSingleton().add('afterInit', function() {
-  var customBorders = this.getSettings().customBorders;
+Hooks.getSingleton().add('afterInit', function () {
+  let { customBorders } = this.getSettings();
 
   if (customBorders) {
-    for (var i = 0; i < customBorders.length; i++) {
+    for (var i = 0; i < customBorders.length; i += 1) {
       if (customBorders[i].range) {
         prepareBorderFromCustomAddedRange.call(this, customBorders[i]);
 

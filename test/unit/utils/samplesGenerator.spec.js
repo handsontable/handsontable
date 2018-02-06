@@ -35,7 +35,7 @@ describe('SamplesGenerator', () => {
     spyOn(sg, 'generateSample').and.callFake((type, range, index) => {
       var map = new Map();
 
-      map.set(index, {type, range, index});
+      map.set(index, { type, range, index });
 
       return map;
     });
@@ -53,12 +53,12 @@ describe('SamplesGenerator', () => {
     spyOn(sg, 'generateSample').and.callFake((type, range, index) => {
       var map = new Map();
 
-      map.set(index, {type, range, index});
+      map.set(index, { type, range, index });
 
       return map;
     });
 
-    var result = sg.generateSamples('col', 10, {from: 4, to: 12});
+    var result = sg.generateSamples('col', 10, { from: 4, to: 12 });
 
     expect(result instanceof Map).toBe(true);
     expect(result.size).toBe(9);
@@ -68,7 +68,7 @@ describe('SamplesGenerator', () => {
   it('should generate row sample', () => {
     var sg = new SamplesGenerator((row, col) => {
       var data = [
-        ['AA', {id: 2}, 'C', [1, 2, 3, 4, 5], 123456789],
+        ['AA', { id: 2 }, 'C', [1, 2, 3, 4, 5], 123456789],
       ];
 
       return data[row][col];
@@ -76,15 +76,15 @@ describe('SamplesGenerator', () => {
 
     spyOn(sg, 'dataFactory').and.callThrough();
 
-    var result = sg.generateSample('row', {from: 0, to: 4}, 0);
+    var result = sg.generateSample('row', { from: 0, to: 4 }, 0);
 
     expect(sg.dataFactory.calls.count()).toBe(5);
     expect(sg.dataFactory.calls.mostRecent().args[0]).toBe(0);
     expect(sg.dataFactory.calls.mostRecent().args[1]).toBe(4);
     expect(result instanceof Map).toBe(true);
     expect(result.size).toBe(4);
-    expect(result.get(1).strings).toEqual([{value: {id: 2 }, col: 1}, {value: 'C', col: 2}]);
-    expect(result.get(2).strings).toEqual([{value: 'AA', col: 0}]);
+    expect(result.get(1).strings).toEqual([{ value: { id: 2 }, col: 1 }, { value: 'C', col: 2 }]);
+    expect(result.get(2).strings).toEqual([{ value: 'AA', col: 0 }]);
   });
 
   it('should generate column sample', () => {
@@ -94,7 +94,7 @@ describe('SamplesGenerator', () => {
         ['AA', 'BB', 'C', 'D'],
         ['zz', 'xxx', 'c-c', 'vvvvv'],
         [[1], [1, 2], [1, 2], [4]],
-        [{id: 1}, {id: 2}, {id: 3}, {id: 4}],
+        [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }],
       ];
 
       return data[row][col];
@@ -102,14 +102,14 @@ describe('SamplesGenerator', () => {
 
     spyOn(sg, 'dataFactory').and.callThrough();
 
-    var result = sg.generateSample('col', {from: 0, to: 4}, 3);
+    var result = sg.generateSample('col', { from: 0, to: 4 }, 3);
 
     expect(sg.dataFactory.calls.count()).toBe(5);
     expect(sg.dataFactory.calls.mostRecent().args[0]).toBe(4);
     expect(sg.dataFactory.calls.mostRecent().args[1]).toBe(3);
     expect(result instanceof Map).toBe(true);
     expect(result.size).toBe(3);
-    expect(result.get(1).strings).toEqual([{value: 'D', row: 1}, {value: [4], row: 3}, {value: {id: 4}, row: 4}]);
-    expect(result.get(2).strings).toEqual([{value: 44, row: 0}]);
+    expect(result.get(1).strings).toEqual([{ value: 'D', row: 1 }, { value: [4], row: 3 }, { value: { id: 4 }, row: 4 }]);
+    expect(result.get(2).strings).toEqual([{ value: 44, row: 0 }]);
   });
 });

@@ -7,7 +7,7 @@ describe('ContextMenu', () => {
         top: 10,
         left: 50,
         width: 100,
-        height: 200
+        height: 200,
       };
       var cursor = new Cursor(coords);
 
@@ -26,11 +26,11 @@ describe('ContextMenu', () => {
         top: 10,
         left: 50,
         width: 100,
-        height: 200
+        height: 200,
       };
       var cursor = new Cursor(coords);
       var fakeElement = {
-        offsetHeight: 9
+        offsetHeight: 9,
       };
 
       expect(cursor.fitsAbove(fakeElement)).toBe(true);
@@ -49,11 +49,11 @@ describe('ContextMenu', () => {
         top: 10,
         left: 50,
         width: 100,
-        height: 200
+        height: 200,
       };
       var cursor = new Cursor(coords);
       var fakeElement = {
-        offsetHeight: 9
+        offsetHeight: 9,
       };
       var viewportHeight = 100;
 
@@ -73,11 +73,11 @@ describe('ContextMenu', () => {
         top: 10,
         left: 20,
         width: 30,
-        height: 200
+        height: 200,
       };
       var cursor = new Cursor(coords);
       var fakeElement = {
-        offsetWidth: 9
+        offsetWidth: 9,
       };
       var viewportWidth = 100;
 
@@ -97,11 +97,11 @@ describe('ContextMenu', () => {
         top: 10,
         left: 50,
         width: 100,
-        height: 200
+        height: 200,
       };
       var cursor = new Cursor(coords);
       var fakeElement = {
-        offsetWidth: 9
+        offsetWidth: 9,
       };
 
       expect(cursor.fitsOnLeft(fakeElement)).toBe(true);

@@ -2,11 +2,11 @@ describe('settings', () => {
   describe('fixedRowsTop', () => {
     var id = 'testContainer';
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (this.$container) {
         destroy();
         this.$container.remove();
@@ -16,7 +16,7 @@ describe('settings', () => {
     describe('defined in constructor', () => {
       it('should show rows headers', () => {
         handsontable({
-          fixedRowsTop: 3
+          fixedRowsTop: 3,
         });
 
         expect(getTopClone().find('tbody tr').length).toEqual(3);
@@ -26,7 +26,7 @@ describe('settings', () => {
         handsontable({
           rowHeaders: true,
           colHeaders: true,
-          fixedRowsTop: 2
+          fixedRowsTop: 2,
         });
 
         expect(getTopClone().find('thead tr').length).toEqual(1);
@@ -37,11 +37,11 @@ describe('settings', () => {
     describe('defined in updateSettings', () => {
       it('should increase fixed rows', () => {
         handsontable({
-          fixedRowsTop: 2
+          fixedRowsTop: 2,
         });
 
         updateSettings({
-          fixedRowsTop: 4
+          fixedRowsTop: 4,
         });
 
         expect(getTopClone().find('tbody tr').length).toEqual(4);
@@ -49,11 +49,11 @@ describe('settings', () => {
 
       it('should decrease fixed rows', () => {
         handsontable({
-          fixedRowsTop: 4
+          fixedRowsTop: 4,
         });
 
         updateSettings({
-          fixedRowsTop: 2
+          fixedRowsTop: 2,
         });
 
         expect(getTopClone().find('tbody tr').length).toEqual(2);
@@ -61,11 +61,11 @@ describe('settings', () => {
 
       it('should create fixed rows when they are disabled eariler', () => {
         handsontable({
-          fixedRowsTop: 0
+          fixedRowsTop: 0,
         });
 
         updateSettings({
-          fixedRowsTop: 2
+          fixedRowsTop: 2,
         });
 
         expect(getTopClone().find('tbody tr').length).toEqual(2);
@@ -73,11 +73,11 @@ describe('settings', () => {
 
       it('should disable fixed rows', () => {
         handsontable({
-          fixedRowsTop: 2
+          fixedRowsTop: 2,
         });
 
         updateSettings({
-          fixedRowsTop: 0
+          fixedRowsTop: 0,
         });
 
         expect(getTopClone().find('tbody tr').length).toEqual(2);
@@ -88,7 +88,7 @@ describe('settings', () => {
         var spy = jasmine.createSpyObj('error', ['test']);
         var prevError = window.onerror;
 
-        window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+        window.onerror = function () {
           spy.test();
         };
         var hot = handsontable({
@@ -99,7 +99,7 @@ describe('settings', () => {
         });
 
         updateSettings({
-          fixedRowsTop: 2
+          fixedRowsTop: 2,
         });
 
         setTimeout(() => {

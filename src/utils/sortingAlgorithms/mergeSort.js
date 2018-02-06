@@ -16,7 +16,7 @@ import LinkedList from '../dataStructures/linkedList';
  * @param b {*} second compared element.
  * @returns {Number}
  */
-const defaultCompareFunction = function(a, b) {
+const defaultCompareFunction = function (a, b) {
   // sort lexically
 
   const firstValue = a.toString();
@@ -107,4 +107,4 @@ export function merge(array, compareFunction, startIndex, middleIndex, endIndex)
   }
 
   return array;
-};
+}

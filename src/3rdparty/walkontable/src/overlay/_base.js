@@ -2,8 +2,8 @@ import {
   getScrollableElement,
   getTrimmingContainer,
 } from './../../../../helpers/dom/element';
-import {defineGetter} from './../../../../helpers/object';
-import {arrayEach} from './../../../../helpers/array';
+import { defineGetter } from './../../../../helpers/object';
+import { arrayEach } from './../../../../helpers/array';
 import EventManager from './../../../../eventManager';
 import Walkontable from './../core';
 
@@ -253,8 +253,7 @@ class Overlay {
     if (!this.clone) {
       return;
     }
-    const holder = this.clone.wtTable.holder;
-    const hider = this.clone.wtTable.hider;
+    const { holder, hider } = this.clone.wtTable;
     let holderStyle = holder.style;
     let hidderStyle = hider.style;
     let rootStyle = holder.parentNode.style;

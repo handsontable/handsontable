@@ -1,11 +1,11 @@
 describe('HandsontableEditor', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -14,26 +14,26 @@ describe('HandsontableEditor', () => {
 
   function getManufacturerData() {
     return [
-      {name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG'},
-      {name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC'},
-      {name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd'},
-      {name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation'},
-      {name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation'},
-      {name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group'}
+      { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
+      { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
+      { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
+      { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
+      { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
+      { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' },
     ];
   }
 
-  it('should create an editor that is a Handsontable instance', function() {
+  it('should create an editor that is a Handsontable instance', function () {
     handsontable({
       columns: [
         {
           type: 'handsontable',
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
+            data: getManufacturerData(),
+          },
+        },
+      ],
     });
     selectCell(2, 0);
 
@@ -41,17 +41,17 @@ describe('HandsontableEditor', () => {
     expect(this.$container.find('.handsontableEditor:visible').length).toEqual(1);
   });
 
-  it('should create an editor directly below the textarea element', function() {
+  it('should create an editor directly below the textarea element', function () {
     handsontable({
       columns: [
         {
           type: 'handsontable',
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
+            data: getManufacturerData(),
+          },
+        },
+      ],
     });
     selectCell(2, 0);
 
@@ -59,17 +59,17 @@ describe('HandsontableEditor', () => {
     expect(this.$container.find('.handsontableEditor')[0].offsetTop).toEqual(this.$container.find('.handsontableInput')[0].offsetHeight);
   });
 
-  it('should destroy the editor when Esc is pressed', function() {
+  it('should destroy the editor when Esc is pressed', function () {
     handsontable({
       columns: [
         {
           type: 'handsontable',
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
+            data: getManufacturerData(),
+          },
+        },
+      ],
     });
     selectCell(2, 0);
 
@@ -83,16 +83,16 @@ describe('HandsontableEditor', () => {
     var spy = jasmine.createSpyObj('error', ['test']);
     var prevError = window.onerror;
 
-    window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+    window.onerror = function () {
       spy.test();
     };
     handsontable({
       columns: [{
         type: 'handsontable',
         handsontable: {
-          data: [['Marque'], ['Country'], ['Parent company']]
-        }
-      }]
+          data: [['Marque'], ['Country'], ['Parent company']],
+        },
+      }],
     });
 
     selectCell(0, 0);
@@ -105,17 +105,17 @@ describe('HandsontableEditor', () => {
     window.onerror = prevError;
   });
 
-  it('Enter pressed in nested HT should set the value and hide the editor', function() {
+  it('Enter pressed in nested HT should set the value and hide the editor', function () {
     handsontable({
       columns: [
         {
           type: 'handsontable',
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
+            data: getManufacturerData(),
+          },
+        },
+      ],
     });
     selectCell(2, 0);
 
@@ -133,10 +133,10 @@ describe('HandsontableEditor', () => {
           type: 'handsontable',
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
+            data: getManufacturerData(),
+          },
+        },
+      ],
     });
     selectCell(2, 0);
 
@@ -152,10 +152,10 @@ describe('HandsontableEditor', () => {
           type: 'handsontable',
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
+            data: getManufacturerData(),
+          },
+        },
+      ],
     });
 
     selectCell(2, 0);
@@ -175,15 +175,15 @@ describe('HandsontableEditor', () => {
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
             data: getManufacturerData(),
-            afterSelection() {
-              selections.push(['inner', arguments[0]]); // arguments[0] is selection start row
-            }
-          }
-        }
+            afterSelection(...args) {
+              selections.push(['inner', args[0]]); // arguments[0] is selection start row
+            },
+          },
+        },
       ],
-      afterSelection() {
-        selections.push(['outer', arguments[0]]); // arguments[0] is selection start row
-      }
+      afterSelection(...args) {
+        selections.push(['outer', args[0]]); // arguments[0] is selection start row
+      },
     });
     expect(selections.length).toBe(0);
 
@@ -213,11 +213,11 @@ describe('HandsontableEditor', () => {
             type: 'handsontable',
             handsontable: {
               colHeaders: ['Marque', 'Country', 'Parent company'],
-              data: getManufacturerData()
+              data: getManufacturerData(),
             },
-            strict: true
-          }
-        ]
+            strict: true,
+          },
+        ],
       });
       selectCell(2, 0);
 
@@ -236,11 +236,11 @@ describe('HandsontableEditor', () => {
             type: 'handsontable',
             handsontable: {
               colHeaders: ['Marque', 'Country', 'Parent company'],
-              data: getManufacturerData()
+              data: getManufacturerData(),
             },
-            strict: true
-          }
-        ]
+            strict: true,
+          },
+        ],
       });
       selectCell(2, 0);
 
@@ -260,10 +260,10 @@ describe('HandsontableEditor', () => {
             type: 'handsontable',
             handsontable: {
               colHeaders: ['Marque', 'Country', 'Parent company'],
-              data: getManufacturerData()
-            }
-          }
-        ]
+              data: getManufacturerData(),
+            },
+          },
+        ],
       });
       selectCell(2, 0);
 
@@ -282,16 +282,15 @@ describe('HandsontableEditor', () => {
             type: 'handsontable',
             handsontable: {
               colHeaders: ['Marque', 'Country', 'Parent company'],
-              data: getManufacturerData()
-            }
-          }
-        ]
+              data: getManufacturerData(),
+            },
+          },
+        ],
       });
       selectCell(2, 0);
 
       keyDownUp('enter');
       expect(hot.getActiveEditor().TEXTAREA.style.visibility).toEqual('visible');
-
     });
   });
 });

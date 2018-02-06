@@ -1,11 +1,11 @@
 describe('manualColumnFreeze', () => {
   const id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -16,7 +16,7 @@ describe('manualColumnFreeze', () => {
     it('should increase fixedColumnsLeft setting', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
-        manualColumnFreeze: true
+        manualColumnFreeze: true,
       });
       const plugin = hot.getPlugin('manualColumnFreeze');
       plugin.freezeColumn(4);
@@ -27,7 +27,7 @@ describe('manualColumnFreeze', () => {
     it('should freeze (make fixed) the column provided as an argument', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
-        manualColumnFreeze: true
+        manualColumnFreeze: true,
       });
 
       const plugin = hot.getPlugin('manualColumnFreeze');
@@ -44,7 +44,7 @@ describe('manualColumnFreeze', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 1
+        fixedColumnsLeft: 1,
       });
       const plugin = hot.getPlugin('manualColumnFreeze');
 
@@ -56,7 +56,7 @@ describe('manualColumnFreeze', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 3
+        fixedColumnsLeft: 3,
       });
 
       const plugin = hot.getPlugin('manualColumnFreeze');
@@ -73,7 +73,7 @@ describe('manualColumnFreeze', () => {
     it('should unfreeze the last column', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
-        manualColumnFreeze: true
+        manualColumnFreeze: true,
       });
 
       const plugin = hot.getPlugin('manualColumnFreeze');
@@ -99,13 +99,13 @@ describe('manualColumnFreeze', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        contextMenu: true
+        contextMenu: true,
       });
 
       selectCell(1, 1);
       contextMenu();
 
-      const freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      const freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         return $(this).text() === 'Freeze column';
 
       });
@@ -118,13 +118,13 @@ describe('manualColumnFreeze', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
         contextMenu: true,
-        fixedColumnsLeft: 2
+        fixedColumnsLeft: 2,
       });
 
       selectCell(1, 1);
       contextMenu();
 
-      const freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      const freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         return $(this).text() === 'Unfreeze column';
 
       });
@@ -137,7 +137,7 @@ describe('manualColumnFreeze', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
         fixedColumnsLeft: 1,
-        contextMenu: true
+        contextMenu: true,
       });
 
       selectCell(1, 3);
@@ -146,7 +146,7 @@ describe('manualColumnFreeze', () => {
 
       contextMenu();
 
-      const freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      const freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         if ($(this).text() === 'Freeze column') {
           return true;
         }
@@ -168,7 +168,7 @@ describe('manualColumnFreeze', () => {
         fixedColumnsLeft: 3,
         manualColumnMove: [0, 2, 5, 3, 4, 1, 6, 7, 8, 9],
         contextMenu: true,
-        rowHeaders: true
+        rowHeaders: true,
       });
 
       let dataAtCell = hot.getDataAtCell(1, 0);
@@ -181,10 +181,10 @@ describe('manualColumnFreeze', () => {
       selectCell(1, 1);
       contextMenu();
 
-      let freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      let freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         return $(this).text() === 'Unfreeze column';
-
       });
+
       freezeEntry.eq(0).simulate('mousedown');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
@@ -198,7 +198,7 @@ describe('manualColumnFreeze', () => {
       selectCell(1, 1);
       contextMenu();
 
-      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         if ($(this).text() === 'Unfreeze column') {
           return true;
         }
@@ -229,7 +229,7 @@ describe('manualColumnFreeze', () => {
 
       selectCell(1, 2);
       contextMenu();
-      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         return $(this).text() === 'Freeze column';
       });
 
@@ -241,7 +241,7 @@ describe('manualColumnFreeze', () => {
 
       selectCell(1, 0);
       contextMenu();
-      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function () {
         return $(this).text() === 'Unfreeze column';
       });
 

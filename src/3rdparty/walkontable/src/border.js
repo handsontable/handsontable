@@ -7,12 +7,11 @@ import {
   outerHeight,
   outerWidth,
 } from './../../../helpers/dom/element';
-import {stopImmediatePropagation} from './../../../helpers/dom/event';
-import {hasOwnProperty} from './../../../helpers/object';
-import {isMobileBrowser} from './../../../helpers/browser';
+import { stopImmediatePropagation } from './../../../helpers/dom/event';
+import { objectEach } from './../../../helpers/object';
+import { isMobileBrowser } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import CellCoords from './cell/coords';
-import Overlay from './overlay/_base.js';
 
 /**
  *
@@ -48,7 +47,7 @@ class Border {
       height: '5px',
       borderWidth: '2px',
       borderStyle: 'solid',
-      borderColor: '#FFF'
+      borderColor: '#FFF',
     };
     this.corner = null;
     this.cornerStyle = null;
@@ -64,8 +63,8 @@ class Border {
     this.eventManager.addEventListener(document.body, 'mousedown', () => this.onMouseDown());
     this.eventManager.addEventListener(document.body, 'mouseup', () => this.onMouseUp());
 
-    for (let c = 0, len = this.main.childNodes.length; c < len; c++) {
-      this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', (event) => this.onMouseEnter(event, this.main.childNodes[c]));
+    for (let c = 0, len = this.main.childNodes.length; c < len; c += 1) {
+      this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', event => this.onMouseEnter(event, this.main.childNodes[c]));
     }
   }
 
@@ -106,23 +105,27 @@ class Border {
     // Hide border to prevents selection jumping when fragmentSelection is enabled.
     parentElement.style.display = 'none';
 
-    function isOutside(event) {
-      if (event.clientY < Math.floor(bounds.top)) {
-        return true;
+    function isOutside(_event) {
+      let result;
+
+      if (_event.clientY < Math.floor(bounds.top)) {
+        result = true;
+
+      } else if (_event.clientY > Math.ceil(bounds.top + bounds.height)) {
+        result = true;
+
+      } else if (_event.clientX < Math.floor(bounds.left)) {
+        result = true;
+
+      } else if (_event.clientX > Math.ceil(bounds.left + bounds.width)) {
+        result = true;
       }
-      if (event.clientY > Math.ceil(bounds.top + bounds.height)) {
-        return true;
-      }
-      if (event.clientX < Math.floor(bounds.left)) {
-        return true;
-      }
-      if (event.clientX > Math.ceil(bounds.left + bounds.width)) {
-        return true;
-      }
+
+      return result;
     }
 
-    function handler(event) {
-      if (isOutside(event)) {
+    function handler(_event) {
+      if (isOutside(_event)) {
         _this.eventManager.removeEventListener(document.body, 'mousemove', handler);
         parentElement.style.display = 'block';
       }
@@ -140,12 +143,12 @@ class Border {
     this.main = document.createElement('div');
 
     let borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
-    let style = this.main.style;
+    let { style } = this.main;
     style.position = 'absolute';
     style.top = 0;
     style.left = 0;
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 5; i += 1) {
       let position = borderDivs[i];
       let div = document.createElement('div');
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
@@ -153,24 +156,20 @@ class Border {
       if (this.settings[position] && this.settings[position].hide) {
         div.className += ' hidden';
       }
-      style = div.style;
+      ({ style } = div);
       style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
       style.height = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
       style.width = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
 
       this.main.appendChild(div);
     }
-    this.top = this.main.childNodes[0];
-    this.left = this.main.childNodes[1];
-    this.bottom = this.main.childNodes[2];
-    this.right = this.main.childNodes[3];
+    [this.top, this.left, this.bottom, this.right, this.corner] = this.main.childNodes;
 
     this.topStyle = this.top.style;
     this.leftStyle = this.left.style;
     this.bottomStyle = this.bottom.style;
     this.rightStyle = this.right.style;
 
-    this.corner = this.main.childNodes[4];
     this.corner.className += ' corner';
     this.cornerStyle = this.corner.style;
     this.cornerStyle.width = this.cornerDefaultStyle.width;
@@ -178,7 +177,7 @@ class Border {
     this.cornerStyle.border = [
       this.cornerDefaultStyle.borderWidth,
       this.cornerDefaultStyle.borderStyle,
-      this.cornerDefaultStyle.borderColor
+      this.cornerDefaultStyle.borderColor,
     ].join(' ');
 
     if (isMobileBrowser()) {
@@ -202,7 +201,7 @@ class Border {
       topLeft: document.createElement('DIV'),
       topLeftHitArea: document.createElement('DIV'),
       bottomRight: document.createElement('DIV'),
-      bottomRightHitArea: document.createElement('DIV')
+      bottomRightHitArea: document.createElement('DIV'),
     };
     let width = 10;
     let hitAreaWidth = 40;
@@ -216,7 +215,7 @@ class Border {
       topLeft: this.selectionHandles.topLeft.style,
       topLeftHitArea: this.selectionHandles.topLeftHitArea.style,
       bottomRight: this.selectionHandles.bottomRight.style,
-      bottomRightHitArea: this.selectionHandles.bottomRightHitArea.style
+      bottomRightHitArea: this.selectionHandles.bottomRightHitArea.style,
     };
 
     let hitAreaStyle = {
@@ -226,12 +225,10 @@ class Border {
       'border-radius': `${parseInt(hitAreaWidth / 1.5, 10)}px`,
     };
 
-    for (let prop in hitAreaStyle) {
-      if (hasOwnProperty(hitAreaStyle, prop)) {
-        this.selectionHandles.styles.bottomRightHitArea[prop] = hitAreaStyle[prop];
-        this.selectionHandles.styles.topLeftHitArea[prop] = hitAreaStyle[prop];
-      }
-    }
+    objectEach(hitAreaStyle, (value, key) => {
+      this.selectionHandles.styles.bottomRightHitArea[key] = value;
+      this.selectionHandles.styles.topLeftHitArea[key] = value;
+    });
 
     let handleStyle = {
       position: 'absolute',
@@ -239,15 +236,14 @@ class Border {
       width: `${width}px`,
       'border-radius': `${parseInt(width / 1.5, 10)}px`,
       background: '#F5F5FF',
-      border: '1px solid #4285c8'
+      border: '1px solid #4285c8',
     };
 
-    for (let prop in handleStyle) {
-      if (hasOwnProperty(handleStyle, prop)) {
-        this.selectionHandles.styles.bottomRight[prop] = handleStyle[prop];
-        this.selectionHandles.styles.topLeft[prop] = handleStyle[prop];
-      }
-    }
+    objectEach(handleStyle, (value, key) => {
+      this.selectionHandles.styles.bottomRight[key] = value;
+      this.selectionHandles.styles.topLeft[key] = value;
+    });
+
     this.main.appendChild(this.selectionHandles.topLeft);
     this.main.appendChild(this.selectionHandles.bottomRight);
     this.main.appendChild(this.selectionHandles.topLeftHitArea);
@@ -256,7 +252,7 @@ class Border {
 
   isPartRange(row, col) {
     if (this.wot.selections.area.cellRange) {
-      if (row != this.wot.selections.area.cellRange.to.row || col != this.wot.selections.area.cellRange.to.col) {
+      if (row !== this.wot.selections.area.cellRange.to.row || col !== this.wot.selections.area.cellRange.to.col) {
         return true;
       }
     }
@@ -298,7 +294,7 @@ class Border {
       this.selectionHandles.styles.bottomRightHitArea.display = 'none';
     }
 
-    if (row == this.wot.wtSettings.getSetting('fixedRowsTop') || col == this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
+    if (row === this.wot.wtSettings.getSetting('fixedRowsTop') || col === this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
       this.selectionHandles.styles.topLeft.zIndex = '9999';
       this.selectionHandles.styles.topLeftHitArea.zIndex = '9999';
     } else {
@@ -338,7 +334,7 @@ class Border {
 
     ilen = this.wot.wtTable.getRenderedRowsCount();
 
-    for (let i = 0; i < ilen; i++) {
+    for (let i = 0; i < ilen; i += 1) {
       let s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
@@ -347,7 +343,7 @@ class Border {
       }
     }
 
-    for (let i = ilen - 1; i >= 0; i--) {
+    for (let i = ilen - 1; i >= 0; i -= 1) {
       let s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
@@ -358,7 +354,7 @@ class Border {
 
     ilen = this.wot.wtTable.getRenderedColumnsCount();
 
-    for (let i = 0; i < ilen; i++) {
+    for (let i = 0; i < ilen; i += 1) {
       let s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
@@ -367,7 +363,7 @@ class Border {
       }
     }
 
-    for (let i = ilen - 1; i >= 0; i--) {
+    for (let i = ilen - 1; i >= 0; i -= 1) {
       let s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {

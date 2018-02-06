@@ -4,13 +4,13 @@ let vendors = ['ms', 'moz', 'webkit', 'o'];
 let _requestAnimationFrame = window.requestAnimationFrame;
 let _cancelAnimationFrame = window.cancelAnimationFrame;
 
-for (let x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
+for (let x = 0; x < vendors.length && !_requestAnimationFrame; x += 1) {
   _requestAnimationFrame = window[`${vendors[x]}RequestAnimationFrame`];
   _cancelAnimationFrame = window[`${vendors[x]}CancelAnimationFrame`] || window[`${vendors[x]}CancelRequestAnimationFrame`];
 }
 
 if (!_requestAnimationFrame) {
-  _requestAnimationFrame = function(callback) {
+  _requestAnimationFrame = function (callback) {
     let currTime = new Date().getTime();
     let timeToCall = Math.max(0, 16 - (currTime - lastTime));
     let id = window.setTimeout(() => {
@@ -23,7 +23,7 @@ if (!_requestAnimationFrame) {
 }
 
 if (!_cancelAnimationFrame) {
-  _cancelAnimationFrame = function(id) {
+  _cancelAnimationFrame = function (id) {
     clearTimeout(id);
   };
 }

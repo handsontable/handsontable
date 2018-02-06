@@ -3,10 +3,10 @@ import {
   createCellHeadersRange,
   normalizeLanguageCode,
   warnUserAboutLanguageRegistration,
-  applyLanguageSetting
+  applyLanguageSetting,
 } from 'handsontable/i18n/utils';
 
-import {DEFAULT_LANGUAGE_CODE, registerLanguageDictionary} from 'handsontable/i18n/dictionariesManager';
+import { DEFAULT_LANGUAGE_CODE, registerLanguageDictionary } from 'handsontable/i18n/dictionariesManager';
 import plPL from 'handsontable/i18n/languages/pl-PL';
 
 describe('i18n helpers', () => {
@@ -14,10 +14,10 @@ describe('i18n helpers', () => {
     it('should add extra key to object', () => {
       const extendedOject = {
         hello: 'world',
-        lorem: 'ipsum'
+        lorem: 'ipsum',
       };
 
-      const extension = {anotherKey: true};
+      const extension = { anotherKey: true };
 
       extendNotExistingKeys(extendedOject, extension);
 
@@ -27,10 +27,10 @@ describe('i18n helpers', () => {
     it('should not overwrite existing keys', () => {
       const extendedOject = {
         hello: 'world',
-        lorem: 'ipsum'
+        lorem: 'ipsum',
       };
 
-      const extension = {hello: 'kitty'};
+      const extension = { hello: 'kitty' };
 
       extendNotExistingKeys(extendedOject, extension);
 
@@ -40,10 +40,10 @@ describe('i18n helpers', () => {
     it('should return extended object without creating copy of it', () => {
       const extendedOject = {
         hello: 'world',
-        lorem: 'ipsum'
+        lorem: 'ipsum',
       };
 
-      const extension = {anotherKey: true};
+      const extension = { anotherKey: true };
 
       const newReference = extendNotExistingKeys(extendedOject, extension);
 

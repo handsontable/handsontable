@@ -5,7 +5,7 @@ describe('WalkontableTable', () => {
     debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden', position: 'relative'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden', position: 'relative' });
     $wrapper.width(100).height(201);
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
@@ -28,20 +28,20 @@ describe('WalkontableTable', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
     expect($table.find('tbody tr').length).toBe(9);
   });
 
-  it('should create as many rows as in `totalRows` if it is smaller than `height`', function() {
+  it('should create as many rows as in `totalRows` if it is smaller than `height`', function () {
     this.data.splice(5, this.data.length - 5);
 
     var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
     expect($table.find('tbody tr').length).toBe(5);
@@ -53,9 +53,9 @@ describe('WalkontableTable', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
-      }]
+      }],
     });
     wt.draw();
     expect($table.find('tbody tr:first td').length).toBe($table.find('thead th').length);
@@ -68,19 +68,19 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       columnHeaders: [
-        function(col, TH) {
+        function (col, TH) {
           if (col > -1) {
             TH.innerHTML = 'Column';
           }
-        }
+        },
       ],
       rowHeaders: [
-        function(row, TH) {
+        function (row, TH) {
           if (row > -1) {
             TH.innerHTML = 'Row';
           }
-        }
-      ]
+        },
+      ],
     });
     wt.draw();
     expect($table.find('thead tr:first th').length).toBe(wt.wtTable.getRenderedColumnsCount() + 1); // 4 columns in THEAD + 1 empty cell in the corner
@@ -89,12 +89,12 @@ describe('WalkontableTable', () => {
     expect($table.find('tbody tr:first th:eq(0)')[0].innerHTML).toBe('Row');
   });
 
-  it('getCell should only return cells from rendered rows', function() {
+  it('getCell should only return cells from rendered rows', function () {
     var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 
@@ -109,7 +109,7 @@ describe('WalkontableTable', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 
@@ -130,9 +130,9 @@ describe('WalkontableTable', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = plusOne(row);
-      }]
+      }],
     });
     wt.draw();
 
@@ -146,10 +146,10 @@ describe('WalkontableTable', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
-      stretchH: 'all'
+      stretchH: 'all',
     });
     wt.draw();
     wt.wtViewport.columnsRenderCalculator.refreshStretching(502);
@@ -166,10 +166,10 @@ describe('WalkontableTable', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
-      stretchH: 'last'
+      stretchH: 'last',
     });
     wt.draw();
     wt.wtViewport.columnsRenderCalculator.refreshStretching(502);
@@ -196,20 +196,20 @@ describe('WalkontableTable', () => {
         }
         TD.className = '';
         TD.style.backgroundColor = 'yellow';
-      }
+      },
     });
     wt.draw();
     expect($table.find('td:first')[0].style.backgroundColor).toBe('yellow');
   });
 
-  it('should remove rows if they were removed in data source', function() {
+  it('should remove rows if they were removed in data source', function () {
     this.data.splice(8, this.data.length - 8); // second param is required by IE8
 
     var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
     expect($table.find('tbody tr').length).toBe(8);
@@ -225,9 +225,9 @@ describe('WalkontableTable', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
-      }]
+      }],
     });
     wt.draw();
     expect($table.find('thead tr:first').children().length).toBe(2);
@@ -245,12 +245,12 @@ describe('WalkontableTable', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
-      }]
+      }],
     });
     wt.draw();
     expect($table.find('thead tr:first').children().length).toBe(2);
@@ -271,15 +271,15 @@ describe('WalkontableTable', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
       }],
       columnWidth(column) {
         return (column + 1) * 50;
-      }
+      },
     });
     wt.draw();
     expect($table.find('tbody tr:first td:eq(0)').outerWidth()).toBe(50);
@@ -297,13 +297,13 @@ describe('WalkontableTable', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
       }],
-      columnWidth: [50, 100, 150, 201]
+      columnWidth: [50, 100, 150, 201],
     });
     wt.draw();
     expect($table.find('tbody tr:first td:eq(0)').outerWidth()).toBe(50);
@@ -321,13 +321,13 @@ describe('WalkontableTable', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
       }],
-      columnWidth: 100
+      columnWidth: 100,
     });
     wt.draw();
     expect($table.find('tbody tr:first td:eq(0)').outerWidth()).toBe(100);
@@ -336,7 +336,7 @@ describe('WalkontableTable', () => {
     expect($table.find('tbody tr:first td:eq(3)').outerWidth()).toBe(100);
   });
 
-  it('should use column width also when there are no rows', function() {
+  it('should use column width also when there are no rows', function () {
     this.data.length = 0;
 
     $wrapper.width(600);
@@ -346,13 +346,13 @@ describe('WalkontableTable', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: 4,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
-      columnHeaders: [function(col, TH) {
+      columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
       }],
-      columnWidth: 100
+      columnWidth: 100,
     });
     wt.draw();
     // start from eq(1) because eq(0) is corner header
@@ -367,7 +367,7 @@ describe('WalkontableTable', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
     $table.find('tbody td').html('');
@@ -384,9 +384,9 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         cellRenderer(row, column, TD) {
-          count++;
+          count += 1;
           return wt.wtSettings.defaults.cellRenderer(row, column, TD);
-        }
+        },
       });
     wt.draw();
     var oldCount = count;
@@ -403,12 +403,12 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         cellRenderer(row, column, TD) {
-          count++;
+          count += 1;
           return wt.wtSettings.defaults.cellRenderer(row, column, TD);
         },
         viewportRowCalculatorOverride(calc) {
           calc.endRow += 10;
-        }
+        },
       });
     wt.draw();
     var oldCount = count;
@@ -427,12 +427,12 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         cellRenderer(row, column, TD) {
-          count++;
+          count += 1;
           return wt.wtSettings.defaults.cellRenderer(row, column, TD);
         },
         viewportRowCalculatorOverride(calc) {
           calc.endRow += 10;
-        }
+        },
       });
     wt.draw();
     var oldCount = count;
@@ -456,12 +456,12 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         cellRenderer(row, column, TD) {
-          count++;
+          count += 1;
           return wt.wtSettings.defaults.cellRenderer(row, column, TD);
         },
         viewportColumnCalculatorOverride(calc) {
           calc.endColumn += 10;
-        }
+        },
       });
     wt.draw();
     var oldCount = count;
@@ -482,13 +482,13 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         cellRenderer(row, column, TD) {
-          count++;
+          count += 1;
 
           return wt.wtSettings.defaults.cellRenderer(row, column, TD);
         },
         viewportColumnCalculatorOverride(calc) {
           calc.endColumn += 10;
-        }
+        },
       });
     wt.draw();
     var oldCount = count;
@@ -507,16 +507,15 @@ describe('WalkontableTable', () => {
       createDataArray(50, 50);
       $wrapper.width(500).height(400);
 
-      var count = 0,
-        wt = new Walkontable.Core({
-          table: $table[0],
-          data: getData,
-          totalRows: getTotalRows,
-          totalColumns: getTotalColumns,
-          columnWidth: 70,
-          fixedColumnsLeft: 2,
-          columnHeaders: [function(col, TH) {}]
-        });
+      const wt = new Walkontable.Core({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnWidth: 70,
+        fixedColumnsLeft: 2,
+        columnHeaders: [function () {}],
+      });
       wt.draw();
 
       expect($('.ht_clone_top_left_corner thead tr th').eq(0).css('border-left-width')).toBe('1px');
@@ -536,7 +535,7 @@ describe('WalkontableTable', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw();
 
@@ -552,7 +551,7 @@ describe('WalkontableTable', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw();
       wt.scrollVertical(7);
@@ -572,7 +571,7 @@ describe('WalkontableTable', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw();
 
@@ -588,7 +587,7 @@ describe('WalkontableTable', () => {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
       });
       wt.draw();
       wt.scrollHorizontal(1);

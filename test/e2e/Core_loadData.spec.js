@@ -1,48 +1,48 @@
 describe('Core_loadData', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfArrays = function() {
+  var arrayOfArrays = function () {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
       ['2009', 20, 11, 14, 13],
-      ['2010', 30, 15, 12, 13]
+      ['2010', 30, 15, 12, 13],
     ];
   };
 
-  var arrayOfObjects = function() {
+  var arrayOfObjects = function () {
     return [
-      {id: 1, name: 'Ted', lastName: 'Right'},
-      {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'},
-      {id: 4, name: 'Sid', lastName: 'Strong'},
-      {id: 5, name: 'Jane', lastName: 'Neat'},
-      {id: 6, name: 'Chuck', lastName: 'Jackson'},
-      {id: 7, name: 'Meg', lastName: 'Jansen'},
-      {id: 8, name: 'Rob', lastName: 'Norris'},
-      {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'}
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' },
+      { id: 4, name: 'Sid', lastName: 'Strong' },
+      { id: 5, name: 'Jane', lastName: 'Neat' },
+      { id: 6, name: 'Chuck', lastName: 'Jackson' },
+      { id: 7, name: 'Meg', lastName: 'Jansen' },
+      { id: 8, name: 'Rob', lastName: 'Norris' },
+      { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+      { id: 10, name: 'Eve', lastName: 'Branson' },
     ];
   };
 
-  var arrayOfNestedObjects = function() {
+  var arrayOfNestedObjects = function () {
     return [
       {
         id: 1,
         name: {
           first: 'Ted',
-          last: 'Right'
+          last: 'Right',
         },
         'full.street': 'Street I',
       },
@@ -50,7 +50,7 @@ describe('Core_loadData', () => {
         id: 2,
         name: {
           first: 'Frank',
-          last: 'Honest'
+          last: 'Honest',
         },
         'full.street': 'Street II',
       },
@@ -58,15 +58,15 @@ describe('Core_loadData', () => {
         id: 3,
         name: {
           first: 'Joan',
-          last: 'Well'
+          last: 'Well',
         },
         'full.street': 'Street III',
-      }
+      },
     ];
   };
 
   var htmlData = [
-    ['<b>H&M</b>']
+    ['<b>H&M</b>'],
   ];
 
   it('should allow array of arrays', () => {
@@ -78,10 +78,10 @@ describe('Core_loadData', () => {
   it('should allow array of objects', () => {
     handsontable({
       columns: [
-        {data: 'id'},
-        {data: 'lastName'},
-        {data: 'name'}
-      ]
+        { data: 'id' },
+        { data: 'lastName' },
+        { data: 'name' },
+      ],
     });
     loadData(arrayOfObjects());
     expect(getDataAtCell(0, 2)).toEqual('Ted');
@@ -103,7 +103,7 @@ describe('Core_loadData', () => {
         }
 
         return colMeta;
-      }
+      },
     });
     loadData(arrayOfObjects());
     expect(getDataAtCell(0, 2)).toEqual('Ted');
@@ -114,11 +114,11 @@ describe('Core_loadData', () => {
       data: arrayOfNestedObjects(),
       colHeaders: true,
       columns: [
-        {data: 'id'},
-        {data: 'name.last'},
-        {data: 'name.first'},
-        {data: 'full.street'},
-      ]
+        { data: 'id' },
+        { data: 'name.last' },
+        { data: 'name.first' },
+        { data: 'full.street' },
+      ],
     });
     expect(getDataAtCell(0, 2)).toEqual('Ted');
     expect(getDataAtCell(1, 3)).toEqual('Street II');
@@ -145,7 +145,7 @@ describe('Core_loadData', () => {
         }
 
         return colMeta;
-      }
+      },
     });
     expect(getDataAtCell(0, 2)).toEqual('Ted');
     expect(getDataAtCell(1, 3)).toEqual('Street II');
@@ -155,7 +155,7 @@ describe('Core_loadData', () => {
   it('should figure out default column names for array of nested objects', () => {
     handsontable({
       data: arrayOfNestedObjects(),
-      colHeaders: true
+      colHeaders: true,
     });
     expect(getDataAtCell(0, 2)).toEqual('Right');
   });
@@ -168,7 +168,7 @@ describe('Core_loadData', () => {
         if (source === 'loadData') {
           called = true;
         }
-      }
+      },
     });
     loadData(arrayOfArrays());
 
@@ -183,7 +183,7 @@ describe('Core_loadData', () => {
         if (source === 'loadData') {
           called = true;
         }
-      }
+      },
     });
     loadData(arrayOfObjects());
 
@@ -198,7 +198,7 @@ describe('Core_loadData', () => {
         if (source === 'loadData') {
           called = true;
         }
-      }
+      },
     });
     loadData(arrayOfNestedObjects());
 
@@ -208,7 +208,7 @@ describe('Core_loadData', () => {
   it('should create new rows for array of arrays (and respect minRows)', () => {
     handsontable({
       minRows: 20, // minRows should be respected
-      data: arrayOfArrays()
+      data: arrayOfArrays(),
     });
 
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
@@ -217,7 +217,7 @@ describe('Core_loadData', () => {
   it('should create new rows for array of nested objects (and respect minRows)', () => {
     handsontable({
       minRows: 20, // minRows should be respected
-      data: arrayOfNestedObjects()
+      data: arrayOfNestedObjects(),
     });
 
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
@@ -233,7 +233,7 @@ describe('Core_loadData', () => {
   it('should create as many rows as needed by array of objects', () => {
     handsontable({
       minRows: 6,
-      data: arrayOfObjects()
+      data: arrayOfObjects(),
     });
 
     expect(getCell(9, 1).innerHTML).toEqual('Eve');
@@ -247,7 +247,7 @@ describe('Core_loadData', () => {
       data: arrayOfNestedObjects(),
       colWidths: [90, 90, 90, 90],
       rowHeights: [23, 23, 23, 23],
-      cells: cellsSpy
+      cells: cellsSpy,
     });
     //
     expect(cellsSpy.calls.count()).toEqual(43);
@@ -262,7 +262,7 @@ describe('Core_loadData', () => {
       rowHeaders: true,
       colWidths: [90, 90, 90, 90],
       rowHeights: [90, 90, 90, 90],
-      cells: cellsSpy
+      cells: cellsSpy,
     });
 
     expect(cellsSpy.calls.count()).toEqual(56);
@@ -277,7 +277,7 @@ describe('Core_loadData', () => {
       ['e'],
       ['f'],
       ['g'],
-      ['h']
+      ['h'],
     ];
 
     var data2 = [
@@ -285,13 +285,13 @@ describe('Core_loadData', () => {
       ['b'],
       ['c'],
       ['d'],
-      ['e']
+      ['e'],
     ];
 
     handsontable({
       data: data1,
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
     });
     selectCell(7, 0);
     loadData(data2);
@@ -309,14 +309,14 @@ describe('Core_loadData', () => {
       ['e'],
       ['f'],
       ['g'],
-      ['h']
+      ['h'],
     ];
     var data2 = [
       ['a'],
       ['b'],
       ['c'],
       ['d'],
-      ['e']
+      ['e'],
     ];
 
     handsontable({
@@ -324,7 +324,7 @@ describe('Core_loadData', () => {
       minSpareCols: 1,
       minSpareRows: 1,
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
     });
     selectCell(8, 0);
     loadData(data2);
@@ -342,7 +342,7 @@ describe('Core_loadData', () => {
       ['e'],
       ['f'],
       ['g'],
-      ['h']
+      ['h'],
     ];
 
     var data2 = [];
@@ -350,7 +350,7 @@ describe('Core_loadData', () => {
     handsontable({
       data: data1,
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
     });
     selectCell(7, 0);
     loadData(data2);
@@ -366,8 +366,8 @@ describe('Core_loadData', () => {
       data: data1,
       columns: [
         { data: 1 },
-        { data: 3 }
-      ]
+        { data: 3 },
+      ],
     });
 
     expect(countCols()).toBe(2);
@@ -380,7 +380,7 @@ describe('Core_loadData', () => {
       data: data1,
       columns(column) {
         var colMeta = {
-          data: column
+          data: column,
         };
 
         if ([1, 3].indexOf(column) < 0) {
@@ -388,7 +388,7 @@ describe('Core_loadData', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(countCols()).toBe(2);
@@ -399,10 +399,10 @@ describe('Core_loadData', () => {
 
     try {
       handsontable({
-        data: 'string'
+        data: 'string',
       });
     } catch (e) {
-      errors++;
+      errors += 1;
     }
 
     expect(errors).toBe(1);
@@ -415,7 +415,7 @@ describe('Core_loadData', () => {
       handsontable();
       loadData('string');
     } catch (e) {
-      errors++;
+      errors += 1;
     }
 
     expect(errors).toBe(1);
@@ -429,14 +429,14 @@ describe('Core_loadData', () => {
     var CarCollection = Backbone.Collection.extend({
       model: CarModel,
       // Backbone.Collection doesn't support `splice`, yet! Easy to add.
-      splice: hackedSplice
+      splice: hackedSplice,
     });
     var cars = new CarCollection();
 
     cars.add([
-      {make: 'Dodge', model: 'Ram', year: 2012, weight: 6811},
-      {make: 'Toyota', model: 'Camry', year: 2012, weight: 3190},
-      {make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808}
+      { make: 'Dodge', model: 'Ram', year: 2012, weight: 6811 },
+      { make: 'Toyota', model: 'Camry', year: 2012, weight: 3190 },
+      { make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808 },
     ]);
 
     handsontable({
@@ -444,13 +444,13 @@ describe('Core_loadData', () => {
       columns: [
         attr('make'),
         attr('model'),
-        attr('year')
-      ]
+        attr('year'),
+      ],
     });
 
     // use the "good" Collection methods to emulate Array.splice
-    function hackedSplice(index, howMany /* model1, ... modelN */) {
-      var args = _.toArray(arguments).slice(2).concat({at: index}),
+    function hackedSplice(index, howMany, ...models) {
+      var args = _.toArray(models).concat({ at: index }),
         removed = this.models.slice(index, index + howMany);
       this.remove(removed).add.apply(this, args);
 
@@ -458,15 +458,15 @@ describe('Core_loadData', () => {
     }
 
     // normally, you'd get these from the server with .fetch()
-    function attr(attr) {
+    function attr(key) {
       // this lets us remember `attr` for when when it is get/set
       return {
         data(car, value) {
           if (_.isUndefined(value)) {
-            return car.get(attr);
+            return car.get(key);
           }
-          car.set(attr, value);
-        }
+          return car.set(key, value);
+        },
       };
     }
 
@@ -481,14 +481,14 @@ describe('Core_loadData', () => {
     var CarCollection = Backbone.Collection.extend({
       model: CarModel,
       // Backbone.Collection doesn't support `splice`, yet! Easy to add.
-      splice: hackedSplice
+      splice: hackedSplice,
     });
     var cars = new CarCollection();
 
     cars.add([
-      {make: 'Dodge', model: 'Ram', year: 2012, weight: 6811},
-      {make: 'Toyota', model: 'Camry', year: 2012, weight: 3190},
-      {make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808}
+      { make: 'Dodge', model: 'Ram', year: 2012, weight: 6811 },
+      { make: 'Toyota', model: 'Camry', year: 2012, weight: 3190 },
+      { make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808 },
     ]);
 
     handsontable({
@@ -505,12 +505,12 @@ describe('Core_loadData', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     // use the "good" Collection methods to emulate Array.splice
-    function hackedSplice(index, howMany /* model1, ... modelN */) {
-      var args = _.toArray(arguments).slice(2).concat({at: index}),
+    function hackedSplice(index, howMany, ...models) {
+      var args = _.toArray(models).concat({ at: index }),
         removed = this.models.slice(index, index + howMany);
       this.remove(removed).add.apply(this, args);
 
@@ -518,16 +518,16 @@ describe('Core_loadData', () => {
     }
 
     // normally, you'd get these from the server with .fetch()
-    function attr(attr) {
+    function attr(key) {
       // this lets us remember `attr` for when when it is get/set
       return {
         data(car, value) {
           if (_.isUndefined(value)) {
-            return car.get(attr);
+            return car.get(key);
           }
 
-          car.set(attr, value);
-        }
+          return car.set(key, value);
+        },
       };
     }
 
@@ -547,7 +547,7 @@ describe('Core_loadData', () => {
     expect(getCellMeta(0, 0).foo).toBeUndefined();
   });
 
-  it('should clear cell properties after loadData, but before rendering new data', function() {
+  it('should clear cell properties after loadData, but before rendering new data', function () {
     handsontable();
     loadData(arrayOfArrays());
 
@@ -567,18 +567,18 @@ describe('Core_loadData', () => {
   it('should correct behave with cell with no nested object data source corresponding to column mapping', () => {
 
     var objectData = [
-      {id: 1, user: {name: {first: 'Ted', last: 'Right'}}},
-      {id: 2, user: {name: {}}},
-      {id: 3}
+      { id: 1, user: { name: { first: 'Ted', last: 'Right' } } },
+      { id: 2, user: { name: {} } },
+      { id: 3 },
     ];
 
     handsontable({
       data: objectData,
       columns: [
-        {data: 'id'},
-        {data: 'user.name.first'},
-        {data: 'user.name.last'}
-      ]
+        { data: 'id' },
+        { data: 'user.name.first' },
+        { data: 'user.name.last' },
+      ],
     });
 
     mouseDoubleClick(getCell(1, 1));
@@ -595,9 +595,9 @@ describe('Core_loadData', () => {
   it('should correct behave with cell with no nested object data source corresponding to column mapping when columns is a function', () => {
 
     var objectData = [
-      {id: 1, user: {name: {first: 'Ted', last: 'Right'}}},
-      {id: 2, user: {name: {}}},
-      {id: 3}
+      { id: 1, user: { name: { first: 'Ted', last: 'Right' } } },
+      { id: 2, user: { name: {} } },
+      { id: 3 },
     ];
 
     handsontable({
@@ -606,17 +606,17 @@ describe('Core_loadData', () => {
         var colMeta = null;
 
         if (column === 0) {
-          colMeta = {data: 'id'};
+          colMeta = { data: 'id' };
 
         } else if (column === 1) {
-          colMeta = {data: 'user.name.first'};
+          colMeta = { data: 'user.name.first' };
 
         } else if (column === 2) {
-          colMeta = {data: 'user.name.last'};
+          colMeta = { data: 'user.name.last' };
         }
 
         return colMeta;
-      }
+      },
     });
 
     mouseDoubleClick(getCell(1, 1));

@@ -1,6 +1,6 @@
-import {isObject} from './../helpers/object';
-import {rangeEach} from './../helpers/number';
-import {stringify} from './../helpers/mixed';
+import { isObject } from './../helpers/object';
+import { rangeEach } from './../helpers/number';
+import { stringify } from './../helpers/mixed';
 
 /**
  * @class SamplesGenerator
@@ -56,7 +56,7 @@ class SamplesGenerator {
       return this.customSampleCount;
     }
     return SamplesGenerator.SAMPLE_COUNT;
-  };
+  }
 
   /**
    * Set the sample count.
@@ -110,7 +110,7 @@ class SamplesGenerator {
     const samples = new Map();
 
     if (typeof specifierRange === 'number') {
-      specifierRange = {from: specifierRange, to: specifierRange};
+      specifierRange = { from: specifierRange, to: specifierRange };
     }
     rangeEach(specifierRange.from, specifierRange.to, (index) => {
       const sample = this.generateSample(type, range, index);
@@ -148,13 +148,13 @@ class SamplesGenerator {
       }
 
       if (isObject(value)) {
-        length = Object.keys(value).length;
+        ({ length } = Object.keys(value));
 
       } else if (Array.isArray(value)) {
-        length = value.length;
+        ({ length } = value);
 
       } else {
-        length = stringify(value).length;
+        ({ length } = stringify(value));
       }
 
       if (!samples.has(length)) {
@@ -171,9 +171,9 @@ class SamplesGenerator {
         if (!duplicate || this.allowDuplicates) {
           let computedKey = type === 'row' ? 'col' : 'row';
 
-          sample.strings.push({value, [computedKey]: index});
+          sample.strings.push({ value, [computedKey]: index });
           sampledValues.push(value);
-          sample.needed--;
+          sample.needed -= 1;
         }
       }
     });

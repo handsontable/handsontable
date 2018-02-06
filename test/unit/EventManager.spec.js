@@ -3,7 +3,7 @@ import EventManager from 'handsontable/eventManager';
 describe('EventManager', () => {
   it('should add/remove/clear event for multiple instances', () => {
     var instance = {
-      subinstance: {}
+      subinstance: {},
     };
     var instance2 = {};
     var eM0 = new EventManager(instance);
@@ -12,8 +12,8 @@ describe('EventManager', () => {
 
     expect(instance.eventListeners.length).toEqual(0);
 
-    var test = function() {};
-    var test2 = function() {};
+    var test = function () {};
+    var test2 = function () {};
 
     eM0.addEventListener(window, 'click', test, true);
     eM1.addEventListener(window, 'mousedown', test);

@@ -1,13 +1,13 @@
 import BasePlugin from './../_base';
-import {arrayEach, arrayFilter} from './../../helpers/array';
-import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/feature';
-import {isVisible} from './../../helpers/dom/element';
+import { arrayFilter } from './../../helpers/array';
+import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
+import { isVisible } from './../../helpers/dom/element';
 import GhostTable from './../../utils/ghostTable';
-import {isObject, objectEach, hasOwnProperty} from './../../helpers/object';
-import {valueAccordingPercent, rangeEach} from './../../helpers/number';
-import {registerPlugin} from './../../plugins';
+import { isObject, hasOwnProperty } from './../../helpers/object';
+import { valueAccordingPercent, rangeEach } from './../../helpers/number';
+import { registerPlugin } from './../../plugins';
 import SamplesGenerator from './../../utils/samplesGenerator';
-import {isPercentValue} from './../../helpers/string';
+import { isPercentValue } from './../../helpers/string';
 
 /**
  * @plugin AutoRowSize
@@ -137,11 +137,11 @@ class AutoRowSize extends BasePlugin {
     this.setSamplingOptions();
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
-    this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
+    this.addHook('beforeChange', changes => this.onBeforeChange(changes));
     this.addHook('beforeColumnMove', () => this.recalculateAllRowsHeight());
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
     this.addHook('beforeColumnSort', () => this.clearCache());
-    this.addHook('beforeRender', (force) => this.onBeforeRender(force));
+    this.addHook('beforeRender', force => this.onBeforeRender(force));
     this.addHook('beforeRowMove', (rowStart, rowEnd) => this.onBeforeRowMove(rowStart, rowEnd));
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
@@ -162,12 +162,12 @@ class AutoRowSize extends BasePlugin {
    * @param {Number|Object} colRange Column range object.
    * @param {Boolean} [force=false] If `true` force calculate height even when value was cached earlier.
    */
-  calculateRowsHeight(rowRange = {from: 0, to: this.hot.countRows() - 1}, colRange = {from: 0, to: this.hot.countCols() - 1}, force = false) {
+  calculateRowsHeight(rowRange = { from: 0, to: this.hot.countRows() - 1 }, colRange = { from: 0, to: this.hot.countCols() - 1 }, force = false) {
     if (typeof rowRange === 'number') {
-      rowRange = {from: rowRange, to: rowRange};
+      rowRange = { from: rowRange, to: rowRange };
     }
     if (typeof colRange === 'number') {
-      colRange = {from: colRange, to: colRange};
+      colRange = { from: colRange, to: colRange };
     }
 
     if (this.hot.getColHeader(0) !== null) {
@@ -182,8 +182,8 @@ class AutoRowSize extends BasePlugin {
       if (force || this.heights[row] === void 0) {
         const samples = this.samplesGenerator.generateRowSamples(row, colRange);
 
-        samples.forEach((sample, row) => {
-          this.ghostTable.addRow(row, sample);
+        samples.forEach((sample, _row) => {
+          this.ghostTable.addRow(_row, sample);
         });
       }
     });
@@ -200,7 +200,7 @@ class AutoRowSize extends BasePlugin {
    *
    * @param {Object|Number} colRange Column range object.
    */
-  calculateAllRowsHeight(colRange = {from: 0, to: this.hot.countCols() - 1}) {
+  calculateAllRowsHeight(colRange = { from: 0, to: this.hot.countCols() - 1 }) {
     let current = 0;
     let length = this.hot.countRows() - 1;
     let timer = null;
@@ -215,7 +215,7 @@ class AutoRowSize extends BasePlugin {
 
         return;
       }
-      this.calculateRowsHeight({from: current, to: Math.min(current + AutoRowSize.CALCULATION_STEP, length)}, colRange);
+      this.calculateRowsHeight({ from: current, to: Math.min(current + AutoRowSize.CALCULATION_STEP, length) }, colRange);
       current = current + AutoRowSize.CALCULATION_STEP + 1;
 
       if (current < length) {
@@ -234,7 +234,7 @@ class AutoRowSize extends BasePlugin {
     };
     // sync
     if (this.firstCalculation && this.getSyncCalculationLimit()) {
-      this.calculateRowsHeight({from: 0, to: this.getSyncCalculationLimit()}, colRange);
+      this.calculateRowsHeight({ from: 0, to: this.getSyncCalculationLimit() }, colRange);
       this.firstCalculation = false;
       current = this.getSyncCalculationLimit() + 1;
     }
@@ -377,7 +377,7 @@ class AutoRowSize extends BasePlugin {
    */
   clearCacheByRange(range) {
     if (typeof range === 'number') {
-      range = {from: range, to: range};
+      range = { from: range, to: range };
     }
     rangeEach(Math.min(range.from, range.to), Math.max(range.from, range.to), (row) => {
       this.heights[row] = void 0;
@@ -388,7 +388,7 @@ class AutoRowSize extends BasePlugin {
    * @returns {Boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.heights, (item) => (item === void 0)).length;
+    return !!arrayFilter(this.heights, item => (item === void 0)).length;
   }
 
   /**
@@ -398,14 +398,14 @@ class AutoRowSize extends BasePlugin {
    */
   onBeforeRender() {
     let force = this.hot.renderCall;
-    this.calculateRowsHeight({from: this.getFirstVisibleRow(), to: this.getLastVisibleRow()}, void 0, force);
+    this.calculateRowsHeight({ from: this.getFirstVisibleRow(), to: this.getLastVisibleRow() }, void 0, force);
 
-    let fixedRowsBottom = this.hot.getSettings().fixedRowsBottom;
+    let { fixedRowsBottom } = this.hot.getSettings();
 
     // Calculate rows height synchronously for bottom overlay
     if (fixedRowsBottom) {
       let totalRows = this.hot.countRows() - 1;
-      this.calculateRowsHeight({from: totalRows - fixedRowsBottom, to: totalRows});
+      this.calculateRowsHeight({ from: totalRows - fixedRowsBottom, to: totalRows });
     }
 
     if (this.isNeedRecalculate() && !this.inProgress) {
@@ -421,7 +421,7 @@ class AutoRowSize extends BasePlugin {
    * @param {Number} to Destination row index.
    */
   onBeforeRowMove(from, to) {
-    this.clearCacheByRange({from, to});
+    this.clearCacheByRange({ from, to });
     this.calculateAllRowsHeight();
   }
 
@@ -471,7 +471,7 @@ class AutoRowSize extends BasePlugin {
     let range = null;
 
     if (changes.length === 1) {
-      range = changes[0][0];
+      [[range]] = changes;
     } else if (changes.length > 1) {
       range = {
         from: changes[0][0],

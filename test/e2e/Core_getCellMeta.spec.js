@@ -1,11 +1,11 @@
 describe('Core_getCellMeta', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -19,7 +19,7 @@ describe('Core_getCellMeta', () => {
       },
       modifyCol(col) {
         return col + 10;
-      }
+      },
     });
 
     const cellMeta = getCellMeta(0, 1);
@@ -35,8 +35,8 @@ describe('Core_getCellMeta', () => {
 
     handsontable({
       cells() {
-        return {readOnly: allCellsReadOnly};
-      }
+        return { readOnly: allCellsReadOnly };
+      },
     });
     allCellsReadOnly = true;
     selectCell(2, 2);
@@ -51,8 +51,8 @@ describe('Core_getCellMeta', () => {
 
     handsontable({
       cells() {
-        return {readOnly: allCellsReadOnly};
-      }
+        return { readOnly: allCellsReadOnly };
+      },
     });
     allCellsReadOnly = false;
     selectCell(2, 2);
@@ -66,8 +66,8 @@ describe('Core_getCellMeta', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       cells() {
-        return {readOnly: true};
-      }
+        return { readOnly: true };
+      },
     });
 
     selectCell(0, 0);
@@ -83,13 +83,13 @@ describe('Core_getCellMeta', () => {
         return {
           renderer(instance, td, row, col, prop, value, cellProperties) {
             // taken from demo/renderers.html
-            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, value, cellProperties]);
             $(td).css({
-              background: 'yellow'
+              background: 'yellow',
             });
-          }
+          },
         };
-      }
+      },
     });
     selectCell(2, 2);
 
@@ -104,21 +104,23 @@ describe('Core_getCellMeta', () => {
       data: [
         [1, 2, 3, 4],
         [5, 6, 7, 8],
-        [0, 9, 8, 7]
+        [0, 9, 8, 7],
       ],
       cells(row, col) {
-        if (row === 2 && col === 2) {
-          return {
-            type: 'checkbox',
-            renderer(instance, td, row, col, prop, value, cellProperties) {
-              // taken from demo/renderers.html
-              Handsontable.renderers.TextRenderer.apply(this, arguments);
+        let cellProperties = {};
 
-              td.style.backgroundColor = 'yellow';
-            }
+        if (row === 2 && col === 2) {
+          cellProperties.type = 'checkbox';
+          cellProperties.renderer = (instance, td, r, c, prop, value, cellProps) => {
+            // taken from demo/renderers.html
+            Handsontable.renderers.TextRenderer.apply(this, [instance, td, r, c, prop, value, cellProps]);
+
+            td.style.backgroundColor = 'yellow';
           };
         }
-      }
+
+        return cellProperties;
+      },
     });
 
     expect(getCell(2, 2).style.backgroundColor).toEqual('yellow');
@@ -131,11 +133,11 @@ describe('Core_getCellMeta', () => {
       _this;
 
     handsontable({
-      cells(row, col, prop) {
-        called++;
+      cells(row) {
+        called += 1;
         _row = row;
         _this = this;
-      }
+      },
     });
 
     var HOT = getInstance();
@@ -145,15 +147,15 @@ describe('Core_getCellMeta', () => {
     expect(_this.instance).toBe(HOT);
   });
 
-  it('should get proper cellProperties when order of displayed rows is different than order of stored data', function() {
-    var hot = handsontable({
+  it('should get proper cellProperties when order of displayed rows is different than order of stored data', function () {
+    handsontable({
       data: [
         ['C'],
         ['A'],
-        ['B']
+        ['B'],
       ],
       minSpareRows: 1,
-      cells(row, col, prop) {
+      cells(row, col) {
         var cellProperties = {};
 
         if (getSourceData()[row][col] === 'A') {
@@ -161,7 +163,7 @@ describe('Core_getCellMeta', () => {
         }
 
         return cellProperties;
-      }
+      },
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C');
@@ -177,8 +179,8 @@ describe('Core_getCellMeta', () => {
     updateSettings({
       columnSorting: {
         column: 0,
-        sortOrder: true
-      }
+        sortOrder: true,
+      },
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A');
@@ -196,7 +198,7 @@ describe('Core_getCellMeta', () => {
     let colInsideHook;
 
     const hot = handsontable({
-      beforeGetCellMeta: function (row, col) {
+      beforeGetCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },
@@ -205,7 +207,7 @@ describe('Core_getCellMeta', () => {
       },
       modifyCol(col) {
         return col + 10;
-      }
+      },
     });
 
     hot.getCellMeta(0, 1);
@@ -219,7 +221,7 @@ describe('Core_getCellMeta', () => {
     let colInsideHook;
 
     const hot = handsontable({
-      afterGetCellMeta: function (row, col) {
+      afterGetCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },
@@ -228,7 +230,7 @@ describe('Core_getCellMeta', () => {
       },
       modifyCol(col) {
         return col + 10;
-      }
+      },
     });
 
     hot.getCellMeta(0, 1);

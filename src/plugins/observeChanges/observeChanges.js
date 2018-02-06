@@ -1,8 +1,7 @@
 import BasePlugin from './../_base';
-import jsonpatch from './../../../lib/jsonpatch/json-patch-duplex';
 import DataObserver from './dataObserver';
-import {arrayEach} from './../../helpers/array';
-import {registerPlugin} from './../../plugins';
+import { arrayEach } from './../../helpers/array';
+import { registerPlugin } from './../../plugins';
 
 // Handsontable.hooks.register('afterChangesObserved');
 
@@ -57,13 +56,13 @@ class ObserveChanges extends BasePlugin {
       this._exposePublicApi();
     }
 
-    this.observer.addLocalHook('change', (patches) => this.onDataChange(patches));
+    this.observer.addLocalHook('change', patches => this.onDataChange(patches));
     this.addHook('afterCreateRow', () => this.onAfterTableAlter());
     this.addHook('afterRemoveRow', () => this.onAfterTableAlter());
     this.addHook('afterCreateCol', () => this.onAfterTableAlter());
     this.addHook('afterRemoveCol', () => this.onAfterTableAlter());
     this.addHook('afterChange', (changes, source) => this.onAfterTableAlter(source));
-    this.addHook('afterLoadData', (firstRun) => this.onAfterLoadData(firstRun));
+    this.addHook('afterLoadData', firstRun => this.onAfterLoadData(firstRun));
 
     super.enablePlugin();
   }
@@ -163,7 +162,7 @@ class ObserveChanges extends BasePlugin {
    * @private
    */
   _exposePublicApi() {
-    const hot = this.hot;
+    const { hot } = this;
 
     hot.pauseObservingChanges = () => this.observer.pause();
     hot.resumeObservingChanges = () => this.observer.resume();
@@ -176,7 +175,7 @@ class ObserveChanges extends BasePlugin {
    * @private
    */
   _deletePublicApi() {
-    const hot = this.hot;
+    const { hot } = this;
 
     delete hot.pauseObservingChanges;
     delete hot.resumeObservingChanges;

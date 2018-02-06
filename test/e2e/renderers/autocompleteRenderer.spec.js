@@ -1,11 +1,11 @@
 describe('AutocompleteRenderer', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -17,7 +17,7 @@ describe('AutocompleteRenderer', () => {
 
     handsontable({
       type: 'autocomplete',
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
     setDataAtCell(2, 2, 'string');
 
@@ -32,7 +32,7 @@ describe('AutocompleteRenderer', () => {
 
   it('should open cell editor after clicking on arrow glyph', () => {
     var hot = handsontable({
-      type: 'autocomplete'
+      type: 'autocomplete',
     });
 
     selectCell(0, 0);
@@ -46,13 +46,13 @@ describe('AutocompleteRenderer', () => {
 
   it('should open cell editor after clicking on arrow glyph, after the table has been destroyed and reinitialized (#1367)', () => {
     var hot = handsontable({
-      type: 'autocomplete'
+      type: 'autocomplete',
     });
 
     destroy();
 
     hot = handsontable({
-      type: 'autocomplete'
+      type: 'autocomplete',
     });
 
     selectCell(0, 0);

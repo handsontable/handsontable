@@ -7,7 +7,7 @@
  * @param {Function} callback - Callback called with validation result
  */
 export default function autocompleteValidator(value, callback) {
-  if (value == null) {
+  if (value === null) {
     value = '';
   }
 
@@ -26,7 +26,7 @@ export default function autocompleteValidator(value, callback) {
   } else {
     callback(true);
   }
-};
+}
 
 /**
  * Function responsible for validation of autocomplete value.
@@ -37,10 +37,10 @@ export default function autocompleteValidator(value, callback) {
 function process(value, callback) {
   var originalVal = value;
 
-  return function(source) {
+  return function (source) {
     var found = false;
 
-    for (var s = 0, slen = source.length; s < slen; s++) {
+    for (var s = 0, slen = source.length; s < slen; s += 1) {
       if (originalVal === source[s]) {
         found = true; // perfect match
         break;

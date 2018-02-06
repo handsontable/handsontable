@@ -1,11 +1,11 @@
 describe('Core_datachange', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -18,7 +18,7 @@ describe('Core_datachange', () => {
     handsontable({
       afterChange(changes) {
         output = changes;
-      }
+      },
     });
     setDataAtCell(1, 2, 'test');
 
@@ -36,7 +36,7 @@ describe('Core_datachange', () => {
       afterChange(changes, source) {
         output = changes;
         src = source;
-      }
+      },
     });
     setDataAtCell(1, 2, 'abc', 'test');
 
@@ -52,7 +52,7 @@ describe('Core_datachange', () => {
       afterChange(changes, source) {
         output = changes;
         src = source;
-      }
+      },
     });
     setDataAtCell([[1, 2, 'abc']], 'test');
 
@@ -75,51 +75,51 @@ describe('Core_datachange', () => {
     expect(output[0][3]).toEqual('test');
   });
 
-  it('this.rootElement should point to handsontable rootElement', function() {
+  it('this.rootElement should point to handsontable rootElement', function () {
     var output = null;
-    var $container = this.$container;
+    let { $container } = this;
 
     handsontable({
       afterChange() {
         output = this.rootElement;
-      }
+      },
     });
     setDataAtCell(0, 0, 'test');
 
     expect(output).toEqual($container[0]);
   });
 
-  it('onChange should be triggered after data is rendered to DOM (init)', function() {
+  it('onChange should be triggered after data is rendered to DOM (init)', function () {
     var output = null;
-    var $container = this.$container;
+    let { $container } = this;
 
     handsontable({
       data: [
-        ['Joe Red']
+        ['Joe Red'],
       ],
       afterChange(changes, source) {
         if (source === 'loadData') {
           output = $container.find('table.htCore tbody td:first').html();
         }
-      }
+      },
     });
 
     expect(output).toEqual('Joe Red');
   });
 
-  it('onChange should be triggered after data is rendered to DOM (setDataAtCell)', function() {
+  it('onChange should be triggered after data is rendered to DOM (setDataAtCell)', function () {
     var output = null;
-    var $container = this.$container;
+    let { $container } = this;
 
     handsontable({
       data: [
-        ['Joe Red']
+        ['Joe Red'],
       ],
       afterChange(changes, source) {
         if (source === 'edit') {
           output = $container.find('table.htCore tbody td:first').html();
         }
-      }
+      },
     });
     setDataAtCell(0, 0, 'Alice Red');
 
@@ -131,8 +131,8 @@ describe('Core_datachange', () => {
       {
         col1: 'a',
         col2: 'b',
-        col3: 'c'
-      }
+        col3: 'c',
+      },
     ];
     var event = null;
 
@@ -142,7 +142,7 @@ describe('Core_datachange', () => {
         if (source === 'edit') {
           event = changes.shift();
         }
-      }
+      },
     });
     setDataAtCell(0, 0, 'test');
 
@@ -157,11 +157,11 @@ describe('Core_datachange', () => {
 
     handsontable({
       data: [
-        ['Joe Red']
+        ['Joe Red'],
       ],
       afterChange(changes, source) {
         sources.push(source);
-      }
+      },
     });
     selectCell(0, 0);
 

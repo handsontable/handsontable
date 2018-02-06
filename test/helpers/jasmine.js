@@ -3,9 +3,9 @@ var currentSpec;
 
 export function spec() {
   return currentSpec;
-};
+}
 
-beforeEach(function() {
+beforeEach(function () {
   currentSpec = this;
 
   var matchers = {
@@ -13,18 +13,18 @@ beforeEach(function() {
       return {
         compare(actual, expected) {
           return {
-            pass: Array.isArray(expected) && expected.indexOf(actual) > -1
+            pass: Array.isArray(expected) && expected.indexOf(actual) > -1,
           };
-        }
+        },
       };
     },
     toBeFunction() {
       return {
-        compare(actual, expected) {
+        compare(actual) {
           return {
-            pass: typeof actual === 'function'
+            pass: typeof actual === 'function',
           };
-        }
+        },
       };
     },
     toBeAroundValue() {
@@ -41,9 +41,9 @@ beforeEach(function() {
 
           return {
             pass,
-            message
+            message,
           };
-        }
+        },
       };
     },
     toBeListFulfillingCondition() {
@@ -57,7 +57,7 @@ beforeEach(function() {
           }
 
           const isListWithValues = Array.isArray(checkedArray) || checkedArray.length > 0;
-          const elementNotFulfillingCondition = checkedArray.find((element) => !conditionFunction(element));
+          const elementNotFulfillingCondition = checkedArray.find(element => !conditionFunction(element));
           const containsUndefined = isListWithValues && checkedArray.includes(undefined);
           const pass = isListWithValues && !containsUndefined && elementNotFulfillingCondition === undefined;
           let message;
@@ -80,16 +80,16 @@ beforeEach(function() {
 
           return {
             pass,
-            message
+            message,
           };
-        }
+        },
       };
-    }
+    },
   };
 
   jasmine.addMatchers(matchers);
 
-  if (document.activeElement && document.activeElement != document.body) {
+  if (document.activeElement && document.activeElement !== document.body) {
     document.activeElement.blur();
 
   } else if (!document.activeElement) { // IE

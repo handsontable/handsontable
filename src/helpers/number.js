@@ -26,12 +26,14 @@ export function rangeEach(rangeFrom, rangeTo, iteratee) {
   let index = -1;
 
   if (typeof rangeTo === 'function') {
-    iteratee = rangeTo;
-    rangeTo = rangeFrom;
+    [iteratee, rangeTo] = [rangeTo, rangeFrom];
   } else {
     index = rangeFrom - 1;
   }
-  while (++index <= rangeTo) {
+
+  while (index < rangeTo) {
+    index += 1;
+
     if (iteratee(index) === false) {
       break;
     }

@@ -1,13 +1,13 @@
 import Hooks from './../../pluginHooks';
-import {addClass, removeClass} from './../../helpers/dom/element';
-import {registerRenderer, getRenderer} from './../../renderers';
+import { addClass, removeClass } from './../../helpers/dom/element';
+import { registerRenderer, getRenderer } from './../../renderers';
 
 /**
  * @private
  * @plugin Search
  */
 function Search(instance) {
-  this.query = function(queryStr, callback, queryMethod) {
+  this.query = function (queryStr, callback, queryMethod) {
     var rowCount = instance.countRows();
     var colCount = instance.countCols();
     var queryResult = [];
@@ -20,8 +20,8 @@ function Search(instance) {
       queryMethod = Search.global.getDefaultQueryMethod();
     }
 
-    for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-      for (var colIndex = 0; colIndex < colCount; colIndex++) {
+    for (var rowIndex = 0; rowIndex < rowCount; rowIndex += 1) {
+      for (var colIndex = 0; colIndex < colCount; colIndex += 1) {
         var cellData = instance.getDataAtCell(rowIndex, colIndex);
         var cellProperties = instance.getCellMeta(rowIndex, colIndex);
         var cellCallback = cellProperties.search.callback || callback;
@@ -46,26 +46,26 @@ function Search(instance) {
 
     return queryResult;
   };
-};
+}
 
-Search.DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
+Search.DEFAULT_CALLBACK = function (instance, row, col, data, testResult) {
   instance.getCellMeta(row, col).isSearchResult = testResult;
 };
 
-Search.DEFAULT_QUERY_METHOD = function(query, value) {
-  if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length === 0) {
+Search.DEFAULT_QUERY_METHOD = function (query, value) {
+  if (typeof query === 'undefined' || query === null || !query.toLowerCase || query.length === 0) {
     return false;
   }
-  if (typeof value == 'undefined' || value == null) {
+  if (typeof value === 'undefined' || value === null) {
     return false;
   }
 
-  return value.toString().toLowerCase().indexOf(query.toLowerCase()) != -1;
+  return value.toString().toLowerCase().indexOf(query.toLowerCase()) !== -1;
 };
 
 Search.DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
-Search.global = (function() {
+Search.global = (function () {
 
   var defaultCallback = Search.DEFAULT_CALLBACK;
   var defaultQueryMethod = Search.DEFAULT_QUERY_METHOD;
@@ -94,13 +94,13 @@ Search.global = (function() {
 
     setDefaultSearchResultClass(newSearchResultClass) {
       defaultSearchResultClass = newSearchResultClass;
-    }
+    },
   };
 
 }());
 
 function SearchCellDecorator(instance, TD, row, col, prop, value, cellProperties) {
-  var searchResultClass = (cellProperties.search !== null && typeof cellProperties.search == 'object' &&
+  var searchResultClass = (cellProperties.search !== null && typeof cellProperties.search === 'object' &&
       cellProperties.search.searchResultClass) || Search.global.getDefaultSearchResultClass();
 
   if (cellProperties.isSearchResult) {
@@ -108,13 +108,13 @@ function SearchCellDecorator(instance, TD, row, col, prop, value, cellProperties
   } else {
     removeClass(TD, searchResultClass);
   }
-};
+}
 
 var originalBaseRenderer = getRenderer('base');
 
-registerRenderer('base', function(instance, TD, row, col, prop, value, cellProperties) {
-  originalBaseRenderer.apply(this, arguments);
-  SearchCellDecorator.apply(this, arguments);
+registerRenderer('base', function (instance, TD, row, col, prop, value, cellProperties) {
+  originalBaseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
+  SearchCellDecorator.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 });
 
 function init() {

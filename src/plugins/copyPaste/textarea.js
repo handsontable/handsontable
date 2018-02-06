@@ -39,7 +39,7 @@ class Textarea {
       this.create();
     }
 
-    this.refCounter++;
+    this.refCounter += 1;
 
     if (!this.isAppended && document.body) {
       if (document.body) {
@@ -75,7 +75,7 @@ class Textarea {
    * Destroy instance
    */
   destroy() {
-    this.refCounter--;
+    this.refCounter -= 1;
     this.refCounter = this.refCounter < 0 ? 0 : this.refCounter;
 
     if (this.hasBeenDestroyed() && this.element && this.element.parentNode) {

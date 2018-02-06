@@ -1,11 +1,11 @@
 describe('Comments', () => {
   const id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -16,7 +16,7 @@ describe('Comments', () => {
     it('should enable the plugin in the initial config', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
-        comments: true
+        comments: true,
       });
 
       expect(hot.getPlugin('comments').isEnabled()).toBe(true);
@@ -24,20 +24,20 @@ describe('Comments', () => {
 
     it('should enable the plugin using updateSettings', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4)
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
       });
 
       expect(hot.getPlugin('comments').isEnabled()).toBe(false);
 
       updateSettings({
-        comments: true
+        comments: true,
       });
 
       expect(hot.getPlugin('comments').isEnabled()).toBe(true);
     });
   });
 
-  describe('updateSettings', function () {
+  describe('updateSettings', () => {
     it('should change delay, after which comment is showed #4323', (done) => {
       const rows = 10;
       const columns = 10;
@@ -50,10 +50,10 @@ describe('Comments', () => {
         columns() {
           return {
             comment: {
-              value: 'test'
-            }
+              value: 'test',
+            },
           };
-        }
+        },
       });
 
       const plugin = hot.getPlugin('comments');
@@ -61,8 +61,8 @@ describe('Comments', () => {
 
       updateSettings({
         comments: {
-          displayDelay: 100
-        }
+          displayDelay: 100,
+        },
       });
 
       $(getCell(1, 1)).simulate('mouseover', {
@@ -79,13 +79,13 @@ describe('Comments', () => {
 
   describe('Styling', () => {
     it('should display comment indicators in the appropriate cells', () => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'test'}},
-          {row: 2, col: 2, comment: {value: 'test'}}
-        ]
+          { row: 1, col: 1, comment: { value: 'test' } },
+          { row: 2, col: 2, comment: { value: 'test' } },
+        ],
       });
 
       expect(getCell(1, 1).className.indexOf('htCommentCell')).toBeGreaterThan(-1);
@@ -93,7 +93,7 @@ describe('Comments', () => {
     });
   });
 
-  describe('Displaying comment after `mouseover` event', function () {
+  describe('Displaying comment after `mouseover` event', () => {
     it('should display comment after predefined delay when custom `displayDelay` ' +
       'option of `comments` plugin wasn\'t set', (done) => {
       const rows = 10;
@@ -107,10 +107,10 @@ describe('Comments', () => {
         columns() {
           return {
             comment: {
-              value: 'test'
-            }
+              value: 'test',
+            },
           };
-        }
+        },
       });
 
       $(getCell(1, 1)).simulate('mouseover', {
@@ -137,15 +137,15 @@ describe('Comments', () => {
         colHeaders: true,
         contextMenu: true,
         comments: {
-          displayDelay: 400
+          displayDelay: 400,
         },
         columns() {
           return {
             comment: {
-              value: 'test'
-            }
+              value: 'test',
+            },
           };
-        }
+        },
       });
 
       $(getCell(1, 1)).simulate('mouseover', {
@@ -172,12 +172,12 @@ describe('Comments', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: {
-          displayDelay: 400
+          displayDelay: 400,
         },
         cell: [
-          {row: 1, col: 1, comment: {value: 'test'}},
-          {row: 2, col: 2, comment: {value: 'another test'}}
-        ]
+          { row: 1, col: 1, comment: { value: 'test' } },
+          { row: 2, col: 2, comment: { value: 'another test' } },
+        ],
       });
 
       const plugin = hot.getPlugin('comments');
@@ -191,23 +191,23 @@ describe('Comments', () => {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'test'}},
-          {row: 2, col: 2, comment: {value: 'another test'}}
-        ]
+          { row: 1, col: 1, comment: { value: 'test' } },
+          { row: 2, col: 2, comment: { value: 'another test' } },
+        ],
       });
 
       const plugin = hot.getPlugin('comments');
 
-      plugin.setRange({from: {row: 1, col: 1}});
+      plugin.setRange({ from: { row: 1, col: 1 } });
       expect(plugin.getComment()).toEqual('test');
-      plugin.setRange({from: {row: 2, col: 2}});
+      plugin.setRange({ from: { row: 2, col: 2 } });
       expect(plugin.getComment()).toEqual('another test');
     });
 
     it('should allow inserting comments using the `setCommentAtCell` method', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
-        comments: true
+        comments: true,
       });
 
       const plugin = hot.getPlugin('comments');
@@ -224,13 +224,13 @@ describe('Comments', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
-        afterSetCellMeta: afterSetCellMetaCallback
+        afterSetCellMeta: afterSetCellMetaCallback,
       });
 
       const plugin = hot.getPlugin('comments');
 
       plugin.setCommentAtCell(1, 1, 'Added comment');
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', {value: 'Added comment'}, undefined, undefined);
+      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', { value: 'Added comment' }, undefined, undefined);
     });
 
     it('should allow removing comments using the `removeCommentAtCell` method', () => {
@@ -238,8 +238,8 @@ describe('Comments', () => {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'test'}}
-        ]
+          { row: 1, col: 1, comment: { value: 'test' } },
+        ],
       });
 
       const plugin = hot.getPlugin('comments');
@@ -257,9 +257,9 @@ describe('Comments', () => {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'test'}}
+          { row: 1, col: 1, comment: { value: 'test' } },
         ],
-        afterSetCellMeta: afterSetCellMetaCallback
+        afterSetCellMeta: afterSetCellMetaCallback,
       });
 
       const plugin = hot.getPlugin('comments');
@@ -304,24 +304,24 @@ describe('Comments', () => {
   it('`updateCommentMeta` & `setComment` functions should extend cellMetaObject properly', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
-      comments: true
+      comments: true,
     });
     const plugin = hot.getPlugin('comments');
     let readOnly;
     let comment;
 
-    setCellMeta(0, 0, 'comment', {readOnly: true});
-    plugin.updateCommentMeta(0, 0, {value: 'Test'});
+    setCellMeta(0, 0, 'comment', { readOnly: true });
+    plugin.updateCommentMeta(0, 0, { value: 'Test' });
 
-    comment = getCellMeta(0, 0).comment;
+    ({ comment } = getCellMeta(0, 0));
     readOnly = comment && comment.readOnly;
 
     expect(readOnly).toEqual(true);
 
-    plugin.setRange({from: {row: 0, col: 0}, to: {row: 0, col: 0}});
+    plugin.setRange({ from: { row: 0, col: 0 }, to: { row: 0, col: 0 } });
     plugin.setComment('Test2');
 
-    comment = getCellMeta(0, 0).comment;
+    ({ comment } = getCellMeta(0, 0));
     readOnly = comment && comment.readOnly;
 
     expect(readOnly).toEqual(true);
@@ -332,14 +332,14 @@ describe('Comments', () => {
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       comments: {
-        displayDelay: 0
-      }
+        displayDelay: 0,
+      },
     });
 
     selectCell(1, 1);
     contextMenu();
 
-    const addCommentButton = $('.htItemWrapper').filter(function() {
+    const addCommentButton = $('.htItemWrapper').filter(function () {
       return $(this).text() === 'Add comment';
     })[0];
 
@@ -352,7 +352,7 @@ describe('Comments', () => {
 
     const editor = hot.getPlugin('comments').editor.getInputElement();
 
-    setTimeout(function () {
+    setTimeout(() => {
       expect($(editor).parents('.htComments')[0].style.display).toEqual('block');
       done();
     }, 300);
@@ -363,13 +363,13 @@ describe('Comments', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
-        comments: true
+        comments: true,
       });
 
       selectCell(1, 1);
       contextMenu();
 
-      const addCommentButton = $('.htItemWrapper').filter(function() {
+      const addCommentButton = $('.htItemWrapper').filter(function () {
         return $(this).text() === 'Add comment';
       })[0];
 
@@ -381,13 +381,13 @@ describe('Comments', () => {
     });
 
     it('should remove the comment from a cell after clicking the "Delete comment" entry', () => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'Test comment'}}
-        ]
+          { row: 1, col: 1, comment: { value: 'Test comment' } },
+        ],
       });
 
       expect(getCellMeta(1, 1).comment.value).toEqual('Test comment');
@@ -395,7 +395,7 @@ describe('Comments', () => {
       selectCell(1, 1);
       contextMenu();
 
-      const deleteCommentButton = $('.htItemWrapper').filter(function() {
+      const deleteCommentButton = $('.htItemWrapper').filter(function () {
         return $(this).text() === 'Delete comment';
       })[0];
 
@@ -405,14 +405,14 @@ describe('Comments', () => {
     });
 
     it('should remove comments from a selected group of cells after clicking the "Delete comment" entry', () => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'Test comment'}},
-          {row: 2, col: 2, comment: {value: 'Test comment 2'}}
-        ]
+          { row: 1, col: 1, comment: { value: 'Test comment' } },
+          { row: 2, col: 2, comment: { value: 'Test comment 2' } },
+        ],
       });
 
       expect(getCellMeta(1, 1).comment.value).toEqual('Test comment');
@@ -421,7 +421,7 @@ describe('Comments', () => {
       selectCell(1, 1, 2, 2);
       contextMenu();
 
-      const deleteCommentButton = $('.htItemWrapper').filter(function() {
+      const deleteCommentButton = $('.htItemWrapper').filter(function () {
         return $(this).text() === 'Delete comment';
       })[0];
 
@@ -437,8 +437,8 @@ describe('Comments', () => {
         contextMenu: true,
         comments: true,
         cell: [
-          {row: 1, col: 1, comment: {value: 'Test comment'}}
-        ]
+          { row: 1, col: 1, comment: { value: 'Test comment' } },
+        ],
       });
 
       selectCell(1, 1);
@@ -448,7 +448,7 @@ describe('Comments', () => {
 
       expect($(editor)[0].readOnly).toBe(false);
 
-      const readOnlyComment = $('.htItemWrapper').filter(function() {
+      const readOnlyComment = $('.htItemWrapper').filter(function () {
         return $(this).text() === 'Read-only comment';
       })[0];
 
@@ -482,11 +482,11 @@ describe('Comments', () => {
         columns() {
           return {
             comment: {
-              value: 'test'
-            }
+              value: 'test',
+            },
           };
         },
-        afterSetCellMeta: afterSetCellMetaCallback
+        afterSetCellMeta: afterSetCellMetaCallback,
       });
 
       expect(afterSetCellMetaCallback).not.toHaveBeenCalled();
@@ -494,7 +494,7 @@ describe('Comments', () => {
       selectCell(1, 1);
       contextMenu();
 
-      const deleteCommentButton = $('.htItemWrapper').filter(function() {
+      const deleteCommentButton = $('.htItemWrapper').filter(function () {
         return $(this).text() === 'Delete comment';
       })[0];
 
@@ -519,17 +519,17 @@ describe('Comments', () => {
         columns() {
           return {
             comment: {
-              value: 'test'
-            }
+              value: 'test',
+            },
           };
         },
-        afterSetCellMeta: afterSetCellMetaCallback
+        afterSetCellMeta: afterSetCellMetaCallback,
       });
 
       selectCell(0, 0);
       contextMenu();
 
-      const editCommentButton = $('.htItemWrapper').filter(function() {
+      const editCommentButton = $('.htItemWrapper').filter(function () {
         return $(this).text() === 'Edit comment';
       })[0];
 
@@ -543,7 +543,7 @@ describe('Comments', () => {
         $('body').simulate('mousedown');
 
         setTimeout(() => {
-          expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', {value: 'Edited comment'}, undefined, undefined);
+          expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' }, undefined, undefined);
           done();
         }, 100);
       }, 100);

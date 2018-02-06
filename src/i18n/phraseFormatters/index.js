@@ -27,7 +27,7 @@ export function getAll() {
 
 export {
   register as registerPhraseFormatter,
-  getAll as getPhraseFormatters
+  getAll as getPhraseFormatters,
 };
 
 register('pluralize', pluralizeFn);

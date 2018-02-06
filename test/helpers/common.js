@@ -1,14 +1,14 @@
 export function sleep(delay = 100) {
   return Promise.resolve({
-    then: function(resolve) {
+    then: (resolve) => {
       setTimeout(resolve, delay);
-    }
+    },
   });
-};
+}
 
 export function hot() {
   return spec().$container.data('handsontable');
-};
+}
 
 export function handsontable(options) {
   var currentSpec = spec();
@@ -17,7 +17,7 @@ export function handsontable(options) {
   currentSpec.$container[0].focus(); // otherwise TextEditor tests do not pass in IE8
 
   return currentSpec.$container.data('handsontable');
-};
+}
 
 /**
  * As for v. 0.11 the only scrolling method is native scroll, which creates copies of main htCore table inside of the container.
@@ -31,68 +31,68 @@ export function handsontable(options) {
 
 export function getHtCore() {
   return spec().$container.find('.htCore').first();
-};
+}
 
 export function getTopClone() {
   return spec().$container.find('.ht_clone_top');
-};
+}
 
 export function getTopLeftClone() {
   return spec().$container.find('.ht_clone_top_left_corner');
-};
+}
 // for compatybility
 // var getCornerClone = getTopLeftClone;
 
 export function getLeftClone() {
   return spec().$container.find('.ht_clone_left');
-};
+}
 
 export function getBottomClone() {
   return spec().$container.find('.ht_clone_bottom');
-};
+}
 
 export function getBottomLeftClone() {
   return spec().$container.find('.ht_clone_bottom_left_corner');
-};
+}
 
 // Rename me to countTD
 export function countCells() {
   return getHtCore().find('tbody td').length;
-};
+}
 
 export function isEditorVisible() {
   return !!(keyProxy().is(':visible') && keyProxy().parent().is(':visible') && !keyProxy().parent().is('.htHidden'));
-};
+}
 
 export function isFillHandleVisible() {
   return !!spec().$container.find('.wtBorder.corner:visible').length;
-};
+}
 
 export function getCorrespondingOverlay(cell, container) {
   var overlay = $(cell).parents('.handsontable');
 
-  if (overlay[0] == container[0]) {
+  if (overlay[0] === container[0]) {
     return $('.ht_master');
   }
 
   return $(overlay[0]);
-};
+}
 
 /**
  * Shows context menu
  */
 export function contextMenu(cell) {
-  var hot = spec().$container.data('handsontable');
-  var selected = hot.getSelected();
+  const instance = spec().$container.data('handsontable');
+  let selected = instance.getSelected();
 
   if (!selected) {
-    hot.selectCell(0, 0);
-    selected = hot.getSelected();
+    instance.selectCell(0, 0);
+    selected = instance.getSelected();
   }
   if (!cell) {
     cell = getCell(selected[0], selected[1]);
   }
-  var cellOffset = $(cell).offset();
+  let cellOffset = $(cell).offset();
 
   $(cell).simulate('mousedown', { button: 2 });
   $(cell).simulate('contextmenu', {
@@ -100,30 +100,30 @@ export function contextMenu(cell) {
     clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(),
   });
   $(cell).simulate('mouseup', { button: 2 });
-};
+}
 
 export function closeContextMenu() {
   $(document).simulate('mousedown');
   // $(document).trigger('mousedown');
-};
+}
 
 /**
  * Shows dropdown menu
  */
 export function dropdownMenu(columnIndex) {
-  var hot = spec().$container.data('handsontable');
-  var th = hot.view.wt.wtTable.getColumnHeader(columnIndex || 0);
-  var button = th.querySelector('.changeType');
+  const instance = spec().$container.data('handsontable');
+  const th = instance.view.wt.wtTable.getColumnHeader(columnIndex || 0);
+  const button = th.querySelector('.changeType');
 
   if (button) {
     $(button).simulate('mousedown');
     $(button).simulate('click');
   }
-};
+}
 
 export function closeDropdownMenu() {
   $(document).simulate('mousedown');
-};
+}
 
 export function dropdownMenuRootElement() {
   var plugin = hot().getPlugin('dropdownMenu');
@@ -134,7 +134,7 @@ export function dropdownMenuRootElement() {
   }
 
   return root;
-};
+}
 
 /**
  * Returns a function that triggers a mouse event
@@ -142,7 +142,7 @@ export function dropdownMenuRootElement() {
  * @return {Function}
  */
 export function handsontableMouseTriggerFactory(type, button) {
-  return function(element) {
+  return function (element) {
     if (!(element instanceof jQuery)) {
       element = $(element);
     }
@@ -151,7 +151,7 @@ export function handsontableMouseTriggerFactory(type, button) {
 
     element.simulate(type, ev);
   };
-};
+}
 
 export const mouseDown = handsontableMouseTriggerFactory('mousedown');
 export const mouseMove = handsontableMouseTriggerFactory('mousemove');
@@ -163,7 +163,7 @@ export function mouseDoubleClick(element) {
   mouseUp(element);
   mouseDown(element);
   mouseUp(element);
-};
+}
 
 export const mouseRightDown = handsontableMouseTriggerFactory('mousedown', 3);
 export const mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
@@ -174,7 +174,7 @@ export const mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
  * @return {Function}
  */
 export function handsontableKeyTriggerFactory(type) {
-  return function(key, extend) {
+  return function (key, extend) {
     var ev = {}; // $.Event(type);
 
     if (typeof key === 'string') {
@@ -264,7 +264,7 @@ export function handsontableKeyTriggerFactory(type) {
     $.extend(ev, extend);
     $(document.activeElement).simulate(type, ev);
   };
-};
+}
 
 export const keyDown = handsontableKeyTriggerFactory('keydown');
 export const keyUp = handsontableKeyTriggerFactory('keyup');
@@ -283,7 +283,7 @@ export function keyDownUp(key, extend) {
   if (typeof key === 'string' && key.indexOf('shift+') > -1) {
     keyUp('shift');
   }
-};
+}
 
 /**
  * Returns current value of the keyboard proxy textarea
@@ -291,26 +291,26 @@ export function keyDownUp(key, extend) {
  */
 export function keyProxy() {
   return spec().$container.find('textarea.handsontableInput');
-};
+}
 
 export function serveImmediatePropagation(event) {
-  if (event != null && event.isImmediatePropagationEnabled == null) {
-    event.stopImmediatePropagation = function() {
+  if (event !== null && event.isImmediatePropagationEnabled === null) {
+    event.stopImmediatePropagation = function () {
       this.isImmediatePropagationEnabled = false;
       this.cancelBubble = true;
     };
     event.isImmediatePropagationEnabled = true;
-    event.isImmediatePropagationStopped = function() {
+    event.isImmediatePropagationStopped = function () {
       return !this.isImmediatePropagationEnabled;
     };
   }
 
   return event;
-};
+}
 
 export function autocompleteEditor() {
   return spec().$container.find('.handsontableInput');
-};
+}
 
 /**
  * Sets text cursor inside keyboard proxy
@@ -328,21 +328,21 @@ export function setCaretPosition(pos) {
     range.moveStart('character', pos);
     range.select();
   }
-};
+}
 
 /**
  * Returns autocomplete instance
  */
 export function autocomplete() {
   return spec().$container.find('.autocompleteEditor');
-};
+}
 
 /**
  * Triggers paste string on current selection
  */
 export function triggerPaste(str) {
   spec().$container.data('handsontable').getPlugin('CopyPaste').paste(str);
-};
+}
 
 /**
  * Calls a method in current Handsontable instance, returns its output
@@ -350,7 +350,7 @@ export function triggerPaste(str) {
  * @return {Function}
  */
 export function handsontableMethodFactory(method) {
-  return function() {
+  return function (...args) {
     var instance;
     try {
       instance = spec().$container.handsontable('getInstance');
@@ -364,14 +364,14 @@ export function handsontableMethodFactory(method) {
       }
     } else {
       if (method === 'destroy') {
-        return; // we can forgive this... maybe it was destroyed in the test
+        return void 0; // we can forgive this... maybe it was destroyed in the test
       }
       throw new Error('Something wrong with the test spec: Handsontable instance not found');
     }
 
-    return instance[method](...arguments);
+    return instance[method](...args);
   };
-};
+}
 
 export const addHook = handsontableMethodFactory('addHook');
 export const alter = handsontableMethodFactory('alter');
@@ -477,7 +477,8 @@ export function rowHeight($elem, row) {
  * @returns {String}
  */
 export function getRenderedValue(trIndex, tdIndex) {
-  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).html();
+  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex)
+    .html();
 }
 
 /**
@@ -487,7 +488,8 @@ export function getRenderedValue(trIndex, tdIndex) {
  * @returns {String}
  */
 export function getRenderedContent(trIndex, tdIndex) {
-  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).children();
+  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex)
+    .children();
 }
 
 /**
@@ -505,10 +507,10 @@ export function createNumericData(rowCount, colCount) {
     i,
     j;
 
-  for (i = 0; i < rowCount; i++) {
+  for (i = 0; i < rowCount; i += 1) {
     var row = [];
 
-    for (j = 0; j < colCount; j++) {
+    for (j = 0; j < colCount; j += 1) {
       row.push((i + 1));
     }
     rows.push(row);
@@ -530,10 +532,10 @@ export function Model(opts) {
   var _data = $.extend({
     id: undefined,
     name: undefined,
-    address: undefined
+    address: undefined,
   }, opts);
 
-  obj.attr = function(name, value) {
+  obj.attr = function (name, value) {
     if (typeof value === 'undefined') {
       return this.get(name);
     }
@@ -541,11 +543,11 @@ export function Model(opts) {
     return this.set(name, value);
   };
 
-  obj.get = function(name) {
+  obj.get = function (name) {
     return _data[name];
   };
 
-  obj.set = function(name, value) {
+  obj.set = function (name, value) {
     _data[name] = value;
 
     return this;
@@ -562,13 +564,13 @@ export function Model(opts) {
  * @returns {Function}
  */
 export function createAccessorForProperty(name) {
-  return function(obj, value) {
+  return function (obj, value) {
     return obj.attr(name, value);
   };
 }
 
 export function resizeColumn(displayedColumnIndex, width) {
-  var $container = spec().$container;
+  const { $container } = spec();
   var $th = $container.find(`thead tr:eq(0) th:eq(${displayedColumnIndex})`);
 
   $th.simulate('mouseover');
@@ -583,14 +585,14 @@ export function resizeColumn(displayedColumnIndex, width) {
   var delta = width - $th.width() - 2;
   var newPosition = resizerPosition.left + delta;
   $resizer.simulate('mousemove', {
-    clientX: newPosition
+    clientX: newPosition,
   });
 
   $resizer.simulate('mouseup');
 }
 
 export function resizeRow(displayedRowIndex, height) {
-  var $container = spec().$container;
+  const { $container } = spec();
   var $th = $container.find(`tbody tr:eq(${displayedRowIndex}) th:eq(0)`);
 
   $th.simulate('mouseover');
@@ -599,7 +601,7 @@ export function resizeRow(displayedRowIndex, height) {
   var resizerPosition = $resizer.position();
 
   $resizer.simulate('mousedown', {
-    clientY: resizerPosition.top
+    clientY: resizerPosition.top,
   });
 
   var delta = height - $th.height() - 2;
@@ -609,7 +611,7 @@ export function resizeRow(displayedRowIndex, height) {
   }
 
   $resizer.simulate('mousemove', {
-    clientY: resizerPosition.top + delta
+    clientY: resizerPosition.top + delta,
   });
 
   $resizer.simulate('mouseup');
@@ -627,11 +629,11 @@ export function moveSecondDisplayedRowBeforeFirstRow(container, secondDisplayedR
 
   if ($manualRowMover.length) {
     $manualRowMover.simulate('mousedown', {
-      clientY: $manualRowMover[0].getBoundingClientRect().top
+      clientY: $manualRowMover[0].getBoundingClientRect().top,
     });
 
     $manualRowMover.simulate('mousemove', {
-      clientY: $manualRowMover[0].getBoundingClientRect().top - 20
+      clientY: $manualRowMover[0].getBoundingClientRect().top - 20,
     });
 
     $firstRowHeader.simulate('mouseover');
@@ -651,11 +653,11 @@ export function moveFirstDisplayedRowAfterSecondRow(container, firstDisplayedRow
 
   if ($manualRowMover.length) {
     $manualRowMover.simulate('mousedown', {
-      clientY: $manualRowMover[0].getBoundingClientRect().top
+      clientY: $manualRowMover[0].getBoundingClientRect().top,
     });
 
     $manualRowMover.simulate('mousemove', {
-      clientY: $manualRowMover[0].getBoundingClientRect().top + 20
+      clientY: $manualRowMover[0].getBoundingClientRect().top + 20,
     });
 
     $firstRowHeader.simulate('mouseover');
@@ -703,7 +705,7 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
 
   var touch = document.createTouch(window, target, 0, pageX, pageY, pageX, pageY);
 
-  if (type == 'touchend') {
+  if (type === 'touchend') {
     touches = document.createTouchList();
     targetTouches = document.createTouchList();
     changedTouches = document.createTouchList(touch);
@@ -715,4 +717,4 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
 
   e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false, touches, targetTouches, changedTouches, 1, 0);
   target.dispatchEvent(e);
-};
+}

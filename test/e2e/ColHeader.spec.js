@@ -1,40 +1,39 @@
 describe('ColHeader', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should not show col headers by default', function() {
+  it('should not show col headers by default', function () {
     var that = this;
     handsontable();
 
     expect(that.$container.find('thead th').length).toEqual(0);
   });
 
-  it('should show col headers if true', function() {
+  it('should show col headers if true', function () {
     var that = this;
     handsontable({
-      colHeaders: true
+      colHeaders: true,
     });
 
     expect(that.$container.find('thead th').length).toBeGreaterThan(0);
   });
 
-  it('should show default columns headers labelled A-(Z * n)', function() {
-    var that = this;
+  it('should show default columns headers labelled A-(Z * n)', () => {
     var startCols = 5;
 
     handsontable({
       startCols,
-      colHeaders: true
+      colHeaders: true,
     });
 
     var ths = getHtCore().find('thead th');
@@ -46,14 +45,13 @@ describe('ColHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
-  it('should show default columns headers labelled A-(Z * n) when columns as an array is present', function() {
-    var that = this;
+  it('should show default columns headers labelled A-(Z * n) when columns as an array is present', () => {
     var startCols = 5;
 
     handsontable({
       startCols,
       colHeaders: true,
-      columns: [{}, {}, {}, {}, {}]
+      columns: [{}, {}, {}, {}, {}],
     });
 
     var ths = getHtCore().find('thead th');
@@ -65,16 +63,15 @@ describe('ColHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
-  it('should show default columns headers labelled A-(Z * n) when columns as a function is present', function() {
-    var that = this;
+  it('should show default columns headers labelled A-(Z * n) when columns as a function is present', () => {
     var startCols = 5;
 
     handsontable({
       startCols,
       colHeaders: true,
-      columns(column) {
+      columns() {
         return {};
-      }
+      },
     });
 
     var ths = getHtCore().find('thead th');
@@ -86,12 +83,11 @@ describe('ColHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
-  it('should show col headers with custom label', function() {
-    var that = this;
+  it('should show col headers with custom label', () => {
     var startCols = 5;
     handsontable({
       startCols,
-      colHeaders: ['First', 'Second', 'Third']
+      colHeaders: ['First', 'Second', 'Third'],
     });
 
     var ths = getHtCore().find('thead th');
@@ -103,10 +99,10 @@ describe('ColHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
-  it('should not show col headers if false', function() {
+  it('should not show col headers if false', function () {
     var that = this;
     handsontable({
-      colHeaders: false
+      colHeaders: false,
     });
 
     expect(that.$container.find('th.htColHeader').length).toEqual(0);
@@ -115,14 +111,14 @@ describe('ColHeader', () => {
   it('should hide columns headers after updateSettings', () => {
     var hot = handsontable({
       startCols: 5,
-      colHeaders: true
+      colHeaders: true,
     });
 
     expect(getHtCore().find('thead th').length).toEqual(5);
     expect(getTopClone().find('thead th').length).toEqual(5);
 
     hot.updateSettings({
-      colHeaders: false
+      colHeaders: false,
     });
 
     expect(getHtCore().find('thead th').length).toEqual(0);
@@ -132,28 +128,28 @@ describe('ColHeader', () => {
   it('should show/hide columns headers after updateSettings', () => {
     var hot = handsontable({
       startCols: 5,
-      colHeaders: true
+      colHeaders: true,
     });
 
     expect(getHtCore().find('thead th').length).toEqual(5);
     expect(getTopClone().find('thead th').length).toEqual(5);
 
     hot.updateSettings({
-      colHeaders: false
+      colHeaders: false,
     });
 
     expect(getHtCore().find('thead th').length).toEqual(0);
     expect(getTopClone().width()).toEqual(0);
 
     hot.updateSettings({
-      colHeaders: true
+      colHeaders: true,
     });
 
     expect(getHtCore().find('thead th').length).toEqual(5);
     expect(getTopClone().width()).toBeGreaterThan(0);
 
     hot.updateSettings({
-      colHeaders: false
+      colHeaders: false,
     });
 
     expect(getHtCore().find('thead th').length).toEqual(0);
@@ -163,14 +159,14 @@ describe('ColHeader', () => {
   it('should show columns headers after updateSettings', () => {
     var hot = handsontable({
       startCols: 5,
-      colHeaders: false
+      colHeaders: false,
     });
 
     expect(getHtCore().find('thead th').length).toEqual(0);
     expect(getTopClone().find('thead th').length).toEqual(0);
 
     hot.updateSettings({
-      colHeaders: true
+      colHeaders: true,
     });
 
     expect(getHtCore().find('thead th').length).toEqual(5);
@@ -180,7 +176,7 @@ describe('ColHeader', () => {
   it('should show new columns headers after updateSettings', () => {
     var hot = handsontable({
       startCols: 3,
-      colHeaders: ['A', 'B', 'C']
+      colHeaders: ['A', 'B', 'C'],
     });
 
     var htCore = getHtCore();
@@ -189,7 +185,7 @@ describe('ColHeader', () => {
     expect(htCore.find('thead th:eq(2)').text()).toEqual('C');
 
     hot.updateSettings({
-      colHeaders: ['X', 'Y', 'Z']
+      colHeaders: ['X', 'Y', 'Z'],
     });
 
     expect(htCore.find('thead th:eq(0)').text()).toEqual('X');
@@ -199,18 +195,19 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to define colHeaders with a function', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders(col) {
-        switch (col) {
-          case 0:
-            return 'One';
-          case 1:
-            return 'Two';
-          default:
-            break;
+        let header;
+
+        if (col === 0) {
+          header = 'One';
+        } else if (col === 1) {
+          header = 'Two';
         }
-      }
+
+        return header;
+      },
     });
 
     var htCore = getHtCore();
@@ -220,9 +217,9 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set HTML in colHeaders', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
-      colHeaders: ['One <input type="checkbox">', 'Two <input type="checkbox">']
+      colHeaders: ['One <input type="checkbox">', 'Two <input type="checkbox">'],
     });
 
     var htCore = getHtCore();
@@ -232,13 +229,13 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set colHeaders when columns array is present', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns: [
-        {type: 'text'},
-        {type: 'text'}
-      ]
+        { type: 'text' },
+        { type: 'text' },
+      ],
     });
 
     var htCore = getHtCore();
@@ -248,18 +245,18 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set colHeaders when columns function is present', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns(column) {
-        var colMeta = {type: 'text'};
+        var colMeta = { type: 'text' };
 
         if ([0, 1].indexOf(column) < 0) {
           colMeta = null;
         }
 
         return colMeta;
-      }
+      },
     });
 
     var htCore = getHtCore();
@@ -269,13 +266,13 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set colHeaders using columns title property', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns: [
-        {type: 'text', title: 'Special title'},
-        {type: 'text'}
-      ]
+        { type: 'text', title: 'Special title' },
+        { type: 'text' },
+      ],
     });
 
     var htCore = getHtCore();
@@ -285,11 +282,11 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set colHeaders using columns title property when columns is a function', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns(column) {
-        var colMeta = {type: 'text'};
+        var colMeta = { type: 'text' };
 
         if (column === 0) {
           colMeta.title = 'Special title';
@@ -299,7 +296,7 @@ describe('ColHeader', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     var htCore = getHtCore();
@@ -309,10 +306,10 @@ describe('ColHeader', () => {
   });
 
   it('should resize all the column headers in the overlays, according to the other overlays\' height', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 5,
       colHeaders: ['a', 'a', 'a', 'a<BR>a', 'a'],
-      fixedColumnsLeft: 2
+      fixedColumnsLeft: 2,
     });
 
     var topHeaderExample = $('.ht_clone_top').find('thead tr:first-child th:nth-child(1)'),
@@ -321,11 +318,11 @@ describe('ColHeader', () => {
     expect(topHeaderExample.height()).toEqual(masterHeaderExample.height());
   });
 
-  it('should allow defining custom column header height using the columnHeaderHeight config option', function() {
+  it('should allow defining custom column header height using the columnHeaderHeight config option', function () {
     var hot = handsontable({
       startCols: 3,
       colHeaders: true,
-      columnHeaderHeight: 40
+      columnHeaderHeight: 40,
     });
 
     hot.render();
@@ -333,7 +330,7 @@ describe('ColHeader', () => {
     expect(this.$container.find('th').eq(0).height()).toEqual(40);
   });
 
-  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', function() {
+  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', function () {
     var hot = handsontable({
       startCols: 3,
       colHeaders: true,
@@ -355,7 +352,7 @@ describe('ColHeader', () => {
         });
 
         return array;
-      }
+      },
     });
     hot.render();
 

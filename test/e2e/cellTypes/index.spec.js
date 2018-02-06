@@ -5,24 +5,21 @@ describe('cellTypes', () => {
     getCellType,
   } = Handsontable.cellTypes;
   const {
-    registerEditor,
     getEditor,
     BaseEditor,
   } = Handsontable.editors;
   const {
-    registerRenderer,
     getRenderer,
   } = Handsontable.renderers;
   const {
-    registerValidator,
     getValidator,
   } = Handsontable.validators;
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -52,12 +49,12 @@ describe('cellTypes', () => {
     }
     registerCellType('myCellType', {
       editor: MyEditor,
-      renderer: (hot, td, row, col, prop, value, cellProperties) => {
+      renderer: (hot, td, row, col, prop, value) => {
         td.innerHTML = `--${value}--`;
       },
       validator: (value, cb) => {
         cb(value === 10);
-      }
+      },
     });
 
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
@@ -68,7 +65,7 @@ describe('cellTypes', () => {
       columns: [{
         type: 'myCellType',
       }],
-      afterValidate: onAfterValidate
+      afterValidate: onAfterValidate,
     });
 
     hot.setDataAtCell(1, 0, 10);
@@ -90,7 +87,7 @@ describe('cellTypes', () => {
   });
 
   it('should retrieve predefined cell types by its names', () => {
-    const {editors, renderers, validators} = Handsontable;
+    const { editors, renderers, validators } = Handsontable;
 
     expect(getCellType('autocomplete').editor).toBe(editors.AutocompleteEditor);
     expect(getCellType('autocomplete').renderer).toBe(renderers.AutocompleteRenderer);

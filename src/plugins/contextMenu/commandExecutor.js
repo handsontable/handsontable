@@ -1,5 +1,5 @@
-import {arrayEach} from './../../helpers/array';
-import {hasOwnProperty} from './../../helpers/object';
+import { arrayEach } from './../../helpers/array';
+import { hasOwnProperty } from './../../helpers/object';
 
 /**
  * Command executor for ContextMenu.
@@ -42,7 +42,7 @@ class CommandExecutor {
    */
   execute(commandName, ...params) {
     let commandSplit = commandName.split(':');
-    commandName = commandSplit[0];
+    [commandName] = commandSplit;
 
     let subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
     let command = this.commands[commandName];
@@ -56,7 +56,7 @@ class CommandExecutor {
     if (command.disabled === true) {
       return;
     }
-    if (typeof command.disabled == 'function' && command.disabled.call(this.hot) === true) {
+    if (typeof command.disabled === 'function' && command.disabled.call(this.hot) === true) {
       return;
     }
     if (hasOwnProperty(command, 'submenu')) {
@@ -71,7 +71,7 @@ class CommandExecutor {
       callbacks.push(this.commonCallback);
     }
     params.unshift(commandSplit.join(':'));
-    arrayEach(callbacks, (callback) => callback.apply(this.hot, params));
+    arrayEach(callbacks, callback => callback.apply(this.hot, params));
   }
 }
 
@@ -86,6 +86,8 @@ function findSubCommand(subCommandName, subCommands) {
 
       return false;
     }
+
+    return true;
   });
 
   return command;

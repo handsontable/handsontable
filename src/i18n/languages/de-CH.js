@@ -95,7 +95,7 @@ const dictionary = {
 
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Suchen',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Wert',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Alternativwert'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Alternativwert',
 };
 
 export default dictionary;

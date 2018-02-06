@@ -7,17 +7,17 @@ import {
   isChildOf,
   removeClass,
 } from './../../helpers/dom/element';
-import {arrayEach, arrayFilter, arrayReduce} from './../../helpers/array';
+import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
 import Cursor from './cursor';
 import EventManager from './../../eventManager';
-import {mixin, hasOwnProperty} from './../../helpers/object';
-import {isUndefined} from './../../helpers/mixed';
-import {debounce, isFunction} from './../../helpers/function';
-import {filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection} from './utils';
-import {KEY_CODES} from './../../helpers/unicode';
+import { mixin, hasOwnProperty } from './../../helpers/object';
+import { isUndefined } from './../../helpers/mixed';
+import { debounce, isFunction } from './../../helpers/function';
+import { filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection } from './utils';
+import { KEY_CODES } from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
-import {SEPARATOR} from './predefinedItems';
-import {stopImmediatePropagation} from './../../helpers/dom/event';
+import { SEPARATOR } from './predefinedItems';
+import { stopImmediatePropagation } from './../../helpers/dom/event';
 
 /**
  * @class Menu
@@ -31,7 +31,7 @@ class Menu {
       name: null,
       className: '',
       keepInViewport: true,
-      standalone: false
+      standalone: false,
     };
     this.eventManager = new EventManager(this);
     this.container = this.createContainer(this.options.name);
@@ -46,7 +46,7 @@ class Menu {
       above: 0,
       below: 0,
       left: 0,
-      right: 0
+      right: 0,
     };
     this._afterScrollCallback = null;
 
@@ -59,7 +59,7 @@ class Menu {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mousedown', (event) => this.onDocumentMouseDown(event));
+    this.eventManager.addEventListener(document.documentElement, 'mousedown', event => this.onDocumentMouseDown(event));
   }
 
   /**
@@ -97,9 +97,9 @@ class Menu {
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
 
-    const delayedOpenSubMenu = debounce((row) => this.openSubMenu(row), 300);
+    const delayedOpenSubMenu = debounce(row => this.openSubMenu(row), 300);
 
-    let filteredItems = arrayFilter(this.menuItems, (item) => isItemHidden(item, this.hot));
+    let filteredItems = arrayFilter(this.menuItems, item => isItemHidden(item, this.hot));
 
     filteredItems = filterSeparators(filteredItems, SEPARATOR);
 
@@ -112,20 +112,20 @@ class Menu {
       copyPaste: false,
       columns: [{
         data: 'name',
-        renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value)
+        renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value),
       }],
       renderAllRows: true,
       fragmentSelection: 'cell',
       disableVisualSelection: 'area',
-      beforeKeyDown: (event) => this.onBeforeKeyDown(event),
-      afterOnCellMouseOver: (event, coords, TD) => {
+      beforeKeyDown: event => this.onBeforeKeyDown(event),
+      afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
         } else {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: (row) => (filteredItems[row].name === SEPARATOR ? 1 : 23)
+      rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
     };
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
@@ -186,7 +186,7 @@ class Menu {
       parent: this,
       name: dataItem.name,
       className: this.options.className,
-      keepInViewport: true
+      keepInViewport: true,
     });
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
@@ -445,10 +445,10 @@ class Menu {
     let item = hot.getSourceDataAtRow(row);
     let wrapper = document.createElement('div');
 
-    let isSubMenu = (item) => hasOwnProperty(item, 'submenu');
-    let itemIsSeparator = (item) => new RegExp(SEPARATOR, 'i').test(item.name);
-    let itemIsDisabled = (item) => item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(this.hot) === true);
-    let itemIsSelectionDisabled = (item) => item.disableSelection;
+    let isSubMenu = elem => hasOwnProperty(elem, 'submenu');
+    let itemIsSeparator = elem => new RegExp(SEPARATOR, 'i').test(elem.name);
+    let itemIsDisabled = elem => elem.disabled === true || (typeof elem.disabled === 'function' && elem.disabled.call(this.hot) === true);
+    let itemIsSelectionDisabled = elem => elem.disableSelection;
 
     if (typeof value === 'function') {
       value = value.call(this.hot);
@@ -544,7 +544,7 @@ class Menu {
    * @private
    */
   blockMainTableCallbacks() {
-    this._afterScrollCallback = function() {};
+    this._afterScrollCallback = function () {};
     this.hot.addHook('afterScrollVertically', this._afterScrollCallback);
     this.hot.addHook('afterScrollHorizontally', this._afterScrollCallback);
   }
@@ -645,7 +645,7 @@ class Menu {
    * @private
    */
   onAfterInit() {
-    const data = this.hotMenu.getSettings().data;
+    const { data } = this.hotMenu.getSettings();
     const hiderStyle = this.hotMenu.view.wt.wtTable.hider.style;
     const holderStyle = this.hotMenu.view.wt.wtTable.holder.style;
     let currentHiderWidth = parseInt(hiderStyle.width, 10);

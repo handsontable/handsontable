@@ -1,5 +1,5 @@
 import Core from './../core';
-import {isObject} from './../helpers/object';
+import { isObject } from './../helpers/object';
 
 /**
  * @class RecordTranslator
@@ -97,7 +97,7 @@ class RecordTranslator {
   }
 }
 
-export {RecordTranslator};
+export { RecordTranslator };
 
 const identities = new WeakMap();
 const translatorSingletons = new WeakMap();

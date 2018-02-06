@@ -4,7 +4,7 @@ import moment from 'moment';
 const STRICT_FORMATS = [
   'YYYY-MM-DDTHH:mm:ss.SSSZ',
   'X', // Unix timestamp
-  'x' // Unix ms timestamp
+  'x', // Unix ms timestamp
 ];
 
 /**
@@ -62,4 +62,4 @@ export default function timeValidator(value, callback) {
   }
 
   callback(valid);
-};
+}

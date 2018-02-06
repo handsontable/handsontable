@@ -1,11 +1,11 @@
 describe('Core_updateSettings', () => {
   const id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -17,15 +17,11 @@ describe('Core_updateSettings', () => {
       data: [[1, 2]],
       columns: [
         {},
-        {type: 'checkbox'},
+        { type: 'checkbox' },
       ],
-      cells(row, col, prop) {
-        if (row === 0 && col === 0) {
-          return {
-            type: 'numeric'
-          };
-        }
-      }
+      cells(row, col) {
+        return row === 0 && col === 0 ? { type: 'numeric' } : void 0;
+      },
     });
 
     expect(getCellMeta(0, 0).type).toEqual('numeric');
@@ -42,18 +38,14 @@ describe('Core_updateSettings', () => {
           colMeta = {};
 
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
       },
-      cells(row, col, prop) {
-        if (row === 0 && col === 0) {
-          return {
-            type: 'numeric'
-          };
-        }
-      }
+      cells(row, col) {
+        return row === 0 && col === 0 ? { type: 'numeric' } : {};
+      },
     });
 
     expect(getCellMeta(0, 0).type).toEqual('numeric');
@@ -68,13 +60,13 @@ describe('Core_updateSettings', () => {
     handsontable({
       data: [[1, true]],
       columns: [
-        {type: 'numeric'},
-        {type: 'checkbox'}
-      ]
+        { type: 'numeric' },
+        { type: 'checkbox' },
+      ],
     });
 
     expect(() => {
-      updateSettings({cell: new Array()});
+      updateSettings({ cell: new Array() });
     }).not.toThrow();
   });
 
@@ -89,10 +81,10 @@ describe('Core_updateSettings', () => {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {type: 'numeric'};
+          colMeta = { type: 'numeric' };
 
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
@@ -100,17 +92,17 @@ describe('Core_updateSettings', () => {
     });
 
     expect(() => {
-      updateSettings({cell: new Array()});
+      updateSettings({ cell: new Array() });
     }).not.toThrow();
   });
 
-  it('should not reset columns types to text', function() {
+  it('should not reset columns types to text', function () {
     handsontable({
       data: [[1, true]],
       columns: [
-        {type: 'numeric'},
-        {type: 'checkbox'}
-      ]
+        { type: 'numeric' },
+        { type: 'checkbox' },
+      ],
     });
 
     const td = this.$container.find('td');
@@ -124,21 +116,21 @@ describe('Core_updateSettings', () => {
     expect(td.eq(1).text()).toEqual('');
   });
 
-  it('should not reset columns types to text when columns is a function', function() {
+  it('should not reset columns types to text when columns is a function', function () {
     handsontable({
       data: [[1, true]],
       columns(column) {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {type: 'numeric'};
+          colMeta = { type: 'numeric' };
 
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
-      }
+      },
     });
 
     const td = this.$container.find('td');
@@ -159,7 +151,7 @@ describe('Core_updateSettings', () => {
       columns: [
         {},
         {},
-      ]
+      ],
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -169,7 +161,7 @@ describe('Core_updateSettings', () => {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
     updateSettings({
-      readOnly: false
+      readOnly: false,
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
@@ -191,7 +183,7 @@ describe('Core_updateSettings', () => {
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -201,7 +193,7 @@ describe('Core_updateSettings', () => {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
     updateSettings({
-      readOnly: false
+      readOnly: false,
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
@@ -215,9 +207,9 @@ describe('Core_updateSettings', () => {
     handsontable({
       data: [['foo', true]],
       columns: [
-        {type: 'text', readOnly: true},
-        {type: 'checkbox'}
-      ]
+        { type: 'text', readOnly: true },
+        { type: 'checkbox' },
+      ],
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -228,9 +220,9 @@ describe('Core_updateSettings', () => {
 
     updateSettings({
       columns: [
-        {type: 'text', readOnly: false},
-        {type: 'checkbox'}
-      ]
+        { type: 'text', readOnly: false },
+        { type: 'checkbox' },
+      ],
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
@@ -247,13 +239,13 @@ describe('Core_updateSettings', () => {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {type: 'text', readOnly: true};
+          colMeta = { type: 'text', readOnly: true };
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -267,13 +259,13 @@ describe('Core_updateSettings', () => {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {type: 'text', readOnly: false};
+          colMeta = { type: 'text', readOnly: false };
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
@@ -288,9 +280,9 @@ describe('Core_updateSettings', () => {
       readOnly: true,
       data: [['foo', true]],
       columns: [
-        {type: 'text'},
-        {type: 'checkbox'}
-      ]
+        { type: 'text' },
+        { type: 'checkbox' },
+      ],
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -301,9 +293,9 @@ describe('Core_updateSettings', () => {
 
     updateSettings({
       columns: [
-        {type: 'text', readOnly: false},
-        {type: 'checkbox'}
-      ]
+        { type: 'text', readOnly: false },
+        { type: 'checkbox' },
+      ],
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
@@ -321,14 +313,14 @@ describe('Core_updateSettings', () => {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {type: 'text'};
+          colMeta = { type: 'text' };
 
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
@@ -342,14 +334,14 @@ describe('Core_updateSettings', () => {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {type: 'text', readOnly: false};
+          colMeta = { type: 'text', readOnly: false };
 
         } else if (column === 1) {
-          colMeta = {type: 'checkbox'};
+          colMeta = { type: 'checkbox' };
         }
 
         return colMeta;
-      }
+      },
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
@@ -362,14 +354,14 @@ describe('Core_updateSettings', () => {
   it('should not alter the columns object during init', () => {
     const columns = [
       {
-        type: 'text'
-      }
+        type: 'text',
+      },
     ];
 
     const columnsCopy = JSON.parse(JSON.stringify(columns));
 
     handsontable({
-      columns
+      columns,
     });
 
     expect(columns).toEqual(columnsCopy);
@@ -378,12 +370,12 @@ describe('Core_updateSettings', () => {
   it('should update column type', () => {
     const columns = [
       {
-        type: 'text'
-      }
+        type: 'text',
+      },
     ];
 
     handsontable({
-      columns
+      columns,
     });
 
     expect(getCellMeta(0, 0).type).toEqual('text');
@@ -393,7 +385,7 @@ describe('Core_updateSettings', () => {
     columns[0].type = 'date';
 
     updateSettings({
-      columns
+      columns,
     });
 
     expect(getCellMeta(0, 0).type).toEqual('date');
@@ -404,12 +396,12 @@ describe('Core_updateSettings', () => {
   it('should update cell type functions, even if new type does not implement all of those functions', () => {
     const columns = [
       {
-        type: 'numeric'
-      }
+        type: 'numeric',
+      },
     ];
 
     handsontable({
-      columns
+      columns,
     });
 
     expect(getCellMeta(0, 0).type).toEqual('numeric');
@@ -420,7 +412,7 @@ describe('Core_updateSettings', () => {
     columns[0].type = 'text';
 
     updateSettings({
-      columns
+      columns,
     });
 
     expect(getCellMeta(0, 0).type).toEqual('text');
@@ -430,49 +422,49 @@ describe('Core_updateSettings', () => {
     expect(getCellValidator(0, 0)).toBeUndefined();
   });
 
-  it('should allow updating the table height', function() {
-    const hot = handsontable({
+  it('should allow updating the table height', function () {
+    handsontable({
       startRows: 22,
-      startCols: 5
+      startCols: 5,
     });
 
     const initialHeight = parseInt(this.$container[0].style.height, 10);
 
     updateSettings({
-      height: 300
+      height: 300,
     });
 
     expect(parseInt(this.$container[0].style.height, 10)).toEqual(300);
     expect(parseInt(this.$container[0].style.height, 10)).not.toEqual(initialHeight);
   });
 
-  it('should not reset the table height, when the updateSettings config object doesn\'t have any height specified', function() {
-    const hot = handsontable({
+  it('should not reset the table height, when the updateSettings config object doesn\'t have any height specified', function () {
+    handsontable({
       startRows: 22,
       startCols: 5,
-      height: 300
+      height: 300,
     });
 
     const initialHeight = this.$container[0].style.height;
 
     updateSettings({
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     expect(parseInt(this.$container[0].style.height, 10)).toEqual(parseInt(initialHeight, 10));
   });
 
-  it('should allow resetting the table height', function() {
-    const hot = handsontable({
+  it('should allow resetting the table height', function () {
+    handsontable({
       startRows: 22,
       startCols: 5,
-      height: 300
+      height: 300,
     });
 
     const initialHeight = this.$container[0].style.height;
 
     updateSettings({
-      height: null
+      height: null,
     });
 
     expect(parseInt(this.$container[0].style.height, 10)).not.toEqual(parseInt(initialHeight, 10));
@@ -480,41 +472,41 @@ describe('Core_updateSettings', () => {
 
   it('should allow updating the stretching type', () => {
     const hot = handsontable({
-      stretchH: 'last'
+      stretchH: 'last',
     });
 
     expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
 
     updateSettings({
-      stretchH: 'all'
+      stretchH: 'all',
     });
 
     expect(hot.view.wt.getSetting('stretchH')).toEqual('all');
 
     updateSettings({
-      stretchH: 'none'
+      stretchH: 'none',
     });
 
     expect(hot.view.wt.getSetting('stretchH')).toEqual('none');
 
     updateSettings({
-      stretchH: 'last'
+      stretchH: 'last',
     });
 
     expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
   });
 
-  it('should change colHeader\'s row height if is needed', function() {
-    const hot = handsontable({
+  it('should change colHeader\'s row height if is needed', function () {
+    handsontable({
       colHeaders: true,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     const rowHeights = [];
 
     rowHeights.push(this.$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
     updateSettings({
-      colHeaders: ['A<br/>A']
+      colHeaders: ['A<br/>A'],
     });
 
     rowHeights.push(this.$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
@@ -522,7 +514,7 @@ describe('Core_updateSettings', () => {
     expect(rowHeights[0]).toBeLessThan(rowHeights[1]);
   });
 
-  it('should not overwrite properties (created by columns defined as function) of cells below the viewport by updateSettings #4029', function() {
+  it('should not overwrite properties (created by columns defined as function) of cells below the viewport by updateSettings #4029', () => {
     let rows = 50;
     const columns = 2;
 
@@ -530,8 +522,8 @@ describe('Core_updateSettings', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(columns, rows),
       columns(col) {
         const colProp = {
-          data: 'prop' + col,
-          readOnly: true
+          data: `prop${col}`,
+          readOnly: true,
         };
 
         if (col === 1) {
@@ -539,7 +531,7 @@ describe('Core_updateSettings', () => {
         }
 
         return colProp;
-      }
+      },
     });
 
     updateSettings({});
@@ -548,19 +540,19 @@ describe('Core_updateSettings', () => {
 
     rows = 100;
 
-    updateSettings({data: Handsontable.helper.createSpreadsheetObjectData(columns, rows)});
+    updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(columns, rows) });
     expect(getCellMeta(rows, 0).readOnly).toEqual(true);
     expect(getCellMeta(rows, 1).type).toEqual('checkbox');
 
     updateSettings({
       columns(col) {
         const colProp = {
-          data: 'prop' + col,
-          type: 'numeric'
+          data: `prop${col}`,
+          type: 'numeric',
         };
 
         return colProp;
-      }
+      },
     });
     expect(getCellMeta(0, 1).type).toEqual('numeric');
     expect(getCellMeta(0, 1).readOnly).toEqual(false);
@@ -568,7 +560,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(rows, 1).readOnly).toEqual(false);
   });
 
-  it('should not overwrite properties (created by columns defined as array) of cells below the viewport by updateSettings #4029', function() {
+  it('should not overwrite properties (created by columns defined as array) of cells below the viewport by updateSettings #4029', () => {
     let rows = 50;
     const columns = 2;
 
@@ -583,9 +575,9 @@ describe('Core_updateSettings', () => {
         },
         {
           type: 'text',
-          readOnly: true
-        }
-      ]
+          readOnly: true,
+        },
+      ],
     });
 
     updateSettings({});
@@ -594,7 +586,7 @@ describe('Core_updateSettings', () => {
 
     rows = 100;
 
-    updateSettings({data: Handsontable.helper.createSpreadsheetObjectData(columns, rows)});
+    updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(columns, rows) });
     expect(getCellMeta(rows, 0).type).toEqual('numeric');
     expect(typeof getCellMeta(rows, 0).numericFormat).toEqual('object');
     expect(getCellMeta(rows, 1).readOnly).toEqual(true);
@@ -603,15 +595,15 @@ describe('Core_updateSettings', () => {
       columns: [
         {
           type: 'text',
-          readOnly: true
+          readOnly: true,
         },
         {
           type: 'numeric',
           numericFormat: {
             pattern: '0,0.00 $',
           },
-        }
-      ]
+        },
+      ],
     });
     expect(getCellMeta(0, 0).type).toEqual('text');
     expect(getCellMeta(0, 0).readOnly).toEqual(true);
@@ -628,10 +620,10 @@ describe('Core_updateSettings', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
       readOnly: true,
-      afterUpdateSettings
+      afterUpdateSettings,
     });
 
-    const newSettings = {readOnly: false};
+    const newSettings = { readOnly: false };
 
     updateSettings(newSettings);
 
@@ -639,7 +631,7 @@ describe('Core_updateSettings', () => {
   });
 
   it('should not extend parameter passed to `afterUpdateSettings` hook by another properties', () => {
-    const updatedSetting = {fillHandle: true};
+    const updatedSetting = { fillHandle: true };
     let newSettings;
 
     handsontable({
@@ -647,7 +639,7 @@ describe('Core_updateSettings', () => {
       readOnly: true,
       afterUpdateSettings(settings) {
         newSettings = settings;
-      }
+      },
     });
 
     updateSettings(updatedSetting);

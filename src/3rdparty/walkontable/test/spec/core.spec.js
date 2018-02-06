@@ -5,7 +5,7 @@ describe('WalkontableCore', () => {
     debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden' });
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
     $wrapper.append($container);
@@ -27,7 +27,7 @@ describe('WalkontableCore', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
     var TDs = $table.find('tbody tr:first td');
@@ -43,7 +43,7 @@ describe('WalkontableCore', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      renderAllRows: true
+      renderAllRows: true,
     });
     wt.draw();
 
@@ -60,9 +60,9 @@ describe('WalkontableCore', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
     expect($table.find('thead th').length).toBe(5); // include corner TH
@@ -77,7 +77,7 @@ describe('WalkontableCore', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
     expect($table.find('tbody tr:first td').length).toBe(2);
@@ -89,7 +89,7 @@ describe('WalkontableCore', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
     expect(wt.drawn).toBe(false);
@@ -104,7 +104,7 @@ describe('WalkontableCore', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
     expect(wt.drawn).toBe(false);
@@ -120,7 +120,7 @@ describe('WalkontableCore', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 
@@ -136,7 +136,7 @@ describe('WalkontableCore', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 
@@ -152,7 +152,7 @@ describe('WalkontableCore', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
     createDataArray(1, 5);
@@ -169,7 +169,7 @@ describe('WalkontableCore', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
     createDataArray(1, 5);
@@ -186,7 +186,7 @@ describe('WalkontableCore', () => {
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
     wt.draw();
 

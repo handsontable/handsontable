@@ -1,22 +1,22 @@
 describe('CellDecorator', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  var arrayOfObjects = function() {
+  var arrayOfObjects = function () {
     return [
-      {id: 1, name: 'Ted', lastName: 'Right'},
-      {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'}
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' },
     ];
   };
 
@@ -24,18 +24,18 @@ describe('CellDecorator', () => {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id' },
+        { data: 'name' },
+        { data: 'lastName' },
       ],
-      wordWrap: false
+      wordWrap: false,
     });
 
     var cols = countCols(),
       rows = countRows();
 
-    for (let i = 0; i < cols; i++) {
-      for (let j = 0; j < rows; j++) {
+    for (let i = 0; i < cols; i += 1) {
+      for (let j = 0; j < rows; j += 1) {
         expect($(getCell(i, j)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(true);
       }
     }
@@ -45,19 +45,19 @@ describe('CellDecorator', () => {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'name', wordWrap: false},
-        {data: 'lastName'}
-      ]
+        { data: 'id' },
+        { data: 'name', wordWrap: false },
+        { data: 'lastName' },
+      ],
     });
 
     var rows = countRows();
 
-    for (let i = 0; i < rows; i++) {
+    for (let i = 0; i < rows; i += 1) {
       expect($(getCell(i, 1)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(true);
     }
 
-    for (let i = 0; i < rows; i++) {
+    for (let i = 0; i < rows; i += 1) {
       expect($(getCell(i, 0)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(false); // no class added to other columns
       expect($(getCell(i, 2)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(false);
     }
@@ -67,10 +67,10 @@ describe('CellDecorator', () => {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'name'},
-        {data: 'lastName'}
-      ]
+        { data: 'id' },
+        { data: 'name' },
+        { data: 'lastName' },
+      ],
     });
 
     expect($(getCell(1, 1)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(false);
@@ -83,13 +83,13 @@ describe('CellDecorator', () => {
   });
 
   it('should set "white-space" css parameter to "nowrap" if htNoWrap class is added to a cell', () => {
-    var hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'name'},
-        {data: 'lastName'}
-      ]
+        { data: 'id' },
+        { data: 'name' },
+        { data: 'lastName' },
+      ],
     });
 
     expect(window.getComputedStyle(getCell(1, 1)).whiteSpace).not.toEqual('nowrap');
@@ -104,10 +104,10 @@ describe('CellDecorator', () => {
     var hot = handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'name'},
-        {data: 'salary', type: 'numeric', allowInvalid: false}
-      ]
+        { data: 'id' },
+        { data: 'name' },
+        { data: 'salary', type: 'numeric', allowInvalid: false },
+      ],
     });
 
     setDataAtCell(0, 2, 'non-numeric value');

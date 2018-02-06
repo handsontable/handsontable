@@ -5,11 +5,11 @@ describe('renderers', () => {
     getRenderer,
   } = Handsontable.renderers;
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -17,11 +17,11 @@ describe('renderers', () => {
   });
 
   it('should register custom renderer', () => {
-    registerRenderer('myRenderer', (hot, td, row, col, prop, value, cellProperties) => {
+    registerRenderer('myRenderer', (hot, td, row, col, prop, value) => {
       td.innerHTML = `--${value}--`;
     });
 
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 6, 10],
       ],

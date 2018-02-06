@@ -5,7 +5,7 @@ describe('Walkontable.Selection', () => {
     debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden' });
     $wrapper.width(100).height(200);
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
@@ -30,14 +30,14 @@ describe('Walkontable.Selection', () => {
       totalColumns: getTotalColumns,
       selections: [
         new Walkontable.Selection({
-          className: 'current'
-        })
+          className: 'current',
+        }),
       ],
-      onCellMouseDown(event, coords, TD) {
+      onCellMouseDown(event, coords) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
-      }
+      },
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -52,7 +52,7 @@ describe('Walkontable.Selection', () => {
     expect($td2.hasClass('current')).toEqual(true);
   });
 
-  it('should add class to selection on all overlays', function() {
+  it('should add class to selection on all overlays', function () {
     $wrapper.width(300).height(300);
 
     this.data = createSpreadsheetData(10, 10);
@@ -64,14 +64,14 @@ describe('Walkontable.Selection', () => {
       totalColumns: getTotalColumns,
       selections: [
         new Walkontable.Selection({
-          className: 'current'
+          className: 'current',
         }),
         new Walkontable.Selection({
-          className: 'area'
-        })
+          className: 'area',
+        }),
       ],
       fixedColumnsLeft: 2,
-      fixedRowsTop: 2
+      fixedRowsTop: 2,
     });
     shimSelectionProperties(wt);
 
@@ -84,7 +84,7 @@ describe('Walkontable.Selection', () => {
 
     var tds = $wrapper.find('td:contains(B2), td:contains(B3), td:contains(C2), td:contains(C3)');
     expect(tds.length).toBeGreaterThan(4);
-    for (var i = 0, ilen = tds.length; i < ilen; i++) {
+    for (var i = 0, ilen = tds.length; i < ilen; i += 1) {
       expect(tds[i].className).toContain('area');
     }
   });
@@ -97,9 +97,9 @@ describe('Walkontable.Selection', () => {
       totalColumns: getTotalColumns,
       selections: [
         new Walkontable.Selection({
-          className: 'current'
-        })
-      ]
+          className: 'current',
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -123,15 +123,15 @@ describe('Walkontable.Selection', () => {
           border: {
             width: 1,
             color: 'red',
-            style: 'solid'
-          }
-        })
+            style: 'solid',
+          },
+        }),
       ],
-      onCellMouseDown(event, coords, TD) {
+      onCellMouseDown(event, coords) {
         wt.selections.current.clear();
         wt.selections.current.add(coords);
         wt.draw();
-      }
+      },
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -166,10 +166,10 @@ describe('Walkontable.Selection', () => {
           border: {
             width: 1,
             color: 'red',
-            style: 'solid'
-          }
-        })
-      ]
+            style: 'solid',
+          },
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -189,10 +189,10 @@ describe('Walkontable.Selection', () => {
           border: {
             width: 1,
             color: 'red',
-            style: 'solid'
-          }
-        })
-      ]
+            style: 'solid',
+          },
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -219,10 +219,10 @@ describe('Walkontable.Selection', () => {
           border: {
             width: 1,
             color: 'red',
-            style: 'solid'
-          }
-        })
-      ]
+            style: 'solid',
+          },
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -245,9 +245,9 @@ describe('Walkontable.Selection', () => {
       selections: [
         new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
-        })
-      ]
+          highlightColumnClassName: 'highlightColumn',
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -271,13 +271,13 @@ describe('Walkontable.Selection', () => {
       selections: [
         new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
+          highlightColumnClassName: 'highlightColumn',
         }),
         new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
-        })
-      ]
+          highlightColumnClassName: 'highlightColumn',
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -298,9 +298,9 @@ describe('Walkontable.Selection', () => {
       selections: [
         new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
-        })
-      ]
+          highlightColumnClassName: 'highlightColumn',
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -324,18 +324,18 @@ describe('Walkontable.Selection', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
-      columnHeaders: [function(row, TH) {
+      columnHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
       }],
       selections: [
         new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
-        })
-      ]
+          highlightColumnClassName: 'highlightColumn',
+        }),
+      ],
     });
     shimSelectionProperties(wt);
     wt.draw();
@@ -391,10 +391,10 @@ describe('Walkontable.Selection', () => {
             border: {
               width: 1,
               color: 'red',
-              style: 'solid'
-            }
-          })
-        ]
+              style: 'solid',
+            },
+          }),
+        ],
       });
       shimSelectionProperties(wt);
       wt.selections.current.add(new Walkontable.CellCoords(1, 1));

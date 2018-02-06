@@ -2,11 +2,11 @@ describe('PluginHooks', () => {
 
   var id = 'testContainer';
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -19,7 +19,7 @@ describe('PluginHooks', () => {
     var handler3 = jasmine.createSpy('handler3');
 
     handsontable({
-      afterInit: [handler1, handler2, handler3]
+      afterInit: [handler1, handler2, handler3],
     });
 
     expect(handler1).toHaveBeenCalled();
@@ -30,7 +30,7 @@ describe('PluginHooks', () => {
   it('should remove a global hook', () => {
     var
       test = 0,
-      hook = function() {
+      hook = function () {
         test = 5;
       };
 
@@ -45,7 +45,7 @@ describe('PluginHooks', () => {
   it('should remove a local hook', () => {
     var
       test = 0,
-      hook = function() {
+      hook = function () {
         test = 5;
       };
 
@@ -105,7 +105,7 @@ describe('PluginHooks', () => {
     handsontable({
       afterInit() {
         test += 5;
-      }
+      },
     });
 
     expect(test).toEqual(10);
@@ -134,7 +134,7 @@ describe('PluginHooks', () => {
     var hot1 = handsontable();
 
     var test = 0;
-    var handler = function() {
+    var handler = function () {
       test += 5;
     };
 
@@ -154,7 +154,7 @@ describe('PluginHooks', () => {
     var hot1 = handsontable();
 
     var test = 0;
-    var handler = function() {
+    var handler = function () {
       test += 5;
     };
 
@@ -169,7 +169,7 @@ describe('PluginHooks', () => {
   it('should run hook with runHooks and return value', () => {
     var hot = handsontable();
 
-    var handler = function() {
+    var handler = function () {
       return 5;
     };
 
@@ -196,38 +196,38 @@ describe('PluginHooks', () => {
   });
 
   it('should execute two "once" hooks in desired order', () => {
-    var hot = handsontable();
-    var str = 'a';
+    let hot = handsontable();
+    let str = 'a';
 
-    hot.addHookOnce('myHook', (str) => `${str}b`);
+    hot.addHookOnce('myHook', text => `${text}b`);
 
-    hot.addHookOnce('myHook', (str) => `${str}c`);
+    hot.addHookOnce('myHook', text => `${text}c`);
 
     expect(hot.runHooks('myHook', str)).toEqual('abc');
   });
 
   it('adding same hook twice should register it only once (without an error)', () => {
     var i = 0;
-    var fn = function() {
-      i++;
+    var fn = function () {
+      i += 1;
     };
 
     var hot = handsontable({
-      afterOnCellMouseOver: fn
+      afterOnCellMouseOver: fn,
     });
 
-    hot.getInstance().updateSettings({afterOnCellMouseOver: fn});
+    hot.getInstance().updateSettings({ afterOnCellMouseOver: fn });
     hot.runHooks('afterOnCellMouseOver');
 
     expect(i).toEqual(1);
   });
 
-  it('should mark the hook callbacks added with Handsontable initialization', function() {
-    var fn = function() {};
-    var fn2 = function() {};
+  it('should mark the hook callbacks added with Handsontable initialization', () => {
+    var fn = function () {};
+    var fn2 = function () {};
 
     var hot = handsontable({
-      afterChange: fn
+      afterChange: fn,
     });
 
     hot.addHook('afterChange', fn2);
@@ -236,14 +236,14 @@ describe('PluginHooks', () => {
     expect(fn2.initialHook).toEqual(void 0);
   });
 
-  it('should mark the hook callbacks added using the updateSettings method', function() {
-    var fn = function() {};
-    var fn2 = function() {};
+  it('should mark the hook callbacks added using the updateSettings method', () => {
+    var fn = function () {};
+    var fn2 = function () {};
 
     var hot = handsontable();
 
     hot.updateSettings({
-      afterChange: fn
+      afterChange: fn,
     });
 
     hot.addHook('afterChange', fn2);
@@ -253,38 +253,38 @@ describe('PluginHooks', () => {
   });
 
   it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method (when there was a hook ' +
-     'already declared in the initialization)', function() {
-    var fn = function() {};
-    var fn2 = function() {};
+     'already declared in the initialization)', () => {
+    var fn = function () {};
+    var fn2 = function () {};
 
     var hot = handsontable({
-      afterGetCellMeta: fn
+      afterGetCellMeta: fn,
     });
 
     var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
 
     hot.updateSettings({
-      afterGetCellMeta: function() {
-        var a = 'another function';
-      }
+      afterGetCellMeta() {
+        return 'another function';
+      },
     });
 
     hot.updateSettings({
-      afterGetCellMeta: function() {
-        var a = 'yet another function';
-      }
+      afterGetCellMeta() {
+        return 'yet another function';
+      },
     });
 
     hot.updateSettings({
-      afterGetCellMeta: fn2
+      afterGetCellMeta: fn2,
     });
 
     expect(hot.pluginHookBucket.afterGetCellMeta.length).toEqual(initialCallbackCount);
   });
 
-  it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method', function() {
-    var fn = function() {};
-    var fn2 = function() {};
+  it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method', () => {
+    var fn = function () {};
+    var fn2 = function () {};
 
     var hot = handsontable();
 
@@ -293,49 +293,45 @@ describe('PluginHooks', () => {
     hot.addHook('afterGetCellMeta', () => 'doesn\'t matter 3');
 
     hot.updateSettings({
-      afterGetCellMeta: fn
+      afterGetCellMeta: fn,
     });
 
     var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
 
     hot.updateSettings({
-      afterGetCellMeta: function() {
-        var a = 'another function';
-      }
+      afterGetCellMeta() {
+        return 'another function';
+      },
     });
 
     hot.updateSettings({
-      afterGetCellMeta: function() {
-        var a = 'yet another function';
-      }
+      afterGetCellMeta() {
+        return 'yet another function';
+      },
     });
 
     hot.updateSettings({
-      afterGetCellMeta: fn2
+      afterGetCellMeta: fn2,
     });
 
     expect(hot.pluginHookBucket.afterGetCellMeta.length).toEqual(initialCallbackCount);
   });
 
-  it('should NOT replace existing hook callbacks, if the\'re added using the addHook method', function() {
-    var fn = function() {};
-    var fn2 = function() {};
+  it('should NOT replace existing hook callbacks, if the\'re added using the addHook method', () => {
+    var fn = function () {};
+    var fn2 = function () {};
 
     var hot = handsontable();
 
     hot.updateSettings({
-      afterGetCellMeta: fn
+      afterGetCellMeta: fn,
     });
 
     var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
 
-    hot.addHook('afterGetCellMeta', function() {
-      var a = 'another function';
-    });
+    hot.addHook('afterGetCellMeta', () => { 'another function'; });
 
-    hot.addHook('afterGetCellMeta', function() {
-      var a = 'yet another function';
-    });
+    hot.addHook('afterGetCellMeta', () => { 'yet another function'; });
 
     hot.addHook('afterGetCellMeta', fn2);
 

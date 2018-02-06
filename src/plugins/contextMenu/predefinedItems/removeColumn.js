@@ -1,4 +1,4 @@
-import {getValidSelection} from './../utils';
+import { getValidSelection } from './../utils';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'remove_col';
@@ -35,6 +35,6 @@ export default function removeColumnItem() {
     },
     hidden() {
       return !this.getSettings().allowRemoveColumn;
-    }
+    },
   };
 }

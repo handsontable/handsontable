@@ -1,34 +1,34 @@
 describe('settings', () => {
   describe('columns', () => {
     var id = 'testContainer';
-    var arrayOfArrays = function() {
+    var arrayOfArrays = function () {
       return [
         ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
         ['2008', 10, 11, 12, 13],
         ['2009', 20, 11, 14, 13],
-        ['2010', 30, 15, 12, 13]
+        ['2010', 30, 15, 12, 13],
       ];
     };
-    var arrayOfObjects = function() {
+    var arrayOfObjects = function () {
       return [
-        {id: 1, name: 'Ted', lastName: 'Right', date: '01/01/2015'},
-        {id: 2, name: 'Frank', lastName: 'Honest', date: '01/01/15'},
-        {id: 3, name: 'Joan', lastName: 'Well', date: '41/01/2015'},
-        {id: 4, name: 'Sid', lastName: 'Strong', date: '01/51/2015'},
-        {id: 5, name: 'Jane', lastName: 'Neat', date: '01/01/2015'},
-        {id: 6, name: 'Chuck', lastName: 'Jackson', date: '01/01/15'},
-        {id: 7, name: 'Meg', lastName: 'Jansen', date: '41/01/2015'},
-        {id: 8, name: 'Rob', lastName: 'Norris', date: '01/51/2015'},
-        {id: 9, name: 'Sean', lastName: 'O\'Hara', date: '01/01/2015'},
-        {id: 10, name: 'Eve', lastName: 'Branson', date: '01/01/15'}
+        { id: 1, name: 'Ted', lastName: 'Right', date: '01/01/2015' },
+        { id: 2, name: 'Frank', lastName: 'Honest', date: '01/01/15' },
+        { id: 3, name: 'Joan', lastName: 'Well', date: '41/01/2015' },
+        { id: 4, name: 'Sid', lastName: 'Strong', date: '01/51/2015' },
+        { id: 5, name: 'Jane', lastName: 'Neat', date: '01/01/2015' },
+        { id: 6, name: 'Chuck', lastName: 'Jackson', date: '01/01/15' },
+        { id: 7, name: 'Meg', lastName: 'Jansen', date: '41/01/2015' },
+        { id: 8, name: 'Rob', lastName: 'Norris', date: '01/51/2015' },
+        { id: 9, name: 'Sean', lastName: 'O\'Hara', date: '01/01/2015' },
+        { id: 10, name: 'Eve', lastName: 'Branson', date: '01/01/15' },
       ];
     };
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (this.$container) {
         destroy();
         this.$container.remove();
@@ -40,14 +40,14 @@ describe('settings', () => {
         var hot = handsontable({
           data: arrayOfArrays(),
           columns: [
-            {data: 0},
-            {data: 1},
-            {data: 2}
-          ]
+            { data: 0 },
+            { data: 1 },
+            { data: 2 },
+          ],
         });
 
         expect(() => {
-          hot.updateSettings({columns: []});
+          hot.updateSettings({ columns: [] });
         }).not.toThrow();
       });
 
@@ -55,14 +55,14 @@ describe('settings', () => {
         var hot = handsontable({
           data: arrayOfObjects(),
           columns: [
-            {data: 'id'},
-            {data: 'name'},
-            {data: 'lastName'}
+            { data: 'id' },
+            { data: 'name' },
+            { data: 'lastName' },
           ],
         });
 
         expect(() => {
-          hot.updateSettings({columns: []});
+          hot.updateSettings({ columns: [] });
         }).not.toThrow();
       });
     });
@@ -74,7 +74,7 @@ describe('settings', () => {
             data: arrayOfArrays(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
-            }
+            },
           });
 
           expect(hot.getData()[0].length).toEqual(2);
@@ -85,7 +85,7 @@ describe('settings', () => {
             data: arrayOfArrays(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
-            }
+            },
           });
 
           expect(hot.getDataAtCell(0, 0)).toEqual('');
@@ -97,7 +97,7 @@ describe('settings', () => {
             data: arrayOfObjects(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
-            }
+            },
           });
 
           expect(hot.getDataAtCell(0, 0)).toEqual(null);
@@ -108,8 +108,8 @@ describe('settings', () => {
           var hot = handsontable({
             data: arrayOfArrays(),
             columns(column) {
-              return [1, 2].indexOf(column) > -1 ? {data: column + 1} : null;
-            }
+              return [1, 2].indexOf(column) > -1 ? { data: column + 1 } : null;
+            },
           });
 
           expect(hot.getDataAtCell(0, 0)).toEqual('Nissan');
@@ -122,8 +122,8 @@ describe('settings', () => {
             columns(column) {
               var keys = ['id', 'name', 'lastName'];
 
-              return [1, 2].indexOf(column) > -1 ? {data: keys[column - 1]} : null;
-            }
+              return [1, 2].indexOf(column) > -1 ? { data: keys[column - 1] } : null;
+            },
           });
 
           expect(hot.getDataAtCell(0, 0)).toEqual(1);
@@ -136,12 +136,12 @@ describe('settings', () => {
           var hot = handsontable({
             data: arrayOfArrays(),
             columns(column) {
-              return [0, 1, 2].indexOf(column) > -1 ? {data: column} : null;
-            }
+              return [0, 1, 2].indexOf(column) > -1 ? { data: column } : null;
+            },
           });
 
           expect(() => {
-            hot.updateSettings({columns() {}});
+            hot.updateSettings({ columns() {} });
           }).not.toThrow();
         });
 
@@ -151,12 +151,12 @@ describe('settings', () => {
             columns(column) {
               var keys = ['id', 'name', 'lasName'];
 
-              return [0, 1, 2].indexOf(column) > -1 ? {data: keys[column]} : null;
-            }
+              return [0, 1, 2].indexOf(column) > -1 ? { data: keys[column] } : null;
+            },
           });
 
           expect(() => {
-            hot.updateSettings({columns() {}});
+            hot.updateSettings({ columns() {} });
           }).not.toThrow();
         });
       });
@@ -168,11 +168,11 @@ describe('settings', () => {
               ['Joe'],
               ['Timothy'],
               ['Margaret'],
-              ['Jerry']
+              ['Jerry'],
             ],
             columns(column) {
               return column === 0 ? { editor: Handsontable.editors.PasswordEditor } : null;
-            }
+            },
           });
 
           selectCell(0, 0);
@@ -191,7 +191,7 @@ describe('settings', () => {
             data: [[true], [false], [true]],
             columns(column) {
               return column === 0 ? { type: 'checkbox' } : null;
-            }
+            },
           });
 
           expect($(getRenderedValue(0, 0)).is(':checkbox')).toBe(true);
@@ -208,13 +208,13 @@ describe('settings', () => {
             data: arrayOfObjects(),
             columns(column) {
               var settings = [
-                {data: 'date', type: 'date'},
-                {data: 'name'},
-                {data: 'lastName'}
+                { data: 'date', type: 'date' },
+                { data: 'name' },
+                { data: 'lastName' },
               ];
               return [0, 1, 2].indexOf(column) > -1 ? settings[column] : null;
             },
-            afterValidate: onAfterValidate
+            afterValidate: onAfterValidate,
           });
 
           setDataAtCell(0, 0, '');

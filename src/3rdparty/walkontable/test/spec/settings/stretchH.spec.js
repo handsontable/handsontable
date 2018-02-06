@@ -5,7 +5,7 @@ describe('stretchH option', () => {
     debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden', position: 'relative'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden', position: 'relative' });
     $wrapper.width(500).height(201);
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document
@@ -33,9 +33,9 @@ describe('stretchH option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       stretchH: 'all',
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -55,9 +55,9 @@ describe('stretchH option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       stretchH: 'all',
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -78,10 +78,10 @@ describe('stretchH option', () => {
     }, 10);
   });
 
-  it('should stretch all visible columns when stretchH equals \'all\' (when rows are of variable height)', function() {
+  it('should stretch all visible columns when stretchH equals \'all\' (when rows are of variable height)', function () {
     createDataArray(20, 2);
 
-    for (var i = 0, ilen = this.data.length; i < ilen; i++) {
+    for (var i = 0, ilen = this.data.length; i < ilen; i += 1) {
       if (i % 2) {
         this.data[i][0] += ' this is a cell that contains a lot of text, which will make it multi-line';
       }
@@ -89,7 +89,7 @@ describe('stretchH option', () => {
 
     $wrapper.width(300);
     $wrapper.css({
-      overflow: 'hidden'
+      overflow: 'hidden',
     });
 
     var wt = new Walkontable.Core({
@@ -97,7 +97,7 @@ describe('stretchH option', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      stretchH: 'all'
+      stretchH: 'all',
     });
     wt.draw();
 
@@ -120,9 +120,9 @@ describe('stretchH option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       stretchH: 'last',
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -143,12 +143,12 @@ describe('stretchH option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       stretchH: 'last',
-      columnHeaders: [function(index, TH) {
+      columnHeaders: [function (index, TH) {
         TH.innerHTML = index + 1;
       }],
       columnWidth(index) {
         return index === 19 ? 100 : 50;
-      }
+      },
     });
     wt.draw();
     wt.scrollHorizontal(19);
@@ -170,9 +170,9 @@ describe('stretchH option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       stretchH: 'last',
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 
@@ -191,13 +191,12 @@ describe('stretchH option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       stretchH: 'none',
-      rowHeaders: [function(row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
-      }]
+      }],
     });
     wt.draw();
 
-    var wtHider = $table.parents('.wtHider');
     expect($table.width()).toBeLessThan($wrapper.width());
     expect($table.find('col:eq(1)').width()).toBe($table.find('col:eq(2)').width());
   });

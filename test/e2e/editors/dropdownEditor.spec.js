@@ -3,17 +3,11 @@ describe('DropdownEditor', () => {
 
   var choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
 
-  var hot;
-
-  beforeEach(function() {
+  beforeEach(function () {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
-    if (hot) {
-      hot = null;
-    }
-
+  afterEach(function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -26,14 +20,14 @@ describe('DropdownEditor', () => {
       var spy = jasmine.createSpyObj('error', ['test']);
       var prevError = window.onerror;
 
-      window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+      window.onerror = function () {
         spy.test();
       };
       handsontable({
         columns: [{
           editor: 'dropdown',
-          source: choices
-        }]
+          source: choices,
+        }],
       });
 
       selectCell(0, 0);
@@ -49,19 +43,19 @@ describe('DropdownEditor', () => {
 
   describe('closing the editor', () => {
     it('should not close editor on scrolling', (done) => {
-      hot = handsontable({
+      const hot = handsontable({
         data: [
           ['', 'two', 'three'],
-          ['four', 'five', 'six']
+          ['four', 'five', 'six'],
         ],
         columns: [
           {
             type: 'dropdown',
-            source: choices
+            source: choices,
           },
           {},
-          {}
-        ]
+          {},
+        ],
       });
 
       selectCell(0, 0);
@@ -91,19 +85,19 @@ describe('DropdownEditor', () => {
   });
 
   it('should mark all invalid values as invalid, after pasting them into dropdown-type cells', (done) => {
-    hot = handsontable({
+    handsontable({
       data: [
         ['', 'two', 'three'],
-        ['four', 'five', 'six']
+        ['four', 'five', 'six'],
       ],
       columns: [
         {
           type: 'dropdown',
-          source: choices
+          source: choices,
         },
         {},
-        {}
-      ]
+        {},
+      ],
     });
 
     populateFromArray(0, 0, [['invalid'], ['input']], null, null, 'paste');
@@ -124,7 +118,7 @@ describe('DropdownEditor', () => {
     const hot = handsontable({
       data: [
         ['one', 'two'],
-        ['three', 'four']
+        ['three', 'four'],
       ],
       columns: [
         {

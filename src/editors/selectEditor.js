@@ -10,9 +10,10 @@ import {
   outerWidth,
   resetCssTransform,
 } from './../helpers/dom/element';
-import {stopImmediatePropagation} from './../helpers/dom/event';
-import {KEY_CODES} from './../helpers/unicode';
-import BaseEditor, {EditorState} from './_baseEditor';
+import { stopImmediatePropagation } from './../helpers/dom/event';
+import { objectEach } from './../helpers/object';
+import { KEY_CODES } from './../helpers/unicode';
+import BaseEditor, { EditorState } from './_baseEditor';
 
 const SelectEditor = BaseEditor.prototype.extend();
 
@@ -21,7 +22,7 @@ const SelectEditor = BaseEditor.prototype.extend();
  * @editor SelectEditor
  * @class SelectEditor
  */
-SelectEditor.prototype.init = function() {
+SelectEditor.prototype.init = function () {
   this.select = document.createElement('SELECT');
   addClass(this.select, 'htSelectEditor');
   this.select.style.display = 'none';
@@ -29,45 +30,42 @@ SelectEditor.prototype.init = function() {
   this.registerHooks();
 };
 
-SelectEditor.prototype.registerHooks = function() {
+SelectEditor.prototype.registerHooks = function () {
   this.instance.addHook('afterScrollHorizontally', () => this.refreshDimensions());
   this.instance.addHook('afterScrollVertically', () => this.refreshDimensions());
   this.instance.addHook('afterColumnResize', () => this.refreshDimensions());
   this.instance.addHook('afterRowResize', () => this.refreshDimensions());
 };
 
-SelectEditor.prototype.prepare = function() {
-  BaseEditor.prototype.prepare.apply(this, arguments);
+SelectEditor.prototype.prepare = function (...args) {
+  BaseEditor.prototype.prepare.apply(this, args);
 
-  var selectOptions = this.cellProperties.selectOptions;
+  let { selectOptions } = this.cellProperties;
   var options;
 
-  if (typeof selectOptions == 'function') {
+  if (typeof selectOptions === 'function') {
     options = this.prepareOptions(selectOptions(this.row, this.col, this.prop));
   } else {
     options = this.prepareOptions(selectOptions);
   }
 
   empty(this.select);
-
-  for (var option in options) {
-    if (Object.prototype.hasOwnProperty.call(options, option)) {
-      var optionElement = document.createElement('OPTION');
-      optionElement.value = option;
-      fastInnerHTML(optionElement, options[option]);
-      this.select.appendChild(optionElement);
-    }
-  }
+  objectEach(options, (value, key) => {
+    var optionElement = document.createElement('OPTION');
+    optionElement.value = key;
+    fastInnerHTML(optionElement, value);
+    this.select.appendChild(optionElement);
+  });
 };
 
-SelectEditor.prototype.prepareOptions = function(optionsToPrepare) {
+SelectEditor.prototype.prepareOptions = function (optionsToPrepare) {
   var preparedOptions = {};
 
   if (Array.isArray(optionsToPrepare)) {
-    for (var i = 0, len = optionsToPrepare.length; i < len; i++) {
+    for (var i = 0, len = optionsToPrepare.length; i < len; i += 1) {
       preparedOptions[optionsToPrepare[i]] = optionsToPrepare[i];
     }
-  } else if (typeof optionsToPrepare == 'object') {
+  } else if (typeof optionsToPrepare === 'object') {
     preparedOptions = optionsToPrepare;
   }
 
@@ -75,15 +73,15 @@ SelectEditor.prototype.prepareOptions = function(optionsToPrepare) {
 
 };
 
-SelectEditor.prototype.getValue = function() {
+SelectEditor.prototype.getValue = function () {
   return this.select.value;
 };
 
-SelectEditor.prototype.setValue = function(value) {
+SelectEditor.prototype.setValue = function (value) {
   this.select.value = value;
 };
 
-var onBeforeKeyDown = function(event) {
+var onBeforeKeyDown = function (event) {
   var instance = this;
   var editor = instance.getActiveEditor();
 
@@ -112,24 +110,24 @@ var onBeforeKeyDown = function(event) {
   }
 };
 
-SelectEditor.prototype.open = function() {
+SelectEditor.prototype.open = function () {
   this._opened = true;
   this.refreshDimensions();
   this.select.style.display = '';
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-SelectEditor.prototype.close = function() {
+SelectEditor.prototype.close = function () {
   this._opened = false;
   this.select.style.display = 'none';
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-SelectEditor.prototype.focus = function() {
+SelectEditor.prototype.focus = function () {
   this.select.focus();
 };
 
-SelectEditor.prototype.refreshValue = function() {
+SelectEditor.prototype.refreshValue = function () {
   let sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
   this.originalValue = sourceData;
 
@@ -137,7 +135,7 @@ SelectEditor.prototype.refreshValue = function() {
   this.refreshDimensions();
 };
 
-SelectEditor.prototype.refreshDimensions = function() {
+SelectEditor.prototype.refreshDimensions = function () {
   if (this.state !== EditorState.EDITING) {
     return;
   }
@@ -159,10 +157,6 @@ SelectEditor.prototype.refreshDimensions = function() {
     editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
     editorSection = this.checkEditorSection(),
     cssTransformOffset;
-
-  const settings = this.instance.getSettings();
-  let rowHeadersCount = settings.rowHeaders ? 1 : 0;
-  let colHeadersCount = settings.colHeaders ? 1 : 0;
 
   switch (editorSection) {
     case 'top':
@@ -193,8 +187,8 @@ SelectEditor.prototype.refreshDimensions = function() {
 
   var selectStyle = this.select.style;
 
-  if (cssTransformOffset && cssTransformOffset != -1) {
-    selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
+  if (cssTransformOffset && cssTransformOffset !== -1) {
+    [, selectStyle[cssTransformOffset[0]]] = cssTransformOffset;
   } else {
     resetCssTransform(this.select);
   }
@@ -214,7 +208,7 @@ SelectEditor.prototype.refreshDimensions = function() {
   selectStyle.margin = '0px';
 };
 
-SelectEditor.prototype.getEditedCell = function() {
+SelectEditor.prototype.getEditedCell = function () {
   var editorSection = this.checkEditorSection(),
     editedCell;
 
@@ -222,21 +216,21 @@ SelectEditor.prototype.getEditedCell = function() {
     case 'top':
       editedCell = this.instance.view.wt.wtOverlays.topOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.select.style.zIndex = 101;
       break;
     case 'corner':
       editedCell = this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.select.style.zIndex = 103;
       break;
     case 'left':
       editedCell = this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
         row: this.row,
-        col: this.col
+        col: this.col,
       });
       this.select.style.zIndex = 102;
       break;
@@ -246,7 +240,7 @@ SelectEditor.prototype.getEditedCell = function() {
       break;
   }
 
-  return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
+  return editedCell !== -1 && editedCell !== -2 ? editedCell : void 0;
 };
 
 export default SelectEditor;

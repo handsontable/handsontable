@@ -1,9 +1,9 @@
-import {CellCoords} from './3rdparty/walkontable/src';
-import {KEY_CODES, isMetaKey, isCtrlKey} from './helpers/unicode';
-import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './helpers/dom/event';
-import {getEditorInstance} from './editors';
+import { CellCoords } from './3rdparty/walkontable/src';
+import { KEY_CODES, isMetaKey, isCtrlKey } from './helpers/unicode';
+import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
+import { getEditorInstance } from './editors';
 import EventManager from './eventManager';
-import {EditorState} from './editors/_baseEditor';
+import { EditorState } from './editors/_baseEditor';
 
 function EditorManager(instance, priv, selection) {
   var _this = this,
@@ -291,7 +291,7 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    * @param {Boolean} revertOriginal
    */
-  this.destroyEditor = function(revertOriginal) {
+  this.destroyEditor = function (revertOriginal) {
     this.closeEditor(revertOriginal);
   };
 
@@ -302,7 +302,7 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    * @returns {*}
    */
-  this.getActiveEditor = function() {
+  this.getActiveEditor = function () {
     return activeEditor;
   };
 
@@ -312,7 +312,7 @@ function EditorManager(instance, priv, selection) {
    * @function prepareEditor
    * @memberof! Handsontable.EditorManager#
    */
-  this.prepareEditor = function() {
+  this.prepareEditor = function () {
     var row,
       col,
       prop,
@@ -330,8 +330,7 @@ function EditorManager(instance, priv, selection) {
 
       return;
     }
-    row = priv.selRange.highlight.row;
-    col = priv.selRange.highlight.col;
+    ({ row, col } = priv.selRange.highlight);
     prop = instance.colToProp(col);
     td = instance.getCell(row, col);
 
@@ -355,7 +354,7 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    * @returns {Boolean}
    */
-  this.isEditorOpened = function() {
+  this.isEditorOpened = function () {
     return activeEditor && activeEditor.isOpened();
   };
 
@@ -367,7 +366,7 @@ function EditorManager(instance, priv, selection) {
    * @param {null|String} newInitialValue new value from which editor will start if handled property it's not the `null`.
    * @param {DOMEvent} event
    */
-  this.openEditor = function(newInitialValue, event) {
+  this.openEditor = function (newInitialValue, event) {
     if (activeEditor && !activeEditor.cellProperties.readOnly) {
       activeEditor.beginEditing(newInitialValue, event);
     } else if (activeEditor && activeEditor.cellProperties.readOnly) {
@@ -388,7 +387,7 @@ function EditorManager(instance, priv, selection) {
    * @param {Boolean} [ctrlDown]
    * @param {Function} [callback]
    */
-  this.closeEditor = function(restoreOriginalValue, ctrlDown, callback) {
+  this.closeEditor = function (restoreOriginalValue, ctrlDown, callback) {
     if (activeEditor) {
       activeEditor.finishEditing(restoreOriginalValue, ctrlDown, callback);
 
@@ -404,7 +403,7 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    * @param {Boolean} ctrlDown
    */
-  this.closeEditorAndSaveChanges = function(ctrlDown) {
+  this.closeEditorAndSaveChanges = function (ctrlDown) {
     return this.closeEditor(false, ctrlDown);
   };
 
@@ -415,7 +414,7 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    * @param {Boolean} ctrlDown
    */
-  this.closeEditorAndRestoreOriginalValue = function(ctrlDown) {
+  this.closeEditorAndRestoreOriginalValue = function (ctrlDown) {
     return this.closeEditor(true, ctrlDown);
   };
 

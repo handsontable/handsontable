@@ -5,7 +5,7 @@ import {
   getScrollTop,
   offset,
 } from './../../../helpers/dom/element';
-import {rangeEach, rangeEachReverse} from './../../../helpers/number';
+import { rangeEach, rangeEachReverse } from './../../../helpers/number';
 
 /**
  * @class Scroll
@@ -101,6 +101,8 @@ class Scroll {
 
             return false;
           }
+
+          return true;
         });
       }
     }
@@ -141,6 +143,8 @@ class Scroll {
 
             return false;
           }
+
+          return true;
         });
       }
     }
@@ -159,7 +163,6 @@ class Scroll {
       wtTable,
       wtViewport,
       totalColumns,
-      fixedColumnsLeft,
     } = this._getVariables();
 
     let firstVisibleColumn = wtTable.getFirstVisibleColumn();
@@ -183,6 +186,8 @@ class Scroll {
 
             return false;
           }
+
+          return true;
         });
       }
     }
@@ -223,6 +228,8 @@ class Scroll {
 
             return false;
           }
+
+          return true;
         });
       }
     }
@@ -237,11 +244,9 @@ class Scroll {
    * @private
    */
   _getVariables() {
-    const wot = this.wot;
-    const topOverlay = wot.wtOverlays.topOverlay;
-    const leftOverlay = wot.wtOverlays.leftOverlay;
-    const wtTable = wot.wtTable;
-    const wtViewport = wot.wtViewport;
+    const { wot } = this;
+    const { topOverlay, leftOverlay } = wot.wtOverlays;
+    const { wtTable, wtViewport } = wot;
     const totalRows = wot.getSetting('totalRows');
     const totalColumns = wot.getSetting('totalColumns');
     const fixedRowsTop = wot.getSetting('fixedRowsTop');
@@ -257,7 +262,7 @@ class Scroll {
       totalColumns,
       fixedRowsTop,
       fixedRowsBottom,
-      fixedColumnsLeft
+      fixedColumnsLeft,
     };
   }
 }
