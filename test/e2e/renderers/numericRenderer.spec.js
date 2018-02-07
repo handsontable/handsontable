@@ -53,7 +53,7 @@ describe('NumericRenderer', () => {
     }, 200);
   });
 
-  it('should try to render string as numeral', (done) => {
+  it('should not try to render string as numeral', (done) => {
     handsontable({
       cells() {
         return {
@@ -66,7 +66,7 @@ describe('NumericRenderer', () => {
     setDataAtCell(2, 2, '123 simple test');
 
     setTimeout(() => {
-      expect(getCell(2, 2).innerHTML).toEqual('$123.00');
+      expect(getCell(2, 2).innerHTML).toEqual('123 simple test');
       done();
     }, 100);
   });

@@ -1,4 +1,3 @@
-import numbro from 'numbro';
 import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
 import {columnFactory} from './helpers/setting';
 import {isFunction} from './helpers/function';
@@ -33,7 +32,6 @@ let activeGuid = null;
  * Handsontable constructor
  *
  * @core
- * @dependencies numbro
  * @constructor Core
  * @description
  *
@@ -74,7 +72,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
   extend(GridSettings.prototype, expandType(userSettings));
 
-  applyLanguageSetting(userSettings.language, GridSettings.prototype);
+  applyLanguageSetting(GridSettings.prototype, userSettings.language);
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -797,7 +795,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (priv.selRange.highlight.col + delta.col > totalCols - 1) {
         if (force && priv.settings.minSpareCols > 0) {
-          instance.alter('insert_col', totalCols);
+          instance.alter('insert_col', totalCols, 1, 'auto');
           totalCols = instance.countCols();
 
         } else if (priv.settings.autoWrapRow) {
@@ -962,7 +960,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (hasLanguageDictionary(normalizedLanguageCode)) {
       instance.runHooks('beforeLanguageChange', normalizedLanguageCode);
 
-      priv.settings.language = normalizedLanguageCode;
+      GridSettings.prototype.language = normalizedLanguageCode;
 
       instance.runHooks('afterLanguageChange', normalizedLanguageCode);
 
@@ -1021,45 +1019,40 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     };
   }
 
+  /**
+   * Get parsed number from numeric string.
+   *
+   * @param {String} numericData Float (separated by a dot or a comma) or integer.
+   * @returns {Number} Number if we get data in parsable format, not changed value otherwise.
+   */
+  function getParsedNumber(numericData) {
+    // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
+    // for example from `450,65` to `450.65`.
+    const unifiedNumericData = numericData.replace(',', '.');
+
+    if (isNaN(parseFloat(unifiedNumericData)) === false) {
+      return parseFloat(unifiedNumericData);
+    }
+
+    return numericData;
+  }
+
   function validateChanges(changes, source, callback) {
-    var waitingForValidator = new ValidatorsQueue();
+    const waitingForValidator = new ValidatorsQueue();
+    const isNumericData = (value) => value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
+
     waitingForValidator.onQueueEmpty = resolve;
 
-    for (var i = changes.length - 1; i >= 0; i--) {
+    for (let i = changes.length - 1; i >= 0; i--) {
       if (changes[i] === null) {
         changes.splice(i, 1);
       } else {
-        var row = changes[i][0];
-        var col = datamap.propToCol(changes[i][1]);
+        const [row, prop, , newValue] = changes[i];
+        const col = datamap.propToCol(prop);
+        const cellProperties = instance.getCellMeta(row, col);
 
-        var cellProperties = instance.getCellMeta(row, col);
-        const numericFormat = cellProperties.numericFormat;
-        const cellCulture = numericFormat && numericFormat.culture;
-        const cellFormatPattern = numericFormat && numericFormat.pattern;
-
-        if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3]) || cellFormatPattern)) {
-            var len = changes[i][3].length;
-
-            if (isUndefined(cellCulture)) {
-              numbro.culture('en-US');
-
-            } else if (changes[i][3].indexOf('.') === len - 3 && changes[i][3].indexOf(',') === -1) {
-              // this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
-              numbro.culture('en-US');
-            } else {
-
-              numbro.culture(cellCulture);
-            }
-
-            // try to parse to float - https://github.com/foretagsplatsen/numbro/pull/183
-            if (numbro.validate(changes[i][3]) && !isNaN(changes[i][3])) {
-              changes[i][3] = parseFloat(changes[i][3]);
-
-            } else {
-              changes[i][3] = numbro().unformat(changes[i][3]) || changes[i][3];
-            }
-          }
+        if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericData(newValue)) {
+          changes[i][3] = getParsedNumber(newValue);
         }
 
         /* eslint-disable no-loop-func */
@@ -2424,7 +2417,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const prop = datamap.colToProp(col);
     let cellProperties;
 
-    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
+    let [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
+
+    // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
+    if (physicalRow === null) {
+      physicalRow = row;
+    }
 
     if (!priv.columnSettings[physicalColumn]) {
       priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
