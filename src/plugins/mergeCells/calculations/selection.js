@@ -16,7 +16,6 @@ class SelectionCalculations {
 
     if (delta.row) {
       this.jumpOverCollection(delta, collection, newRow);
-
     } else if (delta.col) {
       this.jumpOverCollection(delta, collection, newColumn);
     }
@@ -40,6 +39,7 @@ class SelectionCalculations {
       includesIndex = collection.includesVertically(newIndex);
       firstIndex = collection.row;
       lastIndex = collection.getLastRow();
+
     } else if (delta.col) {
       includesIndex = collection.includesHorizontally(newIndex);
       firstIndex = collection.col;

@@ -1114,6 +1114,77 @@ declare namespace Handsontable {
       interface GuidelineUI extends BaseUI { }
     }
 
+    interface MergeCells extends Base {
+      collectionContainer: MergeCellsPlugin.CollectionContainer;
+      autofillCalculations: MergeCellsPlugin.AutofillCalculations;
+      selectionCalculations: MergeCellsPlugin.SelectionCalculations;
+      dom: MergeCellsPlugin.DOMManipulation;
+
+      clearCollections(): void;
+      mergeSelection(cellRange: wot.CellRange): void;
+      merge(startRow: number, startColumn: number, endRow: number, endColumn: number): void;
+      unmerge(startRow: number, startColumn: number, endRow: number, endColumn: number): void;
+    }
+
+    namespace MergeCellsPlugin {
+      interface AutofillCalculations {
+        plugin: MergeCells;
+        collectionContainer: MergeCellsPlugin.CollectionContainer;
+        currentFillData: object;
+
+        correctSelectionAreaSize(selectionArea: number[]): void;
+        getDirection(selectionArea: number[], finalArea: number[]): string;
+        snapDragArea(baseArea: number[], dragArea: number[], dragDirection: string, foundCollections: MergeCellsPlugin.Collection[]): number[];
+        recreateAfterDataPopulation(changes: any[]): void;
+        dragAreaOverlapsCollections(baseArea: number[], fullArea: number[], direction: string);
+      }
+
+      interface SelectionCalculations {
+        snapDelta(delta: object, selectionRange: wot.CellRange, collection: MergeCellsPlugin.Collection): void;
+        getUpdatedSelectionRange(oldSelectionRange: wot.CellRange, delta: object): wot.CellRange;
+      }
+
+      interface Collection {
+        row: number;
+        col: number;
+        rowspan: number;
+        colspan: number;
+        removed: boolean;
+
+        normalize(hotInstance: _Handsontable.Core): void;
+        includes(row: number, column: number): boolean;
+        includesHorizontally(column: number): boolean;
+        includesVertically(row: number): boolean;
+        shift(shiftVector: number[], indexOfChange: number): boolean;
+        isFarther(collection: MergeCellsPlugin.Collection, direction: string): boolean | void;
+        getLastRow(): number;
+        getLastColumn(): number;
+        getRange(): wot.CellRange;
+      }
+
+      interface CollectionContainer {
+        plugin: MergeCells;
+        collections: MergeCellsPlugin.Collection[];
+        hot: _Handsontable.Core;
+
+        get(row: number, column: number): MergeCellsPlugin.Collection | boolean;
+        getByRange(range: wot.CellRange | object): MergeCellsPlugin.Collection | boolean;
+        getWithinRange(range: wot.CellRange | object, countPartials: boolean): MergeCellsPlugin.Collection[] | boolean;
+        add(collectionInfo: object): MergeCellsPlugin.Collection | boolean;
+        remove(row: number, column: number): MergeCellsPlugin.Collection | boolean;
+        clear(): void;
+        checkIfOverlaps(collection: MergeCellsPlugin.Collection): boolean;
+        isMergedParent(row: number, column: number): boolean;
+        shiftCollections(direction: string, index: number, count: number): void;
+      }
+
+      interface DOMManipulation {
+        plugin: _Handsontable.Core;
+
+        applySpanProperties(TD: HTMLElement, collectionInfo: MergeCellsPlugin.Collection, row: number, col: number)
+      }
+    }
+
     interface ManualColumnMove extends Base {
       backlight: moveUI.BacklightUI;
       columnsMapper: MoveColumnsMapper;
@@ -1821,6 +1892,7 @@ declare namespace Handsontable {
     ManualColumnResize: plugins.ManualColumnResize,
     ManualRowMove: plugins.ManualRowMove,
     ManualRowResize: plugins.ManualRowResize;
+    MergeCells: plugins.MergeCells;
     MultipleSelectionHandles: plugins.MultipleSelectionHandles,
     NestedHeaders: plugins.NestedHeaders,
     NestedRows: plugins.NestedRows,

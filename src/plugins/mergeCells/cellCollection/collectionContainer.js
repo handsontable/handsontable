@@ -80,7 +80,7 @@ class CollectionContainer {
    *
    * @param {CellRange|Object} range The range to search collections in.
    * @param [countPartials=false] If set to `true`, all the collections overlapping the range will be taken into calculation.
-   * @return {Array|Boolean}
+   * @return {Array|Boolean} Array of found collections of `false` if none were found.
    */
   getWithinRange(range, countPartials = false) {
     const collections = this.collections;
@@ -114,7 +114,7 @@ class CollectionContainer {
    * Add a merged collection to the container.
    *
    * @param {Object} collectionInfo The collection information object. Has to contain `row`, `col`, `colspan` and `rowspan` properties.
-   * @return {*} Returns the new collection of success and `false` on failure.
+   * @return {Collection|Boolean} Returns the new collection of success and `false` on failure.
    */
   add(collectionInfo) {
     const collections = this.collections;
@@ -125,7 +125,6 @@ class CollectionContainer {
     const newCollection = new Collection(row, column, rowspan, colspan);
 
     if (!this.get(row, column) && !this.checkIfOverlaps(newCollection)) {
-
       if (this.hot) {
         newCollection.normalize(this.hot);
       }
@@ -133,7 +132,6 @@ class CollectionContainer {
       collections.push(newCollection);
 
       return newCollection;
-
     }
 
     console.warn(`The declared merged cell collection at [${newCollection.row}, ${newCollection.col}] overlaps with the other declared collections. 
@@ -202,6 +200,7 @@ class CollectionContainer {
    * Check if the provided collection overlaps with the others in the container.
    *
    * @param {Collection} collection The collection to check against all others in the container.
+   * @return {Boolean} `true` if the provided collection overlaps with the others, `false` otherwise.
    */
   checkIfOverlaps(collection) {
     const collectionRange = new CellRange(null, new CellCoords(collection.row, collection.col),
@@ -225,7 +224,7 @@ class CollectionContainer {
    *
    * @param {Number} row Row index.
    * @param {Number} column Column index.
-   * @returns {Boolean}
+   * @return {Boolean}
    */
   isMergedParent(row, column) {
     const collections = this.collections;
@@ -244,7 +243,6 @@ class CollectionContainer {
   /**
    * Shift the collection in the direction and by an offset defined in the arguments.
    *
-   * @private
    * @param {String} direction `right`, `left`, `up` or `down`.
    * @param {Number} index Index where the change, which caused the shifting took place.
    * @param {Number} count Number of rows/columns added/removed in the preceding action.
@@ -255,22 +253,21 @@ class CollectionContainer {
     switch (direction) {
       case 'right':
         shiftVector[0] += count;
-
         break;
+
       case 'left':
         shiftVector[0] -= count;
-
         break;
+
       case 'down':
         shiftVector[1] += count;
-
         break;
+
       case 'up':
         shiftVector[1] -= count;
+        break;
 
-        break;
       default:
-        break;
     }
 
     arrayEach(this.collections, (currentMerge) => {

@@ -23,7 +23,6 @@ const privatePool = new WeakMap();
 /**
  * @plugin MergeCells
  * @class MergeCells
- * @dependencies ContextMenu
  *
  * @description Plugin, which allows merging cells in the table (using the initial configuration, API or context menu).
  *
@@ -55,7 +54,6 @@ class MergeCells extends BasePlugin {
      * @type {CollectionContainer}
      */
     this.collectionContainer = null;
-
     /**
      * Instance of the class responsible for all the autofill-related calculations.
      *
@@ -63,7 +61,6 @@ class MergeCells extends BasePlugin {
      * @type {AutofillCalculations}
      */
     this.autofillCalculations = null;
-
     /**
      * Instance of the class responsible for the selection-related calculations.
      *
@@ -71,7 +68,6 @@ class MergeCells extends BasePlugin {
      * @type {SelectionCalculations}
      */
     this.selectionCalculations = null;
-
     /**
      * Instance of the class responsible for all the DOM manipulations.
      *
@@ -87,7 +83,7 @@ class MergeCells extends BasePlugin {
    * @returns {Boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().mergeCells;
+    return !!this.hot.getSettings().mergeCells;
   }
 
   /**
@@ -131,6 +127,7 @@ class MergeCells extends BasePlugin {
    */
   disablePlugin() {
     this.clearCollections();
+    this.hot.render();
     super.disablePlugin();
   }
 
@@ -140,10 +137,15 @@ class MergeCells extends BasePlugin {
   updatePlugin() {
     const settings = this.hot.getSettings().mergeCells;
 
-    if (settings.constructor === Array) {
-      this.clearCollections();
-      this.generateFromSettings(settings);
-    }
+    // if (settings.constructor === Array) {
+    this.clearCollections();
+    this.disablePlugin();
+    this.enablePlugin();
+
+    this.generateFromSettings(settings);
+    // }
+
+    super.updatePlugin();
   }
 
   /**
@@ -362,7 +364,6 @@ class MergeCells extends BasePlugin {
 
     if (collectionCoversWholeRange) {
       this.unmergeRange(cellRange);
-
     } else {
       this.mergeSelection(cellRange);
     }
@@ -379,6 +380,7 @@ class MergeCells extends BasePlugin {
   merge(startRow, startColumn, endRow, endColumn) {
     const start = new CellCoords(startRow, startColumn);
     const end = new CellCoords(endRow, endColumn);
+
     this.mergeRange(new CellRange(start, start, end));
   }
 
@@ -393,6 +395,7 @@ class MergeCells extends BasePlugin {
   unmerge(startRow, startColumn, endRow, endColumn) {
     const start = new CellCoords(startRow, startColumn);
     const end = new CellCoords(endRow, endColumn);
+
     this.unmergeRange(new CellRange(start, start, end));
   }
 
@@ -415,14 +418,11 @@ class MergeCells extends BasePlugin {
   onBeforeKeyDown(event) {
     const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
-    if (ctrlDown) {
-      if (event.keyCode === 77) { // CTRL + M
+    if (ctrlDown && event.keyCode === 77) { // CTRL + M
+      this.toggleMerge(this.hot.getSelectedRange());
 
-        this.toggleMerge(this.hot.getSelectedRange());
-
-        this.hot.render();
-        stopImmediatePropagation(event);
-      }
+      this.hot.render();
+      stopImmediatePropagation(event);
     }
   }
 
@@ -435,8 +435,8 @@ class MergeCells extends BasePlugin {
    */
   onAfterIsMultipleSelection(isMultiple) {
     if (isMultiple) {
-      let mergedCells = this.collectionContainer.collections,
-        selectionRange = this.hot.getSelectedRange();
+      let mergedCells = this.collectionContainer.collections;
+      let selectionRange = this.hot.getSelectedRange();
 
       for (let group in mergedCells) {
         if (selectionRange.highlight.row === mergedCells[group].row &&
@@ -675,7 +675,9 @@ class MergeCells extends BasePlugin {
           return this.onAfterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
         }
       }
+
       mergeParent = this.collectionContainer.get(calc.endRow, c);
+
       if (mergeParent) {
         let mergeEnd = mergeParent.row + mergeParent.rowspan - 1;
         if (mergeEnd > calc.endRow) {
@@ -699,13 +701,13 @@ class MergeCells extends BasePlugin {
     rangeEach(0, rowCount - 1, (r) => {
       mergeParent = this.collectionContainer.get(r, calc.startColumn);
 
-      if (mergeParent) {
-        if (mergeParent.col < calc.startColumn) {
-          calc.startColumn = mergeParent.col;
-          return this.onAfterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
-        }
+      if (mergeParent && mergeParent.col < calc.startColumn) {
+        calc.startColumn = mergeParent.col;
+        return this.onAfterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
       }
+
       mergeParent = this.collectionContainer.get(r, calc.endColumn);
+
       if (mergeParent) {
         let mergeEnd = mergeParent.col + mergeParent.colspan - 1;
         if (mergeEnd > calc.endColumn) {
@@ -722,6 +724,7 @@ class MergeCells extends BasePlugin {
    * @private
    * @param {Array} drag The drag area coordinates.
    * @param {Array} select The selection information.
+   * @return {Array} The new drag area.
    */
   onModifyAutofillRange(drag, select) {
     this.autofillCalculations.correctSelectionAreaSize(select);

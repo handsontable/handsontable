@@ -17,7 +17,6 @@ class DOMManipulation {
   /**
    * Apply the `colspan`/`rowspan` properties.
    *
-   * @private
    * @param {HTMLElement} TD The soon-to-be-modified cell.
    * @param {Collection} collectionInfo The collection in question.
    * @param {Number} row Row index.
@@ -39,6 +38,7 @@ class DOMManipulation {
     } else {
       TD.removeAttribute('rowspan');
       TD.removeAttribute('colspan');
+
       TD.style.display = '';
     }
   }

@@ -34,7 +34,6 @@ class AutofillCalculations {
   /**
    * Correct the provided selection area, so it's not selecting only a part of a collection.
    *
-   * @private
    * @param {Array} selectionArea
    */
   correctSelectionAreaSize(selectionArea) {
@@ -77,7 +76,6 @@ class AutofillCalculations {
   /**
    * Snap the drag area to the farthest collection, so it won't clip any of the cell collections.
    *
-   * @private
    * @param {Array} baseArea The base selected area.
    * @param {Array} dragArea The drag area.
    * @param {String} dragDirection The autofill drag direction.
@@ -141,7 +139,7 @@ class AutofillCalculations {
    * @param {Array} baseArea The base selection area.
    * @param {Array} dragArea The drag area (containing the base area).
    * @param {String} direction The drag direction.
-   * @return {Number} The "length" (height or width, depending on the direction) of the drag.
+   * @return {Number|undefined} The "length" (height or width, depending on the direction) of the drag.
    */
   getAutofillSize(baseArea, dragArea, direction) {
     switch (direction) {
@@ -160,9 +158,11 @@ class AutofillCalculations {
   /**
    * Trim the default drag area (containing the selection area) to the drag-only area.
    *
+   * @private
    * @param {Array} baseArea The base selection area.
    * @param {Array} dragArea The base selection area extended by the drag area.
    * @param {String} direction Drag direction.
+   * @return {Array} Array representing the drag area coordinates.
    */
   getDragArea(baseArea, dragArea, direction) {
     switch (direction) {
@@ -181,6 +181,7 @@ class AutofillCalculations {
   /**
    * Get the to-be-farthest collection in the newly filled area.
    *
+   * @private
    * @param {Array} baseArea The base selection area.
    * @param {Array} dragArea The drag area (containing the base area).
    * @param {String} direction The drag direction.
@@ -201,31 +202,32 @@ class AutofillCalculations {
 
     switch (direction) {
       case 'up':
-
         inclusionFunctionName = 'includesVertically';
         endOfDragRecreationIndex = baseEnd - partials + 1;
         break;
+
       case 'left':
         inclusionFunctionName = 'includesHorizontally';
         endOfDragRecreationIndex = baseEnd - partials + 1;
         break;
+
       case 'down':
         inclusionFunctionName = 'includesVertically';
-
         endOfDragRecreationIndex = baseStart + partials - 1;
         break;
+
       case 'right':
         inclusionFunctionName = 'includesHorizontally';
         endOfDragRecreationIndex = baseStart + partials - 1;
         break;
+
       default:
     }
 
     arrayEach(collectionArray, (currentCollection) => {
-      if (currentCollection[inclusionFunctionName](endOfDragRecreationIndex)) {
-        if (currentCollection.isFarther(farthestCollection, direction)) {
-          farthestCollection = currentCollection;
-        }
+      if (currentCollection[inclusionFunctionName](endOfDragRecreationIndex) &&
+        currentCollection.isFarther(farthestCollection, direction)) {
+        farthestCollection = currentCollection;
       }
     });
 
@@ -235,7 +237,6 @@ class AutofillCalculations {
   /**
    * Recreate the collections after the autofill process.
    *
-   * @private
    * @param {Array} changes Changes made.
    */
   recreateAfterDataPopulation(changes) {
@@ -246,7 +247,6 @@ class AutofillCalculations {
     const fillRange = this.getRangeFromChanges(changes);
     const foundCollections = this.currentFillData.foundCollections;
     const dragDirection = this.currentFillData.dragDirection;
-    let fillOffset = 0;
     const inBounds = (current, offset) => {
       switch (dragDirection) {
         case 'up':
@@ -260,6 +260,7 @@ class AutofillCalculations {
         default:
       }
     };
+    let fillOffset = 0;
     let current = null;
     let multiplier = 1;
 
@@ -278,8 +279,8 @@ class AutofillCalculations {
                 col: current.col,
                 colspan: current.colspan
               });
-
               break;
+
             case 'down':
               this.plugin.collectionContainer.add({
                 row: current.row + fillOffset,
@@ -287,8 +288,8 @@ class AutofillCalculations {
                 col: current.col,
                 colspan: current.colspan
               });
-
               break;
+
             case 'left':
               this.plugin.collectionContainer.add({
                 row: current.row,
@@ -296,8 +297,8 @@ class AutofillCalculations {
                 col: current.col - fillOffset,
                 colspan: current.colspan
               });
-
               break;
+
             case 'right':
               this.plugin.collectionContainer.add({
                 row: current.row,
@@ -305,8 +306,8 @@ class AutofillCalculations {
                 col: current.col + fillOffset,
                 colspan: current.colspan
               });
-
               break;
+
             default:
           }
         }

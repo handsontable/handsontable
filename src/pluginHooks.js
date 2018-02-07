@@ -923,7 +923,7 @@ const REGISTERED_HOOKS = [
    * Used to modify the cell coordinates when using the `getCell` method.
    *
    * @event Hooks#modifyGetCellCoords
-   * @since 0.35.0
+   * @since 0.36.0
    * @param {Number} row Visual row index.
    * @param {Number} col Visual column index.
    * @param {Boolean} topmost If set to true, it returns the TD element from the topmost overlay. For example,
@@ -991,8 +991,8 @@ const REGISTERED_HOOKS = [
    * ```
    *
    * @event Hooks#modifyAutofillRange
-   * @param {Array} entireArea Array of visual coordinates of the entire area of the drag-down operation.
    * @param {Array} startArea Array of visual coordinates of the starting point for the drag-down operation.
+   * @param {Array} entireArea Array of visual coordinates of the entire area of the drag-down operation.
    */
   'modifyAutofillRange',
 

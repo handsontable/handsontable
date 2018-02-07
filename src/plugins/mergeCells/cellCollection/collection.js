@@ -43,7 +43,6 @@ class Collection {
   /**
    * Sanitize (prevent from going outside the boundaries) the collection.
    *
-   * @private
    * @param hotInstance
    */
   normalize(hotInstance) {
@@ -105,10 +104,9 @@ class Collection {
   /**
    * Shift (and possibly resize, if needed) the merged collection.
    *
-   * @private
    * @param {Array} shiftVector 2-element array containing the information on the shifting in the `x` and `y` axis.
    * @param {Number} indexOfChange Index of the preceding change.
-   * @returns {boolean} Returns `false` if the whole collection was removed.
+   * @returns {Boolean} Returns `false` if the whole collection was removed.
    */
   shift(shiftVector, indexOfChange) {
     const shiftValue = shiftVector[0] || shiftVector[1];
@@ -126,7 +124,6 @@ class Collection {
 
     // adding rows/columns
     if (shiftValue > 0) {
-
       if (indexOfChange <= mergeEnd && indexOfChange > mergeStart) {
         this[SPAN] += shiftValue;
       }
@@ -165,11 +162,9 @@ class Collection {
   /**
    * Check if the second provided collection is "farther" in the provided direction.
    *
-   * @private
    * @param {Collection} collection The collection to check.
    * @param {String} direction Drag direction.
-   * @return {boolean} `true` if the second provided collection is "farther".
-   * @param collection
+   * @return {Boolean|undefined} `true` if the second provided collection is "farther".
    */
   isFarther(collection, direction) {
     if (!collection) {
