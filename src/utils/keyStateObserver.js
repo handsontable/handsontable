@@ -11,14 +11,19 @@ let observeCount = 0;
  */
 function startObserving() {
   if (observeCount === 0) {
-    eventManager.addEventListener(document.documentElement, 'keydown', (event) => {
+    eventManager.addEventListener(document, 'keydown', (event) => {
       if (!pressedKeys.has(event.keyCode)) {
         pressedKeys.add(event.keyCode);
       }
     });
-    eventManager.addEventListener(document.documentElement, 'keyup', (event) => {
+    eventManager.addEventListener(document, 'keyup', (event) => {
       if (pressedKeys.has(event.keyCode)) {
         pressedKeys.delete(event.keyCode);
+      }
+    });
+    eventManager.addEventListener(document, 'visibilitychange', (event) => {
+      if (document.hidden) {
+        pressedKeys.clear();
       }
     });
   }

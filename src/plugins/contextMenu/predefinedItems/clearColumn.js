@@ -9,7 +9,6 @@ export default function clearColumnItem() {
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CLEAR_COLUMN);
     },
-
     callback(key, selection) {
       let column = selection[0].start.col;
 

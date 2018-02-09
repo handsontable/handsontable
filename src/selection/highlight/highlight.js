@@ -137,7 +137,7 @@ class Highlight {
     if (this.areas.has(layerLevel)) {
       area = this.areas.get(layerLevel);
     } else {
-      area = createHighlight(AREA_TYPE, this.options);
+      area = createHighlight(AREA_TYPE, {layerLevel, ...this.options});
 
       this.areas.set(layerLevel, area);
     }
@@ -167,7 +167,7 @@ class Highlight {
     if (this.headers.has(layerLevel)) {
       header = this.headers.get(layerLevel);
     } else {
-      header = createHighlight(HEADER_TYPE, this.options);
+      header = createHighlight(HEADER_TYPE, {...this.options});
 
       this.headers.set(layerLevel, header);
     }

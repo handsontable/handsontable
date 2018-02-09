@@ -8,7 +8,6 @@ export default function undoItem() {
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNDO);
     },
-
     callback() {
       this.undo();
     },

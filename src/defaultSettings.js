@@ -507,12 +507,19 @@ DefaultSettings.prototype = {
   allowRemoveColumn: true,
 
   /**
-   * If true, selection of multiple cells using keyboard or mouse is allowed.
+   * @description
+   * Defines how the table selection reacts. The selection support three different behaviors defined as:
+   *  * `'single'` Only a single cell can be selected.
+   *  * `'contiguous'` Multiple cells within a single range can be selected.
+   *  * `'multiple'` Multiple ranges of cells can be selected.
    *
-   * @type {Boolean}
-   * @default true
+   * [See more](https://docs.handsontable.com/tutorial-selection.html)
+   *
+   * @since 0.36.0
+   * @type {String}
+   * @default 'multiple'
    */
-  multiSelect: true,
+  selectionMode: 'multiple',
 
   /**
    * Enables the fill handle (drag-down and copy-down) functionality, which shows a small rectangle in bottom

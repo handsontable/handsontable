@@ -9,8 +9,10 @@ export default function columnLeftItem() {
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_LEFT);
     },
-    callback(key, selection) {
-      this.alter('insert_col', selection[0].start.col, 1, 'ContextMenu.columnLeft');
+    callback(key, normalizedSelection) {
+      const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+
+      this.alter('insert_col', latestSelection.start.col, 1, 'ContextMenu.columnLeft');
     },
     disabled() {
       const selected = getValidSelection(this);
@@ -19,9 +21,6 @@ export default function columnLeftItem() {
         return true;
       }
       if (!this.isColumnModificationAllowed()) {
-        return true;
-      }
-      if (selected.length > 1) {
         return true;
       }
       const [startRow, startColumn, endRow, endColumn] = selected[0];

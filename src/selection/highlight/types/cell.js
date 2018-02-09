@@ -11,7 +11,7 @@ function createHighlight({cornerVisible, multipleSelectionHandlesVisible, cellCo
     className: 'current',
     border: {
       width: 2,
-      color: '#5292F7',
+      color: '#4b89ff',
       cornerVisible: cellCornerVisible,
       multipleSelectionHandlesVisible,
     },

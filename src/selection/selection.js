@@ -3,6 +3,7 @@ import SelectionRange from './range';
 import {CellRange, CellCoords} from './../3rdparty/walkontable/src';
 import {isPressedCtrlKey} from './../utils/keyStateObserver';
 import {createObjectPropListener, mixin} from './../helpers/object';
+import {isUndefined} from './../helpers/mixed';
 import {addClass, removeClass} from './../helpers/dom/element';
 import {arrayEach} from './../helpers/array';
 import localHooks from './../mixins/localHooks';
@@ -133,16 +134,21 @@ class Selection {
    * Starts selection range on given coordinate object.
    *
    * @param {CellCoords} coords Visual coords.
-   * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range.
+   * @param {Boolean} [keepEditorOpened=false] If `true`, cell editor will be still opened after changing selection range.
+   * @param {Boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
+   *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
+   *                                      the default trigger will be used (isPressedCtrlKey() helper).
    */
-  setRangeStart(coords, keepEditorOpened) {
-    if (!isPressedCtrlKey()) {
+  setRangeStart(coords, keepEditorOpened = false, multipleSelection) {
+    const isMultipleMode = this.settings.selectionMode === 'multiple';
+    const isMultipleSelection = isUndefined(multipleSelection) ? isPressedCtrlKey() : multipleSelection;
+
+    if (!isMultipleMode || (isMultipleMode && !isMultipleSelection)) {
       this.selectedRange.clear();
     }
 
     this.runLocalHooks('beforeSetRangeStart', coords);
     this.selectedRange.add(coords);
-
     this.setRangeEnd(coords, null, keepEditorOpened);
   }
 
@@ -150,10 +156,15 @@ class Selection {
    * Starts selection range on given coordinate object.
    *
    * @param {CellCoords} coords Visual coords.
-   * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range.
+   * @param {Boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
+   *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
+   *                                      the default trigger will be used (isPressedCtrlKey() helper).
    */
-  setRangeStartOnly(coords) {
-    if (!isPressedCtrlKey()) {
+  setRangeStartOnly(coords, multipleSelection) {
+    const isMultipleMode = this.settings.selectionMode === 'multiple';
+    const isMultipleSelection = isUndefined(multipleSelection) ? isPressedCtrlKey() : multipleSelection;
+
+    if (!isMultipleMode || (isMultipleMode && !isMultipleSelection)) {
       this.selectedRange.clear();
     }
 
@@ -166,7 +177,7 @@ class Selection {
    *
    * @param {CellCoords} coords Visual coords.
    * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the range end.
-   * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range.
+   * @param {Boolean} [keepEditorOpened=false] If `true`, cell editor will be still opened after changing selection range.
    */
   setRangeEnd(coords, scrollToCell = true, keepEditorOpened = false) {
     if (this.selectedRange.isEmpty()) {
@@ -178,10 +189,8 @@ class Selection {
 
     const cellRange = this.selectedRange.current();
 
-    cellRange.setTo(new CellCoords(coords.row, coords.col));
-
-    if (!this.settings.multiSelect) {
-      cellRange.setFrom(coords);
+    if (this.settings.selectionMode !== 'single') {
+      cellRange.setTo(new CellCoords(coords.row, coords.col));
     }
 
     // set up current selection
@@ -213,27 +222,33 @@ class Selection {
     headerHighlight.clear();
 
     if (this.highlight.isEnabledFor(AREA_TYPE)) {
-      if (this.isMultiple()) {
+      if (this.isMultiple() || highlightLayerLevel >= 1) {
         areaHighlight
           .add(cellRange.from)
           .add(cellRange.to);
 
-      } else if (highlightLayerLevel >= 1) {
-        // For single cell selection in the same layer we do not create area selection to prevent blue background.
-        // When non-consecutive selection is performed we have to add that missing area selection to the previous layer
-        // based on previous coordinates. It only occurs when previous selection wasn't select multiple cells.
-        this.highlight
-          .useLayerLevel(highlightLayerLevel - 1)
-          .createOrGetArea()
-          .add(this.selectedRange.previous().from);
+        if (highlightLayerLevel === 1) {
+          // For single cell selection in the same layer, we do not create area selection to prevent blue background.
+          // When non-consecutive selection is performed we have to add that missing area selection to the previous layer
+          // based on previous coordinates. It only occurs when the previous selection wasn't select multiple cells.
+          this.highlight
+            .useLayerLevel(highlightLayerLevel - 1)
+            .createOrGetArea()
+            .add(this.selectedRange.previous().from);
 
-        this.highlight.useLayerLevel(highlightLayerLevel);
+          this.highlight.useLayerLevel(highlightLayerLevel);
+        }
       }
     }
     if (this.highlight.isEnabledFor(HEADER_TYPE)) {
-      headerHighlight
-        .add(cellRange.from)
-        .add(cellRange.to);
+      if (this.settings.selectionMode === 'single') {
+        headerHighlight.add(cellRange.highlight);
+
+      } else {
+        headerHighlight
+          .add(cellRange.from)
+          .add(cellRange.to);
+      }
     }
 
     this.runLocalHooks('afterSetRangeEnd', coords, scrollToCell, keepEditorOpened);
@@ -265,7 +280,7 @@ class Selection {
   transformStart(rowDelta, colDelta, force, keepEditorOpened) {
     const newCoords = this.transformation.transformStart(rowDelta, colDelta, force);
 
-    this.setRangeStart(newCoords, keepEditorOpened);
+    this.setRangeStart(newCoords, keepEditorOpened, false);
   }
 
   /**
@@ -277,7 +292,7 @@ class Selection {
   transformEnd(rowDelta, colDelta) {
     const newCoords = this.transformation.transformEnd(rowDelta, colDelta);
 
-    this.setRangeEnd(newCoords, true);
+    this.setRangeEnd(newCoords, true, false);
   }
 
   /**
@@ -297,12 +312,8 @@ class Selection {
    * @returns {Boolean}
    */
   inInSelection(coords) {
-    if (!this.isSelected()) {
-      return false;
-    }
-
     // TODO(budnix): This ".includes" should be checked for all layers?
-    return this.selectedRange.current().includes(coords);
+    return this.isSelected() ? this.selectedRange.current().includes(coords) : false;
   }
 
   /**
@@ -312,6 +323,7 @@ class Selection {
     if (!this.isSelected()) {
       return;
     }
+
     this.inProgress = false;
     this.selectedRange.clear();
     this.highlight.clear();
@@ -323,9 +335,10 @@ class Selection {
    * Select all cells.
    */
   selectAll() {
-    if (!this.settings.multiSelect) {
+    if (this.settings.selectionMode === 'single') {
       return;
     }
+
     this.setSelectedHeaders(true, true, true);
     this.highlight.clear();
     this.setRangeStart(new CellCoords(0, 0));

@@ -1,5 +1,6 @@
 import {getValidSelection} from './../utils';
 import {arrayEach} from './../../../helpers/array';
+import {transformSelectionToColumnDistance} from './../../../selection/utils';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'remove_col';
@@ -25,17 +26,14 @@ export default function removeColumnItem() {
 
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, pluralForm);
     },
-    callback(key, selection) {
-      const [{start, end}] = selection;
-      const amount = end.col - start.col + 1;
-
-      this.alter('remove_col', start.col, amount, 'ContextMenu.removeColumn');
+    callback() {
+      this.alter('remove_col', transformSelectionToColumnDistance(this.getSelected()), null, 'ContextMenu.removeColumn');
     },
     disabled() {
       const selected = getValidSelection(this);
       const totalColumns = this.countCols();
 
-      if (!selected || selected.length > 1) {
+      if (!selected) {
         return true;
       }
 

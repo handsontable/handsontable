@@ -1,5 +1,6 @@
 import {getValidSelection} from './../utils';
 import {arrayEach} from './../../../helpers/array';
+import {transformSelectionToRowDistance} from './../../../selection/utils';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'remove_row';
@@ -25,17 +26,14 @@ export default function removeRowItem() {
 
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_ROW, pluralForm);
     },
-    callback(key, selection) {
-      const [{start, end}] = selection;
-      const amount = end.row - start.row + 1;
-
-      this.alter('remove_row', start.row, amount, 'ContextMenu.removeRow');
+    callback() {
+      this.alter('remove_row', transformSelectionToRowDistance(this.getSelected()), null, 'ContextMenu.removeRow');
     },
     disabled() {
       const selected = getValidSelection(this);
       const totalRows = this.countRows();
 
-      if (!selected || selected.length > 1) {
+      if (!selected) {
         return true;
       }
 

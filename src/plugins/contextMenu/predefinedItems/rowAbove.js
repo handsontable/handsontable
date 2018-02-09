@@ -9,14 +9,15 @@ export default function rowAboveItem() {
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_ABOVE);
     },
+    callback(key, normalizedSelection) {
+      const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
 
-    callback(key, selection) {
-      this.alter('insert_row', selection[0].start.row, 1, 'ContextMenu.rowAbove');
+      this.alter('insert_row', latestSelection.start.row, 1, 'ContextMenu.rowAbove');
     },
     disabled() {
       let selected = getValidSelection(this);
 
-      if (!selected || selected.length > 1) {
+      if (!selected) {
         return true;
       }
 

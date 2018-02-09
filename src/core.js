@@ -1,13 +1,13 @@
 import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
 import {columnFactory} from './helpers/setting';
 import {isFunction} from './helpers/function';
-import {isDefined, isUndefined, isRegExp, _injectProductInfo} from './helpers/mixed';
+import {isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty} from './helpers/mixed';
 import {isMobileBrowser} from './helpers/browser';
 import DataMap from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize, hasOwnProperty, createObjectPropListener} from './helpers/object';
-import {arrayFlatten, arrayMap, arrayEach} from './helpers/array';
+import {arrayFlatten, arrayMap, arrayEach, arrayReduce} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {getValidator} from './validators';
@@ -269,14 +269,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   grid = {
     /**
-     * Inserts or removes rows and columns
+     * Inserts or removes rows and columns.
      *
      * @memberof Core#
      * @function alter
      * @private
-     * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
-     * @param {Number} index
-     * @param {Number} amount
+     * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col".
+     * @param {Number|Array} index Row or column visual index which from the alter action will be triggered.
+     *                             Alter actions such as "remove_row" and "remove_col" support array indexes in the
+     *                             format `[[index, amount], [index, amount]...]` this can be used to remove
+     *                             non-consecutive columns or rows in one call.
+     * @param {Number} amount Ammount rows or columns to remove.
      * @param {String} [source] Optional. Source of hook runner.
      * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
@@ -355,18 +358,39 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           break;
 
         case 'remove_row':
-          datamap.removeRow(index, amount, source);
-          priv.cellSettings.splice(index, amount);
 
-          var totalRows = instance.countRows();
-          var fixedRowsTop = instance.getSettings().fixedRowsTop;
-          if (fixedRowsTop >= index + 1) {
-            instance.getSettings().fixedRowsTop -= Math.min(amount, fixedRowsTop - index);
-          }
+          const removeRow = (indexes) => {
+            let offset = 0;
 
-          var fixedRowsBottom = instance.getSettings().fixedRowsBottom;
-          if (fixedRowsBottom && index >= totalRows - fixedRowsBottom) {
-            instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom);
+            arrayEach(indexes, ([index, amount]) => {
+              const calcIndex = isEmpty(index) ? instance.countRows() - 1 : Math.max(index - offset, 0);
+
+              // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
+              // inside the removeCol breaks the removing functionality.
+              datamap.removeRow(index, amount, source);
+              priv.cellSettings.splice(calcIndex, amount);
+
+              const totalRows = instance.countRows();
+              const fixedRowsTop = instance.getSettings().fixedRowsTop;
+
+              if (fixedRowsTop >= calcIndex + 1) {
+                instance.getSettings().fixedRowsTop -= Math.min(amount, fixedRowsTop - calcIndex);
+              }
+
+              const fixedRowsBottom = instance.getSettings().fixedRowsBottom;
+
+              if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
+                instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom);
+              }
+
+              offset += amount;
+            });
+          };
+
+          if (Array.isArray(index)) {
+            removeRow(index);
+          } else {
+            removeRow([[index, amount]]);
           }
 
           grid.adjustRowsAndCols();
@@ -374,26 +398,45 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           break;
 
         case 'remove_col':
-          let visualColumnIndex = recordTranslator.toPhysicalColumn(index);
 
-          datamap.removeCol(index, amount, source);
+          const removeCol = (indexes) => {
+            let offset = 0;
 
-          for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
-            if (priv.cellSettings[row]) { // if row hasn't been rendered it wouldn't have cellSettings
-              priv.cellSettings[row].splice(visualColumnIndex, amount);
-            }
-          }
-          var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
+            arrayEach(indexes, ([index, amount]) => {
+              const calcIndex = isEmpty(index) ? instance.countCols() - 1 : Math.max(index - offset, 0);
 
-          if (fixedColumnsLeft >= index + 1) {
-            instance.getSettings().fixedColumnsLeft -= Math.min(amount, fixedColumnsLeft - index);
-          }
+              let visualColumnIndex = recordTranslator.toPhysicalColumn(calcIndex);
 
-          if (Array.isArray(instance.getSettings().colHeaders)) {
-            if (typeof visualColumnIndex === 'undefined') {
-              visualColumnIndex = -1;
-            }
-            instance.getSettings().colHeaders.splice(visualColumnIndex, amount);
+              // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
+              // inside the removeCol breaks the removing functionality.
+              datamap.removeCol(index, amount, source);
+
+              for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
+                if (priv.cellSettings[row]) { // if row hasn't been rendered it wouldn't have cellSettings
+                  priv.cellSettings[row].splice(visualColumnIndex, amount);
+                }
+              }
+              var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
+
+              if (fixedColumnsLeft >= calcIndex + 1) {
+                instance.getSettings().fixedColumnsLeft -= Math.min(amount, fixedColumnsLeft - calcIndex);
+              }
+
+              if (Array.isArray(instance.getSettings().colHeaders)) {
+                if (typeof visualColumnIndex === 'undefined') {
+                  visualColumnIndex = -1;
+                }
+                instance.getSettings().colHeaders.splice(visualColumnIndex, amount);
+              }
+
+              offset += amount;
+            });
+          };
+
+          if (Array.isArray(index)) {
+            removeCol(index);
+          } else {
+            removeCol([[index, amount]]);
           }
 
           grid.adjustRowsAndCols();
@@ -463,48 +506,50 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
 
       if (selection.isSelected()) {
-        let selectionChanged = false;
-        let fromRow = selection.selectedRange.current().from.row;
-        let fromCol = selection.selectedRange.current().from.col;
-        let toRow = selection.selectedRange.current().to.row;
-        let toCol = selection.selectedRange.current().to.col;
+        arrayEach(selection.selectedRange, (range) => {
+          let selectionChanged = false;
+          let fromRow = range.from.row;
+          let fromCol = range.from.col;
+          let toRow = range.to.row;
+          let toCol = range.to.col;
 
-        // if selection is outside, move selection to last row
-        if (fromRow > rowCount - 1) {
-          fromRow = rowCount - 1;
-          selectionChanged = true;
+          // if selection is outside, move selection to last row
+          if (fromRow > rowCount - 1) {
+            fromRow = rowCount - 1;
+            selectionChanged = true;
 
-          if (toRow > fromRow) {
-            toRow = fromRow;
+            if (toRow > fromRow) {
+              toRow = fromRow;
+            }
+          } else if (toRow > rowCount - 1) {
+            toRow = rowCount - 1;
+            selectionChanged = true;
+
+            if (fromRow > toRow) {
+              fromRow = toRow;
+            }
           }
-        } else if (toRow > rowCount - 1) {
-          toRow = rowCount - 1;
-          selectionChanged = true;
+          // if selection is outside, move selection to last row
+          if (fromCol > colCount - 1) {
+            fromCol = colCount - 1;
+            selectionChanged = true;
 
-          if (fromRow > toRow) {
-            fromRow = toRow;
+            if (toCol > fromCol) {
+              toCol = fromCol;
+            }
+          } else if (toCol > colCount - 1) {
+            toCol = colCount - 1;
+            selectionChanged = true;
+
+            if (fromCol > toCol) {
+              fromCol = toCol;
+            }
           }
-        }
-        // if selection is outside, move selection to last row
-        if (fromCol > colCount - 1) {
-          fromCol = colCount - 1;
-          selectionChanged = true;
 
-          if (toCol > fromCol) {
-            toCol = fromCol;
+          if (selectionChanged) {
+            instance.selectCell(fromRow, fromCol, toRow, toCol);
           }
-        } else if (toCol > colCount - 1) {
-          toCol = colCount - 1;
-          selectionChanged = true;
-
-          if (fromCol > toCol) {
-            fromCol = toCol;
-          }
-        }
-
-        if (selectionChanged) {
-          instance.selectCell(fromRow, fromCol, toRow, toCol);
-        }
+        });
       }
       if (instance.view) {
         instance.view.wt.wtOverlays.adjustElementsSize();
@@ -2958,9 +3003,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
-  this.selectCell = function(row, col, endRow, endCol, scrollToCell, changeListener) {
-    changeListener = isUndefined(changeListener) || changeListener === true;
-
+  this.selectCell = function(row, col, endRow, endCol, scrollToCell = true, changeListener = true) {
     if (typeof row !== 'number' || row < 0 || row >= instance.countRows()) {
       return false;
     }

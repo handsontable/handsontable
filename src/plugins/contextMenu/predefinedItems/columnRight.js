@@ -9,9 +9,10 @@ export default function columnRightItem() {
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
     },
+    callback(key, normalizedSelection) {
+      const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
 
-    callback(key, selection) {
-      this.alter('insert_col', selection[0].end.col + 1, 1, 'ContextMenu.columnRight');
+      this.alter('insert_col', latestSelection.end.col + 1, 1, 'ContextMenu.columnRight');
     },
     disabled() {
       const selected = getValidSelection(this);
@@ -20,9 +21,6 @@ export default function columnRightItem() {
         return true;
       }
       if (!this.isColumnModificationAllowed()) {
-        return true;
-      }
-      if (selected.length > 1) {
         return true;
       }
       const [startRow, startColumn, endRow, endColumn] = selected[0];
