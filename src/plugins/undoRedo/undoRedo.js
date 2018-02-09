@@ -489,15 +489,8 @@ UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
   let manualRowMove = instance.getPlugin('manualRowMove');
 
   instance.addHookOnce('afterRender', undoneCallback);
-  let mod = this.rows[0] < this.target ? -1 * this.rows.length : 0;
-  let newTarget = this.rows[0] > this.target ? this.rows[0] + this.rows.length : this.rows[0];
-  let newRows = [];
-  let rowsLen = this.rows.length + mod;
 
-  for (let i = mod; i < rowsLen; i++) {
-    newRows.push(this.target + i);
-  }
-  manualRowMove.moveRows(newRows.slice(), newTarget);
+  manualRowMove.moveRows([this.target], this.rows[0]);
   instance.render();
 
   instance.selection.setRangeStartOnly(new CellCoords(this.rows[0], 0));

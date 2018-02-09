@@ -181,30 +181,30 @@ DataMap.prototype.getSchema = function() {
  * Creates row at the bottom of the data array.
  *
  * @param {Number} [index] Physical index of the row before which the new row will be inserted.
- * @param {Number} [amount] An amount of rows to add.
+ * @param {Number} [amount=1] An amount of rows to add.
  * @param {String} [source] Source of method call.
  * @fires Hooks#afterCreateRow
  * @returns {Number} Returns number of created rows.
  */
-DataMap.prototype.createRow = function(index, amount, source) {
-  var row,
-    colCount = this.instance.countCols(),
-    numberOfCreatedRows = 0,
-    currentIndex;
-
-  if (!amount) {
-    amount = 1;
-  }
+DataMap.prototype.createRow = function(index, amount = 1, source) {
+  let numberOfCreatedRows = 0;
 
   if (typeof index !== 'number' || index >= this.instance.countSourceRows()) {
     index = this.instance.countSourceRows();
   }
-  this.instance.runHooks('beforeCreateRow', index, amount, source);
 
-  currentIndex = index;
-  var maxRows = this.instance.getSettings().maxRows;
+  const continueProcess = this.instance.runHooks('beforeCreateRow', index, amount, source);
+
+  if (continueProcess === false) {
+    return 0;
+  }
+
+  const maxRows = this.instance.getSettings().maxRows;
+  const columnCount = this.instance.countCols();
 
   while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
+    let row = null;
+
     if (this.instance.dataType === 'array') {
       if (this.instance.getSettings().dataSchema) {
         // Clone template array
@@ -213,7 +213,7 @@ DataMap.prototype.createRow = function(index, amount, source) {
       } else {
         row = [];
         /* eslint-disable no-loop-func */
-        rangeEach(colCount - 1, () => row.push(null));
+        rangeEach(columnCount - 1, () => row.push(null));
       }
 
     } else if (this.instance.dataType === 'function') {
@@ -232,7 +232,6 @@ DataMap.prototype.createRow = function(index, amount, source) {
     }
 
     numberOfCreatedRows++;
-    currentIndex++;
   }
 
   this.instance.runHooks('afterCreateRow', index, numberOfCreatedRows, source);
