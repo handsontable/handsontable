@@ -67,27 +67,27 @@ var onBeforeKeyDown = function(event) {
   var selectedRow;
 
   if (event.keyCode == KEY_CODES.ARROW_DOWN) {
-    if (!innerHOT.getSelectedRecently() && !innerHOT.flipped) {
+    if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
       rowToSelect = 0;
-    } else if (innerHOT.getSelectedRecently()) {
+    } else if (innerHOT.getSelectedLast()) {
       if (innerHOT.flipped) {
-        rowToSelect = innerHOT.getSelectedRecently()[0] + 1;
+        rowToSelect = innerHOT.getSelectedLast()[0] + 1;
       } else if (!innerHOT.flipped) {
-        selectedRow = innerHOT.getSelectedRecently()[0];
+        selectedRow = innerHOT.getSelectedLast()[0];
         var lastRow = innerHOT.countRows() - 1;
         rowToSelect = Math.min(lastRow, selectedRow + 1);
       }
     }
   } else if (event.keyCode == KEY_CODES.ARROW_UP) {
-    if (!innerHOT.getSelectedRecently() && innerHOT.flipped) {
+    if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
       rowToSelect = innerHOT.countRows() - 1;
 
-    } else if (innerHOT.getSelectedRecently()) {
+    } else if (innerHOT.getSelectedLast()) {
       if (innerHOT.flipped) {
-        selectedRow = innerHOT.getSelectedRecently()[0];
+        selectedRow = innerHOT.getSelectedLast()[0];
         rowToSelect = Math.max(0, selectedRow - 1);
       } else {
-        selectedRow = innerHOT.getSelectedRecently()[0];
+        selectedRow = innerHOT.getSelectedLast()[0];
         rowToSelect = selectedRow - 1;
       }
     }
@@ -159,7 +159,7 @@ HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
     this.instance.listen(); // return the focus to the parent HOT instance
   }
 
-  if (this.htEditor && this.htEditor.getSelectedRecently()) {
+  if (this.htEditor && this.htEditor.getSelectedLast()) {
     var value = this.htEditor.getInstance().getValue();
 
     if (value !== void 0) { // if the value is undefined then it means we don't want to set the value

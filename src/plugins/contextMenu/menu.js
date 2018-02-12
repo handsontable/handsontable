@@ -252,10 +252,10 @@ class Menu {
    * @param {Event} [event]
    */
   executeCommand(event) {
-    if (!this.isOpened() || !this.hotMenu.getSelectedRecently()) {
+    if (!this.isOpened() || !this.hotMenu.getSelectedLast()) {
       return;
     }
-    const selectedItem = this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelectedRecently()[0]);
+    const selectedItem = this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelectedLast()[0]);
 
     this.runLocalHooks('select', selectedItem, event);
 
@@ -567,7 +567,7 @@ class Menu {
    * @param {Event} event
    */
   onBeforeKeyDown(event) {
-    let selection = this.hotMenu.getSelectedRecently();
+    let selection = this.hotMenu.getSelectedLast();
     let stopEvent = false;
     this.keyEvent = true;
 

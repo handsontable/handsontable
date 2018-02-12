@@ -193,23 +193,23 @@ describe('MergeCells', () => {
 
       $(hot.getCell(6, 6)).simulate('mousedown');
 
-      expect(hot.getSelectedRecentlyRange().from.col).toEqual(6);
-      expect(hot.getSelectedRecentlyRange().from.row).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.col).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.row).toEqual(6);
 
       $(hot.getCell(1, 1)).simulate('mouseenter');
 
-      expect(hot.getSelectedRecentlyRange().from.col).toEqual(6);
-      expect(hot.getSelectedRecentlyRange().from.row).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.col).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.row).toEqual(6);
 
       $(hot.getCell(3, 3)).simulate('mouseenter');
 
-      expect(hot.getSelectedRecentlyRange().from.col).toEqual(6);
-      expect(hot.getSelectedRecentlyRange().from.row).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.col).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.row).toEqual(6);
 
       $(hot.getCell(4, 4)).simulate('mouseenter');
 
-      expect(hot.getSelectedRecentlyRange().from.col).toEqual(6);
-      expect(hot.getSelectedRecentlyRange().from.row).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.col).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.row).toEqual(6);
 
     });
 
@@ -222,16 +222,16 @@ describe('MergeCells', () => {
       });
 
       hot.selectCell(5, 5, 5, 2);
-      expect(hot.getSelectedRecentlyRange().getDirection()).toEqual('SE-NW');
+      expect(hot.getSelectedRangeLast().getDirection()).toEqual('SE-NW');
 
       hot.selectCell(4, 4, 2, 5);
-      expect(hot.getSelectedRecentlyRange().getDirection()).toEqual('SW-NE');
+      expect(hot.getSelectedRangeLast().getDirection()).toEqual('SW-NE');
 
       hot.selectCell(4, 4, 5, 7);
-      expect(hot.getSelectedRecentlyRange().getDirection()).toEqual('NW-SE');
+      expect(hot.getSelectedRangeLast().getDirection()).toEqual('NW-SE');
 
       hot.selectCell(4, 5, 7, 5);
-      expect(hot.getSelectedRecentlyRange().getDirection()).toEqual('NE-SW');
+      expect(hot.getSelectedRangeLast().getDirection()).toEqual('NE-SW');
     });
 
     it('should not add an area class to the selected cell if a single merged cell is selected', () => {

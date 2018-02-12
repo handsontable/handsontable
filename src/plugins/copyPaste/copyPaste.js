@@ -164,7 +164,7 @@ class CopyPaste extends BasePlugin {
    * @memberof CopyPaste#
    */
   setCopyableText() {
-    const selRange = this.hot.getSelectedRecentlyRange();
+    const selRange = this.hot.getSelectedRangeLast();
 
     if (!selRange) {
       return;
@@ -428,7 +428,7 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
-    let selected = this.hot.getSelectedRecently();
+    let selected = this.hot.getSelectedLast();
     let coordsFrom = new CellCoords(selected[0], selected[1]);
     let coordsTo = new CellCoords(selected[2], selected[3]);
     let cellRange = new CellRange(coordsFrom, coordsFrom, coordsTo);

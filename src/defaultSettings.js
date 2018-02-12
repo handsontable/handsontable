@@ -510,7 +510,7 @@ DefaultSettings.prototype = {
    * @description
    * Defines how the table selection reacts. The selection support three different behaviors defined as:
    *  * `'single'` Only a single cell can be selected.
-   *  * `'contiguous'` Multiple cells within a single range can be selected.
+   *  * `'range'` Multiple cells within a single range can be selected.
    *  * `'multiple'` Multiple ranges of cells can be selected.
    *
    * [See more](https://docs.handsontable.com/tutorial-selection.html)

@@ -431,7 +431,7 @@ class Comments extends BasePlugin {
    * @returns {Boolean}
    */
   checkSelectionCommentsConsistency() {
-    const selected = this.hot.getSelectedRecentlyRange();
+    const selected = this.hot.getSelectedRangeLast();
 
     if (!selected) {
       return false;
@@ -618,7 +618,7 @@ class Comments extends BasePlugin {
    */
   onContextMenuAddComment() {
     this.displaySwitch.cancelHiding();
-    let coords = this.hot.getSelectedRecentlyRange();
+    let coords = this.hot.getSelectedRangeLast();
 
     this.contextMenuEvent = true;
     this.setRange({
@@ -641,7 +641,7 @@ class Comments extends BasePlugin {
   onContextMenuRemoveComment() {
     this.contextMenuEvent = true;
 
-    let {from, to} = this.hot.getSelectedRecentlyRange();
+    let {from, to} = this.hot.getSelectedRangeLast();
 
     for (let i = from.row; i <= to.row; i++) {
       for (let j = from.col; j <= to.col; j++) {
@@ -660,7 +660,7 @@ class Comments extends BasePlugin {
   onContextMenuMakeReadOnly() {
     this.contextMenuEvent = true;
 
-    let {from, to} = this.hot.getSelectedRecentlyRange();
+    let {from, to} = this.hot.getSelectedRangeLast();
 
     for (let i = from.row; i <= to.row; i++) {
       for (let j = from.col; j <= to.col; j++) {
@@ -693,7 +693,7 @@ class Comments extends BasePlugin {
         },
         callback: () => this.onContextMenuAddComment(),
         disabled() {
-          return !(this.getSelectedRecently() && !this.selection.selectedHeader.corner);
+          return !(this.getSelectedLast() && !this.selection.selectedHeader.corner);
         }
       },
       {
@@ -708,7 +708,7 @@ class Comments extends BasePlugin {
         key: 'commentsReadOnly',
         name() {
           let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
-          let hasProperty = checkSelectionConsistency(this.getSelectedRecentlyRange(), (row, col) => {
+          let hasProperty = checkSelectionConsistency(this.getSelectedRangeLast(), (row, col) => {
             let readOnlyProperty = this.getCellMeta(row, col)[META_COMMENT];
             if (readOnlyProperty) {
               readOnlyProperty = readOnlyProperty[META_READONLY];

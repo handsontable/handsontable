@@ -119,7 +119,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    * @param {Boolean} [uncheckCheckbox=false]
    */
   function changeSelectedCheckboxesState(uncheckCheckbox = false) {
-    const selRange = instance.getSelectedRecentlyRange();
+    const selRange = instance.getSelectedRangeLast();
 
     if (!selRange) {
       return;
@@ -177,7 +177,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    * @param {Function} callback
    */
   function eachSelectedCheckboxCell(callback) {
-    const selRange = instance.getSelectedRecentlyRange();
+    const selRange = instance.getSelectedRangeLast();
 
     if (!selRange) {
       return;

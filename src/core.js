@@ -1275,10 +1275,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Returns the last coordinates applied to the table as a an array `[startRow, startCol, endRow, endCol]`.
    *
    * @memberof Core#
-   * @function getSelectedRecently
+   * @function getSelectedLast
    * @returns {Array|undefined} An array of the selection's coordinates.
    */
-  this.getSelectedRecently = function() {
+  this.getSelectedLast = function() {
     const selected = this.getSelected();
     let result;
 
@@ -1307,11 +1307,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   * Returns the last coordinates applied to the table as a CellRange object.
   *
   * @memberof Core#
-  * @function getSelectedRecentlyRange
+  * @function getSelectedRangeLast
   * @since 0.36.0
   * @returns {CellRange|undefined} Selected range object or undefined` if there is no selection.
    */
-  this.getSelectedRecentlyRange = function() {
+  this.getSelectedRangeLast = function() {
     const selectedRange = this.getSelectedRange();
     let result;
 
@@ -1737,7 +1737,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {*} Value of selected cell.
    */
   this.getValue = function() {
-    var sel = instance.getSelectedRecently();
+    var sel = instance.getSelectedLast();
 
     if (GridSettings.prototype.getValue) {
       if (isFunction(GridSettings.prototype.getValue)) {
@@ -3049,13 +3049,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell) {
-    arguments[1] = datamap.propToCol(arguments[1]);
+    let endColumn;
 
-    if (isDefined(arguments[3])) {
-      arguments[3] = datamap.propToCol(arguments[3]);
+    if (isDefined(endProp)) {
+      endColumn = datamap.propToCol(endProp);
     }
 
-    return instance.selectCell(...arguments);
+    return instance.selectCell(row, datamap.propToCol(prop), endRow, endColumn, scrollToCell);
   };
 
   /**
