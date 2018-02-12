@@ -37,7 +37,12 @@ describe('MergeCells-Autofill calculations', () => {
 
   describe('snapDragArea', () => {
     it('Should snap the drag area to the farthest collection, so it won\'t clip any of the cell collections.', () => {
-      const instance = new AutofillCalculations({});
+      const instance = new AutofillCalculations({
+        hot: {
+          countRows: () => 555,
+          countCols: () => 555
+        }
+      });
 
       let baseArea = [5, 4, 6, 5];
       let dragArea = [4, 4, 6, 5];

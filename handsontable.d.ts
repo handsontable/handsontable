@@ -1136,7 +1136,7 @@ declare namespace Handsontable {
         getDirection(selectionArea: number[], finalArea: number[]): string;
         snapDragArea(baseArea: number[], dragArea: number[], dragDirection: string, foundCollections: MergeCellsPlugin.Collection[]): number[];
         recreateAfterDataPopulation(changes: any[]): void;
-        dragAreaOverlapsCollections(baseArea: number[], fullArea: number[], direction: string);
+        dragAreaOverlapsCollections(baseArea: number[], fullArea: number[], direction: string): boolean;
       }
 
       interface SelectionCalculations {
@@ -1181,7 +1181,7 @@ declare namespace Handsontable {
       interface DOMManipulation {
         plugin: _Handsontable.Core;
 
-        applySpanProperties(TD: HTMLElement, collectionInfo: MergeCellsPlugin.Collection, row: number, col: number)
+        applySpanProperties(TD: HTMLElement, collectionInfo: MergeCellsPlugin.Collection, row: number, col: number): void;
       }
     }
 

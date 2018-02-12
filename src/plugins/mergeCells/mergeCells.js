@@ -7,6 +7,7 @@ import CollectionContainer from './cellCollection/collectionContainer';
 import AutofillCalculations from './calculations/autofill';
 import SelectionCalculations from './calculations/selection';
 import DOMManipulation from './dom/domManipulation';
+import ContextMenuHandler from './contextMenu/contextMenuHandler';
 import {arrayEach} from '../../helpers/array';
 import {clone} from '../../helpers/object';
 import {rangeEach} from '../../helpers/number';
@@ -75,6 +76,11 @@ class MergeCells extends BasePlugin {
      * @type {DOMManipulation}
      */
     this.dom = null;
+    /**
+     * Instance of the class responsible for adding mergeCells-related information to the context menu.
+     * @type {null}
+     */
+    this.contextMenuHandler = null;
   }
 
   /**
@@ -97,6 +103,7 @@ class MergeCells extends BasePlugin {
     this.collectionContainer = new CollectionContainer(this);
     this.autofillCalculations = new AutofillCalculations(this);
     this.selectionCalculations = new SelectionCalculations();
+    this.contextMenuHandler = new ContextMenuHandler();
     this.dom = new DOMManipulation(this);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
@@ -137,13 +144,11 @@ class MergeCells extends BasePlugin {
   updatePlugin() {
     const settings = this.hot.getSettings().mergeCells;
 
-    // if (settings.constructor === Array) {
     this.clearCollections();
     this.disablePlugin();
     this.enablePlugin();
 
     this.generateFromSettings(settings);
-    // }
 
     super.updatePlugin();
   }
@@ -156,7 +161,7 @@ class MergeCells extends BasePlugin {
    */
   generateFromSettings(settings) {
     if (Array.isArray(settings)) {
-      const populationArgumentsList = [];
+      let populationArgumentsList = [];
 
       arrayEach(settings, (setting, i) => {
         const highlight = new CellCoords(setting.row, setting.col);
@@ -165,6 +170,9 @@ class MergeCells extends BasePlugin {
 
         populationArgumentsList.push(this.mergeRange(mergeRange, true, true));
       });
+
+      // remove 'empty' setting objects, caused by improper merge range declarations
+      populationArgumentsList = populationArgumentsList.filter((value) => value !== void 0);
 
       const bulkPopulationData = this.getBulkCollectionData(populationArgumentsList);
 
@@ -566,29 +574,7 @@ class MergeCells extends BasePlugin {
    * @param {Object} defaultOptions The default context menu options.
    */
   addMergeActionsToContextMenu(defaultOptions) {
-    const plugin = this;
-
-    defaultOptions.items.push({name: '---------'});
-    defaultOptions.items.push({
-      key: 'mergeCells',
-      name() {
-        const sel = this.getSelected();
-        const info = plugin.collectionContainer.get(sel[0], sel[1]);
-
-        if (info.row === sel[0] && info.col === sel[1] && info.row + info.rowspan - 1 === sel[2] && info.col + info.colspan - 1 === sel[3]) {
-          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNMERGE_CELLS);
-        }
-        return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_MERGE_CELLS);
-
-      },
-      callback() {
-        plugin.toggleMerge(this.getSelectedRange());
-        this.render();
-      },
-      disabled() {
-        return this.selection.selectedHeader.corner;
-      },
-    });
+    this.contextMenuHandler.addEntries(this, defaultOptions);
   }
 
   /**

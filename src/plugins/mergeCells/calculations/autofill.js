@@ -84,8 +84,8 @@ class AutofillCalculations {
    */
   snapDragArea(baseArea, dragArea, dragDirection, foundCollections) {
     let newDragArea = dragArea.slice(0);
+    let fillSize = this.getAutofillSize(baseArea, dragArea, dragDirection);
     const verticalDirection = ['up', 'down'].indexOf(dragDirection) > -1;
-    const fillSize = this.getAutofillSize(baseArea, dragArea, dragDirection);
     const fullCycle = verticalDirection ? baseArea[2] - baseArea[0] + 1 : baseArea[3] - baseArea[1] + 1;
     const fulls = Math.floor(fillSize / fullCycle) * fullCycle;
     const partials = fillSize - fulls;
@@ -93,16 +93,48 @@ class AutofillCalculations {
 
     if (farthestCollection) {
       if (dragDirection === 'down') {
-        newDragArea[2] += partials ? farthestCollection.row + farthestCollection.rowspan - baseArea[0] - partials : 0;
+        let fill = farthestCollection.row + farthestCollection.rowspan - baseArea[0] - partials;
+        let newLimit = newDragArea[2] + fill;
+
+        if (newLimit >= this.plugin.hot.countRows()) {
+          newDragArea[2] -= partials;
+
+        } else {
+          newDragArea[2] += partials ? fill : 0;
+        }
 
       } else if (dragDirection === 'right') {
-        newDragArea[3] += partials ? farthestCollection.col + farthestCollection.colspan - baseArea[1] - partials : 0;
+        let fill = farthestCollection.col + farthestCollection.colspan - baseArea[1] - partials;
+        let newLimit = newDragArea[3] + fill;
+
+        if (newLimit >= this.plugin.hot.countCols()) {
+          newDragArea[3] -= partials;
+
+        } else {
+          newDragArea[3] += partials ? fill : 0;
+        }
 
       } else if (dragDirection === 'up') {
-        newDragArea[0] -= partials ? baseArea[2] - partials - farthestCollection.row + 1 : 0;
+        let fill = baseArea[2] - partials - farthestCollection.row + 1;
+        let newLimit = newDragArea[0] + fill;
+
+        if (newLimit < 0) {
+          newDragArea[0] += partials;
+
+        } else {
+          newDragArea[0] -= partials ? fill : 0;
+        }
 
       } else if (dragDirection === 'left') {
-        newDragArea[1] -= partials ? baseArea[3] - partials - farthestCollection.col + 1 : 0;
+        let fill = baseArea[3] - partials - farthestCollection.col + 1;
+        let newLimit = newDragArea[1] + fill;
+
+        if (newLimit < 0) {
+          newDragArea[1] += partials;
+
+        } else {
+          newDragArea[1] -= partials ? fill : 0;
+        }
       }
     }
 
@@ -313,7 +345,7 @@ class AutofillCalculations {
         }
 
         if (j === foundCollections.length - 1) {
-          multiplier++;
+          multiplier += 1;
         }
       }
 
@@ -328,6 +360,7 @@ class AutofillCalculations {
    *
    * @private
    * @param {Array} changes The changes made.
+   * @returns {Object} Object with `from` and `to` properties, both containing `row` and `column` keys.
    */
   getRangeFromChanges(changes) {
     const rows = {min: null, max: null};
@@ -369,6 +402,7 @@ class AutofillCalculations {
    * @param {Array} baseArea The base selection area.
    * @param {Array} fullArea The base area extended by the drag area.
    * @param {String} direction Drag direction.
+   * @returns {Boolean}
    */
   dragAreaOverlapsCollections(baseArea, fullArea, direction) {
     const dragArea = this.getDragArea(baseArea, fullArea, direction);
