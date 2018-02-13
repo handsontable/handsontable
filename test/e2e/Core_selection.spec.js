@@ -16,33 +16,35 @@ describe('Core_selection', () => {
     let output = null;
 
     handsontable({
-      afterSelection(selectedCells) {
-        output = selectedCells;
+      afterSelection(row, column, rowEnd, columnEnd, preventScrolling, selectionLayerLevel) {
+        output = {row, column, rowEnd, columnEnd, preventScrolling, selectionLayerLevel};
       }
     });
     selectCell(1, 2);
 
-    expect(output.length).toBe(1);
-    expect(output[0].from.row).toBe(1);
-    expect(output[0].from.col).toBe(2);
-    expect(output[0].to.row).toBe(1);
-    expect(output[0].to.col).toBe(2);
+    expect(output.row).toBe(1);
+    expect(output.column).toBe(2);
+    expect(output.rowEnd).toBe(1);
+    expect(output.columnEnd).toBe(2);
+    expect(output.preventScrolling.value).toBe(false);
+    expect(output.selectionLayerLevel).toBe(0);
   });
 
   it('should trigger selection event', () => {
     let output = null;
 
     handsontable();
-    Handsontable.hooks.add('afterSelection', (selectedCells) => {
-      output = selectedCells;
+    Handsontable.hooks.add('afterSelection', (row, column, rowEnd, columnEnd, preventScrolling, selectionLayerLevel) => {
+      output = {row, column, rowEnd, columnEnd, preventScrolling, selectionLayerLevel};
     });
     selectCell(1, 2);
 
-    expect(output.length).toBe(1);
-    expect(output[0].from.row).toBe(1);
-    expect(output[0].from.col).toBe(2);
-    expect(output[0].to.row).toBe(1);
-    expect(output[0].to.col).toBe(2);
+    expect(output.row).toBe(1);
+    expect(output.column).toBe(2);
+    expect(output.rowEnd).toBe(1);
+    expect(output.columnEnd).toBe(2);
+    expect(output.preventScrolling.value).toBe(false);
+    expect(output.selectionLayerLevel).toBe(0);
   });
 
   it('this.rootElement should point to handsontable rootElement (onSelection)', function() {

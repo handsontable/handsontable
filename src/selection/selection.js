@@ -117,7 +117,7 @@ class Selection {
    * Indicate that selection process finished. It sets internaly `.inProgress` property to `false`.
    */
   finish() {
-    this.runLocalHooks('afterSelectionFinished', this.selectedRange);
+    this.runLocalHooks('afterSelectionFinished', Array.from(this.selectedRange));
     this.inProgress = false;
   }
 

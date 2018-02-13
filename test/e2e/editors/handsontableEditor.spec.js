@@ -175,14 +175,14 @@ describe('HandsontableEditor', () => {
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
             data: getManufacturerData(),
-            afterSelection(selectedCells) {
-              selections.push(['inner', selectedCells[0].from.row]);
+            afterSelection(row) {
+              selections.push(['inner', row]);
             }
           }
         }
       ],
-      afterSelection(selectedCells) {
-        selections.push(['outer', selectedCells[0].from.row]);
+      afterSelection(row) {
+        selections.push(['outer', row]);
       }
     });
     expect(selections.length).toBe(0);

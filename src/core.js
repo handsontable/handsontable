@@ -122,31 +122,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.selection = selection;
 
-  this.selection.addLocalHook('afterSelectionFinished', (cellRanges) => {
-    const selectedCellRanges = [];
-    const selectedCellRangesByProp = [];
-
-    arrayEach(cellRanges, (cellRange) => {
-      const literalRange = cellRange.toObject();
-      const literalRangeByProp = {
-        from: {
-          row: literalRange.from.row,
-          col: this.colToProp(literalRange.from.col),
-        },
-        to: {
-          row: literalRange.to.row,
-          col: this.colToProp(literalRange.to.col),
-        },
-      };
-
-      selectedCellRanges.push(literalRange);
-      selectedCellRangesByProp.push(literalRangeByProp);
-    });
-
-    this.runHooks('afterSelectionEnd', selectedCellRanges);
-    this.runHooks('afterSelectionEndByProp', selectedCellRangesByProp);
-  });
-
   this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
     this.runHooks('beforeSetRangeStart', cellCoords);
   });
@@ -167,29 +142,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   this.selection.addLocalHook('afterSetRangeEnd', (cellCoords, scrollToCell, keepEditorOpened) => {
-    const preventScrolling = createObjectPropListener('value');
-    const selectedCellRanges = [];
-    const selectedCellRangesByProp = [];
+    const preventScrolling = createObjectPropListener(false);
+    const selectionRange = this.selection.getSelectedRange();
+    const {from, to} = selectionRange.current();
+    const selectionLayerLevel = selectionRange.size() - 1;
 
-    arrayEach(this.selection.selectedRange, (cellRange) => {
-      const literalRange = cellRange.toObject();
-      const literalRangeByProp = {
-        from: {
-          row: literalRange.from.row,
-          col: this.colToProp(literalRange.from.col),
-        },
-        to: {
-          row: literalRange.to.row,
-          col: this.colToProp(literalRange.to.col),
-        },
-      };
-
-      selectedCellRanges.push(literalRange);
-      selectedCellRangesByProp.push(literalRangeByProp);
-    });
-
-    this.runHooks('afterSelection', selectedCellRanges, preventScrolling);
-    this.runHooks('afterSelectionByProp', selectedCellRangesByProp, preventScrolling);
+    this.runHooks('afterSelection', from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
+    this.runHooks('afterSelectionByProp', from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel);
 
     let isHeaderSelected = false;
     let areCoordsPositive = true;
@@ -230,6 +189,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     this._refreshBorders(null, keepEditorOpened);
+  });
+
+  this.selection.addLocalHook('afterSelectionFinished', (cellRanges) => {
+    const selectionLayerLevel = cellRanges.length - 1;
+    const {from, to} = cellRanges[selectionLayerLevel];
+
+    this.runHooks('afterSelectionEnd', from.row, from.col, to.row, to.col, selectionLayerLevel);
+    this.runHooks('afterSelectionEndByProp', from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
   });
 
   this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple) => {

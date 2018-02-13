@@ -660,10 +660,14 @@ class Menu {
   /**
    * On after selection listener.
    *
-   * @param {Array} selectedCells An array with selection coords.
+   * @param {Number} r Selection start row index.
+   * @param {Number} c Selection start column index.
+   * @param {Number} r2 Selection end row index.
+   * @param {Number} c2 Selection end column index.
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+   * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    */
-  onAfterSelection(selectedCells, preventScrolling) {
+  onAfterSelection(r, c, r2, c2, preventScrolling, selectionLayer) {
     if (this.keyEvent === false) {
       preventScrolling.value = true;
     }
