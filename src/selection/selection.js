@@ -143,11 +143,12 @@ class Selection {
     const isMultipleMode = this.settings.selectionMode === 'multiple';
     const isMultipleSelection = isUndefined(multipleSelection) ? isPressedCtrlKey() : multipleSelection;
 
+    this.runLocalHooks('beforeSetRangeStart', coords);
+
     if (!isMultipleMode || (isMultipleMode && !isMultipleSelection)) {
       this.selectedRange.clear();
     }
 
-    this.runLocalHooks('beforeSetRangeStart', coords);
     this.selectedRange.add(coords);
     this.setRangeEnd(coords, null, keepEditorOpened);
   }
@@ -164,11 +165,12 @@ class Selection {
     const isMultipleMode = this.settings.selectionMode === 'multiple';
     const isMultipleSelection = isUndefined(multipleSelection) ? isPressedCtrlKey() : multipleSelection;
 
+    this.runLocalHooks('beforeSetRangeStartOnly', coords);
+
     if (!isMultipleMode || (isMultipleMode && !isMultipleSelection)) {
       this.selectedRange.clear();
     }
 
-    this.runLocalHooks('beforeSetRangeStartOnly', coords);
     this.selectedRange.add(coords);
   }
 

@@ -119,17 +119,19 @@ function applyAlignClassName(row, col, type, alignment, cellDescriptor, property
 export function checkSelectionConsistency(ranges, comparator) {
   let result = false;
 
-  arrayEach(ranges, (range) => {
-    range.forAll((row, col) => {
-      if (comparator(row, col)) {
-        result = true;
+  if (Array.isArray(ranges)) {
+    arrayEach(ranges, (range) => {
+      range.forAll((row, col) => {
+        if (comparator(row, col)) {
+          result = true;
 
-        return false;
-      }
+          return false;
+        }
+      });
+
+      return result;
     });
-
-    return result;
-  });
+  }
 
   return result;
 }
