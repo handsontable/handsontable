@@ -261,10 +261,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterDeselect');
   });
   this.selection.addLocalHook('insertRowRequire', (totalRows) => {
-    this.alter('insert_row', totalRows);
+    this.alter('insert_row', totalRows, 1, 'auto');
   });
   this.selection.addLocalHook('insertColRequire', (totalCols) => {
-    this.alter('insert_col', totalCols);
+    this.alter('insert_col', totalCols, 1, 'auto');
   });
 
   grid = {
