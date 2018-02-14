@@ -86,6 +86,8 @@ class Selection {
 
   /**
    * Clears selection
+   *
+   * @returns {Selection}
    */
   clear() {
     this.cellRange = null;
@@ -118,7 +120,8 @@ class Selection {
    * @param {Number} sourceColumn Cell column coord
    * @param {String} className Class name
    * @param {Boolean} [markIntersections=false] If `true`, linear className generator will be used to add CSS classes
-   *                                            in a continuous manner.
+   *                                            in a continuous way.
+   * @returns {Selection}
    */
   addClassAtCoords(wotInstance, sourceRow, sourceColumn, className, markIntersections = false) {
     let TD = wotInstance.wtTable.getCell(new CellCoords(sourceRow, sourceColumn));
@@ -148,7 +151,7 @@ class Selection {
    * @return {Function}
    */
   linearClassNameGenerator(baseClassName, layerLevelOwner) {
-    // TODO(budnix): Make this recursive function Proper Tail Calls (TCO/PTC) friendly.
+    // TODO: Make this recursive function Proper Tail Calls (TCO/PTC) friendly.
     return function calcClassName(element, previousIndex = -1) {
       if (layerLevelOwner === 0 || previousIndex === 0) {
         return baseClassName;

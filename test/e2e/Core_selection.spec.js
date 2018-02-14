@@ -12,6 +12,141 @@ describe('Core_selection', () => {
     }
   });
 
+  describe('public API', () => {
+    it('should return valid coordinates when `.getSelected` and `.getSelectedLast` is called', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+        selectionMode: 'multiple',
+      });
+
+      const snapshot = [
+        [5, 4, 1, 1],
+        [2, 2, 7, 2],
+        [2, 4, 2, 4],
+        [7, 6, 8, 7],
+      ];
+
+      $(getCell(5, 4)).simulate('mousedown');
+      $(getCell(1, 1)).simulate('mouseover');
+      $(getCell(1, 1)).simulate('mouseup');
+
+      expect(getSelectedLast()).toEqual(snapshot[0]);
+      expect(getSelected()).toEqual([snapshot[0]]);
+
+      keyDown('ctrl');
+
+      $(getCell(2, 2)).simulate('mousedown');
+      $(getCell(7, 2)).simulate('mouseover');
+      $(getCell(7, 2)).simulate('mouseup');
+
+      expect(getSelectedLast()).toEqual(snapshot[1]);
+      expect(getSelected()).toEqual([snapshot[0], snapshot[1]]);
+
+      $(getCell(2, 4)).simulate('mousedown');
+      $(getCell(2, 4)).simulate('mouseover');
+      $(getCell(2, 4)).simulate('mouseup');
+
+      expect(getSelectedLast()).toEqual(snapshot[2]);
+      expect(getSelected()).toEqual([snapshot[0], snapshot[1], snapshot[2]]);
+
+      $(getCell(7, 6)).simulate('mousedown');
+      $(getCell(8, 7)).simulate('mouseover');
+      $(getCell(8, 7)).simulate('mouseup');
+
+      expect(getSelectedLast()).toEqual(snapshot[3]);
+      expect(getSelected()).toEqual(snapshot);
+    });
+
+    it('should return valid coordinates when `.getSelectedRange` and `.getSelectedRangeLast` is called', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+        selectionMode: 'multiple',
+      });
+
+      const snapshot = [
+        {from: {row: 5, col: 4}, to: {row: 1, col: 1}},
+        {from: {row: 2, col: 2}, to: {row: 7, col: 2}},
+        {from: {row: 2, col: 4}, to: {row: 2, col: 4}},
+        {from: {row: 7, col: 6}, to: {row: 8, col: 7}},
+      ];
+
+      $(getCell(5, 4)).simulate('mousedown');
+      $(getCell(1, 1)).simulate('mouseover');
+      $(getCell(1, 1)).simulate('mouseup');
+
+      expect(getSelectedRangeLast().toObject()).toEqual(snapshot[0]);
+      expect(getSelectedRange().map((cellRange) => cellRange.toObject())).toEqual([snapshot[0]]);
+
+      keyDown('ctrl');
+
+      $(getCell(2, 2)).simulate('mousedown');
+      $(getCell(7, 2)).simulate('mouseover');
+      $(getCell(7, 2)).simulate('mouseup');
+
+      expect(getSelectedRangeLast().toObject()).toEqual(snapshot[1]);
+      expect(getSelectedRange().map((cellRange) => cellRange.toObject())).toEqual([snapshot[0], snapshot[1]]);
+
+      $(getCell(2, 4)).simulate('mousedown');
+      $(getCell(2, 4)).simulate('mouseover');
+      $(getCell(2, 4)).simulate('mouseup');
+
+      expect(getSelectedRangeLast().toObject()).toEqual(snapshot[2]);
+      expect(getSelectedRange().map((cellRange) => cellRange.toObject())).toEqual([snapshot[0], snapshot[1], snapshot[2]]);
+
+      $(getCell(7, 6)).simulate('mousedown');
+      $(getCell(8, 7)).simulate('mouseover');
+      $(getCell(8, 7)).simulate('mouseup');
+
+      const selectedRange = getSelectedRange().map((cellRange) => cellRange.toObject());
+
+      expect(getSelectedRangeLast().toObject()).toEqual(snapshot[3]);
+      expect(selectedRange).toEqual(snapshot);
+    });
+
+    it('should make all selected cells empty when `.emptySelectedCells` is called', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(9, 8),
+        selectionMode: 'multiple',
+      });
+
+      $(getCell(5, 4)).simulate('mousedown');
+      $(getCell(1, 1)).simulate('mouseover');
+      $(getCell(1, 1)).simulate('mouseup');
+
+      keyDown('ctrl');
+
+      $(getCell(2, 2)).simulate('mousedown');
+      $(getCell(7, 2)).simulate('mouseover');
+      $(getCell(7, 2)).simulate('mouseup');
+
+      $(getCell(2, 4)).simulate('mousedown');
+      $(getCell(2, 4)).simulate('mouseover');
+      $(getCell(2, 4)).simulate('mouseup');
+
+      $(getCell(7, 6)).simulate('mousedown');
+      $(getCell(8, 7)).simulate('mouseover');
+      $(getCell(8, 7)).simulate('mouseup');
+
+      emptySelectedCells();
+
+      /* eslint-disable no-multi-spaces, comma-spacing */
+      const snapshot = [
+        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1'],
+        ['A2',  '',   '',   '',   '',  'F2', 'G2', 'H2'],
+        ['A3',  '',   '',   '',   '',  'F3', 'G3', 'H3'],
+        ['A4',  '',   '',   '',   '',  'F4', 'G4', 'H4'],
+        ['A5',  '',   '',   '',   '',  'F5', 'G5', 'H5'],
+        ['A6',  '',   '',   '',   '',  'F6', 'G6', 'H6'],
+        ['A7', 'B7',  '',  'D7', 'E7', 'F7', 'G7', 'H7'],
+        ['A8', 'B8',  '',  'D8', 'E8', 'F8',  '',   '',],
+        ['A9', 'B9', 'C9', 'D9', 'E9', 'F9',  '',   '',],
+      ];
+      /* eslint-enable no-multi-spaces, comma-spacing */
+
+      expect(getData()).toEqual(snapshot);
+    });
+  });
+
   it('should call onSelection callback', () => {
     let output = null;
 
@@ -1109,5 +1244,502 @@ describe('Core_selection', () => {
       expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
       done();
     }, 200);
+  });
+
+  describe('multiple selection mode', () => {
+    it('should select cells by using two layers when CTRL key is pressed (default mode of the selectionMode option)', () => {
+      handsontable({
+        startRows: 8,
+        startCols: 10
+      });
+
+      $(getCell(1, 1)).simulate('mousedown');
+      $(getCell(4, 4)).simulate('mouseover');
+      $(getCell(4, 4)).simulate('mouseup');
+
+      expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+
+      keyDown('ctrl');
+
+      $(getCell(3, 3)).simulate('mousedown');
+      $(getCell(5, 6)).simulate('mouseover');
+      $(getCell(5, 6)).simulate('mouseup');
+
+      expect(getSelected()).toEqual([[1, 1, 4, 4], [3, 3, 5, 6]]);
+    });
+
+    it('should be disallowed to select non-consecutive cells when selectionMode is set as `single`', () => {
+      handsontable({
+        startRows: 8,
+        startCols: 10,
+        selectionMode: 'single',
+      });
+
+      $(getCell(1, 1)).simulate('mousedown');
+      $(getCell(4, 4)).simulate('mouseover');
+      $(getCell(4, 4)).simulate('mouseup');
+
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+
+      keyDown('ctrl');
+
+      $(getCell(3, 3)).simulate('mousedown');
+      $(getCell(5, 6)).simulate('mouseover');
+      $(getCell(5, 6)).simulate('mouseup');
+
+      expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+    });
+
+    it('should be allowed to select consecutive cells when selectionMode is set as `range`', () => {
+      handsontable({
+        startRows: 8,
+        startCols: 10,
+        selectionMode: 'range',
+      });
+
+      $(getCell(1, 1)).simulate('mousedown');
+      $(getCell(4, 4)).simulate('mouseover');
+      $(getCell(4, 4)).simulate('mouseup');
+
+      expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+
+      $(getCell(3, 3)).simulate('mousedown');
+      $(getCell(5, 6)).simulate('mouseover');
+      $(getCell(5, 6)).simulate('mouseup');
+
+      expect(getSelected()).toEqual([[3, 3, 5, 6]]);
+    });
+
+    it('should be disallowed to select non-consecutive cells when selectionMode is set as `range`', () => {
+      handsontable({
+        startRows: 8,
+        startCols: 10,
+        selectionMode: 'range',
+      });
+
+      $(getCell(1, 1)).simulate('mousedown');
+      $(getCell(4, 4)).simulate('mouseover');
+      $(getCell(4, 4)).simulate('mouseup');
+
+      expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+
+      keyDown('ctrl');
+
+      $(getCell(3, 3)).simulate('mousedown');
+      $(getCell(5, 6)).simulate('mouseover');
+      $(getCell(5, 6)).simulate('mouseup');
+
+      expect(getSelected()).toEqual([[3, 3, 5, 6]]);
+    });
+
+    it('should properly colorize selection layers including layer intersections', () => {
+      handsontable({
+        startRows: 21,
+        startCols: 30,
+        selectionMode: 'multiple',
+      });
+
+      $(getCell(0, 0)).simulate('mousedown');
+      $(getCell(20, 15)).simulate('mouseover');
+      $(getCell(20, 15)).simulate('mouseup');
+
+      keyDown('ctrl');
+
+      $(getCell(1, 1)).simulate('mousedown');
+      $(getCell(19, 16)).simulate('mouseover');
+      $(getCell(19, 16)).simulate('mouseup');
+
+      $(getCell(2, 2)).simulate('mousedown');
+      $(getCell(18, 17)).simulate('mouseover');
+      $(getCell(18, 17)).simulate('mouseup');
+
+      $(getCell(3, 3)).simulate('mousedown');
+      $(getCell(17, 18)).simulate('mouseover');
+      $(getCell(17, 18)).simulate('mouseup');
+
+      $(getCell(4, 4)).simulate('mousedown');
+      $(getCell(16, 19)).simulate('mouseover');
+      $(getCell(16, 19)).simulate('mouseup');
+
+      $(getCell(5, 5)).simulate('mousedown');
+      $(getCell(15, 20)).simulate('mouseover');
+      $(getCell(15, 20)).simulate('mouseup');
+
+      $(getCell(6, 6)).simulate('mousedown');
+      $(getCell(14, 21)).simulate('mouseover');
+      $(getCell(14, 21)).simulate('mouseup');
+
+      $(getCell(7, 7)).simulate('mousedown');
+      $(getCell(13, 22)).simulate('mouseover');
+      $(getCell(13, 22)).simulate('mouseup');
+
+      $(getCell(8, 8)).simulate('mousedown');
+      $(getCell(12, 23)).simulate('mouseover');
+      $(getCell(12, 23)).simulate('mouseup');
+
+      $(getCell(9, 9)).simulate('mousedown');
+      $(getCell(11, 24)).simulate('mouseover');
+      $(getCell(11, 24)).simulate('mouseup');
+
+      $(getCell(10, 10)).simulate('mousedown');
+      $(getCell(10, 25)).simulate('mouseover');
+      $(getCell(10, 25)).simulate('mouseup');
+
+      // This snapshot describes what the CSS classes the cells should contain. The letters indicate the layer level such as:
+      // ' ' - An empty string means that there is no selection;
+      // A - First layer, 'area' class name;
+      // B - Second layer, 'area-1' class name;
+      // C - Third layer, 'area-2' class name.
+      // ...and so on
+      //
+      // Multiple selection generates CSS class names until it reaches 8-th layer ('area-7').
+      const snapshot = [
+        ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        ['0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        ['0', '1', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        ['0', '1', '2', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        ['0', '1', '2', '3', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' ', ' '],
+        ['0', '1', '2', '3', '4', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' '],
+        ['0', '1', '2', '3', '4', '5', '6', '6', '6', '6', '6', '6', '6', '6', '6', '6', '5', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' '],
+        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' ', ' '],
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '8', '8', '8', '8', '8', '8', '8', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' '],
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '8', '8', '8', '8', '8', '8', '8', '8', '7', '6', '5', '4', '3', '2', '1', '0', ' '],
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '9', '9', '9', '9', '9', '9', '9', '8', '7', '6', '5', '4', '3', '2', '1', '0'],
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '8', '8', '8', '8', '8', '8', '8', '8', '7', '6', '5', '4', '3', '2', '1', '0', ' '],
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '8', '8', '8', '8', '8', '8', '8', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' '],
+        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' ', ' '],
+        ['0', '1', '2', '3', '4', '5', '6', '6', '6', '6', '6', '6', '6', '6', '6', '6', '5', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' '],
+        ['0', '1', '2', '3', '4', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' '],
+        ['0', '1', '2', '3', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' ', ' '],
+        ['0', '1', '2', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        ['0', '1', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        ['0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+      ];
+
+      const currentState = [];
+
+      snapshot.forEach((rowData, rowIndex) => {
+        const currentRowState = [];
+
+        rowData.forEach((layer, columnIndex) => {
+          if (layer === ' ') {
+            currentRowState.push(' ');
+          } else {
+            const numericLayer = parseInt(layer, 10);
+            const className = numericLayer === 0 ? 'area' : `area-${numericLayer <= 7 ? numericLayer : 7}`;
+
+            currentRowState.push(getCell(rowIndex, columnIndex).classList.contains(className) ? layer : 'x');
+          }
+        });
+
+        currentState.push(currentRowState);
+      });
+
+      expect(currentState).toEqual(snapshot);
+    });
+
+    it('should call afterSelection and afterSelectionEnd hooks with proper arguments', () => {
+      const hooks = jasmine.createSpyObj('hooks', ['afterSelection', 'afterSelectionEnd']);
+      handsontable({
+        startRows: 21,
+        startCols: 30,
+        selectionMode: 'multiple',
+        afterSelection: hooks.afterSelection,
+        afterSelectionEnd: hooks.afterSelectionEnd,
+      });
+
+      $(getCell(0, 0)).simulate('mousedown');
+      $(getCell(20, 15)).simulate('mouseover');
+      $(getCell(20, 15)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([0, 0, 0, 0, jasmine.any(Object), 0]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([0, 0, 20, 15, jasmine.any(Object), 0]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 0, 20, 15, 0, void 0]);
+
+      keyDown('ctrl');
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(1, 1)).simulate('mousedown');
+      $(getCell(19, 16)).simulate('mouseover');
+      $(getCell(19, 16)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([1, 1, 1, 1, jasmine.any(Object), 1]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([1, 1, 19, 16, jasmine.any(Object), 1]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([1, 1, 19, 16, 1, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(2, 2)).simulate('mousedown');
+      $(getCell(18, 17)).simulate('mouseover');
+      $(getCell(18, 17)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([2, 2, 2, 2, jasmine.any(Object), 2]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([2, 2, 18, 17, jasmine.any(Object), 2]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([2, 2, 18, 17, 2, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(3, 3)).simulate('mousedown');
+      $(getCell(17, 18)).simulate('mouseover');
+      $(getCell(17, 18)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([3, 3, 3, 3, jasmine.any(Object), 3]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([3, 3, 17, 18, jasmine.any(Object), 3]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([3, 3, 17, 18, 3, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(4, 4)).simulate('mousedown');
+      $(getCell(16, 19)).simulate('mouseover');
+      $(getCell(16, 19)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([4, 4, 4, 4, jasmine.any(Object), 4]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([4, 4, 16, 19, jasmine.any(Object), 4]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([4, 4, 16, 19, 4, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(5, 5)).simulate('mousedown');
+      $(getCell(15, 20)).simulate('mouseover');
+      $(getCell(15, 20)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([5, 5, 5, 5, jasmine.any(Object), 5]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([5, 5, 15, 20, jasmine.any(Object), 5]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([5, 5, 15, 20, 5, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(6, 6)).simulate('mousedown');
+      $(getCell(14, 21)).simulate('mouseover');
+      $(getCell(14, 21)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([6, 6, 6, 6, jasmine.any(Object), 6]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([6, 6, 14, 21, jasmine.any(Object), 6]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([6, 6, 14, 21, 6, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(7, 7)).simulate('mousedown');
+      $(getCell(13, 22)).simulate('mouseover');
+      $(getCell(13, 22)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([7, 7, 7, 7, jasmine.any(Object), 7]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([7, 7, 13, 22, jasmine.any(Object), 7]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([7, 7, 13, 22, 7, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(8, 8)).simulate('mousedown');
+      $(getCell(12, 23)).simulate('mouseover');
+      $(getCell(12, 23)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([8, 8, 8, 8, jasmine.any(Object), 8]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([8, 8, 12, 23, jasmine.any(Object), 8]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([8, 8, 12, 23, 8, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(9, 9)).simulate('mousedown');
+      $(getCell(11, 24)).simulate('mouseover');
+      $(getCell(11, 24)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([9, 9, 9, 9, jasmine.any(Object), 9]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([9, 9, 11, 24, jasmine.any(Object), 9]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([9, 9, 11, 24, 9, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(10, 10)).simulate('mousedown');
+      $(getCell(10, 25)).simulate('mouseover');
+      $(getCell(10, 25)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([10, 10, 10, 10, jasmine.any(Object), 10]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([10, 10, 10, 25, jasmine.any(Object), 10]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 10, 10, 25, 10, void 0]);
+    });
+
+    it('should call afterSelectionByProp and afterSelectionEndByProp hooks with proper arguments', () => {
+      const hooks = jasmine.createSpyObj('hooks', ['afterSelection', 'afterSelectionEnd']);
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(21, 30),
+        selectionMode: 'multiple',
+        afterSelectionByProp: hooks.afterSelection,
+        afterSelectionEndByProp: hooks.afterSelectionEnd,
+      });
+
+      $(getCell(0, 0)).simulate('mousedown');
+      $(getCell(20, 15)).simulate('mouseover');
+      $(getCell(20, 15)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([0, 'prop0', 0, 'prop0', jasmine.any(Object), 0]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([0, 'prop0', 20, 'prop15', jasmine.any(Object), 0]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 'prop0', 20, 'prop15', 0, void 0]);
+
+      keyDown('ctrl');
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(1, 1)).simulate('mousedown');
+      $(getCell(19, 16)).simulate('mouseover');
+      $(getCell(19, 16)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([1, 'prop1', 1, 'prop1', jasmine.any(Object), 1]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([1, 'prop1', 19, 'prop16', jasmine.any(Object), 1]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([1, 'prop1', 19, 'prop16', 1, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(2, 2)).simulate('mousedown');
+      $(getCell(18, 17)).simulate('mouseover');
+      $(getCell(18, 17)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([2, 'prop2', 2, 'prop2', jasmine.any(Object), 2]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([2, 'prop2', 18, 'prop17', jasmine.any(Object), 2]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([2, 'prop2', 18, 'prop17', 2, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(3, 3)).simulate('mousedown');
+      $(getCell(17, 18)).simulate('mouseover');
+      $(getCell(17, 18)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([3, 'prop3', 3, 'prop3', jasmine.any(Object), 3]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([3, 'prop3', 17, 'prop18', jasmine.any(Object), 3]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([3, 'prop3', 17, 'prop18', 3, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(4, 4)).simulate('mousedown');
+      $(getCell(16, 19)).simulate('mouseover');
+      $(getCell(16, 19)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([4, 'prop4', 4, 'prop4', jasmine.any(Object), 4]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([4, 'prop4', 16, 'prop19', jasmine.any(Object), 4]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([4, 'prop4', 16, 'prop19', 4, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(5, 5)).simulate('mousedown');
+      $(getCell(15, 20)).simulate('mouseover');
+      $(getCell(15, 20)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([5, 'prop5', 5, 'prop5', jasmine.any(Object), 5]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([5, 'prop5', 15, 'prop20', jasmine.any(Object), 5]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([5, 'prop5', 15, 'prop20', 5, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(6, 6)).simulate('mousedown');
+      $(getCell(14, 21)).simulate('mouseover');
+      $(getCell(14, 21)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([6, 'prop6', 6, 'prop6', jasmine.any(Object), 6]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([6, 'prop6', 14, 'prop21', jasmine.any(Object), 6]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([6, 'prop6', 14, 'prop21', 6, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(7, 7)).simulate('mousedown');
+      $(getCell(13, 22)).simulate('mouseover');
+      $(getCell(13, 22)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([7, 'prop7', 7, 'prop7', jasmine.any(Object), 7]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([7, 'prop7', 13, 'prop22', jasmine.any(Object), 7]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([7, 'prop7', 13, 'prop22', 7, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(8, 8)).simulate('mousedown');
+      $(getCell(12, 23)).simulate('mouseover');
+      $(getCell(12, 23)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([8, 'prop8', 8, 'prop8', jasmine.any(Object), 8]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([8, 'prop8', 12, 'prop23', jasmine.any(Object), 8]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([8, 'prop8', 12, 'prop23', 8, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(9, 9)).simulate('mousedown');
+      $(getCell(11, 24)).simulate('mouseover');
+      $(getCell(11, 24)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([9, 'prop9', 9, 'prop9', jasmine.any(Object), 9]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([9, 'prop9', 11, 'prop24', jasmine.any(Object), 9]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([9, 'prop9', 11, 'prop24', 9, void 0]);
+
+      hooks.afterSelection.calls.reset();
+      hooks.afterSelectionEnd.calls.reset();
+
+      $(getCell(10, 10)).simulate('mousedown');
+      $(getCell(10, 25)).simulate('mouseover');
+      $(getCell(10, 25)).simulate('mouseup');
+
+      expect(hooks.afterSelection.calls.count()).toBe(2);
+      expect(hooks.afterSelection.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop10', jasmine.any(Object), 10]);
+      expect(hooks.afterSelection.calls.argsFor(1)).toEqual([10, 'prop10', 10, 'prop25', jasmine.any(Object), 10]);
+      expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop25', 10, void 0]);
+    });
   });
 });

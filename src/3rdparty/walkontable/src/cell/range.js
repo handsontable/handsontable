@@ -1,22 +1,22 @@
 import CellCoords from './../cell/coords';
 
 /**
- * A cell range is a set of exactly two CellCoords (that can be the same or different)
+ * A cell range is a set of exactly two CellCoords (that can be the same or different).
  *
  * @class CellRange
  */
 class CellRange {
   /**
    * @param {CellCoords} highlight Used to draw bold border around a cell where selection was
-   *                                          started and to edit the cell when you press Enter
-   * @param {CellCoords} from Usually the same as highlight, but in Excel there is distinction - one can change
-   *                                     highlight within a selection
-   * @param {CellCoords} to End selection
+   *                               started and to edit the cell when you press Enter.
+   * @param {CellCoords} [from] Usually the same as highlight, but in Excel there is distinction - one can change
+   *                            highlight within a selection.
+   * @param {CellCoords} [to] End selection.
    */
-  constructor(highlight, from, to) {
+  constructor(highlight, from = highlight, to = highlight) {
     this.highlight = highlight;
-    this.from = from === void 0 ? highlight : from;
-    this.to = to === void 0 ? highlight : to;
+    this.from = from;
+    this.to = to;
   }
 
   /**
@@ -462,6 +462,12 @@ class CellRange {
     }
   }
 
+  /**
+   * Convert CellRange to literal object.
+   *
+   * @return {Object} Returns a literal object with `from` and `to` properties which each of that object
+   *                  contains `row` and `col` keys.
+   */
   toObject() {
     return {
       from: this.from.toObject(),

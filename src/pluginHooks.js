@@ -765,7 +765,7 @@ const REGISTERED_HOOKS = [
    * Callback fired before setting range is started.
    *
    * @event Hooks#beforeSetRangeStart
-   * @param {Array} coords CellCoords array.
+   * @param {CellCoords} coords CellCoords instance.
    */
   'beforeSetRangeStart',
 
@@ -773,7 +773,7 @@ const REGISTERED_HOOKS = [
    * Callback fired before setting range is ended.
    *
    * @event Hooks#beforeSetRangeEnd
-   * @param {Array} coords CellCoords array.
+   * @param {CellCoords} coords CellCoords instance.
    */
   'beforeSetRangeEnd',
 

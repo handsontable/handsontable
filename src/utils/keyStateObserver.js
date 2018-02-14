@@ -1,16 +1,16 @@
 import EventManager from '../eventManager';
-import {isCtrlKey, isKey} from '../helpers/unicode';
+import {isCtrlMetaKey, isKey} from '../helpers/unicode';
 import {arrayEach, arrayReduce} from '../helpers/array';
 
 const eventManager = new EventManager();
 const pressedKeys = new Set();
-let observeCount = 0;
+let refCount = 0;
 
 /**
  * Begins observing keyboard keys states.
  */
 function startObserving() {
-  if (observeCount === 0) {
+  if (refCount === 0) {
     eventManager.addEventListener(document, 'keydown', (event) => {
       if (!pressedKeys.has(event.keyCode)) {
         pressedKeys.add(event.keyCode);
@@ -21,25 +21,36 @@ function startObserving() {
         pressedKeys.delete(event.keyCode);
       }
     });
-    eventManager.addEventListener(document, 'visibilitychange', (event) => {
+    eventManager.addEventListener(document, 'visibilitychange', () => {
       if (document.hidden) {
         pressedKeys.clear();
       }
     });
   }
-  observeCount++;
+
+  refCount++;
 }
 
 /**
  * Stops observing keyboard keys states and clear all previously saved states.
  */
 function stopObserving() {
-  observeCount--;
-
-  if (observeCount === 0) {
-    eventManager.clearEvents();
-    pressedKeys.clear();
+  if (refCount > 0) {
+    refCount--;
   }
+
+  if (refCount === 0) {
+    _resetState();
+  }
+}
+
+/**
+ * Remove all listeners attached to the DOM and clear all previously saved states.
+ */
+function _resetState() {
+  eventManager.clearEvents();
+  pressedKeys.clear();
+  refCount = 0;
 }
 
 /**
@@ -58,12 +69,24 @@ function isPressed(keyCodes) {
  * @return {Boolean}
  */
 function isPressedCtrlKey() {
-  return Array.from(pressedKeys.values()).some((_keyCode) => isCtrlKey(_keyCode));
+  return Array.from(pressedKeys.values()).some((_keyCode) => isCtrlMetaKey(_keyCode));
+}
+
+/**
+ * Returns reference count. Useful for debugging and testing purposes.
+ *
+ * @constructor
+ * @return {[type]}
+ */
+function _getRefCount() {
+  return refCount;
 }
 
 export {
-  isPressedCtrlKey,
+  _getRefCount,
+  _resetState,
   isPressed,
+  isPressedCtrlKey,
   startObserving,
   stopObserving,
 };

@@ -147,8 +147,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const {from, to} = selectionRange.current();
     const selectionLayerLevel = selectionRange.size() - 1;
 
-    this.runHooks('afterSelection', from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
-    this.runHooks('afterSelectionByProp', from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel);
+    this.runHooks('afterSelection',
+      from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
+    this.runHooks('afterSelectionByProp',
+      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel);
 
     let isHeaderSelected = false;
     let areCoordsPositive = true;
@@ -195,8 +197,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const selectionLayerLevel = cellRanges.length - 1;
     const {from, to} = cellRanges[selectionLayerLevel];
 
-    this.runHooks('afterSelectionEnd', from.row, from.col, to.row, to.col, selectionLayerLevel);
-    this.runHooks('afterSelectionEndByProp', from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+    this.runHooks('afterSelectionEnd',
+      from.row, from.col, to.row, to.col, selectionLayerLevel);
+    this.runHooks('afterSelectionEndByProp',
+      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
   });
 
   this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple) => {
@@ -760,8 +764,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.view = new TableView(this);
     editorManager = new EditorManager(instance, priv, selection, datamap);
 
-    this.editorManager = editorManager;
-
     this.forceFullRender = true; // used when data was changed
 
     instance.runHooks('init');
@@ -1228,9 +1230,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * Start row and start col are the coordinates of the active cell (where the selection was started).
    *
+   * The version 0.36.0 adds a non-consecutive selection feature. Since this version, the method returns an array of arrays.
+   * Additionally to collect the coordinates of the currently selected area (as it was previously done by the method)
+   * you need to use `getSelectedLast` method.
+   *
    * @memberof Core#
    * @function getSelected
-   * @returns {Array[]} An array of arrays of the selection's indexes.
+   * @returns {Array[]|undefined} An array of arrays of the selection's coordinates.
    */
   this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
@@ -1241,6 +1247,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns the last coordinates applied to the table as a an array `[startRow, startCol, endRow, endCol]`.
    *
+   * @since 0.36.0
    * @memberof Core#
    * @function getSelectedLast
    * @returns {Array|undefined} An array of the selection's coordinates.
@@ -1259,10 +1266,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns the current selection as an array of CellRange objects.
    *
+   * The version 0.36.0 adds a non-consecutive selection feature. Since this version, the method returns an array of arrays.
+   * Additionally to collect the coordinates of the currently selected area (as it was previously done by the method)
+   * you need to use `getSelectedRangeLast` method.
+   *
    * @memberof Core#
    * @function getSelectedRange
    * @since 0.11
-   * @returns {CellRange[]} Selected range object or undefined` if there is no selection.
+   * @returns {CellRange[]|undefined} Selected range object or undefined` if there is no selection.
    */
   this.getSelectedRange = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {

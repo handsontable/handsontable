@@ -94,7 +94,7 @@ class CellCoords {
   }
 
   /**
-   * Convert CellCoords to literla object.
+   * Convert CellCoords to literal object.
    *
    * @return {Object} Returns a literal object with `row` and `col` properties.
    */
