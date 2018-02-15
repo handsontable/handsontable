@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 0.36.0
- * Release date: 16/02/2018 (built at 15/02/2018 13:50:25)
+ * Release date: 16/02/2018 (built at 15/02/2018 14:22:37)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -15093,6 +15093,7 @@ function Core(rootElement, userSettings) {
   /**
    * Get parsed number from numeric string.
    *
+   * @private
    * @param {String} numericData Float (separated by a dot or a comma) or integer.
    * @returns {Number} Number if we get data in parsable format, not changed value otherwise.
    */
@@ -33923,7 +33924,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '15/02/2018 13:50:25';
+Handsontable.buildDate = '15/02/2018 14:22:37';
 Handsontable.packageName = 'handsontable';
 Handsontable.version = '0.36.0';
 
