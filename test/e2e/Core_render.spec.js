@@ -100,39 +100,15 @@ describe('Core_render', () => {
   });
 
   it('should run beforeValueRender hook', function() {
-    // some primitive i18n function
-    const i18n = (locale) => {
-      if (locale.startsWith('ch')) {
-        return { 'car.brand.bmw': '寶馬', 'car.brand.mercedes': '奔馳', 'car.brand.volkswagen': '大眾汽車'};
-      }
-      return { 'car.brand.bmw': 'BMW', 'car.brand.mercedes': 'Mercedes', 'car.brand.volkswagen': 'Volkswagen'};
-    };
-
-    // assume somewhere we get the user locale
-    const userLocale = 'ch_TW';
-
     handsontable({
-      data: [
-        {brand: 'car.brand.bmw', likes: 100},
-        {brand: 'car.brand.mercedes', likes: 200},
-        {brand: 'car.brand.volkswagen', likes: 150}
-      ],
-      columns: [
-        {data: 'brand'},
-        {data: 'likes', type: 'numeric'},
-      ],
-      beforeValueRender(td, row, col, prop, value, cellProperties) {
-        if (prop === 'brand') {
-          return i18n(userLocale)[value];
-        }
-        return value;
+      data: [['A1', 'B1']],
+      beforeValueRender(value, cellProperties) {
+        return cellProperties.col === 0 ? 'Test' : value;
       }
     });
 
-    // Value is overwritten by beforeValueRender
-    expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('寶馬');
-    expect(this.$container.find('td:eq(1)')[0].innerHTML).toEqual('100');
-    expect(this.$container.find('td:eq(2)')[0].innerHTML).toEqual('奔馳');
+    expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('Test');
+    expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('B1');
   });
 
   it('should run beforeRenderer hook', function() {
