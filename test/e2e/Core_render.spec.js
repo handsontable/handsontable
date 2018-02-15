@@ -108,7 +108,7 @@ describe('Core_render', () => {
     });
 
     expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('Test');
-    expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('B1');
+    expect(this.$container.find('td:eq(1)')[0].innerHTML).toEqual('B1');
   });
 
   it('should run beforeRenderer hook', function() {
