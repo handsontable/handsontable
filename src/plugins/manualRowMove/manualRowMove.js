@@ -192,9 +192,12 @@ class ManualRowMove extends BasePlugin {
         let actualPosition = this.rowsMapper.getIndexByValue(row);
 
         if (actualPosition !== target) {
-          this.rowsMapper.swapIndexes(actualPosition, target + index);
+          this.rowsMapper.moveRow(actualPosition, target + index);
         }
       });
+
+      // after moving we have to clear rowsMapper from null entries
+      this.rowsMapper.clearNull();
     }
 
     this.hot.runHooks('afterRowMove', rows, target);
@@ -597,6 +600,7 @@ class ManualRowMove extends BasePlugin {
    */
   onMouseUp() {
     let priv = privatePool.get(this);
+    let target = priv.target.row;
     let rowsLen = priv.rowsToMove.length;
 
     priv.pressed = false;
@@ -608,12 +612,12 @@ class ManualRowMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
-    if (rowsLen < 1 || priv.target.row === void 0 || priv.rowsToMove.indexOf(priv.target.row) > -1 ||
-        (priv.rowsToMove[rowsLen - 1] === priv.target.row - 1)) {
+    if (rowsLen < 1 || target === void 0 || priv.rowsToMove.indexOf(target) > -1 ||
+        (priv.rowsToMove[rowsLen - 1] === target - 1)) {
       return;
     }
 
-    this.moveRows(priv.rowsToMove, priv.target.coords.row);
+    this.moveRows(priv.rowsToMove, target);
 
     this.persistentStateSave();
     this.hot.render();
