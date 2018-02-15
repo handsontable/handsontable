@@ -162,7 +162,7 @@ describe('HandsontableEditor', () => {
     keyDownUp('arrow_down');
     keyDownUp('arrow_down');
 
-    expect(getSelected()).toEqual([4, 0, 4, 0]);
+    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
   });
 
   it('should focus the TD after HT editor is prepared, finished (by keyboard) and destroyed', () => {
@@ -175,14 +175,14 @@ describe('HandsontableEditor', () => {
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
             data: getManufacturerData(),
-            afterSelection() {
-              selections.push(['inner', arguments[0]]); // arguments[0] is selection start row
+            afterSelection(row) {
+              selections.push(['inner', row]);
             }
           }
         }
       ],
-      afterSelection() {
-        selections.push(['outer', arguments[0]]); // arguments[0] is selection start row
+      afterSelection(row) {
+        selections.push(['outer', row]);
       }
     });
     expect(selections.length).toBe(0);
@@ -226,7 +226,7 @@ describe('HandsontableEditor', () => {
       var ht = hot.getActiveEditor();
       var innerHot = ht.htEditor;
 
-      expect(innerHot.getSelected()).toEqual([0, 0, 0, 0]);
+      expect(innerHot.getSelected()).toEqual([[0, 0, 0, 0]]);
     });
 
     it('should hide textarea', () => {
