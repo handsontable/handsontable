@@ -89,6 +89,7 @@ export function arrayFilter(array, predicate) {
   if (!Array.isArray(array)) {
     iterable = Array.from(array);
   }
+
   const length = iterable.length;
   const result = [];
   let resIndex = -1;

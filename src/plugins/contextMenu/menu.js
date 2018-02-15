@@ -667,7 +667,7 @@ class Menu {
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
    * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    */
-  onAfterSelection(r, c, r2, c2, preventScrolling, selectionLayer) {
+  onAfterSelection(r, c, r2, c2, preventScrolling) {
     if (this.keyEvent === false) {
       preventScrolling.value = true;
     }

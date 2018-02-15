@@ -326,7 +326,7 @@ class Border {
 
     const rowsCount = this.wot.wtTable.getRenderedRowsCount();
 
-    for (let i = 0; i < rowsCount; i++) {
+    for (let i = 0; i < rowsCount; i += 1) {
       let s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
@@ -335,7 +335,7 @@ class Border {
       }
     }
 
-    for (let i = rowsCount - 1; i >= 0; i--) {
+    for (let i = rowsCount - 1; i >= 0; i -= 1) {
       let s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
@@ -346,7 +346,7 @@ class Border {
 
     const columnsCount = this.wot.wtTable.getRenderedColumnsCount();
 
-    for (let i = 0; i < columnsCount; i++) {
+    for (let i = 0; i < columnsCount; i += 1) {
       let s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
@@ -355,7 +355,7 @@ class Border {
       }
     }
 
-    for (let i = columnsCount - 1; i >= 0; i--) {
+    for (let i = columnsCount - 1; i >= 0; i -= 1) {
       let s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
@@ -374,12 +374,11 @@ class Border {
     const fromOffset = offset(fromTD);
     const toOffset = isMultiple ? offset(toTD) : fromOffset;
     const containerOffset = offset(this.wot.wtTable.TABLE);
-
     const minTop = fromOffset.top;
     const minLeft = fromOffset.left;
+
     let height = toOffset.top + outerHeight(toTD) - minTop;
     let width = toOffset.left + outerWidth(toTD) - minLeft;
-
     let top = minTop - containerOffset.top - 1;
     let left = minLeft - containerOffset.left - 1;
     let style = getComputedStyle(fromTD);

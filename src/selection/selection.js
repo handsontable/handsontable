@@ -243,6 +243,7 @@ class Selection {
         }
       }
     }
+
     if (this.highlight.isEnabledFor(HEADER_TYPE)) {
       if (this.settings.selectionMode === 'single') {
         headerHighlight.add(cellRange.highlight);

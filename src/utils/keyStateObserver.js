@@ -28,7 +28,7 @@ function startObserving() {
     });
   }
 
-  refCount++;
+  refCount += 1;
 }
 
 /**
@@ -36,7 +36,7 @@ function startObserving() {
  */
 function stopObserving() {
   if (refCount > 0) {
-    refCount--;
+    refCount -= 1;
   }
 
   if (refCount === 0) {

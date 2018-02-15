@@ -160,7 +160,7 @@ class Selection {
       let index = previousIndex >= 0 ? previousIndex : layerLevelOwner;
       let className = baseClassName;
 
-      index--;
+      index -= 1;
 
       const previousClassName = index === 0 ? baseClassName : `${baseClassName}-${index}`;
 
