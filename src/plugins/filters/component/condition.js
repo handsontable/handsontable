@@ -183,7 +183,7 @@ class ConditionComponent extends BaseComponent {
   reset() {
     const lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
     const visualIndex = lastSelectedColumn && lastSelectedColumn.visualIndex;
-    const columnType = this.hot.getDataType.apply(this.hot, this.hot.getSelected() || [0, visualIndex]);
+    const columnType = this.hot.getDataType.apply(this.hot, this.hot.getSelectedLast() || [0, visualIndex]);
     const items = getOptionsList(columnType);
 
     arrayEach(this.getInputElements(), (element) => element.hide());

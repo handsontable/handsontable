@@ -5,7 +5,7 @@ export default function hideRowItem(hiddenRowsPlugin) {
   return {
     key: 'hidden_rows_hide',
     name() {
-      const selection = this.getSelected();
+      const selection = this.getSelectedLast();
       let pluralForm = 0;
 
       if (Array.isArray(selection)) {
@@ -19,7 +19,7 @@ export default function hideRowItem(hiddenRowsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_ROW, pluralForm);
     },
     callback() {
-      let {from, to} = this.getSelectedRange();
+      let {from, to} = this.getSelectedRangeLast();
       let start = Math.min(from.row, to.row);
       let end = Math.max(from.row, to.row);
 

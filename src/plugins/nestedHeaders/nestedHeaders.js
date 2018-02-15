@@ -443,7 +443,7 @@ class NestedHeaders extends BasePlugin {
    * @private
    */
   updateHeadersHighlight() {
-    let selection = this.hot.getSelected();
+    let selection = this.hot.getSelectedLast();
 
     if (selection === void 0) {
       return;
@@ -536,7 +536,7 @@ class NestedHeaders extends BasePlugin {
    */
   onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
     if (coords.row < 0 && coords.col >= 0 && this.hot.view.isMouseDown()) {
-      let {from, to} = this.hot.getSelectedRange();
+      let {from, to} = this.hot.getSelectedRangeLast();
       let colspan = this.getColspan(coords.row, coords.col);
       let lastColIndex = coords.col + colspan - 1;
       let changeDirection = false;

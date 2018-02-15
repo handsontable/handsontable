@@ -46,12 +46,12 @@ class ContextMenuUI extends BaseUI {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD);
         },
         callback: () => {
-          const translatedRowIndex = this.dataManager.translateTrimmedRow(this.hot.getSelected()[0]);
+          const translatedRowIndex = this.dataManager.translateTrimmedRow(this.hot.getSelectedLast()[0]);
           const parent = this.dataManager.getDataObject(translatedRowIndex);
           this.dataManager.addChild(parent);
         },
         disabled: () => {
-          const selected = this.hot.getSelected();
+          const selected = this.hot.getSelectedLast();
 
           return !selected || selected[0] < 0 || this.hot.selection.selectedHeader.cols || this.hot.countRows() >= this.hot.getSettings().maxRows;
         }
@@ -62,13 +62,13 @@ class ContextMenuUI extends BaseUI {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD);
         },
         callback: () => {
-          const translatedRowIndex = this.dataManager.translateTrimmedRow(this.hot.getSelected()[0]);
+          const translatedRowIndex = this.dataManager.translateTrimmedRow(this.hot.getSelectedLast()[0]);
           const element = this.dataManager.getDataObject(translatedRowIndex);
 
-          this.dataManager.detachFromParent(this.hot.getSelected());
+          this.dataManager.detachFromParent(this.hot.getSelectedLast());
         },
         disabled: () => {
-          const selected = this.hot.getSelected();
+          const selected = this.hot.getSelectedLast();
           const translatedRowIndex = this.dataManager.translateTrimmedRow(selected[0]);
           let parent = this.dataManager.getRowParent(translatedRowIndex);
 

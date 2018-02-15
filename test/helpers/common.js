@@ -83,11 +83,11 @@ export function getCorrespondingOverlay(cell, container) {
  */
 export function contextMenu(cell) {
   var hot = spec().$container.data('handsontable');
-  var selected = hot.getSelected();
+  var selected = hot.getSelectedLast();
 
   if (!selected) {
     hot.selectCell(0, 0);
-    selected = hot.getSelected();
+    selected = hot.getSelectedLast();
   }
   if (!cell) {
     cell = getCell(selected[0], selected[1]);

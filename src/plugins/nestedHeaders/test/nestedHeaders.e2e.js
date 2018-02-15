@@ -277,17 +277,17 @@ describe('NestedHeaders', function() {
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([0, 1, hot.countRows() - 1, 2]);
+      expect(hot.getSelected()).toEqual([[0, 1, hot.countRows() - 1, 2]]);
 
       this.$container.find('.ht_clone_top thead tr:eq(1) th:eq(1)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(1) th:eq(1)').simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([0, 1, hot.countRows() - 1, 4]);
+      expect(hot.getSelected()).toEqual([[0, 1, hot.countRows() - 1, 4]]);
 
       this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(1)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(1)').simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([0, 1, hot.countRows() - 1, 8]);
+      expect(hot.getSelected()).toEqual([[0, 1, hot.countRows() - 1, 8]]);
     });
 
     it('should select every column under the extended headers, when changing the selection by dragging the cursor', function() {
@@ -306,13 +306,13 @@ describe('NestedHeaders', function() {
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)').simulate('mouseover');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)').simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([0, 3, hot.countRows() - 1, 6]);
+      expect(hot.getSelected()).toEqual([[0, 3, hot.countRows() - 1, 6]]);
 
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseover');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([0, 4, hot.countRows() - 1, 1]);
+      expect(hot.getSelected()).toEqual([[0, 4, hot.countRows() - 1, 1]]);
 
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseover');
@@ -320,7 +320,7 @@ describe('NestedHeaders', function() {
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)').simulate('mouseover');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)').simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([0, 3, hot.countRows() - 1, 6]);
+      expect(hot.getSelected()).toEqual([[0, 3, hot.countRows() - 1, 6]]);
     });
 
     it('should highlight only last line of headers on cell selection', function() {

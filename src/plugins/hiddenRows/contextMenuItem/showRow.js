@@ -8,7 +8,7 @@ export default function showRowItem(hiddenRowsPlugin) {
   return {
     key: 'hidden_rows_show',
     name() {
-      const selection = this.getSelected();
+      const selection = this.getSelectedLast();
       let pluralForm = 0;
 
       if (Array.isArray(selection)) {
@@ -37,7 +37,7 @@ export default function showRowItem(hiddenRowsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_ROW, pluralForm);
     },
     callback() {
-      let {from, to} = this.getSelectedRange();
+      let {from, to} = this.getSelectedRangeLast();
       let start = Math.min(from.row, to.row);
       let end = Math.max(from.row, to.row);
 
@@ -67,7 +67,7 @@ export default function showRowItem(hiddenRowsPlugin) {
       beforeHiddenRows.length = 0;
       afterHiddenRows.length = 0;
 
-      let {from, to} = this.getSelectedRange();
+      let {from, to} = this.getSelectedRangeLast();
       let start = Math.min(from.row, to.row);
       let end = Math.max(from.row, to.row);
 

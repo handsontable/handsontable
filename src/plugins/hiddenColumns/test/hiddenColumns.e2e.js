@@ -365,15 +365,15 @@ describe('HiddenColumns', function() {
       selectCell(0, 0, 0, 0);
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
 
-      expect(getSelected()).toEqual([0, 1, 0, 1]);
+      expect(getSelected()).toEqual([[0, 1, 0, 1]]);
 
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
 
-      expect(getSelected()).toEqual([0, 3, 0, 3]);
+      expect(getSelected()).toEqual([[0, 3, 0, 3]]);
 
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
 
-      expect(getSelected()).toEqual([0, 5, 0, 5]);
+      expect(getSelected()).toEqual([[0, 5, 0, 5]]);
     });
   });
 
