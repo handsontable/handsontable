@@ -513,7 +513,8 @@ DefaultSettings.prototype = {
    *  * `'range'` Multiple cells within a single range can be selected.
    *  * `'multiple'` Multiple ranges of cells can be selected.
    *
-   * [See more](https://docs.handsontable.com/tutorial-selection.html)
+   * To see how to interact with selection by getting selected data or change styles of the selected cells go to
+   * [https://docs.handsontable.com/demo-selecting-ranges.html](https://docs.handsontable.com/demo-selecting-ranges.html).
    *
    * @since 0.36.0
    * @type {String}

@@ -17,6 +17,9 @@ export const HEADER_TYPE = 'header';
  *    that type should be created to manage not-consecutive selection;
  *  - `header` can occur multiple times. This type is designed to highlight only headers. Like `area` type it
  *    can appear with multiple highlights (accessed under different level layers).
+ *
+ * @class Highlight
+ * @util
  */
 class Highlight {
   constructor(options) {

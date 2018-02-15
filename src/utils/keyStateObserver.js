@@ -75,8 +75,7 @@ function isPressedCtrlKey() {
 /**
  * Returns reference count. Useful for debugging and testing purposes.
  *
- * @constructor
- * @return {[type]}
+ * @return {Number}
  */
 function _getRefCount() {
   return refCount;

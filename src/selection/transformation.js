@@ -7,6 +7,9 @@ import localHooks from './../mixins/localHooks';
  * passed to the Handsontable.
  *
  * Transformation is always applied relative to the current selection.
+ *
+ * @class Transformation
+ * @util
  */
 class Transformation {
   constructor(range, options) {

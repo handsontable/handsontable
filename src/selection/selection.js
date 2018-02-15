@@ -10,7 +10,8 @@ import localHooks from './../mixins/localHooks';
 import Transformation from './transformation';
 
 /**
- * [Selection description]
+ * @class Selection
+ * @util
  */
 class Selection {
   constructor(settings, tableProps) {
