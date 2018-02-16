@@ -64,8 +64,8 @@ describe('Core_beforeKeyDown', () => {
 
     keyDown('arrow_right');
 
-    expect(getSelected()).toEqual([0, 0, 0, 0]);
-    expect(getSelected()).not.toEqual([0, 1, 0, 1]);
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(getSelected()).not.toEqual([[0, 1, 0, 1]]);
   });
 
   it('should overwrite default behavior of delete key, but not this of right arrow', () => {
@@ -89,7 +89,7 @@ describe('Core_beforeKeyDown', () => {
     keyDown('arrow_right');
 
     expect(getData().length).toEqual(3);
-    expect(getSelected()).toEqual([0, 1, 0, 1]);
+    expect(getSelected()).toEqual([[0, 1, 0, 1]]);
   });
 
   it('should run beforeKeyDown hook in cell editor handler', () => {

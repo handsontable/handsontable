@@ -1,22 +1,55 @@
 import CellCoords from './../cell/coords';
 
 /**
- * A cell range is a set of exactly two CellCoords (that can be the same or different)
+ * A cell range is a set of exactly two CellCoords (that can be the same or different).
  *
  * @class CellRange
  */
 class CellRange {
   /**
    * @param {CellCoords} highlight Used to draw bold border around a cell where selection was
-   *                                          started and to edit the cell when you press Enter
-   * @param {CellCoords} from Usually the same as highlight, but in Excel there is distinction - one can change
-   *                                     highlight within a selection
-   * @param {CellCoords} to End selection
+   *                               started and to edit the cell when you press Enter.
+   * @param {CellCoords} [from] Usually the same as highlight, but in Excel there is distinction - one can change
+   *                            highlight within a selection.
+   * @param {CellCoords} [to] End selection.
    */
-  constructor(highlight, from, to) {
+  constructor(highlight, from = highlight, to = highlight) {
     this.highlight = highlight;
     this.from = from;
     this.to = to;
+  }
+
+  /**
+   * Set the new coordinates for highlighting selection.
+   *
+   * @param {CellCoords} coords Coordinates to use.
+   */
+  setHighlight(coords) {
+    this.highlight = coords;
+
+    return this;
+  }
+
+  /**
+   * Set the new coordinates where selection starts from.
+   *
+   * @param {CellCoords} coords Coordinates to use.
+   */
+  setFrom(coords) {
+    this.from = coords;
+
+    return this;
+  }
+
+  /**
+   * Set new coordinates where selection ends from.
+   *
+   * @param {CellCoords} coords Coordinates to use.
+   */
+  setTo(coords) {
+    this.to = coords;
+
+    return this;
   }
 
   /**
@@ -63,12 +96,11 @@ class CellRange {
    * @returns {Boolean}
    */
   includes(cellCoords) {
-    let {row, col} = cellCoords;
-    let topLeft = this.getTopLeftCorner();
-    let bottomRight = this.getBottomRightCorner();
+    const {row, col} = cellCoords;
+    const topLeft = this.getTopLeftCorner();
+    const bottomRight = this.getBottomRightCorner();
 
-    return topLeft.row <= row && bottomRight.row >= row &&
-        topLeft.col <= col && bottomRight.col >= col;
+    return topLeft.row <= row && bottomRight.row >= row && topLeft.col <= col && bottomRight.col >= col;
   }
 
   /**
@@ -128,8 +160,8 @@ class CellRange {
    * @returns {Boolean}
    */
   expand(cellCoords) {
-    let topLeft = this.getTopLeftCorner();
-    let bottomRight = this.getBottomRightCorner();
+    const topLeft = this.getTopLeftCorner();
+    const bottomRight = this.getBottomRightCorner();
 
     if (cellCoords.row < topLeft.row || cellCoords.col < topLeft.col ||
         cellCoords.row > bottomRight.row || cellCoords.col > bottomRight.col) {
@@ -428,6 +460,19 @@ class CellRange {
         }
       }
     }
+  }
+
+  /**
+   * Convert CellRange to literal object.
+   *
+   * @return {Object} Returns a literal object with `from` and `to` properties which each of that object
+   *                  contains `row` and `col` keys.
+   */
+  toObject() {
+    return {
+      from: this.from.toObject(),
+      to: this.to.toObject(),
+    };
   }
 }
 

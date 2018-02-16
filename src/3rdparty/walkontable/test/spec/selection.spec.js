@@ -34,8 +34,8 @@ describe('Walkontable.Selection', () => {
         })
       ],
       onCellMouseDown(event, coords, TD) {
-        wt.selections.current.clear();
-        wt.selections.current.add(coords);
+        wt.selections.getCell().clear();
+        wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
@@ -75,10 +75,10 @@ describe('Walkontable.Selection', () => {
     });
     shimSelectionProperties(wt);
 
-    wt.selections.area.add(new Walkontable.CellCoords(1, 1));
-    wt.selections.area.add(new Walkontable.CellCoords(1, 2));
-    wt.selections.area.add(new Walkontable.CellCoords(2, 1));
-    wt.selections.area.add(new Walkontable.CellCoords(2, 2));
+    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(1, 1));
+    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(1, 2));
+    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(2, 1));
+    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(2, 2));
 
     wt.draw();
 
@@ -103,7 +103,7 @@ describe('Walkontable.Selection', () => {
     });
     shimSelectionProperties(wt);
     wt.draw();
-    wt.selections.current.add(new Walkontable.CellCoords(0, 0));
+    wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
 
     var $td1 = $table.find('tbody td:eq(0)');
     expect($td1.hasClass('current')).toEqual(false);
@@ -128,8 +128,8 @@ describe('Walkontable.Selection', () => {
         })
       ],
       onCellMouseDown(event, coords, TD) {
-        wt.selections.current.clear();
-        wt.selections.current.add(coords);
+        wt.selections.getCell().clear();
+        wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
@@ -139,7 +139,7 @@ describe('Walkontable.Selection', () => {
     setTimeout(() => {
       var $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
       var $td2 = $table.find('tbody tr:eq(2) td:eq(1)');
-      var $top = $(wt.selections.current.getBorder(wt).top); // cheat... get border for ht_master
+      var $top = $(wt.selections.getCell().getBorder(wt).top); // cheat... get border for ht_master
       $td1.simulate('mousedown');
 
       var pos1 = $top.position();
@@ -174,7 +174,7 @@ describe('Walkontable.Selection', () => {
     shimSelectionProperties(wt);
     wt.draw();
 
-    wt.selections.current.add([20, 0]);
+    wt.selections.getCell().add([20, 0]);
     expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new Walkontable.CellCoords(0, 0));
   });
 
@@ -197,13 +197,13 @@ describe('Walkontable.Selection', () => {
     shimSelectionProperties(wt);
     wt.draw();
 
-    wt.selections.current.add(new Walkontable.CellCoords(0, 0));
+    wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
     wt.draw();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(0);
     wt.scrollVertical(10).draw();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
     expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);
-    wt.selections.current.clear();
+    wt.selections.getCell().clear();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
     expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);
   });
@@ -227,11 +227,11 @@ describe('Walkontable.Selection', () => {
     shimSelectionProperties(wt);
     wt.draw();
 
-    wt.selections.current.add(new Walkontable.CellCoords(0, 0));
-    wt.selections.current.add(new Walkontable.CellCoords(0, 1));
-    wt.selections.current.clear();
+    wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
+    wt.selections.getCell().add(new Walkontable.CellCoords(0, 1));
+    wt.selections.getCell().clear();
 
-    expect(wt.selections.current.cellRange).toEqual(null);
+    expect(wt.selections.getCell().cellRange).toEqual(null);
   });
 
   it('should highlight cells in selected row & column', () => {
@@ -252,8 +252,8 @@ describe('Walkontable.Selection', () => {
     shimSelectionProperties(wt);
     wt.draw();
 
-    wt.selections.current.add(new Walkontable.CellCoords(0, 0));
-    wt.selections.current.add(new Walkontable.CellCoords(0, 1));
+    wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
+    wt.selections.getCell().add(new Walkontable.CellCoords(0, 1));
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(2);
@@ -282,7 +282,7 @@ describe('Walkontable.Selection', () => {
     shimSelectionProperties(wt);
     wt.draw();
 
-    wt.selections.current.add(new Walkontable.CellCoords(0, 0));
+    wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(3);
@@ -305,11 +305,11 @@ describe('Walkontable.Selection', () => {
     shimSelectionProperties(wt);
     wt.draw();
 
-    wt.selections.current.add(new Walkontable.CellCoords(0, 0));
-    wt.selections.current.add(new Walkontable.CellCoords(0, 1));
+    wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
+    wt.selections.getCell().add(new Walkontable.CellCoords(0, 1));
     wt.draw();
 
-    wt.selections.current.clear();
+    wt.selections.getCell().clear();
     wt.draw();
 
     expect($table.find('.highlightRow').length).toEqual(0);
@@ -340,8 +340,8 @@ describe('Walkontable.Selection', () => {
     shimSelectionProperties(wt);
     wt.draw();
 
-    wt.selections.current.add(new Walkontable.CellCoords(1, 1));
-    wt.selections.current.add(new Walkontable.CellCoords(2, 2));
+    wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
+    wt.selections.getCell().add(new Walkontable.CellCoords(2, 2));
     wt.draw();
 
     // left side:
@@ -368,7 +368,7 @@ describe('Walkontable.Selection', () => {
     expect($rowHeaders.eq(1).hasClass('highlightRow')).toBe(true);
     expect($rowHeaders.eq(2).hasClass('highlightRow')).toBe(true);
 
-    wt.selections.current.clear();
+    wt.selections.getCell().clear();
     wt.draw();
 
     expect($table.find('.highlightRow').length).toEqual(0);
@@ -397,11 +397,12 @@ describe('Walkontable.Selection', () => {
         ]
       });
       shimSelectionProperties(wt);
-      wt.selections.current.add(new Walkontable.CellCoords(1, 1));
-      wt.selections.current.add(new Walkontable.CellCoords(3, 3));
-      var result = wt.selections.current.replace(new Walkontable.CellCoords(3, 3), new Walkontable.CellCoords(4, 4));
+      wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
+      wt.selections.getCell().add(new Walkontable.CellCoords(3, 3));
+      var result = wt.selections.getCell().replace(new Walkontable.CellCoords(3, 3), new Walkontable.CellCoords(4, 4));
+
       expect(result).toBe(true);
-      expect(wt.selections.current.getCorners()).toEqual([1, 1, 4, 4]);
+      expect(wt.selections.getCell().getCorners()).toEqual([1, 1, 4, 4]);
     });
   });
 });

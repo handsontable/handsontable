@@ -37,8 +37,8 @@ describe('WalkontableBorder', () => {
         })
       ],
       onCellMouseDown(event, coords, TD) {
-        wt.selections.current.clear();
-        wt.selections.current.add(coords);
+        wt.selections.getCell().clear();
+        wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
@@ -48,10 +48,10 @@ describe('WalkontableBorder', () => {
     var $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
 
     var $td2 = $table.find('tbody tr:eq(2) td:eq(1)');
-    var $top = $(wt.selections.current.getBorder(wt).top);
-    var $right = $(wt.selections.current.getBorder(wt).right);
-    var $bottom = $(wt.selections.current.getBorder(wt).bottom);
-    var $left = $(wt.selections.current.getBorder(wt).left);
+    var $top = $(wt.selections.getCell().getBorder(wt).top);
+    var $right = $(wt.selections.getCell().getBorder(wt).right);
+    var $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
+    var $left = $(wt.selections.getCell().getBorder(wt).left);
 
     $td1.simulate('mousedown');
 
@@ -103,8 +103,8 @@ describe('WalkontableBorder', () => {
         new Walkontable.Selection({})
       ],
       onCellMouseDown(event, coords, TD) {
-        wt.selections.current.clear();
-        wt.selections.current.add(coords);
+        wt.selections.getCell().clear();
+        wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
@@ -113,7 +113,7 @@ describe('WalkontableBorder', () => {
 
     var $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
     var $td2 = $table.find('tbody tr:eq(2) td:eq(1)');
-    var $corner = $(wt.selections.current.getBorder(wt).corner);
+    var $corner = $(wt.selections.getCell().getBorder(wt).corner);
 
     $td1.simulate('mousedown');
 
@@ -153,8 +153,8 @@ describe('WalkontableBorder', () => {
         new Walkontable.Selection({})
       ],
       onCellMouseDown(event, coords, TD) {
-        wt.selections.current.clear();
-        wt.selections.current.add(coords);
+        wt.selections.getCell().clear();
+        wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
@@ -164,7 +164,7 @@ describe('WalkontableBorder', () => {
     var $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
     var $td2 = $table.find('tbody tr:eq(3) td:eq(3)');
     var $td3 = $table.find('tbody tr:eq(2) td:eq(1)');
-    var $corner = $(wt.selections.current.getBorder(wt).corner);
+    var $corner = $(wt.selections.getCell().getBorder(wt).corner);
 
     $td1.simulate('mousedown');
 

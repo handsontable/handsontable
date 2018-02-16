@@ -77,7 +77,7 @@ describe('CheckboxRenderer', () => {
 
     setTimeout(() => {
       expect(spy.test.calls.count()).toBe(0);
-      expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
+      expect(hot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
       done();
     }, 100);
@@ -95,7 +95,7 @@ describe('CheckboxRenderer', () => {
 
     this.$container.find('td label').eq(2).simulate('mousedown');
 
-    expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
+    expect(hot.getSelected()).toEqual([[2, 0, 2, 0]]);
   });
 
   it('should reverse selection in checkboxes', function() {
