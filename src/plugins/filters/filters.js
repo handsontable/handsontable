@@ -344,7 +344,7 @@ class Filters extends BasePlugin {
    * Clear column selection.
    */
   clearColumnSelection() {
-    let [row, col] = this.hot.getSelected() || [];
+    let [row, col] = this.hot.getSelectedLast() || [];
 
     if (row !== void 0 && col !== void 0) {
       this.hot.selectCell(row, col);

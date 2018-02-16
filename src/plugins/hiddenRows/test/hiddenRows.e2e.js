@@ -422,15 +422,15 @@ describe('HiddenRows', function() {
       selectCell(0, 0, 0, 0);
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
 
-      expect(getSelected()).toEqual([1, 0, 1, 0]);
+      expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
 
-      expect(getSelected()).toEqual([3, 0, 3, 0]);
+      expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
 
-      expect(getSelected()).toEqual([5, 0, 5, 0]);
+      expect(getSelected()).toEqual([[5, 0, 5, 0]]);
     });
 
     it('should properly highlight selected cell', function() {
@@ -450,7 +450,7 @@ describe('HiddenRows', function() {
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
 
-      expect(hot.getSelectedRange().highlight.row).toBe(1);
+      expect(hot.getSelectedRange()[0].highlight.row).toBe(1);
     });
 
 

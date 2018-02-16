@@ -449,6 +449,46 @@ describe('TrimRows', function() {
     });
   });
 
+  describe('minRows option set', () => {
+    it('should not fill the table with empty rows (to the `minRows` limit), when editing rows in a table with trimmed rows', (done) => {
+      let hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        minRows: 10,
+        trimRows: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+      });
+
+      expect(hot.countRows()).toEqual(1);
+
+      hot.setDataAtCell(0, 0, 'test');
+
+      setTimeout(() => {
+        expect(hot.countRows()).toEqual(1);
+
+        done();
+      }, 100);
+    });
+  });
+
+  describe('minSpareRows option set', () => {
+    it('should not fill the table with empty rows (to the `minSpareRows` limit), when editing rows in a table with trimmed rows', (done) => {
+      let hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        minSpareRows: 4,
+        trimRows: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+      });
+
+      expect(hot.countRows()).toEqual(1);
+
+      hot.setDataAtCell(0, 0, 'test');
+
+      setTimeout(() => {
+        expect(hot.countRows()).toEqual(1);
+
+        done();
+      }, 100);
+    });
+  });
+
   describe('updateSettings', function () {
     it('should update list of trimmed rows when array of indexes is passed to the method - test no. 1', function() {
       var hot = handsontable({

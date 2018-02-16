@@ -20,8 +20,8 @@
  * RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
  * UNINTERRUPTED OR ERROR FREE.
  * 
- * Version: 1.15.1
- * Release date: 25/01/2018 (built at 25/01/2018 10:21:21)
+ * Version: 1.16.0
+ * Release date: 16/02/2018 (built at 16/02/2018 11:46:33)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -32,7 +32,7 @@
 		exports["Handsontable"] = factory(require("moment"), require("pikaday"), require("numbro"), require("hot-formula-parser"));
 	else
 		root["Handsontable"] = factory(root["moment"], root["Pikaday"], root["numbro"], root["formulaParser"]);
-})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE_30__, __WEBPACK_EXTERNAL_MODULE_259__, __WEBPACK_EXTERNAL_MODULE_271__, __WEBPACK_EXTERNAL_MODULE_66__) {
+})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE_31__, __WEBPACK_EXTERNAL_MODULE_262__, __WEBPACK_EXTERNAL_MODULE_274__, __WEBPACK_EXTERNAL_MODULE_66__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -95,7 +95,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 228);
+/******/ 	return __webpack_require__(__webpack_require__.s = 231);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -175,14 +175,19 @@ function pivot(arr) {
  * @returns {*} Returns the accumulated value.
  */
 function arrayReduce(array, iteratee, accumulator, initFromArray) {
-  var index = -1,
-      length = array.length;
+  var index = -1;
+  var iterable = array;
+
+  if (!Array.isArray(array)) {
+    iterable = Array.from(array);
+  }
+  var length = iterable.length;
 
   if (initFromArray && length) {
-    accumulator = array[++index];
+    accumulator = iterable[++index];
   }
   while (++index < length) {
-    accumulator = iteratee(accumulator, array[index], index, array);
+    accumulator = iteratee(accumulator, iterable[index], index, iterable);
   }
 
   return accumulator;
@@ -199,15 +204,21 @@ function arrayReduce(array, iteratee, accumulator, initFromArray) {
  * @returns {Array} Returns the new filtered array.
  */
 function arrayFilter(array, predicate) {
-  var index = -1,
-      length = array.length,
-      resIndex = -1,
-      result = [];
+  var index = -1;
+  var iterable = array;
+
+  if (!Array.isArray(array)) {
+    iterable = Array.from(array);
+  }
+
+  var length = iterable.length;
+  var result = [];
+  var resIndex = -1;
 
   while (++index < length) {
-    var value = array[index];
+    var value = iterable[index];
 
-    if (predicate(value, index, array)) {
+    if (predicate(value, index, iterable)) {
       result[++resIndex] = value;
     }
   }
@@ -224,15 +235,21 @@ function arrayFilter(array, predicate) {
  * @returns {Array} Returns the new filtered array.
  */
 function arrayMap(array, iteratee) {
-  var index = -1,
-      length = array.length,
-      resIndex = -1,
-      result = [];
+  var index = -1;
+  var iterable = array;
+
+  if (!Array.isArray(array)) {
+    iterable = Array.from(array);
+  }
+
+  var length = iterable.length;
+  var result = [];
+  var resIndex = -1;
 
   while (++index < length) {
-    var value = array[index];
+    var value = iterable[index];
 
-    result[++resIndex] = iteratee(value, index, array);
+    result[++resIndex] = iteratee(value, index, iterable);
   }
 
   return result;
@@ -244,16 +261,22 @@ function arrayMap(array, iteratee) {
  *
  * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
  *
- * @param {Array} array The array to iterate over.
+ * @param {Array|*} array The array to iterate over or an any element with implemented iterator protocol.
  * @param {Function} iteratee The function invoked per iteration.
  * @returns {Array} Returns `array`.
  */
 function arrayEach(array, iteratee) {
-  var index = -1,
-      length = array.length;
+  var index = -1;
+  var iterable = array;
+
+  if (!Array.isArray(array)) {
+    iterable = Array.from(array);
+  }
+
+  var length = iterable.length;
 
   while (++index < length) {
-    if (iteratee(array[index], index, array) === false) {
+    if (iteratee(iterable[index], index, iterable) === false) {
       break;
     }
   }
@@ -1940,7 +1963,7 @@ function valueAccordingPercent(value, percent) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(17);
-var core = __webpack_require__(48);
+var core = __webpack_require__(49);
 var hide = __webpack_require__(38);
 var redefine = __webpack_require__(37);
 var ctx = __webpack_require__(39);
@@ -1994,13 +2017,13 @@ module.exports = $export;
 exports.__esModule = true;
 exports.getPluginName = exports.getRegistredPluginNames = exports.getPlugin = exports.registerPlugin = undefined;
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
 var _object = __webpack_require__(2);
 
-var _string = __webpack_require__(29);
+var _string = __webpack_require__(30);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2373,7 +2396,7 @@ var _object = __webpack_require__(2);
 
 var _feature = __webpack_require__(42);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2737,6 +2760,228 @@ function registerCondition(name, condition, descriptor) {
 
 
 exports.__esModule = true;
+exports.Viewport = exports.TableRenderer = exports.Table = exports.Settings = exports.Selection = exports.Scroll = exports.Overlays = exports.Event = exports.Core = exports.default = exports.Border = exports.TopLeftCornerOverlay = exports.TopOverlay = exports.LeftOverlay = exports.DebugOverlay = exports.RowFilter = exports.ColumnFilter = exports.CellRange = exports.CellCoords = exports.ViewportRowsCalculator = exports.ViewportColumnsCalculator = undefined;
+
+__webpack_require__(84);
+
+__webpack_require__(93);
+
+__webpack_require__(94);
+
+__webpack_require__(95);
+
+__webpack_require__(96);
+
+__webpack_require__(98);
+
+__webpack_require__(100);
+
+__webpack_require__(101);
+
+__webpack_require__(102);
+
+__webpack_require__(103);
+
+__webpack_require__(104);
+
+__webpack_require__(105);
+
+__webpack_require__(106);
+
+__webpack_require__(107);
+
+__webpack_require__(108);
+
+__webpack_require__(109);
+
+__webpack_require__(110);
+
+__webpack_require__(111);
+
+__webpack_require__(112);
+
+__webpack_require__(113);
+
+__webpack_require__(114);
+
+__webpack_require__(115);
+
+__webpack_require__(116);
+
+__webpack_require__(117);
+
+__webpack_require__(118);
+
+__webpack_require__(121);
+
+__webpack_require__(122);
+
+__webpack_require__(123);
+
+__webpack_require__(124);
+
+__webpack_require__(125);
+
+__webpack_require__(126);
+
+__webpack_require__(127);
+
+__webpack_require__(128);
+
+__webpack_require__(130);
+
+__webpack_require__(131);
+
+__webpack_require__(132);
+
+__webpack_require__(133);
+
+__webpack_require__(134);
+
+__webpack_require__(80);
+
+__webpack_require__(135);
+
+__webpack_require__(136);
+
+__webpack_require__(137);
+
+__webpack_require__(138);
+
+__webpack_require__(139);
+
+__webpack_require__(140);
+
+__webpack_require__(141);
+
+__webpack_require__(142);
+
+__webpack_require__(143);
+
+__webpack_require__(144);
+
+__webpack_require__(145);
+
+__webpack_require__(146);
+
+__webpack_require__(147);
+
+__webpack_require__(148);
+
+__webpack_require__(149);
+
+var _viewportColumns = __webpack_require__(187);
+
+var _viewportColumns2 = _interopRequireDefault(_viewportColumns);
+
+var _viewportRows = __webpack_require__(188);
+
+var _viewportRows2 = _interopRequireDefault(_viewportRows);
+
+var _coords = __webpack_require__(60);
+
+var _coords2 = _interopRequireDefault(_coords);
+
+var _range = __webpack_require__(150);
+
+var _range2 = _interopRequireDefault(_range);
+
+var _column = __webpack_require__(189);
+
+var _column2 = _interopRequireDefault(_column);
+
+var _row = __webpack_require__(190);
+
+var _row2 = _interopRequireDefault(_row);
+
+var _debug = __webpack_require__(254);
+
+var _debug2 = _interopRequireDefault(_debug);
+
+var _left = __webpack_require__(255);
+
+var _left2 = _interopRequireDefault(_left);
+
+var _top = __webpack_require__(256);
+
+var _top2 = _interopRequireDefault(_top);
+
+var _topLeftCorner = __webpack_require__(257);
+
+var _topLeftCorner2 = _interopRequireDefault(_topLeftCorner);
+
+var _border = __webpack_require__(199);
+
+var _border2 = _interopRequireDefault(_border);
+
+var _core = __webpack_require__(191);
+
+var _core2 = _interopRequireDefault(_core);
+
+var _event = __webpack_require__(192);
+
+var _event2 = _interopRequireDefault(_event);
+
+var _overlays = __webpack_require__(193);
+
+var _overlays2 = _interopRequireDefault(_overlays);
+
+var _scroll = __webpack_require__(194);
+
+var _scroll2 = _interopRequireDefault(_scroll);
+
+var _selection = __webpack_require__(258);
+
+var _selection2 = _interopRequireDefault(_selection);
+
+var _settings = __webpack_require__(195);
+
+var _settings2 = _interopRequireDefault(_settings);
+
+var _table = __webpack_require__(196);
+
+var _table2 = _interopRequireDefault(_table);
+
+var _tableRenderer = __webpack_require__(197);
+
+var _tableRenderer2 = _interopRequireDefault(_tableRenderer);
+
+var _viewport = __webpack_require__(198);
+
+var _viewport2 = _interopRequireDefault(_viewport);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.ViewportColumnsCalculator = _viewportColumns2.default;
+exports.ViewportRowsCalculator = _viewportRows2.default;
+exports.CellCoords = _coords2.default;
+exports.CellRange = _range2.default;
+exports.ColumnFilter = _column2.default;
+exports.RowFilter = _row2.default;
+exports.DebugOverlay = _debug2.default;
+exports.LeftOverlay = _left2.default;
+exports.TopOverlay = _top2.default;
+exports.TopLeftCornerOverlay = _topLeftCorner2.default;
+exports.Border = _border2.default;
+exports.default = _core2.default;
+exports.Core = _core2.default;
+exports.Event = _event2.default;
+exports.Overlays = _overlays2.default;
+exports.Scroll = _scroll2.default;
+exports.Selection = _selection2.default;
+exports.Settings = _settings2.default;
+exports.Table = _table2.default;
+exports.TableRenderer = _tableRenderer2.default;
+exports.Viewport = _viewport2.default;
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
 exports.stopImmediatePropagation = stopImmediatePropagation;
 exports.isImmediatePropagationStopped = isImmediatePropagationStopped;
 exports.stopPropagation = stopPropagation;
@@ -2831,7 +3076,7 @@ function isLeftClick(event) {
 }
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports) {
 
 module.exports = function (it) {
@@ -2840,7 +3085,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3261,12 +3506,12 @@ var REGISTERED_HOOKS = [
  * @param {Number} r2 Selection end visual row index.
  * @param {Number} c2 Selection end visual column index.
  * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+ * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
  *    * @example
  * ```js
  * handsontable({
- *   afterSelection: function (r, c, r2, c2, preventScrolling) {
+ *   afterSelection: function (r, c, r2, c2, preventScrolling, selectionLayerLevel) {
  *     // setting if prevent scrolling after selection
- *
  *     preventScrolling.value = true;
  *   }
  * })
@@ -3283,12 +3528,12 @@ var REGISTERED_HOOKS = [
  * @param {Number} r2 Selection end visual row index.
  * @param {String} p2 Selection end data source object property name.
  * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+ * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
  *    * @example
  * ```js
  * handsontable({
- *   afterSelectionByProp: function (r, c, r2, c2, preventScrolling) {
+ *   afterSelectionByProp: function (r, c, r2, c2, preventScrolling, selectionLayerLevel) {
  *     // setting if prevent scrolling after selection
- *
  *     preventScrolling.value = true;
  *   }
  * })
@@ -3304,6 +3549,7 @@ var REGISTERED_HOOKS = [
  * @param {Number} c Selection start visual column index.
  * @param {Number} r2 Selection end visual row index.
  * @param {Number} c2 Selection end visual column index.
+ * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
  */
 'afterSelectionEnd',
 
@@ -3316,6 +3562,7 @@ var REGISTERED_HOOKS = [
  * @param {String} p Selection start data source object property index.
  * @param {Number} r2 Selection end visual row index.
  * @param {String} p2 Selection end data source object property index.
+ * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
  */
 'afterSelectionEndByProp',
 
@@ -3618,7 +3865,7 @@ var REGISTERED_HOOKS = [
  * Callback fired before setting range is started.
  *
  * @event Hooks#beforeSetRangeStart
- * @param {Array} coords CellCoords array.
+ * @param {CellCoords} coords CellCoords instance.
  */
 'beforeSetRangeStart',
 
@@ -3626,7 +3873,7 @@ var REGISTERED_HOOKS = [
  * Callback fired before setting range is ended.
  *
  * @event Hooks#beforeSetRangeEnd
- * @param {Array} coords CellCoords array.
+ * @param {CellCoords} coords CellCoords instance.
  */
 'beforeSetRangeEnd',
 
@@ -4805,328 +5052,7 @@ var globalSingleton = new Hooks();
 exports.default = Hooks;
 
 /***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.getRegisteredRenderers = exports.getRegisteredRendererNames = exports.hasRenderer = exports.getRenderer = exports.registerRenderer = undefined;
-
-var _staticRegister2 = __webpack_require__(51);
-
-var _staticRegister3 = _interopRequireDefault(_staticRegister2);
-
-var _cellDecorator = __webpack_require__(266);
-
-var _cellDecorator2 = _interopRequireDefault(_cellDecorator);
-
-var _autocompleteRenderer = __webpack_require__(267);
-
-var _autocompleteRenderer2 = _interopRequireDefault(_autocompleteRenderer);
-
-var _checkboxRenderer = __webpack_require__(268);
-
-var _checkboxRenderer2 = _interopRequireDefault(_checkboxRenderer);
-
-var _htmlRenderer = __webpack_require__(269);
-
-var _htmlRenderer2 = _interopRequireDefault(_htmlRenderer);
-
-var _numericRenderer = __webpack_require__(270);
-
-var _numericRenderer2 = _interopRequireDefault(_numericRenderer);
-
-var _passwordRenderer = __webpack_require__(272);
-
-var _passwordRenderer2 = _interopRequireDefault(_passwordRenderer);
-
-var _textRenderer = __webpack_require__(273);
-
-var _textRenderer2 = _interopRequireDefault(_textRenderer);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var _staticRegister = (0, _staticRegister3.default)('renderers'),
-    register = _staticRegister.register,
-    getItem = _staticRegister.getItem,
-    hasItem = _staticRegister.hasItem,
-    getNames = _staticRegister.getNames,
-    getValues = _staticRegister.getValues;
-
-register('base', _cellDecorator2.default);
-register('autocomplete', _autocompleteRenderer2.default);
-register('checkbox', _checkboxRenderer2.default);
-register('html', _htmlRenderer2.default);
-register('numeric', _numericRenderer2.default);
-register('password', _passwordRenderer2.default);
-register('text', _textRenderer2.default);
-
-/**
- * Retrieve renderer function.
- *
- * @param {String} name Renderer identification.
- * @returns {Function} Returns renderer function.
- */
-function _getItem(name) {
-  if (typeof name === 'function') {
-    return name;
-  }
-  if (!hasItem(name)) {
-    throw Error('No registered renderer found under "' + name + '" name');
-  }
-
-  return getItem(name);
-}
-
-exports.registerRenderer = register;
-exports.getRenderer = _getItem;
-exports.hasRenderer = hasItem;
-exports.getRegisteredRendererNames = getNames;
-exports.getRegisteredRenderers = getValues;
-
-/***/ }),
 /* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var store = __webpack_require__(90)('wks');
-var uid = __webpack_require__(55);
-var Symbol = __webpack_require__(17).Symbol;
-var USE_SYMBOL = typeof Symbol == 'function';
-
-var $exports = module.exports = function (name) {
-  return store[name] || (store[name] =
-    USE_SYMBOL && Symbol[name] || (USE_SYMBOL ? Symbol : uid)('Symbol.' + name));
-};
-
-$exports.store = store;
-
-
-/***/ }),
-/* 15 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.Viewport = exports.TableRenderer = exports.Table = exports.Settings = exports.Selection = exports.Scroll = exports.Overlays = exports.Event = exports.Core = exports.default = exports.Border = exports.TopLeftCornerOverlay = exports.TopOverlay = exports.LeftOverlay = exports.DebugOverlay = exports.RowFilter = exports.ColumnFilter = exports.CellRange = exports.CellCoords = exports.ViewportRowsCalculator = exports.ViewportColumnsCalculator = undefined;
-
-__webpack_require__(84);
-
-__webpack_require__(93);
-
-__webpack_require__(94);
-
-__webpack_require__(95);
-
-__webpack_require__(96);
-
-__webpack_require__(98);
-
-__webpack_require__(100);
-
-__webpack_require__(101);
-
-__webpack_require__(102);
-
-__webpack_require__(103);
-
-__webpack_require__(104);
-
-__webpack_require__(105);
-
-__webpack_require__(106);
-
-__webpack_require__(107);
-
-__webpack_require__(108);
-
-__webpack_require__(109);
-
-__webpack_require__(110);
-
-__webpack_require__(111);
-
-__webpack_require__(112);
-
-__webpack_require__(113);
-
-__webpack_require__(114);
-
-__webpack_require__(115);
-
-__webpack_require__(116);
-
-__webpack_require__(117);
-
-__webpack_require__(118);
-
-__webpack_require__(121);
-
-__webpack_require__(122);
-
-__webpack_require__(123);
-
-__webpack_require__(124);
-
-__webpack_require__(125);
-
-__webpack_require__(126);
-
-__webpack_require__(127);
-
-__webpack_require__(128);
-
-__webpack_require__(130);
-
-__webpack_require__(131);
-
-__webpack_require__(132);
-
-__webpack_require__(133);
-
-__webpack_require__(134);
-
-__webpack_require__(80);
-
-__webpack_require__(135);
-
-__webpack_require__(136);
-
-__webpack_require__(137);
-
-__webpack_require__(138);
-
-__webpack_require__(139);
-
-__webpack_require__(140);
-
-__webpack_require__(141);
-
-__webpack_require__(142);
-
-__webpack_require__(143);
-
-__webpack_require__(144);
-
-__webpack_require__(145);
-
-__webpack_require__(146);
-
-__webpack_require__(147);
-
-__webpack_require__(148);
-
-__webpack_require__(149);
-
-var _viewportColumns = __webpack_require__(187);
-
-var _viewportColumns2 = _interopRequireDefault(_viewportColumns);
-
-var _viewportRows = __webpack_require__(188);
-
-var _viewportRows2 = _interopRequireDefault(_viewportRows);
-
-var _coords = __webpack_require__(60);
-
-var _coords2 = _interopRequireDefault(_coords);
-
-var _range = __webpack_require__(150);
-
-var _range2 = _interopRequireDefault(_range);
-
-var _column = __webpack_require__(189);
-
-var _column2 = _interopRequireDefault(_column);
-
-var _row = __webpack_require__(190);
-
-var _row2 = _interopRequireDefault(_row);
-
-var _debug = __webpack_require__(251);
-
-var _debug2 = _interopRequireDefault(_debug);
-
-var _left = __webpack_require__(252);
-
-var _left2 = _interopRequireDefault(_left);
-
-var _top = __webpack_require__(253);
-
-var _top2 = _interopRequireDefault(_top);
-
-var _topLeftCorner = __webpack_require__(254);
-
-var _topLeftCorner2 = _interopRequireDefault(_topLeftCorner);
-
-var _border = __webpack_require__(199);
-
-var _border2 = _interopRequireDefault(_border);
-
-var _core = __webpack_require__(191);
-
-var _core2 = _interopRequireDefault(_core);
-
-var _event = __webpack_require__(192);
-
-var _event2 = _interopRequireDefault(_event);
-
-var _overlays = __webpack_require__(193);
-
-var _overlays2 = _interopRequireDefault(_overlays);
-
-var _scroll = __webpack_require__(194);
-
-var _scroll2 = _interopRequireDefault(_scroll);
-
-var _selection = __webpack_require__(255);
-
-var _selection2 = _interopRequireDefault(_selection);
-
-var _settings = __webpack_require__(195);
-
-var _settings2 = _interopRequireDefault(_settings);
-
-var _table = __webpack_require__(196);
-
-var _table2 = _interopRequireDefault(_table);
-
-var _tableRenderer = __webpack_require__(197);
-
-var _tableRenderer2 = _interopRequireDefault(_tableRenderer);
-
-var _viewport = __webpack_require__(198);
-
-var _viewport2 = _interopRequireDefault(_viewport);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-exports.ViewportColumnsCalculator = _viewportColumns2.default;
-exports.ViewportRowsCalculator = _viewportRows2.default;
-exports.CellCoords = _coords2.default;
-exports.CellRange = _range2.default;
-exports.ColumnFilter = _column2.default;
-exports.RowFilter = _row2.default;
-exports.DebugOverlay = _debug2.default;
-exports.LeftOverlay = _left2.default;
-exports.TopOverlay = _top2.default;
-exports.TopLeftCornerOverlay = _topLeftCorner2.default;
-exports.Border = _border2.default;
-exports.default = _core2.default;
-exports.Core = _core2.default;
-exports.Event = _event2.default;
-exports.Overlays = _overlays2.default;
-exports.Scroll = _scroll2.default;
-exports.Selection = _selection2.default;
-exports.Settings = _settings2.default;
-exports.Table = _table2.default;
-exports.TableRenderer = _tableRenderer2.default;
-exports.Viewport = _viewport2.default;
-
-/***/ }),
-/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5145,7 +5071,7 @@ exports.isEmpty = isEmpty;
 exports.isRegExp = isRegExp;
 exports._injectProductInfo = _injectProductInfo;
 
-var _moment = __webpack_require__(30);
+var _moment = __webpack_require__(31);
 
 var _moment2 = _interopRequireDefault(_moment);
 
@@ -5260,7 +5186,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment2.default)('25/01/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment2.default)('16/02/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       var keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
@@ -5317,6 +5243,105 @@ function _checkKeySchema(v) {
 /* eslint-enable */
 
 /***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.getRegisteredRenderers = exports.getRegisteredRendererNames = exports.hasRenderer = exports.getRenderer = exports.registerRenderer = undefined;
+
+var _staticRegister2 = __webpack_require__(47);
+
+var _staticRegister3 = _interopRequireDefault(_staticRegister2);
+
+var _cellDecorator = __webpack_require__(269);
+
+var _cellDecorator2 = _interopRequireDefault(_cellDecorator);
+
+var _autocompleteRenderer = __webpack_require__(270);
+
+var _autocompleteRenderer2 = _interopRequireDefault(_autocompleteRenderer);
+
+var _checkboxRenderer = __webpack_require__(271);
+
+var _checkboxRenderer2 = _interopRequireDefault(_checkboxRenderer);
+
+var _htmlRenderer = __webpack_require__(272);
+
+var _htmlRenderer2 = _interopRequireDefault(_htmlRenderer);
+
+var _numericRenderer = __webpack_require__(273);
+
+var _numericRenderer2 = _interopRequireDefault(_numericRenderer);
+
+var _passwordRenderer = __webpack_require__(275);
+
+var _passwordRenderer2 = _interopRequireDefault(_passwordRenderer);
+
+var _textRenderer = __webpack_require__(276);
+
+var _textRenderer2 = _interopRequireDefault(_textRenderer);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var _staticRegister = (0, _staticRegister3.default)('renderers'),
+    register = _staticRegister.register,
+    getItem = _staticRegister.getItem,
+    hasItem = _staticRegister.hasItem,
+    getNames = _staticRegister.getNames,
+    getValues = _staticRegister.getValues;
+
+register('base', _cellDecorator2.default);
+register('autocomplete', _autocompleteRenderer2.default);
+register('checkbox', _checkboxRenderer2.default);
+register('html', _htmlRenderer2.default);
+register('numeric', _numericRenderer2.default);
+register('password', _passwordRenderer2.default);
+register('text', _textRenderer2.default);
+
+/**
+ * Retrieve renderer function.
+ *
+ * @param {String} name Renderer identification.
+ * @returns {Function} Returns renderer function.
+ */
+function _getItem(name) {
+  if (typeof name === 'function') {
+    return name;
+  }
+  if (!hasItem(name)) {
+    throw Error('No registered renderer found under "' + name + '" name');
+  }
+
+  return getItem(name);
+}
+
+exports.registerRenderer = register;
+exports.getRenderer = _getItem;
+exports.hasRenderer = hasItem;
+exports.getRegisteredRendererNames = getNames;
+exports.getRegisteredRenderers = getValues;
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var store = __webpack_require__(90)('wks');
+var uid = __webpack_require__(55);
+var Symbol = __webpack_require__(17).Symbol;
+var USE_SYMBOL = typeof Symbol == 'function';
+
+var $exports = module.exports = function (name) {
+  return store[name] || (store[name] =
+    USE_SYMBOL && Symbol[name] || (USE_SYMBOL ? Symbol : uid)('Symbol.' + name));
+};
+
+$exports.store = store;
+
+
+/***/ }),
 /* 17 */
 /***/ (function(module, exports) {
 
@@ -5340,6 +5365,7 @@ exports.KEY_CODES = undefined;
 exports.isPrintableChar = isPrintableChar;
 exports.isMetaKey = isMetaKey;
 exports.isCtrlKey = isCtrlKey;
+exports.isCtrlMetaKey = isCtrlMetaKey;
 exports.isKey = isKey;
 
 var _array = __webpack_require__(0);
@@ -5355,9 +5381,10 @@ var KEY_CODES = exports.KEY_CODES = {
   END: 35,
   ENTER: 13,
   ESCAPE: 27,
-  CONTROL_LEFT: 91,
-  COMMAND_LEFT: 17,
+  CONTROL: 17,
+  COMMAND_LEFT: 91,
   COMMAND_RIGHT: 93,
+  COMMAND_FIREFOX: 224,
   ALT: 18,
   HOME: 36,
   PAGE_DOWN: 34,
@@ -5416,11 +5443,33 @@ function isMetaKey(keyCode) {
 }
 
 /**
- * @param {Number} keyCode
+ * Checks if passed key code is ctrl or cmd key. Depends on what OS the code runs it check key code based on
+ * different meta key codes.
+ *
+ * @param {Number} keyCode Key code to check.
  * @returns {Boolean}
  */
 function isCtrlKey(keyCode) {
-  return [KEY_CODES.CONTROL_LEFT, 224, KEY_CODES.COMMAND_LEFT, KEY_CODES.COMMAND_RIGHT].indexOf(keyCode) !== -1;
+  var keys = [];
+
+  if (window.navigator.platform.includes('Mac')) {
+    keys.push(KEY_CODES.COMMAND_LEFT, KEY_CODES.COMMAND_RIGHT, KEY_CODES.COMMAND_FIREFOX);
+  } else {
+    keys.push(KEY_CODES.CONTROL);
+  }
+
+  return keys.includes(keyCode);
+}
+
+/**
+ * Checks if passed key code is ctrl or cmd key. This helper checks if the key code matches to meta keys
+ * regardless of the OS on which it is running.
+ *
+ * @param {Number} keyCode Key code to check.
+ * @returns {Boolean}
+ */
+function isCtrlMetaKey(keyCode) {
+  return [KEY_CODES.CONTROL, KEY_CODES.COMMAND_LEFT, KEY_CODES.COMMAND_RIGHT, KEY_CODES.COMMAND_FIREFOX].includes(keyCode);
 }
 
 /**
@@ -5455,11 +5504,11 @@ exports.getRegisteredEditors = exports.getRegisteredEditorNames = exports.hasEdi
 exports.RegisteredEditor = RegisteredEditor;
 exports._getEditorInstance = _getEditorInstance;
 
-var _staticRegister2 = __webpack_require__(51);
+var _staticRegister2 = __webpack_require__(47);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
@@ -5471,15 +5520,15 @@ var _autocompleteEditor = __webpack_require__(200);
 
 var _autocompleteEditor2 = _interopRequireDefault(_autocompleteEditor);
 
-var _checkboxEditor = __webpack_require__(257);
+var _checkboxEditor = __webpack_require__(260);
 
 var _checkboxEditor2 = _interopRequireDefault(_checkboxEditor);
 
-var _dateEditor = __webpack_require__(258);
+var _dateEditor = __webpack_require__(261);
 
 var _dateEditor2 = _interopRequireDefault(_dateEditor);
 
-var _dropdownEditor = __webpack_require__(261);
+var _dropdownEditor = __webpack_require__(264);
 
 var _dropdownEditor2 = _interopRequireDefault(_dropdownEditor);
 
@@ -5487,19 +5536,19 @@ var _handsontableEditor = __webpack_require__(201);
 
 var _handsontableEditor2 = _interopRequireDefault(_handsontableEditor);
 
-var _mobileTextEditor = __webpack_require__(262);
+var _mobileTextEditor = __webpack_require__(265);
 
 var _mobileTextEditor2 = _interopRequireDefault(_mobileTextEditor);
 
-var _numericEditor = __webpack_require__(263);
+var _numericEditor = __webpack_require__(266);
 
 var _numericEditor2 = _interopRequireDefault(_numericEditor);
 
-var _passwordEditor = __webpack_require__(264);
+var _passwordEditor = __webpack_require__(267);
 
 var _passwordEditor2 = _interopRequireDefault(_passwordEditor);
 
-var _selectEditor = __webpack_require__(265);
+var _selectEditor = __webpack_require__(268);
 
 var _selectEditor2 = _interopRequireDefault(_selectEditor);
 
@@ -5621,7 +5670,7 @@ exports.getRegisteredEditors = getValues;
 /* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 module.exports = function (it) {
   if (!isObject(it)) throw TypeError(it + ' is not an object!');
   return it;
@@ -5632,12 +5681,88 @@ module.exports = function (it) {
 /* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
+"use strict";
+
+
+exports.__esModule = true;
+
+var _array = __webpack_require__(0);
+
+var _object = __webpack_require__(2);
+
+var MIXIN_NAME = 'localHooks';
+
+/**
+ * Mixin object to extend objects functionality for local hooks.
+ *
+ * @type {Object}
+ */
+var localHooks = {
+  /**
+   * Internal hooks storage.
+   */
+  _localHooks: Object.create(null),
+
+  /**
+   * Add hook to the collection.
+   *
+   * @param {String} key Hook name.
+   * @param {Function} callback Hook callback
+   */
+  addLocalHook: function addLocalHook(key, callback) {
+    if (!this._localHooks[key]) {
+      this._localHooks[key] = [];
+    }
+    this._localHooks[key].push(callback);
+  },
+
+
+  /**
+   * Run hooks.
+   *
+   * @param {String} key Hook name.
+   * @param {*} params
+   */
+  runLocalHooks: function runLocalHooks(key) {
+    var _this = this;
+
+    for (var _len = arguments.length, params = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      params[_key - 1] = arguments[_key];
+    }
+
+    if (this._localHooks[key]) {
+      (0, _array.arrayEach)(this._localHooks[key], function (callback) {
+        return callback.apply(_this, params);
+      });
+    }
+  },
+
+
+  /**
+   * Clear all added hooks.
+   */
+  clearLocalHooks: function clearLocalHooks() {
+    this._localHooks = {};
+  }
+};
+
+(0, _object.defineGetter)(localHooks, 'MIXIN_NAME', MIXIN_NAME, {
+  writable: false,
+  enumerable: false
+});
+
+exports.default = localHooks;
+
+/***/ }),
+/* 22 */
+/***/ (function(module, exports, __webpack_require__) {
+
 var anObject = __webpack_require__(20);
 var IE8_DOM_DEFINE = __webpack_require__(162);
 var toPrimitive = __webpack_require__(86);
 var dP = Object.defineProperty;
 
-exports.f = __webpack_require__(23) ? Object.defineProperty : function defineProperty(O, P, Attributes) {
+exports.f = __webpack_require__(24) ? Object.defineProperty : function defineProperty(O, P, Attributes) {
   anObject(O);
   P = toPrimitive(P, true);
   anObject(Attributes);
@@ -5651,7 +5776,7 @@ exports.f = __webpack_require__(23) ? Object.defineProperty : function definePro
 
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5675,15 +5800,19 @@ exports.filterSeparators = filterSeparators;
 
 var _array = __webpack_require__(0);
 
+var _number = __webpack_require__(4);
+
 var _element = __webpack_require__(1);
 
 var _separator = __webpack_require__(155);
 
-function normalizeSelection(selRange) {
-  return {
-    start: selRange.getTopLeftCorner(),
-    end: selRange.getBottomRightCorner()
-  };
+function normalizeSelection(selRanges) {
+  return (0, _array.arrayMap)(selRanges, function (range) {
+    return {
+      start: range.getTopLeftCorner(),
+      end: range.getBottomRightCorner()
+    };
+  });
 }
 
 function isSeparator(cell) {
@@ -5737,31 +5866,41 @@ function prepareHorizontalAlignClass(className, alignment) {
   return className;
 }
 
-function getAlignmentClasses(range, callback) {
+function getAlignmentClasses(ranges, callback) {
   var classes = {};
 
-  for (var row = range.from.row; row <= range.to.row; row++) {
-    for (var col = range.from.col; col <= range.to.col; col++) {
-      if (!classes[row]) {
-        classes[row] = [];
+  (0, _array.arrayEach)(ranges, function (_ref) {
+    var from = _ref.from,
+        to = _ref.to;
+
+    for (var row = from.row; row <= to.row; row++) {
+      for (var col = from.col; col <= to.col; col++) {
+        if (!classes[row]) {
+          classes[row] = [];
+        }
+        classes[row][col] = callback(row, col);
       }
-      classes[row][col] = callback(row, col);
     }
-  }
+  });
 
   return classes;
 }
 
-function align(range, type, alignment, cellDescriptor, propertySetter) {
-  if (range.from.row == range.to.row && range.from.col == range.to.col) {
-    applyAlignClassName(range.from.row, range.from.col, type, alignment, cellDescriptor, propertySetter);
-  } else {
-    for (var row = range.from.row; row <= range.to.row; row++) {
-      for (var col = range.from.col; col <= range.to.col; col++) {
-        applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter);
+function align(ranges, type, alignment, cellDescriptor, propertySetter) {
+  (0, _array.arrayEach)(ranges, function (_ref2) {
+    var from = _ref2.from,
+        to = _ref2.to;
+
+    if (from.row == to.row && from.col == to.col) {
+      applyAlignClassName(from.row, from.col, type, alignment, cellDescriptor, propertySetter);
+    } else {
+      for (var row = from.row; row <= to.row; row++) {
+        for (var col = from.col; col <= to.col; col++) {
+          applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter);
+        }
       }
     }
-  }
+  });
 }
 
 function applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter) {
@@ -5779,16 +5918,20 @@ function applyAlignClassName(row, col, type, alignment, cellDescriptor, property
   propertySetter(row, col, 'className', className);
 }
 
-function checkSelectionConsistency(range, comparator) {
+function checkSelectionConsistency(ranges, comparator) {
   var result = false;
 
-  if (range) {
-    range.forAll(function (row, col) {
-      if (comparator(row, col)) {
-        result = true;
+  if (Array.isArray(ranges)) {
+    (0, _array.arrayEach)(ranges, function (range) {
+      range.forAll(function (row, col) {
+        if (comparator(row, col)) {
+          result = true;
 
-        return false;
-      }
+          return false;
+        }
+      });
+
+      return result;
     });
   }
 
@@ -5856,17 +5999,17 @@ function filterSeparators(items) {
 }
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Thank's IE8 for his funny defineProperty
-module.exports = !__webpack_require__(24)(function () {
+module.exports = !__webpack_require__(25)(function () {
   return Object.defineProperty({}, 'a', { get: function () { return 7; } }).a != 7;
 });
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports) {
 
 module.exports = function (exec) {
@@ -5879,7 +6022,7 @@ module.exports = function (exec) {
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // to indexed object, toObject with fallback for non-array-like ES3 strings
@@ -5891,7 +6034,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.1.15 ToLength
@@ -5903,13 +6046,13 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // most Object methods by ES6 should accept primitives
 var $export = __webpack_require__(5);
-var core = __webpack_require__(48);
-var fails = __webpack_require__(24);
+var core = __webpack_require__(49);
+var fails = __webpack_require__(25);
 module.exports = function (KEY, exec) {
   var fn = (core.Object || {})[KEY] || Object[KEY];
   var exp = {};
@@ -5919,7 +6062,7 @@ module.exports = function (KEY, exec) {
 
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6275,7 +6418,7 @@ var Overlay = function () {
 exports.default = Overlay;
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6289,7 +6432,7 @@ exports.isPercentValue = isPercentValue;
 exports.substitute = substitute;
 exports.stripTags = stripTags;
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 var _number = __webpack_require__(4);
 
@@ -6388,86 +6531,10 @@ function stripTags(string) {
 }
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_30__;
-
-/***/ }),
-/* 31 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _array = __webpack_require__(0);
-
-var _object = __webpack_require__(2);
-
-var MIXIN_NAME = 'localHooks';
-
-/**
- * Mixin object to extend objects functionality for local hooks.
- *
- * @type {Object}
- */
-var localHooks = {
-  /**
-   * Internal hooks storage.
-   */
-  _localHooks: Object.create(null),
-
-  /**
-   * Add hook to the collection.
-   *
-   * @param {String} key Hook name.
-   * @param {Function} callback Hook callback
-   */
-  addLocalHook: function addLocalHook(key, callback) {
-    if (!this._localHooks[key]) {
-      this._localHooks[key] = [];
-    }
-    this._localHooks[key].push(callback);
-  },
-
-
-  /**
-   * Run hooks.
-   *
-   * @param {String} key Hook name.
-   * @param {*} params
-   */
-  runLocalHooks: function runLocalHooks(key) {
-    var _this = this;
-
-    for (var _len = arguments.length, params = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      params[_key - 1] = arguments[_key];
-    }
-
-    if (this._localHooks[key]) {
-      (0, _array.arrayEach)(this._localHooks[key], function (callback) {
-        return callback.apply(_this, params);
-      });
-    }
-  },
-
-
-  /**
-   * Clear all added hooks.
-   */
-  clearLocalHooks: function clearLocalHooks() {
-    this._localHooks = {};
-  }
-};
-
-(0, _object.defineGetter)(localHooks, 'MIXIN_NAME', MIXIN_NAME, {
-  writable: false,
-  enumerable: false
-});
-
-exports.default = localHooks;
+module.exports = __WEBPACK_EXTERNAL_MODULE_31__;
 
 /***/ }),
 /* 32 */
@@ -6820,23 +6887,23 @@ function curryRight(func) {
 exports.__esModule = true;
 exports.getRegisteredValidators = exports.getRegisteredValidatorNames = exports.hasValidator = exports.getValidator = exports.registerValidator = undefined;
 
-var _staticRegister2 = __webpack_require__(51);
+var _staticRegister2 = __webpack_require__(47);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _autocompleteValidator = __webpack_require__(274);
+var _autocompleteValidator = __webpack_require__(277);
 
 var _autocompleteValidator2 = _interopRequireDefault(_autocompleteValidator);
 
-var _dateValidator = __webpack_require__(275);
+var _dateValidator = __webpack_require__(278);
 
 var _dateValidator2 = _interopRequireDefault(_dateValidator);
 
-var _numericValidator = __webpack_require__(276);
+var _numericValidator = __webpack_require__(279);
 
 var _numericValidator2 = _interopRequireDefault(_numericValidator);
 
-var _timeValidator = __webpack_require__(277);
+var _timeValidator = __webpack_require__(280);
 
 var _timeValidator2 = _interopRequireDefault(_timeValidator);
 
@@ -6966,7 +7033,7 @@ var TO_STRING = 'toString';
 var $toString = Function[TO_STRING];
 var TPL = ('' + $toString).split(TO_STRING);
 
-__webpack_require__(48).inspectSource = function (it) {
+__webpack_require__(49).inspectSource = function (it) {
   return $toString.call(it);
 };
 
@@ -6995,9 +7062,9 @@ __webpack_require__(48).inspectSource = function (it) {
 /* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var dP = __webpack_require__(21);
+var dP = __webpack_require__(22);
 var createDesc = __webpack_require__(56);
-module.exports = __webpack_require__(23) ? function (object, key, value) {
+module.exports = __webpack_require__(24) ? function (object, key, value) {
   return dP.f(object, key, createDesc(1, value));
 } : function (object, key, value) {
   object[key] = value;
@@ -7047,14 +7114,14 @@ module.exports = function (it) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var META = __webpack_require__(55)('meta');
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 var has = __webpack_require__(32);
-var setDesc = __webpack_require__(21).f;
+var setDesc = __webpack_require__(22).f;
 var id = 0;
 var isExtensible = Object.isExtensible || function () {
   return true;
 };
-var FREEZE = !__webpack_require__(24)(function () {
+var FREEZE = !__webpack_require__(25)(function () {
   return isExtensible(Object.preventExtensions({}));
 });
 var setMeta = function (it) {
@@ -7261,7 +7328,7 @@ exports.ITEMS = exports.UNDO = exports.SEPARATOR = exports.ROW_BELOW = exports.R
 
 var _predefinedItems2;
 
-var _alignment = __webpack_require__(310);
+var _alignment = __webpack_require__(324);
 
 Object.defineProperty(exports, 'ALIGNMENT', {
   enumerable: true,
@@ -7270,7 +7337,7 @@ Object.defineProperty(exports, 'ALIGNMENT', {
   }
 });
 
-var _clearColumn = __webpack_require__(311);
+var _clearColumn = __webpack_require__(325);
 
 Object.defineProperty(exports, 'CLEAR_COLUMN', {
   enumerable: true,
@@ -7279,7 +7346,7 @@ Object.defineProperty(exports, 'CLEAR_COLUMN', {
   }
 });
 
-var _columnLeft = __webpack_require__(312);
+var _columnLeft = __webpack_require__(326);
 
 Object.defineProperty(exports, 'COLUMN_LEFT', {
   enumerable: true,
@@ -7288,7 +7355,7 @@ Object.defineProperty(exports, 'COLUMN_LEFT', {
   }
 });
 
-var _columnRight = __webpack_require__(313);
+var _columnRight = __webpack_require__(327);
 
 Object.defineProperty(exports, 'COLUMN_RIGHT', {
   enumerable: true,
@@ -7297,7 +7364,7 @@ Object.defineProperty(exports, 'COLUMN_RIGHT', {
   }
 });
 
-var _readOnly = __webpack_require__(314);
+var _readOnly = __webpack_require__(328);
 
 Object.defineProperty(exports, 'READ_ONLY', {
   enumerable: true,
@@ -7306,7 +7373,7 @@ Object.defineProperty(exports, 'READ_ONLY', {
   }
 });
 
-var _redo = __webpack_require__(315);
+var _redo = __webpack_require__(329);
 
 Object.defineProperty(exports, 'REDO', {
   enumerable: true,
@@ -7315,7 +7382,7 @@ Object.defineProperty(exports, 'REDO', {
   }
 });
 
-var _removeColumn = __webpack_require__(316);
+var _removeColumn = __webpack_require__(330);
 
 Object.defineProperty(exports, 'REMOVE_COLUMN', {
   enumerable: true,
@@ -7324,7 +7391,7 @@ Object.defineProperty(exports, 'REMOVE_COLUMN', {
   }
 });
 
-var _removeRow = __webpack_require__(317);
+var _removeRow = __webpack_require__(331);
 
 Object.defineProperty(exports, 'REMOVE_ROW', {
   enumerable: true,
@@ -7333,7 +7400,7 @@ Object.defineProperty(exports, 'REMOVE_ROW', {
   }
 });
 
-var _rowAbove = __webpack_require__(318);
+var _rowAbove = __webpack_require__(332);
 
 Object.defineProperty(exports, 'ROW_ABOVE', {
   enumerable: true,
@@ -7342,7 +7409,7 @@ Object.defineProperty(exports, 'ROW_ABOVE', {
   }
 });
 
-var _rowBelow = __webpack_require__(319);
+var _rowBelow = __webpack_require__(333);
 
 Object.defineProperty(exports, 'ROW_BELOW', {
   enumerable: true,
@@ -7360,7 +7427,7 @@ Object.defineProperty(exports, 'SEPARATOR', {
   }
 });
 
-var _undo = __webpack_require__(320);
+var _undo = __webpack_require__(334);
 
 Object.defineProperty(exports, 'UNDO', {
   enumerable: true,
@@ -7447,7 +7514,7 @@ var _hotFormulaParser = __webpack_require__(66);
 
 var _array = __webpack_require__(0);
 
-var _base = __webpack_require__(224);
+var _base = __webpack_require__(227);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -7748,49 +7815,6 @@ module.exports = function (it) {
 
 /***/ }),
 /* 47 */
-/***/ (function(module, exports) {
-
-var toString = {}.toString;
-
-module.exports = function (it) {
-  return toString.call(it).slice(8, -1);
-};
-
-
-/***/ }),
-/* 48 */
-/***/ (function(module, exports) {
-
-var core = module.exports = { version: '2.5.3' };
-if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
-
-
-/***/ }),
-/* 49 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var isObject = __webpack_require__(11);
-module.exports = function (it, TYPE) {
-  if (!isObject(it) || it._t !== TYPE) throw TypeError('Incompatible receiver, ' + TYPE + ' required!');
-  return it;
-};
-
-
-/***/ }),
-/* 50 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// 22.1.3.31 Array.prototype[@@unscopables]
-var UNSCOPABLES = __webpack_require__(14)('unscopables');
-var ArrayProto = Array.prototype;
-if (ArrayProto[UNSCOPABLES] == undefined) __webpack_require__(38)(ArrayProto, UNSCOPABLES, {});
-module.exports = function (key) {
-  ArrayProto[UNSCOPABLES][key] = true;
-};
-
-
-/***/ }),
-/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7869,6 +7893,49 @@ function staticRegister() {
 }
 
 /***/ }),
+/* 48 */
+/***/ (function(module, exports) {
+
+var toString = {}.toString;
+
+module.exports = function (it) {
+  return toString.call(it).slice(8, -1);
+};
+
+
+/***/ }),
+/* 49 */
+/***/ (function(module, exports) {
+
+var core = module.exports = { version: '2.5.3' };
+if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
+
+
+/***/ }),
+/* 50 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var isObject = __webpack_require__(12);
+module.exports = function (it, TYPE) {
+  if (!isObject(it) || it._t !== TYPE) throw TypeError('Incompatible receiver, ' + TYPE + ' required!');
+  return it;
+};
+
+
+/***/ }),
+/* 51 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 22.1.3.31 Array.prototype[@@unscopables]
+var UNSCOPABLES = __webpack_require__(16)('unscopables');
+var ArrayProto = Array.prototype;
+if (ArrayProto[UNSCOPABLES] == undefined) __webpack_require__(38)(ArrayProto, UNSCOPABLES, {});
+module.exports = function (key) {
+  ArrayProto[UNSCOPABLES][key] = true;
+};
+
+
+/***/ }),
 /* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -7878,9 +7945,9 @@ function staticRegister() {
 exports.__esModule = true;
 exports.EditorState = undefined;
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 var EditorState = exports.EditorState = {
   VIRGIN: 'STATE_VIRGIN', // before editing
@@ -7960,7 +8027,7 @@ BaseEditor.prototype.saveValue = function (value, ctrlDown) {
 
   // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
   if (ctrlDown) {
-    selection = this.instance.getSelected();
+    selection = this.instance.getSelectedLast();
 
     if (selection[0] > selection[2]) {
       tmp = selection[0];
@@ -8324,6 +8391,8 @@ var _object = __webpack_require__(2);
 
 var _number = __webpack_require__(4);
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 var MIXIN_NAME = 'arrayMapper';
 
 /**
@@ -8333,41 +8402,45 @@ var arrayMapper = {
   _arrayMap: [],
 
   /**
-   * Get value by map index.
+   * Get translated index by its physical index.
    *
-   * @param {Number} index Array index.
-   * @return {*} Returns value mapped to passed index.
+   * @param {Number} physicalIndex Physical index.
+   * @return {Number|null} Returns translated index mapped by passed physical index.
    */
-  getValueByIndex: function getValueByIndex(index) {
-    var value = void 0;
+  getValueByIndex: function getValueByIndex(physicalIndex) {
+    var length = this._arrayMap.length;
+    var translatedIndex = null;
 
-    // eslint-disable-next-line no-cond-assign, no-return-assign
-    return (value = this._arrayMap[index]) === void 0 ? null : value;
+    if (physicalIndex < length) {
+      translatedIndex = this._arrayMap[physicalIndex];
+    }
+
+    return translatedIndex;
   },
 
 
   /**
-   * Get map index by its value.
+   * Get physical index by its translated index.
    *
-   * @param {*} value Value to search.
-   * @returns {Number} Returns array index.
+   * @param {*} translatedIndex Value to search.
+   * @returns {Number|null} Returns a physical index of the array mapper.
    */
-  getIndexByValue: function getIndexByValue(value) {
-    var index = void 0;
+  getIndexByValue: function getIndexByValue(translatedIndex) {
+    var physicalIndex = void 0;
 
     // eslint-disable-next-line no-cond-assign, no-return-assign
-    return (index = this._arrayMap.indexOf(value)) === -1 ? null : index;
+    return (physicalIndex = this._arrayMap.indexOf(translatedIndex)) === -1 ? null : physicalIndex;
   },
 
 
   /**
    * Insert new items to array mapper starting at passed index. New entries will be a continuation of last value in the array.
    *
-   * @param {Number} index Array index.
+   * @param {Number} physicalIndex Array index.
    * @param {Number} [amount=1] Defines how many items will be created to an array.
    * @returns {Array} Returns added items.
    */
-  insertItems: function insertItems(index) {
+  insertItems: function insertItems(physicalIndex) {
     var _this = this;
 
     var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
@@ -8376,7 +8449,7 @@ var arrayMapper = {
     var addedItems = [];
 
     (0, _number.rangeEach)(amount - 1, function (count) {
-      addedItems.push(_this._arrayMap.splice(index + count, 0, newIndex + count));
+      addedItems.push(_this._arrayMap.splice(physicalIndex + count, 0, newIndex + count));
     });
 
     return addedItems;
@@ -8386,32 +8459,32 @@ var arrayMapper = {
   /**
    * Remove items from array mapper.
    *
-   * @param {Number} index Array index.
+   * @param {Number} physicalIndex Array index.
    * @param {Number} [amount=1] Defines how many items will be created to an array.
    * @returns {Array} Returns removed items.
    */
-  removeItems: function removeItems(index) {
+  removeItems: function removeItems(physicalIndex) {
     var _this2 = this;
 
     var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
 
     var removedItems = [];
 
-    if (Array.isArray(index)) {
+    if (Array.isArray(physicalIndex)) {
       var mapCopy = [].concat(this._arrayMap);
 
       // Sort descending
-      index.sort(function (a, b) {
+      physicalIndex.sort(function (a, b) {
         return b - a;
       });
 
-      removedItems = (0, _array.arrayReduce)(index, function (acc, item) {
+      removedItems = (0, _array.arrayReduce)(physicalIndex, function (acc, item) {
         _this2._arrayMap.splice(item, 1);
 
         return acc.concat(mapCopy.slice(item, item + 1));
       }, []);
     } else {
-      removedItems = this._arrayMap.splice(index, amount);
+      removedItems = this._arrayMap.splice(physicalIndex, amount);
     }
 
     return removedItems;
@@ -8421,13 +8494,13 @@ var arrayMapper = {
   /**
    * Unshift items (remove and shift chunk of array to the left).
    *
-   * @param {Number|Array} index Array index or Array of indexes to unshift.
+   * @param {Number|Array} physicalIndex Array index or Array of indexes to unshift.
    * @param {Number} [amount=1] Defines how many items will be removed from an array (when index is passed as number).
    */
-  unshiftItems: function unshiftItems(index) {
+  unshiftItems: function unshiftItems(physicalIndex) {
     var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
 
-    var removedItems = this.removeItems(index, amount);
+    var removedItems = this.removeItems(physicalIndex, amount);
 
     function countRowShift(logicalRow) {
       // Todo: compare perf between reduce vs sort->each->brake
@@ -8455,25 +8528,37 @@ var arrayMapper = {
   /**
    * Shift (right shifting) items starting at passed index.
    *
-   * @param {Number} index Array index.
+   * @param {Number} physicalIndex Array index.
    * @param {Number} [amount=1] Defines how many items will be created to an array.
    */
-  shiftItems: function shiftItems(index) {
+  shiftItems: function shiftItems(physicalIndex) {
     var _this3 = this;
 
     var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
 
     this._arrayMap = (0, _array.arrayMap)(this._arrayMap, function (row) {
-      if (row >= index) {
+      if (row >= physicalIndex) {
         row += amount;
       }
-
       return row;
     });
 
     (0, _number.rangeEach)(amount - 1, function (count) {
-      _this3._arrayMap.splice(index + count, 0, index + count);
+      _this3._arrayMap.splice(physicalIndex + count, 0, physicalIndex + count);
     });
+  },
+
+
+  /**
+   * Swap indexes in arrayMapper.
+   *
+   * @param {Number} physicalIndexFrom index to move.
+   * @param {Number} physicalIndexTo index to.
+   */
+  swapIndexes: function swapIndexes(physicalIndexFrom, physicalIndexTo) {
+    var _arrayMap;
+
+    (_arrayMap = this._arrayMap).splice.apply(_arrayMap, [physicalIndexTo, 0].concat(_toConsumableArray(this._arrayMap.splice(physicalIndexFrom, 1))));
   },
 
 
@@ -8528,9 +8613,9 @@ module.exports = {};
 /* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var def = __webpack_require__(21).f;
+var def = __webpack_require__(22).f;
 var has = __webpack_require__(32);
-var TAG = __webpack_require__(14)('toStringTag');
+var TAG = __webpack_require__(16)('toStringTag');
 
 module.exports = function (it, tag, stat) {
   if (it && !has(it = stat ? it : it.prototype, TAG)) def(it, TAG, { configurable: true, value: tag });
@@ -8671,6 +8756,21 @@ var CellCoords = function () {
     value: function isNorthEastOf(testedCoords) {
       return this.row <= testedCoords.row && this.col >= testedCoords.col;
     }
+
+    /**
+     * Convert CellCoords to literal object.
+     *
+     * @return {Object} Returns a literal object with `row` and `col` properties.
+     */
+
+  }, {
+    key: 'toObject',
+    value: function toObject() {
+      return {
+        row: this.row,
+        col: this.col
+      };
+    }
   }]);
 
   return CellCoords;
@@ -8724,7 +8824,7 @@ exports.__esModule = true;
 
 var _element = __webpack_require__(1);
 
-var _autoResize = __webpack_require__(256);
+var _autoResize = __webpack_require__(259);
 
 var _autoResize2 = _interopRequireDefault(_autoResize);
 
@@ -8738,7 +8838,7 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _unicode = __webpack_require__(18);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -8814,7 +8914,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       break;
 
     case _unicode.KEY_CODES.ENTER:
-      var selected = that.instance.getSelected();
+      var selected = that.instance.getSelectedLast();
       var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
       if (ctrlDown && !isMultipleSelection || event.altKey) {
         // if ctrl+enter or alt+enter, add new line
@@ -9017,11 +9117,11 @@ TextEditor.prototype.refreshDimensions = function () {
       break;
   }
 
-  if (colHeadersCount && this.instance.getSelected()[0] === 0 || settings.fixedRowsBottom && this.instance.getSelected()[0] === totalRowsCount - settings.fixedRowsBottom) {
+  if (colHeadersCount && this.instance.getSelectedLast()[0] === 0 || settings.fixedRowsBottom && this.instance.getSelectedLast()[0] === totalRowsCount - settings.fixedRowsBottom) {
     editTop += 1;
   }
 
-  if (this.instance.getSelected()[1] === 0) {
+  if (this.instance.getSelectedLast()[1] === 0) {
     editLeft += 1;
   }
 
@@ -9323,7 +9423,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _object = __webpack_require__(2);
 
-var _localHooks = __webpack_require__(31);
+var _localHooks = __webpack_require__(21);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
@@ -9598,7 +9698,7 @@ var _array = __webpack_require__(0);
 
 var _object = __webpack_require__(2);
 
-var _localHooks = __webpack_require__(31);
+var _localHooks = __webpack_require__(21);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
@@ -10027,7 +10127,7 @@ var ctx = __webpack_require__(39);
 var call = __webpack_require__(166);
 var isArrayIter = __webpack_require__(167);
 var anObject = __webpack_require__(20);
-var toLength = __webpack_require__(26);
+var toLength = __webpack_require__(27);
 var getIterFn = __webpack_require__(168);
 var BREAK = {};
 var RETURN = {};
@@ -10070,11 +10170,11 @@ var redefineAll = __webpack_require__(70);
 var meta = __webpack_require__(41);
 var forOf = __webpack_require__(73);
 var anInstance = __webpack_require__(72);
-var isObject = __webpack_require__(11);
-var fails = __webpack_require__(24);
+var isObject = __webpack_require__(12);
+var fails = __webpack_require__(25);
 var $iterDetect = __webpack_require__(92);
 var setToStringTag = __webpack_require__(58);
-var inheritIfRequired = __webpack_require__(231);
+var inheritIfRequired = __webpack_require__(234);
 
 module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
   var Base = global[NAME];
@@ -10155,13 +10255,13 @@ module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
 
 var pIE = __webpack_require__(59);
 var createDesc = __webpack_require__(56);
-var toIObject = __webpack_require__(25);
+var toIObject = __webpack_require__(26);
 var toPrimitive = __webpack_require__(86);
 var has = __webpack_require__(32);
 var IE8_DOM_DEFINE = __webpack_require__(162);
 var gOPD = Object.getOwnPropertyDescriptor;
 
-exports.f = __webpack_require__(23) ? gOPD : function getOwnPropertyDescriptor(O, P) {
+exports.f = __webpack_require__(24) ? gOPD : function getOwnPropertyDescriptor(O, P) {
   O = toIObject(O);
   P = toPrimitive(P, true);
   if (IE8_DOM_DEFINE) try {
@@ -10185,8 +10285,8 @@ exports.f = __webpack_require__(23) ? gOPD : function getOwnPropertyDescriptor(O
 var ctx = __webpack_require__(39);
 var IObject = __webpack_require__(88);
 var toObject = __webpack_require__(40);
-var toLength = __webpack_require__(26);
-var asc = __webpack_require__(232);
+var toLength = __webpack_require__(27);
+var asc = __webpack_require__(235);
 module.exports = function (TYPE, $create) {
   var IS_MAP = TYPE == 1;
   var IS_FILTER = TYPE == 2;
@@ -10236,9 +10336,9 @@ exports.f = Object.getOwnPropertySymbols;
 
 var hide = __webpack_require__(38);
 var redefine = __webpack_require__(37);
-var fails = __webpack_require__(24);
+var fails = __webpack_require__(25);
 var defined = __webpack_require__(46);
-var wks = __webpack_require__(14);
+var wks = __webpack_require__(16);
 
 module.exports = function (KEY, length, exec) {
   var SYMBOL = wks(KEY);
@@ -10269,10 +10369,10 @@ module.exports = function (KEY, length, exec) {
 
 "use strict";
 
-var addToUnscopables = __webpack_require__(50);
+var addToUnscopables = __webpack_require__(51);
 var step = __webpack_require__(172);
 var Iterators = __webpack_require__(57);
-var toIObject = __webpack_require__(25);
+var toIObject = __webpack_require__(26);
 
 // 22.1.3.4 Array.prototype.entries()
 // 22.1.3.13 Array.prototype.keys()
@@ -10527,11 +10627,11 @@ var _object = __webpack_require__(2);
 
 var _utils = __webpack_require__(207);
 
-var _staticRegister2 = __webpack_require__(51);
+var _staticRegister2 = __webpack_require__(47);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _enUS = __webpack_require__(293);
+var _enUS = __webpack_require__(296);
 
 var _enUS2 = _interopRequireDefault(_enUS);
 
@@ -10653,11 +10753,11 @@ var _array = __webpack_require__(0);
 
 var _object = __webpack_require__(2);
 
-var _localHooks = __webpack_require__(31);
+var _localHooks = __webpack_require__(21);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
-var _stateSaver = __webpack_require__(375);
+var _stateSaver = __webpack_require__(388);
 
 var _stateSaver2 = _interopRequireDefault(_stateSaver);
 
@@ -10764,7 +10864,7 @@ exports.default = BaseComponent;
 "use strict";
 
 var strong = __webpack_require__(161);
-var validate = __webpack_require__(49);
+var validate = __webpack_require__(50);
 var MAP = 'Map';
 
 // 23.1 Map Objects
@@ -10787,7 +10887,7 @@ module.exports = __webpack_require__(75)(MAP, function (get) {
 /* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 var document = __webpack_require__(17).document;
 // typeof document.createElement is 'object' in old IE
 var is = isObject(document) && isObject(document.createElement);
@@ -10801,7 +10901,7 @@ module.exports = function (it) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.1.1 ToPrimitive(input [, PreferredType])
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 // instead of the ES6 spec version, we didn't implement @@toPrimitive case
 // and the second argument - flag - preferred type is a string
 module.exports = function (it, S) {
@@ -10820,7 +10920,7 @@ module.exports = function (it, S) {
 
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = __webpack_require__(20);
-var dPs = __webpack_require__(229);
+var dPs = __webpack_require__(232);
 var enumBugKeys = __webpack_require__(91);
 var IE_PROTO = __webpack_require__(89)('IE_PROTO');
 var Empty = function () { /* empty */ };
@@ -10866,7 +10966,7 @@ module.exports = Object.create || function create(O, Properties) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // fallback for non-array-like ES3 and non-enumerable old V8 strings
-var cof = __webpack_require__(47);
+var cof = __webpack_require__(48);
 // eslint-disable-next-line no-prototype-builtins
 module.exports = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
   return cof(it) == 'String' ? it.split('') : Object(it);
@@ -10910,7 +11010,7 @@ module.exports = (
 /* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var ITERATOR = __webpack_require__(14)('iterator');
+var ITERATOR = __webpack_require__(16)('iterator');
 var SAFE_CLOSING = false;
 
 try {
@@ -10941,7 +11041,7 @@ module.exports = function (exec, skipClosing) {
 "use strict";
 
 var strong = __webpack_require__(161);
-var validate = __webpack_require__(49);
+var validate = __webpack_require__(50);
 var SET = 'Set';
 
 // 23.2 Set Objects
@@ -10966,9 +11066,9 @@ var redefine = __webpack_require__(37);
 var meta = __webpack_require__(41);
 var assign = __webpack_require__(176);
 var weak = __webpack_require__(177);
-var isObject = __webpack_require__(11);
-var fails = __webpack_require__(24);
-var validate = __webpack_require__(49);
+var isObject = __webpack_require__(12);
+var fails = __webpack_require__(25);
+var validate = __webpack_require__(50);
 var WEAK_MAP = 'WeakMap';
 var getWeak = meta.getWeak;
 var isExtensible = Object.isExtensible;
@@ -11028,7 +11128,7 @@ if (fails(function () { return new $WeakMap().set((Object.freeze || Object)(tmp)
 "use strict";
 
 var weak = __webpack_require__(177);
-var validate = __webpack_require__(49);
+var validate = __webpack_require__(50);
 var WEAK_SET = 'WeakSet';
 
 // 23.4 WeakSet Objects
@@ -11053,16 +11153,16 @@ var global = __webpack_require__(17);
 var ctx = __webpack_require__(39);
 var classof = __webpack_require__(169);
 var $export = __webpack_require__(5);
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 var aFunction = __webpack_require__(71);
 var anInstance = __webpack_require__(72);
 var forOf = __webpack_require__(73);
-var speciesConstructor = __webpack_require__(234);
+var speciesConstructor = __webpack_require__(237);
 var task = __webpack_require__(97).set;
-var microtask = __webpack_require__(236)();
+var microtask = __webpack_require__(239)();
 var newPromiseCapabilityModule = __webpack_require__(178);
-var perform = __webpack_require__(237);
-var promiseResolve = __webpack_require__(238);
+var perform = __webpack_require__(240);
+var promiseResolve = __webpack_require__(241);
 var PROMISE = 'Promise';
 var TypeError = global.TypeError;
 var process = global.process;
@@ -11076,7 +11176,7 @@ var USE_NATIVE = !!function () {
   try {
     // correct subclassing with @@species support
     var promise = $Promise.resolve(1);
-    var FakePromise = (promise.constructor = {})[__webpack_require__(14)('species')] = function (exec) {
+    var FakePromise = (promise.constructor = {})[__webpack_require__(16)('species')] = function (exec) {
       exec(empty, empty);
     };
     // unhandled rejections tracking support, NodeJS Promise without it fails @@species test
@@ -11258,7 +11358,7 @@ if (!USE_NATIVE) {
 $export($export.G + $export.W + $export.F * !USE_NATIVE, { Promise: $Promise });
 __webpack_require__(58)($Promise, PROMISE);
 __webpack_require__(173)(PROMISE);
-Wrapper = __webpack_require__(48)[PROMISE];
+Wrapper = __webpack_require__(49)[PROMISE];
 
 // statics
 $export($export.S + $export.F * !USE_NATIVE, PROMISE, {
@@ -11327,7 +11427,7 @@ $export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(92)(function
 /***/ (function(module, exports, __webpack_require__) {
 
 var ctx = __webpack_require__(39);
-var invoke = __webpack_require__(235);
+var invoke = __webpack_require__(238);
 var html = __webpack_require__(165);
 var cel = __webpack_require__(85);
 var global = __webpack_require__(17);
@@ -11369,7 +11469,7 @@ if (!setTask || !clearTask) {
     delete queue[id];
   };
   // Node.js 0.8-
-  if (__webpack_require__(47)(process) == 'process') {
+  if (__webpack_require__(48)(process) == 'process') {
     defer = function (id) {
       process.nextTick(ctx(run, id, 1));
     };
@@ -11421,28 +11521,28 @@ module.exports = {
 // ECMAScript 6 symbols shim
 var global = __webpack_require__(17);
 var has = __webpack_require__(32);
-var DESCRIPTORS = __webpack_require__(23);
+var DESCRIPTORS = __webpack_require__(24);
 var $export = __webpack_require__(5);
 var redefine = __webpack_require__(37);
 var META = __webpack_require__(41).KEY;
-var $fails = __webpack_require__(24);
+var $fails = __webpack_require__(25);
 var shared = __webpack_require__(90);
 var setToStringTag = __webpack_require__(58);
 var uid = __webpack_require__(55);
-var wks = __webpack_require__(14);
+var wks = __webpack_require__(16);
 var wksExt = __webpack_require__(179);
-var wksDefine = __webpack_require__(239);
-var enumKeys = __webpack_require__(240);
+var wksDefine = __webpack_require__(242);
+var enumKeys = __webpack_require__(243);
 var isArray = __webpack_require__(175);
 var anObject = __webpack_require__(20);
-var isObject = __webpack_require__(11);
-var toIObject = __webpack_require__(25);
+var isObject = __webpack_require__(12);
+var toIObject = __webpack_require__(26);
 var toPrimitive = __webpack_require__(86);
 var createDesc = __webpack_require__(56);
 var _create = __webpack_require__(87);
 var gOPNExt = __webpack_require__(180);
 var $GOPD = __webpack_require__(76);
-var $DP = __webpack_require__(21);
+var $DP = __webpack_require__(22);
 var $keys = __webpack_require__(45);
 var gOPD = $GOPD.f;
 var dP = $DP.f;
@@ -11671,10 +11771,10 @@ exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.5 Object.freeze(O)
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 var meta = __webpack_require__(41).onFreeze;
 
-__webpack_require__(27)('freeze', function ($freeze) {
+__webpack_require__(28)('freeze', function ($freeze) {
   return function freeze(it) {
     return $freeze && isObject(it) ? $freeze(meta(it)) : it;
   };
@@ -11686,10 +11786,10 @@ __webpack_require__(27)('freeze', function ($freeze) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.17 Object.seal(O)
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 var meta = __webpack_require__(41).onFreeze;
 
-__webpack_require__(27)('seal', function ($seal) {
+__webpack_require__(28)('seal', function ($seal) {
   return function seal(it) {
     return $seal && isObject(it) ? $seal(meta(it)) : it;
   };
@@ -11701,10 +11801,10 @@ __webpack_require__(27)('seal', function ($seal) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.15 Object.preventExtensions(O)
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 var meta = __webpack_require__(41).onFreeze;
 
-__webpack_require__(27)('preventExtensions', function ($preventExtensions) {
+__webpack_require__(28)('preventExtensions', function ($preventExtensions) {
   return function preventExtensions(it) {
     return $preventExtensions && isObject(it) ? $preventExtensions(meta(it)) : it;
   };
@@ -11716,9 +11816,9 @@ __webpack_require__(27)('preventExtensions', function ($preventExtensions) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.12 Object.isFrozen(O)
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 
-__webpack_require__(27)('isFrozen', function ($isFrozen) {
+__webpack_require__(28)('isFrozen', function ($isFrozen) {
   return function isFrozen(it) {
     return isObject(it) ? $isFrozen ? $isFrozen(it) : false : true;
   };
@@ -11730,9 +11830,9 @@ __webpack_require__(27)('isFrozen', function ($isFrozen) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.13 Object.isSealed(O)
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 
-__webpack_require__(27)('isSealed', function ($isSealed) {
+__webpack_require__(28)('isSealed', function ($isSealed) {
   return function isSealed(it) {
     return isObject(it) ? $isSealed ? $isSealed(it) : false : true;
   };
@@ -11744,9 +11844,9 @@ __webpack_require__(27)('isSealed', function ($isSealed) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.11 Object.isExtensible(O)
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 
-__webpack_require__(27)('isExtensible', function ($isExtensible) {
+__webpack_require__(28)('isExtensible', function ($isExtensible) {
   return function isExtensible(it) {
     return isObject(it) ? $isExtensible ? $isExtensible(it) : true : false;
   };
@@ -11758,10 +11858,10 @@ __webpack_require__(27)('isExtensible', function ($isExtensible) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
-var toIObject = __webpack_require__(25);
+var toIObject = __webpack_require__(26);
 var $getOwnPropertyDescriptor = __webpack_require__(76).f;
 
-__webpack_require__(27)('getOwnPropertyDescriptor', function () {
+__webpack_require__(28)('getOwnPropertyDescriptor', function () {
   return function getOwnPropertyDescriptor(it, key) {
     return $getOwnPropertyDescriptor(toIObject(it), key);
   };
@@ -11776,7 +11876,7 @@ __webpack_require__(27)('getOwnPropertyDescriptor', function () {
 var toObject = __webpack_require__(40);
 var $getPrototypeOf = __webpack_require__(171);
 
-__webpack_require__(27)('getPrototypeOf', function () {
+__webpack_require__(28)('getPrototypeOf', function () {
   return function getPrototypeOf(it) {
     return $getPrototypeOf(toObject(it));
   };
@@ -11791,7 +11891,7 @@ __webpack_require__(27)('getPrototypeOf', function () {
 var toObject = __webpack_require__(40);
 var $keys = __webpack_require__(45);
 
-__webpack_require__(27)('keys', function () {
+__webpack_require__(28)('keys', function () {
   return function keys(it) {
     return $keys(toObject(it));
   };
@@ -11803,7 +11903,7 @@ __webpack_require__(27)('keys', function () {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.7 Object.getOwnPropertyNames(O)
-__webpack_require__(27)('getOwnPropertyNames', function () {
+__webpack_require__(28)('getOwnPropertyNames', function () {
   return __webpack_require__(180).f;
 });
 
@@ -11824,7 +11924,7 @@ $export($export.S + $export.F, 'Object', { assign: __webpack_require__(176) });
 
 // 19.1.3.10 Object.is(value1, value2)
 var $export = __webpack_require__(5);
-$export($export.S, 'Object', { is: __webpack_require__(241) });
+$export($export.S, 'Object', { is: __webpack_require__(244) });
 
 
 /***/ }),
@@ -11840,13 +11940,13 @@ $export($export.S, 'Object', { setPrototypeOf: __webpack_require__(174).set });
 /* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var dP = __webpack_require__(21).f;
+var dP = __webpack_require__(22).f;
 var FProto = Function.prototype;
 var nameRE = /^\s*function ([^ (]*)/;
 var NAME = 'name';
 
 // 19.2.4.2 name
-NAME in FProto || __webpack_require__(23) && dP(FProto, NAME, {
+NAME in FProto || __webpack_require__(24) && dP(FProto, NAME, {
   configurable: true,
   get: function () {
     try {
@@ -11863,8 +11963,8 @@ NAME in FProto || __webpack_require__(23) && dP(FProto, NAME, {
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(5);
-var toIObject = __webpack_require__(25);
-var toLength = __webpack_require__(26);
+var toIObject = __webpack_require__(26);
+var toLength = __webpack_require__(27);
 
 $export($export.S, 'String', {
   // 21.1.2.4 String.raw(callSite, ...substitutions)
@@ -11918,7 +12018,7 @@ $export($export.S + $export.F * (!!$fromCodePoint && $fromCodePoint.length != 1)
 "use strict";
 
 var $export = __webpack_require__(5);
-var $at = __webpack_require__(242)(false);
+var $at = __webpack_require__(245)(false);
 $export($export.P, 'String', {
   // 21.1.3.3 String.prototype.codePointAt(pos)
   codePointAt: function codePointAt(pos) {
@@ -11947,7 +12047,7 @@ $export($export.P, 'String', {
 // 21.1.3.18 String.prototype.startsWith(searchString [, position ])
 
 var $export = __webpack_require__(5);
-var toLength = __webpack_require__(26);
+var toLength = __webpack_require__(27);
 var context = __webpack_require__(119);
 var STARTS_WITH = 'startsWith';
 var $startsWith = ''[STARTS_WITH];
@@ -11982,7 +12082,7 @@ module.exports = function (that, searchString, NAME) {
 /* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var MATCH = __webpack_require__(14)('match');
+var MATCH = __webpack_require__(16)('match');
 module.exports = function (KEY) {
   var re = /./;
   try {
@@ -12004,7 +12104,7 @@ module.exports = function (KEY) {
 // 21.1.3.6 String.prototype.endsWith(searchString [, endPosition])
 
 var $export = __webpack_require__(5);
-var toLength = __webpack_require__(26);
+var toLength = __webpack_require__(27);
 var context = __webpack_require__(119);
 var ENDS_WITH = 'endsWith';
 var $endsWith = ''[ENDS_WITH];
@@ -12047,9 +12147,9 @@ $export($export.P + $export.F * __webpack_require__(120)(INCLUDES), 'String', {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 21.2.5.3 get RegExp.prototype.flags()
-if (__webpack_require__(23) && /./g.flags != 'g') __webpack_require__(21).f(RegExp.prototype, 'flags', {
+if (__webpack_require__(24) && /./g.flags != 'g') __webpack_require__(22).f(RegExp.prototype, 'flags', {
   configurable: true,
-  get: __webpack_require__(243)
+  get: __webpack_require__(246)
 });
 
 
@@ -12191,7 +12291,7 @@ var $export = __webpack_require__(5);
 var toObject = __webpack_require__(40);
 var call = __webpack_require__(166);
 var isArrayIter = __webpack_require__(167);
-var toLength = __webpack_require__(26);
+var toLength = __webpack_require__(27);
 var createProperty = __webpack_require__(129);
 var getIterFn = __webpack_require__(168);
 
@@ -12230,7 +12330,7 @@ $export($export.S + $export.F * !__webpack_require__(92)(function (iter) { Array
 
 "use strict";
 
-var $defineProperty = __webpack_require__(21);
+var $defineProperty = __webpack_require__(22);
 var createDesc = __webpack_require__(56);
 
 module.exports = function (object, index, value) {
@@ -12249,7 +12349,7 @@ var $export = __webpack_require__(5);
 var createProperty = __webpack_require__(129);
 
 // WebKit Array.of isn't generic
-$export($export.S + $export.F * __webpack_require__(24)(function () {
+$export($export.S + $export.F * __webpack_require__(25)(function () {
   function F() { /* empty */ }
   return !(Array.of.call(F) instanceof F);
 }), 'Array', {
@@ -12272,9 +12372,9 @@ $export($export.S + $export.F * __webpack_require__(24)(function () {
 // 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
 var $export = __webpack_require__(5);
 
-$export($export.P, 'Array', { copyWithin: __webpack_require__(244) });
+$export($export.P, 'Array', { copyWithin: __webpack_require__(247) });
 
-__webpack_require__(50)('copyWithin');
+__webpack_require__(51)('copyWithin');
 
 
 /***/ }),
@@ -12295,7 +12395,7 @@ $export($export.P + $export.F * forced, 'Array', {
     return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
-__webpack_require__(50)(KEY);
+__webpack_require__(51)(KEY);
 
 
 /***/ }),
@@ -12316,7 +12416,7 @@ $export($export.P + $export.F * forced, 'Array', {
     return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
 });
-__webpack_require__(50)(KEY);
+__webpack_require__(51)(KEY);
 
 
 /***/ }),
@@ -12326,9 +12426,9 @@ __webpack_require__(50)(KEY);
 // 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
 var $export = __webpack_require__(5);
 
-$export($export.P, 'Array', { fill: __webpack_require__(245) });
+$export($export.P, 'Array', { fill: __webpack_require__(248) });
 
-__webpack_require__(50)('fill');
+__webpack_require__(51)('fill');
 
 
 /***/ }),
@@ -12433,7 +12533,7 @@ $export($export.P, 'Array', {
   }
 });
 
-__webpack_require__(50)('includes');
+__webpack_require__(51)('includes');
 
 
 /***/ }),
@@ -12472,8 +12572,8 @@ $export($export.S, 'Object', {
 
 // https://github.com/tc39/proposal-object-getownpropertydescriptors
 var $export = __webpack_require__(5);
-var ownKeys = __webpack_require__(246);
-var toIObject = __webpack_require__(25);
+var ownKeys = __webpack_require__(249);
+var toIObject = __webpack_require__(26);
 var gOPD = __webpack_require__(76);
 var createProperty = __webpack_require__(129);
 
@@ -12554,7 +12654,7 @@ var redefine = __webpack_require__(37);
 var global = __webpack_require__(17);
 var hide = __webpack_require__(38);
 var Iterators = __webpack_require__(57);
-var wks = __webpack_require__(14);
+var wks = __webpack_require__(16);
 var ITERATOR = wks('iterator');
 var TO_STRING_TAG = wks('toStringTag');
 var ArrayValues = Iterators.Array;
@@ -12628,19 +12728,22 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
- * A cell range is a set of exactly two CellCoords (that can be the same or different)
+ * A cell range is a set of exactly two CellCoords (that can be the same or different).
  *
  * @class CellRange
  */
 var CellRange = function () {
   /**
    * @param {CellCoords} highlight Used to draw bold border around a cell where selection was
-   *                                          started and to edit the cell when you press Enter
-   * @param {CellCoords} from Usually the same as highlight, but in Excel there is distinction - one can change
-   *                                     highlight within a selection
-   * @param {CellCoords} to End selection
+   *                               started and to edit the cell when you press Enter.
+   * @param {CellCoords} [from] Usually the same as highlight, but in Excel there is distinction - one can change
+   *                            highlight within a selection.
+   * @param {CellCoords} [to] End selection.
    */
-  function CellRange(highlight, from, to) {
+  function CellRange(highlight) {
+    var from = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : highlight;
+    var to = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : highlight;
+
     _classCallCheck(this, CellRange);
 
     this.highlight = highlight;
@@ -12649,14 +12752,56 @@ var CellRange = function () {
   }
 
   /**
-   * Checks if given coords are valid in context of a given Walkontable instance
+   * Set the new coordinates for highlighting selection.
    *
-   * @param {Walkontable} wotInstance
-   * @returns {Boolean}
+   * @param {CellCoords} coords Coordinates to use.
    */
 
 
   _createClass(CellRange, [{
+    key: 'setHighlight',
+    value: function setHighlight(coords) {
+      this.highlight = coords;
+
+      return this;
+    }
+
+    /**
+     * Set the new coordinates where selection starts from.
+     *
+     * @param {CellCoords} coords Coordinates to use.
+     */
+
+  }, {
+    key: 'setFrom',
+    value: function setFrom(coords) {
+      this.from = coords;
+
+      return this;
+    }
+
+    /**
+     * Set new coordinates where selection ends from.
+     *
+     * @param {CellCoords} coords Coordinates to use.
+     */
+
+  }, {
+    key: 'setTo',
+    value: function setTo(coords) {
+      this.to = coords;
+
+      return this;
+    }
+
+    /**
+     * Checks if given coords are valid in context of a given Walkontable instance
+     *
+     * @param {Walkontable} wotInstance
+     * @returns {Boolean}
+     */
+
+  }, {
     key: 'isValid',
     value: function isValid(wotInstance) {
       return this.from.isValid(wotInstance) && this.to.isValid(wotInstance);
@@ -13132,6 +13277,22 @@ var CellRange = function () {
         }
       }
     }
+
+    /**
+     * Convert CellRange to literal object.
+     *
+     * @return {Object} Returns a literal object with `from` and `to` properties which each of that object
+     *                  contains `row` and `col` keys.
+     */
+
+  }, {
+    key: 'toObject',
+    value: function toObject() {
+      return {
+        from: this.from.toObject(),
+        to: this.to.toObject()
+      };
+    }
   }]);
 
   return CellRange;
@@ -13149,49 +13310,49 @@ exports.default = CellRange;
 exports.__esModule = true;
 exports.getRegisteredCellTypes = exports.getRegisteredCellTypeNames = exports.hasCellType = exports.getCellType = exports.registerCellType = undefined;
 
-var _staticRegister2 = __webpack_require__(51);
+var _staticRegister2 = __webpack_require__(47);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
 var _editors = __webpack_require__(19);
 
-var _renderers = __webpack_require__(13);
+var _renderers = __webpack_require__(15);
 
 var _validators = __webpack_require__(35);
 
-var _autocompleteType = __webpack_require__(278);
+var _autocompleteType = __webpack_require__(281);
 
 var _autocompleteType2 = _interopRequireDefault(_autocompleteType);
 
-var _checkboxType = __webpack_require__(279);
+var _checkboxType = __webpack_require__(282);
 
 var _checkboxType2 = _interopRequireDefault(_checkboxType);
 
-var _dateType = __webpack_require__(280);
+var _dateType = __webpack_require__(283);
 
 var _dateType2 = _interopRequireDefault(_dateType);
 
-var _dropdownType = __webpack_require__(281);
+var _dropdownType = __webpack_require__(284);
 
 var _dropdownType2 = _interopRequireDefault(_dropdownType);
 
-var _handsontableType = __webpack_require__(282);
+var _handsontableType = __webpack_require__(285);
 
 var _handsontableType2 = _interopRequireDefault(_handsontableType);
 
-var _numericType = __webpack_require__(283);
+var _numericType = __webpack_require__(286);
 
 var _numericType2 = _interopRequireDefault(_numericType);
 
-var _passwordType = __webpack_require__(284);
+var _passwordType = __webpack_require__(287);
 
 var _passwordType2 = _interopRequireDefault(_passwordType);
 
-var _textType = __webpack_require__(285);
+var _textType = __webpack_require__(288);
 
 var _textType2 = _interopRequireDefault(_textType);
 
-var _timeType = __webpack_require__(286);
+var _timeType = __webpack_require__(289);
 
 var _timeType2 = _interopRequireDefault(_timeType);
 
@@ -13268,9 +13429,9 @@ exports.getRegisteredCellTypes = getValues;
 
 exports.__esModule = true;
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 exports.default = Core;
 
@@ -13280,15 +13441,15 @@ var _setting = __webpack_require__(153);
 
 var _function = __webpack_require__(34);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 var _browser = __webpack_require__(33);
 
-var _dataMap = __webpack_require__(287);
+var _dataMap = __webpack_require__(290);
 
 var _dataMap2 = _interopRequireDefault(_dataMap);
 
-var _editorManager = __webpack_require__(290);
+var _editorManager = __webpack_require__(293);
 
 var _editorManager2 = _interopRequireDefault(_editorManager);
 
@@ -13302,19 +13463,19 @@ var _array = __webpack_require__(0);
 
 var _plugins = __webpack_require__(6);
 
-var _renderers = __webpack_require__(13);
+var _renderers = __webpack_require__(15);
 
 var _validators = __webpack_require__(35);
 
-var _string = __webpack_require__(29);
+var _string = __webpack_require__(30);
 
 var _number = __webpack_require__(4);
 
-var _tableView = __webpack_require__(291);
+var _tableView = __webpack_require__(294);
 
 var _tableView2 = _interopRequireDefault(_tableView);
 
-var _dataSource = __webpack_require__(292);
+var _dataSource = __webpack_require__(295);
 
 var _dataSource2 = _interopRequireDefault(_dataSource);
 
@@ -13324,9 +13485,9 @@ var _recordTranslator = __webpack_require__(53);
 
 var _rootInstance = __webpack_require__(204);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
@@ -13341,6 +13502,10 @@ var _i18n = __webpack_require__(206);
 var _dictionariesManager = __webpack_require__(82);
 
 var _utils = __webpack_require__(207);
+
+var _keyStateObserver = __webpack_require__(208);
+
+var _selection = __webpack_require__(299);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -13377,13 +13542,14 @@ var activeGuid = null;
  * ---
  */
 function Core(rootElement, userSettings) {
+  var _this = this;
+
   var rootInstanceSymbol = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
   var priv,
       datamap,
       dataSource,
       grid,
-      selection,
       editorManager,
       instance = this,
       GridSettings = function GridSettings() {},
@@ -13398,6 +13564,8 @@ function Core(rootElement, userSettings) {
   if ((0, _rootInstance.hasValidParameter)(rootInstanceSymbol)) {
     (0, _rootInstance.registerAsRootInstance)(this);
   }
+
+  (0, _keyStateObserver.startObserving)();
 
   this.rootElement = rootElement;
   this.isHotTableEnv = (0, _element.isChildOfWebComponentTable)(this.rootElement);
@@ -13432,16 +13600,149 @@ function Core(rootElement, userSettings) {
     firstRun: true
   };
 
+  var selection = new _selection.Selection(priv.settings, {
+    countCols: function countCols() {
+      return instance.countCols();
+    },
+    countRows: function countRows() {
+      return instance.countRows();
+    },
+    isEditorOpened: function isEditorOpened() {
+      return instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false;
+    }
+  });
+
+  this.selection = selection;
+
+  this.selection.addLocalHook('beforeSetRangeStart', function (cellCoords) {
+    _this.runHooks('beforeSetRangeStart', cellCoords);
+  });
+
+  this.selection.addLocalHook('beforeSetRangeStartOnly', function (cellCoords) {
+    _this.runHooks('beforeSetRangeStartOnly', cellCoords);
+  });
+
+  this.selection.addLocalHook('beforeSetRangeEnd', function (cellCoords) {
+    _this.runHooks('beforeSetRangeEnd', cellCoords);
+
+    if (cellCoords.row < 0) {
+      cellCoords.row = _this.view.wt.wtTable.getFirstVisibleRow();
+    }
+    if (cellCoords.col < 0) {
+      cellCoords.col = _this.view.wt.wtTable.getFirstVisibleColumn();
+    }
+  });
+
+  this.selection.addLocalHook('afterSetRangeEnd', function (cellCoords, scrollToCell, keepEditorOpened) {
+    var preventScrolling = (0, _object.createObjectPropListener)(false);
+    var selectionRange = _this.selection.getSelectedRange();
+
+    var _selectionRange$curre = selectionRange.current(),
+        from = _selectionRange$curre.from,
+        to = _selectionRange$curre.to;
+
+    var selectionLayerLevel = selectionRange.size() - 1;
+
+    _this.runHooks('afterSelection', from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
+    _this.runHooks('afterSelectionByProp', from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel);
+
+    var isHeaderSelected = false;
+    var areCoordsPositive = true;
+
+    if (_this.selection.selectedHeader.cols || _this.selection.selectedHeader.rows) {
+      isHeaderSelected = true;
+    }
+
+    if (cellCoords.row < 0 || cellCoords.col < 0) {
+      areCoordsPositive = false;
+    }
+
+    if (preventScrolling.isTouched()) {
+      scrollToCell = !preventScrolling.value;
+    }
+
+    if (scrollToCell !== false && !isHeaderSelected && areCoordsPositive) {
+      if (_this.selection.selectedRange.current().from && !_this.selection.isMultiple()) {
+        _this.view.scrollViewport(_this.selection.selectedRange.current().from);
+      } else {
+        _this.view.scrollViewport(cellCoords);
+      }
+    }
+
+    if (_this.selection.selectedHeader.rows && _this.selection.selectedHeader.cols) {
+      (0, _element.addClass)(_this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+    } else if (_this.selection.selectedHeader.rows) {
+      (0, _element.removeClass)(_this.rootElement, 'ht__selection--columns');
+      (0, _element.addClass)(_this.rootElement, 'ht__selection--rows');
+    } else if (_this.selection.selectedHeader.cols) {
+      (0, _element.removeClass)(_this.rootElement, 'ht__selection--rows');
+      (0, _element.addClass)(_this.rootElement, 'ht__selection--columns');
+    } else {
+      (0, _element.removeClass)(_this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+    }
+
+    _this._refreshBorders(null, keepEditorOpened);
+  });
+
+  this.selection.addLocalHook('afterSelectionFinished', function (cellRanges) {
+    var selectionLayerLevel = cellRanges.length - 1;
+    var _cellRanges$selection = cellRanges[selectionLayerLevel],
+        from = _cellRanges$selection.from,
+        to = _cellRanges$selection.to;
+
+
+    _this.runHooks('afterSelectionEnd', from.row, from.col, to.row, to.col, selectionLayerLevel);
+    _this.runHooks('afterSelectionEndByProp', from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+  });
+
+  this.selection.addLocalHook('afterIsMultipleSelection', function (isMultiple) {
+    var changedIsMultiple = _this.runHooks('afterIsMultipleSelection', isMultiple.value);
+
+    if (isMultiple.value) {
+      isMultiple.value = changedIsMultiple;
+    }
+  });
+
+  this.selection.addLocalHook('beforeModifyTransformStart', function (cellCoordsDelta) {
+    _this.runHooks('modifyTransformStart', cellCoordsDelta);
+  });
+  this.selection.addLocalHook('afterModifyTransformStart', function (coords, rowTransformDir, colTransformDir) {
+    _this.runHooks('afterModifyTransformStart', coords, rowTransformDir, colTransformDir);
+  });
+  this.selection.addLocalHook('beforeModifyTransformEnd', function (cellCoordsDelta) {
+    _this.runHooks('modifyTransformEnd', cellCoordsDelta);
+  });
+  this.selection.addLocalHook('afterModifyTransformEnd', function (coords, rowTransformDir, colTransformDir) {
+    _this.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
+  });
+  this.selection.addLocalHook('afterDeselect', function (coords, rowTransformDir, colTransformDir) {
+    editorManager.destroyEditor();
+
+    _this._refreshBorders();
+    (0, _element.removeClass)(_this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+
+    _this.runHooks('afterDeselect');
+  });
+  this.selection.addLocalHook('insertRowRequire', function (totalRows) {
+    _this.alter('insert_row', totalRows, 1, 'auto');
+  });
+  this.selection.addLocalHook('insertColRequire', function (totalCols) {
+    _this.alter('insert_col', totalCols, 1, 'auto');
+  });
+
   grid = {
     /**
-     * Inserts or removes rows and columns
+     * Inserts or removes rows and columns.
      *
      * @memberof Core#
      * @function alter
      * @private
-     * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
-     * @param {Number} index
-     * @param {Number} amount
+     * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col".
+     * @param {Number|Array} index Row or column visual index which from the alter action will be triggered.
+     *                             Alter actions such as "remove_row" and "remove_col" support array indexes in the
+     *                             format `[[index, amount], [index, amount]...]` this can be used to remove
+     *                             non-consecutive columns or rows in one call.
+     * @param {Number} amount Ammount rows or columns to remove.
      * @param {String} [source] Optional. Source of hook runner.
      * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
@@ -13486,11 +13787,11 @@ function Core(rootElement, userSettings) {
           spliceWith(priv.cellSettings, index, amount, 'array');
 
           if (delta) {
-            if (selection.isSelected() && priv.selRange.from.row >= index) {
-              priv.selRange.from.row += delta;
+            if (selection.isSelected() && selection.selectedRange.current().from.row >= index) {
+              selection.selectedRange.current().from.row += delta;
               selection.transformEnd(delta, 0); // will call render() internally
             } else {
-              selection.refreshBorders(); // it will call render and prepare methods
+              instance._refreshBorders(); // it will call render and prepare methods
             }
           }
           break;
@@ -13511,60 +13812,108 @@ function Core(rootElement, userSettings) {
               Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
             }
 
-            if (selection.isSelected() && priv.selRange.from.col >= index) {
-              priv.selRange.from.col += delta;
+            if (selection.isSelected() && selection.selectedRange.current().from.col >= index) {
+              selection.selectedRange.current().from.col += delta;
               selection.transformEnd(0, delta); // will call render() internally
             } else {
-              selection.refreshBorders(); // it will call render and prepare methods
+              instance._refreshBorders(); // it will call render and prepare methods
             }
           }
           break;
 
         case 'remove_row':
-          datamap.removeRow(index, amount, source);
-          priv.cellSettings.splice(index, amount);
 
-          var totalRows = instance.countRows();
-          var fixedRowsTop = instance.getSettings().fixedRowsTop;
-          if (fixedRowsTop >= index + 1) {
-            instance.getSettings().fixedRowsTop -= Math.min(amount, fixedRowsTop - index);
-          }
+          var removeRow = function removeRow(indexes) {
+            var offset = 0;
 
-          var fixedRowsBottom = instance.getSettings().fixedRowsBottom;
-          if (fixedRowsBottom && index >= totalRows - fixedRowsBottom) {
-            instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom);
+            (0, _array.arrayEach)(indexes, function (_ref) {
+              var _ref2 = _slicedToArray(_ref, 2),
+                  index = _ref2[0],
+                  amount = _ref2[1];
+
+              var calcIndex = (0, _mixed.isEmpty)(index) ? instance.countRows() - 1 : Math.max(index - offset, 0);
+
+              // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
+              // inside the removeCol breaks the removing functionality.
+              datamap.removeRow(index, amount, source);
+              priv.cellSettings.splice(calcIndex, amount);
+
+              var totalRows = instance.countRows();
+              var fixedRowsTop = instance.getSettings().fixedRowsTop;
+
+              if (fixedRowsTop >= calcIndex + 1) {
+                instance.getSettings().fixedRowsTop -= Math.min(amount, fixedRowsTop - calcIndex);
+              }
+
+              var fixedRowsBottom = instance.getSettings().fixedRowsBottom;
+
+              if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
+                instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom);
+              }
+
+              offset += amount;
+            });
+          };
+
+          if (Array.isArray(index)) {
+            removeRow(index);
+          } else {
+            removeRow([[index, amount]]);
           }
 
           grid.adjustRowsAndCols();
-          selection.refreshBorders(); // it will call render and prepare methods
+          instance._refreshBorders(); // it will call render and prepare methods
           break;
 
         case 'remove_col':
-          var visualColumnIndex = recordTranslator.toPhysicalColumn(index);
 
-          datamap.removeCol(index, amount, source);
+          var removeCol = function removeCol(indexes) {
+            var offset = 0;
 
-          for (var _row = 0, _len = instance.countSourceRows(); _row < _len; _row++) {
-            if (priv.cellSettings[_row]) {
-              // if row hasn't been rendered it wouldn't have cellSettings
-              priv.cellSettings[_row].splice(visualColumnIndex, amount);
-            }
-          }
-          var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
+            (0, _array.arrayEach)(indexes, function (_ref3) {
+              var _ref4 = _slicedToArray(_ref3, 2),
+                  index = _ref4[0],
+                  amount = _ref4[1];
 
-          if (fixedColumnsLeft >= index + 1) {
-            instance.getSettings().fixedColumnsLeft -= Math.min(amount, fixedColumnsLeft - index);
-          }
+              var calcIndex = (0, _mixed.isEmpty)(index) ? instance.countCols() - 1 : Math.max(index - offset, 0);
 
-          if (Array.isArray(instance.getSettings().colHeaders)) {
-            if (typeof visualColumnIndex === 'undefined') {
-              visualColumnIndex = -1;
-            }
-            instance.getSettings().colHeaders.splice(visualColumnIndex, amount);
+              var visualColumnIndex = recordTranslator.toPhysicalColumn(calcIndex);
+
+              // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
+              // inside the removeCol breaks the removing functionality.
+              datamap.removeCol(index, amount, source);
+
+              for (var _row = 0, _len = instance.countSourceRows(); _row < _len; _row++) {
+                if (priv.cellSettings[_row]) {
+                  // if row hasn't been rendered it wouldn't have cellSettings
+                  priv.cellSettings[_row].splice(visualColumnIndex, amount);
+                }
+              }
+              var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
+
+              if (fixedColumnsLeft >= calcIndex + 1) {
+                instance.getSettings().fixedColumnsLeft -= Math.min(amount, fixedColumnsLeft - calcIndex);
+              }
+
+              if (Array.isArray(instance.getSettings().colHeaders)) {
+                if (typeof visualColumnIndex === 'undefined') {
+                  visualColumnIndex = -1;
+                }
+                instance.getSettings().colHeaders.splice(visualColumnIndex, amount);
+              }
+
+              offset += amount;
+            });
+          };
+
+          if (Array.isArray(index)) {
+            removeCol(index);
+          } else {
+            removeCol([[index, amount]]);
           }
 
           grid.adjustRowsAndCols();
-          selection.refreshBorders(); // it will call render and prepare methods
+          instance._refreshBorders(); // it will call render and prepare methods
 
           break;
         default:
@@ -13630,48 +13979,50 @@ function Core(rootElement, userSettings) {
       }
 
       if (selection.isSelected()) {
-        var selectionChanged = false;
-        var fromRow = priv.selRange.from.row;
-        var fromCol = priv.selRange.from.col;
-        var toRow = priv.selRange.to.row;
-        var toCol = priv.selRange.to.col;
+        (0, _array.arrayEach)(selection.selectedRange, function (range) {
+          var selectionChanged = false;
+          var fromRow = range.from.row;
+          var fromCol = range.from.col;
+          var toRow = range.to.row;
+          var toCol = range.to.col;
 
-        // if selection is outside, move selection to last row
-        if (fromRow > rowCount - 1) {
-          fromRow = rowCount - 1;
-          selectionChanged = true;
+          // if selection is outside, move selection to last row
+          if (fromRow > rowCount - 1) {
+            fromRow = rowCount - 1;
+            selectionChanged = true;
 
-          if (toRow > fromRow) {
-            toRow = fromRow;
+            if (toRow > fromRow) {
+              toRow = fromRow;
+            }
+          } else if (toRow > rowCount - 1) {
+            toRow = rowCount - 1;
+            selectionChanged = true;
+
+            if (fromRow > toRow) {
+              fromRow = toRow;
+            }
           }
-        } else if (toRow > rowCount - 1) {
-          toRow = rowCount - 1;
-          selectionChanged = true;
+          // if selection is outside, move selection to last row
+          if (fromCol > colCount - 1) {
+            fromCol = colCount - 1;
+            selectionChanged = true;
 
-          if (fromRow > toRow) {
-            fromRow = toRow;
+            if (toCol > fromCol) {
+              toCol = fromCol;
+            }
+          } else if (toCol > colCount - 1) {
+            toCol = colCount - 1;
+            selectionChanged = true;
+
+            if (fromCol > toCol) {
+              fromCol = toCol;
+            }
           }
-        }
-        // if selection is outside, move selection to last row
-        if (fromCol > colCount - 1) {
-          fromCol = colCount - 1;
-          selectionChanged = true;
 
-          if (toCol > fromCol) {
-            toCol = fromCol;
+          if (selectionChanged) {
+            instance.selectCell(fromRow, fromCol, toRow, toCol);
           }
-        } else if (toCol > colCount - 1) {
-          toCol = colCount - 1;
-          selectionChanged = true;
-
-          if (fromCol > toCol) {
-            fromCol = toCol;
-          }
-        }
-
-        if (selectionChanged) {
-          instance.selectCell(fromRow, fromCol, toRow, toCol);
-        }
+        });
       }
       if (instance.view) {
         instance.view.wt.wtOverlays.adjustElementsSize();
@@ -13885,403 +14236,6 @@ function Core(rootElement, userSettings) {
     }
   };
 
-  /* eslint-disable no-multi-assign */
-  this.selection = selection = { // this public assignment is only temporary
-    inProgress: false,
-
-    selectedHeader: {
-      cols: false,
-      rows: false
-    },
-
-    /**
-     * @param {Boolean} [rows=false]
-     * @param {Boolean} [cols=false]
-     * @param {Boolean} [corner=false]
-     */
-    setSelectedHeaders: function setSelectedHeaders() {
-      var rows = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-      var cols = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-      var corner = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-
-      instance.selection.selectedHeader.rows = rows;
-      instance.selection.selectedHeader.cols = cols;
-      instance.selection.selectedHeader.corner = corner;
-    },
-
-
-    /**
-     * Sets inProgress to `true`. This enables onSelectionEnd and onSelectionEndByProp to function as desired.
-     */
-    begin: function begin() {
-      instance.selection.inProgress = true;
-    },
-
-
-    /**
-     * Sets inProgress to `false`. Triggers onSelectionEnd and onSelectionEndByProp.
-     */
-    finish: function finish() {
-      var sel = instance.getSelected();
-      instance.runHooks('afterSelectionEnd', sel[0], sel[1], sel[2], sel[3]);
-      instance.runHooks('afterSelectionEndByProp', sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
-      instance.selection.inProgress = false;
-    },
-
-
-    /**
-     * @returns {Boolean}
-     */
-    isInProgress: function isInProgress() {
-      return instance.selection.inProgress;
-    },
-
-
-    /**
-     * Starts selection range on given td object.
-     *
-     * @param {CellCoords} coords Visual coords.
-     * @param keepEditorOpened
-     */
-    setRangeStart: function setRangeStart(coords, keepEditorOpened) {
-      instance.runHooks('beforeSetRangeStart', coords);
-      priv.selRange = new _src.CellRange(coords, coords, coords);
-      selection.setRangeEnd(coords, null, keepEditorOpened);
-    },
-
-
-    /**
-     * Starts selection range on given td object.
-     *
-     * @param {CellCoords} coords Visual coords.
-     * @param keepEditorOpened
-     */
-    setRangeStartOnly: function setRangeStartOnly(coords) {
-      instance.runHooks('beforeSetRangeStartOnly', coords);
-      priv.selRange = new _src.CellRange(coords, coords, coords);
-    },
-
-
-    /**
-     * Ends selection range on given td object.
-     *
-     * @param {CellCoords} coords Visual coords.
-     * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to range end
-     * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range
-     */
-    setRangeEnd: function setRangeEnd(coords, scrollToCell, keepEditorOpened) {
-      if (priv.selRange === null) {
-        return;
-      }
-      var disableVisualSelection,
-          isHeaderSelected = false,
-          areCoordsPositive = true;
-
-      var firstVisibleRow = instance.view.wt.wtTable.getFirstVisibleRow();
-      var firstVisibleColumn = instance.view.wt.wtTable.getFirstVisibleColumn();
-      var newRangeCoords = {
-        row: null,
-        col: null
-      };
-
-      // trigger handlers
-      instance.runHooks('beforeSetRangeEnd', coords);
-      instance.selection.begin();
-
-      newRangeCoords.row = coords.row < 0 ? firstVisibleRow : coords.row;
-      newRangeCoords.col = coords.col < 0 ? firstVisibleColumn : coords.col;
-
-      priv.selRange.to = new _src.CellCoords(newRangeCoords.row, newRangeCoords.col);
-
-      if (!priv.settings.multiSelect) {
-        priv.selRange.from = coords;
-      }
-      // set up current selection
-      instance.view.wt.selections.current.clear();
-
-      disableVisualSelection = instance.getCellMeta(priv.selRange.highlight.row, priv.selRange.highlight.col).disableVisualSelection;
-
-      if (typeof disableVisualSelection === 'string') {
-        disableVisualSelection = [disableVisualSelection];
-      }
-
-      if (disableVisualSelection === false || Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('current') === -1) {
-        instance.view.wt.selections.current.add(priv.selRange.highlight);
-      }
-      // set up area selection
-      instance.view.wt.selections.area.clear();
-
-      if ((disableVisualSelection === false || Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) && selection.isMultiple()) {
-        instance.view.wt.selections.area.add(priv.selRange.from);
-        instance.view.wt.selections.area.add(priv.selRange.to);
-      }
-      // set up highlight
-      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
-        instance.view.wt.selections.highlight.clear();
-        instance.view.wt.selections.highlight.add(priv.selRange.from);
-        instance.view.wt.selections.highlight.add(priv.selRange.to);
-      }
-
-      var preventScrolling = (0, _object.createObjectPropListener)('value');
-
-      // trigger handlers
-      instance.runHooks('afterSelection', priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col, preventScrolling);
-      instance.runHooks('afterSelectionByProp', priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col), preventScrolling);
-
-      if (instance.selection.selectedHeader.cols || instance.selection.selectedHeader.rows) {
-        isHeaderSelected = true;
-      }
-
-      if (coords.row < 0 || coords.col < 0) {
-        areCoordsPositive = false;
-      }
-
-      if (preventScrolling.isTouched()) {
-        scrollToCell = !preventScrolling.value;
-      }
-
-      if (scrollToCell !== false && !isHeaderSelected && areCoordsPositive) {
-        if (priv.selRange.from && !selection.isMultiple()) {
-          instance.view.scrollViewport(priv.selRange.from);
-        } else {
-          instance.view.scrollViewport(coords);
-        }
-      }
-
-      if (selection.selectedHeader.rows && selection.selectedHeader.cols) {
-        (0, _element.addClass)(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-      } else if (selection.selectedHeader.rows) {
-        (0, _element.removeClass)(instance.rootElement, 'ht__selection--columns');
-        (0, _element.addClass)(instance.rootElement, 'ht__selection--rows');
-      } else if (selection.selectedHeader.cols) {
-        (0, _element.removeClass)(instance.rootElement, 'ht__selection--rows');
-        (0, _element.addClass)(instance.rootElement, 'ht__selection--columns');
-      } else {
-        (0, _element.removeClass)(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-      }
-
-      selection.refreshBorders(null, keepEditorOpened);
-    },
-
-
-    /**
-     * Destroys editor, redraws borders around cells, prepares editor.
-     *
-     * @param {Boolean} [revertOriginal]
-     * @param {Boolean} [keepEditor]
-     */
-    refreshBorders: function refreshBorders(revertOriginal, keepEditor) {
-      if (!keepEditor) {
-        editorManager.destroyEditor(revertOriginal);
-      }
-      instance.view.render();
-
-      if (selection.isSelected() && !keepEditor) {
-        editorManager.prepareEditor();
-      }
-    },
-
-
-    /**
-     * Returns information if we have a multiselection.
-     *
-     * @returns {Boolean}
-     */
-    isMultiple: function isMultiple() {
-      var isMultiple = !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row),
-          modifier = instance.runHooks('afterIsMultipleSelection', isMultiple);
-
-      if (isMultiple) {
-        return modifier;
-      }
-    },
-
-
-    /**
-     * Selects cell relative to current cell (if possible).
-     */
-    transformStart: function transformStart(rowDelta, colDelta, force, keepEditorOpened) {
-      var delta = new _src.CellCoords(rowDelta, colDelta),
-          rowTransformDir = 0,
-          colTransformDir = 0,
-          totalRows,
-          totalCols,
-          coords,
-          fixedRowsBottom;
-
-      instance.runHooks('modifyTransformStart', delta);
-      totalRows = instance.countRows();
-      totalCols = instance.countCols();
-      fixedRowsBottom = instance.getSettings().fixedRowsBottom;
-
-      if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
-        if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
-          instance.alter('insert_row', totalRows);
-          totalRows = instance.countRows();
-        } else if (priv.settings.autoWrapCol) {
-          delta.row = 1 - totalRows;
-          delta.col = priv.selRange.highlight.col + delta.col == totalCols - 1 ? 1 - totalCols : 1;
-        }
-      } else if (priv.settings.autoWrapCol && priv.selRange.highlight.row + delta.row < 0 && priv.selRange.highlight.col + delta.col >= 0) {
-        delta.row = totalRows - 1;
-        delta.col = priv.selRange.highlight.col + delta.col == 0 ? totalCols - 1 : -1;
-      }
-
-      if (priv.selRange.highlight.col + delta.col > totalCols - 1) {
-        if (force && priv.settings.minSpareCols > 0) {
-          instance.alter('insert_col', totalCols);
-          totalCols = instance.countCols();
-        } else if (priv.settings.autoWrapRow) {
-          delta.row = priv.selRange.highlight.row + delta.row == totalRows - 1 ? 1 - totalRows : 1;
-          delta.col = 1 - totalCols;
-        }
-      } else if (priv.settings.autoWrapRow && priv.selRange.highlight.col + delta.col < 0 && priv.selRange.highlight.row + delta.row >= 0) {
-        delta.row = priv.selRange.highlight.row + delta.row == 0 ? totalRows - 1 : -1;
-        delta.col = totalCols - 1;
-      }
-
-      coords = new _src.CellCoords(priv.selRange.highlight.row + delta.row, priv.selRange.highlight.col + delta.col);
-
-      if (coords.row < 0) {
-        rowTransformDir = -1;
-        coords.row = 0;
-      } else if (coords.row > 0 && coords.row >= totalRows) {
-        rowTransformDir = 1;
-        coords.row = totalRows - 1;
-      }
-
-      if (coords.col < 0) {
-        colTransformDir = -1;
-        coords.col = 0;
-      } else if (coords.col > 0 && coords.col >= totalCols) {
-        colTransformDir = 1;
-        coords.col = totalCols - 1;
-      }
-      instance.runHooks('afterModifyTransformStart', coords, rowTransformDir, colTransformDir);
-      selection.setRangeStart(coords, keepEditorOpened);
-    },
-
-
-    /**
-     * Sets selection end cell relative to current selection end cell (if possible).
-     */
-    transformEnd: function transformEnd(rowDelta, colDelta) {
-      var delta = new _src.CellCoords(rowDelta, colDelta),
-          rowTransformDir = 0,
-          colTransformDir = 0,
-          totalRows,
-          totalCols,
-          coords;
-
-      instance.runHooks('modifyTransformEnd', delta);
-
-      totalRows = instance.countRows();
-      totalCols = instance.countCols();
-      coords = new _src.CellCoords(priv.selRange.to.row + delta.row, priv.selRange.to.col + delta.col);
-
-      if (coords.row < 0) {
-        rowTransformDir = -1;
-        coords.row = 0;
-      } else if (coords.row > 0 && coords.row >= totalRows) {
-        rowTransformDir = 1;
-        coords.row = totalRows - 1;
-      }
-
-      if (coords.col < 0) {
-        colTransformDir = -1;
-        coords.col = 0;
-      } else if (coords.col > 0 && coords.col >= totalCols) {
-        colTransformDir = 1;
-        coords.col = totalCols - 1;
-      }
-      instance.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
-      selection.setRangeEnd(coords, true);
-    },
-
-
-    /**
-     * Returns `true` if currently there is a selection on screen, `false` otherwise.
-     *
-     * @returns {Boolean}
-     */
-    isSelected: function isSelected() {
-      return priv.selRange !== null;
-    },
-
-
-    /**
-     * Returns `true` if coords is within current selection coords.
-     *
-     * @param {CellCoords} coords
-     * @returns {Boolean}
-     */
-    inInSelection: function inInSelection(coords) {
-      if (!selection.isSelected()) {
-        return false;
-      }
-
-      return priv.selRange.includes(coords);
-    },
-
-
-    /**
-     * Deselects all selected cells
-     */
-    deselect: function deselect() {
-      if (!selection.isSelected()) {
-        return;
-      }
-      instance.selection.inProgress = false; // needed by HT inception
-      priv.selRange = null;
-      instance.view.wt.selections.current.clear();
-      instance.view.wt.selections.area.clear();
-      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
-        instance.view.wt.selections.highlight.clear();
-      }
-      editorManager.destroyEditor();
-      selection.refreshBorders();
-      (0, _element.removeClass)(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-      instance.runHooks('afterDeselect');
-    },
-
-
-    /**
-     * Select all cells
-     */
-    selectAll: function selectAll() {
-      if (!priv.settings.multiSelect) {
-        return;
-      }
-      selection.setSelectedHeaders(true, true, true);
-      selection.setRangeStart(new _src.CellCoords(0, 0));
-      selection.setRangeEnd(new _src.CellCoords(instance.countRows() - 1, instance.countCols() - 1), false);
-    },
-
-
-    /**
-     * Deletes data from selected cells
-     */
-    empty: function empty() {
-      if (!selection.isSelected()) {
-        return;
-      }
-      var topLeft = priv.selRange.getTopLeftCorner();
-      var bottomRight = priv.selRange.getBottomRightCorner();
-      var r,
-          c,
-          changes = [];
-
-      for (r = topLeft.row; r <= bottomRight.row; r++) {
-        for (c = topLeft.col; c <= bottomRight.col; c++) {
-          if (!instance.getCellMeta(r, c).readOnly) {
-            changes.push([r, c, '']);
-          }
-        }
-      }
-      instance.setDataAtCell(changes);
-    }
-  };
-
   /**
    * Internal function to set `language` key of settings.
    *
@@ -14356,6 +14310,7 @@ function Core(rootElement, userSettings) {
   /**
    * Get parsed number from numeric string.
    *
+   * @private
    * @param {String} numericData Float (separated by a dot or a comma) or integer.
    * @returns {Number} Number if we get data in parsable format, not changed value otherwise.
    */
@@ -14491,7 +14446,7 @@ function Core(rootElement, userSettings) {
     instance.forceFullRender = true; // used when data was changed
     grid.adjustRowsAndCols();
     instance.runHooks('beforeChangeRender', changes, source);
-    selection.refreshBorders(null, true);
+    instance._refreshBorders(null, true);
     instance.view.wt.wtOverlays.adjustElementsSize();
     instance.runHooks('afterChange', changes, source || 'edit');
 
@@ -14695,7 +14650,7 @@ function Core(rootElement, userSettings) {
    * @param {Boolean} [revertOriginal] If != `true`, edited data is saved. Otherwise the previous value is restored.
    */
   this.destroyEditor = function (revertOriginal) {
-    selection.refreshBorders(revertOriginal);
+    instance._refreshBorders(revertOriginal);
   };
 
   /**
@@ -14777,33 +14732,116 @@ function Core(rootElement, userSettings) {
   };
 
   /**
-   * Returns indexes of the currently selected cells as an array `[startRow, startCol, endRow, endCol]`.
+   * Returns indexes of the currently selected cells as an array of arrays `[[startRow, startCol, endRow, endCol], ...]`.
    *
    * Start row and start col are the coordinates of the active cell (where the selection was started).
    *
+   * The version 0.36.0 adds a non-consecutive selection feature. Since this version, the method returns an array of arrays.
+   * Additionally to collect the coordinates of the currently selected area (as it was previously done by the method)
+   * you need to use `getSelectedLast` method.
+   *
    * @memberof Core#
    * @function getSelected
-   * @returns {Array} Array of the selection's indexes.
+   * @returns {Array[]|undefined} An array of arrays of the selection's coordinates.
    */
   this.getSelected = function () {
     // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return [priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col];
+      return (0, _array.arrayMap)(selection.getSelectedRange(), function (_ref5) {
+        var from = _ref5.from,
+            to = _ref5.to;
+        return [from.row, from.col, to.row, to.col];
+      });
     }
   };
 
   /**
-   * Returns the current selection as a CellRange object.
+   * Returns the last coordinates applied to the table as a an array `[startRow, startCol, endRow, endCol]`.
+   *
+   * @since 0.36.0
+   * @memberof Core#
+   * @function getSelectedLast
+   * @returns {Array|undefined} An array of the selection's coordinates.
+   */
+  this.getSelectedLast = function () {
+    var selected = this.getSelected();
+    var result = void 0;
+
+    if (selected && selected.length > 0) {
+      result = selected[selected.length - 1];
+    }
+
+    return result;
+  };
+
+  /**
+   * Returns the current selection as an array of CellRange objects.
+   *
+   * The version 0.36.0 adds a non-consecutive selection feature. Since this version, the method returns an array of arrays.
+   * Additionally to collect the coordinates of the currently selected area (as it was previously done by the method)
+   * you need to use `getSelectedRangeLast` method.
    *
    * @memberof Core#
    * @function getSelectedRange
    * @since 0.11
-   * @returns {CellRange} Selected range object or undefined` if there is no selection.
+   * @returns {CellRange[]|undefined} Selected range object or undefined` if there is no selection.
    */
   this.getSelectedRange = function () {
     // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return priv.selRange;
+      return Array.from(selection.getSelectedRange());
+    }
+  };
+
+  /**
+  * Returns the last coordinates applied to the table as a CellRange object.
+  *
+  * @memberof Core#
+  * @function getSelectedRangeLast
+  * @since 0.36.0
+  * @returns {CellRange|undefined} Selected range object or undefined` if there is no selection.
+   */
+  this.getSelectedRangeLast = function () {
+    var selectedRange = this.getSelectedRange();
+    var result = void 0;
+
+    if (selectedRange && selectedRange.length > 0) {
+      result = selectedRange[selectedRange.length - 1];
+    }
+
+    return result;
+  };
+
+  /**
+   * Erases content from cells that have been selected in the table.
+   *
+   * @memberof Core#
+   * @function emptySelectedCells
+   * @since 0.36.0
+   */
+  this.emptySelectedCells = function () {
+    var _this2 = this;
+
+    if (!selection.isSelected()) {
+      return;
+    }
+    var changes = [];
+
+    (0, _array.arrayEach)(selection.getSelectedRange(), function (cellRange) {
+      var topLeft = cellRange.getTopLeftCorner();
+      var bottomRight = cellRange.getBottomRightCorner();
+
+      (0, _number.rangeEach)(topLeft.row, bottomRight.row, function (row) {
+        (0, _number.rangeEach)(topLeft.col, bottomRight.col, function (column) {
+          if (!_this2.getCellMeta(row, column).readOnly) {
+            changes.push([row, column, '']);
+          }
+        });
+      });
+    });
+
+    if (changes.length > 0) {
+      this.setDataAtCell(changes);
     }
   };
 
@@ -14817,7 +14855,7 @@ function Core(rootElement, userSettings) {
     if (instance.view) {
       instance.renderCall = true;
       instance.forceFullRender = true; // used when data was changed
-      selection.refreshBorders(null, true);
+      instance._refreshBorders(null, true);
     }
   };
 
@@ -15163,7 +15201,7 @@ function Core(rootElement, userSettings) {
     grid.adjustRowsAndCols();
     if (instance.view && !priv.firstRun) {
       instance.forceFullRender = true; // used when data was changed
-      selection.refreshBorders(null, true);
+      instance._refreshBorders(null, true);
     }
 
     if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
@@ -15180,12 +15218,13 @@ function Core(rootElement, userSettings) {
    * @returns {*} Value of selected cell.
    */
   this.getValue = function () {
-    var sel = instance.getSelected();
+    var sel = instance.getSelectedLast();
+
     if (GridSettings.prototype.getValue) {
       if ((0, _function.isFunction)(GridSettings.prototype.getValue)) {
         return GridSettings.prototype.getValue.call(instance);
       } else if (sel) {
-        return instance.getData()[sel[0]][GridSettings.prototype.getValue];
+        return instance.getData()[sel[0][0]][GridSettings.prototype.getValue];
       }
     } else if (sel) {
       return instance.getDataAtCell(sel[0], sel[1]);
@@ -15228,7 +15267,7 @@ function Core(rootElement, userSettings) {
   };
 
   /**
-   * Clears the data from the grid. (The table settings remain intact.)
+   * Clears the data from the grid (the table settings remain intact).
    *
    * @memberof Core#
    * @function clear
@@ -15236,7 +15275,7 @@ function Core(rootElement, userSettings) {
    */
   this.clear = function () {
     selection.selectAll();
-    selection.empty();
+    this.emptySelectedCells();
   };
 
   /**
@@ -15577,7 +15616,7 @@ function Core(rootElement, userSettings) {
    * @returns {String} Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
    */
   this.getDataType = function (rowFrom, columnFrom, rowTo, columnTo) {
-    var _this = this;
+    var _this3 = this;
 
     var previousType = null;
     var currentType = null;
@@ -15600,7 +15639,7 @@ function Core(rootElement, userSettings) {
       var isTypeEqual = true;
 
       (0, _number.rangeEach)(Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo), function (column) {
-        var cellType = _this.getCellMeta(row, column);
+        var cellType = _this3.getCellMeta(row, column);
 
         currentType = cellType.type;
 
@@ -16458,10 +16497,9 @@ function Core(rootElement, userSettings) {
    * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
-  this.selectCell = function (row, col, endRow, endCol, scrollToCell, changeListener) {
-    var coords;
-
-    changeListener = (0, _mixed.isUndefined)(changeListener) || changeListener === true;
+  this.selectCell = function (row, col, endRow, endCol) {
+    var scrollToCell = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
+    var changeListener = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : true;
 
     if (typeof row !== 'number' || row < 0 || row >= instance.countRows()) {
       return false;
@@ -16477,19 +16515,19 @@ function Core(rootElement, userSettings) {
         return false;
       }
     }
-    coords = new _src.CellCoords(row, col);
-    priv.selRange = new _src.CellRange(coords, coords, coords);
+    selection.selectedRange.set(new _src.CellCoords(row, col));
 
     if (changeListener) {
       instance.listen();
     }
 
     if ((0, _mixed.isUndefined)(endRow)) {
-      selection.setRangeEnd(priv.selRange.from, scrollToCell);
+      selection.setRangeEnd(selection.selectedRange.current().from, scrollToCell);
     } else {
       selection.setRangeEnd(new _src.CellCoords(endRow, endCol), scrollToCell);
     }
-    instance.selection.finish();
+    selection.finish();
+
     return true;
   };
 
@@ -16507,15 +16545,13 @@ function Core(rootElement, userSettings) {
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectCellByProp = function (row, prop, endRow, endProp, scrollToCell) {
-    var _instance5;
+    var endColumn = void 0;
 
-    arguments[1] = datamap.propToCol(arguments[1]);
-
-    if ((0, _mixed.isDefined)(arguments[3])) {
-      arguments[3] = datamap.propToCol(arguments[3]);
+    if ((0, _mixed.isDefined)(endProp)) {
+      endColumn = datamap.propToCol(endProp);
     }
 
-    return (_instance5 = instance).selectCell.apply(_instance5, arguments);
+    return instance.selectCell(row, datamap.propToCol(prop), endRow, endColumn, scrollToCell);
   };
 
   /**
@@ -16591,6 +16627,8 @@ function Core(rootElement, userSettings) {
       dataSource.destroy();
     }
     dataSource = null;
+
+    (0, _keyStateObserver.stopObserving)();
 
     if ('pro' !== '\x63\x65' && (0, _rootInstance.isRootInstance)(instance)) {
       var licenseInfo = document.querySelector('#hot-display-license-info');
@@ -16808,6 +16846,24 @@ function Core(rootElement, userSettings) {
   this._clearTimeouts = function () {
     for (var i = 0, ilen = this.timeouts.length; i < ilen; i++) {
       clearTimeout(this.timeouts[i]);
+    }
+  };
+
+  /**
+   * Refresh selection borders. This is temporary method relic after selection rewrite.
+   *
+   * @private
+   * @param {Boolean} revertOriginal
+   * @param {Boolean} keepEditor
+   */
+  this._refreshBorders = function (revertOriginal, keepEditor) {
+    if (!keepEditor) {
+      editorManager.destroyEditor(revertOriginal);
+    }
+    instance.view.render();
+
+    if (selection.isSelected() && !keepEditor) {
+      editorManager.prepareEditor();
     }
   };
 
@@ -17424,7 +17480,7 @@ var _element = __webpack_require__(1);
 
 var _array = __webpack_require__(0);
 
-var _cursor = __webpack_require__(321);
+var _cursor = __webpack_require__(335);
 
 var _cursor2 = _interopRequireDefault(_cursor);
 
@@ -17434,21 +17490,21 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _object = __webpack_require__(2);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 var _function = __webpack_require__(34);
 
-var _utils = __webpack_require__(22);
+var _utils = __webpack_require__(23);
 
 var _unicode = __webpack_require__(18);
 
-var _localHooks = __webpack_require__(31);
+var _localHooks = __webpack_require__(21);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
 var _predefinedItems = __webpack_require__(43);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -17604,8 +17660,8 @@ var Menu = function () {
       this.hotMenu.addHook('afterInit', function () {
         return _this2.onAfterInit();
       });
-      this.hotMenu.addHook('afterSelection', function (r, c, r2, c2, preventScrolling) {
-        return _this2.onAfterSelection(r, c, r2, c2, preventScrolling);
+      this.hotMenu.addHook('afterSelection', function () {
+        return _this2.onAfterSelection.apply(_this2, arguments);
       });
       this.hotMenu.init();
       this.hotMenu.listen();
@@ -17757,18 +17813,18 @@ var Menu = function () {
   }, {
     key: 'executeCommand',
     value: function executeCommand(event) {
-      if (!this.isOpened() || !this.hotMenu.getSelected()) {
+      if (!this.isOpened() || !this.hotMenu.getSelectedLast()) {
         return;
       }
-      var selectedItem = this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelected()[0]);
+      var selectedItem = this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelectedLast()[0]);
 
       this.runLocalHooks('select', selectedItem, event);
 
       if (selectedItem.isCommand === false || selectedItem.name === _predefinedItems.SEPARATOR) {
         return;
       }
-      var selRange = this.hot.getSelectedRange();
-      var normalizedSelection = selRange ? (0, _utils.normalizeSelection)(selRange) : {};
+      var selRanges = this.hot.getSelectedRange();
+      var normalizedSelection = selRanges ? (0, _utils.normalizeSelection)(selRanges) : [];
       var autoClose = true;
 
       // Don't close context menu if item is disabled or it has submenu
@@ -18128,7 +18184,7 @@ var Menu = function () {
   }, {
     key: 'onBeforeKeyDown',
     value: function onBeforeKeyDown(event) {
-      var selection = this.hotMenu.getSelected();
+      var selection = this.hotMenu.getSelectedLast();
       var stopEvent = false;
       this.keyEvent = true;
 
@@ -18231,6 +18287,7 @@ var Menu = function () {
      * @param {Number} r2 Selection end row index.
      * @param {Number} c2 Selection end column index.
      * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+     * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
      */
 
   }, {
@@ -18297,57 +18354,57 @@ var _predefinedItems = __webpack_require__(43);
 
 var _conditionRegisterer = __webpack_require__(9);
 
-var _none = __webpack_require__(376);
+var _none = __webpack_require__(389);
 
-var _empty = __webpack_require__(214);
+var _empty = __webpack_require__(217);
 
-var _notEmpty = __webpack_require__(377);
+var _notEmpty = __webpack_require__(390);
 
-var _equal = __webpack_require__(215);
+var _equal = __webpack_require__(218);
 
-var _notEqual = __webpack_require__(378);
+var _notEqual = __webpack_require__(391);
 
-var _greaterThan = __webpack_require__(379);
+var _greaterThan = __webpack_require__(392);
 
-var _greaterThanOrEqual = __webpack_require__(380);
+var _greaterThanOrEqual = __webpack_require__(393);
 
-var _lessThan = __webpack_require__(381);
+var _lessThan = __webpack_require__(394);
 
-var _lessThanOrEqual = __webpack_require__(382);
+var _lessThanOrEqual = __webpack_require__(395);
 
-var _between = __webpack_require__(216);
+var _between = __webpack_require__(219);
 
-var _notBetween = __webpack_require__(383);
+var _notBetween = __webpack_require__(396);
 
-var _beginsWith = __webpack_require__(384);
+var _beginsWith = __webpack_require__(397);
 
-var _endsWith = __webpack_require__(385);
+var _endsWith = __webpack_require__(398);
 
-var _contains = __webpack_require__(219);
+var _contains = __webpack_require__(222);
 
-var _notContains = __webpack_require__(386);
+var _notContains = __webpack_require__(399);
 
-var _before = __webpack_require__(218);
+var _before = __webpack_require__(221);
 
-var _after = __webpack_require__(217);
+var _after = __webpack_require__(220);
 
-var _tomorrow = __webpack_require__(387);
+var _tomorrow = __webpack_require__(400);
 
-var _today = __webpack_require__(388);
+var _today = __webpack_require__(401);
 
-var _yesterday = __webpack_require__(389);
+var _yesterday = __webpack_require__(402);
 
-var _byValue = __webpack_require__(390);
+var _byValue = __webpack_require__(403);
 
-var _true = __webpack_require__(391);
+var _true = __webpack_require__(404);
 
-var _false = __webpack_require__(392);
+var _false = __webpack_require__(405);
 
 var _conjunction = __webpack_require__(158);
 
-var _disjunction = __webpack_require__(220);
+var _disjunction = __webpack_require__(223);
 
-var _disjunctionAndVariable = __webpack_require__(221);
+var _disjunctionAndVariable = __webpack_require__(224);
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -18652,7 +18709,7 @@ exports.default = BaseUI;
 
 "use strict";
 
-var dP = __webpack_require__(21).f;
+var dP = __webpack_require__(22).f;
 var create = __webpack_require__(87);
 var redefineAll = __webpack_require__(70);
 var ctx = __webpack_require__(39);
@@ -18661,9 +18718,9 @@ var forOf = __webpack_require__(73);
 var $iterDefine = __webpack_require__(170);
 var step = __webpack_require__(172);
 var setSpecies = __webpack_require__(173);
-var DESCRIPTORS = __webpack_require__(23);
+var DESCRIPTORS = __webpack_require__(24);
 var fastKey = __webpack_require__(41).fastKey;
-var validate = __webpack_require__(49);
+var validate = __webpack_require__(50);
 var SIZE = DESCRIPTORS ? '_s' : 'size';
 
 var getEntry = function (that, key) {
@@ -18801,7 +18858,7 @@ module.exports = {
 /* 162 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = !__webpack_require__(23) && !__webpack_require__(24)(function () {
+module.exports = !__webpack_require__(24) && !__webpack_require__(25)(function () {
   return Object.defineProperty(__webpack_require__(85)('div'), 'a', { get: function () { return 7; } }).a != 7;
 });
 
@@ -18811,7 +18868,7 @@ module.exports = !__webpack_require__(23) && !__webpack_require__(24)(function (
 /***/ (function(module, exports, __webpack_require__) {
 
 var has = __webpack_require__(32);
-var toIObject = __webpack_require__(25);
+var toIObject = __webpack_require__(26);
 var arrayIndexOf = __webpack_require__(164)(false);
 var IE_PROTO = __webpack_require__(89)('IE_PROTO');
 
@@ -18835,8 +18892,8 @@ module.exports = function (object, names) {
 
 // false -> Array#indexOf
 // true  -> Array#includes
-var toIObject = __webpack_require__(25);
-var toLength = __webpack_require__(26);
+var toIObject = __webpack_require__(26);
+var toLength = __webpack_require__(27);
 var toAbsoluteIndex = __webpack_require__(69);
 module.exports = function (IS_INCLUDES) {
   return function ($this, el, fromIndex) {
@@ -18890,7 +18947,7 @@ module.exports = function (iterator, fn, value, entries) {
 
 // check on default Array iterator
 var Iterators = __webpack_require__(57);
-var ITERATOR = __webpack_require__(14)('iterator');
+var ITERATOR = __webpack_require__(16)('iterator');
 var ArrayProto = Array.prototype;
 
 module.exports = function (it) {
@@ -18903,9 +18960,9 @@ module.exports = function (it) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var classof = __webpack_require__(169);
-var ITERATOR = __webpack_require__(14)('iterator');
+var ITERATOR = __webpack_require__(16)('iterator');
 var Iterators = __webpack_require__(57);
-module.exports = __webpack_require__(48).getIteratorMethod = function (it) {
+module.exports = __webpack_require__(49).getIteratorMethod = function (it) {
   if (it != undefined) return it[ITERATOR]
     || it['@@iterator']
     || Iterators[classof(it)];
@@ -18917,8 +18974,8 @@ module.exports = __webpack_require__(48).getIteratorMethod = function (it) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // getting tag from 19.1.3.6 Object.prototype.toString()
-var cof = __webpack_require__(47);
-var TAG = __webpack_require__(14)('toStringTag');
+var cof = __webpack_require__(48);
+var TAG = __webpack_require__(16)('toStringTag');
 // ES3 wrong here
 var ARG = cof(function () { return arguments; }()) == 'Arguments';
 
@@ -18953,10 +19010,10 @@ var redefine = __webpack_require__(37);
 var hide = __webpack_require__(38);
 var has = __webpack_require__(32);
 var Iterators = __webpack_require__(57);
-var $iterCreate = __webpack_require__(230);
+var $iterCreate = __webpack_require__(233);
 var setToStringTag = __webpack_require__(58);
 var getPrototypeOf = __webpack_require__(171);
-var ITERATOR = __webpack_require__(14)('iterator');
+var ITERATOR = __webpack_require__(16)('iterator');
 var BUGGY = !([].keys && 'next' in [].keys()); // Safari has buggy iterators w/o `next`
 var FF_ITERATOR = '@@iterator';
 var KEYS = 'keys';
@@ -19053,9 +19110,9 @@ module.exports = function (done, value) {
 "use strict";
 
 var global = __webpack_require__(17);
-var dP = __webpack_require__(21);
-var DESCRIPTORS = __webpack_require__(23);
-var SPECIES = __webpack_require__(14)('species');
+var dP = __webpack_require__(22);
+var DESCRIPTORS = __webpack_require__(24);
+var SPECIES = __webpack_require__(16)('species');
 
 module.exports = function (KEY) {
   var C = global[KEY];
@@ -19072,7 +19129,7 @@ module.exports = function (KEY) {
 
 // Works with __proto__ only. Old v8 can't work with null proto objects.
 /* eslint-disable no-proto */
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 var anObject = __webpack_require__(20);
 var check = function (O, proto) {
   anObject(O);
@@ -19102,7 +19159,7 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.2.2 IsArray(argument)
-var cof = __webpack_require__(47);
+var cof = __webpack_require__(48);
 module.exports = Array.isArray || function isArray(arg) {
   return cof(arg) == 'Array';
 };
@@ -19123,7 +19180,7 @@ var IObject = __webpack_require__(88);
 var $assign = Object.assign;
 
 // should work with symbols and should have deterministic property order (V8 bug)
-module.exports = !$assign || __webpack_require__(24)(function () {
+module.exports = !$assign || __webpack_require__(25)(function () {
   var A = {};
   var B = {};
   // eslint-disable-next-line no-undef
@@ -19158,12 +19215,12 @@ module.exports = !$assign || __webpack_require__(24)(function () {
 var redefineAll = __webpack_require__(70);
 var getWeak = __webpack_require__(41).getWeak;
 var anObject = __webpack_require__(20);
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 var anInstance = __webpack_require__(72);
 var forOf = __webpack_require__(73);
 var createArrayMethod = __webpack_require__(77);
 var $has = __webpack_require__(32);
-var validate = __webpack_require__(49);
+var validate = __webpack_require__(50);
 var arrayFind = createArrayMethod(5);
 var arrayFindIndex = createArrayMethod(6);
 var id = 0;
@@ -19270,7 +19327,7 @@ module.exports.f = function (C) {
 /* 179 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports.f = __webpack_require__(14);
+exports.f = __webpack_require__(16);
 
 
 /***/ }),
@@ -19278,7 +19335,7 @@ exports.f = __webpack_require__(14);
 /***/ (function(module, exports, __webpack_require__) {
 
 // fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
-var toIObject = __webpack_require__(25);
+var toIObject = __webpack_require__(26);
 var gOPN = __webpack_require__(99).f;
 var toString = {}.toString;
 
@@ -19322,9 +19379,9 @@ module.exports = function repeat(count) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.2.8 IsRegExp(argument)
-var isObject = __webpack_require__(11);
-var cof = __webpack_require__(47);
-var MATCH = __webpack_require__(14)('match');
+var isObject = __webpack_require__(12);
+var cof = __webpack_require__(48);
+var MATCH = __webpack_require__(16)('match');
 module.exports = function (it) {
   var isRegExp;
   return isObject(it) && ((isRegExp = it[MATCH]) !== undefined ? !!isRegExp : cof(it) == 'RegExp');
@@ -19336,7 +19393,7 @@ module.exports = function (it) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.3 Number.isInteger(number)
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 var floor = Math.floor;
 module.exports = function isInteger(it) {
   return !isObject(it) && isFinite(it) && floor(it) === it;
@@ -19348,7 +19405,7 @@ module.exports = function isInteger(it) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var getKeys = __webpack_require__(45);
-var toIObject = __webpack_require__(25);
+var toIObject = __webpack_require__(26);
 var isEnum = __webpack_require__(59).f;
 module.exports = function (isEntries) {
   return function (it) {
@@ -19370,7 +19427,7 @@ module.exports = function (isEntries) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-string-pad-start-end
-var toLength = __webpack_require__(26);
+var toLength = __webpack_require__(27);
 var repeat = __webpack_require__(181);
 var defined = __webpack_require__(46);
 
@@ -20167,7 +20224,7 @@ var _element = __webpack_require__(1);
 
 var _object = __webpack_require__(2);
 
-var _string = __webpack_require__(29);
+var _string = __webpack_require__(30);
 
 var _event = __webpack_require__(192);
 
@@ -20713,11 +20770,11 @@ Event.prototype.parentCell = function (elem) {
     cell.coords = this.instance.wtTable.getCoords(TD);
     cell.TD = TD;
   } else if ((0, _element.hasClass)(elem, 'wtBorder') && (0, _element.hasClass)(elem, 'current')) {
-    cell.coords = this.instance.selections.current.cellRange.highlight; // selections.current is current selected cell
+    cell.coords = this.instance.selections.getCell().cellRange.highlight;
     cell.TD = this.instance.wtTable.getCell(cell.coords);
   } else if ((0, _element.hasClass)(elem, 'wtBorder') && (0, _element.hasClass)(elem, 'area')) {
-    if (this.instance.selections.area.cellRange) {
-      cell.coords = this.instance.selections.area.cellRange.to; // selections.area is area selected cells
+    if (this.instance.selections.createOrGetArea().cellRange) {
+      cell.coords = this.instance.selections.createOrGetArea().cellRange.to;
       cell.TD = this.instance.wtTable.getCell(cell.coords);
     }
   }
@@ -20750,7 +20807,7 @@ var _eventManager = __webpack_require__(8);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _base = __webpack_require__(28);
+var _base = __webpack_require__(29);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -22118,7 +22175,7 @@ var _tableRenderer = __webpack_require__(197);
 
 var _tableRenderer2 = _interopRequireDefault(_tableRenderer);
 
-var _base = __webpack_require__(28);
+var _base = __webpack_require__(29);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -22435,33 +22492,61 @@ var Table = function () {
         (0, _element.removeClass)(nodes[i], className);
       }
     }
+
+    /**
+     * Refresh the table selection by re-rendering Selection instances connected with that instance.
+     *
+     * @param {Boolean} fastDraw If fast drawing is enabled than additionally className clearing is applied.
+     */
+
   }, {
     key: 'refreshSelections',
     value: function refreshSelections(fastDraw) {
       if (!this.wot.selections) {
         return;
       }
-      var len = this.wot.selections.length;
+      var highlights = Array.from(this.wot.selections);
+      var len = highlights.length;
 
       if (fastDraw) {
+        var classesToRemove = [];
+
         for (var i = 0; i < len; i++) {
-          // there was no rerender, so we need to remove classNames by ourselves
-          if (this.wot.selections[i].settings.className) {
-            this.removeClassFromCells(this.wot.selections[i].settings.className);
+          var _highlights$i$setting = highlights[i].settings,
+              highlightHeaderClassName = _highlights$i$setting.highlightHeaderClassName,
+              highlightRowClassName = _highlights$i$setting.highlightRowClassName,
+              highlightColumnClassName = _highlights$i$setting.highlightColumnClassName;
+
+          var classNames = highlights[i].classNames;
+          var classNamesLength = classNames.length;
+
+          for (var j = 0; j < classNamesLength; j++) {
+            if (!classesToRemove.includes(classNames[j])) {
+              classesToRemove.push(classNames[j]);
+            }
           }
-          if (this.wot.selections[i].settings.highlightHeaderClassName) {
-            this.removeClassFromCells(this.wot.selections[i].settings.highlightHeaderClassName);
+
+          if (highlightHeaderClassName && !classesToRemove.includes(highlightHeaderClassName)) {
+            classesToRemove.push(highlightHeaderClassName);
           }
-          if (this.wot.selections[i].settings.highlightRowClassName) {
-            this.removeClassFromCells(this.wot.selections[i].settings.highlightRowClassName);
+          if (highlightRowClassName && !classesToRemove.includes(highlightRowClassName)) {
+            classesToRemove.push(highlightRowClassName);
           }
-          if (this.wot.selections[i].settings.highlightColumnClassName) {
-            this.removeClassFromCells(this.wot.selections[i].settings.highlightColumnClassName);
+          if (highlightColumnClassName && !classesToRemove.includes(highlightColumnClassName)) {
+            classesToRemove.push(highlightColumnClassName);
           }
         }
+
+        var classesToRemoveLength = classesToRemove.length;
+
+        for (var _i = 0; _i < classesToRemoveLength; _i++) {
+          // there was no rerender, so we need to remove classNames by ourselves
+          this.removeClassFromCells(classesToRemove[_i]);
+        }
       }
-      for (var _i = 0; _i < len; _i++) {
-        this.wot.selections[_i].draw(this.wot, fastDraw);
+
+      for (var _i2 = 0; _i2 < len; _i2++) {
+        highlights[_i2].draw(this.wot, fastDraw);
       }
     }
 
@@ -22840,7 +22925,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(1);
 
-var _base = __webpack_require__(28);
+var _base = __webpack_require__(29);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -24136,7 +24221,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(1);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _object = __webpack_require__(2);
 
@@ -24150,7 +24235,7 @@ var _coords = __webpack_require__(60);
 
 var _coords2 = _interopRequireDefault(_coords);
 
-var _base = __webpack_require__(28);
+var _base = __webpack_require__(29);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -24429,8 +24514,10 @@ var Border = function () {
   }, {
     key: 'isPartRange',
     value: function isPartRange(row, col) {
-      if (this.wot.selections.area.cellRange) {
-        if (row != this.wot.selections.area.cellRange.to.row || col != this.wot.selections.area.cellRange.to.col) {
+      var areaSelection = this.wot.selections.createOrGetArea();
+
+      if (areaSelection.cellRange) {
+        if (row != areaSelection.cellRange.to.row || col != areaSelection.cellRange.to.col) {
           return true;
         }
       }
@@ -24494,11 +24581,15 @@ var Border = function () {
       if (this.disabled) {
         return;
       }
-      var isMultiple, fromTD, toTD, fromOffset, toOffset, containerOffset, top, minTop, left, minLeft, height, width, fromRow, fromColumn, toRow, toColumn, trimmingContainer, cornerOverlappingContainer, ilen;
 
-      ilen = this.wot.wtTable.getRenderedRowsCount();
+      var fromRow = void 0;
+      var toRow = void 0;
+      var fromColumn = void 0;
+      var toColumn = void 0;
 
-      for (var i = 0; i < ilen; i++) {
+      var rowsCount = this.wot.wtTable.getRenderedRowsCount();
+
+      for (var i = 0; i < rowsCount; i += 1) {
         var s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
         if (s >= corners[0] && s <= corners[2]) {
@@ -24507,7 +24598,7 @@ var Border = function () {
         }
       }
 
-      for (var _i = ilen - 1; _i >= 0; _i--) {
+      for (var _i = rowsCount - 1; _i >= 0; _i -= 1) {
         var _s = this.wot.wtTable.rowFilter.renderedToSource(_i);
 
         if (_s >= corners[0] && _s <= corners[2]) {
@@ -24516,9 +24607,9 @@ var Border = function () {
         }
       }
 
-      ilen = this.wot.wtTable.getRenderedColumnsCount();
+      var columnsCount = this.wot.wtTable.getRenderedColumnsCount();
 
-      for (var _i2 = 0; _i2 < ilen; _i2++) {
+      for (var _i2 = 0; _i2 < columnsCount; _i2 += 1) {
         var _s2 = this.wot.wtTable.columnFilter.renderedToSource(_i2);
 
         if (_s2 >= corners[1] && _s2 <= corners[3]) {
@@ -24527,7 +24618,7 @@ var Border = function () {
         }
       }
 
-      for (var _i3 = ilen - 1; _i3 >= 0; _i3--) {
+      for (var _i3 = columnsCount - 1; _i3 >= 0; _i3 -= 1) {
         var _s3 = this.wot.wtTable.columnFilter.renderedToSource(_i3);
 
         if (_s3 >= corners[1] && _s3 <= corners[3]) {
@@ -24540,20 +24631,19 @@ var Border = function () {
 
         return;
       }
-      isMultiple = fromRow !== toRow || fromColumn !== toColumn;
-      fromTD = this.wot.wtTable.getCell(new _coords2.default(fromRow, fromColumn));
-      toTD = isMultiple ? this.wot.wtTable.getCell(new _coords2.default(toRow, toColumn)) : fromTD;
-      fromOffset = (0, _element.offset)(fromTD);
-      toOffset = isMultiple ? (0, _element.offset)(toTD) : fromOffset;
-      containerOffset = (0, _element.offset)(this.wot.wtTable.TABLE);
+      var isMultiple = fromRow !== toRow || fromColumn !== toColumn;
+      var fromTD = this.wot.wtTable.getCell(new _coords2.default(fromRow, fromColumn));
+      var toTD = isMultiple ? this.wot.wtTable.getCell(new _coords2.default(toRow, toColumn)) : fromTD;
+      var fromOffset = (0, _element.offset)(fromTD);
+      var toOffset = isMultiple ? (0, _element.offset)(toTD) : fromOffset;
+      var containerOffset = (0, _element.offset)(this.wot.wtTable.TABLE);
+      var minTop = fromOffset.top;
+      var minLeft = fromOffset.left;
 
-      minTop = fromOffset.top;
-      height = toOffset.top + (0, _element.outerHeight)(toTD) - minTop;
-      minLeft = fromOffset.left;
-      width = toOffset.left + (0, _element.outerWidth)(toTD) - minLeft;
-
-      top = minTop - containerOffset.top - 1;
-      left = minLeft - containerOffset.left - 1;
+      var height = toOffset.top + (0, _element.outerHeight)(toTD) - minTop;
+      var width = toOffset.left + (0, _element.outerWidth)(toTD) - minLeft;
+      var top = minTop - containerOffset.top - 1;
+      var left = minLeft - containerOffset.left - 1;
       var style = (0, _element.getComputedStyle)(fromTD);
 
       if (parseInt(style.borderTopWidth, 10) > 0) {
@@ -24598,10 +24688,10 @@ var Border = function () {
         // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
         this.cornerStyle.display = 'none';
 
-        trimmingContainer = (0, _element.getTrimmingContainer)(this.wot.wtTable.TABLE);
+        var trimmingContainer = (0, _element.getTrimmingContainer)(this.wot.wtTable.TABLE);
 
         if (toColumn === this.wot.getSetting('totalColumns') - 1) {
-          cornerOverlappingContainer = toTD.offsetLeft + (0, _element.outerWidth)(toTD) + parseInt(this.cornerDefaultStyle.width, 10) / 2 >= (0, _element.innerWidth)(trimmingContainer);
+          var cornerOverlappingContainer = toTD.offsetLeft + (0, _element.outerWidth)(toTD) + parseInt(this.cornerDefaultStyle.width, 10) / 2 >= (0, _element.innerWidth)(trimmingContainer);
 
           if (cornerOverlappingContainer) {
             this.cornerStyle.left = Math.floor(left + width - 3 - parseInt(this.cornerDefaultStyle.width, 10) / 2) + 'px';
@@ -24610,9 +24700,9 @@ var Border = function () {
         }
 
         if (toRow === this.wot.getSetting('totalRows') - 1) {
-          cornerOverlappingContainer = toTD.offsetTop + (0, _element.outerHeight)(toTD) + parseInt(this.cornerDefaultStyle.height, 10) / 2 >= (0, _element.innerHeight)(trimmingContainer);
+          var _cornerOverlappingContainer = toTD.offsetTop + (0, _element.outerHeight)(toTD) + parseInt(this.cornerDefaultStyle.height, 10) / 2 >= (0, _element.innerHeight)(trimmingContainer);
 
-          if (cornerOverlappingContainer) {
+          if (_cornerOverlappingContainer) {
             this.cornerStyle.top = Math.floor(top + height - 3 - parseInt(this.cornerDefaultStyle.height, 10) / 2) + 'px';
             this.cornerStyle.borderBottomWidth = 0;
           }
@@ -24677,9 +24767,9 @@ exports.__esModule = true;
 
 var _unicode = __webpack_require__(18);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
-var _string = __webpack_require__(29);
+var _string = __webpack_require__(30);
 
 var _array = __webpack_require__(0);
 
@@ -25103,7 +25193,9 @@ AutocompleteEditor.prototype.stripValuesIfNeeded = function (values) {
 };
 
 AutocompleteEditor.prototype.allowKeyEventPropagation = function (keyCode) {
-  var selected = { row: this.htEditor.getSelectedRange() ? this.htEditor.getSelectedRange().from.row : -1 };
+  var selectedRange = this.htEditor.getSelectedRangeLast();
+
+  var selected = { row: selectedRange ? selectedRange.from.row : -1 };
   var allowed = false;
 
   if (keyCode === _unicode.KEY_CODES.ARROW_DOWN && selected.row > 0 && selected.row < this.htEditor.countRows() - 1) {
@@ -25139,7 +25231,7 @@ var _object = __webpack_require__(2);
 
 var _element = __webpack_require__(1);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _textEditor = __webpack_require__(62);
 
@@ -25210,26 +25302,26 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
   var selectedRow;
 
   if (event.keyCode == _unicode.KEY_CODES.ARROW_DOWN) {
-    if (!innerHOT.getSelected() && !innerHOT.flipped) {
+    if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
       rowToSelect = 0;
-    } else if (innerHOT.getSelected()) {
+    } else if (innerHOT.getSelectedLast()) {
       if (innerHOT.flipped) {
-        rowToSelect = innerHOT.getSelected()[0] + 1;
+        rowToSelect = innerHOT.getSelectedLast()[0] + 1;
       } else if (!innerHOT.flipped) {
-        selectedRow = innerHOT.getSelected()[0];
+        selectedRow = innerHOT.getSelectedLast()[0];
         var lastRow = innerHOT.countRows() - 1;
         rowToSelect = Math.min(lastRow, selectedRow + 1);
       }
     }
   } else if (event.keyCode == _unicode.KEY_CODES.ARROW_UP) {
-    if (!innerHOT.getSelected() && innerHOT.flipped) {
+    if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
       rowToSelect = innerHOT.countRows() - 1;
-    } else if (innerHOT.getSelected()) {
+    } else if (innerHOT.getSelectedLast()) {
       if (innerHOT.flipped) {
-        selectedRow = innerHOT.getSelected()[0];
+        selectedRow = innerHOT.getSelectedLast()[0];
         rowToSelect = Math.max(0, selectedRow - 1);
       } else {
-        selectedRow = innerHOT.getSelected()[0];
+        selectedRow = innerHOT.getSelectedLast()[0];
         rowToSelect = selectedRow - 1;
       }
     }
@@ -25302,7 +25394,7 @@ HandsontableEditor.prototype.finishEditing = function (isCancelled, ctrlDown) {
     this.instance.listen(); // return the focus to the parent HOT instance
   }
 
-  if (this.htEditor && this.htEditor.getSelected()) {
+  if (this.htEditor && this.htEditor.getSelectedLast()) {
     var value = this.htEditor.getInstance().getValue();
 
     if (value !== void 0) {
@@ -25550,7 +25642,7 @@ exports.__esModule = true;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 var _object = __webpack_require__(2);
 
@@ -26060,12 +26152,20 @@ DefaultSettings.prototype = {
   allowRemoveColumn: true,
 
   /**
-   * If true, selection of multiple cells using keyboard or mouse is allowed.
+   * @description
+   * Defines how the table selection reacts. The selection support three different behaviors defined as:
+   *  * `'single'` Only a single cell can be selected.
+   *  * `'range'` Multiple cells within a single range can be selected.
+   *  * `'multiple'` Multiple ranges of cells can be selected.
    *
-   * @type {Boolean}
-   * @default true
+   * To see how to interact with selection by getting selected data or change styles of the selected cells go to
+   * [https://docs.handsontable.com/demo-selecting-ranges.html](https://docs.handsontable.com/demo-selecting-ranges.html).
+   *
+   * @since 0.36.0
+   * @type {String}
+   * @default 'multiple'
    */
-  multiSelect: true,
+  selectionMode: 'multiple',
 
   /**
    * Enables the fill handle (drag-down and copy-down) functionality, which shows a small rectangle in bottom
@@ -26957,8 +27057,9 @@ DefaultSettings.prototype = {
    * Possible values:
    *  * `true` - Disables any type of visual selection (current and area selection),
    *  * `false` - Enables any type of visual selection. This is default value.
-   *  * `current` - Disables the selection of a currently selected cell, the area selection is still present.
-   *  * `area` - Disables the area selection, the currently selected cell selection is still present.
+   *  * `'current'` - Disables the selection of a currently selected cell, the area selection is still present.
+   *  * `'area'` - Disables the area selection, the currently selected cell selection is still present.
+   *  * `'header'` - Disables the headers selection, the currently selected cell selection is still present (available since 0.36.0).
    *
    * @type {Boolean|String|Array}
    * @default false
@@ -26971,7 +27072,7 @@ DefaultSettings.prototype = {
    * ...
    *
    * ...
-   * // as string ('current' or 'area')
+   * // as string ('current', 'area' or 'header')
    * disableVisualSelection: 'current',
    * ...
    *
@@ -27650,9 +27751,9 @@ var _array = __webpack_require__(0);
 
 var _dictionariesManager = __webpack_require__(82);
 
-var _phraseFormatters = __webpack_require__(294);
+var _phraseFormatters = __webpack_require__(297);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 /**
  * Get phrase for specified dictionary key.
@@ -27722,7 +27823,7 @@ exports.normalizeLanguageCode = normalizeLanguageCode;
 exports.applyLanguageSetting = applyLanguageSetting;
 exports.warnUserAboutLanguageRegistration = warnUserAboutLanguageRegistration;
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 var _object = __webpack_require__(2);
 
@@ -27834,6 +27935,386 @@ function warnUserAboutLanguageRegistration(languageCode) {
 
 
 exports.__esModule = true;
+exports.stopObserving = exports.startObserving = exports.isPressedCtrlKey = exports.isPressed = exports._resetState = exports._getRefCount = undefined;
+
+var _eventManager = __webpack_require__(8);
+
+var _eventManager2 = _interopRequireDefault(_eventManager);
+
+var _unicode = __webpack_require__(18);
+
+var _array = __webpack_require__(0);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var eventManager = new _eventManager2.default();
+var pressedKeys = new Set();
+var refCount = 0;
+
+/**
+ * Begins observing keyboard keys states.
+ */
+function startObserving() {
+  if (refCount === 0) {
+    eventManager.addEventListener(document, 'keydown', function (event) {
+      if (!pressedKeys.has(event.keyCode)) {
+        pressedKeys.add(event.keyCode);
+      }
+    });
+    eventManager.addEventListener(document, 'keyup', function (event) {
+      if (pressedKeys.has(event.keyCode)) {
+        pressedKeys.delete(event.keyCode);
+      }
+    });
+    eventManager.addEventListener(document, 'visibilitychange', function () {
+      if (document.hidden) {
+        pressedKeys.clear();
+      }
+    });
+  }
+
+  refCount += 1;
+}
+
+/**
+ * Stops observing keyboard keys states and clear all previously saved states.
+ */
+function stopObserving() {
+  if (refCount > 0) {
+    refCount -= 1;
+  }
+
+  if (refCount === 0) {
+    _resetState();
+  }
+}
+
+/**
+ * Remove all listeners attached to the DOM and clear all previously saved states.
+ */
+function _resetState() {
+  eventManager.clearEvents();
+  pressedKeys.clear();
+  refCount = 0;
+}
+
+/**
+ * Checks if provided keyCode or keyCodes are pressed.
+ *
+ * @param {String} keyCodes The key codes passed as a string defined in helpers/unicode.js file delimited with '|'.
+ * @return {Boolean}
+ */
+function isPressed(keyCodes) {
+  return Array.from(pressedKeys.values()).some(function (_keyCode) {
+    return (0, _unicode.isKey)(_keyCode, keyCodes);
+  });
+}
+
+/**
+ * Checks if ctrl keys are pressed.
+ *
+ * @return {Boolean}
+ */
+function isPressedCtrlKey() {
+  return Array.from(pressedKeys.values()).some(function (_keyCode) {
+    return (0, _unicode.isCtrlMetaKey)(_keyCode);
+  });
+}
+
+/**
+ * Returns reference count. Useful for debugging and testing purposes.
+ *
+ * @return {Number}
+ */
+function _getRefCount() {
+  return refCount;
+}
+
+exports._getRefCount = _getRefCount;
+exports._resetState = _resetState;
+exports.isPressed = isPressed;
+exports.isPressedCtrlKey = isPressedCtrlKey;
+exports.startObserving = startObserving;
+exports.stopObserving = stopObserving;
+
+/***/ }),
+/* 209 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.HEADER_TYPE = exports.AREA_TYPE = exports.FILL_TYPE = exports.CELL_TYPE = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _types = __webpack_require__(300);
+
+var _array = __webpack_require__(0);
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var CELL_TYPE = exports.CELL_TYPE = 'cell';
+var FILL_TYPE = exports.FILL_TYPE = 'fill';
+var AREA_TYPE = exports.AREA_TYPE = 'area';
+var HEADER_TYPE = exports.HEADER_TYPE = 'header';
+
+/**
+ * Highlight class responsible for managing Walkontable Selection classes.
+ *
+ * With Highlight object you can manipulate four different highlight types:
+ *  - `cell` can be added only to a single cell at a time and it defines currently selected cell;
+ *  - `fill` can occur only once and its highlight defines selection of autofill functionality (managed by the plugin with the same name);
+ *  - `areas` can be added to multiple cells at a time. This type highlights selected cell or multiple cells.
+ *    The multiple cells have to be defined as an uninterrupted order (regular shape). Otherwise, the new layer of
+ *    that type should be created to manage not-consecutive selection;
+ *  - `header` can occur multiple times. This type is designed to highlight only headers. Like `area` type it
+ *    can appear with multiple highlights (accessed under different level layers).
+ *
+ * @class Highlight
+ * @util
+ */
+
+var Highlight = function () {
+  function Highlight(options) {
+    _classCallCheck(this, Highlight);
+
+    /**
+     * Options consumed by Highlight class and Walkontable Selection classes.
+     *
+     * @type {Object}
+     */
+    this.options = options;
+    /**
+     * The property which describes which layer level of the visual selection will be modified.
+     * This option is valid only for `area` and `header` highlight types which occurs multiple times on
+     * the table (as a non-consecutive selection).
+     *
+     * An order of the layers is the same as the order of added new non-consecutive selections.
+     *
+     * @type {Number}
+     * @default 0
+     */
+    this.layerLevel = 0;
+    /**
+     * `cell` highlight object which describes attributes for the currently selected cell.
+     * It can only occur only once on the table.
+     *
+     * @type {Selection}
+     */
+    this.cell = (0, _types.createHighlight)(CELL_TYPE, options);
+    /**
+     * `fill` highlight object which describes attributes for the borders for autofill functionality.
+     * It can only occur only once on the table.
+     *
+     * @type {Selection}
+     */
+    this.fill = (0, _types.createHighlight)(FILL_TYPE, options);
+    /**
+     * Collection of the `area` highlights. That objects describes attributes for the borders and selection of
+     * the multiple selected cells. It can occur multiple times on the table.
+     *
+     * @type {Map.<number, Selection>}
+     */
+    this.areas = new Map();
+    /**
+     * Collection of the `header` highlights. That objects describes attributes for the selection of
+     * the multiple selected rows and columns in the table header. It can occur multiple times on the table.
+     *
+     * @type {Map.<number, Selection>}
+     */
+    this.headers = new Map();
+    /**
+     * The temporary property, holder for borders added through CustomBorders plugin.
+     *
+     * @type {Selection[]}
+     */
+    this.borders = [];
+  }
+
+  /**
+   * Check if highlight cell rendering is disabled for specyfied highlight type.
+   *
+   * @param {String} highlightType Highlight type. Possible values are: `cell`, `area`, `fill` or `header`.
+   * @return {Boolean}
+   */
+
+
+  _createClass(Highlight, [{
+    key: 'isEnabledFor',
+    value: function isEnabledFor(highlightType) {
+      var disableHighlight = this.options.disableHighlight;
+
+      // Legacy compatibility.
+      if (highlightType === 'current') {
+        highlightType = CELL_TYPE;
+      }
+
+      if (typeof disableHighlight === 'string') {
+        disableHighlight = [disableHighlight];
+      }
+
+      return disableHighlight === false || Array.isArray(disableHighlight) && !disableHighlight.includes(highlightType);
+    }
+
+    /**
+     * Set a new layer level to make access to the desire `area` and `header` highlights.
+     *
+     * @param {Number} [level=0] Layer level to use.
+     * @returns {Highlight}
+     */
+
+  }, {
+    key: 'useLayerLevel',
+    value: function useLayerLevel() {
+      var level = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
+      this.layerLevel = level;
+
+      return this;
+    }
+
+    /**
+     * Get Walkontable Selection instance created for controlling highlight of the currently selected/edited cell.
+     *
+     * @return {Selection}
+     */
+
+  }, {
+    key: 'getCell',
+    value: function getCell() {
+      return this.cell;
+    }
+
+    /**
+     * Get Walkontable Selection instance created for controlling highlight of the autofill functionality.
+     *
+     * @return {Selection}
+     */
+
+  }, {
+    key: 'getFill',
+    value: function getFill() {
+      return this.fill;
+    }
+
+    /**
+     * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
+     * of the multiple selected cells.
+     *
+     * @return {Selection}
+     */
+
+  }, {
+    key: 'createOrGetArea',
+    value: function createOrGetArea() {
+      var layerLevel = this.layerLevel;
+      var area = void 0;
+
+      if (this.areas.has(layerLevel)) {
+        area = this.areas.get(layerLevel);
+      } else {
+        area = (0, _types.createHighlight)(AREA_TYPE, Object.assign({ layerLevel: layerLevel }, this.options));
+
+        this.areas.set(layerLevel, area);
+      }
+
+      return area;
+    }
+
+    /**
+     * Get all Walkontable Selection instances which describes the state of the visual highlight of the cells.
+     *
+     * @return {Selection[]}
+     */
+
+  }, {
+    key: 'getAreas',
+    value: function getAreas() {
+      return [].concat(_toConsumableArray(this.areas.values()));
+    }
+
+    /**
+     * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
+     * of the multiple selected header cells.
+     *
+     * @return {Selection}
+     */
+
+  }, {
+    key: 'createOrGetHeader',
+    value: function createOrGetHeader() {
+      var header = void 0;
+      var layerLevel = this.layerLevel;
+
+      if (this.headers.has(layerLevel)) {
+        header = this.headers.get(layerLevel);
+      } else {
+        header = (0, _types.createHighlight)(HEADER_TYPE, Object.assign({}, this.options));
+
+        this.headers.set(layerLevel, header);
+      }
+
+      return header;
+    }
+
+    /**
+     * Get all Walkontable Selection instances which describes the state of the visual highlight of the header cells.
+     *
+     * @return {Selection[]}
+     */
+
+  }, {
+    key: 'getHeaders',
+    value: function getHeaders() {
+      return [].concat(_toConsumableArray(this.headers.values()));
+    }
+
+    /**
+     * Perform cleaning visual highlights for the whole table.
+     */
+
+  }, {
+    key: 'clear',
+    value: function clear() {
+      this.cell.clear();
+      this.fill.clear();
+
+      (0, _array.arrayEach)(this.areas.values(), function (area) {
+        area.clear();
+      });
+      (0, _array.arrayEach)(this.headers.values(), function (header) {
+        header.clear();
+      });
+    }
+
+    /**
+     * This object can be iterate over using `for of` syntax or using internal `arrayEach` helper.
+     */
+
+  }, {
+    key: Symbol.iterator,
+    value: function value() {
+      return [this.cell].concat(_toConsumableArray(this.areas.values()), _toConsumableArray(this.headers.values()), [this.fill], _toConsumableArray(this.borders))[Symbol.iterator]();
+    }
+  }]);
+
+  return Highlight;
+}();
+
+exports.default = Highlight;
+
+/***/ }),
+/* 210 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -27841,7 +28322,7 @@ var _object = __webpack_require__(2);
 
 var _number = __webpack_require__(4);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -28061,7 +28542,7 @@ var SamplesGenerator = function () {
 exports.default = SamplesGenerator;
 
 /***/ }),
-/* 209 */
+/* 211 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28193,7 +28674,7 @@ function findSubCommand(subCommandName, subCommands) {
 exports.default = CommandExecutor;
 
 /***/ }),
-/* 210 */
+/* 212 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28341,7 +28822,191 @@ function _getItems() {
 exports.default = ItemsFactory;
 
 /***/ }),
-/* 211 */
+/* 213 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+exports.detectSelectionType = detectSelectionType;
+exports.normalizeSelectionFactory = normalizeSelectionFactory;
+exports.transformSelectionToColumnDistance = transformSelectionToColumnDistance;
+exports.transformSelectionToRowDistance = transformSelectionToRowDistance;
+
+var _src = __webpack_require__(10);
+
+var _array = __webpack_require__(0);
+
+var SELECTION_TYPE_ARRAY = 'array';
+var SELECTION_TYPE_OBJECT = 'object';
+var SELECTION_TYPES = [SELECTION_TYPE_OBJECT, SELECTION_TYPE_ARRAY];
+
+/**
+ * Detect data structure, a holder for coordinates for selection functionality.
+ *
+ * @param {Array[]|CellRange[]} selectionRanges An array of selected ranges. This type of data is produced by
+ *                                              `hot.getSelected()` and `hot.getSelectedRange()` methods.
+ * @returns {String|undefined} It returns strings: `array` or `object` depends on from what method the selection data is
+ *                            provided. If data type is unrecognized than it returns `undefined`.
+ */
+function detectSelectionType(selectionRanges) {
+  var result = void 0;
+
+  if (selectionRanges.length) {
+    var firstItem = selectionRanges[0];
+
+    if (Array.isArray(firstItem)) {
+      result = SELECTION_TYPE_ARRAY;
+    } else if (firstItem instanceof _src.CellRange) {
+      result = SELECTION_TYPE_OBJECT;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Factory function designed for normalization data schema from different data structures of the selection ranges.
+ *
+ * @param {String} type Selection type which will be processed.
+ * @returns {Array} Returns normalized data about selected range as an array: `[rowStart, columnStart, rowEnd, columnEnd]`.
+ */
+function normalizeSelectionFactory(type) {
+  if (!SELECTION_TYPES.includes(type)) {
+    throw new Error('Unsupported selection ranges data type was provided.');
+  }
+
+  return function (selection) {
+    var isObjectType = type === SELECTION_TYPE_OBJECT;
+    var rowStart = isObjectType ? selection.from.row : selection[0];
+    var columnStart = isObjectType ? selection.from.col : selection[1];
+    var rowEnd = isObjectType ? selection.to.row : selection[2];
+    var columnEnd = isObjectType ? selection.to.col : selection[3];
+
+    return [Math.min(rowStart, rowEnd), Math.min(columnStart, columnEnd), Math.max(rowStart, rowEnd), Math.max(columnStart, columnEnd)];
+  };
+}
+
+/**
+ * Function transform selection ranges (produced by `hot.getSelected()` and `hot.getSelectedRange()`) to normalized
+ * data structure. It merges repeated ranges into consecutive coordinates. The returned structure
+ * contains an array of arrays. The single item contains at index 0 visual column index from the selection was
+ * started and at index 1 distance as a count of selected columns.
+ *
+ * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
+ * @return {Array[]} Returns an array of arrays with ranges defines in that schema:
+ *                   `[[visualColumnStart, distance], [visualColumnStart, distance], ...]`.
+ *                   The column distances are always created starting from the left (zero index) to the
+ *                   right (the latest column index).
+ */
+function transformSelectionToColumnDistance(selectionRanges) {
+  var selectionType = detectSelectionType(selectionRanges);
+
+  if (!selectionType) {
+    return [];
+  }
+
+  var selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
+  var unorderedIndexes = new Set();
+
+  // Iterate through all ranges and collect all column indexes which are not saved yet.
+  (0, _array.arrayEach)(selectionRanges, function (selection) {
+    var _selectionSchemaNorma = selectionSchemaNormalizer(selection),
+        _selectionSchemaNorma2 = _slicedToArray(_selectionSchemaNorma, 4),
+        columnStart = _selectionSchemaNorma2[1],
+        columnEnd = _selectionSchemaNorma2[3];
+
+    var amount = columnEnd - columnStart + 1;
+
+    (0, _array.arrayEach)(Array.from(new Array(amount), function (_, i) {
+      return columnStart + i;
+    }), function (index) {
+      if (!unorderedIndexes.has(index)) {
+        unorderedIndexes.add(index);
+      }
+    });
+  });
+
+  // Sort indexes in ascending order to easily detecting non-consecutive columns.
+  var orderedIndexes = Array.from(unorderedIndexes).sort(function (a, b) {
+    return a - b;
+  });
+  var normalizedColumnRanges = (0, _array.arrayReduce)(orderedIndexes, function (acc, visualColumnIndex, index, array) {
+    if (index !== 0 && visualColumnIndex === array[index - 1] + 1) {
+      acc[acc.length - 1][1]++;
+    } else {
+      acc.push([visualColumnIndex, 1]);
+    }
+
+    return acc;
+  }, []);
+
+  return normalizedColumnRanges;
+}
+
+/**
+ * Function transform selection ranges (produced by `hot.getSelected()` and `hot.getSelectedRange()`) to normalized
+ * data structure. It merges repeated ranges into consecutive coordinates. The returned structure
+ * contains an array of arrays. The single item contains at index 0 visual column index from the selection was
+ * started and at index 1 distance as a count of selected columns.
+ *
+ * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
+ * @return {Array[]} Returns an array of arrays with ranges defines in that schema:
+ *                   `[[visualColumnStart, distance], [visualColumnStart, distance], ...]`.
+ *                   The column distances are always created starting from the left (zero index) to the
+ *                   right (the latest column index).
+ */
+function transformSelectionToRowDistance(selectionRanges) {
+  var selectionType = detectSelectionType(selectionRanges);
+
+  if (!selectionType) {
+    return [];
+  }
+
+  var selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
+  var unorderedIndexes = new Set();
+
+  // Iterate through all ranges and collect all column indexes which are not saved yet.
+  (0, _array.arrayEach)(selectionRanges, function (selection) {
+    var _selectionSchemaNorma3 = selectionSchemaNormalizer(selection),
+        _selectionSchemaNorma4 = _slicedToArray(_selectionSchemaNorma3, 3),
+        rowStart = _selectionSchemaNorma4[0],
+        rowEnd = _selectionSchemaNorma4[2];
+
+    var amount = rowEnd - rowStart + 1;
+
+    (0, _array.arrayEach)(Array.from(new Array(amount), function (_, i) {
+      return rowStart + i;
+    }), function (index) {
+      if (!unorderedIndexes.has(index)) {
+        unorderedIndexes.add(index);
+      }
+    });
+  });
+
+  // Sort indexes in ascending order to easily detecting non-consecutive columns.
+  var orderedIndexes = Array.from(unorderedIndexes).sort(function (a, b) {
+    return a - b;
+  });
+  var normalizedRowRanges = (0, _array.arrayReduce)(orderedIndexes, function (acc, rowIndex, index, array) {
+    if (index !== 0 && rowIndex === array[index - 1] + 1) {
+      acc[acc.length - 1][1]++;
+    } else {
+      acc.push([rowIndex, 1]);
+    }
+
+    return acc;
+  }, []);
+
+  return normalizedRowRanges;
+}
+
+/***/ }),
+/* 214 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28561,7 +29226,7 @@ var BaseUI = function () {
 exports.default = BaseUI;
 
 /***/ }),
-/* 212 */
+/* 215 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28779,7 +29444,7 @@ var BaseUI = function () {
 exports.default = BaseUI;
 
 /***/ }),
-/* 213 */
+/* 216 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29384,7 +30049,7 @@ if (true) {
 }
 
 /***/ }),
-/* 214 */
+/* 217 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29415,7 +30080,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 215 */
+/* 218 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29432,7 +30097,7 @@ var _constants = __webpack_require__(3);
 
 var C = _interopRequireWildcard(_constants);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 var _conditionRegisterer = __webpack_require__(9);
 
@@ -29455,7 +30120,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 216 */
+/* 219 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29474,9 +30139,9 @@ var C = _interopRequireWildcard(_constants);
 
 var _conditionRegisterer = __webpack_require__(9);
 
-var _after = __webpack_require__(217);
+var _after = __webpack_require__(220);
 
-var _before = __webpack_require__(218);
+var _before = __webpack_require__(221);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -29511,7 +30176,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 217 */
+/* 220 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29524,7 +30189,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 exports.condition = condition;
 
-var _moment = __webpack_require__(30);
+var _moment = __webpack_require__(31);
 
 var _moment2 = _interopRequireDefault(_moment);
 
@@ -29562,7 +30227,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 218 */
+/* 221 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29575,7 +30240,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 exports.condition = condition;
 
-var _moment = __webpack_require__(30);
+var _moment = __webpack_require__(31);
 
 var _moment2 = _interopRequireDefault(_moment);
 
@@ -29613,7 +30278,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 219 */
+/* 222 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29630,7 +30295,7 @@ var _constants = __webpack_require__(3);
 
 var C = _interopRequireWildcard(_constants);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 var _conditionRegisterer = __webpack_require__(9);
 
@@ -29653,7 +30318,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 220 */
+/* 223 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29684,7 +30349,7 @@ function operationResult(conditions, value) {
 (0, _logicalOperationRegisterer.registerOperation)(OPERATION_ID, SHORT_NAME_FOR_COMPONENT, operationResult);
 
 /***/ }),
-/* 221 */
+/* 224 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29719,7 +30384,7 @@ function operationResult(conditions, value) {
 (0, _logicalOperationRegisterer.registerOperation)(OPERATION_ID, SHORT_NAME_FOR_COMPONENT, operationResult);
 
 /***/ }),
-/* 222 */
+/* 225 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29737,7 +30402,7 @@ var _object = __webpack_require__(2);
 
 var _templateLiteralTag = __webpack_require__(61);
 
-var _localHooks = __webpack_require__(31);
+var _localHooks = __webpack_require__(21);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
@@ -30103,7 +30768,7 @@ var ConditionCollection = function () {
 exports.default = ConditionCollection;
 
 /***/ }),
-/* 223 */
+/* 226 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30231,7 +30896,7 @@ var DataFilter = function () {
 exports.default = DataFilter;
 
 /***/ }),
-/* 224 */
+/* 227 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30335,7 +31000,7 @@ var BaseCell = function () {
 exports.default = BaseCell;
 
 /***/ }),
-/* 225 */
+/* 228 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30349,7 +31014,7 @@ var _array = __webpack_require__(0);
 
 var _object = __webpack_require__(2);
 
-var _utils = __webpack_require__(226);
+var _utils = __webpack_require__(229);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -30882,7 +31547,7 @@ var DateCalculator = function () {
 exports.default = DateCalculator;
 
 /***/ }),
-/* 226 */
+/* 229 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30963,7 +31628,7 @@ function getShorthand(monthName) {
 }
 
 /***/ }),
-/* 227 */
+/* 230 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31141,7 +31806,7 @@ var HeadersUI = function (_BaseUI) {
 exports.default = HeadersUI;
 
 /***/ }),
-/* 228 */
+/* 231 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31257,19 +31922,19 @@ __webpack_require__(148);
 
 __webpack_require__(149);
 
-var _handsontable = __webpack_require__(247);
+var _handsontable = __webpack_require__(250);
 
 var _handsontable2 = _interopRequireDefault(_handsontable);
 
-var _index = __webpack_require__(357);
+var _index = __webpack_require__(370);
 
 var plugins = _interopRequireWildcard(_index);
 
-var _bottom = __webpack_require__(437);
+var _bottom = __webpack_require__(450);
 
 var _bottom2 = _interopRequireDefault(_bottom);
 
-var _bottomLeftCorner = __webpack_require__(438);
+var _bottomLeftCorner = __webpack_require__(451);
 
 var _bottomLeftCorner2 = _interopRequireDefault(_bottomLeftCorner);
 
@@ -31277,19 +31942,19 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_handsontable2.default.baseVersion = '0.35.1';
+_handsontable2.default.baseVersion = '0.36.0';
 
 exports.default = _handsontable2.default;
 
 /***/ }),
-/* 229 */
+/* 232 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var dP = __webpack_require__(21);
+var dP = __webpack_require__(22);
 var anObject = __webpack_require__(20);
 var getKeys = __webpack_require__(45);
 
-module.exports = __webpack_require__(23) ? Object.defineProperties : function defineProperties(O, Properties) {
+module.exports = __webpack_require__(24) ? Object.defineProperties : function defineProperties(O, Properties) {
   anObject(O);
   var keys = getKeys(Properties);
   var length = keys.length;
@@ -31301,7 +31966,7 @@ module.exports = __webpack_require__(23) ? Object.defineProperties : function de
 
 
 /***/ }),
-/* 230 */
+/* 233 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31312,7 +31977,7 @@ var setToStringTag = __webpack_require__(58);
 var IteratorPrototype = {};
 
 // 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
-__webpack_require__(38)(IteratorPrototype, __webpack_require__(14)('iterator'), function () { return this; });
+__webpack_require__(38)(IteratorPrototype, __webpack_require__(16)('iterator'), function () { return this; });
 
 module.exports = function (Constructor, NAME, next) {
   Constructor.prototype = create(IteratorPrototype, { next: descriptor(1, next) });
@@ -31321,10 +31986,10 @@ module.exports = function (Constructor, NAME, next) {
 
 
 /***/ }),
-/* 231 */
+/* 234 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 var setPrototypeOf = __webpack_require__(174).set;
 module.exports = function (that, target, C) {
   var S = target.constructor;
@@ -31336,11 +32001,11 @@ module.exports = function (that, target, C) {
 
 
 /***/ }),
-/* 232 */
+/* 235 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 9.4.2.3 ArraySpeciesCreate(originalArray, length)
-var speciesConstructor = __webpack_require__(233);
+var speciesConstructor = __webpack_require__(236);
 
 module.exports = function (original, length) {
   return new (speciesConstructor(original))(length);
@@ -31348,12 +32013,12 @@ module.exports = function (original, length) {
 
 
 /***/ }),
-/* 233 */
+/* 236 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 var isArray = __webpack_require__(175);
-var SPECIES = __webpack_require__(14)('species');
+var SPECIES = __webpack_require__(16)('species');
 
 module.exports = function (original) {
   var C;
@@ -31370,13 +32035,13 @@ module.exports = function (original) {
 
 
 /***/ }),
-/* 234 */
+/* 237 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.3.20 SpeciesConstructor(O, defaultConstructor)
 var anObject = __webpack_require__(20);
 var aFunction = __webpack_require__(71);
-var SPECIES = __webpack_require__(14)('species');
+var SPECIES = __webpack_require__(16)('species');
 module.exports = function (O, D) {
   var C = anObject(O).constructor;
   var S;
@@ -31385,7 +32050,7 @@ module.exports = function (O, D) {
 
 
 /***/ }),
-/* 235 */
+/* 238 */
 /***/ (function(module, exports) {
 
 // fast apply, http://jsperf.lnkit.com/fast-apply/5
@@ -31407,7 +32072,7 @@ module.exports = function (fn, args, that) {
 
 
 /***/ }),
-/* 236 */
+/* 239 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(17);
@@ -31415,7 +32080,7 @@ var macrotask = __webpack_require__(97).set;
 var Observer = global.MutationObserver || global.WebKitMutationObserver;
 var process = global.process;
 var Promise = global.Promise;
-var isNode = __webpack_require__(47)(process) == 'process';
+var isNode = __webpack_require__(48)(process) == 'process';
 
 module.exports = function () {
   var head, last, notify;
@@ -31481,7 +32146,7 @@ module.exports = function () {
 
 
 /***/ }),
-/* 237 */
+/* 240 */
 /***/ (function(module, exports) {
 
 module.exports = function (exec) {
@@ -31494,11 +32159,11 @@ module.exports = function (exec) {
 
 
 /***/ }),
-/* 238 */
+/* 241 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var anObject = __webpack_require__(20);
-var isObject = __webpack_require__(11);
+var isObject = __webpack_require__(12);
 var newPromiseCapability = __webpack_require__(178);
 
 module.exports = function (C, x) {
@@ -31512,14 +32177,14 @@ module.exports = function (C, x) {
 
 
 /***/ }),
-/* 239 */
+/* 242 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(17);
-var core = __webpack_require__(48);
+var core = __webpack_require__(49);
 var LIBRARY = __webpack_require__(74);
 var wksExt = __webpack_require__(179);
-var defineProperty = __webpack_require__(21).f;
+var defineProperty = __webpack_require__(22).f;
 module.exports = function (name) {
   var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
   if (name.charAt(0) != '_' && !(name in $Symbol)) defineProperty($Symbol, name, { value: wksExt.f(name) });
@@ -31527,7 +32192,7 @@ module.exports = function (name) {
 
 
 /***/ }),
-/* 240 */
+/* 243 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // all enumerable object keys, includes symbols
@@ -31548,7 +32213,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 241 */
+/* 244 */
 /***/ (function(module, exports) {
 
 // 7.2.9 SameValue(x, y)
@@ -31559,7 +32224,7 @@ module.exports = Object.is || function is(x, y) {
 
 
 /***/ }),
-/* 242 */
+/* 245 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var toInteger = __webpack_require__(68);
@@ -31582,7 +32247,7 @@ module.exports = function (TO_STRING) {
 
 
 /***/ }),
-/* 243 */
+/* 246 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31602,7 +32267,7 @@ module.exports = function () {
 
 
 /***/ }),
-/* 244 */
+/* 247 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31610,7 +32275,7 @@ module.exports = function () {
 
 var toObject = __webpack_require__(40);
 var toAbsoluteIndex = __webpack_require__(69);
-var toLength = __webpack_require__(26);
+var toLength = __webpack_require__(27);
 
 module.exports = [].copyWithin || function copyWithin(target /* = 0 */, start /* = 0, end = @length */) {
   var O = toObject(this);
@@ -31635,7 +32300,7 @@ module.exports = [].copyWithin || function copyWithin(target /* = 0 */, start /*
 
 
 /***/ }),
-/* 245 */
+/* 248 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31643,7 +32308,7 @@ module.exports = [].copyWithin || function copyWithin(target /* = 0 */, start /*
 
 var toObject = __webpack_require__(40);
 var toAbsoluteIndex = __webpack_require__(69);
-var toLength = __webpack_require__(26);
+var toLength = __webpack_require__(27);
 module.exports = function fill(value /* , start = 0, end = @length */) {
   var O = toObject(this);
   var length = toLength(O.length);
@@ -31657,7 +32322,7 @@ module.exports = function fill(value /* , start = 0, end = @length */) {
 
 
 /***/ }),
-/* 246 */
+/* 249 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // all object keys, includes non-enumerable and symbols
@@ -31673,7 +32338,7 @@ module.exports = Reflect && Reflect.ownKeys || function ownKeys(it) {
 
 
 /***/ }),
-/* 247 */
+/* 250 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31789,15 +32454,15 @@ __webpack_require__(148);
 
 __webpack_require__(149);
 
-__webpack_require__(248);
+__webpack_require__(251);
 
-__webpack_require__(249);
+__webpack_require__(252);
 
-__webpack_require__(250);
+__webpack_require__(253);
 
 var _editors = __webpack_require__(19);
 
-var _renderers = __webpack_require__(13);
+var _renderers = __webpack_require__(15);
 
 var _validators = __webpack_require__(35);
 
@@ -31807,7 +32472,7 @@ var _core = __webpack_require__(152);
 
 var _core2 = _interopRequireDefault(_core);
 
-var _jquery = __webpack_require__(296);
+var _jquery = __webpack_require__(308);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -31815,7 +32480,7 @@ var _eventManager = __webpack_require__(8);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
@@ -31847,7 +32512,7 @@ var _function = __webpack_require__(34);
 
 var functionHelpers = _interopRequireWildcard(_function);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 var mixedHelpers = _interopRequireWildcard(_mixed);
 
@@ -31863,7 +32528,7 @@ var _setting = __webpack_require__(153);
 
 var settingHelpers = _interopRequireWildcard(_setting);
 
-var _string = __webpack_require__(29);
+var _string = __webpack_require__(30);
 
 var stringHelpers = _interopRequireWildcard(_string);
 
@@ -31875,11 +32540,11 @@ var _element = __webpack_require__(1);
 
 var domHelpers = _interopRequireWildcard(_element);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var domEventHelpers = _interopRequireWildcard(_event);
 
-var _index = __webpack_require__(297);
+var _index = __webpack_require__(309);
 
 var plugins = _interopRequireWildcard(_index);
 
@@ -31918,11 +32583,11 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '25/01/2018 10:21:21';
+Handsontable.buildDate = '16/02/2018 11:46:33';
 Handsontable.packageName = 'handsontable-pro';
-Handsontable.version = '1.15.1';
+Handsontable.version = '1.16.0';
 
-var baseVersion = '0.35.1';
+var baseVersion = '0.36.0';
 
 if (baseVersion) {
   Handsontable.baseVersion = baseVersion;
@@ -32034,25 +32699,25 @@ Handsontable.languages.getTranslatedPhrase = function () {
 exports.default = Handsontable;
 
 /***/ }),
-/* 248 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 249 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 250 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
 /* 251 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 252 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 253 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 254 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32062,7 +32727,7 @@ exports.__esModule = true;
 
 var _element = __webpack_require__(1);
 
-var _base = __webpack_require__(28);
+var _base = __webpack_require__(29);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -32107,7 +32772,7 @@ _base2.default.registerOverlay(_base2.default.CLONE_DEBUG, DebugOverlay);
 exports.default = DebugOverlay;
 
 /***/ }),
-/* 252 */
+/* 255 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32119,7 +32784,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(1);
 
-var _base = __webpack_require__(28);
+var _base = __webpack_require__(29);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -32469,7 +33134,7 @@ _base2.default.registerOverlay(_base2.default.CLONE_LEFT, LeftOverlay);
 exports.default = LeftOverlay;
 
 /***/ }),
-/* 253 */
+/* 256 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32481,7 +33146,9 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(1);
 
-var _base = __webpack_require__(28);
+var _array = __webpack_require__(0);
+
+var _base = __webpack_require__(29);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -32804,12 +33471,10 @@ var TopOverlay = function (_Overlay) {
     value: function redrawSelectionBorders(selection) {
       if (selection && selection.cellRange) {
         var border = selection.getBorder(this.wot);
+        var corners = selection.getCorners();
 
-        if (border) {
-          var corners = selection.getCorners();
-          border.disappear();
-          border.appear(corners);
-        }
+        border.disappear();
+        border.appear(corners);
       }
     }
 
@@ -32820,11 +33485,17 @@ var TopOverlay = function (_Overlay) {
   }, {
     key: 'redrawAllSelectionsBorders',
     value: function redrawAllSelectionsBorders() {
+      var _this2 = this;
+
       var selections = this.wot.selections;
 
-      this.redrawSelectionBorders(selections.current);
-      this.redrawSelectionBorders(selections.area);
-      this.redrawSelectionBorders(selections.fill);
+      this.redrawSelectionBorders(selections.getCell());
+
+      (0, _array.arrayEach)(selections.getAreas(), function (area) {
+        _this2.redrawSelectionBorders(area);
+      });
+      this.redrawSelectionBorders(selections.getFill());
+
       this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
     }
 
@@ -32885,7 +33556,7 @@ _base2.default.registerOverlay(_base2.default.CLONE_TOP, TopOverlay);
 exports.default = TopOverlay;
 
 /***/ }),
-/* 254 */
+/* 257 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32897,7 +33568,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(1);
 
-var _base = __webpack_require__(28);
+var _base = __webpack_require__(29);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -32995,7 +33666,7 @@ _base2.default.registerOverlay(_base2.default.CLONE_TOP_LEFT_CORNER, TopLeftCorn
 exports.default = TopLeftCornerOverlay;
 
 /***/ }),
-/* 255 */
+/* 258 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33009,9 +33680,9 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(1);
 
-var _border2 = __webpack_require__(199);
+var _border = __webpack_require__(199);
 
-var _border3 = _interopRequireDefault(_border2);
+var _border2 = _interopRequireDefault(_border);
 
 var _coords = __webpack_require__(60);
 
@@ -33039,6 +33710,8 @@ var Selection = function () {
     this.settings = settings;
     this.cellRange = cellRange || null;
     this.instanceBorders = {};
+    this.classNames = [this.settings.className];
+    this.classNameGenerator = this.linearClassNameGenerator(this.settings.className, this.settings.layerLevel);
   }
 
   /**
@@ -33053,12 +33726,11 @@ var Selection = function () {
   _createClass(Selection, [{
     key: 'getBorder',
     value: function getBorder(wotInstance) {
-      if (this.instanceBorders[wotInstance.guid]) {
-        return this.instanceBorders[wotInstance.guid];
+      if (!this.instanceBorders[wotInstance.guid]) {
+        this.instanceBorders[wotInstance.guid] = new _border2.default(wotInstance, this.settings);
       }
 
-      // where is this returned?
-      this.instanceBorders[wotInstance.guid] = new _border3.default(wotInstance, this.settings);
+      return this.instanceBorders[wotInstance.guid];
     }
 
     /**
@@ -33087,6 +33759,8 @@ var Selection = function () {
       } else {
         this.cellRange.expand(coords);
       }
+
+      return this;
     }
 
     /**
@@ -33119,12 +33793,16 @@ var Selection = function () {
 
     /**
      * Clears selection
+     *
+     * @returns {Selection}
      */
 
   }, {
     key: 'clear',
     value: function clear() {
       this.cellRange = null;
+
+      return this;
     }
 
     /**
@@ -33149,16 +33827,71 @@ var Selection = function () {
      * @param {Number} sourceRow Cell row coord
      * @param {Number} sourceColumn Cell column coord
      * @param {String} className Class name
+     * @param {Boolean} [markIntersections=false] If `true`, linear className generator will be used to add CSS classes
+     *                                            in a continuous way.
+     * @returns {Selection}
      */
 
   }, {
     key: 'addClassAtCoords',
     value: function addClassAtCoords(wotInstance, sourceRow, sourceColumn, className) {
+      var markIntersections = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
+
       var TD = wotInstance.wtTable.getCell(new _coords2.default(sourceRow, sourceColumn));
 
       if ((typeof TD === 'undefined' ? 'undefined' : _typeof(TD)) === 'object') {
+        if (markIntersections) {
+          className = this.classNameGenerator(TD);
+
+          if (!this.classNames.includes(className)) {
+            this.classNames.push(className);
+          }
+        }
         (0, _element.addClass)(TD, className);
       }
+
+      return this;
+    }
+
+    /**
+     * Generate helper for calculating classNames based on previously added base className.
+     * The generated className is always generated as a continuation of the previous className. For example, when
+     * the currently checked element has 'area-2' className the generated new className will be 'area-3'. When
+     * the element doesn't have any classNames than the base className will be returned ('area');
+     *
+     * @param {String} baseClassName Base className to be used.
+     * @param {Number} layerLevelOwner Layer level which the instance of the Selection belongs to.
+     * @return {Function}
+     */
+
+  }, {
+    key: 'linearClassNameGenerator',
+    value: function linearClassNameGenerator(baseClassName, layerLevelOwner) {
+      // TODO: Make this recursive function Proper Tail Calls (TCO/PTC) friendly.
+      return function calcClassName(element) {
+        var previousIndex = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : -1;
+
+        if (layerLevelOwner === 0 || previousIndex === 0) {
+          return baseClassName;
+        }
+
+        var index = previousIndex >= 0 ? previousIndex : layerLevelOwner;
+        var className = baseClassName;
+
+        index -= 1;
+
+        var previousClassName = index === 0 ? baseClassName : baseClassName + '-' + index;
+
+        if ((0, _element.hasClass)(element, previousClassName)) {
+          var currentLayer = index + 1;
+
+          className = baseClassName + '-' + currentLayer;
+        } else {
+          className = calcClassName(element, index);
+        }
+
+        return className;
+      };
     }
 
     /**
@@ -33170,11 +33903,7 @@ var Selection = function () {
     value: function draw(wotInstance) {
       if (this.isEmpty()) {
         if (this.settings.border) {
-          var border = this.getBorder(wotInstance);
-
-          if (border) {
-            border.disappear();
-          }
+          this.getBorder(wotInstance).disappear();
         }
 
         return;
@@ -33235,7 +33964,7 @@ var Selection = function () {
           if (sourceRow >= corners[0] && sourceRow <= corners[2] && sourceCol >= corners[1] && sourceCol <= corners[3]) {
             // selected cell
             if (this.settings.className) {
-              this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.className);
+              this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.className, this.settings.markIntersections);
             }
           } else if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
             // selection is in this row
@@ -33253,12 +33982,8 @@ var Selection = function () {
       wotInstance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
 
       if (this.settings.border) {
-        var _border = this.getBorder(wotInstance);
-
-        if (_border) {
-          // warning! border.appear modifies corners!
-          _border.appear(corners);
-        }
+        // warning! border.appear modifies corners!
+        this.getBorder(wotInstance).appear(corners);
       }
     }
   }]);
@@ -33269,7 +33994,7 @@ var Selection = function () {
 exports.default = Selection;
 
 /***/ }),
-/* 256 */
+/* 259 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33455,7 +34180,7 @@ if (true) {
 }
 
 /***/ }),
-/* 257 */
+/* 260 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33537,7 +34262,7 @@ var CheckboxEditor = function (_BaseEditor) {
 exports.default = CheckboxEditor;
 
 /***/ }),
-/* 258 */
+/* 261 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33549,15 +34274,15 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _moment = __webpack_require__(30);
+var _moment = __webpack_require__(31);
 
 var _moment2 = _interopRequireDefault(_moment);
 
-var _pikaday = __webpack_require__(259);
+var _pikaday = __webpack_require__(262);
 
 var _pikaday2 = _interopRequireDefault(_pikaday);
 
-__webpack_require__(260);
+__webpack_require__(263);
 
 var _element = __webpack_require__(1);
 
@@ -33569,7 +34294,7 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _unicode = __webpack_require__(18);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _textEditor = __webpack_require__(62);
 
@@ -33712,7 +34437,7 @@ var DateEditor = function (_TextEditor) {
 
       this._opened = false;
       this.instance._registerTimeout(setTimeout(function () {
-        _this3.instance.selection.refreshBorders();
+        _this3.instance._refreshBorders();
       }, 0));
 
       _get(DateEditor.prototype.__proto__ || Object.getPrototypeOf(DateEditor.prototype), 'close', this).call(this);
@@ -33870,19 +34595,19 @@ var DateEditor = function (_TextEditor) {
 exports.default = DateEditor;
 
 /***/ }),
-/* 259 */
+/* 262 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_259__;
+module.exports = __WEBPACK_EXTERNAL_MODULE_262__;
 
 /***/ }),
-/* 260 */
+/* 263 */
 /***/ (function(module, exports) {
 
 
 
 /***/ }),
-/* 261 */
+/* 264 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33898,7 +34623,7 @@ var _autocompleteEditor = __webpack_require__(200);
 
 var _autocompleteEditor2 = _interopRequireDefault(_autocompleteEditor);
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
@@ -33951,7 +34676,7 @@ _pluginHooks2.default.getSingleton().add('beforeValidate', function (value, row,
 exports.default = DropdownEditor;
 
 /***/ }),
-/* 262 */
+/* 265 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33961,7 +34686,7 @@ exports.__esModule = true;
 
 var _unicode = __webpack_require__(18);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _element = __webpack_require__(1);
 
@@ -34102,7 +34827,8 @@ MobileTextEditor.prototype.close = function () {
 };
 
 MobileTextEditor.prototype.scrollToView = function () {
-  var coords = this.instance.getSelectedRange().highlight;
+  var coords = this.instance.getSelectedRangeLast().highlight;
+
   this.instance.view.scrollViewport(coords);
 };
 
@@ -34120,7 +34846,7 @@ MobileTextEditor.prototype.updateEditorPosition = function (x, y) {
     this.editorContainer.style.top = y + 'px';
     this.editorContainer.style.left = x + 'px';
   } else {
-    var selection = this.instance.getSelected(),
+    var selection = this.instance.getSelectedLast(),
         selectedCell = this.instance.getCell(selection[0], selection[1]);
 
     // cache sizes
@@ -34162,7 +34888,7 @@ MobileTextEditor.prototype.updateEditorPosition = function (x, y) {
 };
 
 MobileTextEditor.prototype.updateEditorData = function () {
-  var selected = this.instance.getSelected(),
+  var selected = this.instance.getSelectedLast(),
       selectedValue = this.instance.getDataAtCell(selected[0], selected[1]);
 
   this.row = selected[0];
@@ -34264,7 +34990,7 @@ MobileTextEditor.prototype.destroy = function () {
 exports.default = MobileTextEditor;
 
 /***/ }),
-/* 263 */
+/* 266 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34304,7 +35030,7 @@ var NumericEditor = function (_TextEditor) {
 exports.default = NumericEditor;
 
 /***/ }),
-/* 264 */
+/* 267 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34368,7 +35094,7 @@ var PasswordEditor = function (_TextEditor) {
 exports.default = PasswordEditor;
 
 /***/ }),
-/* 265 */
+/* 268 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34380,7 +35106,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _element = __webpack_require__(1);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _unicode = __webpack_require__(18);
 
@@ -34567,11 +35293,11 @@ SelectEditor.prototype.refreshDimensions = function () {
     default:
       break;
   }
-  if (this.instance.getSelected()[0] === 0) {
+  if (this.instance.getSelectedLast()[0] === 0) {
     editTop += 1;
   }
 
-  if (this.instance.getSelected()[1] === 0) {
+  if (this.instance.getSelectedLast()[1] === 0) {
     editLeft += 1;
   }
 
@@ -34636,7 +35362,7 @@ SelectEditor.prototype.getEditedCell = function () {
 exports.default = SelectEditor;
 
 /***/ }),
-/* 266 */
+/* 269 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34678,7 +35404,7 @@ function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = cellDecorator;
 
 /***/ }),
-/* 267 */
+/* 270 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34692,9 +35418,9 @@ var _eventManager = __webpack_require__(8);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
-var _index = __webpack_require__(13);
+var _index = __webpack_require__(15);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -34768,7 +35494,7 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
 exports.default = autocompleteRenderer;
 
 /***/ }),
-/* 268 */
+/* 271 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34778,7 +35504,7 @@ exports.__esModule = true;
 
 var _element = __webpack_require__(1);
 
-var _string = __webpack_require__(29);
+var _string = __webpack_require__(30);
 
 var _eventManager = __webpack_require__(8);
 
@@ -34788,9 +35514,9 @@ var _unicode = __webpack_require__(18);
 
 var _function = __webpack_require__(34);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
-var _index = __webpack_require__(13);
+var _index = __webpack_require__(15);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -34906,7 +35632,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   function changeSelectedCheckboxesState() {
     var uncheckCheckbox = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
-    var selRange = instance.getSelectedRange();
+    var selRange = instance.getSelectedRangeLast();
 
     if (!selRange) {
       return;
@@ -34968,7 +35694,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    * @param {Function} callback
    */
   function eachSelectedCheckboxCell(callback) {
-    var selRange = instance.getSelectedRange();
+    var selRange = instance.getSelectedRangeLast();
 
     if (!selRange) {
       return;
@@ -35137,7 +35863,7 @@ function isCheckboxInput(element) {
 exports.default = checkboxRenderer;
 
 /***/ }),
-/* 269 */
+/* 272 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35147,7 +35873,7 @@ exports.__esModule = true;
 
 var _element = __webpack_require__(1);
 
-var _index = __webpack_require__(13);
+var _index = __webpack_require__(15);
 
 /**
  * @private
@@ -35173,7 +35899,7 @@ function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = htmlRenderer;
 
 /***/ }),
-/* 270 */
+/* 273 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35181,11 +35907,11 @@ exports.default = htmlRenderer;
 
 exports.__esModule = true;
 
-var _numbro = __webpack_require__(271);
+var _numbro = __webpack_require__(274);
 
 var _numbro2 = _interopRequireDefault(_numbro);
 
-var _index = __webpack_require__(13);
+var _index = __webpack_require__(15);
 
 var _number = __webpack_require__(4);
 
@@ -35236,13 +35962,13 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = numericRenderer;
 
 /***/ }),
-/* 271 */
+/* 274 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_271__;
+module.exports = __WEBPACK_EXTERNAL_MODULE_274__;
 
 /***/ }),
-/* 272 */
+/* 275 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35252,7 +35978,7 @@ exports.__esModule = true;
 
 var _element = __webpack_require__(1);
 
-var _index = __webpack_require__(13);
+var _index = __webpack_require__(15);
 
 var _number = __webpack_require__(4);
 
@@ -35286,7 +36012,7 @@ function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = passwordRenderer;
 
 /***/ }),
-/* 273 */
+/* 276 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35296,9 +36022,9 @@ exports.__esModule = true;
 
 var _element = __webpack_require__(1);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
-var _index = __webpack_require__(13);
+var _index = __webpack_require__(15);
 
 /**
  * Default text renderer
@@ -35343,7 +36069,7 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = textRenderer;
 
 /***/ }),
-/* 274 */
+/* 277 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35405,7 +36131,7 @@ function process(value, callback) {
 }
 
 /***/ }),
-/* 275 */
+/* 278 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35415,7 +36141,7 @@ exports.__esModule = true;
 exports.default = dateValidator;
 exports.correctFormat = correctFormat;
 
-var _moment = __webpack_require__(30);
+var _moment = __webpack_require__(31);
 
 var _moment2 = _interopRequireDefault(_moment);
 
@@ -35496,7 +36222,7 @@ function correctFormat(value, dateFormat) {
 };
 
 /***/ }),
-/* 276 */
+/* 279 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35526,7 +36252,7 @@ function numericValidator(value, callback) {
 };
 
 /***/ }),
-/* 277 */
+/* 280 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35535,7 +36261,7 @@ function numericValidator(value, callback) {
 exports.__esModule = true;
 exports.default = timeValidator;
 
-var _moment = __webpack_require__(30);
+var _moment = __webpack_require__(31);
 
 var _moment2 = _interopRequireDefault(_moment);
 
@@ -35605,73 +36331,6 @@ function timeValidator(value, callback) {
 };
 
 /***/ }),
-/* 278 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _editors = __webpack_require__(19);
-
-var _renderers = __webpack_require__(13);
-
-var _validators = __webpack_require__(35);
-
-var CELL_TYPE = 'autocomplete';
-
-exports.default = {
-  editor: (0, _editors.getEditor)(CELL_TYPE),
-  renderer: (0, _renderers.getRenderer)(CELL_TYPE),
-  validator: (0, _validators.getValidator)(CELL_TYPE)
-};
-
-/***/ }),
-/* 279 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _editors = __webpack_require__(19);
-
-var _renderers = __webpack_require__(13);
-
-var CELL_TYPE = 'checkbox';
-
-exports.default = {
-  editor: (0, _editors.getEditor)(CELL_TYPE),
-  renderer: (0, _renderers.getRenderer)(CELL_TYPE)
-};
-
-/***/ }),
-/* 280 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _editors = __webpack_require__(19);
-
-var _renderers = __webpack_require__(13);
-
-var _validators = __webpack_require__(35);
-
-var CELL_TYPE = 'date';
-
-exports.default = {
-  editor: (0, _editors.getEditor)(CELL_TYPE),
-  // displays small gray arrow on right side of the cell
-  renderer: (0, _renderers.getRenderer)('autocomplete'),
-  validator: (0, _validators.getValidator)(CELL_TYPE)
-};
-
-/***/ }),
 /* 281 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -35682,17 +36341,16 @@ exports.__esModule = true;
 
 var _editors = __webpack_require__(19);
 
-var _renderers = __webpack_require__(13);
+var _renderers = __webpack_require__(15);
 
 var _validators = __webpack_require__(35);
 
-var CELL_TYPE = 'dropdown';
+var CELL_TYPE = 'autocomplete';
 
 exports.default = {
   editor: (0, _editors.getEditor)(CELL_TYPE),
-  // displays small gray arrow on right side of the cell
-  renderer: (0, _renderers.getRenderer)('autocomplete'),
-  validator: (0, _validators.getValidator)('autocomplete')
+  renderer: (0, _renderers.getRenderer)(CELL_TYPE),
+  validator: (0, _validators.getValidator)(CELL_TYPE)
 };
 
 /***/ }),
@@ -35706,14 +36364,13 @@ exports.__esModule = true;
 
 var _editors = __webpack_require__(19);
 
-var _renderers = __webpack_require__(13);
+var _renderers = __webpack_require__(15);
 
-var CELL_TYPE = 'handsontable';
+var CELL_TYPE = 'checkbox';
 
 exports.default = {
   editor: (0, _editors.getEditor)(CELL_TYPE),
-  // displays small gray arrow on right side of the cell
-  renderer: (0, _renderers.getRenderer)('autocomplete')
+  renderer: (0, _renderers.getRenderer)(CELL_TYPE)
 };
 
 /***/ }),
@@ -35727,17 +36384,17 @@ exports.__esModule = true;
 
 var _editors = __webpack_require__(19);
 
-var _renderers = __webpack_require__(13);
+var _renderers = __webpack_require__(15);
 
 var _validators = __webpack_require__(35);
 
-var CELL_TYPE = 'numeric';
+var CELL_TYPE = 'date';
 
 exports.default = {
   editor: (0, _editors.getEditor)(CELL_TYPE),
-  renderer: (0, _renderers.getRenderer)(CELL_TYPE),
-  validator: (0, _validators.getValidator)(CELL_TYPE),
-  dataType: 'number'
+  // displays small gray arrow on right side of the cell
+  renderer: (0, _renderers.getRenderer)('autocomplete'),
+  validator: (0, _validators.getValidator)(CELL_TYPE)
 };
 
 /***/ }),
@@ -35751,16 +36408,17 @@ exports.__esModule = true;
 
 var _editors = __webpack_require__(19);
 
-var _renderers = __webpack_require__(13);
+var _renderers = __webpack_require__(15);
 
 var _validators = __webpack_require__(35);
 
-var CELL_TYPE = 'password';
+var CELL_TYPE = 'dropdown';
 
 exports.default = {
   editor: (0, _editors.getEditor)(CELL_TYPE),
-  renderer: (0, _renderers.getRenderer)(CELL_TYPE),
-  copyable: false
+  // displays small gray arrow on right side of the cell
+  renderer: (0, _renderers.getRenderer)('autocomplete'),
+  validator: (0, _validators.getValidator)('autocomplete')
 };
 
 /***/ }),
@@ -35772,17 +36430,16 @@ exports.default = {
 
 exports.__esModule = true;
 
-var _browser = __webpack_require__(33);
-
 var _editors = __webpack_require__(19);
 
-var _renderers = __webpack_require__(13);
+var _renderers = __webpack_require__(15);
 
-var CELL_TYPE = 'text';
+var CELL_TYPE = 'handsontable';
 
 exports.default = {
-  editor: (0, _browser.isMobileBrowser)() ? (0, _editors.getEditor)('mobile') : (0, _editors.getEditor)(CELL_TYPE),
-  renderer: (0, _renderers.getRenderer)(CELL_TYPE)
+  editor: (0, _editors.getEditor)(CELL_TYPE),
+  // displays small gray arrow on right side of the cell
+  renderer: (0, _renderers.getRenderer)('autocomplete')
 };
 
 /***/ }),
@@ -35796,7 +36453,76 @@ exports.__esModule = true;
 
 var _editors = __webpack_require__(19);
 
-var _renderers = __webpack_require__(13);
+var _renderers = __webpack_require__(15);
+
+var _validators = __webpack_require__(35);
+
+var CELL_TYPE = 'numeric';
+
+exports.default = {
+  editor: (0, _editors.getEditor)(CELL_TYPE),
+  renderer: (0, _renderers.getRenderer)(CELL_TYPE),
+  validator: (0, _validators.getValidator)(CELL_TYPE),
+  dataType: 'number'
+};
+
+/***/ }),
+/* 287 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _editors = __webpack_require__(19);
+
+var _renderers = __webpack_require__(15);
+
+var _validators = __webpack_require__(35);
+
+var CELL_TYPE = 'password';
+
+exports.default = {
+  editor: (0, _editors.getEditor)(CELL_TYPE),
+  renderer: (0, _renderers.getRenderer)(CELL_TYPE),
+  copyable: false
+};
+
+/***/ }),
+/* 288 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _browser = __webpack_require__(33);
+
+var _editors = __webpack_require__(19);
+
+var _renderers = __webpack_require__(15);
+
+var CELL_TYPE = 'text';
+
+exports.default = {
+  editor: (0, _browser.isMobileBrowser)() ? (0, _editors.getEditor)('mobile') : (0, _editors.getEditor)(CELL_TYPE),
+  renderer: (0, _renderers.getRenderer)(CELL_TYPE)
+};
+
+/***/ }),
+/* 289 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _editors = __webpack_require__(19);
+
+var _renderers = __webpack_require__(15);
 
 var _validators = __webpack_require__(35);
 
@@ -35810,7 +36536,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 287 */
+/* 290 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35832,17 +36558,17 @@ var _object = __webpack_require__(2);
 
 var _array = __webpack_require__(0);
 
-var _interval = __webpack_require__(288);
+var _interval = __webpack_require__(291);
 
 var _interval2 = _interopRequireDefault(_interval);
 
 var _number = __webpack_require__(4);
 
-var _multiMap = __webpack_require__(289);
+var _multiMap = __webpack_require__(292);
 
 var _multiMap2 = _interopRequireDefault(_multiMap);
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
@@ -36025,56 +36751,64 @@ DataMap.prototype.getSchema = function () {
  * Creates row at the bottom of the data array.
  *
  * @param {Number} [index] Physical index of the row before which the new row will be inserted.
- * @param {Number} [amount] An amount of rows to add.
+ * @param {Number} [amount=1] An amount of rows to add.
  * @param {String} [source] Source of method call.
  * @fires Hooks#afterCreateRow
  * @returns {Number} Returns number of created rows.
  */
-DataMap.prototype.createRow = function (index, amount, source) {
-  var row,
-      colCount = this.instance.countCols(),
-      numberOfCreatedRows = 0,
-      currentIndex;
+DataMap.prototype.createRow = function (index) {
+  var _this2 = this;
 
-  if (!amount) {
-    amount = 1;
-  }
+  var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  var source = arguments[2];
+
+  var numberOfCreatedRows = 0;
 
   if (typeof index !== 'number' || index >= this.instance.countSourceRows()) {
     index = this.instance.countSourceRows();
   }
-  this.instance.runHooks('beforeCreateRow', index, amount, source);
 
-  currentIndex = index;
+  var continueProcess = this.instance.runHooks('beforeCreateRow', index, amount, source);
+
+  if (continueProcess === false) {
+    return 0;
+  }
+
   var maxRows = this.instance.getSettings().maxRows;
+  var columnCount = this.instance.countCols();
 
-  while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
-    if (this.instance.dataType === 'array') {
-      if (this.instance.getSettings().dataSchema) {
+  var _loop = function _loop() {
+    var row = null;
+
+    if (_this2.instance.dataType === 'array') {
+      if (_this2.instance.getSettings().dataSchema) {
         // Clone template array
-        row = (0, _object.deepClone)(this.getSchema());
+        row = (0, _object.deepClone)(_this2.getSchema());
       } else {
         row = [];
         /* eslint-disable no-loop-func */
-        (0, _number.rangeEach)(colCount - 1, function () {
+        (0, _number.rangeEach)(columnCount - 1, function () {
           return row.push(null);
         });
       }
-    } else if (this.instance.dataType === 'function') {
-      row = this.instance.getSettings().dataSchema(index);
+    } else if (_this2.instance.dataType === 'function') {
+      row = _this2.instance.getSettings().dataSchema(index);
     } else {
       row = {};
-      (0, _object.deepExtend)(row, this.getSchema());
+      (0, _object.deepExtend)(row, _this2.getSchema());
     }
 
-    if (index === this.instance.countSourceRows()) {
-      this.dataSource.push(row);
+    if (index === _this2.instance.countSourceRows()) {
+      _this2.dataSource.push(row);
     } else {
-      this.spliceData(index, 0, row);
+      _this2.spliceData(index, 0, row);
     }
 
     numberOfCreatedRows++;
-    currentIndex++;
+  };
+
+  while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
+    _loop();
   }
 
   this.instance.runHooks('afterCreateRow', index, numberOfCreatedRows, source);
@@ -36552,7 +37286,7 @@ DataMap.prototype.clearLengthCache = function () {
  * @returns {Number}
  */
 DataMap.prototype.getLength = function () {
-  var _this2 = this;
+  var _this3 = this;
 
   var maxRows = void 0,
       maxRowsFromSettings = this.instance.getSettings().maxRows;
@@ -36576,7 +37310,7 @@ DataMap.prototype.getLength = function () {
     this.latestSourceRowsCount = length;
     if (this.cachedLength === null || reValidate) {
       (0, _number.rangeEach)(length - 1, function (row) {
-        row = _this2.instance.runHooks('modifyRow', row);
+        row = _this3.instance.runHooks('modifyRow', row);
 
         if (row === null) {
           --length;
@@ -36691,11 +37425,11 @@ DataMap.prototype.getCopyableText = function (start, end) {
  * @param {Number} delay Time of the delay in milliseconds.
  */
 DataMap.prototype.onSkipLengthCache = function (delay) {
-  var _this3 = this;
+  var _this4 = this;
 
   this.skipCache = true;
   setTimeout(function () {
-    _this3.skipCache = false;
+    _this4.skipCache = false;
   }, delay);
 };
 
@@ -36717,7 +37451,7 @@ DataMap.prototype.destroy = function () {
 exports.default = DataMap;
 
 /***/ }),
-/* 288 */
+/* 291 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36866,7 +37600,7 @@ function parseDelay(delay) {
 }
 
 /***/ }),
-/* 289 */
+/* 292 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36925,7 +37659,7 @@ function MultiMap() {
 exports.default = MultiMap;
 
 /***/ }),
-/* 290 */
+/* 293 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36933,11 +37667,11 @@ exports.default = MultiMap;
 
 exports.__esModule = true;
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
 var _unicode = __webpack_require__(18);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _editors = __webpack_require__(19);
 
@@ -37036,7 +37770,7 @@ function EditorManager(instance, priv, selection) {
     ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (activeEditor && !activeEditor.isWaiting()) {
-      if (!(0, _unicode.isMetaKey)(event.keyCode) && !(0, _unicode.isCtrlKey)(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
+      if (!(0, _unicode.isMetaKey)(event.keyCode) && !(0, _unicode.isCtrlMetaKey)(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
         _this.openEditor('', event);
 
         return;
@@ -37114,7 +37848,7 @@ function EditorManager(instance, priv, selection) {
 
       case _unicode.KEY_CODES.BACKSPACE:
       case _unicode.KEY_CODES.DELETE:
-        selection.empty(event);
+        instance.emptySelectedCells();
         _this.prepareEditor();
         event.preventDefault();
         break;
@@ -37160,9 +37894,9 @@ function EditorManager(instance, priv, selection) {
       case _unicode.KEY_CODES.HOME:
         selection.setSelectedHeaders(false, false, false);
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier(new _src.CellCoords(0, priv.selRange.from.col));
+          rangeModifier.call(selection, new _src.CellCoords(0, selection.selectedRange.current().from.col));
         } else {
-          rangeModifier(new _src.CellCoords(priv.selRange.from.row, 0));
+          rangeModifier.call(selection, new _src.CellCoords(selection.selectedRange.current().from.row, 0));
         }
         event.preventDefault(); // don't scroll the window
         (0, _event.stopPropagation)(event);
@@ -37171,9 +37905,9 @@ function EditorManager(instance, priv, selection) {
       case _unicode.KEY_CODES.END:
         selection.setSelectedHeaders(false, false, false);
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier(new _src.CellCoords(instance.countRows() - 1, priv.selRange.from.col));
+          rangeModifier.call(selection, new _src.CellCoords(instance.countRows() - 1, selection.selectedRange.current().from.col));
         } else {
-          rangeModifier(new _src.CellCoords(priv.selRange.from.row, instance.countCols() - 1));
+          rangeModifier.call(selection, new _src.CellCoords(selection.selectedRange.current().from.row, instance.countCols() - 1));
         }
         event.preventDefault(); // don't scroll the window
         (0, _event.stopPropagation)(event);
@@ -37263,8 +37997,8 @@ function EditorManager(instance, priv, selection) {
 
       return;
     }
-    row = priv.selRange.highlight.row;
-    col = priv.selRange.highlight.col;
+    row = instance.selection.selectedRange.current().highlight.row;
+    col = instance.selection.selectedRange.current().highlight.col;
     prop = instance.colToProp(col);
     td = instance.getCell(row, col);
 
@@ -37356,7 +38090,7 @@ function EditorManager(instance, priv, selection) {
 exports.default = EditorManager;
 
 /***/ }),
-/* 291 */
+/* 294 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -37374,9 +38108,9 @@ var _eventManager = __webpack_require__(8);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
 var _src2 = _interopRequireDefault(_src);
 
@@ -37532,50 +38266,6 @@ function TableView(instance) {
     }
   };
 
-  var selections = [new _src.Selection({
-    className: 'current',
-    border: {
-      width: 2,
-      color: '#5292F7',
-      // style: 'solid', // not used
-      cornerVisible: function cornerVisible() {
-        return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
-      },
-      multipleSelectionHandlesVisible: function multipleSelectionHandlesVisible() {
-        return !that.isCellEdited() && !instance.selection.isMultiple();
-      }
-    }
-  }), new _src.Selection({
-    className: 'area',
-    border: {
-      width: 1,
-      color: '#89AFF9',
-      // style: 'solid', // not used
-      cornerVisible: function cornerVisible() {
-        return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
-      },
-      multipleSelectionHandlesVisible: function multipleSelectionHandlesVisible() {
-        return !that.isCellEdited() && instance.selection.isMultiple();
-      }
-    }
-  }), new _src.Selection({
-    className: 'highlight',
-    highlightHeaderClassName: that.settings.currentHeaderClassName,
-    highlightRowClassName: that.settings.currentRowClassName,
-    highlightColumnClassName: that.settings.currentColClassName
-  }), new _src.Selection({
-    className: 'fill',
-    border: {
-      width: 1,
-      color: 'red'
-      // style: 'solid' // not used
-    }
-  })];
-  selections.current = selections[0];
-  selections.area = selections[1];
-  selections.highlight = selections[2];
-  selections.fill = selections[3];
-
   var walkontableConfig = {
     debug: function debug() {
       return that.settings.debug;
@@ -37647,7 +38337,7 @@ function TableView(instance) {
       that.instance.getCellRenderer(cellProperties)(that.instance, TD, row, col, prop, value, cellProperties);
       that.instance.runHooks('afterRenderer', TD, row, col, prop, value, cellProperties);
     },
-    selections: selections,
+    selections: that.instance.selection.highlight,
     hideBorderOnMouseDownOver: function hideBorderOnMouseDownOver() {
       return that.settings.fragmentSelection;
     },
@@ -37669,7 +38359,7 @@ function TableView(instance) {
         return;
       }
 
-      var actualSelection = instance.getSelectedRange();
+      var actualSelection = instance.getSelectedRangeLast();
       var selection = instance.selection;
       var selectedHeader = selection.selectedHeader;
 
@@ -37779,7 +38469,7 @@ function TableView(instance) {
         return;
       }
 
-      if (event.button === 0 && isMouseDown) {
+      if ((0, _event.isLeftClick)(event) && isMouseDown) {
         if (coords.row >= 0 && coords.col >= 0) {
           // is not a header
           if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
@@ -37976,7 +38666,7 @@ TableView.prototype.isTextSelectionAllowed = function (el) {
  * @returns {Boolean}
  */
 TableView.prototype.isSelectedOnlyCell = function () {
-  var _ref = this.instance.getSelected() || [],
+  var _ref = this.instance.getSelectedLast() || [],
       _ref2 = _slicedToArray(_ref, 4),
       row = _ref2[0],
       col = _ref2[1],
@@ -38167,7 +38857,7 @@ TableView.prototype.destroy = function () {
 exports.default = TableView;
 
 /***/ }),
-/* 292 */
+/* 295 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38428,7 +39118,7 @@ var DataSource = function () {
 exports.default = DataSource;
 
 /***/ }),
-/* 293 */
+/* 296 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38460,7 +39150,7 @@ var dictionary = (_dictionary = {
 exports.default = dictionary;
 
 /***/ }),
-/* 294 */
+/* 297 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38471,11 +39161,11 @@ exports.getPhraseFormatters = exports.registerPhraseFormatter = undefined;
 exports.register = register;
 exports.getAll = getAll;
 
-var _staticRegister2 = __webpack_require__(51);
+var _staticRegister2 = __webpack_require__(47);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _pluralize = __webpack_require__(295);
+var _pluralize = __webpack_require__(298);
 
 var _pluralize2 = _interopRequireDefault(_pluralize);
 
@@ -38513,7 +39203,7 @@ exports.getPhraseFormatters = getAll;
 register('pluralize', _pluralize2.default);
 
 /***/ }),
-/* 295 */
+/* 298 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38540,7 +39230,1058 @@ function pluralize(phrasePropositions, pluralForm) {
 };
 
 /***/ }),
-/* 296 */
+/* 299 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.Selection = exports.Highlight = undefined;
+
+var _highlight = __webpack_require__(209);
+
+var _highlight2 = _interopRequireDefault(_highlight);
+
+var _selection = __webpack_require__(305);
+
+var _selection2 = _interopRequireDefault(_selection);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.Highlight = _highlight2.default;
+exports.Selection = _selection2.default;
+
+/***/ }),
+/* 300 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.createHighlight = undefined;
+
+var _staticRegister2 = __webpack_require__(47);
+
+var _staticRegister3 = _interopRequireDefault(_staticRegister2);
+
+var _area = __webpack_require__(301);
+
+var _area2 = _interopRequireDefault(_area);
+
+var _cell = __webpack_require__(302);
+
+var _cell2 = _interopRequireDefault(_cell);
+
+var _fill = __webpack_require__(303);
+
+var _fill2 = _interopRequireDefault(_fill);
+
+var _header = __webpack_require__(304);
+
+var _header2 = _interopRequireDefault(_header);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var _staticRegister = (0, _staticRegister3.default)('highlight/types'),
+    register = _staticRegister.register,
+    getItem = _staticRegister.getItem,
+    hasItem = _staticRegister.hasItem,
+    getNames = _staticRegister.getNames,
+    getValues = _staticRegister.getValues; /* eslint-disable import/prefer-default-export */
+
+
+register('area', _area2.default);
+register('cell', _cell2.default);
+register('fill', _fill2.default);
+register('header', _header2.default);
+
+function createHighlight(highlightType, options) {
+  return getItem(highlightType)(options);
+}
+
+exports.createHighlight = createHighlight;
+
+/***/ }),
+/* 301 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _src = __webpack_require__(10);
+
+/**
+ * Creates the new instance of Selection responsible for highlighting area of the selected multiple cells.
+ *
+ * @return {Selection}
+ */
+function createHighlight(_ref) {
+  var layerLevel = _ref.layerLevel,
+      cornerVisible = _ref.cornerVisible,
+      multipleSelectionHandlesVisible = _ref.multipleSelectionHandlesVisible,
+      areaCornerVisible = _ref.areaCornerVisible;
+
+  var s = new _src.Selection({
+    className: 'area',
+    markIntersections: true,
+    layerLevel: Math.min(layerLevel, 7),
+    border: {
+      width: 1,
+      color: '#4b89ff',
+      cornerVisible: areaCornerVisible,
+      multipleSelectionHandlesVisible: multipleSelectionHandlesVisible
+    }
+  });
+
+  return s;
+}
+
+exports.default = createHighlight;
+
+/***/ }),
+/* 302 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _src = __webpack_require__(10);
+
+/**
+ * Creates the new instance of Selection responsible for highlighting currently selected cell. This type of selection
+ * can present on the table only one at the time.
+ *
+ * @return {Selection}
+ */
+function createHighlight(_ref) {
+  var cornerVisible = _ref.cornerVisible,
+      multipleSelectionHandlesVisible = _ref.multipleSelectionHandlesVisible,
+      cellCornerVisible = _ref.cellCornerVisible;
+
+  var s = new _src.Selection({
+    className: 'current',
+    border: {
+      width: 2,
+      color: '#4b89ff',
+      cornerVisible: cellCornerVisible,
+      multipleSelectionHandlesVisible: multipleSelectionHandlesVisible
+    }
+  });
+
+  return s;
+}
+
+exports.default = createHighlight;
+
+/***/ }),
+/* 303 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _src = __webpack_require__(10);
+
+/**
+ * Creates the new instance of Selection, responsible for highlighting cells which are covered by fill handle
+ * functionality. This type of selection can present on the table only one at the time.
+ *
+ * @return {Selection}
+ */
+function createHighlight() {
+  var s = new _src.Selection({
+    className: 'fill',
+    border: {
+      width: 1,
+      color: '#ff0000'
+    }
+  });
+
+  return s;
+}
+
+exports.default = createHighlight;
+
+/***/ }),
+/* 304 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _src = __webpack_require__(10);
+
+/**
+ * Creates the new instance of Selection, responsible for highlighting row and column headers. This type of selection
+ * can occur multiple times.
+ *
+ * @return {Selection}
+ */
+function createHighlight(_ref) {
+  var headerClassName = _ref.headerClassName,
+      rowClassName = _ref.rowClassName,
+      columnClassName = _ref.columnClassName;
+
+  var s = new _src.Selection({
+    className: 'highlight',
+    highlightHeaderClassName: headerClassName,
+    highlightRowClassName: rowClassName,
+    highlightColumnClassName: columnClassName
+  });
+
+  return s;
+}
+
+exports.default = createHighlight;
+
+/***/ }),
+/* 305 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _highlight = __webpack_require__(209);
+
+var _highlight2 = _interopRequireDefault(_highlight);
+
+var _range = __webpack_require__(306);
+
+var _range2 = _interopRequireDefault(_range);
+
+var _src = __webpack_require__(10);
+
+var _keyStateObserver = __webpack_require__(208);
+
+var _object = __webpack_require__(2);
+
+var _mixed = __webpack_require__(14);
+
+var _element = __webpack_require__(1);
+
+var _array = __webpack_require__(0);
+
+var _localHooks = __webpack_require__(21);
+
+var _localHooks2 = _interopRequireDefault(_localHooks);
+
+var _transformation = __webpack_require__(307);
+
+var _transformation2 = _interopRequireDefault(_transformation);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * @class Selection
+ * @util
+ */
+var Selection = function () {
+  function Selection(settings, tableProps) {
+    var _this = this;
+
+    _classCallCheck(this, Selection);
+
+    /**
+     * Handsontable settings instance.
+     *
+     * @type {GridSettings}
+     */
+    this.settings = settings;
+    /**
+     * An additional object with dynamically defined properties which describes table state.
+     *
+     * @type {Object}
+     */
+    this.tableProps = tableProps;
+    /**
+     * The flag which determines if the selection is in progress.
+     *
+     * @type {Boolean}
+     */
+    this.inProgress = false;
+    /**
+     * An object with flags which indicates what header is currently selected.
+     *
+     * @type {Object}
+     */
+    this.selectedHeader = {
+      cols: false,
+      rows: false,
+      corner: false
+    };
+    /**
+     * Selection data layer.
+     *
+     * @type {SelectionRange}
+     */
+    this.selectedRange = new _range2.default();
+    /**
+     * Visualization layer.
+     *
+     * @type {Highlight}
+     */
+    this.highlight = new _highlight2.default({
+      headerClassName: settings.currentHeaderClassName,
+      rowClassName: settings.currentRowClassName,
+      columnClassName: settings.currentColClassName,
+      disableHighlight: this.settings.disableVisualSelection,
+      cellCornerVisible: function cellCornerVisible() {
+        return _this.settings.fillHandle && !_this.tableProps.isEditorOpened() && !_this.isMultiple();
+      },
+      areaCornerVisible: function areaCornerVisible() {
+        return _this.settings.fillHandle && !_this.tableProps.isEditorOpened() && _this.isMultiple();
+      }
+    });
+    /**
+     * The module for modifying coordinates.
+     *
+     * @type {Transformation}
+     */
+    this.transformation = new _transformation2.default(this.selectedRange, {
+      countRows: function countRows() {
+        return _this.tableProps.countRows();
+      },
+      countCols: function countCols() {
+        return _this.tableProps.countCols();
+      },
+      fixedRowsBottom: function fixedRowsBottom() {
+        return settings.fixedRowsBottom;
+      },
+      minSpareRows: function minSpareRows() {
+        return settings.minSpareRows;
+      },
+      minSpareCols: function minSpareCols() {
+        return settings.minSpareCols;
+      },
+      autoWrapRow: function autoWrapRow() {
+        return settings.autoWrapRow;
+      },
+      autoWrapCol: function autoWrapCol() {
+        return settings.autoWrapCol;
+      }
+    });
+
+    this.transformation.addLocalHook('beforeTransformStart', function () {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      return _this.runLocalHooks.apply(_this, ['beforeModifyTransformStart'].concat(args));
+    });
+    this.transformation.addLocalHook('afterTransformStart', function () {
+      for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+
+      return _this.runLocalHooks.apply(_this, ['afterModifyTransformStart'].concat(args));
+    });
+    this.transformation.addLocalHook('beforeTransformEnd', function () {
+      for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
+      }
+
+      return _this.runLocalHooks.apply(_this, ['beforeModifyTransformEnd'].concat(args));
+    });
+    this.transformation.addLocalHook('afterTransformEnd', function () {
+      for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+        args[_key4] = arguments[_key4];
+      }
+
+      return _this.runLocalHooks.apply(_this, ['afterModifyTransformEnd'].concat(args));
+    });
+    this.transformation.addLocalHook('insertRowRequire', function () {
+      for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+        args[_key5] = arguments[_key5];
+      }
+
+      return _this.runLocalHooks.apply(_this, ['insertRowRequire'].concat(args));
+    });
+    this.transformation.addLocalHook('insertColRequire', function () {
+      for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+        args[_key6] = arguments[_key6];
+      }
+
+      return _this.runLocalHooks.apply(_this, ['insertColRequire'].concat(args));
+    });
+  }
+
+  /**
+   * Get data layer for current selection.
+   *
+   * @return {SelectionRange}
+   */
+
+
+  _createClass(Selection, [{
+    key: 'getSelectedRange',
+    value: function getSelectedRange() {
+      return this.selectedRange;
+    }
+
+    /**
+     * Set indication of what table header is currently selected.
+     *
+     * @param {Boolean} [rows=false] Indication for row header.
+     * @param {Boolean} [cols=false] Indication for column header.
+     * @param {Boolean} [corner=false] Indication for corner.
+     */
+
+  }, {
+    key: 'setSelectedHeaders',
+    value: function setSelectedHeaders() {
+      var rows = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      var cols = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      var corner = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+      this.selectedHeader.rows = rows;
+      this.selectedHeader.cols = cols;
+      this.selectedHeader.corner = corner;
+    }
+
+    /**
+     * Indicate that selection process began. It sets internaly `.inProgress` property to `true`.
+     */
+
+  }, {
+    key: 'begin',
+    value: function begin() {
+      this.inProgress = true;
+    }
+
+    /**
+     * Indicate that selection process finished. It sets internaly `.inProgress` property to `false`.
+     */
+
+  }, {
+    key: 'finish',
+    value: function finish() {
+      this.runLocalHooks('afterSelectionFinished', Array.from(this.selectedRange));
+      this.inProgress = false;
+    }
+
+    /**
+     * Check if the process of selecting the cell/cells is in progress.
+     *
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: 'isInProgress',
+    value: function isInProgress() {
+      return this.inProgress;
+    }
+
+    /**
+     * Starts selection range on given coordinate object.
+     *
+     * @param {CellCoords} coords Visual coords.
+     * @param {Boolean} [keepEditorOpened=false] If `true`, cell editor will be still opened after changing selection range.
+     * @param {Boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
+     *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
+     *                                      the default trigger will be used (isPressedCtrlKey() helper).
+     */
+
+  }, {
+    key: 'setRangeStart',
+    value: function setRangeStart(coords) {
+      var keepEditorOpened = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      var multipleSelection = arguments[2];
+
+      var isMultipleMode = this.settings.selectionMode === 'multiple';
+      var isMultipleSelection = (0, _mixed.isUndefined)(multipleSelection) ? (0, _keyStateObserver.isPressedCtrlKey)() : multipleSelection;
+
+      this.runLocalHooks('beforeSetRangeStart', coords);
+
+      if (!isMultipleMode || isMultipleMode && !isMultipleSelection) {
+        this.selectedRange.clear();
+      }
+
+      this.selectedRange.add(coords);
+      this.setRangeEnd(coords, null, keepEditorOpened);
+    }
+
+    /**
+     * Starts selection range on given coordinate object.
+     *
+     * @param {CellCoords} coords Visual coords.
+     * @param {Boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
+     *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
+     *                                      the default trigger will be used (isPressedCtrlKey() helper).
+     */
+
+  }, {
+    key: 'setRangeStartOnly',
+    value: function setRangeStartOnly(coords, multipleSelection) {
+      var isMultipleMode = this.settings.selectionMode === 'multiple';
+      var isMultipleSelection = (0, _mixed.isUndefined)(multipleSelection) ? (0, _keyStateObserver.isPressedCtrlKey)() : multipleSelection;
+
+      this.runLocalHooks('beforeSetRangeStartOnly', coords);
+
+      if (!isMultipleMode || isMultipleMode && !isMultipleSelection) {
+        this.selectedRange.clear();
+      }
+
+      this.selectedRange.add(coords);
+    }
+
+    /**
+     * Ends selection range on given coordinate object.
+     *
+     * @param {CellCoords} coords Visual coords.
+     * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the range end.
+     * @param {Boolean} [keepEditorOpened=false] If `true`, cell editor will be still opened after changing selection range.
+     */
+
+  }, {
+    key: 'setRangeEnd',
+    value: function setRangeEnd(coords) {
+      var scrollToCell = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+      var keepEditorOpened = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+      if (this.selectedRange.isEmpty()) {
+        return;
+      }
+
+      this.runLocalHooks('beforeSetRangeEnd', coords);
+      this.begin();
+
+      var cellRange = this.selectedRange.current();
+
+      if (this.settings.selectionMode !== 'single') {
+        cellRange.setTo(new _src.CellCoords(coords.row, coords.col));
+      }
+
+      // set up current selection
+      this.highlight.getCell().clear();
+
+      if (this.highlight.isEnabledFor(_highlight.CELL_TYPE)) {
+        this.highlight.getCell().add(this.selectedRange.current().highlight);
+      }
+
+      var highlightLayerLevel = this.selectedRange.size() - 1;
+
+      // If the next layer level is lower than previous then clear all area and header highlights. This is the
+      // indication that the new selection is performing.
+      if (highlightLayerLevel < this.highlight.layerLevel) {
+        (0, _array.arrayEach)(this.highlight.getAreas(), function (area) {
+          area.clear();
+        });
+        (0, _array.arrayEach)(this.highlight.getHeaders(), function (header) {
+          header.clear();
+        });
+      }
+
+      this.highlight.useLayerLevel(highlightLayerLevel);
+
+      var areaHighlight = this.highlight.createOrGetArea();
+      var headerHighlight = this.highlight.createOrGetHeader();
+
+      areaHighlight.clear();
+      headerHighlight.clear();
+
+      if (this.highlight.isEnabledFor(_highlight.AREA_TYPE)) {
+        if (this.isMultiple() || highlightLayerLevel >= 1) {
+          areaHighlight.add(cellRange.from).add(cellRange.to);
+
+          if (highlightLayerLevel === 1) {
+            // For single cell selection in the same layer, we do not create area selection to prevent blue background.
+            // When non-consecutive selection is performed we have to add that missing area selection to the previous layer
+            // based on previous coordinates. It only occurs when the previous selection wasn't select multiple cells.
+            this.highlight.useLayerLevel(highlightLayerLevel - 1).createOrGetArea().add(this.selectedRange.previous().from);
+
+            this.highlight.useLayerLevel(highlightLayerLevel);
+          }
+        }
+      }
+
+      if (this.highlight.isEnabledFor(_highlight.HEADER_TYPE)) {
+        if (this.settings.selectionMode === 'single') {
+          headerHighlight.add(cellRange.highlight);
+        } else {
+          headerHighlight.add(cellRange.from).add(cellRange.to);
+        }
+      }
+
+      this.runLocalHooks('afterSetRangeEnd', coords, scrollToCell, keepEditorOpened);
+    }
+
+    /**
+     * Returns information if we have a multiselection. This method check multiselection only on the latest layer of
+     * the selection.
+     *
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: 'isMultiple',
+    value: function isMultiple() {
+      var isMultipleListener = (0, _object.createObjectPropListener)(!this.selectedRange.current().isSingle());
+
+      this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
+
+      return isMultipleListener.value;
+    }
+
+    /**
+     * Selects cell relative to the current cell (if possible).
+     *
+     * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
+     * @param {Number} colDelta Columns number to move, value can be passed as negative number.
+     * @param {Boolean} force If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
+     *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
+     * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after transforming the selection.
+     */
+
+  }, {
+    key: 'transformStart',
+    value: function transformStart(rowDelta, colDelta, force, keepEditorOpened) {
+      var newCoords = this.transformation.transformStart(rowDelta, colDelta, force);
+
+      this.setRangeStart(newCoords, keepEditorOpened, false);
+    }
+
+    /**
+     * Sets selection end cell relative to the current selection end cell (if possible).
+     *
+     * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
+     * @param {Number} colDelta Columns number to move, value can be passed as negative number.
+     */
+
+  }, {
+    key: 'transformEnd',
+    value: function transformEnd(rowDelta, colDelta) {
+      var newCoords = this.transformation.transformEnd(rowDelta, colDelta);
+
+      this.setRangeEnd(newCoords, true, false);
+    }
+
+    /**
+     * Returns `true` if currently there is a selection on the screen, `false` otherwise.
+     *
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: 'isSelected',
+    value: function isSelected() {
+      return !this.selectedRange.isEmpty();
+    }
+
+    /**
+     * Returns `true` if coords is within current selection coords. This method only checks the latest
+     * layer of the selection.
+     *
+     * @param {CellCoords} coords Visual coordinates to check.
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: 'inInSelection',
+    value: function inInSelection(coords) {
+      // TODO(budnix): This ".includes" should be checked for all layers?
+      return this.isSelected() ? this.selectedRange.current().includes(coords) : false;
+    }
+
+    /**
+     * Deselects all selected cells.
+     */
+
+  }, {
+    key: 'deselect',
+    value: function deselect() {
+      if (!this.isSelected()) {
+        return;
+      }
+
+      this.inProgress = false;
+      this.selectedRange.clear();
+      this.highlight.clear();
+
+      this.runLocalHooks('afterDeselect');
+    }
+
+    /**
+     * Select all cells.
+     */
+
+  }, {
+    key: 'selectAll',
+    value: function selectAll() {
+      if (this.settings.selectionMode === 'single') {
+        return;
+      }
+
+      this.setSelectedHeaders(true, true, true);
+      this.highlight.clear();
+      this.setRangeStart(new _src.CellCoords(0, 0));
+      this.setRangeEnd(new _src.CellCoords(this.tableProps.countRows() - 1, this.tableProps.countCols() - 1), false);
+    }
+  }]);
+
+  return Selection;
+}();
+
+(0, _object.mixin)(Selection, _localHooks2.default);
+
+exports.default = Selection;
+
+/***/ }),
+/* 306 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _src = __webpack_require__(10);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * The SelectionRange class is a simple CellRanges collection designed for easy manipulation of the multiple
+ * consecutive and non-consecutive selections.
+ *
+ * @class SelectionRange
+ * @util
+ */
+var SelectionRange = function () {
+  function SelectionRange() {
+    _classCallCheck(this, SelectionRange);
+
+    /**
+     * List of all CellRanges added to the class instance.
+     *
+     * @type {CellRange[]}
+     */
+    this.ranges = [];
+  }
+
+  /**
+   * Check if selected range is empty.
+   *
+   * @return {Boolean}
+   */
+
+
+  _createClass(SelectionRange, [{
+    key: 'isEmpty',
+    value: function isEmpty() {
+      return this.size() === 0;
+    }
+
+    /**
+     * Set coordinates to the class instance. It clears all previously added coordinates and push `coords`
+     * to the collection.
+     *
+     * @param {CellCoords} coords The CellCoords instance with defined coordinates.
+     * @returns {SelectionRange}
+     */
+
+  }, {
+    key: 'set',
+    value: function set(coords) {
+      this.clear();
+      this.ranges.push(new _src.CellRange(coords));
+
+      return this;
+    }
+
+    /**
+     * Add coordinates to the class instance. The new coordinates are added to the end of the range collection.
+     *
+     * @param {CellCoords} coords The CellCoords instance with defined coordinates.
+     * @returns {SelectionRange}
+     */
+
+  }, {
+    key: 'add',
+    value: function add(coords) {
+      this.ranges.push(new _src.CellRange(coords));
+
+      return this;
+    }
+
+    /**
+     * Get last added coordinates from ranges, it returns a CellRange instance.
+     *
+     * @return {CellCoords|undefined}
+     */
+
+  }, {
+    key: 'current',
+    value: function current() {
+      return this.peekByIndex(0);
+    }
+
+    /**
+     * Get previously added coordinates from ranges, it returns a CellRange instance.
+     *
+     * @return {CellCoords|undefined}
+     */
+
+  }, {
+    key: 'previous',
+    value: function previous() {
+      return this.peekByIndex(-1);
+    }
+
+    /**
+     * Clear collection.
+     *
+     * @return {SelectionRange}
+     */
+
+  }, {
+    key: 'clear',
+    value: function clear() {
+      this.ranges.length = 0;
+
+      return this;
+    }
+
+    /**
+     * Get count of added all coordinates added to the selection.
+     *
+     * @return {Number}
+     */
+
+  }, {
+    key: 'size',
+    value: function size() {
+      return this.ranges.length;
+    }
+
+    /**
+     * Peek the coordinates based on the index where that coordinate resides in the collection.
+     *
+     * @param {Number} [index=0] An index where the coordinate will be retrieved from.
+     * @return {CellRange|undefined}
+     */
+
+  }, {
+    key: 'peekByIndex',
+    value: function peekByIndex() {
+      var index = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
+      var rangeIndex = this.size() + index - 1;
+      var cellRange = void 0;
+
+      if (rangeIndex >= 0) {
+        cellRange = this.ranges[rangeIndex];
+      }
+
+      return cellRange;
+    }
+  }, {
+    key: Symbol.iterator,
+    value: function value() {
+      return this.ranges[Symbol.iterator]();
+    }
+  }]);
+
+  return SelectionRange;
+}();
+
+exports.default = SelectionRange;
+
+/***/ }),
+/* 307 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _src = __webpack_require__(10);
+
+var _object = __webpack_require__(2);
+
+var _localHooks = __webpack_require__(21);
+
+var _localHooks2 = _interopRequireDefault(_localHooks);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * The Transformation class implements algorithms for transforming coordinates based on current settings
+ * passed to the Handsontable.
+ *
+ * Transformation is always applied relative to the current selection.
+ *
+ * @class Transformation
+ * @util
+ */
+var Transformation = function () {
+  function Transformation(range, options) {
+    _classCallCheck(this, Transformation);
+
+    /**
+     * Instance of the SelectionRange, holder for coordinates applied to the table.
+     *
+     * @type {SelectionRange}
+     */
+    this.range = range;
+    /**
+     * Additional options which define the state of the settings which can infer transformation.
+     *
+     * @type {Object}
+     */
+    this.options = options;
+  }
+
+  /**
+   * Selects cell relative to current cell (if possible).
+   *
+   * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
+   * @param {Number} colDelta Columns number to move, value can be passed as negative number.
+   * @param {Boolean} force If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
+   *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
+   * @returns {CellCoords}
+   */
+
+
+  _createClass(Transformation, [{
+    key: 'transformStart',
+    value: function transformStart(rowDelta, colDelta, force) {
+      var delta = new _src.CellCoords(rowDelta, colDelta);
+
+      this.runLocalHooks('beforeTransformStart', delta);
+
+      var totalRows = this.options.countRows();
+      var totalCols = this.options.countCols();
+      var fixedRowsBottom = this.options.fixedRowsBottom();
+      var minSpareRows = this.options.minSpareRows();
+      var minSpareCols = this.options.minSpareCols();
+      var autoWrapRow = this.options.autoWrapRow();
+      var autoWrapCol = this.options.autoWrapCol();
+      var highlightCoords = this.range.current().highlight;
+
+      if (highlightCoords.row + rowDelta > totalRows - 1) {
+        if (force && minSpareRows > 0 && !(fixedRowsBottom && highlightCoords.row >= totalRows - fixedRowsBottom - 1)) {
+          this.runLocalHooks('insertRowRequire', totalRows);
+          totalRows = this.options.countRows();
+        } else if (autoWrapCol) {
+          delta.row = 1 - totalRows;
+          delta.col = highlightCoords.col + delta.col == totalCols - 1 ? 1 - totalCols : 1;
+        }
+      } else if (autoWrapCol && highlightCoords.row + delta.row < 0 && highlightCoords.col + delta.col >= 0) {
+        delta.row = totalRows - 1;
+        delta.col = highlightCoords.col + delta.col == 0 ? totalCols - 1 : -1;
+      }
+
+      if (highlightCoords.col + delta.col > totalCols - 1) {
+        if (force && minSpareCols > 0) {
+          this.runLocalHooks('insertColRequire', totalRows);
+          totalCols = this.options.countCols();
+        } else if (autoWrapRow) {
+          delta.row = highlightCoords.row + delta.row == totalRows - 1 ? 1 - totalRows : 1;
+          delta.col = 1 - totalCols;
+        }
+      } else if (autoWrapRow && highlightCoords.col + delta.col < 0 && highlightCoords.row + delta.row >= 0) {
+        delta.row = highlightCoords.row + delta.row == 0 ? totalRows - 1 : -1;
+        delta.col = totalCols - 1;
+      }
+
+      var coords = new _src.CellCoords(highlightCoords.row + delta.row, highlightCoords.col + delta.col);
+      var rowTransformDir = 0;
+      var colTransformDir = 0;
+
+      if (coords.row < 0) {
+        rowTransformDir = -1;
+        coords.row = 0;
+      } else if (coords.row > 0 && coords.row >= totalRows) {
+        rowTransformDir = 1;
+        coords.row = totalRows - 1;
+      }
+
+      if (coords.col < 0) {
+        colTransformDir = -1;
+        coords.col = 0;
+      } else if (coords.col > 0 && coords.col >= totalCols) {
+        colTransformDir = 1;
+        coords.col = totalCols - 1;
+      }
+      this.runLocalHooks('afterTransformStart', coords, rowTransformDir, colTransformDir);
+
+      return coords;
+    }
+
+    /**
+     * Sets selection end cell relative to current selection end cell (if possible).
+     *
+     * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
+     * @param {Number} colDelta Columns number to move, value can be passed as negative number.
+     * @returns {CellCoords}
+     */
+
+  }, {
+    key: 'transformEnd',
+    value: function transformEnd(rowDelta, colDelta) {
+      var delta = new _src.CellCoords(rowDelta, colDelta);
+
+      this.runLocalHooks('beforeTransformEnd', delta);
+
+      var totalRows = this.options.countRows();
+      var totalCols = this.options.countCols();
+      var cellRange = this.range.current();
+      var coords = new _src.CellCoords(cellRange.to.row + delta.row, cellRange.to.col + delta.col);
+      var rowTransformDir = 0;
+      var colTransformDir = 0;
+
+      if (coords.row < 0) {
+        rowTransformDir = -1;
+        coords.row = 0;
+      } else if (coords.row > 0 && coords.row >= totalRows) {
+        rowTransformDir = 1;
+        coords.row = totalRows - 1;
+      }
+
+      if (coords.col < 0) {
+        colTransformDir = -1;
+        coords.col = 0;
+      } else if (coords.col > 0 && coords.col >= totalCols) {
+        colTransformDir = 1;
+        coords.col = totalCols - 1;
+      }
+      this.runLocalHooks('afterTransformEnd', coords, rowTransformDir, colTransformDir);
+
+      return coords;
+    }
+  }]);
+
+  return Transformation;
+}();
+
+(0, _object.mixin)(Transformation, _localHooks2.default);
+
+exports.default = Transformation;
+
+/***/ }),
+/* 308 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38601,7 +40342,7 @@ function jQueryWrapper(Handsontable) {
 };
 
 /***/ }),
-/* 297 */
+/* 309 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38610,87 +40351,87 @@ function jQueryWrapper(Handsontable) {
 exports.__esModule = true;
 exports.Base = exports.UndoRedo = exports.TouchScroll = exports.Search = exports.PersistentState = exports.ObserveChanges = exports.MultipleSelectionHandles = exports.MergeCells = exports.ManualRowResize = exports.ManualRowMove = exports.ManualColumnResize = exports.ManualColumnMove = exports.ManualColumnFreeze = exports.DragToScroll = exports.CustomBorders = exports.CopyPaste = exports.ContextMenu = exports.Comments = exports.ColumnSorting = exports.AutoRowSize = exports.AutoFill = exports.AutoColumnSize = undefined;
 
-var _autoColumnSize = __webpack_require__(298);
-
-var _autoColumnSize2 = _interopRequireDefault(_autoColumnSize);
-
-var _autofill = __webpack_require__(299);
-
-var _autofill2 = _interopRequireDefault(_autofill);
-
-var _autoRowSize = __webpack_require__(301);
-
-var _autoRowSize2 = _interopRequireDefault(_autoRowSize);
-
-var _columnSorting = __webpack_require__(302);
-
-var _columnSorting2 = _interopRequireDefault(_columnSorting);
-
-var _comments = __webpack_require__(305);
-
-var _comments2 = _interopRequireDefault(_comments);
-
-var _contextMenu = __webpack_require__(309);
-
-var _contextMenu2 = _interopRequireDefault(_contextMenu);
-
-var _copyPaste = __webpack_require__(323);
-
-var _copyPaste2 = _interopRequireDefault(_copyPaste);
-
-var _customBorders = __webpack_require__(330);
-
-var _customBorders2 = _interopRequireDefault(_customBorders);
-
-var _dragToScroll = __webpack_require__(331);
-
-var _dragToScroll2 = _interopRequireDefault(_dragToScroll);
-
-var _manualColumnFreeze = __webpack_require__(332);
-
-var _manualColumnFreeze2 = _interopRequireDefault(_manualColumnFreeze);
-
-var _manualColumnMove = __webpack_require__(336);
-
-var _manualColumnMove2 = _interopRequireDefault(_manualColumnMove);
-
-var _manualColumnResize = __webpack_require__(341);
-
-var _manualColumnResize2 = _interopRequireDefault(_manualColumnResize);
-
-var _manualRowMove = __webpack_require__(342);
-
-var _manualRowMove2 = _interopRequireDefault(_manualRowMove);
-
-var _manualRowResize = __webpack_require__(347);
-
-var _manualRowResize2 = _interopRequireDefault(_manualRowResize);
-
-var _mergeCells = __webpack_require__(348);
-
-var _mergeCells2 = _interopRequireDefault(_mergeCells);
-
-var _multipleSelectionHandles = __webpack_require__(349);
-
-var _multipleSelectionHandles2 = _interopRequireDefault(_multipleSelectionHandles);
-
-var _observeChanges = __webpack_require__(350);
-
-var _observeChanges2 = _interopRequireDefault(_observeChanges);
-
-var _persistentState = __webpack_require__(353);
+var _persistentState = __webpack_require__(310);
 
 var _persistentState2 = _interopRequireDefault(_persistentState);
 
-var _search = __webpack_require__(354);
+var _autoColumnSize = __webpack_require__(312);
+
+var _autoColumnSize2 = _interopRequireDefault(_autoColumnSize);
+
+var _autofill = __webpack_require__(313);
+
+var _autofill2 = _interopRequireDefault(_autofill);
+
+var _autoRowSize = __webpack_require__(315);
+
+var _autoRowSize2 = _interopRequireDefault(_autoRowSize);
+
+var _columnSorting = __webpack_require__(316);
+
+var _columnSorting2 = _interopRequireDefault(_columnSorting);
+
+var _comments = __webpack_require__(319);
+
+var _comments2 = _interopRequireDefault(_comments);
+
+var _contextMenu = __webpack_require__(323);
+
+var _contextMenu2 = _interopRequireDefault(_contextMenu);
+
+var _copyPaste = __webpack_require__(337);
+
+var _copyPaste2 = _interopRequireDefault(_copyPaste);
+
+var _customBorders = __webpack_require__(344);
+
+var _customBorders2 = _interopRequireDefault(_customBorders);
+
+var _dragToScroll = __webpack_require__(345);
+
+var _dragToScroll2 = _interopRequireDefault(_dragToScroll);
+
+var _manualColumnFreeze = __webpack_require__(346);
+
+var _manualColumnFreeze2 = _interopRequireDefault(_manualColumnFreeze);
+
+var _manualColumnMove = __webpack_require__(350);
+
+var _manualColumnMove2 = _interopRequireDefault(_manualColumnMove);
+
+var _manualColumnResize = __webpack_require__(355);
+
+var _manualColumnResize2 = _interopRequireDefault(_manualColumnResize);
+
+var _manualRowMove = __webpack_require__(356);
+
+var _manualRowMove2 = _interopRequireDefault(_manualRowMove);
+
+var _manualRowResize = __webpack_require__(361);
+
+var _manualRowResize2 = _interopRequireDefault(_manualRowResize);
+
+var _mergeCells = __webpack_require__(362);
+
+var _mergeCells2 = _interopRequireDefault(_mergeCells);
+
+var _multipleSelectionHandles = __webpack_require__(363);
+
+var _multipleSelectionHandles2 = _interopRequireDefault(_multipleSelectionHandles);
+
+var _observeChanges = __webpack_require__(364);
+
+var _observeChanges2 = _interopRequireDefault(_observeChanges);
+
+var _search = __webpack_require__(367);
 
 var _search2 = _interopRequireDefault(_search);
 
-var _touchScroll = __webpack_require__(355);
+var _touchScroll = __webpack_require__(368);
 
 var _touchScroll2 = _interopRequireDefault(_touchScroll);
 
-var _undoRedo = __webpack_require__(356);
+var _undoRedo = __webpack_require__(369);
 
 var _undoRedo2 = _interopRequireDefault(_undoRedo);
 
@@ -38724,7 +40465,365 @@ exports.UndoRedo = _undoRedo2.default;
 exports.Base = _base2.default;
 
 /***/ }),
-/* 298 */
+/* 310 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _base = __webpack_require__(7);
+
+var _base2 = _interopRequireDefault(_base);
+
+var _plugins = __webpack_require__(6);
+
+var _storage = __webpack_require__(311);
+
+var _storage2 = _interopRequireDefault(_storage);
+
+var _pluginHooks = __webpack_require__(13);
+
+var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+_pluginHooks2.default.getSingleton().register('persistentStateSave');
+_pluginHooks2.default.getSingleton().register('persistentStateLoad');
+_pluginHooks2.default.getSingleton().register('persistentStateReset');
+
+/**
+ * Save the state of column sorting, column positions and column sizes in local storage
+ * to preserve table state between page reloads.
+ *
+ * In order to enable data storage mechanism, persistentState option must be set to true.
+ *
+ * When persistentState is enabled it exposes 3 hooks:
+ *
+ * persistentStateSave (key: String, value: Mixed) -
+ * Saves value under given key in browser local storage.
+ *
+ * persistentStateLoad (key: String, saveTo: Object) -
+ * Loads value, saved under given key, form browser local storage.
+ * The loaded value will be saved in saveTo.value.
+ *
+ * persistentStateReset (key: String) -
+ * Clears the value saved under key.
+ * If no key is given, all values associated with table will be cleared.
+ *
+ * @plugin persistentState
+ */
+
+var PersistentState = function (_BasePlugin) {
+  _inherits(PersistentState, _BasePlugin);
+
+  function PersistentState(hotInstance) {
+    _classCallCheck(this, PersistentState);
+
+    /**
+     * Instance of {@link Storage}.
+     *
+     * @type {Storage}
+     */
+    var _this = _possibleConstructorReturn(this, (PersistentState.__proto__ || Object.getPrototypeOf(PersistentState)).call(this, hotInstance));
+
+    _this.storage = void 0;
+    return _this;
+  }
+
+  /**
+   * Check if the plugin is enabled in the Handsontable settings.
+   *
+   * @returns {Boolean}
+   */
+
+
+  _createClass(PersistentState, [{
+    key: 'isEnabled',
+    value: function isEnabled() {
+      return !!this.hot.getSettings().persistentState;
+    }
+
+    /**
+     * Enable plugin for this Handsontable instance.
+     */
+
+  }, {
+    key: 'enablePlugin',
+    value: function enablePlugin() {
+      var _this2 = this;
+
+      if (this.enabled) {
+        return;
+      }
+
+      if (!this.storage) {
+        this.storage = new _storage2.default(this.hot.rootElement.id);
+      }
+
+      this.addHook('persistentStateSave', function (key, value) {
+        return _this2.saveValue(key, value);
+      });
+      this.addHook('persistentStateLoad', function (key, saveTo) {
+        return _this2.loadValue(key, saveTo);
+      });
+      this.addHook('persistentStateReset', function () {
+        return _this2.resetValue();
+      });
+
+      _get(PersistentState.prototype.__proto__ || Object.getPrototypeOf(PersistentState.prototype), 'enablePlugin', this).call(this);
+    }
+
+    /**
+     * Disable plugin for this Handsontable instance.
+     */
+
+  }, {
+    key: 'disablePlugin',
+    value: function disablePlugin() {
+      this.storage = void 0;
+
+      _get(PersistentState.prototype.__proto__ || Object.getPrototypeOf(PersistentState.prototype), 'disablePlugin', this).call(this);
+    }
+
+    /**
+     * Updates the plugin to use the latest options you have specified.
+     */
+
+  }, {
+    key: 'updatePlugin',
+    value: function updatePlugin() {
+      this.disablePlugin();
+      this.enablePlugin();
+
+      _get(PersistentState.prototype.__proto__ || Object.getPrototypeOf(PersistentState.prototype), 'updatePlugin', this).call(this);
+    }
+
+    /**
+     * Load value from localStorage.
+     *
+     * @param {String} key Key string.
+     * @param {Object} saveTo Saved value from browser local storage.
+     */
+
+  }, {
+    key: 'loadValue',
+    value: function loadValue(key, saveTo) {
+      saveTo.value = this.storage.loadValue(key);
+    }
+
+    /**
+     * Save data to localStorage.
+     *
+     * @param {String} key Key string.
+     * @param {Mixed} value Value to save.
+     */
+
+  }, {
+    key: 'saveValue',
+    value: function saveValue(key, value) {
+      this.storage.saveValue(key, value);
+    }
+
+    /**
+     * Reset given data or all data from localStorage.
+     *
+     * @param {String} key [optional] Key string.
+     */
+
+  }, {
+    key: 'resetValue',
+    value: function resetValue(key) {
+      if (typeof key === 'undefined') {
+        this.storage.resetAll();
+      } else {
+        this.storage.reset(key);
+      }
+    }
+
+    /**
+     * Destroy plugin instance.
+     */
+
+  }, {
+    key: 'destroy',
+    value: function destroy() {
+      _get(PersistentState.prototype.__proto__ || Object.getPrototypeOf(PersistentState.prototype), 'destroy', this).call(this);
+    }
+  }]);
+
+  return PersistentState;
+}(_base2.default);
+
+(0, _plugins.registerPlugin)('persistentState', PersistentState);
+
+exports.default = PersistentState;
+
+/***/ }),
+/* 311 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _array = __webpack_require__(0);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * @class Storage
+ * @plugin PersistentState
+ */
+var Storage = function () {
+  function Storage(prefix) {
+    _classCallCheck(this, Storage);
+
+    /**
+     * Prefix for key (id element).
+     *
+     * @type {String}
+     */
+    this.prefix = prefix;
+
+    /**
+     * Saved keys.
+     *
+     * @type {Array}
+     */
+    this.savedKeys = [];
+    this.loadSavedKeys();
+  }
+
+  /**
+   * Save data to localStorage.
+   *
+   * @param {String} key Key string.
+   * @param {Mixed} value Value to save.
+   */
+
+
+  _createClass(Storage, [{
+    key: 'saveValue',
+    value: function saveValue(key, value) {
+      window.localStorage.setItem(this.prefix + '_' + key, JSON.stringify(value));
+
+      if (this.savedKeys.indexOf(key) === -1) {
+        this.savedKeys.push(key);
+        this.saveSavedKeys();
+      }
+    }
+
+    /**
+     * Load data from localStorage.
+     *
+     * @param {String} key Key string.
+     * @param {Object} defaultValue Object containing the loaded data.
+     *
+     * @returns {}
+     */
+
+  }, {
+    key: 'loadValue',
+    value: function loadValue(key, defaultValue) {
+      key = typeof key === 'undefined' ? defaultValue : key;
+
+      var value = window.localStorage.getItem(this.prefix + '_' + key);
+
+      return value === null ? void 0 : JSON.parse(value);
+    }
+
+    /**
+     * Reset given data from localStorage.
+     *
+     * @param {String} key Key string.
+     */
+
+  }, {
+    key: 'reset',
+    value: function reset(key) {
+      window.localStorage.removeItem(this.prefix + '_' + key);
+    }
+
+    /**
+     * Reset all data from localStorage.
+     *
+     */
+
+  }, {
+    key: 'resetAll',
+    value: function resetAll() {
+      var _this = this;
+
+      (0, _array.arrayEach)(this.savedKeys, function (value, index) {
+        window.localStorage.removeItem(_this.prefix + '_' + _this.savedKeys[index]);
+      });
+
+      this.clearSavedKeys();
+    }
+
+    /**
+     * Load and save all keys from localStorage.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'loadSavedKeys',
+    value: function loadSavedKeys() {
+      var keysJSON = window.localStorage.getItem(this.prefix + '__persistentStateKeys');
+      var keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : void 0;
+
+      this.savedKeys = keys ? keys : [];
+    }
+  }, {
+    key: 'saveSavedKeys',
+
+
+    /**
+     * Save saved key in localStorage.
+     *
+     * @private
+     */
+    value: function saveSavedKeys() {
+      window.localStorage.setItem(this.prefix + '__persistentStateKeys', JSON.stringify(this.savedKeys));
+    }
+  }, {
+    key: 'clearSavedKeys',
+
+
+    /**
+     * Clear saved key from localStorage.
+     *
+     * @private
+     */
+    value: function clearSavedKeys() {
+      this.savedKeys.length = 0;
+      this.saveSavedKeys();
+    }
+  }]);
+
+  return Storage;
+}();
+
+exports.default = Storage;
+
+/***/ }),
+/* 312 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38758,13 +40857,13 @@ var _number = __webpack_require__(4);
 
 var _plugins = __webpack_require__(6);
 
-var _samplesGenerator = __webpack_require__(208);
+var _samplesGenerator = __webpack_require__(210);
 
 var _samplesGenerator2 = _interopRequireDefault(_samplesGenerator);
 
-var _string = __webpack_require__(29);
+var _string = __webpack_require__(30);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -39401,7 +41500,7 @@ var AutoColumnSize = function (_BasePlugin) {
 exports.default = AutoColumnSize;
 
 /***/ }),
-/* 299 */
+/* 313 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39417,7 +41516,7 @@ var _base = __webpack_require__(7);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
@@ -39429,9 +41528,9 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _plugins = __webpack_require__(6);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
-var _utils = __webpack_require__(300);
+var _utils = __webpack_require__(314);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -39590,8 +41689,8 @@ var Autofill = function (_BasePlugin) {
     key: 'getSelectionData',
     value: function getSelectionData() {
       var selRange = {
-        from: this.hot.getSelectedRange().from,
-        to: this.hot.getSelectedRange().to
+        from: this.hot.getSelectedRangeLast().from,
+        to: this.hot.getSelectedRangeLast().to
       };
 
       return this.hot.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
@@ -39607,11 +41706,11 @@ var Autofill = function (_BasePlugin) {
   }, {
     key: 'fillIn',
     value: function fillIn() {
-      if (this.hot.view.wt.selections.fill.isEmpty()) {
+      if (this.hot.selection.highlight.getFill().isEmpty()) {
         return false;
       }
 
-      var cornersOfSelectionAndDragAreas = this.hot.view.wt.selections.fill.getCorners();
+      var cornersOfSelectionAndDragAreas = this.hot.selection.highlight.getFill().getCorners();
 
       this.resetSelectionOfDraggedArea();
 
@@ -39662,7 +41761,7 @@ var Autofill = function (_BasePlugin) {
         this.setSelection(cornersOfSelectionAndDragAreas);
       } else {
         // reset to avoid some range bug
-        this.hot.selection.refreshBorders();
+        this.hot._refreshBorders();
       }
 
       return true;
@@ -39700,8 +41799,8 @@ var Autofill = function (_BasePlugin) {
   }, {
     key: 'getCoordsOfDragAndDropBorders',
     value: function getCoordsOfDragAndDropBorders(coordsOfSelection) {
-      var topLeftCorner = this.hot.getSelectedRange().getTopLeftCorner();
-      var bottomRightCorner = this.hot.getSelectedRange().getBottomRightCorner();
+      var topLeftCorner = this.hot.getSelectedRangeLast().getTopLeftCorner();
+      var bottomRightCorner = this.hot.getSelectedRangeLast().getBottomRightCorner();
       var coords = void 0;
 
       if (this.directions.includes(_utils.DIRECTIONS.vertical) && (bottomRightCorner.row < coordsOfSelection.row || topLeftCorner.row > coordsOfSelection.row)) {
@@ -39760,9 +41859,9 @@ var Autofill = function (_BasePlugin) {
   }, {
     key: 'addNewRowIfNeeded',
     value: function addNewRowIfNeeded() {
-      if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && this.autoInsertRow) {
-        var cornersOfSelectedCells = this.hot.getSelected();
-        var cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
+      if (this.hot.selection.highlight.getFill().cellRange && this.addingStarted === false && this.autoInsertRow) {
+        var cornersOfSelectedCells = this.hot.getSelectedLast();
+        var cornersOfSelectedDragArea = this.hot.selection.highlight.getFill().getCorners();
         var nrOfTableRows = this.hot.countRows();
 
         if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
@@ -39784,9 +41883,9 @@ var Autofill = function (_BasePlugin) {
     key: 'getCornersOfSelectedCells',
     value: function getCornersOfSelectedCells() {
       if (this.hot.selection.isMultiple()) {
-        return this.hot.view.wt.selections.area.getCorners();
+        return this.hot.selection.highlight.createOrGetArea().getCorners();
       }
-      return this.hot.view.wt.selections.current.getCorners();
+      return this.hot.selection.highlight.getCell().getCorners();
     }
 
     /**
@@ -39835,9 +41934,7 @@ var Autofill = function (_BasePlugin) {
   }, {
     key: 'addSelectionFromStartAreaToSpecificRowIndex',
     value: function addSelectionFromStartAreaToSpecificRowIndex(selectStartArea, rowIndex) {
-      this.hot.view.wt.selections.fill.clear();
-      this.hot.view.wt.selections.fill.add(new _src.CellCoords(selectStartArea[0], selectStartArea[1]));
-      this.hot.view.wt.selections.fill.add(new _src.CellCoords(rowIndex, selectStartArea[3]));
+      this.hot.selection.highlight.getFill().clear().add(new _src.CellCoords(selectStartArea[0], selectStartArea[1])).add(new _src.CellCoords(rowIndex, selectStartArea[3]));
     }
 
     /**
@@ -39886,7 +41983,7 @@ var Autofill = function (_BasePlugin) {
     value: function resetSelectionOfDraggedArea() {
       this.handleDraggedCells = 0;
 
-      this.hot.view.wt.selections.fill.clear();
+      this.hot.selection.highlight.getFill().clear();
     }
 
     /**
@@ -39899,10 +41996,8 @@ var Autofill = function (_BasePlugin) {
   }, {
     key: 'redrawBorders',
     value: function redrawBorders(coords) {
-      this.hot.view.wt.selections.fill.clear();
-      this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().from);
-      this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().to);
-      this.hot.view.wt.selections.fill.add(coords);
+      this.hot.selection.highlight.getFill().clear().add(this.hot.getSelectedRangeLast().from).add(this.hot.getSelectedRangeLast().to).add(coords);
+
       this.hot.view.render();
     }
 
@@ -40078,7 +42173,7 @@ var Autofill = function (_BasePlugin) {
 exports.default = Autofill;
 
 /***/ }),
-/* 300 */
+/* 314 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40092,9 +42187,9 @@ exports.getMappedFillHandleSetting = getMappedFillHandleSetting;
 
 var _object = __webpack_require__(2);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
 var DIRECTIONS = exports.DIRECTIONS = {
   horizontal: 'horizontal',
@@ -40230,7 +42325,7 @@ function getMappedFillHandleSetting(fillHandle) {
 }
 
 /***/ }),
-/* 301 */
+/* 315 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40262,11 +42357,11 @@ var _number = __webpack_require__(4);
 
 var _plugins = __webpack_require__(6);
 
-var _samplesGenerator = __webpack_require__(208);
+var _samplesGenerator = __webpack_require__(210);
 
 var _samplesGenerator2 = _interopRequireDefault(_samplesGenerator);
 
-var _string = __webpack_require__(29);
+var _string = __webpack_require__(30);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -40879,7 +42974,7 @@ var AutoRowSize = function (_BasePlugin) {
 exports.default = AutoRowSize;
 
 /***/ }),
-/* 302 */
+/* 316 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40893,7 +42988,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _moment = __webpack_require__(30);
+var _moment = __webpack_require__(31);
 
 var _moment2 = _interopRequireDefault(_moment);
 
@@ -40901,7 +42996,7 @@ var _element = __webpack_require__(1);
 
 var _array = __webpack_require__(0);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 var _object = __webpack_require__(2);
 
@@ -40911,11 +43006,11 @@ var _base2 = _interopRequireDefault(_base);
 
 var _plugins = __webpack_require__(6);
 
-var _mergeSort = __webpack_require__(303);
+var _mergeSort = __webpack_require__(317);
 
 var _mergeSort2 = _interopRequireDefault(_mergeSort);
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
@@ -41681,7 +43776,7 @@ var ColumnSorting = function (_BasePlugin) {
 exports.default = ColumnSorting;
 
 /***/ }),
-/* 303 */
+/* 317 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -41691,7 +43786,7 @@ exports.__esModule = true;
 exports.default = mergeSort;
 exports.merge = merge;
 
-var _linkedList = __webpack_require__(304);
+var _linkedList = __webpack_require__(318);
 
 var _linkedList2 = _interopRequireDefault(_linkedList);
 
@@ -41806,7 +43901,7 @@ function merge(array, compareFunction, startIndex, middleIndex, endIndex) {
 };
 
 /***/ }),
-/* 304 */
+/* 318 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42117,7 +44212,7 @@ exports.NodeStructure = NodeStructure;
 exports.default = LinkedList;
 
 /***/ }),
-/* 305 */
+/* 319 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42137,7 +44232,7 @@ var _eventManager = __webpack_require__(8);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
 var _plugins = __webpack_require__(6);
 
@@ -42145,13 +44240,13 @@ var _base = __webpack_require__(7);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _commentEditor = __webpack_require__(306);
+var _commentEditor = __webpack_require__(320);
 
 var _commentEditor2 = _interopRequireDefault(_commentEditor);
 
-var _utils = __webpack_require__(22);
+var _utils = __webpack_require__(23);
 
-var _displaySwitch = __webpack_require__(307);
+var _displaySwitch = __webpack_require__(321);
 
 var _displaySwitch2 = _interopRequireDefault(_displaySwitch);
 
@@ -42159,7 +44254,7 @@ var _constants = __webpack_require__(3);
 
 var C = _interopRequireWildcard(_constants);
 
-__webpack_require__(308);
+__webpack_require__(322);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -42688,7 +44783,7 @@ var Comments = function (_BasePlugin) {
   }, {
     key: 'checkSelectionCommentsConsistency',
     value: function checkSelectionCommentsConsistency() {
-      var selected = this.hot.getSelectedRange();
+      var selected = this.hot.getSelectedRangeLast();
 
       if (!selected) {
         return false;
@@ -42903,7 +44998,7 @@ var Comments = function (_BasePlugin) {
       var _this4 = this;
 
       this.displaySwitch.cancelHiding();
-      var coords = this.hot.getSelectedRange();
+      var coords = this.hot.getSelectedRangeLast();
 
       this.contextMenuEvent = true;
       this.setRange({
@@ -42922,16 +45017,19 @@ var Comments = function (_BasePlugin) {
      * Context Menu's "remove comment" callback.
      *
      * @private
-     * @param {Object} selection The current selection.
      */
 
   }, {
     key: 'onContextMenuRemoveComment',
-    value: function onContextMenuRemoveComment(selection) {
+    value: function onContextMenuRemoveComment() {
       this.contextMenuEvent = true;
 
-      for (var i = selection.start.row; i <= selection.end.row; i++) {
-        for (var j = selection.start.col; j <= selection.end.col; j++) {
+      var _hot$getSelectedRange = this.hot.getSelectedRangeLast(),
+          from = _hot$getSelectedRange.from,
+          to = _hot$getSelectedRange.to;
+
+      for (var i = from.row; i <= to.row; i++) {
+        for (var j = from.col; j <= to.col; j++) {
           this.removeCommentAtCell(i, j, false);
         }
       }
@@ -42943,16 +45041,19 @@ var Comments = function (_BasePlugin) {
      * Context Menu's "make comment read-only" callback.
      *
      * @private
-     * @param {Object} selection The current selection.
      */
 
   }, {
     key: 'onContextMenuMakeReadOnly',
-    value: function onContextMenuMakeReadOnly(selection) {
+    value: function onContextMenuMakeReadOnly() {
       this.contextMenuEvent = true;
 
-      for (var i = selection.start.row; i <= selection.end.row; i++) {
-        for (var j = selection.start.col; j <= selection.end.col; j++) {
+      var _hot$getSelectedRange2 = this.hot.getSelectedRangeLast(),
+          from = _hot$getSelectedRange2.from,
+          to = _hot$getSelectedRange2.to;
+
+      for (var i = from.row; i <= to.row; i++) {
+        for (var j = from.col; j <= to.col; j++) {
           var currentState = !!this.getCommentMeta(i, j, META_READONLY);
 
           this.updateCommentMeta(i, j, _defineProperty({}, META_READONLY, !currentState));
@@ -42987,7 +45088,7 @@ var Comments = function (_BasePlugin) {
           return _this5.onContextMenuAddComment();
         },
         disabled: function disabled() {
-          return !(this.getSelected() && !this.selection.selectedHeader.corner);
+          return !(this.getSelectedLast() && !this.selection.selectedHeader.corner);
         }
       }, {
         key: 'commentsRemove',
@@ -42995,8 +45096,8 @@ var Comments = function (_BasePlugin) {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
         },
 
-        callback: function callback(key, selection) {
-          return _this5.onContextMenuRemoveComment(selection);
+        callback: function callback() {
+          return _this5.onContextMenuRemoveComment();
         },
         disabled: function disabled() {
           return _this5.hot.selection.selectedHeader.corner;
@@ -43007,7 +45108,7 @@ var Comments = function (_BasePlugin) {
           var _this6 = this;
 
           var label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
-          var hasProperty = (0, _utils.checkSelectionConsistency)(this.getSelectedRange(), function (row, col) {
+          var hasProperty = (0, _utils.checkSelectionConsistency)(this.getSelectedRangeLast(), function (row, col) {
             var readOnlyProperty = _this6.getCellMeta(row, col)[META_COMMENT];
             if (readOnlyProperty) {
               readOnlyProperty = readOnlyProperty[META_READONLY];
@@ -43025,8 +45126,8 @@ var Comments = function (_BasePlugin) {
           return label;
         },
 
-        callback: function callback(key, selection) {
-          return _this5.onContextMenuMakeReadOnly(selection);
+        callback: function callback() {
+          return _this5.onContextMenuMakeReadOnly();
         },
         disabled: function disabled() {
           return _this5.hot.selection.selectedHeader.corner || !_this5.checkSelectionCommentsConsistency();
@@ -43093,7 +45194,7 @@ var Comments = function (_BasePlugin) {
 exports.default = Comments;
 
 /***/ }),
-/* 306 */
+/* 320 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43351,7 +45452,7 @@ var CommentEditor = function () {
 exports.default = CommentEditor;
 
 /***/ }),
-/* 307 */
+/* 321 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43365,7 +45466,7 @@ var _function = __webpack_require__(34);
 
 var _object = __webpack_require__(2);
 
-var _localHooks = __webpack_require__(31);
+var _localHooks = __webpack_require__(21);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
@@ -43494,13 +45595,13 @@ var DisplaySwitch = function () {
 exports.default = DisplaySwitch;
 
 /***/ }),
-/* 308 */
+/* 322 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 309 */
+/* 323 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43516,13 +45617,13 @@ var _base = __webpack_require__(7);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
 var _array = __webpack_require__(0);
 
-var _commandExecutor = __webpack_require__(209);
+var _commandExecutor = __webpack_require__(211);
 
 var _commandExecutor2 = _interopRequireDefault(_commandExecutor);
 
@@ -43530,7 +45631,7 @@ var _eventManager = __webpack_require__(8);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _itemsFactory = __webpack_require__(210);
+var _itemsFactory = __webpack_require__(212);
 
 var _itemsFactory2 = _interopRequireDefault(_itemsFactory);
 
@@ -43540,13 +45641,13 @@ var _menu2 = _interopRequireDefault(_menu);
 
 var _plugins = __webpack_require__(6);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _element = __webpack_require__(1);
 
 var _predefinedItems = __webpack_require__(43);
 
-__webpack_require__(322);
+__webpack_require__(336);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -43930,7 +46031,7 @@ ContextMenu.SEPARATOR = {
 exports.default = ContextMenu;
 
 /***/ }),
-/* 310 */
+/* 324 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -43940,7 +46041,7 @@ exports.__esModule = true;
 exports.KEY = undefined;
 exports.default = alignmentItem;
 
-var _utils = __webpack_require__(22);
+var _utils = __webpack_require__(23);
 
 var _separator = __webpack_require__(155);
 
@@ -43986,15 +46087,15 @@ function alignmentItem() {
         callback: function callback() {
           var _this2 = this;
 
-          var range = this.getSelectedRange();
-          var stateBefore = (0, _utils.getAlignmentClasses)(range, function (row, col) {
+          var selectedRange = this.getSelectedRange();
+          var stateBefore = (0, _utils.getAlignmentClasses)(selectedRange, function (row, col) {
             return _this2.getCellMeta(row, col).className;
           });
           var type = 'horizontal';
           var alignment = 'htLeft';
 
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          (0, _utils.align)(range, type, alignment, function (row, col) {
+          this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
+          (0, _utils.align)(selectedRange, type, alignment, function (row, col) {
             return _this2.getCellMeta(row, col);
           }, function (row, col, key, value) {
             return _this2.setCellMeta(row, col, key, value);
@@ -44023,18 +46124,18 @@ function alignmentItem() {
 
           return label;
         },
-        callback: function callback() {
+        callback: function callback(key, selection) {
           var _this4 = this;
 
-          var range = this.getSelectedRange();
-          var stateBefore = (0, _utils.getAlignmentClasses)(range, function (row, col) {
+          var selectedRange = this.getSelectedRange();
+          var stateBefore = (0, _utils.getAlignmentClasses)(selectedRange, function (row, col) {
             return _this4.getCellMeta(row, col).className;
           });
           var type = 'horizontal';
           var alignment = 'htCenter';
 
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          (0, _utils.align)(range, type, alignment, function (row, col) {
+          this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
+          (0, _utils.align)(selectedRange, type, alignment, function (row, col) {
             return _this4.getCellMeta(row, col);
           }, function (row, col, key, value) {
             return _this4.setCellMeta(row, col, key, value);
@@ -44066,15 +46167,15 @@ function alignmentItem() {
         callback: function callback() {
           var _this6 = this;
 
-          var range = this.getSelectedRange();
-          var stateBefore = (0, _utils.getAlignmentClasses)(range, function (row, col) {
+          var selectedRange = this.getSelectedRange();
+          var stateBefore = (0, _utils.getAlignmentClasses)(selectedRange, function (row, col) {
             return _this6.getCellMeta(row, col).className;
           });
           var type = 'horizontal';
           var alignment = 'htRight';
 
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          (0, _utils.align)(range, type, alignment, function (row, col) {
+          this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
+          (0, _utils.align)(selectedRange, type, alignment, function (row, col) {
             return _this6.getCellMeta(row, col);
           }, function (row, col, key, value) {
             return _this6.setCellMeta(row, col, key, value);
@@ -44106,15 +46207,15 @@ function alignmentItem() {
         callback: function callback() {
           var _this8 = this;
 
-          var range = this.getSelectedRange();
-          var stateBefore = (0, _utils.getAlignmentClasses)(range, function (row, col) {
+          var selectedRange = this.getSelectedRange();
+          var stateBefore = (0, _utils.getAlignmentClasses)(selectedRange, function (row, col) {
             return _this8.getCellMeta(row, col).className;
           });
           var type = 'horizontal';
           var alignment = 'htJustify';
 
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          (0, _utils.align)(range, type, alignment, function (row, col) {
+          this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
+          (0, _utils.align)(selectedRange, type, alignment, function (row, col) {
             return _this8.getCellMeta(row, col);
           }, function (row, col, key, value) {
             return _this8.setCellMeta(row, col, key, value);
@@ -44147,15 +46248,15 @@ function alignmentItem() {
         callback: function callback() {
           var _this10 = this;
 
-          var range = this.getSelectedRange();
-          var stateBefore = (0, _utils.getAlignmentClasses)(range, function (row, col) {
+          var selectedRange = this.getSelectedRange();
+          var stateBefore = (0, _utils.getAlignmentClasses)(selectedRange, function (row, col) {
             return _this10.getCellMeta(row, col).className;
           });
           var type = 'vertical';
           var alignment = 'htTop';
 
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          (0, _utils.align)(range, type, alignment, function (row, col) {
+          this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
+          (0, _utils.align)(selectedRange, type, alignment, function (row, col) {
             return _this10.getCellMeta(row, col);
           }, function (row, col, key, value) {
             return _this10.setCellMeta(row, col, key, value);
@@ -44187,15 +46288,15 @@ function alignmentItem() {
         callback: function callback() {
           var _this12 = this;
 
-          var range = this.getSelectedRange();
-          var stateBefore = (0, _utils.getAlignmentClasses)(range, function (row, col) {
+          var selectedRange = this.getSelectedRange();
+          var stateBefore = (0, _utils.getAlignmentClasses)(selectedRange, function (row, col) {
             return _this12.getCellMeta(row, col).className;
           });
           var type = 'vertical';
           var alignment = 'htMiddle';
 
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          (0, _utils.align)(range, type, alignment, function (row, col) {
+          this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
+          (0, _utils.align)(selectedRange, type, alignment, function (row, col) {
             return _this12.getCellMeta(row, col);
           }, function (row, col, key, value) {
             return _this12.setCellMeta(row, col, key, value);
@@ -44227,15 +46328,15 @@ function alignmentItem() {
         callback: function callback() {
           var _this14 = this;
 
-          var range = this.getSelectedRange();
-          var stateBefore = (0, _utils.getAlignmentClasses)(range, function (row, col) {
+          var selectedRange = this.getSelectedRange();
+          var stateBefore = (0, _utils.getAlignmentClasses)(selectedRange, function (row, col) {
             return _this14.getCellMeta(row, col).className;
           });
           var type = 'vertical';
           var alignment = 'htBottom';
 
-          this.runHooks('beforeCellAlignment', stateBefore, range, type, alignment);
-          (0, _utils.align)(range, type, alignment, function (row, col) {
+          this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
+          (0, _utils.align)(selectedRange, type, alignment, function (row, col) {
             return _this14.getCellMeta(row, col);
           }, function (row, col, key, value) {
             return _this14.setCellMeta(row, col, key, value);
@@ -44250,7 +46351,7 @@ function alignmentItem() {
 }
 
 /***/ }),
-/* 311 */
+/* 325 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44258,9 +46359,12 @@ function alignmentItem() {
 
 exports.__esModule = true;
 exports.KEY = undefined;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 exports.default = clearColumnItem;
 
-var _utils = __webpack_require__(22);
+var _utils = __webpack_require__(23);
 
 var _constants = __webpack_require__(3);
 
@@ -44277,10 +46381,10 @@ function clearColumnItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CLEAR_COLUMN);
     },
     callback: function callback(key, selection) {
-      var column = selection.start.col;
+      var column = selection[0].start.col;
 
       if (this.countRows()) {
-        this.populateFromArray(0, column, [[null]], Math.max(selection.start.row, selection.end.row), column, 'ContextMenu.clearColumn');
+        this.populateFromArray(0, column, [[null]], Math.max(selection[0].start.row, selection[0].end.row), column, 'ContextMenu.clearColumn');
       }
     },
     disabled: function disabled() {
@@ -44289,16 +46393,23 @@ function clearColumnItem() {
       if (!selected) {
         return true;
       }
-      var entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
+
+      var _selected$ = _slicedToArray(selected[0], 4),
+          startRow = _selected$[0],
+          startColumn = _selected$[1],
+          endRow = _selected$[2],
+          endColumn = _selected$[3];
+
+      var entireRowSelection = [startRow, 0, endRow, this.countCols() - 1];
       var rowSelected = entireRowSelection.join(',') === selected.join(',');
 
-      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
+      return startColumn < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
     }
   };
 }
 
 /***/ }),
-/* 312 */
+/* 326 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44306,9 +46417,12 @@ function clearColumnItem() {
 
 exports.__esModule = true;
 exports.KEY = undefined;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 exports.default = columnLeftItem;
 
-var _utils = __webpack_require__(22);
+var _utils = __webpack_require__(23);
 
 var _constants = __webpack_require__(3);
 
@@ -44324,8 +46438,10 @@ function columnLeftItem() {
     name: function name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_LEFT);
     },
-    callback: function callback(key, selection) {
-      this.alter('insert_col', selection.start.col, 1, 'ContextMenu.columnLeft');
+    callback: function callback(key, normalizedSelection) {
+      var latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+
+      this.alter('insert_col', latestSelection.start.col, 1, 'ContextMenu.columnLeft');
     },
     disabled: function disabled() {
       var selected = (0, _utils.getValidSelection)(this);
@@ -44336,11 +46452,18 @@ function columnLeftItem() {
       if (!this.isColumnModificationAllowed()) {
         return true;
       }
-      var entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
+
+      var _selected$ = _slicedToArray(selected[0], 4),
+          startRow = _selected$[0],
+          startColumn = _selected$[1],
+          endRow = _selected$[2],
+          endColumn = _selected$[3];
+
+      var entireRowSelection = [startRow, 0, endRow, this.countCols() - 1];
       var rowSelected = entireRowSelection.join(',') === selected.join(',');
       var onlyOneColumn = this.countCols() === 1;
 
-      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || !onlyOneColumn && rowSelected;
+      return startColumn < 0 || this.countCols() >= this.getSettings().maxCols || !onlyOneColumn && rowSelected;
     },
     hidden: function hidden() {
       return !this.getSettings().allowInsertColumn;
@@ -44349,7 +46472,7 @@ function columnLeftItem() {
 }
 
 /***/ }),
-/* 313 */
+/* 327 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44357,9 +46480,12 @@ function columnLeftItem() {
 
 exports.__esModule = true;
 exports.KEY = undefined;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 exports.default = columnRightItem;
 
-var _utils = __webpack_require__(22);
+var _utils = __webpack_require__(23);
 
 var _constants = __webpack_require__(3);
 
@@ -44375,8 +46501,10 @@ function columnRightItem() {
     name: function name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
     },
-    callback: function callback(key, selection) {
-      this.alter('insert_col', selection.end.col + 1, 1, 'ContextMenu.columnRight');
+    callback: function callback(key, normalizedSelection) {
+      var latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+
+      this.alter('insert_col', latestSelection.end.col + 1, 1, 'ContextMenu.columnRight');
     },
     disabled: function disabled() {
       var selected = (0, _utils.getValidSelection)(this);
@@ -44387,11 +46515,18 @@ function columnRightItem() {
       if (!this.isColumnModificationAllowed()) {
         return true;
       }
-      var entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
+
+      var _selected$ = _slicedToArray(selected[0], 4),
+          startRow = _selected$[0],
+          startColumn = _selected$[1],
+          endRow = _selected$[2],
+          endColumn = _selected$[3];
+
+      var entireRowSelection = [startRow, 0, endRow, this.countCols() - 1];
       var rowSelected = entireRowSelection.join(',') === selected.join(',');
       var onlyOneColumn = this.countCols() === 1;
 
-      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || !onlyOneColumn && rowSelected;
+      return startColumn < 0 || this.countCols() >= this.getSettings().maxCols || !onlyOneColumn && rowSelected;
     },
     hidden: function hidden() {
       return !this.getSettings().allowInsertColumn;
@@ -44400,7 +46535,7 @@ function columnRightItem() {
 }
 
 /***/ }),
-/* 314 */
+/* 328 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44410,7 +46545,9 @@ exports.__esModule = true;
 exports.KEY = undefined;
 exports.default = readOnlyItem;
 
-var _utils = __webpack_require__(22);
+var _utils = __webpack_require__(23);
+
+var _array = __webpack_require__(0);
 
 var _constants = __webpack_require__(3);
 
@@ -44440,14 +46577,17 @@ function readOnlyItem() {
     callback: function callback() {
       var _this2 = this;
 
-      var range = this.getSelectedRange();
-      var atLeastOneReadOnly = (0, _utils.checkSelectionConsistency)(range, function (row, col) {
+      var ranges = this.getSelectedRange();
+      var atLeastOneReadOnly = (0, _utils.checkSelectionConsistency)(ranges, function (row, col) {
         return _this2.getCellMeta(row, col).readOnly;
       });
 
-      range.forAll(function (row, col) {
-        _this2.setCellMeta(row, col, 'readOnly', !atLeastOneReadOnly);
+      (0, _array.arrayEach)(ranges, function (range) {
+        range.forAll(function (row, col) {
+          _this2.setCellMeta(row, col, 'readOnly', !atLeastOneReadOnly);
+        });
       });
+
       this.render();
     },
     disabled: function disabled() {
@@ -44457,7 +46597,7 @@ function readOnlyItem() {
 }
 
 /***/ }),
-/* 315 */
+/* 329 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44491,7 +46631,7 @@ function redoItem() {
 }
 
 /***/ }),
-/* 316 */
+/* 330 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44504,7 +46644,11 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 exports.default = removeColumnItem;
 
-var _utils = __webpack_require__(22);
+var _utils = __webpack_require__(23);
+
+var _array = __webpack_require__(0);
+
+var _utils2 = __webpack_require__(213);
 
 var _constants = __webpack_require__(3);
 
@@ -44521,28 +46665,34 @@ function removeColumnItem() {
       var selection = this.getSelected();
       var pluralForm = 0;
 
-      if (Array.isArray(selection)) {
-        var _selection = _slicedToArray(selection, 4),
-            fromColumn = _selection[1],
-            toColumn = _selection[3];
-
-        if (fromColumn - toColumn !== 0) {
+      if (selection) {
+        if (selection.length > 1) {
           pluralForm = 1;
+        } else {
+          var _selection$ = _slicedToArray(selection[0], 4),
+              fromColumn = _selection$[1],
+              toColumn = _selection$[3];
+
+          if (fromColumn - toColumn !== 0) {
+            pluralForm = 1;
+          }
         }
       }
 
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, pluralForm);
     },
-    callback: function callback(key, selection) {
-      var amount = selection.end.col - selection.start.col + 1;
-
-      this.alter('remove_col', selection.start.col, amount, 'ContextMenu.removeColumn');
+    callback: function callback() {
+      this.alter('remove_col', (0, _utils2.transformSelectionToColumnDistance)(this.getSelected()), null, 'ContextMenu.removeColumn');
     },
     disabled: function disabled() {
       var selected = (0, _utils.getValidSelection)(this);
       var totalColumns = this.countCols();
 
-      return !selected || this.selection.selectedHeader.rows || this.selection.selectedHeader.corner || !this.isColumnModificationAllowed() || !totalColumns;
+      if (!selected) {
+        return true;
+      }
+
+      return this.selection.selectedHeader.rows || this.selection.selectedHeader.corner || !this.isColumnModificationAllowed() || !totalColumns;
     },
     hidden: function hidden() {
       return !this.getSettings().allowRemoveColumn;
@@ -44551,7 +46701,7 @@ function removeColumnItem() {
 }
 
 /***/ }),
-/* 317 */
+/* 331 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44564,7 +46714,11 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 exports.default = removeRowItem;
 
-var _utils = __webpack_require__(22);
+var _utils = __webpack_require__(23);
+
+var _array = __webpack_require__(0);
+
+var _utils2 = __webpack_require__(213);
 
 var _constants = __webpack_require__(3);
 
@@ -44581,28 +46735,34 @@ function removeRowItem() {
       var selection = this.getSelected();
       var pluralForm = 0;
 
-      if (Array.isArray(selection)) {
-        var _selection = _slicedToArray(selection, 3),
-            fromRow = _selection[0],
-            toRow = _selection[2];
-
-        if (fromRow - toRow !== 0) {
+      if (selection) {
+        if (selection.length > 1) {
           pluralForm = 1;
+        } else {
+          var _selection$ = _slicedToArray(selection[0], 3),
+              fromRow = _selection$[0],
+              toRow = _selection$[2];
+
+          if (fromRow - toRow !== 0) {
+            pluralForm = 1;
+          }
         }
       }
 
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_ROW, pluralForm);
     },
-    callback: function callback(key, selection) {
-      var amount = selection.end.row - selection.start.row + 1;
-
-      this.alter('remove_row', selection.start.row, amount, 'ContextMenu.removeRow');
+    callback: function callback() {
+      this.alter('remove_row', (0, _utils2.transformSelectionToRowDistance)(this.getSelected()), null, 'ContextMenu.removeRow');
     },
     disabled: function disabled() {
       var selected = (0, _utils.getValidSelection)(this);
       var totalRows = this.countRows();
 
-      return !selected || this.selection.selectedHeader.cols || this.selection.selectedHeader.corner || !totalRows;
+      if (!selected) {
+        return true;
+      }
+
+      return this.selection.selectedHeader.cols || this.selection.selectedHeader.corner || !totalRows;
     },
     hidden: function hidden() {
       return !this.getSettings().allowRemoveRow;
@@ -44611,7 +46771,7 @@ function removeRowItem() {
 }
 
 /***/ }),
-/* 318 */
+/* 332 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44621,7 +46781,7 @@ exports.__esModule = true;
 exports.KEY = undefined;
 exports.default = rowAboveItem;
 
-var _utils = __webpack_require__(22);
+var _utils = __webpack_require__(23);
 
 var _constants = __webpack_require__(3);
 
@@ -44637,13 +46797,19 @@ function rowAboveItem() {
     name: function name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_ABOVE);
     },
-    callback: function callback(key, selection) {
-      this.alter('insert_row', selection.start.row, 1, 'ContextMenu.rowAbove');
+    callback: function callback(key, normalizedSelection) {
+      var latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+
+      this.alter('insert_row', latestSelection.start.row, 1, 'ContextMenu.rowAbove');
     },
     disabled: function disabled() {
       var selected = (0, _utils.getValidSelection)(this);
 
-      return !selected || this.selection.selectedHeader.cols || this.countRows() >= this.getSettings().maxRows;
+      if (!selected) {
+        return true;
+      }
+
+      return this.selection.selectedHeader.cols || this.countRows() >= this.getSettings().maxRows;
     },
     hidden: function hidden() {
       return !this.getSettings().allowInsertRow;
@@ -44652,7 +46818,7 @@ function rowAboveItem() {
 }
 
 /***/ }),
-/* 319 */
+/* 333 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44662,7 +46828,7 @@ exports.__esModule = true;
 exports.KEY = undefined;
 exports.default = rowBelowItem;
 
-var _utils = __webpack_require__(22);
+var _utils = __webpack_require__(23);
 
 var _constants = __webpack_require__(3);
 
@@ -44678,13 +46844,19 @@ function rowBelowItem() {
     name: function name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_BELOW);
     },
-    callback: function callback(key, selection) {
-      this.alter('insert_row', selection.end.row + 1, 1, 'ContextMenu.rowBelow');
+    callback: function callback(key, normalizedSelection) {
+      var latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+
+      this.alter('insert_row', latestSelection.end.row + 1, 1, 'ContextMenu.rowBelow');
     },
     disabled: function disabled() {
       var selected = (0, _utils.getValidSelection)(this);
 
-      return !selected || this.selection.selectedHeader.cols || this.countRows() >= this.getSettings().maxRows;
+      if (!selected) {
+        return true;
+      }
+
+      return this.selection.selectedHeader.cols || this.countRows() >= this.getSettings().maxRows;
     },
     hidden: function hidden() {
       return !this.getSettings().allowInsertRow;
@@ -44693,7 +46865,7 @@ function rowBelowItem() {
 }
 
 /***/ }),
-/* 320 */
+/* 334 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44727,7 +46899,7 @@ function undoItem() {
 }
 
 /***/ }),
-/* 321 */
+/* 335 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44739,7 +46911,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(1);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -44877,13 +47049,13 @@ var Cursor = function () {
 exports.default = Cursor;
 
 /***/ }),
-/* 322 */
+/* 336 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 323 */
+/* 337 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44901,7 +47073,7 @@ var _base = __webpack_require__(7);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
@@ -44909,7 +47081,7 @@ var _SheetClip = __webpack_require__(203);
 
 var _SheetClip2 = _interopRequireDefault(_SheetClip);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
 var _element = __webpack_require__(1);
 
@@ -44919,15 +47091,15 @@ var _number = __webpack_require__(4);
 
 var _plugins = __webpack_require__(6);
 
-var _textarea = __webpack_require__(324);
+var _textarea = __webpack_require__(338);
 
 var _textarea2 = _interopRequireDefault(_textarea);
 
-var _copy = __webpack_require__(325);
+var _copy = __webpack_require__(339);
 
 var _copy2 = _interopRequireDefault(_copy);
 
-var _cut = __webpack_require__(326);
+var _cut = __webpack_require__(340);
 
 var _cut2 = _interopRequireDefault(_cut);
 
@@ -44935,11 +47107,11 @@ var _eventManager = __webpack_require__(8);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _pasteEvent = __webpack_require__(327);
+var _pasteEvent = __webpack_require__(341);
 
 var _pasteEvent2 = _interopRequireDefault(_pasteEvent);
 
-__webpack_require__(329);
+__webpack_require__(343);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -45128,12 +47300,11 @@ var CopyPaste = function (_BasePlugin) {
   }, {
     key: 'setCopyableText',
     value: function setCopyableText() {
-      var selRange = this.hot.getSelectedRange();
+      var selRange = this.hot.getSelectedRangeLast();
 
       if (!selRange) {
         return;
       }
-
       var topLeft = selRange.getTopLeftCorner();
       var bottomRight = selRange.getBottomRightCorner();
       var startRow = topLeft.row;
@@ -45386,7 +47557,7 @@ var CopyPaste = function (_BasePlugin) {
           window.clipboardData.setData('Text', value);
         }
 
-        this.hot.selection.empty();
+        this.hot.emptySelectedCells();
         this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
       }
 
@@ -45433,7 +47604,7 @@ var CopyPaste = function (_BasePlugin) {
         return;
       }
 
-      var selected = this.hot.getSelected();
+      var selected = this.hot.getSelectedLast();
       var coordsFrom = new _src.CellCoords(selected[0], selected[1]);
       var coordsTo = new _src.CellCoords(selected[2], selected[3]);
       var cellRange = new _src.CellRange(coordsFrom, coordsFrom, coordsTo);
@@ -45534,7 +47705,7 @@ var CopyPaste = function (_BasePlugin) {
 exports.default = CopyPaste;
 
 /***/ }),
-/* 324 */
+/* 338 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45719,7 +47890,7 @@ var globalSingleton = new Textarea();
 exports.default = Textarea;
 
 /***/ }),
-/* 325 */
+/* 339 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45744,7 +47915,13 @@ function copyItem(copyPastePlugin) {
       copyPastePlugin.copy();
     },
     disabled: function disabled() {
-      return !copyPastePlugin.hot.getSelected();
+      var selected = this.getSelected();
+
+      if (!selected || selected.length > 1) {
+        return true;
+      }
+
+      return false;
     },
 
     hidden: false
@@ -45752,7 +47929,7 @@ function copyItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 326 */
+/* 340 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45777,7 +47954,13 @@ function cutItem(copyPastePlugin) {
       copyPastePlugin.cut();
     },
     disabled: function disabled() {
-      return !copyPastePlugin.hot.getSelected();
+      var selected = this.getSelected();
+
+      if (!selected || selected.length > 1) {
+        return true;
+      }
+
+      return false;
     },
 
     hidden: false
@@ -45785,7 +47968,7 @@ function cutItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 327 */
+/* 341 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45793,7 +47976,7 @@ function cutItem(copyPastePlugin) {
 
 exports.__esModule = true;
 
-var _clipboardData = __webpack_require__(328);
+var _clipboardData = __webpack_require__(342);
 
 var _clipboardData2 = _interopRequireDefault(_clipboardData);
 
@@ -45810,7 +47993,7 @@ var PasteEvent = function PasteEvent() {
 exports.default = PasteEvent;
 
 /***/ }),
-/* 328 */
+/* 342 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45847,13 +48030,13 @@ var ClipboardData = function () {
 exports.default = ClipboardData;
 
 /***/ }),
-/* 329 */
+/* 343 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 330 */
+/* 344 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45863,13 +48046,15 @@ exports.__esModule = true;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
 var _object = __webpack_require__(2);
 
-var _src = __webpack_require__(15);
+var _array = __webpack_require__(0);
+
+var _src = __webpack_require__(10);
 
 var _constants = __webpack_require__(3);
 
@@ -45957,13 +48142,17 @@ var init = function init() {
  * @returns {Number}
  */
 var getSettingIndex = function getSettingIndex(className) {
-  for (var i = 0; i < instance.view.wt.selections.length; i++) {
-    if (instance.view.wt.selections[i].settings.className == className) {
-      return i;
-    }
-  }
+  var index = -1;
 
-  return -1;
+  (0, _array.arrayEach)(instance.selection.highlight.borders, function (selection, i) {
+    if (selection.settings.className == className) {
+      index = i;
+
+      return false;
+    }
+  });
+
+  return index;
 };
 
 /** *
@@ -45980,9 +48169,9 @@ var insertBorderIntoSettings = function insertBorderIntoSettings(border) {
   var index = getSettingIndex(border.className);
 
   if (index >= 0) {
-    instance.view.wt.selections[index] = selection;
+    instance.selection.highlight.borders[index] = selection;
   } else {
-    instance.view.wt.selections.push(selection);
+    instance.selection.highlight.borders.push(selection);
   }
 };
 
@@ -46205,8 +48394,6 @@ var setBorder = function setBorder(row, col, place, remove) {
   var borderClassName = createClassName(row, col);
   removeBordersFromDom(borderClassName);
   insertBorderIntoSettings(bordersMeta);
-
-  this.render();
 };
 
 /** *
@@ -46216,47 +48403,55 @@ var setBorder = function setBorder(row, col, place, remove) {
  * @param place
  * @param remove
  */
-var prepareBorder = function prepareBorder(range, place, remove) {
+var prepareBorder = function prepareBorder(selected, place, remove) {
+  var _this = this;
 
-  if (range.from.row == range.to.row && range.from.col == range.to.col) {
-    if (place == 'noBorders') {
-      removeAllBorders.call(this, range.from.row, range.from.col);
+  (0, _array.arrayEach)(selected, function (_ref) {
+    var start = _ref.start,
+        end = _ref.end;
+
+    if (start.row == end.row && start.col == end.col) {
+      if (place == 'noBorders') {
+        removeAllBorders.call(_this, start.row, start.col);
+      } else {
+        setBorder.call(_this, start.row, start.col, place, remove);
+      }
     } else {
-      setBorder.call(this, range.from.row, range.from.col, place, remove);
-    }
-  } else {
-    switch (place) {
-      case 'noBorders':
-        for (var column = range.from.col; column <= range.to.col; column++) {
-          for (var row = range.from.row; row <= range.to.row; row++) {
-            removeAllBorders.call(this, row, column);
+      switch (place) {
+        case 'noBorders':
+          for (var column = start.col; column <= end.col; column++) {
+            for (var row = start.row; row <= end.row; row++) {
+              removeAllBorders.call(_this, row, column);
+            }
           }
-        }
-        break;
-      case 'top':
-        for (var topCol = range.from.col; topCol <= range.to.col; topCol++) {
-          setBorder.call(this, range.from.row, topCol, place, remove);
-        }
-        break;
-      case 'right':
-        for (var rowRight = range.from.row; rowRight <= range.to.row; rowRight++) {
-          setBorder.call(this, rowRight, range.to.col, place);
-        }
-        break;
-      case 'bottom':
-        for (var bottomCol = range.from.col; bottomCol <= range.to.col; bottomCol++) {
-          setBorder.call(this, range.to.row, bottomCol, place);
-        }
-        break;
-      case 'left':
-        for (var rowLeft = range.from.row; rowLeft <= range.to.row; rowLeft++) {
-          setBorder.call(this, rowLeft, range.from.col, place);
-        }
-        break;
-      default:
-        break;
+          break;
+        case 'top':
+          for (var topCol = start.col; topCol <= end.col; topCol++) {
+            setBorder.call(_this, start.row, topCol, place, remove);
+          }
+          break;
+        case 'right':
+          for (var rowRight = start.row; rowRight <= end.row; rowRight++) {
+            setBorder.call(_this, rowRight, end.col, place);
+          }
+          break;
+        case 'bottom':
+          for (var bottomCol = start.col; bottomCol <= end.col; bottomCol++) {
+            setBorder.call(_this, end.row, bottomCol, place);
+          }
+          break;
+        case 'left':
+          for (var rowLeft = start.row; rowLeft <= end.row; rowLeft++) {
+            setBorder.call(_this, rowLeft, start.col, place);
+          }
+          break;
+        default:
+          break;
+      }
     }
-  }
+  });
+
+  this.render();
 };
 
 /** *
@@ -46268,21 +48463,24 @@ var prepareBorder = function prepareBorder(range, place, remove) {
 var checkSelectionBorders = function checkSelectionBorders(hot, direction) {
   var atLeastOneHasBorder = false;
 
-  hot.getSelectedRange().forAll(function (r, c) {
-    var metaBorders = hot.getCellMeta(r, c).borders;
+  (0, _array.arrayEach)(hot.getSelectedRange(), function (range) {
+    range.forAll(function (r, c) {
+      var metaBorders = hot.getCellMeta(r, c).borders;
 
-    if (metaBorders) {
-      if (direction) {
-        if (!(0, _object.hasOwnProperty)(metaBorders[direction], 'hide')) {
+      if (metaBorders) {
+        if (direction) {
+          if (!(0, _object.hasOwnProperty)(metaBorders[direction], 'hide')) {
+            atLeastOneHasBorder = true;
+            return false; // breaks forAll
+          }
+        } else {
           atLeastOneHasBorder = true;
           return false; // breaks forAll
         }
-      } else {
-        atLeastOneHasBorder = true;
-        return false; // breaks forAll
       }
-    }
+    });
   });
+
   return atLeastOneHasBorder;
 };
 
@@ -46331,9 +48529,9 @@ var addBordersOptionsToContextMenu = function addBordersOptionsToContextMenu(def
 
           return label;
         },
-        callback: function callback() {
+        callback: function callback(key, selected) {
           var hasBorder = checkSelectionBorders(this, 'top');
-          prepareBorder.call(this, this.getSelectedRange(), 'top', hasBorder);
+          prepareBorder.call(this, selected, 'top', hasBorder);
         }
       }, {
         key: 'borders:right',
@@ -46345,9 +48543,9 @@ var addBordersOptionsToContextMenu = function addBordersOptionsToContextMenu(def
           }
           return label;
         },
-        callback: function callback() {
+        callback: function callback(key, selected) {
           var hasBorder = checkSelectionBorders(this, 'right');
-          prepareBorder.call(this, this.getSelectedRange(), 'right', hasBorder);
+          prepareBorder.call(this, selected, 'right', hasBorder);
         }
       }, {
         key: 'borders:bottom',
@@ -46359,9 +48557,9 @@ var addBordersOptionsToContextMenu = function addBordersOptionsToContextMenu(def
           }
           return label;
         },
-        callback: function callback() {
+        callback: function callback(key, selected) {
           var hasBorder = checkSelectionBorders(this, 'bottom');
-          prepareBorder.call(this, this.getSelectedRange(), 'bottom', hasBorder);
+          prepareBorder.call(this, selected, 'bottom', hasBorder);
         }
       }, {
         key: 'borders:left',
@@ -46374,17 +48572,17 @@ var addBordersOptionsToContextMenu = function addBordersOptionsToContextMenu(def
 
           return label;
         },
-        callback: function callback() {
+        callback: function callback(key, selected) {
           var hasBorder = checkSelectionBorders(this, 'left');
-          prepareBorder.call(this, this.getSelectedRange(), 'left', hasBorder);
+          prepareBorder.call(this, selected, 'left', hasBorder);
         }
       }, {
         key: 'borders:no_borders',
         name: function name() {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_BORDERS);
         },
-        callback: function callback() {
-          prepareBorder.call(this, this.getSelectedRange(), 'noBorders');
+        callback: function callback(key, selected) {
+          prepareBorder.call(this, selected, 'noBorders');
         },
         disabled: function disabled() {
           return !checkSelectionBorders(this);
@@ -46416,7 +48614,7 @@ _pluginHooks2.default.getSingleton().add('afterInit', function () {
 exports.default = CustomBorders;
 
 /***/ }),
-/* 331 */
+/* 345 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46720,7 +48918,7 @@ var DragToScroll = function (_BasePlugin) {
 exports.default = DragToScroll;
 
 /***/ }),
-/* 332 */
+/* 346 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46740,15 +48938,15 @@ var _plugins = __webpack_require__(6);
 
 var _array = __webpack_require__(0);
 
-var _freezeColumn = __webpack_require__(333);
+var _freezeColumn = __webpack_require__(347);
 
 var _freezeColumn2 = _interopRequireDefault(_freezeColumn);
 
-var _unfreezeColumn = __webpack_require__(334);
+var _unfreezeColumn = __webpack_require__(348);
 
 var _unfreezeColumn2 = _interopRequireDefault(_unfreezeColumn);
 
-__webpack_require__(335);
+__webpack_require__(349);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -46949,10 +49147,10 @@ var ManualColumnFreeze = function (_BasePlugin) {
       var j = movePlugin.columnsMapper.getValueByIndex(i);
       var initialCol = void 0;
 
-      if (this.frozenColumnsBasePositions[column] == null) {
+      if (this.frozenColumnsBasePositions[column] === null || this.frozenColumnsBasePositions[column] === void 0) {
         initialCol = movePlugin.columnsMapper.getValueByIndex(column);
 
-        while (j < initialCol) {
+        while (j !== null && j <= initialCol) {
           i++;
           j = movePlugin.columnsMapper.getValueByIndex(i);
         }
@@ -46960,7 +49158,7 @@ var ManualColumnFreeze = function (_BasePlugin) {
         initialCol = this.frozenColumnsBasePositions[column];
         this.frozenColumnsBasePositions[column] = void 0;
 
-        while (j <= initialCol) {
+        while (j !== null && j <= initialCol) {
           i++;
           j = movePlugin.columnsMapper.getValueByIndex(i);
         }
@@ -47051,13 +49249,16 @@ var ManualColumnFreeze = function (_BasePlugin) {
 exports.default = ManualColumnFreeze;
 
 /***/ }),
-/* 333 */
+/* 347 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 exports.__esModule = true;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 exports.default = freezeColumnItem;
 
 var _constants = __webpack_require__(3);
@@ -47072,8 +49273,9 @@ function freezeColumnItem(manualColumnFreezePlugin) {
     name: function name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_FREEZE_COLUMN);
     },
-    callback: function callback() {
-      var selectedColumn = this.getSelectedRange().from.col;
+    callback: function callback(key, selected) {
+      var _selected = _slicedToArray(selected, 1),
+          selectedColumn = _selected[0].start.col;
 
       manualColumnFreezePlugin.freezeColumn(selectedColumn);
 
@@ -47086,7 +49288,9 @@ function freezeColumnItem(manualColumnFreezePlugin) {
 
       if (selection === void 0) {
         hide = true;
-      } else if (selection.from.col !== selection.to.col || selection.from.col <= this.getSettings().fixedColumnsLeft - 1) {
+      } else if (selection.length > 1) {
+        hide = true;
+      } else if (selection[0].from.col !== selection[0].to.col || selection[0].from.col <= this.getSettings().fixedColumnsLeft - 1) {
         hide = true;
       }
 
@@ -47096,13 +49300,16 @@ function freezeColumnItem(manualColumnFreezePlugin) {
 }
 
 /***/ }),
-/* 334 */
+/* 348 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 exports.__esModule = true;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 exports.default = unfreezeColumnItem;
 
 var _constants = __webpack_require__(3);
@@ -47117,8 +49324,9 @@ function unfreezeColumnItem(manualColumnFreezePlugin) {
     name: function name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN);
     },
-    callback: function callback() {
-      var selectedColumn = this.getSelectedRange().from.col;
+    callback: function callback(key, selected) {
+      var _selected = _slicedToArray(selected, 1),
+          selectedColumn = _selected[0].start.col;
 
       manualColumnFreezePlugin.unfreezeColumn(selectedColumn);
 
@@ -47131,7 +49339,9 @@ function unfreezeColumnItem(manualColumnFreezePlugin) {
 
       if (selection === void 0) {
         hide = true;
-      } else if (selection.from.col !== selection.to.col || selection.from.col >= this.getSettings().fixedColumnsLeft) {
+      } else if (selection.length > 1) {
+        hide = true;
+      } else if (selection[0].from.col !== selection[0].to.col || selection[0].from.col >= this.getSettings().fixedColumnsLeft) {
         hide = true;
       }
 
@@ -47141,13 +49351,13 @@ function unfreezeColumnItem(manualColumnFreezePlugin) {
 }
 
 /***/ }),
-/* 335 */
+/* 349 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 336 */
+/* 350 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47163,7 +49373,7 @@ var _base = __webpack_require__(7);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
@@ -47179,21 +49389,21 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _plugins = __webpack_require__(6);
 
-var _columnsMapper = __webpack_require__(337);
+var _columnsMapper = __webpack_require__(351);
 
 var _columnsMapper2 = _interopRequireDefault(_columnsMapper);
 
-var _backlight = __webpack_require__(338);
+var _backlight = __webpack_require__(352);
 
 var _backlight2 = _interopRequireDefault(_backlight);
 
-var _guideline = __webpack_require__(339);
+var _guideline = __webpack_require__(353);
 
 var _guideline2 = _interopRequireDefault(_guideline);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
-__webpack_require__(340);
+__webpack_require__(354);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47741,7 +49951,7 @@ var ManualColumnMove = function (_BasePlugin) {
     value: function onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
       var wtTable = this.hot.view.wt.wtTable;
       var isHeaderSelection = this.hot.selection.selectedHeader.cols;
-      var selection = this.hot.getSelectedRange();
+      var selection = this.hot.getSelectedRangeLast();
       var priv = privatePool.get(this);
       var isSortingElement = event.realTarget.className.indexOf('columnSorting') > -1;
 
@@ -47843,7 +50053,7 @@ var ManualColumnMove = function (_BasePlugin) {
   }, {
     key: 'onBeforeOnCellMouseOver',
     value: function onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
-      var selectedRange = this.hot.getSelectedRange();
+      var selectedRange = this.hot.getSelectedRangeLast();
       var priv = privatePool.get(this);
 
       if (!selectedRange || !priv.pressed) {
@@ -48053,7 +50263,7 @@ var ManualColumnMove = function (_BasePlugin) {
 exports.default = ManualColumnMove;
 
 /***/ }),
-/* 337 */
+/* 351 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48160,7 +50370,7 @@ var ColumnsMapper = function () {
 exports.default = ColumnsMapper;
 
 /***/ }),
-/* 338 */
+/* 352 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48172,7 +50382,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _base = __webpack_require__(211);
+var _base = __webpack_require__(214);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -48221,7 +50431,7 @@ var BacklightUI = function (_BaseUI) {
 exports.default = BacklightUI;
 
 /***/ }),
-/* 339 */
+/* 353 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48233,7 +50443,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _base = __webpack_require__(211);
+var _base = __webpack_require__(214);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -48282,13 +50492,13 @@ var GuidelineUI = function (_BaseUI) {
 exports.default = GuidelineUI;
 
 /***/ }),
-/* 340 */
+/* 354 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 341 */
+/* 355 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48310,7 +50520,7 @@ var _eventManager = __webpack_require__(8);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _array = __webpack_require__(0);
 
@@ -48503,7 +50713,7 @@ var ManualColumnResize = function (_BasePlugin) {
         this.selectedCols = [];
 
         if (this.hot.selection.isSelected() && this.hot.selection.selectedHeader.cols) {
-          var _hot$getSelectedRange = this.hot.getSelectedRange(),
+          var _hot$getSelectedRange = this.hot.getSelectedRangeLast(),
               from = _hot$getSelectedRange.from,
               to = _hot$getSelectedRange.to;
 
@@ -48950,7 +51160,7 @@ var ManualColumnResize = function (_BasePlugin) {
 exports.default = ManualColumnResize;
 
 /***/ }),
-/* 342 */
+/* 356 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48966,7 +51176,7 @@ var _base = __webpack_require__(7);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
@@ -48982,21 +51192,21 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _plugins = __webpack_require__(6);
 
-var _rowsMapper = __webpack_require__(343);
+var _rowsMapper = __webpack_require__(357);
 
 var _rowsMapper2 = _interopRequireDefault(_rowsMapper);
 
-var _backlight = __webpack_require__(344);
+var _backlight = __webpack_require__(358);
 
 var _backlight2 = _interopRequireDefault(_backlight);
 
-var _guideline = __webpack_require__(345);
+var _guideline = __webpack_require__(359);
 
 var _guideline2 = _interopRequireDefault(_guideline);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
-__webpack_require__(346);
+__webpack_require__(360);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -49377,7 +51587,7 @@ var ManualRowMove = function (_BasePlugin) {
   }, {
     key: 'prepareRowsToMoving',
     value: function prepareRowsToMoving() {
-      var selection = this.hot.getSelectedRange();
+      var selection = this.hot.getSelectedRangeLast();
       var selectedRows = [];
 
       if (!selection) {
@@ -49575,7 +51785,7 @@ var ManualRowMove = function (_BasePlugin) {
     value: function onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
       var wtTable = this.hot.view.wt.wtTable;
       var isHeaderSelection = this.hot.selection.selectedHeader.rows;
-      var selection = this.hot.getSelectedRange();
+      var selection = this.hot.getSelectedRangeLast();
       var priv = privatePool.get(this);
 
       if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0) {
@@ -49666,7 +51876,7 @@ var ManualRowMove = function (_BasePlugin) {
   }, {
     key: 'onBeforeOnCellMouseOver',
     value: function onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
-      var selectedRange = this.hot.getSelectedRange();
+      var selectedRange = this.hot.getSelectedRangeLast();
       var priv = privatePool.get(this);
 
       if (!selectedRange || !priv.pressed) {
@@ -49877,7 +52087,7 @@ var ManualRowMove = function (_BasePlugin) {
 exports.default = ManualRowMove;
 
 /***/ }),
-/* 343 */
+/* 357 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49949,8 +52159,8 @@ var RowsMapper = function () {
     }
 
     /**
-     * Moving elements in rowsMapper.
      *
+     * Moving elements in rowsMapper.
      * @param {Number} from Row index to move.
      * @param {Number} to Target index.
      */
@@ -49984,7 +52194,7 @@ var RowsMapper = function () {
 exports.default = RowsMapper;
 
 /***/ }),
-/* 344 */
+/* 358 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49996,7 +52206,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _base = __webpack_require__(212);
+var _base = __webpack_require__(215);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -50045,7 +52255,7 @@ var BacklightUI = function (_BaseUI) {
 exports.default = BacklightUI;
 
 /***/ }),
-/* 345 */
+/* 359 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50057,7 +52267,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _base = __webpack_require__(212);
+var _base = __webpack_require__(215);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -50106,13 +52316,13 @@ var GuidelineUI = function (_BaseUI) {
 exports.default = GuidelineUI;
 
 /***/ }),
-/* 346 */
+/* 360 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 347 */
+/* 361 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50134,7 +52344,7 @@ var _eventManager = __webpack_require__(8);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _array = __webpack_require__(0);
 
@@ -50317,7 +52527,7 @@ var ManualRowResize = function (_BasePlugin) {
         this.selectedRows = [];
 
         if (this.hot.selection.isSelected() && this.hot.selection.selectedHeader.rows) {
-          var _hot$getSelectedRange = this.hot.getSelectedRange(),
+          var _hot$getSelectedRange = this.hot.getSelectedRangeLast(),
               from = _hot$getSelectedRange.from,
               to = _hot$getSelectedRange.to;
 
@@ -50697,7 +52907,7 @@ var ManualRowResize = function (_BasePlugin) {
 exports.default = ManualRowResize;
 
 /***/ }),
-/* 348 */
+/* 362 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50705,13 +52915,13 @@ exports.default = ManualRowResize;
 
 exports.__esModule = true;
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
 var _constants = __webpack_require__(3);
 
@@ -51082,7 +53292,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
   if (ctrlDown) {
     if (event.keyCode === 77) {
       // CTRL + M
-      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
+      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRangeLast());
       this.render();
       (0, _event.stopImmediatePropagation)(event);
     }
@@ -51098,7 +53308,7 @@ var addMergeActionsToContextMenu = function addMergeActionsToContextMenu(default
   defaultOptions.items.push({
     key: 'mergeCells',
     name: function name() {
-      var sel = this.getSelected();
+      var sel = this.getSelectedRangeLast();
       var info = this.mergeCells.mergedCellInfoCollection.getInfo(sel[0], sel[1]);
 
       if (info) {
@@ -51108,7 +53318,7 @@ var addMergeActionsToContextMenu = function addMergeActionsToContextMenu(default
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_MERGE_CELLS);
     },
     callback: function callback() {
-      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
+      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRangeLast());
       this.render();
     },
     disabled: function disabled() {
@@ -51127,7 +53337,7 @@ var modifyTransformFactory = function modifyTransformFactory(hook) {
   return function (delta) {
     var mergeCellsSetting = this.getSettings().mergeCells;
     if (mergeCellsSetting) {
-      var currentSelectedRange = this.getSelectedRange();
+      var currentSelectedRange = this.getSelectedRangeLast();
       this.mergeCells.modifyTransform(hook, currentSelectedRange, delta);
 
       if (hook === 'modifyTransformEnd') {
@@ -51159,7 +53369,7 @@ var beforeSetRangeEnd = function beforeSetRangeEnd(coords) {
   this.lastDesiredCoords = null; // unset lastDesiredCoords when selection is changed with mouse
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
-    var selRange = this.getSelectedRange();
+    var selRange = this.getSelectedRangeLast();
     selRange.highlight = new _src.CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
     selRange.to = coords;
 
@@ -51193,7 +53403,7 @@ var beforeDrawAreaBorders = function beforeDrawAreaBorders(corners, className) {
   if (className && className == 'area') {
     var mergeCellsSetting = this.getSettings().mergeCells;
     if (mergeCellsSetting) {
-      var selRange = this.getSelectedRange();
+      var selRange = this.getSelectedRangeLast();
       var startRange = new _src.CellRange(selRange.from, selRange.from, selRange.from);
       var stopRange = new _src.CellRange(selRange.to, selRange.to, selRange.to);
 
@@ -51281,7 +53491,7 @@ var afterViewportColumnCalculatorOverride = function afterViewportColumnCalculat
 var isMultipleSelection = function isMultipleSelection(isMultiple) {
   if (isMultiple && this.mergeCells) {
     var mergedCells = this.mergeCells.mergedCellInfoCollection,
-        selectionRange = this.getSelectedRange();
+        selectionRange = this.getSelectedRangeLast();
 
     for (var group in mergedCells) {
       if (selectionRange.highlight.row == mergedCells[group].row && selectionRange.highlight.col == mergedCells[group].col && selectionRange.to.row == mergedCells[group].row + mergedCells[group].rowspan - 1 && selectionRange.to.col == mergedCells[group].col + mergedCells[group].colspan - 1) {
@@ -51357,7 +53567,7 @@ hook.add('afterRemoveRow', onAfterRemoveRow);
 exports.default = MergeCells;
 
 /***/ }),
-/* 349 */
+/* 363 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51369,7 +53579,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
@@ -51387,7 +53597,7 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _plugins = __webpack_require__(6);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -51493,7 +53703,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
         var selectedRange = void 0;
 
         if ((0, _element.hasClass)(event.target, 'topLeftSelectionHandle-HitArea')) {
-          selectedRange = _this.hot.getSelectedRange();
+          selectedRange = _this.hot.getSelectedRangeLast();
 
           _this.dragged.push('topLeft');
 
@@ -51506,7 +53716,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
           event.preventDefault();
           return false;
         } else if ((0, _element.hasClass)(event.target, 'bottomRightSelectionHandle-HitArea')) {
-          selectedRange = _this.hot.getSelectedRange();
+          selectedRange = _this.hot.getSelectedRangeLast();
 
           _this.dragged.push('bottomRight');
 
@@ -51567,7 +53777,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
             targetCoords.col = 0;
           }
 
-          selectedRange = _this.hot.getSelectedRange();
+          selectedRange = _this.hot.getSelectedRangeLast();
           rangeWidth = selectedRange.getWidth();
           rangeHeight = selectedRange.getHeight();
           rangeDirection = selectedRange.getDirection();
@@ -51777,7 +53987,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
 exports.default = MultipleSelectionHandles;
 
 /***/ }),
-/* 350 */
+/* 364 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51793,11 +54003,11 @@ var _base = __webpack_require__(7);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _jsonPatchDuplex = __webpack_require__(213);
+var _jsonPatchDuplex = __webpack_require__(216);
 
 var _jsonPatchDuplex2 = _interopRequireDefault(_jsonPatchDuplex);
 
-var _dataObserver = __webpack_require__(351);
+var _dataObserver = __webpack_require__(365);
 
 var _dataObserver2 = _interopRequireDefault(_dataObserver);
 
@@ -51952,7 +54162,7 @@ var ObserveChanges = function (_BasePlugin) {
             }
           },
           replace: function replace(patch) {
-            _this3.hot.runHooks('afterChange', [patch.row, patch.col, null, patch.value], sourceName);
+            _this3.hot.runHooks('afterChange', [[patch.row, patch.col, null, patch.value]], sourceName);
           }
         };
 
@@ -52066,7 +54276,7 @@ exports.default = ObserveChanges;
 (0, _plugins.registerPlugin)('observeChanges', ObserveChanges);
 
 /***/ }),
-/* 351 */
+/* 365 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52076,17 +54286,17 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _jsonPatchDuplex = __webpack_require__(213);
+var _jsonPatchDuplex = __webpack_require__(216);
 
 var _jsonPatchDuplex2 = _interopRequireDefault(_jsonPatchDuplex);
 
-var _localHooks = __webpack_require__(31);
+var _localHooks = __webpack_require__(21);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
 var _object = __webpack_require__(2);
 
-var _utils = __webpack_require__(352);
+var _utils = __webpack_require__(366);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -52210,7 +54420,7 @@ var DataObserver = function () {
 exports.default = DataObserver;
 
 /***/ }),
-/* 352 */
+/* 366 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52302,166 +54512,7 @@ function parsePath(path) {
 }
 
 /***/ }),
-/* 353 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _pluginHooks = __webpack_require__(12);
-
-var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
-
-var _plugins = __webpack_require__(6);
-
-var _object = __webpack_require__(2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function Storage(prefix) {
-  var savedKeys;
-
-  var saveSavedKeys = function saveSavedKeys() {
-    window.localStorage[prefix + '__persistentStateKeys'] = JSON.stringify(savedKeys);
-  };
-
-  var loadSavedKeys = function loadSavedKeys() {
-    var keysJSON = window.localStorage[prefix + '__persistentStateKeys'];
-    var keys = typeof keysJSON == 'string' ? JSON.parse(keysJSON) : void 0;
-    savedKeys = keys ? keys : [];
-  };
-
-  var clearSavedKeys = function clearSavedKeys() {
-    savedKeys = [];
-    saveSavedKeys();
-  };
-
-  loadSavedKeys();
-
-  this.saveValue = function (key, value) {
-    window.localStorage[prefix + '_' + key] = JSON.stringify(value);
-    if (savedKeys.indexOf(key) == -1) {
-      savedKeys.push(key);
-      saveSavedKeys();
-    }
-  };
-
-  this.loadValue = function (key, defaultValue) {
-
-    key = typeof key === 'undefined' ? defaultValue : key;
-
-    var value = window.localStorage[prefix + '_' + key];
-
-    return typeof value == 'undefined' ? void 0 : JSON.parse(value);
-  };
-
-  this.reset = function (key) {
-    window.localStorage.removeItem(prefix + '_' + key);
-  };
-
-  this.resetAll = function () {
-    for (var index = 0; index < savedKeys.length; index++) {
-      window.localStorage.removeItem(prefix + '_' + savedKeys[index]);
-    }
-
-    clearSavedKeys();
-  };
-}
-
-/**
- * @private
- * @class PersistentState
- * @plugin PersistentState
- */
-function HandsontablePersistentState() {
-  var plugin = this;
-
-  this.init = function () {
-    var instance = this,
-        pluginSettings = instance.getSettings().persistentState;
-
-    plugin.enabled = !!pluginSettings;
-
-    if (!plugin.enabled) {
-      removeHooks.call(instance);
-      return;
-    }
-
-    if (!instance.storage) {
-      instance.storage = new Storage(instance.rootElement.id);
-    }
-
-    instance.resetState = plugin.resetValue;
-
-    addHooks.call(instance);
-  };
-
-  this.saveValue = function (key, value) {
-    var instance = this;
-
-    instance.storage.saveValue(key, value);
-  };
-
-  this.loadValue = function (key, saveTo) {
-    var instance = this;
-
-    saveTo.value = instance.storage.loadValue(key);
-  };
-
-  this.resetValue = function (key) {
-    var instance = this;
-
-    if (typeof key === 'undefined') {
-      instance.storage.resetAll();
-    } else {
-      instance.storage.reset(key);
-    }
-  };
-
-  var hooks = {
-    persistentStateSave: plugin.saveValue,
-    persistentStateLoad: plugin.loadValue,
-    persistentStateReset: plugin.resetValue
-  };
-
-  for (var hookName in hooks) {
-    if ((0, _object.hasOwnProperty)(hooks, hookName)) {
-      _pluginHooks2.default.getSingleton().register(hookName);
-    }
-  }
-
-  function addHooks() {
-    var instance = this;
-
-    for (var hookName in hooks) {
-      if ((0, _object.hasOwnProperty)(hooks, hookName)) {
-        instance.addHook(hookName, hooks[hookName]);
-      }
-    }
-  }
-
-  function removeHooks() {
-    var instance = this;
-
-    for (var hookName in hooks) {
-      if ((0, _object.hasOwnProperty)(hooks, hookName)) {
-        instance.removeHook(hookName, hooks[hookName]);
-      }
-    }
-  }
-}
-
-var htPersistentState = new HandsontablePersistentState();
-
-_pluginHooks2.default.getSingleton().add('beforeInit', htPersistentState.init);
-_pluginHooks2.default.getSingleton().add('afterUpdateSettings', htPersistentState.init);
-
-exports.default = HandsontablePersistentState;
-
-/***/ }),
-/* 354 */
+/* 367 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52471,13 +54522,13 @@ exports.__esModule = true;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
 var _element = __webpack_require__(1);
 
-var _renderers = __webpack_require__(13);
+var _renderers = __webpack_require__(15);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -52607,7 +54658,7 @@ _pluginHooks2.default.getSingleton().add('afterUpdateSettings', init);
 exports.default = Search;
 
 /***/ }),
-/* 355 */
+/* 368 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52869,7 +54920,7 @@ var TouchScroll = function (_BasePlugin) {
 exports.default = TouchScroll;
 
 /***/ }),
-/* 356 */
+/* 369 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52877,7 +54928,7 @@ exports.default = TouchScroll;
 
 exports.__esModule = true;
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
@@ -52887,9 +54938,9 @@ var _number = __webpack_require__(4);
 
 var _object = __webpack_require__(2);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -53314,24 +55365,39 @@ UndoRedo.CellAlignmentAction = function (stateBefore, range, type, alignment) {
   this.alignment = alignment;
 };
 UndoRedo.CellAlignmentAction.prototype.undo = function (instance, undoneCallback) {
+  var _this2 = this;
+
   if (!instance.getPlugin('contextMenu').isEnabled()) {
     return;
   }
-  for (var row = this.range.from.row; row <= this.range.to.row; row++) {
-    for (var col = this.range.from.col; col <= this.range.to.col; col++) {
-      instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
+
+  (0, _array.arrayEach)(this.range, function (_ref) {
+    var from = _ref.from,
+        to = _ref.to;
+
+    for (var row = from.row; row <= to.row; row++) {
+      for (var col = from.col; col <= to.col; col++) {
+        instance.setCellMeta(row, col, 'className', _this2.stateBefore[row][col] || ' htLeft');
+      }
     }
-  }
+  });
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
 };
 UndoRedo.CellAlignmentAction.prototype.redo = function (instance, undoneCallback) {
+  var _this3 = this;
+
   if (!instance.getPlugin('contextMenu').isEnabled()) {
     return;
   }
-  instance.selectCell(this.range.from.row, this.range.from.col, this.range.to.row, this.range.to.col);
-  instance.getPlugin('contextMenu').executeCommand('alignment:' + this.alignment.replace('ht', '').toLowerCase());
+  (0, _array.arrayEach)(this.range, function (_ref2) {
+    var from = _ref2.from,
+        to = _ref2.to;
+
+    instance.selectCell(from.row, from.col, to.row, to.col);
+    instance.getPlugin('contextMenu').executeCommand('alignment:' + _this3.alignment.replace('ht', '').toLowerCase());
+  });
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
@@ -53377,14 +55443,16 @@ UndoRedo.RowMoveAction.prototype.undo = function (instance, undoneCallback) {
   var manualRowMove = instance.getPlugin('manualRowMove');
 
   instance.addHookOnce('afterRender', undoneCallback);
+
   var mod = this.rows[0] < this.target ? -1 * this.rows.length : 0;
   var newTarget = this.rows[0] > this.target ? this.rows[0] + this.rows.length : this.rows[0];
   var newRows = [];
   var rowsLen = this.rows.length + mod;
 
-  for (var i = mod; i < rowsLen; i++) {
+  for (var i = mod; i < rowsLen; i += 1) {
     newRows.push(this.target + i);
   }
+
   manualRowMove.moveRows(newRows.slice(), newTarget);
   instance.render();
 
@@ -53525,7 +55593,7 @@ hook.register('afterRedo');
 exports.default = UndoRedo;
 
 /***/ }),
-/* 357 */
+/* 370 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53534,59 +55602,59 @@ exports.default = UndoRedo;
 exports.__esModule = true;
 exports.TrimRows = exports.NestedRows = exports.NestedHeaders = exports.HiddenRows = exports.HiddenColumns = exports.HeaderTooltips = exports.GanttChart = exports.Formulas = exports.Filters = exports.ExportFile = exports.DropdownMenu = exports.ColumnSummary = exports.CollapsibleColumns = exports.BindRowsWithHeaders = undefined;
 
-var _bindRowsWithHeaders = __webpack_require__(358);
+var _bindRowsWithHeaders = __webpack_require__(371);
 
 var _bindRowsWithHeaders2 = _interopRequireDefault(_bindRowsWithHeaders);
 
-var _collapsibleColumns = __webpack_require__(363);
+var _collapsibleColumns = __webpack_require__(376);
 
 var _collapsibleColumns2 = _interopRequireDefault(_collapsibleColumns);
 
-var _columnSummary = __webpack_require__(364);
+var _columnSummary = __webpack_require__(377);
 
 var _columnSummary2 = _interopRequireDefault(_columnSummary);
 
-var _dropdownMenu = __webpack_require__(366);
+var _dropdownMenu = __webpack_require__(379);
 
 var _dropdownMenu2 = _interopRequireDefault(_dropdownMenu);
 
-var _exportFile = __webpack_require__(368);
+var _exportFile = __webpack_require__(381);
 
 var _exportFile2 = _interopRequireDefault(_exportFile);
 
-var _filters = __webpack_require__(373);
+var _filters = __webpack_require__(386);
 
 var _filters2 = _interopRequireDefault(_filters);
 
-var _formulas = __webpack_require__(402);
+var _formulas = __webpack_require__(415);
 
 var _formulas2 = _interopRequireDefault(_formulas);
 
-var _ganttChart = __webpack_require__(415);
+var _ganttChart = __webpack_require__(428);
 
 var _ganttChart2 = _interopRequireDefault(_ganttChart);
 
-var _headerTooltips = __webpack_require__(418);
+var _headerTooltips = __webpack_require__(431);
 
 var _headerTooltips2 = _interopRequireDefault(_headerTooltips);
 
-var _nestedHeaders = __webpack_require__(419);
+var _nestedHeaders = __webpack_require__(432);
 
 var _nestedHeaders2 = _interopRequireDefault(_nestedHeaders);
 
-var _nestedRows = __webpack_require__(422);
+var _nestedRows = __webpack_require__(435);
 
 var _nestedRows2 = _interopRequireDefault(_nestedRows);
 
-var _hiddenColumns = __webpack_require__(427);
+var _hiddenColumns = __webpack_require__(440);
 
 var _hiddenColumns2 = _interopRequireDefault(_hiddenColumns);
 
-var _hiddenRows = __webpack_require__(431);
+var _hiddenRows = __webpack_require__(444);
 
 var _hiddenRows2 = _interopRequireDefault(_hiddenRows);
 
-var _trimRows = __webpack_require__(435);
+var _trimRows = __webpack_require__(448);
 
 var _trimRows2 = _interopRequireDefault(_trimRows);
 
@@ -53609,7 +55677,7 @@ exports.TrimRows = _trimRows2.default;
 // HiddenColumns must be initialized after NestedHeaders. Bug releated with wrong listeners order attached to 'modifyColWidth' hook.
 
 /***/ }),
-/* 358 */
+/* 371 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53631,7 +55699,7 @@ var _number = __webpack_require__(4);
 
 var _plugins = __webpack_require__(6);
 
-var _bindStrategy = __webpack_require__(359);
+var _bindStrategy = __webpack_require__(372);
 
 var _bindStrategy2 = _interopRequireDefault(_bindStrategy);
 
@@ -53860,7 +55928,7 @@ var BindRowsWithHeaders = function (_BasePlugin) {
 exports.default = BindRowsWithHeaders;
 
 /***/ }),
-/* 359 */
+/* 372 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53876,9 +55944,9 @@ var _object = __webpack_require__(2);
 
 var _number = __webpack_require__(4);
 
-var _string = __webpack_require__(29);
+var _string = __webpack_require__(30);
 
-var _bindStrategies = __webpack_require__(360);
+var _bindStrategies = __webpack_require__(373);
 
 var strategies = _interopRequireWildcard(_bindStrategies);
 
@@ -54026,7 +56094,7 @@ var BindStrategy = function () {
 exports.default = BindStrategy;
 
 /***/ }),
-/* 360 */
+/* 373 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54035,11 +56103,11 @@ exports.default = BindStrategy;
 exports.__esModule = true;
 exports.Strict = exports.Loose = undefined;
 
-var _loose = __webpack_require__(361);
+var _loose = __webpack_require__(374);
 
 var _loose2 = _interopRequireDefault(_loose);
 
-var _strict = __webpack_require__(362);
+var _strict = __webpack_require__(375);
 
 var _strict2 = _interopRequireDefault(_strict);
 
@@ -54049,7 +56117,7 @@ exports.Loose = _loose2.default;
 exports.Strict = _strict2.default;
 
 /***/ }),
-/* 361 */
+/* 374 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54135,7 +56203,7 @@ var LooseBindStrategy = function () {
 exports.default = LooseBindStrategy;
 
 /***/ }),
-/* 362 */
+/* 375 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54221,7 +56289,7 @@ var StrictBindStrategy = function () {
 exports.default = StrictBindStrategy;
 
 /***/ }),
-/* 363 */
+/* 376 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54247,7 +56315,7 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _plugins = __webpack_require__(6);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _base = __webpack_require__(7);
 
@@ -54853,7 +56921,7 @@ var CollapsibleColumns = function (_BasePlugin) {
 exports.default = CollapsibleColumns;
 
 /***/ }),
-/* 364 */
+/* 377 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54875,7 +56943,7 @@ var _array = __webpack_require__(0);
 
 var _plugins = __webpack_require__(6);
 
-var _endpoints5 = __webpack_require__(365);
+var _endpoints5 = __webpack_require__(378);
 
 var _endpoints6 = _interopRequireDefault(_endpoints5);
 
@@ -55355,7 +57423,7 @@ var ColumnSummary = function (_BasePlugin) {
 exports.default = ColumnSummary;
 
 /***/ }),
-/* 365 */
+/* 378 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56029,7 +58097,7 @@ var Endpoints = function () {
 exports.default = Endpoints;
 
 /***/ }),
-/* 366 */
+/* 379 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56049,7 +58117,7 @@ var _array = __webpack_require__(0);
 
 var _object = __webpack_require__(2);
 
-var _commandExecutor = __webpack_require__(209);
+var _commandExecutor = __webpack_require__(211);
 
 var _commandExecutor2 = _interopRequireDefault(_commandExecutor);
 
@@ -56059,7 +58127,7 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _element = __webpack_require__(1);
 
-var _itemsFactory = __webpack_require__(210);
+var _itemsFactory = __webpack_require__(212);
 
 var _itemsFactory2 = _interopRequireDefault(_itemsFactory);
 
@@ -56069,15 +58137,15 @@ var _menu2 = _interopRequireDefault(_menu);
 
 var _plugins = __webpack_require__(6);
 
-var _pluginHooks = __webpack_require__(12);
+var _pluginHooks = __webpack_require__(13);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _predefinedItems = __webpack_require__(43);
 
-__webpack_require__(367);
+__webpack_require__(380);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -56493,13 +58561,13 @@ DropdownMenu.SEPARATOR = {
 exports.default = DropdownMenu;
 
 /***/ }),
-/* 367 */
+/* 380 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 368 */
+/* 381 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56517,11 +58585,11 @@ var _object = __webpack_require__(2);
 
 var _plugins = __webpack_require__(6);
 
-var _dataProvider = __webpack_require__(369);
+var _dataProvider = __webpack_require__(382);
 
 var _dataProvider2 = _interopRequireDefault(_dataProvider);
 
-var _typeFactory = __webpack_require__(370);
+var _typeFactory = __webpack_require__(383);
 
 var _typeFactory2 = _interopRequireDefault(_typeFactory);
 
@@ -56708,7 +58776,7 @@ var ExportFile = function (_BasePlugin) {
 exports.default = ExportFile;
 
 /***/ }),
-/* 369 */
+/* 382 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56933,7 +59001,7 @@ var DataProvider = function () {
 exports.default = DataProvider;
 
 /***/ }),
-/* 370 */
+/* 383 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56943,7 +59011,7 @@ exports.__esModule = true;
 exports.EXPORT_TYPES = exports.TYPE_PDF = exports.TYPE_EXCEL = exports.TYPE_CSV = undefined;
 exports.default = typeFactory;
 
-var _csv = __webpack_require__(371);
+var _csv = __webpack_require__(384);
 
 var _csv2 = _interopRequireDefault(_csv);
 
@@ -56966,7 +59034,7 @@ function typeFactory(type, dataProvider, options) {
 }
 
 /***/ }),
-/* 371 */
+/* 384 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56978,9 +59046,9 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _array = __webpack_require__(0);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
-var _base = __webpack_require__(372);
+var _base = __webpack_require__(385);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -57106,7 +59174,7 @@ var Csv = function (_BaseType) {
 exports.default = Csv;
 
 /***/ }),
-/* 372 */
+/* 385 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57122,7 +59190,7 @@ var _object = __webpack_require__(2);
 
 var _number = __webpack_require__(4);
 
-var _string = __webpack_require__(29);
+var _string = __webpack_require__(30);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -57205,7 +59273,7 @@ var BaseType = function () {
 exports.default = BaseType;
 
 /***/ }),
-/* 373 */
+/* 386 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57245,31 +59313,31 @@ var _constants = __webpack_require__(3);
 
 var constants = _interopRequireWildcard(_constants);
 
-var _condition = __webpack_require__(374);
+var _condition = __webpack_require__(387);
 
 var _condition2 = _interopRequireDefault(_condition);
 
-var _operators = __webpack_require__(394);
+var _operators = __webpack_require__(407);
 
 var _operators2 = _interopRequireDefault(_operators);
 
-var _value = __webpack_require__(396);
+var _value = __webpack_require__(409);
 
 var _value2 = _interopRequireDefault(_value);
 
-var _actionBar = __webpack_require__(399);
+var _actionBar = __webpack_require__(412);
 
 var _actionBar2 = _interopRequireDefault(_actionBar);
 
-var _conditionCollection = __webpack_require__(222);
+var _conditionCollection = __webpack_require__(225);
 
 var _conditionCollection2 = _interopRequireDefault(_conditionCollection);
 
-var _dataFilter = __webpack_require__(223);
+var _dataFilter = __webpack_require__(226);
 
 var _dataFilter2 = _interopRequireDefault(_dataFilter);
 
-var _conditionUpdateObserver = __webpack_require__(400);
+var _conditionUpdateObserver = __webpack_require__(413);
 
 var _conditionUpdateObserver2 = _interopRequireDefault(_conditionUpdateObserver);
 
@@ -57277,7 +59345,7 @@ var _utils = __webpack_require__(63);
 
 var _constants2 = __webpack_require__(157);
 
-__webpack_require__(401);
+__webpack_require__(414);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -57686,7 +59754,7 @@ var Filters = function (_BasePlugin) {
   }, {
     key: 'clearColumnSelection',
     value: function clearColumnSelection() {
-      var _ref = this.hot.getSelected() || [],
+      var _ref = this.hot.getSelectedLast() || [],
           _ref2 = _slicedToArray(_ref, 2),
           row = _ref2[0],
           col = _ref2[1];
@@ -58305,7 +60373,7 @@ var Filters = function (_BasePlugin) {
 exports.default = Filters;
 
 /***/ }),
-/* 374 */
+/* 387 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58319,7 +60387,7 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 
 var _element = __webpack_require__(1);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _array = __webpack_require__(0);
 
@@ -58343,7 +60411,7 @@ var _input = __webpack_require__(159);
 
 var _input2 = _interopRequireDefault(_input);
 
-var _select = __webpack_require__(393);
+var _select = __webpack_require__(406);
 
 var _select2 = _interopRequireDefault(_select);
 
@@ -58591,7 +60659,7 @@ var ConditionComponent = function (_BaseComponent) {
     value: function reset() {
       var lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
       var visualIndex = lastSelectedColumn && lastSelectedColumn.visualIndex;
-      var columnType = this.hot.getDataType.apply(this.hot, this.hot.getSelected() || [0, visualIndex]);
+      var columnType = this.hot.getDataType.apply(this.hot, this.hot.getSelectedLast() || [0, visualIndex]);
       var items = (0, _constants3.default)(columnType);
 
       (0, _array.arrayEach)(this.getInputElements(), function (element) {
@@ -58664,7 +60732,7 @@ var ConditionComponent = function (_BaseComponent) {
 exports.default = ConditionComponent;
 
 /***/ }),
-/* 375 */
+/* 388 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58721,7 +60789,7 @@ var stateSaver = (_stateSaver = {}, _defineProperty(_stateSaver, PROP_PREFIX, {}
 exports.default = stateSaver;
 
 /***/ }),
-/* 376 */
+/* 389 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58752,7 +60820,7 @@ function condition() {
 });
 
 /***/ }),
-/* 377 */
+/* 390 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58768,7 +60836,7 @@ var C = _interopRequireWildcard(_constants);
 
 var _conditionRegisterer = __webpack_require__(9);
 
-var _empty = __webpack_require__(214);
+var _empty = __webpack_require__(217);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -58785,7 +60853,7 @@ function condition(dataRow, inputValues) {
 });
 
 /***/ }),
-/* 378 */
+/* 391 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58801,7 +60869,7 @@ var C = _interopRequireWildcard(_constants);
 
 var _conditionRegisterer = __webpack_require__(9);
 
-var _equal = __webpack_require__(215);
+var _equal = __webpack_require__(218);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -58818,7 +60886,7 @@ function condition(dataRow, inputValues) {
 });
 
 /***/ }),
-/* 379 */
+/* 392 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58860,7 +60928,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 380 */
+/* 393 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58902,7 +60970,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 381 */
+/* 394 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58944,7 +61012,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 382 */
+/* 395 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58986,7 +61054,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 383 */
+/* 396 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59002,7 +61070,7 @@ var C = _interopRequireWildcard(_constants);
 
 var _conditionRegisterer = __webpack_require__(9);
 
-var _between = __webpack_require__(216);
+var _between = __webpack_require__(219);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -59019,7 +61087,7 @@ function condition(dataRow, inputValues) {
 });
 
 /***/ }),
-/* 384 */
+/* 397 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59036,7 +61104,7 @@ var _constants = __webpack_require__(3);
 
 var C = _interopRequireWildcard(_constants);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 var _conditionRegisterer = __webpack_require__(9);
 
@@ -59059,7 +61127,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 385 */
+/* 398 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59076,7 +61144,7 @@ var _constants = __webpack_require__(3);
 
 var C = _interopRequireWildcard(_constants);
 
-var _mixed = __webpack_require__(16);
+var _mixed = __webpack_require__(14);
 
 var _conditionRegisterer = __webpack_require__(9);
 
@@ -59099,7 +61167,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 386 */
+/* 399 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59115,7 +61183,7 @@ var C = _interopRequireWildcard(_constants);
 
 var _conditionRegisterer = __webpack_require__(9);
 
-var _contains = __webpack_require__(219);
+var _contains = __webpack_require__(222);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -59132,7 +61200,7 @@ function condition(dataRow, inputValues) {
 });
 
 /***/ }),
-/* 387 */
+/* 400 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59142,7 +61210,7 @@ exports.__esModule = true;
 exports.CONDITION_NAME = undefined;
 exports.condition = condition;
 
-var _moment = __webpack_require__(30);
+var _moment = __webpack_require__(31);
 
 var _moment2 = _interopRequireDefault(_moment);
 
@@ -59174,7 +61242,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 388 */
+/* 401 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59184,7 +61252,7 @@ exports.__esModule = true;
 exports.CONDITION_NAME = undefined;
 exports.condition = condition;
 
-var _moment = __webpack_require__(30);
+var _moment = __webpack_require__(31);
 
 var _moment2 = _interopRequireDefault(_moment);
 
@@ -59216,7 +61284,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 389 */
+/* 402 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59226,7 +61294,7 @@ exports.__esModule = true;
 exports.CONDITION_NAME = undefined;
 exports.condition = condition;
 
-var _moment = __webpack_require__(30);
+var _moment = __webpack_require__(31);
 
 var _moment2 = _interopRequireDefault(_moment);
 
@@ -59258,7 +61326,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 390 */
+/* 403 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59305,7 +61373,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 391 */
+/* 404 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59334,7 +61402,7 @@ function condition() {
 });
 
 /***/ }),
-/* 392 */
+/* 405 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59363,7 +61431,7 @@ function condition() {
 });
 
 /***/ }),
-/* 393 */
+/* 406 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59671,7 +61739,7 @@ var SelectUI = function (_BaseUI) {
 exports.default = SelectUI;
 
 /***/ }),
-/* 394 */
+/* 407 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59697,11 +61765,11 @@ var _logicalOperationRegisterer = __webpack_require__(64);
 
 var _conjunction = __webpack_require__(158);
 
-var _disjunction = __webpack_require__(220);
+var _disjunction = __webpack_require__(223);
 
-var _disjunctionAndVariable = __webpack_require__(221);
+var _disjunctionAndVariable = __webpack_require__(224);
 
-var _radioInput = __webpack_require__(395);
+var _radioInput = __webpack_require__(408);
 
 var _radioInput2 = _interopRequireDefault(_radioInput);
 
@@ -59918,7 +61986,7 @@ var OperatorsComponent = function (_BaseComponent) {
 exports.default = OperatorsComponent;
 
 /***/ }),
-/* 395 */
+/* 408 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60060,7 +62128,7 @@ var RadioInputUI = function (_BaseUI) {
 exports.default = RadioInputUI;
 
 /***/ }),
-/* 396 */
+/* 409 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60076,7 +62144,7 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 
 var _element = __webpack_require__(1);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _array = __webpack_require__(0);
 
@@ -60092,7 +62160,7 @@ var _base = __webpack_require__(83);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _multipleSelect = __webpack_require__(397);
+var _multipleSelect = __webpack_require__(410);
 
 var _multipleSelect2 = _interopRequireDefault(_multipleSelect);
 
@@ -60354,7 +62422,7 @@ var ValueComponent = function (_BaseComponent) {
 exports.default = ValueComponent;
 
 /***/ }),
-/* 397 */
+/* 410 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60380,7 +62448,7 @@ var _constants = __webpack_require__(3);
 
 var C = _interopRequireWildcard(_constants);
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _base = __webpack_require__(65);
 
@@ -60390,7 +62458,7 @@ var _input = __webpack_require__(159);
 
 var _input2 = _interopRequireDefault(_input);
 
-var _link = __webpack_require__(398);
+var _link = __webpack_require__(411);
 
 var _link2 = _interopRequireDefault(_link);
 
@@ -60806,7 +62874,7 @@ function itemsToValue(availableItems) {
 }
 
 /***/ }),
-/* 398 */
+/* 411 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60897,7 +62965,7 @@ var LinkUI = function (_BaseUI) {
 exports.default = LinkUI;
 
 /***/ }),
-/* 399 */
+/* 412 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -61071,7 +63139,7 @@ var ActionBarComponent = function (_BaseComponent) {
 exports.default = ActionBarComponent;
 
 /***/ }),
-/* 400 */
+/* 413 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -61087,15 +63155,15 @@ var _object = __webpack_require__(2);
 
 var _function = __webpack_require__(34);
 
-var _localHooks = __webpack_require__(31);
+var _localHooks = __webpack_require__(21);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
-var _conditionCollection = __webpack_require__(222);
+var _conditionCollection = __webpack_require__(225);
 
 var _conditionCollection2 = _interopRequireDefault(_conditionCollection);
 
-var _dataFilter = __webpack_require__(223);
+var _dataFilter = __webpack_require__(226);
 
 var _dataFilter2 = _interopRequireDefault(_dataFilter);
 
@@ -61356,13 +63424,13 @@ var ConditionUpdateObserver = function () {
 exports.default = ConditionUpdateObserver;
 
 /***/ }),
-/* 401 */
+/* 414 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 402 */
+/* 415 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -61392,15 +63460,15 @@ var _plugins = __webpack_require__(6);
 
 var _utils = __webpack_require__(36);
 
-var _sheet = __webpack_require__(403);
+var _sheet = __webpack_require__(416);
 
 var _sheet2 = _interopRequireDefault(_sheet);
 
-var _dataProvider = __webpack_require__(412);
+var _dataProvider = __webpack_require__(425);
 
 var _dataProvider2 = _interopRequireDefault(_dataProvider);
 
-var _undoRedoSnapshot = __webpack_require__(413);
+var _undoRedoSnapshot = __webpack_require__(426);
 
 var _undoRedoSnapshot2 = _interopRequireDefault(_undoRedoSnapshot);
 
@@ -61965,7 +64033,7 @@ var Formulas = function (_BasePlugin) {
 exports.default = Formulas;
 
 /***/ }),
-/* 403 */
+/* 416 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -61981,7 +64049,7 @@ var _array = __webpack_require__(0);
 
 var _number = __webpack_require__(4);
 
-var _localHooks = __webpack_require__(31);
+var _localHooks = __webpack_require__(21);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
@@ -61993,17 +64061,17 @@ var _value = __webpack_require__(44);
 
 var _value2 = _interopRequireDefault(_value);
 
-var _reference = __webpack_require__(404);
+var _reference = __webpack_require__(417);
 
 var _reference2 = _interopRequireDefault(_reference);
 
 var _utils = __webpack_require__(36);
 
-var _matrix = __webpack_require__(405);
+var _matrix = __webpack_require__(418);
 
 var _matrix2 = _interopRequireDefault(_matrix);
 
-var _alterManager = __webpack_require__(406);
+var _alterManager = __webpack_require__(419);
 
 var _alterManager2 = _interopRequireDefault(_alterManager);
 
@@ -62426,7 +64494,7 @@ var Sheet = function () {
 exports.default = Sheet;
 
 /***/ }),
-/* 404 */
+/* 417 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -62438,7 +64506,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _hotFormulaParser = __webpack_require__(66);
 
-var _base = __webpack_require__(224);
+var _base = __webpack_require__(227);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -62485,7 +64553,7 @@ var CellReference = function (_BaseCell) {
 exports.default = CellReference;
 
 /***/ }),
-/* 405 */
+/* 418 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -62741,7 +64809,7 @@ var Matrix = function () {
 exports.default = Matrix;
 
 /***/ }),
-/* 406 */
+/* 419 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -62757,27 +64825,27 @@ var _array = __webpack_require__(0);
 
 var _object = __webpack_require__(2);
 
-var _localHooks = __webpack_require__(31);
+var _localHooks = __webpack_require__(21);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
-var _columnSorting = __webpack_require__(407);
+var _columnSorting = __webpack_require__(420);
 
 var columnSorting = _interopRequireWildcard(_columnSorting);
 
-var _insertColumn = __webpack_require__(408);
+var _insertColumn = __webpack_require__(421);
 
 var insertColumn = _interopRequireWildcard(_insertColumn);
 
-var _insertRow = __webpack_require__(409);
+var _insertRow = __webpack_require__(422);
 
 var insertRow = _interopRequireWildcard(_insertRow);
 
-var _removeColumn = __webpack_require__(410);
+var _removeColumn = __webpack_require__(423);
 
 var removeColumn = _interopRequireWildcard(_removeColumn);
 
-var _removeRow = __webpack_require__(411);
+var _removeRow = __webpack_require__(424);
 
 var removeRow = _interopRequireWildcard(_removeRow);
 
@@ -62917,7 +64985,7 @@ function registerOperation(name, descriptor) {
 }
 
 /***/ }),
-/* 407 */
+/* 420 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63001,7 +65069,7 @@ function operate() {
 }
 
 /***/ }),
-/* 408 */
+/* 421 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63106,7 +65174,7 @@ function customTranslateModifier(cell, axis, delta, startFromIndex) {
 }
 
 /***/ }),
-/* 409 */
+/* 422 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63211,7 +65279,7 @@ function customTranslateModifier(cell, axis, delta, startFromIndex) {
 }
 
 /***/ }),
-/* 410 */
+/* 423 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63368,7 +65436,7 @@ function customTranslateModifier(cell, axis, delta, startFromIndex) {
 }
 
 /***/ }),
-/* 411 */
+/* 424 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63525,7 +65593,7 @@ function customTranslateModifier(cell, axis, delta, startFromIndex) {
 }
 
 /***/ }),
-/* 412 */
+/* 425 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63819,7 +65887,7 @@ var DataProvider = function () {
 exports.default = DataProvider;
 
 /***/ }),
-/* 413 */
+/* 426 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63833,7 +65901,7 @@ var _array = __webpack_require__(0);
 
 var _number = __webpack_require__(4);
 
-var _stack = __webpack_require__(414);
+var _stack = __webpack_require__(427);
 
 var _stack2 = _interopRequireDefault(_stack);
 
@@ -63956,7 +66024,7 @@ var UndoRedoSnapshot = function () {
 exports.default = UndoRedoSnapshot;
 
 /***/ }),
-/* 414 */
+/* 427 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64056,7 +66124,7 @@ var Stack = function () {
 exports.default = Stack;
 
 /***/ }),
-/* 415 */
+/* 428 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64082,17 +66150,17 @@ var _base = __webpack_require__(7);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _dateCalculator = __webpack_require__(225);
+var _dateCalculator = __webpack_require__(228);
 
 var _dateCalculator2 = _interopRequireDefault(_dateCalculator);
 
-var _ganttChartDataFeed = __webpack_require__(416);
+var _ganttChartDataFeed = __webpack_require__(429);
 
 var _ganttChartDataFeed2 = _interopRequireDefault(_ganttChartDataFeed);
 
-var _utils = __webpack_require__(226);
+var _utils = __webpack_require__(229);
 
-__webpack_require__(417);
+__webpack_require__(430);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -65092,7 +67160,7 @@ var GanttChart = function (_BasePlugin) {
 exports.default = GanttChart;
 
 /***/ }),
-/* 416 */
+/* 429 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65106,7 +67174,7 @@ var _object = __webpack_require__(2);
 
 var _array = __webpack_require__(0);
 
-var _dateCalculator = __webpack_require__(225);
+var _dateCalculator = __webpack_require__(228);
 
 var _dateCalculator2 = _interopRequireDefault(_dateCalculator);
 
@@ -65516,13 +67584,13 @@ var GanttChartDataFeed = function () {
 exports.default = GanttChartDataFeed;
 
 /***/ }),
-/* 417 */
+/* 430 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 418 */
+/* 431 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65741,7 +67809,7 @@ var HeaderTooltips = function (_BasePlugin) {
 exports.default = HeaderTooltips;
 
 /***/ }),
-/* 419 */
+/* 432 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65767,13 +67835,13 @@ var _base = __webpack_require__(7);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
-var _ghostTable = __webpack_require__(420);
+var _ghostTable = __webpack_require__(433);
 
 var _ghostTable2 = _interopRequireDefault(_ghostTable);
 
-__webpack_require__(421);
+__webpack_require__(434);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -66284,7 +68352,7 @@ var NestedHeaders = function (_BasePlugin) {
     value: function updateHeadersHighlight() {
       var _this9 = this;
 
-      var selection = this.hot.getSelected();
+      var selection = this.hot.getSelectedLast();
 
       if (selection === void 0) {
         return;
@@ -66390,7 +68458,7 @@ var NestedHeaders = function (_BasePlugin) {
     key: 'onBeforeOnCellMouseOver',
     value: function onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
       if (coords.row < 0 && coords.col >= 0 && this.hot.view.isMouseDown()) {
-        var _hot$getSelectedRange = this.hot.getSelectedRange(),
+        var _hot$getSelectedRange = this.hot.getSelectedRangeLast(),
             from = _hot$getSelectedRange.from,
             to = _hot$getSelectedRange.to;
 
@@ -66519,7 +68587,7 @@ var NestedHeaders = function (_BasePlugin) {
 exports.default = NestedHeaders;
 
 /***/ }),
-/* 420 */
+/* 433 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -66670,13 +68738,13 @@ var GhostTable = function () {
 exports.default = GhostTable;
 
 /***/ }),
-/* 421 */
+/* 434 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 422 */
+/* 435 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -66698,25 +68766,25 @@ var _number = __webpack_require__(4);
 
 var _array = __webpack_require__(0);
 
-var _src = __webpack_require__(15);
+var _src = __webpack_require__(10);
 
-var _dataManager = __webpack_require__(423);
+var _dataManager = __webpack_require__(436);
 
 var _dataManager2 = _interopRequireDefault(_dataManager);
 
-var _collapsing = __webpack_require__(424);
+var _collapsing = __webpack_require__(437);
 
 var _collapsing2 = _interopRequireDefault(_collapsing);
 
-var _headers = __webpack_require__(227);
+var _headers = __webpack_require__(230);
 
 var _headers2 = _interopRequireDefault(_headers);
 
-var _contextMenu = __webpack_require__(425);
+var _contextMenu = __webpack_require__(438);
 
 var _contextMenu2 = _interopRequireDefault(_contextMenu);
 
-__webpack_require__(426);
+__webpack_require__(439);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -67413,7 +69481,7 @@ var NestedRows = function (_BasePlugin) {
 exports.default = NestedRows;
 
 /***/ }),
-/* 423 */
+/* 436 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -68187,7 +70255,7 @@ var DataManager = function () {
 exports.default = DataManager;
 
 /***/ }),
-/* 424 */
+/* 437 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -68197,7 +70265,7 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _event = __webpack_require__(10);
+var _event = __webpack_require__(11);
 
 var _array = __webpack_require__(0);
 
@@ -68209,7 +70277,7 @@ var _base = __webpack_require__(160);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _headers = __webpack_require__(227);
+var _headers = __webpack_require__(230);
 
 var _headers2 = _interopRequireDefault(_headers);
 
@@ -68780,7 +70848,7 @@ var CollapsingUI = function (_BaseUI) {
 exports.default = CollapsingUI;
 
 /***/ }),
-/* 425 */
+/* 438 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -68867,12 +70935,12 @@ var ContextMenuUI = function (_BaseUI) {
         },
 
         callback: function callback() {
-          var translatedRowIndex = _this2.dataManager.translateTrimmedRow(_this2.hot.getSelected()[0]);
+          var translatedRowIndex = _this2.dataManager.translateTrimmedRow(_this2.hot.getSelectedLast()[0]);
           var parent = _this2.dataManager.getDataObject(translatedRowIndex);
           _this2.dataManager.addChild(parent);
         },
         disabled: function disabled() {
-          var selected = _this2.hot.getSelected();
+          var selected = _this2.hot.getSelectedLast();
 
           return !selected || selected[0] < 0 || _this2.hot.selection.selectedHeader.cols || _this2.hot.countRows() >= _this2.hot.getSettings().maxRows;
         }
@@ -68883,13 +70951,13 @@ var ContextMenuUI = function (_BaseUI) {
         },
 
         callback: function callback() {
-          var translatedRowIndex = _this2.dataManager.translateTrimmedRow(_this2.hot.getSelected()[0]);
+          var translatedRowIndex = _this2.dataManager.translateTrimmedRow(_this2.hot.getSelectedLast()[0]);
           var element = _this2.dataManager.getDataObject(translatedRowIndex);
 
-          _this2.dataManager.detachFromParent(_this2.hot.getSelected());
+          _this2.dataManager.detachFromParent(_this2.hot.getSelectedLast());
         },
         disabled: function disabled() {
-          var selected = _this2.hot.getSelected();
+          var selected = _this2.hot.getSelectedLast();
           var translatedRowIndex = _this2.dataManager.translateTrimmedRow(selected[0]);
           var parent = _this2.dataManager.getRowParent(translatedRowIndex);
 
@@ -68944,13 +71012,13 @@ var ContextMenuUI = function (_BaseUI) {
 exports.default = ContextMenuUI;
 
 /***/ }),
-/* 426 */
+/* 439 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 427 */
+/* 440 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -68978,15 +71046,15 @@ var _plugins = __webpack_require__(6);
 
 var _predefinedItems = __webpack_require__(43);
 
-var _hideColumn = __webpack_require__(428);
+var _hideColumn = __webpack_require__(441);
 
 var _hideColumn2 = _interopRequireDefault(_hideColumn);
 
-var _showColumn = __webpack_require__(429);
+var _showColumn = __webpack_require__(442);
 
 var _showColumn2 = _interopRequireDefault(_showColumn);
 
-__webpack_require__(430);
+__webpack_require__(443);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -69627,7 +71695,7 @@ function hiddenRenderer(hotInstance, td) {
 exports.default = HiddenColumns;
 
 /***/ }),
-/* 428 */
+/* 441 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -69651,7 +71719,7 @@ function hideColumnItem(hiddenColumnsPlugin) {
   return {
     key: 'hidden_columns_hide',
     name: function name() {
-      var selection = this.getSelected();
+      var selection = this.getSelectedLast();
       var pluralForm = 0;
 
       if (Array.isArray(selection)) {
@@ -69667,9 +71735,9 @@ function hideColumnItem(hiddenColumnsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_COLUMN, pluralForm);
     },
     callback: function callback() {
-      var _getSelectedRange = this.getSelectedRange(),
-          from = _getSelectedRange.from,
-          to = _getSelectedRange.to;
+      var _getSelectedRangeLast = this.getSelectedRangeLast(),
+          from = _getSelectedRangeLast.from,
+          to = _getSelectedRangeLast.to;
 
       var start = Math.min(from.col, to.col);
       var end = Math.max(from.col, to.col);
@@ -69690,7 +71758,7 @@ function hideColumnItem(hiddenColumnsPlugin) {
 }
 
 /***/ }),
-/* 429 */
+/* 442 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -69717,7 +71785,7 @@ function showColumnItem(hiddenColumnsPlugin) {
   return {
     key: 'hidden_columns_show',
     name: function name() {
-      var selection = this.getSelected();
+      var selection = this.getSelectedLast();
       var pluralForm = 0;
 
       if (Array.isArray(selection)) {
@@ -69749,9 +71817,9 @@ function showColumnItem(hiddenColumnsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN, pluralForm);
     },
     callback: function callback() {
-      var _getSelectedRange = this.getSelectedRange(),
-          from = _getSelectedRange.from,
-          to = _getSelectedRange.to;
+      var _getSelectedRangeLast = this.getSelectedRangeLast(),
+          from = _getSelectedRangeLast.from,
+          to = _getSelectedRangeLast.to;
 
       var start = Math.min(from.col, to.col);
       var end = Math.max(from.col, to.col);
@@ -69784,9 +71852,9 @@ function showColumnItem(hiddenColumnsPlugin) {
       beforeHiddenColumns.length = 0;
       afterHiddenColumns.length = 0;
 
-      var _getSelectedRange2 = this.getSelectedRange(),
-          from = _getSelectedRange2.from,
-          to = _getSelectedRange2.to;
+      var _getSelectedRangeLast2 = this.getSelectedRangeLast(),
+          from = _getSelectedRangeLast2.from,
+          to = _getSelectedRangeLast2.to;
 
       var start = Math.min(from.col, to.col);
       var end = Math.max(from.col, to.col);
@@ -69830,13 +71898,13 @@ function showColumnItem(hiddenColumnsPlugin) {
 }
 
 /***/ }),
-/* 430 */
+/* 443 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 431 */
+/* 444 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -69862,15 +71930,15 @@ var _array = __webpack_require__(0);
 
 var _plugins = __webpack_require__(6);
 
-var _hideRow = __webpack_require__(432);
+var _hideRow = __webpack_require__(445);
 
 var _hideRow2 = _interopRequireDefault(_hideRow);
 
-var _showRow = __webpack_require__(433);
+var _showRow = __webpack_require__(446);
 
 var _showRow2 = _interopRequireDefault(_showRow);
 
-__webpack_require__(434);
+__webpack_require__(447);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -70361,7 +72429,7 @@ var HiddenRows = function (_BasePlugin) {
     value: function onBeforeSetRangeStart(coords) {
       var _this6 = this;
 
-      var actualSelection = this.hot.getSelected() || false;
+      var actualSelection = this.hot.getSelectedLast() || false;
       var lastPossibleIndex = this.hot.countRows() - 1;
 
       var getNextRow = function getNextRow(row) {
@@ -70563,7 +72631,7 @@ var HiddenRows = function (_BasePlugin) {
 exports.default = HiddenRows;
 
 /***/ }),
-/* 432 */
+/* 445 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -70587,7 +72655,7 @@ function hideRowItem(hiddenRowsPlugin) {
   return {
     key: 'hidden_rows_hide',
     name: function name() {
-      var selection = this.getSelected();
+      var selection = this.getSelectedLast();
       var pluralForm = 0;
 
       if (Array.isArray(selection)) {
@@ -70603,9 +72671,9 @@ function hideRowItem(hiddenRowsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_ROW, pluralForm);
     },
     callback: function callback() {
-      var _getSelectedRange = this.getSelectedRange(),
-          from = _getSelectedRange.from,
-          to = _getSelectedRange.to;
+      var _getSelectedRangeLast = this.getSelectedRangeLast(),
+          from = _getSelectedRangeLast.from,
+          to = _getSelectedRangeLast.to;
 
       var start = Math.min(from.row, to.row);
       var end = Math.max(from.row, to.row);
@@ -70626,7 +72694,7 @@ function hideRowItem(hiddenRowsPlugin) {
 }
 
 /***/ }),
-/* 433 */
+/* 446 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -70653,7 +72721,7 @@ function showRowItem(hiddenRowsPlugin) {
   return {
     key: 'hidden_rows_show',
     name: function name() {
-      var selection = this.getSelected();
+      var selection = this.getSelectedLast();
       var pluralForm = 0;
 
       if (Array.isArray(selection)) {
@@ -70685,9 +72753,9 @@ function showRowItem(hiddenRowsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_ROW, pluralForm);
     },
     callback: function callback() {
-      var _getSelectedRange = this.getSelectedRange(),
-          from = _getSelectedRange.from,
-          to = _getSelectedRange.to;
+      var _getSelectedRangeLast = this.getSelectedRangeLast(),
+          from = _getSelectedRangeLast.from,
+          to = _getSelectedRangeLast.to;
 
       var start = Math.min(from.row, to.row);
       var end = Math.max(from.row, to.row);
@@ -70720,9 +72788,9 @@ function showRowItem(hiddenRowsPlugin) {
       beforeHiddenRows.length = 0;
       afterHiddenRows.length = 0;
 
-      var _getSelectedRange2 = this.getSelectedRange(),
-          from = _getSelectedRange2.from,
-          to = _getSelectedRange2.to;
+      var _getSelectedRangeLast2 = this.getSelectedRangeLast(),
+          from = _getSelectedRangeLast2.from,
+          to = _getSelectedRangeLast2.to;
 
       var start = Math.min(from.row, to.row);
       var end = Math.max(from.row, to.row);
@@ -70769,13 +72837,13 @@ function showRowItem(hiddenRowsPlugin) {
 }
 
 /***/ }),
-/* 434 */
+/* 447 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 435 */
+/* 448 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -70797,7 +72865,7 @@ var _number = __webpack_require__(4);
 
 var _plugins = __webpack_require__(6);
 
-var _rowsMapper = __webpack_require__(436);
+var _rowsMapper = __webpack_require__(449);
 
 var _rowsMapper2 = _interopRequireDefault(_rowsMapper);
 
@@ -70911,6 +72979,9 @@ var TrimRows = function (_BasePlugin) {
       });
       this.addHook('unmodifyRow', function (row, source) {
         return _this2.onUnmodifyRow(row, source);
+      });
+      this.addHook('beforeCreateRow', function (index, amount, source) {
+        return _this2.onBeforeCreateRow(index, amount, source);
       });
       this.addHook('afterCreateRow', function (index, amount) {
         return _this2.onAfterCreateRow(index, amount);
@@ -71099,6 +73170,21 @@ var TrimRows = function (_BasePlugin) {
     }
 
     /**
+     * `beforeCreateRow` hook callback.
+     *
+     * @private
+     * @param {Number} index Index of the newly created row.
+     * @param {Number} amount Amount of created rows.
+     * @param {String} source Source of the change.
+     */
+
+  }, {
+    key: 'onBeforeCreateRow',
+    value: function onBeforeCreateRow(index, amount, source) {
+      return !(this.isEnabled() && this.trimmedRows.length > 0 && source === 'auto');
+    }
+
+    /**
      * On after create row listener.
      *
      * @private
@@ -71184,7 +73270,7 @@ var TrimRows = function (_BasePlugin) {
 exports.default = TrimRows;
 
 /***/ }),
-/* 436 */
+/* 449 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -71268,7 +73354,7 @@ var RowsMapper = function () {
 exports.default = RowsMapper;
 
 /***/ }),
-/* 437 */
+/* 450 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -71280,7 +73366,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(1);
 
-var _base = __webpack_require__(28);
+var _base = __webpack_require__(29);
 
 var _base2 = _interopRequireDefault(_base);
 
@@ -71645,7 +73731,7 @@ _base2.default.registerOverlay(_base2.default.CLONE_BOTTOM, BottomOverlay);
 exports.default = BottomOverlay;
 
 /***/ }),
-/* 438 */
+/* 451 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -71657,7 +73743,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _element = __webpack_require__(1);
 
-var _base = __webpack_require__(28);
+var _base = __webpack_require__(29);
 
 var _base2 = _interopRequireDefault(_base);
 
