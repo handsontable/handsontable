@@ -7,7 +7,7 @@
 		exports["formulaParser"] = factory();
 	else
 		root["formulaParser"] = factory();
-})(this, function() {
+})(typeof self !== 'undefined' ? self : this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -4469,7 +4469,7 @@ function serial(date) {
 
 /* WEBPACK VAR INJECTION */(function(process) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
  * numbro.js
- * version : 1.11.0
+ * version : 1.11.1
  * author : Företagsplatsen AB
  * license : MIT
  * http://www.foretagsplatsen.se
@@ -4483,7 +4483,7 @@ function serial(date) {
     ************************************/
 
     var numbro,
-        VERSION = '1.11.0',
+        VERSION = '1.11.1',
         binarySuffixes = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'],
         decimalSuffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
         bytes = {
@@ -5753,9 +5753,9 @@ function serial(date) {
 
         /*global define:false */
         if (true) {
-            !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
+            !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function() {
                 return numbro;
-            }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+            }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
         }
     }

@@ -340,7 +340,7 @@ describe('Filters', function() {
         filters.addCondition(0, 'not_empty', []);
         filters.filter();
 
-        manualColumnMove.moveColumn(0, 2);
+        manualColumnMove.moveColumn(0, 3);
         hot.render();
 
         expect(this.$container.find('th:eq(2)').hasClass('htFiltersActive')).toEqual(true);
@@ -386,7 +386,7 @@ describe('Filters', function() {
         filters.addCondition(0, 'not_empty', []);
         filters.filter();
 
-        manualColumnMove.moveColumn(0, 2);
+        manualColumnMove.moveColumn(0, 3);
         hot.render();
 
         dropdownMenu(2);
@@ -408,7 +408,7 @@ describe('Filters', function() {
         const filters = hot.getPlugin('filters');
         const manualColumnMove = hot.getPlugin('manualColumnMove');
 
-        manualColumnMove.moveColumn(0, 2);
+        manualColumnMove.moveColumn(0, 3);
         hot.render();
 
         dropdownMenu(2);
