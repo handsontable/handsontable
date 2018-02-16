@@ -3,7 +3,7 @@
  * Authors: Júlio C. Zuppa
  * Last updated: Jan 12, 2018
  *
- * Description: Definition file for brazilian portuguese - Brazil language-country.
+ * Description: Definition file for Portuguese - Brazil language-country.
  */
 import * as C from '../constants';
 
