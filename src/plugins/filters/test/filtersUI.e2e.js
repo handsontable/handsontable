@@ -1145,7 +1145,7 @@ describe('Filters UI', function() {
 
       // filtering first value of column (deselecting checkbox)
 
-      dropdownMenu(1);
+      dropdownMenu(2);
 
       $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
