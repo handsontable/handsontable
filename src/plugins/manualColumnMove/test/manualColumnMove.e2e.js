@@ -327,9 +327,9 @@ describe('manualColumnMove', () => {
       $rowsHeaders.eq(1).simulate('mousedown');
       $rowsHeaders.eq(1).simulate('mouseup');
       $rowsHeaders.eq(1).simulate('mousedown');
-      $rowsHeaders.eq(2).simulate('mouseover');
-      $rowsHeaders.eq(2).simulate('mousemove');
-      $rowsHeaders.eq(2).simulate('mouseup');
+      $rowsHeaders.eq(3).simulate('mouseover');
+      $rowsHeaders.eq(3).simulate('mousemove');
+      $rowsHeaders.eq(3).simulate('mouseup');
 
       expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
@@ -384,7 +384,7 @@ describe('manualColumnMove', () => {
 
       expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
 
-      hot.getPlugin('manualColumnMove').moveColumn(0, 2);
+      hot.getPlugin('manualColumnMove').moveColumn(0, 3);
       hot.render();
 
       expect(htCore.find('tbody tr:eq(1) td:eq(2)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);

@@ -38,6 +38,25 @@ class RowsMapper {
   destroy() {
     this._arrayMap = null;
   }
+
+  /**
+   *
+   * Moving elements in rowsMapper.
+   * @param {Number} from Row index to move.
+   * @param {Number} to Target index.
+   */
+  moveRow(from, to) {
+    let indexToMove = this._arrayMap[from];
+    this._arrayMap[from] = null;
+    this._arrayMap.splice(to, 0, indexToMove);
+  }
+
+  /**
+   * Clearing arrayMap from `null` entries.
+   */
+  clearNull() {
+    this._arrayMap = arrayFilter(this._arrayMap, (i) => i !== null);
+  }
 }
 
 mixin(RowsMapper, arrayMapper);

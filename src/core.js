@@ -804,6 +804,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Get parsed number from numeric string.
    *
+   * @private
    * @param {String} numericData Float (separated by a dot or a comma) or integer.
    * @returns {Number} Number if we get data in parsable format, not changed value otherwise.
    */
