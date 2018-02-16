@@ -65,7 +65,7 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_EQUAL]: 'É igual a',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'É diferente de',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Começa com',
-  [C.FILTERS_CONDITIONS_ENDS_WITH]: 'Termiona com',
+  [C.FILTERS_CONDITIONS_ENDS_WITH]: 'Termina com',
   [C.FILTERS_CONDITIONS_CONTAINS]: 'Contém',
   [C.FILTERS_CONDITIONS_NOT_CONTAIN]: 'Não contém',
   [C.FILTERS_CONDITIONS_GREATER_THAN]: 'Maior que',
