@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 0.36.0
- * Release date: 16/02/2018 (built at 15/02/2018 14:22:37)
+ * Release date: 16/02/2018 (built at 16/02/2018 10:47:40)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -27368,7 +27368,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '15/02/2018 14:22:37';
+Handsontable.buildDate = '16/02/2018 10:47:40';
 Handsontable.packageName = 'handsontable';
 Handsontable.version = '0.36.0';
 
@@ -45438,7 +45438,7 @@ var ManualColumnFreeze = function (_BasePlugin) {
       priv.moveByFreeze = true;
       settings.fixedColumnsLeft--;
 
-      this.getMovePlugin().moveColumn(column, returnCol);
+      this.getMovePlugin().moveColumn(column, returnCol + 1);
     }
 
     /**
@@ -45968,9 +45968,12 @@ var ManualColumnMove = function (_BasePlugin) {
           var actualPosition = _this3.columnsMapper.getIndexByValue(column);
 
           if (actualPosition !== target) {
-            _this3.columnsMapper.swapIndexes(actualPosition, target + index);
+            _this3.columnsMapper.moveColumn(actualPosition, target + index);
           }
         });
+
+        // after moving we have to clear columnsMapper from null entries
+        this.columnsMapper.clearNull();
       }
 
       this.hot.runHooks('afterColumnMove', columns, target);
@@ -46408,6 +46411,7 @@ var ManualColumnMove = function (_BasePlugin) {
     value: function onMouseUp() {
       var priv = privatePool.get(this);
 
+      priv.coordsColumn = void 0;
       priv.pressed = false;
       priv.backlightWidth = 0;
 
@@ -46420,7 +46424,7 @@ var ManualColumnMove = function (_BasePlugin) {
         return;
       }
 
-      this.moveColumns(priv.columnsToMove, priv.coordsColumn);
+      this.moveColumns(priv.columnsToMove, priv.target.col);
       this.persistentStateSave();
       this.hot.render();
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
@@ -46655,6 +46659,33 @@ var ColumnsMapper = function () {
     key: 'destroy',
     value: function destroy() {
       this._arrayMap = null;
+    }
+
+    /**
+     * Moving elements in columnsMapper.
+     *
+     * @param {Number} from Column index to move.
+     * @param {Number} to Target index.
+     */
+
+  }, {
+    key: 'moveColumn',
+    value: function moveColumn(from, to) {
+      var indexToMove = this._arrayMap[from];
+      this._arrayMap[from] = null;
+      this._arrayMap.splice(to, 0, indexToMove);
+    }
+
+    /**
+     * Clearing arrayMap from `null` entries.
+     */
+
+  }, {
+    key: 'clearNull',
+    value: function clearNull() {
+      this._arrayMap = (0, _array.arrayFilter)(this._arrayMap, function (i) {
+        return i !== null;
+      });
     }
   }]);
 
@@ -47741,9 +47772,12 @@ var ManualRowMove = function (_BasePlugin) {
           var actualPosition = _this3.rowsMapper.getIndexByValue(row);
 
           if (actualPosition !== target) {
-            _this3.rowsMapper.swapIndexes(actualPosition, target + index);
+            _this3.rowsMapper.moveRow(actualPosition, target + index);
           }
         });
+
+        // after moving we have to clear rowsMapper from null entries
+        this.rowsMapper.clearNull();
       }
 
       this.hot.runHooks('afterRowMove', rows, target);
@@ -48199,6 +48233,7 @@ var ManualRowMove = function (_BasePlugin) {
     key: 'onMouseUp',
     value: function onMouseUp() {
       var priv = privatePool.get(this);
+      var target = priv.target.row;
       var rowsLen = priv.rowsToMove.length;
 
       priv.pressed = false;
@@ -48210,11 +48245,11 @@ var ManualRowMove = function (_BasePlugin) {
         (0, _element.addClass)(this.hot.rootElement, CSS_AFTER_SELECTION);
       }
 
-      if (rowsLen < 1 || priv.target.row === void 0 || priv.rowsToMove.indexOf(priv.target.row) > -1 || priv.rowsToMove[rowsLen - 1] === priv.target.row - 1) {
+      if (rowsLen < 1 || target === void 0 || priv.rowsToMove.indexOf(target) > -1 || priv.rowsToMove[rowsLen - 1] === target - 1) {
         return;
       }
 
-      this.moveRows(priv.rowsToMove, priv.target.coords.row);
+      this.moveRows(priv.rowsToMove, target);
 
       this.persistentStateSave();
       this.hot.render();
@@ -48448,6 +48483,33 @@ var RowsMapper = function () {
     key: 'destroy',
     value: function destroy() {
       this._arrayMap = null;
+    }
+
+    /**
+     *
+     * Moving elements in rowsMapper.
+     * @param {Number} from Row index to move.
+     * @param {Number} to Target index.
+     */
+
+  }, {
+    key: 'moveRow',
+    value: function moveRow(from, to) {
+      var indexToMove = this._arrayMap[from];
+      this._arrayMap[from] = null;
+      this._arrayMap.splice(to, 0, indexToMove);
+    }
+
+    /**
+     * Clearing arrayMap from `null` entries.
+     */
+
+  }, {
+    key: 'clearNull',
+    value: function clearNull() {
+      this._arrayMap = (0, _array.arrayFilter)(this._arrayMap, function (i) {
+        return i !== null;
+      });
     }
   }]);
 
@@ -51709,7 +51771,16 @@ UndoRedo.RowMoveAction.prototype.undo = function (instance, undoneCallback) {
 
   instance.addHookOnce('afterRender', undoneCallback);
 
-  manualRowMove.moveRows([this.target], this.rows[0]);
+  var mod = this.rows[0] < this.target ? -1 * this.rows.length : 0;
+  var newTarget = this.rows[0] > this.target ? this.rows[0] + this.rows.length : this.rows[0];
+  var newRows = [];
+  var rowsLen = this.rows.length + mod;
+
+  for (var i = mod; i < rowsLen; i += 1) {
+    newRows.push(this.target + i);
+  }
+
+  manualRowMove.moveRows(newRows.slice(), newTarget);
   instance.render();
 
   instance.selection.setRangeStartOnly(new _src.CellCoords(this.rows[0], 0));
