@@ -83,7 +83,7 @@ var hotSettings: Handsontable.GridSettings = {
   minRows: 123,
   minSpareCols: 123,
   minSpareRows: 123,
-  multiSelect: true,
+  selectionMode: 'single',
   nestedHeaders: [],
   noWordWrapClassName: 'foo',
   observeChanges: true,
@@ -179,10 +179,10 @@ var hotSettings: Handsontable.GridSettings = {
   afterRowResize: (currentRow, newSize, isDoubleClick) => {},
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
-  afterSelection: (r, c, r2, c2) => {},
-  afterSelectionByProp: (r, p, r2, p2) => {},
-  afterSelectionEnd: (r, c, r2, c2) => {},
-  afterSelectionEndByProp: (r, p, r2, p2) => {},
+  afterSelection: (r, c, r2, c2, preventScrolling, selectionLayerLevel) => {},
+  afterSelectionByProp: (r, p, r2, p2, preventScrolling, selectionLayerLevel) => {},
+  afterSelectionEnd: (r, c, r2, c2, selectionLayerLevel) => {},
+  afterSelectionEndByProp: (r, p, r2, p2, selectionLayerLevel) => {},
   afterSetCellMeta: (row, col, key, value) => {},
   afterSetDataAtCell: (changes, source) => {},
   afterSetDataAtRowProp: (changes, source) => {},
@@ -278,6 +278,7 @@ function test_HandsontableMethods() {
   hot.deselectCell();
   hot.destroy();
   hot.destroyEditor(true);
+  hot.emptySelectedCells();
   hot.getActiveEditor();
   hot.getCell(123, 123, true);
   hot.getCellEditor(123, 123);
@@ -302,7 +303,9 @@ function test_HandsontableMethods() {
   hot.getRowHeight(123);
   hot.getSchema();
   hot.getSelected();
+  hot.getSelectedLast();
   hot.getSelectedRange();
+  hot.getSelectedRangeLast();
   hot.getSettings();
   hot.getSourceData(123, 123, 123, 123);
   hot.getSourceDataAtCell(123, 123);

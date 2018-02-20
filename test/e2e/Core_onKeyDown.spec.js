@@ -17,14 +17,14 @@ describe('Core_onKeyDown', () => {
     handsontable();
     selectCell(0, 0);
     keyDownUp('tab');
-    expect(getSelected()).toEqual([0, 1, 0, 1]);
+    expect(getSelected()).toEqual([[0, 1, 0, 1]]);
   });
 
   it('should advance to previous cell when shift+TAB is pressed', () => {
     handsontable();
     selectCell(1, 1);
     keyDownUp('shift+tab');
-    expect(getSelected()).toEqual([1, 0, 1, 0]);
+    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
 
   describe('while editing (quick edit mode)', () => {
@@ -37,7 +37,7 @@ describe('Core_onKeyDown', () => {
       keyProxy().val('Ted');
       keyDownUp('tab');
       expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([1, 2, 1, 2]);
+      expect(getSelected()).toEqual([[1, 2, 1, 2]]);
     });
 
     it('should finish editing and advance to lower cell when enter is pressed', () => {
@@ -49,7 +49,7 @@ describe('Core_onKeyDown', () => {
       keyProxy().val('Ted');
       keyDownUp('enter');
       expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([2, 1, 2, 1]);
+      expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     });
 
     it('should finish editing and advance to higher cell when shift+enter is pressed', () => {
@@ -61,7 +61,7 @@ describe('Core_onKeyDown', () => {
       keyProxy().val('Ted');
       keyDownUp('shift+enter');
       expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([0, 1, 0, 1]);
+      expect(getSelected()).toEqual([[0, 1, 0, 1]]);
     });
 
     it('should finish editing and advance to lower cell when down arrow is pressed', () => {
@@ -72,7 +72,7 @@ describe('Core_onKeyDown', () => {
       keyProxy().val('Ted');
       keyDownUp('arrow_down');
       expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([2, 1, 2, 1]);
+      expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     });
 
     it('should finish editing and advance to higher cell when up arrow is pressed', () => {
@@ -83,7 +83,7 @@ describe('Core_onKeyDown', () => {
       keyProxy().val('Ted');
       keyDownUp('arrow_up');
       expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([0, 1, 0, 1]);
+      expect(getSelected()).toEqual([[0, 1, 0, 1]]);
     });
 
     it('should finish editing and advance to right cell when right arrow is pressed', () => {
@@ -97,7 +97,7 @@ describe('Core_onKeyDown', () => {
       keyDownUp('arrow_right');
       keyDownUp('arrow_right');
       expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([1, 4, 1, 4]);
+      expect(getSelected()).toEqual([[1, 4, 1, 4]]);
     });
 
     it('should finish editing and advance to left cell when left arrow is pressed', () => {
@@ -113,7 +113,7 @@ describe('Core_onKeyDown', () => {
       keyDownUp('arrow_left');
       keyDownUp('arrow_left');
       expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([1, 0, 1, 0]);
+      expect(getSelected()).toEqual([[1, 0, 1, 0]]);
     });
 
     it('should finish editing and advance to lower cell when enter is pressed (with sync validator)', (done) => {
@@ -137,7 +137,7 @@ describe('Core_onKeyDown', () => {
       setTimeout(() => {
         expect(onAfterValidate).toHaveBeenCalled();
         expect(getData()[1][1]).toEqual('Ted');
-        expect(getSelected()).toEqual([2, 1, 2, 1]);
+        expect(getSelected()).toEqual([[2, 1, 2, 1]]);
         done();
       }, 200);
     });
@@ -164,7 +164,7 @@ describe('Core_onKeyDown', () => {
       setTimeout(() => {
         expect(onAfterValidate).toHaveBeenCalled();
         expect(getData()[1][1]).toEqual('Ted');
-        expect(getSelected()).toEqual([2, 1, 2, 1]);
+        expect(getSelected()).toEqual([[2, 1, 2, 1]]);
         done();
       }, 200);
     });
@@ -180,7 +180,7 @@ describe('Core_onKeyDown', () => {
       keyProxy().val('Ted');
       keyDownUp('tab');
       expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([1, 2, 1, 2]);
+      expect(getSelected()).toEqual([[1, 2, 1, 2]]);
     });
 
     it('should finish editing and advance to lower cell when enter is pressed', () => {
@@ -192,7 +192,7 @@ describe('Core_onKeyDown', () => {
       keyProxy().val('Ted');
       keyDownUp('enter');
       expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([2, 1, 2, 1]);
+      expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     });
 
     it('should finish editing and advance to higher cell when shift+enter is pressed', () => {
@@ -204,7 +204,7 @@ describe('Core_onKeyDown', () => {
       keyProxy().val('Ted');
       keyDownUp('shift+enter');
       expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([0, 1, 0, 1]);
+      expect(getSelected()).toEqual([[0, 1, 0, 1]]);
     });
 
     it('shouldn\'t finish editing and advance to lower cell when down arrow is pressed', () => {
@@ -215,7 +215,7 @@ describe('Core_onKeyDown', () => {
       keyProxy().val('Ted');
       keyDownUp('arrow_down');
       expect(getData()[1][1]).toEqual(null);
-      expect(getSelected()).toEqual([1, 1, 1, 1]);
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     });
 
     it('shouldn\'t finish editing and advance to higher cell when up arrow is pressed', () => {
@@ -226,7 +226,7 @@ describe('Core_onKeyDown', () => {
       keyProxy().val('Ted');
       keyDownUp('arrow_up');
       expect(getData()[1][1]).toEqual(null);
-      expect(getSelected()).toEqual([1, 1, 1, 1]);
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     });
 
     it('shouldn\'t finish editing and advance to right cell when right arrow is pressed', () => {
@@ -240,7 +240,7 @@ describe('Core_onKeyDown', () => {
       keyDownUp('arrow_right');
       keyDownUp('arrow_right');
       expect(getData()[1][1]).toEqual(null);
-      expect(getSelected()).toEqual([1, 1, 1, 1]);
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     });
 
     it('shouldn\'t finish editing and advance to left cell when left arrow is pressed', () => {
@@ -254,7 +254,7 @@ describe('Core_onKeyDown', () => {
       keyDownUp('arrow_left');
       keyDownUp('arrow_left');
       expect(getData()[1][1]).toEqual(null);
-      expect(getSelected()).toEqual([1, 1, 1, 1]);
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     });
 
     it('should finish editing and advance to lower cell when enter is pressed (with sync validator)', (done) => {
@@ -278,7 +278,7 @@ describe('Core_onKeyDown', () => {
       setTimeout(() => {
         expect(onAfterValidate).toHaveBeenCalled();
         expect(getData()[1][1]).toEqual('Ted');
-        expect(getSelected()).toEqual([2, 1, 2, 1]);
+        expect(getSelected()).toEqual([[2, 1, 2, 1]]);
         done();
       }, 200);
     });
@@ -305,7 +305,7 @@ describe('Core_onKeyDown', () => {
       setTimeout(() => {
         expect(onAfterValidate).toHaveBeenCalled();
         expect(getData()[1][1]).toEqual('Ted');
-        expect(getSelected()).toEqual([2, 1, 2, 1]);
+        expect(getSelected()).toEqual([[2, 1, 2, 1]]);
         done();
       }, 200);
     });

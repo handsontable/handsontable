@@ -318,7 +318,7 @@ class MergeCells extends BasePlugin {
    */
   mergeSelection(cellRange) {
     if (!cellRange) {
-      cellRange = this.hot.getSelectedRange();
+      cellRange = this.hot.getSelectedRangeLast();
     }
 
     this.unmergeRange(cellRange, true);
@@ -419,7 +419,7 @@ class MergeCells extends BasePlugin {
     const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (ctrlDown && event.keyCode === 77) { // CTRL + M
-      this.toggleMerge(this.hot.getSelectedRange());
+      this.toggleMerge(this.hot.getSelectedRangeLast());
 
       this.hot.render();
       stopImmediatePropagation(event);
@@ -436,7 +436,7 @@ class MergeCells extends BasePlugin {
   onAfterIsMultipleSelection(isMultiple) {
     if (isMultiple) {
       let mergedCells = this.mergedCellsCollection.mergedCells;
-      let selectionRange = this.hot.getSelectedRange();
+      let selectionRange = this.hot.getSelectedRangeLast();
 
       for (let group = 0; group < mergedCells.length; group++) {
         if (selectionRange.highlight.row === mergedCells[group].row &&
@@ -447,6 +447,7 @@ class MergeCells extends BasePlugin {
         }
       }
     }
+
     return isMultiple;
   }
 
@@ -458,7 +459,7 @@ class MergeCells extends BasePlugin {
    */
   onModifyTransformStart(delta) {
     const priv = privatePool.get(this);
-    const currentlySelectedRange = this.hot.getSelectedRange();
+    const currentlySelectedRange = this.hot.getSelectedRangeLast();
     let newDelta = {
       row: delta.row,
       col: delta.col,
@@ -522,7 +523,7 @@ class MergeCells extends BasePlugin {
    * @param {Object} delta The transformation delta.
    */
   onModifyTransformEnd(delta) {
-    let currentSelectionRange = this.hot.getSelectedRange();
+    let currentSelectionRange = this.hot.getSelectedRangeLast();
     let newDelta = clone(delta);
     let newSelectionRange = this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, delta);
     let tempDelta = clone(newDelta);
@@ -593,7 +594,7 @@ class MergeCells extends BasePlugin {
    * @param {Object} coords Cell coords.
    */
   onBeforeSetRangeEnd(coords) {
-    let selRange = this.hot.getSelectedRange();
+    let selRange = this.hot.getSelectedRangeLast();
     selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
     selRange.to = coords;
     let rangeExpanded = false;
@@ -804,7 +805,7 @@ class MergeCells extends BasePlugin {
    */
   onBeforeDrawAreaBorders(corners, className) {
     if (className && className === 'area') {
-      const selectedRange = this.hot.getSelectedRange();
+      const selectedRange = this.hot.getSelectedRangeLast();
       const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(selectedRange);
 
       arrayEach(mergedCellsWithinRange, (mergedCell) => {

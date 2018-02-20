@@ -193,9 +193,12 @@ class ManualColumnMove extends BasePlugin {
         let actualPosition = this.columnsMapper.getIndexByValue(column);
 
         if (actualPosition !== target) {
-          this.columnsMapper.swapIndexes(actualPosition, target + index);
+          this.columnsMapper.moveColumn(actualPosition, target + index);
         }
       });
+
+      // after moving we have to clear columnsMapper from null entries
+      this.columnsMapper.clearNull();
     }
 
     this.hot.runHooks('afterColumnMove', columns, target);
@@ -466,7 +469,7 @@ class ManualColumnMove extends BasePlugin {
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     let wtTable = this.hot.view.wt.wtTable;
     let isHeaderSelection = this.hot.selection.selectedHeader.cols;
-    let selection = this.hot.getSelectedRange();
+    let selection = this.hot.getSelectedRangeLast();
     let priv = privatePool.get(this);
     let isSortingElement = event.realTarget.className.indexOf('columnSorting') > -1;
 
@@ -561,7 +564,7 @@ class ManualColumnMove extends BasePlugin {
    * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
   onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
-    let selectedRange = this.hot.getSelectedRange();
+    let selectedRange = this.hot.getSelectedRangeLast();
     let priv = privatePool.get(this);
 
     if (!selectedRange || !priv.pressed) {
@@ -590,6 +593,7 @@ class ManualColumnMove extends BasePlugin {
   onMouseUp() {
     let priv = privatePool.get(this);
 
+    priv.coordsColumn = void 0;
     priv.pressed = false;
     priv.backlightWidth = 0;
 
@@ -602,7 +606,7 @@ class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    this.moveColumns(priv.columnsToMove, priv.coordsColumn);
+    this.moveColumns(priv.columnsToMove, priv.target.col);
     this.persistentStateSave();
     this.hot.render();
     this.hot.view.wt.wtOverlays.adjustElementsSize(true);

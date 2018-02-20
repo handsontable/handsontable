@@ -130,17 +130,17 @@ describe('MergeCells', () => {
       expect($td.attr('rowspan')).toEqual('1');
       expect($td.attr('colspan')).toEqual('4');
 
-      expect(hot.getSelected()).toBeUndefined();
+      expect(hot.getSelectedLast()).toBeUndefined();
 
       hot.selectCell(0, 0);
 
-      expect(hot.getSelected()).toEqual([0, 0, 0, 3]);
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 3]);
 
       deselectCell();
 
       hot.selectCell(0, 1);
 
-      expect(hot.getSelected()).toEqual([0, 0, 0, 3]);
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 3]);
     });
 
     it('should always make a rectangular selection, when selecting merged and not merged cells', function() {
@@ -162,24 +162,24 @@ describe('MergeCells', () => {
       expect($td.attr('rowspan')).toEqual('2');
       expect($td.attr('colspan')).toEqual('3');
 
-      expect(hot.getSelected()).toBeUndefined();
+      expect(hot.getSelectedLast()).toBeUndefined();
 
       hot.selectCell(0, 0);
 
-      expect(hot.getSelected()).toEqual([0, 0, 0, 0]);
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
 
       deselectCell();
 
       hot.selectCell(0, 0, 1, 1);
 
-      expect(hot.getSelected()).not.toEqual([0, 0, 1, 1]);
-      expect(hot.getSelected()).toEqual([0, 0, 2, 3]);
+      expect(hot.getSelectedLast()).not.toEqual([0, 0, 1, 1]);
+      expect(hot.getSelectedLast()).toEqual([0, 0, 2, 3]);
 
       deselectCell();
 
       hot.selectCell(0, 1, 1, 1);
 
-      expect(hot.getSelected()).toEqual([0, 1, 2, 3]);
+      expect(hot.getSelectedLast()).toEqual([0, 1, 2, 3]);
     });
 
     it('should not switch the selection start point when selecting from non-merged cells to merged cells', () => {
@@ -193,23 +193,23 @@ describe('MergeCells', () => {
 
       $(hot.getCell(6, 6)).simulate('mousedown');
 
-      expect(hot.getSelectedRange().from.col).toEqual(6);
-      expect(hot.getSelectedRange().from.row).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.col).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.row).toEqual(6);
 
       $(hot.getCell(1, 1)).simulate('mouseenter');
 
-      expect(hot.getSelectedRange().from.col).toEqual(6);
-      expect(hot.getSelectedRange().from.row).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.col).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.row).toEqual(6);
 
       $(hot.getCell(3, 3)).simulate('mouseenter');
 
-      expect(hot.getSelectedRange().from.col).toEqual(6);
-      expect(hot.getSelectedRange().from.row).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.col).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.row).toEqual(6);
 
       $(hot.getCell(4, 4)).simulate('mouseenter');
 
-      expect(hot.getSelectedRange().from.col).toEqual(6);
-      expect(hot.getSelectedRange().from.row).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.col).toEqual(6);
+      expect(hot.getSelectedRangeLast().from.row).toEqual(6);
 
     });
 
@@ -222,16 +222,16 @@ describe('MergeCells', () => {
       });
 
       hot.selectCell(5, 5, 5, 2);
-      expect(hot.getSelectedRange().getDirection()).toEqual('SE-NW');
+      expect(hot.getSelectedRangeLast().getDirection()).toEqual('SE-NW');
 
       hot.selectCell(4, 4, 2, 5);
-      expect(hot.getSelectedRange().getDirection()).toEqual('SW-NE');
+      expect(hot.getSelectedRangeLast().getDirection()).toEqual('SW-NE');
 
       hot.selectCell(4, 4, 5, 7);
-      expect(hot.getSelectedRange().getDirection()).toEqual('NW-SE');
+      expect(hot.getSelectedRangeLast().getDirection()).toEqual('NW-SE');
 
       hot.selectCell(4, 5, 7, 5);
-      expect(hot.getSelectedRange().getDirection()).toEqual('NE-SW');
+      expect(hot.getSelectedRangeLast().getDirection()).toEqual('NE-SW');
     });
 
     it('should not add an area class to the selected cell if a single merged cell is selected', () => {
@@ -725,7 +725,7 @@ describe('MergeCells', () => {
         validator: function(query, callback) {
           callback(true);
         },
-        onAfterValidate
+        afterValidate: onAfterValidate
       });
 
       let firstCollection = hot.getCell(5, 4);
@@ -760,11 +760,11 @@ describe('MergeCells', () => {
       });
 
       hot.selectCell(0, 5, 9, 5);
-      expect(JSON.stringify(hot.getSelected())).toEqual('[0,5,9,5]');
+      expect(JSON.stringify(hot.getSelectedLast())).toEqual('[0,5,9,5]');
 
       // it should work only for selecting the entire column
       hot.selectCell(4, 5, 7, 5);
-      expect(JSON.stringify(hot.getSelected())).toEqual('[4,4,7,8]');
+      expect(JSON.stringify(hot.getSelectedLast())).toEqual('[4,4,7,8]');
     });
 
     it('should be possible to select a single entire row, when there\'s a merged cell in it', () => {
@@ -776,11 +776,11 @@ describe('MergeCells', () => {
       });
 
       hot.selectCell(5, 0, 5, 9);
-      expect(JSON.stringify(hot.getSelected())).toEqual('[5,0,5,9]');
+      expect(JSON.stringify(hot.getSelectedLast())).toEqual('[5,0,5,9]');
 
       // it should work only for selecting the entire row
       hot.selectCell(6, 3, 6, 7);
-      expect(JSON.stringify(hot.getSelected())).toEqual('[5,3,9,7]');
+      expect(JSON.stringify(hot.getSelectedLast())).toEqual('[5,3,9,7]');
     });
   });
 

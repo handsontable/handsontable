@@ -298,12 +298,12 @@ TextEditor.prototype.refreshDimensions = function() {
       break;
   }
 
-  if (colHeadersCount && this.instance.getSelected()[0] === 0 ||
-      (settings.fixedRowsBottom && this.instance.getSelected()[0] === totalRowsCount - settings.fixedRowsBottom)) {
+  if (colHeadersCount && this.instance.getSelectedLast()[0] === 0 ||
+      (settings.fixedRowsBottom && this.instance.getSelectedLast()[0] === totalRowsCount - settings.fixedRowsBottom)) {
     editTop += 1;
   }
 
-  if (this.instance.getSelected()[1] === 0) {
+  if (this.instance.getSelectedLast()[1] === 0) {
     editLeft += 1;
   }
 

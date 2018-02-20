@@ -4,7 +4,7 @@ export default function toggleMergeItem(plugin) {
   return {
     key: 'mergeCells',
     name() {
-      const sel = this.getSelected();
+      const sel = this.getSelectedLast();
       const info = plugin.mergedCellsCollection.get(sel[0], sel[1]);
 
       if (info.row === sel[0] && info.col === sel[1] && info.row + info.rowspan - 1 === sel[2] && info.col + info.colspan - 1 === sel[3]) {
@@ -14,7 +14,7 @@ export default function toggleMergeItem(plugin) {
 
     },
     callback() {
-      plugin.toggleMerge(this.getSelectedRange());
+      plugin.toggleMerge(this.getSelectedRangeLast());
       this.render();
     },
     disabled() {
