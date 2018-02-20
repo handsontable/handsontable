@@ -87,6 +87,7 @@ var hot = new Handsontable(container, {
 - Formulas (alpha)
 - Nested rows (alpha)
 - Gantt Chart (beta)
+- Non-contiguous selection
 
 [See a comparison table](//docs.handsontable.com/pro/tutorial-features.html)
 
