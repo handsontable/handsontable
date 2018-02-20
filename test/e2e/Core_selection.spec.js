@@ -786,6 +786,22 @@ describe('Core_selection', () => {
     expect(this.$container.hasClass('ht__selection--columns')).toBeTruthy();
   });
 
+  it('should not overwrite background color of the cells with custom CSS classes', function() {
+    var hot = handsontable({
+      width: 300,
+      height: 150,
+      startRows: 5,
+      startCols: 5,
+      cells: (row, col) => (row === 1 && col === 1 ? {className: 'red-background'} : void 0)
+    });
+
+    $(getCell(0, 0)).simulate('mousedown');
+    $(getCell(4, 4)).simulate('mouseover');
+    $(getCell(4, 4)).simulate('mouseup');
+
+    expect(window.getComputedStyle(getCell(1, 1))['background-color']).toBe('rgb(255, 0, 0)');
+  });
+
   it('should select the entire column after column header is clicked (in fixed rows/cols corner)', function() {
     var hot = handsontable({
       width: 200,
