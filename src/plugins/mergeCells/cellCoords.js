@@ -1,15 +1,15 @@
-import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
+import {CellCoords, CellRange} from '../../3rdparty/walkontable/src/index';
 
 /**
- * The `Collection` class represents a single merged cells collection.
+ * The `MergedCellCoords` class represents a single merged cell.
  *
- * @class Collection
+ * @class MergedCellCoords
  * @plugin MergeCells
  */
-class Collection {
+class MergedCellCoords {
   constructor(row, column, rowspan, colspan) {
     /**
-     * The index of the topmost collection row.
+     * The index of the topmost merged cell row.
      *
      * @type {Number}
      */
@@ -21,19 +21,19 @@ class Collection {
      */
     this.col = column;
     /**
-     * The `rowspan` value of the collection.
+     * The `rowspan` value of the merged cell.
      *
      * @type {Number}
      */
     this.rowspan = rowspan;
     /**
-     * The `colspan` value of the collection.
+     * The `colspan` value of the merged cell.
      *
      * @type {Number}
      */
     this.colspan = colspan;
     /**
-     * `true` only if the collection is bound to be removed.
+     * `true` only if the merged cell is bound to be removed.
      *
      * @type {Boolean}
      */
@@ -41,7 +41,7 @@ class Collection {
   }
 
   /**
-   * Sanitize (prevent from going outside the boundaries) the collection.
+   * Sanitize (prevent from going outside the boundaries) the merged cell.
    *
    * @param hotInstance
    */
@@ -71,7 +71,7 @@ class Collection {
   }
 
   /**
-   * Returns `true` if the provided coordinates are inside the collection.
+   * Returns `true` if the provided coordinates are inside the merged cell.
    *
    * @param {Number} row The row index.
    * @param {Number} column The column index.
@@ -82,7 +82,7 @@ class Collection {
   }
 
   /**
-   * Returns `true` if the provided `column` property is within the column span of the collection.
+   * Returns `true` if the provided `column` property is within the column span of the merged cell.
    *
    * @param {Number} column The column index.
    * @return {Boolean}
@@ -92,7 +92,7 @@ class Collection {
   }
 
   /**
-   * Returns `true` if the provided `row` property is within the row span of the collection.
+   * Returns `true` if the provided `row` property is within the row span of the merged cell.
    *
    * @param {Number} row Row index.
    * @return {Boolean}
@@ -102,30 +102,30 @@ class Collection {
   }
 
   /**
-   * Shift (and possibly resize, if needed) the merged collection.
+   * Shift (and possibly resize, if needed) the merged cell.
    *
    * @param {Array} shiftVector 2-element array containing the information on the shifting in the `x` and `y` axis.
    * @param {Number} indexOfChange Index of the preceding change.
-   * @returns {Boolean} Returns `false` if the whole collection was removed.
+   * @returns {Boolean} Returns `false` if the whole merged cell was removed.
    */
   shift(shiftVector, indexOfChange) {
     const shiftValue = shiftVector[0] || shiftVector[1];
     const shiftedIndex = indexOfChange + Math.abs(shiftVector[0] || shiftVector[1]) - 1;
-    const SPAN = shiftVector[0] ? 'colspan' : 'rowspan';
-    const INDEX = shiftVector[0] ? 'col' : 'row';
+    const span = shiftVector[0] ? 'colspan' : 'rowspan';
+    const index = shiftVector[0] ? 'col' : 'row';
     const changeStart = Math.min(indexOfChange, shiftedIndex);
     const changeEnd = Math.max(indexOfChange, shiftedIndex);
-    const mergeStart = this[INDEX];
-    const mergeEnd = this[INDEX] + this[SPAN] - 1;
+    const mergeStart = this[index];
+    const mergeEnd = this[index] + this[span] - 1;
 
     if (mergeStart >= indexOfChange) {
-      this[INDEX] += shiftValue;
+      this[index] += shiftValue;
     }
 
     // adding rows/columns
     if (shiftValue > 0) {
       if (indexOfChange <= mergeEnd && indexOfChange > mergeStart) {
-        this[SPAN] += shiftValue;
+        this[span] += shiftValue;
       }
 
       // removing rows/columns
@@ -141,18 +141,18 @@ class Collection {
         const removedOffset = changeEnd - mergeStart + 1;
         const preRemovedOffset = Math.abs(shiftValue) - removedOffset;
 
-        this[INDEX] -= preRemovedOffset;
-        this[SPAN] -= removedOffset;
+        this[index] -= preRemovedOffset;
+        this[span] -= removedOffset;
 
         // removing the middle part of the merge
       } else if (mergeStart <= changeStart && mergeEnd >= changeEnd) {
-        this[SPAN] += shiftValue;
+        this[span] += shiftValue;
 
         // removing the end part of the merge
       } else if (mergeStart <= changeStart && mergeEnd >= changeStart && mergeEnd < changeEnd) {
         const removedPart = mergeEnd - changeStart + 1;
 
-        this[SPAN] -= removedPart;
+        this[span] -= removedPart;
       }
     }
 
@@ -160,33 +160,34 @@ class Collection {
   }
 
   /**
-   * Check if the second provided collection is "farther" in the provided direction.
+   * Check if the second provided merged cell is "farther" in the provided direction.
    *
-   * @param {Collection} collection The collection to check.
+   * @param {MergedCellCoords} mergedCell The merged cell to check.
    * @param {String} direction Drag direction.
-   * @return {Boolean|undefined} `true` if the second provided collection is "farther".
+   * @return {Boolean|null} `true` if the second provided merged cell is "farther".
    */
-  isFarther(collection, direction) {
-    if (!collection) {
+  isFarther(mergedCell, direction) {
+    if (!mergedCell) {
       return true;
     }
 
     if (direction === 'down') {
-      return collection.row + collection.rowspan - 1 < this.row + this.rowspan - 1;
+      return mergedCell.row + mergedCell.rowspan - 1 < this.row + this.rowspan - 1;
 
     } else if (direction === 'up') {
-      return collection.row > this.row;
+      return mergedCell.row > this.row;
 
     } else if (direction === 'right') {
-      return collection.col + collection.colspan - 1 < this.col + this.colspan - 1;
+      return mergedCell.col + mergedCell.colspan - 1 < this.col + this.colspan - 1;
 
     } else if (direction === 'left') {
-      return collection.col > this.col;
+      return mergedCell.col > this.col;
     }
+    return null;
   }
 
   /**
-   * Get the bottom row index of the collection.
+   * Get the bottom row index of the merged cell.
    *
    * @returns {Number}
    */
@@ -195,7 +196,7 @@ class Collection {
   }
 
   /**
-   * Get the rightmost column index of the collection.
+   * Get the rightmost column index of the merged cell.
    *
    * @returns {Number}
    */
@@ -204,7 +205,7 @@ class Collection {
   }
 
   /**
-   * Get the range coordinates of the collection.
+   * Get the range coordinates of the merged cell.
    *
    * @return {CellRange}
    */
@@ -213,4 +214,4 @@ class Collection {
   }
 }
 
-export default Collection;
+export default MergedCellCoords;

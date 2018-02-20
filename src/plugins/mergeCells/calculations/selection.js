@@ -1,49 +1,55 @@
 import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
 
+/**
+ * Class responsible for all of the Selection-related operations on merged cells.
+ *
+ * @class SelectionCalculations
+ * @plugin MergeCells
+ */
 class SelectionCalculations {
   /**
-   * "Snap" the delta value according to defined merged collections. (In other words, compensate the rowspan -
-   * e.g. going up with `delta.row = -1` over a collection with `rowspan = 3`, `delta.row` should change to `-3`.)
+   * "Snap" the delta value according to defined merged cells. (In other words, compensate the rowspan -
+   * e.g. going up with `delta.row = -1` over a merged cell with `rowspan = 3`, `delta.row` should change to `-3`.)
    *
    * @param {Object} delta The delta object containing `row` and `col` properties.
    * @param {CellRange} selectionRange The selection range.
-   * @param {Object} collection A collection object.
+   * @param {Object} mergedCell A merged cell object.
    */
-  snapDelta(delta, selectionRange, collection) {
+  snapDelta(delta, selectionRange, mergedCell) {
     const cellCoords = selectionRange.to;
     const newRow = cellCoords.row + delta.row;
     const newColumn = cellCoords.col + delta.col;
 
     if (delta.row) {
-      this.jumpOverCollection(delta, collection, newRow);
+      this.jumpOverCollection(delta, mergedCell, newRow);
     } else if (delta.col) {
-      this.jumpOverCollection(delta, collection, newColumn);
+      this.jumpOverCollection(delta, mergedCell, newColumn);
     }
   }
 
   /**
-   * "Jump" over the collection (compensate for the indexes within the collection to get past it)
+   * "Jump" over the merged cell (compensate for the indexes within the merged cell to get past it)
    *
    * @private
    * @param {Object} delta The delta object.
-   * @param {Collection} collection The collection object.
+   * @param {MergedCellCoords} mergedCell The merge cell object.
    * @param {Number} newIndex New row/column index, created with the delta.
    */
-  jumpOverCollection(delta, collection, newIndex) {
+  jumpOverCollection(delta, mergeCell, newIndex) {
     let flatDelta = delta.row || delta.col;
     let includesIndex = null;
     let firstIndex = null;
     let lastIndex = null;
 
     if (delta.row) {
-      includesIndex = collection.includesVertically(newIndex);
-      firstIndex = collection.row;
-      lastIndex = collection.getLastRow();
+      includesIndex = mergeCell.includesVertically(newIndex);
+      firstIndex = mergeCell.row;
+      lastIndex = mergeCell.getLastRow();
 
     } else if (delta.col) {
-      includesIndex = collection.includesHorizontally(newIndex);
-      firstIndex = collection.col;
-      lastIndex = collection.getLastColumn();
+      includesIndex = mergeCell.includesHorizontally(newIndex);
+      firstIndex = mergeCell.col;
+      lastIndex = mergeCell.getLastColumn();
     }
 
     if (flatDelta === 0) {

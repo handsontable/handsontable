@@ -235,7 +235,7 @@ describe('MergeCells', () => {
     });
 
     it('should not add an area class to the selected cell if a single merged cell is selected', () => {
-      let hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(6, 6),
         mergeCells: [
           {
@@ -396,10 +396,10 @@ describe('MergeCells', () => {
       hot.alter('insert_col', 3, 2);
 
       let plugin = hot.getPlugin('mergeCells');
-      let collectionContainer = plugin.collectionContainer.collections;
+      let mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
 
-      expect(collectionContainer[0].col).toEqual(1);
-      expect(collectionContainer[1].col).toEqual(7);
+      expect(mergedCellsCollection[0].col).toEqual(1);
+      expect(mergedCellsCollection[1].col).toEqual(7);
     });
 
     it('should shift the merged cells left, when removing a column on the left side of them', () => {
@@ -416,10 +416,10 @@ describe('MergeCells', () => {
       hot.alter('remove_col', 3, 2);
 
       let plugin = hot.getPlugin('mergeCells');
-      let collectionContainer = plugin.collectionContainer.collections;
+      let mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
 
-      expect(collectionContainer[0].col).toEqual(1);
-      expect(collectionContainer[1].col).toEqual(3);
+      expect(mergedCellsCollection[0].col).toEqual(1);
+      expect(mergedCellsCollection[1].col).toEqual(3);
 
     });
 
@@ -437,10 +437,10 @@ describe('MergeCells', () => {
       hot.alter('insert_row', 3, 2);
 
       let plugin = hot.getPlugin('mergeCells');
-      let collectionContainer = plugin.collectionContainer.collections;
+      let mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
 
-      expect(collectionContainer[0].row).toEqual(1);
-      expect(collectionContainer[1].row).toEqual(7);
+      expect(mergedCellsCollection[0].row).toEqual(1);
+      expect(mergedCellsCollection[1].row).toEqual(7);
     });
 
     it('should shift the merged cells up, when removing rows above them', () => {
@@ -457,10 +457,10 @@ describe('MergeCells', () => {
       hot.alter('remove_row', 3, 2);
 
       let plugin = hot.getPlugin('mergeCells');
-      let collectionContainer = plugin.collectionContainer.collections;
+      let mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
 
-      expect(collectionContainer[0].row).toEqual(1);
-      expect(collectionContainer[1].row).toEqual(3);
+      expect(mergedCellsCollection[0].row).toEqual(1);
+      expect(mergedCellsCollection[1].row).toEqual(3);
     });
   });
 
@@ -684,7 +684,7 @@ describe('MergeCells', () => {
 
   describe('ContextMenu', () => {
     it('should disable `Merge cells` context menu item when context menu was triggered from corner header', () => {
-      let hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         rowHeaders: true,
         colHeaders: true,
@@ -692,7 +692,11 @@ describe('MergeCells', () => {
         mergeCells: true,
       });
 
-      $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0).simulate('mousedown', {which: 3});
+      $('.ht_clone_top_left_corner .htCore')
+        .find('thead')
+        .find('th')
+        .eq(0)
+        .simulate('mousedown', {which: 3});
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -721,7 +725,7 @@ describe('MergeCells', () => {
         validator: function(query, callback) {
           callback(true);
         },
-        afterValidate: onAfterValidate
+        onAfterValidate
       });
 
       let firstCollection = hot.getCell(5, 4);
@@ -747,7 +751,7 @@ describe('MergeCells', () => {
   });
 
   describe('Entire row/column selection', () => {
-    it('should be possible to select a single entire column, when there\'s a merged collection in it', () => {
+    it('should be possible to select a single entire column, when there\'s a merged cell in it', () => {
       let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         mergeCells: [
@@ -763,7 +767,7 @@ describe('MergeCells', () => {
       expect(JSON.stringify(hot.getSelected())).toEqual('[4,4,7,8]');
     });
 
-    it('should be possible to select a single entire row, when there\'s a merged collection in it', () => {
+    it('should be possible to select a single entire row, when there\'s a merged cell in it', () => {
       let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         mergeCells: [
@@ -781,7 +785,7 @@ describe('MergeCells', () => {
   });
 
   describe('Undo/Redo', () => {
-    it('should not be possible to remove initially declared merged collections by calling the \'Undo\' action.', () => {
+    it('should not be possible to remove initially declared merged cells by calling the \'Undo\' action.', () => {
       let hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         mergeCells: [
@@ -792,7 +796,7 @@ describe('MergeCells', () => {
 
       hot.undo();
 
-      expect(hot.getPlugin('mergeCells').collectionContainer.collections.length).toEqual(2);
+      expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(2);
     });
 
     it('should be possible undo the merging process by calling the \'Undo\' action.', () => {
@@ -806,11 +810,11 @@ describe('MergeCells', () => {
       hot.selectCell(4, 4, 7, 7);
       plugin.mergeSelection();
 
-      expect(plugin.collectionContainer.collections.length).toEqual(2);
+      expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(2);
       hot.undo();
-      expect(plugin.collectionContainer.collections.length).toEqual(1);
+      expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(1);
       hot.undo();
-      expect(plugin.collectionContainer.collections.length).toEqual(0);
+      expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(0);
     });
 
     it('should be possible redo the merging process by calling the \'Redo\' action.', () => {
@@ -828,9 +832,9 @@ describe('MergeCells', () => {
       hot.undo();
 
       hot.redo();
-      expect(plugin.collectionContainer.collections.length).toEqual(1);
+      expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(1);
       hot.redo();
-      expect(plugin.collectionContainer.collections.length).toEqual(2);
+      expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(2);
     });
   });
 });
