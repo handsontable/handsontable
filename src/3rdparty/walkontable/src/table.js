@@ -302,31 +302,57 @@ class Table {
     }
   }
 
+  /**
+   * Refresh the table selection by re-rendering Selection instances connected with that instance.
+   *
+   * @param {Boolean} fastDraw If fast drawing is enabled than additionally className clearing is applied.
+   */
   refreshSelections(fastDraw) {
     if (!this.wot.selections) {
       return;
     }
-    let len = this.wot.selections.length;
+    const highlights = Array.from(this.wot.selections);
+    const len = highlights.length;
 
     if (fastDraw) {
+      const classesToRemove = [];
+
       for (let i = 0; i < len; i++) {
-        // there was no rerender, so we need to remove classNames by ourselves
-        if (this.wot.selections[i].settings.className) {
-          this.removeClassFromCells(this.wot.selections[i].settings.className);
+        const {
+          highlightHeaderClassName,
+          highlightRowClassName,
+          highlightColumnClassName,
+        } = highlights[i].settings;
+        const classNames = highlights[i].classNames;
+        const classNamesLength = classNames.length;
+
+        for (let j = 0; j < classNamesLength; j++) {
+          if (!classesToRemove.includes(classNames[j])) {
+            classesToRemove.push(classNames[j]);
+          }
         }
-        if (this.wot.selections[i].settings.highlightHeaderClassName) {
-          this.removeClassFromCells(this.wot.selections[i].settings.highlightHeaderClassName);
+
+        if (highlightHeaderClassName && !classesToRemove.includes(highlightHeaderClassName)) {
+          classesToRemove.push(highlightHeaderClassName);
         }
-        if (this.wot.selections[i].settings.highlightRowClassName) {
-          this.removeClassFromCells(this.wot.selections[i].settings.highlightRowClassName);
+        if (highlightRowClassName && !classesToRemove.includes(highlightRowClassName)) {
+          classesToRemove.push(highlightRowClassName);
         }
-        if (this.wot.selections[i].settings.highlightColumnClassName) {
-          this.removeClassFromCells(this.wot.selections[i].settings.highlightColumnClassName);
+        if (highlightColumnClassName && !classesToRemove.includes(highlightColumnClassName)) {
+          classesToRemove.push(highlightColumnClassName);
         }
       }
+
+      const classesToRemoveLength = classesToRemove.length;
+
+      for (let i = 0; i < classesToRemoveLength; i++) {
+        // there was no rerender, so we need to remove classNames by ourselves
+        this.removeClassFromCells(classesToRemove[i]);
+      }
     }
+
     for (let i = 0; i < len; i++) {
-      this.wot.selections[i].draw(this.wot, fastDraw);
+      highlights[i].draw(this.wot, fastDraw);
     }
   }
 

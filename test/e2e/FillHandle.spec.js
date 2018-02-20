@@ -275,7 +275,7 @@ describe('FillHandle', () => {
     this.$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
     this.$container.find('.wtBorder.corner').simulate('mouseup');
 
-    expect(getSelected()).toEqual([0, 0, 2, 0]);
+    expect(getSelected()).toEqual([[0, 0, 2, 0]]);
     expect(getDataAtCell(1, 0)).toEqual('test');
   });
 
@@ -303,7 +303,7 @@ describe('FillHandle', () => {
     this.$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
     this.$container.find('tr:eq(2) td:eq(0)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([1, 1, 2, 1]);
+    expect(getSelected()).toEqual([[1, 1, 2, 1]]);
     expect(getDataAtCell(2, 1)).toEqual('test');
 
     document.body.removeChild($table[0]);

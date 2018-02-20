@@ -1,12 +1,13 @@
-import {arrayEach} from './../../helpers/array';
+import {arrayEach, arrayMap} from './../../helpers/array';
+import {rangeEach} from './../../helpers/number';
 import {hasClass} from './../../helpers/dom/element';
 import {KEY as SEPARATOR} from './predefinedItems/separator';
 
-export function normalizeSelection(selRange) {
-  return {
-    start: selRange.getTopLeftCorner(),
-    end: selRange.getBottomRightCorner()
-  };
+export function normalizeSelection(selRanges) {
+  return arrayMap(selRanges, (range) => ({
+    start: range.getTopLeftCorner(),
+    end: range.getBottomRightCorner()
+  }));
 }
 
 export function isSeparator(cell) {
@@ -69,31 +70,35 @@ export function prepareHorizontalAlignClass(className, alignment) {
   return className;
 }
 
-export function getAlignmentClasses(range, callback) {
+export function getAlignmentClasses(ranges, callback) {
   const classes = {};
 
-  for (let row = range.from.row; row <= range.to.row; row++) {
-    for (let col = range.from.col; col <= range.to.col; col++) {
-      if (!classes[row]) {
-        classes[row] = [];
+  arrayEach(ranges, ({from, to}) => {
+    for (let row = from.row; row <= to.row; row++) {
+      for (let col = from.col; col <= to.col; col++) {
+        if (!classes[row]) {
+          classes[row] = [];
+        }
+        classes[row][col] = callback(row, col);
       }
-      classes[row][col] = callback(row, col);
     }
-  }
+  });
 
   return classes;
 }
 
-export function align(range, type, alignment, cellDescriptor, propertySetter) {
-  if (range.from.row == range.to.row && range.from.col == range.to.col) {
-    applyAlignClassName(range.from.row, range.from.col, type, alignment, cellDescriptor, propertySetter);
-  } else {
-    for (let row = range.from.row; row <= range.to.row; row++) {
-      for (let col = range.from.col; col <= range.to.col; col++) {
-        applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter);
+export function align(ranges, type, alignment, cellDescriptor, propertySetter) {
+  arrayEach(ranges, ({from, to}) => {
+    if (from.row == to.row && from.col == to.col) {
+      applyAlignClassName(from.row, from.col, type, alignment, cellDescriptor, propertySetter);
+    } else {
+      for (let row = from.row; row <= to.row; row++) {
+        for (let col = from.col; col <= to.col; col++) {
+          applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter);
+        }
       }
     }
-  }
+  });
 }
 
 function applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter) {
@@ -111,16 +116,20 @@ function applyAlignClassName(row, col, type, alignment, cellDescriptor, property
   propertySetter(row, col, 'className', className);
 }
 
-export function checkSelectionConsistency(range, comparator) {
+export function checkSelectionConsistency(ranges, comparator) {
   let result = false;
 
-  if (range) {
-    range.forAll((row, col) => {
-      if (comparator(row, col)) {
-        result = true;
+  if (Array.isArray(ranges)) {
+    arrayEach(ranges, (range) => {
+      range.forAll((row, col) => {
+        if (comparator(row, col)) {
+          result = true;
 
-        return false;
-      }
+          return false;
+        }
+      });
+
+      return result;
     });
   }
 

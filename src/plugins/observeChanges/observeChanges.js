@@ -106,7 +106,7 @@ class ObserveChanges extends BasePlugin {
           }
         },
         replace: (patch) => {
-          this.hot.runHooks('afterChange', [patch.row, patch.col, null, patch.value], sourceName);
+          this.hot.runHooks('afterChange', [[patch.row, patch.col, null, patch.value]], sourceName);
         },
       };
 
