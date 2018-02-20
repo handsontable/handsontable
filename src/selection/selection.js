@@ -59,8 +59,8 @@ class Selection {
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
       disableHighlight: this.settings.disableVisualSelection,
-      cellCornerVisible: () => this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.isMultiple(),
-      areaCornerVisible: () => this.settings.fillHandle && !this.tableProps.isEditorOpened() && this.isMultiple(),
+      cellCornerVisible: (...args) => this.isCellCornerVisible(...args),
+      areaCornerVisible: (...args) => this.isAreaCornerVisible(...args),
     });
     /**
      * The module for modifying coordinates.
@@ -318,6 +318,31 @@ class Selection {
   inInSelection(coords) {
     // TODO(budnix): This ".includes" should be checked for all layers?
     return this.isSelected() ? this.selectedRange.current().includes(coords) : false;
+  }
+
+  /**
+   * Returns `true` if the cell corner should be visible.
+   *
+   * @private
+   * @param {Number} layerLevel The layer level.
+   * @return {Boolean} `true` if the corner element has to be visible, `false` otherwise.
+   */
+  isCellCornerVisible(layerLevel) {
+    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.isMultiple();
+  }
+
+  /**
+   * Returns `true` if the area corner should be visible.
+   *
+   * @param {Number} layerLevel The layer level.
+   * @return {Boolean} `true` if the corner element has to be visible, `false` otherwise.
+   */
+  isAreaCornerVisible(layerLevel) {
+    if (layerLevel !== this.selectedRange.ranges.length - 1) {
+      return false;
+    }
+
+    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && this.isMultiple();
   }
 
   /**

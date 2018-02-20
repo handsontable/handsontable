@@ -414,7 +414,10 @@ class Border {
     this.rightStyle.height = `${height + 1}px`;
     this.rightStyle.display = 'block';
 
-    if (isMobileBrowser() || !this.hasSetting(this.settings.border.cornerVisible)) {
+    let cornerVisibleSetting = this.settings.border.cornerVisible;
+    cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ? cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
+
+    if (isMobileBrowser() || !cornerVisibleSetting) {
       this.cornerStyle.display = 'none';
 
     } else {
@@ -468,18 +471,6 @@ class Border {
       this.selectionHandles.styles.topLeft.display = 'none';
       this.selectionHandles.styles.bottomRight.display = 'none';
     }
-  }
-
-  /**
-   * @param {Function} setting
-   * @returns {*}
-   */
-  hasSetting(setting) {
-    if (typeof setting === 'function') {
-      return setting();
-    }
-
-    return !!setting;
   }
 }
 
