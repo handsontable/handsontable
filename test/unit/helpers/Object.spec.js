@@ -1,5 +1,5 @@
 import {
-  doesObjectEqual,
+  isObjectEqual,
   duckSchema,
   mixin,
   clone,
@@ -10,27 +10,27 @@ import {
 
 describe('Object helper', () => {
   //
-  // Handsontable.helper.doesObjectEqual
+  // Handsontable.helper.isObjectEqual
   //
-  describe('doesObjectEqual', () => {
+  describe('isObjectEqual', () => {
     it('should returns true on equal objects', () => {
-      expect(doesObjectEqual({}, {})).toBe(true);
-      expect(doesObjectEqual({test: 1}, {test: 1})).toBe(true);
-      expect(doesObjectEqual({test: {test2: [{}]}}, {test: {test2: [{}]}})).toBe(true);
+      expect(isObjectEqual({}, {})).toBe(true);
+      expect(isObjectEqual({test: 1}, {test: 1})).toBe(true);
+      expect(isObjectEqual({test: {test2: [{}]}}, {test: {test2: [{}]}})).toBe(true);
 
-      expect(doesObjectEqual([], [])).toBe(true);
-      expect(doesObjectEqual([33], [33])).toBe(true);
-      expect(doesObjectEqual([{test: 1}], [{test: 1}])).toBe(true);
+      expect(isObjectEqual([], [])).toBe(true);
+      expect(isObjectEqual([33], [33])).toBe(true);
+      expect(isObjectEqual([{test: 1}], [{test: 1}])).toBe(true);
     });
 
     it('should returns false for not equal objects', () => {
-      expect(doesObjectEqual({}, [])).toBe(false);
+      expect(isObjectEqual({}, [])).toBe(false);
 
-      expect(doesObjectEqual({test: 2}, {test: 1})).toBe(false);
-      expect(doesObjectEqual({test: {test3: [{}]}}, {test: {test2: [{}]}})).toBe(false);
+      expect(isObjectEqual({test: 2}, {test: 1})).toBe(false);
+      expect(isObjectEqual({test: {test3: [{}]}}, {test: {test2: [{}]}})).toBe(false);
 
-      expect(doesObjectEqual([12], [33])).toBe(false);
-      expect(doesObjectEqual([{test: 3}], [{test: 1}])).toBe(false);
+      expect(isObjectEqual([12], [33])).toBe(false);
+      expect(isObjectEqual([{test: 3}], [{test: 1}])).toBe(false);
     });
   });
 
