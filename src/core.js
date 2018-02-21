@@ -278,6 +278,42 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         data.splice(...spliceArgs);
       }
 
+      const normalizeIndexesGroup = (indexes) => {
+        if (indexes.length === 0) {
+          return [];
+        }
+
+        const sortedIndexes = [...indexes];
+
+        // Sort the indexes in ascending order.
+        sortedIndexes.sort(([indexA], [indexB]) => {
+          if (indexA === indexB) {
+            return 0;
+          }
+
+          return indexA > indexB ? 1 : -1;
+        });
+
+        // Normalize the {index, amount} groups into bigger groups.
+        const normalizedIndexes = arrayReduce(sortedIndexes, (acc, [index, amount]) => {
+          const previousItem = acc[acc.length - 1];
+          const [prevIndex, prevAmount] = previousItem;
+          const prevLastIndex = prevIndex + prevAmount;
+
+          if (index <= prevLastIndex) {
+            const amountToAdd = Math.max(amount - (prevLastIndex - index), 0);
+
+            previousItem[1] += amountToAdd;
+          } else {
+            acc.push([index, amount]);
+          }
+
+          return acc;
+        }, [sortedIndexes[0]]);
+
+        return normalizedIndexes;
+      };
+
       /* eslint-disable no-case-declarations */
       switch (action) {
         case 'insert_row':
@@ -336,8 +372,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             arrayEach(indexes, ([index, amount]) => {
               const calcIndex = isEmpty(index) ? instance.countRows() - 1 : Math.max(index - offset, 0);
 
+              // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
+              // compatible with datamap.removeCol method.
+              if (Number.isInteger(index)) {
+                index = Math.max(index - offset, 0);
+              }
+
               // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
-              // inside the removeCol breaks the removing functionality.
+              // inside the datamap.removeRow breaks the removing functionality.
               datamap.removeRow(index, amount, source);
               priv.cellSettings.splice(calcIndex, amount);
 
@@ -359,7 +401,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           };
 
           if (Array.isArray(index)) {
-            removeRow(index);
+            removeRow(normalizeIndexesGroup(index));
           } else {
             removeRow([[index, amount]]);
           }
@@ -378,8 +420,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               let visualColumnIndex = recordTranslator.toPhysicalColumn(calcIndex);
 
+              // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
+              // compatible with datamap.removeCol method.
+              if (Number.isInteger(index)) {
+                index = Math.max(index - offset, 0);
+              }
+
               // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
-              // inside the removeCol breaks the removing functionality.
+              // inside the datamap.removeCol breaks the removing functionality.
               datamap.removeCol(index, amount, source);
 
               for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
@@ -405,7 +453,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           };
 
           if (Array.isArray(index)) {
-            removeCol(index);
+            removeCol(normalizeIndexesGroup(index));
           } else {
             removeCol([[index, amount]]);
           }
