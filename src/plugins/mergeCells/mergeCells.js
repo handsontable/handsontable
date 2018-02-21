@@ -10,7 +10,7 @@ import toggleMergeItem from './contextMenuItem/toggleMerge';
 import {arrayEach} from '../../helpers/array';
 import {clone} from '../../helpers/object';
 import {rangeEach} from '../../helpers/number';
-import applySpanProperties from './utils';
+import {applySpanProperties} from './utils';
 import './mergeCells.css';
 
 Hooks.getSingleton().register('beforeMergeCells');
@@ -181,14 +181,9 @@ class MergeCells extends BasePlugin {
     const populationDataRange = this.getBulkCollectionDataRange(populationArgumentsList);
     const dataAtRange = this.hot.getData(...populationDataRange);
     const newDataAtRange = dataAtRange.splice(0);
-    let mergedCellRowIndex = null;
-    let mergedCellColumnIndex = null;
-    let mergedCellData = null;
 
     arrayEach(populationArgumentsList, (mergedCellArguments) => {
-      mergedCellRowIndex = mergedCellArguments[0];
-      mergedCellColumnIndex = mergedCellArguments[1];
-      mergedCellData = mergedCellArguments[2];
+      const [mergedCellRowIndex, mergedCellColumnIndex, mergedCellData] = mergedCellArguments;
 
       arrayEach(mergedCellData, (mergedCellRow, rowIndex) => {
         arrayEach(mergedCellRow, (mergedCellElement, columnIndex) => {
@@ -252,13 +247,13 @@ class MergeCells extends BasePlugin {
    * @param {CellRange} cellRange Cell range to merge.
    * @param {Boolean} [auto=false] `true` if is called automatically, e.g. at initialization.
    * @param {Boolean} [preventPopulation=false] `true`, if the method should not run `populateFromArray` at the end, but rather return its arguments.
-   * @returns {Array|Boolean} Returns an array of [row, column, dataUnderCollection] if preventPopulation is set to true. Otherwise, returns `undefined`.
+   * @returns {Array|Boolean} Returns an array of [row, column, dataUnderCollection] if preventPopulation is set to true. If the the merging process went successful, it returns `true`, otherwise - `false`.
    * @fires Hooks#beforeMergeCells
    * @fires Hooks#afterMergeCells
    */
   mergeRange(cellRange, auto = false, preventPopulation = false) {
     if (!this.canMergeRange(cellRange)) {
-      return null;
+      return false;
     }
 
     // normalize top left corner
@@ -285,6 +280,7 @@ class MergeCells extends BasePlugin {
 
         if (i === 0 && j === 0) {
           clearedValue = this.hot.getDataAtCell(mergeParent.row, mergeParent.col);
+
         } else {
           this.hot.setCellMeta(mergeParent.row + i, mergeParent.col + j, 'hidden', true);
         }
@@ -364,6 +360,7 @@ class MergeCells extends BasePlugin {
 
     if (mergedCellCoversWholeRange) {
       this.unmergeRange(cellRange);
+
     } else {
       this.mergeSelection(cellRange);
     }
@@ -438,7 +435,7 @@ class MergeCells extends BasePlugin {
       let mergedCells = this.mergedCellsCollection.mergedCells;
       let selectionRange = this.hot.getSelectedRangeLast();
 
-      for (let group = 0; group < mergedCells.length; group++) {
+      for (let group = 0; group < mergedCells.length; group += 1) {
         if (selectionRange.highlight.row === mergedCells[group].row &&
           selectionRange.highlight.col === mergedCells[group].col &&
           selectionRange.to.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
@@ -486,11 +483,14 @@ class MergeCells extends BasePlugin {
 
       if (delta.row > 0) { // moving down
         newDelta.row = mergedParent.row + mergedParent.rowspan - 1 - currentPosition.row + delta.row;
+
       } else if (delta.row < 0) { // moving up
         newDelta.row = currentPosition.row - mergedParent.row + delta.row;
       }
+
       if (delta.col > 0) { // moving right
         newDelta.col = mergedParent.col + mergedParent.colspan - 1 - currentPosition.col + delta.col;
+
       } else if (delta.col < 0) { // moving left
         newDelta.col = currentPosition.col - mergedParent.col + delta.col;
       }
@@ -582,8 +582,9 @@ class MergeCells extends BasePlugin {
    * @param {Number} col Column index.
    */
   onAfterRenderer(TD, row, col) {
-    let mergedCellInfo = this.mergedCellsCollection.get(row, col);
-    applySpanProperties(TD, mergedCellInfo, row, col);
+    let mergedCell = this.mergedCellsCollection.get(row, col);
+
+    applySpanProperties(TD, mergedCell, row, col);
   }
 
   /**

@@ -2,7 +2,7 @@ import MergedCellCoords from './cellCoords';
 import {CellCoords, CellRange} from '../../3rdparty/walkontable/src/index';
 import {rangeEach} from '../../helpers/number';
 import {arrayEach} from '../../helpers/array';
-import applySpanProperties from './utils';
+import {applySpanProperties} from './utils';
 
 /**
  * Defines a container object for the merged cells.
@@ -129,7 +129,7 @@ class MergedCellsCollection {
     const colspan = mergedCellInfo.colspan;
     const newCollection = new MergedCellCoords(row, column, rowspan, colspan);
 
-    if (!this.get(row, column) && !this.checkIfOverlaps(newCollection)) {
+    if (!this.get(row, column) && !this.isOverlapping(newCollection)) {
       if (this.hot) {
         newCollection.normalize(this.hot);
       }
@@ -207,7 +207,7 @@ class MergedCellsCollection {
    * @param {MergedCellCoords} mergedCell The merged cell to check against all others in the container.
    * @return {Boolean} `true` if the provided merged cell overlaps with the others, `false` otherwise.
    */
-  checkIfOverlaps(mergedCell) {
+  isOverlapping(mergedCell) {
     const mergedCellRange = new CellRange(null, new CellCoords(mergedCell.row, mergedCell.col),
       new CellCoords(mergedCell.row + mergedCell.rowspan - 1, mergedCell.col + mergedCell.colspan - 1));
     let result = false;

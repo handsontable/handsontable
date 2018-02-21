@@ -369,7 +369,7 @@ class Table {
     let column = coords.col;
     const hookResult = this.wot.getSetting('onModifyGetCellCoords', row, column);
 
-    if (hookResult && Object.prototype.toString.call(hookResult) === '[object Array]') {
+    if (hookResult && Array.isArray(hookResult)) {
       [row, column] = hookResult;
     }
 

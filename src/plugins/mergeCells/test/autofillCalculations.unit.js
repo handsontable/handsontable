@@ -36,7 +36,7 @@ describe('MergeCells-Autofill calculations', () => {
   });
 
   describe('snapDragArea', () => {
-    it('Should snap the drag area to the farthest merged cell, so it won\'t clip any of the cell merged cells.', () => {
+    it('Should snap the drag area to the farthest merged cell, so it won\'t clip any of the merged cells.', () => {
       const instance = new AutofillCalculations({
         hot: {
           countRows: () => 555,

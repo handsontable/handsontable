@@ -74,7 +74,7 @@ class AutofillCalculations {
   }
 
   /**
-   * Snap the drag area to the farthest merged cell, so it won't clip any of the cell merged cells.
+   * Snap the drag area to the farthest merged cell, so it won't clip any of the merged cells.
    *
    * @param {Array} baseArea The base selected area.
    * @param {Array} dragArea The drag area.

@@ -21,9 +21,10 @@ class SelectionCalculations {
     const newColumn = cellCoords.col + delta.col;
 
     if (delta.row) {
-      this.jumpOverCollection(delta, mergedCell, newRow);
+      this.jumpOverMergedCell(delta, mergedCell, newRow);
+
     } else if (delta.col) {
-      this.jumpOverCollection(delta, mergedCell, newColumn);
+      this.jumpOverMergedCell(delta, mergedCell, newColumn);
     }
   }
 
@@ -35,7 +36,7 @@ class SelectionCalculations {
    * @param {MergedCellCoords} mergedCell The merge cell object.
    * @param {Number} newIndex New row/column index, created with the delta.
    */
-  jumpOverCollection(delta, mergeCell, newIndex) {
+  jumpOverMergedCell(delta, mergeCell, newIndex) {
     let flatDelta = delta.row || delta.col;
     let includesIndex = null;
     let firstIndex = null;

@@ -51,12 +51,14 @@ class MergedCellCoords {
 
     if (this.row < 0) {
       this.row = 0;
+
     } else if (this.row > totalRows - 1) {
       this.row = totalRows - 1;
     }
 
     if (this.col < 0) {
       this.col = 0;
+
     } else if (this.col > totalColumns - 1) {
       this.col = totalColumns - 1;
     }

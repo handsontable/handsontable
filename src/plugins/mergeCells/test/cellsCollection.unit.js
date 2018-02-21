@@ -374,7 +374,7 @@ describe('MergeCells', () => {
       });
     });
 
-    describe('`checkIfOverlaps` method', () => {
+    describe('`isOverlapping` method', () => {
       it('should return whether the provided merged cell overlaps with the others in the merged cell', () => {
         const mergedCellsCollection = new MergedCellsCollection({hot: null});
 
@@ -397,12 +397,12 @@ describe('MergeCells', () => {
           colspan: 4
         });
 
-        expect(mergedCellsCollection.checkIfOverlaps({row: 30, col: 30, rowspan: 3, colspan: 3})).toEqual(false);
-        expect(mergedCellsCollection.checkIfOverlaps({row: 2, col: 2, rowspan: 3, colspan: 3})).toEqual(true);
-        expect(mergedCellsCollection.checkIfOverlaps({row: 9, col: 9, rowspan: 3, colspan: 3})).toEqual(true);
-        expect(mergedCellsCollection.checkIfOverlaps({row: 21, col: 19, rowspan: 5, colspan: 5})).toEqual(true);
-        expect(mergedCellsCollection.checkIfOverlaps({row: 21, col: 22, rowspan: 5, colspan: 5})).toEqual(true);
-        expect(mergedCellsCollection.checkIfOverlaps({row: 24, col: 25, rowspan: 5, colspan: 5})).toEqual(false);
+        expect(mergedCellsCollection.isOverlapping({row: 30, col: 30, rowspan: 3, colspan: 3})).toEqual(false);
+        expect(mergedCellsCollection.isOverlapping({row: 2, col: 2, rowspan: 3, colspan: 3})).toEqual(true);
+        expect(mergedCellsCollection.isOverlapping({row: 9, col: 9, rowspan: 3, colspan: 3})).toEqual(true);
+        expect(mergedCellsCollection.isOverlapping({row: 21, col: 19, rowspan: 5, colspan: 5})).toEqual(true);
+        expect(mergedCellsCollection.isOverlapping({row: 21, col: 22, rowspan: 5, colspan: 5})).toEqual(true);
+        expect(mergedCellsCollection.isOverlapping({row: 24, col: 25, rowspan: 5, colspan: 5})).toEqual(false);
 
       });
     });
