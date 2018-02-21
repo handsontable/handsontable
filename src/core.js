@@ -299,7 +299,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           const previousItem = acc[acc.length - 1];
           const [prevIndex, prevAmount] = previousItem;
           const prevLastIndex = prevIndex + prevAmount;
-          const lastIndex = index + amount;
 
           if (index <= prevLastIndex) {
             const amountToAdd = Math.max(amount - (prevLastIndex - index), 0);
