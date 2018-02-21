@@ -280,18 +280,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       const normalizeIndexesGroup = (indexes) => {
         if (indexes.length === 0) {
-          return indexes;
+          return [];
         }
 
+        const sortedIndexes = [...indexes];
+
         // Sort the indexes in ascending order.
-        const sortedIndexes = indexes.sort(([indexA], [indexB]) => {
+        sortedIndexes.sort(([indexA], [indexB]) => {
           if (indexA === indexB) {
             return 0;
           }
 
           return indexA > indexB ? 1 : -1;
         });
-        // Normalize the {index, amount} groups into bigger groups
+
+        // Normalize the {index, amount} groups into bigger groups.
         const normalizedIndexes = arrayReduce(sortedIndexes, (acc, [index, amount]) => {
           const previousItem = acc[acc.length - 1];
           const [prevIndex, prevAmount] = previousItem;
@@ -307,7 +310,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
 
           return acc;
-        }, [indexes[0]]);
+        }, [sortedIndexes[0]]);
 
         return normalizedIndexes;
       };
