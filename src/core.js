@@ -279,6 +279,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
 
       const normalizeIndexesGroup = (indexes) => {
+        if (indexes.length === 0) {
+          return indexes;
+        }
+
         // Sort the indexes in ascending order.
         const sortedIndexes = indexes.sort(([indexA], [indexB]) => {
           if (indexA === indexB) {
@@ -289,17 +293,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         });
         // Normalize the {index, amount} groups into bigger groups
         const normalizedIndexes = arrayReduce(sortedIndexes, (acc, [index, amount]) => {
-          if (!acc.length) {
-            acc.push([index, amount]);
-          }
-
           const previousItem = acc[acc.length - 1];
           const [prevIndex, prevAmount] = previousItem;
           const prevLastIndex = prevIndex + prevAmount;
           const lastIndex = index + amount;
 
           if (index <= prevLastIndex) {
-            const amountToAdd = amount - (prevLastIndex - index);
+            const amountToAdd = Math.max(amount - (prevLastIndex - index), 0);
 
             previousItem[1] += amountToAdd;
           } else {
@@ -307,7 +307,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
 
           return acc;
-        }, []);
+        }, [indexes[0]]);
 
         return normalizedIndexes;
       };
