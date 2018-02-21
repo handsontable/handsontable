@@ -79,10 +79,10 @@ class AutofillCalculations {
    * @param {Array} baseArea The base selected area.
    * @param {Array} dragArea The drag area.
    * @param {String} dragDirection The autofill drag direction.
-   * @param {Array} foundCollections Collections found in the base selection area.
+   * @param {Array} foundMergedCells MergeCellCoords found in the base selection area.
    * @return {Array} The new drag area
    */
-  snapDragArea(baseArea, dragArea, dragDirection, foundCollections) {
+  snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells) {
     let newDragArea = dragArea.slice(0);
     let fillSize = this.getAutofillSize(baseArea, dragArea, dragDirection);
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
@@ -90,7 +90,7 @@ class AutofillCalculations {
     const fullCycle = verticalDirection ? baseAreaEndRow - baseAreaStartRow + 1 : baseAreaEndColumn - baseAreaStartColumn + 1;
     const fulls = Math.floor(fillSize / fullCycle) * fullCycle;
     const partials = fillSize - fulls;
-    let farthestCollection = this.getFarthestCollection(baseArea, dragArea, dragDirection, foundCollections);
+    let farthestCollection = this.getFarthestCollection(baseArea, dragArea, dragDirection, foundMergedCells);
 
     if (farthestCollection) {
       if (dragDirection === 'down') {
@@ -142,7 +142,7 @@ class AutofillCalculations {
     this.updateCurrentFillCache({
       baseArea,
       dragDirection,
-      foundCollections,
+      foundMergedCells,
       fillSize,
       dragArea: newDragArea,
       cycleLength: fullCycle,
@@ -287,7 +287,7 @@ class AutofillCalculations {
     }
 
     const fillRange = this.getRangeFromChanges(changes);
-    const foundCollections = this.currentFillData.foundCollections;
+    const foundMergedCells = this.currentFillData.foundMergedCells;
     const dragDirection = this.currentFillData.dragDirection;
     const inBounds = (current, offset) => {
       switch (dragDirection) {
@@ -308,8 +308,8 @@ class AutofillCalculations {
     let multiplier = 1;
 
     do {
-      for (let j = 0; j < foundCollections.length; j++) {
-        current = foundCollections[j];
+      for (let j = 0; j < foundMergedCells.length; j++) {
+        current = foundMergedCells[j];
 
         fillOffset = multiplier * this.currentFillData.cycleLength;
 
@@ -355,7 +355,7 @@ class AutofillCalculations {
           }
         }
 
-        if (j === foundCollections.length - 1) {
+        if (j === foundMergedCells.length - 1) {
           multiplier += 1;
         }
       }

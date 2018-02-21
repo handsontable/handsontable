@@ -89,7 +89,7 @@ class MergedCellsCollection {
    */
   getWithinRange(range, countPartials = false) {
     const mergedCells = this.mergedCells;
-    const foundCollections = [];
+    const foundMergedCells = [];
 
     if (!range.includesRange) {
       let from = new CellCoords(range.from.row, range.from.col);
@@ -104,15 +104,15 @@ class MergedCellsCollection {
 
       if (countPartials) {
         if (range.overlaps(mergedCellRange)) {
-          foundCollections.push(mergedCell);
+          foundMergedCells.push(mergedCell);
         }
 
       } else if (range.includesRange(mergedCellRange)) {
-        foundCollections.push(mergedCell);
+        foundMergedCells.push(mergedCell);
       }
     });
 
-    return foundCollections.length ? foundCollections : false;
+    return foundMergedCells.length ? foundMergedCells : false;
   }
 
   /**
@@ -127,19 +127,19 @@ class MergedCellsCollection {
     const column = mergedCellInfo.col;
     const rowspan = mergedCellInfo.rowspan;
     const colspan = mergedCellInfo.colspan;
-    const newCollection = new MergedCellCoords(row, column, rowspan, colspan);
+    const newMergedCell = new MergedCellCoords(row, column, rowspan, colspan);
 
-    if (!this.get(row, column) && !this.isOverlapping(newCollection)) {
+    if (!this.get(row, column) && !this.isOverlapping(newMergedCell)) {
       if (this.hot) {
-        newCollection.normalize(this.hot);
+        newMergedCell.normalize(this.hot);
       }
 
-      mergedCells.push(newCollection);
+      mergedCells.push(newMergedCell);
 
-      return newCollection;
+      return newMergedCell;
     }
 
-    console.warn(`The declared merged cell at [${newCollection.row}, ${newCollection.col}] overlaps with the other declared merged cell. 
+    console.warn(`The declared merged cell at [${newMergedCell.row}, ${newMergedCell.col}] overlaps with the other declared merged cell. 
     The overlapping merged cell was not added to the table, please fix your setup.`);
 
     return false;

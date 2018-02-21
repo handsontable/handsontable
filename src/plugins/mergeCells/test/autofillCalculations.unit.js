@@ -47,55 +47,55 @@ describe('MergeCells-Autofill calculations', () => {
       let baseArea = [5, 4, 6, 5];
       let dragArea = [4, 4, 6, 5];
       let dragDirection = 'up';
-      let foundCollections = [new MergedCellCoords(5, 4, 2, 2)];
+      let foundMergedCells = [new MergedCellCoords(5, 4, 2, 2)];
 
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundCollections))).toEqual('[3,4,6,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[3,4,6,5]');
 
       dragArea = [2, 4, 6, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundCollections))).toEqual('[1,4,6,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[1,4,6,5]');
 
       baseArea = [5, 4, 7, 5];
       dragArea = [4, 4, 6, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundCollections))).toEqual('[4,4,6,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[4,4,6,5]');
 
       dragArea = [3, 4, 6, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundCollections))).toEqual('[2,4,6,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[2,4,6,5]');
 
       dragDirection = 'down';
       baseArea = [5, 4, 6, 5];
       dragArea = [5, 4, 7, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundCollections))).toEqual('[5,4,8,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,4,8,5]');
 
       baseArea = [5, 4, 7, 5];
       dragArea = [5, 4, 8, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundCollections))).toEqual('[5,4,9,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,4,9,5]');
 
       dragArea = [5, 4, 10, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundCollections))).toEqual('[5,4,10,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,4,10,5]');
 
       dragDirection = 'left';
       baseArea = [5, 4, 6, 5];
       dragArea = [5, 3, 6, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundCollections))).toEqual('[5,2,6,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,2,6,5]');
 
       baseArea = [5, 4, 6, 6];
       dragArea = [5, 3, 6, 6];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundCollections))).toEqual('[5,3,6,6]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,3,6,6]');
 
       dragArea = [5, 2, 6, 6];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundCollections))).toEqual('[5,1,6,6]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,1,6,6]');
 
       dragDirection = 'right';
       baseArea = [5, 4, 6, 5];
       dragArea = [5, 4, 6, 6];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundCollections))).toEqual('[5,4,6,7]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,4,6,7]');
 
       baseArea = [5, 3, 6, 5];
       dragArea = [5, 3, 6, 6];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundCollections))).toEqual('[5,3,6,6]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,3,6,6]');
 
       dragArea = [5, 3, 6, 7];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundCollections))).toEqual('[5,3,6,8]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,3,6,8]');
     });
   });
 
@@ -209,7 +209,7 @@ describe('MergeCells-Autofill calculations', () => {
 
       instance.currentFillData = {
         dragDirection: 'down',
-        foundCollections: [new MergedCellCoords(5, 4, 2, 2), new MergedCellCoords(8, 8, 2, 3)],
+        foundMergedCells: [new MergedCellCoords(5, 4, 2, 2), new MergedCellCoords(8, 8, 2, 3)],
         cycleLength: 5
       };
 

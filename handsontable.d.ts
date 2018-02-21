@@ -1118,10 +1118,9 @@ declare namespace Handsontable {
     }
 
     interface MergeCells extends Base {
-      collectionContainer: MergeCellsPlugin.CollectionContainer;
+      mergedCellsCollection: MergeCellsPlugin.MergedCellsCollection;
       autofillCalculations: MergeCellsPlugin.AutofillCalculations;
       selectionCalculations: MergeCellsPlugin.SelectionCalculations;
-      dom: MergeCellsPlugin.DOMManipulation;
 
       clearCollections(): void;
       mergeSelection(cellRange: wot.CellRange): void;
@@ -1132,22 +1131,22 @@ declare namespace Handsontable {
     namespace MergeCellsPlugin {
       interface AutofillCalculations {
         plugin: MergeCells;
-        collectionContainer: MergeCellsPlugin.CollectionContainer;
+        mergedCellsCollection: MergeCellsPlugin.MergedCellsCollection;
         currentFillData: object;
 
         correctSelectionAreaSize(selectionArea: number[]): void;
         getDirection(selectionArea: number[], finalArea: number[]): string;
-        snapDragArea(baseArea: number[], dragArea: number[], dragDirection: string, foundCollections: MergeCellsPlugin.Collection[]): number[];
+        snapDragArea(baseArea: number[], dragArea: number[], dragDirection: string, foundMergedCells: MergeCellsPlugin.MergedCellCoords[]): number[];
         recreateAfterDataPopulation(changes: any[]): void;
         dragAreaOverlapsCollections(baseArea: number[], fullArea: number[], direction: string): boolean;
       }
 
       interface SelectionCalculations {
-        snapDelta(delta: object, selectionRange: wot.CellRange, collection: MergeCellsPlugin.Collection): void;
+        snapDelta(delta: object, selectionRange: wot.CellRange, mergedCell: MergeCellsPlugin.MergedCellCoords): void;
         getUpdatedSelectionRange(oldSelectionRange: wot.CellRange, delta: object): wot.CellRange;
       }
 
-      interface Collection {
+      interface MergedCellCoords {
         row: number;
         col: number;
         rowspan: number;
@@ -1159,32 +1158,26 @@ declare namespace Handsontable {
         includesHorizontally(column: number): boolean;
         includesVertically(row: number): boolean;
         shift(shiftVector: number[], indexOfChange: number): boolean;
-        isFarther(collection: MergeCellsPlugin.Collection, direction: string): boolean | void;
+        isFarther(mergedCell: MergeCellsPlugin.MergedCellCoords, direction: string): boolean | void;
         getLastRow(): number;
         getLastColumn(): number;
         getRange(): wot.CellRange;
       }
 
-      interface CollectionContainer {
+      interface MergedCellsCollection {
         plugin: MergeCells;
-        collections: MergeCellsPlugin.Collection[];
+        mergedCells: MergeCellsPlugin.MergedCellCoords[];
         hot: _Handsontable.Core;
 
-        get(row: number, column: number): MergeCellsPlugin.Collection | boolean;
-        getByRange(range: wot.CellRange | object): MergeCellsPlugin.Collection | boolean;
-        getWithinRange(range: wot.CellRange | object, countPartials: boolean): MergeCellsPlugin.Collection[] | boolean;
-        add(collectionInfo: object): MergeCellsPlugin.Collection | boolean;
-        remove(row: number, column: number): MergeCellsPlugin.Collection | boolean;
+        get(row: number, column: number): MergeCellsPlugin.MergedCellCoords | boolean;
+        getByRange(range: wot.CellRange | object): MergeCellsPlugin.MergedCellCoords | boolean;
+        getWithinRange(range: wot.CellRange | object, countPartials: boolean): MergeCellsPlugin.MergedCellCoords[] | boolean;
+        add(mergedCellInfo: object): MergeCellsPlugin.MergedCellCoords | boolean;
+        remove(row: number, column: number): MergeCellsPlugin.MergedCellCoords | boolean;
         clear(): void;
-        checkIfOverlaps(collection: MergeCellsPlugin.Collection): boolean;
+        isOverlapping(mergedCell: MergeCellsPlugin.MergedCellCoords): boolean;
         isMergedParent(row: number, column: number): boolean;
         shiftCollections(direction: string, index: number, count: number): void;
-      }
-
-      interface DOMManipulation {
-        plugin: _Handsontable.Core;
-
-        applySpanProperties(TD: HTMLElement, collectionInfo: MergeCellsPlugin.Collection, row: number, col: number): void;
       }
     }
 
