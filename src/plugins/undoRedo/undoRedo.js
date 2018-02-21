@@ -526,6 +526,7 @@ UndoRedo.MergeCells = MergeCells;
 
 /**
  * Unmerge Cells action.
+ * @util
  */
 class UnmergeCells extends UndoRedo.Action {
   constructor(instance, cellRange) {

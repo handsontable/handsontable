@@ -7,6 +7,7 @@ import {arrayEach} from './../../../helpers/array';
  *
  * @class AutofillCalculations
  * @plugin MergeCells
+ * @util
  */
 class AutofillCalculations {
   constructor(plugin) {

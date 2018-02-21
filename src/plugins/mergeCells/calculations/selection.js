@@ -5,6 +5,7 @@ import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
  *
  * @class SelectionCalculations
  * @plugin MergeCells
+ * @util
  */
 class SelectionCalculations {
   /**

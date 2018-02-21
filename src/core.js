@@ -956,8 +956,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.validateCell = function(value, cellProperties, callback, source) {
     var validator = instance.getCellValidator(cellProperties);
 
-    function done(valid, validated = true) {
-      if (!validated || cellProperties.hidden === true) {
+    // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
+    function done(valid, canBeValidated = true) {
+      // Fixes GH#3903
+      if (!canBeValidated || cellProperties.hidden === true) {
         callback(valid);
         return;
       }

@@ -22,7 +22,6 @@ const privatePool = new WeakMap();
 
 /**
  * @plugin MergeCells
- * @class MergeCells
  *
  * @description Plugin, which allows merging cells in the table (using the initial configuration, API or context menu).
  *
@@ -68,11 +67,6 @@ class MergeCells extends BasePlugin {
      * @type {SelectionCalculations}
      */
     this.selectionCalculations = null;
-    /**
-     * Instance of the class responsible for adding mergeCells-related information to the context menu.
-     * @type {null}
-     */
-    this.contextMenuHandler = null;
   }
 
   /**
@@ -200,7 +194,7 @@ class MergeCells extends BasePlugin {
    *
    * @private
    * @param {Array} populationArgumentsList Array containing argument lists for the `populateFromArray` method - row, column and data for population.
-   * @return {[Array,Array]} Start and end coordinates of the merged cell range. (in a form of [rowIndex, columnIndex])
+   * @return {Array[]} Start and end coordinates of the merged cell range. (in a form of [rowIndex, columnIndex])
    */
   getBulkCollectionDataRange(populationArgumentsList) {
     let start = [0, 0];
