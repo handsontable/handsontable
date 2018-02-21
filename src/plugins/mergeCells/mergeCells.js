@@ -162,7 +162,7 @@ class MergeCells extends BasePlugin {
       });
 
       // remove 'empty' setting objects, caused by improper merge range declarations
-      populationArgumentsList = populationArgumentsList.filter((value) => value !== void 0);
+      populationArgumentsList = populationArgumentsList.filter((value) => value !== true);
 
       const bulkPopulationData = this.getBulkCollectionData(populationArgumentsList);
 
