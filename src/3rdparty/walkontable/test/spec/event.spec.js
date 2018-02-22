@@ -377,7 +377,7 @@ describe('WalkontableEvent', () => {
         }
       });
     shimSelectionProperties(wt);
-    wt.selections.current.add(new Walkontable.CellCoords(1, 1));
+    wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
     wt.draw();
 
     var $td = $table.find('tbody tr:eq(1) td:eq(1)');
@@ -414,7 +414,7 @@ describe('WalkontableEvent', () => {
         }
       });
     shimSelectionProperties(wt);
-    wt.selections.current.add(new Walkontable.CellCoords(1, 1));
+    wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
     wt.draw();
 
     var $td = $table.find('tbody tr:eq(1) td:eq(1)');
@@ -454,7 +454,7 @@ describe('WalkontableEvent', () => {
         }
       });
     shimSelectionProperties(wt);
-    wt.selections.current.add(new Walkontable.CellCoords(10, 2));
+    wt.selections.getCell().add(new Walkontable.CellCoords(10, 2));
     wt.draw();
 
     var $td = $table.parents('.wtHolder').find('.current.corner');
@@ -483,7 +483,7 @@ describe('WalkontableEvent', () => {
         ]
       });
     shimSelectionProperties(wt);
-    wt.selections.current.add(new Walkontable.CellCoords(10, 2));
+    wt.selections.getCell().add(new Walkontable.CellCoords(10, 2));
     wt.draw();
 
     var $td = $table.parents('.wtHolder').find('.current.corner');

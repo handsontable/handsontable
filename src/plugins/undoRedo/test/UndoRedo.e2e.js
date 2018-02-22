@@ -2196,7 +2196,6 @@ describe('UndoRedo', () => {
             expect(finish).toBe(true);
           }
         }
-
       });
 
       it('should redo a sequence of aligning cells', () => {

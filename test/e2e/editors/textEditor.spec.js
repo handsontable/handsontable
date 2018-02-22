@@ -22,7 +22,8 @@ describe('TextEditor', () => {
     keyDown('enter');
 
     var selection = getSelected();
-    expect(selection).toEqual([2, 2, 2, 2]);
+
+    expect(selection).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(true);
   });
 
@@ -36,7 +37,7 @@ describe('TextEditor', () => {
     keyDown('enter');
 
     var selection = getSelected();
-    expect(selection).toEqual([3, 2, 3, 2]);
+    expect(selection).toEqual([[3, 2, 3, 2]]);
   });
 
   it('should move down when enterBeginsEditing equals false', () => {
@@ -48,7 +49,7 @@ describe('TextEditor', () => {
     keyDown('enter');
 
     var selection = getSelected();
-    expect(selection).toEqual([3, 2, 3, 2]);
+    expect(selection).toEqual([[3, 2, 3, 2]]);
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -512,7 +513,7 @@ describe('TextEditor', () => {
     }); // CTRL+A should NOT select all table when cell is edited
 
     var selection = getSelected();
-    expect(selection).toEqual([2, 2, 2, 2]);
+    expect(selection).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(true);
   });
 
@@ -610,7 +611,7 @@ describe('TextEditor', () => {
     this.$container2.find('tbody tr:eq(0) td:eq(0)').simulate('mouseup');
 
     expect(hot1.getSelected()).toBeUndefined();
-    expect(hot2.getSelected()).toEqual([0, 0, 0, 0]);
+    expect(hot2.getSelected()).toEqual([[0, 0, 0, 0]]);
 
     // Open editor in HOT2
     keyDown('enter');

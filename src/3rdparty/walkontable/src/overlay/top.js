@@ -10,6 +10,7 @@ import {
   setOverlayPosition,
   resetCssTransform
 } from './../../../../helpers/dom/element';
+import {arrayEach} from './../../../../helpers/array';
 import Overlay from './_base';
 
 /**
@@ -281,12 +282,10 @@ class TopOverlay extends Overlay {
   redrawSelectionBorders(selection) {
     if (selection && selection.cellRange) {
       const border = selection.getBorder(this.wot);
+      const corners = selection.getCorners();
 
-      if (border) {
-        const corners = selection.getCorners();
-        border.disappear();
-        border.appear(corners);
-      }
+      border.disappear();
+      border.appear(corners);
     }
   }
 
@@ -296,9 +295,13 @@ class TopOverlay extends Overlay {
   redrawAllSelectionsBorders() {
     const selections = this.wot.selections;
 
-    this.redrawSelectionBorders(selections.current);
-    this.redrawSelectionBorders(selections.area);
-    this.redrawSelectionBorders(selections.fill);
+    this.redrawSelectionBorders(selections.getCell());
+
+    arrayEach(selections.getAreas(), (area) => {
+      this.redrawSelectionBorders(area);
+    });
+    this.redrawSelectionBorders(selections.getFill());
+
     this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
   }
 

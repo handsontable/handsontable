@@ -358,6 +358,7 @@ describe('ContextMenu', () => {
       var header = $('.ht_clone_top thead th').eq(1);
 
       header.simulate('mousedown');
+      header.simulate('mouseup');
       contextMenu();
 
       items = $('.htContextMenu tbody td');
@@ -566,7 +567,7 @@ describe('ContextMenu', () => {
         width: window.innerWidth
       });
 
-      selectCell(0, countCols() - 9);
+      selectCell(0, countCols() - 10);
       contextMenu();
 
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
@@ -619,7 +620,7 @@ describe('ContextMenu', () => {
       });
 
       window.scrollTo(0, document.body.clientHeight);
-      selectCell(0, countCols() - 9);
+      selectCell(0, countCols() - 10);
 
       contextMenu();
 
@@ -672,7 +673,7 @@ describe('ContextMenu', () => {
         height: window.innerHeight
       });
 
-      selectCell(countRows() - 1, countCols() - 9);
+      selectCell(countRows() - 1, countCols() - 10);
       contextMenu();
 
       var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
@@ -1877,7 +1878,7 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
       });
 
       it('should scroll down, when user hits ARROW_DOWN for item in menu below the viewport', () => {
@@ -2090,7 +2091,7 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+        expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
       });
 
       it('should NOT select any items in menu, when user hits ARROW_DOWN and there is no items enabled', () => {
@@ -2143,7 +2144,7 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+        expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
       });
 
       it('should select the last NOT DISABLED item in menu, when user hits ARROW_UP', () => {
@@ -2173,7 +2174,7 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
       });
 
       it('should NOT select any items in menu, when user hits ARROW_UP and there is no items enabled', () => {
@@ -2233,15 +2234,15 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+        expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+        expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
       });
 
       it('should select next item (skipping disabled items) when user hits ARROW_DOWN', () => {
@@ -2268,11 +2269,11 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+        expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
       });
 
       it('should select next item (skipping separators) when user hits ARROW_DOWN', () => {
@@ -2299,15 +2300,15 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+        expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([3, 0, 3, 0]);
+        expect(menuHot.getSelected()).toEqual([[3, 0, 3, 0]]);
       });
 
       it('should not change selection when last item is selected and user hits ARROW_DOWN', () => {
@@ -2333,19 +2334,19 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+        expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+        expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+        expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
       });
 
       it('should not change selection when last enabled item is selected and user hits ARROW_DOWN', () => {
@@ -2372,15 +2373,15 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+        expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+        expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
       });
 
       it('should select next item when user hits ARROW_UP', () => {
@@ -2406,15 +2407,15 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+        expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+        expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
       });
 
       it('should select next item (skipping disabled items) when user hits ARROW_UP', () => {
@@ -2441,11 +2442,11 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+        expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
       });
 
       it('should select next item (skipping separators) when user hits ARROW_UP', () => {
@@ -2472,15 +2473,15 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([3, 0, 3, 0]);
+        expect(menuHot.getSelected()).toEqual([[3, 0, 3, 0]]);
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+        expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
       });
 
       it('should not change selection when first item is selected and user hits ARROW_UP', () => {
@@ -2506,19 +2507,19 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+        expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+        expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
       });
 
       it('should not change selection when first enabled item is selected and user hits ARROW_UP', () => {
@@ -2545,15 +2546,15 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+        expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+        expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
 
         keyDownUp('arrow_up');
 
-        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+        expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
       });
 
       it('should perform a selected item action, when user hits ENTER', () => {
@@ -2576,7 +2577,7 @@ describe('ContextMenu', () => {
 
         keyDownUp('arrow_down');
 
-        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
         expect(itemAction).not.toHaveBeenCalled();
 
@@ -2746,7 +2747,7 @@ describe('ContextMenu', () => {
           selected = hot.getSelected();
         }
 
-        var cell = hot.getCell(selected[0], selected[1]);
+        var cell = hot.getCell(selected[0][0], selected[0][1]);
         var cellOffset = $(cell).offset();
 
         $(cell).simulate('contextmenu', {
@@ -2800,7 +2801,7 @@ describe('ContextMenu', () => {
           selected = hot.getSelected();
         }
 
-        var cell = hot.getCell(selected[0], selected[1]);
+        var cell = hot.getCell(selected[0][0], selected[0][1]);
         var cellOffset = $(cell).offset();
 
         $(cell).simulate('contextmenu', {
@@ -2948,7 +2949,7 @@ describe('ContextMenu', () => {
   });
 
   describe('afterContextMenuDefaultOptions hook', () => {
-    it('should call afterContextMenuDefaultOptions hook with context menu options as the first param', () => {
+    it('should call afterContextMenuDefaultOptions hook with context menu options as the first param', async () => {
       var options;
 
       var afterContextMenuDefaultOptions = function(options_) {
@@ -2961,6 +2962,10 @@ describe('ContextMenu', () => {
       };
 
       Handsontable.hooks.add('afterContextMenuDefaultOptions', afterContextMenuDefaultOptions);
+
+      // Hook `afterContextMenuDefaultOptions` is triggered after all plugin will be initialized or with some timeout.
+      // To make test more stable here is a sleep.
+      await sleep(100);
 
       var hot = handsontable({
         contextMenu: true,

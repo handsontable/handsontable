@@ -406,12 +406,12 @@ const REGISTERED_HOOKS = [
    * @param {Number} r2 Selection end visual row index.
    * @param {Number} c2 Selection end visual column index.
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+   * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    *    * @example
    * ```js
    * handsontable({
-   *   afterSelection: function (r, c, r2, c2, preventScrolling) {
+   *   afterSelection: function (r, c, r2, c2, preventScrolling, selectionLayerLevel) {
    *     // setting if prevent scrolling after selection
-   *
    *     preventScrolling.value = true;
    *   }
    * })
@@ -428,12 +428,12 @@ const REGISTERED_HOOKS = [
    * @param {Number} r2 Selection end visual row index.
    * @param {String} p2 Selection end data source object property name.
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+   * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    *    * @example
    * ```js
    * handsontable({
-   *   afterSelectionByProp: function (r, c, r2, c2, preventScrolling) {
+   *   afterSelectionByProp: function (r, c, r2, c2, preventScrolling, selectionLayerLevel) {
    *     // setting if prevent scrolling after selection
-   *
    *     preventScrolling.value = true;
    *   }
    * })
@@ -449,6 +449,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} c Selection start visual column index.
    * @param {Number} r2 Selection end visual row index.
    * @param {Number} c2 Selection end visual column index.
+   * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    */
   'afterSelectionEnd',
 
@@ -461,6 +462,7 @@ const REGISTERED_HOOKS = [
    * @param {String} p Selection start data source object property index.
    * @param {Number} r2 Selection end visual row index.
    * @param {String} p2 Selection end data source object property index.
+   * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    */
   'afterSelectionEndByProp',
 
@@ -763,7 +765,7 @@ const REGISTERED_HOOKS = [
    * Callback fired before setting range is started.
    *
    * @event Hooks#beforeSetRangeStart
-   * @param {Array} coords CellCoords array.
+   * @param {CellCoords} coords CellCoords instance.
    */
   'beforeSetRangeStart',
 
@@ -771,7 +773,7 @@ const REGISTERED_HOOKS = [
    * Callback fired before setting range is ended.
    *
    * @event Hooks#beforeSetRangeEnd
-   * @param {Array} coords CellCoords array.
+   * @param {CellCoords} coords CellCoords instance.
    */
   'beforeSetRangeEnd',
 
