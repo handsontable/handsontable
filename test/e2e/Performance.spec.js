@@ -83,7 +83,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toEqual(7);
+    expect(count).toEqual(8);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, without overlays)', () => {
@@ -112,7 +112,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toEqual(8);
+    expect(count).toEqual(9);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with left overlay)', () => {
@@ -142,7 +142,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toEqual(7);
+    expect(count).toEqual(8);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with top overlay)', () => {
@@ -173,7 +173,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toEqual(8);
+    expect(count).toEqual(9);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with all overlays)', () => {

@@ -283,6 +283,8 @@ class MergeCells extends BasePlugin {
       });
     });
 
+    this.hot.setCellMeta(mergeParent.row, mergeParent.col, 'spanned', true);
+
     let mergedCellAdded = this.mergedCellsCollection.add(mergeParent);
 
     if (mergedCellAdded) {
@@ -335,6 +337,8 @@ class MergeCells extends BasePlugin {
           this.hot.removeCellMeta(currentCollection.row + i, currentCollection.col + j, 'hidden');
         });
       });
+
+      this.hot.removeCellMeta(currentCollection.row, currentCollection.col, 'spanned');
     });
 
     this.hot.render();
