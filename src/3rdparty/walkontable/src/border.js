@@ -376,11 +376,52 @@ class Border {
     const containerOffset = offset(this.wot.wtTable.TABLE);
     const minTop = fromOffset.top;
     const minLeft = fromOffset.left;
+    const renderedRowsCount = this.wot.wtTable.getLastRenderedRow();
 
-    let height = toOffset.top + outerHeight(toTD) - minTop;
-    let width = toOffset.left + outerWidth(toTD) - minLeft;
-    let top = minTop - containerOffset.top - 1;
     let left = minLeft - containerOffset.left - 1;
+    let width = toOffset.left + outerWidth(toTD) - minLeft;
+
+    // if entire columns are selected...
+    if (fromRow === 0 && toRow === renderedRowsCount) {
+      const rootHotElement = this.wot.wtTable.wtRootElement.parentNode;
+
+      // ... using the column headers (not included in the `if` above for performance reasons
+      if (rootHotElement.className.includes('ht__selection--columns')) {
+        const fromColumnHeader = this.wot.wtTable.getColumnHeader(fromColumn, 0);
+        const fromColumnHeaderOffset = offset(fromColumnHeader);
+        const toColumnHeader = this.wot.wtTable.getColumnHeader(toColumn, 0);
+        const toColumnHeaderOffset = offset(toColumnHeader);
+
+        if (fromColumnHeader && toColumnHeader) {
+          left = fromColumnHeaderOffset.left - containerOffset.left - 1;
+          width = toColumnHeaderOffset.left + outerWidth(toColumnHeader) - fromColumnHeaderOffset.left;
+        }
+      }
+    }
+
+    const renderedColumnsCount = this.wot.wtTable.getLastRenderedColumn();
+
+    let top = minTop - containerOffset.top - 1;
+    let height = toOffset.top + outerHeight(toTD) - minTop;
+
+    // if entire rows are selected...
+    if (fromColumn === 0 && toColumn === renderedColumnsCount) {
+      const rootHotElement = this.wot.wtTable.wtRootElement.parentNode;
+
+      // ... using the row headers (not included in the `if` above for performance reasons
+      if (rootHotElement.className.includes('ht__selection--rows')) {
+        const fromRowHeader = this.wot.wtTable.getRowHeader(fromRow);
+        const fromRowHeaderOffset = offset(fromRowHeader);
+        const toRowHeader = this.wot.wtTable.getRowHeader(toRow);
+        const toRowHeaderOffset = offset(toRowHeader);
+
+        if (fromRowHeader && toRowHeader) {
+          top = fromRowHeaderOffset.top - containerOffset.top - 1;
+          height = toRowHeaderOffset.top + outerHeight(toRowHeader) - fromRowHeaderOffset.top;
+        }
+      }
+    }
+
     let style = getComputedStyle(fromTD);
 
     if (parseInt(style.borderTopWidth, 10) > 0) {
