@@ -309,15 +309,14 @@ class Selection {
   }
 
   /**
-   * Returns `true` if coords is within current selection coords. This method only checks the latest
-   * layer of the selection.
+   * Returns `true` if coords is within selection coords. This method iterates through all selection layers to check if
+   * the coords object is within selection range.
    *
-   * @param {CellCoords} coords Visual coordinates to check.
+   * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    * @returns {Boolean}
    */
   inInSelection(coords) {
-    // TODO(budnix): This ".includes" should be checked for all layers?
-    return this.isSelected() ? this.selectedRange.current().includes(coords) : false;
+    return this.selectedRange.includes(coords);
   }
 
   /**
