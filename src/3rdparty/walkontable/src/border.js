@@ -376,49 +376,26 @@ class Border {
     const containerOffset = offset(this.wot.wtTable.TABLE);
     const minTop = fromOffset.top;
     const minLeft = fromOffset.left;
-    const renderedRowsCount = this.wot.wtTable.getLastRenderedRow();
 
     let left = minLeft - containerOffset.left - 1;
     let width = toOffset.left + outerWidth(toTD) - minLeft;
 
-    // if entire columns are selected...
-    if (fromRow === 0 && toRow === renderedRowsCount) {
-      const rootHotElement = this.wot.wtTable.wtRootElement.parentNode;
+    if (this.isEntireColumnSelected(fromRow, toRow)) {
+      const leftAndWidthValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, containerOffset);
 
-      // ... using the column headers (not included in the `if` above for performance reasons
-      if (rootHotElement.className.includes('ht__selection--columns')) {
-        const fromColumnHeader = this.wot.wtTable.getColumnHeader(fromColumn, 0);
-        const fromColumnHeaderOffset = offset(fromColumnHeader);
-        const toColumnHeader = this.wot.wtTable.getColumnHeader(toColumn, 0);
-        const toColumnHeaderOffset = offset(toColumnHeader);
-
-        if (fromColumnHeader && toColumnHeader) {
-          left = fromColumnHeaderOffset.left - containerOffset.left - 1;
-          width = toColumnHeaderOffset.left + outerWidth(toColumnHeader) - fromColumnHeaderOffset.left;
-        }
+      if (leftAndWidthValues) {
+        [left, width] = leftAndWidthValues;
       }
     }
-
-    const renderedColumnsCount = this.wot.wtTable.getLastRenderedColumn();
 
     let top = minTop - containerOffset.top - 1;
     let height = toOffset.top + outerHeight(toTD) - minTop;
 
-    // if entire rows are selected...
-    if (fromColumn === 0 && toColumn === renderedColumnsCount) {
-      const rootHotElement = this.wot.wtTable.wtRootElement.parentNode;
+    if (this.isEntireRowSelected(fromColumn, toColumn)) {
+      const topAndHeightValues = this.getDimensionsFromHeader('rows', fromRow, toRow, containerOffset);
 
-      // ... using the row headers (not included in the `if` above for performance reasons
-      if (rootHotElement.className.includes('ht__selection--rows')) {
-        const fromRowHeader = this.wot.wtTable.getRowHeader(fromRow);
-        const fromRowHeaderOffset = offset(fromRowHeader);
-        const toRowHeader = this.wot.wtTable.getRowHeader(toRow);
-        const toRowHeaderOffset = offset(toRowHeader);
-
-        if (fromRowHeader && toRowHeader) {
-          top = fromRowHeaderOffset.top - containerOffset.top - 1;
-          height = toRowHeaderOffset.top + outerHeight(toRowHeader) - fromRowHeaderOffset.top;
-        }
+      if (topAndHeightValues) {
+        [top, height] = topAndHeightValues;
       }
     }
 
@@ -496,6 +473,85 @@ class Border {
     if (isMobileBrowser()) {
       this.updateMultipleSelectionHandlesPosition(fromRow, fromColumn, top, left, width, height);
     }
+  }
+
+  /**
+   * Check whether an entire column of cells is selected.
+   *
+   * @private
+   * @param {Number} startRowIndex Start row index.
+   * @param {Number} endRowIndex End row index.
+   */
+  isEntireColumnSelected(startRowIndex, endRowIndex) {
+    return startRowIndex === this.wot.wtTable.getFirstRenderedRow() && endRowIndex === this.wot.wtTable.getLastRenderedRow();
+  }
+
+  /**
+   * Check whether an entire row of cells is selected.
+   *
+   * @private
+   * @param {Number} startColumnIndex Start column index.
+   * @param {Number} endColumnIndex End column index.
+   */
+  isEntireRowSelected(startColumnIndex, endColumnIndex) {
+    return startColumnIndex === this.wot.wtTable.getFirstRenderedColumn() && endColumnIndex === this.wot.wtTable.getLastRenderedColumn();
+  }
+
+  /**
+   * Get left/top index and width/height depending on the `direction` provided.
+   *
+   * @private
+   * @param {String} direction `rows` or `columns`, defines if an entire column or row is selected.
+   * @param {Number} fromIndex Start index of the selection.
+   * @param {Number} toIndex End index of the selection.
+   * @param {Number} containerOffset offset of the container.
+   * @return {Array|Boolean} Returns an array of [left, width] or [top, height], depending on `direction` (`false` in case of an error getting the headers).
+   */
+  getDimensionsFromHeader(direction, fromIndex, toIndex, containerOffset) {
+    const rootHotElement = this.wot.wtTable.wtRootElement.parentNode;
+    let getHeaderFn = null;
+    let dimensionFn = null;
+    let entireSelectionClassname = null;
+    let index = null;
+    let dimension = null;
+    let dimensionProperty = null;
+
+    switch (direction) {
+      case 'rows':
+        getHeaderFn = (...args) => this.wot.wtTable.getRowHeader(...args);
+        dimensionFn = (...args) => outerHeight(...args);
+        entireSelectionClassname = 'ht__selection--rows';
+        dimensionProperty = 'top';
+
+        break;
+
+      case 'columns':
+        getHeaderFn = (...args) => this.wot.wtTable.getColumnHeader(...args);
+        dimensionFn = (...args) => outerWidth(...args);
+        entireSelectionClassname = 'ht__selection--columns';
+        dimensionProperty = 'left';
+        break;
+      default:
+    }
+
+    if (rootHotElement.className.includes(entireSelectionClassname)) {
+      const startHeader = getHeaderFn(fromIndex, 0);
+      const endHeader = getHeaderFn(toIndex, 0);
+
+      if (!startHeader || !endHeader) {
+        return false;
+      }
+
+      const startHeaderOffset = offset(startHeader);
+      const endOffset = offset(endHeader);
+
+      if (startHeader && endHeader) {
+        index = startHeaderOffset[dimensionProperty] - containerOffset[dimensionProperty] - 2;
+        dimension = endOffset[dimensionProperty] + dimensionFn(endHeader) - startHeaderOffset[dimensionProperty] + 1;
+      }
+    }
+
+    return [index, dimension];
   }
 
   /**
