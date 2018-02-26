@@ -30,7 +30,7 @@ function UndoRedo(instance) {
   this.ignoreNewActions = false;
 
   instance.addHook('afterChange', (changes, source) => {
-    if (changes && source !== 'UndoRedo.undo' && source !== 'UndoRedo.redo') {
+    if (changes && source !== 'UndoRedo.undo' && source !== 'UndoRedo.redo' && source !== 'MergeCells') {
       plugin.done(new UndoRedo.ChangeAction(changes));
     }
   });
@@ -123,7 +123,24 @@ function UndoRedo(instance) {
 
     plugin.done(new UndoRedo.RowMoveAction(movedRows, target));
   });
-};
+
+  instance.addHook('beforeMergeCells', (cellRange, auto) => {
+    if (auto) {
+      return;
+    }
+
+    plugin.done(new UndoRedo.MergeCells(instance, cellRange));
+  });
+
+  instance.addHook('afterUnmergeCells', (cellRange, auto) => {
+    if (auto) {
+      return;
+    }
+
+    plugin.done(new UndoRedo.UnmergeCells(instance, cellRange));
+  });
+
+}
 
 UndoRedo.prototype.done = function(action) {
   if (!this.ignoreNewActions) {
@@ -251,7 +268,7 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
 
   for (let i = 0, len = data.length; i < len; i++) {
     if (instance.getSettings().minSpareRows && data[i][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
-        emptyRowsAtTheEnd == instance.getSettings().minSpareRows) {
+      emptyRowsAtTheEnd === instance.getSettings().minSpareRows) {
 
       instance.alter('remove_row', parseInt(data[i][0] + 1, 10), instance.getSettings().minSpareRows);
       instance.undoRedo.doneActions.pop();
@@ -259,7 +276,7 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
     }
 
     if (instance.getSettings().minSpareCols && data[i][1] + 1 + instance.getSettings().minSpareCols === instance.countCols() &&
-        emptyColsAtTheEnd == instance.getSettings().minSpareCols) {
+      emptyColsAtTheEnd === instance.getSettings().minSpareCols) {
 
       instance.alter('remove_col', parseInt(data[i][1] + 1, 10), instance.getSettings().minSpareCols);
       instance.undoRedo.doneActions.pop();
@@ -479,6 +496,60 @@ UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
   filters.conditionCollection.importAllConditions(this.conditionsStack);
   filters.filter();
 };
+
+/**
+ * Merge Cells action.
+ */
+class MergeCells extends UndoRedo.Action {
+  constructor(instance, cellRange) {
+    super();
+    this.cellRange = cellRange;
+    this.rangeData = instance.getData(cellRange.from.row, cellRange.from.col, cellRange.to.row, cellRange.to.col);
+  }
+
+  undo(instance, undoneCallback) {
+    const mergeCellsPlugin = instance.getPlugin('mergeCells');
+    instance.addHookOnce('afterRender', undoneCallback);
+
+    mergeCellsPlugin.unmergeRange(this.cellRange, true);
+    instance.populateFromArray(this.cellRange.from.row, this.cellRange.from.col, this.rangeData, void 0, void 0, 'MergeCells');
+  }
+
+  redo(instance, redoneCallback) {
+    const mergeCellsPlugin = instance.getPlugin('mergeCells');
+    instance.addHookOnce('afterRender', redoneCallback);
+
+    mergeCellsPlugin.mergeRange(this.cellRange);
+  }
+}
+UndoRedo.MergeCells = MergeCells;
+
+/**
+ * Unmerge Cells action.
+ * @util
+ */
+class UnmergeCells extends UndoRedo.Action {
+  constructor(instance, cellRange) {
+    super();
+    this.cellRange = cellRange;
+  }
+
+  undo(instance, undoneCallback) {
+    const mergeCellsPlugin = instance.getPlugin('mergeCells');
+    instance.addHookOnce('afterRender', undoneCallback);
+
+    mergeCellsPlugin.mergeRange(this.cellRange, true);
+  }
+
+  redo(instance, redoneCallback) {
+    const mergeCellsPlugin = instance.getPlugin('mergeCells');
+    instance.addHookOnce('afterRender', redoneCallback);
+
+    mergeCellsPlugin.unmergeRange(this.cellRange, true);
+    instance.render();
+  }
+}
+UndoRedo.UnmergeCells = UnmergeCells;
 
 /**
  * ManualRowMove action.

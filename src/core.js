@@ -993,10 +993,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   }
 
+  /**
+   * Validate a single cell.
+   *
+   * @param {String|Number} value
+   * @param cellProperties
+   * @param callback
+   * @param source
+   */
   this.validateCell = function(value, cellProperties, callback, source) {
     var validator = instance.getCellValidator(cellProperties);
 
-    function done(valid) {
+    // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
+    function done(valid, canBeValidated = true) {
+      // Fixes GH#3903
+      if (!canBeValidated || cellProperties.hidden === true) {
+        callback(valid);
+        return;
+      }
+
       var col = cellProperties.visualCol,
         row = cellProperties.visualRow,
         td = instance.getCell(row, col, true);
@@ -1034,7 +1049,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       // resolve callback even if validator function was not found
       instance._registerTimeout(setTimeout(() => {
         cellProperties.valid = true;
-        done(cellProperties.valid);
+        done(cellProperties.valid, false);
       }, 0));
     }
   };
