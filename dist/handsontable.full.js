@@ -21,7 +21,7 @@
  * UNINTERRUPTED OR ERROR FREE.
  * 
  * Version: 1.17.0
- * Release date: 28/02/2018 (built at 27/02/2018 11:44:23)
+ * Release date: 01/03/2018 (built at 28/02/2018 16:14:20)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -5236,7 +5236,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment2.default)('28/02/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment2.default)('01/03/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       var keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
@@ -46562,8 +46562,8 @@ var Border = function () {
 
         return;
       }
-      var isMultiple = fromRow !== toRow || fromColumn !== toColumn;
       var fromTD = this.wot.wtTable.getCell(new _coords2.default(fromRow, fromColumn));
+      var isMultiple = fromRow !== toRow || fromColumn !== toColumn;
       var toTD = isMultiple ? this.wot.wtTable.getCell(new _coords2.default(toRow, toColumn)) : fromTD;
       var fromOffset = (0, _element.offset)(fromTD);
       var toOffset = isMultiple ? (0, _element.offset)(toTD) : fromOffset;
@@ -46575,13 +46575,19 @@ var Border = function () {
       var width = toOffset.left + (0, _element.outerWidth)(toTD) - minLeft;
 
       if (this.isEntireColumnSelected(fromRow, toRow)) {
-        var leftAndWidthValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, containerOffset);
+        var modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, containerOffset);
+        var fromTH = null;
 
-        if (leftAndWidthValues) {
-          var _leftAndWidthValues = _slicedToArray(leftAndWidthValues, 2);
+        if (modifiedValues) {
+          var _modifiedValues = _slicedToArray(modifiedValues, 3);
 
-          left = _leftAndWidthValues[0];
-          width = _leftAndWidthValues[1];
+          fromTH = _modifiedValues[0];
+          left = _modifiedValues[1];
+          width = _modifiedValues[2];
+        }
+
+        if (fromTH) {
+          fromTD = fromTH;
         }
       }
 
@@ -46589,13 +46595,19 @@ var Border = function () {
       var height = toOffset.top + (0, _element.outerHeight)(toTD) - minTop;
 
       if (this.isEntireRowSelected(fromColumn, toColumn)) {
-        var topAndHeightValues = this.getDimensionsFromHeader('rows', fromRow, toRow, containerOffset);
+        var _modifiedValues2 = this.getDimensionsFromHeader('rows', fromRow, toRow, containerOffset);
+        var _fromTH = null;
 
-        if (topAndHeightValues) {
-          var _topAndHeightValues = _slicedToArray(topAndHeightValues, 2);
+        if (_modifiedValues2) {
+          var _modifiedValues3 = _slicedToArray(_modifiedValues2, 3);
 
-          top = _topAndHeightValues[0];
-          height = _topAndHeightValues[1];
+          _fromTH = _modifiedValues3[0];
+          top = _modifiedValues3[1];
+          height = _modifiedValues3[2];
+        }
+
+        if (_fromTH) {
+          fromTD = _fromTH;
         }
       }
 
@@ -46710,7 +46722,7 @@ var Border = function () {
      * @param {Number} fromIndex Start index of the selection.
      * @param {Number} toIndex End index of the selection.
      * @param {Number} containerOffset offset of the container.
-     * @return {Array|Boolean} Returns an array of [left, width] or [top, height], depending on `direction` (`false` in case of an error getting the headers).
+     * @return {Array|Boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
      */
 
   }, {
@@ -46725,6 +46737,8 @@ var Border = function () {
       var index = null;
       var dimension = null;
       var dimensionProperty = null;
+      var startHeader = null;
+      var endHeader = null;
 
       switch (direction) {
         case 'rows':
@@ -46757,8 +46771,8 @@ var Border = function () {
       }
 
       if (rootHotElement.className.includes(entireSelectionClassname)) {
-        var startHeader = getHeaderFn(fromIndex, 0);
-        var endHeader = getHeaderFn(toIndex, 0);
+        startHeader = getHeaderFn(fromIndex, 0);
+        endHeader = getHeaderFn(toIndex, 0);
 
         if (!startHeader || !endHeader) {
           return false;
@@ -46768,12 +46782,14 @@ var Border = function () {
         var endOffset = (0, _element.offset)(endHeader);
 
         if (startHeader && endHeader) {
-          index = startHeaderOffset[dimensionProperty] - containerOffset[dimensionProperty] - 2;
-          dimension = endOffset[dimensionProperty] + dimensionFn(endHeader) - startHeaderOffset[dimensionProperty] + 1;
+          index = startHeaderOffset[dimensionProperty] - containerOffset[dimensionProperty] - 1;
+          dimension = endOffset[dimensionProperty] + dimensionFn(endHeader) - startHeaderOffset[dimensionProperty];
         }
+
+        return [startHeader, index, dimension];
       }
 
-      return [index, dimension];
+      return false;
     }
 
     /**
@@ -55968,7 +55984,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '27/02/2018 11:44:23';
+Handsontable.buildDate = '28/02/2018 16:14:20';
 Handsontable.packageName = 'handsontable-pro';
 Handsontable.version = '1.17.0';
 
