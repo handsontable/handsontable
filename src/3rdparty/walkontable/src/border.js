@@ -549,9 +549,11 @@ class Border {
         index = startHeaderOffset[dimensionProperty] - containerOffset[dimensionProperty] - 2;
         dimension = endOffset[dimensionProperty] + dimensionFn(endHeader) - startHeaderOffset[dimensionProperty] + 1;
       }
+
+      return [startHeader, index, dimension];
     }
 
-    return [index, dimension];
+    return false;
   }
 
   /**
