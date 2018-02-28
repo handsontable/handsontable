@@ -23,7 +23,7 @@ describe('WalkontableBorder', () => {
   });
 
   it('should add/remove border to selection when cell is clicked', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: 5,
@@ -45,13 +45,13 @@ describe('WalkontableBorder', () => {
     shimSelectionProperties(wt);
     wt.draw();
 
-    var $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
+    const $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
 
-    var $td2 = $table.find('tbody tr:eq(2) td:eq(1)');
-    var $top = $(wt.selections.getCell().getBorder(wt).top);
-    var $right = $(wt.selections.getCell().getBorder(wt).right);
-    var $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
-    var $left = $(wt.selections.getCell().getBorder(wt).left);
+    const $td2 = $table.find('tbody tr:eq(2) td:eq(1)');
+    const $top = $(wt.selections.getCell().getBorder(wt).top);
+    const $right = $(wt.selections.getCell().getBorder(wt).right);
+    const $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
+    const $left = $(wt.selections.getCell().getBorder(wt).left);
 
     $td1.simulate('mousedown');
 
@@ -85,7 +85,7 @@ describe('WalkontableBorder', () => {
   });
 
   it('should add/remove border to selection when cell is clicked and the table has only one column', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: 5,
@@ -107,11 +107,11 @@ describe('WalkontableBorder', () => {
     shimSelectionProperties(wt);
     wt.draw();
 
-    var $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
-    var $top = $(wt.selections.getCell().getBorder(wt).top);
-    var $right = $(wt.selections.getCell().getBorder(wt).right);
-    var $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
-    var $left = $(wt.selections.getCell().getBorder(wt).left);
+    const $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
+    const $top = $(wt.selections.getCell().getBorder(wt).top);
+    const $right = $(wt.selections.getCell().getBorder(wt).right);
+    const $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
+    const $left = $(wt.selections.getCell().getBorder(wt).left);
 
     $td1.simulate('mousedown');
 
@@ -130,7 +130,7 @@ describe('WalkontableBorder', () => {
   });
 
   it('should properly add a selection border on an entirely selected column', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: 5,
@@ -156,10 +156,10 @@ describe('WalkontableBorder', () => {
     wt.selections.getCell().add(new Walkontable.CellCoords(4, 0));
     wt.draw(true);
 
-    var $top = $(wt.selections.getCell().getBorder(wt).top);
-    var $right = $(wt.selections.getCell().getBorder(wt).right);
-    var $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
-    var $left = $(wt.selections.getCell().getBorder(wt).left);
+    const $top = $(wt.selections.getCell().getBorder(wt).top);
+    const $right = $(wt.selections.getCell().getBorder(wt).right);
+    const $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
+    const $left = $(wt.selections.getCell().getBorder(wt).left);
 
     expect($top.css('height')).toBe('1px');
     expect($top.position().top).toBe(0);
@@ -176,7 +176,7 @@ describe('WalkontableBorder', () => {
   });
 
   it('should add/remove corner to selection when cell is clicked', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: 5,
@@ -202,9 +202,9 @@ describe('WalkontableBorder', () => {
     shimSelectionProperties(wt);
     wt.draw();
 
-    var $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
-    var $td2 = $table.find('tbody tr:eq(2) td:eq(1)');
-    var $corner = $(wt.selections.getCell().getBorder(wt).corner);
+    const $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
+    const $td2 = $table.find('tbody tr:eq(2) td:eq(1)');
+    const $corner = $(wt.selections.getCell().getBorder(wt).corner);
 
     $td1.simulate('mousedown');
 
@@ -226,7 +226,7 @@ describe('WalkontableBorder', () => {
       overflow: 'hidden',
       width: '200px'
     });
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: 5,
@@ -252,10 +252,10 @@ describe('WalkontableBorder', () => {
     shimSelectionProperties(wt);
     wt.draw();
 
-    var $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
-    var $td2 = $table.find('tbody tr:eq(3) td:eq(3)');
-    var $td3 = $table.find('tbody tr:eq(2) td:eq(1)');
-    var $corner = $(wt.selections.getCell().getBorder(wt).corner);
+    const $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
+    const $td2 = $table.find('tbody tr:eq(3) td:eq(3)');
+    const $td3 = $table.find('tbody tr:eq(2) td:eq(1)');
+    const $corner = $(wt.selections.getCell().getBorder(wt).corner);
 
     $td1.simulate('mousedown');
 
