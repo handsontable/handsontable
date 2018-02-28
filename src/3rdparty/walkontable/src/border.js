@@ -368,8 +368,8 @@ class Border {
 
       return;
     }
+    let fromTD = this.wot.wtTable.getCell(new CellCoords(fromRow, fromColumn));
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    const fromTD = this.wot.wtTable.getCell(new CellCoords(fromRow, fromColumn));
     const toTD = isMultiple ? this.wot.wtTable.getCell(new CellCoords(toRow, toColumn)) : fromTD;
     const fromOffset = offset(fromTD);
     const toOffset = isMultiple ? offset(toTD) : fromOffset;
@@ -381,10 +381,15 @@ class Border {
     let width = toOffset.left + outerWidth(toTD) - minLeft;
 
     if (this.isEntireColumnSelected(fromRow, toRow)) {
-      const leftAndWidthValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, containerOffset);
+      const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, containerOffset);
+      let fromTH = null;
 
-      if (leftAndWidthValues) {
-        [left, width] = leftAndWidthValues;
+      if (modifiedValues) {
+        [fromTH, left, width] = modifiedValues;
+      }
+
+      if (fromTH) {
+        fromTD = fromTH;
       }
     }
 
@@ -392,10 +397,15 @@ class Border {
     let height = toOffset.top + outerHeight(toTD) - minTop;
 
     if (this.isEntireRowSelected(fromColumn, toColumn)) {
-      const topAndHeightValues = this.getDimensionsFromHeader('rows', fromRow, toRow, containerOffset);
+      const modifiedValues = this.getDimensionsFromHeader('rows', fromRow, toRow, containerOffset);
+      let fromTH = null;
 
-      if (topAndHeightValues) {
-        [top, height] = topAndHeightValues;
+      if (modifiedValues) {
+        [fromTH, top, height] = modifiedValues;
+      }
+
+      if (fromTH) {
+        fromTD = fromTH;
       }
     }
 
@@ -505,7 +515,7 @@ class Border {
    * @param {Number} fromIndex Start index of the selection.
    * @param {Number} toIndex End index of the selection.
    * @param {Number} containerOffset offset of the container.
-   * @return {Array|Boolean} Returns an array of [left, width] or [top, height], depending on `direction` (`false` in case of an error getting the headers).
+   * @return {Array|Boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
    */
   getDimensionsFromHeader(direction, fromIndex, toIndex, containerOffset) {
     const rootHotElement = this.wot.wtTable.wtRootElement.parentNode;
@@ -515,6 +525,8 @@ class Border {
     let index = null;
     let dimension = null;
     let dimensionProperty = null;
+    let startHeader = null;
+    let endHeader = null;
 
     switch (direction) {
       case 'rows':
@@ -535,8 +547,8 @@ class Border {
     }
 
     if (rootHotElement.className.includes(entireSelectionClassname)) {
-      const startHeader = getHeaderFn(fromIndex, 0);
-      const endHeader = getHeaderFn(toIndex, 0);
+      startHeader = getHeaderFn(fromIndex, 0);
+      endHeader = getHeaderFn(toIndex, 0);
 
       if (!startHeader || !endHeader) {
         return false;
@@ -546,12 +558,12 @@ class Border {
       const endOffset = offset(endHeader);
 
       if (startHeader && endHeader) {
-        index = startHeaderOffset[dimensionProperty] - containerOffset[dimensionProperty] - 2;
-        dimension = endOffset[dimensionProperty] + dimensionFn(endHeader) - startHeaderOffset[dimensionProperty] + 1;
+        index = startHeaderOffset[dimensionProperty] - containerOffset[dimensionProperty] - 1;
+        dimension = endOffset[dimensionProperty] + dimensionFn(endHeader) - startHeaderOffset[dimensionProperty];
       }
     }
 
-    return [index, dimension];
+    return [startHeader, index, dimension];
   }
 
   /**
