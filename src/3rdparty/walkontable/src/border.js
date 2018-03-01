@@ -368,8 +368,8 @@ class Border {
 
       return;
     }
+    let fromTD = this.wot.wtTable.getCell(new CellCoords(fromRow, fromColumn));
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    const fromTD = this.wot.wtTable.getCell(new CellCoords(fromRow, fromColumn));
     const toTD = isMultiple ? this.wot.wtTable.getCell(new CellCoords(toRow, toColumn)) : fromTD;
     const fromOffset = offset(fromTD);
     const toOffset = isMultiple ? offset(toTD) : fromOffset;
@@ -377,10 +377,38 @@ class Border {
     const minTop = fromOffset.top;
     const minLeft = fromOffset.left;
 
-    let height = toOffset.top + outerHeight(toTD) - minTop;
-    let width = toOffset.left + outerWidth(toTD) - minLeft;
-    let top = minTop - containerOffset.top - 1;
     let left = minLeft - containerOffset.left - 1;
+    let width = toOffset.left + outerWidth(toTD) - minLeft;
+
+    if (this.isEntireColumnSelected(fromRow, toRow)) {
+      const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, containerOffset);
+      let fromTH = null;
+
+      if (modifiedValues) {
+        [fromTH, left, width] = modifiedValues;
+      }
+
+      if (fromTH) {
+        fromTD = fromTH;
+      }
+    }
+
+    let top = minTop - containerOffset.top - 1;
+    let height = toOffset.top + outerHeight(toTD) - minTop;
+
+    if (this.isEntireRowSelected(fromColumn, toColumn)) {
+      const modifiedValues = this.getDimensionsFromHeader('rows', fromRow, toRow, containerOffset);
+      let fromTH = null;
+
+      if (modifiedValues) {
+        [fromTH, top, height] = modifiedValues;
+      }
+
+      if (fromTH) {
+        fromTD = fromTH;
+      }
+    }
+
     let style = getComputedStyle(fromTD);
 
     if (parseInt(style.borderTopWidth, 10) > 0) {
@@ -414,8 +442,12 @@ class Border {
     this.rightStyle.height = `${height + 1}px`;
     this.rightStyle.display = 'block';
 
-    if (isMobileBrowser() || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
+    let cornerVisibleSetting = this.settings.border.cornerVisible;
+    cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ? cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
+
+    if (isMobileBrowser() || !cornerVisibleSetting) {
       this.cornerStyle.display = 'none';
+
     } else {
       this.cornerStyle.top = `${top + height - 4}px`;
       this.cornerStyle.left = `${left + width - 4}px`;
@@ -454,6 +486,89 @@ class Border {
   }
 
   /**
+   * Check whether an entire column of cells is selected.
+   *
+   * @private
+   * @param {Number} startRowIndex Start row index.
+   * @param {Number} endRowIndex End row index.
+   */
+  isEntireColumnSelected(startRowIndex, endRowIndex) {
+    return startRowIndex === this.wot.wtTable.getFirstRenderedRow() && endRowIndex === this.wot.wtTable.getLastRenderedRow();
+  }
+
+  /**
+   * Check whether an entire row of cells is selected.
+   *
+   * @private
+   * @param {Number} startColumnIndex Start column index.
+   * @param {Number} endColumnIndex End column index.
+   */
+  isEntireRowSelected(startColumnIndex, endColumnIndex) {
+    return startColumnIndex === this.wot.wtTable.getFirstRenderedColumn() && endColumnIndex === this.wot.wtTable.getLastRenderedColumn();
+  }
+
+  /**
+   * Get left/top index and width/height depending on the `direction` provided.
+   *
+   * @private
+   * @param {String} direction `rows` or `columns`, defines if an entire column or row is selected.
+   * @param {Number} fromIndex Start index of the selection.
+   * @param {Number} toIndex End index of the selection.
+   * @param {Number} containerOffset offset of the container.
+   * @return {Array|Boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
+   */
+  getDimensionsFromHeader(direction, fromIndex, toIndex, containerOffset) {
+    const rootHotElement = this.wot.wtTable.wtRootElement.parentNode;
+    let getHeaderFn = null;
+    let dimensionFn = null;
+    let entireSelectionClassname = null;
+    let index = null;
+    let dimension = null;
+    let dimensionProperty = null;
+    let startHeader = null;
+    let endHeader = null;
+
+    switch (direction) {
+      case 'rows':
+        getHeaderFn = (...args) => this.wot.wtTable.getRowHeader(...args);
+        dimensionFn = (...args) => outerHeight(...args);
+        entireSelectionClassname = 'ht__selection--rows';
+        dimensionProperty = 'top';
+
+        break;
+
+      case 'columns':
+        getHeaderFn = (...args) => this.wot.wtTable.getColumnHeader(...args);
+        dimensionFn = (...args) => outerWidth(...args);
+        entireSelectionClassname = 'ht__selection--columns';
+        dimensionProperty = 'left';
+        break;
+      default:
+    }
+
+    if (rootHotElement.className.includes(entireSelectionClassname)) {
+      startHeader = getHeaderFn(fromIndex, 0);
+      endHeader = getHeaderFn(toIndex, 0);
+
+      if (!startHeader || !endHeader) {
+        return false;
+      }
+
+      const startHeaderOffset = offset(startHeader);
+      const endOffset = offset(endHeader);
+
+      if (startHeader && endHeader) {
+        index = startHeaderOffset[dimensionProperty] - containerOffset[dimensionProperty] - 1;
+        dimension = endOffset[dimensionProperty] + dimensionFn(endHeader) - startHeaderOffset[dimensionProperty];
+      }
+
+      return [startHeader, index, dimension];
+    }
+
+    return false;
+  }
+
+  /**
    * Hide border
    */
   disappear() {
@@ -467,18 +582,6 @@ class Border {
       this.selectionHandles.styles.topLeft.display = 'none';
       this.selectionHandles.styles.bottomRight.display = 'none';
     }
-  }
-
-  /**
-   * @param {Function} setting
-   * @returns {*}
-   */
-  hasSetting(setting) {
-    if (typeof setting === 'function') {
-      return setting();
-    }
-
-    return !!setting;
   }
 }
 

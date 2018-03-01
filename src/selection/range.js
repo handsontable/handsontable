@@ -30,7 +30,7 @@ class SelectionRange {
    * Set coordinates to the class instance. It clears all previously added coordinates and push `coords`
    * to the collection.
    *
-   * @param {CellCoords} coords The CellCoords instance with defined coordinates.
+   * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    * @returns {SelectionRange}
    */
   set(coords) {
@@ -43,7 +43,7 @@ class SelectionRange {
   /**
    * Add coordinates to the class instance. The new coordinates are added to the end of the range collection.
    *
-   * @param {CellCoords} coords The CellCoords instance with defined coordinates.
+   * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    * @returns {SelectionRange}
    */
   add(coords) {
@@ -55,7 +55,7 @@ class SelectionRange {
   /**
    * Get last added coordinates from ranges, it returns a CellRange instance.
    *
-   * @return {CellCoords|undefined}
+   * @return {CellRange|undefined}
    */
   current() {
     return this.peekByIndex(0);
@@ -64,10 +64,21 @@ class SelectionRange {
   /**
    * Get previously added coordinates from ranges, it returns a CellRange instance.
    *
-   * @return {CellCoords|undefined}
+   * @return {CellRange|undefined}
    */
   previous() {
     return this.peekByIndex(-1);
+  }
+
+  /**
+   * Returns `true` if coords is within selection coords. This method iterates through all selection layers to check if
+   * the coords object is within selection range.
+   *
+   * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
+   * @returns {Boolean}
+   */
+  includes(coords) {
+    return this.ranges.some((cellRange) => cellRange.includes(coords));
   }
 
   /**
@@ -91,13 +102,13 @@ class SelectionRange {
   }
 
   /**
-   * Peek the coordinates based on the index where that coordinate resides in the collection.
+   * Peek the coordinates based on the offset where that coordinate resides in the collection.
    *
-   * @param {Number} [index=0] An index where the coordinate will be retrieved from.
+   * @param {Number} [offset=0] An offset where the coordinate will be retrieved from.
    * @return {CellRange|undefined}
    */
-  peekByIndex(index = 0) {
-    const rangeIndex = this.size() + index - 1;
+  peekByIndex(offset = 0) {
+    const rangeIndex = this.size() + offset - 1;
     let cellRange;
 
     if (rangeIndex >= 0) {

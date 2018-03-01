@@ -438,6 +438,9 @@ function TableView(instance) {
     onModifyRowHeaderWidth: function(rowHeaderWidth) {
       return instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth);
     },
+    onModifyGetCellCoords: function(row, column, topmost) {
+      return instance.runHooks('modifyGetCellCoords', row, column, topmost);
+    },
     viewportRowCalculatorOverride: function(calc) {
       let rows = instance.countRows();
       let viewportOffset = that.settings.viewportRowRenderingOffset;

@@ -1,165 +1,470 @@
+import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
+import {registerPlugin} from './../../plugins';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
-import {CellCoords, CellRange, Table} from './../../3rdparty/walkontable/src';
-import * as C from './../../i18n/constants';
+import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
+import MergedCellsCollection from './cellsCollection';
+import AutofillCalculations from './calculations/autofill';
+import SelectionCalculations from './calculations/selection';
+import toggleMergeItem from './contextMenuItem/toggleMerge';
+import {arrayEach} from '../../helpers/array';
+import {clone} from '../../helpers/object';
+import {rangeEach} from '../../helpers/number';
+import {applySpanProperties} from './utils';
+import './mergeCells.css';
 
-function CellInfoCollection() {
-  var collection = [];
+Hooks.getSingleton().register('beforeMergeCells');
+Hooks.getSingleton().register('afterMergeCells');
+Hooks.getSingleton().register('beforeUnmergeCells');
+Hooks.getSingleton().register('afterUnmergeCells');
 
-  collection.getInfo = function(row, col) {
-    for (var i = 0, ilen = this.length; i < ilen; i++) {
-      if (this[i].row <= row && this[i].row + this[i].rowspan - 1 >= row &&
-        this[i].col <= col && this[i].col + this[i].colspan - 1 >= col) {
-        return this[i];
-      }
-    }
-  };
-
-  collection.setInfo = function(info) {
-    for (var i = 0, ilen = this.length; i < ilen; i++) {
-      if (this[i].row === info.row && this[i].col === info.col) {
-        this[i] = info;
-        return;
-      }
-    }
-    this.push(info);
-  };
-
-  collection.removeInfo = function(row, col) {
-    for (var i = 0, ilen = this.length; i < ilen; i++) {
-      if (this[i].row === row && this[i].col === col) {
-        this.splice(i, 1);
-        break;
-      }
-    }
-  };
-
-  return collection;
-}
+const privatePool = new WeakMap();
 
 /**
- * Plugin used to merge cells in Handsontable.
- *
- * @private
  * @plugin MergeCells
- * @class MergeCells
+ *
+ * @description Plugin, which allows merging cells in the table (using the initial configuration, API or context menu).
+ *
+ * @example
+ *
+ * ```js
+ * ...
+ * let hot = new Handsontable(document.getElementById('example'), {
+ *  data: getData(),
+ *  mergeCells: [
+ *    {row: 0, col: 3, rowspan: 3, colspan: 3},
+ *    {row: 2, col: 6, rowspan: 2, colspan: 2},
+ *    {row: 4, col: 8, rowspan: 3, colspan: 3}
+ *  ],
+ * ...
+ * ```
  */
-function MergeCells(mergeCellsSetting) {
-  this.mergedCellInfoCollection = new CellInfoCollection();
+class MergeCells extends BasePlugin {
+  constructor(hotInstance) {
+    super(hotInstance);
 
-  if (Array.isArray(mergeCellsSetting)) {
-    for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
-      this.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
+    privatePool.set(this, {
+      lastDesiredCoords: null
+    });
+
+    /**
+     * A container for all the merged cells.
+     *
+     * @type {MergedCellsCollection}
+     */
+    this.mergedCellsCollection = null;
+    /**
+     * Instance of the class responsible for all the autofill-related calculations.
+     *
+     * @private
+     * @type {AutofillCalculations}
+     */
+    this.autofillCalculations = null;
+    /**
+     * Instance of the class responsible for the selection-related calculations.
+     *
+     * @private
+     * @type {SelectionCalculations}
+     */
+    this.selectionCalculations = null;
+  }
+
+  /**
+   * Check if the plugin is enabled in the Handsontable settings.
+   *
+   * @returns {Boolean}
+   */
+  isEnabled() {
+    return !!this.hot.getSettings().mergeCells;
+  }
+
+  /**
+   * Enable the plugin.
+   */
+  enablePlugin() {
+    if (this.enabled) {
+      return;
+    }
+
+    this.mergedCellsCollection = new MergedCellsCollection(this);
+    this.autofillCalculations = new AutofillCalculations(this);
+    this.selectionCalculations = new SelectionCalculations();
+
+    this.addHook('afterInit', (...args) => this.onAfterInit(...args));
+    this.addHook('beforeKeyDown', (...args) => this.onBeforeKeyDown(...args));
+    this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
+    this.addHook('modifyTransformEnd', (...args) => this.onModifyTransformEnd(...args));
+    this.addHook('modifyGetCellCoords', (...args) => this.onModifyGetCellCoords(...args));
+    this.addHook('beforeSetRangeEnd', (...args) => this.onBeforeSetRangeEnd(...args));
+    this.addHook('afterIsMultipleSelection', (...args) => this.onAfterIsMultipleSelection(...args));
+    this.addHook('afterRenderer', (...args) => this.onAfterRenderer(...args));
+    this.addHook('afterContextMenuDefaultOptions', (...args) => this.addMergeActionsToContextMenu(...args));
+    this.addHook('afterGetCellMeta', (...args) => this.onAfterGetCellMeta(...args));
+    this.addHook('afterViewportRowCalculatorOverride', (...args) => this.onAfterViewportRowCalculatorOverride(...args));
+    this.addHook('afterViewportColumnCalculatorOverride', (...args) => this.onAfterViewportColumnCalculatorOverride(...args));
+    this.addHook('modifyAutofillRange', (...args) => this.onModifyAutofillRange(...args));
+    this.addHook('afterCreateCol', (...args) => this.onAfterCreateCol(...args));
+    this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
+    this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
+    this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
+    this.addHook('afterChange', (...args) => this.onAfterChange(...args));
+    this.addHook('beforeDrawBorders', (...args) => this.onBeforeDrawAreaBorders(...args));
+
+    super.enablePlugin();
+  }
+
+  /**
+   * Disable the plugin.
+   */
+  disablePlugin() {
+    this.clearCollections();
+    this.hot.render();
+    super.disablePlugin();
+  }
+
+  /**
+   * Update the plugin (after using the `updateSettings` method)
+   */
+  updatePlugin() {
+    const settings = this.hot.getSettings().mergeCells;
+
+    this.clearCollections();
+    this.disablePlugin();
+    this.enablePlugin();
+
+    this.generateFromSettings(settings);
+
+    super.updatePlugin();
+  }
+
+  /**
+   * Generate the merged cells from the settings provided to the plugin.
+   *
+   * @private
+   * @param {Array|Boolean} settings The settings provided to the plugin.
+   */
+  generateFromSettings(settings) {
+    if (Array.isArray(settings)) {
+      let populationArgumentsList = [];
+
+      arrayEach(settings, (setting) => {
+        const highlight = new CellCoords(setting.row, setting.col);
+        const rangeEnd = new CellCoords(setting.row + setting.rowspan - 1, setting.col + setting.colspan - 1);
+        const mergeRange = new CellRange(highlight, highlight, rangeEnd);
+
+        populationArgumentsList.push(this.mergeRange(mergeRange, true, true));
+      });
+
+      // remove 'empty' setting objects, caused by improper merge range declarations
+      populationArgumentsList = populationArgumentsList.filter((value) => value !== true);
+
+      const bulkPopulationData = this.getBulkCollectionData(populationArgumentsList);
+
+      this.hot.populateFromArray(...bulkPopulationData);
     }
   }
-}
 
-/**
- * @param cellRange (CellRange)
- */
-MergeCells.prototype.canMergeRange = function(cellRange) {
-  // is more than one cell selected
-  return !cellRange.isSingle();
-};
+  /**
+   * Generates a bulk set of all the data to be populated to fill the data "under" the added merged cells.
+   *
+   * @private
+   * @param {Array} populationArgumentsList Array in a form of `[row, column, dataUnderCollection]`.
+   * @return {Array} Array in a form of `[row, column, dataOfAllCollections]`.
+   */
+  getBulkCollectionData(populationArgumentsList) {
+    const populationDataRange = this.getBulkCollectionDataRange(populationArgumentsList);
+    const dataAtRange = this.hot.getData(...populationDataRange);
+    const newDataAtRange = dataAtRange.splice(0);
 
-MergeCells.prototype.mergeRange = function(cellRange) {
-  if (!this.canMergeRange(cellRange)) {
-    return;
+    arrayEach(populationArgumentsList, (mergedCellArguments) => {
+      const [mergedCellRowIndex, mergedCellColumnIndex, mergedCellData] = mergedCellArguments;
+
+      arrayEach(mergedCellData, (mergedCellRow, rowIndex) => {
+        arrayEach(mergedCellRow, (mergedCellElement, columnIndex) => {
+          newDataAtRange[mergedCellRowIndex - populationDataRange[0] + rowIndex][mergedCellColumnIndex - populationDataRange[1] + columnIndex] = mergedCellElement;
+        });
+      });
+    });
+
+    return [populationDataRange[0], populationDataRange[1], newDataAtRange];
   }
 
-  // normalize top left corner
-  var topLeft = cellRange.getTopLeftCorner();
-  var bottomRight = cellRange.getBottomRightCorner();
+  /**
+   * Get the range of combined data ranges provided in a form of an array of arrays ([row, column, dataUnderCollection])
+   *
+   * @private
+   * @param {Array} populationArgumentsList Array containing argument lists for the `populateFromArray` method - row, column and data for population.
+   * @return {Array[]} Start and end coordinates of the merged cell range. (in a form of [rowIndex, columnIndex])
+   */
+  getBulkCollectionDataRange(populationArgumentsList) {
+    let start = [0, 0];
+    let end = [0, 0];
+    let mergedCellRow = null;
+    let mergedCellColumn = null;
+    let mergedCellData = null;
 
-  var mergeParent = {};
-  mergeParent.row = topLeft.row;
-  mergeParent.col = topLeft.col;
-  // TD has rowspan == 1 by default. rowspan == 2 means spread over 2 cells
-  mergeParent.rowspan = bottomRight.row - topLeft.row + 1;
-  mergeParent.colspan = bottomRight.col - topLeft.col + 1;
-  this.mergedCellInfoCollection.setInfo(mergeParent);
-};
+    arrayEach(populationArgumentsList, (mergedCellArguments) => {
+      mergedCellRow = mergedCellArguments[0];
+      mergedCellColumn = mergedCellArguments[1];
+      mergedCellData = mergedCellArguments[2];
 
-MergeCells.prototype.mergeOrUnmergeSelection = function(cellRange) {
-  var info = this.mergedCellInfoCollection.getInfo(cellRange.from.row, cellRange.from.col);
-  if (info) {
-    // unmerge
-    this.unmergeSelection(cellRange.from);
-  } else {
-    // merge
-    this.mergeSelection(cellRange);
+      start[0] = Math.min(mergedCellRow, start[0]);
+      start[1] = Math.min(mergedCellColumn, start[1]);
+      end[0] = Math.max(mergedCellRow + mergedCellData.length - 1, end[0]);
+      end[1] = Math.max(mergedCellColumn + mergedCellData[0].length - 1, end[1]);
+    });
+
+    return [...start, ...end];
   }
-};
 
-MergeCells.prototype.mergeSelection = function(cellRange) {
-  this.mergeRange(cellRange);
-};
+  /**
+   * Clear the merged cells from the merged cell container.
+   */
+  clearCollections() {
+    this.mergedCellsCollection.clear();
+  }
 
-MergeCells.prototype.unmergeSelection = function(cellRange) {
-  var info = this.mergedCellInfoCollection.getInfo(cellRange.row, cellRange.col);
-  this.mergedCellInfoCollection.removeInfo(info.row, info.col);
-};
+  /**
+   * Returns `true` if a range is mergeable.
+   *
+   * @private
+   * @param {CellRange} cellRange Cell range to test.
+   */
+  canMergeRange(cellRange) {
+    return !cellRange.isSingle();
+  }
 
-MergeCells.prototype.applySpanProperties = function(TD, row, col) {
-  var info = this.mergedCellInfoCollection.getInfo(row, col);
-
-  if (info) {
-    if (info.row === row && info.col === col) {
-      TD.setAttribute('rowspan', info.rowspan);
-      TD.setAttribute('colspan', info.colspan);
-    } else {
-      TD.removeAttribute('rowspan');
-      TD.removeAttribute('colspan');
-
-      TD.style.display = 'none';
+  /**
+   * Merge cells in the provided cell range.
+   *
+   * @private
+   * @param {CellRange} cellRange Cell range to merge.
+   * @param {Boolean} [auto=false] `true` if is called automatically, e.g. at initialization.
+   * @param {Boolean} [preventPopulation=false] `true`, if the method should not run `populateFromArray` at the end, but rather return its arguments.
+   * @returns {Array|Boolean} Returns an array of [row, column, dataUnderCollection] if preventPopulation is set to true. If the the merging process went successful, it returns `true`, otherwise - `false`.
+   * @fires Hooks#beforeMergeCells
+   * @fires Hooks#afterMergeCells
+   */
+  mergeRange(cellRange, auto = false, preventPopulation = false) {
+    if (!this.canMergeRange(cellRange)) {
+      return false;
     }
-  } else {
-    TD.removeAttribute('rowspan');
-    TD.removeAttribute('colspan');
-  }
-};
 
-MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delta) {
-  var sameRowspan = function(merged, coords) {
-      if (coords.row >= merged.row && coords.row <= (merged.row + merged.rowspan - 1)) {
-        return true;
-      }
-      return false;
-    },
-    sameColspan = function(merged, coords) {
-      if (coords.col >= merged.col && coords.col <= (merged.col + merged.colspan - 1)) {
-        return true;
-      }
-      return false;
-    },
-    getNextPosition = function(newDelta) {
-      return new CellCoords(currentSelectedRange.to.row + newDelta.row, currentSelectedRange.to.col + newDelta.col);
+    // normalize top left corner
+    const topLeft = cellRange.getTopLeftCorner();
+    const bottomRight = cellRange.getBottomRightCorner();
+    const mergeParent = {
+      row: topLeft.row,
+      col: topLeft.col,
+      rowspan: bottomRight.row - topLeft.row + 1,
+      colspan: bottomRight.col - topLeft.col + 1
     };
+    const clearedData = [];
+    let populationInfo = null;
 
-  var newDelta = {
-    row: delta.row,
-    col: delta.col,
-  };
+    this.hot.runHooks('beforeMergeCells', cellRange, auto);
 
-  if (hook == 'modifyTransformStart') {
-    /* eslint-disable block-scoped-var */
-    var nextPosition;
+    rangeEach(0, mergeParent.rowspan - 1, (i) => {
+      rangeEach(0, mergeParent.colspan - 1, (j) => {
+        let clearedValue = null;
 
-    if (!this.lastDesiredCoords) {
-      this.lastDesiredCoords = new CellCoords(null, null);
-    }
-    var currentPosition = new CellCoords(currentSelectedRange.highlight.row, currentSelectedRange.highlight.col),
-      // if current position's parent is a merged range, returns it
-      mergedParent = this.mergedCellInfoCollection.getInfo(currentPosition.row, currentPosition.col),
-      currentRangeContainsMerge; // if current range contains a merged range
+        if (!clearedData[i]) {
+          clearedData[i] = [];
+        }
 
-    for (var i = 0, mergesLength = this.mergedCellInfoCollection.length; i < mergesLength; i++) {
-      var range = this.mergedCellInfoCollection[i];
-      range = new CellCoords(range.row + range.rowspan - 1, range.col + range.colspan - 1);
-      if (currentSelectedRange.includes(range)) {
-        currentRangeContainsMerge = true;
-        break;
+        if (i === 0 && j === 0) {
+          clearedValue = this.hot.getDataAtCell(mergeParent.row, mergeParent.col);
+
+        } else {
+          this.hot.setCellMeta(mergeParent.row + i, mergeParent.col + j, 'hidden', true);
+        }
+
+        clearedData[i][j] = clearedValue;
+      });
+    });
+
+    this.hot.setCellMeta(mergeParent.row, mergeParent.col, 'spanned', true);
+
+    let mergedCellAdded = this.mergedCellsCollection.add(mergeParent);
+
+    if (mergedCellAdded) {
+      if (preventPopulation) {
+        populationInfo = [mergeParent.row, mergeParent.col, clearedData];
+
+      } else {
+        this.hot.populateFromArray(mergeParent.row, mergeParent.col, clearedData, void 0, void 0, this.pluginName);
       }
+
+      this.hot.runHooks('afterMergeCells', cellRange, mergeParent, auto);
+
+      return populationInfo;
+    }
+
+    return true;
+  }
+
+  /**
+   * Merge the selection provided as a cell range.
+   *
+   * @param {CellRange} [cellRange] Selection cell range.
+   */
+  mergeSelection(cellRange) {
+    if (!cellRange) {
+      cellRange = this.hot.getSelectedRangeLast();
+    }
+
+    this.unmergeRange(cellRange, true);
+    this.mergeRange(cellRange);
+  }
+
+  /**
+   * Unmerge the selection provided as a cell range. If no cell range is provided, it uses the current selection.
+   *
+   * @private
+   * @param {CellRange} cellRange Selection cell range.
+   * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
+   */
+  unmergeRange(cellRange, auto = false) {
+    this.hot.runHooks('beforeUnmergeCells', cellRange, auto);
+
+    const mergedCells = this.mergedCellsCollection.getWithinRange(cellRange);
+
+    arrayEach(mergedCells, (currentCollection) => {
+      this.mergedCellsCollection.remove(currentCollection.row, currentCollection.col);
+
+      rangeEach(0, currentCollection.rowspan - 1, (i) => {
+        rangeEach(0, currentCollection.colspan - 1, (j) => {
+          this.hot.removeCellMeta(currentCollection.row + i, currentCollection.col + j, 'hidden');
+        });
+      });
+
+      this.hot.removeCellMeta(currentCollection.row, currentCollection.col, 'spanned');
+    });
+
+    this.hot.render();
+    this.hot.runHooks('afterUnmergeCells', cellRange, auto);
+  }
+
+  /**
+   * Merge or unmerge, based on the cell range provided as `cellRange`.
+   *
+   * @private
+   * @param {CellRange} cellRange The cell range to merge or unmerged.
+   */
+  toggleMerge(cellRange) {
+    const mergedCell = this.mergedCellsCollection.get(cellRange.from.row, cellRange.from.col);
+    const mergedCellCoversWholeRange = mergedCell.row === cellRange.from.row && mergedCell.col === cellRange.from.col &&
+      mergedCell.row + mergedCell.rowspan - 1 === cellRange.to.row && mergedCell.col + mergedCell.colspan - 1 === cellRange.to.col;
+
+    if (mergedCellCoversWholeRange) {
+      this.unmergeRange(cellRange);
+
+    } else {
+      this.mergeSelection(cellRange);
+    }
+  }
+
+  /**
+   * Merge the specified range.
+   *
+   * @param {Number} startRow Start row of the merged cell.
+   * @param {Number} startColumn Start column of the merged cell.
+   * @param {Number} endRow End row of the merged cell.
+   * @param {Number} endColumn End column of the merged cell.
+   */
+  merge(startRow, startColumn, endRow, endColumn) {
+    const start = new CellCoords(startRow, startColumn);
+    const end = new CellCoords(endRow, endColumn);
+
+    this.mergeRange(new CellRange(start, start, end));
+  }
+
+  /**
+   * Unmerge the merged cell in the provided range.
+   *
+   * @param {Number} startRow Start row of the merged cell.
+   * @param {Number} startColumn Start column of the merged cell.
+   * @param {Number} endRow End row of the merged cell.
+   * @param {Number} endColumn End column of the merged cell.
+   */
+  unmerge(startRow, startColumn, endRow, endColumn) {
+    const start = new CellCoords(startRow, startColumn);
+    const end = new CellCoords(endRow, endColumn);
+
+    this.unmergeRange(new CellRange(start, start, end));
+  }
+
+  /**
+   * `afterInit` hook callback.
+   *
+   * @private
+   */
+  onAfterInit() {
+    this.generateFromSettings(this.hot.getSettings().mergeCells);
+    this.hot.render();
+  }
+
+  /**
+   * `beforeKeyDown` hook callback.
+   *
+   * @private
+   * @param {KeyboardEvent} event The `keydown` event object.
+   */
+  onBeforeKeyDown(event) {
+    const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+
+    if (ctrlDown && event.keyCode === 77) { // CTRL + M
+      this.toggleMerge(this.hot.getSelectedRangeLast());
+
+      this.hot.render();
+      stopImmediatePropagation(event);
+    }
+  }
+
+  /**
+   * Modify the information on whether the current selection contains multiple cells. The `afterIsMultipleSelection` hook callback.
+   *
+   * @private
+   * @param {Boolean} isMultiple
+   * @returns {Boolean}
+   */
+  onAfterIsMultipleSelection(isMultiple) {
+    if (isMultiple) {
+      let mergedCells = this.mergedCellsCollection.mergedCells;
+      let selectionRange = this.hot.getSelectedRangeLast();
+
+      for (let group = 0; group < mergedCells.length; group += 1) {
+        if (selectionRange.highlight.row === mergedCells[group].row &&
+          selectionRange.highlight.col === mergedCells[group].col &&
+          selectionRange.to.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
+          selectionRange.to.col === mergedCells[group].col + mergedCells[group].colspan - 1) {
+          return false;
+        }
+      }
+    }
+
+    return isMultiple;
+  }
+
+  /**
+   * `modifyTransformStart` hook callback.
+   *
+   * @private
+   * @param {Object} delta The transformation delta.
+   */
+  onModifyTransformStart(delta) {
+    const priv = privatePool.get(this);
+    const currentlySelectedRange = this.hot.getSelectedRangeLast();
+    let newDelta = {
+      row: delta.row,
+      col: delta.col,
+    };
+    let nextPosition = null;
+    let currentPosition = new CellCoords(currentlySelectedRange.highlight.row, currentlySelectedRange.highlight.col);
+    let mergedParent = this.mergedCellsCollection.get(currentPosition.row, currentPosition.col);
+
+    if (!priv.lastDesiredCoords) {
+      priv.lastDesiredCoords = new CellCoords(null, null);
     }
 
     if (mergedParent) { // only merge selected
@@ -167,286 +472,143 @@ MergeCells.prototype.modifyTransform = function(hook, currentSelectedRange, delt
       let mergeBottomRight = new CellCoords(mergedParent.row + mergedParent.rowspan - 1, mergedParent.col + mergedParent.colspan - 1);
       let mergeRange = new CellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
 
-      if (!mergeRange.includes(this.lastDesiredCoords)) {
-        this.lastDesiredCoords = new CellCoords(null, null); // reset outdated version of lastDesiredCoords
+      if (!mergeRange.includes(priv.lastDesiredCoords)) {
+        priv.lastDesiredCoords = new CellCoords(null, null); // reset outdated version of lastDesiredCoords
       }
 
-      newDelta.row = this.lastDesiredCoords.row ? this.lastDesiredCoords.row - currentPosition.row : newDelta.row;
-      newDelta.col = this.lastDesiredCoords.col ? this.lastDesiredCoords.col - currentPosition.col : newDelta.col;
+      newDelta.row = priv.lastDesiredCoords.row ? priv.lastDesiredCoords.row - currentPosition.row : newDelta.row;
+      newDelta.col = priv.lastDesiredCoords.col ? priv.lastDesiredCoords.col - currentPosition.col : newDelta.col;
 
       if (delta.row > 0) { // moving down
         newDelta.row = mergedParent.row + mergedParent.rowspan - 1 - currentPosition.row + delta.row;
+
       } else if (delta.row < 0) { // moving up
         newDelta.row = currentPosition.row - mergedParent.row + delta.row;
       }
+
       if (delta.col > 0) { // moving right
         newDelta.col = mergedParent.col + mergedParent.colspan - 1 - currentPosition.col + delta.col;
+
       } else if (delta.col < 0) { // moving left
         newDelta.col = currentPosition.col - mergedParent.col + delta.col;
       }
     }
 
-    nextPosition = new CellCoords(currentSelectedRange.highlight.row + newDelta.row, currentSelectedRange.highlight.col + newDelta.col);
+    nextPosition = new CellCoords(currentlySelectedRange.highlight.row + newDelta.row, currentlySelectedRange.highlight.col + newDelta.col);
 
-    var nextParentIsMerged = this.mergedCellInfoCollection.getInfo(nextPosition.row, nextPosition.col);
+    let nextParentIsMerged = this.mergedCellsCollection.get(nextPosition.row, nextPosition.col);
 
     if (nextParentIsMerged) { // skipping the invisible cells in the merge range
-      this.lastDesiredCoords = nextPosition;
+      priv.lastDesiredCoords = nextPosition;
       newDelta = {
         row: nextParentIsMerged.row - currentPosition.row,
         col: nextParentIsMerged.col - currentPosition.col
       };
     }
-  } else if (hook == 'modifyTransformEnd') {
-    for (let i = 0, mergesLength = this.mergedCellInfoCollection.length; i < mergesLength; i++) {
-      let currentMerge = this.mergedCellInfoCollection[i];
-      let mergeTopLeft = new CellCoords(currentMerge.row, currentMerge.col);
-      let mergeBottomRight = new CellCoords(currentMerge.row + currentMerge.rowspan - 1, currentMerge.col + currentMerge.colspan - 1);
-      let mergedRange = new CellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
-      let sharedBorders = currentSelectedRange.getBordersSharedWith(mergedRange);
 
-      if (mergedRange.isEqual(currentSelectedRange)) { // only the merged range is selected
-        currentSelectedRange.setDirection('NW-SE');
-      } else if (sharedBorders.length > 0) {
-        var mergeHighlighted = (currentSelectedRange.highlight.isEqual(mergedRange.from));
-
-        if (sharedBorders.indexOf('top') > -1) { // if range shares a border with the merged section, change range direction accordingly
-          if (currentSelectedRange.to.isSouthEastOf(mergedRange.from) && mergeHighlighted) {
-            currentSelectedRange.setDirection('NW-SE');
-          } else if (currentSelectedRange.to.isSouthWestOf(mergedRange.from) && mergeHighlighted) {
-            currentSelectedRange.setDirection('NE-SW');
-          }
-        } else if (sharedBorders.indexOf('bottom') > -1) {
-          if (currentSelectedRange.to.isNorthEastOf(mergedRange.from) && mergeHighlighted) {
-            currentSelectedRange.setDirection('SW-NE');
-          } else if (currentSelectedRange.to.isNorthWestOf(mergedRange.from) && mergeHighlighted) {
-            currentSelectedRange.setDirection('SE-NW');
-          }
-        }
-      }
-
-      nextPosition = getNextPosition(newDelta);
-      var
-        withinRowspan = sameRowspan(currentMerge, nextPosition),
-        withinColspan = sameColspan(currentMerge, nextPosition);
-
-      if (currentSelectedRange.includesRange(mergedRange) && (mergedRange.includes(nextPosition) ||
-        withinRowspan || withinColspan)) { // if next step overlaps a merged range, jump past it
-        if (withinRowspan) {
-          if (newDelta.row < 0) {
-            newDelta.row -= currentMerge.rowspan - 1;
-          } else if (newDelta.row > 0) {
-            newDelta.row += currentMerge.rowspan - 1;
-          }
-        }
-        if (withinColspan) {
-          if (newDelta.col < 0) {
-            newDelta.col -= currentMerge.colspan - 1;
-          } else if (newDelta.col > 0) {
-            newDelta.col += currentMerge.colspan - 1;
-          }
-        }
-      }
+    if (newDelta.row !== 0) {
+      delta.row = newDelta.row;
+    }
+    if (newDelta.col !== 0) {
+      delta.col = newDelta.col;
     }
   }
 
-  if (newDelta.row !== 0) {
+  /**
+   * `modifyTransformEnd` hook callback. Needed to handle "jumping over" merged merged cells, while selecting.
+   *
+   * @private
+   * @param {Object} delta The transformation delta.
+   */
+  onModifyTransformEnd(delta) {
+    let currentSelectionRange = this.hot.getSelectedRangeLast();
+    let newDelta = clone(delta);
+    let newSelectionRange = this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, delta);
+    let tempDelta = clone(newDelta);
+
+    const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(newSelectionRange, true);
+
+    do {
+      tempDelta = clone(newDelta);
+      this.selectionCalculations.getUpdatedSelectionRange(currentSelectionRange, newDelta);
+
+      arrayEach(mergedCellsWithinRange, (mergedCell) => {
+        this.selectionCalculations.snapDelta(newDelta, currentSelectionRange, mergedCell);
+      });
+
+    } while (newDelta.row !== tempDelta.row || newDelta.col !== tempDelta.col);
+
     delta.row = newDelta.row;
-  }
-  if (newDelta.col !== 0) {
     delta.col = newDelta.col;
   }
-};
 
-MergeCells.prototype.shiftCollection = function(direction, index, count) {
-  var shiftVector = [0, 0];
+  /**
+   * `modifyGetCellCoords` hook callback. Swaps the `getCell` coords with the merged parent coords.
+   *
+   * @private
+   * @param {Number} row Row index.
+   * @param {Number} column Column index.
+   * @returns {Array}
+   */
+  onModifyGetCellCoords(row, column) {
+    const mergeParent = this.mergedCellsCollection.get(row, column);
 
-  switch (direction) {
-    case 'right':
-      shiftVector[0] += 1;
-
-      break;
-    case 'left':
-      shiftVector[0] -= 1;
-
-      break;
-    case 'down':
-      shiftVector[1] += 1;
-
-      break;
-    case 'up':
-      shiftVector[1] -= 1;
-
-      break;
-    default:
-      break;
+    return mergeParent ? [mergeParent.row, mergeParent.col] : void 0;
   }
 
-  for (var i = 0; i < this.mergedCellInfoCollection.length; i++) {
-    var currentMerge = this.mergedCellInfoCollection[i];
-
-    if (direction === 'right' || direction === 'left') {
-      if (index <= currentMerge.col) {
-        currentMerge.col += shiftVector[0];
-      }
-    } else if (index <= currentMerge.row) {
-      currentMerge.row += shiftVector[1];
-    }
-  }
-};
-
-var beforeInit = function() {
-  var instance = this;
-  var mergeCellsSetting = instance.getSettings().mergeCells;
-
-  if (mergeCellsSetting) {
-    if (!instance.mergeCells) {
-      instance.mergeCells = new MergeCells(mergeCellsSetting);
-    }
-  }
-};
-
-var afterInit = function() {
-  var instance = this;
-  if (instance.mergeCells) {
-    /**
-     * Monkey patch Table.prototype.getCell to return TD for merged cell parent if asked for TD of a cell that is
-     * invisible due to the merge. This is not the cleanest solution but there is a test case for it (merged cells scroll) so feel free to refactor it!
-     */
-    instance.view.wt.wtTable.getCell = function(coords) {
-      if (instance.getSettings().mergeCells) {
-        var mergeParent = instance.mergeCells.mergedCellInfoCollection.getInfo(coords.row, coords.col);
-        if (mergeParent) {
-          coords = mergeParent;
-        }
-      }
-      return Table.prototype.getCell.call(this, coords);
-    };
-  }
-};
-
-var afterUpdateSettings = function() {
-  var instance = this;
-  var mergeCellsSetting = instance.getSettings().mergeCells;
-
-  if (mergeCellsSetting) {
-    if (instance.mergeCells) {
-      instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
-
-      if (Array.isArray(mergeCellsSetting)) {
-        for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
-          instance.mergeCells.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
-        }
-      }
-    } else {
-      instance.mergeCells = new MergeCells(mergeCellsSetting);
-    }
-
-  } else if (instance.mergeCells) { // it doesn't actually turn off the plugin, just resets the settings. Need to refactor.
-    instance.mergeCells.mergedCellInfoCollection = new CellInfoCollection();
-  }
-};
-
-var onBeforeKeyDown = function(event) {
-  if (!this.mergeCells) {
-    return;
+  /**
+   * `afterContextMenuDefaultOptions` hook callback.
+   *
+   * @private
+   * @param {Object} defaultOptions The default context menu options.
+   */
+  addMergeActionsToContextMenu(defaultOptions) {
+    defaultOptions.items.push(
+      {
+        name: '---------',
+      },
+      toggleMergeItem(this)
+    );
   }
 
-  var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+  /**
+   * `afterRenderer` hook callback.
+   *
+   * @private
+   * @param {HTMLElement} TD The cell to be modified.
+   * @param {Number} row Row index.
+   * @param {Number} col Column index.
+   */
+  onAfterRenderer(TD, row, col) {
+    let mergedCell = this.mergedCellsCollection.get(row, col);
 
-  if (ctrlDown) {
-    if (event.keyCode === 77) { // CTRL + M
-      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRangeLast());
-      this.render();
-      stopImmediatePropagation(event);
-    }
-  }
-};
-
-var addMergeActionsToContextMenu = function(defaultOptions) {
-  if (!this.getSettings().mergeCells) {
-    return;
+    applySpanProperties(TD, mergedCell, row, col);
   }
 
-  defaultOptions.items.push({name: '---------'});
-  defaultOptions.items.push({
-    key: 'mergeCells',
-    name() {
-      var sel = this.getSelectedRangeLast();
-      var info = this.mergeCells.mergedCellInfoCollection.getInfo(sel[0], sel[1]);
-
-      if (info) {
-        return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNMERGE_CELLS);
-      }
-
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_MERGE_CELLS);
-    },
-    callback() {
-      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRangeLast());
-      this.render();
-    },
-    disabled() {
-      return this.selection.selectedHeader.corner;
-    },
-  });
-};
-
-var afterRenderer = function(TD, row, col, prop, value, cellProperties) {
-  if (this.mergeCells) {
-    this.mergeCells.applySpanProperties(TD, row, col);
-  }
-};
-
-var modifyTransformFactory = function(hook) {
-  return function(delta) {
-    var mergeCellsSetting = this.getSettings().mergeCells;
-    if (mergeCellsSetting) {
-      var currentSelectedRange = this.getSelectedRangeLast();
-      this.mergeCells.modifyTransform(hook, currentSelectedRange, delta);
-
-      if (hook === 'modifyTransformEnd') {
-        // sanitize "from" (core.js will sanitize to)
-        var totalRows = this.countRows();
-        var totalCols = this.countCols();
-        if (currentSelectedRange.from.row < 0) {
-          currentSelectedRange.from.row = 0;
-        } else if (currentSelectedRange.from.row > 0 && currentSelectedRange.from.row >= totalRows) {
-          currentSelectedRange.from.row = currentSelectedRange.from - 1;
-        }
-
-        if (currentSelectedRange.from.col < 0) {
-          currentSelectedRange.from.col = 0;
-        } else if (currentSelectedRange.from.col > 0 && currentSelectedRange.from.col >= totalCols) {
-          currentSelectedRange.from.col = totalCols - 1;
-        }
-      }
-    }
-  };
-};
-
-/**
- * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell
- * @param coords
- */
-var beforeSetRangeEnd = function(coords) {
-
-  this.lastDesiredCoords = null; // unset lastDesiredCoords when selection is changed with mouse
-  var mergeCellsSetting = this.getSettings().mergeCells;
-  if (mergeCellsSetting) {
-    var selRange = this.getSelectedRangeLast();
+  /**
+   * `beforeSetRangeEnd` hook callback.
+   * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell
+   *
+   * @private
+   * @param {Object} coords Cell coords.
+   */
+  onBeforeSetRangeEnd(coords) {
+    let selRange = this.hot.getSelectedRangeLast();
     selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
     selRange.to = coords;
+    let rangeExpanded = false;
 
-    var rangeExpanded = false;
+    if ((selRange.from.row === 0 && selRange.to.row === this.hot.countRows() - 1) || (selRange.from.col === 0 && selRange.to.col === this.hot.countCols() - 1)) {
+      return;
+    }
+
     do {
       rangeExpanded = false;
 
-      for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
-        var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
-        var mergedCellTopLeft = new CellCoords(cellInfo.row, cellInfo.col);
-        var mergedCellBottomRight = new CellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
+      for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i++) {
+        let cellInfo = this.mergedCellsCollection.mergedCells[i];
+        let mergedCellRange = cellInfo.getRange();
 
-        var mergedCellRange = new CellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
         if (selRange.expandByRange(mergedCellRange)) {
           coords.row = selRange.to.row;
           coords.col = selRange.to.col;
@@ -455,181 +617,206 @@ var beforeSetRangeEnd = function(coords) {
         }
       }
     } while (rangeExpanded);
-
   }
-};
 
-/**
- * Returns correct coordinates for merged start / end cells in selection for area borders
- * @param corners
- * @param className
- */
-var beforeDrawAreaBorders = function(corners, className) {
-  if (className && className == 'area') {
-    var mergeCellsSetting = this.getSettings().mergeCells;
-    if (mergeCellsSetting) {
-      var selRange = this.getSelectedRangeLast();
-      var startRange = new CellRange(selRange.from, selRange.from, selRange.from);
-      var stopRange = new CellRange(selRange.to, selRange.to, selRange.to);
+  /**
+   * The `afterGetCellMeta` hook callback.
+   *
+   * @private
+   * @param {Number} row Row index.
+   * @param {Number} col Column index.
+   * @param {Object} cellProperties The cell properties object.
+   */
+  onAfterGetCellMeta(row, col, cellProperties) {
+    let mergeParent = this.mergedCellsCollection.get(row, col);
 
-      for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
-        var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
-        var mergedCellTopLeft = new CellCoords(cellInfo.row, cellInfo.col);
-        var mergedCellBottomRight = new CellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
-        var mergedCellRange = new CellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
-
-        if (startRange.expandByRange(mergedCellRange)) {
-          corners[0] = startRange.from.row;
-          corners[1] = startRange.from.col;
-        }
-
-        if (stopRange.expandByRange(mergedCellRange)) {
-          corners[2] = stopRange.from.row;
-          corners[3] = stopRange.from.col;
-        }
-      }
-    }
-  }
-};
-
-var afterGetCellMeta = function(row, col, cellProperties) {
-  var mergeCellsSetting = this.getSettings().mergeCells;
-  if (mergeCellsSetting) {
-    var mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(row, col);
-    if (mergeParent && (mergeParent.row != row || mergeParent.col != col)) {
+    if (mergeParent && (mergeParent.row !== row || mergeParent.col !== col)) {
       cellProperties.copyable = false;
     }
   }
-};
 
-var afterViewportRowCalculatorOverride = function(calc) {
-  var mergeCellsSetting = this.getSettings().mergeCells;
-  if (mergeCellsSetting) {
-    var colCount = this.countCols();
-    var mergeParent;
-    for (var c = 0; c < colCount; c++) {
-      mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(calc.startRow, c);
+  /**
+   * `afterViewportRowCalculatorOverride` hook callback.
+   *
+   * @private
+   * @param {Object} calc The row calculator object.
+   */
+  onAfterViewportRowCalculatorOverride(calc) {
+    let colCount = this.hot.countCols();
+    let mergeParent;
+
+    rangeEach(0, colCount - 1, (c) => {
+      mergeParent = this.mergedCellsCollection.get(calc.startRow, c);
       if (mergeParent) {
         if (mergeParent.row < calc.startRow) {
           calc.startRow = mergeParent.row;
-          return afterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
+          return this.onAfterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
         }
       }
-      mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(calc.endRow, c);
+
+      mergeParent = this.mergedCellsCollection.get(calc.endRow, c);
+
       if (mergeParent) {
-        var mergeEnd = mergeParent.row + mergeParent.rowspan - 1;
+        let mergeEnd = mergeParent.row + mergeParent.rowspan - 1;
         if (mergeEnd > calc.endRow) {
           calc.endRow = mergeEnd;
-          return afterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
+          return this.onAfterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
         }
       }
-    }
+
+      return true;
+    });
   }
-};
 
-var afterViewportColumnCalculatorOverride = function(calc) {
-  var mergeCellsSetting = this.getSettings().mergeCells;
-  if (mergeCellsSetting) {
-    var rowCount = this.countRows();
-    var mergeParent;
-    for (var r = 0; r < rowCount; r++) {
-      mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(r, calc.startColumn);
+  /**
+   * `afterViewportColumnCalculatorOverride` hook callback.
+   *
+   * @private
+   * @param {Object} calc The column calculator object.
+   */
+  onAfterViewportColumnCalculatorOverride(calc) {
+    let rowCount = this.hot.countRows();
+    let mergeParent;
 
-      if (mergeParent) {
-        if (mergeParent.col < calc.startColumn) {
-          calc.startColumn = mergeParent.col;
-          return afterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
-        }
+    rangeEach(0, rowCount - 1, (r) => {
+      mergeParent = this.mergedCellsCollection.get(r, calc.startColumn);
+
+      if (mergeParent && mergeParent.col < calc.startColumn) {
+        calc.startColumn = mergeParent.col;
+        return this.onAfterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
       }
-      mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(r, calc.endColumn);
+
+      mergeParent = this.mergedCellsCollection.get(r, calc.endColumn);
+
       if (mergeParent) {
-        var mergeEnd = mergeParent.col + mergeParent.colspan - 1;
+        let mergeEnd = mergeParent.col + mergeParent.colspan - 1;
         if (mergeEnd > calc.endColumn) {
           calc.endColumn = mergeEnd;
-          return afterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
+          return this.onAfterViewportColumnCalculatorOverride.call(this, calc); // recursively search upwards
         }
       }
+
+      return true;
+    });
+  }
+
+  /**
+   * The `modifyAutofillRange` hook callback.
+   *
+   * @private
+   * @param {Array} drag The drag area coordinates.
+   * @param {Array} select The selection information.
+   * @return {Array} The new drag area.
+   */
+  onModifyAutofillRange(drag, select) {
+    this.autofillCalculations.correctSelectionAreaSize(select);
+    const dragDirection = this.autofillCalculations.getDirection(select, drag);
+
+    if (this.autofillCalculations.dragAreaOverlapsCollections(select, drag, dragDirection)) {
+      drag = select;
+      return drag;
+    }
+
+    const mergedCellsWithinSelectionArea = this.mergedCellsCollection.getWithinRange({
+      from: {row: select[0], col: select[1]},
+      to: {row: select[2], col: select[3]}
+    });
+
+    if (!mergedCellsWithinSelectionArea) {
+      return drag;
+    }
+
+    drag = this.autofillCalculations.snapDragArea(select, drag, dragDirection, mergedCellsWithinSelectionArea);
+
+    return drag;
+  }
+
+  /**
+   * `afterCreateCol` hook callback.
+   *
+   * @private
+   * @param {Number} column Column index.
+   * @param {Number} count Number of created columns.
+   */
+  onAfterCreateCol(column, count) {
+    this.mergedCellsCollection.shiftCollections('right', column, count);
+  }
+
+  /**
+   * `afterRemoveCol` hook callback.
+   *
+   * @private
+   * @param {Number} column Column index.
+   * @param {Number} count Number of removed columns.
+   */
+  onAfterRemoveCol(column, count) {
+    this.mergedCellsCollection.shiftCollections('left', column, count);
+  }
+
+  /**
+   * `afterCreateRow` hook callback.
+   *
+   * @private
+   * @param {Number} row Row index.
+   * @param {Number} count Number of created rows.
+   * @param {String} source Source of change.
+   */
+  onAfterCreateRow(row, count, source) {
+    if (source === 'auto') {
+      return;
+    }
+
+    this.mergedCellsCollection.shiftCollections('down', row, count);
+  }
+
+  /**
+   * `afterRemoveRow` hook callback.
+   *
+   * @private
+   * @param {Number} row Row index.
+   * @param {Number} count Number of removed rows.
+   */
+  onAfterRemoveRow(row, count) {
+    this.mergedCellsCollection.shiftCollections('up', row, count);
+  }
+
+  /**
+   * `afterChange` hook callback. Used to propagate merged cells after using Autofill.
+   *
+   * @private
+   * @param {Array} changes The changes array.
+   * @param {String} source Determines the source of the change.
+   */
+  onAfterChange(changes, source) {
+    if (source !== 'Autofill.fill') {
+      return;
+    }
+
+    this.autofillCalculations.recreateAfterDataPopulation(changes);
+  }
+
+  /**
+   * `beforeDrawAreaBorders` hook callback.
+   *
+   * @private
+   * @param {Array} corners Coordinates of the area corners.
+   * @param {String} className Class name for the area.
+   */
+  onBeforeDrawAreaBorders(corners, className) {
+    if (className && className === 'area') {
+      const selectedRange = this.hot.getSelectedRangeLast();
+      const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(selectedRange);
+
+      arrayEach(mergedCellsWithinRange, (mergedCell) => {
+        if (selectedRange.getBottomRightCorner().row === mergedCell.getLastRow() && selectedRange.getBottomRightCorner().col === mergedCell.getLastColumn()) {
+          corners[2] = mergedCell.row;
+          corners[3] = mergedCell.col;
+        }
+      });
     }
   }
-};
-
-var isMultipleSelection = function(isMultiple) {
-  if (isMultiple && this.mergeCells) {
-    var mergedCells = this.mergeCells.mergedCellInfoCollection,
-      selectionRange = this.getSelectedRangeLast();
-
-    for (var group in mergedCells) {
-      if (selectionRange.highlight.row == mergedCells[group].row &&
-        selectionRange.highlight.col == mergedCells[group].col &&
-        selectionRange.to.row == mergedCells[group].row + mergedCells[group].rowspan - 1 &&
-        selectionRange.to.col == mergedCells[group].col + mergedCells[group].colspan - 1) {
-        return false;
-      }
-    }
-  }
-  return isMultiple;
-};
-
-function modifyAutofillRange(select, drag) {
-  var mergeCellsSetting = this.getSettings().mergeCells;
-
-  if (!mergeCellsSetting || this.selection.isMultiple()) {
-    return;
-  }
-  var info = this.mergeCells.mergedCellInfoCollection.getInfo(select[0], select[1]);
-
-  if (info) {
-    select[0] = info.row;
-    select[1] = info.col;
-    select[2] = info.row + info.rowspan - 1;
-    select[3] = info.col + info.colspan - 1;
-  }
 }
 
-function onAfterCreateCol(col, count) {
-  if (this.mergeCells) {
-    this.mergeCells.shiftCollection('right', col, count);
-  }
-}
-
-function onAfterRemoveCol(col, count) {
-  if (this.mergeCells) {
-    this.mergeCells.shiftCollection('left', col, count);
-  }
-}
-
-function onAfterCreateRow(row, count) {
-  if (this.mergeCells) {
-    this.mergeCells.shiftCollection('down', row, count);
-  }
-}
-
-function onAfterRemoveRow(row, count) {
-  if (this.mergeCells) {
-    this.mergeCells.shiftCollection('up', row, count);
-  }
-}
-
-const hook = Hooks.getSingleton();
-
-hook.add('beforeInit', beforeInit);
-hook.add('afterInit', afterInit);
-hook.add('afterUpdateSettings', afterUpdateSettings);
-hook.add('beforeKeyDown', onBeforeKeyDown);
-hook.add('modifyTransformStart', modifyTransformFactory('modifyTransformStart'));
-hook.add('modifyTransformEnd', modifyTransformFactory('modifyTransformEnd'));
-hook.add('beforeSetRangeEnd', beforeSetRangeEnd);
-hook.add('beforeDrawBorders', beforeDrawAreaBorders);
-hook.add('afterIsMultipleSelection', isMultipleSelection);
-hook.add('afterRenderer', afterRenderer);
-hook.add('afterContextMenuDefaultOptions', addMergeActionsToContextMenu);
-hook.add('afterGetCellMeta', afterGetCellMeta);
-hook.add('afterViewportRowCalculatorOverride', afterViewportRowCalculatorOverride);
-hook.add('afterViewportColumnCalculatorOverride', afterViewportColumnCalculatorOverride);
-hook.add('modifyAutofillRange', modifyAutofillRange);
-hook.add('afterCreateCol', onAfterCreateCol);
-hook.add('afterRemoveCol', onAfterRemoveCol);
-hook.add('afterCreateRow', onAfterCreateRow);
-hook.add('afterRemoveRow', onAfterRemoveRow);
+registerPlugin('mergeCells', MergeCells);
 
 export default MergeCells;

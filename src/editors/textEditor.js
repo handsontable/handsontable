@@ -93,16 +93,14 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       }
       break;
 
-    case KEY_CODES.ENTER:
-      var selected = that.instance.getSelectedLast();
-      var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
+    case KEY_CODES.ENTER: {
+      let isMultipleSelection = this.selection.isMultiple();
+
       if ((ctrlDown && !isMultipleSelection) || event.altKey) { // if ctrl+enter or alt+enter, add new line
         if (that.isOpened()) {
-          var
-            caretPosition = getCaretPosition(that.TEXTAREA),
-            value = that.getValue();
-
-          var newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
+          let caretPosition = getCaretPosition(that.TEXTAREA);
+          let value = that.getValue();
+          let newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
 
           that.setValue(newValue);
 
@@ -115,7 +113,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       }
       event.preventDefault(); // don't add newline to field
       break;
-
+    }
     case KEY_CODES.A:
     case KEY_CODES.X:
     case KEY_CODES.C:

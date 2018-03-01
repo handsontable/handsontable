@@ -59,8 +59,8 @@ class Selection {
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
       disableHighlight: this.settings.disableVisualSelection,
-      cellCornerVisible: () => this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.isMultiple(),
-      areaCornerVisible: () => this.settings.fillHandle && !this.tableProps.isEditorOpened() && this.isMultiple(),
+      cellCornerVisible: (...args) => this.isCellCornerVisible(...args),
+      areaCornerVisible: (...args) => this.isAreaCornerVisible(...args),
     });
     /**
      * The module for modifying coordinates.
@@ -309,15 +309,39 @@ class Selection {
   }
 
   /**
-   * Returns `true` if coords is within current selection coords. This method only checks the latest
-   * layer of the selection.
+   * Returns `true` if coords is within selection coords. This method iterates through all selection layers to check if
+   * the coords object is within selection range.
    *
-   * @param {CellCoords} coords Visual coordinates to check.
+   * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    * @returns {Boolean}
    */
   inInSelection(coords) {
-    // TODO(budnix): This ".includes" should be checked for all layers?
-    return this.isSelected() ? this.selectedRange.current().includes(coords) : false;
+    return this.selectedRange.includes(coords);
+  }
+
+  /**
+   * Returns `true` if the cell corner should be visible.
+   *
+   * @private
+   * @param {Number} layerLevel The layer level.
+   * @return {Boolean} `true` if the corner element has to be visible, `false` otherwise.
+   */
+  isCellCornerVisible(layerLevel) {
+    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.isMultiple();
+  }
+
+  /**
+   * Returns `true` if the area corner should be visible.
+   *
+   * @param {Number} layerLevel The layer level.
+   * @return {Boolean} `true` if the corner element has to be visible, `false` otherwise.
+   */
+  isAreaCornerVisible(layerLevel) {
+    if (layerLevel !== this.selectedRange.ranges.length - 1) {
+      return false;
+    }
+
+    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && this.isMultiple();
   }
 
   /**
