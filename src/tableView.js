@@ -499,8 +499,8 @@ function TableView(instance) {
       const lineHeight = parseInt(getComputedStyle(document.body)['font-size'], 10);
       const holder = that.wt.wtOverlays.scrollableElement;
 
-      let deltaY = event.wheelDeltaY || event.deltaY;
-      let deltaX = event.wheelDeltaX || event.deltaX;
+      let deltaY = event.wheelDeltaY || (-1) * event.deltaY;
+      let deltaX = event.wheelDeltaX || (-1) * event.deltaX;
 
       switch (event.deltaMode) {
         case 0:
