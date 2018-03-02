@@ -17,6 +17,6 @@ copyPaste.cut(true);
 copyPaste.paste();
 copyPaste.paste(true);
 
-copyPaste.getRangedData([{startRow: 1, startCol: 1, endRow: 2, endCol: 2}]);
-copyPaste.getRangedCopyableData([{startRow: 1, startCol: 1, endRow: 2, endCol: 2}]);
+copyPaste.getRangedData([{ startRow: 1, startCol: 1, endRow: 2, endCol: 2 }]);
+copyPaste.getRangedCopyableData([{ startRow: 1, startCol: 1, endRow: 2, endCol: 2 }]);
 copyPaste.setCopyableText();

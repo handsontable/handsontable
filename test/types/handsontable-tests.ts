@@ -123,7 +123,7 @@ var hotSettings: Handsontable.GridSettings = {
   type: 'foo',
   uncheckedTemplate: true,
   undo: true,
-  validator: function() {},
+  validator: function(val, callback) {},
   viewportColumnRenderingOffset: 123,
   viewportRowRenderingOffset: 123,
   visibleRows: 123,
@@ -263,6 +263,7 @@ function test_HandsontableMethods() {
   var elem = document.createElement('div');
   var hot = new Handsontable(elem, hotSettings);
   hot.addHook('foo', []);
+  hot.addHook('bar', function(){});
   hot.addHookOnce('foo', []);
   hot.alter('insert_row', 123, 123, 'foo', true);
   hot.clear();
@@ -308,7 +309,11 @@ function test_HandsontableMethods() {
   hot.getSelectedLast();
   hot.getSelectedRange();
   hot.getSelectedRangeLast();
-  hot.getSettings();
+  
+  let currentSettings: Handsontable.DefaultSettings = hot.getSettings();
+  currentSettings.readOnly = false;
+  hot.updateSettings(currentSettings, true);
+  
   hot.getSourceData(123, 123, 123, 123);
   hot.getSourceDataAtCell(123, 123);
   hot.getSourceDataAtCol(123);
@@ -504,7 +509,7 @@ function test_HandsontableMethods() {
   });
   const fetchedDict: Handsontable.I18n.LanguageDictionary = Handsontable.languages.getLanguageDictionary("ar-SA")
   isObjectEquals(arDict, fetchedDict);
-
+  
 }
 class PasswordEditor extends Handsontable.editors.TextEditor {
   createElements() {
