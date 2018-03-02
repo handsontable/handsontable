@@ -780,7 +780,7 @@ declare namespace Handsontable {
     }
 
     type PasteModeType = 'overwrite' | 'shift_down' | 'shift_right';
-    type RangeType = {startRow: number, startCol: number, endRow: number, endCol: number};
+    type RangeType = { startRow: number, startCol: number, endRow: number, endCol: number };
     interface CopyPaste extends Base {
       eventManager: EventManager;
       columnsLimit: number;
