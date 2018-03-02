@@ -1,5 +1,5 @@
 import {isDefined} from './helpers/mixed';
-import {isObjectEquals} from './helpers/object';
+import {isObjectEqual} from './helpers/object';
 
 /**
  * @alias Options
@@ -772,7 +772,7 @@ DefaultSettings.prototype = {
         if (typeof value === 'object') {
           meta = this.getCellMeta(row, col);
 
-          return isObjectEquals(this.getSchema()[meta.prop], value);
+          return isObjectEqual(this.getSchema()[meta.prop], value);
         }
         return false;
       }

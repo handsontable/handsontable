@@ -464,7 +464,7 @@ function test_HandsontableMethods() {
   Handsontable.helper.isMobileBrowser('foo');
   Handsontable.helper.isNumeric(true);
   Handsontable.helper.isObject('foo');
-  Handsontable.helper.isObjectEquals([1, 2, 3], {});
+  Handsontable.helper.isObjectEqual([1, 2, 3], {});
   Handsontable.helper.isPercentValue('1');
   Handsontable.helper.isPrintableChar(1);
   Handsontable.helper.isSafari();

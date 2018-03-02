@@ -1776,7 +1776,7 @@ declare namespace Handsontable {
     isMobileBrowser(userAgent?: string): boolean,
     isNumeric(n: any): boolean,
     isObject(obj: any): boolean,
-    isObjectEquals(object1: object | any[], object2: object | any[]): boolean,
+    isObjectEqual(object1: object | any[], object2: object | any[]): boolean,
     isPercentValue(value: string): boolean,
     isPrintableChar(keyCode: number): boolean,
     isSafari(): boolean,

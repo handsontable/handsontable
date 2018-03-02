@@ -6,7 +6,7 @@ import {isMobileBrowser} from './helpers/browser';
 import DataMap from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
-import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize, hasOwnProperty, createObjectPropListener} from './helpers/object';
+import {deepClone, duckSchema, extend, isObject, isObjectEqual, deepObjectSize, hasOwnProperty, createObjectPropListener} from './helpers/object';
 import {arrayFlatten, arrayMap, arrayEach, arrayReduce} from './helpers/array';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
@@ -753,7 +753,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                   let valueSchema = duckSchema(value[0] || value);
 
                   /* eslint-disable max-depth */
-                  if (isObjectEquals(orgValueSchema, valueSchema)) {
+                  if (isObjectEqual(orgValueSchema, valueSchema)) {
                     value = deepClone(value);
                   } else {
                     pushData = false;
