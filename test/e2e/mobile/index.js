@@ -16,7 +16,7 @@ if (typeof __ENV_ARGS__ === 'object' && __ENV_ARGS__.testPathPattern) {
 [
   require.context('.', true, /\.spec\.js$/)
 ].forEach((req) => {
-  req.filePaths().forEach((filePath) => {
+  req.keys().forEach((filePath) => {
     if (testPathRegExp === null || (testPathRegExp instanceof RegExp && testPathRegExp.test(filePath))) {
       req(filePath);
     }
