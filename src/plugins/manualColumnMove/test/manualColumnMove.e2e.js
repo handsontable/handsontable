@@ -411,6 +411,36 @@ describe('manualColumnMove', () => {
     });
   });
 
+  describe('callbacks', () => {
+    it('should run `beforeColumnMove` and `afterColumnMove` with proper visual `target` parameter', () => {
+      let targetParameterInsideBeforeColumnMoveCallback;
+      let targetParameterInsideAfterColumnMoveCallback;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        colHeaders: true,
+        manualColumnMove: true,
+        beforeColumnMove: (columns, target) => {
+          targetParameterInsideBeforeColumnMoveCallback = target;
+        },
+        afterColumnMove: (columns, target) => {
+          targetParameterInsideAfterColumnMoveCallback = target;
+        }
+      });
+
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseup');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
+
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mousemove');
+      spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
+
+      expect(targetParameterInsideBeforeColumnMoveCallback).toEqual(2);
+      expect(targetParameterInsideAfterColumnMoveCallback).toEqual(2);
+    });
+  });
+
   describe('copy-paste', () => {
     it('should create new columns is are needed', () => {
       var hot = handsontable({

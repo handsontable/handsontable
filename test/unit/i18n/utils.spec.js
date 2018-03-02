@@ -102,7 +102,7 @@ describe('i18n helpers', () => {
     it('should set `language` key of settings object when handling existing language', () => {
       const settings = {};
 
-      applyLanguageSetting(plPL.languageCode, settings);
+      applyLanguageSetting(settings, plPL.languageCode);
 
       expect(settings.language).toEqual(plPL.languageCode);
     });
@@ -111,7 +111,7 @@ describe('i18n helpers', () => {
       spyOn(console, 'error');
       const settings = {};
 
-      applyLanguageSetting('aa-BB', settings);
+      applyLanguageSetting(settings, 'aa-BB');
 
       expect(settings.language).toEqual(DEFAULT_LANGUAGE_CODE);
     });
@@ -120,7 +120,7 @@ describe('i18n helpers', () => {
       const spy = spyOn(console, 'error');
       const settings = {};
 
-      applyLanguageSetting('aa-BB', settings);
+      applyLanguageSetting(settings, 'aa-BB');
 
       expect(spy).toHaveBeenCalled();
     });

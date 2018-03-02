@@ -73,7 +73,7 @@ describe('Core_getCellMeta', () => {
     selectCell(0, 0);
     expect(getCellMeta(0, 0).readOnly).toBe(true);
     keyDown('enter');
-    expect(getSelected()).toEqual([1, 0, 1, 0]);
+    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
   });
 

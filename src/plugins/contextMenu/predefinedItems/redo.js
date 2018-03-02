@@ -8,7 +8,6 @@ export default function redoItem() {
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REDO);
     },
-
     callback() {
       this.redo();
     },

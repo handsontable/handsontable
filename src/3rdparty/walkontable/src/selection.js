@@ -1,4 +1,4 @@
-import {addClass} from './../../../helpers/dom/element';
+import {addClass, hasClass} from './../../../helpers/dom/element';
 import Border from './border';
 import CellCoords from './cell/coords';
 import CellRange from './cell/range';
@@ -15,6 +15,8 @@ class Selection {
     this.settings = settings;
     this.cellRange = cellRange || null;
     this.instanceBorders = {};
+    this.classNames = [this.settings.className];
+    this.classNameGenerator = this.linearClassNameGenerator(this.settings.className, this.settings.layerLevel);
   }
 
   /**
@@ -25,12 +27,11 @@ class Selection {
    * @returns {Border}
    */
   getBorder(wotInstance) {
-    if (this.instanceBorders[wotInstance.guid]) {
-      return this.instanceBorders[wotInstance.guid];
+    if (!this.instanceBorders[wotInstance.guid]) {
+      this.instanceBorders[wotInstance.guid] = new Border(wotInstance, this.settings);
     }
 
-    // where is this returned?
-    this.instanceBorders[wotInstance.guid] = new Border(wotInstance, this.settings);
+    return this.instanceBorders[wotInstance.guid];
   }
 
   /**
@@ -54,6 +55,8 @@ class Selection {
     } else {
       this.cellRange.expand(coords);
     }
+
+    return this;
   }
 
   /**
@@ -83,9 +86,13 @@ class Selection {
 
   /**
    * Clears selection
+   *
+   * @returns {Selection}
    */
   clear() {
     this.cellRange = null;
+
+    return this;
   }
 
   /**
@@ -112,13 +119,62 @@ class Selection {
    * @param {Number} sourceRow Cell row coord
    * @param {Number} sourceColumn Cell column coord
    * @param {String} className Class name
+   * @param {Boolean} [markIntersections=false] If `true`, linear className generator will be used to add CSS classes
+   *                                            in a continuous way.
+   * @returns {Selection}
    */
-  addClassAtCoords(wotInstance, sourceRow, sourceColumn, className) {
+  addClassAtCoords(wotInstance, sourceRow, sourceColumn, className, markIntersections = false) {
     let TD = wotInstance.wtTable.getCell(new CellCoords(sourceRow, sourceColumn));
 
     if (typeof TD === 'object') {
+      if (markIntersections) {
+        className = this.classNameGenerator(TD);
+
+        if (!this.classNames.includes(className)) {
+          this.classNames.push(className);
+        }
+      }
       addClass(TD, className);
     }
+
+    return this;
+  }
+
+  /**
+   * Generate helper for calculating classNames based on previously added base className.
+   * The generated className is always generated as a continuation of the previous className. For example, when
+   * the currently checked element has 'area-2' className the generated new className will be 'area-3'. When
+   * the element doesn't have any classNames than the base className will be returned ('area');
+   *
+   * @param {String} baseClassName Base className to be used.
+   * @param {Number} layerLevelOwner Layer level which the instance of the Selection belongs to.
+   * @return {Function}
+   */
+  linearClassNameGenerator(baseClassName, layerLevelOwner) {
+    // TODO: Make this recursive function Proper Tail Calls (TCO/PTC) friendly.
+    return function calcClassName(element, previousIndex = -1) {
+      if (layerLevelOwner === 0 || previousIndex === 0) {
+        return baseClassName;
+      }
+
+      let index = previousIndex >= 0 ? previousIndex : layerLevelOwner;
+      let className = baseClassName;
+
+      index -= 1;
+
+      const previousClassName = index === 0 ? baseClassName : `${baseClassName}-${index}`;
+
+      if (hasClass(element, previousClassName)) {
+        const currentLayer = index + 1;
+
+        className = `${baseClassName}-${currentLayer}`;
+
+      } else {
+        className = calcClassName(element, index);
+      }
+
+      return className;
+    };
   }
 
   /**
@@ -127,11 +183,7 @@ class Selection {
   draw(wotInstance) {
     if (this.isEmpty()) {
       if (this.settings.border) {
-        let border = this.getBorder(wotInstance);
-
-        if (border) {
-          border.disappear();
-        }
+        this.getBorder(wotInstance).disappear();
       }
 
       return;
@@ -192,7 +244,7 @@ class Selection {
         if (sourceRow >= corners[0] && sourceRow <= corners[2] && sourceCol >= corners[1] && sourceCol <= corners[3]) {
           // selected cell
           if (this.settings.className) {
-            this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.className);
+            this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.className, this.settings.markIntersections);
           }
         } else if (sourceRow >= corners[0] && sourceRow <= corners[2]) {
           // selection is in this row
@@ -210,12 +262,8 @@ class Selection {
     wotInstance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
 
     if (this.settings.border) {
-      let border = this.getBorder(wotInstance);
-
-      if (border) {
-        // warning! border.appear modifies corners!
-        border.appear(corners);
-      }
+      // warning! border.appear modifies corners!
+      this.getBorder(wotInstance).appear(corners);
     }
   }
 }

@@ -77,7 +77,7 @@ describe('CheckboxRenderer', () => {
 
     setTimeout(() => {
       expect(spy.test.calls.count()).toBe(0);
-      expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
+      expect(hot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
       done();
     }, 100);
@@ -95,7 +95,7 @@ describe('CheckboxRenderer', () => {
 
     this.$container.find('td label').eq(2).simulate('mousedown');
 
-    expect(hot.getSelected()).toEqual([2, 0, 2, 0]);
+    expect(hot.getSelected()).toEqual([[2, 0, 2, 0]]);
   });
 
   it('should reverse selection in checkboxes', function() {
@@ -618,6 +618,25 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([['foo'], ['bar']]);
 
     expect(afterChangeCallback.calls.count()).toEqual(0);
+  });
+
+  it('should not change checkbox state after hitting F2 key', () => {
+    const onAfterChange = jasmine.createSpy('afterChangeCallback');
+
+    handsontable({
+      data: [[false], [true], [true]],
+      columns: [
+        {type: 'checkbox'}
+      ],
+      onAfterChange
+    });
+
+    selectCell(0, 0);
+    keyDown('f2');
+
+    expect(getDataAtCell(0, 0)).toBe(false);
+
+    expect(onAfterChange.calls.count()).toEqual(0);
   });
 
   it('should not change checkbox state after hitting other keys then SPACE, ENTER, DELETE or BACKSPACE', () => {

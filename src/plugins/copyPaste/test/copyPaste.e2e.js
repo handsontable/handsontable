@@ -115,7 +115,7 @@ describe('CopyPaste', () => {
       $(document.activeElement).simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.A, ctrlKey: true});
 
       setTimeout(() => {
-        expect(getSelected()).toEqual([0, 0, 1, 1]);
+        expect(getSelected()).toEqual([[0, 0, 1, 1]]);
         expect(copyPasteTextarea.value).toEqual('A1\tB1\nA2\tB2');
         done();
       }, 10);
@@ -147,7 +147,7 @@ describe('CopyPaste', () => {
       expect(copyPasteTextarea.value.length).toEqual(0);
 
       selectCell(0, 0, 1, 1);
-      keyDownUp(Handsontable.helper.KEY_CODES.CONTROL_LEFT);
+      keyDownUp(Handsontable.helper.KEY_CODES.CONTROL);
 
       expect(copyPasteTextarea.value).toEqual('A\t1\nB\t2');
     });
@@ -533,7 +533,7 @@ describe('CopyPaste', () => {
       spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mousedown');
       spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseup');
 
-      expect(getSelected()).toEqual([1, 0, 1, 0]);
+      expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
       $('html').simulate('mousedown').simulate('mouseup');
 

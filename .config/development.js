@@ -22,7 +22,7 @@ module.exports.create = function create(envArgs) {
   configBase.forEach(function(c) {
     c.output.filename = PACKAGE_FILENAME + '.js';
 
-    c.devtool = 'cheap-module-source-map';
+    c.devtool = 'source-map';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css files)
     c.externals = {
       numbro: {
