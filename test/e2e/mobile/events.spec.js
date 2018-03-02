@@ -12,7 +12,7 @@ afterEach(function () {
 });
 
 describe('Events', () => {
-  it('tap (touchstart) should be translated to mousedown', async () => {
+  it('should translate tap (`touchstart`) to `mousedown`', async () => {
     const afterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
 
     const hot = handsontable({
@@ -31,5 +31,31 @@ describe('Events', () => {
 
     expect(getSelected()).toBeDefined();
     expect(afterOnCellMouseDown).toHaveBeenCalled();
+  });
+
+  it('should load cells below the viewport on scroll down', async () => {
+    const hot = handsontable({
+      width: 400,
+      height: 400,
+      data: Handsontable.helper.createSpreadsheetObjectData(100, 15)
+    });
+
+    const mainHolder = hot.view.wt.wtTable.holder;
+    const $htCore = $(getHtCore());
+
+    let TRs = $htCore.find('tr');
+    let lastTR = [...TRs].pop();
+    let firstBottomPosition = lastTR.getBoundingClientRect().bottom;
+
+    $(mainHolder).scrollTop(400);
+    $(mainHolder).scroll();
+
+    await sleep(300);
+
+    TRs = $htCore.find('tr');
+    lastTR = [...TRs].pop();
+    const nextBottomPosition = lastTR.getBoundingClientRect().bottom;
+
+    expect(nextBottomPosition).toBeGreaterThan(firstBottomPosition);
   });
 });
