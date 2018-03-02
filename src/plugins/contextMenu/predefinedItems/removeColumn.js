@@ -1,4 +1,6 @@
 import {getValidSelection} from './../utils';
+import {arrayEach} from './../../../helpers/array';
+import {transformSelectionToColumnDistance} from './../../../selection/utils';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'remove_col';
@@ -10,27 +12,32 @@ export default function removeColumnItem() {
       const selection = this.getSelected();
       let pluralForm = 0;
 
-      if (Array.isArray(selection)) {
-        const [, fromColumn, , toColumn] = selection;
-
-        if (fromColumn - toColumn !== 0) {
+      if (selection) {
+        if (selection.length > 1) {
           pluralForm = 1;
+        } else {
+          const [, fromColumn, , toColumn] = selection[0];
+
+          if (fromColumn - toColumn !== 0) {
+            pluralForm = 1;
+          }
         }
       }
 
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, pluralForm);
     },
-
-    callback(key, selection) {
-      let amount = selection.end.col - selection.start.col + 1;
-
-      this.alter('remove_col', selection.start.col, amount, 'ContextMenu.removeColumn');
+    callback() {
+      this.alter('remove_col', transformSelectionToColumnDistance(this.getSelected()), null, 'ContextMenu.removeColumn');
     },
     disabled() {
       const selected = getValidSelection(this);
       const totalColumns = this.countCols();
 
-      return !selected || this.selection.selectedHeader.rows || this.selection.selectedHeader.corner ||
+      if (!selected) {
+        return true;
+      }
+
+      return this.selection.selectedHeader.rows || this.selection.selectedHeader.corner ||
              !this.isColumnModificationAllowed() || !totalColumns;
     },
     hidden() {

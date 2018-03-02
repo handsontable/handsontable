@@ -64,11 +64,11 @@ export function normalizeLanguageCode(languageCode) {
 /**
  * Set proper start language code. User may set language code which is not proper.
  *
- * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @param {Object} settings Settings object.
+ * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @returns {String}
  */
-export function applyLanguageSetting(languageCode, settings) {
+export function applyLanguageSetting(settings, languageCode) {
   const normalizedLanguageCode = normalizeLanguageCode(languageCode);
 
   if (hasLanguageDictionary(normalizedLanguageCode)) {

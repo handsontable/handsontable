@@ -141,7 +141,7 @@ class ManualRowResize extends BasePlugin {
       this.selectedRows = [];
 
       if (this.hot.selection.isSelected() && this.hot.selection.selectedHeader.rows) {
-        let {from, to} = this.hot.getSelectedRange();
+        let {from, to} = this.hot.getSelectedRangeLast();
         let start = from.row;
         let end = to.row;
 
@@ -446,7 +446,6 @@ class ManualRowResize extends BasePlugin {
 
     return height;
   }
-
 }
 
 registerPlugin('manualRowResize', ManualRowResize);

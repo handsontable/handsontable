@@ -45,6 +45,45 @@ beforeEach(function() {
           };
         }
       };
+    },
+    toBeListFulfillingCondition() {
+      const redColor = '\x1b[31m';
+      const resetColor = '\x1b[0m';
+
+      return {
+        compare(checkedArray, conditionFunction) {
+          if (typeof conditionFunction !== 'function') {
+            throw Error('Parameter passed to `toBeListFulfillingCondition` should be a function.');
+          }
+
+          const isListWithValues = Array.isArray(checkedArray) || checkedArray.length > 0;
+          const elementNotFulfillingCondition = checkedArray.find((element) => !conditionFunction(element));
+          const containsUndefined = isListWithValues && checkedArray.includes(undefined);
+          const pass = isListWithValues && !containsUndefined && elementNotFulfillingCondition === undefined;
+          let message;
+
+          if (!isListWithValues) {
+            message = 'Non-empty list should be passed as expect parameter.';
+
+          } else if (containsUndefined) {
+            message = `List ${redColor}${checkedArray.join(', ')}${resetColor} contains ${redColor}undefined${resetColor} value.`;
+
+          } else if (elementNotFulfillingCondition !== undefined) {
+            let entityValue = elementNotFulfillingCondition;
+
+            if (typeof elementNotFulfillingCondition === 'string') {
+              entityValue = `"${elementNotFulfillingCondition}"`;
+            }
+
+            message = `Entity ${redColor}${entityValue}${resetColor}, from list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the condition.`;
+          }
+
+          return {
+            pass,
+            message
+          };
+        }
+      };
     }
   };
 

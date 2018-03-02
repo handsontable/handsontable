@@ -139,7 +139,8 @@
             "regenerator-runtime/runtime",
             "./common",
             "./jasmine",
-            "./MemoryLeakTest"
+            "./MemoryLeakTest",
+            "../MemoryLeakTest"
           ]
         }]
       ]

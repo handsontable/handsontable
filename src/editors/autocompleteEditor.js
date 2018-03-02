@@ -421,7 +421,9 @@ AutocompleteEditor.prototype.stripValuesIfNeeded = function (values) {
 };
 
 AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
-  let selected = {row: this.htEditor.getSelectedRange() ? this.htEditor.getSelectedRange().from.row : -1};
+  const selectedRange = this.htEditor.getSelectedRangeLast();
+
+  let selected = {row: selectedRange ? selectedRange.from.row : -1};
   let allowed = false;
 
   if (keyCode === KEY_CODES.ARROW_DOWN && selected.row > 0 && selected.row < this.htEditor.countRows() - 1) {

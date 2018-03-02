@@ -6,8 +6,8 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin) {
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN);
     },
-    callback() {
-      let selectedColumn = this.getSelectedRange().from.col;
+    callback(key, selected) {
+      const [{start: {col: selectedColumn}}] = selected;
 
       manualColumnFreezePlugin.unfreezeColumn(selectedColumn);
 
@@ -21,7 +21,10 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin) {
       if (selection === void 0) {
         hide = true;
 
-      } else if ((selection.from.col !== selection.to.col) || selection.from.col >= this.getSettings().fixedColumnsLeft) {
+      } else if (selection.length > 1) {
+        hide = true;
+
+      } else if ((selection[0].from.col !== selection[0].to.col) || selection[0].from.col >= this.getSettings().fixedColumnsLeft) {
         hide = true;
       }
 

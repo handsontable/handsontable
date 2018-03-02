@@ -1532,10 +1532,10 @@ describe('Core_validate', () => {
 
     setTimeout(() => {
       expect(isEditorVisible()).toBe(false);
-      expect(getSelected()).toEqual([3, 0, 3, 0]);
+      expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
       keyDownUp('arrow_up');
-      expect(getSelected()).toEqual([2, 0, 2, 0]);
+      expect(getSelected()).toEqual([[2, 0, 2, 0]]);
       done();
     }, 400);
   });
@@ -1565,16 +1565,16 @@ describe('Core_validate', () => {
     document.activeElement.value = '999';
     keyDownUp('enter');
 
-    expect(getSelected()).toEqual([3, 0, 3, 0]);
+    expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
     keyDownUp('arrow_down');
     keyDownUp('arrow_down');
     expect(isEditorVisible()).toBe(true);
-    expect(getSelected()).toEqual([5, 0, 5, 0]);
+    expect(getSelected()).toEqual([[5, 0, 5, 0]]);
 
     setTimeout(() => {
       expect(isEditorVisible()).toBe(false);
-      expect(getSelected()).toEqual([5, 0, 5, 0]); // only enterMove and first arrow_down is performed
+      expect(getSelected()).toEqual([[5, 0, 5, 0]]); // only enterMove and first arrow_down is performed
       done();
     }, 200);
   });
@@ -1605,16 +1605,16 @@ describe('Core_validate', () => {
     document.activeElement.value = '999';
     keyDownUp('enter');
 
-    expect(getSelected()).toEqual([3, 0, 3, 0]);
+    expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
     keyDownUp('arrow_up');
     keyDownUp('arrow_up');
     expect(isEditorVisible()).toBe(true);
-    expect(getSelected()).toEqual([1, 0, 1, 0]);
+    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
     setTimeout(() => {
       expect(isEditorVisible()).toBe(false);
-      expect(getSelected()).toEqual([1, 0, 1, 0]);
+      expect(getSelected()).toEqual([[1, 0, 1, 0]]);
       done();
     }, 200);
   });
@@ -1644,16 +1644,16 @@ describe('Core_validate', () => {
     keyDownUp('enter');
     document.activeElement.value = '999';
     keyDownUp('enter'); // should be accepted but only after 100 ms
-    expect(getSelected()).toEqual([3, 0, 3, 0]);
+    expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
     keyDownUp('arrow_right');
     keyDownUp('arrow_right');
     expect(isEditorVisible()).toBe(true);
-    expect(getSelected()).toEqual([3, 2, 3, 2]);
+    expect(getSelected()).toEqual([[3, 2, 3, 2]]);
 
     setTimeout(() => {
       expect(isEditorVisible()).toBe(false);
-      expect(getSelected()).toEqual([3, 2, 3, 2]);
+      expect(getSelected()).toEqual([[3, 2, 3, 2]]);
       done();
     }, 200);
   });
@@ -1683,7 +1683,7 @@ describe('Core_validate', () => {
     keyDownUp('enter');
     document.activeElement.value = '999';
     keyDownUp('enter'); // should be accepted but only after 100 ms
-    expect(getSelected()).toEqual([3, 2, 3, 2]);
+    expect(getSelected()).toEqual([[3, 2, 3, 2]]);
 
     this.$container.simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
     this.$container.simulate('keyup', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
@@ -1691,11 +1691,11 @@ describe('Core_validate', () => {
     this.$container.simulate('keyup', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
 
     expect(isEditorVisible()).toBe(true);
-    expect(getSelected()).toEqual([3, 0, 3, 0]);
+    expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
     setTimeout(() => {
       expect(isEditorVisible()).toBe(false);
-      expect(getSelected()).toEqual([3, 0, 3, 0]);
+      expect(getSelected()).toEqual([[3, 0, 3, 0]]);
       done();
     }, 200);
   });

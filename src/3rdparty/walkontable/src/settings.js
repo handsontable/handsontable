@@ -87,6 +87,7 @@ class Settings {
       onAfterMomentumScroll: null,
       onBeforeStretchingColumnWidth: (width) => width,
       onModifyRowHeaderWidth: null,
+      onModifyGetCellCoords: null,
 
       // constants
       scrollbarWidth: 10,

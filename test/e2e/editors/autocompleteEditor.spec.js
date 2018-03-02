@@ -1304,7 +1304,7 @@ describe('AutocompleteEditor', () => {
           ['black']
         ]);
 
-        var selected = innerHot.getSelected();
+        var selected = innerHot.getSelected()[0];
         var selectedData = innerHot.getDataAtCell(selected[0], selected[1]);
 
         expect(selectedData).toEqual('blue');
@@ -1362,7 +1362,7 @@ describe('AutocompleteEditor', () => {
           ['black']
         ]);
 
-        var selected = innerHot.getSelected();
+        var selected = innerHot.getSelected()[0];
         var selectedData = innerHot.getDataAtCell(selected[0], selected[1]);
 
         expect(selectedData).toEqual('blue');
@@ -1816,7 +1816,7 @@ describe('AutocompleteEditor', () => {
         var ac = hot.getActiveEditor();
         var innerHot = ac.htEditor;
 
-        expect(innerHot.getSelected()).toEqual([1, 0, 1, 0]);
+        expect(innerHot.getSelected()).toEqual([[1, 0, 1, 0]]);
         done();
       }, 400);
     });
@@ -2702,7 +2702,7 @@ describe('AutocompleteEditor', () => {
     setTimeout(() => {
       keyDownUp('arrow_up');
 
-      expect(getSelected()).toEqual([0, 0, 0, 0]);
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       done();
     }, 200);
   });
@@ -2735,7 +2735,7 @@ describe('AutocompleteEditor', () => {
     setTimeout(() => {
       keyDownUp('arrow_right');
 
-      expect(getSelected()).toEqual([1, 1, 1, 1]);
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
       done();
     }, 200);
   });
@@ -2770,7 +2770,7 @@ describe('AutocompleteEditor', () => {
     setTimeout(() => {
       keyDownUp('arrow_left');
 
-      expect(getSelected()).toEqual([1, 0, 1, 0]);
+      expect(getSelected()).toEqual([[1, 0, 1, 0]]);
       done();
     }, 200);
   });
@@ -2802,7 +2802,7 @@ describe('AutocompleteEditor', () => {
     setTimeout(() => {
       keyDownUp('arrow_down');
 
-      expect(getSelected()).toEqual([1, 0, 1, 0]);
+      expect(getSelected()).toEqual([[1, 0, 1, 0]]);
       done();
     }, 200);
   });
@@ -2840,7 +2840,7 @@ describe('AutocompleteEditor', () => {
     setTimeout(() => {
       keyDownUp('arrow_down');
 
-      expect(getSelected()).toEqual([2, 0, 2, 0]);
+      expect(getSelected()).toEqual([[2, 0, 2, 0]]);
       done();
     }, 200);
   });
@@ -2872,7 +2872,7 @@ describe('AutocompleteEditor', () => {
     setTimeout(() => {
       keyDownUp('arrow_down');
 
-      expect(getSelected()).toEqual([1, 0, 1, 0]);
+      expect(getSelected()).toEqual([[1, 0, 1, 0]]);
       done();
     }, 200);
   });
@@ -2901,15 +2901,15 @@ describe('AutocompleteEditor', () => {
     setTimeout(() => {
       keyDownUp('arrow_down');
 
-      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([0, 0, 0, 0]);
+      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
 
       keyDownUp('arrow_down');
 
-      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([1, 0, 1, 0]);
+      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[1, 0, 1, 0]]);
 
       keyDownUp('arrow_down');
 
-      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([2, 0, 2, 0]);
+      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[2, 0, 2, 0]]);
       done();
     }, 200);
   });
@@ -2938,19 +2938,19 @@ describe('AutocompleteEditor', () => {
     setTimeout(() => {
       hot.getActiveEditor().htEditor.selectCell(2, 0);
 
-      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([2, 0, 2, 0]);
+      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[2, 0, 2, 0]]);
 
       keyDownUp('arrow_up');
 
-      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([1, 0, 1, 0]);
+      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[1, 0, 1, 0]]);
 
       keyDownUp('arrow_up');
 
-      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([0, 0, 0, 0]);
+      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
 
       keyDownUp('arrow_up');
 
-      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([0, 0, 0, 0]);
+      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
       done();
     }, 200);
   });
@@ -3020,7 +3020,7 @@ describe('AutocompleteEditor', () => {
       keyDownUp('arrow_up');
       keyDownUp('arrow_up');
 
-      expect(getSelected()).toEqual([0, 0, 0, 0]);
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       done();
     }, 200);
   });
