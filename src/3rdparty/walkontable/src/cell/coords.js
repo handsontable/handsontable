@@ -92,6 +92,18 @@ class CellCoords {
   isNorthEastOf(testedCoords) {
     return this.row <= testedCoords.row && this.col >= testedCoords.col;
   }
+
+  /**
+   * Convert CellCoords to literal object.
+   *
+   * @return {Object} Returns a literal object with `row` and `col` properties.
+   */
+  toObject() {
+    return {
+      row: this.row,
+      col: this.col,
+    };
+  }
 }
 
 export default CellCoords;

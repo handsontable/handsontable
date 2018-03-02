@@ -469,7 +469,7 @@ class ManualColumnMove extends BasePlugin {
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     let wtTable = this.hot.view.wt.wtTable;
     let isHeaderSelection = this.hot.selection.selectedHeader.cols;
-    let selection = this.hot.getSelectedRange();
+    let selection = this.hot.getSelectedRangeLast();
     let priv = privatePool.get(this);
     let isSortingElement = event.realTarget.className.indexOf('columnSorting') > -1;
 
@@ -564,7 +564,7 @@ class ManualColumnMove extends BasePlugin {
    * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
   onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
-    let selectedRange = this.hot.getSelectedRange();
+    let selectedRange = this.hot.getSelectedRangeLast();
     let priv = privatePool.get(this);
 
     if (!selectedRange || !priv.pressed) {

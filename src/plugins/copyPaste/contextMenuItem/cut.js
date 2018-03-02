@@ -10,7 +10,13 @@ export default function cutItem(copyPastePlugin) {
       copyPastePlugin.cut();
     },
     disabled() {
-      return !copyPastePlugin.hot.getSelected();
+      const selected = this.getSelected();
+
+      if (!selected || selected.length > 1) {
+        return true;
+      }
+
+      return false;
     },
     hidden: false
   };

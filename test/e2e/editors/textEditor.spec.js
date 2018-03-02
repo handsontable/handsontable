@@ -22,7 +22,8 @@ describe('TextEditor', () => {
     keyDown('enter');
 
     var selection = getSelected();
-    expect(selection).toEqual([2, 2, 2, 2]);
+
+    expect(selection).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(true);
   });
 
@@ -36,7 +37,7 @@ describe('TextEditor', () => {
     keyDown('enter');
 
     var selection = getSelected();
-    expect(selection).toEqual([3, 2, 3, 2]);
+    expect(selection).toEqual([[3, 2, 3, 2]]);
   });
 
   it('should move down when enterBeginsEditing equals false', () => {
@@ -48,7 +49,7 @@ describe('TextEditor', () => {
     keyDown('enter');
 
     var selection = getSelected();
-    expect(selection).toEqual([3, 2, 3, 2]);
+    expect(selection).toEqual([[3, 2, 3, 2]]);
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -512,7 +513,7 @@ describe('TextEditor', () => {
     }); // CTRL+A should NOT select all table when cell is edited
 
     var selection = getSelected();
-    expect(selection).toEqual([2, 2, 2, 2]);
+    expect(selection).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(true);
   });
 
@@ -610,7 +611,7 @@ describe('TextEditor', () => {
     this.$container2.find('tbody tr:eq(0) td:eq(0)').simulate('mouseup');
 
     expect(hot1.getSelected()).toBeUndefined();
-    expect(hot2.getSelected()).toEqual([0, 0, 0, 0]);
+    expect(hot2.getSelected()).toEqual([[0, 0, 0, 0]]);
 
     // Open editor in HOT2
     keyDown('enter');
@@ -1099,6 +1100,34 @@ describe('TextEditor', () => {
       expect([105, 119]).toEqual(jasmine.arrayContaining([$editorInput.height()]));
       done();
     }, 150);
+  });
+
+  // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
+  it('should not lose the focus on input element while inserting new characters (#839)', async () => {
+    let blured = false;
+    const listener = () => {
+      blured = true;
+    };
+    const hot = handsontable({
+      data: [['']],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    hot.getActiveEditor().TEXTAREA.addEventListener('blur', listener);
+
+    await sleep(200);
+
+    hot.getActiveEditor().TEXTAREA.value = 'a';
+    keyDownUp('a'.charCodeAt(0));
+    hot.getActiveEditor().TEXTAREA.value = 'ab';
+    keyDownUp('b'.charCodeAt(0));
+    hot.getActiveEditor().TEXTAREA.value = 'abc';
+    keyDownUp('c'.charCodeAt(0));
+
+    expect(blured).toBeFalsy();
+
+    hot.getActiveEditor().TEXTAREA.removeEventListener('blur', listener);
   });
 
   it('should not throw an exception when window.attachEvent is defined but the text area does not have attachEvent', (done) => {

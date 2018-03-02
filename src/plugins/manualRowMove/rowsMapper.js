@@ -40,8 +40,8 @@ class RowsMapper {
   }
 
   /**
-   * Moving elements in rowsMapper.
    *
+   * Moving elements in rowsMapper.
    * @param {Number} from Row index to move.
    * @param {Number} to Target index.
    */

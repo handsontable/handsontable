@@ -115,22 +115,23 @@ export function range(from, to) {
 };
 
 /**
- * Rewrite all existing selections from selections[0] etc. to selections.current etc
+ * Rewrite all existing selections from selections[0] etc. to selections.getCell etc
  * @param instance
  * @returns {object} modified instance
  */
 export function shimSelectionProperties(instance) {
   if (instance.selections[0]) {
-    instance.selections.current = instance.selections[0];
+    instance.selections.getCell = () => instance.selections[0];
   }
   if (instance.selections[1]) {
-    instance.selections.area = instance.selections[1];
+    instance.selections.createOrGetArea = () => instance.selections[1];
+    instance.selections.getAreas = () => [instance.selections[1]];
   }
   if (instance.selections[2]) {
-    instance.selections.highlight = instance.selections[2];
+    instance.selections.createOrGetHeader = () => instance.selections[2];
   }
   if (instance.selections[3]) {
-    instance.selections.fill = instance.selections[3];
+    instance.selections.getFill = () => instance.selections[3];
   }
 
   return instance;
