@@ -98,7 +98,7 @@ class AutoColumnSize extends BasePlugin {
      *
      * @type {SamplesGenerator}
      */
-    this.samplesGenerator = new SamplesGenerator((row, col) => this.hot.getDataAtCell(row, col));
+    this.samplesGenerator = new SamplesGenerator((row, col) => (this.hot.getCellMeta(row, col).spanned ? '' : this.hot.getDataAtCell(row, col)));
     /**
      * `true` only if the first calculation was performed
      *

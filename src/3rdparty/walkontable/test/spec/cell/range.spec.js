@@ -1,10 +1,10 @@
 describe('Walkontable.CellRange', () => {
   describe('getAll', () => {
     it('should get all cells in range', () => {
-      var from = new Walkontable.CellCoords(1, 1);
-      var to = new Walkontable.CellCoords(3, 3);
-      var range = new Walkontable.CellRange(from, from, to);
-      var all = range.getAll();
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(3, 3);
+      const range = new Walkontable.CellRange(from, from, to);
+      const all = range.getAll();
       expect(all.length).toBe(9);
       expect(all[0].row).toBe(from.row);
       expect(all[0].col).toBe(from.col);
@@ -15,10 +15,10 @@ describe('Walkontable.CellRange', () => {
     });
 
     it('should get all cells in range (reverse order)', () => {
-      var from = new Walkontable.CellCoords(3, 3);
-      var to = new Walkontable.CellCoords(1, 1);
-      var range = new Walkontable.CellRange(from, from, to);
-      var all = range.getAll();
+      const from = new Walkontable.CellCoords(3, 3);
+      const to = new Walkontable.CellCoords(1, 1);
+      const range = new Walkontable.CellRange(from, from, to);
+      const all = range.getAll();
       expect(all.length).toBe(9);
       expect(all[0].row).toBe(to.row);
       expect(all[0].col).toBe(to.col);
@@ -31,20 +31,20 @@ describe('Walkontable.CellRange', () => {
 
   describe('getInner', () => {
     it('should get cells in range excluding from and to', () => {
-      var from = new Walkontable.CellCoords(1, 1);
-      var to = new Walkontable.CellCoords(3, 3);
-      var range = new Walkontable.CellRange(from, from, to);
-      var inner = range.getInner();
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(3, 3);
+      const range = new Walkontable.CellRange(from, from, to);
+      const inner = range.getInner();
       expect(inner.length).toBe(7);
       expect(inner[1].row).toBe(1);
       expect(inner[1].col).toBe(3);
     });
 
     it('should get cells in range excluding from and to (reverse order)', () => {
-      var from = new Walkontable.CellCoords(3, 3);
-      var to = new Walkontable.CellCoords(1, 1);
-      var range = new Walkontable.CellRange(from, from, to);
-      var inner = range.getInner();
+      const from = new Walkontable.CellCoords(3, 3);
+      const to = new Walkontable.CellCoords(1, 1);
+      const range = new Walkontable.CellRange(from, from, to);
+      const inner = range.getInner();
       expect(inner.length).toBe(7);
       expect(inner[1].row).toBe(1);
       expect(inner[1].col).toBe(3);
@@ -53,16 +53,16 @@ describe('Walkontable.CellRange', () => {
 
   describe('includes', () => {
     it('should return true if range is a single cell and the same cell is given', () => {
-      var from = new Walkontable.CellCoords(0, 0);
-      var to = new Walkontable.CellCoords(0, 0);
-      var range = new Walkontable.CellRange(from, from, to);
+      const from = new Walkontable.CellCoords(0, 0);
+      const to = new Walkontable.CellCoords(0, 0);
+      const range = new Walkontable.CellRange(from, from, to);
       expect(range.includes(new Walkontable.CellCoords(0, 0))).toBe(true);
     });
 
     it('should return true if given cell is within the range', () => {
-      var from = new Walkontable.CellCoords(1, 1);
-      var to = new Walkontable.CellCoords(3, 3);
-      var range = new Walkontable.CellRange(from, from, to);
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(3, 3);
+      const range = new Walkontable.CellRange(from, from, to);
       expect(range.includes(new Walkontable.CellCoords(1, 1))).toBe(true);
       expect(range.includes(new Walkontable.CellCoords(3, 1))).toBe(true);
       expect(range.includes(new Walkontable.CellCoords(3, 3))).toBe(true);
@@ -73,9 +73,9 @@ describe('Walkontable.CellRange', () => {
     });
 
     it('should return false if given cell outside the range', () => {
-      var from = new Walkontable.CellCoords(1, 1);
-      var to = new Walkontable.CellCoords(3, 3);
-      var range = new Walkontable.CellRange(from, from, to);
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(3, 3);
+      const range = new Walkontable.CellRange(from, from, to);
       expect(range.includes(new Walkontable.CellCoords(0, 0))).toBe(false);
       expect(range.includes(new Walkontable.CellCoords(4, 4))).toBe(false);
       expect(range.includes(new Walkontable.CellCoords(1, 4))).toBe(false);
@@ -96,13 +96,13 @@ describe('Walkontable.CellRange', () => {
        +----------+
        */
       it('B is included in A, none of borders touch each other', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 1);
-        var bBottomRight = new Walkontable.CellCoords(4, 4);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 1);
+        const bBottomRight = new Walkontable.CellCoords(4, 4);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -117,13 +117,13 @@ describe('Walkontable.CellRange', () => {
        +----------+
        */
       it('A is included in B, none of borders touch each other', () => {
-        var aTopLeft = new Walkontable.CellCoords(1, 1);
-        var aBottomRight = new Walkontable.CellCoords(4, 4);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(1, 1);
+        const aBottomRight = new Walkontable.CellCoords(4, 4);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 0);
-        var bBottomRight = new Walkontable.CellCoords(5, 4);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 0);
+        const bBottomRight = new Walkontable.CellCoords(5, 4);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(false);
       });
@@ -136,13 +136,13 @@ describe('Walkontable.CellRange', () => {
        +-----------+
        */
       it('B is included in A, top borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 1);
-        var bBottomRight = new Walkontable.CellCoords(4, 4);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 1);
+        const bBottomRight = new Walkontable.CellCoords(4, 4);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -156,13 +156,13 @@ describe('Walkontable.CellRange', () => {
        +---------+
        */
       it('B is included in A, top and right borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 1);
-        var bBottomRight = new Walkontable.CellCoords(4, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 1);
+        const bBottomRight = new Walkontable.CellCoords(4, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -176,13 +176,13 @@ describe('Walkontable.CellRange', () => {
        +---------+
        */
       it('B is included in A, right borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 1);
-        var bBottomRight = new Walkontable.CellCoords(4, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 1);
+        const bBottomRight = new Walkontable.CellCoords(4, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -195,13 +195,13 @@ describe('Walkontable.CellRange', () => {
        +---------+
        */
       it('B is included in A, bottom and right borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 1);
-        var bBottomRight = new Walkontable.CellCoords(5, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 1);
+        const bBottomRight = new Walkontable.CellCoords(5, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -214,13 +214,13 @@ describe('Walkontable.CellRange', () => {
        +-----------+
        */
       it('B is included in A, bottom borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 1);
-        var bBottomRight = new Walkontable.CellCoords(5, 4);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 1);
+        const bBottomRight = new Walkontable.CellCoords(5, 4);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -233,13 +233,13 @@ describe('Walkontable.CellRange', () => {
        +-----------+
        */
       it('B is included in A, bottom and left borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 0);
-        var bBottomRight = new Walkontable.CellCoords(5, 4);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 0);
+        const bBottomRight = new Walkontable.CellCoords(5, 4);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -253,13 +253,13 @@ describe('Walkontable.CellRange', () => {
        +-----------+
        */
       it('B is included in A, left borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 0);
-        var bBottomRight = new Walkontable.CellCoords(4, 4);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 0);
+        const bBottomRight = new Walkontable.CellCoords(4, 4);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -272,13 +272,13 @@ describe('Walkontable.CellRange', () => {
        +-----------+
        */
       it('B is included in A, top and left borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 0);
-        var bBottomRight = new Walkontable.CellCoords(4, 4);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 0);
+        const bBottomRight = new Walkontable.CellCoords(4, 4);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -290,13 +290,13 @@ describe('Walkontable.CellRange', () => {
        +------------+
        */
       it('B is included in A, top and bottom borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 1);
-        var bBottomRight = new Walkontable.CellCoords(5, 4);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 1);
+        const bBottomRight = new Walkontable.CellCoords(5, 4);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -308,13 +308,13 @@ describe('Walkontable.CellRange', () => {
        +----------+
        */
       it('B is included in A, top, right and bottom borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 1);
-        var bBottomRight = new Walkontable.CellCoords(5, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 1);
+        const bBottomRight = new Walkontable.CellCoords(5, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -326,13 +326,13 @@ describe('Walkontable.CellRange', () => {
        +----------+
        */
       it('B is included in A, top, left and bottom borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 0);
-        var bBottomRight = new Walkontable.CellCoords(5, 4);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 0);
+        const bBottomRight = new Walkontable.CellCoords(5, 4);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -346,13 +346,13 @@ describe('Walkontable.CellRange', () => {
        +----------+
        */
       it('B is included in A, left and right borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 0);
-        var bBottomRight = new Walkontable.CellCoords(4, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 0);
+        const bBottomRight = new Walkontable.CellCoords(4, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -365,13 +365,13 @@ describe('Walkontable.CellRange', () => {
        +----------+
        */
       it('B is included in A, left, bottom and right borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 0);
-        var bBottomRight = new Walkontable.CellCoords(5, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 0);
+        const bBottomRight = new Walkontable.CellCoords(5, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -384,13 +384,13 @@ describe('Walkontable.CellRange', () => {
        +----------+
        */
       it('B is included in A, left, top and right borders touch', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 0);
-        var bBottomRight = new Walkontable.CellCoords(4, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 0);
+        const bBottomRight = new Walkontable.CellCoords(4, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -407,13 +407,13 @@ describe('Walkontable.CellRange', () => {
        +----------+
        */
       it('B is included in A, none of borders touch each other', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 1);
-        var bBottomRight = new Walkontable.CellCoords(1, 1);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 1);
+        const bBottomRight = new Walkontable.CellCoords(1, 1);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.includesRange(b)).toBe(true);
       });
@@ -423,92 +423,92 @@ describe('Walkontable.CellRange', () => {
 
   describe('expand', () => {
     it('should not change range if expander to a cell that fits within the range', () => {
-      var from = new Walkontable.CellCoords(1, 1);
-      var to = new Walkontable.CellCoords(3, 3);
-      var range = new Walkontable.CellRange(from, from, to);
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(3, 3);
+      const range = new Walkontable.CellRange(from, from, to);
 
-      var topLeft = range.getTopLeftCorner();
-      var bottomRight = range.getBottomRightCorner();
+      const topLeft = range.getTopLeftCorner();
+      const bottomRight = range.getBottomRightCorner();
 
-      var expander = new Walkontable.CellCoords(3, 1);
-      var res = range.expand(expander);
+      const expander = new Walkontable.CellCoords(3, 1);
+      const res = range.expand(expander);
       expect(res).toBe(false);
-      var topLeft2 = range.getTopLeftCorner();
-      var bottomRight2 = range.getBottomRightCorner();
+      const topLeft2 = range.getTopLeftCorner();
+      const bottomRight2 = range.getBottomRightCorner();
       expect(topLeft2).toEqual(topLeft);
       expect(bottomRight2).toEqual(bottomRight);
     });
 
     it('should change range if expander to a cell outside of the cell range', () => {
-      var from = new Walkontable.CellCoords(1, 1);
-      var to = new Walkontable.CellCoords(3, 3);
-      var range = new Walkontable.CellRange(from, from, to);
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(3, 3);
+      const range = new Walkontable.CellRange(from, from, to);
 
-      var topLeft = range.getTopLeftCorner();
+      const topLeft = range.getTopLeftCorner();
 
-      var expander = new Walkontable.CellCoords(4, 4);
-      var res = range.expand(expander);
+      const expander = new Walkontable.CellCoords(4, 4);
+      const res = range.expand(expander);
       expect(res).toBe(true);
-      var topLeft2 = range.getTopLeftCorner();
-      var bottomRight2 = range.getBottomRightCorner();
+      const topLeft2 = range.getTopLeftCorner();
+      const bottomRight2 = range.getBottomRightCorner();
       expect(topLeft2).toEqual(topLeft);
       expect(bottomRight2).toEqual(expander);
     });
 
     it('should change range if expander to a cell outside of the cell range (inverted)', () => {
-      var from = new Walkontable.CellCoords(1, 1);
-      var to = new Walkontable.CellCoords(3, 3);
-      var range = new Walkontable.CellRange(from, from, to);
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(3, 3);
+      const range = new Walkontable.CellRange(from, from, to);
 
-      var topLeft = range.getTopLeftCorner();
+      const topLeft = range.getTopLeftCorner();
 
-      var expander = new Walkontable.CellCoords(4, 4);
-      var res = range.expand(expander);
+      const expander = new Walkontable.CellCoords(4, 4);
+      const res = range.expand(expander);
       expect(res).toBe(true);
-      var topLeft2 = range.getTopLeftCorner();
-      var bottomRight2 = range.getBottomRightCorner();
+      const topLeft2 = range.getTopLeftCorner();
+      const bottomRight2 = range.getBottomRightCorner();
       expect(topLeft2).toEqual(topLeft);
       expect(bottomRight2).toEqual(expander);
     });
 
     it('should change range if expander to a cell outside of the cell range (bottom left)', () => {
-      var from = new Walkontable.CellCoords(1, 1);
-      var to = new Walkontable.CellCoords(3, 3);
-      var range = new Walkontable.CellRange(from, from, to);
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(3, 3);
+      const range = new Walkontable.CellRange(from, from, to);
 
-      var expander = new Walkontable.CellCoords(3, 0);
-      var res = range.expand(expander);
+      const expander = new Walkontable.CellCoords(3, 0);
+      const res = range.expand(expander);
       expect(res).toBe(true);
-      var topLeft2 = range.getTopLeftCorner();
-      var bottomRight2 = range.getBottomRightCorner();
+      const topLeft2 = range.getTopLeftCorner();
+      const bottomRight2 = range.getBottomRightCorner();
       expect(topLeft2).toEqual(new Walkontable.CellCoords(1, 0));
       expect(bottomRight2).toEqual(new Walkontable.CellCoords(3, 3));
     });
 
     it('should change range if expander to a cell outside of the cell range (inverted top right)', () => {
-      var from = new Walkontable.CellCoords(2, 0);
-      var to = new Walkontable.CellCoords(1, 0);
-      var range = new Walkontable.CellRange(from, from, to);
+      const from = new Walkontable.CellCoords(2, 0);
+      const to = new Walkontable.CellCoords(1, 0);
+      const range = new Walkontable.CellRange(from, from, to);
 
-      var expander = new Walkontable.CellCoords(1, 1);
-      var res = range.expand(expander);
+      const expander = new Walkontable.CellCoords(1, 1);
+      const res = range.expand(expander);
       expect(res).toBe(true);
-      var topLeft2 = range.getTopLeftCorner();
-      var bottomRight2 = range.getBottomRightCorner();
+      const topLeft2 = range.getTopLeftCorner();
+      const bottomRight2 = range.getBottomRightCorner();
       expect(topLeft2).toEqual(new Walkontable.CellCoords(1, 0));
       expect(bottomRight2).toEqual(new Walkontable.CellCoords(2, 1));
     });
 
     it('should change range if expander to a cell outside of the cell range (inverted bottom left)', () => {
-      var from = new Walkontable.CellCoords(2, 1);
-      var to = new Walkontable.CellCoords(1, 1);
-      var range = new Walkontable.CellRange(from, from, to);
+      const from = new Walkontable.CellCoords(2, 1);
+      const to = new Walkontable.CellCoords(1, 1);
+      const range = new Walkontable.CellRange(from, from, to);
 
-      var expander = new Walkontable.CellCoords(3, 0);
-      var res = range.expand(expander);
+      const expander = new Walkontable.CellCoords(3, 0);
+      const res = range.expand(expander);
       expect(res).toBe(true);
-      var topLeft2 = range.getTopLeftCorner();
-      var bottomRight2 = range.getBottomRightCorner();
+      const topLeft2 = range.getTopLeftCorner();
+      const bottomRight2 = range.getBottomRightCorner();
       expect(topLeft2).toEqual(new Walkontable.CellCoords(1, 0));
       expect(bottomRight2).toEqual(new Walkontable.CellCoords(3, 1));
     });
@@ -527,13 +527,13 @@ describe('Walkontable.CellRange', () => {
        +-------+
        */
       it('overlapping from NE', () => {
-        var aTopLeft = new Walkontable.CellCoords(3, 0);
-        var aBottomRight = new Walkontable.CellCoords(8, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(3, 0);
+        const aBottomRight = new Walkontable.CellCoords(8, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 3);
-        var bBottomRight = new Walkontable.CellCoords(5, 8);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 3);
+        const bBottomRight = new Walkontable.CellCoords(5, 8);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -548,13 +548,13 @@ describe('Walkontable.CellRange', () => {
        +---------+
        */
       it('overlapping from E', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 3);
-        var bBottomRight = new Walkontable.CellCoords(4, 6);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 3);
+        const bBottomRight = new Walkontable.CellCoords(4, 6);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -571,13 +571,13 @@ describe('Walkontable.CellRange', () => {
             +---------+
        */
       it('overlapping from SE', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(3, 3);
-        var bBottomRight = new Walkontable.CellCoords(8, 8);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(3, 3);
+        const bBottomRight = new Walkontable.CellCoords(8, 8);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -591,13 +591,13 @@ describe('Walkontable.CellRange', () => {
          +-----+
        */
       it('overlapping from S', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(3, 1);
-        var bBottomRight = new Walkontable.CellCoords(6, 4);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(3, 1);
+        const bBottomRight = new Walkontable.CellCoords(6, 4);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -612,13 +612,13 @@ describe('Walkontable.CellRange', () => {
        +--------+
        */
       it('overlapping from SW', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 3);
-        var aBottomRight = new Walkontable.CellCoords(5, 8);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 3);
+        const aBottomRight = new Walkontable.CellCoords(5, 8);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(3, 0);
-        var bBottomRight = new Walkontable.CellCoords(8, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(3, 0);
+        const bBottomRight = new Walkontable.CellCoords(8, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -633,13 +633,13 @@ describe('Walkontable.CellRange', () => {
            +-------+
        */
       it('overlapping from S', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 3);
-        var aBottomRight = new Walkontable.CellCoords(5, 8);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 3);
+        const aBottomRight = new Walkontable.CellCoords(5, 8);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 1);
-        var bBottomRight = new Walkontable.CellCoords(4, 4);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 1);
+        const bBottomRight = new Walkontable.CellCoords(4, 4);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -654,13 +654,13 @@ describe('Walkontable.CellRange', () => {
            +-------+
        */
       it('overlapping from NW', () => {
-        var aTopLeft = new Walkontable.CellCoords(3, 3);
-        var aBottomRight = new Walkontable.CellCoords(8, 8);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(3, 3);
+        const aBottomRight = new Walkontable.CellCoords(8, 8);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 0);
-        var bBottomRight = new Walkontable.CellCoords(5, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 0);
+        const bBottomRight = new Walkontable.CellCoords(5, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -674,13 +674,13 @@ describe('Walkontable.CellRange', () => {
          +-----+
        */
       it('overlapping from N', () => {
-        var aTopLeft = new Walkontable.CellCoords(3, 1);
-        var aBottomRight = new Walkontable.CellCoords(6, 4);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(3, 1);
+        const aBottomRight = new Walkontable.CellCoords(6, 4);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 0);
-        var bBottomRight = new Walkontable.CellCoords(5, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 0);
+        const bBottomRight = new Walkontable.CellCoords(5, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -695,13 +695,13 @@ describe('Walkontable.CellRange', () => {
        +----------+
        */
       it('overlapping when includes', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 1);
-        var bBottomRight = new Walkontable.CellCoords(4, 4);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 1);
+        const bBottomRight = new Walkontable.CellCoords(4, 4);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -716,13 +716,13 @@ describe('Walkontable.CellRange', () => {
        +----------+
        */
       it('overlapping when included', () => {
-        var aTopLeft = new Walkontable.CellCoords(1, 1);
-        var aBottomRight = new Walkontable.CellCoords(4, 4);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(1, 1);
+        const aBottomRight = new Walkontable.CellCoords(4, 4);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 0);
-        var bBottomRight = new Walkontable.CellCoords(5, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 0);
+        const bBottomRight = new Walkontable.CellCoords(5, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -736,13 +736,13 @@ describe('Walkontable.CellRange', () => {
            +----------+
        */
       it('overlapping when A includes B and B has only one cell, and this cell is A\'s top left corner', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 0);
-        var bBottomRight = new Walkontable.CellCoords(0, 0);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 0);
+        const bBottomRight = new Walkontable.CellCoords(0, 0);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -756,13 +756,13 @@ describe('Walkontable.CellRange', () => {
        +----------+
        */
       it('overlapping when A includes B and B has only one cell, and this cell is A\'s top right corner', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 5);
-        var bBottomRight = new Walkontable.CellCoords(0, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 5);
+        const bBottomRight = new Walkontable.CellCoords(0, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -776,13 +776,13 @@ describe('Walkontable.CellRange', () => {
       b -> +----------+
        */
       it('overlapping when A includes B and B has only one cell, and this cell is A\'s bottom left corner', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(5, 0);
-        var bBottomRight = new Walkontable.CellCoords(5, 0);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(5, 0);
+        const bBottomRight = new Walkontable.CellCoords(5, 0);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -796,13 +796,13 @@ describe('Walkontable.CellRange', () => {
        +----------+ <- b
        */
       it('overlapping when A includes B and B has only one cell, and this cell is A\'s bottom right corner', () => {
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(5, 5);
-        var bBottomRight = new Walkontable.CellCoords(5, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(5, 5);
+        const bBottomRight = new Walkontable.CellCoords(5, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
       });
@@ -816,13 +816,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('overlapping by touching from NE', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(5, 0);
-        var aBottomRight = new Walkontable.CellCoords(10, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(5, 0);
+        const aBottomRight = new Walkontable.CellCoords(10, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 5);
-        var bBottomRight = new Walkontable.CellCoords(5, 10);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 5);
+        const bBottomRight = new Walkontable.CellCoords(5, 10);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
 
@@ -835,13 +835,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('overlapping by touching from E', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 5);
-        var bBottomRight = new Walkontable.CellCoords(5, 10);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 5);
+        const bBottomRight = new Walkontable.CellCoords(5, 10);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
 
@@ -856,13 +856,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('overlapping by touching from SE', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(5, 5);
-        var bBottomRight = new Walkontable.CellCoords(10, 10);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(5, 5);
+        const bBottomRight = new Walkontable.CellCoords(10, 10);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
 
@@ -877,13 +877,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('overlapping by touching from S', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(5, 5);
-        var bBottomRight = new Walkontable.CellCoords(10, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(5, 5);
+        const bBottomRight = new Walkontable.CellCoords(10, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
 
@@ -898,13 +898,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('overlapping by touching from SW', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(0, 5);
-        var aBottomRight = new Walkontable.CellCoords(5, 10);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 5);
+        const aBottomRight = new Walkontable.CellCoords(5, 10);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(5, 0);
-        var bBottomRight = new Walkontable.CellCoords(10, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(5, 0);
+        const bBottomRight = new Walkontable.CellCoords(10, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
 
@@ -917,13 +917,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('overlapping by touching from W', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(0, 5);
-        var aBottomRight = new Walkontable.CellCoords(5, 10);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 5);
+        const aBottomRight = new Walkontable.CellCoords(5, 10);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 0);
-        var bBottomRight = new Walkontable.CellCoords(5, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 0);
+        const bBottomRight = new Walkontable.CellCoords(5, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
 
@@ -938,13 +938,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('overlapping by touching from NW', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(5, 5);
-        var aBottomRight = new Walkontable.CellCoords(10, 10);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(5, 5);
+        const aBottomRight = new Walkontable.CellCoords(10, 10);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 0);
-        var bBottomRight = new Walkontable.CellCoords(5, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 0);
+        const bBottomRight = new Walkontable.CellCoords(5, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
 
@@ -959,13 +959,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('overlapping by touching from E', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(5, 0);
-        var aBottomRight = new Walkontable.CellCoords(10, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(5, 0);
+        const aBottomRight = new Walkontable.CellCoords(10, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 0);
-        var bBottomRight = new Walkontable.CellCoords(5, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 0);
+        const bBottomRight = new Walkontable.CellCoords(5, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(true);
 
@@ -986,13 +986,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('not overlapping from NE', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(6, 0);
-        var aBottomRight = new Walkontable.CellCoords(11, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(6, 0);
+        const aBottomRight = new Walkontable.CellCoords(11, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 3);
-        var bBottomRight = new Walkontable.CellCoords(5, 8);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 3);
+        const bBottomRight = new Walkontable.CellCoords(5, 8);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(false);
 
@@ -1007,13 +1007,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('not overlapping from E', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 6);
-        var bBottomRight = new Walkontable.CellCoords(4, 9);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 6);
+        const bBottomRight = new Walkontable.CellCoords(4, 9);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(false);
 
@@ -1029,13 +1029,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('not overlapping from SE', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(1, 6);
-        var bBottomRight = new Walkontable.CellCoords(4, 9);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(1, 6);
+        const bBottomRight = new Walkontable.CellCoords(4, 9);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(false);
 
@@ -1053,13 +1053,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('not overlapping from S', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(0, 0);
-        var aBottomRight = new Walkontable.CellCoords(5, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 0);
+        const aBottomRight = new Walkontable.CellCoords(5, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(6, 0);
-        var bBottomRight = new Walkontable.CellCoords(11, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(6, 0);
+        const bBottomRight = new Walkontable.CellCoords(11, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(false);
 
@@ -1077,13 +1077,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('not overlapping from SW', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(0, 3);
-        var aBottomRight = new Walkontable.CellCoords(5, 8);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 3);
+        const aBottomRight = new Walkontable.CellCoords(5, 8);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(6, 0);
-        var bBottomRight = new Walkontable.CellCoords(11, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(6, 0);
+        const bBottomRight = new Walkontable.CellCoords(11, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(false);
 
@@ -1098,13 +1098,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('not overlapping from W', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(0, 6);
-        var aBottomRight = new Walkontable.CellCoords(5, 11);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 6);
+        const aBottomRight = new Walkontable.CellCoords(5, 11);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(3, 0);
-        var bBottomRight = new Walkontable.CellCoords(6, 3);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(3, 0);
+        const bBottomRight = new Walkontable.CellCoords(6, 3);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(false);
 
@@ -1120,13 +1120,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('not overlapping from NW', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(0, 6);
-        var aBottomRight = new Walkontable.CellCoords(3, 11);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(0, 6);
+        const aBottomRight = new Walkontable.CellCoords(3, 11);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 0);
-        var bBottomRight = new Walkontable.CellCoords(5, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 0);
+        const bBottomRight = new Walkontable.CellCoords(5, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(false);
 
@@ -1142,13 +1142,13 @@ describe('Walkontable.CellRange', () => {
        */
       it('not overlapping from N', () => {
 
-        var aTopLeft = new Walkontable.CellCoords(6, 0);
-        var aBottomRight = new Walkontable.CellCoords(11, 5);
-        var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+        const aTopLeft = new Walkontable.CellCoords(6, 0);
+        const aBottomRight = new Walkontable.CellCoords(11, 5);
+        const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-        var bTopLeft = new Walkontable.CellCoords(0, 0);
-        var bBottomRight = new Walkontable.CellCoords(5, 5);
-        var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+        const bTopLeft = new Walkontable.CellCoords(0, 0);
+        const bBottomRight = new Walkontable.CellCoords(5, 5);
+        const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
         expect(a.overlaps(b)).toBe(false);
       });
@@ -1157,13 +1157,13 @@ describe('Walkontable.CellRange', () => {
 
   describe('expand by range', () => {
     it('should not expand range A with range B if A includes B', () => {
-      var aTopLeft = new Walkontable.CellCoords(0, 0);
-      var aBottomRight = new Walkontable.CellCoords(5, 5);
-      var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+      const aTopLeft = new Walkontable.CellCoords(0, 0);
+      const aBottomRight = new Walkontable.CellCoords(5, 5);
+      const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-      var bTopLeft = new Walkontable.CellCoords(2, 2);
-      var bBottomRight = new Walkontable.CellCoords(4, 4);
-      var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+      const bTopLeft = new Walkontable.CellCoords(2, 2);
+      const bBottomRight = new Walkontable.CellCoords(4, 4);
+      const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
       expect(a.expandByRange(b)).toBe(false);
 
@@ -1174,13 +1174,13 @@ describe('Walkontable.CellRange', () => {
     });
 
     it('should not expand range A with range B if A and B don\'t overlap', () => {
-      var aTopLeft = new Walkontable.CellCoords(0, 0);
-      var aBottomRight = new Walkontable.CellCoords(5, 5);
-      var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+      const aTopLeft = new Walkontable.CellCoords(0, 0);
+      const aBottomRight = new Walkontable.CellCoords(5, 5);
+      const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-      var bTopLeft = new Walkontable.CellCoords(10, 10);
-      var bBottomRight = new Walkontable.CellCoords(15, 15);
-      var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+      const bTopLeft = new Walkontable.CellCoords(10, 10);
+      const bBottomRight = new Walkontable.CellCoords(15, 15);
+      const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
       expect(a.expandByRange(b)).toBe(false);
 
@@ -1191,13 +1191,13 @@ describe('Walkontable.CellRange', () => {
     });
 
     it('should not expand range A with range B', () => {
-      var aTopLeft = new Walkontable.CellCoords(0, 0);
-      var aBottomRight = new Walkontable.CellCoords(5, 5);
-      var a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
+      const aTopLeft = new Walkontable.CellCoords(0, 0);
+      const aBottomRight = new Walkontable.CellCoords(5, 5);
+      const a = new Walkontable.CellRange(aTopLeft, aTopLeft, aBottomRight);
 
-      var bTopLeft = new Walkontable.CellCoords(2, 2);
-      var bBottomRight = new Walkontable.CellCoords(7, 7);
-      var b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
+      const bTopLeft = new Walkontable.CellCoords(2, 2);
+      const bBottomRight = new Walkontable.CellCoords(7, 7);
+      const b = new Walkontable.CellRange(bTopLeft, bTopLeft, bBottomRight);
 
       expect(a.expandByRange(b)).toBe(true);
 
@@ -1210,21 +1210,21 @@ describe('Walkontable.CellRange', () => {
 
   describe('forAll', () => {
     it('callback should be called for all cells in the range', () => {
-      var from = new Walkontable.CellCoords(1, 1);
-      var to = new Walkontable.CellCoords(3, 3);
-      var range = new Walkontable.CellRange(from, from, to);
-      var forAllCallback = jasmine.createSpy('beforeColumnSortHandler');
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(3, 3);
+      const range = new Walkontable.CellRange(from, from, to);
+      const forAllCallback = jasmine.createSpy('beforeColumnSortHandler');
       range.forAll(forAllCallback);
 
       expect(forAllCallback.calls.count()).toBe(9);
     });
 
     it('callback should be called with row, column parameters', () => {
-      var from = new Walkontable.CellCoords(1, 1);
-      var to = new Walkontable.CellCoords(2, 2);
-      var range = new Walkontable.CellRange(from, from, to);
-      var rows = [];
-      var cols = [];
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(2, 2);
+      const range = new Walkontable.CellRange(from, from, to);
+      const rows = [];
+      const cols = [];
       range.forAll((row, col) => {
         rows.push(row);
         cols.push(col);
@@ -1234,10 +1234,10 @@ describe('Walkontable.CellRange', () => {
     });
 
     it('iteration should be interrupted when callback returns false', () => {
-      var from = new Walkontable.CellCoords(1, 1);
-      var to = new Walkontable.CellCoords(2, 2);
-      var range = new Walkontable.CellRange(from, from, to);
-      var callCount = 0;
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(2, 2);
+      const range = new Walkontable.CellRange(from, from, to);
+      let callCount = 0;
       range.forAll((row, col) => {
         callCount++;
         if (callCount == 2) {
@@ -1248,11 +1248,11 @@ describe('Walkontable.CellRange', () => {
     });
   });
 
-  describe('change direction', () => {
+  describe('direction', () => {
     it('should properly change direction on NW-SE', () => {
-      var from = new Walkontable.CellCoords(2, 1);
-      var to = new Walkontable.CellCoords(1, 2);
-      var range = new Walkontable.CellRange(from, from, to);
+      const from = new Walkontable.CellCoords(2, 1);
+      const to = new Walkontable.CellCoords(1, 2);
+      const range = new Walkontable.CellRange(from, from, to);
 
       expect(range.getDirection()).toBe('SW-NE');
 
@@ -1266,9 +1266,9 @@ describe('Walkontable.CellRange', () => {
     });
 
     it('should properly change direction on NE-SW', () => {
-      var from = new Walkontable.CellCoords(2, 1);
-      var to = new Walkontable.CellCoords(1, 2);
-      var range = new Walkontable.CellRange(from, from, to);
+      const from = new Walkontable.CellCoords(2, 1);
+      const to = new Walkontable.CellCoords(1, 2);
+      const range = new Walkontable.CellRange(from, from, to);
 
       expect(range.getDirection()).toBe('SW-NE');
 
@@ -1282,9 +1282,9 @@ describe('Walkontable.CellRange', () => {
     });
 
     it('should properly change direction on SE-NW', () => {
-      var from = new Walkontable.CellCoords(1, 1);
-      var to = new Walkontable.CellCoords(2, 2);
-      var range = new Walkontable.CellRange(from, from, to);
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(2, 2);
+      const range = new Walkontable.CellRange(from, from, to);
 
       expect(range.getDirection()).toBe('NW-SE');
 
@@ -1298,9 +1298,9 @@ describe('Walkontable.CellRange', () => {
     });
 
     it('should properly change direction on SW-NE', () => {
-      var from = new Walkontable.CellCoords(1, 1);
-      var to = new Walkontable.CellCoords(2, 2);
-      var range = new Walkontable.CellRange(from, from, to);
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(2, 2);
+      const range = new Walkontable.CellRange(from, from, to);
 
       expect(range.getDirection()).toBe('NW-SE');
 
@@ -1311,6 +1311,64 @@ describe('Walkontable.CellRange', () => {
       expect(range.from.col).toBe(1);
       expect(range.to.row).toBe(1);
       expect(range.to.col).toBe(2);
+    });
+
+    it('should properly return the vertical direction of a range', () => {
+      let from = new Walkontable.CellCoords(1, 1);
+      let to = new Walkontable.CellCoords(2, 2);
+      let range = new Walkontable.CellRange(from, from, to);
+
+      expect(range.getVerticalDirection()).toEqual('N-S');
+
+      from = new Walkontable.CellCoords(2, 2);
+      to = new Walkontable.CellCoords(1, 1);
+      range = new Walkontable.CellRange(from, from, to);
+
+      expect(range.getVerticalDirection()).toEqual('S-N');
+    });
+
+    it('should properly return the horizontal direction of a range', () => {
+      let from = new Walkontable.CellCoords(1, 1);
+      let to = new Walkontable.CellCoords(2, 2);
+      let range = new Walkontable.CellRange(from, from, to);
+
+      expect(range.getHorizontalDirection()).toEqual('W-E');
+
+      from = new Walkontable.CellCoords(2, 2);
+      to = new Walkontable.CellCoords(1, 1);
+      range = new Walkontable.CellRange(from, from, to);
+
+      expect(range.getHorizontalDirection()).toEqual('E-W');
+    });
+
+    it('should flip the direction vertically when using the `flipDirectionVertically` method', () => {
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(2, 2);
+      const range = new Walkontable.CellRange(from, from, to);
+
+      range.flipDirectionVertically();
+
+      expect(range.from.row).toEqual(2);
+      expect(range.from.col).toEqual(1);
+      expect(range.to.row).toEqual(1);
+      expect(range.to.col).toEqual(2);
+
+      expect(range.getDirection()).toEqual('SW-NE');
+    });
+
+    it('should flip the direction horizontally when using the `flipDirectionHorizontally` method', () => {
+      const from = new Walkontable.CellCoords(1, 1);
+      const to = new Walkontable.CellCoords(2, 2);
+      const range = new Walkontable.CellRange(from, from, to);
+
+      range.flipDirectionHorizontally();
+
+      expect(range.from.row).toEqual(1);
+      expect(range.from.col).toEqual(2);
+      expect(range.to.row).toEqual(2);
+      expect(range.to.col).toEqual(1);
+
+      expect(range.getDirection()).toEqual('NE-SW');
     });
   });
 });

@@ -297,7 +297,7 @@ describe('Core_loadData', () => {
     loadData(data2);
 
     expect(countRows()).toBe(data2.length);
-    expect(getSelected()).toEqual([4, 0, 4, 0]);
+    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
   });
 
   it('should remove grid rows if new data source has less of them (with minSpareRows)', () => {
@@ -330,7 +330,7 @@ describe('Core_loadData', () => {
     loadData(data2);
 
     expect(countRows()).toBe(6); // +1 because of minSpareRows
-    expect(getSelected()).toEqual([5, 0, 5, 0]);
+    expect(getSelected()).toEqual([[5, 0, 5, 0]]);
   });
 
   it('loading empty data should remove all rows', () => {
@@ -356,7 +356,7 @@ describe('Core_loadData', () => {
     loadData(data2);
 
     expect(countRows()).toBe(0);
-    expect(getSelected()).toBe(void 0);
+    expect(getSelected()).toBeUndefined();
   });
 
   it('should only have as many columns as in settings', () => {

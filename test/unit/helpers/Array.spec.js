@@ -1,23 +1,22 @@
 import {
-  arrayFlatten,
   arrayAvg,
-  arraySum,
+  arrayEach,
+  arrayFilter,
+  arrayFlatten,
   arrayMap,
-  arrayMin,
   arrayMax,
+  arrayMin,
+  arrayReduce,
+  arraySum,
 } from 'handsontable/helpers/array';
 
 describe('Array helper', () => {
-  //
-  // Handsontable.helper.arrayFlatten
-  //
-  describe('arrayFlatten', () => {
-    it('should returns the flattened array', () => {
-      expect(arrayFlatten([1])).toEqual([1]);
-      expect(arrayFlatten([1, 2, 3, [4, 5, 6]])).toEqual([1, 2, 3, 4, 5, 6]);
-      expect(arrayFlatten([1, [[[2]]], 3, [[4], [5], [6]]])).toEqual([1, 2, 3, 4, 5, 6]);
-    });
-  });
+  const iterableObject = {
+    _myArray: [2, 6, 3, 1],
+    [Symbol.iterator]() {
+      return this._myArray[Symbol.iterator]();
+    }
+  };
 
   //
   // Handsontable.helper.arrayAvg
@@ -30,13 +29,116 @@ describe('Array helper', () => {
   });
 
   //
-  // Handsontable.helper.arraySum
+  // Handsontable.helper.arrayEach
   //
-  describe('arraySum', () => {
-    it('should returns the cumulative value', () => {
-      expect(arraySum([1])).toBe(1);
-      expect(arraySum([1, 1, 2, 3, 4])).toBe(11);
-      expect(arraySum([1, 1, 0, 3.1, 4.2])).toBe(9.3);
+  describe('arrayEach', () => {
+    it('should call callback with proper arguments for input data passed as an array', () => {
+      const cb = jasmine.createSpy('cb');
+
+      cb.and.callFake((value) => true);
+
+      arrayEach([4, 5, 2, 15], cb);
+
+      expect(cb.calls.count()).toBe(4);
+      expect(cb.calls.argsFor(0)).toEqual([4, 0, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(1)).toEqual([5, 1, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(2)).toEqual([2, 2, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(3)).toEqual([15, 3, [4, 5, 2, 15]]);
+    });
+
+    it('should call callback with proper arguments for input data passed as an object with implemented iterator protocol', () => {
+      const cb = jasmine.createSpy('cb');
+
+      cb.and.callFake((value) => true);
+
+      arrayEach(iterableObject, cb);
+
+      expect(cb.calls.count()).toBe(4);
+      expect(cb.calls.argsFor(0)).toEqual([2, 0, [2, 6, 3, 1]]);
+      expect(cb.calls.argsFor(1)).toEqual([6, 1, [2, 6, 3, 1]]);
+      expect(cb.calls.argsFor(2)).toEqual([3, 2, [2, 6, 3, 1]]);
+      expect(cb.calls.argsFor(3)).toEqual([1, 3, [2, 6, 3, 1]]);
+    });
+
+    it('should break the loop on first invocation when the callback returns `false`', () => {
+      const cb = jasmine.createSpy('cb');
+
+      cb.and.callFake((value) => false);
+
+      arrayEach([4, 5, 2, 15], cb);
+
+      expect(cb.calls.count()).toBe(1);
+      expect(cb.calls.argsFor(0)).toEqual([4, 0, [4, 5, 2, 15]]);
+    });
+
+    it('should break the loop on when callback returns `false`', () => {
+      const cb = jasmine.createSpy('cb');
+
+      cb.and.callFake((value) => value !== 2);
+
+      arrayEach([4, 5, 2, 15], cb);
+
+      expect(cb.calls.count()).toBe(3);
+      expect(cb.calls.argsFor(0)).toEqual([4, 0, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(1)).toEqual([5, 1, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(2)).toEqual([2, 2, [4, 5, 2, 15]]);
+    });
+  });
+
+  //
+  // Handsontable.helper.arrayFilter
+  //
+  describe('arrayFilter', () => {
+    it('should call callback with proper arguments for input data passed as an array', () => {
+      const cb = jasmine.createSpy('cb');
+
+      cb.and.callFake((value) => true);
+
+      arrayFilter([4, 5, 2, 15], cb);
+
+      expect(cb.calls.count()).toBe(4);
+      expect(cb.calls.argsFor(0)).toEqual([4, 0, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(1)).toEqual([5, 1, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(2)).toEqual([2, 2, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(3)).toEqual([15, 3, [4, 5, 2, 15]]);
+    });
+
+    it('should call callback with proper arguments for input data passed as an object with implemented iterator protocol', () => {
+      const cb = jasmine.createSpy('cb');
+
+      cb.and.callFake((value) => true);
+
+      arrayFilter(iterableObject, cb);
+
+      expect(cb.calls.count()).toBe(4);
+      expect(cb.calls.argsFor(0)).toEqual([2, 0, [2, 6, 3, 1]]);
+      expect(cb.calls.argsFor(1)).toEqual([6, 1, [2, 6, 3, 1]]);
+      expect(cb.calls.argsFor(2)).toEqual([3, 2, [2, 6, 3, 1]]);
+      expect(cb.calls.argsFor(3)).toEqual([1, 3, [2, 6, 3, 1]]);
+    });
+
+    it('should return new an array with filtered values', () => {
+      const cb = jasmine.createSpy('cb');
+      const data = [4, 5, 2, 15];
+
+      cb.and.callFake((value) => value % 2);
+
+      arrayFilter(data, cb);
+
+      expect(arrayFilter(data, cb)).not.toBe(data);
+      expect(data).toEqual([4, 5, 2, 15]);
+      expect(arrayFilter(data, cb)).toEqual([5, 15]);
+    });
+  });
+
+  //
+  // Handsontable.helper.arrayFlatten
+  //
+  describe('arrayFlatten', () => {
+    it('should returns the flattened array', () => {
+      expect(arrayFlatten([1])).toEqual([1]);
+      expect(arrayFlatten([1, 2, 3, [4, 5, 6]])).toEqual([1, 2, 3, 4, 5, 6]);
+      expect(arrayFlatten([1, [[[2]]], 3, [[4], [5], [6]]])).toEqual([1, 2, 3, 4, 5, 6]);
     });
   });
 
@@ -48,22 +150,33 @@ describe('Array helper', () => {
       expect(arrayMap([1], (a) => a + 1)).toEqual([2]);
       expect(arrayMap([1, 2, 3], () => '')).toEqual(['', '', '']);
     });
-  });
 
-  //
-  // Handsontable.helper.arrayMin
-  //
-  describe('arrayMin', () => {
-    it('should returns the lowest number from an array (array of numbers)', () => {
-      expect(arrayMin([])).toBeUndefined();
-      expect(arrayMin([0])).toBe(0);
-      expect(arrayMin([0, 0, 0, -1, 3, 2])).toBe(-1);
+    it('should call callback with proper arguments for input data passed as an array', () => {
+      const cb = jasmine.createSpy('cb');
+
+      cb.and.callFake((value) => value);
+
+      arrayMap([4, 5, 2, 15], cb);
+
+      expect(cb.calls.count()).toBe(4);
+      expect(cb.calls.argsFor(0)).toEqual([4, 0, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(1)).toEqual([5, 1, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(2)).toEqual([2, 2, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(3)).toEqual([15, 3, [4, 5, 2, 15]]);
     });
 
-    it('should returns the lowest string from an array (array of strings)', () => {
-      expect(arrayMin(['b', 'a', 'A', 'z', '1'])).toBe('1');
-      expect(arrayMin(['b', 'a', 'A', 'z'])).toBe('A');
-      expect(arrayMin(['b', 'a', 'z'])).toBe('a');
+    it('should call callback with proper arguments for input data passed as an object with implemented iterator protocol', () => {
+      const cb = jasmine.createSpy('cb');
+
+      cb.and.callFake((value) => value);
+
+      arrayMap(iterableObject, cb);
+
+      expect(cb.calls.count()).toBe(4);
+      expect(cb.calls.argsFor(0)).toEqual([2, 0, [2, 6, 3, 1]]);
+      expect(cb.calls.argsFor(1)).toEqual([6, 1, [2, 6, 3, 1]]);
+      expect(cb.calls.argsFor(2)).toEqual([3, 2, [2, 6, 3, 1]]);
+      expect(cb.calls.argsFor(3)).toEqual([1, 3, [2, 6, 3, 1]]);
     });
   });
 
@@ -75,12 +188,92 @@ describe('Array helper', () => {
       expect(arrayMax([])).toBeUndefined();
       expect(arrayMax([0])).toBe(0);
       expect(arrayMax([0, 0, 0, -1, 3, 2])).toBe(3);
+      expect(arrayMax(iterableObject)).toBe(6);
     });
 
     it('should returns the highest string from an array (array of strings)', () => {
       expect(arrayMax(['b', 'a', 'A', 'z', 'Z', '1'])).toBe('z');
       expect(arrayMax(['b', 'a', 'A', 'Z', '1'])).toBe('b');
       expect(arrayMax(['a', 'A', 'Z', '1'])).toBe('a');
+    });
+  });
+
+  //
+  // Handsontable.helper.arrayMin
+  //
+  describe('arrayMin', () => {
+    it('should returns the lowest number from an array (array of numbers)', () => {
+      expect(arrayMin([])).toBeUndefined();
+      expect(arrayMin([0])).toBe(0);
+      expect(arrayMin([0, 0, 0, -1, 3, 2])).toBe(-1);
+      expect(arrayMin(iterableObject)).toBe(1);
+    });
+
+    it('should returns the lowest string from an array (array of strings)', () => {
+      expect(arrayMin(['b', 'a', 'A', 'z', '1'])).toBe('1');
+      expect(arrayMin(['b', 'a', 'A', 'z'])).toBe('A');
+      expect(arrayMin(['b', 'a', 'z'])).toBe('a');
+    });
+  });
+
+  //
+  // Handsontable.helper.arrayReduce
+  //
+  describe('arrayReduce', () => {
+    it('should call callback with proper arguments for input data passed as an array', () => {
+      const cb = jasmine.createSpy('cb');
+
+      cb.and.callFake((acc, value) => acc + value);
+
+      arrayReduce([4, 5, 2, 15], cb, 0);
+
+      expect(cb.calls.count()).toBe(4);
+      expect(cb.calls.argsFor(0)).toEqual([0, 4, 0, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(1)).toEqual([4, 5, 1, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(2)).toEqual([9, 2, 2, [4, 5, 2, 15]]);
+      expect(cb.calls.argsFor(3)).toEqual([11, 15, 3, [4, 5, 2, 15]]);
+    });
+
+    it('should return sum of all values', () => {
+      const data = [4, 5, 2, 15];
+
+      expect(arrayReduce(data, (acc, value) => acc + value, 0)).toBe(26);
+    });
+
+    it('should return an array with multipled values', () => {
+      const data = [4, 5, 2, 15];
+
+      expect(arrayReduce(data, (acc, value) => {
+        acc.push(value * value);
+
+        return acc;
+      }, [])).toEqual([16, 25, 4, 225]);
+    });
+
+    it('should call callback with proper arguments for input data passed as an object with implemented iterator protocol', () => {
+      const cb = jasmine.createSpy('cb');
+
+      cb.and.callFake((acc, value) => acc + value);
+
+      arrayReduce(iterableObject, cb, 0);
+
+      expect(cb.calls.count()).toBe(4);
+      expect(cb.calls.argsFor(0)).toEqual([0, 2, 0, [2, 6, 3, 1]]);
+      expect(cb.calls.argsFor(1)).toEqual([2, 6, 1, [2, 6, 3, 1]]);
+      expect(cb.calls.argsFor(2)).toEqual([8, 3, 2, [2, 6, 3, 1]]);
+      expect(cb.calls.argsFor(3)).toEqual([11, 1, 3, [2, 6, 3, 1]]);
+    });
+  });
+
+  //
+  // Handsontable.helper.arraySum
+  //
+  describe('arraySum', () => {
+    it('should returns the cumulative value', () => {
+      expect(arraySum([1])).toBe(1);
+      expect(arraySum([1, 1, 2, 3, 4])).toBe(11);
+      expect(arraySum([1, 1, 0, 3.1, 4.2])).toBe(9.3);
+      expect(arraySum(iterableObject)).toBe(12);
     });
   });
 });

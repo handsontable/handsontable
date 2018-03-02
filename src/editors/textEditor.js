@@ -93,16 +93,14 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       }
       break;
 
-    case KEY_CODES.ENTER:
-      var selected = that.instance.getSelected();
-      var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
+    case KEY_CODES.ENTER: {
+      let isMultipleSelection = this.selection.isMultiple();
+
       if ((ctrlDown && !isMultipleSelection) || event.altKey) { // if ctrl+enter or alt+enter, add new line
         if (that.isOpened()) {
-          var
-            caretPosition = getCaretPosition(that.TEXTAREA),
-            value = that.getValue();
-
-          var newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
+          let caretPosition = getCaretPosition(that.TEXTAREA);
+          let value = that.getValue();
+          let newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
 
           that.setValue(newValue);
 
@@ -115,7 +113,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       }
       event.preventDefault(); // don't add newline to field
       break;
-
+    }
     case KEY_CODES.A:
     case KEY_CODES.X:
     case KEY_CODES.C:
@@ -300,12 +298,12 @@ TextEditor.prototype.refreshDimensions = function() {
       break;
   }
 
-  if (colHeadersCount && this.instance.getSelected()[0] === 0 ||
-      (settings.fixedRowsBottom && this.instance.getSelected()[0] === totalRowsCount - settings.fixedRowsBottom)) {
+  if (colHeadersCount && this.instance.getSelectedLast()[0] === 0 ||
+      (settings.fixedRowsBottom && this.instance.getSelectedLast()[0] === totalRowsCount - settings.fixedRowsBottom)) {
     editTop += 1;
   }
 
-  if (this.instance.getSelected()[1] === 0) {
+  if (this.instance.getSelectedLast()[1] === 0) {
     editLeft += 1;
   }
 
