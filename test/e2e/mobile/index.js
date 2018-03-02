@@ -13,19 +13,14 @@ if (typeof __ENV_ARGS__ === 'object' && __ENV_ARGS__.testPathPattern) {
   }
 }
 
-const ignoredE2ETestsPath = './mobile';
-
 [
-  require.context('.', true, /\.spec\.js$/),
-  require.context('./../../src/plugins', true, /\.e2e\.js$/),
+  require.context('.', true, /\.spec\.js$/)
 ].forEach((req) => {
   req.keys().forEach((filePath) => {
-    if (filePath.includes(ignoredE2ETestsPath) === false) {
-      if (testPathRegExp === null || (testPathRegExp instanceof RegExp && testPathRegExp.test(filePath))) {
-        req(filePath);
-      }
+    if (testPathRegExp === null || (testPathRegExp instanceof RegExp && testPathRegExp.test(filePath))) {
+      req(filePath);
     }
   });
 });
 
-require('./MemoryLeakTest');
+require('../MemoryLeakTest');
