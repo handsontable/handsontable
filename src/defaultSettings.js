@@ -1,5 +1,5 @@
 import {isDefined} from './helpers/mixed';
-import {isObjectEquals} from './helpers/object';
+import {isObjectEqual} from './helpers/object';
 
 /**
  * @alias Options
@@ -507,12 +507,20 @@ DefaultSettings.prototype = {
   allowRemoveColumn: true,
 
   /**
-   * If true, selection of multiple cells using keyboard or mouse is allowed.
+   * @description
+   * Defines how the table selection reacts. The selection support three different behaviors defined as:
+   *  * `'single'` Only a single cell can be selected.
+   *  * `'range'` Multiple cells within a single range can be selected.
+   *  * `'multiple'` Multiple ranges of cells can be selected.
    *
-   * @type {Boolean}
-   * @default true
+   * To see how to interact with selection by getting selected data or change styles of the selected cells go to
+   * [https://docs.handsontable.com/demo-selecting-ranges.html](https://docs.handsontable.com/demo-selecting-ranges.html).
+   *
+   * @since 0.36.0
+   * @type {String}
+   * @default 'multiple'
    */
-  multiSelect: true,
+  selectionMode: 'multiple',
 
   /**
    * Enables the fill handle (drag-down and copy-down) functionality, which shows a small rectangle in bottom
@@ -764,7 +772,7 @@ DefaultSettings.prototype = {
         if (typeof value === 'object') {
           meta = this.getCellMeta(row, col);
 
-          return isObjectEquals(this.getSchema()[meta.prop], value);
+          return isObjectEqual(this.getSchema()[meta.prop], value);
         }
         return false;
       }
@@ -1407,8 +1415,9 @@ DefaultSettings.prototype = {
    * Possible values:
    *  * `true` - Disables any type of visual selection (current and area selection),
    *  * `false` - Enables any type of visual selection. This is default value.
-   *  * `current` - Disables the selection of a currently selected cell, the area selection is still present.
-   *  * `area` - Disables the area selection, the currently selected cell selection is still present.
+   *  * `'current'` - Disables the selection of a currently selected cell, the area selection is still present.
+   *  * `'area'` - Disables the area selection, the currently selected cell selection is still present.
+   *  * `'header'` - Disables the headers selection, the currently selected cell selection is still present (available since 0.36.0).
    *
    * @type {Boolean|String|Array}
    * @default false
@@ -1421,7 +1430,7 @@ DefaultSettings.prototype = {
    * ...
    *
    * ...
-   * // as string ('current' or 'area')
+   * // as string ('current', 'area' or 'header')
    * disableVisualSelection: 'current',
    * ...
    *

@@ -1,4 +1,5 @@
 import {hasOwnProperty} from './../../helpers/object';
+import {arrayEach} from './../../helpers/array';
 
 /**
  * Create separated class name for borders for each cell.
@@ -98,20 +99,22 @@ export function extendDefaultBorder(defaultBorder, customBorder) {
 export function checkSelectionBorders(hot, direction) {
   let atLeastOneHasBorder = false;
 
-  hot.getSelectedRange().forAll((r, c) => {
-    let metaBorders = hot.getCellMeta(r, c).borders;
+  arrayEach(hot.getSelectedRange(), (range) => {
+    range.forAll((r, c) => {
+      let metaBorders = hot.getCellMeta(r, c).borders;
 
-    if (metaBorders) {
-      if (direction) {
-        if (!hasOwnProperty(metaBorders[direction], 'hide')) {
+      if (metaBorders) {
+        if (direction) {
+          if (!hasOwnProperty(metaBorders[direction], 'hide')) {
+            atLeastOneHasBorder = true;
+            return false; // breaks forAll
+          }
+        } else {
           atLeastOneHasBorder = true;
           return false; // breaks forAll
         }
-      } else {
-        atLeastOneHasBorder = true;
-        return false; // breaks forAll
       }
-    }
+    });
   });
 
   return atLeastOneHasBorder;

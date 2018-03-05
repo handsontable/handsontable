@@ -6,6 +6,8 @@ import {
   CellRange,
   Selection
 } from './../../3rdparty/walkontable/src';
+import Hooks from './../../pluginHooks';
+import {arrayEach} from './../../helpers/array';
 import * as C from './../../i18n/constants';
 import bottom from './contextMenuItem/bottom';
 import left from './contextMenuItem/left';
@@ -137,9 +139,17 @@ class CustomBorders extends BasePlugin {
    * @returns {Number}
    */
   getSettingIndex(className) {
-    this.hot.view.wt.selections.findIndex((element) => element.settings.className === className);
+    let index = -1;
 
-    return -1;
+    arrayEach(this.hot.selection.highlight.borders, (selection, i) => {
+      if (selection.settings.className === className) {
+        index = i;
+
+        return false;
+      }
+    });
+
+    return index;
   }
 
   /**
@@ -156,9 +166,9 @@ class CustomBorders extends BasePlugin {
     let index = this.getSettingIndex(border.className);
 
     if (index >= 0) {
-      this.hot.view.wt.selections[index] = selection;
+      this.hot.selection.highlight.borders[index] = selection;
     } else {
-      this.hot.view.wt.selections.push(selection);
+      this.hot.selection.highlight.borders.push(selection);
     }
   }
 
@@ -294,56 +304,57 @@ class CustomBorders extends BasePlugin {
   /**
    * Prepare borders based on cell and border position.
    *
-   * @param {Object} range CellRange object.
+   * @param {Object} selected
    * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right` and `noBorders`.
    * @param {Boolean} remove True when remove borders, and false when add borders.
    */
-  prepareBorder(range, place, remove) {
-    if (range.from.row === range.to.row && range.from.col === range.to.col) {
-      if (place === 'noBorders') {
-        this.removeAllBorders(range.from.row, range.from.col);
+  prepareBorder(selected, place, remove) {
+    arrayEach(selected, ({start, end}) => {
+      if (start.row === end.row && start.col === end.col) {
+        if (place === 'noBorders') {
+          this.removeAllBorders(start.row, start.col);
+        } else {
+          this.setBorder(start.row, start.col, place, remove);
+        }
+
       } else {
-        this.setBorder(range.from.row, range.from.col, place, remove);
-      }
-
-    } else {
-      switch (place) {
-        case 'noBorders':
-          rangeEach(range.from.col, range.to.col, (colIndex) => {
-            rangeEach(range.from.row, range.to.row, (rowIndex) => {
-              this.removeAllBorders(rowIndex, colIndex);
+        switch (place) {
+          case 'noBorders':
+            rangeEach(start.col, end.col, (colIndex) => {
+              rangeEach(start.row, end.row, (rowIndex) => {
+                this.removeAllBorders(rowIndex, colIndex);
+              });
             });
-          });
-          break;
+            break;
 
-        case 'top':
-          rangeEach(range.from.col, range.to.col, (topCol) => {
-            this.setBorder(range.from.row, topCol, place, remove);
-          });
-          break;
+          case 'top':
+            rangeEach(start.col, end.col, (topCol) => {
+              this.setBorder(start.row, topCol, place, remove);
+            });
+            break;
 
-        case 'right':
-          rangeEach(range.from.row, range.to.row, (rowRight) => {
-            this.setBorder(rowRight, range.to.col, place);
-          });
-          break;
+          case 'right':
+            rangeEach(start.row, end.row, (rowRight) => {
+              this.setBorder(rowRight, end.col, place);
+            });
+            break;
 
-        case 'bottom':
-          rangeEach(range.from.col, range.to.col, (bottomCol) => {
-            this.setBorder(range.to.row, bottomCol, place);
-          });
-          break;
+          case 'bottom':
+            rangeEach(start.col, end.col, (bottomCol) => {
+              this.setBorder(end.row, bottomCol, place);
+            });
+            break;
 
-        case 'left':
-          rangeEach(range.from.row, range.to.row, (rowLeft) => {
-            this.setBorder(rowLeft, range.from.col, place);
-          });
-          break;
-
-        default:
-          break;
+          case 'left':
+            rangeEach(start.row, end.row, (rowLeft) => {
+              this.setBorder(rowLeft, start.col, place);
+            });
+            break;
+          default:
+            break;
+        }
       }
-    }
+    });
   }
 
   /**

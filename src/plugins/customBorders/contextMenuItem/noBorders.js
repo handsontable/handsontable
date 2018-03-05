@@ -7,8 +7,8 @@ export default function noBorders(customBordersPlugin) {
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_BORDERS);
     },
-    callback() {
-      customBordersPlugin.prepareBorder(this.getSelectedRange(), 'noBorders');
+    callback(key, selected) {
+      customBordersPlugin.prepareBorder(selected, 'noBorders');
     },
     disabled() {
       return !checkSelectionBorders(this);

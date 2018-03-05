@@ -129,7 +129,7 @@ class ManualColumnFreeze extends BasePlugin {
     priv.moveByFreeze = true;
     settings.fixedColumnsLeft--;
 
-    this.getMovePlugin().moveColumn(column, returnCol);
+    this.getMovePlugin().moveColumn(column, returnCol + 1);
   }
 
   /**

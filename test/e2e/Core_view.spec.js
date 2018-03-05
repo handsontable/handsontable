@@ -26,7 +26,7 @@ describe('Core_view', () => {
     keyDown('arrow_down');
     keyDown('arrow_down');
 
-    expect(getSelected()).toEqual([4, 0, 4, 0]);
+    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
 
     keyDown('enter');
 
@@ -98,7 +98,7 @@ describe('Core_view', () => {
     htCore.find('tr:eq(3) td:eq(0)').simulate('mousedown');
 
     expect(hot.rootElement.querySelector('.wtHolder').scrollTop).toBeGreaterThan(scrollTop);
-    expect(getSelected()).toEqual([3, 0, 3, 0]);
+    expect(getSelected()).toEqual([[3, 0, 3, 0]]);
   });
 
   it('should scroll viewport without cell selection', function() {
@@ -317,7 +317,7 @@ describe('Core_view', () => {
 
     keyDown('arrow_right');
 
-    expect(getSelected()).toEqual([39, 1, 39, 1]);
+    expect(getSelected()).toEqual([[39, 1, 39, 1]]);
     expect($(window).scrollTop()).toEqual(lastScroll);
   });
 

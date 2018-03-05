@@ -192,9 +192,12 @@ class ManualRowMove extends BasePlugin {
         let actualPosition = this.rowsMapper.getIndexByValue(row);
 
         if (actualPosition !== target) {
-          this.rowsMapper.swapIndexes(actualPosition, target + index);
+          this.rowsMapper.moveRow(actualPosition, target + index);
         }
       });
+
+      // after moving we have to clear rowsMapper from null entries
+      this.rowsMapper.clearNull();
     }
 
     this.hot.runHooks('afterRowMove', rows, target);
@@ -308,7 +311,7 @@ class ManualRowMove extends BasePlugin {
    * @returns {Array}
    */
   prepareRowsToMoving() {
-    let selection = this.hot.getSelectedRange();
+    let selection = this.hot.getSelectedRangeLast();
     let selectedRows = [];
 
     if (!selection) {
@@ -485,7 +488,7 @@ class ManualRowMove extends BasePlugin {
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     let wtTable = this.hot.view.wt.wtTable;
     let isHeaderSelection = this.hot.selection.selectedHeader.rows;
-    let selection = this.hot.getSelectedRange();
+    let selection = this.hot.getSelectedRangeLast();
     let priv = privatePool.get(this);
 
     if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0) {
@@ -569,7 +572,7 @@ class ManualRowMove extends BasePlugin {
    * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
   onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
-    let selectedRange = this.hot.getSelectedRange();
+    let selectedRange = this.hot.getSelectedRangeLast();
     let priv = privatePool.get(this);
 
     if (!selectedRange || !priv.pressed) {
@@ -597,6 +600,7 @@ class ManualRowMove extends BasePlugin {
    */
   onMouseUp() {
     let priv = privatePool.get(this);
+    let target = priv.target.row;
     let rowsLen = priv.rowsToMove.length;
 
     priv.pressed = false;
@@ -608,12 +612,12 @@ class ManualRowMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
-    if (rowsLen < 1 || priv.target.row === void 0 || priv.rowsToMove.indexOf(priv.target.row) > -1 ||
-        (priv.rowsToMove[rowsLen - 1] === priv.target.row - 1)) {
+    if (rowsLen < 1 || target === void 0 || priv.rowsToMove.indexOf(target) > -1 ||
+        (priv.rowsToMove[rowsLen - 1] === target - 1)) {
       return;
     }
 
-    this.moveRows(priv.rowsToMove, priv.target.coords.row);
+    this.moveRows(priv.rowsToMove, target);
 
     this.persistentStateSave();
     this.hot.render();

@@ -1,22 +1,55 @@
 import CellCoords from './../cell/coords';
 
 /**
- * A cell range is a set of exactly two CellCoords (that can be the same or different)
+ * A cell range is a set of exactly two CellCoords (that can be the same or different).
  *
  * @class CellRange
  */
 class CellRange {
   /**
    * @param {CellCoords} highlight Used to draw bold border around a cell where selection was
-   *                                          started and to edit the cell when you press Enter
-   * @param {CellCoords} from Usually the same as highlight, but in Excel there is distinction - one can change
-   *                                     highlight within a selection
-   * @param {CellCoords} to End selection
+   *                               started and to edit the cell when you press Enter.
+   * @param {CellCoords} [from] Usually the same as highlight, but in Excel there is distinction - one can change
+   *                            highlight within a selection.
+   * @param {CellCoords} [to] End selection.
    */
-  constructor(highlight, from, to) {
+  constructor(highlight, from = highlight, to = highlight) {
     this.highlight = highlight;
     this.from = from;
     this.to = to;
+  }
+
+  /**
+   * Set the new coordinates for highlighting selection.
+   *
+   * @param {CellCoords} coords Coordinates to use.
+   */
+  setHighlight(coords) {
+    this.highlight = coords;
+
+    return this;
+  }
+
+  /**
+   * Set the new coordinates where selection starts from.
+   *
+   * @param {CellCoords} coords Coordinates to use.
+   */
+  setFrom(coords) {
+    this.from = coords;
+
+    return this;
+  }
+
+  /**
+   * Set new coordinates where selection ends from.
+   *
+   * @param {CellCoords} coords Coordinates to use.
+   */
+  setTo(coords) {
+    this.to = coords;
+
+    return this;
   }
 
   /**
@@ -63,12 +96,12 @@ class CellRange {
    * @returns {Boolean}
    */
   includes(cellCoords) {
-    let {row, col} = cellCoords;
-    let topLeft = this.getTopLeftCorner();
-    let bottomRight = this.getBottomRightCorner();
+    const {row, col} = cellCoords;
+    const topLeft = this.getTopLeftCorner();
+    const bottomRight = this.getBottomRightCorner();
 
     return topLeft.row <= row && bottomRight.row >= row &&
-        topLeft.col <= col && bottomRight.col >= col;
+      topLeft.col <= col && bottomRight.col >= col;
   }
 
   /**
@@ -88,10 +121,10 @@ class CellRange {
    * @returns {Boolean}
    */
   isEqual(testedRange) {
-    return (Math.min(this.from.row, this.to.row) == Math.min(testedRange.from.row, testedRange.to.row)) &&
-           (Math.max(this.from.row, this.to.row) == Math.max(testedRange.from.row, testedRange.to.row)) &&
-           (Math.min(this.from.col, this.to.col) == Math.min(testedRange.from.col, testedRange.to.col)) &&
-           (Math.max(this.from.col, this.to.col) == Math.max(testedRange.from.col, testedRange.to.col));
+    return (Math.min(this.from.row, this.to.row) === Math.min(testedRange.from.row, testedRange.to.row)) &&
+      (Math.max(this.from.row, this.to.row) === Math.max(testedRange.from.row, testedRange.to.row)) &&
+      (Math.min(this.from.col, this.to.col) === Math.min(testedRange.from.col, testedRange.to.col)) &&
+      (Math.max(this.from.col, this.to.col) === Math.max(testedRange.from.col, testedRange.to.col));
   }
 
   /**
@@ -122,17 +155,41 @@ class CellRange {
   }
 
   /**
+   * Returns `true` if the provided range is overlapping the current range horizontally
+   * (e.g. the current range's last column is 5 and the provided range's first column is 3).
+   *
+   * @param {CellRange} range The range to check against.
+   * @returns {Boolean}
+   */
+  isOverlappingHorizontally(range) {
+    return (this.getTopRightCorner().col >= range.getTopLeftCorner().col && this.getTopRightCorner().col <= range.getTopRightCorner().col)
+      || (this.getTopLeftCorner().col <= range.getTopRightCorner().col && this.getTopLeftCorner().col >= range.getTopLeftCorner().col);
+  }
+
+  /**
+   * Returns `true` if the provided range is overlapping the current range vertically
+   * (e.g. the current range's last row is 5 and the provided range's first row is 3).
+   *
+   * @param {CellRange} range The range to check against.
+   * @returns {Boolean}
+   */
+  isOverlappingVertically(range) {
+    return (this.getBottomRightCorner().row >= range.getTopRightCorner().row && this.getBottomRightCorner().row <= range.getBottomRightCorner().row)
+      || (this.getTopRightCorner().row <= range.getBottomRightCorner().row && this.getTopRightCorner().row >= range.getTopRightCorner().row);
+  }
+
+  /**
    * Adds a cell to a range (only if exceeds corners of the range). Returns information if range was expanded
    *
    * @param {CellCoords} cellCoords
    * @returns {Boolean}
    */
   expand(cellCoords) {
-    let topLeft = this.getTopLeftCorner();
-    let bottomRight = this.getBottomRightCorner();
+    const topLeft = this.getTopLeftCorner();
+    const bottomRight = this.getBottomRightCorner();
 
     if (cellCoords.row < topLeft.row || cellCoords.col < topLeft.col ||
-        cellCoords.row > bottomRight.row || cellCoords.col > bottomRight.col) {
+      cellCoords.row > bottomRight.row || cellCoords.col > bottomRight.col) {
       this.from = new CellCoords(Math.min(topLeft.row, cellCoords.row), Math.min(topLeft.col, cellCoords.col));
       this.to = new CellCoords(Math.max(bottomRight.row, cellCoords.row), Math.max(bottomRight.col, cellCoords.col));
 
@@ -151,36 +208,33 @@ class CellRange {
       return false;
     }
 
-    let topLeft = this.getTopLeftCorner();
-    let bottomRight = this.getBottomRightCorner();
-    let topRight = this.getTopRightCorner();
-    let bottomLeft = this.getBottomLeftCorner();
+    const topLeft = this.getTopLeftCorner();
+    const bottomRight = this.getBottomRightCorner();
+    const initialDirection = this.getDirection();
 
-    let expandingTopLeft = expandingRange.getTopLeftCorner();
-    let expandingBottomRight = expandingRange.getBottomRightCorner();
+    const expandingTopLeft = expandingRange.getTopLeftCorner();
+    const expandingBottomRight = expandingRange.getBottomRightCorner();
 
-    let resultTopRow = Math.min(topLeft.row, expandingTopLeft.row);
-    let resultTopCol = Math.min(topLeft.col, expandingTopLeft.col);
-    let resultBottomRow = Math.max(bottomRight.row, expandingBottomRight.row);
-    let resultBottomCol = Math.max(bottomRight.col, expandingBottomRight.col);
+    const resultTopRow = Math.min(topLeft.row, expandingTopLeft.row);
+    const resultTopCol = Math.min(topLeft.col, expandingTopLeft.col);
+    const resultBottomRow = Math.max(bottomRight.row, expandingBottomRight.row);
+    const resultBottomCol = Math.max(bottomRight.col, expandingBottomRight.col);
 
-    let finalFrom = new CellCoords(resultTopRow, resultTopCol),
-      finalTo = new CellCoords(resultBottomRow, resultBottomCol);
-    let isCorner = new CellRange(finalFrom, finalFrom, finalTo).isCorner(this.from, expandingRange),
-      onlyMerge = expandingRange.isEqual(new CellRange(finalFrom, finalFrom, finalTo));
+    let finalFrom = new CellCoords(resultTopRow, resultTopCol);
+    let finalTo = new CellCoords(resultBottomRow, resultBottomCol);
 
-    if (isCorner && !onlyMerge) {
-      if (this.from.col > finalFrom.col) {
-        finalFrom.col = resultBottomCol;
-        finalTo.col = resultTopCol;
-      }
-      if (this.from.row > finalFrom.row) {
-        finalFrom.row = resultBottomRow;
-        finalTo.row = resultTopRow;
-      }
-    }
     this.from = finalFrom;
     this.to = finalTo;
+
+    this.setDirection(initialDirection);
+
+    if (this.highlight.row === this.getBottomRightCorner().row && this.getVerticalDirection() === 'N-S') {
+      this.flipDirectionVertically();
+    }
+
+    if (this.highlight.col === this.getTopRightCorner().col && this.getHorizontalDirection() === 'W-E') {
+      this.flipDirectionHorizontally();
+    }
 
     return true;
   }
@@ -204,6 +258,24 @@ class CellRange {
   }
 
   /**
+   * Get the vertical direction of the range.
+   *
+   * @returns {String} Available options: `N-S` (north->south), `S-N` (south->north).
+   */
+  getVerticalDirection() {
+    return ['NE-SW', 'NW-SE'].indexOf(this.getDirection()) > -1 ? 'N-S' : 'S-N';
+  }
+
+  /**
+   * Get the horizontal direction of the range.
+   *
+   * @returns {String} Available options: `W-E` (west->east), `E-W` (east->west).
+   */
+  getHorizontalDirection() {
+    return ['NW-SE', 'SW-NE'].indexOf(this.getDirection()) > -1 ? 'W-E' : 'E-W';
+  }
+
+  /**
    * @param {String} direction
    */
   setDirection(direction) {
@@ -219,6 +291,52 @@ class CellRange {
         break;
       case 'SW-NE':
         [this.from, this.to] = [this.getBottomLeftCorner(), this.getTopRightCorner()];
+        break;
+      default:
+        break;
+    }
+  }
+
+  /**
+   * Flip the direction vertically. (e.g. `NW-SE` changes to `SW-NE`)
+   */
+  flipDirectionVertically() {
+    const direction = this.getDirection();
+    switch (direction) {
+      case 'NW-SE':
+        this.setDirection('SW-NE');
+        break;
+      case 'NE-SW':
+        this.setDirection('SE-NW');
+        break;
+      case 'SE-NW':
+        this.setDirection('NE-SW');
+        break;
+      case 'SW-NE':
+        this.setDirection('NW-SE');
+        break;
+      default:
+        break;
+    }
+  }
+
+  /**
+   * Flip the direction horizontally. (e.g. `NW-SE` changes to `NE-SW`)
+   */
+  flipDirectionHorizontally() {
+    const direction = this.getDirection();
+    switch (direction) {
+      case 'NW-SE':
+        this.setDirection('NE-SW');
+        break;
+      case 'NE-SW':
+        this.setDirection('NW-SE');
+        break;
+      case 'SE-NW':
+        this.setDirection('SW-NE');
+        break;
+      case 'SW-NE':
+        this.setDirection('SE-NW');
         break;
       default:
         break;
@@ -267,15 +385,13 @@ class CellRange {
    * @returns {*}
    */
   isCorner(coords, expandedRange) {
-    if (expandedRange) {
-      if (expandedRange.includes(coords)) {
-        if (this.getTopLeftCorner().isEqual(new CellCoords(expandedRange.from.row, expandedRange.from.col)) ||
-            this.getTopRightCorner().isEqual(new CellCoords(expandedRange.from.row, expandedRange.to.col)) ||
-            this.getBottomLeftCorner().isEqual(new CellCoords(expandedRange.to.row, expandedRange.from.col)) ||
-            this.getBottomRightCorner().isEqual(new CellCoords(expandedRange.to.row, expandedRange.to.col))) {
-          return true;
-        }
-      }
+    if (expandedRange &&
+      expandedRange.includes(coords) &&
+      (this.getTopLeftCorner().isEqual(new CellCoords(expandedRange.from.row, expandedRange.from.col)) ||
+      this.getTopRightCorner().isEqual(new CellCoords(expandedRange.from.row, expandedRange.to.col)) ||
+      this.getBottomLeftCorner().isEqual(new CellCoords(expandedRange.to.row, expandedRange.from.col)) ||
+      this.getBottomRightCorner().isEqual(new CellCoords(expandedRange.to.row, expandedRange.to.col)))) {
+      return true;
     }
 
     return coords.isEqual(this.getTopLeftCorner()) || coords.isEqual(this.getTopRightCorner()) ||
@@ -428,6 +544,19 @@ class CellRange {
         }
       }
     }
+  }
+
+  /**
+   * Convert CellRange to literal object.
+   *
+   * @return {Object} Returns a literal object with `from` and `to` properties which each of that object
+   *                  contains `row` and `col` keys.
+   */
+  toObject() {
+    return {
+      from: this.from.toObject(),
+      to: this.to.toObject(),
+    };
   }
 }
 

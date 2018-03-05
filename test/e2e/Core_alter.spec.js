@@ -51,6 +51,88 @@ describe('Core_alter', () => {
   };
 
   describe('remove row', () => {
+    describe('multiple items at once', () => {
+      it('should remove rows when index groups are passed in ascending order', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(15, 5),
+        });
+        // [[rowVisualIndex, amountRowsToRemove] ...]
+        alter('remove_row', [[1, 3], [5, 1], [7, 3], [11, 2]]);
+        // It remove rows as follow:
+        //     1--------3      5-1     7---------3       11-----2
+        // A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
+        //
+        // Result: A1, A5, A7, A11, A14, A15
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A5', 'A7', 'A11', 'A14', 'A15']);
+        expect(getData().length).toBe(6);
+      });
+
+      it('should remove rows when index groups are passed in descending order', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(15, 5),
+        });
+        // [[rowVisualIndex, amountRowsToRemove] ...]
+        alter('remove_row', [[11, 2], [7, 3], [5, 1], [1, 3]]);
+        // It remove rows as follow:
+        //     1--------3      5-1     7---------3       11-----2
+        // A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
+        //
+        // Result: A1, A5, A7, A11, A14, A15
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A5', 'A7', 'A11', 'A14', 'A15']);
+        expect(getData().length).toBe(6);
+      });
+
+      it('should remove rows when index groups are passed as intersecting values', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(15, 5),
+        });
+        // [[rowVisualIndex, amountRowsToRemove] ...]
+        alter('remove_row', [[1, 3], [4, 2], [5, 5], [11, 1]]);
+        // It remove rows as follow:
+        //     1---------------------------------9       11-1
+        // A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
+        //
+        // Result: A1, A11, A13, A14, A15
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A11', 'A13', 'A14', 'A15']);
+        expect(getData().length).toBe(5);
+      });
+
+      it('should remove rows when index groups are passed as intersecting values (the second scenario)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(15, 5),
+        });
+        // [[rowVisualIndex, amountRowsToRemove] ...]
+        alter('remove_row', [[1, 3], [2, 1], [5, 2]]);
+        // It remove columns as follow:
+        //     1--------3      5----2
+        // A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
+        //
+        // Result: A1, A5, A8, A9, A10, A11, A12, A13, A14, A15
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A5', 'A8', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14', 'A15']);
+        expect(getData().length).toBe(10);
+      });
+
+      it('should remove rows when index groups are passed as intersecting values (placed randomly)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(15, 5),
+        });
+        // [[rowVisualIndex, amountRowsToRemove] ...]
+        alter('remove_row', [[4, 2], [11, 1], [5, 5], [1, 3]]);
+        // It remove rows as follow:
+        //     1---------------------------------9       11-1
+        // A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
+        //
+        // Result: A1, A11, A13, A14, A15
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A11', 'A13', 'A14', 'A15']);
+        expect(getData().length).toBe(5);
+      });
+    });
+
     it('should remove row', () => {
       handsontable({
         minRows: 5,
@@ -321,6 +403,88 @@ describe('Core_alter', () => {
   });
 
   describe('remove column', () => {
+    describe('multiple items at once', () => {
+      it('should remove columns when index groups are passed in ascending order', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 15),
+        });
+        // [[columnVisualIndex, amountColumnsToRemove] ...]
+        alter('remove_col', [[1, 3], [5, 1], [7, 3], [11, 2]]);
+        // It remove columns as follow:
+        //     1--------3      5-1     7--------3      11---2
+        // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
+        //
+        // Result: A1, E1, G1, K1, N1, O1
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'E1', 'G1', 'K1', 'N1', 'O1']);
+        expect(getData()[0].length).toBe(6);
+      });
+
+      it('should remove columns when index groups are passed in descending order', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 15),
+        });
+        // [[columnVisualIndex, amountColumnsToRemove] ...]
+        alter('remove_col', [[11, 2], [7, 3], [5, 1], [1, 3]]);
+        // It remove columns as follow:
+        //     1--------3      5-1     7--------3      11---2
+        // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
+        //
+        // Result: A1, E1, G1, K1, N1, O1
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'E1', 'G1', 'K1', 'N1', 'O1']);
+        expect(getData()[0].length).toBe(6);
+      });
+
+      it('should remove columns when index groups are passed as intersecting values', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 15),
+        });
+        // [[columnVisualIndex, amountColumnsToRemove] ...]
+        alter('remove_col', [[1, 3], [4, 2], [5, 5], [11, 1]]);
+        // It remove columns as follow:
+        //     1--------------------------------9     11-1
+        // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
+        //
+        // Result: A1, K1, M1, N1, O1
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'K1', 'M1', 'N1', 'O1']);
+        expect(getData()[0].length).toBe(5);
+      });
+
+      it('should remove columns when index groups are passed as intersecting values (the second scenario)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 15),
+        });
+        // [[columnVisualIndex, amountColumnsToRemove] ...]
+        alter('remove_col', [[1, 3], [2, 1], [5, 2]]);
+        // It remove columns as follow:
+        //     1--------3      5----2
+        // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
+        //
+        // Result: A1, E1, H1
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'E1', 'H1', 'I1', 'J1', 'K1', 'L1', 'M1', 'N1', 'O1']);
+        expect(getData()[0].length).toBe(10);
+      });
+
+      it('should remove columns when index groups are passed as intersecting values (placed randomly)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 15),
+        });
+        // [[columnVisualIndex, amountColumnsToRemove] ...]
+        alter('remove_col', [[4, 2], [11, 1], [5, 5], [1, 3]]);
+        // It remove columns as follow:
+        //     1--------------------------------9     11-1
+        // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
+        //
+        // Result: A1, K1, M1, N1, O1
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'K1', 'M1', 'N1', 'O1']);
+        expect(getData()[0].length).toBe(5);
+      });
+    });
+
     it('should remove one column if amount parameter is empty', function() {
       handsontable({
         data: [
@@ -804,8 +968,10 @@ describe('Core_alter', () => {
       alter('insert_row', 2);
 
       const selected = getSelected();
-      expect(selected[0]).toEqual(3);
-      expect(selected[2]).toEqual(3);
+
+      expect(selected[0][0]).toBe(3);
+      expect(selected[0][2]).toBe(3);
+      expect(selected.length).toBe(1);
     });
 
     it('should shift the cell meta according to the new row layout', () => {

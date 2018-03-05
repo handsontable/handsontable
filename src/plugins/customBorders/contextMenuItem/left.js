@@ -13,9 +13,9 @@ export default function left(customBordersPlugin) {
 
       return label;
     },
-    callback() {
+    callback(key, selected) {
       let hasBorder = checkSelectionBorders(this, 'left');
-      customBordersPlugin.prepareBorder(this.getSelectedRange(), 'left', hasBorder);
+      customBordersPlugin.prepareBorder(selected, 'left', hasBorder);
     }
   };
 }

@@ -12,9 +12,9 @@ export default function bottom(customBordersPlugin) {
       }
       return label;
     },
-    callback() {
+    callback(key, selected) {
       let hasBorder = checkSelectionBorders(this, 'bottom');
-      customBordersPlugin.prepareBorder(this.getSelectedRange(), 'bottom', hasBorder);
+      customBordersPlugin.prepareBorder(selected, 'bottom', hasBorder);
     }
   };
 }

@@ -79,7 +79,7 @@ BaseEditor.prototype.saveValue = function(value, ctrlDown) {
 
   // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
   if (ctrlDown) {
-    selection = this.instance.getSelected();
+    selection = this.instance.getSelectedLast();
 
     if (selection[0] > selection[2]) {
       tmp = selection[0];

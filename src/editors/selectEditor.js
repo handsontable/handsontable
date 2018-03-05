@@ -183,11 +183,11 @@ SelectEditor.prototype.refreshDimensions = function() {
     default:
       break;
   }
-  if (this.instance.getSelected()[0] === 0) {
+  if (this.instance.getSelectedLast()[0] === 0) {
     editTop += 1;
   }
 
-  if (this.instance.getSelected()[1] === 0) {
+  if (this.instance.getSelectedLast()[1] === 0) {
     editLeft += 1;
   }
 

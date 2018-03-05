@@ -431,7 +431,7 @@ class Comments extends BasePlugin {
    * @returns {Boolean}
    */
   checkSelectionCommentsConsistency() {
-    const selected = this.hot.getSelectedRange();
+    const selected = this.hot.getSelectedRangeLast();
 
     if (!selected) {
       return false;
@@ -618,7 +618,7 @@ class Comments extends BasePlugin {
    */
   onContextMenuAddComment() {
     this.displaySwitch.cancelHiding();
-    let coords = this.hot.getSelectedRange();
+    let coords = this.hot.getSelectedRangeLast();
 
     this.contextMenuEvent = true;
     this.setRange({
@@ -637,13 +637,14 @@ class Comments extends BasePlugin {
    * Context Menu's "remove comment" callback.
    *
    * @private
-   * @param {Object} selection The current selection.
    */
-  onContextMenuRemoveComment(selection) {
+  onContextMenuRemoveComment() {
     this.contextMenuEvent = true;
 
-    for (let i = selection.start.row; i <= selection.end.row; i++) {
-      for (let j = selection.start.col; j <= selection.end.col; j++) {
+    let {from, to} = this.hot.getSelectedRangeLast();
+
+    for (let i = from.row; i <= to.row; i++) {
+      for (let j = from.col; j <= to.col; j++) {
         this.removeCommentAtCell(i, j, false);
       }
     }
@@ -655,13 +656,14 @@ class Comments extends BasePlugin {
    * Context Menu's "make comment read-only" callback.
    *
    * @private
-   * @param {Object} selection The current selection.
    */
-  onContextMenuMakeReadOnly(selection) {
+  onContextMenuMakeReadOnly() {
     this.contextMenuEvent = true;
 
-    for (let i = selection.start.row; i <= selection.end.row; i++) {
-      for (let j = selection.start.col; j <= selection.end.col; j++) {
+    let {from, to} = this.hot.getSelectedRangeLast();
+
+    for (let i = from.row; i <= to.row; i++) {
+      for (let j = from.col; j <= to.col; j++) {
         let currentState = !!this.getCommentMeta(i, j, META_READONLY);
 
         this.updateCommentMeta(i, j, {[META_READONLY]: !currentState});
@@ -691,7 +693,7 @@ class Comments extends BasePlugin {
         },
         callback: () => this.onContextMenuAddComment(),
         disabled() {
-          return !(this.getSelected() && !this.selection.selectedHeader.corner);
+          return !(this.getSelectedLast() && !this.selection.selectedHeader.corner);
         }
       },
       {
@@ -699,14 +701,14 @@ class Comments extends BasePlugin {
         name() {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
         },
-        callback: (key, selection) => this.onContextMenuRemoveComment(selection),
+        callback: () => this.onContextMenuRemoveComment(),
         disabled: () => this.hot.selection.selectedHeader.corner
       },
       {
         key: 'commentsReadOnly',
         name() {
           let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
-          let hasProperty = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
+          let hasProperty = checkSelectionConsistency(this.getSelectedRangeLast(), (row, col) => {
             let readOnlyProperty = this.getCellMeta(row, col)[META_COMMENT];
             if (readOnlyProperty) {
               readOnlyProperty = readOnlyProperty[META_READONLY];
@@ -723,7 +725,7 @@ class Comments extends BasePlugin {
 
           return label;
         },
-        callback: (key, selection) => this.onContextMenuMakeReadOnly(selection),
+        callback: () => this.onContextMenuMakeReadOnly(),
         disabled: () => this.hot.selection.selectedHeader.corner || !this.checkSelectionCommentsConsistency()
       }
     );

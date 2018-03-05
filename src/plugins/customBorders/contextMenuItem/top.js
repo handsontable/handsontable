@@ -13,9 +13,9 @@ export default function top(customBordersPlugin) {
 
       return label;
     },
-    callback() {
+    callback(key, selected) {
       let hasBorder = checkSelectionBorders(this, 'top');
-      customBordersPlugin.prepareBorder(this.getSelectedRange(), 'top', hasBorder);
+      customBordersPlugin.prepareBorder(selected, 'top', hasBorder);
     }
   };
 }
