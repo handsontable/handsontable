@@ -913,7 +913,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       var beforeChangeResult;
 
       if (changes.length) {
-        beforeChangeResult = instance.runHooks('beforeChange', changes, source);
+        beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
         if (isFunction(beforeChangeResult)) {
           console.warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
         } else if (beforeChangeResult === false) {
