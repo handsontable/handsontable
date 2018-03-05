@@ -811,7 +811,7 @@ describe('UndoRedo', () => {
 
           HOT.undo();
 
-          expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'UndoRedo.undo', undefined, undefined, undefined);
+          expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'UndoRedo.undo', void 0, void 0, void 0);
 
           expect(countCols()).toEqual(3);
           expect(getDataAtCell(0, 0)).toEqual('A1');
