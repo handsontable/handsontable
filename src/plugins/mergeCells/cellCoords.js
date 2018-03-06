@@ -48,11 +48,9 @@ class MergedCellCoords {
    * @return {String}
    */
   static NEGATIVE_VALUES_WARNING(newMergedCell) {
-    return toSingleLine([
-      `The merged cell declared with {row: ${newMergedCell.row}, col: ${newMergedCell.col}, rowspan: 
+    return toSingleLine`The merged cell declared with {row: ${newMergedCell.row}, col: ${newMergedCell.col}, rowspan: 
     ${newMergedCell.rowspan}, colspan: ${newMergedCell.colspan}} contains negative values, which is not supported. It 
-    will not be added to the collection.`
-    ]);
+    will not be added to the collection.`;
   }
 
   /**
@@ -62,10 +60,8 @@ class MergedCellCoords {
    * @return {String}
    */
   static IS_OUT_OF_BOUNDS_WARNING(newMergedCell) {
-    return toSingleLine([
-      `The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] is positioned (or positioned partially) 
-       outside of the table range. It was not added to the table, please fix your setup.`
-    ]);
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] is positioned (or positioned partially) 
+       outside of the table range. It was not added to the table, please fix your setup.`;
   }
 
   /**
@@ -75,10 +71,8 @@ class MergedCellCoords {
    * @return {String}
    */
   static IS_SINGLE_CELL(newMergedCell) {
-    return toSingleLine([
-      `The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has both "rowspan" 
-     and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.`
-    ]);
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has both "rowspan" 
+     and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.`;
   }
 
   /**
@@ -88,10 +82,8 @@ class MergedCellCoords {
    * @return {String}
    */
   static ZERO_SPAN_WARNING(newMergedCell) {
-    return toSingleLine([
-      `The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has "rowspan" or "colspan" declared as 
-      "0", which is not supported. It cannot be added to the collection.`
-    ]);
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has "rowspan" or "colspan" declared as 
+      "0", which is not supported. It cannot be added to the collection.`;
   }
 
   /**
