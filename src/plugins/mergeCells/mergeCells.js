@@ -166,6 +166,11 @@ class MergeCells extends BasePlugin {
       console.warn(MergedCellCoords.IS_SINGLE_CELL(setting));
 
       valid = false;
+
+    } else if (MergedCellCoords.containsZeroSpan(setting)) {
+      console.warn(MergedCellCoords.ZERO_SPAN_WARNING(setting));
+
+      valid = false;
     }
 
     return valid;

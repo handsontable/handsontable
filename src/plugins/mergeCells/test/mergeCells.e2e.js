@@ -516,6 +516,34 @@ describe('MergeCells', () => {
       expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(1);
     });
 
+    it('should check if the provided merged cell information object has rowspan and colspan declared as 0, and if so, do not add it ' +
+      'to the collection and throw an appropriate warning', () => {
+      const warnSpy = spyOn(console, 'warn');
+      const newMergedCells = [
+        {
+          row: 0,
+          col: 1,
+          rowspan: 3,
+          colspan: 4
+        },
+        {
+          row: 6,
+          col: 6,
+          rowspan: 0,
+          colspan: 0
+        }
+      ];
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: newMergedCells
+      });
+
+      expect(warnSpy).toHaveBeenCalledWith('The merged cell declared at [6, 6] has both "rowspan" and ' +
+        '"colspan" declared as "0", which is not supported. It cannot be added to the collection.');
+
+      expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(1);
+    });
+
     it('should check if the provided merged cell information object represents a single cell, and if so, do not add it ' +
       'to the collection and throw an appropriate warning', () => {
       const warnSpy = spyOn(console, 'warn');
