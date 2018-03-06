@@ -24,7 +24,7 @@ describe('noEditor', () => {
     keyDown('enter');
     selection = getSelected();
 
-    expect(selection).toEqual([2, 2, 2, 2]);
+    expect(selection).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -40,7 +40,7 @@ describe('noEditor', () => {
     keyDown('enter');
     selection = getSelected();
 
-    expect(selection).toEqual([2, 2, 2, 2]);
+    expect(selection).toEqual([[2, 2, 2, 2]]);
   });
 
   it('shouldn\'t move down when enterBeginsEditing equals false', () => {
@@ -55,7 +55,7 @@ describe('noEditor', () => {
     keyDown('enter');
     selection = getSelected();
 
-    expect(selection).toEqual([3, 2, 3, 2]);
+    expect(selection).toEqual([[3, 2, 3, 2]]);
     expect(isEditorVisible()).toEqual(false);
   });
 

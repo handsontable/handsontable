@@ -13,7 +13,7 @@ import {
 import {isChrome, isSafari} from './helpers/browser';
 import EventManager from './eventManager';
 import {stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick} from './helpers/dom/event';
-import Walkontable, {CellCoords, Selection} from './3rdparty/walkontable/src';
+import Walkontable, {CellCoords} from './3rdparty/walkontable/src';
 
 /**
  * Handsontable TableView constructor
@@ -162,55 +162,6 @@ function TableView(instance) {
     }
   };
 
-  var selections = [
-    new Selection({
-      className: 'current',
-      border: {
-        width: 2,
-        color: '#5292F7',
-        // style: 'solid', // not used
-        cornerVisible: function() {
-          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
-        },
-        multipleSelectionHandlesVisible: function() {
-          return !that.isCellEdited() && !instance.selection.isMultiple();
-        },
-      },
-    }),
-    new Selection({
-      className: 'area',
-      border: {
-        width: 1,
-        color: '#89AFF9',
-        // style: 'solid', // not used
-        cornerVisible: function() {
-          return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
-        },
-        multipleSelectionHandlesVisible: function() {
-          return !that.isCellEdited() && instance.selection.isMultiple();
-        },
-      },
-    }),
-    new Selection({
-      className: 'highlight',
-      highlightHeaderClassName: that.settings.currentHeaderClassName,
-      highlightRowClassName: that.settings.currentRowClassName,
-      highlightColumnClassName: that.settings.currentColClassName,
-    }),
-    new Selection({
-      className: 'fill',
-      border: {
-        width: 1,
-        color: 'red',
-        // style: 'solid' // not used
-      },
-    }),
-  ];
-  selections.current = selections[0];
-  selections.area = selections[1];
-  selections.highlight = selections[2];
-  selections.fill = selections[3];
-
   var walkontableConfig = {
     debug: function() {
       return that.settings.debug;
@@ -277,7 +228,7 @@ function TableView(instance) {
       that.instance.runHooks('afterRenderer', TD, row, col, prop, value, cellProperties);
 
     },
-    selections: selections,
+    selections: that.instance.selection.highlight,
     hideBorderOnMouseDownOver: function() {
       return that.settings.fragmentSelection;
     },
@@ -299,7 +250,7 @@ function TableView(instance) {
         return;
       }
 
-      let actualSelection = instance.getSelectedRange();
+      let actualSelection = instance.getSelectedRangeLast();
       let selection = instance.selection;
       let selectedHeader = selection.selectedHeader;
 
@@ -321,14 +272,12 @@ function TableView(instance) {
         } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.col < 0) ||
                    (selectedHeader.cols && coords.col < 0)) && !blockCalculations.row) {
           selection.setSelectedHeaders(true, false);
-          selection.setRangeStartOnly(new CellCoords(actualSelection.from.row, 0));
-          selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1));
+          selection.selectRows(actualSelection.from.row, coords.row);
 
         } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.row < 0) ||
                    (selectedHeader.rows && coords.row < 0)) && !blockCalculations.column) {
           selection.setSelectedHeaders(false, true);
-          selection.setRangeStartOnly(new CellCoords(0, actualSelection.from.col));
-          selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col));
+          selection.selectColumns(actualSelection.from.col, coords.col);
         }
       } else {
         let doNewSelection = true;
@@ -363,7 +312,7 @@ function TableView(instance) {
 
           if (leftClick || (rightClick && doNewSelection)) {
             selection.setRangeStartOnly(new CellCoords(0, coords.col));
-            selection.setRangeEnd(new CellCoords(Math.max(instance.countRows() - 1, 0), coords.col), false);
+            selection.setRangeEnd(new CellCoords(Math.max(instance.countRows() - 1, 0), coords.col));
           }
 
         // clicked column header and when some row was selected
@@ -372,7 +321,7 @@ function TableView(instance) {
 
           if (leftClick || (rightClick && doNewSelection)) {
             selection.setRangeStartOnly(new CellCoords(coords.row, 0));
-            selection.setRangeEnd(new CellCoords(coords.row, Math.max(instance.countCols() - 1, 0)), false);
+            selection.setRangeEnd(new CellCoords(coords.row, Math.max(instance.countCols() - 1, 0)));
           }
 
         } else if (coords.col >= 0 && coords.row >= 0 && !blockCalculations.cells) {
@@ -417,13 +366,13 @@ function TableView(instance) {
         return;
       }
 
-      if (event.button === 0 && isMouseDown) {
+      if (isLeftClick(event) && isMouseDown) {
         if (coords.row >= 0 && coords.col >= 0) { // is not a header
           if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
-            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col), false);
+            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col));
 
           } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
-            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1), false);
+            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1));
 
           } else if (!blockCalculations.cell) {
             instance.selection.setRangeEnd(coords);
@@ -431,10 +380,10 @@ function TableView(instance) {
         } else {
           /* eslint-disable no-lonely-if */
           if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
-            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col), false);
+            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col));
 
           } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
-            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1), false);
+            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1));
 
           } else if (!blockCalculations.cell) {
             instance.selection.setRangeEnd(coords);
@@ -486,6 +435,9 @@ function TableView(instance) {
     },
     onModifyRowHeaderWidth: function(rowHeaderWidth) {
       return instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth);
+    },
+    onModifyGetCellCoords: function(row, column, topmost) {
+      return instance.runHooks('modifyGetCellCoords', row, column, topmost);
     },
     viewportRowCalculatorOverride: function(calc) {
       let rows = instance.countRows();
@@ -617,7 +569,7 @@ TableView.prototype.isTextSelectionAllowed = function(el) {
  * @returns {Boolean}
  */
 TableView.prototype.isSelectedOnlyCell = function() {
-  var [row, col, rowEnd, colEnd] = this.instance.getSelected() || [];
+  var [row, col, rowEnd, colEnd] = this.instance.getSelectedLast() || [];
 
   return row !== void 0 && row === rowEnd && col === colEnd;
 };

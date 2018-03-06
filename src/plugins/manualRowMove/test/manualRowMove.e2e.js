@@ -578,6 +578,36 @@ describe('manualRowMove', () => {
     });
   });
 
+  describe('callbacks', () => {
+    it('should run `beforeRowMove` and `afterRowMove` with proper visual `target` parameter', () => {
+      let targetParameterInsideBeforeRowMoveCallback;
+      let targetParameterInsideAfterRowMoveCallback;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        manualRowMove: true,
+        beforeRowMove: (rows, target) => {
+          targetParameterInsideBeforeRowMoveCallback = target;
+        },
+        afterRowMove: (rows, target) => {
+          targetParameterInsideAfterRowMoveCallback = target;
+        }
+      });
+
+      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
+      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
+      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
+
+      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseover');
+      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousemove');
+      spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
+
+      expect(targetParameterInsideBeforeRowMoveCallback).toEqual(2);
+      expect(targetParameterInsideAfterRowMoveCallback).toEqual(2);
+    });
+  });
+
   describe('undoRedo', () => {
     it('should back changes', () => {
       var hot = handsontable({

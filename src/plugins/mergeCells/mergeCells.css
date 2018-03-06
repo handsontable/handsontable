@@ -1,0 +1,4 @@
+.handsontable.ht__selection--rows tbody td[rowspan][class*="area"][class*="highlight"]:before,
+.handsontable.ht__selection--columns tbody td[colspan][class*="area"][class*="highlight"]:before {
+    background: inherit;
+}

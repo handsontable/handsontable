@@ -17,7 +17,7 @@ If you are looking for an extended version, try out [Handsontable Pro](//github.
 
 **We are looking for Contributors who would like to help us with translations. [Learn more](https://github.com/handsontable/handsontable/issues/4696)**
 <br/>
-Most wanted languages: Japanese, French, Chinese, Italian, Spanish, Portuguese, Swedish and Russian.
+Most wanted languages: French, Chinese, Italian, Spanish, Swedish and Russian.
 
 ---
 
@@ -108,7 +108,8 @@ var hot = new Handsontable(container, {
 - Context menu
 - Adding comments to cells
 - Dragging fill handle to populate data
-- Localization
+- Internationalization
+- Non-contiguous selection
 
 [See a comparison table](//docs.handsontable.com/tutorial-features.html)
 

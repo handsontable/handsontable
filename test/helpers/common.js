@@ -83,11 +83,11 @@ export function getCorrespondingOverlay(cell, container) {
  */
 export function contextMenu(cell) {
   var hot = spec().$container.data('handsontable');
-  var selected = hot.getSelected();
+  var selected = hot.getSelectedLast();
 
   if (!selected) {
     hot.selectCell(0, 0);
-    selected = hot.getSelected();
+    selected = hot.getSelectedLast();
   }
   if (!cell) {
     cell = getCell(selected[0], selected[1]);
@@ -223,7 +223,11 @@ export function handsontableKeyTriggerFactory(type) {
           break;
 
         case 'ctrl':
-          ev.keyCode = 17;
+          if (window.navigator.platform.includes('Mac')) {
+            ev.keyCode = 91;
+          } else {
+            ev.keyCode = 17;
+          }
           break;
 
         case 'shift':
@@ -377,10 +381,15 @@ export const addHook = handsontableMethodFactory('addHook');
 export const alter = handsontableMethodFactory('alter');
 export const colToProp = handsontableMethodFactory('colToProp');
 export const countCols = handsontableMethodFactory('countCols');
+export const countEmptyCols = handsontableMethodFactory('countEmptyCols');
+export const countEmptyRows = handsontableMethodFactory('countEmptyRows');
 export const countRows = handsontableMethodFactory('countRows');
+export const countSourceCols = handsontableMethodFactory('countSourceCols');
+export const countSourceRows = handsontableMethodFactory('countSourceRows');
 export const deselectCell = handsontableMethodFactory('deselectCell');
 export const destroy = handsontableMethodFactory('destroy');
 export const destroyEditor = handsontableMethodFactory('destroyEditor');
+export const emptySelectedCells = handsontableMethodFactory('emptySelectedCells');
 export const getActiveEditor = handsontableMethodFactory('getActiveEditor');
 export const getCell = handsontableMethodFactory('getCell');
 export const getCellEditor = handsontableMethodFactory('getCellEditor');
@@ -401,6 +410,9 @@ export const getDataType = handsontableMethodFactory('getDataType');
 export const getInstance = handsontableMethodFactory('getInstance');
 export const getRowHeader = handsontableMethodFactory('getRowHeader');
 export const getSelected = handsontableMethodFactory('getSelected');
+export const getSelectedLast = handsontableMethodFactory('getSelectedLast');
+export const getSelectedRange = handsontableMethodFactory('getSelectedRange');
+export const getSelectedRangeLast = handsontableMethodFactory('getSelectedRangeLast');
 export const getSourceData = handsontableMethodFactory('getSourceData');
 export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray');
 export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
@@ -413,6 +425,9 @@ export const propToCol = handsontableMethodFactory('propToCol');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
 export const render = handsontableMethodFactory('render');
 export const selectCell = handsontableMethodFactory('selectCell');
+export const selectCells = handsontableMethodFactory('selectCells');
+export const selectColumns = handsontableMethodFactory('selectColumns');
+export const selectRows = handsontableMethodFactory('selectRows');
 export const setCellMeta = handsontableMethodFactory('setCellMeta');
 export const setDataAtCell = handsontableMethodFactory('setDataAtCell');
 export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
@@ -420,10 +435,6 @@ export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
 export const updateSettings = handsontableMethodFactory('updateSettings');
-export const countSourceRows = handsontableMethodFactory('countSourceRows');
-export const countSourceCols = handsontableMethodFactory('countSourceCols');
-export const countEmptyRows = handsontableMethodFactory('countEmptyRows');
-export const countEmptyCols = handsontableMethodFactory('countEmptyCols');
 
 /**
  * Returns column width for HOT container

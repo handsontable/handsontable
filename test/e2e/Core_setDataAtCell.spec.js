@@ -81,7 +81,7 @@ describe('Core_setDataAtCell', () => {
     }, 200);
   });
 
-  it('should paste not more rows than maxRows', (done) => {
+  it('should paste not more rows than maxRows', async () => {
     handsontable({
       minSpareRows: 1,
       minRows: 5,
@@ -90,11 +90,10 @@ describe('Core_setDataAtCell', () => {
     selectCell(4, 0);
     triggerPaste('1\n2\n3\n4\n5\n6\n7\n8\n9\n10');
 
-    setTimeout(() => {
-      expect(countRows()).toEqual(10);
-      expect(getDataAtCell(9, 0)).toEqual('6');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(countRows()).toEqual(10);
+    expect(getDataAtCell(9, 0)).toEqual('6');
   });
 
   it('should paste not more cols than maxCols', (done) => {

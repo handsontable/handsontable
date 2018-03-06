@@ -1,5 +1,5 @@
 import {CellCoords} from './3rdparty/walkontable/src';
-import {KEY_CODES, isMetaKey, isCtrlKey} from './helpers/unicode';
+import {KEY_CODES, isMetaKey, isCtrlMetaKey} from './helpers/unicode';
 import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './helpers/dom/event';
 import {getEditorInstance} from './editors';
 import EventManager from './eventManager';
@@ -8,6 +8,7 @@ import {EditorState} from './editors/_baseEditor';
 function EditorManager(instance, priv, selection) {
   var _this = this,
     destroyed = false,
+    lock = false,
     eventManager,
     activeEditor;
 
@@ -96,7 +97,7 @@ function EditorManager(instance, priv, selection) {
     ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (activeEditor && !activeEditor.isWaiting()) {
-      if (!isMetaKey(event.keyCode) && !isCtrlKey(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
+      if (!isMetaKey(event.keyCode) && !isCtrlMetaKey(event.keyCode) && !ctrlDown && !_this.isEditorOpened()) {
         _this.openEditor('', event);
 
         return;
@@ -174,7 +175,7 @@ function EditorManager(instance, priv, selection) {
 
       case KEY_CODES.BACKSPACE:
       case KEY_CODES.DELETE:
-        selection.empty(event);
+        instance.emptySelectedCells();
         _this.prepareEditor();
         event.preventDefault();
         break;
@@ -221,9 +222,9 @@ function EditorManager(instance, priv, selection) {
       case KEY_CODES.HOME:
         selection.setSelectedHeaders(false, false, false);
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier(new CellCoords(0, priv.selRange.from.col));
+          rangeModifier.call(selection, new CellCoords(0, selection.selectedRange.current().from.col));
         } else {
-          rangeModifier(new CellCoords(priv.selRange.from.row, 0));
+          rangeModifier.call(selection, new CellCoords(selection.selectedRange.current().from.row, 0));
         }
         event.preventDefault(); // don't scroll the window
         stopPropagation(event);
@@ -232,9 +233,9 @@ function EditorManager(instance, priv, selection) {
       case KEY_CODES.END:
         selection.setSelectedHeaders(false, false, false);
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier(new CellCoords(instance.countRows() - 1, priv.selRange.from.col));
+          rangeModifier.call(selection, new CellCoords(instance.countRows() - 1, selection.selectedRange.current().from.col));
         } else {
-          rangeModifier(new CellCoords(priv.selRange.from.row, instance.countCols() - 1));
+          rangeModifier.call(selection, new CellCoords(selection.selectedRange.current().from.row, instance.countCols() - 1));
         }
         event.preventDefault(); // don't scroll the window
         stopPropagation(event);
@@ -269,8 +270,8 @@ function EditorManager(instance, priv, selection) {
 
     function onDblClick(event, coords, elem) {
       // may be TD or TH
-      if (elem.nodeName == 'TD') {
-        _this.openEditor();
+      if (elem.nodeName === 'TD') {
+        _this.openEditor(null, event);
 
         if (activeEditor) {
           activeEditor.enableFullEditMode();
@@ -278,11 +279,29 @@ function EditorManager(instance, priv, selection) {
       }
     }
     instance.view.wt.update('onCellDblClick', onDblClick);
-
-    instance.addHook('afterDestroy', () => {
-      destroyed = true;
-    });
   }
+
+  /**
+  * Lock the editor from being prepared and closed. Locking the editor prevents its closing and
+  * reinitialized after selecting the new cell. This feature is necessary for a mobile editor.
+  *
+  * @function lockEditor
+  * @memberof! Handsontable.EditorManager#
+   */
+  this.lockEditor = function() {
+    lock = true;
+  };
+
+  /**
+  * Unlock the editor from being prepared and closed. This method restores the original behavior of
+  * the editors where for every new selection its instances are closed.
+  *
+  * @function unlockEditor
+  * @memberof! Handsontable.EditorManager#
+   */
+  this.unlockEditor = function() {
+    lock = false;
+  };
 
   /**
    * Destroy current editor, if exists.
@@ -292,7 +311,9 @@ function EditorManager(instance, priv, selection) {
    * @param {Boolean} revertOriginal
    */
   this.destroyEditor = function(revertOriginal) {
-    this.closeEditor(revertOriginal);
+    if (!lock) {
+      this.closeEditor(revertOriginal);
+    }
   };
 
   /**
@@ -313,6 +334,10 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    */
   this.prepareEditor = function() {
+    if (lock) {
+      return;
+    }
+
     var row,
       col,
       prop,
@@ -330,8 +355,8 @@ function EditorManager(instance, priv, selection) {
 
       return;
     }
-    row = priv.selRange.highlight.row;
-    col = priv.selRange.highlight.col;
+    row = instance.selection.selectedRange.current().highlight.row;
+    col = instance.selection.selectedRange.current().highlight.col;
     prop = instance.colToProp(col);
     td = instance.getCell(row, col);
 
@@ -364,12 +389,12 @@ function EditorManager(instance, priv, selection) {
    *
    * @function openEditor
    * @memberof! Handsontable.EditorManager#
-   * @param {String} initialValue
+   * @param {null|String} newInitialValue new value from which editor will start if handled property it's not the `null`.
    * @param {DOMEvent} event
    */
-  this.openEditor = function(initialValue, event) {
+  this.openEditor = function(newInitialValue, event) {
     if (activeEditor && !activeEditor.cellProperties.readOnly) {
-      activeEditor.beginEditing(initialValue, event);
+      activeEditor.beginEditing(newInitialValue, event);
     } else if (activeEditor && activeEditor.cellProperties.readOnly) {
 
       // move the selection after opening the editor with ENTER key
@@ -419,7 +444,27 @@ function EditorManager(instance, priv, selection) {
     return this.closeEditor(true, ctrlDown);
   };
 
+  /**
+   * Destroy the instance.
+   */
+  this.destroy = function() {
+    destroyed = true;
+  };
+
   init();
 }
+
+const instances = new WeakMap();
+
+EditorManager.getInstance = function(hotInstance, hotSettings, selection, datamap) {
+  let editorManager = instances.get(hotInstance);
+
+  if (!editorManager) {
+    editorManager = new EditorManager(hotInstance, hotSettings, selection, datamap);
+    instances.set(hotInstance, editorManager);
+  }
+
+  return editorManager;
+};
 
 export default EditorManager;

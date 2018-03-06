@@ -14,6 +14,7 @@ import {
 } from './../helpers/dom/element';
 import BaseEditor from './_baseEditor';
 import EventManager from './../eventManager';
+import EditorManager from './../editorManager';
 
 const MobileTextEditor = BaseEditor.prototype.extend();
 const domDimensionsCache = {};
@@ -143,7 +144,8 @@ MobileTextEditor.prototype.close = function() {
 };
 
 MobileTextEditor.prototype.scrollToView = function() {
-  var coords = this.instance.getSelectedRange().highlight;
+  var coords = this.instance.getSelectedRangeLast().highlight;
+
   this.instance.view.scrollViewport(coords);
 };
 
@@ -162,7 +164,7 @@ MobileTextEditor.prototype.updateEditorPosition = function(x, y) {
     this.editorContainer.style.left = `${x}px`;
 
   } else {
-    var selection = this.instance.getSelected(),
+    var selection = this.instance.getSelectedLast(),
       selectedCell = this.instance.getCell(selection[0], selection[1]);
 
     // cache sizes
@@ -210,7 +212,7 @@ MobileTextEditor.prototype.updateEditorPosition = function(x, y) {
 };
 
 MobileTextEditor.prototype.updateEditorData = function() {
-  var selected = this.instance.getSelected(),
+  var selected = this.instance.getSelectedLast(),
     selectedValue = this.instance.getDataAtCell(selected[0], selected[1]);
 
   this.row = selected[0];
@@ -240,29 +242,38 @@ MobileTextEditor.prototype.prepareAndSave = function() {
 };
 
 MobileTextEditor.prototype.bindEvents = function() {
-  var that = this;
+  const that = this;
+  const editorManager = EditorManager.getInstance();
 
   this.eventManager.addEventListener(this.controls.leftButton, 'touchend', (event) => {
     that.prepareAndSave();
-    that.instance.selection.transformStart(0, -1, null, true);
+    editorManager.lockEditor();
+    that.instance.selection.transformStart(0, -1, null);
+    editorManager.unlockEditor();
     that.updateEditorData();
     event.preventDefault();
   });
   this.eventManager.addEventListener(this.controls.rightButton, 'touchend', (event) => {
     that.prepareAndSave();
-    that.instance.selection.transformStart(0, 1, null, true);
+    editorManager.lockEditor();
+    that.instance.selection.transformStart(0, 1, null);
+    editorManager.unlockEditor();
     that.updateEditorData();
     event.preventDefault();
   });
   this.eventManager.addEventListener(this.controls.upButton, 'touchend', (event) => {
     that.prepareAndSave();
-    that.instance.selection.transformStart(-1, 0, null, true);
+    editorManager.lockEditor();
+    that.instance.selection.transformStart(-1, 0, null);
+    editorManager.unlockEditor();
     that.updateEditorData();
     event.preventDefault();
   });
   this.eventManager.addEventListener(this.controls.downButton, 'touchend', (event) => {
     that.prepareAndSave();
-    that.instance.selection.transformStart(1, 0, null, true);
+    editorManager.lockEditor();
+    that.instance.selection.transformStart(1, 0, null);
+    editorManager.unlockEditor();
     that.updateEditorData();
     event.preventDefault();
   });

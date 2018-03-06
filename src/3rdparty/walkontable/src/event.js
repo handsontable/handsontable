@@ -218,12 +218,12 @@ Event.prototype.parentCell = function(elem) {
     cell.TD = TD;
 
   } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'current')) {
-    cell.coords = this.instance.selections.current.cellRange.highlight; // selections.current is current selected cell
+    cell.coords = this.instance.selections.getCell().cellRange.highlight;
     cell.TD = this.instance.wtTable.getCell(cell.coords);
 
   } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'area')) {
-    if (this.instance.selections.area.cellRange) {
-      cell.coords = this.instance.selections.area.cellRange.to; // selections.area is area selected cells
+    if (this.instance.selections.createOrGetArea().cellRange) {
+      cell.coords = this.instance.selections.createOrGetArea().cellRange.to;
       cell.TD = this.instance.wtTable.getCell(cell.coords);
     }
   }

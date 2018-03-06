@@ -271,15 +271,72 @@
   display:none !important;
 }
 
-.handsontable td.area {
-  background: -moz-linear-gradient(top,  rgba(181,209,255,0.34) 0%, rgba(181,209,255,0.34) 100%); /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(181,209,255,0.34)), color-stop(100%,rgba(181,209,255,0.34))); /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top,  rgba(181,209,255,0.34) 0%,rgba(181,209,255,0.34) 100%); /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top,  rgba(181,209,255,0.34) 0%,rgba(181,209,255,0.34) 100%); /* Opera 11.10+ */
-  background: -ms-linear-gradient(top,  rgba(181,209,255,0.34) 0%,rgba(181,209,255,0.34) 100%); /* IE10+ */
-  background: linear-gradient(to bottom,  rgba(181,209,255,0.34) 0%,rgba(181,209,255,0.34) 100%); /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#57b5d1ff', endColorstr='#57b5d1ff',GradientType=0 ); /* IE6-9 */
-  background-color: #fff;
+.handsontable td.area,
+.handsontable td.area-1,
+.handsontable td.area-2,
+.handsontable td.area-3,
+.handsontable td.area-4,
+.handsontable td.area-5,
+.handsontable td.area-6,
+.handsontable td.area-7 {
+  position: relative;
+}
+
+.handsontable td.area:before,
+.handsontable td.area-1:before,
+.handsontable td.area-2:before,
+.handsontable td.area-3:before,
+.handsontable td.area-4:before,
+.handsontable td.area-5:before,
+.handsontable td.area-6:before,
+.handsontable td.area-7:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  bottom: -100%\9; /* Fix for IE9 to spread the ":before" pseudo element to 100% height of the parent element */
+  background: #005eff;
+}
+
+/* Fix for IE10 and IE11 to spread the ":before" pseudo element to 100% height of the parent element */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  .handsontable td.area:before,
+  .handsontable td.area-1:before,
+  .handsontable td.area-2:before,
+  .handsontable td.area-3:before,
+  .handsontable td.area-4:before,
+  .handsontable td.area-5:before,
+  .handsontable td.area-6:before,
+  .handsontable td.area-7:before {
+    bottom: -100%;
+  }
+}
+
+.handsontable td.area:before {
+  opacity: 0.1;
+}
+.handsontable td.area-1:before {
+  opacity: 0.2;
+}
+.handsontable td.area-2:before {
+  opacity: 0.27;
+}
+.handsontable td.area-3:before {
+  opacity: 0.35;
+}
+.handsontable td.area-4:before {
+  opacity: 0.41;
+}
+.handsontable td.area-5:before {
+  opacity: 0.47;
+}
+.handsontable td.area-6:before {
+  opacity: 0.54;
+}
+.handsontable td.area-7:before {
+  opacity: 0.58;
 }
 
 /* fill handle */

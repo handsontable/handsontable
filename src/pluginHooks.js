@@ -406,12 +406,12 @@ const REGISTERED_HOOKS = [
    * @param {Number} r2 Selection end visual row index.
    * @param {Number} c2 Selection end visual column index.
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+   * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    *    * @example
    * ```js
    * handsontable({
-   *   afterSelection: function (r, c, r2, c2, preventScrolling) {
+   *   afterSelection: function (r, c, r2, c2, preventScrolling, selectionLayerLevel) {
    *     // setting if prevent scrolling after selection
-   *
    *     preventScrolling.value = true;
    *   }
    * })
@@ -428,12 +428,12 @@ const REGISTERED_HOOKS = [
    * @param {Number} r2 Selection end visual row index.
    * @param {String} p2 Selection end data source object property name.
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+   * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    *    * @example
    * ```js
    * handsontable({
-   *   afterSelectionByProp: function (r, c, r2, c2, preventScrolling) {
+   *   afterSelectionByProp: function (r, c, r2, c2, preventScrolling, selectionLayerLevel) {
    *     // setting if prevent scrolling after selection
-   *
    *     preventScrolling.value = true;
    *   }
    * })
@@ -449,6 +449,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} c Selection start visual column index.
    * @param {Number} r2 Selection end visual row index.
    * @param {Number} c2 Selection end visual column index.
+   * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    */
   'afterSelectionEnd',
 
@@ -461,6 +462,7 @@ const REGISTERED_HOOKS = [
    * @param {String} p Selection start data source object property index.
    * @param {Number} r2 Selection end visual row index.
    * @param {String} p2 Selection end data source object property index.
+   * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    */
   'afterSelectionEndByProp',
 
@@ -560,7 +562,8 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeAutofill
    * @param {Object} start Object containing information about first filled cell: `{row: 2, col: 0}`.
    * @param {Object} end Object containing information about last filled cell: `{row: 4, col: 1}`.
-   * @param {Array} data 2D array containing information about fill pattern: `[["1', "Ted"], ["1', "John"]]`.
+   * @param {Array} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
+   * @param {Array} baseRange The coordinates of the base area for autofill.
    */
   'beforeAutofill',
 
@@ -760,10 +763,18 @@ const REGISTERED_HOOKS = [
   'beforeRender',
 
   /**
+   * Callback fired before setting range is started but not finished yet.
+   *
+   * @event Hooks#beforeSetRangeStartOnly
+   * @param {CellCoords} coords CellCoords instance.
+   */
+  'beforeSetRangeStartOnly',
+
+  /**
    * Callback fired before setting range is started.
    *
    * @event Hooks#beforeSetRangeStart
-   * @param {Array} coords CellCoords array.
+   * @param {CellCoords} coords CellCoords instance.
    */
   'beforeSetRangeStart',
 
@@ -771,7 +782,7 @@ const REGISTERED_HOOKS = [
    * Callback fired before setting range is ended.
    *
    * @event Hooks#beforeSetRangeEnd
-   * @param {Array} coords CellCoords array.
+   * @param {CellCoords} coords CellCoords instance.
    */
   'beforeSetRangeEnd',
 
@@ -917,6 +928,18 @@ const REGISTERED_HOOKS = [
    * @param {Number} row Physical row index.
    */
   'modifyRowData',
+
+  /**
+   * Used to modify the cell coordinates when using the `getCell` method.
+   *
+   * @event Hooks#modifyGetCellCoords
+   * @since 0.36.0
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
+   * @param {Boolean} topmost If set to true, it returns the TD element from the topmost overlay. For example,
+   * if the wanted cell is in the range of fixed rows, it will return a TD element from the `top` overlay.
+   */
+  'modifyGetCellCoords',
 
   /**
    * Fired after loading data using the Persistent State plugin.
@@ -1503,6 +1526,43 @@ const REGISTERED_HOOKS = [
    * @param {Number} column Column index of the edited cell.
    */
   'afterBeginEditing',
+
+  /**
+   * Fired before cell merging.
+   *
+   * @event Hooks#beforeMergeCells
+   * @param {CellRange} cellRange Selection cell range.
+   * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
+   */
+  'beforeMergeCells',
+
+  /**
+   * Fired after cell merging.
+   *
+   * @event Hooks#afterMergeCells
+   * @param {CellRange} cellRange Selection cell range.
+   * @param {Object} mergeParent The parent collection of the provided cell range.
+   * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
+   */
+  'afterMergeCells',
+
+  /**
+   * Fired before unmerging the cells.
+   *
+   * @event Hooks#beforeUnmergeCells
+   * @param {CellRange} cellRange Selection cell range.
+   * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
+   */
+  'beforeUnmergeCells',
+
+  /**
+   * Fired after unmerging the cells.
+   *
+   * @event Hooks#beforeUnmergeCells
+   * @param {CellRange} cellRange Selection cell range.
+   * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
+   */
+  'afterUnmergeCells',
 
   /**
    * Fired after the listening is turned on.
