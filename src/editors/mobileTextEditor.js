@@ -14,6 +14,7 @@ import {
 } from './../helpers/dom/element';
 import BaseEditor from './_baseEditor';
 import EventManager from './../eventManager';
+import EditorManager from './../editorManager';
 
 const MobileTextEditor = BaseEditor.prototype.extend();
 const domDimensionsCache = {};
@@ -241,29 +242,38 @@ MobileTextEditor.prototype.prepareAndSave = function() {
 };
 
 MobileTextEditor.prototype.bindEvents = function() {
-  var that = this;
+  const that = this;
+  const editorManager = EditorManager.getInstance();
 
   this.eventManager.addEventListener(this.controls.leftButton, 'touchend', (event) => {
     that.prepareAndSave();
-    that.instance.selection.transformStart(0, -1, null, true);
+    editorManager.lockEditor();
+    that.instance.selection.transformStart(0, -1, null);
+    editorManager.unlockEditor();
     that.updateEditorData();
     event.preventDefault();
   });
   this.eventManager.addEventListener(this.controls.rightButton, 'touchend', (event) => {
     that.prepareAndSave();
-    that.instance.selection.transformStart(0, 1, null, true);
+    editorManager.lockEditor();
+    that.instance.selection.transformStart(0, 1, null);
+    editorManager.unlockEditor();
     that.updateEditorData();
     event.preventDefault();
   });
   this.eventManager.addEventListener(this.controls.upButton, 'touchend', (event) => {
     that.prepareAndSave();
-    that.instance.selection.transformStart(-1, 0, null, true);
+    editorManager.lockEditor();
+    that.instance.selection.transformStart(-1, 0, null);
+    editorManager.unlockEditor();
     that.updateEditorData();
     event.preventDefault();
   });
   this.eventManager.addEventListener(this.controls.downButton, 'touchend', (event) => {
     that.prepareAndSave();
-    that.instance.selection.transformStart(1, 0, null, true);
+    editorManager.lockEditor();
+    that.instance.selection.transformStart(1, 0, null);
+    editorManager.unlockEditor();
     that.updateEditorData();
     event.preventDefault();
   });

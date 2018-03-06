@@ -8,6 +8,7 @@ import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {deepClone, duckSchema, extend, isObject, isObjectEqual, deepObjectSize, hasOwnProperty, createObjectPropListener} from './helpers/object';
 import {arrayFlatten, arrayMap, arrayEach, arrayReduce} from './helpers/array';
+import {toSingleLine} from './helpers/templateLiteralTag';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {getValidator} from './validators';
@@ -64,6 +65,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource,
     grid,
     editorManager,
+    preventScrollingToCell = false,
     instance = this,
     GridSettings = function() {
     },
@@ -117,6 +119,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let selection = new Selection(priv.settings, {
     countCols: () => instance.countCols(),
     countRows: () => instance.countRows(),
+    propToCol: (prop) => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
   });
 
@@ -141,7 +144,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   });
 
-  this.selection.addLocalHook('afterSetRangeEnd', (cellCoords, scrollToCell, keepEditorOpened) => {
+  this.selection.addLocalHook('afterSetRangeEnd', (cellCoords) => {
     const preventScrolling = createObjectPropListener(false);
     const selectionRange = this.selection.getSelectedRange();
     const {from, to} = selectionRange.current();
@@ -161,6 +164,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (cellCoords.row < 0 || cellCoords.col < 0) {
       areCoordsPositive = false;
+    }
+
+    let scrollToCell = true;
+
+    if (preventScrollingToCell) {
+      scrollToCell = false;
     }
 
     if (preventScrolling.isTouched()) {
@@ -190,7 +199,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
-    this._refreshBorders(null, keepEditorOpened);
+    this._refreshBorders(null);
   });
 
   this.selection.addLocalHook('afterSelectionFinished', (cellRanges) => {
@@ -810,7 +819,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.updateSettings(priv.settings, true);
 
     this.view = new TableView(this);
-    editorManager = new EditorManager(instance, priv, selection, datamap);
+    editorManager = EditorManager.getInstance(instance, priv, selection, datamap);
 
     this.forceFullRender = true; // used when data was changed
 
@@ -982,7 +991,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.forceFullRender = true; // used when data was changed
     grid.adjustRowsAndCols();
     instance.runHooks('beforeChangeRender', changes, source);
-    instance._refreshBorders(null, true);
+    editorManager.lockEditor();
+    instance._refreshBorders(null);
+    editorManager.unlockEditor();
     instance.view.wt.wtOverlays.adjustElementsSize();
     instance.runHooks('afterChange', changes, source || 'edit');
 
@@ -1405,7 +1416,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (instance.view) {
       instance.renderCall = true;
       instance.forceFullRender = true; // used when data was changed
-      instance._refreshBorders(null, true);
+      editorManager.lockEditor();
+      instance._refreshBorders(null);
+      editorManager.unlockEditor();
     }
   };
 
@@ -1762,7 +1775,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     grid.adjustRowsAndCols();
     if (instance.view && !priv.firstRun) {
       instance.forceFullRender = true; // used when data was changed
-      instance._refreshBorders(null, true);
+      editorManager.lockEditor();
+      instance._refreshBorders(null);
+      editorManager.unlockEditor();
     }
 
     if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
@@ -3031,56 +3046,97 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Select cell specified by `row` and `col` values or a range of cells finishing at `endRow`, `endCol`.
-   * By default, viewport will be scrolled to selection.
-   * After the `selectCell` method had finished, the instance will be listening to keyboard input on the document.
+   * Select cell specified by `row` and `col` values or a range of cells finishing at `endRow`, `endCol`. If the table
+   * was configured to support data column properties that properties can be used to making a selection.
+   *
+   * By default, viewport will be scrolled to the selection. After the `selectCell` method had finished, the instance
+   * will be listening to keyboard input on the document.
+   *
+   * @example
+   * ```js
+   * // select a single cell
+   * hot.selectCell(2, 4);
+   * // select a single cell using column property
+   * hot.selectCell(2, 'address');
+   * // select a range of cells
+   * hot.selectCell(2, 4, 3, 5);
+   * // select a range of cells using column properties
+   * hot.selectCell(2, 'address', 3, 'phone_number');
+   * // select a range of cells without scrolling to them
+   * hot.selectCell(2, 'address', 3, 'phone_number', false);
+   * ```
    *
    * @memberof Core#
    * @function selectCell
    * @param {Number} row Visual row index.
-   * @param {Number} col Visual column index.
+   * @param {Number|String} column Visual column index or column property.
    * @param {Number} [endRow] Visual end row index (if selecting a range).
-   * @param {Number} [endCol] Visual end column index (if selecting a range).
+   * @param {Number|String} [endColumn] Visual end column index or column property (if selecting a range).
    * @param {Boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
    * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
-  this.selectCell = function(row, col, endRow, endCol, scrollToCell = true, changeListener = true) {
-    if (typeof row !== 'number' || row < 0 || row >= instance.countRows()) {
+  this.selectCell = function(row, column, endRow, endColumn, scrollToCell = true, changeListener = true) {
+    if (isUndefined(row) || isUndefined(column)) {
       return false;
     }
-    if (typeof col !== 'number' || col < 0 || col >= instance.countCols()) {
-      return false;
-    }
-    if (isDefined(endRow)) {
-      if (typeof endRow !== 'number' || endRow < 0 || endRow >= instance.countRows()) {
-        return false;
-      }
-      if (typeof endCol !== 'number' || endCol < 0 || endCol >= instance.countCols()) {
-        return false;
-      }
-    }
-    selection.selectedRange.set(new CellCoords(row, col));
 
-    if (changeListener) {
+    return this.selectCells([[row, column, endRow, endColumn]], scrollToCell, changeListener);
+  };
+
+  /**
+   * Make multiple, non-contiguous selection specified by `row` and `column` values or a range of cells
+   * finishing at `endRow`, `endColumn`. The method supports two input formats which are the same as that
+   * produces by `getSelected` and `getSelectedRange` methods.
+   *
+   * By default, viewport will be scrolled to selection. After the `selectCells` method had finished, the instance
+   * will be listening to keyboard input on the document.
+   *
+   * @example
+   * ```js
+   * // using an array of arrays
+   * hot.selectCells([[1, 1, 2, 2], [3, 3], [6, 2, 0, 2]]);
+   * // using an array of arrays with defined columns as props
+   * hot.selectCells([[1, 'id', 2, 'first_name'], [3, 'full_name'], [6, 'last_name', 0, 'first_name']]);
+   * // or using an array of CellRange objects (produced by `.getSelectedRange()` method)
+   * const selected = hot.getSelectedRange();
+   *
+   * selected[0].from.row = 0;
+   * selected[0].from.col = 0;
+   *
+   * hot.selectCells(selected);
+   * ```
+   *
+   * @memberof Core#
+   * @since 0.37.1
+   * @function selectCells
+   * @param {Array[]|CellRange[]} coords Visual coords passed as an array of array (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
+   *                                     the same format as `getSelected` method returns or as an CellRange objects
+   *                                     which is the same format what `getSelectedRange` method returns.
+   * @param {Boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
+   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
+   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   */
+  this.selectCells = function(coords = [[]], scrollToCell = true, changeListener = true) {
+    if (scrollToCell === false) {
+      preventScrollingToCell = true;
+    }
+
+    const wasSelected = selection.selectCells(coords);
+
+    if (wasSelected && changeListener) {
       instance.listen();
     }
+    preventScrollingToCell = false;
 
-    if (isUndefined(endRow)) {
-      selection.setRangeEnd(selection.selectedRange.current().from, scrollToCell);
-
-    } else {
-      selection.setRangeEnd(new CellCoords(endRow, endCol), scrollToCell);
-    }
-    selection.finish();
-
-    return true;
+    return wasSelected;
   };
 
   /**
    * Select the cell specified by the `row` and `prop` arguments, or a range finishing at `endRow`, `endProp`.
    * By default, viewport will be scrolled to selection.
    *
+   * @deprecated
    * @memberof Core#
    * @function selectCellByProp
    * @param {Number} row Visual row index.
@@ -3088,16 +3144,64 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} [endRow] visual end row index (if selecting a range).
    * @param {String} [endProp] End property name (if selecting a range).
    * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the selection.
+   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
-  this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell) {
-    let endColumn;
+  this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell = true, changeListener = true) {
+    console.warn(toSingleLine`Deprecation warning: This method is going to be removed in the next release.\x20
+      If you want to select a cell using props, please use the \`selectCell\` method.`);
 
-    if (isDefined(endProp)) {
-      endColumn = datamap.propToCol(endProp);
-    }
+    return this.selectCells([[row, prop, endRow, endProp]], scrollToCell, changeListener);
+  };
 
-    return instance.selectCell(row, datamap.propToCol(prop), endRow, endColumn, scrollToCell);
+  /**
+   * Select column specified by `startColumn` visual index, column property or a range of columns finishing at `endColumn`.
+   *
+   * @example
+   * ```js
+   * // select column using visual index
+   * hot.selectColumns(1);
+   * // select column using column property
+   * hot.selectColumns('id');
+   * // select range of columns using visual indexes
+   * hot.selectColumns(1, 4);
+   * // select range of columns using column properties
+   * hot.selectColumns('id', 'last_name');
+   * ```
+   *
+   * @memberof Core#
+   * @since 0.37.1
+   * @function selectColumns
+   * @param {Number} startColumn The visual column index from which the selection starts.
+   * @param {Number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
+   *                                         is not defined the column defined by `startColumn` will be selected.
+   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   */
+  this.selectColumns = function(startColumn, endColumn = startColumn) {
+    return selection.selectColumns(startColumn, endColumn);
+  };
+
+  /**
+   * Select row specified by `startRow` visual index or a range of rows finishing at `endRow`.
+   *
+   * @example
+   * ```js
+   * select row using visual index
+   * hot.selectRows(1);
+   * select range of rows using visual indexes
+   * hot.selectRows(1, 4);
+   * ```
+   *
+   * @memberof Core#
+   * @since 0.37.1
+   * @function selectRows
+   * @param {Number} startRow The visual row index from which the selection starts.
+   * @param {Number} [endRow=startRow] The visual row index to which the selection finishes. If `endRow`
+   *                                   is not defined the row defined by `startRow` will be selected.
+   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   */
+  this.selectRows = function(startRow, endRow = startRow) {
+    return selection.selectRows(startRow, endRow);
   };
 
   /**
@@ -3181,6 +3285,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     empty(instance.rootElement);
     eventManager.destroy();
+
+    if (editorManager) {
+      editorManager.destroy();
+    }
 
     instance.runHooks('afterDestroy');
     Hooks.getSingleton().destroy(instance);
@@ -3397,15 +3505,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @private
    * @param {Boolean} revertOriginal
-   * @param {Boolean} keepEditor
    */
-  this._refreshBorders = function(revertOriginal, keepEditor) {
-    if (!keepEditor) {
-      editorManager.destroyEditor(revertOriginal);
-    }
+  this._refreshBorders = function(revertOriginal) {
+    editorManager.destroyEditor(revertOriginal);
     instance.view.render();
 
-    if (selection.isSelected() && !keepEditor) {
+    if (selection.isSelected()) {
       editorManager.prepareEditor();
     }
   };

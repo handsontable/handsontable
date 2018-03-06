@@ -8,6 +8,14 @@ import {addClass, removeClass} from './../helpers/dom/element';
 import {arrayEach} from './../helpers/array';
 import localHooks from './../mixins/localHooks';
 import Transformation from './transformation';
+import {
+  detectSelectionType,
+  isValidCoord,
+  normalizeSelectionFactory,
+  SELECTION_TYPE_EMPTY,
+  SELECTION_TYPE_UNRECOGNIZED,
+} from './utils';
+import {toSingleLine} from './../helpers/templateLiteralTag';
 
 /**
  * @class Selection
@@ -135,23 +143,22 @@ class Selection {
    * Starts selection range on given coordinate object.
    *
    * @param {CellCoords} coords Visual coords.
-   * @param {Boolean} [keepEditorOpened=false] If `true`, cell editor will be still opened after changing selection range.
    * @param {Boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
    *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
    *                                      the default trigger will be used (isPressedCtrlKey() helper).
    */
-  setRangeStart(coords, keepEditorOpened = false, multipleSelection) {
+  setRangeStart(coords, multipleSelection) {
     const isMultipleMode = this.settings.selectionMode === 'multiple';
     const isMultipleSelection = isUndefined(multipleSelection) ? isPressedCtrlKey() : multipleSelection;
 
     this.runLocalHooks('beforeSetRangeStart', coords);
 
-    if (!isMultipleMode || (isMultipleMode && !isMultipleSelection)) {
+    if (!isMultipleMode || (isMultipleMode && !isMultipleSelection && isUndefined(multipleSelection))) {
       this.selectedRange.clear();
     }
 
     this.selectedRange.add(coords);
-    this.setRangeEnd(coords, null, keepEditorOpened);
+    this.setRangeEnd(coords);
   }
 
   /**
@@ -168,7 +175,7 @@ class Selection {
 
     this.runLocalHooks('beforeSetRangeStartOnly', coords);
 
-    if (!isMultipleMode || (isMultipleMode && !isMultipleSelection)) {
+    if (!isMultipleMode || (isMultipleMode && !isMultipleSelection && isUndefined(multipleSelection))) {
       this.selectedRange.clear();
     }
 
@@ -179,10 +186,8 @@ class Selection {
    * Ends selection range on given coordinate object.
    *
    * @param {CellCoords} coords Visual coords.
-   * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the range end.
-   * @param {Boolean} [keepEditorOpened=false] If `true`, cell editor will be still opened after changing selection range.
    */
-  setRangeEnd(coords, scrollToCell = true, keepEditorOpened = false) {
+  setRangeEnd(coords) {
     if (this.selectedRange.isEmpty()) {
       return;
     }
@@ -196,7 +201,7 @@ class Selection {
       cellRange.setTo(new CellCoords(coords.row, coords.col));
     }
 
-    // set up current selection
+    // Set up current selection.
     this.highlight.getCell().clear();
 
     if (this.highlight.isEnabledFor(CELL_TYPE)) {
@@ -255,7 +260,7 @@ class Selection {
       }
     }
 
-    this.runLocalHooks('afterSetRangeEnd', coords, scrollToCell, keepEditorOpened);
+    this.runLocalHooks('afterSetRangeEnd', coords);
   }
 
   /**
@@ -279,12 +284,11 @@ class Selection {
    * @param {Number} colDelta Columns number to move, value can be passed as negative number.
    * @param {Boolean} force If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
-   * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after transforming the selection.
    */
-  transformStart(rowDelta, colDelta, force, keepEditorOpened) {
+  transformStart(rowDelta, colDelta, force) {
     const newCoords = this.transformation.transformStart(rowDelta, colDelta, force);
 
-    this.setRangeStart(newCoords, keepEditorOpened, false);
+    this.setRangeStart(newCoords);
   }
 
   /**
@@ -296,7 +300,7 @@ class Selection {
   transformEnd(rowDelta, colDelta) {
     const newCoords = this.transformation.transformEnd(rowDelta, colDelta);
 
-    this.setRangeEnd(newCoords, true, false);
+    this.setRangeEnd(newCoords);
   }
 
   /**
@@ -345,6 +349,14 @@ class Selection {
   }
 
   /**
+   * Clear the selection by resetting the collected ranges and highlights.
+   */
+  clear() {
+    this.selectedRange.clear();
+    this.highlight.clear();
+  }
+
+  /**
    * Deselects all selected cells.
    */
   deselect() {
@@ -353,9 +365,7 @@ class Selection {
     }
 
     this.inProgress = false;
-    this.selectedRange.clear();
-    this.highlight.clear();
-
+    this.clear();
     this.runLocalHooks('afterDeselect');
   }
 
@@ -367,10 +377,111 @@ class Selection {
       return;
     }
 
+    this.clear();
     this.setSelectedHeaders(true, true, true);
-    this.highlight.clear();
     this.setRangeStart(new CellCoords(0, 0));
-    this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, this.tableProps.countCols() - 1), false);
+    this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, this.tableProps.countCols() - 1));
+  }
+
+  /**
+   * Make multiple, non-contiguous selection specified by `row` and `column` values or a range of cells
+   * finishing at `endRow`, `endColumn`. The method supports two input formats, first as an array of arrays such
+   * as `[[rowStart, columnStart, rowEnd, columnEnd]]` and second format as an array of CellRange objects.
+   * If the passed ranges have another format the exception will be thrown.
+   *
+   * @param {Array[]|CellRange[]} selectionRanges The coordinates which define what the cells should be selected.
+   * @return {Boolean} Returns `true` if selection was successful, `false` otherwise.
+   */
+  selectCells(selectionRanges) {
+    const selectionType = detectSelectionType(selectionRanges);
+
+    if (selectionType === SELECTION_TYPE_EMPTY) {
+      return false;
+
+    } else if (selectionType === SELECTION_TYPE_UNRECOGNIZED) {
+      throw new Error(toSingleLine`Unsupported format of the selection ranges was passed. To select cells pass\x20
+        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd, columnEnd/columnPropEnd]])\x20
+        or as an array of CellRange objects.`);
+    }
+
+    const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
+      propToCol: (prop) => this.tableProps.propToCol(prop),
+      keepDirection: true,
+    });
+    const countRows = this.tableProps.countRows();
+    const countCols = this.tableProps.countCols();
+
+    // Check if every layer of the coordinates are valid.
+    const isValid = !selectionRanges.some((selection) => {
+      const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
+      const isValid = isValidCoord(rowStart, countRows) &&
+                      isValidCoord(columnStart, countCols) &&
+                      isValidCoord(rowEnd, countRows) &&
+                      isValidCoord(columnEnd, countCols);
+
+      return !isValid;
+    });
+
+    if (isValid) {
+      this.clear();
+
+      arrayEach(selectionRanges, (selection) => {
+        const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
+
+        this.setRangeStartOnly(new CellCoords(rowStart, columnStart), false);
+        this.setRangeEnd(new CellCoords(rowEnd, columnEnd));
+        this.finish();
+      });
+    }
+
+    return isValid;
+  }
+
+  /**
+   * Select column specified by `startColumn` visual index or column property or a range of columns finishing at `endColumn`.
+   *
+   * @param {Number|String} startColumn Visual column index or column property from which the selection starts.
+   * @param {Number|String} [endColumn] Visual column index or column property from to the selection finishes.
+   * @returns {Boolean} Returns `true` if selection was successful, `false` otherwise.
+   */
+  selectColumns(startColumn, endColumn = startColumn) {
+    startColumn = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
+    endColumn = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
+
+    const countCols = this.tableProps.countCols();
+    const isValid = isValidCoord(startColumn, countCols) && isValidCoord(endColumn, countCols);
+
+    if (isValid) {
+      this.clear();
+      this.setSelectedHeaders(false, true, false);
+      this.setRangeStartOnly(new CellCoords(0, startColumn));
+      this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, endColumn));
+      this.finish();
+    }
+
+    return isValid;
+  }
+
+  /**
+   * Select row specified by `startRow` visual index or a range of rows finishing at `endRow`.
+   *
+   * @param {Number} startRow Visual row index from which the selection starts.
+   * @param {Number} [endRow] Visual row index from to the selection finishes.
+   * @returns {Boolean} Returns `true` if selection was successful, `false` otherwise.
+   */
+  selectRows(startRow, endRow = startRow) {
+    const countRows = this.tableProps.countRows();
+    const isValid = isValidCoord(startRow, countRows) && isValidCoord(endRow, countRows);
+
+    if (isValid) {
+      this.clear();
+      this.setSelectedHeaders(true, false, false);
+      this.setRangeStartOnly(new CellCoords(startRow, 0));
+      this.setRangeEnd(new CellCoords(endRow, this.tableProps.countCols() - 1));
+      this.finish();
+    }
+
+    return isValid;
   }
 }
 
