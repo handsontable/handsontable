@@ -12,7 +12,7 @@ afterEach(function () {
 });
 
 describe('Events', () => {
-  it('tap (touchstart) should be translated to mousedown', async () => {
+  it('should translate tap (`touchstart`) to `mousedown`', async () => {
     const afterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
 
     const hot = handsontable({
