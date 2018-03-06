@@ -8,6 +8,7 @@ import {EditorState} from './editors/_baseEditor';
 function EditorManager(instance, priv, selection) {
   var _this = this,
     destroyed = false,
+    lock = false,
     eventManager,
     activeEditor;
 
@@ -278,11 +279,29 @@ function EditorManager(instance, priv, selection) {
       }
     }
     instance.view.wt.update('onCellDblClick', onDblClick);
-
-    instance.addHook('afterDestroy', () => {
-      destroyed = true;
-    });
   }
+
+  /**
+  * Lock the editor from being prepared and closed. Locking the editor prevents its closing and
+  * reinitialized after selecting the new cell. This feature is necessary for a mobile editor.
+  *
+  * @function lockEditor
+  * @memberof! Handsontable.EditorManager#
+   */
+  this.lockEditor = function() {
+    lock = true;
+  };
+
+  /**
+  * Unlock the editor from being prepared and closed. This method restores the original behavior of
+  * the editors where for every new selection its instances are closed.
+  *
+  * @function unlockEditor
+  * @memberof! Handsontable.EditorManager#
+   */
+  this.unlockEditor = function() {
+    lock = false;
+  };
 
   /**
    * Destroy current editor, if exists.
@@ -292,7 +311,9 @@ function EditorManager(instance, priv, selection) {
    * @param {Boolean} revertOriginal
    */
   this.destroyEditor = function(revertOriginal) {
-    this.closeEditor(revertOriginal);
+    if (!lock) {
+      this.closeEditor(revertOriginal);
+    }
   };
 
   /**
@@ -313,6 +334,10 @@ function EditorManager(instance, priv, selection) {
    * @memberof! Handsontable.EditorManager#
    */
   this.prepareEditor = function() {
+    if (lock) {
+      return;
+    }
+
     var row,
       col,
       prop,
@@ -419,7 +444,27 @@ function EditorManager(instance, priv, selection) {
     return this.closeEditor(true, ctrlDown);
   };
 
+  /**
+   * Destroy the instance.
+   */
+  this.destroy = function() {
+    destroyed = true;
+  };
+
   init();
 }
+
+const instances = new WeakMap();
+
+EditorManager.getInstance = function(hotInstance, hotSettings, selection, datamap) {
+  let editorManager = instances.get(hotInstance);
+
+  if (!editorManager) {
+    editorManager = new EditorManager(hotInstance, hotSettings, selection, datamap);
+    instances.set(hotInstance, editorManager);
+  }
+
+  return editorManager;
+};
 
 export default EditorManager;

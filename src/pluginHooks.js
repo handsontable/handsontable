@@ -763,6 +763,14 @@ const REGISTERED_HOOKS = [
   'beforeRender',
 
   /**
+   * Callback fired before setting range is started but not finished yet.
+   *
+   * @event Hooks#beforeSetRangeStartOnly
+   * @param {CellCoords} coords CellCoords instance.
+   */
+  'beforeSetRangeStartOnly',
+
+  /**
    * Callback fired before setting range is started.
    *
    * @event Hooks#beforeSetRangeStart

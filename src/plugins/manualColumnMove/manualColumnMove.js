@@ -213,11 +213,7 @@ class ManualColumnMove extends BasePlugin {
    * @param {Number} endColumn Visual column index for the end of the selection.
    */
   changeSelection(startColumn, endColumn) {
-    let selection = this.hot.selection;
-    let lastRowIndex = this.hot.countRows() - 1;
-
-    selection.setRangeStartOnly(new CellCoords(0, startColumn));
-    selection.setRangeEnd(new CellCoords(lastRowIndex, endColumn), false);
+    this.hot.selectColumns(startColumn, endColumn);
   }
 
   /**
