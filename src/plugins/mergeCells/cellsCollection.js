@@ -3,6 +3,7 @@ import {CellCoords, CellRange} from '../../3rdparty/walkontable/src/index';
 import {rangeEach} from '../../helpers/number';
 import {arrayEach} from '../../helpers/array';
 import {applySpanProperties} from './utils';
+import {toSingleLine} from './../../helpers/templateLiteralTag';
 
 /**
  * Defines a container object for the merged cells.
@@ -39,8 +40,9 @@ class MergedCellsCollection {
    * @return {String}
    */
   static IS_OVERLAPPING_WARNING(newMergedCell) {
-    return `The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] overlaps with the other ` +
-      'declared merged cell. The overlapping merged cell was not added to the table, please fix your setup.';
+    return toSingleLine([
+      `The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] overlaps with the other declared merged 
+      cell. The overlapping merged cell was not added to the table, please fix your setup.`]);
   }
 
   /**
