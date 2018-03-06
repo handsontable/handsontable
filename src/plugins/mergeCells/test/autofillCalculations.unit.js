@@ -185,7 +185,7 @@ describe('MergeCells-Autofill calculations', () => {
         countRows: () => 100,
       };
       const instance = new AutofillCalculations({
-        mergedCellsCollection: new MergedCellsCollection(hotMock),
+        mergedCellsCollection: new MergedCellsCollection({hot: hotMock}),
         hot: hotMock
       });
 

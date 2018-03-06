@@ -3,6 +3,7 @@ import {CellCoords, CellRange} from '../../3rdparty/walkontable/src/index';
 import {rangeEach} from '../../helpers/number';
 import {arrayEach} from '../../helpers/array';
 import {applySpanProperties} from './utils';
+import {toSingleLine} from './../../helpers/templateLiteralTag';
 
 /**
  * Defines a container object for the merged cells.
@@ -30,6 +31,17 @@ class MergedCellsCollection {
      * @type {Handsontable}
      */
     this.hot = plugin.hot;
+  }
+
+  /**
+   * Get a warning message for when the declared merged cell data overlaps already existing merged cells.
+   *
+   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @return {String}
+   */
+  static IS_OVERLAPPING_WARNING(newMergedCell) {
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] overlaps with the other declared merged 
+      cell. The overlapping merged cell was not added to the table, please fix your setup.`;
   }
 
   /**
@@ -128,8 +140,10 @@ class MergedCellsCollection {
     const rowspan = mergedCellInfo.rowspan;
     const colspan = mergedCellInfo.colspan;
     const newMergedCell = new MergedCellCoords(row, column, rowspan, colspan);
+    const alreadyExists = this.get(row, column);
+    const isOverlapping = this.isOverlapping(newMergedCell);
 
-    if (!this.get(row, column) && !this.isOverlapping(newMergedCell)) {
+    if (!alreadyExists && !isOverlapping) {
       if (this.hot) {
         newMergedCell.normalize(this.hot);
       }
@@ -139,8 +153,7 @@ class MergedCellsCollection {
       return newMergedCell;
     }
 
-    console.warn(`The declared merged cell at [${newMergedCell.row}, ${newMergedCell.col}] overlaps with the other declared merged cell. 
-    The overlapping merged cell was not added to the table, please fix your setup.`);
+    console.warn(MergedCellsCollection.IS_OVERLAPPING_WARNING(newMergedCell));
 
     return false;
   }
