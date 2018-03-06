@@ -40,22 +40,46 @@ class MergedCellCoords {
     this.removed = false;
   }
 
+  /**
+   * Get a warning message for when the declared merged cell data contains negative values.
+   *
+   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @return {String}
+   */
   static NEGATIVE_VALUES_WARNING(newMergedCell) {
     return 'The merged cell declared with ' +
       `{row: ${newMergedCell.row}, col: ${newMergedCell.col}, rowspan: ${newMergedCell.rowspan}, colspan: ${newMergedCell.colspan}} ` +
       'contains negative values, which is not supported. It will not be added to the collection.';
   }
 
+  /**
+   * Get a warning message for when the declared merged cell data contains values exceeding the table limits.
+   *
+   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @return {String}
+   */
   static IS_OUT_OF_BOUNDS_WARNING(newMergedCell) {
     return `The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] is positioned ` +
       '(or positioned partially) outside of the table range. It was not added to the table, please fix your setup.';
   }
 
+  /**
+   * Get a warning message for when the declared merged cell data represents a single cell.
+   *
+   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @return {String}
+   */
   static IS_SINGLE_CELL(newMergedCell) {
     return `The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] ` +
       'has both "rowspan" and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.';
   }
 
+  /**
+   * Get a warning message for when the declared merged cell data contains "colspan" or "rowspan", that equals 0.
+   *
+   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @return {String}
+   */
   static ZERO_SPAN_WARNING(newMergedCell) {
     return `The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] ` +
       'has "rowspan" or "colspan" declared as "0", which is not supported. It cannot be added to the collection.';

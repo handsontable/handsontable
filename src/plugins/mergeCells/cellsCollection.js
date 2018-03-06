@@ -32,6 +32,12 @@ class MergedCellsCollection {
     this.hot = plugin.hot;
   }
 
+  /**
+   * Get a warning message for when the declared merged cell data overlaps already existing merged cells.
+   *
+   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @return {String}
+   */
   static IS_OVERLAPPING_WARNING(newMergedCell) {
     return `The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] overlaps with the other ` +
       'declared merged cell. The overlapping merged cell was not added to the table, please fix your setup.';
