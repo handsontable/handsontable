@@ -531,6 +531,12 @@ describe('MergeCells', () => {
           col: 6,
           rowspan: 0,
           colspan: 0
+        },
+        {
+          row: 9,
+          col: 9,
+          rowspan: 1,
+          colspan: 0
         }
       ];
       const hot = handsontable({
@@ -538,7 +544,9 @@ describe('MergeCells', () => {
         mergeCells: newMergedCells
       });
 
-      expect(warnSpy).toHaveBeenCalledWith('The merged cell declared at [6, 6] has both "rowspan" and ' +
+      expect(warnSpy).toHaveBeenCalledWith('The merged cell declared at [6, 6] has "rowspan" or ' +
+        '"colspan" declared as "0", which is not supported. It cannot be added to the collection.');
+      expect(warnSpy).toHaveBeenCalledWith('The merged cell declared at [9, 9] has "rowspan" or ' +
         '"colspan" declared as "0", which is not supported. It cannot be added to the collection.');
 
       expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(1);

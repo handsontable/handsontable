@@ -58,7 +58,7 @@ class MergedCellCoords {
 
   static ZERO_SPAN_WARNING(newMergedCell) {
     return `The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] ` +
-      'has both "rowspan" and "colspan" declared as "0", which is not supported. It cannot be added to the collection.';
+      'has "rowspan" or "colspan" declared as "0", which is not supported. It cannot be added to the collection.';
   }
 
   /**
@@ -83,14 +83,14 @@ class MergedCellCoords {
   }
 
   /**
-   * Check whether the provided merged cell information object contains a rowspan and colspan of 0.
+   * Check whether the provided merged cell information object contains a rowspan or colspan of 0.
    *
    * @private
    * @param {Object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
    * @return {Boolean}
    */
   static containsZeroSpan(mergedCellInfo) {
-    return mergedCellInfo.colspan === 0 && mergedCellInfo.rowspan === 0;
+    return mergedCellInfo.colspan === 0 || mergedCellInfo.rowspan === 0;
   }
 
   /**
