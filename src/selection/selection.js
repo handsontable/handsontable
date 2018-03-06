@@ -477,7 +477,7 @@ class Selection {
       this.clear();
       this.setSelectedHeaders(true, false, false);
       this.setRangeStartOnly(new CellCoords(startRow, 0));
-      this.setRangeEnd(new CellCoords(endRow, this.tableProps.countRows() - 1));
+      this.setRangeEnd(new CellCoords(endRow, this.tableProps.countCols() - 1));
       this.finish();
     }
 
