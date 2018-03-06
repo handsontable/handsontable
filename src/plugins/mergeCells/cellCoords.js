@@ -40,6 +40,60 @@ class MergedCellCoords {
     this.removed = false;
   }
 
+  static NEGATIVE_VALUES_WARNING(newMergedCell) {
+    return 'The merged cell declared with ' +
+      `{row: ${newMergedCell.row}, col: ${newMergedCell.col}, rowspan: ${newMergedCell.rowspan}, colspan: ${newMergedCell.colspan}} ` +
+      'contains negative values, which is not supported. It will not be added to the collection.';
+  }
+
+  static IS_OUT_OF_BOUNDS_WARNING(newMergedCell) {
+    return `The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] is positioned ` +
+      '(or positioned partially) outside of the table range. It was not added to the table, please fix your setup.';
+  }
+
+  static IS_SINGLE_CELL(newMergedCell) {
+    return `The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] ` +
+      'has both "rowspan" and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.';
+  }
+
+  /**
+   * Check whether the values provided for a merged cell contain any negative values.
+   *
+   * @param {Object} mergedCellInfo Object containing the `row`, `col`, `rowspan` and `colspan` properties.
+   * @return {Boolean}
+   */
+  static containsNegativeValues(mergedCellInfo) {
+    return mergedCellInfo.row < 0 || mergedCellInfo.col < 0 || mergedCellInfo.rowspan < 0 || mergedCellInfo.colspan < 0;
+  }
+
+  /**
+   * Check whether the provided merged cell information object represents a single cell.
+   *
+   * @private
+   * @param {Object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
+   * @return {Boolean}
+   */
+  static isSingleCell(mergedCellInfo) {
+    return mergedCellInfo.colspan === 1 && mergedCellInfo.rowspan === 1;
+  }
+
+  /**
+   * Check whether the provided merged cell object is to be declared out of bounds of the table.
+   *
+   * @param {Object} mergeCell Object containing the `row`, `col`, `rowspan` and `colspan` properties.
+   * @param {Number} rowCount Number of rows in the table.
+   * @param {Number} columnCount Number of rows in the table.
+   * @return {Boolean}
+   */
+  static isOutOfBounds(mergeCell, rowCount, columnCount) {
+    return mergeCell.row < 0 ||
+      mergeCell.col < 0 ||
+      mergeCell.row >= rowCount ||
+      mergeCell.row + mergeCell.rowspan - 1 >= rowCount ||
+      mergeCell.col >= columnCount ||
+      mergeCell.col + mergeCell.colspan - 1 >= columnCount;
+  }
+
   /**
    * Sanitize (prevent from going outside the boundaries) the merged cell.
    *

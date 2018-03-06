@@ -83,42 +83,6 @@ describe('MergeCells', () => {
         expect(mergedCellsCollection.mergedCells[1].row).toEqual(20);
         expect(mergedCellsCollection.mergedCells[1].col).toEqual(21);
       });
-
-      it('should not add new merged cells and throw an appropriate warning, if the merged cell is out of the range of the table', () => {
-        const warnSpy = spyOn(console, 'warn');
-
-        const mergedCellsCollection = new MergedCellsCollection({hot: hotMock});
-        const newMergedCells = [
-          {
-            row: 0,
-            col: 1,
-            rowspan: 3,
-            colspan: 4
-          },
-          {
-            row: 5,
-            col: 8,
-            rowspan: 3,
-            colspan: 4
-          },
-          {
-            row: 20,
-            col: 21,
-            rowspan: 300,
-            colspan: 4
-          }];
-
-        mergedCellsCollection.add(newMergedCells[0]);
-        mergedCellsCollection.add(newMergedCells[1]);
-        mergedCellsCollection.add(newMergedCells[2]);
-
-        expect(warnSpy).toHaveBeenCalledWith(MergedCellsCollection.IS_OUT_OF_BOUNDS_WARNING(newMergedCells[2]));
-        expect(mergedCellsCollection.mergedCells.length).toEqual(2);
-        expect(mergedCellsCollection.mergedCells[0].row).toEqual(0);
-        expect(mergedCellsCollection.mergedCells[0].col).toEqual(1);
-        expect(mergedCellsCollection.mergedCells[1].row).toEqual(5);
-        expect(mergedCellsCollection.mergedCells[1].col).toEqual(8);
-      });
     });
 
     describe('`remove` method', () => {

@@ -37,11 +37,6 @@ class MergedCellsCollection {
       'declared merged cell. The overlapping merged cell was not added to the table, please fix your setup.';
   }
 
-  static IS_OUT_OF_BOUNDS_WARNING(newMergedCell) {
-    return `The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] is positioned ` +
-      '(or positioned partially) outside of the table range. It was not added to the table, please fix your setup.';
-  }
-
   /**
    * Get a merged cell from the container, based on the provided arguments. You can provide either the "starting coordinates"
    * of a merged cell, or any coordinates from the body of the merged cell.
@@ -139,10 +134,9 @@ class MergedCellsCollection {
     const colspan = mergedCellInfo.colspan;
     const newMergedCell = new MergedCellCoords(row, column, rowspan, colspan);
     const alreadyExists = this.get(row, column);
-    const isOutOfBounds = this.isOutOfBounds(newMergedCell);
     const isOverlapping = this.isOverlapping(newMergedCell);
 
-    if (!alreadyExists && !isOverlapping && !isOutOfBounds) {
+    if (!alreadyExists && !isOverlapping) {
       if (this.hot) {
         newMergedCell.normalize(this.hot);
       }
@@ -150,11 +144,6 @@ class MergedCellsCollection {
       mergedCells.push(newMergedCell);
 
       return newMergedCell;
-
-    } else if (!alreadyExists && isOutOfBounds) {
-      console.warn(MergedCellsCollection.IS_OUT_OF_BOUNDS_WARNING(newMergedCell));
-
-      return false;
     }
 
     console.warn(MergedCellsCollection.IS_OVERLAPPING_WARNING(newMergedCell));
@@ -241,24 +230,6 @@ class MergedCellsCollection {
     });
 
     return result;
-  }
-
-  /**
-   * Check whether the provided merged cell object is to be declared out of bounds of the table.
-   *
-   * @param {Object} mergeCell Object representing the dimensions of a merged cell.
-   * @return {Boolean}
-   */
-  isOutOfBounds(mergeCell) {
-    const rowCount = this.hot.countRows();
-    const columnCount = this.hot.countCols();
-
-    return mergeCell.row < 0 ||
-      mergeCell.col < 0 ||
-      mergeCell.row > rowCount ||
-      mergeCell.row + mergeCell.rowspan - 1 > rowCount ||
-      mergeCell.col > columnCount ||
-      mergeCell.col + mergeCell.colspan - 1 > columnCount;
   }
 
   /**
