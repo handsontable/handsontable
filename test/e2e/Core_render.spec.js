@@ -99,6 +99,18 @@ describe('Core_render', () => {
     expect(lastCellProperties.col).toEqual(4);
   });
 
+  it('should run beforeValueRender hook', function() {
+    handsontable({
+      data: [['A1', 'B1']],
+      beforeValueRender(value, cellProperties) {
+        return cellProperties.col === 0 ? 'Test' : value;
+      }
+    });
+
+    expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('Test');
+    expect(this.$container.find('td:eq(1)')[0].innerHTML).toEqual('B1');
+  });
+
   it('should run beforeRenderer hook', function() {
     var lastCellProperties;
 
