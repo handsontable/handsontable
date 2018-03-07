@@ -784,6 +784,43 @@ describe('UndoRedo', () => {
           hot2.destroy();
           this.$container2.remove();
         });
+
+        it('should return the right amount after undo removal of single column', () => {
+          const HOT = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 3)
+          });
+
+          const afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');
+          HOT.addHook('afterCreateCol', afterCreateColCallback);
+
+          expect(countCols()).toEqual(3);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 2)).toEqual('C1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 2)).toEqual('C2');
+
+          alter('remove_col', 1);
+
+          expect(countCols()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('C1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('C2');
+
+          HOT.undo();
+
+          expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'UndoRedo.undo', void 0, void 0, void 0);
+
+          expect(countCols()).toEqual(3);
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 2)).toEqual('C1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 2)).toEqual('C2');
+        });
       });
       describe('redo', () => {
         it('should redo single change', () => {
