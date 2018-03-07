@@ -5,6 +5,6 @@ import {getRenderer} from './../renderers';
 const CELL_TYPE = 'text';
 
 export default {
-  editor: isMobileBrowser() ? getEditor('mobile') : getEditor(CELL_TYPE),
+  editor: getEditor(CELL_TYPE),
   renderer: getRenderer(CELL_TYPE),
 };
