@@ -495,13 +495,15 @@ function TableView(instance) {
 
   if (!isChrome() && !isSafari()) {
     this.eventManager.addEventListener(instance.rootElement, 'wheel', (event) => {
-      event.preventDefault();
-
       const lineHeight = parseInt(getComputedStyle(document.body)['font-size'], 10);
       const holder = that.wt.wtOverlays.scrollableElement;
 
-      let deltaY = event.wheelDeltaY || event.deltaY;
-      let deltaX = event.wheelDeltaX || event.deltaX;
+      if (holder !== window) {
+        event.preventDefault();
+      }
+
+      let deltaY = (-1) * event.wheelDeltaY || event.deltaY;
+      let deltaX = (-1) * event.wheelDeltaX || event.deltaX;
 
       switch (event.deltaMode) {
         case 0:
