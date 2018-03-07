@@ -20,8 +20,8 @@
  * RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
  * UNINTERRUPTED OR ERROR FREE.
  * 
- * Version: 1.17.0
- * Release date: 01/03/2018 (built at 01/03/2018 13:53:40)
+ * Version: 1.17.1
+ * Release date: 14/03/2018 (built at 07/03/2018 15:04:20)
  */
 /**
  * Fix for bootstrap styles
@@ -1558,9 +1558,8 @@ textarea#HandsontableCopyPaste {
   padding: 0 0 5px 0;
 }
 .handsontable .htFiltersMenuCondition .htUIInput input {
-  width: 159px;
+  width: 177px;
   padding: 4px;
-  margin-left: -4px;
 }
 
 /* Component filter by value */
@@ -1571,9 +1570,8 @@ textarea#HandsontableCopyPaste {
   padding: 0;
 }
 .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input {
-  width: 159px;
+  width: 177px;
   padding: 4px;
-  margin-left: -4px;
 }
 
 .htUIMultipleSelect .ht_master .wtHolder {
@@ -1588,7 +1586,7 @@ textarea#HandsontableCopyPaste {
 
 .handsontable .htUIClearAll, .handsontable .htUISelectAll {
   display: inline-block;
-  margin: 0 5px;
+  margin-left: 10px;
 }
 .handsontable .htUIClearAll a, .handsontable .htUISelectAll a {
   color: #3283D8;
@@ -1657,9 +1655,7 @@ textarea#HandsontableCopyPaste {
 .handsontable .htUISelect {
   cursor: pointer;
   margin-bottom: 7px;
-  padding: 0 2px 0 0;
   position: relative;
-  width: 169px;
 }
 .handsontable .htUISelectCaption {
   background-color: #e8e8e8;
@@ -1701,7 +1697,6 @@ textarea#HandsontableCopyPaste {
   border-radius: 2px;
   border: 1px solid #d2d1d1;
   padding: 3px;
-  width: 161px;
 }
 
 .handsontable .htUIRadio {
