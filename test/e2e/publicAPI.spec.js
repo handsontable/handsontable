@@ -58,7 +58,6 @@ describe('Public API', () => {
       expect(Handsontable.editors.DateEditor).toBeFunction();
       expect(Handsontable.editors.DropdownEditor).toBeFunction();
       expect(Handsontable.editors.HandsontableEditor).toBeFunction();
-      expect(Handsontable.editors.MobileEditor).toBeFunction();
       expect(Handsontable.editors.NumericEditor).toBeFunction();
       expect(Handsontable.editors.PasswordEditor).toBeFunction();
       expect(Handsontable.editors.SelectEditor).toBeFunction();
