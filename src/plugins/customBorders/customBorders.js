@@ -335,19 +335,19 @@ class CustomBorders extends BasePlugin {
 
           case 'right':
             rangeEach(start.row, end.row, (rowRight) => {
-              this.setBorder(rowRight, end.col, place);
+              this.setBorder(rowRight, end.col, place, remove);
             });
             break;
 
           case 'bottom':
             rangeEach(start.col, end.col, (bottomCol) => {
-              this.setBorder(end.row, bottomCol, place);
+              this.setBorder(end.row, bottomCol, place, remove);
             });
             break;
 
           case 'left':
             rangeEach(start.row, end.row, (rowLeft) => {
-              this.setBorder(rowLeft, start.col, place);
+              this.setBorder(rowLeft, start.col, place, remove);
             });
             break;
           default:

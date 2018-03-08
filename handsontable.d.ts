@@ -796,7 +796,7 @@ declare namespace Handsontable {
       paste(triggeredByClick?: boolean): void;
     }
 
-    interface customBorders extends Base {
+    interface CustomBorders extends Base {
       savedBorderSettings: any[];
 
       getSettingIndex(className: string): number;
