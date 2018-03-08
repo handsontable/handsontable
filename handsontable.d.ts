@@ -1471,7 +1471,7 @@ declare namespace Handsontable {
     noWordWrapClassName?: string;
     observeChanges?: boolean;
     observeDOMVisibility?: boolean;
-    outsideClickDeselects?: boolean;
+    outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
     pasteMode?: string;
     persistentState?: boolean;
     placeholder?: any;
