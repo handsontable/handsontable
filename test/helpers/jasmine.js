@@ -193,6 +193,43 @@ beforeEach(function() {
         }
       };
     },
+    /**
+     * The matcher checks if the provided selection pattern matches to the rendered cells by checking if
+     * the appropriate CSS class name was added.
+     *
+     * The provided structure should be passed as an array of arrays, for instance:
+     * ```
+     * // Non-contiguous selection
+     * expect([
+     *   [' ', '0', '0', ' ', ' ', ' ', ' '],
+     *   [' ', '0', '0', ' ', '0', '0', ' '],
+     *   [' ', '0', '0', ' ', '0', '0', ' '],
+     *   [' ', '0', '1', '1', '1', '1', ' '],
+     *   [' ', '0', '1', '1', 'C', '2', ' '],
+     *   [' ', '0', '0', ' ', '1', '1', ' '],
+     *   ['-', '-', '-', '-', '-', '-', '-'],
+     *   ['-', '-', '-', '-', '-', '-', '-'],
+     *   ['-', '-', '-', '-', '-', '-', '-'],
+     *   ['-', '-', '-', '-', '-', '-', '-'],
+     * ]).toBeMatchToSelectionPattern();
+     * // Single cell selection
+     * expect([
+     *   [' ', ' ', ' ', ' '],
+     *   [' ', '_', ' ', ' '],
+     *   [' ', ' ', ' ', ' '],
+     *   [' ', ' ', ' ', ' '],
+     * ]).toBeMatchToSelectionPattern();
+     * ```
+     *
+     * The symbol description:
+     * ' ' - An empty space indicates cell which doesn't have added any selection classes.
+     * '0' - The number (from 0 to 7) indicates selected layer level.
+     * 'A' - The letters (from A to H) indicates the position of the cell which contains the hidden editor
+     *       (which `current` class name). The letter `A` indicates the currently selected cell with
+     *       a background of the first layer and `H` as the latest layer (most dark).
+     * '_' - The underscore indicates the currently selected cell without changed background color.
+     * '-' - The minus sign indicates that this cell is not rendered yet (cause the virtual rendering).
+     */
     toBeMatchToSelectionPattern() {
       const symbols = new Map([
         ['C', 'current']
@@ -203,14 +240,16 @@ beforeEach(function() {
           const currentState = [];
           const rowsCount = hot().countRows();
           const colsCount = hot().countCols();
-          const message = 'Expected the pattern selection to match to the visual state of the rendered selection.';
 
-          if (!Array.isArray(actualPattern)) {
+          if (!Array.isArray(actualPattern) || !Array.isArray(actualPattern[0])) {
             return {
               pass: false,
-              message,
+              message: 'The selection pattern must be passed as an array of arrays',
             };
           }
+
+          const actualPatternFormatted = [];
+          const currentStateFormatted = [];
 
           for (let r = 0; r < rowsCount; r++) {
             const currentRowState = [];
@@ -220,32 +259,51 @@ beforeEach(function() {
                 break;
               }
 
-              const actualCell = actualPattern[r][c];
+              const cell = hot().getCell(r, c);
 
-              if (actualCell === ' ') {
-                currentRowState.push(' ');
+              if (cell) {
+                const hasCurrent = cell.classList.contains('current');
+                const hasArea = cell.classList.contains('area');
+                let areaLevel = new Array(7)
+                  .fill()
+                  .map((_, i, arr) => `area-${arr.length - i}`)
+                  .find((className) => cell.classList.contains(className));
+
+                areaLevel = areaLevel ? parseInt(areaLevel.replace('area-', ''), 10) : areaLevel;
+
+                if (hasCurrent && hasArea && areaLevel) {
+                  currentRowState.push(String.fromCharCode(65 + areaLevel));
+
+                } else if (hasCurrent && hasArea && areaLevel === void 0) {
+                  currentRowState.push('A');
+
+                } else if (hasCurrent && !hasArea && areaLevel === void 0) {
+                  currentRowState.push('_');
+
+                } else if (!hasCurrent && hasArea && areaLevel === void 0) {
+                  currentRowState.push('0');
+
+                } else if (!hasCurrent && hasArea && areaLevel) {
+                  currentRowState.push(`${areaLevel}`);
+
+                } else {
+                  currentRowState.push(' ');
+                }
 
               } else {
-                const cell = hot().getCell(r, c);
-                const layerName = parseInt(actualCell, 10);
-                const isLayerChecking = !isNaN(layerName);
-                let className;
-
-                if (isLayerChecking) {
-                  className = layerName === 0 ? 'area' : `area-${layerName <= 7 ? layerName : 7}`;
-                } else {
-                  className = symbols.get(actualCell);
-                }
-
-                if (cell.classList.contains(className)) {
-                  currentRowState.push(actualCell);
-                } else {
-                  currentRowState.push('x');
-                }
+                currentRowState.push('-');
               }
             }
             currentState.push(currentRowState);
+            currentStateFormatted.push(currentRowState);
+
+            if (actualPattern[r]) {
+              actualPatternFormatted.push(actualPattern[r]);
+            }
           }
+
+          const message = `Expected the pattern selection \n${actualPatternFormatted.join('\n')}\nto match to the
+visual state of the rendered selection \n${currentStateFormatted.join('\n')}\n`;
 
           return {
             pass: JSON.stringify(currentState) === JSON.stringify(actualPattern),

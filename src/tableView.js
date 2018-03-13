@@ -14,6 +14,7 @@ import {isChrome, isSafari} from './helpers/browser';
 import EventManager from './eventManager';
 import {stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick} from './helpers/dom/event';
 import Walkontable, {CellCoords} from './3rdparty/walkontable/src';
+import {handleMouseEvent} from './selection/mouseEventHandler';
 
 /**
  * Handsontable TableView constructor
@@ -233,10 +234,10 @@ function TableView(instance) {
       return that.settings.fragmentSelection;
     },
     onCellMouseDown: function(event, coords, TD, wt) {
-      let blockCalculations = {
+      const blockCalculations = {
         row: false,
         column: false,
-        cells: false
+        cell: false
       };
 
       instance.listen();
@@ -250,93 +251,12 @@ function TableView(instance) {
         return;
       }
 
-      let actualSelection = instance.getSelectedRangeLast();
-      let selection = instance.selection;
-      let selectedHeader = selection.selectedHeader;
-
-      if (event.shiftKey && actualSelection) {
-        if (coords.row >= 0 && coords.col >= 0 && !blockCalculations.cells) {
-          selection.setSelectedHeaders(false, false);
-          selection.setRangeEnd(coords);
-
-        } else if ((selectedHeader.cols || selectedHeader.rows) && coords.row >= 0 && coords.col >= 0 && !blockCalculations.cells) {
-          selection.setSelectedHeaders(false, false);
-          selection.setRangeEnd(new CellCoords(coords.row, coords.col));
-
-        } else if (selectedHeader.cols && coords.row < 0 && !blockCalculations.column) {
-          selection.setRangeEnd(new CellCoords(actualSelection.to.row, coords.col));
-
-        } else if (selectedHeader.rows && coords.col < 0 && !blockCalculations.row) {
-          selection.setRangeEnd(new CellCoords(coords.row, actualSelection.to.col));
-
-        } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.col < 0) ||
-                   (selectedHeader.cols && coords.col < 0)) && !blockCalculations.row) {
-          selection.setSelectedHeaders(true, false);
-          selection.selectRows(actualSelection.from.row, coords.row);
-
-        } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.row < 0) ||
-                   (selectedHeader.rows && coords.row < 0)) && !blockCalculations.column) {
-          selection.setSelectedHeaders(false, true);
-          selection.selectColumns(actualSelection.from.col, coords.col);
-        }
-      } else {
-        let doNewSelection = true;
-
-        if (actualSelection) {
-          let {from, to} = actualSelection;
-          let coordsNotInSelection = !selection.inInSelection(coords);
-
-          if (coords.row < 0 && selectedHeader.cols) {
-            let start = Math.min(from.col, to.col);
-            let end = Math.max(from.col, to.col);
-
-            doNewSelection = (coords.col < start || coords.col > end);
-
-          } else if (coords.col < 0 && selectedHeader.rows) {
-            let start = Math.min(from.row, to.row);
-            let end = Math.max(from.row, to.row);
-
-            doNewSelection = (coords.row < start || coords.row > end);
-
-          } else {
-            doNewSelection = coordsNotInSelection;
-          }
-        }
-
-        const rightClick = isRightClick(event);
-        const leftClick = isLeftClick(event) || event.type === 'touchstart';
-
-        // clicked row header and when some column was selected
-        if (coords.row < 0 && coords.col >= 0 && !blockCalculations.column) {
-          selection.setSelectedHeaders(false, true);
-
-          if (leftClick || (rightClick && doNewSelection)) {
-            selection.setRangeStartOnly(new CellCoords(0, coords.col));
-            selection.setRangeEnd(new CellCoords(Math.max(instance.countRows() - 1, 0), coords.col));
-          }
-
-        // clicked column header and when some row was selected
-        } else if (coords.col < 0 && coords.row >= 0 && !blockCalculations.row) {
-          selection.setSelectedHeaders(true, false);
-
-          if (leftClick || (rightClick && doNewSelection)) {
-            selection.setRangeStartOnly(new CellCoords(coords.row, 0));
-            selection.setRangeEnd(new CellCoords(coords.row, Math.max(instance.countCols() - 1, 0)));
-          }
-
-        } else if (coords.col >= 0 && coords.row >= 0 && !blockCalculations.cells) {
-          if (leftClick || (rightClick && doNewSelection)) {
-            selection.setSelectedHeaders(false, false);
-            selection.setRangeStart(coords);
-          }
-        } else if (coords.col < 0 && coords.row < 0) {
-          coords.row = 0;
-          coords.col = 0;
-
-          selection.setSelectedHeaders(false, false, true);
-          selection.setRangeStart(coords);
-        }
-      }
+      handleMouseEvent(event, {
+        coords,
+        selection: instance.selection,
+        instance,
+        controller: blockCalculations,
+      });
 
       instance.runHooks('afterOnCellMouseDown', event, coords, TD);
       that.activeWt = that.wt;
@@ -353,42 +273,27 @@ function TableView(instance) {
       that.activeWt = that.wt;
     },
     onCellMouseOver: function(event, coords, TD, wt) {
-      let blockCalculations = {
+      const blockCalculations = {
         row: false,
         column: false,
         cell: false
       };
 
       that.activeWt = wt;
+
       instance.runHooks('beforeOnCellMouseOver', event, coords, TD, blockCalculations);
 
       if (isImmediatePropagationStopped(event)) {
         return;
       }
 
-      if (isLeftClick(event) && isMouseDown) {
-        if (coords.row >= 0 && coords.col >= 0) { // is not a header
-          if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
-            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col));
-
-          } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
-            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1));
-
-          } else if (!blockCalculations.cell) {
-            instance.selection.setRangeEnd(coords);
-          }
-        } else {
-          /* eslint-disable no-lonely-if */
-          if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
-            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col));
-
-          } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
-            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1));
-
-          } else if (!blockCalculations.cell) {
-            instance.selection.setRangeEnd(coords);
-          }
-        }
+      if (isMouseDown) {
+        handleMouseEvent(event, {
+          coords,
+          selection: instance.selection,
+          instance,
+          controller: blockCalculations,
+        });
       }
 
       instance.runHooks('afterOnCellMouseOver', event, coords, TD);

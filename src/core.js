@@ -155,16 +155,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterSelectionByProp',
       from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel);
 
-    let isHeaderSelected = false;
-    let areCoordsPositive = true;
-
-    if (this.selection.selectedHeader.cols || this.selection.selectedHeader.rows) {
-      isHeaderSelected = true;
-    }
-
-    if (cellCoords.row < 0 || cellCoords.col < 0) {
-      areCoordsPositive = false;
-    }
+    const areHeadersActivated = this.selection.isSelectedByAnyHeader();
+    const areCoordsPositive = cellCoords.row >= 0 && cellCoords.col >= 0;
 
     let scrollToCell = true;
 
@@ -176,27 +168,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       scrollToCell = !preventScrolling.value;
     }
 
-    if (scrollToCell !== false && !isHeaderSelected && areCoordsPositive) {
+    if (scrollToCell !== false && !areHeadersActivated && areCoordsPositive) {
       if (this.selection.selectedRange.current().from && !this.selection.isMultiple()) {
         this.view.scrollViewport(this.selection.selectedRange.current().from);
       } else {
         this.view.scrollViewport(cellCoords);
       }
-    }
-
-    if (this.selection.selectedHeader.rows && this.selection.selectedHeader.cols) {
-      addClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-
-    } else if (this.selection.selectedHeader.rows) {
-      removeClass(this.rootElement, 'ht__selection--columns');
-      addClass(this.rootElement, 'ht__selection--rows');
-
-    } else if (this.selection.selectedHeader.cols) {
-      removeClass(this.rootElement, 'ht__selection--rows');
-      addClass(this.rootElement, 'ht__selection--columns');
-
-    } else {
-      removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
     this._refreshBorders(null);

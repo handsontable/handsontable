@@ -20,7 +20,7 @@ describe('Core.selectRows', () => {
     expect([
       [' ', ' ', ' ', ' '],
       [' ', ' ', ' ', ' '],
-      ['0', '0', '0', '0'],
+      ['A', '0', '0', '0'],
       [' ', ' ', ' ', ' '],
       [' ', ' ', ' ', ' '],
       [' ', ' ', ' ', ' '],
@@ -37,8 +37,25 @@ describe('Core.selectRows', () => {
     expect([
       [' ', ' ', ' ', ' '],
       [' ', ' ', ' ', ' '],
+      ['A', '0', '0', '0'],
       ['0', '0', '0', '0'],
+      [' ', ' ', ' ', ' '],
+      [' ', ' ', ' ', ' '],
+    ]).toBeMatchToSelectionPattern();
+  });
+
+  it('should mark range of the rows visually (default selectionMode, reversed selection)', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+    });
+
+    selectRows(3, 2);
+
+    expect([
+      [' ', ' ', ' ', ' '],
+      [' ', ' ', ' ', ' '],
       ['0', '0', '0', '0'],
+      ['A', '0', '0', '0'],
       [' ', ' ', ' ', ' '],
       [' ', ' ', ' ', ' '],
     ]).toBeMatchToSelectionPattern();
@@ -55,7 +72,7 @@ describe('Core.selectRows', () => {
     expect([
       [' ', ' ', ' ', ' '],
       [' ', ' ', ' ', ' '],
-      ['C', ' ', ' ', ' '],
+      ['_', ' ', ' ', ' '],
       [' ', ' ', ' ', ' '],
       [' ', ' ', ' ', ' '],
       [' ', ' ', ' ', ' '],
@@ -72,7 +89,7 @@ describe('Core.selectRows', () => {
 
     expect([
       [' ', ' ', ' ', ' '],
-      ['0', '0', '0', '0'],
+      ['A', '0', '0', '0'],
       ['0', '0', '0', '0'],
       [' ', ' ', ' ', ' '],
       [' ', ' ', ' ', ' '],

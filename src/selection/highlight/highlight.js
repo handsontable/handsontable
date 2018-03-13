@@ -1,9 +1,10 @@
 import {createHighlight} from './types';
 import {arrayEach, arrayFilter} from './../../helpers/array';
 
+export const ACTIVE_HEADER_TYPE = 'active-header';
+export const AREA_TYPE = 'area';
 export const CELL_TYPE = 'cell';
 export const FILL_TYPE = 'fill';
-export const AREA_TYPE = 'area';
 export const HEADER_TYPE = 'header';
 
 /**
@@ -68,6 +69,14 @@ class Highlight {
      * @type {Map.<number, Selection>}
      */
     this.headers = new Map();
+    /**
+     * Collection of the `active-header` highlights. That objects describes attributes for the selection of
+     * the multiple selected rows and columns in the table header. The table headers which have selected all items in
+     * a row will be marked as `active-header`.
+     *
+     * @type {Map.<number, Selection>}
+     */
+    this.activeHeaders = new Map();
     /**
      * The temporary property, holder for borders added through CustomBorders plugin.
      *
@@ -179,12 +188,42 @@ class Highlight {
   }
 
   /**
-   * Get all Walkontable Selection instances which describes the state of the visual highlight of the header cells.
+   * Get all Walkontable Selection instances which describes the state of the visual highlight of the headers.
    *
    * @return {Selection[]}
    */
   getHeaders() {
     return [...this.headers.values()];
+  }
+
+  /**
+   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
+   * of the multiple selected active header cells.
+   *
+   * @return {Selection}
+   */
+  createOrGetActiveHeader() {
+    let header;
+    const layerLevel = this.layerLevel;
+
+    if (this.activeHeaders.has(layerLevel)) {
+      header = this.activeHeaders.get(layerLevel);
+    } else {
+      header = createHighlight(ACTIVE_HEADER_TYPE, {...this.options});
+
+      this.activeHeaders.set(layerLevel, header);
+    }
+
+    return header;
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the visual highlight of the active headers.
+   *
+   * @return {Selection[]}
+   */
+  getActiveHeaders() {
+    return [...this.activeHeaders.values()];
   }
 
   /**
@@ -194,19 +233,23 @@ class Highlight {
     this.cell.clear();
     this.fill.clear();
 
-    arrayEach(this.areas.values(), (area) => {
-      area.clear();
-    });
-    arrayEach(this.headers.values(), (header) => {
-      header.clear();
-    });
+    arrayEach(this.areas.values(), (highlight) => void highlight.clear());
+    arrayEach(this.headers.values(), (highlight) => void highlight.clear());
+    arrayEach(this.activeHeaders.values(), (highlight) => void highlight.clear());
   }
 
   /**
    * This object can be iterate over using `for of` syntax or using internal `arrayEach` helper.
    */
   [Symbol.iterator]() {
-    return [this.cell, ...this.areas.values(), ...this.headers.values(), this.fill, ...this.borders][Symbol.iterator]();
+    return [
+      this.cell,
+      this.fill,
+      ...this.areas.values(),
+      ...this.headers.values(),
+      ...this.activeHeaders.values(),
+      ...this.borders,
+    ][Symbol.iterator]();
   }
 }
 

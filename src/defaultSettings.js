@@ -722,6 +722,21 @@ DefaultSettings.prototype = {
    * ```
    */
   currentHeaderClassName: 'ht__highlight',
+
+  /**
+   * Class name for all active headers in selections. The header will be marked with this class name
+   * only when a whole column or row will be selected.
+   *
+   * @type {String}
+   * @since 0.38.0
+   * @default 'ht__active_highlight'
+   * @example
+   * ```js
+   * activeHeaderClassName: 'ht__active_highlight' // This will add a 'ht__active_highlight' class name to appropriate table headers.
+   * ```
+   */
+  activeHeaderClassName: 'ht__active_highlight',
+
   /**
    * Class name for the Handsontable container element.
    *

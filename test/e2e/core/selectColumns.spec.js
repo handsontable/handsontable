@@ -18,7 +18,7 @@ describe('Core.selectColumns', () => {
     selectColumns(2);
 
     expect([
-      [' ', ' ', '0', ' '],
+      [' ', ' ', 'A', ' '],
       [' ', ' ', '0', ' '],
       [' ', ' ', '0', ' '],
       [' ', ' ', '0', ' '],
@@ -35,7 +35,7 @@ describe('Core.selectColumns', () => {
     selectColumns('prop2');
 
     expect([
-      [' ', ' ', '0', ' '],
+      [' ', ' ', 'A', ' '],
       [' ', ' ', '0', ' '],
       [' ', ' ', '0', ' '],
       [' ', ' ', '0', ' '],
@@ -52,7 +52,24 @@ describe('Core.selectColumns', () => {
     selectColumns(2, 3);
 
     expect([
+      [' ', ' ', 'A', '0'],
       [' ', ' ', '0', '0'],
+      [' ', ' ', '0', '0'],
+      [' ', ' ', '0', '0'],
+      [' ', ' ', '0', '0'],
+      [' ', ' ', '0', '0'],
+    ]).toBeMatchToSelectionPattern();
+  });
+
+  it('should mark range of the columns visually (default selectionMode, reversed selection)', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+    });
+
+    selectColumns(3, 2);
+
+    expect([
+      [' ', ' ', '0', 'A'],
       [' ', ' ', '0', '0'],
       [' ', ' ', '0', '0'],
       [' ', ' ', '0', '0'],
@@ -69,7 +86,24 @@ describe('Core.selectColumns', () => {
     selectColumns('prop2', 'prop3');
 
     expect([
+      [' ', ' ', 'A', '0'],
       [' ', ' ', '0', '0'],
+      [' ', ' ', '0', '0'],
+      [' ', ' ', '0', '0'],
+      [' ', ' ', '0', '0'],
+      [' ', ' ', '0', '0'],
+    ]).toBeMatchToSelectionPattern();
+  });
+
+  it('should mark range of the columns visually (default selectionMode, reversed selection) using column property', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+    });
+
+    selectColumns('prop3', 'prop2');
+
+    expect([
+      [' ', ' ', '0', 'A'],
       [' ', ' ', '0', '0'],
       [' ', ' ', '0', '0'],
       [' ', ' ', '0', '0'],
@@ -87,7 +121,7 @@ describe('Core.selectColumns', () => {
     selectColumns(2);
 
     expect([
-      [' ', ' ', 'C', ' '],
+      [' ', ' ', '_', ' '],
       [' ', ' ', ' ', ' '],
       [' ', ' ', ' ', ' '],
       [' ', ' ', ' ', ' '],
@@ -105,7 +139,7 @@ describe('Core.selectColumns', () => {
     selectColumns(1, 2);
 
     expect([
-      [' ', '0', '0', ' '],
+      [' ', 'A', '0', ' '],
       [' ', '0', '0', ' '],
       [' ', '0', '0', ' '],
       [' ', '0', '0', ' '],

@@ -695,35 +695,30 @@ describe('Core_selection', () => {
     $input.remove();
   });
 
-  it('should select the entire column after column header is clicked', function() {
-    var hot = handsontable({
+  it('should select the entire column after column header is clicked', () => {
+    handsontable({
       width: 200,
       height: 100,
-      startRows: 50,
+      startRows: 10,
       startCols: 5,
       colHeaders: true
     });
 
-    this.$container.find('thead th:eq(0)').simulate('mousedown');
+    spec().$container.find('thead th:eq(0)').simulate('mousedown');
 
-    expect(getSelected()).toEqual([[0, 0, 49, 0]]);
-    expect(hot.selection.selectedHeader.rows).toBe(false);
-    expect(hot.selection.selectedHeader.cols).toBe(true);
-    expect(hot.selection.selectedHeader.corner).toBe(false);
-  });
-
-  it('should add classname after select column', function() {
-    var hot = handsontable({
-      width: 200,
-      height: 100,
-      startRows: 50,
-      startCols: 5,
-      colHeaders: true
-    });
-
-    this.$container.find('thead th:eq(0)').simulate('mousedown');
-
-    expect(this.$container.hasClass('ht__selection--columns')).toBeTruthy();
+    expect(getSelected()).toEqual([[0, 0, 9, 0]]);
+    expect([
+      ['A', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+    ]).toBeMatchToSelectionPattern();
   });
 
   it('should not overwrite background color of the cells with custom CSS classes', function() {
@@ -746,7 +741,7 @@ describe('Core_selection', () => {
     var hot = handsontable({
       width: 200,
       height: 100,
-      startRows: 50,
+      startRows: 10,
       startCols: 5,
       colHeaders: true,
       rowHeaders: true,
@@ -756,18 +751,27 @@ describe('Core_selection', () => {
 
     this.$container.find('.ht_master thead th:eq(1)').simulate('mousedown');
 
-    expect(getSelected()).toEqual([[0, 0, 49, 0]]);
-    expect(hot.selection.selectedHeader.rows).toBe(false);
-    expect(hot.selection.selectedHeader.cols).toBe(true);
-    expect(hot.selection.selectedHeader.corner).toBe(false);
+    expect(getSelected()).toEqual([[0, 0, 9, 0]]);
+    expect([
+      ['A', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+      ['0', ' ', ' ', ' ', ' '],
+    ]).toBeMatchToSelectionPattern();
   });
 
-  it('should select the entire fixed column after column header is clicked, after scroll horizontally', function() {
-    var hot = handsontable({
+  it('should select the entire fixed column after column header is clicked, after scroll horizontally', () => {
+    const hot = handsontable({
       width: 200,
       height: 100,
-      startRows: 50,
-      startCols: 50,
+      startRows: 10,
+      startCols: 10,
       colHeaders: true,
       rowHeaders: true,
       fixedColumnsLeft: 2
@@ -776,13 +780,22 @@ describe('Core_selection', () => {
     hot.render();
     hot.view.wt.scrollHorizontal(20);
 
-    this.$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
-    this.$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
+    spec().$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
+    spec().$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([[0, 1, 49, 1]]);
-    expect(hot.selection.selectedHeader.rows).toBe(false);
-    expect(hot.selection.selectedHeader.cols).toBe(true);
-    expect(hot.selection.selectedHeader.corner).toBe(false);
+    expect(getSelected()).toEqual([[0, 1, 9, 1]]);
+    expect([
+      [' ', 'A', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+      [' ', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+      [' ', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+      [' ', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+      [' ', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+      [' ', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+      ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-'],
+      ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-'],
+      ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-'],
+      ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-'],
+    ]).toBeMatchToSelectionPattern();
   });
 
   it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', (done) => {
@@ -935,23 +948,13 @@ describe('Core_selection', () => {
     this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
 
     expect(getSelected()).toEqual([[1, 0, 1, 4]]);
-    expect(hot.selection.selectedHeader.rows).toBe(true);
-    expect(hot.selection.selectedHeader.cols).toBe(false);
-    expect(hot.selection.selectedHeader.corner).toBe(false);
-  });
-
-  it('should add classname after select row', function() {
-    var hot = handsontable({
-      width: 200,
-      height: 100,
-      startRows: 50,
-      startCols: 5,
-      rowHeaders: true
-    });
-
-    this.$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
-
-    expect(this.$container.hasClass('ht__selection--rows')).toBeTruthy();
+    expect([
+      [' ', ' ', ' ', ' ', ' '],
+      ['A', '0', '0', '0', '0'],
+      [' ', ' ', ' ', ' ', ' '],
+      [' ', ' ', ' ', ' ', ' '],
+      [' ', ' ', ' ', ' ', ' '],
+    ]).toBeMatchToSelectionPattern();
   });
 
   it('should select the entire row of a partially fixed table after row header is clicked', function() {
@@ -1123,20 +1126,24 @@ describe('Core_selection', () => {
     expect(hot.getSelected()).toEqual([[3, 1, 3, 1]]);
   });
 
-  it('should select the first row after corner header is clicked', function() {
-    var hot = handsontable({
+  it('should select the first row after corner header is clicked', () => {
+    handsontable({
       startRows: 5,
       startCols: 5,
       colHeaders: true,
       rowHeaders: true
     });
 
-    this.$container.find('thead').find('th').eq(0).simulate('mousedown');
+    spec().$container.find('thead').find('th').eq(0).simulate('mousedown');
 
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
-    expect(hot.selection.selectedHeader.rows).toBe(false);
-    expect(hot.selection.selectedHeader.cols).toBe(false);
-    expect(hot.selection.selectedHeader.corner).toBe(true);
+    expect([
+      ['_', ' ', ' ', ' ', ' '],
+      [' ', ' ', ' ', ' ', ' '],
+      [' ', ' ', ' ', ' ', ' '],
+      [' ', ' ', ' ', ' ', ' '],
+      [' ', ' ', ' ', ' ', ' '],
+    ]).toBeMatchToSelectionPattern();
   });
 
   it('should redraw selection when option `colHeaders` is set and user scrolled', function (done) {
@@ -1347,6 +1354,7 @@ describe('Core_selection', () => {
       // '1' - Second layer, 'area-1' class name;
       // '2' - Third layer, 'area-2' class name.
       // ...and so on
+      // 'H' - The current selected cell (where the editor will be opened)
       //
       // Multiple selection generates CSS class names until it reaches 8-th layer ('area-7').
       const pattern = [
@@ -1358,11 +1366,11 @@ describe('Core_selection', () => {
         ['0', '1', '2', '3', '4', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' '],
         ['0', '1', '2', '3', '4', '5', '6', '6', '6', '6', '6', '6', '6', '6', '6', '6', '5', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' '],
         ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' ', ' '],
-        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '8', '8', '8', '8', '8', '8', '8', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' '],
-        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '8', '8', '8', '8', '8', '8', '8', '8', '7', '6', '5', '4', '3', '2', '1', '0', ' '],
-        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '9', '9', '9', '9', '9', '9', '9', '8', '7', '6', '5', '4', '3', '2', '1', '0'],
-        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '8', '8', '8', '8', '8', '8', '8', '8', '7', '6', '5', '4', '3', '2', '1', '0', ' '],
-        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '8', '8', '8', '8', '8', '8', '8', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' '],
+        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' '],
+        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' '],
+        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', 'H', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0'],
+        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' '],
+        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' '],
         ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' ', ' '],
         ['0', '1', '2', '3', '4', '5', '6', '6', '6', '6', '6', '6', '6', '6', '6', '6', '5', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' '],
         ['0', '1', '2', '3', '4', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' '],

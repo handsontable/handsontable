@@ -235,7 +235,7 @@ if (classListSupport) {
   }());
 
   _hasClass = function _hasClass(element, className) {
-    if (element.classList === void 0 || className === '') {
+    if (element.classList === void 0 || typeof className !== 'string' || className === '') {
       return false;
     }
 
@@ -248,15 +248,18 @@ if (classListSupport) {
     if (typeof className === 'string') {
       className = className.split(' ');
     }
-    className = filterEmptyClassNames(className);
 
-    if (isSupportMultipleClassesArg) {
-      element.classList.add.apply(element.classList, className);
+    if (Array.isArray(className)) {
+      className = filterEmptyClassNames(className);
 
-    } else {
-      while (className && className[len]) {
-        element.classList.add(className[len]);
-        len++;
+      if (isSupportMultipleClassesArg) {
+        element.classList.add.apply(element.classList, className);
+
+      } else {
+        while (className && className[len]) {
+          element.classList.add(className[len]);
+          len++;
+        }
       }
     }
   };
@@ -267,15 +270,18 @@ if (classListSupport) {
     if (typeof className === 'string') {
       className = className.split(' ');
     }
-    className = filterEmptyClassNames(className);
 
-    if (isSupportMultipleClassesArg) {
-      element.classList.remove.apply(element.classList, className);
+    if (Array.isArray(className)) {
+      className = filterEmptyClassNames(className);
 
-    } else {
-      while (className && className[len]) {
-        element.classList.remove(className[len]);
-        len++;
+      if (isSupportMultipleClassesArg) {
+        element.classList.remove.apply(element.classList, className);
+
+      } else {
+        while (className && className[len]) {
+          element.classList.remove(className[len]);
+          len++;
+        }
       }
     }
   };
