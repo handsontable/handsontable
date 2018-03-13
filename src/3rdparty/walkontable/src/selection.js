@@ -257,8 +257,16 @@ class Selection {
             this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.highlightColumnClassName);
           }
         }
+
+        let additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceCol, corners);
+
+        if (typeof additionalSelectionClass === 'string') {
+          this.addClassAtCoords(wotInstance, sourceRow, sourceCol, additionalSelectionClass);
+        }
+
       }
     }
+
     wotInstance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
 
     if (this.settings.border) {

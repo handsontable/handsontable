@@ -421,6 +421,12 @@ function TableView(instance) {
     onScrollHorizontally: function() {
       instance.runHooks('afterScrollHorizontally');
     },
+    onBeforeRemoveCellClassNames: function() {
+      return instance.runHooks('beforeRemoveCellClassNames');
+    },
+    onAfterDrawSelection: function(currentRow, currentColumn, cornersOfSelection) {
+      return instance.runHooks('afterDrawSelection', currentRow, currentColumn, cornersOfSelection);
+    },
     onBeforeDrawBorders: function(corners, borderClassName) {
       instance.runHooks('beforeDrawBorders', corners, borderClassName);
     },

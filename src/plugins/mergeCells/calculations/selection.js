@@ -8,6 +8,21 @@ import {CellCoords, CellRange} from './../../../3rdparty/walkontable/src';
  * @util
  */
 class SelectionCalculations {
+  constructor(plugin) {
+    /**
+     * Reference to the Merge Cells plugin.
+     *
+     * @type {MergeCells}
+     */
+    this.plugin = plugin;
+    /**
+     * Class name used for fully selected merged cells.
+     *
+     * @type {String}
+     */
+    this.fullySelectedMergedCellClassName = 'fullySelectedMergedCell';
+
+  }
   /**
    * "Snap" the delta value according to defined merged cells. (In other words, compensate the rowspan -
    * e.g. going up with `delta.row = -1` over a merged cell with `rowspan = 3`, `delta.row` should change to `-3`.)
@@ -82,6 +97,49 @@ class SelectionCalculations {
    */
   getUpdatedSelectionRange(oldSelectionRange, delta) {
     return new CellRange(oldSelectionRange.highlight, oldSelectionRange.from, new CellCoords(oldSelectionRange.to.row + delta.row, oldSelectionRange.to.col + delta.col));
+  }
+
+  /**
+   * Generate an additional class name for the entirely-selected merged cells.
+   *
+   * @param {Number} currentRow Row index of the currently processed cell.
+   * @param {Number} currentColumn Column index of the currently cell.
+   * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
+   * @returns {String|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.
+   */
+  getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection) {
+    const [startRow, startColumn, endRow, endColumn] = cornersOfSelection;
+
+    if (currentRow >= startRow &&
+      currentRow <= endRow &&
+      currentColumn >= startColumn &&
+      currentColumn <= endColumn) {
+
+      let isMergedCellParent = this.plugin.mergedCellsCollection.isMergedParent(currentRow, currentColumn);
+
+      if (!isMergedCellParent) {
+        return;
+      }
+
+      let mergedCell = this.plugin.mergedCellsCollection.get(currentRow, currentColumn);
+
+      if (!mergedCell) {
+        return;
+      }
+
+      if (mergedCell.row + mergedCell.rowspan - 1 <= endRow && mergedCell.col + mergedCell.colspan - 1 <= endColumn) {
+        return this.fullySelectedMergedCellClassName;
+      }
+    }
+  }
+
+  /**
+   * Generate an array of the entirely-selected merged cells' class names.
+   *
+   * @returns {String[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.
+   */
+  getSelectedMergedCellClassNameToRemove() {
+    return [this.fullySelectedMergedCellClassName];
   }
 }
 
