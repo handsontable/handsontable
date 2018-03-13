@@ -474,4 +474,18 @@ describe('Handsontable.Dom', () => {
     });
   });
 
+  //
+  // Handsontable.dom.getComputedStyle
+  //
+  describe('getComputedStyle', () => {
+    it('should return a computed style', () => {
+      var element = document.createElement('div');
+      element.style.fontSize = '12pt';
+      document.body.appendChild(element);
+
+      var computed = Handsontable.dom.getComputedStyle();
+
+      expect(computed.fontSize).toBe('16px');
+    });
+  });
 });
