@@ -156,9 +156,9 @@ class MultipleSelectUI extends BaseUI {
           TD.title = cellProperties.instance.getDataAtRowProp(row, cellProperties.label.property);
         },
         autoWrapCol: true,
-        colWidths: 150,
+        colWidths: 187,
         height: 110,
-        width: 168,
+        width: 187,
         copyPaste: false,
         disableVisualSelection: 'area',
         fillHandle: false,
