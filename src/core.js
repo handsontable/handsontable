@@ -3108,7 +3108,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    *
    * @memberof Core#
-   * @since 0.37.1
+   * @since 0.38.0
    * @function selectCells
    * @param {Array[]|CellRange[]} coords Visual coords passed as an array of array (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
    *                                     the same format as `getSelected` method returns or as an CellRange objects
@@ -3170,7 +3170,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    *
    * @memberof Core#
-   * @since 0.37.1
+   * @since 0.38.0
    * @function selectColumns
    * @param {Number} startColumn The visual column index from which the selection starts.
    * @param {Number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
@@ -3193,7 +3193,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    *
    * @memberof Core#
-   * @since 0.37.1
+   * @since 0.38.0
    * @function selectRows
    * @param {Number} startRow The visual row index from which the selection starts.
    * @param {Number} [endRow=startRow] The visual row index to which the selection finishes. If `endRow`
