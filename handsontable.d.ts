@@ -1617,7 +1617,7 @@ declare namespace Handsontable {
     beforeTouchScroll?: () => void;
     beforeUndo?: (action: object) => void;
     beforeValidate?: (value: any, row: number, prop: string | number, source?: string) => void;
-    beforeValueRender?: (value: any) => void;
+    beforeValueRender?: (value: any, cellProperties: object) => void;
     construct?: () => void;
     hiddenColumn?: (column: number) => void;
     hiddenRow?: (row: number) => void;
@@ -1776,7 +1776,7 @@ declare namespace Handsontable {
     isMobileBrowser(userAgent?: string): boolean,
     isNumeric(n: any): boolean,
     isObject(obj: any): boolean,
-    isObjectEquals(object1: object | any[], object2: object | any[]): boolean,
+    isObjectEqual(object1: object | any[], object2: object | any[]): boolean,
     isPercentValue(value: string): boolean,
     isPrintableChar(keyCode: number): boolean,
     isSafari(): boolean,

@@ -1,4 +1,5 @@
 import {CellCoords, CellRange} from '../../3rdparty/walkontable/src/index';
+import {toSingleLine} from './../../helpers/templateLiteralTag';
 
 /**
  * The `MergedCellCoords` class represents a single merged cell.
@@ -38,6 +39,100 @@ class MergedCellCoords {
      * @type {Boolean}
      */
     this.removed = false;
+  }
+
+  /**
+   * Get a warning message for when the declared merged cell data contains negative values.
+   *
+   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @return {String}
+   */
+  static NEGATIVE_VALUES_WARNING(newMergedCell) {
+    return toSingleLine`The merged cell declared with {row: ${newMergedCell.row}, col: ${newMergedCell.col}, rowspan: 
+    ${newMergedCell.rowspan}, colspan: ${newMergedCell.colspan}} contains negative values, which is not supported. It 
+    will not be added to the collection.`;
+  }
+
+  /**
+   * Get a warning message for when the declared merged cell data contains values exceeding the table limits.
+   *
+   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @return {String}
+   */
+  static IS_OUT_OF_BOUNDS_WARNING(newMergedCell) {
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] is positioned (or positioned partially) 
+       outside of the table range. It was not added to the table, please fix your setup.`;
+  }
+
+  /**
+   * Get a warning message for when the declared merged cell data represents a single cell.
+   *
+   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @return {String}
+   */
+  static IS_SINGLE_CELL(newMergedCell) {
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has both "rowspan" 
+     and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.`;
+  }
+
+  /**
+   * Get a warning message for when the declared merged cell data contains "colspan" or "rowspan", that equals 0.
+   *
+   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @return {String}
+   */
+  static ZERO_SPAN_WARNING(newMergedCell) {
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has "rowspan" or "colspan" declared as 
+      "0", which is not supported. It cannot be added to the collection.`;
+  }
+
+  /**
+   * Check whether the values provided for a merged cell contain any negative values.
+   *
+   * @param {Object} mergedCellInfo Object containing the `row`, `col`, `rowspan` and `colspan` properties.
+   * @return {Boolean}
+   */
+  static containsNegativeValues(mergedCellInfo) {
+    return mergedCellInfo.row < 0 || mergedCellInfo.col < 0 || mergedCellInfo.rowspan < 0 || mergedCellInfo.colspan < 0;
+  }
+
+  /**
+   * Check whether the provided merged cell information object represents a single cell.
+   *
+   * @private
+   * @param {Object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
+   * @return {Boolean}
+   */
+  static isSingleCell(mergedCellInfo) {
+    return mergedCellInfo.colspan === 1 && mergedCellInfo.rowspan === 1;
+  }
+
+  /**
+   * Check whether the provided merged cell information object contains a rowspan or colspan of 0.
+   *
+   * @private
+   * @param {Object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
+   * @return {Boolean}
+   */
+  static containsZeroSpan(mergedCellInfo) {
+    return mergedCellInfo.colspan === 0 || mergedCellInfo.rowspan === 0;
+  }
+
+  /**
+   * Check whether the provided merged cell object is to be declared out of bounds of the table.
+   *
+   * @param {Object} mergeCell Object containing the `row`, `col`, `rowspan` and `colspan` properties.
+   * @param {Number} rowCount Number of rows in the table.
+   * @param {Number} columnCount Number of rows in the table.
+   * @return {Boolean}
+   */
+  static isOutOfBounds(mergeCell, rowCount, columnCount) {
+    return mergeCell.row < 0 ||
+      mergeCell.col < 0 ||
+      mergeCell.row >= rowCount ||
+      mergeCell.row + mergeCell.rowspan - 1 >= rowCount ||
+      mergeCell.col >= columnCount ||
+      mergeCell.col + mergeCell.colspan - 1 >= columnCount;
   }
 
   /**

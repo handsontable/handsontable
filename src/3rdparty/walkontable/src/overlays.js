@@ -268,10 +268,9 @@ class Overlays {
    * @param {Event} event
    */
   onTableScroll(event) {
-    // if mobile browser, do not update scroll positions, as the overlays are hidden during the scroll
-    if (isMobileBrowser()) {
-      return;
-    }
+    // There was if statement which controlled flow of this function. It avoided the execution of the next lines
+    // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
+
     const masterHorizontal = this.leftOverlay.mainTableScrollableElement;
     const masterVertical = this.topOverlay.mainTableScrollableElement;
     const target = event.target;

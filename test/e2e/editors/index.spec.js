@@ -63,7 +63,6 @@ describe('editors', () => {
     expect(getEditor('date')).toBeFunction();
     expect(getEditor('dropdown')).toBeFunction();
     expect(getEditor('handsontable')).toBeFunction();
-    expect(getEditor('mobile')).toBeFunction();
     expect(getEditor('numeric')).toBeFunction();
     expect(getEditor('password')).toBeFunction();
     expect(getEditor('select')).toBeFunction();

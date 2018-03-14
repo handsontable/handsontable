@@ -212,11 +212,7 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} endRow Visual row index for the end of the selection.
    */
   changeSelection(startRow, endRow) {
-    let selection = this.hot.selection;
-    let lastColIndex = this.hot.countCols() - 1;
-
-    selection.setRangeStartOnly(new CellCoords(startRow, 0));
-    selection.setRangeEnd(new CellCoords(endRow, lastColIndex), false);
+    this.hot.selectRows(startRow, endRow);
   }
 
   /**

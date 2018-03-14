@@ -578,8 +578,7 @@ UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
   manualRowMove.moveRows(newRows.slice(), newTarget);
   instance.render();
 
-  instance.selection.setRangeStartOnly(new CellCoords(this.rows[0], 0));
-  instance.selection.setRangeEnd(new CellCoords(this.rows[this.rows.length - 1], instance.countCols() - 1));
+  instance.selectCell(this.rows[0], 0, this.rows[this.rows.length - 1], instance.countCols() - 1, false, false);
 };
 UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
   let manualRowMove = instance.getPlugin('manualRowMove');
@@ -588,8 +587,8 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
   manualRowMove.moveRows(this.rows.slice(), this.target);
   instance.render();
   let startSelection = this.rows[0] < this.target ? this.target - this.rows.length : this.target;
-  instance.selection.setRangeStartOnly(new CellCoords(startSelection, 0));
-  instance.selection.setRangeEnd(new CellCoords(startSelection + this.rows.length - 1, instance.countCols() - 1));
+
+  instance.selectCell(startSelection, 0, startSelection + this.rows.length - 1, instance.countCols() - 1, false, false);
 };
 
 function init() {

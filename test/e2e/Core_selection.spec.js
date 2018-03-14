@@ -1,3 +1,4 @@
+
 describe('Core_selection', () => {
   var id = 'testContainer';
 
@@ -145,67 +146,6 @@ describe('Core_selection', () => {
 
       expect(getData()).toEqual(snapshot);
     });
-  });
-
-  it('should call onSelection callback', () => {
-    let output = null;
-
-    handsontable({
-      afterSelection(row, column, rowEnd, columnEnd, preventScrolling, selectionLayerLevel) {
-        output = {row, column, rowEnd, columnEnd, preventScrolling, selectionLayerLevel};
-      }
-    });
-    selectCell(1, 2);
-
-    expect(output.row).toBe(1);
-    expect(output.column).toBe(2);
-    expect(output.rowEnd).toBe(1);
-    expect(output.columnEnd).toBe(2);
-    expect(output.preventScrolling.value).toBe(false);
-    expect(output.selectionLayerLevel).toBe(0);
-  });
-
-  it('should trigger selection event', () => {
-    let output = null;
-
-    handsontable();
-    Handsontable.hooks.add('afterSelection', (row, column, rowEnd, columnEnd, preventScrolling, selectionLayerLevel) => {
-      output = {row, column, rowEnd, columnEnd, preventScrolling, selectionLayerLevel};
-    });
-    selectCell(1, 2);
-
-    expect(output.row).toBe(1);
-    expect(output.column).toBe(2);
-    expect(output.rowEnd).toBe(1);
-    expect(output.columnEnd).toBe(2);
-    expect(output.preventScrolling.value).toBe(false);
-    expect(output.selectionLayerLevel).toBe(0);
-  });
-
-  it('this.rootElement should point to handsontable rootElement (onSelection)', function() {
-    var output = null;
-
-    handsontable({
-      afterSelection() {
-        output = this.rootElement;
-      }
-    });
-    selectCell(0, 0);
-
-    expect(output).toEqual(this.$container[0]);
-  });
-
-  it('this.rootElement should point to handsontable rootElement (onSelectionByProp)', function() {
-    var output = null;
-
-    handsontable({
-      afterSelectionByProp() {
-        output = this.rootElement;
-      }
-    });
-    selectCell(0, 0);
-
-    expect(output).toEqual(this.$container[0]);
   });
 
   it('should focus external textarea when clicked during editing', () => {
@@ -1401,15 +1341,15 @@ describe('Core_selection', () => {
       $(getCell(10, 25)).simulate('mouseover');
       $(getCell(10, 25)).simulate('mouseup');
 
-      // This snapshot describes what the CSS classes the cells should contain. The letters indicate the layer level such as:
+      // This snapshot describes what the CSS classes the cells should contain. The numbers indicate the layer level such as:
       // ' ' - An empty string means that there is no selection;
-      // A - First layer, 'area' class name;
-      // B - Second layer, 'area-1' class name;
-      // C - Third layer, 'area-2' class name.
+      // '0' - First layer, 'area' class name;
+      // '1' - Second layer, 'area-1' class name;
+      // '2' - Third layer, 'area-2' class name.
       // ...and so on
       //
       // Multiple selection generates CSS class names until it reaches 8-th layer ('area-7').
-      const snapshot = [
+      const pattern = [
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
         ['0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
         ['0', '1', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
@@ -1433,26 +1373,7 @@ describe('Core_selection', () => {
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
       ];
 
-      const currentState = [];
-
-      snapshot.forEach((rowData, rowIndex) => {
-        const currentRowState = [];
-
-        rowData.forEach((layer, columnIndex) => {
-          if (layer === ' ') {
-            currentRowState.push(' ');
-          } else {
-            const numericLayer = parseInt(layer, 10);
-            const className = numericLayer === 0 ? 'area' : `area-${numericLayer <= 7 ? numericLayer : 7}`;
-
-            currentRowState.push(getCell(rowIndex, columnIndex).classList.contains(className) ? layer : 'x');
-          }
-        });
-
-        currentState.push(currentRowState);
-      });
-
-      expect(currentState).toEqual(snapshot);
+      expect(pattern).toBeMatchToSelectionPattern();
     });
 
     it('should call afterSelection and afterSelectionEnd hooks with proper arguments', () => {

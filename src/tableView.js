@@ -220,7 +220,7 @@ function TableView(instance) {
       let value = that.instance.getDataAtRowProp(row, prop);
 
       if (that.instance.hasHook('beforeValueRender')) {
-        value = that.instance.runHooks('beforeValueRender', value);
+        value = that.instance.runHooks('beforeValueRender', value, cellProperties);
       }
 
       that.instance.runHooks('beforeRenderer', TD, row, col, prop, value, cellProperties);
@@ -272,14 +272,12 @@ function TableView(instance) {
         } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.col < 0) ||
                    (selectedHeader.cols && coords.col < 0)) && !blockCalculations.row) {
           selection.setSelectedHeaders(true, false);
-          selection.setRangeStartOnly(new CellCoords(actualSelection.from.row, 0));
-          selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1));
+          selection.selectRows(actualSelection.from.row, coords.row);
 
         } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.row < 0) ||
                    (selectedHeader.rows && coords.row < 0)) && !blockCalculations.column) {
           selection.setSelectedHeaders(false, true);
-          selection.setRangeStartOnly(new CellCoords(0, actualSelection.from.col));
-          selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col));
+          selection.selectColumns(actualSelection.from.col, coords.col);
         }
       } else {
         let doNewSelection = true;
@@ -314,7 +312,7 @@ function TableView(instance) {
 
           if (leftClick || (rightClick && doNewSelection)) {
             selection.setRangeStartOnly(new CellCoords(0, coords.col));
-            selection.setRangeEnd(new CellCoords(Math.max(instance.countRows() - 1, 0), coords.col), false);
+            selection.setRangeEnd(new CellCoords(Math.max(instance.countRows() - 1, 0), coords.col));
           }
 
         // clicked column header and when some row was selected
@@ -323,7 +321,7 @@ function TableView(instance) {
 
           if (leftClick || (rightClick && doNewSelection)) {
             selection.setRangeStartOnly(new CellCoords(coords.row, 0));
-            selection.setRangeEnd(new CellCoords(coords.row, Math.max(instance.countCols() - 1, 0)), false);
+            selection.setRangeEnd(new CellCoords(coords.row, Math.max(instance.countCols() - 1, 0)));
           }
 
         } else if (coords.col >= 0 && coords.row >= 0 && !blockCalculations.cells) {
@@ -371,10 +369,10 @@ function TableView(instance) {
       if (isLeftClick(event) && isMouseDown) {
         if (coords.row >= 0 && coords.col >= 0) { // is not a header
           if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
-            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col), false);
+            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col));
 
           } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
-            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1), false);
+            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1));
 
           } else if (!blockCalculations.cell) {
             instance.selection.setRangeEnd(coords);
@@ -382,10 +380,10 @@ function TableView(instance) {
         } else {
           /* eslint-disable no-lonely-if */
           if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
-            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col), false);
+            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col));
 
           } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
-            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1), false);
+            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1));
 
           } else if (!blockCalculations.cell) {
             instance.selection.setRangeEnd(coords);
@@ -497,13 +495,15 @@ function TableView(instance) {
 
   if (!isChrome() && !isSafari()) {
     this.eventManager.addEventListener(instance.rootElement, 'wheel', (event) => {
-      event.preventDefault();
-
       const lineHeight = parseInt(getComputedStyle(document.body)['font-size'], 10);
       const holder = that.wt.wtOverlays.scrollableElement;
 
-      let deltaY = event.wheelDeltaY || event.deltaY;
-      let deltaX = event.wheelDeltaX || event.deltaX;
+      if (holder !== window) {
+        event.preventDefault();
+      }
+
+      let deltaY = (-1) * event.wheelDeltaY || event.deltaY;
+      let deltaX = (-1) * event.wheelDeltaX || event.deltaX;
 
       switch (event.deltaMode) {
         case 0:

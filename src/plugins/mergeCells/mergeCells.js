@@ -4,6 +4,7 @@ import {registerPlugin} from './../../plugins';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {CellCoords, CellRange} from './../../3rdparty/walkontable/src';
 import MergedCellsCollection from './cellsCollection';
+import MergedCellCoords from './cellCoords';
 import AutofillCalculations from './calculations/autofill';
 import SelectionCalculations from './calculations/selection';
 import toggleMergeItem from './contextMenuItem/toggleMerge';
@@ -138,6 +139,44 @@ class MergeCells extends BasePlugin {
   }
 
   /**
+   * Validate a single setting object, represented by a single merged cell information object.
+   *
+   * @private
+   * @param {Object} setting An object with `row`, `col`, `rowspan` and `colspan` properties.
+   * @return {Boolean}
+   */
+  validateSetting(setting) {
+    let valid = true;
+
+    if (!setting) {
+      return false;
+    }
+
+    if (MergedCellCoords.containsNegativeValues(setting)) {
+      console.warn(MergedCellCoords.NEGATIVE_VALUES_WARNING(setting));
+
+      valid = false;
+
+    } else if (MergedCellCoords.isOutOfBounds(setting, this.hot.countRows(), this.hot.countCols())) {
+      console.warn(MergedCellCoords.IS_OUT_OF_BOUNDS_WARNING(setting));
+
+      valid = false;
+
+    } else if (MergedCellCoords.isSingleCell(setting)) {
+      console.warn(MergedCellCoords.IS_SINGLE_CELL(setting));
+
+      valid = false;
+
+    } else if (MergedCellCoords.containsZeroSpan(setting)) {
+      console.warn(MergedCellCoords.ZERO_SPAN_WARNING(setting));
+
+      valid = false;
+    }
+
+    return valid;
+  }
+
+  /**
    * Generate the merged cells from the settings provided to the plugin.
    *
    * @private
@@ -148,6 +187,10 @@ class MergeCells extends BasePlugin {
       let populationArgumentsList = [];
 
       arrayEach(settings, (setting) => {
+        if (!this.validateSetting(setting)) {
+          return;
+        }
+
         const highlight = new CellCoords(setting.row, setting.col);
         const rangeEnd = new CellCoords(setting.row + setting.rowspan - 1, setting.col + setting.colspan - 1);
         const mergeRange = new CellRange(highlight, highlight, rangeEnd);
@@ -228,10 +271,12 @@ class MergeCells extends BasePlugin {
    * Returns `true` if a range is mergeable.
    *
    * @private
-   * @param {CellRange} cellRange Cell range to test.
+   * @param {Object} newMergedCellInfo Merged cell information object to test.
+   * @param {Boolean} [auto=false] `true` if triggered at initialization.
+   * @returns {Boolean}
    */
-  canMergeRange(cellRange) {
-    return !cellRange.isSingle();
+  canMergeRange(newMergedCellInfo, auto = false) {
+    return auto ? true : this.validateSetting(newMergedCellInfo);
   }
 
   /**
@@ -246,11 +291,6 @@ class MergeCells extends BasePlugin {
    * @fires Hooks#afterMergeCells
    */
   mergeRange(cellRange, auto = false, preventPopulation = false) {
-    if (!this.canMergeRange(cellRange)) {
-      return false;
-    }
-
-    // normalize top left corner
     const topLeft = cellRange.getTopLeftCorner();
     const bottomRight = cellRange.getBottomRightCorner();
     const mergeParent = {
@@ -261,6 +301,10 @@ class MergeCells extends BasePlugin {
     };
     const clearedData = [];
     let populationInfo = null;
+
+    if (!this.canMergeRange(mergeParent, auto)) {
+      return false;
+    }
 
     this.hot.runHooks('beforeMergeCells', cellRange, auto);
 
