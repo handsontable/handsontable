@@ -443,10 +443,6 @@ UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.alignment = alignment;
 };
 UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
-  if (!instance.getPlugin('contextMenu').isEnabled()) {
-    return;
-  }
-
   arrayEach(this.range, ({from, to}) => {
     for (var row = from.row; row <= to.row; row++) {
       for (var col = from.col; col <= to.col; col++) {
@@ -459,9 +455,6 @@ UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback)
   instance.render();
 };
 UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback) {
-  if (!instance.getPlugin('contextMenu').isEnabled()) {
-    return;
-  }
   arrayEach(this.range, ({from, to}) => {
     instance.selectCell(from.row, from.col, to.row, to.col);
     instance.getPlugin('contextMenu').executeCommand(`alignment:${this.alignment.replace('ht', '').toLowerCase()}`);
