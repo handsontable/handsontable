@@ -880,6 +880,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   function validateChanges(changes, source, callback) {
     const waitingForValidator = new ValidatorsQueue();
     const isNumericData = (value) => value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
+    const isScientificNotationData = (value) => value.length > 0 && /([+-]?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+))$/.test(value);
 
     waitingForValidator.onQueueEmpty = resolve;
 
@@ -891,7 +892,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         const col = datamap.propToCol(prop);
         const cellProperties = instance.getCellMeta(row, col);
 
-        if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericData(newValue)) {
+        if (cellProperties.type === 'numeric' && typeof newValue === 'string' && (isNumericData(newValue) || isScientificNotationData(newValue))) {
           changes[i][3] = getParsedNumber(newValue);
         }
 
