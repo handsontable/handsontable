@@ -280,7 +280,9 @@ class MergeCells extends BasePlugin {
   }
 
   /**
+   * Merge or unmerge, based on last selected range.
    *
+   * @private
    */
   toggleMergeOnSelection() {
     const currentRange = this.hot.getSelectedRangeLast();
@@ -302,13 +304,9 @@ class MergeCells extends BasePlugin {
    *
    * @param {CellRange} [cellRange] Selection cell range.
    */
-  mergeSelection(cellRange) {
+  mergeSelection(cellRange = this.hot.getSelectedRangeLast()) {
     if (!cellRange) {
-      cellRange = this.hot.getSelectedRangeLast();
-
-      if (!cellRange) {
-        return;
-      }
+      return;
     }
 
     cellRange.setDirection('NW-SE');
@@ -321,17 +319,13 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Merge the selection provided as a cell range.
+   * Unmerge the selection provided as a cell range.
    *
    * @param {CellRange} [cellRange] Selection cell range.
    */
-  unmergeSelection(cellRange) {
+  unmergeSelection(cellRange = this.hot.getSelectedRangeLast()) {
     if (!cellRange) {
-      cellRange = this.hot.getSelectedRangeLast();
-
-      if (!cellRange) {
-        return;
-      }
+      return;
     }
 
     const {from, to} = cellRange;
