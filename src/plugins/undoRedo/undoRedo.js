@@ -129,7 +129,7 @@ function UndoRedo(instance) {
       return;
     }
 
-    plugin.done(new UndoRedo.MergeCells(instance, cellRange));
+    plugin.done(new UndoRedo.MergeCellsAction(instance, cellRange));
   });
 
   instance.addHook('afterUnmergeCells', (cellRange, auto) => {
@@ -137,7 +137,7 @@ function UndoRedo(instance) {
       return;
     }
 
-    plugin.done(new UndoRedo.UnmergeCells(instance, cellRange));
+    plugin.done(new UndoRedo.UnmergeCellsAction(instance, cellRange));
   });
 
 }
@@ -499,8 +499,9 @@ UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
 
 /**
  * Merge Cells action.
+ * @util
  */
-class MergeCells extends UndoRedo.Action {
+class MergeCellsAction extends UndoRedo.Action {
   constructor(instance, cellRange) {
     super();
     this.cellRange = cellRange;
@@ -522,13 +523,13 @@ class MergeCells extends UndoRedo.Action {
     mergeCellsPlugin.mergeRange(this.cellRange);
   }
 }
-UndoRedo.MergeCells = MergeCells;
+UndoRedo.MergeCellsAction = MergeCellsAction;
 
 /**
  * Unmerge Cells action.
  * @util
  */
-class UnmergeCells extends UndoRedo.Action {
+class UnmergeCellsAction extends UndoRedo.Action {
   constructor(instance, cellRange) {
     super();
     this.cellRange = cellRange;
@@ -549,7 +550,7 @@ class UnmergeCells extends UndoRedo.Action {
     instance.render();
   }
 }
-UndoRedo.UnmergeCells = UnmergeCells;
+UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
 
 /**
  * ManualRowMove action.
