@@ -1,35 +1,29 @@
-const id = 'testContainer';
+describe('Selection', () => {
+  const id = 'testContainer';
 
-beforeEach(function () {
-  this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-});
+  beforeEach(function () {
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+  });
 
-afterEach(function () {
-  if (this.$container) {
-    destroy();
-    this.$container.remove();
-  }
-});
+  afterEach(function () {
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+  });
 
-describe('Events', () => {
-  it('should translate tap (`touchstart`) to `mousedown`', async () => {
-    const afterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
-
+  it('should show selection handles', async function () {
     const hot = handsontable({
       width: 400,
-      height: 400,
-      afterOnCellMouseDown
+      height: 400
     });
 
-    const cell = hot.getCell(1, 1);
+    hot.selectCell(1, 1);
 
-    expect(getSelected()).toBeUndefined();
+    const topLeftSelectionHandle = this.$container.find('.ht_master .htBorders div:last-child .topLeftSelectionHandle')[0];
+    const bottomRightSelectionHandle = this.$container.find('.ht_master .htBorders div:last-child .bottomRightSelectionHandle')[0];
 
-    triggerTouchEvent('touchstart', cell);
-
-    await sleep(100);
-
-    expect(getSelected()).toBeDefined();
-    expect(afterOnCellMouseDown).toHaveBeenCalled();
+    expect(topLeftSelectionHandle.style.display).toEqual('block');
+    expect(bottomRightSelectionHandle.style.display).toEqual('block');
   });
 });
