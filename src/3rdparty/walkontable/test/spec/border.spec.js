@@ -221,6 +221,41 @@ describe('WalkontableBorder', () => {
     expect($corner.position().left).toBe(95);
   });
 
+  it('should draw only one corner if selection is added between overlays', () => {
+    const wt = new Walkontable.Core({
+      table: $table[0],
+      data: getData,
+      totalRows: 5,
+      totalColumns: 5,
+      fixedColumnsLeft: 2,
+      fixedRowsTop: 2,
+      selections: [
+        new Walkontable.Selection({
+          className: 'current'
+        }),
+        new Walkontable.Selection({
+          className: 'area',
+          border: {
+            cornerVisible() {
+              return true;
+            }
+          }
+        })
+      ],
+    });
+
+    shimSelectionProperties(wt);
+
+    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(0, 0));
+    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(2, 2));
+
+    wt.draw();
+
+    const corners = $container.find('.wtBorder.corner:visible');
+
+    expect(corners.length).toBe(1);
+  });
+
   it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', () => {
     $container.css({
       overflow: 'hidden',
