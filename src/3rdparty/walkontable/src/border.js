@@ -282,7 +282,7 @@ class Border {
     this.selectionHandles.styles.bottomRightHitArea.top = `${parseInt(top + height - (hitAreaWidth / 4), 10)}px`;
     this.selectionHandles.styles.bottomRightHitArea.left = `${parseInt(left + width - (hitAreaWidth / 4), 10)}px`;
 
-    if (this.settings.border.multipleSelectionHandlesVisible && this.settings.border.multipleSelectionHandlesVisible()) {
+    if (this.settings.border.cornerVisible && this.settings.border.cornerVisible()) {
       this.selectionHandles.styles.topLeft.display = 'block';
       this.selectionHandles.styles.topLeftHitArea.display = 'block';
 

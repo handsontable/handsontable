@@ -9,9 +9,6 @@ import headerHighlight from './header';
 const {
   register,
   getItem,
-  hasItem,
-  getNames,
-  getValues,
 } = staticRegister('highlight/types');
 
 register('area', areaHighlight);
