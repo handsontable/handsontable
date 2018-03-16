@@ -75,7 +75,7 @@ describe('Events', () => {
     expect(onCellMouseUp).toHaveBeenCalled();
   });
 
-  it('should trigger default action related link touch and do not translate from the touch to click on a cell', async () => {
+  it('should trigger default action related to link touch and do not translate from the touch to click on a cell', async () => {
     const hot = handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
       rowHeaders: true,
