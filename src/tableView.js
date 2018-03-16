@@ -424,8 +424,8 @@ function TableView(instance) {
     onBeforeRemoveCellClassNames: function() {
       return instance.runHooks('beforeRemoveCellClassNames');
     },
-    onAfterDrawSelection: function(currentRow, currentColumn, cornersOfSelection) {
-      return instance.runHooks('afterDrawSelection', currentRow, currentColumn, cornersOfSelection);
+    onAfterDrawSelection: function(currentRow, currentColumn, cornersOfSelection, layerLevel) {
+      return instance.runHooks('afterDrawSelection', currentRow, currentColumn, cornersOfSelection, layerLevel);
     },
     onBeforeDrawBorders: function(corners, borderClassName) {
       instance.runHooks('beforeDrawBorders', corners, borderClassName);

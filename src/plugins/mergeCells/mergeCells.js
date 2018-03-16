@@ -865,18 +865,21 @@ class MergeCells extends BasePlugin {
   /**
    * `afterDrawSelection` hook callback. Used to add the additional class name for the entirely-selected merged cells.
    *
+   * @private
    * @param {Number} currentRow Row index of the currently processed cell.
    * @param {Number} currentColumn Column index of the currently cell.
    * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
+   * @param {Number|undefined} layerLevel Number indicating which layer of selection is currently processed.
    * @returns {String|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.
    */
-  onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection) {
-    return this.selectionCalculations.getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection);
+  onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) {
+    return this.selectionCalculations.getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
   }
 
   /**
    * `beforeRemoveCellClassNames` hook callback. Used to remove additional class name from all cells in the table.
    *
+   * @private
    * @returns {String[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.
    */
   onBeforeRemoveCellClassNames() {

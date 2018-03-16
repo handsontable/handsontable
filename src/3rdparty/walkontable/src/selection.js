@@ -258,7 +258,7 @@ class Selection {
           }
         }
 
-        let additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceCol, corners);
+        let additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceCol, corners, this.settings.layerLevel);
 
         if (typeof additionalSelectionClass === 'string') {
           this.addClassAtCoords(wotInstance, sourceRow, sourceCol, additionalSelectionClass);

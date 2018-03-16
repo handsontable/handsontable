@@ -20,21 +20,45 @@ describe('MergeCells Selection', () => {
       ]
     });
 
-    const unselectedCell = getCell(4, 4);
-    const initialCellBackground = getComputedStyle(unselectedCell, ':before').backgroundColor;
+    selectColumns(0, 1);
 
-    hot.selectColumns(0, 1);
+    const mergedCell = getCell(0, 0);
 
-    let mergedCell = getCell(0, 0);
-    expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(initialCellBackground);
+    expect(getComputedStyle(mergedCell, ':before').opacity).toEqual('0');
 
-    hot.selectRows(0, 1);
+    selectRows(0, 1);
 
-    mergedCell = getCell(0, 0);
-    expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(initialCellBackground);
+    expect(getComputedStyle(mergedCell, ':before').opacity).toEqual('0');
   });
 
-  it('should make the entirely selected merged cells have the same background color as a regular selected area, when selecting entire columns or rows', () => {
+  it('should leave the partially selected merged cells with their initial color, when selecting entire columns or rows ' +
+    '(when the merged cells was previously fully selected)', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
+      mergeCells: [
+        {row: 0, col: 0, rowspan: 3, colspan: 3}
+      ],
+      rowHeaders: true
+    });
+
+    selectColumns(0, 2);
+
+    const mergedCell = getCell(0, 0);
+    const selectedCellBackground = getComputedStyle(mergedCell, ':before').backgroundColor;
+    const selectedCellOpacity = getComputedStyle(mergedCell, ':before').opacity;
+    const firstRowHeader = getCell(0, -1, true);
+
+    keyDown('ctrl');
+
+    $(firstRowHeader).simulate('mousedown');
+    $(firstRowHeader).simulate('mouseup');
+
+    expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
+    expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
+  });
+
+  it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
+    'selecting entire columns or rows', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 6),
       mergeCells: [
@@ -42,19 +66,54 @@ describe('MergeCells Selection', () => {
       ]
     });
 
-    hot.selectCell(4, 4, 5, 5);
+    selectCell(4, 4, 5, 5);
 
     const selectedCell = getCell(4, 4);
     const selectedCellBackground = getComputedStyle(selectedCell, ':before').backgroundColor;
+    const selectedCellOpacity = getComputedStyle(selectedCell, ':before').opacity;
 
-    hot.selectColumns(0, 2);
+    selectColumns(0, 2);
 
-    let mergedCell = getCell(0, 0);
+    const mergedCell = getCell(0, 0);
+
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
+    expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
 
-    hot.selectRows(0, 2);
+    selectRows(0, 2);
 
-    mergedCell = getCell(0, 0);
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
+    expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
+  });
+
+  it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
+    'selecting entire columns or rows (when the merged cells was previously fully selected)', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
+      mergeCells: [
+        {row: 0, col: 0, rowspan: 3, colspan: 3}
+      ],
+      rowHeaders: true
+    });
+
+    // sample the double-selected background
+    selectCells([[5, 1, 5, 2], [5, 1, 5, 2]]);
+    const selectedCell = getCell(5, 1);
+    const selectedCellBackground = getComputedStyle(selectedCell, ':before').backgroundColor;
+    const selectedCellOpacity = getComputedStyle(selectedCell, ':before').opacity;
+
+    selectColumns(0, 2);
+
+    const mergedCell = getCell(0, 0);
+    const firstRowHeader = getCell(0, -1, true);
+    const thirdRowHeader = getCell(2, -1, true);
+
+    keyDown('ctrl');
+
+    $(firstRowHeader).simulate('mousedown');
+    $(thirdRowHeader).simulate('mouseover');
+    $(thirdRowHeader).simulate('mouseup');
+
+    expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
+    expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
   });
 });

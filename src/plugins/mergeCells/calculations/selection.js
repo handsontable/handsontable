@@ -105,9 +105,10 @@ class SelectionCalculations {
    * @param {Number} currentRow Row index of the currently processed cell.
    * @param {Number} currentColumn Column index of the currently cell.
    * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
+   * @param {Number|undefined} layerLevel Number indicating which layer of selection is currently processed.
    * @returns {String|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.
    */
-  getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection) {
+  getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel) {
     const [startRow, startColumn, endRow, endColumn] = cornersOfSelection;
 
     if (currentRow >= startRow &&
@@ -127,8 +128,8 @@ class SelectionCalculations {
         return;
       }
 
-      if (mergedCell.row + mergedCell.rowspan - 1 <= endRow && mergedCell.col + mergedCell.colspan - 1 <= endColumn) {
-        return this.fullySelectedMergedCellClassName;
+      if (layerLevel !== void 0 && mergedCell.row + mergedCell.rowspan - 1 <= endRow && mergedCell.col + mergedCell.colspan - 1 <= endColumn) {
+        return `${this.fullySelectedMergedCellClassName}-${layerLevel}`;
       }
     }
   }
@@ -139,7 +140,13 @@ class SelectionCalculations {
    * @returns {String[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.
    */
   getSelectedMergedCellClassNameToRemove() {
-    return [this.fullySelectedMergedCellClassName];
+    const classNames = [];
+
+    for (let i = 0; i < 7; i++) {
+      classNames.push(`${this.fullySelectedMergedCellClassName}-${i}`);
+    }
+
+    return classNames;
   }
 }
 
