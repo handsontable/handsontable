@@ -880,7 +880,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   function validateChanges(changes, source, callback) {
     const waitingForValidator = new ValidatorsQueue();
     const isNumericData = (value) => value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
-    const isScientificNotationData = (value) => value.length > 0 && /([+-]?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+))$/.test(value);
+    const isScientificNotationData = (value) => value.length > 0 && /([+-]?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+-]?\d+))$/.test(value);
 
     waitingForValidator.onQueueEmpty = resolve;
 
