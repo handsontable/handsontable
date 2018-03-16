@@ -50,6 +50,20 @@ describe('Events', () => {
 
     const cell = hot.getCell(0, 0);
 
+    // performing touch on not selected cell
+    triggerTouchEvent('touchstart', cell.firstChild);
+
+    await sleep(100);
+
+    triggerTouchEvent('touchend', cell.firstChild);
+
+    await sleep(100);
+
+    // selecting cell other than the one with link
+    hot.selectCell(1, 0);
+
+    await sleep(100);
+
     triggerTouchEvent('touchstart', cell.firstChild);
 
     await sleep(100);
@@ -83,19 +97,7 @@ describe('Events', () => {
 
     await sleep(100);
 
-    triggerTouchEvent('touchstart', cell.firstChild);
-
-    await sleep(100);
-
-    triggerTouchEvent('touchend', cell.firstChild);
-
-    await sleep(100);
-
-    // selecting cell other than the one with link
-    hot.selectCell(1, 0);
-
-    await sleep(100);
-
+    // performing touch on selected cell
     triggerTouchEvent('touchstart', cell.firstChild);
 
     await sleep(100);
