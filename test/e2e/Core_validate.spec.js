@@ -1,4 +1,4 @@
-fdescribe('Core_validate', () => {
+describe('Core_validate', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
