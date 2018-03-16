@@ -444,8 +444,8 @@ UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
 };
 UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
   arrayEach(this.range, ({from, to}) => {
-    for (var row = from.row; row <= to.row; row++) {
-      for (var col = from.col; col <= to.col; col++) {
+    for (var row = from.row; row <= to.row; row += 1) {
+      for (var col = from.col; col <= to.col; col += 1) {
         instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
       }
     }
@@ -456,8 +456,12 @@ UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback)
 };
 UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback) {
   arrayEach(this.range, ({from, to}) => {
-    instance.selectCell(from.row, from.col, to.row, to.col);
-    instance.getPlugin('contextMenu').executeCommand(`alignment:${this.alignment.replace('ht', '').toLowerCase()}`);
+    for (var row = from.row; row <= to.row; row += 1) {
+      for (var col = from.col; col <= to.col; col += 1) {
+        var className = this.stateBefore[row][col] ? `${this.stateBefore[row][col]} ${this.alignment}` : `${this.alignment}`;
+        instance.setCellMeta(row, col, 'className', className);
+      }
+    }
   });
 
   instance.addHookOnce('afterRender', undoneCallback);
