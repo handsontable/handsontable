@@ -606,6 +606,35 @@ describe('manualRowMove', () => {
       expect(targetParameterInsideBeforeRowMoveCallback).toEqual(2);
       expect(targetParameterInsideAfterRowMoveCallback).toEqual(2);
     });
+
+    it('should run `beforeRowMove` and `afterRowMove` with proper visual `rows` parameter', () => {
+      let rowsParameterInsideBeforeRowMoveCallback;
+      let rowsParameterInsideAfterRowMoveCallback;
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        manualRowMove: true,
+        beforeRowMove: (rows, target) => {
+          rowsParameterInsideBeforeRowMoveCallback = rows;
+        },
+        afterRowMove: (rows, target) => {
+          rowsParameterInsideAfterRowMoveCallback = rows;
+        }
+      });
+
+      hot.getPlugin('manualRowMove').moveRow(2, 0);
+
+      expect(rowsParameterInsideBeforeRowMoveCallback).toEqual([2]);
+      expect(rowsParameterInsideAfterRowMoveCallback).toEqual([2]);
+      expect(rowsParameterInsideBeforeRowMoveCallback).toEqual(rowsParameterInsideAfterRowMoveCallback);
+
+      hot.getPlugin('manualRowMove').moveRow(2, 0);
+
+      expect(rowsParameterInsideBeforeRowMoveCallback).toEqual([2]);
+      expect(rowsParameterInsideAfterRowMoveCallback).toEqual([2]);
+      expect(rowsParameterInsideBeforeRowMoveCallback).toEqual(rowsParameterInsideAfterRowMoveCallback);
+    });
   });
 
   describe('undoRedo', () => {
