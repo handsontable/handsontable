@@ -1,4 +1,4 @@
-describe('Core_validate', () => {
+fdescribe('Core_validate', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -2148,5 +2148,60 @@ describe('Core_validate', () => {
       expect(onValidate.calls.count()).toEqual(1);
       done();
     }, 200);
+  });
+
+  it('should not mark scientific notation as invalid for numeric cells', (done) => {
+    var hot = handsontable({
+      data: [
+        [0, 1],
+        [2, 3]
+      ],
+      type: 'numeric'
+    });
+
+    hot.validateCells(() => {
+      hot.render();
+    });
+
+    setTimeout(() => {
+      expect(spec().$container.find('td.htInvalid').length).toEqual(0);
+      expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
+      hot.setDataAtCell(0, 0, '4.7e-5');
+      hot.setDataAtCell(0, 1, '-4.7E-5');
+    }, 200);
+
+    setTimeout(() => {
+      expect(spec().$container.find('td.htInvalid').length).toEqual(0);
+      expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
+      done();
+    }, 300);
+  });
+
+  it('should mark non-scientific notation as invalid for numeric cells', (done) => {
+    var hot = handsontable({
+      data: [
+        [0, 1],
+        [2, 3]
+      ],
+      type: 'numeric'
+    });
+
+    hot.validateCells(() => {
+      hot.render();
+    });
+
+    setTimeout(() => {
+      expect(spec().$container.find('td.htInvalid').length).toEqual(0);
+      expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
+      hot.setDataAtCell(0, 0, '4.7ee-5');
+      hot.setDataAtCell(0, 1, '-4.7E-5e');
+      hot.setDataAtCell(1, 1, 'e-4.7E-5');
+    }, 200);
+
+    setTimeout(() => {
+      expect(spec().$container.find('td.htInvalid').length).toEqual(3);
+      expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(1);
+      done();
+    }, 300);
   });
 });
