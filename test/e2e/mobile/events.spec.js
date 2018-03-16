@@ -78,7 +78,21 @@ describe('Events', () => {
 
     const cell = hot.getCell(0, 0);
 
+    // selecting cell with link
     hot.selectCell(0, 0);
+
+    await sleep(100);
+
+    triggerTouchEvent('touchstart', cell.firstChild);
+
+    await sleep(100);
+
+    triggerTouchEvent('touchend', cell.firstChild);
+
+    await sleep(100);
+
+    // selecting cell other than the one with link
+    hot.selectCell(1, 0);
 
     await sleep(100);
 

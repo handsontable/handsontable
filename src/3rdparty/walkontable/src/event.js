@@ -153,11 +153,11 @@ function Event(instance) {
   };
 
   var onTouchEnd = function(event) {
-    const excludeTags = ['A'];
+    const excludeTags = ['A', 'BUTTON', 'INPUT'];
     const target = event.target;
 
     // touched link which was placed inside a cell (a cell with DOM `a` element) WILL NOT trigger the below function calls
-    // and as consequence will behave as standard (open link).
+    // and as consequence will behave as standard (open the link).
     if (selectedCellWasTouched(target) === false || excludeTags.includes(target.tagName) === false) {
       event.preventDefault();
       onMouseUp(event);
