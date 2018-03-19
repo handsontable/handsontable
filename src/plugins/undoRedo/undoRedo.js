@@ -7,6 +7,7 @@ import {rangeEach} from './../../helpers/number';
 import {inherit, deepClone} from './../../helpers/object';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {CellCoords} from './../../3rdparty/walkontable/src';
+import {align} from './../contextMenu/utils';
 
 /**
  * @description
@@ -455,14 +456,8 @@ UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback)
   instance.render();
 };
 UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback) {
-  arrayEach(this.range, ({from, to}) => {
-    for (var row = from.row; row <= to.row; row += 1) {
-      for (var col = from.col; col <= to.col; col += 1) {
-        var className = this.stateBefore[row][col] ? `${this.stateBefore[row][col]} ${this.alignment}` : `${this.alignment}`;
-        instance.setCellMeta(row, col, 'className', className);
-      }
-    }
-  });
+  align(this.range, this.type, this.alignment, (row, col) => instance.getCellMeta(row, col),
+    (row, col, key, value) => instance.setCellMeta(row, col, key, value));
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
