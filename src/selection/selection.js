@@ -327,10 +327,9 @@ class Selection {
    * Returns `true` if the cell corner should be visible.
    *
    * @private
-   * @param {Number} layerLevel The layer level.
    * @return {Boolean} `true` if the corner element has to be visible, `false` otherwise.
    */
-  isCellCornerVisible(layerLevel) {
+  isCellCornerVisible() {
     return this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.isMultiple();
   }
 
@@ -341,7 +340,7 @@ class Selection {
    * @return {Boolean} `true` if the corner element has to be visible, `false` otherwise.
    */
   isAreaCornerVisible(layerLevel) {
-    if (layerLevel !== this.selectedRange.ranges.length - 1) {
+    if (Number.isInteger(layerLevel) && layerLevel !== this.selectedRange.ranges.length - 1) {
       return false;
     }
 

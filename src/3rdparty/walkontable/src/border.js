@@ -481,7 +481,7 @@ class Border {
     }
 
     if (isMobileBrowser()) {
-      this.updateMultipleSelectionHandlesPosition(fromRow, fromColumn, top, left, width, height);
+      this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, left, width, height);
     }
   }
 
