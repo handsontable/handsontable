@@ -121,6 +121,7 @@ export function mouseOver({isLeftClick, coords, selection, controller}) {
 const handlers = new Map([
   ['mousedown', mouseDown],
   ['mouseover', mouseOver],
+  ['touchstart', mouseDown],
 ]);
 
 /**
