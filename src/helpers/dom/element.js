@@ -211,12 +211,14 @@ var _hasClass,
   _removeClass;
 
 function filterEmptyClassNames(classNames) {
-  var len = 0,
-    result = [];
+  const result = [];
 
   if (!classNames || !classNames.length) {
     return result;
   }
+
+  let len = 0;
+
   while (classNames[len]) {
     result.push(classNames[len]);
     len++;
@@ -243,19 +245,19 @@ if (classListSupport) {
   };
 
   _addClass = function _addClass(element, className) {
-    var len = 0;
-
     if (typeof className === 'string') {
       className = className.split(' ');
     }
 
-    if (Array.isArray(className)) {
-      className = filterEmptyClassNames(className);
+    className = filterEmptyClassNames(className);
 
+    if (className.length > 0) {
       if (isSupportMultipleClassesArg) {
         element.classList.add.apply(element.classList, className);
 
       } else {
+        let len = 0;
+
         while (className && className[len]) {
           element.classList.add(className[len]);
           len++;
@@ -265,19 +267,19 @@ if (classListSupport) {
   };
 
   _removeClass = function _removeClass(element, className) {
-    var len = 0;
-
     if (typeof className === 'string') {
       className = className.split(' ');
     }
 
-    if (Array.isArray(className)) {
-      className = filterEmptyClassNames(className);
+    className = filterEmptyClassNames(className);
 
+    if (className.length > 0) {
       if (isSupportMultipleClassesArg) {
         element.classList.remove.apply(element.classList, className);
 
       } else {
+        let len = 0;
+
         while (className && className[len]) {
           element.classList.remove(className[len]);
           len++;

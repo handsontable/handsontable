@@ -49,13 +49,13 @@ class Selection {
     /**
      * The collection of the selection layer levels where the whole row was selected using the row header.
      *
-     * @type {Set<Number>}
+     * @type {Set.<Number>}
      */
     this.selectedByRowHeader = new Set();
     /**
      * The collection of the selection layer levels where the whole column was selected using the column header.
      *
-     * @type {Set<Number>}
+     * @type {Set.<Number>}
      */
     this.selectedByColumnHeader = new Set();
     /**
@@ -269,19 +269,18 @@ class Selection {
     const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
     const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
 
-    if (isRowSelected || isColumnSelected) {
-      if (isRowSelected) {
-        // The whole row was selected.
-        activeHeaderHighlight
-          .add(new CellCoords(cellRange.from.row, -1))
-          .add(new CellCoords(cellRange.to.row, -1));
+    if (isRowSelected) {
+      // The whole row was selected.
+      activeHeaderHighlight
+        .add(new CellCoords(cellRange.from.row, -1))
+        .add(new CellCoords(cellRange.to.row, -1));
+    }
 
-      } else if (isColumnSelected) {
-        // The whole column was selected.
-        activeHeaderHighlight
-          .add(new CellCoords(-1, cellRange.from.col))
-          .add(new CellCoords(-1, cellRange.to.col));
-      }
+    if (isColumnSelected) {
+      // The whole column was selected.
+      activeHeaderHighlight
+        .add(new CellCoords(-1, cellRange.from.col))
+        .add(new CellCoords(-1, cellRange.to.col));
     }
 
     this.runLocalHooks('afterSetRangeEnd', coords);
@@ -310,9 +309,7 @@ class Selection {
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
   transformStart(rowDelta, colDelta, force) {
-    const newCoords = this.transformation.transformStart(rowDelta, colDelta, force);
-
-    this.setRangeStart(newCoords);
+    this.setRangeStart(this.transformation.transformStart(rowDelta, colDelta, force));
   }
 
   /**
@@ -322,9 +319,7 @@ class Selection {
    * @param {Number} colDelta Columns number to move, value can be passed as negative number.
    */
   transformEnd(rowDelta, colDelta) {
-    const newCoords = this.transformation.transformEnd(rowDelta, colDelta);
-
-    this.setRangeEnd(newCoords);
+    this.setRangeEnd(this.transformation.transformEnd(rowDelta, colDelta));
   }
 
   /**
@@ -345,18 +340,44 @@ class Selection {
     return !this.selectedRange.isEmpty();
   }
 
+  /**
+   * Returns `true` if the selection was applied by clicking to the row header. If the `layerLevel`
+   * argument is passed then only that layer will be checked. Otherwise, it checks if any row header
+   * was clicked on any selection layer level.
+   *
+   * @param {Number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
+   * @return {Boolean}
+   */
   isSelectedByRowHeader(layerLevel = this.getLayerLevel()) {
     return layerLevel === -1 ? this.selectedByRowHeader.size > 0 : this.selectedByRowHeader.has(layerLevel);
   }
 
+  /**
+   * Returns `true` if the selection was applied by clicking to the column header. If the `layerLevel`
+   * argument is passed then only that layer will be checked. Otherwise, it checks if any column header
+   * was clicked on any selection layer level.
+   *
+   * @param {Number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
+   * @return {Boolean}
+   */
   isSelectedByColumnHeader(layerLevel = this.getLayerLevel()) {
     return layerLevel === -1 ? this.selectedByColumnHeader.size > 0 : this.selectedByColumnHeader.has(layerLevel);
   }
 
+  /**
+   * Returns `true` if the selection was applied by clicking on the row or column header on any layer level.
+   *
+   * @return {Boolean}
+   */
   isSelectedByAnyHeader() {
     return this.isSelectedByRowHeader(-1) || this.isSelectedByColumnHeader(-1);
   }
 
+  /**
+   * Returns `true` if the selection was applied by clicking on the left-top corner overlay.
+   *
+   * @return {Boolean}
+   */
   isSelectedByCorner() {
     return this.selectedByCorner;
   }
@@ -485,6 +506,9 @@ class Selection {
    *
    * @param {Number|String} startColumn Visual column index or column property from which the selection starts.
    * @param {Number|String} [endColumn] Visual column index or column property from to the selection finishes.
+   * @param {Object} [options]
+   * @param {Boolean} [options.keepPreviousSelection=false] The flag indicates if after selecting the columns
+   *                                    previous selection should be cleard or not.
    * @returns {Boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectColumns(startColumn, endColumn = startColumn, {keepPreviousSelection = false} = {}) {
@@ -512,6 +536,9 @@ class Selection {
    *
    * @param {Number} startRow Visual row index from which the selection starts.
    * @param {Number} [endRow] Visual row index from to the selection finishes.
+   * @param {Object} [options]
+   * @param {Boolean} [options.keepPreviousSelection=false] The flag indicates if after selecting the rows
+   *                          previous selection should be cleard or not.
    * @returns {Boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectRows(startRow, endRow = startRow, {keepPreviousSelection = false} = {}) {

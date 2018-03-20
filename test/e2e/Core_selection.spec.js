@@ -1,4 +1,3 @@
-
 describe('Core_selection', () => {
   var id = 'testContainer';
 
@@ -13,139 +12,45 @@ describe('Core_selection', () => {
     }
   });
 
-  describe('public API', () => {
-    it('should return valid coordinates when `.getSelected` and `.getSelectedLast` is called', () => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
-        selectionMode: 'multiple',
-      });
-
-      const snapshot = [
-        [5, 4, 1, 1],
-        [2, 2, 7, 2],
-        [2, 4, 2, 4],
-        [7, 6, 8, 7],
-      ];
-
-      $(getCell(5, 4)).simulate('mousedown');
-      $(getCell(1, 1)).simulate('mouseover');
-      $(getCell(1, 1)).simulate('mouseup');
-
-      expect(getSelectedLast()).toEqual(snapshot[0]);
-      expect(getSelected()).toEqual([snapshot[0]]);
-
-      keyDown('ctrl');
-
-      $(getCell(2, 2)).simulate('mousedown');
-      $(getCell(7, 2)).simulate('mouseover');
-      $(getCell(7, 2)).simulate('mouseup');
-
-      expect(getSelectedLast()).toEqual(snapshot[1]);
-      expect(getSelected()).toEqual([snapshot[0], snapshot[1]]);
-
-      $(getCell(2, 4)).simulate('mousedown');
-      $(getCell(2, 4)).simulate('mouseover');
-      $(getCell(2, 4)).simulate('mouseup');
-
-      expect(getSelectedLast()).toEqual(snapshot[2]);
-      expect(getSelected()).toEqual([snapshot[0], snapshot[1], snapshot[2]]);
-
-      $(getCell(7, 6)).simulate('mousedown');
-      $(getCell(8, 7)).simulate('mouseover');
-      $(getCell(8, 7)).simulate('mouseup');
-
-      expect(getSelectedLast()).toEqual(snapshot[3]);
-      expect(getSelected()).toEqual(snapshot);
+  it('should correctly render the selection using event simulation', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(9, 8),
+      selectionMode: 'multiple',
+      colHeaders: true,
+      rowHeaders: true,
     });
 
-    it('should return valid coordinates when `.getSelectedRange` and `.getSelectedRangeLast` is called', () => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
-        selectionMode: 'multiple',
-      });
+    $(getCell(5, 4)).simulate('mousedown');
+    $(getCell(1, 1)).simulate('mouseover');
+    $(getCell(1, 1)).simulate('mouseup');
 
-      const snapshot = [
-        {from: {row: 5, col: 4}, to: {row: 1, col: 1}},
-        {from: {row: 2, col: 2}, to: {row: 7, col: 2}},
-        {from: {row: 2, col: 4}, to: {row: 2, col: 4}},
-        {from: {row: 7, col: 6}, to: {row: 8, col: 7}},
-      ];
+    keyDown('ctrl');
 
-      $(getCell(5, 4)).simulate('mousedown');
-      $(getCell(1, 1)).simulate('mouseover');
-      $(getCell(1, 1)).simulate('mouseup');
+    $(getCell(0, 2)).simulate('mousedown');
+    $(getCell(8, 2)).simulate('mouseover');
+    $(getCell(7, 2)).simulate('mouseup');
 
-      expect(getSelectedRangeLast().toObject()).toEqual(snapshot[0]);
-      expect(getSelectedRange().map((cellRange) => cellRange.toObject())).toEqual([snapshot[0]]);
+    $(getCell(2, 4)).simulate('mousedown');
+    $(getCell(2, 4)).simulate('mouseover');
+    $(getCell(2, 4)).simulate('mouseup');
 
-      keyDown('ctrl');
+    $(getCell(7, 6)).simulate('mousedown');
+    $(getCell(8, 7)).simulate('mouseover');
+    $(getCell(8, 7)).simulate('mouseup');
 
-      $(getCell(2, 2)).simulate('mousedown');
-      $(getCell(7, 2)).simulate('mouseover');
-      $(getCell(7, 2)).simulate('mouseup');
-
-      expect(getSelectedRangeLast().toObject()).toEqual(snapshot[1]);
-      expect(getSelectedRange().map((cellRange) => cellRange.toObject())).toEqual([snapshot[0], snapshot[1]]);
-
-      $(getCell(2, 4)).simulate('mousedown');
-      $(getCell(2, 4)).simulate('mouseover');
-      $(getCell(2, 4)).simulate('mouseup');
-
-      expect(getSelectedRangeLast().toObject()).toEqual(snapshot[2]);
-      expect(getSelectedRange().map((cellRange) => cellRange.toObject())).toEqual([snapshot[0], snapshot[1], snapshot[2]]);
-
-      $(getCell(7, 6)).simulate('mousedown');
-      $(getCell(8, 7)).simulate('mouseover');
-      $(getCell(8, 7)).simulate('mouseup');
-
-      const selectedRange = getSelectedRange().map((cellRange) => cellRange.toObject());
-
-      expect(getSelectedRangeLast().toObject()).toEqual(snapshot[3]);
-      expect(selectedRange).toEqual(snapshot);
-    });
-
-    it('should make all selected cells empty when `.emptySelectedCells` is called', () => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(9, 8),
-        selectionMode: 'multiple',
-      });
-
-      $(getCell(5, 4)).simulate('mousedown');
-      $(getCell(1, 1)).simulate('mouseover');
-      $(getCell(1, 1)).simulate('mouseup');
-
-      keyDown('ctrl');
-
-      $(getCell(2, 2)).simulate('mousedown');
-      $(getCell(7, 2)).simulate('mouseover');
-      $(getCell(7, 2)).simulate('mouseup');
-
-      $(getCell(2, 4)).simulate('mousedown');
-      $(getCell(2, 4)).simulate('mouseover');
-      $(getCell(2, 4)).simulate('mouseup');
-
-      $(getCell(7, 6)).simulate('mousedown');
-      $(getCell(8, 7)).simulate('mouseover');
-      $(getCell(8, 7)).simulate('mouseup');
-
-      emptySelectedCells();
-
-      /* eslint-disable no-multi-spaces, comma-spacing */
-      const snapshot = [
-        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1'],
-        ['A2',  '',   '',   '',   '',  'F2', 'G2', 'H2'],
-        ['A3',  '',   '',   '',   '',  'F3', 'G3', 'H3'],
-        ['A4',  '',   '',   '',   '',  'F4', 'G4', 'H4'],
-        ['A5',  '',   '',   '',   '',  'F5', 'G5', 'H5'],
-        ['A6',  '',   '',   '',   '',  'F6', 'G6', 'H6'],
-        ['A7', 'B7',  '',  'D7', 'E7', 'F7', 'G7', 'H7'],
-        ['A8', 'B8',  '',  'D8', 'E8', 'F8',  '',   '',],
-        ['A9', 'B9', 'C9', 'D9', 'E9', 'F9',  '',   '',],
-      ];
-      /* eslint-enable no-multi-spaces, comma-spacing */
-
-      expect(getData()).toEqual(snapshot);
-    });
+    expect(`
+      |   ║   : - : * : - : - :   : - : - |
+      |===:===:===:===:===:===:===:===:===|
+      | - ║   :   : 0 :   :   :   :   :   |
+      | - ║   : 0 : 1 : 0 : 0 :   :   :   |
+      | - ║   : 0 : 1 : 0 : 1 :   :   :   |
+      | - ║   : 0 : 1 : 0 : 0 :   :   :   |
+      | - ║   : 0 : 1 : 0 : 0 :   :   :   |
+      | - ║   : 0 : 1 : 0 : 0 :   :   :   |
+      | - ║   :   : 0 :   :   :   :   :   |
+      | - ║   :   : 0 :   :   :   : A : 0 |
+      | - ║   :   : 0 :   :   :   : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should focus external textarea when clicked during editing', () => {
@@ -707,18 +612,50 @@ describe('Core_selection', () => {
     spec().$container.find('thead th:eq(0)').simulate('mousedown');
 
     expect(getSelected()).toEqual([[0, 0, 9, 0]]);
-    expect([
-      ['A', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      | * :   :   :   :   |
+      |===:===:===:===:===|
+      | A :   :   :   :   |
+      | 0 :   :   :   :   |
+      | 0 :   :   :   :   |
+      | 0 :   :   :   :   |
+      | 0 :   :   :   :   |
+      | 0 :   :   :   :   |
+      | 0 :   :   :   :   |
+      | 0 :   :   :   :   |
+      | 0 :   :   :   :   |
+      | 0 :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should select the entire column and row after column header and row header is clicked', () => {
+    handsontable({
+      width: 200,
+      height: 100,
+      startRows: 10,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    spec().$container.find('thead th:eq(3)').simulate('mousedown');
+    keyDown('ctrl');
+    spec().$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
+
+    expect(`
+      |   ║ - : - : * : - : - |
+      |===:===:===:===:===:===|
+      | - ║   :   : 0 :   :   |
+      | * ║ A : 0 : 1 : 0 : 0 |
+      | - ║   :   : 0 :   :   |
+      | - ║   :   : 0 :   :   |
+      | - ║   :   : 0 :   :   |
+      | - ║   :   : 0 :   :   |
+      | - ║   :   : 0 :   :   |
+      | - ║   :   : 0 :   :   |
+      | - ║   :   : 0 :   :   |
+      | - ║   :   : 0 :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should not overwrite background color of the cells with custom CSS classes', function() {
@@ -752,18 +689,21 @@ describe('Core_selection', () => {
     this.$container.find('.ht_master thead th:eq(1)').simulate('mousedown');
 
     expect(getSelected()).toEqual([[0, 0, 9, 0]]);
-    expect([
-      ['A', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-      ['0', ' ', ' ', ' ', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║ * :   |   :   :   |
+      |===:===:===:===:===:===|
+      | - ║ A :   |   :   :   |
+      | - ║ 0 :   |   :   :   |
+      |---:---:---:---:---:---|
+      | - ║ 0 :   |   :   :   |
+      | - ║ 0 :   |   :   :   |
+      | - ║ 0 :   |   :   :   |
+      | - ║ 0 :   |   :   :   |
+      | - ║ 0 :   |   :   :   |
+      | - ║ 0 :   |   :   :   |
+      | - ║ 0 :   |   :   :   |
+      | - ║ 0 :   |   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should select the entire fixed column after column header is clicked, after scroll horizontally', () => {
@@ -784,18 +724,16 @@ describe('Core_selection', () => {
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[0, 1, 9, 1]]);
-    expect([
-      [' ', 'A', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-      [' ', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-      [' ', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-      [' ', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-      [' ', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-      [' ', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-      ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-'],
-      ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-'],
-      ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-'],
-      ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-'],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   : * |   :   :   :   :   :   :   :   |
+      |===:===:===:===:===:===:===:===:===:===:===|
+      | - ║   : A |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', (done) => {
@@ -948,13 +886,15 @@ describe('Core_selection', () => {
     this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
 
     expect(getSelected()).toEqual([[1, 0, 1, 4]]);
-    expect([
-      [' ', ' ', ' ', ' ', ' '],
-      ['A', '0', '0', '0', '0'],
-      [' ', ' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' ', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║ - : - : - : - : - |
+      |===:===:===:===:===:===|
+      |   ║   :   :   :   :   |
+      | * ║ A : 0 : 0 : 0 : 0 |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should select the entire row of a partially fixed table after row header is clicked', function() {
@@ -1137,13 +1077,15 @@ describe('Core_selection', () => {
     spec().$container.find('thead').find('th').eq(0).simulate('mousedown');
 
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
-    expect([
-      ['_', ' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' ', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║ - :   :   :   :   |
+      |===:===:===:===:===:===|
+      | - ║ # :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should redraw selection when option `colHeaders` is set and user scrolled', function (done) {
@@ -1300,6 +1242,8 @@ describe('Core_selection', () => {
         startRows: 21,
         startCols: 30,
         selectionMode: 'multiple',
+        colHeaders: true,
+        rowHeaders: true,
       });
 
       $(getCell(0, 0)).simulate('mousedown');
@@ -1348,40 +1292,31 @@ describe('Core_selection', () => {
       $(getCell(10, 25)).simulate('mouseover');
       $(getCell(10, 25)).simulate('mouseup');
 
-      // This snapshot describes what the CSS classes the cells should contain. The numbers indicate the layer level such as:
-      // ' ' - An empty string means that there is no selection;
-      // '0' - First layer, 'area' class name;
-      // '1' - Second layer, 'area-1' class name;
-      // '2' - Third layer, 'area-2' class name.
-      // ...and so on
-      // 'H' - The current selected cell (where the editor will be opened)
-      //
-      // Multiple selection generates CSS class names until it reaches 8-th layer ('area-7').
-      const pattern = [
-        ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['0', '1', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['0', '1', '2', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['0', '1', '2', '3', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['0', '1', '2', '3', '4', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' '],
-        ['0', '1', '2', '3', '4', '5', '6', '6', '6', '6', '6', '6', '6', '6', '6', '6', '5', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' '],
-        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' ', ' '],
-        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' '],
-        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' '],
-        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', 'H', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0'],
-        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' '],
-        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' '],
-        ['0', '1', '2', '3', '4', '5', '6', '7', '7', '7', '7', '7', '7', '7', '7', '7', '6', '5', '4', '3', '2', '1', '0', ' ', ' ', ' '],
-        ['0', '1', '2', '3', '4', '5', '6', '6', '6', '6', '6', '6', '6', '6', '6', '6', '5', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' '],
-        ['0', '1', '2', '3', '4', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '5', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' '],
-        ['0', '1', '2', '3', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['0', '1', '2', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '3', '2', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['0', '1', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-      ];
-
-      expect(pattern).toBeMatchToSelectionPattern();
+      expect(`
+        |   ║ * : * : * : * : * : * : * : * : * : * : * : * : * : * : * : * : - : - : - : - : - : - : - : - : - : - :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===|
+        | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   :   :   :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 0 :   :   :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 1 : 0 :   :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 2 : 1 : 0 :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 4 : 4 : 4 : 4 : 4 : 4 : 4 : 4 : 4 : 4 : 4 : 4 : 3 : 2 : 1 : 0 :   :   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 4 : 5 : 5 : 5 : 5 : 5 : 5 : 5 : 5 : 5 : 5 : 5 : 4 : 3 : 2 : 1 : 0 :   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 4 : 5 : 6 : 6 : 6 : 6 : 6 : 6 : 6 : 6 : 6 : 6 : 5 : 4 : 3 : 2 : 1 : 0 :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 4 : 5 : 6 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 6 : 5 : 4 : 3 : 2 : 1 : 0 :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 4 : 5 : 6 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 6 : 5 : 4 : 3 : 2 : 1 : 0 :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 4 : 5 : 6 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 6 : 5 : 4 : 3 : 2 : 1 : 0 :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 4 : 5 : 6 : 7 : 7 : 7 : H : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 6 : 5 : 4 : 3 : 2 : 1 : 0 :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 4 : 5 : 6 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 6 : 5 : 4 : 3 : 2 : 1 : 0 :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 4 : 5 : 6 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 6 : 5 : 4 : 3 : 2 : 1 : 0 :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 4 : 5 : 6 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 7 : 6 : 5 : 4 : 3 : 2 : 1 : 0 :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 4 : 5 : 6 : 6 : 6 : 6 : 6 : 6 : 6 : 6 : 6 : 6 : 5 : 4 : 3 : 2 : 1 : 0 :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 4 : 5 : 5 : 5 : 5 : 5 : 5 : 5 : 5 : 5 : 5 : 5 : 4 : 3 : 2 : 1 : 0 :   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 4 : 4 : 4 : 4 : 4 : 4 : 4 : 4 : 4 : 4 : 4 : 4 : 3 : 2 : 1 : 0 :   :   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 3 : 2 : 1 : 0 :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 2 : 1 : 0 :   :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 0 :   :   :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   :   :   :   :   :   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
     });
 
     it('should call afterSelection and afterSelectionEnd hooks with proper arguments', () => {

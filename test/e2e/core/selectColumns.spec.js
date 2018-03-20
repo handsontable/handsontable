@@ -10,142 +10,215 @@ describe('Core.selectColumns', () => {
     }
   });
 
-  it('should mark single column visually (default selectionMode)', () => {
+  it('should mark single column visually (default selectionMode, without headers)', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: false,
+      rowHeaders: false,
     });
 
     selectColumns(2);
 
-    expect([
-      [' ', ' ', 'A', ' '],
-      [' ', ' ', '0', ' '],
-      [' ', ' ', '0', ' '],
-      [' ', ' ', '0', ' '],
-      [' ', ' ', '0', ' '],
-      [' ', ' ', '0', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   :   : A :   |
+      |   :   : 0 :   |
+      |   :   : 0 :   |
+      |   :   : 0 :   |
+      |   :   : 0 :   |
+      |   :   : 0 :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should mark single column visually (default selectionMode)', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    selectColumns(2);
+
+    expect(`
+      |   ║   :   : * :   |
+      |===:===:===:===:===|
+      | - ║   :   : A :   |
+      | - ║   :   : 0 :   |
+      | - ║   :   : 0 :   |
+      | - ║   :   : 0 :   |
+      | - ║   :   : 0 :   |
+      | - ║   :   : 0 :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should mark single column visually (default selectionMode, fixedColumnsLeft enabled)', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
+      fixedColumnsLeft: 2,
+    });
+
+    selectColumns(1, 2);
+
+    expect(`
+      |   ║   : * | * :   |
+      |===:===:===:===:===|
+      | - ║   : A | 0 :   |
+      | - ║   : 0 | 0 :   |
+      | - ║   : 0 | 0 :   |
+      | - ║   : 0 | 0 :   |
+      | - ║   : 0 | 0 :   |
+      | - ║   : 0 | 0 :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should mark single column visually (default selectionMode) using column property', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
     });
 
     selectColumns('prop2');
 
-    expect([
-      [' ', ' ', 'A', ' '],
-      [' ', ' ', '0', ' '],
-      [' ', ' ', '0', ' '],
-      [' ', ' ', '0', ' '],
-      [' ', ' ', '0', ' '],
-      [' ', ' ', '0', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   :   : * :   |
+      |===:===:===:===:===|
+      | - ║   :   : A :   |
+      | - ║   :   : 0 :   |
+      | - ║   :   : 0 :   |
+      | - ║   :   : 0 :   |
+      | - ║   :   : 0 :   |
+      | - ║   :   : 0 :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should mark range of the columns visually (default selectionMode)', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
     });
 
     selectColumns(2, 3);
 
-    expect([
-      [' ', ' ', 'A', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   :   : * : * |
+      |===:===:===:===:===|
+      | - ║   :   : A : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should mark range of the columns visually (default selectionMode, reversed selection)', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
     });
 
     selectColumns(3, 2);
 
-    expect([
-      [' ', ' ', '0', 'A'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   :   : * : * |
+      |===:===:===:===:===|
+      | - ║   :   : 0 : A |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should mark range of the columns visually (default selectionMode) using column property', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
     });
 
     selectColumns('prop2', 'prop3');
 
-    expect([
-      [' ', ' ', 'A', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   :   : * : * |
+      |===:===:===:===:===|
+      | - ║   :   : A : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should mark range of the columns visually (default selectionMode, reversed selection) using column property', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
     });
 
     selectColumns('prop3', 'prop2');
 
-    expect([
-      [' ', ' ', '0', 'A'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', '0', '0'],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   :   : * : * |
+      |===:===:===:===:===|
+      | - ║   :   : 0 : A |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      | - ║   :   : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should mark only single cell visually when selectionMode is set as `single', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
       selectionMode: 'single',
     });
 
     selectColumns(2);
 
-    expect([
-      [' ', ' ', '_', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   :   : - :   |
+      |===:===:===:===:===|
+      | - ║   :   : # :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should mark the range of the columns visually when selectionMode is set as `range`', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
       selectionMode: 'range',
     });
 
     selectColumns(1, 2);
 
-    expect([
-      [' ', 'A', '0', ' '],
-      [' ', '0', '0', ' '],
-      [' ', '0', '0', ' '],
-      [' ', '0', '0', ' '],
-      [' ', '0', '0', ' '],
-      [' ', '0', '0', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   : * : * :   |
+      |===:===:===:===:===|
+      | - ║   : A : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should not deselect current selection when selectColumns is called without arguments', () => {

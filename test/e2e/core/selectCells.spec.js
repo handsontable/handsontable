@@ -10,43 +10,72 @@ describe('Core.selectCells', () => {
     }
   });
 
-  it('should mark single cell visually (default selectionMode)', () => {
+  it('should mark single cell visually (default selectionMode, without headers)', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: false,
+      rowHeaders: false,
     });
 
     selectCells([[2, 2]]);
 
-    expect([
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', '_', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   :   :   :   |
+      |   :   :   :   |
+      |   :   : # :   |
+      |   :   :   :   |
+      |   :   :   :   |
+      |   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should mark single cell visually (default selectionMode)', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    selectCells([[2, 2]]);
+
+    expect(`
+      |   ║   :   : - :   |
+      |===:===:===:===:===|
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      | - ║   :   : # :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should mark range of the cells visually (default selectionMode)', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
     });
 
     selectCells([[1, 2, 2, 3]]);
 
-    expect([
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', 'A', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   :   : - : - |
+      |===:===:===:===:===|
+      |   ║   :   :   :   |
+      | - ║   :   : A : 0 |
+      | - ║   :   : 0 : 0 |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should mark non-contiguous cells visually (default selectionMode)', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
     });
 
     selectCells([
@@ -58,56 +87,68 @@ describe('Core.selectCells', () => {
       [4, 2]
     ]);
 
-    expect([
-      ['0', ' ', ' ', ' '],
-      [' ', ' ', '0', '0'],
-      [' ', '0', '1', '0'],
-      ['0', '1', '2', '0'],
-      [' ', '0', 'D', '0'],
-      [' ', '0', '0', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║ - : - : - : - |
+      |===:===:===:===:===|
+      | - ║ 0 :   :   :   |
+      | - ║   :   : 0 : 0 |
+      | - ║   : 0 : 1 : 0 |
+      | - ║ 0 : 1 : 2 : 0 |
+      | - ║   : 0 : D : 0 |
+      | - ║   : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should mark single cell visually when selectionMode is set as `single', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
       selectionMode: 'single',
+      colHeaders: true,
+      rowHeaders: true,
     });
 
     selectCells([[2, 2]]);
 
-    expect([
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', '_', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   :   : - :   |
+      |===:===:===:===:===|
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      | - ║   :   : # :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should not mark range of the cells visually when selectionMode is set as `single', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
       selectionMode: 'single',
+      colHeaders: true,
+      rowHeaders: true,
     });
 
     selectCells([[1, 2, 2, 3]]);
 
-    expect([
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', '_', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   :   : - :   |
+      |===:===:===:===:===|
+      |   ║   :   :   :   |
+      | - ║   :   : # :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should not mark non-contiguous cells visually when selectionMode is set as `single', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
       selectionMode: 'single',
+      colHeaders: true,
+      rowHeaders: true,
     });
 
     selectCells([
@@ -119,50 +160,60 @@ describe('Core.selectCells', () => {
       [4, 2]
     ]);
 
-    expect([
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', '_', ' '],
-      [' ', ' ', ' ', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   :   : - :   |
+      |===:===:===:===:===|
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      | - ║   :   : # :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should mark single cell visually when selectionMode is set as `range', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
       selectionMode: 'range',
+      colHeaders: true,
+      rowHeaders: true,
     });
 
     selectCells([[2, 2]]);
 
-    expect([
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', '_', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   :   : - :   |
+      |===:===:===:===:===|
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      | - ║   :   : # :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should mark range of the cells visually when selectionMode is set as `range', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
       selectionMode: 'range',
+      colHeaders: true,
+      rowHeaders: true,
     });
 
     selectCells([[1, 2, 2, 3]]);
 
-    expect([
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', 'A', '0'],
-      [' ', ' ', '0', '0'],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   ║   :   : - : - |
+      |===:===:===:===:===|
+      |   ║   :   :   :   |
+      | - ║   :   : A : 0 |
+      | - ║   :   : 0 : 0 |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should not mark non-contiguous cells visually when selectionMode is set as `range', () => {
@@ -180,14 +231,48 @@ describe('Core.selectCells', () => {
       [4, 2]
     ]);
 
-    expect([
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', ' ', ' '],
-      [' ', ' ', '_', ' '],
-      [' ', ' ', ' ', ' '],
-    ]).toBeMatchToSelectionPattern();
+    expect(`
+      |   :   :   :   |
+      |   :   :   :   |
+      |   :   :   :   |
+      |   :   :   :   |
+      |   :   : # :   |
+      |   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should mark the headers when whole column and row is selected', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    selectCells([[0, 1, 5, 1], [0, 3, 5, 3]]);
+
+    expect(`
+      |   ║   : * :   : * |
+      |===:===:===:===:===|
+      | - ║   : 0 :   : A |
+      | - ║   : 0 :   : 0 |
+      | - ║   : 0 :   : 0 |
+      | - ║   : 0 :   : 0 |
+      | - ║   : 0 :   : 0 |
+      | - ║   : 0 :   : 0 |
+      `).toBeMatchToSelectionPattern();
+
+    selectCells([[1, 0, 1, 3], [3, 0, 3, 3]]);
+
+    expect(`
+      |   ║ - : - : - : - |
+      |===:===:===:===:===|
+      |   ║   :   :   :   |
+      | * ║ 0 : 0 : 0 : 0 |
+      |   ║   :   :   :   |
+      | * ║ A : 0 : 0 : 0 |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should not deselect current selection when sellectCells is called without arguments', () => {

@@ -155,8 +155,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterSelectionByProp',
       from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel);
 
-    const areHeadersActivated = this.selection.isSelectedByAnyHeader();
-    const areCoordsPositive = cellCoords.row >= 0 && cellCoords.col >= 0;
+    const isSelectedByAnyHeader = this.selection.isSelectedByAnyHeader();
+    const currentSelectedRange = this.selection.selectedRange.current();
 
     let scrollToCell = true;
 
@@ -168,12 +168,33 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       scrollToCell = !preventScrolling.value;
     }
 
-    if (scrollToCell !== false && !areHeadersActivated && areCoordsPositive) {
-      if (this.selection.selectedRange.current().from && !this.selection.isMultiple()) {
-        this.view.scrollViewport(this.selection.selectedRange.current().from);
+    if (scrollToCell !== false && !isSelectedByAnyHeader) {
+      if (currentSelectedRange && !this.selection.isMultiple()) {
+        this.view.scrollViewport(currentSelectedRange.from);
       } else {
         this.view.scrollViewport(cellCoords);
       }
+    }
+
+    const isSelectedByRowHeader = this.selection.isSelectedByRowHeader();
+    const isSelectedByColumnHeader = this.selection.isSelectedByColumnHeader();
+
+    // @TODO: These CSS classes are no longer needed anymore. They are used only as a indicator of the selected
+    // rows/columns in the MergedCells plugin (via border.js#L520 in the walkontable module). After fixing
+    // the Border class this should be removed.
+    if (isSelectedByRowHeader && isSelectedByColumnHeader) {
+      addClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+
+    } else if (isSelectedByRowHeader) {
+      removeClass(this.rootElement, 'ht__selection--columns');
+      addClass(this.rootElement, 'ht__selection--rows');
+
+    } else if (isSelectedByColumnHeader) {
+      removeClass(this.rootElement, 'ht__selection--rows');
+      addClass(this.rootElement, 'ht__selection--columns');
+
+    } else {
+      removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
     this._refreshBorders(null);
@@ -209,7 +230,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.selection.addLocalHook('afterModifyTransformEnd', (coords, rowTransformDir, colTransformDir) => {
     this.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
   });
-  this.selection.addLocalHook('afterDeselect', (coords, rowTransformDir, colTransformDir) => {
+  this.selection.addLocalHook('afterDeselect', () => {
     editorManager.destroyEditor();
 
     this._refreshBorders();
@@ -1825,10 +1846,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function clear
-   * @since 0.11
+   * @since 0.11.0
    */
   this.clear = function() {
-    selection.selectAll();
+    this.selectAll();
     this.emptySelectedCells();
   };
 
@@ -3189,6 +3210,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.deselectCell = function() {
     selection.deselect();
+  };
+
+  /**
+   * Select the whole table. The previous selection will be overwritten.
+   *
+   * @since 0.38.2
+   * @memberof Core#
+   * @function selectAll
+   */
+  this.selectAll = function() {
+    preventScrollingToCell = true;
+    selection.selectAll();
+    preventScrollingToCell = false;
   };
 
   /**

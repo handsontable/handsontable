@@ -254,7 +254,6 @@ function TableView(instance) {
       handleMouseEvent(event, {
         coords,
         selection: instance.selection,
-        instance,
         controller: blockCalculations,
       });
 
@@ -291,7 +290,6 @@ function TableView(instance) {
         handleMouseEvent(event, {
           coords,
           selection: instance.selection,
-          instance,
           controller: blockCalculations,
         });
       }

@@ -1,3 +1,5 @@
+import {generateASCIITable} from './asciiTable';
+
 /* eslint-disable import/prefer-default-export */
 var currentSpec;
 
@@ -85,6 +87,9 @@ beforeEach(function() {
         }
       };
     },
+    /**
+     * The matcher checks if the passed cell element is contained in the table viewport.
+     */
     toBeVisibleInViewport() {
       return {
         compare(actual) {
@@ -102,6 +107,9 @@ beforeEach(function() {
         }
       };
     },
+    /**
+     * The matcher checks if the viewport is scrolled in the way that the cell is visible at the top of the viewport.
+     */
     toBeVisibleAtTopOfViewport() {
       return {
         compare(actual) {
@@ -115,6 +123,9 @@ beforeEach(function() {
         }
       };
     },
+    /**
+     * The matcher checks if the viewport is scrolled in the way that the cell is visible at the bottom of the viewport.
+     */
     toBeVisibleAtBottomOfViewport() {
       return {
         compare(actual) {
@@ -128,6 +139,9 @@ beforeEach(function() {
         }
       };
     },
+    /**
+     * The matcher checks if the viewport is scrolled in the way that the cell is visible on the left of the viewport.
+     */
     toBeVisibleAtLeftOfViewport() {
       return {
         compare(actual) {
@@ -141,6 +155,9 @@ beforeEach(function() {
         }
       };
     },
+    /**
+     * The matcher checks if the viewport is scrolled in the way that the cell is visible on the right of the viewport.
+     */
     toBeVisibleAtRightOfViewport() {
       return {
         compare(actual) {
@@ -199,114 +216,80 @@ beforeEach(function() {
      *
      * The provided structure should be passed as an array of arrays, for instance:
      * ```
-     * // Non-contiguous selection
-     * expect([
-     *   [' ', '0', '0', ' ', ' ', ' ', ' '],
-     *   [' ', '0', '0', ' ', '0', '0', ' '],
-     *   [' ', '0', '0', ' ', '0', '0', ' '],
-     *   [' ', '0', '1', '1', '1', '1', ' '],
-     *   [' ', '0', '1', '1', 'C', '2', ' '],
-     *   [' ', '0', '0', ' ', '1', '1', ' '],
-     *   ['-', '-', '-', '-', '-', '-', '-'],
-     *   ['-', '-', '-', '-', '-', '-', '-'],
-     *   ['-', '-', '-', '-', '-', '-', '-'],
-     *   ['-', '-', '-', '-', '-', '-', '-'],
-     * ]).toBeMatchToSelectionPattern();
-     * // Single cell selection
-     * expect([
-     *   [' ', ' ', ' ', ' '],
-     *   [' ', '_', ' ', ' '],
-     *   [' ', ' ', ' ', ' '],
-     *   [' ', ' ', ' ', ' '],
-     * ]).toBeMatchToSelectionPattern();
+     * // Non-contiguous selection (with enabled top and left headers)
+     * expect(`
+     *   |   ║   :   : * : * |
+     *   |===:===:===:===:===|
+     *   | - ║   :   : A : 0 |
+     *   | - ║   : 1 : 0 : 0 |
+     *   | - ║   : 2 : 1 : 0 |
+     *   | - ║   : 2 : 1 : 0 |
+     *   | - ║   : 1 : 1 : 0 |
+     *   | - ║   :   : 0 : 0 |
+     *   `).toBeMatchToSelectionPattern();
+     * // Single cell selection (with fixedRowsTop: 1 and fixedColumnsLeft: 2)
+     * expect(`
+     *   |   :   |   :   :   |
+     *   |---:---:---:---:---|
+     *   |   :   |   :   :   |
+     *   |   :   |   :   :   |
+     *   |   :   | # :   :   |
+     *   |   :   |   :   :   |
+     *   |   :   |   :   :   |
+     *   |   :   |   :   :   |
+     *   `).toBeMatchToSelectionPattern();
      * ```
      *
-     * The symbol description:
+     * The meaning of the symbol used to describe the cells:
      * ' ' - An empty space indicates cell which doesn't have added any selection classes.
      * '0' - The number (from 0 to 7) indicates selected layer level.
      * 'A' - The letters (from A to H) indicates the position of the cell which contains the hidden editor
      *       (which `current` class name). The letter `A` indicates the currently selected cell with
      *       a background of the first layer and `H` as the latest layer (most dark).
-     * '_' - The underscore indicates the currently selected cell without changed background color.
-     * '-' - The minus sign indicates that this cell is not rendered yet (cause the virtual rendering).
+     * '#' - The hash symbol indicates the currently selected cell without changed background color.
+     *
+     * The meaning of the symbol used to describe the table:
+     * ':'   - Column separator (only for better visual looks).
+     * '║'   - This symbol separates the row headers from the table content.
+     * '===' - This symbol separates the column headers from the table content.
+     * '|'   - The symbol which indicates the left overlay edge.
+     * '---' - The symbol which indicates the top overlay edge.
      */
     toBeMatchToSelectionPattern() {
-      const symbols = new Map([
-        ['C', 'current']
-      ]);
-
       return {
         compare(actualPattern) {
-          const currentState = [];
-          const rowsCount = hot().countRows();
-          const colsCount = hot().countCols();
+          const asciiTable = generateASCIITable(hot().rootElement);
 
-          if (!Array.isArray(actualPattern) || !Array.isArray(actualPattern[0])) {
-            return {
-              pass: false,
-              message: 'The selection pattern must be passed as an array of arrays',
-            };
-          }
+          const patternParts = (actualPattern || '').split(/\n/);
+          const redundantPadding = patternParts.reduce((padding, line) => {
+            const trimmedLine = line.trim();
 
-          const actualPatternFormatted = [];
-          const currentStateFormatted = [];
+            if (trimmedLine) {
+              const currentPadding = line.search(/\S|$/);
 
-          for (let r = 0; r < rowsCount; r++) {
-            const currentRowState = [];
-
-            for (let c = 0; c < colsCount; c++) {
-              if (!actualPattern[r] || !actualPattern[r][c]) {
-                break;
-              }
-
-              const cell = hot().getCell(r, c);
-
-              if (cell) {
-                const hasCurrent = cell.classList.contains('current');
-                const hasArea = cell.classList.contains('area');
-                let areaLevel = new Array(7)
-                  .fill()
-                  .map((_, i, arr) => `area-${arr.length - i}`)
-                  .find((className) => cell.classList.contains(className));
-
-                areaLevel = areaLevel ? parseInt(areaLevel.replace('area-', ''), 10) : areaLevel;
-
-                if (hasCurrent && hasArea && areaLevel) {
-                  currentRowState.push(String.fromCharCode(65 + areaLevel));
-
-                } else if (hasCurrent && hasArea && areaLevel === void 0) {
-                  currentRowState.push('A');
-
-                } else if (hasCurrent && !hasArea && areaLevel === void 0) {
-                  currentRowState.push('_');
-
-                } else if (!hasCurrent && hasArea && areaLevel === void 0) {
-                  currentRowState.push('0');
-
-                } else if (!hasCurrent && hasArea && areaLevel) {
-                  currentRowState.push(`${areaLevel}`);
-
-                } else {
-                  currentRowState.push(' ');
-                }
-
-              } else {
-                currentRowState.push('-');
+              if (currentPadding < padding) {
+                padding = currentPadding;
               }
             }
-            currentState.push(currentRowState);
-            currentStateFormatted.push(currentRowState);
 
-            if (actualPattern[r]) {
-              actualPatternFormatted.push(actualPattern[r]);
+            return padding;
+          }, Infinity);
+
+          const normalizedPattern = patternParts.reduce((acc, line) => {
+            const trimmedLine = line.trim();
+
+            if (trimmedLine) {
+              acc.push(line.substr(redundantPadding));
             }
-          }
 
-          const message = `Expected the pattern selection \n${actualPatternFormatted.join('\n')}\nto match to the
-visual state of the rendered selection \n${currentStateFormatted.join('\n')}\n`;
+            return acc;
+          }, []);
+
+          const actualAsciiTable = normalizedPattern.join('\n');
+          const message = `Expected the pattern selection \n${actualAsciiTable}\nto match to the visual state of the rendered selection \n${asciiTable}\n`;
 
           return {
-            pass: JSON.stringify(currentState) === JSON.stringify(actualPattern),
+            pass: asciiTable === actualAsciiTable,
             message,
           };
         }

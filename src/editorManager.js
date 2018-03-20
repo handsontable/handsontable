@@ -92,7 +92,7 @@ function EditorManager(instance, priv, selection) {
     switch (event.keyCode) {
       case KEY_CODES.A:
         if (!_this.isEditorOpened() && ctrlDown) {
-          selection.selectAll();
+          instance.selectAll();
 
           event.preventDefault();
           stopPropagation(event);
