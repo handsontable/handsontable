@@ -445,8 +445,8 @@ UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
 };
 UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
   arrayEach(this.range, ({from, to}) => {
-    for (var row = from.row; row <= to.row; row += 1) {
-      for (var col = from.col; col <= to.col; col += 1) {
+    for (let row = from.row; row <= to.row; row += 1) {
+      for (let col = from.col; col <= to.col; col += 1) {
         instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
       }
     }
