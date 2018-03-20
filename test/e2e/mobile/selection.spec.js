@@ -1,18 +1,18 @@
 describe('Selection', () => {
   const id = 'testContainer';
 
-  beforeEach(function () {
+  beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function () {
+  afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
     }
   });
 
-  it('should show selection handles', async function () {
+  it('should show selection handles', async function() {
     const hot = handsontable({
       width: 400,
       height: 400
@@ -27,7 +27,7 @@ describe('Selection', () => {
     expect(bottomRightSelectionHandle.style.display).toEqual('block');
   });
 
-  it('should show both selection handles after drag & drop', async function () {
+  it('should show both selection handles after drag & drop', async function() {
     const hot = handsontable({
       width: 400,
       height: 400
