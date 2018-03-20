@@ -2343,7 +2343,7 @@ describe('Filters UI', function() {
         expect($(conditionSelectRootElements().first).text()).toEqual('Begins with');
         expect($(conditionSelectRootElements().second).text()).toEqual('Ends with');
 
-        // original state (now performing `disjunctionAndVariable` operation)
+        // original state (now performing `disjunctionWithExtraCondition` operation)
         expect($(conditionRadioInput(0).element).parent().find(':checked').parent().text()).toEqual('Or');
         expect(getData().length).toEqual(dateLength - 1);
         done();

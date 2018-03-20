@@ -721,14 +721,17 @@ describe('Filters', function() {
         expect(spy.calls.argsFor(0)[0].length).toBe(3);
         expect(spy.calls.argsFor(0)[0][0]).toEqual({
           column: 0,
+          operation: 'conjunction',
           conditions: [{name: 'gt', args: [12]}]
         });
         expect(spy.calls.argsFor(0)[0][1]).toEqual({
           column: 2,
+          operation: 'conjunction',
           conditions: [{name: 'begins_with', args: ['b']}]
         });
         expect(spy.calls.argsFor(0)[0][2]).toEqual({
           column: 4,
+          operation: 'conjunction',
           conditions: [{name: 'eq', args: ['green']}]
         });
       });
@@ -784,14 +787,17 @@ describe('Filters', function() {
         expect(spy.calls.argsFor(0)[0].length).toBe(3);
         expect(spy.calls.argsFor(0)[0][0]).toEqual({
           column: 0,
+          operation: 'conjunction',
           conditions: [{name: 'gt', args: [12]}]
         });
         expect(spy.calls.argsFor(0)[0][1]).toEqual({
           column: 2,
+          operation: 'conjunction',
           conditions: [{name: 'begins_with', args: ['b']}]
         });
         expect(spy.calls.argsFor(0)[0][2]).toEqual({
           column: 4,
+          operation: 'conjunction',
           conditions: [{name: 'eq', args: ['green']}]
         });
       });

@@ -169,9 +169,11 @@ class ConditionCollection {
 
     arrayEach(this.orderStack, (column) => {
       const conditions = arrayMap(this.getConditions(column), ({name, args} = condition) => ({name, args}));
+      const operation = this.columnTypes[column];
 
       result.push({
         column,
+        operation,
         conditions
       });
     });

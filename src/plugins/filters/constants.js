@@ -29,7 +29,7 @@ import {CONDITION_NAME as CONDITION_FALSE} from './condition/false';
 
 import {OPERATION_ID as OPERATION_AND} from './logicalOperations/conjunction';
 import {OPERATION_ID as OPERATION_OR} from './logicalOperations/disjunction';
-import {OPERATION_ID as OPERATION_OR_THEN_VARIABLE} from './logicalOperations/disjunctionAndVariable';
+import {OPERATION_ID as OPERATION_OR_THEN_VARIABLE} from './logicalOperations/disjunctionWithExtraCondition';
 
 export {
   CONDITION_NONE,
