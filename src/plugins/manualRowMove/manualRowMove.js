@@ -176,8 +176,9 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} target Visual row index being a target for the moved rows.
    */
   moveRows(rows, target) {
+    const visualRows = [...rows];
     let priv = privatePool.get(this);
-    let beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, target);
+    let beforeMoveHook = this.hot.runHooks('beforeRowMove', visualRows, target);
 
     priv.disallowMoving = beforeMoveHook === false;
 
@@ -200,7 +201,7 @@ class ManualRowMove extends BasePlugin {
       this.rowsMapper.clearNull();
     }
 
-    this.hot.runHooks('afterRowMove', rows, target);
+    this.hot.runHooks('afterRowMove', visualRows, target);
   }
 
   /**
@@ -367,7 +368,6 @@ class ManualRowMove extends BasePlugin {
     if (coords.row < 0) {
       // if hover on colHeader
       priv.target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
-
     } else if ((TD.offsetHeight / 2) + tdOffsetTop <= mouseOffsetTop) {
       // if hover on lower part of TD
       priv.target.row = coords.row + 1;
