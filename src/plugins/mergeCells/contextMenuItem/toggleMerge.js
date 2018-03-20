@@ -18,8 +18,7 @@ export default function toggleMergeItem(plugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_MERGE_CELLS);
     },
     callback() {
-      plugin.toggleMerge(this.getSelectedRangeLast());
-      this.render();
+      plugin.toggleMergeOnSelection();
     },
     disabled() {
       const sel = this.getSelectedLast();
