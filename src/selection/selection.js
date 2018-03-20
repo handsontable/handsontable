@@ -1,10 +1,9 @@
 import Highlight, {AREA_TYPE, HEADER_TYPE, CELL_TYPE} from './highlight/highlight';
 import SelectionRange from './range';
-import {CellRange, CellCoords} from './../3rdparty/walkontable/src';
+import {CellCoords} from './../3rdparty/walkontable/src';
 import {isPressedCtrlKey} from './../utils/keyStateObserver';
 import {createObjectPropListener, mixin} from './../helpers/object';
 import {isUndefined} from './../helpers/mixed';
-import {addClass, removeClass} from './../helpers/dom/element';
 import {arrayEach} from './../helpers/array';
 import localHooks from './../mixins/localHooks';
 import Transformation from './transformation';
@@ -413,12 +412,12 @@ class Selection {
     // Check if every layer of the coordinates are valid.
     const isValid = !selectionRanges.some((selection) => {
       const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
-      const isValid = isValidCoord(rowStart, countRows) &&
+      const _isValid = isValidCoord(rowStart, countRows) &&
                       isValidCoord(columnStart, countCols) &&
                       isValidCoord(rowEnd, countRows) &&
                       isValidCoord(columnEnd, countCols);
 
-      return !isValid;
+      return !_isValid;
     });
 
     if (isValid) {

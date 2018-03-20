@@ -445,7 +445,14 @@ class Border {
     let cornerVisibleSetting = this.settings.border.cornerVisible;
     cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ? cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
 
-    if (isMobileBrowser() || !cornerVisibleSetting) {
+    const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn);
+    let [checkRow, checkCol] = [toRow, toColumn];
+
+    if (hookResult && Array.isArray(hookResult)) {
+      [,, checkRow, checkCol] = hookResult;
+    }
+
+    if (isMobileBrowser() || !cornerVisibleSetting || this.isPartRange(checkRow, checkCol)) {
       this.cornerStyle.display = 'none';
 
     } else {

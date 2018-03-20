@@ -280,6 +280,61 @@ class MergeCells extends BasePlugin {
   }
 
   /**
+   * Merge or unmerge, based on last selected range.
+   *
+   * @private
+   */
+  toggleMergeOnSelection() {
+    const currentRange = this.hot.getSelectedRangeLast();
+
+    if (!currentRange) {
+      return;
+    }
+
+    currentRange.setDirection('NW-SE');
+
+    const {from, to} = currentRange;
+
+    this.toggleMerge(currentRange);
+    this.hot.selectCell(from.row, from.col, to.row, to.col, false);
+  }
+
+  /**
+   * Merge the selection provided as a cell range.
+   *
+   * @param {CellRange} [cellRange] Selection cell range.
+   */
+  mergeSelection(cellRange = this.hot.getSelectedRangeLast()) {
+    if (!cellRange) {
+      return;
+    }
+
+    cellRange.setDirection('NW-SE');
+
+    const {from, to} = cellRange;
+
+    this.unmergeRange(cellRange, true);
+    this.mergeRange(cellRange);
+    this.hot.selectCell(from.row, from.col, to.row, to.col, false);
+  }
+
+  /**
+   * Unmerge the selection provided as a cell range.
+   *
+   * @param {CellRange} [cellRange] Selection cell range.
+   */
+  unmergeSelection(cellRange = this.hot.getSelectedRangeLast()) {
+    if (!cellRange) {
+      return;
+    }
+
+    const {from, to} = cellRange;
+
+    this.unmergeRange(cellRange, true);
+    this.hot.selectCell(from.row, from.col, to.row, to.col, false);
+  }
+
+  /**
    * Merge cells in the provided cell range.
    *
    * @private
@@ -348,20 +403,6 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Merge the selection provided as a cell range.
-   *
-   * @param {CellRange} [cellRange] Selection cell range.
-   */
-  mergeSelection(cellRange) {
-    if (!cellRange) {
-      cellRange = this.hot.getSelectedRangeLast();
-    }
-
-    this.unmergeRange(cellRange, true);
-    this.mergeRange(cellRange);
-  }
-
-  /**
    * Unmerge the selection provided as a cell range. If no cell range is provided, it uses the current selection.
    *
    * @private
@@ -369,9 +410,13 @@ class MergeCells extends BasePlugin {
    * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
    */
   unmergeRange(cellRange, auto = false) {
-    this.hot.runHooks('beforeUnmergeCells', cellRange, auto);
-
     const mergedCells = this.mergedCellsCollection.getWithinRange(cellRange);
+
+    if (!mergedCells) {
+      return;
+    }
+
+    this.hot.runHooks('beforeUnmergeCells', cellRange, auto);
 
     arrayEach(mergedCells, (currentCollection) => {
       this.mergedCellsCollection.remove(currentCollection.row, currentCollection.col);
@@ -597,7 +642,10 @@ class MergeCells extends BasePlugin {
   onModifyGetCellCoords(row, column) {
     const mergeParent = this.mergedCellsCollection.get(row, column);
 
-    return mergeParent ? [mergeParent.row, mergeParent.col] : void 0;
+    return mergeParent ? [
+      mergeParent.row, mergeParent.col,
+      mergeParent.row + mergeParent.rowspan - 1,
+      mergeParent.col + mergeParent.colspan - 1] : void 0;
   }
 
   /**
