@@ -6,14 +6,13 @@ import {Selection} from './../../../3rdparty/walkontable/src';
  *
  * @return {Selection}
  */
-function createHighlight({cornerVisible, multipleSelectionHandlesVisible, cellCornerVisible}) {
+function createHighlight({cellCornerVisible}) {
   const s = new Selection({
     className: 'current',
     border: {
       width: 2,
       color: '#4b89ff',
       cornerVisible: cellCornerVisible,
-      multipleSelectionHandlesVisible,
     },
   });
 
