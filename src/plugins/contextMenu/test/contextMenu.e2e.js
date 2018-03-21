@@ -79,6 +79,88 @@ describe('ContextMenu', () => {
     ].join(''));
   });
 
+  describe('menu width', () => {
+    it('should display the menu with the minimum width', async () => {
+      handsontable({
+        contextMenu: {
+          items: {
+            custom1: {
+              name: 'a'
+            },
+            custom2: {
+              name: 'b'
+            },
+          }
+        }
+      });
+
+      const $menu = $('.htContextMenu');
+
+      contextMenu();
+
+      await sleep(300);
+
+      expect($menu.find('.wtHider').width()).toEqual(215);
+    });
+
+    it('should expand menu when one of items is wider then default width of the menu', async () => {
+      handsontable({
+        contextMenu: {
+          items: {
+            custom1: {
+              name: 'a'
+            },
+            custom2: {
+              name: 'This is very long text which should expand the context menu...'
+            },
+          }
+        }
+      });
+
+      const $menu = $('.htContextMenu');
+
+      contextMenu();
+
+      await sleep(300);
+
+      expect($menu.find('.wtHider').width()).toBeGreaterThan(215);
+    });
+
+    it('should display a submenu with the minimum width', async () => {
+      handsontable({
+        contextMenu: {
+          items: {
+            custom1: {
+              name: 'a'
+            },
+            custom2: {
+              name() {
+                return 'Menu';
+              },
+              submenu: {
+                items: [{ name: () => 'Submenu' }]
+              }
+            }
+          }
+        }
+      });
+
+      contextMenu();
+
+      await sleep(300);
+
+      const $item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1);
+
+      $item.simulate('mouseover');
+
+      await sleep(300);
+
+      const $contextSubMenu = $(`.htContextMenuSub_${$item.text()}`);
+
+      expect($contextSubMenu.find('.wtHider').width()).toEqual(215);
+    });
+  });
+
   describe('menu opening', () => {
     it('should open menu after right click on table cell', () => {
       var hot = handsontable({
