@@ -86,6 +86,66 @@ describe('MergeCells Selection', () => {
   });
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
+    'selecting entire columns or rows (using multiple selection layers)', function() {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
+      mergeCells: [
+        {row: 0, col: 0, rowspan: 3, colspan: 3}
+      ],
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    // sample the selected background
+    selectCells([[5, 1, 5, 2]]);
+    const selectedCell = getCell(5, 1);
+    const selectedCellBackground = getComputedStyle(selectedCell, ':before').backgroundColor;
+    const selectedCellOpacity = getComputedStyle(selectedCell, ':before').opacity;
+
+    const mergedCell = getCell(0, 0);
+    const rowHeaders = [
+      getCell(0, -1, true),
+      getCell(1, -1, true),
+      getCell(2, -1, true),
+      getCell(3, -1, true),
+    ];
+    const columnHeaders = [
+      this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)'),
+      this.$container.find('.ht_clone_top tr:eq(0) th:eq(2)'),
+      this.$container.find('.ht_clone_top tr:eq(0) th:eq(3)'),
+      this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)'),
+    ];
+
+    deselectCell();
+
+    keyDown('ctrl');
+    $(rowHeaders[0]).simulate('mousedown');
+    $(rowHeaders[1]).simulate('mouseover');
+    $(rowHeaders[1]).simulate('mouseup');
+    $(rowHeaders[2]).simulate('mousedown');
+    $(rowHeaders[2]).simulate('mouseover');
+    $(rowHeaders[2]).simulate('mouseup');
+    keyUp('ctrl');
+
+    expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
+    expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
+
+    deselectCell();
+
+    keyDown('ctrl');
+    $(columnHeaders[0]).simulate('mousedown');
+    $(columnHeaders[1]).simulate('mouseover');
+    $(columnHeaders[1]).simulate('mouseup');
+    $(columnHeaders[2]).simulate('mousedown');
+    $(columnHeaders[3]).simulate('mouseover');
+    $(columnHeaders[3]).simulate('mouseup');
+    keyUp('ctrl');
+
+    expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
+    expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
+  });
+
+  it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
     'selecting entire columns or rows (when the merged cells was previously fully selected)', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),

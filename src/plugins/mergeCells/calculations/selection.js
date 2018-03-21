@@ -23,6 +23,7 @@ class SelectionCalculations {
     this.fullySelectedMergedCellClassName = 'fullySelectedMergedCell';
 
   }
+
   /**
    * "Snap" the delta value according to defined merged cells. (In other words, compensate the rowspan -
    * e.g. going up with `delta.row = -1` over a merged cell with `rowspan = 3`, `delta.row` should change to `-3`.)
@@ -52,21 +53,21 @@ class SelectionCalculations {
    * @param {MergedCellCoords} mergedCell The merge cell object.
    * @param {Number} newIndex New row/column index, created with the delta.
    */
-  jumpOverMergedCell(delta, mergeCell, newIndex) {
+  jumpOverMergedCell(delta, mergedCell, newIndex) {
     let flatDelta = delta.row || delta.col;
     let includesIndex = null;
     let firstIndex = null;
     let lastIndex = null;
 
     if (delta.row) {
-      includesIndex = mergeCell.includesVertically(newIndex);
-      firstIndex = mergeCell.row;
-      lastIndex = mergeCell.getLastRow();
+      includesIndex = mergedCell.includesVertically(newIndex);
+      firstIndex = mergedCell.row;
+      lastIndex = mergedCell.getLastRow();
 
     } else if (delta.col) {
-      includesIndex = mergeCell.includesHorizontally(newIndex);
-      firstIndex = mergeCell.col;
-      lastIndex = mergeCell.getLastColumn();
+      includesIndex = mergedCell.includesHorizontally(newIndex);
+      firstIndex = mergedCell.col;
+      lastIndex = mergedCell.getLastColumn();
     }
 
     if (flatDelta === 0) {
@@ -111,6 +112,10 @@ class SelectionCalculations {
   getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel) {
     const [startRow, startColumn, endRow, endColumn] = cornersOfSelection;
 
+    if (layerLevel === void 0) {
+      return;
+    }
+
     if (currentRow >= startRow &&
       currentRow <= endRow &&
       currentColumn >= startColumn &&
@@ -128,10 +133,48 @@ class SelectionCalculations {
         return;
       }
 
-      if (layerLevel !== void 0 && mergedCell.row + mergedCell.rowspan - 1 <= endRow && mergedCell.col + mergedCell.colspan - 1 <= endColumn) {
+      if (mergedCell.row + mergedCell.rowspan - 1 <= endRow && mergedCell.col + mergedCell.colspan - 1 <= endColumn) {
         return `${this.fullySelectedMergedCellClassName}-${layerLevel}`;
+
+      } else if (this.plugin.selectionCalculations.isMergeCellFullySelected(mergedCell, this.plugin.hot.getSelectedRange())) {
+        return `${this.fullySelectedMergedCellClassName}-multiple`;
       }
     }
+  }
+
+  /**
+   * Check if the provided merged cell is fully selected (by one or many layers of selection)
+   *
+   * @param {MergedCellCoords} mergedCell The merged cell to be processed.
+   * @param {CellRange[]} selectionRangesArray Array of selection ranges.
+   * @returns {Boolean}
+   */
+  isMergeCellFullySelected(mergedCell, selectionRangesArray) {
+    const mergedCellIndividualCoords = [];
+
+    if (!selectionRangesArray || !mergedCell) {
+      return false;
+    }
+
+    for (let r = 0; r < mergedCell.rowspan; r++) {
+      for (let c = 0; c < mergedCell.colspan; c++) {
+        mergedCellIndividualCoords.push(new CellCoords(mergedCell.row + r, mergedCell.col + c));
+      }
+    }
+
+    for (let i = 0; i < mergedCellIndividualCoords.length; i++) {
+      let insideSelections = [];
+
+      for (let s = 0; s < selectionRangesArray.length; s++) {
+        insideSelections[s] = selectionRangesArray[s].includes(mergedCellIndividualCoords[i]);
+      }
+
+      if (!insideSelections.includes(true)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -145,6 +188,8 @@ class SelectionCalculations {
     for (let i = 0; i < 7; i++) {
       classNames.push(`${this.fullySelectedMergedCellClassName}-${i}`);
     }
+
+    classNames.push(`${this.fullySelectedMergedCellClassName}-multiple`);
 
     return classNames;
   }

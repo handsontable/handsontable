@@ -3,6 +3,11 @@
     opacity: 0;
 }
 
+.handsontable.ht__selection--columns tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-multiple"]:before,
+.handsontable.ht__selection--rows tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-multiple"]:before {
+    opacity: 0.1;
+}
+
 .handsontable.ht__selection--columns tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-0"]:before,
 .handsontable.ht__selection--rows tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-0"]:before {
     opacity: 0.1;
