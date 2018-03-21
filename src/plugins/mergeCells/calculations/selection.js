@@ -156,16 +156,16 @@ class SelectionCalculations {
       return false;
     }
 
-    for (let r = 0; r < mergedCell.rowspan; r++) {
-      for (let c = 0; c < mergedCell.colspan; c++) {
+    for (let r = 0; r < mergedCell.rowspan; r += 1) {
+      for (let c = 0; c < mergedCell.colspan; c += 1) {
         mergedCellIndividualCoords.push(new CellCoords(mergedCell.row + r, mergedCell.col + c));
       }
     }
 
-    for (let i = 0; i < mergedCellIndividualCoords.length; i++) {
+    for (let i = 0; i < mergedCellIndividualCoords.length; i += 1) {
       let insideSelections = [];
 
-      for (let s = 0; s < selectionRangesArray.length; s++) {
+      for (let s = 0; s < selectionRangesArray.length; s += 1) {
         insideSelections[s] = selectionRangesArray[s].includes(mergedCellIndividualCoords[i]);
       }
 
@@ -185,7 +185,7 @@ class SelectionCalculations {
   getSelectedMergedCellClassNameToRemove() {
     const classNames = [];
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 7; i += 1) {
       classNames.push(`${this.fullySelectedMergedCellClassName}-${i}`);
     }
 

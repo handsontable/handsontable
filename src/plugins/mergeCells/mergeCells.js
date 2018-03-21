@@ -651,7 +651,7 @@ class MergeCells extends BasePlugin {
     do {
       rangeExpanded = false;
 
-      for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i++) {
+      for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
         let cellInfo = this.mergedCellsCollection.mergedCells[i];
         let mergedCellRange = cellInfo.getRange();
 
