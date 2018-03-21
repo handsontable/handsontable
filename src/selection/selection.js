@@ -1,4 +1,4 @@
-import Highlight, {AREA_TYPE, HEADER_TYPE, ACTIVE_HEADER_TYPE, CELL_TYPE} from './highlight/highlight';
+import Highlight, {AREA_TYPE, HEADER_TYPE, CELL_TYPE} from './highlight/highlight';
 import SelectionRange from './range';
 import {CellCoords} from './../3rdparty/walkontable/src';
 import {isPressedCtrlKey} from './../utils/keyStateObserver';
@@ -270,14 +270,12 @@ class Selection {
     const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
 
     if (isRowSelected) {
-      // The whole row was selected.
       activeHeaderHighlight
         .add(new CellCoords(cellRange.from.row, -1))
         .add(new CellCoords(cellRange.to.row, -1));
     }
 
     if (isColumnSelected) {
-      // The whole column was selected.
       activeHeaderHighlight
         .add(new CellCoords(-1, cellRange.from.col))
         .add(new CellCoords(-1, cellRange.to.col));
@@ -506,12 +504,9 @@ class Selection {
    *
    * @param {Number|String} startColumn Visual column index or column property from which the selection starts.
    * @param {Number|String} [endColumn] Visual column index or column property from to the selection finishes.
-   * @param {Object} [options]
-   * @param {Boolean} [options.keepPreviousSelection=false] The flag indicates if after selecting the columns
-   *                                    previous selection should be cleard or not.
    * @returns {Boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectColumns(startColumn, endColumn = startColumn, {keepPreviousSelection = false} = {}) {
+  selectColumns(startColumn, endColumn = startColumn) {
     startColumn = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
     endColumn = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
 
@@ -519,10 +514,6 @@ class Selection {
     const isValid = isValidCoord(startColumn, countCols) && isValidCoord(endColumn, countCols);
 
     if (isValid) {
-      if (!keepPreviousSelection) {
-        this.clear();
-      }
-
       this.setRangeStartOnly(new CellCoords(-1, startColumn));
       this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, endColumn));
       this.finish();
@@ -536,20 +527,13 @@ class Selection {
    *
    * @param {Number} startRow Visual row index from which the selection starts.
    * @param {Number} [endRow] Visual row index from to the selection finishes.
-   * @param {Object} [options]
-   * @param {Boolean} [options.keepPreviousSelection=false] The flag indicates if after selecting the rows
-   *                          previous selection should be cleard or not.
    * @returns {Boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectRows(startRow, endRow = startRow, {keepPreviousSelection = false} = {}) {
+  selectRows(startRow, endRow = startRow) {
     const countRows = this.tableProps.countRows();
     const isValid = isValidCoord(startRow, countRows) && isValidCoord(endRow, countRows);
 
     if (isValid) {
-      if (!keepPreviousSelection) {
-        this.clear();
-      }
-
       this.setRangeStartOnly(new CellCoords(startRow, -1));
       this.setRangeEnd(new CellCoords(endRow, this.tableProps.countCols() - 1));
       this.finish();

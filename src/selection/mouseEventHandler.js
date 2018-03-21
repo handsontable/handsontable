@@ -68,13 +68,13 @@ export function mouseDown({isShiftKey, isLeftClick, isRightClick, coords, select
     // clicked row header and when some column was selected
     if (coords.row < 0 && coords.col >= 0 && !controller.column) {
       if (performSelection) {
-        selection.selectColumns(coords.col, coords.col, {keepPreviousSelection: true});
+        selection.selectColumns(coords.col, coords.col);
       }
 
     // clicked column header and when some row was selected
     } else if (coords.col < 0 && coords.row >= 0 && !controller.row) {
       if (performSelection) {
-        selection.selectRows(coords.row, coords.row, {keepPreviousSelection: true});
+        selection.selectRows(coords.row, coords.row);
       }
 
     } else if (coords.col >= 0 && coords.row >= 0 && !controller.cells) {

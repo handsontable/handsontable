@@ -50,6 +50,29 @@ describe('Core.selectColumns', () => {
       `).toBeMatchToSelectionPattern();
   });
 
+  it('should mark non-contiquous selection when CTRL key is pressed', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    selectColumns(2);
+    keyDown('ctrl');
+    selectColumns(0);
+
+    expect(`
+      |   ║ * :   : * :   |
+      |===:===:===:===:===|
+      | - ║ A :   : 0 :   |
+      | - ║ 0 :   : 0 :   |
+      | - ║ 0 :   : 0 :   |
+      | - ║ 0 :   : 0 :   |
+      | - ║ 0 :   : 0 :   |
+      | - ║ 0 :   : 0 :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
   it('should mark single column visually (default selectionMode, fixedColumnsLeft enabled)', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),

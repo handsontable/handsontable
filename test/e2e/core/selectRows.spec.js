@@ -48,6 +48,29 @@ describe('Core.selectRows', () => {
       `).toBeMatchToSelectionPattern();
   });
 
+  it('should mark non-contiquous selection when CTRL key is pressed', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    selectRows(2);
+    keyDown('ctrl');
+    selectRows(0);
+
+    expect(`
+      |   ║ - : - : - : - |
+      |===:===:===:===:===|
+      | * ║ A : 0 : 0 : 0 |
+      |   ║   :   :   :   |
+      | * ║ 0 : 0 : 0 : 0 |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
   it('should mark range of the rows visually (default selectionMode)', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
