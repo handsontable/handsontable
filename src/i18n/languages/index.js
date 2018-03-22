@@ -6,6 +6,7 @@ import enUS from './en-US';
 import jaJP from './ja-JP';
 import plPL from './pl-PL';
 import ptBR from './pt-BR';
+import zhCN from './zh-CN';
 
 export {
   deCH,
@@ -13,5 +14,6 @@ export {
   enUS,
   jaJP,
   plPL,
-  ptBR
+  ptBR,
+  zhCN
 };
