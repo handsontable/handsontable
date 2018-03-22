@@ -728,7 +728,7 @@ DefaultSettings.prototype = {
    * only when a whole column or row will be selected.
    *
    * @type {String}
-   * @since 0.38.0
+   * @since 0.38.2
    * @default 'ht__active_highlight'
    * @example
    * ```js
