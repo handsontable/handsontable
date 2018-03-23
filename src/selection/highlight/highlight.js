@@ -173,8 +173,8 @@ class Highlight {
    * @return {Selection}
    */
   createOrGetHeader() {
-    let header;
     const layerLevel = this.layerLevel;
+    let header;
 
     if (this.headers.has(layerLevel)) {
       header = this.headers.get(layerLevel);
@@ -203,8 +203,8 @@ class Highlight {
    * @return {Selection}
    */
   createOrGetActiveHeader() {
-    let header;
     const layerLevel = this.layerLevel;
+    let header;
 
     if (this.activeHeaders.has(layerLevel)) {
       header = this.activeHeaders.get(layerLevel);
