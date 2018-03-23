@@ -18,7 +18,6 @@ function getSelectionSymbolForHeader(cell) {
 
   } else if (hasHighlight) {
     symbol = ' - ';
-
   }
 
   return symbol;
@@ -142,7 +141,9 @@ export function generateASCIITable(context) {
     ['hasFixedTopCells', hasLeftHeader],
   ]);
 
-  for (let r = 0; r < masterTable.rows.length; r++) {
+  const rowsLength = masterTable.rows.length;
+
+  for (let r = 0; r < rowsLength; r++) {
     const stringCells = [];
     const columnsLength = masterTable.rows[0].cells.length;
     let isLastColumn = false;
