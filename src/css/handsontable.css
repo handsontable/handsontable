@@ -748,17 +748,16 @@ thead .htCollapseButton:after {
   overflow: auto;
 }
 
-.ht_clone_left .wtHolder {
-  overflow-x: hidden;
-  overflow-y: auto;
+.handsontable .ht_master thead,
+.handsontable .ht_master tr th {
+  visibility: hidden;
 }
 
 .ht_clone_top .wtHolder,
-.ht_clone_bottom .wtHolder {
-  overflow-x: auto;
-  overflow-y: hidden;
+.ht_clone_bottom .wtHolder,
+.ht_clone_left .wtHolder {
+  overflow: hidden;
 }
-
 
 /*WalkontableDebugOverlay*/
 

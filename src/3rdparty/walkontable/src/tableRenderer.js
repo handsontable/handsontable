@@ -38,6 +38,9 @@ class TableRenderer {
     this.columnHeaderCount = 0;
     this.fixedRowsTop = 0;
     this.fixedRowsBottom = 0;
+
+    this.mainHolderHeight = void 0;
+    this.mainHolderScrollHeight = void 0;
   }
 
   /**
@@ -396,31 +399,39 @@ class TableRenderer {
   adjustColumnWidths(columnsToRender) {
     let scrollbarCompensation = 0;
     let sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
-    let mainHolder = sourceInstance.wtTable.holder;
     let defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
     let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
 
-    if (mainHolder.offsetHeight < mainHolder.scrollHeight) {
+    if (!sourceInstance.wtTable.mainHolderScrollHeight) {
+      sourceInstance.wtTable.mainHolderScrollHeight = sourceInstance.wtTable.holder.scrollHeight;
+    }
+
+    this.mainHolderScrollHeight = sourceInstance.wtTable.mainHolderScrollHeight;
+
+    if (this.wot.wtViewport.workspaceHeight < this.mainHolderScrollHeight) {
       scrollbarCompensation = getScrollbarWidth();
     }
+
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
 
     rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
-    if (rowHeaderWidthSetting != null) {
+    if (rowHeaderWidthSetting !== null || rowHeaderWidthSetting !== void 0) {
       for (let i = 0; i < this.rowHeaderCount; i++) {
         let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
 
-        width = width == null ? defaultColumnWidth : width;
-
-        this.COLGROUP.childNodes[i].style.width = `${width}px`;
+        if (![null, void 0, defaultColumnWidth].includes(width)) {
+          this.COLGROUP.childNodes[i].style.width = `${width}px`;
+        }
       }
     }
 
     for (let renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
       let width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
 
-      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = `${width}px`;
+      if (width !== defaultColumnWidth) {
+        this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = `${width}px`;
+      }
     }
   }
 

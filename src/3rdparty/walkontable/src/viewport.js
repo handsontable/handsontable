@@ -31,6 +31,12 @@ class Viewport {
     this.rowHeaderWidth = NaN;
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
+    this.workspaceOffsetLeft = 0;
+    this.documentOffsetWidth = document.documentElement.offsetWidth;
+    this.overflowStyle = void 0;
+    this.trimmingContainerWidth = void 0;
+    this.workspaceHeight = void 0;
+    this.columnHeaderHeight = void 0;
 
     this.eventManager = new EventManager(this.wot);
     this.eventManager.addEventListener(window, 'resize', () => {
@@ -42,6 +48,10 @@ class Viewport {
    * @returns {number}
    */
   getWorkspaceHeight() {
+    if (this.workspaceHeight) {
+      return this.workspaceHeight;
+    }
+
     let trimmingContainer = this.instance.wtOverlays.topOverlay.trimmingContainer;
     let elemHeight;
     let height = 0;
@@ -55,26 +65,38 @@ class Viewport {
       height = (elemHeight > 0 && trimmingContainer.clientHeight > 0) ? trimmingContainer.clientHeight : Infinity;
     }
 
+    this.workspaceHeight = height;
+
     return height;
   }
 
   getWorkspaceWidth() {
-    let width;
-    let totalColumns = this.wot.getSetting('totalColumns');
-    let trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
-    let overflow;
-    let stretchSetting = this.wot.getSetting('stretchH');
-    let docOffsetWidth = document.documentElement.offsetWidth;
     let preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (preventOverflow) {
       return outerWidth(this.instance.wtTable.wtRootElement);
     }
 
+    let trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
+
+    if (!this.overflowStyle) {
+      this.overflowStyle = getStyle(trimmingContainer, 'overflow');
+    }
+
+    if (isNaN(this.trimmingContainerWidth)) {
+      this.trimmingContainerWidth = trimmingContainer.clientWidth;
+    }
+
+    let width;
+    let totalColumns = this.wot.getSetting('totalColumns');
+    let stretchSetting = this.wot.getSetting('stretchH');
+    let docOffsetWidth = this.documentOffsetWidth;
+
     if (this.wot.getSetting('freezeOverlays')) {
-      width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
+      width = Math.min(docOffsetWidth - this.getWorkspaceOffset(), docOffsetWidth);
+
     } else {
-      width = Math.min(this.getContainerFillWidth(), docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
+      width = Math.min(this.getContainerFillWidth(), docOffsetWidth - this.getWorkspaceOffset(), docOffsetWidth);
     }
 
     if (trimmingContainer === window && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
@@ -86,12 +108,10 @@ class Viewport {
     }
 
     if (trimmingContainer !== window) {
-      overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow');
-
-      if (overflow == 'scroll' || overflow == 'hidden' || overflow == 'auto') {
+      if (['scroll', 'hidden', 'auto'].includes(this.overflowStyle)) {
         // this is used in `scroll.html`
         // TODO test me
-        return Math.max(width, trimmingContainer.clientWidth);
+        return Math.max(width, this.trimmingContainerWidth);
       }
     }
 
@@ -145,6 +165,9 @@ class Viewport {
     if (this.containerWidth) {
       return this.containerWidth;
     }
+
+    debugger;
+
     let mainContainer = this.instance.wtTable.holder;
     let fillWidth;
     let dummyElement;
@@ -165,7 +188,11 @@ class Viewport {
    * @returns {Number}
    */
   getWorkspaceOffset() {
-    return offset(this.wot.wtTable.TABLE);
+    if (isNaN(this.workspaceOffsetLeft)) {
+      this.workspaceOffsetLeft = this.wot.wtTable.TABLE.getBoundingClientRect().left;
+    }
+
+    return this.workspaceOffsetLeft;
   }
 
   /**
@@ -188,9 +215,11 @@ class Viewport {
    * @returns {Number}
    */
   getColumnHeaderHeight() {
-    if (isNaN(this.columnHeaderHeight)) {
-      this.columnHeaderHeight = outerHeight(this.wot.wtTable.THEAD);
+    if (this.columnHeaderHeight) {
+      return this.columnHeaderHeight;
     }
+
+    this.columnHeaderHeight = outerHeight(this.wot.wtTable.THEAD);
 
     return this.columnHeaderHeight;
   }

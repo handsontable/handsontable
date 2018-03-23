@@ -54,6 +54,7 @@ class Table {
     this.rowFilter = null;
     this.columnFilter = null;
     this.correctHeaderWidth = false;
+    this.mainHolderScrollHeight = void 0;
 
     const origRowHeaderWidth = this.wot.wtSettings.settings.rowHeaderWidth;
 
