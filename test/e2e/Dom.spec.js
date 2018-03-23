@@ -483,7 +483,7 @@ describe('Handsontable.Dom', () => {
       element.style.fontSize = '12pt';
       document.body.appendChild(element);
 
-      var computed = Handsontable.dom.getComputedStyle();
+      var computed = Handsontable.dom.getComputedStyle(element);
 
       expect(computed.fontSize).toBe('16px');
     });
