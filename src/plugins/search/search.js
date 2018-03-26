@@ -1,7 +1,5 @@
 import BasePlugin from './../_base';
-import SearchCellDecorator from './cellDecorator';
 import {registerPlugin} from './../../plugins';
-import {registerRenderer, getRenderer} from './../../renderers';
 import {isObject} from './../../helpers/object';
 import {rangeEach} from './../../helpers/number';
 import {isUndefined} from './../../helpers/mixed';
@@ -22,8 +20,6 @@ const DEFAULT_QUERY_METHOD = function(query, value) {
 
   return value.toString().toLowerCase().indexOf(query.toLowerCase()) !== -1;
 };
-
-const originalBaseRenderer = getRenderer('base');
 
 /**
  * @plugin Search
@@ -97,7 +93,7 @@ class Search extends BasePlugin {
     const searchSettings = this.hot.getSettings().search;
     this.checkPluginSettings(searchSettings);
 
-    this.addHook('afterInit', () => this.onAfterInit());
+    this.addHook('beforeRenderer', (TD, row, col, prop, value, cellProperties) => this.onBeforeRenderer(TD, row, col, prop, value, cellProperties));
 
     super.enablePlugin();
   }
@@ -106,6 +102,7 @@ class Search extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
+    this.hot.addHookOnce('beforeRenderer', (TD, row, col, prop, value, cellProperties) => this.onBeforeRenderer(TD, row, col, prop, value, cellProperties));
     super.disablePlugin();
   }
 
@@ -237,16 +234,30 @@ class Search extends BasePlugin {
     }
   }
 
-  /**
-   * On `afterInit` hook callback.
+  /** *
+   * The `beforeRenderer` hook callback.
    *
    * @private
+   * @param {HTMLTableCellElement} TD The rendered `TD` element.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
+   * @param {String | Number} prop Column property name or a column index, if datasource is an array of arrays.
+   * @param {String} value Value of the rendered cell.
+   * @param {Object} cellProperties Object containing the cell's properties.
    */
-  onAfterInit() {
-    registerRenderer('base', (instance, ...params) => {
-      originalBaseRenderer(instance, ...params);
-      SearchCellDecorator(instance, ...params);
-    });
+  onBeforeRenderer(TD, row, col, prop, value, cellProperties) {
+    if (!cellProperties.className) {
+      cellProperties.className = '';
+    }
+
+    if (this.isEnabled() && cellProperties.isSearchResult) {
+      if (!cellProperties.className.includes(this.searchResultClass)) {
+        cellProperties.className += ` ${this.searchResultClass}`;
+      }
+
+    } else {
+      cellProperties.className = cellProperties.className.replace(this.searchResultClass, '');
+    }
   }
 
   /**
