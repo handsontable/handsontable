@@ -448,22 +448,28 @@ class NestedHeaders extends BasePlugin {
     if (selection === void 0) {
       return;
     }
-    const classHighlight = 'ht__highlight';
+    const highlightHeaderClassName = 'ht__highlight';
+    const activeHeaderClassName = 'ht__active_highlight';
 
-    let wtOverlays = this.hot.view.wt.wtOverlays;
-    let selectionByHeader = this.hot.selection.selectedHeader.cols;
-    let from = Math.min(selection[1], selection[3]);
-    let to = Math.max(selection[1], selection[3]);
-    let levelLimit = selectionByHeader ? -1 : this.columnHeaderLevelCount - 1;
+    const wtOverlays = this.hot.view.wt.wtOverlays;
+    const selectionByHeader = this.hot.selection.isSelectedByColumnHeader();
+    const from = Math.min(selection[1], selection[3]);
+    const to = Math.max(selection[1], selection[3]);
+    const levelLimit = selectionByHeader ? -1 : this.columnHeaderLevelCount - 1;
+
+    const changes = [];
+    const classNameModifier = (className) => (TH, modifier) => () => modifier(TH, className);
+    const highlightHeader = classNameModifier('ht__highlight');
+    const activeHeader = classNameModifier('ht__active_highlight');
 
     rangeEach(from, to, (column) => {
       for (let level = this.columnHeaderLevelCount - 1; level > -1; level--) {
-        let visibleColumnIndex = this.getNestedParent(level, column);
-        let topTH = wtOverlays.topOverlay ? wtOverlays.topOverlay.clone.wtTable.getColumnHeader(visibleColumnIndex, level) : void 0;
-        let topLeftTH = wtOverlays.topLeftCornerOverlay ? wtOverlays.topLeftCornerOverlay.clone.wtTable.getColumnHeader(visibleColumnIndex, level) : void 0;
-        let listTH = [topTH, topLeftTH];
-        let colspanLen = this.getColspan(level - this.columnHeaderLevelCount, visibleColumnIndex);
-        let isInSelection = visibleColumnIndex >= from && (visibleColumnIndex + colspanLen - 1) <= to;
+        const visibleColumnIndex = this.getNestedParent(level, column);
+        const topTH = wtOverlays.topOverlay ? wtOverlays.topOverlay.clone.wtTable.getColumnHeader(visibleColumnIndex, level) : void 0;
+        const topLeftTH = wtOverlays.topLeftCornerOverlay ? wtOverlays.topLeftCornerOverlay.clone.wtTable.getColumnHeader(visibleColumnIndex, level) : void 0;
+        const listTH = [topTH, topLeftTH];
+        const colspanLen = this.getColspan(level - this.columnHeaderLevelCount, visibleColumnIndex);
+        const isInSelection = visibleColumnIndex >= from && (visibleColumnIndex + colspanLen - 1) <= to;
 
         arrayEach(listTH, (TH, index, array) => {
           if (TH === void 0) {
@@ -471,16 +477,25 @@ class NestedHeaders extends BasePlugin {
           }
 
           if ((!selectionByHeader && level < levelLimit) || (selectionByHeader && !isInSelection)) {
-            if (hasClass(TH, classHighlight)) {
-              removeClass(TH, classHighlight);
+            changes.push(highlightHeader(TH, removeClass));
+
+            if (selectionByHeader) {
+              changes.push(activeHeader(TH, removeClass));
             }
 
-          } else if (!hasClass(TH, classHighlight)) {
-            addClass(TH, classHighlight);
+          } else {
+            changes.push(highlightHeader(TH, addClass));
+
+            if (selectionByHeader) {
+              changes.push(activeHeader(TH, addClass));
+            }
           }
         });
       }
     });
+
+    arrayEach(changes, (fn) => void fn());
+    changes.length = 0;
   }
 
   /**
@@ -516,11 +531,12 @@ class NestedHeaders extends BasePlugin {
    */
   onAfterOnCellMouseDown(event, coords, TD) {
     if (coords.row < 0) {
-      let colspan = this.getColspan(coords.row, coords.col);
-      let lastColIndex = coords.col + colspan - 1;
+      const colspan = this.getColspan(coords.row, coords.col);
+      const lastColIndex = coords.col + colspan - 1;
 
       if (colspan > 1) {
-        let lastRowIndex = this.hot.countRows() - 1;
+        const lastRowIndex = this.hot.countRows() - 1;
+
         this.hot.selection.setRangeEnd(new CellCoords(lastRowIndex, lastColIndex));
       }
     }
@@ -535,54 +551,54 @@ class NestedHeaders extends BasePlugin {
    * @param {HTMLElement} TD
    */
   onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
-    if (coords.row < 0 && coords.col >= 0 && this.hot.view.isMouseDown()) {
-      let {from, to} = this.hot.getSelectedRangeLast();
-      let colspan = this.getColspan(coords.row, coords.col);
-      let lastColIndex = coords.col + colspan - 1;
-      let changeDirection = false;
+    if (coords.row >= 0 || coords.col < 0 || !this.hot.view.isMouseDown()) {
+      return;
+    }
 
-      if (from.col <= to.col) {
-        if ((coords.col < from.col && lastColIndex === to.col) ||
-            (coords.col < from.col && lastColIndex < from.col) ||
-            (coords.col < from.col && lastColIndex >= from.col && lastColIndex < to.col)) {
-          changeDirection = true;
-        }
-      } else if ((coords.col < to.col && lastColIndex > from.col) ||
-                 (coords.col > from.col) ||
-                 (coords.col <= to.col && lastColIndex > from.col) ||
-                 (coords.col > to.col && lastColIndex > from.col)) {
+    let {from, to} = this.hot.getSelectedRangeLast();
+    let colspan = this.getColspan(coords.row, coords.col);
+    let lastColIndex = coords.col + colspan - 1;
+    let changeDirection = false;
+
+    if (from.col <= to.col) {
+      if ((coords.col < from.col && lastColIndex === to.col) ||
+          (coords.col < from.col && lastColIndex < from.col) ||
+          (coords.col < from.col && lastColIndex >= from.col && lastColIndex < to.col)) {
         changeDirection = true;
       }
+    } else if ((coords.col < to.col && lastColIndex > from.col) ||
+               (coords.col > from.col) ||
+               (coords.col <= to.col && lastColIndex > from.col) ||
+               (coords.col > to.col && lastColIndex > from.col)) {
+      changeDirection = true;
+    }
 
-      if (changeDirection) {
-        [from.col, to.col] = [to.col, from.col];
-      }
+    if (changeDirection) {
+      [from.col, to.col] = [to.col, from.col];
+    }
 
-      if (colspan > 1) {
-        blockCalculations.column = true;
-        blockCalculations.cell = true;
+    if (colspan > 1) {
+      blockCalculations.column = true;
+      blockCalculations.cell = true;
 
-        this.hot.selection.setSelectedHeaders(false, true);
+      const columnRange = [];
 
-        if (from.col === to.col) {
-          if (lastColIndex <= from.col && coords.col < from.col) {
-            this.hot.selection.setRangeStartOnly(new CellCoords(from.row, to.col));
-            this.hot.selection.setRangeEnd(new CellCoords(to.row, coords.col));
-          } else {
-            this.hot.selection.setRangeStartOnly(new CellCoords(from.row, coords.col < from.col ? coords.col : from.col));
-            this.hot.selection.setRangeEnd(new CellCoords(to.row, lastColIndex > to.col ? lastColIndex : to.col));
-          }
-        }
-        if (from.col < to.col) {
-          this.hot.selection.setRangeStartOnly(new CellCoords(from.row, coords.col < from.col ? coords.col : from.col));
-          this.hot.selection.setRangeEnd(new CellCoords(to.row, lastColIndex));
-
-        }
-        if (from.col > to.col) {
-          this.hot.selection.setRangeStartOnly(new CellCoords(from.row, from.col));
-          this.hot.selection.setRangeEnd(new CellCoords(to.row, coords.col));
+      if (from.col === to.col) {
+        if (lastColIndex <= from.col && coords.col < from.col) {
+          columnRange.push(to.col, coords.col);
+        } else {
+          columnRange.push(coords.col < from.col ? coords.col : from.col, lastColIndex > to.col ? lastColIndex : to.col);
         }
       }
+      if (from.col < to.col) {
+        columnRange.push(coords.col < from.col ? coords.col : from.col, lastColIndex);
+
+      }
+      if (from.col > to.col) {
+        columnRange.push(from.col, coords.col);
+      }
+
+      this.hot.selectColumns(...columnRange);
     }
   }
 

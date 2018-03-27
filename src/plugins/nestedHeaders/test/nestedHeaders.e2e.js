@@ -277,15 +277,162 @@ describe('NestedHeaders', function() {
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseup');
 
+      expect(this.$container.find('.ht_clone_top thead tr:eq(0) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
+        '',
+        '',
+        'hiddenHeader ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        '',
+      ]);
+      expect(this.$container.find('.ht_clone_top thead tr:eq(1) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
+        '',
+        '',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        '',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        '',
+      ]);
+      expect(this.$container.find('.ht_clone_top thead tr:eq(2) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
+        '',
+        'ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        '',
+        'hiddenHeader',
+        '',
+        'hiddenHeader',
+        '',
+        'hiddenHeader',
+        '',
+      ]);
+      expect(this.$container.find('.ht_clone_top thead tr:eq(3) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
+        '',
+        'ht__highlight ht__active_highlight',
+        'ht__highlight ht__active_highlight',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+      ]);
+
       expect(hot.getSelected()).toEqual([[0, 1, hot.countRows() - 1, 2]]);
 
       this.$container.find('.ht_clone_top thead tr:eq(1) th:eq(1)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(1) th:eq(1)').simulate('mouseup');
 
+      expect(this.$container.find('.ht_clone_top thead tr:eq(0) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
+        '',
+        '',
+        'hiddenHeader ht__highlight ht__active_highlight',
+        'hiddenHeader ht__highlight ht__active_highlight',
+        'hiddenHeader ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        '',
+      ]);
+      expect(this.$container.find('.ht_clone_top thead tr:eq(1) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
+        '',
+        'ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        '',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        '',
+      ]);
+      expect(this.$container.find('.ht_clone_top thead tr:eq(2) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
+        '',
+        'ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        'ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        '',
+        'hiddenHeader',
+        '',
+        'hiddenHeader',
+        '',
+      ]);
+      expect(this.$container.find('.ht_clone_top thead tr:eq(3) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
+        '',
+        'ht__highlight ht__active_highlight',
+        'ht__highlight ht__active_highlight',
+        'ht__highlight ht__active_highlight',
+        'ht__highlight ht__active_highlight',
+        '',
+        '',
+        '',
+        '',
+        '',
+      ]);
+
       expect(hot.getSelected()).toEqual([[0, 1, hot.countRows() - 1, 4]]);
 
       this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(1)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(1)').simulate('mouseup');
+
+      expect(this.$container.find('.ht_clone_top thead tr:eq(0) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
+        '',
+        'ht__highlight ht__active_highlight',
+        'hiddenHeader ht__highlight ht__active_highlight',
+        'hiddenHeader ht__highlight ht__active_highlight',
+        'hiddenHeader ht__highlight ht__active_highlight',
+        'hiddenHeader ht__highlight ht__active_highlight',
+        'hiddenHeader ht__highlight ht__active_highlight',
+        'hiddenHeader ht__highlight ht__active_highlight',
+        'hiddenHeader ht__highlight ht__active_highlight',
+        '',
+      ]);
+      expect(this.$container.find('.ht_clone_top thead tr:eq(1) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
+        '',
+        'ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        'ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        '',
+      ]);
+      expect(this.$container.find('.ht_clone_top thead tr:eq(2) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
+        '',
+        'ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        'ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        'ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        'ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        '',
+      ]);
+      expect(this.$container.find('.ht_clone_top thead tr:eq(3) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
+        '',
+        'ht__highlight ht__active_highlight',
+        'ht__highlight ht__active_highlight',
+        'ht__highlight ht__active_highlight',
+        'ht__highlight ht__active_highlight',
+        'ht__highlight ht__active_highlight',
+        'ht__highlight ht__active_highlight',
+        'ht__highlight ht__active_highlight',
+        'ht__highlight ht__active_highlight',
+        '',
+      ]);
 
       expect(hot.getSelected()).toEqual([[0, 1, hot.countRows() - 1, 8]]);
     });

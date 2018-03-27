@@ -53,7 +53,7 @@ class ContextMenuUI extends BaseUI {
         disabled: () => {
           const selected = this.hot.getSelectedLast();
 
-          return !selected || selected[0] < 0 || this.hot.selection.selectedHeader.cols || this.hot.countRows() >= this.hot.getSettings().maxRows;
+          return !selected || selected[0] < 0 || this.hot.selection.isSelectedByColumnHeader() || this.hot.countRows() >= this.hot.getSettings().maxRows;
         }
       },
       {
@@ -72,7 +72,7 @@ class ContextMenuUI extends BaseUI {
           const translatedRowIndex = this.dataManager.translateTrimmedRow(selected[0]);
           let parent = this.dataManager.getRowParent(translatedRowIndex);
 
-          return !parent || !selected || selected[0] < 0 || this.hot.selection.selectedHeader.cols || this.hot.countRows() >= this.hot.getSettings().maxRows;
+          return !parent || !selected || selected[0] < 0 || this.hot.selection.isSelectedByColumnHeader() || this.hot.countRows() >= this.hot.getSettings().maxRows;
         }
       },
       {
