@@ -913,6 +913,7 @@ class MergeCells extends BasePlugin {
    * `afterTransformStart` local hook callback. Fixes a problem with navigating through merged cells at the bottom of the table
    * with the ENTER key.
    *
+   * @private
    * @param {CellCoords} coords Coordinates of the to-be-selected cell.
    * @param {Number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value = down)
    * @param {Number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value = down)
