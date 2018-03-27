@@ -919,14 +919,27 @@ class MergeCells extends BasePlugin {
    * @param {Number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value = down)
    */
   onAfterLocalTransformStart(coords, rowTransformDir, colTransformDir) {
-    const mergedCellAtCoords = this.mergedCellsCollection.get(coords.row, coords.col);
-
-    if (colTransformDir !== 0 || !mergedCellAtCoords) {
+    if (!this.enabled) {
       return;
     }
 
-    if ((rowTransformDir > 0 && mergedCellAtCoords.row + mergedCellAtCoords.rowspan - 1 === this.hot.countRows() - 1)
-      || (rowTransformDir < 0 && mergedCellAtCoords.row === 0)) {
+    const mergedCellAtCoords = this.mergedCellsCollection.get(coords.row, coords.col);
+
+    if (!mergedCellAtCoords) {
+      return;
+    }
+
+    const goingDown = rowTransformDir > 0;
+    const goingUp = rowTransformDir < 0;
+    const goingLeft = colTransformDir < 0;
+    const goingRight = colTransformDir > 0;
+    const mergedCellOnBottomEdge = mergedCellAtCoords.row + mergedCellAtCoords.rowspan - 1 === this.hot.countRows() - 1;
+    const mergedCellOnTopEdge = mergedCellAtCoords.row === 0;
+    const mergedCellOnRightEdge = mergedCellAtCoords.col + mergedCellAtCoords.colspan - 1 === this.hot.countCols() - 1;
+    const mergedCellOnLeftEdge = mergedCellAtCoords.col === 0;
+
+    if (((goingDown && mergedCellOnBottomEdge) || (goingUp && mergedCellOnTopEdge)) ||
+      ((goingRight && mergedCellOnRightEdge) || (goingLeft && mergedCellOnLeftEdge))) {
       coords.row = mergedCellAtCoords.row;
       coords.col = mergedCellAtCoords.col;
     }
