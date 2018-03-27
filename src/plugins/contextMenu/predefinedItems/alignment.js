@@ -11,7 +11,7 @@ export default function alignmentItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT);
     },
     disabled() {
-      return !(this.getSelectedRange() && !this.selection.selectedHeader.corner);
+      return !(this.getSelectedRange() && !this.selection.isSelectedByCorner());
     },
     submenu: {
       items: [
