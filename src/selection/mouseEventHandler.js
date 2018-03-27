@@ -41,40 +41,28 @@ export function mouseDown({isShiftKey, isLeftClick, isRightClick, coords, select
       selection.selectColumns(currentSelection.from.col, coords.col);
     }
   } else {
-    let doNewSelection = true;
+    const newCoord = new CellCoords(coords.row, coords.col);
 
-    if (currentSelection) {
-      const {from, to} = currentSelection;
-
-      if (coords.row < 0 && selectedCorner) {
-        const start = Math.min(from.col, to.col);
-        const end = Math.max(from.col, to.col);
-
-        doNewSelection = (coords.col < start || coords.col > end);
-
-      } else if (coords.col < 0 && selectedRow) {
-        const start = Math.min(from.row, to.row);
-        const end = Math.max(from.row, to.row);
-
-        doNewSelection = (coords.row < start || coords.row > end);
-
-      } else {
-        doNewSelection = !selection.inInSelection(coords);
-      }
+    if (newCoord.row < 0) {
+      newCoord.row = 0;
+    }
+    if (newCoord.col < 0) {
+      newCoord.col = 0;
     }
 
-    const performSelection = isLeftClick || (isRightClick && doNewSelection);
+    const allowRightClickSelection = !selection.inInSelection(newCoord);
+    const performSelection = isLeftClick || (isRightClick && allowRightClickSelection);
 
     // clicked row header and when some column was selected
     if (coords.row < 0 && coords.col >= 0 && !controller.column) {
       if (performSelection) {
-        selection.selectColumns(coords.col, coords.col);
+        selection.selectColumns(coords.col);
       }
 
     // clicked column header and when some row was selected
     } else if (coords.col < 0 && coords.row >= 0 && !controller.row) {
       if (performSelection) {
-        selection.selectRows(coords.row, coords.row);
+        selection.selectRows(coords.row);
       }
 
     } else if (coords.col >= 0 && coords.row >= 0 && !controller.cells) {

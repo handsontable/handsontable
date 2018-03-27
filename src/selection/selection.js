@@ -141,6 +141,8 @@ class Selection {
    * @param {Boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
    *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
    *                                      the default trigger will be used (isPressedCtrlKey() helper).
+   * @param {Boolean} [fragment=false] If `true`, the selection will be treated as a partial selection where the
+   *                                   `setRangeEnd` method won't be called on every `setRangeStart` call.
    */
   setRangeStart(coords, multipleSelection, fragment = false) {
     const isMultipleMode = this.settings.selectionMode === 'multiple';
@@ -266,19 +268,26 @@ class Selection {
       }
     }
 
-    const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
-    const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
+    if (this.isSelectedByRowHeader()) {
+      const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
 
-    if (isRowSelected) {
-      activeHeaderHighlight
-        .add(new CellCoords(cellRange.from.row, -1))
-        .add(new CellCoords(cellRange.to.row, -1));
+      // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
+      if (isRowSelected) {
+        activeHeaderHighlight
+          .add(new CellCoords(cellRange.from.row, -1))
+          .add(new CellCoords(cellRange.to.row, -1));
+      }
     }
 
-    if (isColumnSelected) {
-      activeHeaderHighlight
-        .add(new CellCoords(-1, cellRange.from.col))
-        .add(new CellCoords(-1, cellRange.to.col));
+    if (this.isSelectedByColumnHeader()) {
+      const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
+
+      // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
+      if (isColumnSelected) {
+        activeHeaderHighlight
+          .add(new CellCoords(-1, cellRange.from.col))
+          .add(new CellCoords(-1, cellRange.to.col));
+      }
     }
 
     this.runLocalHooks('afterSetRangeEnd', coords);
@@ -441,7 +450,9 @@ class Selection {
    */
   selectAll() {
     this.clear();
-    this.setRangeStart(new CellCoords(0, 0));
+    this.setRangeStart(new CellCoords(-1, -1));
+    this.selectedByRowHeader.add(this.getLayerLevel());
+    this.selectedByColumnHeader.add(this.getLayerLevel());
     this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, this.tableProps.countCols() - 1));
   }
 
