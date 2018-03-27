@@ -372,26 +372,27 @@ class Overlays {
       return;
     }
 
-    this.refreshAll();
-
     let topHolder = this.topOverlay.clone.wtTable.holder;
     let leftHolder = this.leftOverlay.clone.wtTable.holder;
 
-    // let leftHolder = this.topOverlay.mainTableScrollableElement;
-
     const [scrollLeft, scrollTop] = [this.scrollableElement.scrollLeft, this.scrollableElement.scrollTop];
 
-    if (topHolder.scrollLeft !== scrollLeft) {
+    this.horizontalScrolling = topHolder.scrollLeft !== scrollLeft;
+    this.verticalScrolling = leftHolder.scrollTop !== scrollTop;
+
+    if (this.horizontalScrolling) {
       topHolder.scrollLeft = scrollLeft;
     }
 
-    if (leftHolder.scrollTop !== scrollTop) {
+    if (this.verticalScrolling) {
       leftHolder.scrollTop = scrollTop;
 
       if (this.bottomOverlay.needFullRender) {
         this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
       }
     }
+
+    this.refreshAll();
   }
 
   /**

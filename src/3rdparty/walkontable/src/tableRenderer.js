@@ -38,9 +38,6 @@ class TableRenderer {
     this.columnHeaderCount = 0;
     this.fixedRowsTop = 0;
     this.fixedRowsBottom = 0;
-
-    this.mainHolderHeight = void 0;
-    this.mainHolderScrollHeight = void 0;
   }
 
   /**
@@ -71,7 +68,7 @@ class TableRenderer {
     let adjusted = false;
 
     if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM) ||
-        Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+    Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
 
       // do NOT render headers on the bottom or bottom-left corner overlay
       this.columnHeaders = [];
@@ -173,8 +170,8 @@ class TableRenderer {
    * @param {Number} columnsToRender
    */
   renderRows(totalRows, rowsToRender, columnsToRender) {
-    let lastTD,
-      TR;
+    let lastTD;
+    let TR;
     let visibleRowIndex = 0;
     let sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     let isWorkingOnClone = this.wtTable.isWorkingOnClone();
@@ -399,39 +396,31 @@ class TableRenderer {
   adjustColumnWidths(columnsToRender) {
     let scrollbarCompensation = 0;
     let sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
+    let mainHolder = sourceInstance.wtTable.holder;
     let defaultColumnWidth = this.wot.getSetting('defaultColumnWidth');
     let rowHeaderWidthSetting = this.wot.getSetting('rowHeaderWidth');
 
-    if (!sourceInstance.wtTable.mainHolderScrollHeight) {
-      sourceInstance.wtTable.mainHolderScrollHeight = sourceInstance.wtTable.holder.scrollHeight;
-    }
-
-    this.mainHolderScrollHeight = sourceInstance.wtTable.mainHolderScrollHeight;
-
-    if (this.wot.wtViewport.workspaceHeight < this.mainHolderScrollHeight) {
+    if (mainHolder.offsetHeight < mainHolder.scrollHeight) {
       scrollbarCompensation = getScrollbarWidth();
     }
-
     this.wot.wtViewport.columnsRenderCalculator.refreshStretching(this.wot.wtViewport.getViewportWidth() - scrollbarCompensation);
 
     rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
-    if (rowHeaderWidthSetting !== null || rowHeaderWidthSetting !== void 0) {
+    if (rowHeaderWidthSetting != null) {
       for (let i = 0; i < this.rowHeaderCount; i++) {
         let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
 
-        if (![null, void 0, defaultColumnWidth].includes(width)) {
-          this.COLGROUP.childNodes[i].style.width = `${width}px`;
-        }
+        width = width == null ? defaultColumnWidth : width;
+
+        this.COLGROUP.childNodes[i].style.width = `${width}px`;
       }
     }
 
     for (let renderedColIndex = 0; renderedColIndex < columnsToRender; renderedColIndex++) {
       let width = this.wtTable.getStretchedColumnWidth(this.columnFilter.renderedToSource(renderedColIndex));
 
-      if (width !== defaultColumnWidth) {
-        this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = `${width}px`;
-      }
+      this.COLGROUP.childNodes[renderedColIndex + this.rowHeaderCount].style.width = `${width}px`;
     }
   }
 
