@@ -91,6 +91,7 @@ class MergeCells extends BasePlugin {
     this.autofillCalculations = new AutofillCalculations(this);
     this.selectionCalculations = new SelectionCalculations();
 
+    this.hot.selection.transformation.addLocalHook('afterTransformStart', (...args) => this.onAfterLocalTransformStart(...args));
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('beforeKeyDown', (...args) => this.onBeforeKeyDown(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
@@ -905,6 +906,28 @@ class MergeCells extends BasePlugin {
           corners[3] = mergedCell.col;
         }
       });
+    }
+  }
+
+  /**
+   * `afterTransformStart` local hook callback. Fixes a problem with navigating through merged cells at the bottom of the table
+   * with the ENTER key.
+   *
+   * @param {CellCoords} coords Coordinates of the to-be-selected cell.
+   * @param {Number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value = down)
+   * @param {Number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value = down)
+   */
+  onAfterLocalTransformStart(coords, rowTransformDir, colTransformDir) {
+    const mergedCellAtCoords = this.mergedCellsCollection.get(coords.row, coords.col);
+
+    if (colTransformDir !== 0 || !mergedCellAtCoords) {
+      return;
+    }
+
+    if ((rowTransformDir > 0 && mergedCellAtCoords.row + mergedCellAtCoords.rowspan - 1 === this.hot.countRows() - 1)
+      || (rowTransformDir < 0 && mergedCellAtCoords.row === 0)) {
+      coords.row = mergedCellAtCoords.row;
+      coords.col = mergedCellAtCoords.col;
     }
   }
 }
