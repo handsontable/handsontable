@@ -102,7 +102,10 @@ class Search extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.addHookOnce('beforeRenderer', (TD, row, col, prop, value, cellProperties) => this.onBeforeRenderer(TD, row, col, prop, value, cellProperties));
+    this.hot.addHook('beforeRenderer', (TD, row, col, prop, value, cellProperties) => this.onBeforeRenderer(TD, row, col, prop, value, cellProperties));
+    this.hot.addHookOnce('afterRender', () => {
+      this.hot.removeHook('beforeRender', (TD, row, col, prop, value, cellProperties) => this.onBeforeRenderer(TD, row, col, prop, value, cellProperties));
+    });
     super.disablePlugin();
   }
 

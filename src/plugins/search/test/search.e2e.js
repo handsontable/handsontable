@@ -42,6 +42,43 @@ describe('Search plugin', () => {
 
       expect(hot.getPlugin('search')).toBeDefined();
     });
+
+    it('should remove default search result class to cells when disable plugin', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        search: true
+      });
+
+      hot.getPlugin('search').query('2');
+
+      render();
+
+      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
+        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
+          const cell = getCell(rowIndex, colIndex);
+
+          if (rowIndex === 1) {
+            expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(true);
+          } else {
+            expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+          }
+        }
+      }
+
+      hot.updateSettings({
+        search: false
+      });
+
+      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
+        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
+          const cell = getCell(rowIndex, colIndex);
+
+          if (rowIndex === 1) {
+            expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+          }
+        }
+      }
+    });
   });
 
   describe('query method', () => {
