@@ -352,7 +352,7 @@ class Viewport {
     let pos;
     let fixedColumnsLeft;
 
-    // this.columnHeaderHeight = NaN;
+    this.columnHeaderHeight = NaN;
 
     pos = this.wot.wtOverlays.leftOverlay.getScrollPosition() - this.wot.wtOverlays.leftOverlay.getTableParentOffset();
 
