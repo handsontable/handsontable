@@ -5,7 +5,7 @@ import {Selection} from './../../../3rdparty/walkontable/src';
  *
  * @return {Selection}
  */
-function createHighlight({layerLevel, cornerVisible, multipleSelectionHandlesVisible, areaCornerVisible}) {
+function createHighlight({layerLevel, areaCornerVisible}) {
   const s = new Selection({
     className: 'area',
     markIntersections: true,
@@ -14,7 +14,6 @@ function createHighlight({layerLevel, cornerVisible, multipleSelectionHandlesVis
       width: 1,
       color: '#4b89ff',
       cornerVisible: areaCornerVisible,
-      multipleSelectionHandlesVisible,
     },
   });
 

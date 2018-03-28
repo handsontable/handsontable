@@ -259,6 +259,45 @@ describe('MergeCells', () => {
       selectCell(0, 0);
       expect(getCell(1, 1).className.indexOf('area')).toEqual(-1);
     });
+
+    it('should render fill handle after merge cells', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: true
+      });
+
+      const plugin = hot.getPlugin('mergeCells');
+      hot.selectCell(0, 0, 2, 2);
+      plugin.mergeSelection();
+
+      expect(spec().$container.find('.wtBorder.current.corner:visible').length).toEqual(1);
+    });
+
+    it('should render fill handle when merge cells is highlighted cell in right bottom corner', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 2, col: 2, rowspan: 2, colspan: 2 }
+        ]
+      });
+
+      hot.selectCell(2, 2, 1, 1);
+
+      expect(spec().$container.find('.wtBorder.corner:visible').length).toEqual(1);
+    });
+
+    it('should render fill handle when cell in right bottom corner is a merged cell', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 2, col: 2, rowspan: 2, colspan: 2 }
+        ]
+      });
+
+      hot.selectCell(1, 1, 2, 2);
+
+      expect(spec().$container.find('.wtBorder.corner:visible').length).toEqual(1);
+    });
   });
 
   describe('merged cells scroll', () => {

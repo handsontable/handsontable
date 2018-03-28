@@ -18,8 +18,7 @@ export default function toggleMergeItem(plugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_MERGE_CELLS);
     },
     callback() {
-      plugin.toggleMerge(this.getSelectedRangeLast());
-      this.render();
+      plugin.toggleMergeOnSelection();
     },
     disabled() {
       const sel = this.getSelectedLast();
@@ -35,7 +34,7 @@ export default function toggleMergeItem(plugin) {
         colspan: sel[3] - sel[1] + 1
       });
 
-      return isSingleCell || this.selection.selectedHeader.corner;
+      return isSingleCell || this.selection.isSelectedByCorner();
     },
     hidden: false
   };

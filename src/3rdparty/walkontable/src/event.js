@@ -14,6 +14,7 @@ import EventManager from './../../../eventManager';
 function Event(instance) {
   const that = this;
   const eventManager = new EventManager(instance);
+  let selectedCellBeforeTouchEnd;
 
   this.instance = instance;
 
@@ -57,11 +58,7 @@ function Event(instance) {
     that.instance.touchMoving = true;
   };
 
-  var longTouchTimeout;
-
   var onTouchStart = function(event) {
-    var container = this;
-
     eventManager.addEventListener(this, 'touchmove', onTouchMove);
 
     // Prevent cell selection when scrolling with touch event - not the best solution performance-wise
@@ -141,14 +138,30 @@ function Event(instance) {
     }
   };
 
+  const selectedCellWasTouched = (touchTarget) => {
+    const cellUnderFinger = that.parentCell(touchTarget);
+    const coordsOfCellUnderFinger = cellUnderFinger.coords;
+
+    if (selectedCellBeforeTouchEnd && coordsOfCellUnderFinger) {
+      const [rowTouched, rowSelected] = [coordsOfCellUnderFinger.row, selectedCellBeforeTouchEnd.from.row];
+      const [colTouched, colSelected] = [coordsOfCellUnderFinger.col, selectedCellBeforeTouchEnd.from.col];
+
+      return rowTouched === rowSelected && colTouched === colSelected;
+    }
+
+    return false;
+  };
+
   var onTouchEnd = function(event) {
-    clearTimeout(longTouchTimeout);
-    // that.instance.longTouch == void 0;
+    const excludeTags = ['A', 'BUTTON', 'INPUT'];
+    const target = event.target;
 
-    event.preventDefault();
-    onMouseUp(event);
-
-    // eventManager.removeEventListener(that.instance.wtTable.holder, "mouseup", onMouseUp);
+    // touched link which was placed inside a cell (a cell with DOM `a` element) WILL NOT trigger the below function calls
+    // and as consequence will behave as standard (open the link).
+    if (selectedCellWasTouched(target) === false || excludeTags.includes(target.tagName) === false) {
+      event.preventDefault();
+      onMouseUp(event);
+    }
   };
 
   eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
@@ -161,6 +174,8 @@ function Event(instance) {
     var classSelector = `.${this.instance.wtTable.holder.parentNode.className.split(' ').join('.')}`;
 
     eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', (event) => {
+      selectedCellBeforeTouchEnd = instance.selections.getCell().cellRange;
+
       that.instance.touchApplied = true;
       if (isChildOf(event.target, classSelector)) {
         onTouchStart.call(event.target, event);

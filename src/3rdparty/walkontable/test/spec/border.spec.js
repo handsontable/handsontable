@@ -208,17 +208,52 @@ describe('WalkontableBorder', () => {
 
     $td1.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(42);
     expect($corner.position().left).toBe(45);
 
     $td2.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(65);
     expect($corner.position().left).toBe(95);
+  });
+
+  it('should draw only one corner if selection is added between overlays', () => {
+    const wt = new Walkontable.Core({
+      table: $table[0],
+      data: getData,
+      totalRows: 5,
+      totalColumns: 5,
+      fixedColumnsLeft: 2,
+      fixedRowsTop: 2,
+      selections: [
+        new Walkontable.Selection({
+          className: 'current'
+        }),
+        new Walkontable.Selection({
+          className: 'area',
+          border: {
+            cornerVisible() {
+              return true;
+            }
+          }
+        })
+      ],
+    });
+
+    shimSelectionProperties(wt);
+
+    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(0, 0));
+    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(2, 2));
+
+    wt.draw();
+
+    const corners = $container.find('.wtBorder.corner:visible');
+
+    expect(corners.length).toBe(1);
   });
 
   it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', () => {
@@ -259,24 +294,24 @@ describe('WalkontableBorder', () => {
 
     $td1.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(42);
     expect($corner.position().left).toBe(45);
     expect($container[0].clientWidth === $container[0].scrollWidth).toBe(true);
 
     $td2.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(88);
     expect($corner.position().left).toBe(193);
     expect($container[0].clientWidth === $container[0].scrollWidth).toBe(true);
 
     $td3.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(65);
     expect($corner.position().left).toBe(95);
     expect($container[0].clientWidth === $container[0].scrollWidth).toBe(true);

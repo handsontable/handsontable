@@ -1,3 +1,5 @@
+import {generateASCIITable} from './asciiTable';
+
 /* eslint-disable import/prefer-default-export */
 var currentSpec;
 
@@ -85,6 +87,9 @@ beforeEach(function() {
         }
       };
     },
+    /**
+     * The matcher checks if the passed cell element is contained in the table viewport.
+     */
     toBeVisibleInViewport() {
       return {
         compare(actual) {
@@ -102,6 +107,9 @@ beforeEach(function() {
         }
       };
     },
+    /**
+     * The matcher checks if the viewport is scrolled in the way that the cell is visible at the top of the viewport.
+     */
     toBeVisibleAtTopOfViewport() {
       return {
         compare(actual) {
@@ -115,6 +123,9 @@ beforeEach(function() {
         }
       };
     },
+    /**
+     * The matcher checks if the viewport is scrolled in the way that the cell is visible at the bottom of the viewport.
+     */
     toBeVisibleAtBottomOfViewport() {
       return {
         compare(actual) {
@@ -128,6 +139,9 @@ beforeEach(function() {
         }
       };
     },
+    /**
+     * The matcher checks if the viewport is scrolled in the way that the cell is visible on the left of the viewport.
+     */
     toBeVisibleAtLeftOfViewport() {
       return {
         compare(actual) {
@@ -141,6 +155,9 @@ beforeEach(function() {
         }
       };
     },
+    /**
+     * The matcher checks if the viewport is scrolled in the way that the cell is visible on the right of the viewport.
+     */
     toBeVisibleAtRightOfViewport() {
       return {
         compare(actual) {
@@ -193,62 +210,86 @@ beforeEach(function() {
         }
       };
     },
+    /**
+     * The matcher checks if the provided selection pattern matches to the rendered cells by checking if
+     * the appropriate CSS class name was added.
+     *
+     * The provided structure should be passed as an array of arrays, for instance:
+     * ```
+     * // Non-contiguous selection (with enabled top and left headers)
+     * expect(`
+     *   |   ║   :   : * : * |
+     *   |===:===:===:===:===|
+     *   | - ║   :   : A : 0 |
+     *   | - ║   : 1 : 0 : 0 |
+     *   | - ║   : 2 : 1 : 0 |
+     *   | - ║   : 2 : 1 : 0 |
+     *   | - ║   : 1 : 1 : 0 |
+     *   | - ║   :   : 0 : 0 |
+     *   `).toBeMatchToSelectionPattern();
+     * // Single cell selection (with fixedRowsTop: 1 and fixedColumnsLeft: 2)
+     * expect(`
+     *   |   :   |   :   :   |
+     *   |---:---:---:---:---|
+     *   |   :   |   :   :   |
+     *   |   :   |   :   :   |
+     *   |   :   | # :   :   |
+     *   |   :   |   :   :   |
+     *   |   :   |   :   :   |
+     *   |   :   |   :   :   |
+     *   `).toBeMatchToSelectionPattern();
+     * ```
+     *
+     * The meaning of the symbol used to describe the cells:
+     * ' ' - An empty space indicates cell which doesn't have added any selection classes.
+     * '0' - The number (from 0 to 7) indicates selected layer level.
+     * 'A' - The letters (from A to H) indicates the position of the cell which contains the hidden editor
+     *       (which `current` class name). The letter `A` indicates the currently selected cell with
+     *       a background of the first layer and `H` as the latest layer (most dark).
+     * '#' - The hash symbol indicates the currently selected cell without changed background color.
+     *
+     * The meaning of the symbol used to describe the table:
+     * ':'   - Column separator (only for better visual looks).
+     * '║'   - This symbol separates the row headers from the table content.
+     * '===' - This symbol separates the column headers from the table content.
+     * '|'   - The symbol which indicates the left overlay edge.
+     * '---' - The symbol which indicates the top overlay edge.
+     */
     toBeMatchToSelectionPattern() {
-      const symbols = new Map([
-        ['C', 'current']
-      ]);
-
       return {
         compare(actualPattern) {
-          const currentState = [];
-          const rowsCount = hot().countRows();
-          const colsCount = hot().countCols();
-          const message = 'Expected the pattern selection to match to the visual state of the rendered selection.';
+          const asciiTable = generateASCIITable(hot().rootElement);
 
-          if (!Array.isArray(actualPattern)) {
-            return {
-              pass: false,
-              message,
-            };
-          }
+          const patternParts = (actualPattern || '').split(/\n/);
+          const redundantPadding = patternParts.reduce((padding, line) => {
+            const trimmedLine = line.trim();
 
-          for (let r = 0; r < rowsCount; r++) {
-            const currentRowState = [];
+            if (trimmedLine) {
+              const currentPadding = line.search(/\S|$/);
 
-            for (let c = 0; c < colsCount; c++) {
-              if (!actualPattern[r] || !actualPattern[r][c]) {
-                break;
-              }
-
-              const actualCell = actualPattern[r][c];
-
-              if (actualCell === ' ') {
-                currentRowState.push(' ');
-
-              } else {
-                const cell = hot().getCell(r, c);
-                const layerName = parseInt(actualCell, 10);
-                const isLayerChecking = !isNaN(layerName);
-                let className;
-
-                if (isLayerChecking) {
-                  className = layerName === 0 ? 'area' : `area-${layerName <= 7 ? layerName : 7}`;
-                } else {
-                  className = symbols.get(actualCell);
-                }
-
-                if (cell.classList.contains(className)) {
-                  currentRowState.push(actualCell);
-                } else {
-                  currentRowState.push('x');
-                }
+              if (currentPadding < padding) {
+                padding = currentPadding;
               }
             }
-            currentState.push(currentRowState);
-          }
+
+            return padding;
+          }, Infinity);
+
+          const normalizedPattern = patternParts.reduce((acc, line) => {
+            const trimmedLine = line.trim();
+
+            if (trimmedLine) {
+              acc.push(line.substr(redundantPadding));
+            }
+
+            return acc;
+          }, []);
+
+          const actualAsciiTable = normalizedPattern.join('\n');
+          const message = `Expected the pattern selection \n${actualAsciiTable}\nto match to the visual state of the rendered selection \n${asciiTable}\n`;
 
           return {
-            pass: JSON.stringify(currentState) === JSON.stringify(actualPattern),
+            pass: asciiTable === actualAsciiTable,
             message,
           };
         }

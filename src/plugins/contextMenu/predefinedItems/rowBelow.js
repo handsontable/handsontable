@@ -21,7 +21,7 @@ export default function rowBelowItem() {
         return true;
       }
 
-      return this.selection.selectedHeader.cols || this.countRows() >= this.getSettings().maxRows;
+      return this.selection.isSelectedByColumnHeader() || this.countRows() >= this.getSettings().maxRows;
     },
     hidden() {
       return !this.getSettings().allowInsertRow;
