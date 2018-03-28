@@ -45,7 +45,7 @@ describe('Search plugin', () => {
 
     it('should remove default search result class to cells when disable plugin', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
         search: true
       });
 
@@ -53,31 +53,47 @@ describe('Search plugin', () => {
 
       render();
 
-      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
-        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
-          const cell = getCell(rowIndex, colIndex);
-
-          if (rowIndex === 1) {
-            expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(true);
-          } else {
-            expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
-          }
-        }
-      }
+      let cell = hot.getCell(0, 0);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(0, 1);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(0, 2);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(1, 0);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(true);
+      cell = hot.getCell(1, 1);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(true);
+      cell = hot.getCell(1, 2);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(true);
+      cell = hot.getCell(2, 0);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(2, 1);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(2, 2);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
 
       hot.updateSettings({
         search: false
       });
 
-      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
-        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
-          const cell = getCell(rowIndex, colIndex);
-
-          if (rowIndex === 1) {
-            expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
-          }
-        }
-      }
+      cell = hot.getCell(0, 0);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(0, 1);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(0, 2);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(1, 0);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(1, 1);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(1, 2);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(2, 0);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(2, 1);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(2, 2);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
     });
   });
 
@@ -357,7 +373,7 @@ describe('Search plugin', () => {
     it('should add default search result class to cells which mach the query', () => {
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
         search: true
       });
 
@@ -365,22 +381,29 @@ describe('Search plugin', () => {
 
       render();
 
-      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
-        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
-          const cell = getCell(rowIndex, colIndex);
-
-          if (rowIndex === 1) {
-            expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(true);
-          } else {
-            expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
-          }
-        }
-      }
+      let cell = hot.getCell(0, 0);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(0, 1);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(0, 2);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(1, 0);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(true);
+      cell = hot.getCell(1, 1);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(true);
+      cell = hot.getCell(1, 2);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(true);
+      cell = hot.getCell(2, 0);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(2, 1);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
+      cell = hot.getCell(2, 2);
+      expect($(cell).hasClass(hot.getPlugin('search').searchResultClass)).toBe(false);
     });
 
     it('should add custom search result class to cells which mach the query', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
         search: {
           searchResultClass: 'customSearchResultClass'
         }
@@ -390,17 +413,24 @@ describe('Search plugin', () => {
 
       render();
 
-      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
-        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
-          const cell = getCell(rowIndex, colIndex);
-
-          if (rowIndex === 1) {
-            expect($(cell).hasClass('customSearchResultClass')).toBe(true);
-          } else {
-            expect($(cell).hasClass('customSearchResultClass')).toBe(false);
-          }
-        }
-      }
+      let cell = hot.getCell(0, 0);
+      expect($(cell).hasClass('customSearchResultClass')).toBe(false);
+      cell = hot.getCell(0, 1);
+      expect($(cell).hasClass('customSearchResultClass')).toBe(false);
+      cell = hot.getCell(0, 2);
+      expect($(cell).hasClass('customSearchResultClass')).toBe(false);
+      cell = hot.getCell(1, 0);
+      expect($(cell).hasClass('customSearchResultClass')).toBe(true);
+      cell = hot.getCell(1, 1);
+      expect($(cell).hasClass('customSearchResultClass')).toBe(true);
+      cell = hot.getCell(1, 2);
+      expect($(cell).hasClass('customSearchResultClass')).toBe(true);
+      cell = hot.getCell(2, 0);
+      expect($(cell).hasClass('customSearchResultClass')).toBe(false);
+      cell = hot.getCell(2, 1);
+      expect($(cell).hasClass('customSearchResultClass')).toBe(false);
+      cell = hot.getCell(2, 2);
+      expect($(cell).hasClass('customSearchResultClass')).toBe(false);
     });
   });
 

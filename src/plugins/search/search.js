@@ -54,7 +54,7 @@ class Search extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Callback function is responsible for setting the cell's `isSearchResult` property.
+     * Callback function is responsible for marking the cells belonging to the search by setting property to it.
      *
      * @type {Function}
      */
@@ -66,7 +66,7 @@ class Search extends BasePlugin {
      */
     this.queryMethod = DEFAULT_QUERY_METHOD;
     /**
-     *  Class added to every cell which `isSearchResult` property is true.
+     *  Class added to each cell that belongs to the search.
      *
      * @type {String}
      */
@@ -102,10 +102,13 @@ class Search extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.addHook('beforeRenderer', (TD, row, col, prop, value, cellProperties) => this.onBeforeRenderer(TD, row, col, prop, value, cellProperties));
+    const beforeRendererCallback = (TD, row, col, prop, value, cellProperties) => this.onBeforeRenderer(TD, row, col, prop, value, cellProperties);
+
+    this.hot.addHook('beforeRenderer', beforeRendererCallback);
     this.hot.addHookOnce('afterRender', () => {
-      this.hot.removeHook('beforeRender', (TD, row, col, prop, value, cellProperties) => this.onBeforeRenderer(TD, row, col, prop, value, cellProperties));
+      this.hot.removeHook('beforeRenderer', beforeRendererCallback);
     });
+
     super.disablePlugin();
   }
 
@@ -249,18 +252,31 @@ class Search extends BasePlugin {
    * @param {Object} cellProperties Object containing the cell's properties.
    */
   onBeforeRenderer(TD, row, col, prop, value, cellProperties) {
-    if (!cellProperties.className) {
-      cellProperties.className = '';
+    let classArray = [];
+
+    if (cellProperties.className) {
+      if (typeof cellProperties.className === 'string') {
+        classArray = cellProperties.className.split(' ');
+
+      } else if (Array.isArray(cellProperties.className)) {
+        classArray = cellProperties.className;
+      }
     }
 
     if (this.isEnabled() && cellProperties.isSearchResult) {
       if (!cellProperties.className.includes(this.searchResultClass)) {
-        cellProperties.className += ` ${this.searchResultClass}`;
+        classArray.push(`${this.searchResultClass}`);
       }
 
     } else {
-      cellProperties.className = cellProperties.className.replace(this.searchResultClass, '');
+      let containSearchResultClass = classArray.indexOf(this.searchResultClass);
+
+      if (containSearchResultClass > -1) {
+        classArray.splice(containSearchResultClass, 1);
+      }
     }
+
+    cellProperties.className = classArray.join(' ');
   }
 
   /**
