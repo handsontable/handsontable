@@ -91,10 +91,10 @@ class MergeCells extends BasePlugin {
     this.autofillCalculations = new AutofillCalculations(this);
     this.selectionCalculations = new SelectionCalculations();
 
-    this.hot.selection.transformation.addLocalHook('afterTransformStart', (...args) => this.onAfterLocalTransformStart(...args));
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('beforeKeyDown', (...args) => this.onBeforeKeyDown(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
+    this.addHook('afterModifyTransformStart', (...args) => this.onAfterModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.onModifyTransformEnd(...args));
     this.addHook('modifyGetCellCoords', (...args) => this.onModifyGetCellCoords(...args));
     this.addHook('beforeSetRangeEnd', (...args) => this.onBeforeSetRangeEnd(...args));
@@ -910,15 +910,15 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * `afterTransformStart` local hook callback. Fixes a problem with navigating through merged cells at the bottom of the table
-   * with the ENTER key.
+   * `afterModifyTransformStart` hook callback. Fixes a problem with navigating through merged cells at the edges of the table
+   * with the ENTER/SHIFT+ENTER/TAB/SHIFT+TAB keys.
    *
    * @private
    * @param {CellCoords} coords Coordinates of the to-be-selected cell.
    * @param {Number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value = down)
    * @param {Number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value = down)
    */
-  onAfterLocalTransformStart(coords, rowTransformDir, colTransformDir) {
+  onAfterModifyTransformStart(coords, rowTransformDir, colTransformDir) {
     if (!this.enabled) {
       return;
     }
