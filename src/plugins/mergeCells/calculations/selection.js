@@ -185,7 +185,7 @@ class SelectionCalculations {
   getSelectedMergedCellClassNameToRemove() {
     const classNames = [];
 
-    for (let i = 0; i < 7; i += 1) {
+    for (let i = 0; i <= 7; i += 1) {
       classNames.push(`${this.fullySelectedMergedCellClassName}-${i}`);
     }
 
