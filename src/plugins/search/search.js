@@ -66,7 +66,7 @@ class Search extends BasePlugin {
      */
     this.queryMethod = DEFAULT_QUERY_METHOD;
     /**
-     *  Class added to each cell that belongs to the search.
+     *  Class added to each cell that belongs to the searched query.
      *
      * @type {String}
      */
@@ -93,7 +93,7 @@ class Search extends BasePlugin {
     const searchSettings = this.hot.getSettings().search;
     this.checkPluginSettings(searchSettings);
 
-    this.addHook('beforeRenderer', (TD, row, col, prop, value, cellProperties) => this.onBeforeRenderer(TD, row, col, prop, value, cellProperties));
+    this.addHook('beforeRenderer', (...args) => this.onBeforeRenderer(...args));
 
     super.enablePlugin();
   }
@@ -102,7 +102,7 @@ class Search extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    const beforeRendererCallback = (TD, row, col, prop, value, cellProperties) => this.onBeforeRenderer(TD, row, col, prop, value, cellProperties);
+    const beforeRendererCallback = (...args) => this.onBeforeRenderer(...args);
 
     this.hot.addHook('beforeRenderer', beforeRendererCallback);
     this.hot.addHookOnce('afterRender', () => {
@@ -126,8 +126,8 @@ class Search extends BasePlugin {
    * Query method - used inside search input listener.
    *
    * @param {String} queryStr Searched value.
-   * @param {Function} [callback=DEFAULT_CALLBACK] Callback function responsible for setting the cell's `isSearchResult` property.
-   * @param {Function} [queryMethod=DEFAULT_QUERY_METHOD] Query function responsible for determining whether a query matches the value stored in a cell.
+   * @param {Function} [callback] Callback function responsible for setting the cell's `isSearchResult` property.
+   * @param {Function} [queryMethod] Query function responsible for determining whether a query matches the value stored in a cell.
    *
    * @returns {Array} Return array of objects with `row`, `col`, `data` properties or empty array.
    */
@@ -252,19 +252,21 @@ class Search extends BasePlugin {
    * @param {Object} cellProperties Object containing the cell's properties.
    */
   onBeforeRenderer(TD, row, col, prop, value, cellProperties) {
+    // TODO: #4972
+    const className = cellProperties.className;
     let classArray = [];
 
-    if (cellProperties.className) {
-      if (typeof cellProperties.className === 'string') {
-        classArray = cellProperties.className.split(' ');
+    if (className) {
+      if (typeof className === 'string') {
+        classArray = className.split(' ');
 
-      } else if (Array.isArray(cellProperties.className)) {
-        classArray = cellProperties.className;
+      } else if (Array.isArray(className)) {
+        classArray = className;
       }
     }
 
     if (this.isEnabled() && cellProperties.isSearchResult) {
-      if (!cellProperties.className.includes(this.searchResultClass)) {
+      if (!className.includes(this.searchResultClass)) {
         classArray.push(`${this.searchResultClass}`);
       }
 
