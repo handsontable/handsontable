@@ -50,9 +50,9 @@ module.exports.create = function create(envArgs) {
           '../css/walkontable.css',
         ],
         externalJsFiles: [
-          'lib/phantom-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
+          'helpers/jasmine-bridge-reporter.js',
           '../dist/walkontable.js',
         ],
       })
