@@ -1537,6 +1537,7 @@ declare namespace Handsontable {
     afterColumnSort?: (column: number, order: boolean) => void;
     afterContextMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterContextMenuHide?: (context: object) => void;
+    beforeContextMenuShow?: (context: object) => void;
     afterContextMenuShow?: (context: object) => void;
     afterCopy?: (data: any[], coords: any[]) => void;
     afterCopyLimit?: (selectedRows: number, selectedColumnds: number, copyRowsLimit: number, copyColumnsLimit: number) => void;

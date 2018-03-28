@@ -97,6 +97,8 @@ class Menu {
    * Open menu.
    */
   open() {
+    this.runLocalHooks('beforeOpen');
+
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
 

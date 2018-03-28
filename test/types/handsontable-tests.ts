@@ -139,6 +139,7 @@ var hotSettings: Handsontable.GridSettings = {
   afterColumnSort: (column, order) => {},
   afterContextMenuDefaultOptions: (predefinedItems) => {},
   afterContextMenuHide: (context) => {},
+  beforeContextMenuShow: (context) => {},
   afterContextMenuShow: (context) => {},
   afterCopy: (data, coords) => {},
   afterCopyLimit: (selectedRows, selectedColumnds, copyRowsLimit, copyColumnsLimit) => {},

@@ -132,6 +132,15 @@ const REGISTERED_HOOKS = [
 
   /**
    * @description
+   * Fired before opening the Context Menu.
+   *
+   * @event Hooks#beforeContextMenuShow
+   * @param {Object} context The Context Menu instance.
+   */
+  'beforeContextMenuShow',
+
+  /**
+   * @description
    * Fired after opening the Context Menu.
    *
    * @event Hooks#afterContextMenuShow
