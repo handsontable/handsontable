@@ -7,7 +7,6 @@
  */
 const path = require('path');
 const webpack = require('webpack');
-const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
 
 const wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
@@ -50,9 +49,9 @@ module.exports.create = function create(envArgs) {
           '../css/walkontable.css',
         ],
         externalJsFiles: [
+          'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
-          'helpers/jasmine-bridge-reporter.js',
           '../dist/walkontable.js',
         ],
       })

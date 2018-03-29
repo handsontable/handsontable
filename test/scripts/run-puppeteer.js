@@ -22,9 +22,12 @@ const cleanupFactory = (browser, server) => async (exitCode) => {
 
 (async () => {
   const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    timeout: 10000,
+    // devtools: true,
+    headless: false,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless', '--disable-gpu', '--mute-audio'],
   });
+
   const page = await browser.newPage();
 
   page.setCacheEnabled(false);
@@ -39,8 +42,6 @@ const cleanupFactory = (browser, server) => async (exitCode) => {
     autoIndex: true,
   }));
   const cleanup = cleanupFactory(browser, server);
-
-  process.on('SIGINT', () => cleanup(0));
 
   server.listen(PORT);
 
