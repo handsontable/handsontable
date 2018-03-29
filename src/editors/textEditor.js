@@ -134,7 +134,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
   }
 
   if ([KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT].indexOf(event.keyCode) === -1) {
-    that.autoResize.resize(String.fromCharCode(event.keyCode));
+    that.autoResize.resize(event.key);
   }
 };
 
