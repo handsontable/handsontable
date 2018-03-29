@@ -131,6 +131,7 @@ class DropdownMenu extends BasePlugin {
 
       this.menu.setMenuItems(menuItems);
 
+      this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
       this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.apply(this, params));
@@ -312,6 +313,15 @@ class DropdownMenu extends BasePlugin {
     };
 
     TH.firstChild.insertBefore(button, TH.firstChild.firstChild);
+  }
+
+  /**
+   * On menu before open listener.
+   *
+   * @private
+   */
+  onMenuBeforeOpen() {
+    this.hot.runHooks('beforeDropdownMenuShow', this);
   }
 
   /**

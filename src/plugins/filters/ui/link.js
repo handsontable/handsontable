@@ -40,7 +40,7 @@ class LinkUI extends BaseUI {
       return;
     }
 
-    privatePool.get(this).link.textContent = this.hot.getTranslatedPhrase(this.options.textContent);
+    privatePool.get(this).link.textContent = this.translateIfPossible(this.options.textContent);
   }
 }
 

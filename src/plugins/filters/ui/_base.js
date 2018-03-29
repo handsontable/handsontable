@@ -3,6 +3,7 @@ import localHooks from 'handsontable/mixins/localHooks';
 import EventManager from 'handsontable/eventManager';
 import {addClass} from 'handsontable/helpers/dom/element';
 import {arrayEach} from 'handsontable/helpers/array';
+import * as C from 'handsontable/i18n/constants';
 
 const STATE_BUILT = 'built';
 const STATE_BUILDING = 'building';
@@ -107,6 +108,20 @@ class BaseUI {
   }
 
   /**
+   * Translate value if it is possible. It's checked if value belongs to namespace of translated phrases.
+   *
+   * @param {*} value Value which will may be translated.
+   * @returns {*} Translated value if translation was possible, original value otherwise.
+   */
+  translateIfPossible(value) {
+    if (typeof value === 'string' && value.startsWith(C.FILTERS_NAMESPACE)) {
+      return this.hot.getTranslatedPhrase(value);
+    }
+
+    return value;
+  }
+
+  /**
    * Build DOM structure.
    */
   build() {
@@ -128,7 +143,7 @@ class BaseUI {
 
       objectEach(this.options, (value, key) => {
         if (element[key] !== void 0 && key !== 'className' && key !== 'tagName' && key !== 'children') {
-          element[key] = value;
+          element[key] = this.translateIfPossible(value);
         }
       });
 

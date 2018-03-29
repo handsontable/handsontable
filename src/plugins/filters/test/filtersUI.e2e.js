@@ -1,6 +1,16 @@
 describe('Filters UI', function() {
   const id = 'testContainer';
 
+  beforeAll(() => {
+    // Note: please keep in mind that this language will be registered for all e2e tests!
+    // It's stored globally for already loaded Handsontable library.
+
+    Handsontable.languages.registerLanguageDictionary({
+      languageCode: 'longerForTests',
+      'Filters:conditions.isEmpty': 'This is very long text for conditional menu item'
+    });
+  });
+
   beforeEach(function() {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
@@ -3023,6 +3033,292 @@ describe('Filters UI', function() {
       expect($(conditionSelectRootElements().first).is(':visible')).toBe(true);
       expect($(conditionSelectRootElements().second).is(':visible')).toBe(false);
       expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(false);
+    });
+  });
+
+  describe('Dimensions of filter\'s elements inside drop-down menu', () => {
+    it('should scale text input showed after condition selection (pixel perfect)', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        colHeaders: true,
+        dropdownMenu: {
+          items: {
+            custom: {
+              name: 'This is very long text which should expand the drop-down menu...'
+            },
+            filter_by_condition: {},
+            filter_operators: {},
+            filter_by_condition2: {},
+            filter_by_value: {}
+          }
+        },
+        filters: true
+      });
+
+      dropdownMenu(1);
+
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+
+      const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
+      const widthOfInput = $(dropdownMenuRootElement()).find('input').width();
+      const bothInputBorders = 2;
+      const bothInputPaddings = 8;
+      const bothWrapperMargins = 20;
+      const bothCustomRendererPaddings = 12;
+      const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
+
+      expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
+    });
+
+    it('should scale a condition select (pixel perfect)', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        colHeaders: true,
+        dropdownMenu: {
+          items: {
+            custom: {
+              name: 'This is very long text which should expand the drop-down menu...'
+            },
+            filter_by_condition: {},
+            filter_operators: {},
+            filter_by_condition2: {},
+            filter_by_value: {}
+          }
+        },
+        filters: true
+      });
+
+      dropdownMenu(1);
+
+      const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
+      const widthOfSelect = $(conditionSelectRootElements().first).width();
+      const bothWrapperMargins = 20;
+      const bothCustomRendererPaddings = 12;
+      const parentsPaddings = bothWrapperMargins + bothCustomRendererPaddings;
+
+      expect(widthOfSelect).toEqual(widthOfMenu - parentsPaddings);
+    });
+
+    it('should scale search input of the value box (pixel perfect)', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        colHeaders: true,
+        dropdownMenu: {
+          items: {
+            custom: {
+              name: 'This is very long text which should expand the drop-down menu...'
+            },
+            filter_by_condition: {},
+            filter_operators: {},
+            filter_by_condition2: {},
+            filter_by_value: {}
+          }
+        },
+        filters: true
+      });
+
+      dropdownMenu(1);
+
+      const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
+      const widthOfInput = $(dropdownMenuRootElement()).find('.htUIMultipleSelectSearch input').width();
+      const bothInputBorders = 2;
+      const bothInputPaddings = 8;
+      const bothWrapperMargins = 20;
+      const bothCustomRendererPaddings = 12;
+      const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
+
+      expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
+    });
+
+    it('should scale the value box element (pixel perfect)', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        colHeaders: true,
+        dropdownMenu: {
+          items: {
+            custom: {
+              name: 'This is very long text which should expand the drop-down menu...'
+            },
+            filter_by_condition: {},
+            filter_operators: {},
+            filter_by_condition2: {},
+            filter_by_value: {}
+          }
+        },
+        filters: true
+      });
+
+      dropdownMenu(1);
+
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+
+      const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
+      const widthOfValueBox = $(byValueBoxRootElement()).width();
+      const bothWrapperMargins = 20;
+      const bothCustomRendererPaddings = 12;
+
+      const parentsPaddings = bothWrapperMargins + bothCustomRendererPaddings;
+
+      expect(widthOfValueBox).toEqual(widthOfMenu - parentsPaddings);
+    });
+
+    it('should fit the single value to the value box element (pixel perfect)', async () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        colHeaders: true,
+        dropdownMenu: {
+          items: {
+            custom: {
+              name: 'This is very long text which should expand the drop-down menu...'
+            },
+            filter_by_condition: {},
+            filter_operators: {},
+            filter_by_condition2: {},
+            filter_by_value: {}
+          }
+        },
+        filters: true
+      });
+
+      dropdownMenu(1);
+
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
+
+      const widthOfValueBoxWithoutScroll = $(byValueBoxRootElement()).find('.wtHolder')[0].scrollWidth;
+      const widthOfSingleValue = $(byValueBoxRootElement()).find('table.htCore tr:eq(0)').width();
+
+      expect(widthOfSingleValue).toEqual(widthOfValueBoxWithoutScroll);
+    });
+
+    it('should display proper width of value box after change of another elements width to lower ' +
+      '(bug: once rendered `MultipleSelectUI` has elbowed the table created by AutoColumnSize plugin)', async () => {
+      const hot = handsontable({
+        colHeaders: true,
+        dropdownMenu: {
+          items: {
+            custom: {
+              name: 'This is very long text which should expand the drop-down menu...'
+            },
+            filter_by_condition: {},
+            filter_operators: {},
+            filter_by_condition2: {},
+            filter_by_value: {},
+            filter_action_bar: {}
+          }
+        },
+        filters: true
+      });
+
+      const $menu = $('.htDropdownMenu');
+
+      dropdownMenu(0);
+
+      await sleep(300);
+
+      const firstWidth = $menu.find('.wtHider').width();
+
+      hot.updateSettings({dropdownMenu: true});
+
+      dropdownMenu(0);
+
+      await sleep(300);
+
+      const nextWidth = $menu.find('.wtHider').width();
+
+      expect(nextWidth).toBeLessThan(firstWidth);
+    });
+
+    it('should display proper width of the menu after second render (bug: effect of resizing menu by the 3px) - ' +
+      'AutoColumnSize counts also border added to drop-down menu', async function() {
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true
+      });
+
+      const $menu = $('.htDropdownMenu');
+
+      dropdownMenu(0);
+
+      await sleep(300);
+
+      const firstWidth = $menu.find('.wtHider').width();
+
+      mouseDown(this.$container);
+
+      dropdownMenu(0);
+
+      await sleep(300);
+
+      const nextWidth = $menu.find('.wtHider').width();
+
+      expect(nextWidth).toEqual(firstWidth);
+    });
+
+    it('should display proper width of conditional select', async () => {
+      const hot = handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+        language: 'longerForTests'
+      });
+
+      dropdownMenu(0);
+
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+
+      await sleep(300);
+
+      const $conditionalMenu = $('.htFiltersConditionsMenu');
+      const firstWidth = $conditionalMenu.find('.wtHider').width();
+
+      hot.updateSettings({language: 'en-US'});
+
+      dropdownMenu(0);
+
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+
+      await sleep(300);
+
+      const nextWidth = $conditionalMenu.find('.wtHider').width();
+
+      expect(nextWidth).toBeLessThan(firstWidth);
+    });
+
+    it('should not expand the drop-down menu after selecting longer value inside the conditional select', async () => {
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+        language: 'longerForTests'
+      });
+
+      const $menu = $('.htDropdownMenu');
+
+      dropdownMenu(0);
+
+      const firstWidth = $menu.find('.wtHider').width();
+
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+
+      await sleep(300);
+
+      const $conditionalMenu = $('.htFiltersConditionsMenu');
+      const $conditionalMenuItems = $conditionalMenu.find('tbody td:not(.htSeparator)');
+
+      $conditionalMenuItems.eq(1).simulate('mousedown');
+
+      const nextWidth = $menu.find('.wtHider').width();
+
+      expect(nextWidth).toBe(firstWidth);
     });
   });
 });

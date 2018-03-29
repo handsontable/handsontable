@@ -3,10 +3,20 @@
  */
 
 /* Conditions menu */
-.htFiltersConditionsMenu {
+.htFiltersConditionsMenu:not(.htGhostTable) {
   display: none;
   position: absolute;
   z-index: 1070;
+}
+
+/*
+  AutoColumnSize will NOT count size of filter's value box. This element should always fit to another elements elbowing the table.
+  Workaround for quick fix of two main problems:
+  - borders declared in the below class selector are also counted by `offsetWidth` (that could be fixed by not displaying them for GhostTable)
+  - MultipleSelectUI basing on Handsontable is built only once, so it's `wtHolder` width is counted only once.
+*/
+.htGhostTable .htUIMultipleSelectHot, .htGhostTable .htUISelect {
+  display: none;
 }
 
 .htFiltersConditionsMenu .ht_clone_top,
@@ -109,10 +119,6 @@
 .handsontable .htFiltersMenuCondition .htUIInput {
   padding: 0 0 5px 0;
 }
-.handsontable .htFiltersMenuCondition .htUIInput input {
-  width: 173px;
-  padding: 4px;
-}
 
 /* Component filter by value */
 .handsontable .htFiltersMenuValue {
@@ -121,9 +127,11 @@
 .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch {
   padding: 0;
 }
+.handsontable .htFiltersMenuCondition .htUIInput input,
 .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input {
-  width: 173px;
   padding: 4px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .htUIMultipleSelect .ht_master .wtHolder {
@@ -218,7 +226,10 @@
   font-family: arial, sans-serif;
   font-size: 11px;
   font-weight: bold;
-  padding: 3px 0 3px 10px;
+  padding: 3px 20px 3px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 .handsontable .htUISelectCaption:hover {
   background-color: #e8e8e8;

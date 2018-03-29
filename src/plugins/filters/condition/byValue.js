@@ -1,4 +1,3 @@
-import * as C from 'handsontable/i18n/constants';
 import {registerCondition} from './../conditionRegisterer';
 import {createArrayAssertion} from './../utils';
 
@@ -11,7 +10,7 @@ export function condition(dataRow, [value] = inputValues) {
 registerCondition(CONDITION_NAME, condition, {
   name: 'By value',
   inputsCount: 0,
-  inputValuesDecorator: function([data] = inputValues) {
+  inputValuesDecorator([data] = inputValues) {
     return [createArrayAssertion(data)];
   },
   showOperators: false
