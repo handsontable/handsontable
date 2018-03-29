@@ -88,7 +88,7 @@ class ColumnSorting extends BasePlugin {
     this.addHook('modifyRow', (row) => this.translateRow(row));
     this.addHook('unmodifyRow', (row) => this.untranslateRow(row));
     this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
-    this.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
+    this.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterCreateRow', function() {
       _this.afterCreateRow(...arguments);
@@ -141,7 +141,7 @@ class ColumnSorting extends BasePlugin {
       sortingOrder = loadedSortingState.sortOrder;
     }
     if (typeof sortingColumn === 'number') {
-      this.lastSortedColumn = sortingColumn;
+      this.lastSortedColumn = this.hot.runHooks('modifyCol', sortingColumn);
       this.sortByColumn(sortingColumn, sortingOrder);
     }
   }
@@ -172,6 +172,12 @@ class ColumnSorting extends BasePlugin {
     this.hot.sortColumn = col;
   }
 
+  /**
+   * Sorted data by column and order info
+   *
+   * @param {number} col Sorted visual column index.
+   * @param {boolean|undefined} order Sorting order (`true` for ascending, `false` for descending).
+   */
   sortByColumn(col, order) {
     this.setSortingColumn(col, order);
 
@@ -526,7 +532,9 @@ class ColumnSorting extends BasePlugin {
    * @param {Number} col Visual column index.
    * @param {Element} TH TH HTML element.
    */
-  getColHeader(col, TH) {
+  onAfterGetColHeader(col, TH) {
+    col = this.hot.runHooks('modifyCol', col);
+
     if (col < 0 || !TH.parentNode) {
       return false;
     }
@@ -659,16 +667,15 @@ class ColumnSorting extends BasePlugin {
     if (coords.row > -1) {
       return;
     }
+    let colPhysical = this.hot.runHooks('modifyCol', coords.col);
 
     if (hasClass(event.realTarget, 'columnSorting')) {
       // reset order state on every new column header click
-      if (coords.col !== this.lastSortedColumn) {
+      if (colPhysical !== this.lastSortedColumn) {
         this.hot.sortOrder = true;
       }
-
-      this.lastSortedColumn = coords.col;
-
-      this.sortByColumn(coords.col);
+      let colVisual = this.hot.runHooks('unmodifyCol', colPhysical);
+      this.sortByColumn(colVisual);
     }
   }
 }
