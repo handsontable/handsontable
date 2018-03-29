@@ -1450,10 +1450,10 @@ const REGISTERED_HOOKS = [
   'afterUntrimRow',
 
   /**
-   * Fired after opening the dropdown menu.
+   * Fired before opening the dropdown menu.
    *
    * @pro
-   * @event Hooks#afterDropdownMenuShow
+   * @event Hooks#beforeDropdownMenuShow
    * @param {DropdownMenu} instance The DropdownMenu instance.
    */
   'beforeDropdownMenuShow',
