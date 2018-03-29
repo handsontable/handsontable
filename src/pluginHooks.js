@@ -1456,6 +1456,15 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterDropdownMenuShow
    * @param {DropdownMenu} instance The DropdownMenu instance.
    */
+  'beforeDropdownMenuShow',
+
+  /**
+   * Fired after opening the dropdown menu.
+   *
+   * @pro
+   * @event Hooks#afterDropdownMenuShow
+   * @param {DropdownMenu} instance The DropdownMenu instance.
+   */
   'afterDropdownMenuShow',
 
   /**

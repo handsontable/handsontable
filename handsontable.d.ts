@@ -1550,6 +1550,7 @@ declare namespace Handsontable {
     afterDocumentKeyDown?: (event: Event) => void;
     afterDropdownMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterDropdownMenuHide?: (instance: any) => void;
+    beforeDropdownMenuShow?: (instance: any) => void;
     afterDropdownMenuShow?: (instance: any) => void;
     afterFilter?: (formulasStack: any[]) => void;
     afterGetCellMeta?: (row: number, col: number, cellProperties: object) => void;

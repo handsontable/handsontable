@@ -152,6 +152,7 @@ var hotSettings: Handsontable.GridSettings = {
   afterDocumentKeyDown: (event) => {},
   afterDropdownMenuDefaultOptions: (predefinedItems) => {},
   afterDropdownMenuHide: (instance) => {},
+  beforeDropdownMenuShow: (instance) => {},
   afterDropdownMenuShow: (instance) => {},
   afterFilter: (formulasStack) => {},
   afterGetCellMeta: (row, col, cellProperties) => {},
