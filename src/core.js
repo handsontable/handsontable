@@ -2977,9 +2977,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       row;
 
     while (i >= 0) {
-      row = instance.runHooks('modifyRow', i);
-
-      if (instance.isEmptyRow(row)) {
+      if (instance.isEmptyRow(i)) {
         empty++;
 
       } else if (ending) {
@@ -3024,7 +3022,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function isEmptyRow
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @returns {Boolean} `true` if the row at the given `row` is empty, `false` otherwise.
    */
   this.isEmptyRow = function(row) {
