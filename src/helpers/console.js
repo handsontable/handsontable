@@ -10,28 +10,26 @@
 import {isDefined} from './mixed';
 import {toSingleLine} from './templateLiteralTag';
 
-isConsoleDefined = () => isDefined(console);
-
 export function logToConsole(message) {
-  if (isConsoleDefined()) {
+  if (isDefined(console)) {
     console.log(toSingleLine`${message}`);
   }
 };
 
 export function warnToConsole() {
-  if (isConsoleDefined()) {
+  if (isDefined(console)) {
     console.warn(toSingleLine`${message}`);
   }
 };
 
 export function infoToConsole() {
-  if (isConsoleDefined()) {
+  if (isDefined(console)) {
     console.info(toSingleLine`${message}`);
   }
 };
 
 export function errorToConsole() {
-  if (isConsoleDefined()) {
+  if (isDefined(console)) {
     console.error(toSingleLine`${message}`);
   }
 };
