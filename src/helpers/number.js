@@ -42,7 +42,7 @@ export function rangeEach(rangeFrom, rangeTo, iteratee) {
  * A specialized version of `.forEach` defined by ranges iterable in reverse order.
  *
  * @param {Number} rangeFrom The number from start iterate.
- * @param {Number} rangeTo The number where finish iterate or function as a iteratee.
+ * @param {Number|Function} rangeTo The number where finish iterate or function as a iteratee.
  * @param {Function} [iteratee] The function invoked per iteration.
  */
 export function rangeEachReverse(rangeFrom, rangeTo, iteratee) {
