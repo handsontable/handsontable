@@ -2967,8 +2967,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function countEmptyRows
-   * @param {Boolean} [ending] If `true`, will only count empty rows at the end of the data source
-   * @returns {Number} Count empty rows
+   * @param {Boolean} [ending] If `true`, will only count empty rows at the end of the data source.
+   * @returns {Number} Count empty rows.
    */
   this.countEmptyRows = function(ending) {
     let emptyRows = 0;
@@ -2992,7 +2992,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function countEmptyCols
    * @param {Boolean} [ending] If `true`, will only count empty columns at the end of the data source row.
-   * @returns {Number} Count empty cols
+   * @returns {Number} Count empty cols.
    */
   this.countEmptyCols = function(ending) {
     if (instance.countRows() < 1) {
