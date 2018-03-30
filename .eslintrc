@@ -100,12 +100,6 @@
         "allowParens": true
       }
     ],
-    "no-console": [
-      2,
-      {
-        "allow": ["error", "warn", "info"]
-      }
-    ],
     "indent": [
       2,
       2,
