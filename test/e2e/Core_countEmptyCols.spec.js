@@ -1,4 +1,4 @@
-/* eslint-disable no-multi-spaces */
+/* eslint-disable no-multi-spaces, array-bracket-spacing */
 
 describe('Core_countEmptyCols', () => {
   var id = 'testContainer';
@@ -60,7 +60,7 @@ describe('Core_countEmptyCols', () => {
         [null, null, null, null, null],
         [3,    null, null, null, null],
         [1,    null, null, null, null],
-        [null, null, null, null, 1,  ],
+        [null, null, null, null, 1   ],
       ],
       minSpareCols: 2
     });
