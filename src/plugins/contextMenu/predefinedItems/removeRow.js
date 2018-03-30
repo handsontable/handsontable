@@ -37,7 +37,7 @@ export default function removeRowItem() {
         return true;
       }
 
-      return this.selection.selectedHeader.cols || this.selection.selectedHeader.corner || !totalRows;
+      return this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner() || !totalRows;
     },
     hidden() {
       return !this.getSettings().allowRemoveRow;
