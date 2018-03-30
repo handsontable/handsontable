@@ -95,6 +95,9 @@ class Menu {
 
   /**
    * Open menu.
+   *
+   * @fires Hooks#beforeContextMenuShow
+   * @fires Hooks#afterContextMenuShow
    */
   open() {
     this.runLocalHooks('beforeOpen');
