@@ -1090,25 +1090,32 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.setDataAtCell = function(row, col, value, source) {
     var
-      input = setDataInputToArray(row, col, value),
+      inputs = setDataInputToArray(row, col, value),
       i,
       ilen,
       changes = [],
       prop;
 
-    for (i = 0, ilen = input.length; i < ilen; i++) {
-      if (typeof input[i] !== 'object') {
+    for (i = 0, ilen = inputs.length; i < ilen; i++) {
+      let input = inputs[i];
+      if (typeof input !== 'object') {
         throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
       }
-      if (typeof input[i][1] !== 'number') {
+      if (typeof input[1] !== 'number') {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
-      prop = datamap.colToProp(input[i][1]);
+      let previousValue = dataSource.getAtCell(recordTranslator.toPhysicalRow(input[0]), input[1]);
+      prop = datamap.colToProp(input[1]);
+      let newValue = input[2];
+
+      if (previousValue === newValue) {
+        return;
+      }
       changes.push([
-        input[i][0],
+        input[0],
         prop,
-        dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]),
-        input[i][2],
+        previousValue,
+        newValue,
       ]);
     }
 
