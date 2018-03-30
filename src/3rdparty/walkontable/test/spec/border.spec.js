@@ -208,15 +208,15 @@ describe('WalkontableBorder', () => {
 
     $td1.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(42);
     expect($corner.position().left).toBe(45);
 
     $td2.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(65);
     expect($corner.position().left).toBe(95);
   });
@@ -294,24 +294,24 @@ describe('WalkontableBorder', () => {
 
     $td1.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(42);
     expect($corner.position().left).toBe(45);
     expect($container[0].clientWidth === $container[0].scrollWidth).toBe(true);
 
     $td2.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(88);
     expect($corner.position().left).toBe(193);
     expect($container[0].clientWidth === $container[0].scrollWidth).toBe(true);
 
     $td3.simulate('mousedown');
 
-    expect($corner.css('width')).toBe('5px');
-    expect($corner.css('height')).toBe('5px');
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(65);
     expect($corner.position().left).toBe(95);
     expect($container[0].clientWidth === $container[0].scrollWidth).toBe(true);
