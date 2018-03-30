@@ -20,7 +20,7 @@ describe('Core_countEmptyRows', () => {
         [null],
         [3],
         [1],
-        null,
+        [null],
       ]
     });
 
@@ -35,11 +35,11 @@ describe('Core_countEmptyRows', () => {
         [null],
         [3],
         [1],
-        null,
-        null,
-        null,
-        null,
-        null,
+        [null],
+        [null],
+        [null],
+        [null],
+        [null],
       ]
     });
 

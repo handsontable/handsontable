@@ -2998,19 +2998,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (instance.countRows() < 1) {
       return 0;
     }
-    var i = instance.countCols() - 1,
-      empty = 0;
 
-    while (i >= 0) {
-      if (instance.isEmptyCol(i)) {
-        empty++;
-      } else if (ending) {
-        break;
+    let emptyColumns = 0;
+
+    rangeEachReverse(instance.countCols() - 1, (visualIndex) => {
+      if (instance.isEmptyCol(visualIndex)) {
+        emptyColumns += 1;
+
+      } else if (ending === true) {
+        return false;
       }
-      i--;
-    }
+    });
 
-    return empty;
+    return emptyColumns;
   };
 
   /**
