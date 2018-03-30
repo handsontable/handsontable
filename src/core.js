@@ -13,7 +13,7 @@ import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {getValidator} from './validators';
 import {randomString} from './helpers/string';
-import {rangeEach} from './helpers/number';
+import {rangeEach, rangeEachReverse} from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
 import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
@@ -2967,26 +2967,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function countEmptyRows
-   * @param {Boolean} [ending] If `true`, will only count empty rows at the end of the data source.
+   * @param {Boolean} [ending] If `true`, will only count empty rows at the end of the data source
    * @returns {Number} Count empty rows
-   * @fires Hooks#modifyRow
    */
   this.countEmptyRows = function(ending) {
-    var i = instance.countRows() - 1,
-      empty = 0,
-      row;
+    let emptyRows = 0;
 
-    while (i >= 0) {
-      if (instance.isEmptyRow(i)) {
-        empty++;
+    rangeEachReverse(instance.countRows() - 1, (visualIndex) => {
+      if (instance.isEmptyRow(visualIndex)) {
+        emptyRows += 1;
 
-      } else if (ending) {
-        break;
+      } else if (ending === true) {
+        return false;
       }
-      i--;
-    }
+    });
 
-    return empty;
+    return emptyRows;
   };
 
   /**

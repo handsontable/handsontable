@@ -27,6 +27,25 @@ describe('Core_countEmptyRows', () => {
     expect(countEmptyRows()).toBe(3);
   });
 
+  it('should count empty rows at the end of the data source properly (optional `ending` parameter)', () => {
+    handsontable({
+      data: [
+        [null],
+        [4],
+        [null],
+        [3],
+        [1],
+        null,
+        null,
+        null,
+        null,
+        null,
+      ]
+    });
+
+    expect(countEmptyRows(true)).toBe(5);
+  });
+
   it('should count empty rows properly when using `minSpareRows` option', () => {
     handsontable({
       data: [
@@ -55,7 +74,7 @@ describe('Core_countEmptyRows', () => {
 
   it('should count empty rows properly when translating rows below the viewport', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1000, 1000),
+      data: Handsontable.helper.createSpreadsheetData(100, 100),
       modifyRow(row) {
         return row + 5;
       }
@@ -64,7 +83,7 @@ describe('Core_countEmptyRows', () => {
     expect(countEmptyRows()).toBe(5);
   });
 
-  it('should count empty rows properly when trimming rows', () => {
+  it('should count empty rows properly when rows was trimmed', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       modifyRow(row) {
