@@ -554,8 +554,10 @@ class Border {
     }
 
     if (rootHotElement.className.includes(entireSelectionClassname)) {
-      startHeader = getHeaderFn(fromIndex, 0);
-      endHeader = getHeaderFn(toIndex, 0);
+      const columnHeaderLevelCount = this.wot.getSetting('columnHeaders').length;
+
+      startHeader = getHeaderFn(fromIndex, columnHeaderLevelCount - 1);
+      endHeader = getHeaderFn(toIndex, columnHeaderLevelCount - 1);
 
       if (!startHeader || !endHeader) {
         return false;
