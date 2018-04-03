@@ -483,7 +483,7 @@ class ManualRowMove extends BasePlugin {
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     let wtTable = this.hot.view.wt.wtTable;
-    let isHeaderSelection = this.hot.selection.selectedHeader.rows;
+    let isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
     let selection = this.hot.getSelectedRangeLast();
     let priv = privatePool.get(this);
 
@@ -604,7 +604,7 @@ class ManualRowMove extends BasePlugin {
 
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
 
-    if (this.hot.selection.selectedHeader.rows) {
+    if (this.hot.selection.isSelectedByRowHeader()) {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 

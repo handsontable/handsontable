@@ -211,6 +211,62 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
+    it('should open menu after right click on selected column header (the current selection should not be changed)', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        height: 100
+      });
+
+      selectColumns(1, 4);
+
+      expect(hot.getPlugin('contextMenu')).toBeDefined();
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+
+      contextMenu(hot.rootElement.querySelector('.ht_clone_top thead th:nth-child(4)'));
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+      expect(`
+        |   ║   : * : * : * : * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        | - ║   : A : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should open menu after right click on selected row header (the current selection should not be changed)', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        height: 100
+      });
+
+      selectRows(1, 3);
+
+      expect(hot.getPlugin('contextMenu')).toBeDefined();
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+
+      contextMenu(hot.rootElement.querySelector('.ht_clone_left tbody tr:nth-child(3)'));
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+      expect(`
+        |   ║ - : - : - : - : - : - : - : - : - : - |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+    });
+
     it('should open menu after right click on header corner', () => {
       var hot = handsontable({
         data: [],
@@ -424,7 +480,7 @@ describe('ContextMenu', () => {
             key: '',
             name: 'Custom option',
             hidden() {
-              return !this.selection.selectedHeader.cols;
+              return !this.selection.isSelectedByColumnHeader();
             }
           }
         ]
