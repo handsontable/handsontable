@@ -22,6 +22,7 @@ import {
 import './dropdownMenu.css';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
+Hooks.getSingleton().register('beforeDropdownMenuShow');
 Hooks.getSingleton().register('afterDropdownMenuShow');
 Hooks.getSingleton().register('afterDropdownMenuHide');
 Hooks.getSingleton().register('afterDropdownMenuExecute');
@@ -175,6 +176,8 @@ class DropdownMenu extends BasePlugin {
    * Open menu and re-position it based on the DOM event object.
    *
    * @param {Event|Object} event Event object.
+   * @fires Hooks#beforeDropdownMenuShow
+   * @fires Hooks#afterDropdownMenuShow
    */
   open(event) {
     if (!this.menu) {
