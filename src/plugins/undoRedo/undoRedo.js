@@ -7,6 +7,7 @@ import {rangeEach} from './../../helpers/number';
 import {inherit, deepClone} from './../../helpers/object';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {CellCoords} from './../../3rdparty/walkontable/src';
+import {align} from './../contextMenu/utils';
 
 /**
  * @description
@@ -129,7 +130,7 @@ function UndoRedo(instance) {
       return;
     }
 
-    plugin.done(new UndoRedo.MergeCells(instance, cellRange));
+    plugin.done(new UndoRedo.MergeCellsAction(instance, cellRange));
   });
 
   instance.addHook('afterUnmergeCells', (cellRange, auto) => {
@@ -137,7 +138,7 @@ function UndoRedo(instance) {
       return;
     }
 
-    plugin.done(new UndoRedo.UnmergeCells(instance, cellRange));
+    plugin.done(new UndoRedo.UnmergeCellsAction(instance, cellRange));
   });
 
 }
@@ -443,13 +444,9 @@ UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.alignment = alignment;
 };
 UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
-  if (!instance.getPlugin('contextMenu').isEnabled()) {
-    return;
-  }
-
   arrayEach(this.range, ({from, to}) => {
-    for (var row = from.row; row <= to.row; row++) {
-      for (var col = from.col; col <= to.col; col++) {
+    for (let row = from.row; row <= to.row; row += 1) {
+      for (let col = from.col; col <= to.col; col += 1) {
         instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
       }
     }
@@ -459,13 +456,8 @@ UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback)
   instance.render();
 };
 UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback) {
-  if (!instance.getPlugin('contextMenu').isEnabled()) {
-    return;
-  }
-  arrayEach(this.range, ({from, to}) => {
-    instance.selectCell(from.row, from.col, to.row, to.col);
-    instance.getPlugin('contextMenu').executeCommand(`alignment:${this.alignment.replace('ht', '').toLowerCase()}`);
-  });
+  align(this.range, this.type, this.alignment, (row, col) => instance.getCellMeta(row, col),
+    (row, col, key, value) => instance.setCellMeta(row, col, key, value));
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
@@ -499,8 +491,9 @@ UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
 
 /**
  * Merge Cells action.
+ * @util
  */
-class MergeCells extends UndoRedo.Action {
+class MergeCellsAction extends UndoRedo.Action {
   constructor(instance, cellRange) {
     super();
     this.cellRange = cellRange;
@@ -522,13 +515,13 @@ class MergeCells extends UndoRedo.Action {
     mergeCellsPlugin.mergeRange(this.cellRange);
   }
 }
-UndoRedo.MergeCells = MergeCells;
+UndoRedo.MergeCellsAction = MergeCellsAction;
 
 /**
  * Unmerge Cells action.
  * @util
  */
-class UnmergeCells extends UndoRedo.Action {
+class UnmergeCellsAction extends UndoRedo.Action {
   constructor(instance, cellRange) {
     super();
     this.cellRange = cellRange;
@@ -549,7 +542,7 @@ class UnmergeCells extends UndoRedo.Action {
     instance.render();
   }
 }
-UndoRedo.UnmergeCells = UnmergeCells;
+UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
 
 /**
  * ManualRowMove action.

@@ -309,7 +309,7 @@ class AutofillCalculations {
     let multiplier = 1;
 
     do {
-      for (let j = 0; j < foundMergedCells.length; j++) {
+      for (let j = 0; j < foundMergedCells.length; j += 1) {
         current = foundMergedCells[j];
 
         fillOffset = multiplier * this.currentFillData.cycleLength;

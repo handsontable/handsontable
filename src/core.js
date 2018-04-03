@@ -13,7 +13,7 @@ import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {getValidator} from './validators';
 import {randomString} from './helpers/string';
-import {rangeEach} from './helpers/number';
+import {rangeEach, rangeEachReverse} from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
 import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
@@ -155,16 +155,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterSelectionByProp',
       from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel);
 
-    let isHeaderSelected = false;
-    let areCoordsPositive = true;
-
-    if (this.selection.selectedHeader.cols || this.selection.selectedHeader.rows) {
-      isHeaderSelected = true;
-    }
-
-    if (cellCoords.row < 0 || cellCoords.col < 0) {
-      areCoordsPositive = false;
-    }
+    const isSelectedByAnyHeader = this.selection.isSelectedByAnyHeader();
+    const currentSelectedRange = this.selection.selectedRange.current();
 
     let scrollToCell = true;
 
@@ -176,22 +168,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       scrollToCell = !preventScrolling.value;
     }
 
-    if (scrollToCell !== false && !isHeaderSelected && areCoordsPositive) {
-      if (this.selection.selectedRange.current().from && !this.selection.isMultiple()) {
-        this.view.scrollViewport(this.selection.selectedRange.current().from);
+    if (scrollToCell !== false && !isSelectedByAnyHeader) {
+      if (currentSelectedRange && !this.selection.isMultiple()) {
+        this.view.scrollViewport(currentSelectedRange.from);
       } else {
         this.view.scrollViewport(cellCoords);
       }
     }
 
-    if (this.selection.selectedHeader.rows && this.selection.selectedHeader.cols) {
+    const isSelectedByRowHeader = this.selection.isSelectedByRowHeader();
+    const isSelectedByColumnHeader = this.selection.isSelectedByColumnHeader();
+
+    // @TODO: These CSS classes are no longer needed anymore. They are used only as a indicator of the selected
+    // rows/columns in the MergedCells plugin (via border.js#L520 in the walkontable module). After fixing
+    // the Border class this should be removed.
+    if (isSelectedByRowHeader && isSelectedByColumnHeader) {
       addClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
 
-    } else if (this.selection.selectedHeader.rows) {
+    } else if (isSelectedByRowHeader) {
       removeClass(this.rootElement, 'ht__selection--columns');
       addClass(this.rootElement, 'ht__selection--rows');
 
-    } else if (this.selection.selectedHeader.cols) {
+    } else if (isSelectedByColumnHeader) {
       removeClass(this.rootElement, 'ht__selection--rows');
       addClass(this.rootElement, 'ht__selection--columns');
 
@@ -232,7 +230,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.selection.addLocalHook('afterModifyTransformEnd', (coords, rowTransformDir, colTransformDir) => {
     this.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
   });
-  this.selection.addLocalHook('afterDeselect', (coords, rowTransformDir, colTransformDir) => {
+  this.selection.addLocalHook('afterDeselect', () => {
     editorManager.destroyEditor();
 
     this._refreshBorders();
@@ -1848,10 +1846,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function clear
-   * @since 0.11
+   * @since 0.11.0
    */
   this.clear = function() {
-    selection.selectAll();
+    this.selectAll();
     this.emptySelectedCells();
   };
 
@@ -2970,27 +2968,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function countEmptyRows
    * @param {Boolean} [ending] If `true`, will only count empty rows at the end of the data source.
-   * @returns {Number} Count empty rows
-   * @fires Hooks#modifyRow
+   * @returns {Number} Count empty rows.
    */
   this.countEmptyRows = function(ending) {
-    var i = instance.countRows() - 1,
-      empty = 0,
-      row;
+    let emptyRows = 0;
 
-    while (i >= 0) {
-      row = instance.runHooks('modifyRow', i);
+    rangeEachReverse(instance.countRows() - 1, (visualIndex) => {
+      if (instance.isEmptyRow(visualIndex)) {
+        emptyRows += 1;
 
-      if (instance.isEmptyRow(row)) {
-        empty++;
-
-      } else if (ending) {
-        break;
+      } else if (ending === true) {
+        return false;
       }
-      i--;
-    }
+    });
 
-    return empty;
+    return emptyRows;
   };
 
   /**
@@ -3000,25 +2992,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function countEmptyCols
    * @param {Boolean} [ending] If `true`, will only count empty columns at the end of the data source row.
-   * @returns {Number} Count empty cols
+   * @returns {Number} Count empty cols.
    */
   this.countEmptyCols = function(ending) {
     if (instance.countRows() < 1) {
       return 0;
     }
-    var i = instance.countCols() - 1,
-      empty = 0;
 
-    while (i >= 0) {
-      if (instance.isEmptyCol(i)) {
-        empty++;
-      } else if (ending) {
-        break;
+    let emptyColumns = 0;
+
+    rangeEachReverse(instance.countCols() - 1, (visualIndex) => {
+      if (instance.isEmptyCol(visualIndex)) {
+        emptyColumns += 1;
+
+      } else if (ending === true) {
+        return false;
       }
-      i--;
-    }
+    });
 
-    return empty;
+    return emptyColumns;
   };
 
   /**
@@ -3026,7 +3018,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function isEmptyRow
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @returns {Boolean} `true` if the row at the given `row` is empty, `false` otherwise.
    */
   this.isEmptyRow = function(row) {
@@ -3212,6 +3204,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.deselectCell = function() {
     selection.deselect();
+  };
+
+  /**
+   * Select the whole table. The previous selection will be overwritten.
+   *
+   * @since 0.38.2
+   * @memberof Core#
+   * @function selectAll
+   */
+  this.selectAll = function() {
+    preventScrollingToCell = true;
+    selection.selectAll();
+    preventScrollingToCell = false;
   };
 
   /**

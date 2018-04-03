@@ -396,7 +396,7 @@ class CustomBorders extends BasePlugin {
         return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS);
       },
       disabled() {
-        return this.selection.selectedHeader.corner;
+        return this.selection.isSelectedByCorner();
       },
       submenu: {
         items: [

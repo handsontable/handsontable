@@ -465,7 +465,7 @@ class ManualColumnMove extends BasePlugin {
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     let wtTable = this.hot.view.wt.wtTable;
-    let isHeaderSelection = this.hot.selection.selectedHeader.cols;
+    let isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
     let selection = this.hot.getSelectedRangeLast();
     let priv = privatePool.get(this);
     let isSortingElement = event.realTarget.className.indexOf('columnSorting') > -1;
@@ -596,7 +596,7 @@ class ManualColumnMove extends BasePlugin {
 
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
 
-    if (this.hot.selection.selectedHeader.cols) {
+    if (this.hot.selection.isSelectedByColumnHeader()) {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
     if (priv.columnsToMove.length < 1 || priv.target.col === void 0 || priv.columnsToMove.indexOf(priv.target.col) > -1) {

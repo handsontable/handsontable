@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 0.38.0
- * Release date: 14/03/2018 (built at 12/03/2018 15:07:01)
+ * Version: 0.38.1
+ * Release date: 20/03/2018 (built at 19/03/2018 09:34:32)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -5292,7 +5292,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment2.default)('14/03/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment2.default)('20/03/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       var keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
@@ -27989,7 +27989,19 @@ var Border = function () {
       var cornerVisibleSetting = this.settings.border.cornerVisible;
       cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ? cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
 
-      if ((0, _browser.isMobileBrowser)() || !cornerVisibleSetting) {
+      var hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn);
+      var checkRow = toRow,
+          checkCol = toColumn;
+
+
+      if (hookResult && Array.isArray(hookResult)) {
+        var _hookResult = _slicedToArray(hookResult, 4);
+
+        checkRow = _hookResult[2];
+        checkCol = _hookResult[3];
+      }
+
+      if ((0, _browser.isMobileBrowser)() || !cornerVisibleSetting || this.isPartRange(checkRow, checkCol)) {
         this.cornerStyle.display = 'none';
       } else {
         this.cornerStyle.top = top + height - 4 + 'px';
@@ -35680,9 +35692,9 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '12/03/2018 15:07:01';
+Handsontable.buildDate = '19/03/2018 09:34:32';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '0.38.0';
+Handsontable.version = '0.38.1';
 
 var baseVersion = '';
 
@@ -48929,8 +48941,6 @@ var _object = __webpack_require__(2);
 
 var _mixed = __webpack_require__(16);
 
-var _element = __webpack_require__(0);
-
 var _array = __webpack_require__(1);
 
 var _localHooks = __webpack_require__(56);
@@ -49355,13 +49365,12 @@ var Selection = function () {
      * Returns `true` if the cell corner should be visible.
      *
      * @private
-     * @param {Number} layerLevel The layer level.
      * @return {Boolean} `true` if the corner element has to be visible, `false` otherwise.
      */
 
   }, {
     key: 'isCellCornerVisible',
-    value: function isCellCornerVisible(layerLevel) {
+    value: function isCellCornerVisible() {
       return this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.isMultiple();
     }
 
@@ -49467,9 +49476,9 @@ var Selection = function () {
             rowEnd = _selectionSchemaNorma2[2],
             columnEnd = _selectionSchemaNorma2[3];
 
-        var isValid = (0, _utils.isValidCoord)(rowStart, countRows) && (0, _utils.isValidCoord)(columnStart, countCols) && (0, _utils.isValidCoord)(rowEnd, countRows) && (0, _utils.isValidCoord)(columnEnd, countCols);
+        var _isValid = (0, _utils.isValidCoord)(rowStart, countRows) && (0, _utils.isValidCoord)(columnStart, countCols) && (0, _utils.isValidCoord)(rowEnd, countRows) && (0, _utils.isValidCoord)(columnEnd, countCols);
 
-        return !isValid;
+        return !_isValid;
       });
 
       if (isValid) {
@@ -64106,6 +64115,80 @@ var MergeCells = function (_BasePlugin) {
     }
 
     /**
+     * Merge or unmerge, based on last selected range.
+     *
+     * @private
+     */
+
+  }, {
+    key: 'toggleMergeOnSelection',
+    value: function toggleMergeOnSelection() {
+      var currentRange = this.hot.getSelectedRangeLast();
+
+      if (!currentRange) {
+        return;
+      }
+
+      currentRange.setDirection('NW-SE');
+
+      var from = currentRange.from,
+          to = currentRange.to;
+
+
+      this.toggleMerge(currentRange);
+      this.hot.selectCell(from.row, from.col, to.row, to.col, false);
+    }
+
+    /**
+     * Merge the selection provided as a cell range.
+     *
+     * @param {CellRange} [cellRange] Selection cell range.
+     */
+
+  }, {
+    key: 'mergeSelection',
+    value: function mergeSelection() {
+      var cellRange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.hot.getSelectedRangeLast();
+
+      if (!cellRange) {
+        return;
+      }
+
+      cellRange.setDirection('NW-SE');
+
+      var from = cellRange.from,
+          to = cellRange.to;
+
+
+      this.unmergeRange(cellRange, true);
+      this.mergeRange(cellRange);
+      this.hot.selectCell(from.row, from.col, to.row, to.col, false);
+    }
+
+    /**
+     * Unmerge the selection provided as a cell range.
+     *
+     * @param {CellRange} [cellRange] Selection cell range.
+     */
+
+  }, {
+    key: 'unmergeSelection',
+    value: function unmergeSelection() {
+      var cellRange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.hot.getSelectedRangeLast();
+
+      if (!cellRange) {
+        return;
+      }
+
+      var from = cellRange.from,
+          to = cellRange.to;
+
+
+      this.unmergeRange(cellRange, true);
+      this.hot.selectCell(from.row, from.col, to.row, to.col, false);
+    }
+
+    /**
      * Merge cells in the provided cell range.
      *
      * @private
@@ -64180,23 +64263,6 @@ var MergeCells = function (_BasePlugin) {
     }
 
     /**
-     * Merge the selection provided as a cell range.
-     *
-     * @param {CellRange} [cellRange] Selection cell range.
-     */
-
-  }, {
-    key: 'mergeSelection',
-    value: function mergeSelection(cellRange) {
-      if (!cellRange) {
-        cellRange = this.hot.getSelectedRangeLast();
-      }
-
-      this.unmergeRange(cellRange, true);
-      this.mergeRange(cellRange);
-    }
-
-    /**
      * Unmerge the selection provided as a cell range. If no cell range is provided, it uses the current selection.
      *
      * @private
@@ -64211,9 +64277,13 @@ var MergeCells = function (_BasePlugin) {
 
       var auto = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
-      this.hot.runHooks('beforeUnmergeCells', cellRange, auto);
-
       var mergedCells = this.mergedCellsCollection.getWithinRange(cellRange);
+
+      if (!mergedCells) {
+        return;
+      }
+
+      this.hot.runHooks('beforeUnmergeCells', cellRange, auto);
 
       (0, _array.arrayEach)(mergedCells, function (currentCollection) {
         _this5.mergedCellsCollection.remove(currentCollection.row, currentCollection.col);
@@ -64467,7 +64537,7 @@ var MergeCells = function (_BasePlugin) {
     value: function onModifyGetCellCoords(row, column) {
       var mergeParent = this.mergedCellsCollection.get(row, column);
 
-      return mergeParent ? [mergeParent.row, mergeParent.col] : void 0;
+      return mergeParent ? [mergeParent.row, mergeParent.col, mergeParent.row + mergeParent.rowspan - 1, mergeParent.col + mergeParent.colspan - 1] : void 0;
     }
 
     /**
@@ -65811,8 +65881,7 @@ function toggleMergeItem(plugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_MERGE_CELLS);
     },
     callback: function callback() {
-      plugin.toggleMerge(this.getSelectedRangeLast());
-      this.render();
+      plugin.toggleMergeOnSelection();
     },
     disabled: function disabled() {
       var sel = this.getSelectedLast();
@@ -67351,7 +67420,7 @@ function UndoRedo(instance) {
       return;
     }
 
-    plugin.done(new UndoRedo.MergeCells(instance, cellRange));
+    plugin.done(new UndoRedo.MergeCellsAction(instance, cellRange));
   });
 
   instance.addHook('afterUnmergeCells', function (cellRange, auto) {
@@ -67359,7 +67428,7 @@ function UndoRedo(instance) {
       return;
     }
 
-    plugin.done(new UndoRedo.UnmergeCells(instance, cellRange));
+    plugin.done(new UndoRedo.UnmergeCellsAction(instance, cellRange));
   });
 }
 
@@ -67611,7 +67680,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function (instance, undoneCallback)
   var changes = [];
 
   // TODO: Temporary hook for undo/redo mess
-  instance.runHooks('beforeCreateCol', this.indexes[0], this.indexes[this.indexes.length - 1], 'UndoRedo.undo');
+  instance.runHooks('beforeCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   (0, _number.rangeEach)(this.data.length - 1, function (i) {
     row = instance.getSourceDataAtRow(i);
@@ -67640,7 +67709,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function (instance, undoneCallback)
   instance.addHookOnce('afterRender', undoneCallback);
 
   // TODO: Temporary hook for undo/redo mess
-  instance.runHooks('afterCreateCol', this.indexes[0], this.indexes[this.indexes.length - 1], 'UndoRedo.undo');
+  instance.runHooks('afterCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   if (instance.getPlugin('formulas')) {
     instance.getPlugin('formulas').recalculateFull();
@@ -67730,22 +67799,23 @@ UndoRedo.FiltersAction.prototype.redo = function (instance, redoneCallback) {
 
 /**
  * Merge Cells action.
+ * @util
  */
 
-var MergeCells = function (_UndoRedo$Action) {
-  _inherits(MergeCells, _UndoRedo$Action);
+var MergeCellsAction = function (_UndoRedo$Action) {
+  _inherits(MergeCellsAction, _UndoRedo$Action);
 
-  function MergeCells(instance, cellRange) {
-    _classCallCheck(this, MergeCells);
+  function MergeCellsAction(instance, cellRange) {
+    _classCallCheck(this, MergeCellsAction);
 
-    var _this4 = _possibleConstructorReturn(this, (MergeCells.__proto__ || Object.getPrototypeOf(MergeCells)).call(this));
+    var _this4 = _possibleConstructorReturn(this, (MergeCellsAction.__proto__ || Object.getPrototypeOf(MergeCellsAction)).call(this));
 
     _this4.cellRange = cellRange;
     _this4.rangeData = instance.getData(cellRange.from.row, cellRange.from.col, cellRange.to.row, cellRange.to.col);
     return _this4;
   }
 
-  _createClass(MergeCells, [{
+  _createClass(MergeCellsAction, [{
     key: 'undo',
     value: function undo(instance, undoneCallback) {
       var mergeCellsPlugin = instance.getPlugin('mergeCells');
@@ -67764,29 +67834,29 @@ var MergeCells = function (_UndoRedo$Action) {
     }
   }]);
 
-  return MergeCells;
+  return MergeCellsAction;
 }(UndoRedo.Action);
 
-UndoRedo.MergeCells = MergeCells;
+UndoRedo.MergeCellsAction = MergeCellsAction;
 
 /**
  * Unmerge Cells action.
  * @util
  */
 
-var UnmergeCells = function (_UndoRedo$Action2) {
-  _inherits(UnmergeCells, _UndoRedo$Action2);
+var UnmergeCellsAction = function (_UndoRedo$Action2) {
+  _inherits(UnmergeCellsAction, _UndoRedo$Action2);
 
-  function UnmergeCells(instance, cellRange) {
-    _classCallCheck(this, UnmergeCells);
+  function UnmergeCellsAction(instance, cellRange) {
+    _classCallCheck(this, UnmergeCellsAction);
 
-    var _this5 = _possibleConstructorReturn(this, (UnmergeCells.__proto__ || Object.getPrototypeOf(UnmergeCells)).call(this));
+    var _this5 = _possibleConstructorReturn(this, (UnmergeCellsAction.__proto__ || Object.getPrototypeOf(UnmergeCellsAction)).call(this));
 
     _this5.cellRange = cellRange;
     return _this5;
   }
 
-  _createClass(UnmergeCells, [{
+  _createClass(UnmergeCellsAction, [{
     key: 'undo',
     value: function undo(instance, undoneCallback) {
       var mergeCellsPlugin = instance.getPlugin('mergeCells');
@@ -67805,10 +67875,10 @@ var UnmergeCells = function (_UndoRedo$Action2) {
     }
   }]);
 
-  return UnmergeCells;
+  return UnmergeCellsAction;
 }(UndoRedo.Action);
 
-UndoRedo.UnmergeCells = UnmergeCells;
+UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
 
 /**
  * ManualRowMove action.
