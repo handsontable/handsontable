@@ -1541,6 +1541,7 @@ declare namespace Handsontable {
     afterColumnSort?: (column: number, order: boolean) => void;
     afterContextMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterContextMenuHide?: (context: object) => void;
+    beforeContextMenuShow?: (context: object) => void;
     afterContextMenuShow?: (context: object) => void;
     afterCopy?: (data: any[], coords: any[]) => void;
     afterCopyLimit?: (selectedRows: number, selectedColumnds: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
@@ -1553,6 +1554,7 @@ declare namespace Handsontable {
     afterDocumentKeyDown?: (event: Event) => void;
     afterDropdownMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterDropdownMenuHide?: (instance: any) => void;
+    beforeDropdownMenuShow?: (instance: any) => void;
     afterDropdownMenuShow?: (instance: any) => void;
     afterFilter?: (formulasStack: any[]) => void;
     afterGetCellMeta?: (row: number, col: number, cellProperties: object) => void;

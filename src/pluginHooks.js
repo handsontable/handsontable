@@ -132,6 +132,15 @@ const REGISTERED_HOOKS = [
 
   /**
    * @description
+   * Fired before opening the Context Menu.
+   *
+   * @event Hooks#beforeContextMenuShow
+   * @param {Object} context The Context Menu instance.
+   */
+  'beforeContextMenuShow',
+
+  /**
+   * @description
    * Fired after opening the Context Menu.
    *
    * @event Hooks#afterContextMenuShow
@@ -1459,6 +1468,15 @@ const REGISTERED_HOOKS = [
    * @param {Array} rows Physical indexes of untrimmed rows.
    */
   'afterUntrimRow',
+
+  /**
+   * Fired before opening the dropdown menu.
+   *
+   * @pro
+   * @event Hooks#beforeDropdownMenuShow
+   * @param {DropdownMenu} instance The DropdownMenu instance.
+   */
+  'beforeDropdownMenuShow',
 
   /**
    * Fired after opening the dropdown menu.
