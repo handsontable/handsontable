@@ -6,7 +6,7 @@ import {
 } from './../../../helpers/dom/element';
 import {arrayEach} from './../../../helpers/array';
 import {isKey} from './../../../helpers/unicode';
-import {isMobileBrowser} from './../../../helpers/browser';
+import {isMobileBrowser, isChrome} from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import Overlay from './overlay/_base.js';
 
@@ -77,6 +77,8 @@ class Overlays {
     this.delegatedScrollCallback = false;
 
     this.registeredListeners = [];
+
+    this.browserLineHeight = parseInt(getComputedStyle(document.body)['font-size'], 10);
 
     this.registerListeners();
   }
@@ -187,24 +189,31 @@ class Overlays {
       listenersToRegister.push([leftOverlayScrollable, 'scroll', (event) => this.onTableScroll(event)]);
     }
 
-    if (this.topOverlay.needFullRender) {
-      listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
-    }
+    const isHighPixelRatio = window.devicePixelRatio && window.devicePixelRatio > 1;
 
-    if (this.bottomOverlay.needFullRender) {
-      listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
-    }
+    if (isHighPixelRatio || !isChrome()) {
+      listenersToRegister.push([this.instance.wtTable.wtRootElement.parentNode, 'wheel', (event) => this.onRootElementWheel(event)]);
 
-    if (this.leftOverlay.needFullRender) {
-      listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
-    }
+    } else {
+      if (this.topOverlay.needFullRender) {
+        listenersToRegister.push([this.topOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
+      }
 
-    if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.needFullRender) {
-      listenersToRegister.push([this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
-    }
+      if (this.bottomOverlay.needFullRender) {
+        listenersToRegister.push([this.bottomOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
+      }
 
-    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.needFullRender) {
-      listenersToRegister.push([this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
+      if (this.leftOverlay.needFullRender) {
+        listenersToRegister.push([this.leftOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
+      }
+
+      if (this.topLeftCornerOverlay && this.topLeftCornerOverlay.needFullRender) {
+        listenersToRegister.push([this.topLeftCornerOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
+      }
+
+      if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.needFullRender) {
+        listenersToRegister.push([this.bottomLeftCornerOverlay.clone.wtTable.holder, 'wheel', (event) => this.onCloneWheel(event)]);
+      }
     }
 
     if (this.topOverlay.trimmingContainer !== window && this.leftOverlay.trimmingContainer !== window) {
@@ -284,6 +293,13 @@ class Overlays {
     this.syncScrollPositions(event);
   }
 
+  onRootElementWheel(event) {
+    if (this.scrollableElement !== window) {
+      event.preventDefault();
+    }
+
+    this.onCloneWheel(event);
+  }
   /**
    * Wheel listener for cloned overlays.
    *
@@ -331,18 +347,16 @@ class Overlays {
    * @returns {Boolean}
    */
   translateMouseWheelToScroll(event) {
-    const mouseWheelSpeedRatio = -0.2;
-    let deltaY = event.wheelDeltaY || (-1) * event.deltaY;
-    let deltaX = event.wheelDeltaX || (-1) * event.deltaX;
+    let deltaY = isNaN(event.deltaY) ? (-1) * event.wheelDeltaY : event.deltaY;
+    let deltaX = isNaN(event.deltaX) ? (-1) * event.wheelDeltaX : event.deltaX;
 
-    // Fix for extremely slow header scrolling with a mousewheel on Firefox
     if (event.deltaMode === 1) {
-      deltaY *= 120;
-      deltaX *= 120;
+      deltaX += deltaX * this.browserLineHeight;
+      deltaY += deltaY * this.browserLineHeight;
     }
 
-    this.scrollVertically(mouseWheelSpeedRatio * deltaY);
-    this.scrollHorizontally(mouseWheelSpeedRatio * deltaX);
+    this.scrollVertically(deltaY);
+    this.scrollHorizontally(deltaX);
 
     return false;
   }

@@ -746,7 +746,6 @@ thead .htCollapseButton:after {
 
 .ht_master .wtHolder {
   overflow: auto;
-  will-change: scroll-position;
 }
 
 .handsontable .ht_master thead,
@@ -756,8 +755,8 @@ thead .htCollapseButton:after {
 }
 
 .ht_clone_top .wtHolder,
-.ht_clone_bottom .wtHolder,
-.ht_clone_left .wtHolder {
+.ht_clone_left .wtHolder,
+.ht_clone_bottom .wtHolder {
   overflow: hidden;
 }
 
