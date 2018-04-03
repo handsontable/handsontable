@@ -98,30 +98,31 @@ describe('Search plugin', () => {
       expect($(cell).hasClass(searchResultClass)).toBe(false);
     });
 
-    // it('should remove beforeRenderer hook when disable plugin', () => {
-    //   const hot = handsontable({
-    //     data: Handsontable.helper.createSpreadsheetData(3, 3),
-    //     search: true
-    //   });
-    //
-    //   spyOn(hot.getPlugin('search'), 'onBeforeRenderer');
-    //
-    //   hot.getPlugin('search').query('2');
-    //   hot.render();
-    //
-    //   expect(onBeforeRenderer.calls.count()).toEqual(9);
-    //
-    //   hot.updateSettings({
-    //     search: false
-    //   });
-    //
-    //   expect(onBeforeRenderer.calls.count()).toEqual(9);
-    //
-    //   hot.getPlugin('search').query('2');
-    //   hot.render();
-    //
-    //   expect(onBeforeRenderer.calls.count()).toEqual(9);
-    // });
+    it('should remove beforeRenderer hook when disable plugin', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        search: true
+      });
+
+      spyOn(hot.getPlugin('search'), 'onBeforeRenderer');
+
+      const onBeforeRenderer = hot.getPlugin('search').onBeforeRenderer;
+
+      hot.getPlugin('search').query('2');
+      hot.render();
+
+      expect(onBeforeRenderer.calls.count()).toEqual(9);
+
+      hot.updateSettings({
+        search: false
+      });
+
+      expect(onBeforeRenderer.calls.count()).toEqual(18);
+
+      hot.render();
+
+      expect(onBeforeRenderer.calls.count()).toEqual(18);
+    });
   });
 
   describe('query method', () => {

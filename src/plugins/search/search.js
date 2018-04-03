@@ -54,7 +54,7 @@ class Search extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Callback function is responsible for marking the cells belonging to the search by setting property to it.
+     * Default callback function called during querying for each cell from the {@link DataMap}.
      *
      * @type {Function}
      */
@@ -66,7 +66,7 @@ class Search extends BasePlugin {
      */
     this.queryMethod = DEFAULT_QUERY_METHOD;
     /**
-     *  Class added to each cell that belongs to the searched query.
+     * Class name added to each cell that belongs to the searched query.
      *
      * @type {String}
      */
