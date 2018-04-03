@@ -220,6 +220,26 @@ const REGISTERED_HOOKS = [
   'afterDocumentKeyDown',
 
   /**
+   * Fired inside the Walkontable's selection `draw` method. Can be used to add additional class names to cells, depending on the current selection.
+   *
+   * @event Hooks#afterDrawSelection
+   * @param {Number} currentRow Row index of the currently processed cell.
+   * @param {Number} currentColumn Column index of the currently cell.
+   * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
+   * @param {Number|undefined} layerLevel Number indicating which layer of selection is currently processed.
+   * @since 0.38.1
+   * @returns {String|undefined} Can return a `String`, which will act as an additional `className` to be added to the currently processed cell.
+   */
+  'afterDrawSelection',
+  /**
+   * Fired inside the Walkontable's `refreshSelections` method. Can be used to remove additional class names from all cells in the table.
+   *
+   * @event Hooks#beforeRemoveCellClassNames
+   * @since 0.38.1
+   * @returns {String[]|undefined} Can return an `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.
+   */
+  'beforeRemoveCellClassNames',
+  /**
    * Callback fired after getting the cell settings.
    *
    * @event Hooks#afterGetCellMeta

@@ -166,8 +166,11 @@ class Selection {
     }
 
     this.selectedRange.add(coords);
-    this.selectedByRowHeader.clear();
-    this.selectedByColumnHeader.clear();
+
+    if (this.getLayerLevel() === 0) {
+      this.selectedByRowHeader.clear();
+      this.selectedByColumnHeader.clear();
+    }
 
     if (!selectedByCorner && isColumnNegative) {
       this.selectedByRowHeader.add(this.getLayerLevel());
