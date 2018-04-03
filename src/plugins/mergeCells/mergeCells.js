@@ -94,6 +94,7 @@ class MergeCells extends BasePlugin {
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('beforeKeyDown', (...args) => this.onBeforeKeyDown(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
+    this.addHook('afterModifyTransformStart', (...args) => this.onAfterModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.onModifyTransformEnd(...args));
     this.addHook('modifyGetCellCoords', (...args) => this.onModifyGetCellCoords(...args));
     this.addHook('beforeSetRangeEnd', (...args) => this.onBeforeSetRangeEnd(...args));
@@ -907,6 +908,42 @@ class MergeCells extends BasePlugin {
           corners[3] = mergedCell.col;
         }
       });
+    }
+  }
+
+  /**
+   * `afterModifyTransformStart` hook callback. Fixes a problem with navigating through merged cells at the edges of the table
+   * with the ENTER/SHIFT+ENTER/TAB/SHIFT+TAB keys.
+   *
+   * @private
+   * @param {CellCoords} coords Coordinates of the to-be-selected cell.
+   * @param {Number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value = down)
+   * @param {Number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value = down)
+   */
+  onAfterModifyTransformStart(coords, rowTransformDir, colTransformDir) {
+    if (!this.enabled) {
+      return;
+    }
+
+    const mergedCellAtCoords = this.mergedCellsCollection.get(coords.row, coords.col);
+
+    if (!mergedCellAtCoords) {
+      return;
+    }
+
+    const goingDown = rowTransformDir > 0;
+    const goingUp = rowTransformDir < 0;
+    const goingLeft = colTransformDir < 0;
+    const goingRight = colTransformDir > 0;
+    const mergedCellOnBottomEdge = mergedCellAtCoords.row + mergedCellAtCoords.rowspan - 1 === this.hot.countRows() - 1;
+    const mergedCellOnTopEdge = mergedCellAtCoords.row === 0;
+    const mergedCellOnRightEdge = mergedCellAtCoords.col + mergedCellAtCoords.colspan - 1 === this.hot.countCols() - 1;
+    const mergedCellOnLeftEdge = mergedCellAtCoords.col === 0;
+
+    if (((goingDown && mergedCellOnBottomEdge) || (goingUp && mergedCellOnTopEdge)) ||
+      ((goingRight && mergedCellOnRightEdge) || (goingLeft && mergedCellOnLeftEdge))) {
+      coords.row = mergedCellAtCoords.row;
+      coords.col = mergedCellAtCoords.col;
     }
   }
 
