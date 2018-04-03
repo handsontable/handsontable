@@ -258,6 +258,13 @@ class Selection {
             this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.highlightColumnClassName);
           }
         }
+
+        let additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceCol, corners, this.settings.layerLevel);
+
+        if (typeof additionalSelectionClass === 'string') {
+          this.addClassAtCoords(wotInstance, sourceRow, sourceCol, additionalSelectionClass);
+        }
+
       }
     }
 

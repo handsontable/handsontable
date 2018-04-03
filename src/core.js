@@ -13,7 +13,7 @@ import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {getValidator} from './validators';
 import {randomString} from './helpers/string';
-import {rangeEach} from './helpers/number';
+import {rangeEach, rangeEachReverse} from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
 import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
@@ -2968,27 +2968,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function countEmptyRows
    * @param {Boolean} [ending] If `true`, will only count empty rows at the end of the data source.
-   * @returns {Number} Count empty rows
-   * @fires Hooks#modifyRow
+   * @returns {Number} Count empty rows.
    */
   this.countEmptyRows = function(ending) {
-    var i = instance.countRows() - 1,
-      empty = 0,
-      row;
+    let emptyRows = 0;
 
-    while (i >= 0) {
-      row = instance.runHooks('modifyRow', i);
+    rangeEachReverse(instance.countRows() - 1, (visualIndex) => {
+      if (instance.isEmptyRow(visualIndex)) {
+        emptyRows += 1;
 
-      if (instance.isEmptyRow(row)) {
-        empty++;
-
-      } else if (ending) {
-        break;
+      } else if (ending === true) {
+        return false;
       }
-      i--;
-    }
+    });
 
-    return empty;
+    return emptyRows;
   };
 
   /**
@@ -2998,25 +2992,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function countEmptyCols
    * @param {Boolean} [ending] If `true`, will only count empty columns at the end of the data source row.
-   * @returns {Number} Count empty cols
+   * @returns {Number} Count empty cols.
    */
   this.countEmptyCols = function(ending) {
     if (instance.countRows() < 1) {
       return 0;
     }
-    var i = instance.countCols() - 1,
-      empty = 0;
 
-    while (i >= 0) {
-      if (instance.isEmptyCol(i)) {
-        empty++;
-      } else if (ending) {
-        break;
+    let emptyColumns = 0;
+
+    rangeEachReverse(instance.countCols() - 1, (visualIndex) => {
+      if (instance.isEmptyCol(visualIndex)) {
+        emptyColumns += 1;
+
+      } else if (ending === true) {
+        return false;
       }
-      i--;
-    }
+    });
 
-    return empty;
+    return emptyColumns;
   };
 
   /**
@@ -3024,7 +3018,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function isEmptyRow
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @returns {Boolean} `true` if the row at the given `row` is empty, `false` otherwise.
    */
   this.isEmptyRow = function(row) {

@@ -110,7 +110,6 @@ describe('MergeCells', () => {
   });
 
   describe('merged cells selection', () => {
-
     it('should select the whole range of cells which form a merged cell', function() {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(4, 4),
@@ -297,6 +296,123 @@ describe('MergeCells', () => {
       hot.selectCell(1, 1, 2, 2);
 
       expect(spec().$container.find('.wtBorder.corner:visible').length).toEqual(1);
+    });
+
+    it('should select the cell in the top-left corner of the merged cell, when navigating down using the ENTER key on the' +
+      ' bottom edge of the table', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 8, col: 8, rowspan: 2, colspan: 2 }
+        ]
+      });
+      hot.setDataAtCell(8, 8, 'top-left-corner!');
+
+      hot.selectCell(7, 9);
+
+      keyDownUp('enter');
+      keyDownUp('enter');
+      keyDownUp('enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('enter');
+      keyDownUp('enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('enter');
+      keyDownUp('enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+    });
+
+    it('should select the cell in the top-left corner of the merged cell, when navigating down using the TAB key on the' +
+      ' bottom edge of the table', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 8, col: 8, rowspan: 2, colspan: 2 }
+        ]
+      });
+      hot.setDataAtCell(8, 8, 'top-left-corner!');
+
+      hot.selectCell(9, 7);
+
+      keyDownUp('enter');
+      keyDownUp('tab');
+      keyDownUp('enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('tab');
+      keyDownUp('enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('tab');
+      keyDownUp('enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+    });
+
+    it('should select the cell in the top-left corner of the merged cell, when navigating down using the SHIFT + ENTER key on the' +
+      ' top edge of the table', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 2 }
+        ]
+      });
+      hot.setDataAtCell(0, 0, 'top-left-corner!');
+
+      hot.selectCell(2, 1);
+
+      keyDownUp('shift+enter');
+      keyDownUp('shift+enter');
+      keyDownUp('shift+enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('shift+enter');
+      keyDownUp('shift+enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('shift+enter');
+      keyDownUp('shift+enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+    });
+
+    it('should select the cell in the top-left corner of the merged cell, when navigating down using the SHIFT + TAB key on the' +
+      ' top edge of the table', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 2 }
+        ]
+      });
+      hot.setDataAtCell(0, 0, 'top-left-corner!');
+
+      hot.selectCell(1, 2);
+
+      keyDownUp('shift+enter');
+      keyDownUp('shift+tab');
+      keyDownUp('shift+enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('shift+tab');
+      keyDownUp('shift+enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('shift+tab');
+      keyDownUp('shift+enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      keyDownUp('shift+enter');
     });
   });
 
