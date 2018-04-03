@@ -89,7 +89,7 @@ class MergeCells extends BasePlugin {
 
     this.mergedCellsCollection = new MergedCellsCollection(this);
     this.autofillCalculations = new AutofillCalculations(this);
-    this.selectionCalculations = new SelectionCalculations();
+    this.selectionCalculations = new SelectionCalculations(this);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('beforeKeyDown', (...args) => this.onBeforeKeyDown(...args));
@@ -110,6 +110,8 @@ class MergeCells extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterChange', (...args) => this.onAfterChange(...args));
     this.addHook('beforeDrawBorders', (...args) => this.onBeforeDrawAreaBorders(...args));
+    this.addHook('afterDrawSelection', (...args) => this.onAfterDrawSelection(...args));
+    this.addHook('beforeRemoveCellClassNames', (...args) => this.onBeforeRemoveCellClassNames(...args));
 
     super.enablePlugin();
   }
@@ -697,7 +699,7 @@ class MergeCells extends BasePlugin {
     do {
       rangeExpanded = false;
 
-      for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i++) {
+      for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
         let cellInfo = this.mergedCellsCollection.mergedCells[i];
         let mergedCellRange = cellInfo.getRange();
 
@@ -906,6 +908,30 @@ class MergeCells extends BasePlugin {
         }
       });
     }
+  }
+
+  /**
+   * `afterDrawSelection` hook callback. Used to add the additional class name for the entirely-selected merged cells.
+   *
+   * @private
+   * @param {Number} currentRow Row index of the currently processed cell.
+   * @param {Number} currentColumn Column index of the currently cell.
+   * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
+   * @param {Number|undefined} layerLevel Number indicating which layer of selection is currently processed.
+   * @returns {String|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.
+   */
+  onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) {
+    return this.selectionCalculations.getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
+  }
+
+  /**
+   * `beforeRemoveCellClassNames` hook callback. Used to remove additional class name from all cells in the table.
+   *
+   * @private
+   * @returns {String[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.
+   */
+  onBeforeRemoveCellClassNames() {
+    return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
   }
 }
 
