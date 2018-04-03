@@ -78,7 +78,7 @@ class Overlays {
 
     this.registeredListeners = [];
 
-    this.browserLineHeight = parseInt(getComputedStyle(document.body)['font-size'], 10);
+    this.browserLineHeight = parseInt(getComputedStyle(document.body)['line-height'], 10);
 
     this.registerListeners();
   }
@@ -192,7 +192,7 @@ class Overlays {
     const isHighPixelRatio = window.devicePixelRatio && window.devicePixelRatio > 1;
 
     if (isHighPixelRatio || !isChrome()) {
-      listenersToRegister.push([this.instance.wtTable.wtRootElement.parentNode, 'wheel', (event) => this.onRootElementWheel(event)]);
+      listenersToRegister.push([this.instance.wtTable.wtRootElement.parentNode, 'wheel', (event) => this.onCloneWheel(event)]);
 
     } else {
       if (this.topOverlay.needFullRender) {
@@ -293,19 +293,15 @@ class Overlays {
     this.syncScrollPositions(event);
   }
 
-  onRootElementWheel(event) {
-    if (this.scrollableElement !== window) {
-      event.preventDefault();
-    }
-
-    this.onCloneWheel(event);
-  }
   /**
    * Wheel listener for cloned overlays.
    *
    * @param {Event} event
    */
   onCloneWheel(event) {
+    if (this.scrollableElement !== window) {
+      event.preventDefault();
+    }
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
 

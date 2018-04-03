@@ -68,7 +68,7 @@ class TableRenderer {
     let adjusted = false;
 
     if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM) ||
-    Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
 
       // do NOT render headers on the bottom or bottom-left corner overlay
       this.columnHeaders = [];
