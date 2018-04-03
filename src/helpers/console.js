@@ -13,7 +13,7 @@ import {isDefined} from './mixed';
 /**
  * Logs message to the console if the `console` object is exposed.
  *
- * @param {String} messages Messages which will be logged.
+ * @param {...String} messages Messages which will be logged.
  */
 export function log(...messages) {
   if (isDefined(console)) {
@@ -24,7 +24,7 @@ export function log(...messages) {
 /**
  * Logs warn to the console if the `console` object is exposed.
  *
- * @param {String} messages Messages which will be logged.
+ * @param {...String} messages Messages which will be logged.
  */
 export function warn(...messages) {
   if (isDefined(console)) {
@@ -35,7 +35,7 @@ export function warn(...messages) {
 /**
  * Logs info to the console if the `console` object is exposed.
  *
- * @param {String} messages Messages which will be logged.
+ * @param {...String} messages Messages which will be logged.
  */
 export function info(...messages) {
   if (isDefined(console)) {
@@ -46,7 +46,7 @@ export function info(...messages) {
 /**
  * Logs error to the console if the `console` object is exposed.
  *
- * @param {String} messages Messages which will be logged.
+ * @param {...String} messages Messages which will be logged.
  */
 export function error(...messages) {
   if (isDefined(console)) {
