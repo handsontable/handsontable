@@ -42,7 +42,8 @@
     "no-undef": 0,
     "no-underscore-dangle": 0,
     "no-unused-vars": 1,
-    "no-restricted-globals": [2,
+    "no-restricted-globals": [
+      2,
       "Handsontable",
       {
         "name": "console",
