@@ -1,6 +1,7 @@
 import BasePlugin from 'handsontable/plugins/_base';
 import {arrayEach, arrayMap} from 'handsontable/helpers/array';
 import {toSingleLine} from 'handsontable/helpers/templateLiteralTag';
+import {warn} from 'handsontable/helpers/console';
 import {rangeEach} from 'handsontable/helpers/number';
 import EventManager from 'handsontable/eventManager';
 import {addClass, removeClass, closest} from 'handsontable/helpers/dom/element';
@@ -677,7 +678,7 @@ class Filters extends BasePlugin {
     const operationType = this.conditionCollection.columnTypes[column];
 
     if (conditionsByValue.length === 2 || conditionsWithoutByValue.length === 3) {
-      console.warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually. 
+      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually. 
         The overall amount of conditions exceed the capability of the dropdown menu. 
         For more details see the documentation.`);
 
