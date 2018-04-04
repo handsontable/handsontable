@@ -13,43 +13,43 @@ import {isDefined} from './mixed';
 /**
  * Logs message to the console if the `console` object is exposed.
  *
- * @param {...String} messages Messages which will be logged.
+ * @param {...*} args Objects which will be logged.
  */
-export function log(...messages) {
+export function log(...args) {
   if (isDefined(console)) {
-    console.log(...messages);
+    console.log(...args);
   }
 };
 
 /**
  * Logs warn to the console if the `console` object is exposed.
  *
- * @param {...String} messages Messages which will be logged.
+ * @param {...*} args Objects which will be logged.
  */
-export function warn(...messages) {
+export function warn(...args) {
   if (isDefined(console)) {
-    console.warn(...messages);
+    console.warn(...args);
   }
 };
 
 /**
  * Logs info to the console if the `console` object is exposed.
  *
- * @param {...String} messages Messages which will be logged.
+ * @param {...*} args Objects which will be logged.
  */
-export function info(...messages) {
+export function info(...args) {
   if (isDefined(console)) {
-    console.info(...messages);
+    console.info(...args);
   }
 };
 
 /**
  * Logs error to the console if the `console` object is exposed.
  *
- * @param {...String} messages Messages which will be logged.
+ * @param {...*} args Objects which will be logged.
  */
-export function error(...messages) {
+export function error(...args) {
   if (isDefined(console)) {
-    console.error(...messages);
+    console.error(...args);
   }
 };
