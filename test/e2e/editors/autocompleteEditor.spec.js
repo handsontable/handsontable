@@ -2055,8 +2055,8 @@ describe('AutocompleteEditor', () => {
       }
       await sleep(200);
       {
-        var ac = hot.getActiveEditor();
-        var innerHot = ac.htEditor;
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
           ['bar']
