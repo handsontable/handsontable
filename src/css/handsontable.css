@@ -706,13 +706,14 @@ thead .htCollapseButton:after {
   overflow: auto;
 }
 
-.ht_clone_left .wtHolder {
-  overflow-x: hidden;
-  overflow-y: auto;
+.handsontable .ht_master thead,
+.handsontable .ht_master tr th,
+.handsontable .ht_clone_left thead {
+  visibility: hidden;
 }
 
 .ht_clone_top .wtHolder,
+.ht_clone_left .wtHolder,
 .ht_clone_bottom .wtHolder {
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
 }

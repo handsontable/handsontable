@@ -259,23 +259,32 @@ TextEditor.prototype.refreshDimensions = function() {
 
     return;
   }
-  var
-    currentOffset = offset(this.TD),
-    containerOffset = offset(this.instance.rootElement),
-    scrollableContainer = getScrollableElement(this.TD),
-    totalRowsCount = this.instance.countRows(),
 
-    // If colHeaders is disabled, cells in the first row have border-top
-    editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1,
-    editTop = currentOffset.top - containerOffset.top - editTopModifier - (scrollableContainer.scrollTop || 0),
-    editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
+  const currentOffset = offset(this.TD);
+  const containerOffset = offset(this.instance.rootElement);
+  const scrollableContainer = this.instance.view.wt.wtOverlays.topOverlay.mainTableScrollableElement;
+  const totalRowsCount = this.instance.countRows();
+  const containerScrollTop = scrollableContainer !== window ?
+    scrollableContainer.scrollTop : 0;
+  const containerScrollLeft = scrollableContainer !== window ?
+    scrollableContainer.scrollLeft : 0;
 
-    settings = this.instance.getSettings(),
-    rowHeadersCount = this.instance.hasRowHeaders(),
-    colHeadersCount = this.instance.hasColHeaders(),
-    editorSection = this.checkEditorSection(),
-    backgroundColor = this.TD.style.backgroundColor,
-    cssTransformOffset;
+  const editorSection = this.checkEditorSection();
+
+  const scrollTop = ['', 'left'].includes(editorSection) ? containerScrollTop : 0;
+  const scrollLeft = ['', 'top', 'bottom'].includes(editorSection) ? containerScrollLeft : 0;
+
+  // If colHeaders is disabled, cells in the first row have border-top
+  const editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
+
+  const settings = this.instance.getSettings();
+  const rowHeadersCount = this.instance.hasRowHeaders();
+  const colHeadersCount = this.instance.hasColHeaders();
+  const backgroundColor = this.TD.style.backgroundColor;
+
+  let editTop = currentOffset.top - containerOffset.top - editTopModifier - scrollTop;
+  let editLeft = currentOffset.left - containerOffset.left - 1 - scrollLeft;
+  let cssTransformOffset;
 
   // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
   switch (editorSection) {
