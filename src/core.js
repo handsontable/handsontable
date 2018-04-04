@@ -1,6 +1,7 @@
 import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
 import {columnFactory} from './helpers/setting';
 import {isFunction} from './helpers/function';
+import {warn} from './helpers/console';
 import {isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty} from './helpers/mixed';
 import {isMobileBrowser} from './helpers/browser';
 import DataMap from './dataMap';
@@ -922,7 +923,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (changes.length) {
         beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
         if (isFunction(beforeChangeResult)) {
-          console.warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
+          warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
         } else if (beforeChangeResult === false) {
           changes.splice(0, changes.length); // invalidate all changes (remove everything from array)
         }
@@ -3140,7 +3141,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell = true, changeListener = true) {
-    console.warn(toSingleLine`Deprecation warning: This method is going to be removed in the next release.\x20
+    warn(toSingleLine`Deprecation warning: This method is going to be removed in the next release.\x20
       If you want to select a cell using props, please use the \`selectCell\` method.`);
 
     return this.selectCells([[row, prop, endRow, endProp]], scrollToCell, changeListener);

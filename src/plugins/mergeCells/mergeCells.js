@@ -10,6 +10,7 @@ import SelectionCalculations from './calculations/selection';
 import toggleMergeItem from './contextMenuItem/toggleMerge';
 import {arrayEach} from '../../helpers/array';
 import {clone} from '../../helpers/object';
+import {warn} from '../../helpers/console';
 import {rangeEach} from '../../helpers/number';
 import {applySpanProperties} from './utils';
 import './mergeCells.css';
@@ -156,22 +157,22 @@ class MergeCells extends BasePlugin {
     }
 
     if (MergedCellCoords.containsNegativeValues(setting)) {
-      console.warn(MergedCellCoords.NEGATIVE_VALUES_WARNING(setting));
+      warn(MergedCellCoords.NEGATIVE_VALUES_WARNING(setting));
 
       valid = false;
 
     } else if (MergedCellCoords.isOutOfBounds(setting, this.hot.countRows(), this.hot.countCols())) {
-      console.warn(MergedCellCoords.IS_OUT_OF_BOUNDS_WARNING(setting));
+      warn(MergedCellCoords.IS_OUT_OF_BOUNDS_WARNING(setting));
 
       valid = false;
 
     } else if (MergedCellCoords.isSingleCell(setting)) {
-      console.warn(MergedCellCoords.IS_SINGLE_CELL(setting));
+      warn(MergedCellCoords.IS_SINGLE_CELL(setting));
 
       valid = false;
 
     } else if (MergedCellCoords.containsZeroSpan(setting)) {
-      console.warn(MergedCellCoords.ZERO_SPAN_WARNING(setting));
+      warn(MergedCellCoords.ZERO_SPAN_WARNING(setting));
 
       valid = false;
     }

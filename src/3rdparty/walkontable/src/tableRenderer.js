@@ -6,6 +6,8 @@ import {
   innerHeight,
   outerWidth
 } from './../../../helpers/dom/element';
+import {warn} from './../../../helpers/console';
+import {toSingleLine} from './../../../helpers/templateLiteralTag';
 import Overlay from './overlay/_base';
 
 let performanceWarningAppeared = false;
@@ -179,8 +181,8 @@ class TableRenderer {
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {
         performanceWarningAppeared = true;
-        console.warn('Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number ' +
-                     'of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.');
+        warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number 
+          of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
       }
       if (rowsToRender !== void 0 && visibleRowIndex === rowsToRender) {
         // We have as much rows as needed for this clone
