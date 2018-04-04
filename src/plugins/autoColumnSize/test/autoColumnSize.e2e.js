@@ -31,7 +31,7 @@ describe('AutoColumnSize', () => {
     expect(width1).toBeLessThan(width2);
   });
 
-  it('should update column width after update value in cell (array of objects)', function() {
+  it('should update column width after update value in cell (array of objects)', async () => {
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -42,16 +42,18 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(this.$container, 0)).toBeAroundValue(50, 3);
-    expect([117, 120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
-    expect([216, 229, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
+    expect(colWidth(spec().$container, 0)).toBeAroundValue(50, 3);
+    expect([117, 120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
+    expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
 
     setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
     setDataAtRowProp(0, 'name', 'foo');
 
-    expect([165, 168, 169, 189, 191]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
-    expect(colWidth(this.$container, 1)).toBeAroundValue(50, 3);
-    expect([216, 229, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
+    await sleep(50);
+
+    expect([165, 168, 169, 189, 191]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect(colWidth(spec().$container, 1)).toBeAroundValue(50, 3);
+    expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
   });
 
   it('should correctly detect column widths with colHeaders', function() {
@@ -193,7 +195,7 @@ describe('AutoColumnSize', () => {
     expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
   });
 
-  it('should keep last columns width unchanged if all rows was removed', function() {
+  it('should keep last columns width unchanged if all rows was removed', async () => {
     var hot = handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -204,15 +206,16 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
-    expect([117, 120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
-    expect([216, 229, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
+    expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect([117, 120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
+    expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
 
     hot.alter('remove_row', 0);
+    await sleep(50);
 
-    expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
-    expect([117, 120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 1)]));
-    expect([216, 229, 247, 260]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 2)]));
+    expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect([117, 120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
+    expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
   });
 
   it('should be possible to disable plugin using updateSettings', function() {

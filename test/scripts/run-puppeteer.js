@@ -4,6 +4,7 @@ const ecstatic = require('ecstatic');
 const JasmineReporter = require('jasmine-terminal-reporter');
 
 const PORT = 8080;
+const DEFAULT_INACTIVITY_TIMEOUT = 10000;
 
 const [,, path] = process.argv;
 
@@ -16,15 +17,17 @@ if (!path) {
 
 const cleanupFactory = (browser, server) => async (exitCode) => {
   await browser.close();
-  await new Promise((resolve) => server.close(() => resolve()));
+  await new Promise((resolve) => server.close(resolve));
   process.exit(exitCode);
 };
 
 (async () => {
   const browser = await puppeteer.launch({
-    timeout: 10000,
-    // devtools: true,
+    timeout: DEFAULT_INACTIVITY_TIMEOUT,
+    // devtools: true, // Turn it on to debug the tests.
     headless: false,
+    // Puppeteer by default hide the scrollbars in headless mode (https://github.com/GoogleChrome/puppeteer/blob/master/lib/Launcher.js#L86).
+    // To prevent this the custom arguments are provided.
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless', '--disable-gpu', '--mute-audio'],
   });
 
@@ -77,5 +80,11 @@ const cleanupFactory = (browser, server) => async (exitCode) => {
     await cleanup(1);
   });
 
-  await page.goto(`http://0.0.0.0:${PORT}/${path}`);
+  try {
+    await page.goto(`http://0.0.0.0:${PORT}/${path}`);
+  } catch (error) {
+    /* eslint-disable no-console */
+    console.log(error);
+    cleanup(1);
+  }
 })();

@@ -6,6 +6,10 @@ export function sleep(delay = 100) {
   });
 };
 
+export function promisfy(fn) {
+  return new Promise((resolve, reject) => fn(resolve, reject));
+};
+
 export function hot() {
   return spec().$container.data('handsontable');
 };
