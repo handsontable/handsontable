@@ -343,6 +343,14 @@ class Table {
         }
       }
 
+      let additionalClassesToRemove = this.wot.getSetting('onBeforeRemoveCellClassNames');
+
+      if (Array.isArray(additionalClassesToRemove)) {
+        for (let i = 0; i < additionalClassesToRemove.length; i++) {
+          classesToRemove.push(additionalClassesToRemove[i]);
+        }
+      }
+
       const classesToRemoveLength = classesToRemove.length;
 
       for (let i = 0; i < classesToRemoveLength; i++) {

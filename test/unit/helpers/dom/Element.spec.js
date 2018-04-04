@@ -1,4 +1,11 @@
-import {isInput, closestDown, getParent, hasClass} from 'handsontable/helpers/dom/element';
+import {
+  addClass,
+  closestDown,
+  getParent,
+  hasClass,
+  isInput,
+  removeClass,
+} from 'handsontable/helpers/dom/element';
 
 describe('DomElement helper', () => {
   //
@@ -95,7 +102,7 @@ describe('DomElement helper', () => {
       element = null;
     });
 
-    it('should not throw error when checked element has not classList property', () => {
+    it('should not throw an error when checked the element has not classList property', () => {
       expect(() => { hasClass(document, 'test2'); }).not.toThrow();
     });
 
@@ -105,6 +112,152 @@ describe('DomElement helper', () => {
 
     it('should return false if element has not className', () => {
       expect(hasClass(element, 'test2')).toBeFalsy();
+    });
+
+    it('should not touch the DOM element when the passed argument is empty', () => {
+      const elementMock = {
+        classList: {
+          contains: jasmine.createSpy('classList'),
+        }
+      };
+      hasClass(elementMock);
+
+      expect(elementMock.classList.contains).not.toHaveBeenCalled();
+
+      elementMock.classList.contains.calls.reset();
+      hasClass(elementMock, '');
+
+      expect(elementMock.classList.contains).not.toHaveBeenCalled();
+
+      elementMock.classList.contains.calls.reset();
+      hasClass(elementMock, []);
+
+      expect(elementMock.classList.contains).not.toHaveBeenCalled();
+
+      elementMock.classList.contains.calls.reset();
+      hasClass(elementMock, ['']);
+
+      expect(elementMock.classList.contains).not.toHaveBeenCalled();
+    });
+  });
+
+  /**
+   * Handsontable.helper.addClass
+   */
+  describe('addClass', () => {
+    let element = null;
+
+    beforeEach(() => {
+      element = document.createElement('div');
+      element.className = 'test1';
+    });
+
+    afterEach(() => {
+      element = null;
+    });
+
+    it('should add CSS class without removing old one', () => {
+      addClass(element, 'test2');
+
+      expect(element.className).toBe('test1 test2');
+    });
+
+    it('should add multiple CSS classes without removing old one (delimited by an empty space)', () => {
+      addClass(element, 'test2 test4 test3');
+
+      expect(element.className).toBe('test1 test2 test4 test3');
+    });
+
+    it('should add multiple CSS classes without removing old one (passed as an array)', () => {
+      addClass(element, ['test2', 'test4', 'test3']);
+
+      expect(element.className).toBe('test1 test2 test4 test3');
+    });
+
+    it('should not touch the DOM element when the passed argument is empty', () => {
+      const elementMock = {
+        classList: {
+          add: jasmine.createSpy('classList'),
+        }
+      };
+      addClass(elementMock);
+
+      expect(elementMock.classList.add).not.toHaveBeenCalled();
+
+      elementMock.classList.add.calls.reset();
+      addClass(elementMock, '');
+
+      expect(elementMock.classList.add).not.toHaveBeenCalled();
+
+      elementMock.classList.add.calls.reset();
+      addClass(elementMock, []);
+
+      expect(elementMock.classList.add).not.toHaveBeenCalled();
+
+      elementMock.classList.add.calls.reset();
+      addClass(elementMock, ['']);
+
+      expect(elementMock.classList.add).not.toHaveBeenCalled();
+    });
+  });
+
+  /**
+   * Handsontable.helper.removeClass
+   */
+  describe('removeClass', () => {
+    let element = null;
+
+    beforeEach(() => {
+      element = document.createElement('div');
+      element.className = 'test1 test3';
+    });
+
+    afterEach(() => {
+      element = null;
+    });
+
+    it('should remove CSS class without removing rest CSS classes', () => {
+      removeClass(element, 'test1');
+
+      expect(element.className).toBe('test3');
+    });
+
+    it('should remove multiple CSS classes (delimited by an empty space)', () => {
+      removeClass(element, 'test2 test3 test1');
+
+      expect(element.className).toBe('');
+    });
+
+    it('should remove CSS multiple classes (passed as an array)', () => {
+      removeClass(element, ['test2', 'test3', 'test1']);
+
+      expect(element.className).toBe('');
+    });
+
+    it('should not touch the DOM element when the passed argument is empty', () => {
+      const elementMock = {
+        classList: {
+          remove: jasmine.createSpy('classList'),
+        }
+      };
+      removeClass(elementMock);
+
+      expect(elementMock.classList.remove).not.toHaveBeenCalled();
+
+      elementMock.classList.remove.calls.reset();
+      removeClass(elementMock, '');
+
+      expect(elementMock.classList.remove).not.toHaveBeenCalled();
+
+      elementMock.classList.remove.calls.reset();
+      removeClass(elementMock, []);
+
+      expect(elementMock.classList.remove).not.toHaveBeenCalled();
+
+      elementMock.classList.remove.calls.reset();
+      removeClass(elementMock, ['']);
+
+      expect(elementMock.classList.remove).not.toHaveBeenCalled();
     });
   });
 });

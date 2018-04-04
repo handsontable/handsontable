@@ -163,17 +163,6 @@
   padding: 2px 4px;
 }
 
-/* selection */
-.handsontable tbody th.ht__highlight,
-.handsontable thead th.ht__highlight {
-  background-color: #dcdcdc;
-}
-.handsontable.ht__selection--columns thead th.ht__highlight,
-.handsontable.ht__selection--rows tbody th.ht__highlight {
-  background-color: #8eb0e7;
-  color: #000;
-}
-
 #hot-display-license-info {
   font-size: 9px;
   color: #323232 ;
@@ -261,8 +250,7 @@
   right: -15px;
 }
 
-/* border line */
-
+/* Selection */
 .handsontable .wtBorder {
   position: absolute;
   font-size: 0;
@@ -337,6 +325,17 @@
 }
 .handsontable td.area-7:before {
   opacity: 0.58;
+}
+
+.handsontable tbody th.ht__highlight,
+.handsontable thead th.ht__highlight {
+  background-color: #dcdcdc;
+}
+
+.handsontable tbody th.ht__active_highlight,
+.handsontable thead th.ht__active_highlight {
+  background-color: #8eb0e7;
+  color: #000;
 }
 
 /* fill handle */
@@ -474,47 +473,6 @@ CheckboxRenderer
   cursor: pointer;
   display: inline-block;
   width: 100%;
-}
-
-@-webkit-keyframes opacity-hide {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-    /*display: none;*/
-  }
-}
-@keyframes opacity-hide {
-  from {
-    /*display: block;*/
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-    /*display: none;*/
-  }
-}
-
-@-webkit-keyframes opacity-show {
-  from {
-    opacity: 0;
-    /*display: none;*/
-  }
-  to {
-    opacity: 1;
-    /*display: block;*/
-  }
-}
-@keyframes opacity-show {
-  from {
-    opacity: 0;
-    /*display: none;*/
-  }
-  to {
-    opacity: 1;
-    /*display: block;*/
-  }
 }
 
 /**
@@ -757,53 +715,4 @@ thead .htCollapseButton:after {
 .ht_clone_bottom .wtHolder {
   overflow-x: auto;
   overflow-y: hidden;
-}
-
-
-/*WalkontableDebugOverlay*/
-
-.wtDebugHidden {
-  display: none;
-}
-
-.wtDebugVisible {
-  display: block;
-  -webkit-animation-duration: 0.5s;
-  -webkit-animation-name: wtFadeInFromNone;
-  animation-duration: 0.5s;
-  animation-name: wtFadeInFromNone;
-}
-
-@keyframes wtFadeInFromNone {
-  0% {
-    display: none;
-    opacity: 0;
-  }
-
-  1% {
-    display: block;
-    opacity: 0;
-  }
-
-  100% {
-    display: block;
-    opacity: 1;
-  }
-}
-
-@-webkit-keyframes wtFadeInFromNone {
-  0% {
-    display: none;
-    opacity: 0;
-  }
-
-  1% {
-    display: block;
-    opacity: 0;
-  }
-
-  100% {
-    display: block;
-    opacity: 1;
-  }
 }

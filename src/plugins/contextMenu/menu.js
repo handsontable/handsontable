@@ -95,8 +95,13 @@ class Menu {
 
   /**
    * Open menu.
+   *
+   * @fires Hooks#beforeContextMenuShow
+   * @fires Hooks#afterContextMenuShow
    */
   open() {
+    this.runLocalHooks('beforeOpen');
+
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
 

@@ -693,7 +693,7 @@ class Comments extends BasePlugin {
         },
         callback: () => this.onContextMenuAddComment(),
         disabled() {
-          return !(this.getSelectedLast() && !this.selection.selectedHeader.corner);
+          return !(this.getSelectedLast() && !this.selection.isSelectedByCorner());
         }
       },
       {
@@ -702,7 +702,7 @@ class Comments extends BasePlugin {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
         },
         callback: () => this.onContextMenuRemoveComment(),
-        disabled: () => this.hot.selection.selectedHeader.corner
+        disabled: () => this.hot.selection.isSelectedByCorner()
       },
       {
         key: 'commentsReadOnly',
@@ -726,7 +726,7 @@ class Comments extends BasePlugin {
           return label;
         },
         callback: () => this.onContextMenuMakeReadOnly(),
-        disabled: () => this.hot.selection.selectedHeader.corner || !this.checkSelectionCommentsConsistency()
+        disabled: () => this.hot.selection.isSelectedByCorner() || !this.checkSelectionCommentsConsistency()
       }
     );
   }

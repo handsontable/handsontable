@@ -72,8 +72,12 @@ declare namespace _Handsontable {
     rowOffset(): number;
     runHooks(key: string, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
     scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean): boolean;
+    selectAll(): void;
     selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
     selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
+    selectCells(coords: Array<[number, number | string, number, number | string]> | Array<Handsontable.wot.CellRange>, scrollToCell?: boolean, changeListener?: boolean): boolean;
+    selectColumns(startColumn: number | string, endColumn?: number | string): boolean;
+    selectRows(startRow: number, endRow?: number): boolean;
     setCellMeta(row: number, col: number, key: string, val: string): void;
     setCellMetaObject(row: number, col: number, prop: object): void;
     setDataAtCell(row: number | any[], col: number, value: string | object, source?: string): void;
@@ -1484,7 +1488,7 @@ declare namespace Handsontable {
     noWordWrapClassName?: string;
     observeChanges?: boolean;
     observeDOMVisibility?: boolean;
-    outsideClickDeselects?: boolean;
+    outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
     pasteMode?: string;
     persistentState?: boolean;
     placeholder?: any;
@@ -1537,6 +1541,7 @@ declare namespace Handsontable {
     afterColumnSort?: (column: number, order: boolean) => void;
     afterContextMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterContextMenuHide?: (context: object) => void;
+    beforeContextMenuShow?: (context: object) => void;
     afterContextMenuShow?: (context: object) => void;
     afterCopy?: (data: any[], coords: any[]) => void;
     afterCopyLimit?: (selectedRows: number, selectedColumnds: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
@@ -1549,6 +1554,7 @@ declare namespace Handsontable {
     afterDocumentKeyDown?: (event: Event) => void;
     afterDropdownMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterDropdownMenuHide?: (instance: any) => void;
+    beforeDropdownMenuShow?: (instance: any) => void;
     afterDropdownMenuShow?: (instance: any) => void;
     afterFilter?: (formulasStack: any[]) => void;
     afterGetCellMeta?: (row: number, col: number, cellProperties: object) => void;
@@ -1942,6 +1948,8 @@ declare namespace Handsontable {
 declare class Handsontable extends _Handsontable.Core {
   static baseVersion: string;
   static buildDate: string;
+  static packageName: string;
+  static version: string;
   static cellTypes: Handsontable.CellTypes;
   static dom: Handsontable.Dom;
   static editors: Handsontable.Editors;
@@ -1949,7 +1957,6 @@ declare class Handsontable extends _Handsontable.Core {
   static hooks: Handsontable.Hooks;
   static plugins: Handsontable.Plugins;
   static renderers: Handsontable.Renderers;
-  static version: string;
 }
 
 export = Handsontable;

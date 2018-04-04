@@ -1,6 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import staticRegister from './../../../utils/staticRegister';
 
+import activeHeaderHighlight from './activeHeader';
 import areaHighlight from './area';
 import cellHighlight from './cell';
 import fillHighlight from './fill';
@@ -11,6 +12,7 @@ const {
   getItem,
 } = staticRegister('highlight/types');
 
+register('active-header', activeHeaderHighlight);
 register('area', areaHighlight);
 register('cell', cellHighlight);
 register('fill', fillHighlight);

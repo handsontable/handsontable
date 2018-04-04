@@ -34,7 +34,7 @@ export default function toggleMergeItem(plugin) {
         colspan: sel[3] - sel[1] + 1
       });
 
-      return isSingleCell || this.selection.selectedHeader.corner;
+      return isSingleCell || this.selection.isSelectedByCorner();
     },
     hidden: false
   };
