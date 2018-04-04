@@ -54,7 +54,7 @@ class Search extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Default callback function called during querying for each cell from the {@link DataMap}.
+     * Function called during querying for each cell from the {@link DataMap}.
      *
      * @type {Function}
      */
@@ -91,7 +91,7 @@ class Search extends BasePlugin {
     }
 
     const searchSettings = this.hot.getSettings().search;
-    this.checkPluginSettings(searchSettings);
+    this.updatePluginSettings(searchSettings);
 
     this.addHook('beforeRenderer', (...args) => this.onBeforeRenderer(...args));
 
@@ -126,7 +126,7 @@ class Search extends BasePlugin {
    * Query method - used inside search input listener.
    *
    * @param {String} queryStr Searched value.
-   * @param {Function} [callback] Callback function responsible for setting the cell's `isSearchResult` property.
+   * @param {Function} [callback] Callback function performed on cells with values which matches to the searched query.
    * @param {Function} [queryMethod] Query function responsible for determining whether a query matches the value stored in a cell.
    *
    * @returns {Array} Return array of objects with `row`, `col`, `data` properties or empty array.
@@ -219,12 +219,12 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Checks the settings of the plugin.
+   * Updates the settings of the plugin.
    *
    * @param {Object} searchSettings The plugin settings, taken from Handsontable configuration.
    * @private
    */
-  checkPluginSettings(searchSettings) {
+  updatePluginSettings(searchSettings) {
     if (isObject(searchSettings)) {
       if (searchSettings.searchResultClass) {
         this.setSearchResultClass(searchSettings.searchResultClass);
@@ -253,29 +253,23 @@ class Search extends BasePlugin {
    */
   onBeforeRenderer(TD, row, col, prop, value, cellProperties) {
     // TODO: #4972
-    const className = cellProperties.className;
+    const className = cellProperties.className || [];
     let classArray = [];
 
-    if (className) {
-      if (typeof className === 'string') {
-        classArray = className.split(' ');
+    if (typeof className === 'string') {
+      classArray = className.split(' ');
 
-      } else if (Array.isArray(className)) {
-        classArray = className;
-      }
+    } else {
+      classArray.push(...className);
     }
 
     if (this.isEnabled() && cellProperties.isSearchResult) {
-      if (!className.includes(this.searchResultClass)) {
+      if (!classArray.includes(this.searchResultClass)) {
         classArray.push(`${this.searchResultClass}`);
       }
 
-    } else {
-      let containSearchResultClass = classArray.indexOf(this.searchResultClass);
-
-      if (containSearchResultClass > -1) {
-        classArray.splice(containSearchResultClass, 1);
-      }
+    } else if (classArray.includes(this.searchResultClass)) {
+      classArray.splice(classArray.indexOf(this.searchResultClass), 1);
     }
 
     cellProperties.className = classArray.join(' ');
