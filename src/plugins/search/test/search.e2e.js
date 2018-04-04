@@ -104,9 +104,7 @@ describe('Search plugin', () => {
         search: true
       });
 
-      spyOn(hot.getPlugin('search'), 'onBeforeRenderer');
-
-      const onBeforeRenderer = hot.getPlugin('search').onBeforeRenderer;
+      const onBeforeRenderer = spyOn(hot.getPlugin('search'), 'onBeforeRenderer');
 
       hot.getPlugin('search').query('2');
       hot.render();
@@ -346,7 +344,7 @@ describe('Search plugin', () => {
 
     it('should invoke custom callback for each cell which has been tested', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
         search: true
       });
 
@@ -354,23 +352,11 @@ describe('Search plugin', () => {
 
       hot.getPlugin('search').query('A', searchCallback);
 
-      expect(searchCallback.calls.count()).toEqual(25);
-
-      for (let rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex += 1) {
-        for (let colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex += 1) {
-          const callArgs = searchCallback.calls.argsFor((rowIndex * 5) + colIndex);
-          expect(callArgs[0]).toEqual(hot);
-          expect(callArgs[1]).toEqual(rowIndex);
-          expect(callArgs[2]).toEqual(colIndex);
-          expect(callArgs[3]).toEqual(hot.getDataAtCell(rowIndex, colIndex));
-
-          if (colIndex === 0) {
-            expect(callArgs[4]).toBe(true);
-          } else {
-            expect(callArgs[4]).toBe(false);
-          }
-        }
-      }
+      expect(searchCallback.calls.count()).toEqual(4);
+      expect(searchCallback.calls.argsFor(0).splice(1)).toEqual([0, 0, 'A1', true]);
+      expect(searchCallback.calls.argsFor(1).splice(1)).toEqual([0, 1, 'B1', false]);
+      expect(searchCallback.calls.argsFor(2).splice(1)).toEqual([1, 0, 'A2', true]);
+      expect(searchCallback.calls.argsFor(3).splice(1)).toEqual([1, 1, 'B2', false]);
     });
   });
 
