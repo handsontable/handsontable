@@ -18,6 +18,13 @@ class Overlays {
    * @param {Walkontable} wotInstance
    */
   constructor(wotInstance) {
+    /**
+     * Sometimes `line-height` might be set to 'normal'. In that case, a default `font-size` should be multiplied by roughly 1.2.
+     * https://developer.mozilla.org/pl/docs/Web/CSS/line-height#Values
+     */
+    const BODY_LINE_HEIGHT = parseInt(getComputedStyle(document.body).lineHeight, 10);
+    const FALLBACK_BODY_LINE_HEIGHT = parseInt(getComputedStyle(document.body).fontSize, 10) * 1.2;
+
     this.wot = wotInstance;
 
     // legacy support
@@ -78,7 +85,7 @@ class Overlays {
 
     this.registeredListeners = [];
 
-    this.browserLineHeight = parseInt(getComputedStyle(document.body)['line-height'], 10);
+    this.browserLineHeight = BODY_LINE_HEIGHT || FALLBACK_BODY_LINE_HEIGHT;
 
     this.registerListeners();
   }
@@ -311,11 +318,11 @@ class Overlays {
 
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
-    if (this.keyPressed) {
-      if ((masterVertical !== window && target !== window && !event.target.contains(masterVertical)) ||
-          (masterHorizontal !== window && target !== window && !event.target.contains(masterHorizontal))) {
-        return;
-      }
+    const shouldNotWheelVertically = masterVertical !== window && target !== window && !event.target.contains(masterVertical);
+    const shouldNotWheelHorizontally = masterHorizontal !== window && target !== window && !event.target.contains(masterHorizontal);
+
+    if (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally)) {
+      return;
     }
 
     this.translateMouseWheelToScroll(event);
