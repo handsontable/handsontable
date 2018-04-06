@@ -62,7 +62,7 @@ class CommandExecutor {
     let callbacks = [];
 
     if (!command && !defaultCommand) {
-      throw new Error(`Menu command '${commandName}' not exists.`);
+      throw new Error(`Menu command '${commandName}' does not exist.`);
     }
 
     if (command) {
@@ -90,7 +90,7 @@ class CommandExecutor {
       if (defaultCommand.submenu && subCommandName) {
         defaultCommand = findSubCommand(subCommandName, defaultCommand.submenu.items);
       }
-      if (!command || command.callback !== defaultCommand.callback) {
+      if (typeof defaultCommand.callback === 'function' && (!command || command.callback !== defaultCommand.callback)) {
         callbacks.push(defaultCommand.callback);
       }
     }

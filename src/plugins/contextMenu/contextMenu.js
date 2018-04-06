@@ -127,7 +127,7 @@ class ContextMenu extends BasePlugin {
     this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
 
     const settings = this.hot.getSettings().contextMenu;
-    let defaultItems = predefinedItems();
+    const defaultItems = this.itemsFactory.getPredefinedItems();
 
     let configuredItems = {
       items: this.itemsFactory.getItems(settings)

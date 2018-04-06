@@ -20,6 +20,13 @@ class ItemsFactory {
   }
 
   /**
+   * Get the predefined items.
+   */
+  getPredefinedItems() {
+    return this.predefinedItems;
+  }
+
+  /**
    * Set predefined items.
    *
    * @param {Array} predefinedItems Array of predefined items.
