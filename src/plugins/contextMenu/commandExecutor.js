@@ -81,9 +81,6 @@ class CommandExecutor {
       if (typeof command.callback === 'function') {
         callbacks.push(command.callback);
       }
-      if (typeof this.commonCallback === 'function') {
-        callbacks.push(this.commonCallback);
-      }
     }
 
     if (defaultCommand) {
@@ -93,6 +90,10 @@ class CommandExecutor {
       if (typeof defaultCommand.callback === 'function' && (!command || command.callback !== defaultCommand.callback)) {
         callbacks.push(defaultCommand.callback);
       }
+    }
+
+    if (typeof this.commonCallback === 'function') {
+      callbacks.push(this.commonCallback);
     }
 
     params.unshift(commandSplit.join(':'));
