@@ -65,7 +65,7 @@ class CommandExecutor {
       throw new Error(`Menu command '${commandName}' not exists.`);
     }
 
-    if(command){
+    if (command) {
       if (subCommandName && command.submenu) {
         command = findSubCommand(subCommandName, command.submenu.items);
       }
@@ -86,11 +86,11 @@ class CommandExecutor {
       }
     }
 
-    if(defaultCommand){
+    if (defaultCommand) {
       if (defaultCommand.submenu && subCommandName) {
         defaultCommand = findSubCommand(subCommandName, defaultCommand.submenu.items);
       }
-      if(!command || command.callback !== defaultCommand.callback){
+      if (!command || command.callback !== defaultCommand.callback) {
         callbacks.push(defaultCommand.callback);
       }
     }
