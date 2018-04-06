@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 0.38.1
- * Release date: 20/03/2018 (built at 19/03/2018 09:34:32)
+ * Release date: 20/03/2018 (built at 06/04/2018 11:14:39)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -28376,7 +28376,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '19/03/2018 09:34:32';
+Handsontable.buildDate = '06/04/2018 11:14:39';
 Handsontable.packageName = 'handsontable';
 Handsontable.version = '0.38.1';
 
@@ -41745,6 +41745,8 @@ var _predefinedItems = __webpack_require__(92);
 
 __webpack_require__(309);
 
+var _object = __webpack_require__(2);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -41862,7 +41864,9 @@ var ContextMenu = function (_BasePlugin) {
       this.itemsFactory = new _itemsFactory2.default(this.hot, ContextMenu.DEFAULT_ITEMS);
 
       var settings = this.hot.getSettings().contextMenu;
-      var predefinedItems = {
+      var defaultItems = (0, _predefinedItems.predefinedItems)();
+
+      var configuredItems = {
         items: this.itemsFactory.getItems(settings)
       };
       this.registerEvents();
@@ -41877,9 +41881,9 @@ var ContextMenu = function (_BasePlugin) {
           return;
         }
 
-        _this2.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
+        _this2.hot.runHooks('afterContextMenuDefaultOptions', configuredItems);
 
-        _this2.itemsFactory.setPredefinedItems(predefinedItems.items);
+        _this2.itemsFactory.setPredefinedItems(configuredItems.items);
         var menuItems = _this2.itemsFactory.getItems(settings);
 
         _this2.menu = new _menu2.default(_this2.hot, {
@@ -41907,6 +41911,9 @@ var ContextMenu = function (_BasePlugin) {
         // Register all commands. Predefined and added by user or by plugins
         (0, _array.arrayEach)(menuItems, function (command) {
           return _this2.commandExecutor.registerCommand(command.key, command);
+        });
+        (0, _object.objectEach)(defaultItems, function (command, key) {
+          return _this2.commandExecutor.registerDefaultCommand(key, command);
         });
       };
 
@@ -42155,6 +42162,7 @@ var CommandExecutor = function () {
 
     this.hot = hotInstance;
     this.commands = {};
+    this.defaultCommands = {};
     this.commonCallback = null;
   }
 
@@ -42171,6 +42179,20 @@ var CommandExecutor = function () {
     key: 'registerCommand',
     value: function registerCommand(name, commandDescriptor) {
       this.commands[name] = commandDescriptor;
+    }
+
+    /**
+     * Register default command.
+     *
+     * @param {String} name Command name.
+     * @param {Object} commandDescriptor Command descriptor object with properties like `key` (command id),
+     *                                   `callback` (task to execute), `name` (command name), `disabled` (command availability).
+     */
+
+  }, {
+    key: 'registerDefaultCommand',
+    value: function registerDefaultCommand(name, commandDescriptor) {
+      this.defaultCommands[name] = commandDescriptor;
     }
 
     /**
@@ -42206,30 +42228,43 @@ var CommandExecutor = function () {
 
       var subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
       var command = this.commands[commandName];
-
-      if (!command) {
-        throw new Error('Menu command \'' + commandName + '\' not exists.');
-      }
-      if (subCommandName && command.submenu) {
-        command = findSubCommand(subCommandName, command.submenu.items);
-      }
-      if (command.disabled === true) {
-        return;
-      }
-      if (typeof command.disabled == 'function' && command.disabled.call(this.hot) === true) {
-        return;
-      }
-      if ((0, _object.hasOwnProperty)(command, 'submenu')) {
-        return;
-      }
+      var defaultCommand = this.defaultCommands[commandName];
       var callbacks = [];
 
-      if (typeof command.callback === 'function') {
-        callbacks.push(command.callback);
+      if (!command && !defaultCommand) {
+        throw new Error('Menu command \'' + commandName + '\' not exists.');
       }
-      if (typeof this.commonCallback === 'function') {
-        callbacks.push(this.commonCallback);
+
+      if (command) {
+        if (subCommandName && command.submenu) {
+          command = findSubCommand(subCommandName, command.submenu.items);
+        }
+        if (command.disabled === true) {
+          return;
+        }
+        if (typeof command.disabled == 'function' && command.disabled.call(this.hot) === true) {
+          return;
+        }
+        if ((0, _object.hasOwnProperty)(command, 'submenu')) {
+          return;
+        }
+        if (typeof command.callback === 'function') {
+          callbacks.push(command.callback);
+        }
+        if (typeof this.commonCallback === 'function') {
+          callbacks.push(this.commonCallback);
+        }
       }
+
+      if (defaultCommand) {
+        if (defaultCommand.submenu && subCommandName) {
+          defaultCommand = findSubCommand(subCommandName, defaultCommand.submenu.items);
+        }
+        if (!command || command.callback !== defaultCommand.callback) {
+          callbacks.push(defaultCommand.callback);
+        }
+      }
+
       params.unshift(commandSplit.join(':'));
       (0, _array.arrayEach)(callbacks, function (callback) {
         return callback.apply(_this.hot, params);

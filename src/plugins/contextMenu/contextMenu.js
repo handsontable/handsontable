@@ -19,10 +19,12 @@ import {
   REDO,
   READ_ONLY,
   ALIGNMENT,
-  SEPARATOR
+  SEPARATOR,
+  predefinedItems
 } from './predefinedItems';
 
 import './contextMenu.css';
+import { objectEach } from '../../helpers/object';
 
 Hooks.getSingleton().register('afterContextMenuDefaultOptions');
 Hooks.getSingleton().register('afterContextMenuShow');
@@ -125,7 +127,9 @@ class ContextMenu extends BasePlugin {
     this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
 
     const settings = this.hot.getSettings().contextMenu;
-    let predefinedItems = {
+    let defaultItems = predefinedItems();
+
+    let configuredItems = {
       items: this.itemsFactory.getItems(settings)
     };
     this.registerEvents();
@@ -140,9 +144,9 @@ class ContextMenu extends BasePlugin {
         return;
       }
 
-      this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
+      this.hot.runHooks('afterContextMenuDefaultOptions', configuredItems);
 
-      this.itemsFactory.setPredefinedItems(predefinedItems.items);
+      this.itemsFactory.setPredefinedItems(configuredItems.items);
       let menuItems = this.itemsFactory.getItems(settings);
 
       this.menu = new Menu(this.hot, {
@@ -159,6 +163,7 @@ class ContextMenu extends BasePlugin {
 
       // Register all commands. Predefined and added by user or by plugins
       arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
+      objectEach(defaultItems, (command, key) => this.commandExecutor.registerDefaultCommand(key, command));
     };
 
     this.callOnPluginsReady(() => {
