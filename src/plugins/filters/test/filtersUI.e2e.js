@@ -556,7 +556,7 @@ describe('Filters UI', function() {
       expect($(conditionSelectRootElements().first).find('.htUISelectCaption').text()).toBe('None');
     });
 
-    it('should save state of applied filter for specified column', function(done) {
+    it('should save state of applied filter for specified column', async () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -571,46 +571,45 @@ describe('Filters UI', function() {
       // eq
       $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown');
 
-      setTimeout(function () {
-        // Is equal to '5'
-        document.activeElement.value = '5';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      await sleep(200);
 
-        dropdownMenu(0);
+      // Is equal to '5'
+      document.activeElement.value = '5';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-        expect(dropdownMenuRootElement().querySelector('.htUISelectCaption').textContent).toBe('Is equal to');
+      dropdownMenu(0);
 
-        const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput input');
+      expect(dropdownMenuRootElement().querySelector('.htUISelectCaption').textContent).toBe('Is equal to');
 
-        expect($(inputs[0]).is(':visible')).toBe(true);
-        expect(inputs[0].value).toBe('5');
-        expect($(inputs[1]).is(':visible')).toBe(false);
+      let inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput input');
 
-        dropdownMenu(3);
-        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-        // between
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(11) td')).simulate('mousedown');
-      }, 200);
+      expect($(inputs[0]).is(':visible')).toBe(true);
+      expect(inputs[0].value).toBe('5');
+      expect($(inputs[1]).is(':visible')).toBe(false);
 
-      setTimeout(function () {
-        // Is equal to '5'
-        document.activeElement.value = '5';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      dropdownMenu(3);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // between
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(11) td')).simulate('mousedown');
 
-        dropdownMenu(3);
+      await sleep(200);
 
-        expect(dropdownMenuRootElement().querySelector('.htUISelectCaption').textContent).toBe('Is between');
+      // Is equal to '5'
+      document.activeElement.value = '5';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-        const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput input');
+      dropdownMenu(3);
 
-        expect($(inputs[0]).is(':visible')).toBe(true);
-        expect(inputs[0].value).toBe('5');
-        expect($(inputs[1]).is(':visible')).toBe(true);
-        expect(inputs[1].value).toBe('');
-        done();
-      }, 400);
+      expect(dropdownMenuRootElement().querySelector('.htUISelectCaption').textContent).toBe('Is between');
+
+      inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput input');
+
+      expect($(inputs[0]).is(':visible')).toBe(true);
+      expect(inputs[0].value).toBe('5');
+      expect($(inputs[1]).is(':visible')).toBe(true);
+      expect(inputs[1].value).toBe('');
     });
 
     it('should save state of applied filter for specified column when conditions was added from API', function(done) {
@@ -1457,7 +1456,7 @@ describe('Filters UI', function() {
       }, 200);
     });
 
-    it('should overwrite condition filter when at specified column filter was already applied', function(done) {
+    it('should overwrite condition filter when at specified column filter was already applied', async () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1472,32 +1471,33 @@ describe('Filters UI', function() {
       // eq
       $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown');
 
-      setTimeout(function () {
-        // Is equal to '5'
-        document.activeElement.value = '5';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      await sleep(200);
 
-        expect(getData().length).toEqual(1);
+      // Is equal to '5'
+      document.activeElement.value = '5';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-        dropdownMenu(0);
-        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-        // lt
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(11) td')).simulate('mousedown');
-      }, 200);
+      expect(getData().length).toEqual(1);
 
-      setTimeout(function () {
-        // Less than
-        document.activeElement.value = '8';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      dropdownMenu(0);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // lt
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(11) td')).simulate('mousedown');
 
-        expect(getData().length).toEqual(7);
-        done();
-      }, 400);
+      await sleep(200);
+
+      // Less than
+      document.activeElement.value = '8';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      await sleep(10);
+
+      expect(getData().length).toEqual(7);
     });
 
-    it('should filter values again when data was changed', function(done) {
+    it('should filter values again when data was changed', async () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1512,27 +1512,28 @@ describe('Filters UI', function() {
       // lt
       $(conditionMenuRootElements().first.querySelector('tbody :nth-child(11) td')).simulate('mousedown');
 
-      setTimeout(function () {
-        // Less than
-        document.activeElement.value = '8';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      await sleep(200);
 
-        expect(getData().length).toBe(7);
+      // Less than
+      document.activeElement.value = '8';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-        selectCell(3, 0);
-        keyDownUp('enter');
-        document.activeElement.value = '99';
-        keyDownUp('enter');
-      }, 300);
+      expect(getData().length).toBe(7);
 
-      setTimeout(function () {
-        dropdownMenu(0);
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      selectCell(3, 0);
+      keyDownUp('enter');
+      document.activeElement.value = '99';
+      keyDownUp('enter');
 
-        expect(getData().length).toBe(6);
-        done();
-      }, 600);
+      await sleep(200);
+
+      dropdownMenu(0);
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      await sleep(10);
+
+      expect(getData().length).toBe(6);
     });
 
     it('should filter values again when data was changed (filter by value)', function(done) {
@@ -1565,7 +1566,7 @@ describe('Filters UI', function() {
   });
 
   describe('Advanced filtering (multiple columns)', function() {
-    it('should filter values from 3 columns', function(done) {
+    it('should filter values from 3 columns', async () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1580,54 +1581,55 @@ describe('Filters UI', function() {
       // gt
       $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
 
-      setTimeout(function () {
-        // Greater than 12
-        document.activeElement.value = '12';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      await sleep(100);
 
-        dropdownMenu(2);
-        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-        // begins_with
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
-      }, 300);
+      // Greater than 12
+      document.activeElement.value = '12';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      setTimeout(function () {
-        document.activeElement.value = 'b';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      dropdownMenu(2);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // begins_with
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
 
-        dropdownMenu(4);
-        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-        // eq
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown');
-      }, 600);
+      await sleep(100);
 
-      setTimeout(function () {
-        document.activeElement.value = 'green';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      document.activeElement.value = 'b';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-        expect(getData().length).toEqual(2);
-        expect(getData()[0][0]).toBe(17);
-        expect(getData()[0][1]).toBe('Bridges Sawyer');
-        expect(getData()[0][2]).toBe('Bowie');
-        expect(getData()[0][3]).toBe('2015-06-28');
-        expect(getData()[0][4]).toBe('green');
-        expect(getData()[0][5]).toBe(1792.36);
-        expect(getData()[0][6]).toBe(false);
-        expect(getData()[1][0]).toBe(24);
-        expect(getData()[1][1]).toBe('Greta Patterson');
-        expect(getData()[1][2]).toBe('Bartonsville');
-        expect(getData()[1][3]).toBe(moment().add(-2, 'days').format(FILTERS_DATE_FORMAT));
-        expect(getData()[1][4]).toBe('green');
-        expect(getData()[1][5]).toBe(2437.58);
-        expect(getData()[1][6]).toBe(false);
-        done();
-      }, 900);
+      dropdownMenu(4);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // eq
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(6) td')).simulate('mousedown');
+
+      await sleep(100);
+
+      document.activeElement.value = 'green';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      await sleep(10);
+
+      expect(getData().length).toEqual(2);
+      expect(getData()[0][0]).toBe(17);
+      expect(getData()[0][1]).toBe('Bridges Sawyer');
+      expect(getData()[0][2]).toBe('Bowie');
+      expect(getData()[0][3]).toBe('2015-06-28');
+      expect(getData()[0][4]).toBe('green');
+      expect(getData()[0][5]).toBe(1792.36);
+      expect(getData()[0][6]).toBe(false);
+      expect(getData()[1][0]).toBe(24);
+      expect(getData()[1][1]).toBe('Greta Patterson');
+      expect(getData()[1][2]).toBe('Bartonsville');
+      expect(getData()[1][3]).toBe(moment().add(-2, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[1][4]).toBe('green');
+      expect(getData()[1][5]).toBe(2437.58);
+      expect(getData()[1][6]).toBe(false);
     });
 
-    it('should filter values from 3 columns (2 conditional and 1 by value)', function(done) {
+    it('should filter values from 3 columns (2 conditional and 1 by value)', async () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1642,54 +1644,51 @@ describe('Filters UI', function() {
       // gt
       $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
 
-      setTimeout(function () {
-        // Greater than 12
-        document.activeElement.value = '12';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      await sleep(200);
 
-        dropdownMenu(2);
-        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-        // begins_with
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
-      }, 300);
+      // Greater than 12
+      document.activeElement.value = '12';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      setTimeout(function () {
-        document.activeElement.value = 'b';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      dropdownMenu(2);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // begins_with
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
 
-        dropdownMenu(4);
-      }, 600);
+      await sleep(200);
 
-      setTimeout(function () {
-        // uncheck first record
-        $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-      }, 900);
+      document.activeElement.value = 'b';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      setTimeout(function () {
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      dropdownMenu(4);
+      // uncheck first record
+      $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
 
-        expect(getData().length).toEqual(2);
-        expect(getData()[0][0]).toBe(17);
-        expect(getData()[0][1]).toBe('Bridges Sawyer');
-        expect(getData()[0][2]).toBe('Bowie');
-        expect(getData()[0][3]).toBe('2015-06-28');
-        expect(getData()[0][4]).toBe('green');
-        expect(getData()[0][5]).toBe(1792.36);
-        expect(getData()[0][6]).toBe(false);
-        expect(getData()[1][0]).toBe(24);
-        expect(getData()[1][1]).toBe('Greta Patterson');
-        expect(getData()[1][2]).toBe('Bartonsville');
-        expect(getData()[1][3]).toBe(moment().add(-2, 'days').format(FILTERS_DATE_FORMAT));
-        expect(getData()[1][4]).toBe('green');
-        expect(getData()[1][5]).toBe(2437.58);
-        expect(getData()[1][6]).toBe(false);
-        done();
-      }, 1200);
+      await sleep(200);
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      await sleep(10);
+
+      expect(getData().length).toEqual(2);
+      expect(getData()[0][0]).toBe(17);
+      expect(getData()[0][1]).toBe('Bridges Sawyer');
+      expect(getData()[0][2]).toBe('Bowie');
+      expect(getData()[0][3]).toBe('2015-06-28');
+      expect(getData()[0][4]).toBe('green');
+      expect(getData()[0][5]).toBe(1792.36);
+      expect(getData()[0][6]).toBe(false);
+      expect(getData()[1][0]).toBe(24);
+      expect(getData()[1][1]).toBe('Greta Patterson');
+      expect(getData()[1][2]).toBe('Bartonsville');
+      expect(getData()[1][3]).toBe(moment().add(-2, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[1][4]).toBe('green');
+      expect(getData()[1][5]).toBe(2437.58);
+      expect(getData()[1][6]).toBe(false);
     });
 
-    it('should filter values from few columns (after change first column condition)', function(done) {
+    it('should filter values from few columns (after change first column condition)', async () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1704,49 +1703,47 @@ describe('Filters UI', function() {
       // gt
       $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
 
-      setTimeout(function () {
-        // Greater than 12
-        document.activeElement.value = '12';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      await sleep(200);
+      // Greater than 12
+      document.activeElement.value = '12';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-        dropdownMenu(2);
-        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-        // begins_with
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
-      }, 300);
+      dropdownMenu(2);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // begins_with
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
 
-      setTimeout(function () {
-        document.activeElement.value = 'b';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      await sleep(200);
+      document.activeElement.value = 'b';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-        // Change first added filter condition. First added condition is responsible for defining data root chain.
-        dropdownMenu(0);
-        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-        // between
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(13) td')).simulate('mousedown');
-      }, 600);
+      // Change first added filter condition. First added condition is responsible for defining data root chain.
+      dropdownMenu(0);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // between
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(13) td')).simulate('mousedown');
 
-      setTimeout(function () {
-        const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition input');
+      await sleep(200);
+      const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition input');
 
-        inputs[0].value = '1';
-        inputs[1].value = '15';
-        $(inputs[0]).simulate('keyup');
-        $(inputs[1]).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      inputs[0].value = '1';
+      inputs[1].value = '15';
+      $(inputs[0]).simulate('keyup');
+      $(inputs[1]).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-        expect(getData().length).toEqual(1);
-        expect(getData()[0][0]).toBe(14);
-        expect(getData()[0][1]).toBe('Helga Mathis');
-        expect(getData()[0][2]).toBe('Brownsville');
-        expect(getData()[0][3]).toBe('2015-03-22');
-        expect(getData()[0][4]).toBe('brown');
-        expect(getData()[0][5]).toBe(3917.34);
-        expect(getData()[0][6]).toBe(true);
-        done();
-      }, 900);
+      await sleep(10);
+
+      expect(getData().length).toEqual(1);
+      expect(getData()[0][0]).toBe(14);
+      expect(getData()[0][1]).toBe('Helga Mathis');
+      expect(getData()[0][2]).toBe('Brownsville');
+      expect(getData()[0][3]).toBe('2015-03-22');
+      expect(getData()[0][4]).toBe('brown');
+      expect(getData()[0][5]).toBe(3917.34);
+      expect(getData()[0][6]).toBe(true);
     });
 
     it('should apply filtered values to the next "by value" component defined after edited conditions', function(done) {
@@ -2047,8 +2044,7 @@ describe('Filters UI', function() {
   });
 
   describe('Advanced filtering (conditions, operations and "by value" component #160)', function() {
-    it('First conditional chosen -> filter operation -> unchecked first value from multiple select -> ' +
-      'selected `disjunction` operation -> filter operation', function (done) {
+    it('First conditional chosen -> filter operation -> unchecked first value from multiple select -> selected `disjunction` operation -> filter operation', async () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2063,33 +2059,31 @@ describe('Filters UI', function() {
       $(conditionSelectRootElements().first).simulate('click');
       $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
 
-      setTimeout(() => {
-        document.activeElement.value = 'm';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-      }, 200);
+      await sleep(200);
 
-      setTimeout(() => {
-        expect(getData().length).toBe(5);
-        dropdownMenu(1);
-      }, 400);
+      document.activeElement.value = 'm';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      setTimeout(() => {
-        const $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-        $multipleSelectElements.eq(0).simulate('click');
-        // disjunction
-        $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-      }, 600);
+      await sleep(10);
 
-      setTimeout(() => {
-        expect(getData().length).toBe(4);
-        done();
-      }, 800);
+      expect(getData().length).toBe(5);
+      dropdownMenu(1);
+
+      await sleep(200);
+
+      const $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements.eq(0).simulate('click');
+      // disjunction
+      $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      await sleep(10);
+
+      expect(getData().length).toBe(4);
     });
 
-    it('Two conditionals chosen -> filter operation -> unchecked first value from multiple select ' +
-      '-> filter operation', function (done) {
+    it('Two conditionals chosen -> filter operation -> unchecked first value from multiple select -> filter operation', async () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2104,38 +2098,34 @@ describe('Filters UI', function() {
       $(conditionSelectRootElements().first).simulate('click');
       $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
 
-      setTimeout(() => {
-        document.activeElement.value = 'm';
-        $(document.activeElement).simulate('keyup');
+      await sleep(200);
 
-        $(conditionSelectRootElements().second).simulate('click');
-        $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
-      }, 200);
+      document.activeElement.value = 'm';
+      $(document.activeElement).simulate('keyup');
 
-      setTimeout(() => {
-        document.activeElement.value = 'e';
-        $(document.activeElement).simulate('keyup');
+      $(conditionSelectRootElements().second).simulate('click');
+      $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
 
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-      }, 400);
+      await sleep(200);
 
-      setTimeout(() => {
-        dropdownMenu(1);
-      }, 600);
+      document.activeElement.value = 'e';
+      $(document.activeElement).simulate('keyup');
 
-      setTimeout(() => {
-        const $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-        $multipleSelectElements.eq(0).simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-      }, 800);
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      dropdownMenu(1);
 
-      setTimeout(() => {
-        expect(getData().length).toBe(2);
-        done();
-      }, 1000);
+      await sleep(200);
+
+      const $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements.eq(0).simulate('click');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      await sleep(10);
+
+      expect(getData().length).toBe(2);
     });
 
-    it('Two conditionals chosen & unchecked value which will be filtered by conditions -> filter operation', function (done) {
+    it('Two conditionals chosen & unchecked value which will be filtered by conditions -> filter operation', async () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2150,31 +2140,30 @@ describe('Filters UI', function() {
       $(conditionSelectRootElements().first).simulate('click');
       $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
 
-      setTimeout(() => {
-        document.activeElement.value = 'm';
-        $(document.activeElement).simulate('keyup');
+      await sleep(200);
 
-        $(conditionSelectRootElements().second).simulate('click');
-        $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
-      }, 200);
+      document.activeElement.value = 'm';
+      $(document.activeElement).simulate('keyup');
 
-      setTimeout(() => {
-        document.activeElement.value = 'e';
-        $(document.activeElement).simulate('keyup');
-        const $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $(conditionSelectRootElements().second).simulate('click');
+      $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
 
-        // Alice Blake
-        $multipleSelectElements.eq(0).simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-      }, 400);
+      await sleep(200);
 
-      setTimeout(() => {
-        expect(getData().length).toBe(3);
-        done();
-      }, 600);
+      document.activeElement.value = 'e';
+      $(document.activeElement).simulate('keyup');
+      const $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+
+      // Alice Blake
+      $multipleSelectElements.eq(0).simulate('click');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      await sleep(10);
+
+      expect(getData().length).toBe(3);
     });
 
-    it('Two conditionals chosen & unchecked value which won\'t be filtered by conditions -> filter operation', function (done) {
+    it('Two conditionals chosen & unchecked value which won\'t be filtered by conditions -> filter operation', async () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2189,42 +2178,40 @@ describe('Filters UI', function() {
       $(conditionSelectRootElements().first).simulate('click');
       $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")').simulate('mousedown');
 
-      setTimeout(() => {
-        document.activeElement.value = 'm';
-        $(document.activeElement).simulate('keyup');
+      await sleep(200);
 
-        $(conditionSelectRootElements().second).simulate('click');
-        $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
-      }, 200);
+      document.activeElement.value = 'm';
+      $(document.activeElement).simulate('keyup');
 
-      setTimeout(() => {
-        document.activeElement.value = 'e';
-        $(document.activeElement).simulate('keyup');
+      $(conditionSelectRootElements().second).simulate('click');
+      $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")').simulate('mousedown');
 
-        let $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-        $multipleSelectElements.get(4).scrollIntoView();
+      await sleep(200);
+      document.activeElement.value = 'e';
+      $(document.activeElement).simulate('keyup');
 
-        $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-        $multipleSelectElements.get(8).scrollIntoView();
+      let $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements.get(4).scrollIntoView();
 
-        $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-        $multipleSelectElements.get(12).scrollIntoView();
+      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements.get(8).scrollIntoView();
 
-        $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-        $multipleSelectElements.get(13).scrollIntoView();
+      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements.get(12).scrollIntoView();
 
-        $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements.get(13).scrollIntoView();
 
-        // Mathis Boone, 23th element
-        $multipleSelectElements.eq(9).simulate('click');
+      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
 
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-      }, 400);
+      // Mathis Boone, 23th element
+      $multipleSelectElements.eq(9).simulate('click');
 
-      setTimeout(() => {
-        expect(getData().length).toBe(2);
-        done();
-      }, 600);
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      await sleep(10);
+
+      expect(getData().length).toBe(2);
     });
   });
 
@@ -2362,7 +2349,7 @@ describe('Filters UI', function() {
   });
 
   describe('Sorting', function() {
-    it('should filter values when sorting is applied', function(done) {
+    it('should filter values when sorting is applied', async () => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2374,42 +2361,41 @@ describe('Filters UI', function() {
         height: 300
       });
 
-      setTimeout(function () {
-        dropdownMenu(0);
-        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-        // gt
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
-      }, 300);
+      dropdownMenu(0);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // gt
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
 
-      setTimeout(function () {
-        // Greater than 12
-        document.activeElement.value = '12';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      await sleep(200);
 
-        // sort
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
+      // Greater than 12
+      document.activeElement.value = '12';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-        dropdownMenu(2);
-        $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-        // begins_with
-        $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
-      }, 600);
+      // sort
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
 
-      setTimeout(function () {
-        // Begins with 'b'
-        document.activeElement.value = 'b';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      dropdownMenu(2);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // begins_with
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown');
 
-        expect(getData().length).toEqual(3);
-        expect(getData()[0][0]).toBe(24);
-        expect(getData()[1][0]).toBe(17);
-        expect(getData()[2][0]).toBe(14);
-        done();
-      }, 900);
+      await sleep(200);
+
+      // Begins with 'b'
+      document.activeElement.value = 'b';
+      $(document.activeElement).simulate('keyup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      await sleep(10);
+
+      expect(getData().length).toEqual(3);
+      expect(getData()[0][0]).toBe(24);
+      expect(getData()[1][0]).toBe(17);
+      expect(getData()[2][0]).toBe(14);
     });
 
     it('should correctly remove rows from filtered values when sorting is applied', function(done) {
