@@ -79,6 +79,88 @@ describe('ContextMenu', () => {
     ].join(''));
   });
 
+  describe('menu width', () => {
+    it('should display the menu with the minimum width', async () => {
+      handsontable({
+        contextMenu: {
+          items: {
+            custom1: {
+              name: 'a'
+            },
+            custom2: {
+              name: 'b'
+            },
+          }
+        }
+      });
+
+      const $menu = $('.htContextMenu');
+
+      contextMenu();
+
+      await sleep(300);
+
+      expect($menu.find('.wtHider').width()).toEqual(215);
+    });
+
+    it('should expand menu when one of items is wider then default width of the menu', async () => {
+      handsontable({
+        contextMenu: {
+          items: {
+            custom1: {
+              name: 'a'
+            },
+            custom2: {
+              name: 'This is very long text which should expand the context menu...'
+            },
+          }
+        }
+      });
+
+      const $menu = $('.htContextMenu');
+
+      contextMenu();
+
+      await sleep(300);
+
+      expect($menu.find('.wtHider').width()).toBeGreaterThan(215);
+    });
+
+    it('should display a submenu with the minimum width', async () => {
+      handsontable({
+        contextMenu: {
+          items: {
+            custom1: {
+              name: 'a'
+            },
+            custom2: {
+              name() {
+                return 'Menu';
+              },
+              submenu: {
+                items: [{ name: () => 'Submenu' }]
+              }
+            }
+          }
+        }
+      });
+
+      contextMenu();
+
+      await sleep(300);
+
+      const $item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1);
+
+      $item.simulate('mouseover');
+
+      await sleep(300);
+
+      const $contextSubMenu = $(`.htContextMenuSub_${$item.text()}`);
+
+      expect($contextSubMenu.find('.wtHider').width()).toEqual(215);
+    });
+  });
+
   describe('menu opening', () => {
     it('should open menu after right click on table cell', () => {
       var hot = handsontable({
@@ -127,6 +209,62 @@ describe('ContextMenu', () => {
       contextMenu(hot.rootElement.querySelector('.ht_clone_top thead th'));
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
+    });
+
+    it('should open menu after right click on selected column header (the current selection should not be changed)', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        height: 100
+      });
+
+      selectColumns(1, 4);
+
+      expect(hot.getPlugin('contextMenu')).toBeDefined();
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+
+      contextMenu(hot.rootElement.querySelector('.ht_clone_top thead th:nth-child(4)'));
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+      expect(`
+        |   ║   : * : * : * : * :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        | - ║   : A : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should open menu after right click on selected row header (the current selection should not be changed)', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        height: 100
+      });
+
+      selectRows(1, 3);
+
+      expect(hot.getPlugin('contextMenu')).toBeDefined();
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+
+      contextMenu(hot.rootElement.querySelector('.ht_clone_left tbody tr:nth-child(3)'));
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+      expect(`
+        |   ║ - : - : - : - : - : - : - : - : - : - |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
     });
 
     it('should open menu after right click on header corner', () => {
@@ -342,7 +480,7 @@ describe('ContextMenu', () => {
             key: '',
             name: 'Custom option',
             hidden() {
-              return !this.selection.selectedHeader.cols;
+              return !this.selection.isSelectedByColumnHeader();
             }
           }
         ]

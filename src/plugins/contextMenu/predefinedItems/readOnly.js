@@ -30,7 +30,7 @@ export default function readOnlyItem() {
       this.render();
     },
     disabled() {
-      return !(this.getSelectedRange() && !this.selection.selectedHeader.corner);
+      return !(this.getSelectedRange() && !this.selection.isSelectedByCorner());
     }
   };
 }

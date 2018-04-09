@@ -258,6 +258,10 @@ export function handsontableKeyTriggerFactory(type) {
           ev.keyCode = 86;
           break;
 
+        case 'a':
+          ev.keyCode = 65;
+          break;
+
         default:
           throw new Error(`Unrecognised key name: ${key}`);
       }
@@ -424,6 +428,7 @@ export const populateFromArray = handsontableMethodFactory('populateFromArray');
 export const propToCol = handsontableMethodFactory('propToCol');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
 export const render = handsontableMethodFactory('render');
+export const selectAll = handsontableMethodFactory('selectAll');
 export const selectCell = handsontableMethodFactory('selectCell');
 export const selectCells = handsontableMethodFactory('selectCells');
 export const selectColumns = handsontableMethodFactory('selectColumns');

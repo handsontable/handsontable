@@ -44,9 +44,9 @@ class Border {
     this.rightStyle = null;
 
     this.cornerDefaultStyle = {
-      width: '5px',
-      height: '5px',
-      borderWidth: '2px',
+      width: '6px',
+      height: '6px',
+      borderWidth: '1px',
       borderStyle: 'solid',
       borderColor: '#FFF'
     };
@@ -282,7 +282,7 @@ class Border {
     this.selectionHandles.styles.bottomRightHitArea.top = `${parseInt(top + height - (hitAreaWidth / 4), 10)}px`;
     this.selectionHandles.styles.bottomRightHitArea.left = `${parseInt(left + width - (hitAreaWidth / 4), 10)}px`;
 
-    if (this.settings.border.multipleSelectionHandlesVisible && this.settings.border.multipleSelectionHandlesVisible()) {
+    if (this.settings.border.cornerVisible && this.settings.border.cornerVisible()) {
       this.selectionHandles.styles.topLeft.display = 'block';
       this.selectionHandles.styles.topLeftHitArea.display = 'block';
 
@@ -445,7 +445,14 @@ class Border {
     let cornerVisibleSetting = this.settings.border.cornerVisible;
     cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ? cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
 
-    if (isMobileBrowser() || !cornerVisibleSetting) {
+    const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn);
+    let [checkRow, checkCol] = [toRow, toColumn];
+
+    if (hookResult && Array.isArray(hookResult)) {
+      [,, checkRow, checkCol] = hookResult;
+    }
+
+    if (isMobileBrowser() || !cornerVisibleSetting || this.isPartRange(checkRow, checkCol)) {
       this.cornerStyle.display = 'none';
 
     } else {
@@ -481,7 +488,7 @@ class Border {
     }
 
     if (isMobileBrowser()) {
-      this.updateMultipleSelectionHandlesPosition(fromRow, fromColumn, top, left, width, height);
+      this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, left, width, height);
     }
   }
 
@@ -547,8 +554,10 @@ class Border {
     }
 
     if (rootHotElement.className.includes(entireSelectionClassname)) {
-      startHeader = getHeaderFn(fromIndex, 0);
-      endHeader = getHeaderFn(toIndex, 0);
+      const columnHeaderLevelCount = this.wot.getSetting('columnHeaders').length;
+
+      startHeader = getHeaderFn(fromIndex, columnHeaderLevelCount - 1);
+      endHeader = getHeaderFn(toIndex, columnHeaderLevelCount - 1);
 
       if (!startHeader || !endHeader) {
         return false;

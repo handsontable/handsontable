@@ -132,6 +132,15 @@ const REGISTERED_HOOKS = [
 
   /**
    * @description
+   * Fired before opening the Context Menu.
+   *
+   * @event Hooks#beforeContextMenuShow
+   * @param {Object} context The Context Menu instance.
+   */
+  'beforeContextMenuShow',
+
+  /**
+   * @description
    * Fired after opening the Context Menu.
    *
    * @event Hooks#afterContextMenuShow
@@ -219,6 +228,26 @@ const REGISTERED_HOOKS = [
    */
   'afterDocumentKeyDown',
 
+  /**
+   * Fired inside the Walkontable's selection `draw` method. Can be used to add additional class names to cells, depending on the current selection.
+   *
+   * @event Hooks#afterDrawSelection
+   * @param {Number} currentRow Row index of the currently processed cell.
+   * @param {Number} currentColumn Column index of the currently cell.
+   * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
+   * @param {Number|undefined} layerLevel Number indicating which layer of selection is currently processed.
+   * @since 0.38.1
+   * @returns {String|undefined} Can return a `String`, which will act as an additional `className` to be added to the currently processed cell.
+   */
+  'afterDrawSelection',
+  /**
+   * Fired inside the Walkontable's `refreshSelections` method. Can be used to remove additional class names from all cells in the table.
+   *
+   * @event Hooks#beforeRemoveCellClassNames
+   * @since 0.38.1
+   * @returns {String[]|undefined} Can return an `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.
+   */
+  'beforeRemoveCellClassNames',
   /**
    * Callback fired after getting the cell settings.
    *
@@ -407,7 +436,7 @@ const REGISTERED_HOOKS = [
    * @param {Number} c2 Selection end visual column index.
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
    * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
-   *    * @example
+   * @example
    * ```js
    * handsontable({
    *   afterSelection: function (r, c, r2, c2, preventScrolling, selectionLayerLevel) {
@@ -429,7 +458,7 @@ const REGISTERED_HOOKS = [
    * @param {String} p2 Selection end data source object property name.
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
    * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
-   *    * @example
+   * @example
    * ```js
    * handsontable({
    *   afterSelectionByProp: function (r, c, r2, c2, preventScrolling, selectionLayerLevel) {
@@ -1439,6 +1468,15 @@ const REGISTERED_HOOKS = [
    * @param {Array} rows Physical indexes of untrimmed rows.
    */
   'afterUntrimRow',
+
+  /**
+   * Fired before opening the dropdown menu.
+   *
+   * @pro
+   * @event Hooks#beforeDropdownMenuShow
+   * @param {DropdownMenu} instance The DropdownMenu instance.
+   */
+  'beforeDropdownMenuShow',
 
   /**
    * Fired after opening the dropdown menu.

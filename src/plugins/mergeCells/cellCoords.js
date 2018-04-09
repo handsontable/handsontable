@@ -238,7 +238,7 @@ class MergedCellCoords {
         const removedOffset = changeEnd - mergeStart + 1;
         const preRemovedOffset = Math.abs(shiftValue) - removedOffset;
 
-        this[index] -= preRemovedOffset;
+        this[index] -= preRemovedOffset + shiftValue;
         this[span] -= removedOffset;
 
         // removing the middle part of the merge

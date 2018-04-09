@@ -25,6 +25,7 @@ import {
 import './contextMenu.css';
 
 Hooks.getSingleton().register('afterContextMenuDefaultOptions');
+Hooks.getSingleton().register('beforeContextMenuShow');
 Hooks.getSingleton().register('afterContextMenuShow');
 Hooks.getSingleton().register('afterContextMenuHide');
 Hooks.getSingleton().register('afterContextMenuExecute');
@@ -153,6 +154,7 @@ class ContextMenu extends BasePlugin {
 
       this.menu.setMenuItems(menuItems);
 
+      this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
       this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.apply(this, params));
@@ -294,6 +296,15 @@ class ContextMenu extends BasePlugin {
     }
 
     this.open(event);
+  }
+
+  /**
+   * On menu before open listener.
+   *
+   * @private
+   */
+  onMenuBeforeOpen() {
+    this.hot.runHooks('beforeContextMenuShow', this);
   }
 
   /**

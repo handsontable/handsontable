@@ -1,6 +1,7 @@
 import MergedCellCoords from './cellCoords';
 import {CellCoords, CellRange} from '../../3rdparty/walkontable/src/index';
 import {rangeEach} from '../../helpers/number';
+import {warn} from '../../helpers/console';
 import {arrayEach} from '../../helpers/array';
 import {applySpanProperties} from './utils';
 import {toSingleLine} from './../../helpers/templateLiteralTag';
@@ -153,7 +154,7 @@ class MergedCellsCollection {
       return newMergedCell;
     }
 
-    console.warn(MergedCellsCollection.IS_OVERLAPPING_WARNING(newMergedCell));
+    warn(MergedCellsCollection.IS_OVERLAPPING_WARNING(newMergedCell));
 
     return false;
   }

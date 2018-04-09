@@ -139,6 +139,7 @@
             "regenerator-runtime/runtime",
             "./common",
             "./jasmine",
+            "./asciiTable",
             "./MemoryLeakTest",
             "../MemoryLeakTest"
           ]
