@@ -48,8 +48,8 @@ describe('DropdownEditor', () => {
   });
 
   describe('closing the editor', () => {
-    it('should not close editor on scrolling', (done) => {
-      hot = handsontable({
+    it('should not close editor on scrolling', async () => {
+      const hot = handsontable({
         data: [
           ['', 'two', 'three'],
           ['four', 'five', 'six']
@@ -69,24 +69,21 @@ describe('DropdownEditor', () => {
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
       hot.view.wt.wtOverlays.topOverlay.scrollTo(1);
-      var dropdown = hot.getActiveEditor();
+      const dropdown = hot.getActiveEditor();
+      await sleep(50);
 
-      setTimeout(() => {
-        expect($(dropdown.htContainer).is(':visible')).toBe(true);
-        selectCell(0, 0);
-      }, 30);
+      expect($(dropdown.htContainer).is(':visible')).toBe(true);
 
-      setTimeout(() => {
-        $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
-        $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
+      selectCell(0, 0);
+      await sleep(50);
 
-        hot.view.wt.wtOverlays.topOverlay.scrollTo(3);
-      }, 150);
+      $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
+      $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
+      hot.view.wt.wtOverlays.topOverlay.scrollTo(3);
 
-      setTimeout(() => {
-        expect($(dropdown.htContainer).is(':visible')).toBe(true);
-        done();
-      }, 200);
+      await sleep(50);
+
+      expect($(dropdown.htContainer).is(':visible')).toBe(true);
     });
   });
 

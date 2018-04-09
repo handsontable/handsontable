@@ -1,3 +1,15 @@
+export function sleep(delay = 100) {
+  return Promise.resolve({
+    then: function(resolve) {
+      if (delay === 0) {
+        setImmediate(resolve);
+      } else {
+        setTimeout(resolve, delay);
+      }
+    }
+  });
+};
+
 export function spec() {
   return currentSpec;
 };

@@ -11,6 +11,8 @@ function hot() {
   return spec().$container.data('handsontable');
 };
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
+
 // http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 const scrollbarWidth = (function calculateScrollbarWidth() {
   const inner = document.createElement('div');
