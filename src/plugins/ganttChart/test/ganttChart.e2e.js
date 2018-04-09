@@ -68,7 +68,7 @@ describe('GanttChart', function() {
       hot.render();
 
       expect(hot.rootElement.className.indexOf('gantt')).toEqual(-1);
-      expect($(hot.rootElement).find('.ht_master thead').find('tr').size()).toEqual(1);
+      expect($(hot.rootElement).find('.ht_clone_top thead').find('tr').size()).toEqual(1);
     });
 
     it('should allow to re-enable the plugin using the disablePlugin->enablePlugin methods', function() {
@@ -86,7 +86,7 @@ describe('GanttChart', function() {
       hot.render();
 
       expect(hot.rootElement.className.indexOf('gantt')).not.toEqual(-1);
-      expect($(hot.rootElement).find('.ht_master thead').find('tr').size()).toEqual(2);
+      expect($(hot.rootElement).find('.ht_clone_top thead').find('tr').size()).toEqual(2);
     });
 
     it('should allow to change the gantt chart\'s year using the updateSettings method', function() {
@@ -154,7 +154,7 @@ describe('GanttChart', function() {
       });
 
       expect(hot.rootElement.className.indexOf('gantt')).not.toEqual(-1);
-      expect($(hot.rootElement).find('.ht_master thead').find('tr').size()).toEqual(2);
+      expect($(hot.rootElement).find('.ht_clone_top thead').find('tr').size()).toEqual(2);
     });
   });
 
@@ -225,13 +225,13 @@ describe('GanttChart', function() {
       const weeksInMonths = [3, 3, 4, 3, 4, 4, 3, 4, 3, 3, 4, 3];
       const postDaysInMonths = [6, 6, 2, 4, 0, 2, 5, 1, 3, 6, 1, 4];
 
-      expect($(hot.rootElement).find('.ht_master thead').find('tr').size()).toEqual(2);
-      expect($(hot.rootElement).find('.ht_master thead tr:first-child').find('th:not(".hiddenHeader")').size()).toEqual(12);
+      expect($(hot.rootElement).find('.ht_clone_top thead').find('tr').size()).toEqual(2);
+      expect($(hot.rootElement).find('.ht_clone_top thead tr:first-child').find('th:not(".hiddenHeader")').size()).toEqual(12);
       /* eslint-disable no-eval */
-      expect($(hot.rootElement).find('.ht_master thead tr:nth-child(2)').find('th').size())
+      expect($(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th').size())
         .toEqual(eval(weeksInMonths.join('+')) + preDaysInMonths.length + postDaysInMonths.length - 2);
 
-      const monthHeaders = $(hot.rootElement).find('.ht_master thead tr:first-child').find('th:not(".hiddenHeader")');
+      const monthHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:first-child').find('th:not(".hiddenHeader")');
       let currentColspan;
 
       for (let i = 0; i < 12; i++) {
@@ -253,7 +253,7 @@ describe('GanttChart', function() {
           }
         });
 
-        let weekHeaders = $(hot.rootElement).find('.ht_master thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+        let weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
         expect(weekHeaders[0].querySelector('span').innerText).toEqual('1');
         expect(weekHeaders[1].querySelector('span').innerText).toEqual('2 - 8');
         expect(weekHeaders[2].querySelector('span').innerText).toEqual('9 - 15');
@@ -268,7 +268,7 @@ describe('GanttChart', function() {
           }
         });
 
-        weekHeaders = $(hot.rootElement).find('.ht_master thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+        weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
         expect(weekHeaders[0].querySelector('span').innerText).toEqual('1 -> 1');
         expect(weekHeaders[1].querySelector('span').innerText).toEqual('2 -> 8');
         expect(weekHeaders[2].querySelector('span').innerText).toEqual('9 -> 15');
@@ -283,7 +283,7 @@ describe('GanttChart', function() {
           }
         });
 
-        weekHeaders = $(hot.rootElement).find('.ht_master thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+        weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
         expect(weekHeaders[0].querySelector('span').innerText).toEqual('some text -> 1, 1 (1)');
         expect(weekHeaders[1].querySelector('span').innerText).toEqual('some text -> 2, 8 (7)');
         expect(weekHeaders[2].querySelector('span').innerText).toEqual('some text -> 9, 15 (7)');
