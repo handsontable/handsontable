@@ -1668,10 +1668,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       let column;
 
       for (i = 0, j = 0; i < clen; i++) {
-        if (columnsAsFunc && !columnSetting(i)) {
-          /* eslint-disable no-continue */
-          continue;
+        let columnsResult;
+
+        if (columnsAsFunc) {
+          columnsResult = columnSetting.call(settings, i);
+
+          if (!columnsResult) {
+            /* eslint-disable no-continue */
+            continue;
+          }
         }
+
         priv.columnSettings[j] = columnFactory(GridSettings, priv.columnsSettingConflicts);
 
         // shortcut for prototype
@@ -1680,7 +1687,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         // Use settings provided by user
         if (columnSetting) {
           if (columnsAsFunc) {
-            column = columnSetting(i);
+            column = columnSetting.call(settings, i);
 
           } else {
             column = columnSetting[j];
@@ -1724,7 +1731,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     let height = settings.height;
     if (isFunction(height)) {
-      height = height();
+      height = height.call(this);
     }
 
     if (init) {
@@ -1755,7 +1762,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       var width = settings.width;
 
       if (isFunction(width)) {
-        width = width();
+        width = width.call(this);
       }
 
       instance.rootElement.style.width = `${width}px`;
@@ -1840,6 +1847,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getSettings = function() {
     return priv.settings;
+  };
+
+  this.getColumnSettings = function(column) {
+    return isFunction(priv.settings.columns) ? priv.settings.columns(column) : priv.settings.columns[column];
   };
 
   /**
@@ -2580,7 +2591,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       rowHeader = rowHeader[row];
 
     } else if (isFunction(rowHeader)) {
-      rowHeader = rowHeader(row);
+      rowHeader = rowHeader.call(this, row);
 
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
       rowHeader = row + 1;
@@ -2710,7 +2721,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           break;
 
         case 'function':
-          width = width(col);
+          width = width.call(this, col);
           break;
         default:
           break;
@@ -2770,7 +2781,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           break;
 
         case 'function':
-          height = height(row);
+          height = height.call(this, row);
           break;
         default:
           break;

@@ -98,18 +98,22 @@ DataMap.prototype.createMap = function() {
 
   if (columns) {
     const maxCols = this.instance.getSettings().maxCols;
-    let columnsLen = Math.min(maxCols, columns.length);
+    let columnsAsFunc = typeof columns === 'function';
     let filteredIndex = 0;
-    let columnsAsFunc = false;
-    let schemaLen = deepObjectSize(schema);
+    let columnsLen = 0;
 
-    if (typeof columns === 'function') {
+    if (columnsAsFunc) {
+      let schemaLen = deepObjectSize(schema);
+
       columnsLen = schemaLen > 0 ? schemaLen : this.instance.countSourceCols();
-      columnsAsFunc = true;
+
+    } else {
+      columnsLen = Math.min(maxCols, columns.length);
     }
 
     for (i = 0; i < columnsLen; i++) {
-      let column = columnsAsFunc ? columns(i) : columns[i];
+      let column = columnsAsFunc ? this.instance.getColumnSettings(i) : columns[i];
+      // let column = columnsAsFunc ? columns(i) : columns[i];
 
       if (isObject(column)) {
         if (typeof column.data !== 'undefined') {

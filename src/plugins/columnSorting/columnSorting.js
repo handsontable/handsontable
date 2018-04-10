@@ -452,7 +452,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (colMeta.sortFunction) {
-      sortFunction = colMeta.sortFunction;
+      sortFunction = colMeta.sortFunction.bind(colMeta);
 
     } else {
       switch (colMeta.type) {

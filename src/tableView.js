@@ -531,7 +531,7 @@ TableView.prototype.appendRowHeader = function(row, TH) {
 
     div.className = 'relative';
     span.className = 'rowHeader';
-    this.updateCellHeader(span, row, this.instance.getRowHeader);
+    this.updateCellHeader(span, row, this.instance.getRowHeader.bind(this.instance));
 
     div.appendChild(span);
     TH.appendChild(div);
