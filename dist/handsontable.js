@@ -21,7 +21,7 @@
  * UNINTERRUPTED OR ERROR FREE.
  * 
  * Version: 2.0.0
- * Release date: 11/04/2018 (built at 05/04/2018 09:31:11)
+ * Release date: 11/04/2018 (built at 10/04/2018 13:09:14)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -8118,7 +8118,7 @@ module.exports = function (it) {
 /* 51 */
 /***/ (function(module, exports) {
 
-var core = module.exports = { version: '2.5.4' };
+var core = module.exports = { version: '2.5.5' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 
@@ -34011,7 +34011,7 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '05/04/2018 09:31:11';
+Handsontable.buildDate = '10/04/2018 13:09:14';
 Handsontable.packageName = 'handsontable-pro';
 Handsontable.version = '2.0.0';
 
@@ -56046,8 +56046,10 @@ var MergedCellsCollection = function () {
         currentMerge.shift(shiftVector, index);
       });
 
-      (0, _array.arrayEach)(this.mergedCells, function (currentMerge) {
-        if (currentMerge.removed) {
+      (0, _number.rangeEachReverse)(this.mergedCells.length - 1, 0, function (i) {
+        var currentMerge = _this2.mergedCells[i];
+
+        if (currentMerge && currentMerge.removed) {
           _this2.mergedCells.splice(_this2.mergedCells.indexOf(currentMerge), 1);
         }
       });
