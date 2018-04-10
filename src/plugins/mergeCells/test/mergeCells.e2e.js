@@ -41,7 +41,7 @@ describe('MergeCells', () => {
       });
 
       expect(() => {
-        hot.getPlugin('mergeCells').mergedCellsCollection.clear();
+        hot.getPlugin('mergeCells').clearCollections();
       }).not.toThrow();
     });
   });
