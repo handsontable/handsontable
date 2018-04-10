@@ -43,11 +43,14 @@ Hooks.getSingleton().register('afterColumnSort');
  * @dependencies ObserveChanges
  */
 class ColumnSorting extends BasePlugin {
-
   constructor(hotInstance) {
     super(hotInstance);
     this.sortIndicators = [];
     this.lastSortedColumn = null;
+    this.sortColumn = void 0;
+    this.sortOrder = void 0;
+    this.sortIndex = [];
+    this.sortingEnabled = false;
     this.sortEmptyCells = false;
   }
 
@@ -71,13 +74,6 @@ class ColumnSorting extends BasePlugin {
     this.setPluginOptions();
 
     const _this = this;
-    this.hot.sortIndex = [];
-
-    this.hot.sort = function() {
-      let args = Array.prototype.slice.call(arguments);
-
-      return _this.sortByColumn(...args);
-    };
 
     if (typeof this.hot.getSettings().observeChanges === 'undefined') {
       this.enableObserveChangesPlugin();
@@ -98,8 +94,6 @@ class ColumnSorting extends BasePlugin {
     });
     this.addHook('afterInit', () => this.sortBySettings());
     this.addHook('afterLoadData', () => {
-      this.hot.sortIndex = [];
-
       if (this.hot.view) {
         this.sortBySettings();
       }
@@ -114,7 +108,6 @@ class ColumnSorting extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.sort = void 0;
     super.disablePlugin();
   }
 
@@ -154,32 +147,32 @@ class ColumnSorting extends BasePlugin {
    */
   setSortingColumn(col, order) {
     if (typeof col == 'undefined') {
-      this.hot.sortColumn = void 0;
-      this.hot.sortOrder = void 0;
+      this.sortColumn = void 0;
+      this.sortOrder = void 0;
 
       return;
-    } else if (this.hot.sortColumn === col && typeof order == 'undefined') {
-      if (this.hot.sortOrder === false) {
-        this.hot.sortOrder = void 0;
+    } else if (this.sortColumn === col && typeof order == 'undefined') {
+      if (this.sortOrder === false) {
+        this.sortOrder = void 0;
       } else {
-        this.hot.sortOrder = !this.hot.sortOrder;
+        this.sortOrder = !this.sortOrder;
       }
 
     } else {
-      this.hot.sortOrder = typeof order === 'undefined' ? true : order;
+      this.sortOrder = typeof order === 'undefined' ? true : order;
     }
 
-    this.hot.sortColumn = col;
+    this.sortColumn = col;
   }
 
   sortByColumn(col, order) {
     this.setSortingColumn(col, order);
 
-    if (typeof this.hot.sortColumn == 'undefined') {
+    if (typeof this.sortColumn == 'undefined') {
       return;
     }
 
-    let allowSorting = this.hot.runHooks('beforeColumnSort', this.hot.sortColumn, this.hot.sortOrder);
+    let allowSorting = this.hot.runHooks('beforeColumnSort', this.sortColumn, this.sortOrder);
 
     if (allowSorting !== false) {
       this.sort();
@@ -187,7 +180,7 @@ class ColumnSorting extends BasePlugin {
     this.updateOrderClass();
     this.updateSortIndicator();
 
-    this.hot.runHooks('afterColumnSort', this.hot.sortColumn, this.hot.sortOrder);
+    this.hot.runHooks('afterColumnSort', this.sortColumn, this.sortOrder);
 
     this.hot.render();
     this.saveSortingState();
@@ -199,12 +192,12 @@ class ColumnSorting extends BasePlugin {
   saveSortingState() {
     let sortingState = {};
 
-    if (typeof this.hot.sortColumn != 'undefined') {
-      sortingState.sortColumn = this.hot.sortColumn;
+    if (typeof this.sortColumn != 'undefined') {
+      sortingState.sortColumn = this.sortColumn;
     }
 
-    if (typeof this.hot.sortOrder != 'undefined') {
-      sortingState.sortOrder = this.hot.sortOrder;
+    if (typeof this.sortOrder != 'undefined') {
+      sortingState.sortOrder = this.sortOrder;
     }
 
     if (hasOwnProperty(sortingState, 'sortColumn') || hasOwnProperty(sortingState, 'sortOrder')) {
@@ -231,10 +224,10 @@ class ColumnSorting extends BasePlugin {
   updateOrderClass() {
     let orderClass;
 
-    if (this.hot.sortOrder === true) {
+    if (this.sortOrder === true) {
       orderClass = 'ascending';
 
-    } else if (this.hot.sortOrder === false) {
+    } else if (this.sortOrder === false) {
       orderClass = 'descending';
     }
     this.sortOrderClass = orderClass;
@@ -423,19 +416,19 @@ class ColumnSorting extends BasePlugin {
    * Perform the sorting.
    */
   sort() {
-    if (typeof this.hot.sortOrder == 'undefined') {
-      this.hot.sortIndex.length = 0;
+    if (typeof this.sortOrder == 'undefined') {
+      this.sortIndex.length = 0;
 
       return;
     }
 
-    const colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
+    const colMeta = this.hot.getCellMeta(0, this.sortColumn);
     const emptyRows = this.hot.countEmptyRows();
     let sortFunction;
     let nrOfRows;
 
-    this.hot.sortingEnabled = false; // this is required by translateRow plugin hook
-    this.hot.sortIndex.length = 0;
+    this.sortingEnabled = false; // this is required by translateRow plugin hook
+    this.sortIndex.length = 0;
 
     if (typeof colMeta.columnSorting.sortEmptyCells === 'undefined') {
       colMeta.columnSorting = {sortEmptyCells: this.sortEmptyCells};
@@ -448,7 +441,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     for (let i = 0, ilen = nrOfRows; i < ilen; i++) {
-      this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
+      this.sortIndex.push([i, this.hot.getDataAtCell(i, this.sortColumn)]);
     }
 
     if (colMeta.sortFunction) {
@@ -467,26 +460,26 @@ class ColumnSorting extends BasePlugin {
       }
     }
 
-    mergeSort(this.hot.sortIndex, sortFunction(this.hot.sortOrder, colMeta));
+    mergeSort(this.sortIndex, sortFunction(this.sortOrder, colMeta));
 
     // Append spareRows
-    for (let i = this.hot.sortIndex.length; i < this.hot.countRows(); i++) {
-      this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
+    for (let i = this.sortIndex.length; i < this.hot.countRows(); i++) {
+      this.sortIndex.push([i, this.hot.getDataAtCell(i, this.sortColumn)]);
     }
 
-    this.hot.sortingEnabled = true; // this is required by translateRow plugin hook
+    this.sortingEnabled = true; // this is required by translateRow plugin hook
   }
 
   /**
    * Update indicator states.
    */
   updateSortIndicator() {
-    if (typeof this.hot.sortOrder == 'undefined') {
+    if (typeof this.sortOrder == 'undefined') {
       return;
     }
-    const colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
+    const colMeta = this.hot.getCellMeta(0, this.sortColumn);
 
-    this.sortIndicators[this.hot.sortColumn] = colMeta.sortIndicator;
+    this.sortIndicators[this.sortColumn] = colMeta.sortIndicator;
   }
 
   /**
@@ -496,8 +489,8 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Sorted row index.
    */
   translateRow(row) {
-    if (this.hot.sortingEnabled && (typeof this.hot.sortOrder !== 'undefined') && this.hot.sortIndex && this.hot.sortIndex.length && this.hot.sortIndex[row]) {
-      return this.hot.sortIndex[row][0];
+    if (this.sortingEnabled && (typeof this.sortOrder !== 'undefined') && this.sortIndex && this.sortIndex.length && this.sortIndex[row]) {
+      return this.sortIndex[row][0];
     }
 
     return row;
@@ -510,9 +503,9 @@ class ColumnSorting extends BasePlugin {
    * @returns {number} Physical row index.
    */
   untranslateRow(row) {
-    if (this.hot.sortingEnabled && this.hot.sortIndex && this.hot.sortIndex.length) {
-      for (var i = 0; i < this.hot.sortIndex.length; i++) {
-        if (this.hot.sortIndex[i][0] == row) {
+    if (this.sortingEnabled && this.sortIndex && this.sortIndex.length) {
+      for (var i = 0; i < this.sortIndex.length; i++) {
+        if (this.sortIndex[i][0] == row) {
           return i;
         }
       }
@@ -548,7 +541,7 @@ class ColumnSorting extends BasePlugin {
     removeClass(headerLink, 'ascending');
 
     if (this.sortIndicators[col]) {
-      if (col === this.hot.sortColumn) {
+      if (col === this.sortColumn) {
         if (this.sortOrderClass === 'ascending') {
           addClass(headerLink, 'ascending');
 
@@ -565,7 +558,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Boolean}
    */
   isSorted() {
-    return typeof this.hot.sortColumn != 'undefined';
+    return typeof this.sortColumn != 'undefined';
   }
 
   /**
@@ -580,14 +573,14 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    for (let i = 0; i < this.hot.sortIndex.length; i++) {
-      if (this.hot.sortIndex[i][0] >= index) {
-        this.hot.sortIndex[i][0] += amount;
+    for (let i = 0; i < this.sortIndex.length; i++) {
+      if (this.sortIndex[i][0] >= index) {
+        this.sortIndex[i][0] += amount;
       }
     }
 
     for (let i = 0; i < amount; i++) {
-      this.hot.sortIndex.splice(index + i, 0, [index + i, this.hot.getSourceData()[index + i][this.hot.sortColumn + this.hot.colOffset()]]);
+      this.sortIndex.splice(index + i, 0, [index + i, this.hot.getSourceData()[index + i][this.sortColumn + this.hot.colOffset()]]);
     }
 
     this.saveSortingState();
@@ -604,7 +597,7 @@ class ColumnSorting extends BasePlugin {
     if (!this.isSorted()) {
       return;
     }
-    let removedRows = this.hot.sortIndex.splice(index, amount);
+    let removedRows = this.sortIndex.splice(index, amount);
 
     removedRows = arrayMap(removedRows, (row) => row[0]);
 
@@ -619,7 +612,7 @@ class ColumnSorting extends BasePlugin {
       }, 0);
     }
 
-    this.hot.sortIndex = arrayMap(this.hot.sortIndex, (logicalRow, physicalRow) => {
+    this.sortIndex = arrayMap(this.sortIndex, (logicalRow, physicalRow) => {
       let rowShift = countRowShift(logicalRow[0]);
 
       if (rowShift) {
@@ -663,7 +656,7 @@ class ColumnSorting extends BasePlugin {
     if (hasClass(event.realTarget, 'columnSorting')) {
       // reset order state on every new column header click
       if (coords.col !== this.lastSortedColumn) {
-        this.hot.sortOrder = true;
+        this.sortOrder = true;
       }
 
       this.lastSortedColumn = coords.col;
