@@ -741,6 +741,23 @@ describe('MergeCells', () => {
       expect(mergedCellsCollection[0].col).toEqual(1);
       expect(mergedCellsCollection[0].colspan).toEqual(1);
     });
+
+    it('should allow removing multiple merged cells, while removing multiple rows', () => {
+      const errorSpy = spyOn(console, 'error');
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 0, col: 0, rowspan: 2, colspan: 2},
+          {row: 5, col: 5, rowspan: 3, colspan: 3}
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_row', 0, 10);
+
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('merged cell candidates validation', () => {
