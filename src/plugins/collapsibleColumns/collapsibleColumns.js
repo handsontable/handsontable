@@ -1,16 +1,14 @@
 import {objectEach} from 'handsontable/helpers/object';
 import {arrayEach} from 'handsontable/helpers/array';
 import {rangeEach} from 'handsontable/helpers/number';
+import {warn} from 'handsontable/helpers/console';
 import {
   addClass,
   hasClass,
   fastInnerText
 } from 'handsontable/helpers/dom/element';
 import EventManager from 'handsontable/eventManager';
-import {
-  registerPlugin,
-  getPlugin
-} from 'handsontable/plugins';
+import {registerPlugin} from 'handsontable/plugins';
 import {stopImmediatePropagation} from 'handsontable/helpers/dom/event';
 import BasePlugin from 'handsontable/plugins/_base';
 
@@ -228,11 +226,11 @@ class CollapsibleColumns extends BasePlugin {
     }
 
     if (!settings.nestedHeaders) {
-      console.warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
+      warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
     }
 
     if (!settings.hiddenColumns) {
-      console.warn('You need to configure the Hidden Columns plugin in order to use collapsible headers.');
+      warn('You need to configure the Hidden Columns plugin in order to use collapsible headers.');
     }
   }
 

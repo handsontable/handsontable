@@ -60,7 +60,7 @@ export default function showColumnItem(hiddenColumnsPlugin) {
     },
     disabled: false,
     hidden() {
-      if (!hiddenColumnsPlugin.hiddenColumns.length || !this.selection.selectedHeader.cols) {
+      if (!hiddenColumnsPlugin.hiddenColumns.length || !this.selection.isSelectedByColumnHeader()) {
         return true;
       }
 

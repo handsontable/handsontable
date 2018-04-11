@@ -1,7 +1,7 @@
 import * as C from 'handsontable/i18n/constants';
 import {registerOperation} from '../logicalOperationRegisterer';
 
-export const OPERATION_ID = 'disjunctionAndVariable';
+export const OPERATION_ID = 'disjunctionWithExtraCondition';
 export const SHORT_NAME_FOR_COMPONENT = C.FILTERS_LABELS_DISJUNCTION;
 // ((p OR q OR w OR x OR...) AND z) === TRUE?
 

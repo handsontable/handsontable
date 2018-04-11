@@ -60,7 +60,7 @@ export default function showRowItem(hiddenRowsPlugin) {
     },
     disabled: false,
     hidden() {
-      if (!hiddenRowsPlugin.hiddenRows.length || !this.selection.selectedHeader.rows) {
+      if (!hiddenRowsPlugin.hiddenRows.length || !this.selection.isSelectedByRowHeader()) {
         return true;
       }
 

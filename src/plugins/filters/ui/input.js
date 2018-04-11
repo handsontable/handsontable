@@ -62,14 +62,8 @@ class InputUI extends BaseUI {
     let input = privatePool.get(this).input;
 
     input.type = this.options.type;
-    input.placeholder = this.hot.getTranslatedPhrase(this.options.placeholder);
-
-    if (typeof this.options.value === 'string' && this.options.value.startsWith(C.FILTERS_NAMESPACE)) {
-      input.value = this.hot.getTranslatedPhrase(this.options.value);
-
-    } else {
-      input.value = this.options.value;
-    }
+    input.placeholder = this.translateIfPossible(this.options.placeholder);
+    input.value = this.translateIfPossible(this.options.value);
   }
 
   /**

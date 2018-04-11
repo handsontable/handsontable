@@ -1,5 +1,5 @@
 import {arrayEach} from 'handsontable/helpers/array';
-import {deepClone} from 'handsontable/helpers/object';
+import {warn} from 'handsontable/helpers/console';
 import {getTranslator} from 'handsontable/utils/recordTranslator';
 
 /**
@@ -572,7 +572,7 @@ class Endpoints {
    * @private
    */
   throwOutOfBoundsWarning() {
-    console.warn('One of the  Column Summary plugins\' destination points you provided is beyond the table boundaries!');
+    warn('One of the  Column Summary plugins\' destination points you provided is beyond the table boundaries!');
   }
 }
 

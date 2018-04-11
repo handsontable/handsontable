@@ -1,6 +1,7 @@
 import BasePlugin from 'handsontable/plugins/_base';
 import {arrayEach, arrayMap} from 'handsontable/helpers/array';
 import {toSingleLine} from 'handsontable/helpers/templateLiteralTag';
+import {warn} from 'handsontable/helpers/console';
 import {rangeEach} from 'handsontable/helpers/number';
 import EventManager from 'handsontable/eventManager';
 import {addClass, removeClass, closest} from 'handsontable/helpers/dom/element';
@@ -222,9 +223,14 @@ class Filters extends BasePlugin {
    *  * `not_empty` - Not empty
    *  * `neq` - Not equal
    *
-   * Possible operations:
-   *  * `conjunction` - [**Conjunction**](https://en.wikipedia.org/wiki/Logical_conjunction) on conditions collection (by default)
-   *  * `disjunction` - [**Disjunction**](https://en.wikipedia.org/wiki/Logical_disjunction) on conditions collection
+   * Possible operations on collection of conditions:
+   *  * `conjunction` - [**Conjunction**](https://en.wikipedia.org/wiki/Logical_conjunction) on conditions collection (by default), i.e. for such operation: c1 AND c2 AND c3 AND c4 ... AND cn === TRUE, where c1 ... cn are conditions.
+   *  * `disjunction` - [**Disjunction**](https://en.wikipedia.org/wiki/Logical_disjunction) on conditions collection, i.e. for such operation: `c1 OR c2 OR c3 OR c4 ... OR cn` === TRUE, where c1, c2, c3, c4 ... cn are conditions.
+   *  * `disjunctionWithExtraCondition` - **Disjunction** on first `n - 1`\* conditions from collection with an extra requirement computed from the last condition, i.e. for such operation: `c1 OR c2 OR c3 OR c4 ... OR cn-1 AND cn` === TRUE, where c1, c2, c3, c4 ... cn are conditions.
+   *
+   * \* when `n` is collection size; it's used i.e. for one operation introduced from UI (when choosing from filter's drop-down menu two conditions with OR operator between them, mixed with choosing values from the multiple choice select)
+   *
+   * **Note**: Mind that you cannot mix different types of operations (for instance, if you use `conjunction`, use it consequently for a particular column).
    *
    * @example
    * ```js
@@ -404,19 +410,33 @@ class Filters extends BasePlugin {
   }
 
   /**
+   * Restore components to their cached state.
+   *
+   * @param {Array} components List of components.
+   */
+  restoreComponents(components) {
+    const selectedColumn = this.getSelectedColumn();
+    const physicalIndex = selectedColumn && selectedColumn.physicalIndex;
+
+    components.forEach((component) => {
+      if (component.isHidden() === false) {
+        component.restoreState(physicalIndex);
+      }
+    });
+  }
+
+  /**
    * After dropdown menu show listener.
    *
    * @private
    */
   onAfterDropdownMenuShow() {
-    const selectedColumn = this.getSelectedColumn();
-    const physicalIndex = selectedColumn && selectedColumn.physicalIndex;
-
-    this.components.forEach((component) => {
-      if (!component.isHidden() && component.setState) {
-        component.restoreState(physicalIndex);
-      }
-    });
+    this.restoreComponents([
+      this.components.get('filter_by_condition'),
+      this.components.get('filter_operators'),
+      this.components.get('filter_by_condition2'),
+      this.components.get('filter_by_value'),
+    ]);
   }
 
   /**
@@ -658,7 +678,7 @@ class Filters extends BasePlugin {
     const operationType = this.conditionCollection.columnTypes[column];
 
     if (conditionsByValue.length === 2 || conditionsWithoutByValue.length === 3) {
-      console.warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually. 
+      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually. 
         The overall amount of conditions exceed the capability of the dropdown menu. 
         For more details see the documentation.`);
 
@@ -708,41 +728,6 @@ class Filters extends BasePlugin {
       }
     });
   }
-
-  /**
-   * Hide component for particular column.
-   *
-   * @private
-   * @param {BaseComponent} component `BaseComponent` element or it derivatives.
-   * @param {Number} column Physical column index.
-   */
-  hideComponentForParticularColumn(component, column) {
-    if (!this.hiddenRowsCache.has(column)) {
-      this.hiddenRowsCache.set(column, this.getIndexesOfComponents(component));
-
-    } else {
-      const indexes = this.getIndexesOfComponents(component);
-      this.addIndexesToHiddenRowsCache(column, indexes);
-    }
-  }
-
-  /**
-   * Add specific rows to `hiddenRows` cache for particular column.
-   *
-   * @private
-   * @param column Physical column index.
-   * @param indexes Physical indexes of rows which will be added to `hiddenRows` cache
-   */
-  addIndexesToHiddenRowsCache(column, indexes) {
-    const hiddenRowsForColumn = this.hiddenRowsCache.get(column);
-
-    arrayEach(indexes, (index) => {
-      if (hiddenRowsForColumn.indexOf(index) === -1) {
-        hiddenRowsForColumn.push(index);
-      }
-    });
-  }
-
 
   /**
    * Get indexes of passed components inside list of `dropdownMenu` items.

@@ -9,7 +9,7 @@
 
 ### Demo
 <!--- Provide a link to a live example on JSFiddle or Codepen or fill the following demo with your settings -->
-https://jsfiddle.net/handsoncode/bLydg1kb/
+https://jsfiddle.net/handsoncode/j3yx6wxd/
 
 ### Your environment
 * Handsontable version:

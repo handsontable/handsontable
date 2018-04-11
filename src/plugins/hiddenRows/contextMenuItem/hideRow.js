@@ -31,7 +31,7 @@ export default function hideRowItem(hiddenRowsPlugin) {
     },
     disabled: false,
     hidden() {
-      return !this.selection.selectedHeader.rows;
+      return !this.selection.isSelectedByRowHeader();
     }
   };
 }

@@ -1,5 +1,6 @@
 import {addClass, removeClass} from 'handsontable/helpers/dom/element';
 import {objectEach, deepClone, extend} from 'handsontable/helpers/object';
+import {warn} from 'handsontable/helpers/console';
 import {createEmptySpreadsheetData} from 'handsontable/helpers/data';
 import {registerPlugin} from 'handsontable/plugins';
 import BasePlugin from 'handsontable/plugins/_base';
@@ -163,7 +164,7 @@ class GanttChart extends BasePlugin {
    */
   checkDependencies() {
     if (!this.hot.getSettings().colHeaders) {
-      console.warn('You need to enable the colHeaders property in your Gantt Chart Handsontable in order for it to work properly.');
+      warn('You need to enable the colHeaders property in your Gantt Chart Handsontable in order for it to work properly.');
     }
   }
 

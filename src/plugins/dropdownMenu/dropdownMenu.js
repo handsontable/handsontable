@@ -22,6 +22,7 @@ import {
 import './dropdownMenu.css';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
+Hooks.getSingleton().register('beforeDropdownMenuShow');
 Hooks.getSingleton().register('afterDropdownMenuShow');
 Hooks.getSingleton().register('afterDropdownMenuHide');
 Hooks.getSingleton().register('afterDropdownMenuExecute');
@@ -131,6 +132,7 @@ class DropdownMenu extends BasePlugin {
 
       this.menu.setMenuItems(menuItems);
 
+      this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
       this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.apply(this, params));
@@ -174,6 +176,8 @@ class DropdownMenu extends BasePlugin {
    * Open menu and re-position it based on the DOM event object.
    *
    * @param {Event|Object} event Event object.
+   * @fires Hooks#beforeDropdownMenuShow
+   * @fires Hooks#afterDropdownMenuShow
    */
   open(event) {
     if (!this.menu) {
@@ -312,6 +316,15 @@ class DropdownMenu extends BasePlugin {
     };
 
     TH.firstChild.insertBefore(button, TH.firstChild.firstChild);
+  }
+
+  /**
+   * On menu before open listener.
+   *
+   * @private
+   */
+  onMenuBeforeOpen() {
+    this.hot.runHooks('beforeDropdownMenuShow', this);
   }
 
   /**

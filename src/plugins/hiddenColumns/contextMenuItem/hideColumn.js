@@ -31,7 +31,7 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
     },
     disabled: false,
     hidden() {
-      return !this.selection.selectedHeader.cols;
+      return !this.selection.isSelectedByColumnHeader();
     }
   };
 }

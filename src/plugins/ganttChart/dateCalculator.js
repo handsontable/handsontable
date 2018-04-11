@@ -1,5 +1,6 @@
 import {arrayEach} from 'handsontable/helpers/array';
 import {objectEach} from 'handsontable/helpers/object';
+import {warn} from 'handsontable/helpers/console';
 import {getMixedMonthObject, getMixedMonthName} from './utils';
 
 /**
@@ -68,7 +69,7 @@ class DateCalculator {
     const lowercaseDay = day.toLowerCase();
 
     if (lowercaseDay !== 'monday' && lowercaseDay !== 'sunday') {
-      console.warn('First day of the week must be set to either Monday or Sunday');
+      warn('First day of the week must be set to either Monday or Sunday');
     }
 
     this.firstWeekDay = lowercaseDay;
