@@ -6,6 +6,8 @@ import {
   innerHeight,
   outerWidth
 } from './../../../helpers/dom/element';
+import {warn} from './../../../helpers/console';
+import {toSingleLine} from './../../../helpers/templateLiteralTag';
 import Overlay from './overlay/_base';
 
 let performanceWarningAppeared = false;
@@ -68,7 +70,7 @@ class TableRenderer {
     let adjusted = false;
 
     if (Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM) ||
-        Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      Overlay.isOverlayTypeOf(this.wot.cloneOverlay, Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
 
       // do NOT render headers on the bottom or bottom-left corner overlay
       this.columnHeaders = [];
@@ -170,8 +172,8 @@ class TableRenderer {
    * @param {Number} columnsToRender
    */
   renderRows(totalRows, rowsToRender, columnsToRender) {
-    let lastTD,
-      TR;
+    let lastTD;
+    let TR;
     let visibleRowIndex = 0;
     let sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     let isWorkingOnClone = this.wtTable.isWorkingOnClone();
@@ -179,8 +181,8 @@ class TableRenderer {
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {
         performanceWarningAppeared = true;
-        console.warn('Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number ' +
-                     'of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.');
+        warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number 
+          of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
       }
       if (rowsToRender !== void 0 && visibleRowIndex === rowsToRender) {
         // We have as much rows as needed for this clone

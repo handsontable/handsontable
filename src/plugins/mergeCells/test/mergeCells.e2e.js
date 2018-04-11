@@ -110,7 +110,6 @@ describe('MergeCells', () => {
   });
 
   describe('merged cells selection', () => {
-
     it('should select the whole range of cells which form a merged cell', function() {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(4, 4),
@@ -297,6 +296,123 @@ describe('MergeCells', () => {
       hot.selectCell(1, 1, 2, 2);
 
       expect(spec().$container.find('.wtBorder.corner:visible').length).toEqual(1);
+    });
+
+    it('should select the cell in the top-left corner of the merged cell, when navigating down using the ENTER key on the' +
+      ' bottom edge of the table', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 8, col: 8, rowspan: 2, colspan: 2 }
+        ]
+      });
+      hot.setDataAtCell(8, 8, 'top-left-corner!');
+
+      hot.selectCell(7, 9);
+
+      keyDownUp('enter');
+      keyDownUp('enter');
+      keyDownUp('enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('enter');
+      keyDownUp('enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('enter');
+      keyDownUp('enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+    });
+
+    it('should select the cell in the top-left corner of the merged cell, when navigating down using the TAB key on the' +
+      ' bottom edge of the table', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 8, col: 8, rowspan: 2, colspan: 2 }
+        ]
+      });
+      hot.setDataAtCell(8, 8, 'top-left-corner!');
+
+      hot.selectCell(9, 7);
+
+      keyDownUp('enter');
+      keyDownUp('tab');
+      keyDownUp('enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('tab');
+      keyDownUp('enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('tab');
+      keyDownUp('enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+    });
+
+    it('should select the cell in the top-left corner of the merged cell, when navigating down using the SHIFT + ENTER key on the' +
+      ' top edge of the table', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 2 }
+        ]
+      });
+      hot.setDataAtCell(0, 0, 'top-left-corner!');
+
+      hot.selectCell(2, 1);
+
+      keyDownUp('shift+enter');
+      keyDownUp('shift+enter');
+      keyDownUp('shift+enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('shift+enter');
+      keyDownUp('shift+enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('shift+enter');
+      keyDownUp('shift+enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+    });
+
+    it('should select the cell in the top-left corner of the merged cell, when navigating down using the SHIFT + TAB key on the' +
+      ' top edge of the table', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 2 }
+        ]
+      });
+      hot.setDataAtCell(0, 0, 'top-left-corner!');
+
+      hot.selectCell(1, 2);
+
+      keyDownUp('shift+enter');
+      keyDownUp('shift+tab');
+      keyDownUp('shift+enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('shift+tab');
+      keyDownUp('shift+enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+
+      keyDownUp('shift+tab');
+      keyDownUp('shift+enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      keyDownUp('shift+enter');
     });
   });
 
@@ -500,6 +616,147 @@ describe('MergeCells', () => {
 
       expect(mergedCellsCollection[0].row).toEqual(1);
       expect(mergedCellsCollection[1].row).toEqual(3);
+    });
+
+    it('should trim the merged cell\'s height, when removing rows between their start and end', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 5, colspan: 3}
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_row', 2, 2);
+
+      let plugin = hot.getPlugin('mergeCells');
+      let mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
+
+      expect(mergedCellsCollection[0].row).toEqual(1);
+      expect(mergedCellsCollection[0].rowspan).toEqual(3);
+
+      plugin.mergedCellsCollection.clear();
+      plugin.merge(1, 1, 2, 2);
+
+      hot.alter('remove_row', 2, 2);
+
+      expect(mergedCellsCollection[0].row).toEqual(1);
+      expect(mergedCellsCollection[0].rowspan).toEqual(1);
+    });
+
+    it('should trim the merged cell\'s width, when removing columns between their start and end', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 3, colspan: 5}
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_col', 2, 2);
+
+      let plugin = hot.getPlugin('mergeCells');
+      let mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
+
+      expect(mergedCellsCollection[0].col).toEqual(1);
+      expect(mergedCellsCollection[0].colspan).toEqual(3);
+
+      plugin.mergedCellsCollection.clear();
+      plugin.merge(1, 1, 2, 2);
+
+      hot.alter('remove_col', 2, 2);
+
+      expect(mergedCellsCollection[0].col).toEqual(1);
+      expect(mergedCellsCollection[0].colspan).toEqual(1);
+    });
+
+    it('should shift the `row` of a merged cells, when removing rows consisting it', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 5, col: 5, rowspan: 5, colspan: 3}
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_row', 4, 3);
+
+      let plugin = hot.getPlugin('mergeCells');
+      let mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
+
+      expect(mergedCellsCollection[0].row).toEqual(4);
+      expect(mergedCellsCollection[0].rowspan).toEqual(3);
+
+      plugin.mergedCellsCollection.clear();
+      plugin.merge(1, 1, 2, 2);
+
+      hot.alter('remove_row', 0, 2);
+
+      expect(mergedCellsCollection[0].row).toEqual(0);
+      expect(mergedCellsCollection[0].rowspan).toEqual(1);
+
+      plugin.mergedCellsCollection.clear();
+      plugin.merge(1, 1, 2, 2);
+
+      hot.alter('remove_row', 1, 1);
+
+      expect(mergedCellsCollection[0].row).toEqual(1);
+      expect(mergedCellsCollection[0].rowspan).toEqual(1);
+    });
+
+    it('should shift the `col` of a merged cells, when removing columns consisting it', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 5, col: 5, rowspan: 3, colspan: 5}
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_col', 4, 3);
+
+      let plugin = hot.getPlugin('mergeCells');
+      let mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
+
+      expect(mergedCellsCollection[0].col).toEqual(4);
+      expect(mergedCellsCollection[0].colspan).toEqual(3);
+
+      plugin.mergedCellsCollection.clear();
+      plugin.merge(1, 1, 2, 2);
+
+      hot.alter('remove_col', 0, 2);
+
+      expect(mergedCellsCollection[0].col).toEqual(0);
+      expect(mergedCellsCollection[0].colspan).toEqual(1);
+
+      plugin.mergedCellsCollection.clear();
+      plugin.merge(1, 1, 2, 2);
+
+      hot.alter('remove_col', 1, 1);
+
+      expect(mergedCellsCollection[0].col).toEqual(1);
+      expect(mergedCellsCollection[0].colspan).toEqual(1);
+    });
+
+    it('should allow removing multiple merged cells, while removing multiple rows', () => {
+      const errorSpy = spyOn(console, 'error');
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        mergeCells: [
+          {row: 0, col: 0, rowspan: 2, colspan: 2},
+          {row: 5, col: 5, rowspan: 3, colspan: 3}
+        ],
+        height: 400,
+        width: 400
+      });
+
+      hot.alter('remove_row', 0, 10);
+
+      expect(errorSpy).not.toHaveBeenCalled();
     });
   });
 

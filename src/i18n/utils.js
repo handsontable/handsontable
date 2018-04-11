@@ -1,5 +1,6 @@
 import {isUndefined, isDefined} from './../helpers/mixed';
 import {objectEach} from './../helpers/object';
+import {error} from './../helpers/console';
 import {toSingleLine} from './../helpers/templateLiteralTag';
 import {DEFAULT_LANGUAGE_CODE, hasLanguageDictionary} from './dictionariesManager';
 
@@ -89,7 +90,7 @@ export function applyLanguageSetting(settings, languageCode) {
  */
 export function warnUserAboutLanguageRegistration(languageCode) {
   if (isDefined(languageCode)) {
-    console.error(toSingleLine`Language with code "${languageCode}" was not found. You should register particular language 
+    error(toSingleLine`Language with code "${languageCode}" was not found. You should register particular language 
     before using it. Read more about this issue at: https://docs.handsontable.com/i18n/missing-language-code.`);
   }
 }

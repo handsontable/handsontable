@@ -1,35 +1,152 @@
-import Hooks from './../../pluginHooks';
-import {addClass, removeClass} from './../../helpers/dom/element';
-import {registerRenderer, getRenderer} from './../../renderers';
+import BasePlugin from './../_base';
+import {registerPlugin} from './../../plugins';
+import {isObject} from './../../helpers/object';
+import {rangeEach} from './../../helpers/number';
+import {isUndefined} from './../../helpers/mixed';
+
+const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
+
+const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
+  instance.getCellMeta(row, col).isSearchResult = testResult;
+};
+
+const DEFAULT_QUERY_METHOD = function(query, value) {
+  if (isUndefined(query) || query === null || !query.toLowerCase || query.length === 0) {
+    return false;
+  }
+  if (isUndefined(value) || value === null) {
+    return false;
+  }
+
+  return value.toString().toLowerCase().indexOf(query.toLowerCase()) !== -1;
+};
 
 /**
- * @private
  * @plugin Search
+ *
+ * @example
+ *
+ * ```js
+ * ...
+ *  // as boolean
+ *  search: true
+ *
+ *  // as a object with one or more options
+ *  search: {
+ *    callback: myNewCallbackFunction,
+ *    queryMethod: myNewQueryMethod,
+ *    searchResultClass: 'customClass'
+ *  }
+ *
+ * // Access to search plugin instance:
+ * var searchPlugin = hot.getPlugin('search');
+ *
+ * // Set callback programmatically:
+ * searchPlugin.setCallback(myNewCallbackFunction);
+ * // Set query method programmatically:
+ * searchPlugin.setQueryMethod(myNewQueryMethod);
+ * // Set search result cells class programmatically:
+ * searchPlugin.setSearchResultClass(customClass);
+ * ...
+ * ```
  */
-function Search(instance) {
-  this.query = function(queryStr, callback, queryMethod) {
-    var rowCount = instance.countRows();
-    var colCount = instance.countCols();
-    var queryResult = [];
+class Search extends BasePlugin {
+  constructor(hotInstance) {
+    super(hotInstance);
+    /**
+     * Function called during querying for each cell from the {@link DataMap}.
+     *
+     * @type {Function}
+     */
+    this.callback = DEFAULT_CALLBACK;
+    /**
+     * Query function is responsible for determining whether a query matches the value stored in a cell.
+     *
+     * @type {Function}
+     */
+    this.queryMethod = DEFAULT_QUERY_METHOD;
+    /**
+     * Class name added to each cell that belongs to the searched query.
+     *
+     * @type {String}
+     */
+    this.searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
+  }
 
-    if (!callback) {
-      callback = Search.global.getDefaultCallback();
+  /**
+   * Check if the plugin is enabled in the Handsontable settings.
+   *
+   * @returns {Boolean}
+   */
+  isEnabled() {
+    return this.hot.getSettings().search;
+  }
+
+  /**
+   * Enable plugin for this Handsontable instance.
+   */
+  enablePlugin() {
+    if (this.enabled) {
+      return;
     }
 
-    if (!queryMethod) {
-      queryMethod = Search.global.getDefaultQueryMethod();
-    }
+    const searchSettings = this.hot.getSettings().search;
+    this.updatePluginSettings(searchSettings);
 
-    for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-      for (var colIndex = 0; colIndex < colCount; colIndex++) {
-        var cellData = instance.getDataAtCell(rowIndex, colIndex);
-        var cellProperties = instance.getCellMeta(rowIndex, colIndex);
-        var cellCallback = cellProperties.search.callback || callback;
-        var cellQueryMethod = cellProperties.search.queryMethod || queryMethod;
-        var testResult = cellQueryMethod(queryStr, cellData);
+    this.addHook('beforeRenderer', (...args) => this.onBeforeRenderer(...args));
+
+    super.enablePlugin();
+  }
+
+  /**
+   * Disable plugin for this Handsontable instance.
+   */
+  disablePlugin() {
+    const beforeRendererCallback = (...args) => this.onBeforeRenderer(...args);
+
+    this.hot.addHook('beforeRenderer', beforeRendererCallback);
+    this.hot.addHookOnce('afterRender', () => {
+      this.hot.removeHook('beforeRenderer', beforeRendererCallback);
+    });
+
+    super.disablePlugin();
+  }
+
+  /**
+   * Updates the plugin to use the latest options you have specified.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    super.updatePlugin();
+  }
+
+  /**
+   * Query method - used inside search input listener.
+   *
+   * @param {String} queryStr Searched value.
+   * @param {Function} [callback] Callback function performed on cells with values which matches to the searched query.
+   * @param {Function} [queryMethod] Query function responsible for determining whether a query matches the value stored in a cell.
+   *
+   * @returns {Array} Return array of objects with `row`, `col`, `data` properties or empty array.
+   */
+  query(queryStr, callback = this.getCallback(), queryMethod = this.getQueryMethod()) {
+    const rowCount = this.hot.countRows();
+    const colCount = this.hot.countCols();
+    const queryResult = [];
+    const instance = this.hot;
+
+    rangeEach(0, rowCount - 1, (rowIndex) => {
+      rangeEach(0, colCount - 1, (colIndex) => {
+        const cellData = this.hot.getDataAtCell(rowIndex, colIndex);
+        const cellProperties = this.hot.getCellMeta(rowIndex, colIndex);
+        const cellCallback = cellProperties.search.callback || callback;
+        const cellQueryMethod = cellProperties.search.queryMethod || queryMethod;
+        const testResult = cellQueryMethod(queryStr, cellData);
 
         if (testResult) {
-          var singleResult = {
+          const singleResult = {
             row: rowIndex,
             col: colIndex,
             data: cellData,
@@ -41,95 +158,131 @@ function Search(instance) {
         if (cellCallback) {
           cellCallback(instance, rowIndex, colIndex, cellData, testResult);
         }
-      }
-    }
+      });
+    });
 
     return queryResult;
   };
-};
 
-Search.DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
-  instance.getCellMeta(row, col).isSearchResult = testResult;
-};
-
-Search.DEFAULT_QUERY_METHOD = function(query, value) {
-  if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length === 0) {
-    return false;
-  }
-  if (typeof value == 'undefined' || value == null) {
-    return false;
+  /**
+   * Get callback function.
+   *
+   * @returns {Function} Return the callback function.
+   */
+  getCallback() {
+    return this.callback;
   }
 
-  return value.toString().toLowerCase().indexOf(query.toLowerCase()) != -1;
-};
+  /**
+   * Set callback function.
+   *
+   * @param {Function} newCallback
+   */
+  setCallback(newCallback) {
+    this.callback = newCallback;
+  }
 
-Search.DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
+  /**
+   * Get queryMethod function.
+   *
+   * @returns {Function} Return the query method.
+   */
+  getQueryMethod() {
+    return this.queryMethod;
+  }
 
-Search.global = (function() {
+  /**
+   * Set queryMethod function.
+   *
+   * @param {Function} newQueryMethod
+   */
+  setQueryMethod(newQueryMethod) {
+    this.queryMethod = newQueryMethod;
+  }
 
-  var defaultCallback = Search.DEFAULT_CALLBACK;
-  var defaultQueryMethod = Search.DEFAULT_QUERY_METHOD;
-  var defaultSearchResultClass = Search.DEFAULT_SEARCH_RESULT_CLASS;
+  /**
+   * Get search result cells class.
+   *
+   * @returns {Function} Return the cell class.
+   */
+  getSearchResultClass() {
+    return this.searchResultClass;
+  }
 
-  return {
-    getDefaultCallback() {
-      return defaultCallback;
-    },
+  /**
+   * Set search result cells class.
+   *
+   * @param {String} newElementClass
+   */
+  setSearchResultClass(newElementClass) {
+    this.searchResultClass = newElementClass;
+  }
 
-    setDefaultCallback(newDefaultCallback) {
-      defaultCallback = newDefaultCallback;
-    },
+  /**
+   * Updates the settings of the plugin.
+   *
+   * @param {Object} searchSettings The plugin settings, taken from Handsontable configuration.
+   * @private
+   */
+  updatePluginSettings(searchSettings) {
+    if (isObject(searchSettings)) {
+      if (searchSettings.searchResultClass) {
+        this.setSearchResultClass(searchSettings.searchResultClass);
+      }
 
-    getDefaultQueryMethod() {
-      return defaultQueryMethod;
-    },
+      if (searchSettings.queryMethod) {
+        this.setQueryMethod(searchSettings.queryMethod);
+      }
 
-    setDefaultQueryMethod(newDefaultQueryMethod) {
-      defaultQueryMethod = newDefaultQueryMethod;
-    },
-
-    getDefaultSearchResultClass() {
-      return defaultSearchResultClass;
-    },
-
-    setDefaultSearchResultClass(newSearchResultClass) {
-      defaultSearchResultClass = newSearchResultClass;
+      if (searchSettings.callback) {
+        this.setCallback(searchSettings.callback);
+      }
     }
-  };
-
-}());
-
-function SearchCellDecorator(instance, TD, row, col, prop, value, cellProperties) {
-  var searchResultClass = (cellProperties.search !== null && typeof cellProperties.search == 'object' &&
-      cellProperties.search.searchResultClass) || Search.global.getDefaultSearchResultClass();
-
-  if (cellProperties.isSearchResult) {
-    addClass(TD, searchResultClass);
-  } else {
-    removeClass(TD, searchResultClass);
   }
-};
 
-var originalBaseRenderer = getRenderer('base');
+  /** *
+   * The `beforeRenderer` hook callback.
+   *
+   * @private
+   * @param {HTMLTableCellElement} TD The rendered `TD` element.
+   * @param {Number} row Visual row index.
+   * @param {Number} col Visual column index.
+   * @param {String | Number} prop Column property name or a column index, if datasource is an array of arrays.
+   * @param {String} value Value of the rendered cell.
+   * @param {Object} cellProperties Object containing the cell's properties.
+   */
+  onBeforeRenderer(TD, row, col, prop, value, cellProperties) {
+    // TODO: #4972
+    const className = cellProperties.className || [];
+    let classArray = [];
 
-registerRenderer('base', function(instance, TD, row, col, prop, value, cellProperties) {
-  originalBaseRenderer.apply(this, arguments);
-  SearchCellDecorator.apply(this, arguments);
-});
+    if (typeof className === 'string') {
+      classArray = className.split(' ');
 
-function init() {
-  var instance = this;
+    } else {
+      classArray.push(...className);
+    }
 
-  var pluginEnabled = !!instance.getSettings().search;
+    if (this.isEnabled() && cellProperties.isSearchResult) {
+      if (!classArray.includes(this.searchResultClass)) {
+        classArray.push(`${this.searchResultClass}`);
+      }
 
-  if (pluginEnabled) {
-    instance.search = new Search(instance);
-  } else {
-    delete instance.search;
+    } else if (classArray.includes(this.searchResultClass)) {
+      classArray.splice(classArray.indexOf(this.searchResultClass), 1);
+    }
+
+    cellProperties.className = classArray.join(' ');
+  }
+
+  /**
+   * Destroy plugin instance.
+   */
+  destroy() {
+    super.destroy();
   }
 }
 
-Hooks.getSingleton().add('afterInit', init);
-Hooks.getSingleton().add('afterUpdateSettings', init);
+registerPlugin('search', Search);
 
 export default Search;

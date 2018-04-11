@@ -80,6 +80,8 @@ class Settings {
       onCellCornerDblClick: null,
       beforeDraw: null,
       onDraw: null,
+      onBeforeRemoveCellClassNames: null,
+      onAfterDrawSelection: null,
       onBeforeDrawBorders: null,
       onScrollVertically: null,
       onScrollHorizontally: null,

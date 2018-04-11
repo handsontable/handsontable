@@ -10,6 +10,7 @@ import SelectionCalculations from './calculations/selection';
 import toggleMergeItem from './contextMenuItem/toggleMerge';
 import {arrayEach} from '../../helpers/array';
 import {clone} from '../../helpers/object';
+import {warn} from '../../helpers/console';
 import {rangeEach} from '../../helpers/number';
 import {applySpanProperties} from './utils';
 import './mergeCells.css';
@@ -89,11 +90,12 @@ class MergeCells extends BasePlugin {
 
     this.mergedCellsCollection = new MergedCellsCollection(this);
     this.autofillCalculations = new AutofillCalculations(this);
-    this.selectionCalculations = new SelectionCalculations();
+    this.selectionCalculations = new SelectionCalculations(this);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('beforeKeyDown', (...args) => this.onBeforeKeyDown(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
+    this.addHook('afterModifyTransformStart', (...args) => this.onAfterModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.onModifyTransformEnd(...args));
     this.addHook('modifyGetCellCoords', (...args) => this.onModifyGetCellCoords(...args));
     this.addHook('beforeSetRangeEnd', (...args) => this.onBeforeSetRangeEnd(...args));
@@ -110,6 +112,8 @@ class MergeCells extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterChange', (...args) => this.onAfterChange(...args));
     this.addHook('beforeDrawBorders', (...args) => this.onBeforeDrawAreaBorders(...args));
+    this.addHook('afterDrawSelection', (...args) => this.onAfterDrawSelection(...args));
+    this.addHook('beforeRemoveCellClassNames', (...args) => this.onBeforeRemoveCellClassNames(...args));
 
     super.enablePlugin();
   }
@@ -153,22 +157,22 @@ class MergeCells extends BasePlugin {
     }
 
     if (MergedCellCoords.containsNegativeValues(setting)) {
-      console.warn(MergedCellCoords.NEGATIVE_VALUES_WARNING(setting));
+      warn(MergedCellCoords.NEGATIVE_VALUES_WARNING(setting));
 
       valid = false;
 
     } else if (MergedCellCoords.isOutOfBounds(setting, this.hot.countRows(), this.hot.countCols())) {
-      console.warn(MergedCellCoords.IS_OUT_OF_BOUNDS_WARNING(setting));
+      warn(MergedCellCoords.IS_OUT_OF_BOUNDS_WARNING(setting));
 
       valid = false;
 
     } else if (MergedCellCoords.isSingleCell(setting)) {
-      console.warn(MergedCellCoords.IS_SINGLE_CELL(setting));
+      warn(MergedCellCoords.IS_SINGLE_CELL(setting));
 
       valid = false;
 
     } else if (MergedCellCoords.containsZeroSpan(setting)) {
-      console.warn(MergedCellCoords.ZERO_SPAN_WARNING(setting));
+      warn(MergedCellCoords.ZERO_SPAN_WARNING(setting));
 
       valid = false;
     }
@@ -697,7 +701,7 @@ class MergeCells extends BasePlugin {
     do {
       rangeExpanded = false;
 
-      for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i++) {
+      for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
         let cellInfo = this.mergedCellsCollection.mergedCells[i];
         let mergedCellRange = cellInfo.getRange();
 
@@ -906,6 +910,66 @@ class MergeCells extends BasePlugin {
         }
       });
     }
+  }
+
+  /**
+   * `afterModifyTransformStart` hook callback. Fixes a problem with navigating through merged cells at the edges of the table
+   * with the ENTER/SHIFT+ENTER/TAB/SHIFT+TAB keys.
+   *
+   * @private
+   * @param {CellCoords} coords Coordinates of the to-be-selected cell.
+   * @param {Number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value = down)
+   * @param {Number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value = down)
+   */
+  onAfterModifyTransformStart(coords, rowTransformDir, colTransformDir) {
+    if (!this.enabled) {
+      return;
+    }
+
+    const mergedCellAtCoords = this.mergedCellsCollection.get(coords.row, coords.col);
+
+    if (!mergedCellAtCoords) {
+      return;
+    }
+
+    const goingDown = rowTransformDir > 0;
+    const goingUp = rowTransformDir < 0;
+    const goingLeft = colTransformDir < 0;
+    const goingRight = colTransformDir > 0;
+    const mergedCellOnBottomEdge = mergedCellAtCoords.row + mergedCellAtCoords.rowspan - 1 === this.hot.countRows() - 1;
+    const mergedCellOnTopEdge = mergedCellAtCoords.row === 0;
+    const mergedCellOnRightEdge = mergedCellAtCoords.col + mergedCellAtCoords.colspan - 1 === this.hot.countCols() - 1;
+    const mergedCellOnLeftEdge = mergedCellAtCoords.col === 0;
+
+    if (((goingDown && mergedCellOnBottomEdge) || (goingUp && mergedCellOnTopEdge)) ||
+      ((goingRight && mergedCellOnRightEdge) || (goingLeft && mergedCellOnLeftEdge))) {
+      coords.row = mergedCellAtCoords.row;
+      coords.col = mergedCellAtCoords.col;
+    }
+  }
+
+  /**
+   * `afterDrawSelection` hook callback. Used to add the additional class name for the entirely-selected merged cells.
+   *
+   * @private
+   * @param {Number} currentRow Row index of the currently processed cell.
+   * @param {Number} currentColumn Column index of the currently cell.
+   * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
+   * @param {Number|undefined} layerLevel Number indicating which layer of selection is currently processed.
+   * @returns {String|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.
+   */
+  onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) {
+    return this.selectionCalculations.getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
+  }
+
+  /**
+   * `beforeRemoveCellClassNames` hook callback. Used to remove additional class name from all cells in the table.
+   *
+   * @private
+   * @returns {String[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.
+   */
+  onBeforeRemoveCellClassNames() {
+    return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
   }
 }
 

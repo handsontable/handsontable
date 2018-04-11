@@ -41,15 +41,23 @@ class Selection {
      */
     this.inProgress = false;
     /**
-     * An object with flags which indicates what header is currently selected.
+     * The flag indicates that selection was performed by clicking the corner overlay.
      *
-     * @type {Object}
+     * @type {Boolean}
      */
-    this.selectedHeader = {
-      cols: false,
-      rows: false,
-      corner: false,
-    };
+    this.selectedByCorner = false;
+    /**
+     * The collection of the selection layer levels where the whole row was selected using the row header.
+     *
+     * @type {Set.<Number>}
+     */
+    this.selectedByRowHeader = new Set();
+    /**
+     * The collection of the selection layer levels where the whole column was selected using the column header.
+     *
+     * @type {Set.<Number>}
+     */
+    this.selectedByColumnHeader = new Set();
     /**
      * Selection data layer.
      *
@@ -63,6 +71,7 @@ class Selection {
      */
     this.highlight = new Highlight({
       headerClassName: settings.currentHeaderClassName,
+      activeHeaderClassName: settings.activeHeaderClassName,
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
       disableHighlight: this.settings.disableVisualSelection,
@@ -102,19 +111,6 @@ class Selection {
   }
 
   /**
-   * Set indication of what table header is currently selected.
-   *
-   * @param {Boolean} [rows=false] Indication for row header.
-   * @param {Boolean} [cols=false] Indication for column header.
-   * @param {Boolean} [corner=false] Indication for corner.
-   */
-  setSelectedHeaders(rows = false, cols = false, corner = false) {
-    this.selectedHeader.rows = rows;
-    this.selectedHeader.cols = cols;
-    this.selectedHeader.corner = corner;
-  }
-
-  /**
    * Indicate that selection process began. It sets internaly `.inProgress` property to `true`.
    */
   begin() {
@@ -145,19 +141,47 @@ class Selection {
    * @param {Boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
    *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
    *                                      the default trigger will be used (isPressedCtrlKey() helper).
+   * @param {Boolean} [fragment=false] If `true`, the selection will be treated as a partial selection where the
+   *                                   `setRangeEnd` method won't be called on every `setRangeStart` call.
    */
-  setRangeStart(coords, multipleSelection) {
+  setRangeStart(coords, multipleSelection, fragment = false) {
     const isMultipleMode = this.settings.selectionMode === 'multiple';
     const isMultipleSelection = isUndefined(multipleSelection) ? isPressedCtrlKey() : multipleSelection;
+    const isRowNegative = coords.row < 0;
+    const isColumnNegative = coords.col < 0;
+    const selectedByCorner = isRowNegative && isColumnNegative;
 
-    this.runLocalHooks('beforeSetRangeStart', coords);
+    if (isRowNegative) {
+      coords.row = 0;
+    }
+    if (isColumnNegative) {
+      coords.col = 0;
+    }
+
+    this.selectedByCorner = selectedByCorner;
+    this.runLocalHooks(`beforeSetRangeStart${fragment ? 'Only' : ''}`, coords);
 
     if (!isMultipleMode || (isMultipleMode && !isMultipleSelection && isUndefined(multipleSelection))) {
       this.selectedRange.clear();
     }
 
     this.selectedRange.add(coords);
-    this.setRangeEnd(coords);
+
+    if (this.getLayerLevel() === 0) {
+      this.selectedByRowHeader.clear();
+      this.selectedByColumnHeader.clear();
+    }
+
+    if (!selectedByCorner && isColumnNegative) {
+      this.selectedByRowHeader.add(this.getLayerLevel());
+    }
+    if (!selectedByCorner && isRowNegative) {
+      this.selectedByColumnHeader.add(this.getLayerLevel());
+    }
+
+    if (!fragment) {
+      this.setRangeEnd(coords);
+    }
   }
 
   /**
@@ -169,16 +193,7 @@ class Selection {
    *                                      the default trigger will be used (isPressedCtrlKey() helper).
    */
   setRangeStartOnly(coords, multipleSelection) {
-    const isMultipleMode = this.settings.selectionMode === 'multiple';
-    const isMultipleSelection = isUndefined(multipleSelection) ? isPressedCtrlKey() : multipleSelection;
-
-    this.runLocalHooks('beforeSetRangeStartOnly', coords);
-
-    if (!isMultipleMode || (isMultipleMode && !isMultipleSelection && isUndefined(multipleSelection))) {
-      this.selectedRange.clear();
-    }
-
-    this.selectedRange.add(coords);
+    this.setRangeStart(coords, multipleSelection, true);
   }
 
   /**
@@ -207,44 +222,41 @@ class Selection {
       this.highlight.getCell().add(this.selectedRange.current().highlight);
     }
 
-    const highlightLayerLevel = this.selectedRange.size() - 1;
+    const layerLevel = this.getLayerLevel();
 
     // If the next layer level is lower than previous then clear all area and header highlights. This is the
     // indication that the new selection is performing.
-    if (highlightLayerLevel < this.highlight.layerLevel) {
-      arrayEach(this.highlight.getAreas(), (area) => {
-        area.clear();
-      });
-      arrayEach(this.highlight.getHeaders(), (header) => {
-        header.clear();
-      });
+    if (layerLevel < this.highlight.layerLevel) {
+      arrayEach(this.highlight.getAreas(), (highlight) => void highlight.clear());
+      arrayEach(this.highlight.getHeaders(), (highlight) => void highlight.clear());
+      arrayEach(this.highlight.getActiveHeaders(), (highlight) => void highlight.clear());
     }
 
-    this.highlight.useLayerLevel(highlightLayerLevel);
+    this.highlight.useLayerLevel(layerLevel);
 
     const areaHighlight = this.highlight.createOrGetArea();
     const headerHighlight = this.highlight.createOrGetHeader();
+    const activeHeaderHighlight = this.highlight.createOrGetActiveHeader();
 
     areaHighlight.clear();
     headerHighlight.clear();
+    activeHeaderHighlight.clear();
 
-    if (this.highlight.isEnabledFor(AREA_TYPE)) {
-      if (this.isMultiple() || highlightLayerLevel >= 1) {
-        areaHighlight
-          .add(cellRange.from)
-          .add(cellRange.to);
+    if (this.highlight.isEnabledFor(AREA_TYPE) && (this.isMultiple() || layerLevel >= 1)) {
+      areaHighlight
+        .add(cellRange.from)
+        .add(cellRange.to);
 
-        if (highlightLayerLevel === 1) {
-          // For single cell selection in the same layer, we do not create area selection to prevent blue background.
-          // When non-consecutive selection is performed we have to add that missing area selection to the previous layer
-          // based on previous coordinates. It only occurs when the previous selection wasn't select multiple cells.
-          this.highlight
-            .useLayerLevel(highlightLayerLevel - 1)
-            .createOrGetArea()
-            .add(this.selectedRange.previous().from);
+      if (layerLevel === 1) {
+        // For single cell selection in the same layer, we do not create area selection to prevent blue background.
+        // When non-consecutive selection is performed we have to add that missing area selection to the previous layer
+        // based on previous coordinates. It only occurs when the previous selection wasn't select multiple cells.
+        this.highlight
+          .useLayerLevel(layerLevel - 1)
+          .createOrGetArea()
+          .add(this.selectedRange.previous().from);
 
-          this.highlight.useLayerLevel(highlightLayerLevel);
-        }
+        this.highlight.useLayerLevel(layerLevel);
       }
     }
 
@@ -256,6 +268,28 @@ class Selection {
         headerHighlight
           .add(cellRange.from)
           .add(cellRange.to);
+      }
+    }
+
+    if (this.isSelectedByRowHeader()) {
+      const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
+
+      // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
+      if (isRowSelected) {
+        activeHeaderHighlight
+          .add(new CellCoords(cellRange.from.row, -1))
+          .add(new CellCoords(cellRange.to.row, -1));
+      }
+    }
+
+    if (this.isSelectedByColumnHeader()) {
+      const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
+
+      // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
+      if (isColumnSelected) {
+        activeHeaderHighlight
+          .add(new CellCoords(-1, cellRange.from.col))
+          .add(new CellCoords(-1, cellRange.to.col));
       }
     }
 
@@ -285,9 +319,7 @@ class Selection {
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
   transformStart(rowDelta, colDelta, force) {
-    const newCoords = this.transformation.transformStart(rowDelta, colDelta, force);
-
-    this.setRangeStart(newCoords);
+    this.setRangeStart(this.transformation.transformStart(rowDelta, colDelta, force));
   }
 
   /**
@@ -297,9 +329,16 @@ class Selection {
    * @param {Number} colDelta Columns number to move, value can be passed as negative number.
    */
   transformEnd(rowDelta, colDelta) {
-    const newCoords = this.transformation.transformEnd(rowDelta, colDelta);
+    this.setRangeEnd(this.transformation.transformEnd(rowDelta, colDelta));
+  }
 
-    this.setRangeEnd(newCoords);
+  /**
+   * Returns currently used layer level.
+   *
+   * @return {Number} Returns layer level starting from 0. If no selection was added to the table -1 is returned.
+   */
+  getLayerLevel() {
+    return this.selectedRange.size() - 1;
   }
 
   /**
@@ -309,6 +348,48 @@ class Selection {
    */
   isSelected() {
     return !this.selectedRange.isEmpty();
+  }
+
+  /**
+   * Returns `true` if the selection was applied by clicking to the row header. If the `layerLevel`
+   * argument is passed then only that layer will be checked. Otherwise, it checks if any row header
+   * was clicked on any selection layer level.
+   *
+   * @param {Number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
+   * @return {Boolean}
+   */
+  isSelectedByRowHeader(layerLevel = this.getLayerLevel()) {
+    return layerLevel === -1 ? this.selectedByRowHeader.size > 0 : this.selectedByRowHeader.has(layerLevel);
+  }
+
+  /**
+   * Returns `true` if the selection was applied by clicking to the column header. If the `layerLevel`
+   * argument is passed then only that layer will be checked. Otherwise, it checks if any column header
+   * was clicked on any selection layer level.
+   *
+   * @param {Number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
+   * @return {Boolean}
+   */
+  isSelectedByColumnHeader(layerLevel = this.getLayerLevel()) {
+    return layerLevel === -1 ? this.selectedByColumnHeader.size > 0 : this.selectedByColumnHeader.has(layerLevel);
+  }
+
+  /**
+   * Returns `true` if the selection was applied by clicking on the row or column header on any layer level.
+   *
+   * @return {Boolean}
+   */
+  isSelectedByAnyHeader() {
+    return this.isSelectedByRowHeader(-1) || this.isSelectedByColumnHeader(-1);
+  }
+
+  /**
+   * Returns `true` if the selection was applied by clicking on the left-top corner overlay.
+   *
+   * @return {Boolean}
+   */
+  isSelectedByCorner() {
+    return this.selectedByCorner;
   }
 
   /**
@@ -339,7 +420,7 @@ class Selection {
    * @return {Boolean} `true` if the corner element has to be visible, `false` otherwise.
    */
   isAreaCornerVisible(layerLevel) {
-    if (layerLevel !== this.selectedRange.ranges.length - 1) {
+    if (Number.isInteger(layerLevel) && layerLevel !== this.getLayerLevel()) {
       return false;
     }
 
@@ -371,13 +452,10 @@ class Selection {
    * Select all cells.
    */
   selectAll() {
-    if (this.settings.selectionMode === 'single') {
-      return;
-    }
-
     this.clear();
-    this.setSelectedHeaders(true, true, true);
-    this.setRangeStart(new CellCoords(0, 0));
+    this.setRangeStart(new CellCoords(-1, -1));
+    this.selectedByRowHeader.add(this.getLayerLevel());
+    this.selectedByColumnHeader.add(this.getLayerLevel());
     this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, this.tableProps.countCols() - 1));
   }
 
@@ -450,9 +528,7 @@ class Selection {
     const isValid = isValidCoord(startColumn, countCols) && isValidCoord(endColumn, countCols);
 
     if (isValid) {
-      this.clear();
-      this.setSelectedHeaders(false, true, false);
-      this.setRangeStartOnly(new CellCoords(0, startColumn));
+      this.setRangeStartOnly(new CellCoords(-1, startColumn));
       this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, endColumn));
       this.finish();
     }
@@ -472,9 +548,7 @@ class Selection {
     const isValid = isValidCoord(startRow, countRows) && isValidCoord(endRow, countRows);
 
     if (isValid) {
-      this.clear();
-      this.setSelectedHeaders(true, false, false);
-      this.setRangeStartOnly(new CellCoords(startRow, 0));
+      this.setRangeStartOnly(new CellCoords(startRow, -1));
       this.setRangeEnd(new CellCoords(endRow, this.tableProps.countCols() - 1));
       this.finish();
     }
