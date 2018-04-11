@@ -66,7 +66,7 @@ class Transformation {
 
     if (highlightCoords.col + delta.col > totalCols - 1) {
       if (force && minSpareCols > 0) {
-        this.runLocalHooks('insertColRequire', totalRows);
+        this.runLocalHooks('insertColRequire', totalCols);
         totalCols = this.options.countCols();
 
       } else if (autoWrapRow) {
