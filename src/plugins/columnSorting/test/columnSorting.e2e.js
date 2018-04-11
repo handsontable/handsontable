@@ -91,7 +91,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    hot.sort(1, true); // ASC
+    hot.getPlugin('columnSorting').sortByColumn(1, true); // ASC
 
     expect(hot.getDataAtCol(0)).toEqual([
       'bmw1', 'bmw2', 'bmw3',
@@ -100,7 +100,7 @@ describe('ColumnSorting', () => {
       'opel1', 'opel2', 'opel3'
     ]);
 
-    hot.sort(1, false); // DESC
+    hot.getPlugin('columnSorting').sortByColumn(1, false); // DESC
 
     expect(hot.getDataAtCol(0)).toEqual([
       'opel1', 'opel2', 'opel3',
@@ -163,7 +163,7 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr').length).toEqual(4);
 
     // Now if sort is launched, sorting ordered will be reversed
-    hot.sortOrder = false;
+    hot.getPlugin('columnSorting').sortOrder = false;
 
     hot.alter('remove_row', 0);
 
@@ -304,7 +304,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    hot.sort(0, true); // ASC
+    hot.getPlugin('columnSorting').sortByColumn(0, true); // ASC
 
     expect(hot.getDataAtCol(1)).toEqual([
       'Frank Honest',
@@ -321,7 +321,7 @@ describe('ColumnSorting', () => {
       'Eve Branson',
     ]);
 
-    hot.sort(0, false); // DESC
+    hot.getPlugin('columnSorting').sortByColumn(0, false); // DESC
 
     expect(hot.getDataAtCol(1)).toEqual([
       'Eve Well',
@@ -359,7 +359,7 @@ describe('ColumnSorting', () => {
       }
     });
 
-    hot.sort(0, true); // ASC
+    hot.getPlugin('columnSorting').sortByColumn(0, true); // ASC
 
     expect(hot.getDataAtCol(1)).toEqual([
       'Ted Right',
@@ -375,7 +375,7 @@ describe('ColumnSorting', () => {
       'Rob Norris'
     ]);
 
-    hot.sort(0, false); // DESC
+    hot.getPlugin('columnSorting').sortByColumn(0, false); // DESC
 
     expect(hot.getDataAtCol(1)).toEqual([
       'Rob Norris',
@@ -697,7 +697,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      hot.sort(2, true); // ASC
+      hot.getPlugin('columnSorting').sortByColumn(2, true); // ASC
 
       expect(hot.getDataAtRow(0)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
       expect(hot.getDataAtRow(1)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
@@ -705,7 +705,7 @@ describe('ColumnSorting', () => {
       expect(hot.getDataAtRow(3)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
       expect(hot.getDataAtRow(4)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
 
-      hot.sort(2, false); // DESC
+      hot.getPlugin('columnSorting').sortByColumn(2, false); // DESC
 
       expect(hot.getDataAtRow(0)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
       expect(hot.getDataAtRow(1)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
@@ -738,7 +738,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      hot.sort(2, true); // ASC
+      hot.getPlugin('columnSorting').sortByColumn(2, true); // ASC
 
       expect(hot.getDataAtRow(0)).toEqual(['Mercedes', 'A 160', '01/12/2012', 6999.9999]);
       expect(hot.getDataAtRow(1)).toEqual(['Citroen', 'C4 Coupe', '12/01/2013', 8330]);
@@ -746,7 +746,7 @@ describe('ColumnSorting', () => {
       expect(hot.getDataAtRow(3)).toEqual(['Audi', 'A4 Avant', '11/10/2014', 33900]);
       expect(hot.getDataAtRow(4)).toEqual(['Opel', 'Astra', '02/02/2015', 7000]);
 
-      hot.sort(2, false); // DESC
+      hot.getPlugin('columnSorting').sortByColumn(2, false); // DESC
 
       expect(hot.getDataAtRow(0)).toEqual(['Opel', 'Astra', '02/02/2015', 7000]);
       expect(hot.getDataAtRow(1)).toEqual(['Audi', 'A4 Avant', '11/10/2014', 33900]);
@@ -779,7 +779,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      hot.sort(2, true); // ASC
+      hot.getPlugin('columnSorting').sortByColumn(2, true); // ASC
 
       expect(hot.getDataAtRow(0)).toEqual(['Audi', 'A4 Avant', 'July 8th 1999', 33900]);
       expect(hot.getDataAtRow(1)).toEqual(['Opel', 'Astra', 'June 1st 2001', 7000]);
@@ -787,7 +787,7 @@ describe('ColumnSorting', () => {
       expect(hot.getDataAtRow(3)).toEqual(['Citroen', 'C4 Coupe', 'October 27th 2001', 8330]);
       expect(hot.getDataAtRow(4)).toEqual(['Mercedes', 'A 160', 'October 28th 2016', 6999.9999]);
 
-      hot.sort(2, false); // DESC
+      hot.getPlugin('columnSorting').sortByColumn(2, false); // DESC
 
       expect(hot.getDataAtRow(0)).toEqual(['Mercedes', 'A 160', 'October 28th 2016', 6999.9999]);
       expect(hot.getDataAtRow(1)).toEqual(['Citroen', 'C4 Coupe', 'October 27th 2001', 8330]);
@@ -822,7 +822,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      hot.sort(2, true); // ASC
+      hot.getPlugin('columnSorting').sortByColumn(2, true); // ASC
 
       expect(hot.getDataAtRow(0)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
       expect(hot.getDataAtRow(1)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
@@ -830,7 +830,7 @@ describe('ColumnSorting', () => {
       expect(hot.getDataAtRow(3)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
       expect(hot.getDataAtRow(4)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
 
-      hot.sort(2, false); // DESC
+      hot.getPlugin('columnSorting').sortByColumn(2, false); // DESC
 
       expect(hot.getDataAtRow(0)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
       expect(hot.getDataAtRow(1)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
@@ -1172,29 +1172,7 @@ describe('ColumnSorting', () => {
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
   });
 
-  it('should expose sort method when columnSorting is enabled', () => {
-    var hot = handsontable();
-
-    expect(hot.getSettings().columnSorting).toBeFalsy();
-    expect(hot.sort).toBeUndefined();
-
-    updateSettings({
-      columnSorting: true
-    });
-
-    expect(hot.getSettings().columnSorting).toBe(true);
-    expect(hot.sort).toBeDefined();
-    expect(typeof hot.sort).toBe('function');
-
-    updateSettings({
-      columnSorting: false
-    });
-
-    expect(hot.getSettings().columnSorting).toBeFalsy();
-    expect(hot.sort).toBeUndefined();
-  });
-
-  it('should sort table using HOT.sort method', function() {
+  it('should sort table using plugin API method', function() {
     var hot = handsontable({
       data: [
         [1, 'B'],
@@ -1210,7 +1188,7 @@ describe('ColumnSorting', () => {
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
-    hot.sort(0, true);
+    hot.getPlugin('columnSorting').sortByColumn(0, true);
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1267,7 +1245,7 @@ describe('ColumnSorting', () => {
     var sortColumn = 0;
     var sortOrder = true;
 
-    hot.sort(sortColumn, sortOrder);
+    hot.getPlugin('columnSorting').sortByColumn(sortColumn, sortOrder);
 
     expect(this.beforeColumnSortHandler.calls.count()).toEqual(1);
     expect(this.beforeColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
@@ -1287,7 +1265,7 @@ describe('ColumnSorting', () => {
       }
     });
 
-    hot.sort(0, true);
+    hot.getPlugin('columnSorting').sortByColumn(0, true);
 
     setTimeout(() => {
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
@@ -1310,7 +1288,7 @@ describe('ColumnSorting', () => {
     var sortColumn = 0;
     var sortOrder = true;
 
-    hot.sort(sortColumn, sortOrder);
+    hot.getPlugin('columnSorting').sortByColumn(sortColumn, sortOrder);
 
     expect(beforeColumnSortCallback.calls.count()).toEqual(1);
     expect(beforeColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
@@ -1343,7 +1321,7 @@ describe('ColumnSorting', () => {
     var sortOrder = true;
     afterRenderSpy.calls.reset();
 
-    hot.sort(sortColumn, sortOrder);
+    hot.getPlugin('columnSorting').sortByColumn(sortColumn, sortOrder);
 
     expect(afterColumnSortHandler.calls.count()).toBe(1);
     expect(afterColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
@@ -1362,7 +1340,7 @@ describe('ColumnSorting', () => {
     var sortColumn = 0;
     var sortOrder = true;
 
-    hot.sort(sortColumn, sortOrder);
+    hot.getPlugin('columnSorting').sortByColumn(sortColumn, sortOrder);
 
     expect(afterColumnSortCallback.calls.count()).toEqual(1);
     expect(afterColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
@@ -1399,7 +1377,7 @@ describe('ColumnSorting', () => {
     });
 
     expect(countRows()).toEqual(4);
-    expect(hot.sortColumn).toBeUndefined();
+    expect(hot.getPlugin('columnSorting').sortColumn).toBeUndefined();
 
     alter('remove_row');
 
@@ -1585,7 +1563,7 @@ describe('ColumnSorting', () => {
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
-    hot.sort(0, true);
+    hot.getPlugin('columnSorting').sortByColumn(0, true);
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1634,7 +1612,7 @@ describe('ColumnSorting', () => {
     expect(this.$container.find('tbody tr:eq(2) td:eq(1)').text()).toEqual('C');
     expect(this.$container.find('tbody tr:eq(3) td:eq(1)').text()).toEqual('D');
 
-    hot.sort(0, true);
+    hot.getPlugin('columnSorting').sortByColumn(0, true);
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1946,7 +1924,7 @@ describe('ColumnSorting', () => {
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
   });
 
-  it('should change sorting indicator state on every `hot.sort()` method call (continuously for the same column)', function() {
+  it('should change sorting indicator state on every plugin API method call (continuously for the same column)', function() {
     var hot = handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -1960,34 +1938,34 @@ describe('ColumnSorting', () => {
       sortIndicator: true,
     });
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sortByColumn(1);
 
     // ascending
     var sortedColumn = this.$container.find('th span.columnSorting')[1];
     var afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sortByColumn(1);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sortByColumn(1);
 
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sortByColumn(1);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sortByColumn(1);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
@@ -1995,7 +1973,7 @@ describe('ColumnSorting', () => {
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
   });
 
-  it('should change sorting indicator state on every `hot.sort()` method (calling for different columns)', function() {
+  it('should change sorting indicator state on every plugin API method (calling for different columns)', function() {
     var hot = handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2009,42 +1987,42 @@ describe('ColumnSorting', () => {
       sortIndicator: true,
     });
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sortByColumn(1);
 
     // ascending
     var sortedColumn = this.$container.find('th span.columnSorting')[1];
     var afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
-    hot.sort(2);
+    hot.getPlugin('columnSorting').sortByColumn(2);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sortByColumn(1);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
-    hot.sort(2, false);
+    hot.getPlugin('columnSorting').sortByColumn(2, false);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
-    hot.sort(2, false);
+    hot.getPlugin('columnSorting').sortByColumn(2, false);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
-    hot.sort(2, true);
+    hot.getPlugin('columnSorting').sortByColumn(2, true);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
@@ -2074,28 +2052,28 @@ describe('ColumnSorting', () => {
     var afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sortByColumn(1);
 
     // default
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sortByColumn(1);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sortByColumn(1);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sortByColumn(1);
 
     // default
     sortedColumn = this.$container.find('th span.columnSorting')[1];
@@ -2127,21 +2105,21 @@ describe('ColumnSorting', () => {
 
     hot.view.wt.wtOverlays.leftOverlay.scrollTo(15);
     hot.render();
-    hot.sort(15);
+    hot.getPlugin('columnSorting').sortByColumn(15);
 
     expect(getDataAtCell(0, 15)).toEqual('Ball Levy');
     expect(getDataAtCell(1, 15)).toEqual('Hubbard Nichols');
     expect(getDataAtCell(2, 15)).toEqual('Lenora Guzman');
     expect(getDataAtCell(3, 15)).toEqual('Nita Holloway');
 
-    hot.sort(15);
+    hot.getPlugin('columnSorting').sortByColumn(15);
 
     expect(getDataAtCell(3, 15)).toEqual('Ball Levy');
     expect(getDataAtCell(2, 15)).toEqual('Hubbard Nichols');
     expect(getDataAtCell(1, 15)).toEqual('Lenora Guzman');
     expect(getDataAtCell(0, 15)).toEqual('Nita Holloway');
 
-    hot.sort(15);
+    hot.getPlugin('columnSorting').sortByColumn(15);
 
     expect(getDataAtCell(0, 15)).toEqual('Hubbard Nichols');
     expect(getDataAtCell(1, 15)).toEqual('Lenora Guzman');
@@ -2203,21 +2181,21 @@ describe('ColumnSorting', () => {
     expect(getDataAtCell(2, 0)).toEqual('2 feet');
     expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
 
-    hot.sort(0);
+    hot.getPlugin('columnSorting').sortByColumn(0);
 
     expect(getDataAtCell(0, 0)).toEqual('1 inch');
     expect(getDataAtCell(1, 0)).toEqual('2 feet');
     expect(getDataAtCell(2, 0)).toEqual('1 yard');
     expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
 
-    hot.sort(0);
+    hot.getPlugin('columnSorting').sortByColumn(0);
 
     expect(getDataAtCell(0, 0)).toEqual('0.2 miles');
     expect(getDataAtCell(1, 0)).toEqual('1 yard');
     expect(getDataAtCell(2, 0)).toEqual('2 feet');
     expect(getDataAtCell(3, 0)).toEqual('1 inch');
 
-    hot.sort(0);
+    hot.getPlugin('columnSorting').sortByColumn(0);
 
     expect(getDataAtCell(0, 0)).toEqual('1 inch');
     expect(getDataAtCell(1, 0)).toEqual('1 yard');

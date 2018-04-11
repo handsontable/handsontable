@@ -94,6 +94,8 @@ class ColumnSorting extends BasePlugin {
     });
     this.addHook('afterInit', () => this.sortBySettings());
     this.addHook('afterLoadData', () => {
+      this.sortIndex = [];
+
       if (this.hot.view) {
         this.sortBySettings();
       }
