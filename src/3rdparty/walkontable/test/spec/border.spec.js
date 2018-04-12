@@ -259,7 +259,7 @@ describe('WalkontableBorder', () => {
   it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', () => {
     $container.css({
       overflow: 'hidden',
-      width: '200px'
+      width: '200px',
     });
     const wt = new Walkontable.Core({
       table: $table[0],
@@ -315,6 +315,55 @@ describe('WalkontableBorder', () => {
     expect($corner.position().top).toBe(65);
     expect($corner.position().left).toBe(95);
     expect($container[0].clientWidth === $container[0].scrollWidth).toBe(true);
+  });
+
+  it('should move the fill handle / corner border to the top, if in the position it would overlap the container (e.g.: far-bottom)', () => {
+    $container.css({
+      overflow: 'hidden',
+      height: 'auto',
+      marginTop: '2000px',
+    });
+
+    const wt = new Walkontable.Core({
+      table: $table[0],
+      data: getData,
+      totalRows: 5,
+      totalColumns: 1,
+      selections: [
+        new Walkontable.Selection({
+          border: {
+            width: 2,
+            color: 'green',
+            cornerVisible() {
+              return true;
+            }
+          }
+        }),
+        new Walkontable.Selection({})
+      ],
+      onCellMouseDown(event, coords, TD) {
+        wt.selections.getCell().clear();
+        wt.selections.getCell().add(coords);
+        wt.draw();
+      }
+    });
+
+    shimSelectionProperties(wt);
+    wt.draw();
+
+    const $td = $table.find('tbody tr:last-of-type td:last-of-type');
+    const $corner = $(wt.selections.getCell().getBorder(wt).corner);
+
+    $td.simulate('mousedown');
+
+    wt.draw();
+
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
+    expect($table.css('height')).toBe('116px');
+    expect($corner.position().top).toBe(109); // table.height - corner.height - corner.borderTop
+    expect($corner.position().left).toBe(45);
+    expect($container[0].clientHeight === $container[0].scrollHeight).toBe(true);
   });
 
 });
