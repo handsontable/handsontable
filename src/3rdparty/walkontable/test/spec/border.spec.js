@@ -365,5 +365,4 @@ describe('WalkontableBorder', () => {
     expect($corner.position().left).toBe(45);
     expect($container[0].clientHeight === $container[0].scrollHeight).toBe(true);
   });
-
 });
