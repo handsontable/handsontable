@@ -83,7 +83,6 @@ class ColumnSorting extends BasePlugin {
     this.addHook('afterUntrimRow', (row) => this.sort());
     this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
     this.addHook('unmodifyRow', (row, source) => this.onUnmodifyRow(row, source));
-    this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
     this.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
@@ -115,8 +114,11 @@ class ColumnSorting extends BasePlugin {
    *
    * @private
    */
-  onAfterUpdateSettings() {
-    this.sortBySettings();
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    super.updatePlugin();
   }
 
   sortBySettings() {
