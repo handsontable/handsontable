@@ -407,6 +407,43 @@ describe('TextEditor', () => {
     expect(keyProxy().val()).toEqual('2012');
   });
 
+  it('should render correct value in textarea after row order changed and new values set (#4289)', () => {
+    var hot = handsontable({
+      data: [
+        [1, 'Tom'],
+        [2, 'Cage']
+      ],
+      columnSorting: true
+    });
+
+    hot.sort(0, false);
+    hot.render();
+
+    selectCell(0, 0);
+
+    setDataAtCell(1, 1, 'Frank');
+
+    keyDown('enter');
+    expect(keyProxy().val()).toEqual('2');
+    keyDown('enter');
+
+    expect(hot.getDataAtCell(0, 0)).toEqual('2');
+
+    selectCell(1, 0);
+    keyDown('enter');
+    expect(keyProxy().val()).toEqual('1');
+    keyDown('enter');
+
+    expect(hot.getDataAtCell(1, 0)).toEqual('1');
+
+    selectCell(1, 1);
+    keyDown('enter');
+    expect(keyProxy().val()).toEqual('Frank');
+    keyDown('enter');
+
+    expect(hot.getDataAtCell(1, 1)).toEqual('Frank');
+  });
+
   it('should open editor after hitting F2', () => {
     handsontable();
     selectCell(2, 2);

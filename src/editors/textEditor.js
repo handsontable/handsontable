@@ -240,10 +240,10 @@ TextEditor.prototype.getEditedCell = function() {
 };
 
 TextEditor.prototype.refreshValue = function() {
-  let sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
-  this.originalValue = sourceData;
+  let cellData = this.instance.getDataAtCell(this.row, this.prop);
+  this.originalValue = cellData;
 
-  this.setValue(sourceData);
+  this.setValue(cellData);
   this.refreshDimensions();
 };
 
