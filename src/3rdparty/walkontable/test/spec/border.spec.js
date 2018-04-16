@@ -365,4 +365,56 @@ describe('WalkontableBorder', () => {
     expect($corner.position().left).toBe(45);
     expect($container[0].clientHeight === $container[0].scrollHeight).toBe(true);
   });
+
+  it('should move the corner border to the top-left, if is not enough area on the bottom-right corner of container', () => {
+    $container.css({
+      overflow: 'hidden',
+      height: 'auto',
+      width: '50px',
+      marginTop: '2000px',
+      marginLeft: '2000px',
+    });
+
+    const wt = new Walkontable.Core({
+      table: $table[0],
+      data: getData,
+      totalRows: 1,
+      totalColumns: 1,
+      selections: [
+        new Walkontable.Selection({
+          border: {
+            width: 2,
+            color: 'green',
+            cornerVisible() {
+              return true;
+            }
+          }
+        }),
+        new Walkontable.Selection({})
+      ],
+      onCellMouseDown(event, coords, TD) {
+        wt.selections.getCell().clear();
+        wt.selections.getCell().add(coords);
+        wt.draw();
+      }
+    });
+
+    shimSelectionProperties(wt);
+    wt.draw();
+
+    const $td = $table.find('tbody tr:last-of-type td:last-of-type');
+    const $corner = $(wt.selections.getCell().getBorder(wt).corner);
+
+    $td.simulate('mousedown');
+
+    wt.draw();
+
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('height')).toBe('6px');
+    expect($table.css('height')).toBe('24px');
+    expect($corner.position().top).toBe(17); // table.height - corner.height - corner.borderTop
+    expect($corner.position().left).toBe(43);
+    expect($container[0].clientHeight === $container[0].scrollHeight).toBe(true);
+    expect($container[0].clientWidth === $container[0].scrollWidth).toBe(true);
+  });
 });
