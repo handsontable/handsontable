@@ -1106,7 +1106,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       changes.push([
         input[i][0],
         prop,
-        dataSource.getAtCell(input[i][0], input[i][1]),
+        dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]),
         input[i][2],
       ]);
     }
