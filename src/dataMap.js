@@ -112,8 +112,7 @@ DataMap.prototype.createMap = function() {
     }
 
     for (i = 0; i < columnsLen; i++) {
-      let column = columnsAsFunc ? this.instance.getColumnSettings(i) : columns[i];
-      // let column = columnsAsFunc ? columns(i) : columns[i];
+      let column = columnsAsFunc ? this.instance.getColumnMeta(i) : columns[i];
 
       if (isObject(column)) {
         if (typeof column.data !== 'undefined') {

@@ -72,6 +72,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
     eventManager = new EventManager(instance);
 
+  GridSettings.prototype.instance = instance;
+
   extend(GridSettings.prototype, DefaultSettings.prototype); // create grid settings as a copy of default settings
   extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
   extend(GridSettings.prototype, expandType(userSettings));
@@ -1687,7 +1689,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         // Use settings provided by user
         if (columnSetting) {
           if (columnsAsFunc) {
-            column = columnSetting.call(settings, i);
+            column = columnSetting.call(proto, i);
 
           } else {
             column = columnSetting[j];
@@ -1731,7 +1733,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     let height = settings.height;
     if (isFunction(height)) {
-      height = height.call(this);
+      height = height.call(settings);
     }
 
     if (init) {
@@ -1762,7 +1764,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       var width = settings.width;
 
       if (isFunction(width)) {
-        width = width.call(this);
+        width = width.call(settings);
       }
 
       instance.rootElement.style.width = `${width}px`;
@@ -1847,10 +1849,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getSettings = function() {
     return priv.settings;
-  };
-
-  this.getColumnSettings = function(column) {
-    return isFunction(priv.settings.columns) ? priv.settings.columns(column) : priv.settings.columns[column];
   };
 
   /**
@@ -2324,7 +2322,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (!priv.cellSettings[physicalRow][physicalColumn]) {
       priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
     }
+
     priv.cellSettings[physicalRow][physicalColumn][key] = val;
+
     instance.runHooks('afterSetCellMeta', row, col, key, val);
   };
 
@@ -2378,7 +2378,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     cellProperties.visualRow = row;
     cellProperties.visualCol = col;
     cellProperties.prop = prop;
-    cellProperties.instance = instance;
+    // cellProperties.instance = instance;
 
     instance.runHooks('beforeGetCellMeta', row, col, cellProperties);
     extend(cellProperties, expandType(cellProperties)); // for `type` added in beforeGetCellMeta
@@ -2408,6 +2408,41 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getCellMetaAtRow = function(row) {
     return priv.cellSettings[row];
+  };
+
+  /**
+   * Returns a column settings object.
+   *
+   * @memberof Core#
+   * @function getColumnMeta
+   * @since 3.0.0
+   * @param {Number} column Physical index of the row to return cell meta for.
+   * @returns {Object|undefined}
+   */
+  this.getColumnMeta = function(column) {
+    if (!priv.columnSettings[column]) {
+      priv.columnSettings[column] = columnFactory(GridSettings, priv.columnsSettingConflicts);
+    }
+
+    let proto = priv.columnSettings[column].prototype;
+    let columnMeta;
+
+    // Use settings provided by user
+    if (proto.columns) {
+      if (isFunction(proto.columns)) {
+        columnMeta = proto.columns(column);
+
+      } else {
+        columnMeta = proto.columns[column];
+      }
+
+      if (columnMeta) {
+        extend(proto, columnMeta);
+        extend(proto, expandType(columnMeta));
+      }
+    }
+
+    return proto;
   };
 
   /**
@@ -2591,7 +2626,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       rowHeader = rowHeader[row];
 
     } else if (isFunction(rowHeader)) {
-      rowHeader = rowHeader.call(this, row);
+      rowHeader = rowHeader.call(priv.settings, row);
 
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
       rowHeader = row + 1;
@@ -2721,7 +2756,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           break;
 
         case 'function':
-          width = width.call(this, col);
+          width = width.call(priv.settings, col);
           break;
         default:
           break;
@@ -2781,7 +2816,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           break;
 
         case 'function':
-          height = height.call(this, row);
+          height = height.call(priv.settings, row);
           break;
         default:
           break;
