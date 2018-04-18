@@ -12,7 +12,6 @@ import {registerPlugin} from './../../plugins';
 import mergeSort from './../../utils/sortingAlgorithms/mergeSort';
 import Hooks from './../../pluginHooks';
 import RowsMapper from './rowsMapper';
-import {rangeEach} from '../../helpers/number';
 
 Hooks.getSingleton().register('beforeColumnSort');
 Hooks.getSingleton().register('afterColumnSort');
@@ -49,9 +48,9 @@ class ColumnSorting extends BasePlugin {
     this.lastSortedColumn = null;
     this.sortColumn = void 0;
     this.sortOrder = void 0;
-    this.sortEmptyCells = false;
     this.rowsMapper = new RowsMapper(this);
-    this.removedRows = [];
+    this.sortingEnabled = false;
+    this.sortEmptyCells = false;
   }
 
   /**
@@ -81,16 +80,16 @@ class ColumnSorting extends BasePlugin {
 
     this.addHook('afterTrimRow', (row) => this.sort());
     this.addHook('afterUntrimRow', (row) => this.sort());
-    this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
-    this.addHook('unmodifyRow', (row, source) => this.onUnmodifyRow(row, source));
+    this.addHook('modifyRow', (row) => this.translateRow(row));
+    this.addHook('unmodifyRow', (row) => this.untranslateRow(row));
+    this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
     this.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
-    this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
-    this.addHook('afterRemoveRow', () => this.onAfterRemoveRow());
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
+    this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
     this.addHook('afterInit', () => this.sortBySettings());
     this.addHook('afterLoadData', () => {
-      this.rowsMapper._arrayMap = [...Array(this.hot.countRows()).keys()];
+      this.rowsMapper._arrayMap = [];
 
       if (this.hot.view) {
         this.sortBySettings();
@@ -114,11 +113,8 @@ class ColumnSorting extends BasePlugin {
    *
    * @private
    */
-  updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
-
-    super.updatePlugin();
+  onAfterUpdateSettings() {
+    this.sortBySettings();
   }
 
   sortBySettings() {
@@ -418,7 +414,7 @@ class ColumnSorting extends BasePlugin {
    */
   sort() {
     if (typeof this.sortOrder == 'undefined') {
-      this.rowsMapper._arrayMap = [...Array(this.hot.countRows()).keys()];
+      this.rowsMapper._arrayMap = [];
 
       return;
     }
@@ -428,7 +424,8 @@ class ColumnSorting extends BasePlugin {
     let sortFunction;
     let nrOfRows;
 
-    const indexesWithData = [];
+    this.sortingEnabled = false; // this is required by translateRow plugin hook
+    const sortIndex = [];
 
     if (typeof colMeta.columnSorting.sortEmptyCells === 'undefined') {
       colMeta.columnSorting = {sortEmptyCells: this.sortEmptyCells};
@@ -441,7 +438,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     for (let i = 0, ilen = nrOfRows; i < ilen; i++) {
-      indexesWithData.push([i, this.hot.getDataAtCell(this.rowsMapper.getIndexByValue(i), this.sortColumn)]);
+      sortIndex.push([i, this.hot.getDataAtCell(i, this.sortColumn)]);
     }
 
     if (colMeta.sortFunction) {
@@ -460,15 +457,15 @@ class ColumnSorting extends BasePlugin {
       }
     }
 
-    mergeSort(indexesWithData, sortFunction(this.sortOrder, colMeta));
+    mergeSort(sortIndex, sortFunction(this.sortOrder, colMeta));
 
     // Append spareRows
-    for (let i = indexesWithData.length; i < this.hot.countRows(); i++) {
-      indexesWithData.push([i, this.hot.getDataAtCell(this.rowsMapper.getIndexByValue(i), this.sortColumn)]);
+    for (let i = sortIndex.length; i < this.hot.countRows(); i++) {
+      sortIndex.push([i, this.hot.getDataAtCell(i, this.sortColumn)]);
     }
 
-    const sortedIndexes = indexesWithData.map((indexWithData) => indexWithData[0]);
-    this.rowsMapper._arrayMap = sortedIndexes;
+    this.rowsMapper._arrayMap = sortIndex.map((indexWithData) => indexWithData[0]);
+    this.sortingEnabled = true; // this is required by translateRow plugin hook
   }
 
   /**
@@ -484,34 +481,33 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * 'modifyRow' hook callback.
+   * `modifyRow` hook callback. Translates physical row index to the sorted row index.
    *
-   * @private
-   * @param {Number} row Visual Row index.
-   * @returns {Number} Physical row index.
+   * @param {Number} row Row index.
+   * @returns {Number} Sorted row index.
    */
-  onModifyRow(row, source) {
-    if (source !== this.pluginName) {
-      let rowInMapper = this.rowsMapper.getValueByIndex(row);
-      row = rowInMapper === null ? row : rowInMapper;
+  translateRow(row) {
+    if (this.sortingEnabled && (typeof this.sortOrder !== 'undefined') && typeof this.rowsMapper._arrayMap[row] !== 'undefined') {
+      return this.rowsMapper._arrayMap[row];
     }
 
     return row;
   }
 
   /**
-   * 'unmodifyRow' hook callback.
+   * Translates sorted row index to physical row index.
    *
-   * @private
-   * @param {Number} row Physical row index.
-   * @returns {Number} Visual row index.
+   * @param {Number} row Sorted (visual) row index.
+   * @returns {number} Physical row index.
    */
-  onUnmodifyRow(row, source) {
-    if (source !== this.pluginName) {
-      row = this.rowsMapper.getIndexByValue(row);
+  untranslateRow(row) {
+    if (this.sortingEnabled && this.rowsMapper._arrayMap && this.rowsMapper._arrayMap.length) {
+      for (var i = 0; i < this.rowsMapper._arrayMap.length; i++) {
+        if (this.rowsMapper._arrayMap[i] == row) {
+          return i;
+        }
+      }
     }
-
-    return row;
   }
 
   /**
@@ -564,41 +560,65 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * `afterCreateRow` hook callback.
-   *
-   * @private
-   * @param {Number} index Visual index of the created row.
-   * @param {Number} amount Amount of created rows.
-   */
-  onAfterCreateRow(index, amount) {
-    this.rowsMapper.shiftItems(index, amount);
-  }
-
-  /**
-   * On before remove row listener.
+   * `afterCreateRow` callback. Updates the sorting state after a row have been created.
    *
    * @private
    * @param {Number} index Visual row index.
-   * @param {Number} amount Defines how many rows removed.
+   * @param {Number} amount
    */
-  onBeforeRemoveRow(index, amount) {
-    this.removedRows.length = 0;
-
-    if (index !== false) {
-      // Collect physical row index.
-      rangeEach(index, index + amount - 1, (removedIndex) => {
-        this.removedRows.push(this.hot.runHooks('modifyRow', removedIndex, this.pluginName));
-      });
+  onAfterCreateRow(index, amount) {
+    if (!this.isSorted()) {
+      return;
     }
+
+    for (let i = 0; i < this.rowsMapper.__arrayMap.length; i++) {
+      if (this.rowsMapper.__arrayMap[i] >= index) {
+        this.rowsMapper.__arrayMap[i] += amount;
+      }
+    }
+
+    for (let i = 0; i < amount; i++) {
+      this.rowsMapper.__arrayMap.splice(index + i, 0, index + i);
+    }
+
+    this.saveSortingState();
   }
 
   /**
    * `afterRemoveRow` hook callback.
    *
    * @private
+   * @param {Number} index Visual row index.
+   * @param {Number} amount
    */
-  onAfterRemoveRow() {
-    this.rowsMapper.unshiftItems(this.removedRows);
+  onAfterRemoveRow(index, amount) {
+    if (!this.isSorted()) {
+      return;
+    }
+    let removedRows = this.rowsMapper.__arrayMap.splice(index, amount);
+
+    function countRowShift(logicalRow) {
+      // Todo: compare perf between reduce vs sort->each->brake
+      return arrayReduce(removedRows, (count, removedLogicalRow) => {
+        if (logicalRow > removedLogicalRow) {
+          count++;
+        }
+
+        return count;
+      }, 0);
+    }
+
+    this.rowsMapper.__arrayMap = arrayMap(this.rowsMapper.__arrayMap, (logicalRow, physicalRow) => {
+      let rowShift = countRowShift(logicalRow);
+
+      if (rowShift) {
+        logicalRow -= rowShift;
+      }
+
+      return logicalRow;
+    });
+
+    this.saveSortingState();
   }
 
   /**
