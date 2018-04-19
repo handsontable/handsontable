@@ -80,8 +80,8 @@ class ColumnSorting extends BasePlugin {
 
     this.addHook('afterTrimRow', (row) => this.sort());
     this.addHook('afterUntrimRow', (row) => this.sort());
-    this.addHook('modifyRow', (row) => this.translateRow(row));
-    this.addHook('unmodifyRow', (row) => this.untranslateRow(row));
+    this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
+    this.addHook('unmodifyRow', (row, source) => this.onUnmodifyRow(row, source));
     this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
     this.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
@@ -481,33 +481,34 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * `modifyRow` hook callback. Translates physical row index to the sorted row index.
+   * 'modifyRow' hook callback.
    *
-   * @param {Number} row Row index.
-   * @returns {Number} Sorted row index.
+   * @private
+   * @param {Number} row Visual Row index.
+   * @returns {Number} Physical row index.
    */
-  translateRow(row) {
-    if (this.sortingEnabled && (typeof this.sortOrder !== 'undefined') && typeof this.rowsMapper._arrayMap[row] !== 'undefined') {
-      return this.rowsMapper._arrayMap[row];
+  onModifyRow(row, source) {
+    if (this.sortingEnabled && source !== this.pluginName) {
+      let rowInMapper = this.rowsMapper.getValueByIndex(row);
+      row = rowInMapper === null ? row : rowInMapper;
     }
 
     return row;
   }
 
   /**
-   * Translates sorted row index to physical row index.
+   * 'unmodifyRow' hook callback.
    *
-   * @param {Number} row Sorted (visual) row index.
-   * @returns {number} Physical row index.
+   * @private
+   * @param {Number} row Physical row index.
+   * @returns {Number} Visual row index.
    */
-  untranslateRow(row) {
-    if (this.sortingEnabled && this.rowsMapper._arrayMap && this.rowsMapper._arrayMap.length) {
-      for (var i = 0; i < this.rowsMapper._arrayMap.length; i++) {
-        if (this.rowsMapper._arrayMap[i] == row) {
-          return i;
-        }
-      }
+  onUnmodifyRow(row, source) {
+    if (this.sortingEnabled && source !== this.pluginName) {
+      row = this.rowsMapper.getIndexByValue(row);
     }
+
+    return row;
   }
 
   /**
@@ -588,8 +589,6 @@ class ColumnSorting extends BasePlugin {
    * `afterRemoveRow` hook callback.
    *
    * @private
-   * @param {Number} index Visual row index.
-   * @param {Number} amount
    */
   onAfterRemoveRow(index, amount) {
     if (!this.isSorted()) {
