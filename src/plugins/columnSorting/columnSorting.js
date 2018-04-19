@@ -561,64 +561,25 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * `afterCreateRow` callback. Updates the sorting state after a row have been created.
+   * `afterCreateRow` hook callback.
    *
    * @private
-   * @param {Number} index Visual row index.
-   * @param {Number} amount
+   * @param {Number} index Visual index of the created row.
+   * @param {Number} amount Amount of created rows.
    */
   onAfterCreateRow(index, amount) {
-    if (!this.isSorted()) {
-      return;
-    }
-
-    for (let i = 0; i < this.rowsMapper.__arrayMap.length; i++) {
-      if (this.rowsMapper.__arrayMap[i] >= index) {
-        this.rowsMapper.__arrayMap[i] += amount;
-      }
-    }
-
-    for (let i = 0; i < amount; i++) {
-      this.rowsMapper.__arrayMap.splice(index + i, 0, index + i);
-    }
-
-    this.saveSortingState();
+    this.rowsMapper.shiftItems(index, amount);
   }
 
   /**
    * `afterRemoveRow` hook callback.
-   * @param {Number} index Visual row index.
-   * @param {Number} amount
+   *
    * @private
+   * @param {Number} removedRows Visual indexes of the removed row.
+   * @param {Number} amount  Amount of removed rows.
    */
-  onAfterRemoveRow(index, amount) {
-    if (!this.isSorted()) {
-      return;
-    }
-    let removedRows = this.rowsMapper.__arrayMap.splice(index, amount);
-
-    function countRowShift(logicalRow) {
-      // Todo: compare perf between reduce vs sort->each->brake
-      return arrayReduce(removedRows, (count, removedLogicalRow) => {
-        if (logicalRow > removedLogicalRow) {
-          count++;
-        }
-
-        return count;
-      }, 0);
-    }
-
-    this.rowsMapper.__arrayMap = arrayMap(this.rowsMapper.__arrayMap, (logicalRow, physicalRow) => {
-      let rowShift = countRowShift(logicalRow);
-
-      if (rowShift) {
-        logicalRow -= rowShift;
-      }
-
-      return logicalRow;
-    });
-
-    this.saveSortingState();
+  onAfterRemoveRow(removedRows, amount) {
+    this.rowsMapper.unshiftItems(removedRows, amount);
   }
 
   /**
