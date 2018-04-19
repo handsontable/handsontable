@@ -587,7 +587,8 @@ class ColumnSorting extends BasePlugin {
 
   /**
    * `afterRemoveRow` hook callback.
-   *
+   * @param {Number} index Visual row index.
+   * @param {Number} amount
    * @private
    */
   onAfterRemoveRow(index, amount) {
