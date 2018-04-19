@@ -20,6 +20,155 @@ describe('CustomBorders', () => {
     this.$wrapper.remove();
   });
 
+  describe('enabling/disabling plugin', () => {
+    it('should be disabled by default', () => {
+      const hot = handsontable();
+
+      expect(hot.getPlugin('customBorders').isEnabled()).toBe(false);
+    });
+
+    it('should disable plugin using updateSettings', () => {
+      const hot = handsontable({
+        customBorders: true
+      });
+
+      hot.updateSettings({
+        customBorders: false
+      });
+
+      expect(hot.getPlugin('customBorders').isEnabled()).toBe(false);
+    });
+
+    it('should enable plugin using updateSettings', () => {
+      const hot = handsontable({
+        customBorders: false
+      });
+
+      hot.updateSettings({
+        customBorders: true
+      });
+
+      expect(hot.getPlugin('customBorders')).toBeDefined();
+    });
+
+    it('should remove custom borders from cells when disable plugin', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        customBorders: [
+          {
+            row: 2,
+            col: 2,
+            left: {
+              width: 2,
+              color: 'red'
+            },
+            right: {
+              width: 1,
+              color: 'green'
+            }
+          }
+        ]
+      });
+
+      hot.updateSettings({
+        customBorders: false
+      });
+
+      const borders = $('.wtBorder.border_row2col2');
+      expect(borders.length).toEqual(0);
+    });
+
+    it('should remove custom borders class from cell when disable plugin', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        customBorders: [
+          {
+            row: 2,
+            col: 2,
+            left: {
+              width: 2,
+              color: 'red'
+            },
+            right: {
+              width: 1,
+              color: 'green'
+            }
+          }
+        ]
+      });
+
+      expect(getCell(2, 2).className).toEqual('border_row2col2');
+
+      hot.updateSettings({
+        customBorders: false
+      });
+
+      expect(getCell(2, 2).className).toEqual('');
+    });
+
+    it('should remove custom borders class from cell when cell has two or more class when disable plugin', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        className: 'cell',
+        customBorders: [
+          {
+            row: 2,
+            col: 2,
+            left: {
+              width: 2,
+              color: 'red'
+            },
+            right: {
+              width: 1,
+              color: 'green'
+            }
+          }
+        ]
+      });
+
+      expect(getCell(2, 2).className).toEqual('cell border_row2col2');
+
+      hot.updateSettings({
+        customBorders: false
+      });
+
+      expect(getCell(2, 2).className).toEqual('cell');
+    });
+
+    it('should keep custom borders added from context menu options when disable and unable plugin', async () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        customBorders: true,
+        contextMenu: true
+      });
+
+      contextMenu();
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
+      item.simulate('mouseover');
+
+      await sleep(300);
+
+      const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+      const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
+
+      button.simulate('mousedown');
+
+      expect(getCell(0, 0).className).toEqual('current highlight border_row0col0');
+
+      hot.updateSettings({
+        customBorders: false
+      });
+
+      expect(getCell(0, 0).className).toEqual('current highlight');
+
+      hot.updateSettings({
+        customBorders: true
+      });
+
+      expect(getCell(0, 0).className).toEqual('current highlight border_row0col0');
+    });
+  });
+
   it('should draw custom borders for single td', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(7, 7),

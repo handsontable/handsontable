@@ -6,14 +6,15 @@ import {
   CellRange,
   Selection
 } from './../../3rdparty/walkontable/src';
-import Hooks from './../../pluginHooks';
 import {arrayEach} from './../../helpers/array';
 import * as C from './../../i18n/constants';
-import bottom from './contextMenuItem/bottom';
-import left from './contextMenuItem/left';
-import noBorders from './contextMenuItem/noBorders';
-import right from './contextMenuItem/right';
-import top from './contextMenuItem/top';
+import {
+  bottom,
+  left,
+  noBorders,
+  right,
+  top
+} from './contextMenuItem';
 import {
   createClassName,
   createDefaultCustomBorder,
@@ -69,7 +70,7 @@ import {
  *     },
  *     top: '',
  *     bottom: '',
- *   }.
+ *   }
  * ],
  * ...
  * ```
@@ -81,11 +82,11 @@ class CustomBorders extends BasePlugin {
     super(hotInstance);
 
     /**
-     * Saved borders settings.
+     * Saved borders.
      *
      * @type {Array}
      */
-    this.savedBorderSettings = void 0;
+    this.savedBorders = [];
   }
 
   /**
@@ -158,12 +159,16 @@ class CustomBorders extends BasePlugin {
    * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `className` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    */
   insertBorderIntoSettings(border) {
-    let coordinates = {
+    this.savedBorders.push(border);
+
+    this.savedBorders = [...new Set(this.savedBorders.map(JSON.stringify))].map(JSON.parse);
+
+    const coordinates = {
       row: border.row,
       col: border.col
     };
-    let selection = new Selection(border, new CellRange(coordinates, coordinates, coordinates));
-    let index = this.getSettingIndex(border.className);
+    const selection = new Selection(border, new CellRange(coordinates, coordinates, coordinates));
+    const index = this.getSettingIndex(border.className);
 
     if (index >= 0) {
       this.hot.selection.highlight.borders[index] = selection;
@@ -256,6 +261,24 @@ class CustomBorders extends BasePlugin {
         parent.parentNode.removeChild(parent);
       }
     });
+
+    this.removeClassBorderFromTDs(borderClassName);
+  }
+
+  /**
+   * Remove class border from TDs.
+   *
+   * @param {String} borderClassName Border class name as string.
+   */
+  removeClassBorderFromTDs(borderClassName) {
+    arrayEach(this.hot.selection.highlight.borders, (selection, index) => {
+      if (selection.settings.className === borderClassName) {
+        this.hot.selection.highlight.borders.splice(index, 1);
+        return false; // breaks forAll
+      }
+    });
+
+    this.hot.render();
   }
 
   /**
@@ -266,6 +289,8 @@ class CustomBorders extends BasePlugin {
    */
   removeAllBorders(row, col) {
     let borderClassName = createClassName(row, col);
+
+    this.savedBorders = this.savedBorders.filter((obj) => obj.className !== borderClassName);
 
     this.removeBordersFromDom(borderClassName);
     this.hot.removeCellMeta(row, col, 'borders');
@@ -416,10 +441,10 @@ class CustomBorders extends BasePlugin {
     * @private
     */
   clearBorders() {
-    let bordersFromTable = this.hot.rootElement.querySelectorAll('td[class^="border"]');
+    rangeEach(0, this.savedBorders.length - 1, (index) => {
+      let borderClassName = this.savedBorders[index].className;
 
-    rangeEach(0, bordersFromTable.length - 1, (index) => {
-      this.removeBordersFromDom(bordersFromTable[index].className);
+      this.removeBordersFromDom(borderClassName);
     });
   }
 
@@ -433,11 +458,14 @@ class CustomBorders extends BasePlugin {
 
     if (customBorders) {
       if (Array.isArray(customBorders)) {
-        this.savedBorderSettings = customBorders;
+        if (!customBorders.length) {
+          this.savedBorders = customBorders;
+        }
+
         this.createCustomBorders(customBorders);
 
       } else if (customBorders !== void 0) {
-        let borders = this.savedBorderSettings ? this.savedBorderSettings : customBorders;
+        let borders = this.savedBorders ? this.savedBorders : customBorders;
 
         this.createCustomBorders(borders);
       }
