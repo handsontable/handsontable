@@ -44,9 +44,9 @@ class Border {
     this.rightStyle = null;
 
     this.cornerDefaultStyle = {
-      width: '5px',
-      height: '5px',
-      borderWidth: '2px',
+      width: '6px',
+      height: '6px',
+      borderWidth: '1px',
       borderStyle: 'solid',
       borderColor: '#FFF'
     };
@@ -255,8 +255,10 @@ class Border {
   }
 
   isPartRange(row, col) {
-    if (this.wot.selections.area.cellRange) {
-      if (row != this.wot.selections.area.cellRange.to.row || col != this.wot.selections.area.cellRange.to.col) {
+    const areaSelection = this.wot.selections.createOrGetArea();
+
+    if (areaSelection.cellRange) {
+      if (row != areaSelection.cellRange.to.row || col != areaSelection.cellRange.to.col) {
         return true;
       }
     }
@@ -280,7 +282,7 @@ class Border {
     this.selectionHandles.styles.bottomRightHitArea.top = `${parseInt(top + height - (hitAreaWidth / 4), 10)}px`;
     this.selectionHandles.styles.bottomRightHitArea.left = `${parseInt(left + width - (hitAreaWidth / 4), 10)}px`;
 
-    if (this.settings.border.multipleSelectionHandlesVisible && this.settings.border.multipleSelectionHandlesVisible()) {
+    if (this.settings.border.cornerVisible && this.settings.border.cornerVisible()) {
       this.selectionHandles.styles.topLeft.display = 'block';
       this.selectionHandles.styles.topLeftHitArea.display = 'block';
 
@@ -316,29 +318,15 @@ class Border {
     if (this.disabled) {
       return;
     }
-    var isMultiple,
-      fromTD,
-      toTD,
-      fromOffset,
-      toOffset,
-      containerOffset,
-      top,
-      minTop,
-      left,
-      minLeft,
-      height,
-      width,
-      fromRow,
-      fromColumn,
-      toRow,
-      toColumn,
-      trimmingContainer,
-      cornerOverlappingContainer,
-      ilen;
 
-    ilen = this.wot.wtTable.getRenderedRowsCount();
+    let fromRow;
+    let toRow;
+    let fromColumn;
+    let toColumn;
 
-    for (let i = 0; i < ilen; i++) {
+    const rowsCount = this.wot.wtTable.getRenderedRowsCount();
+
+    for (let i = 0; i < rowsCount; i += 1) {
       let s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
@@ -347,7 +335,7 @@ class Border {
       }
     }
 
-    for (let i = ilen - 1; i >= 0; i--) {
+    for (let i = rowsCount - 1; i >= 0; i -= 1) {
       let s = this.wot.wtTable.rowFilter.renderedToSource(i);
 
       if (s >= corners[0] && s <= corners[2]) {
@@ -356,9 +344,9 @@ class Border {
       }
     }
 
-    ilen = this.wot.wtTable.getRenderedColumnsCount();
+    const columnsCount = this.wot.wtTable.getRenderedColumnsCount();
 
-    for (let i = 0; i < ilen; i++) {
+    for (let i = 0; i < columnsCount; i += 1) {
       let s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
@@ -367,7 +355,7 @@ class Border {
       }
     }
 
-    for (let i = ilen - 1; i >= 0; i--) {
+    for (let i = columnsCount - 1; i >= 0; i -= 1) {
       let s = this.wot.wtTable.columnFilter.renderedToSource(i);
 
       if (s >= corners[1] && s <= corners[3]) {
@@ -380,20 +368,47 @@ class Border {
 
       return;
     }
-    isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    fromTD = this.wot.wtTable.getCell(new CellCoords(fromRow, fromColumn));
-    toTD = isMultiple ? this.wot.wtTable.getCell(new CellCoords(toRow, toColumn)) : fromTD;
-    fromOffset = offset(fromTD);
-    toOffset = isMultiple ? offset(toTD) : fromOffset;
-    containerOffset = offset(this.wot.wtTable.TABLE);
+    let fromTD = this.wot.wtTable.getCell(new CellCoords(fromRow, fromColumn));
+    const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
+    const toTD = isMultiple ? this.wot.wtTable.getCell(new CellCoords(toRow, toColumn)) : fromTD;
+    const fromOffset = offset(fromTD);
+    const toOffset = isMultiple ? offset(toTD) : fromOffset;
+    const containerOffset = offset(this.wot.wtTable.TABLE);
+    const minTop = fromOffset.top;
+    const minLeft = fromOffset.left;
 
-    minTop = fromOffset.top;
-    height = toOffset.top + outerHeight(toTD) - minTop;
-    minLeft = fromOffset.left;
-    width = toOffset.left + outerWidth(toTD) - minLeft;
+    let left = minLeft - containerOffset.left - 1;
+    let width = toOffset.left + outerWidth(toTD) - minLeft;
 
-    top = minTop - containerOffset.top - 1;
-    left = minLeft - containerOffset.left - 1;
+    if (this.isEntireColumnSelected(fromRow, toRow)) {
+      const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, containerOffset);
+      let fromTH = null;
+
+      if (modifiedValues) {
+        [fromTH, left, width] = modifiedValues;
+      }
+
+      if (fromTH) {
+        fromTD = fromTH;
+      }
+    }
+
+    let top = minTop - containerOffset.top - 1;
+    let height = toOffset.top + outerHeight(toTD) - minTop;
+
+    if (this.isEntireRowSelected(fromColumn, toColumn)) {
+      const modifiedValues = this.getDimensionsFromHeader('rows', fromRow, toRow, containerOffset);
+      let fromTH = null;
+
+      if (modifiedValues) {
+        [fromTH, top, height] = modifiedValues;
+      }
+
+      if (fromTH) {
+        fromTD = fromTH;
+      }
+    }
+
     let style = getComputedStyle(fromTD);
 
     if (parseInt(style.borderTopWidth, 10) > 0) {
@@ -415,7 +430,7 @@ class Border {
     this.leftStyle.height = `${height}px`;
     this.leftStyle.display = 'block';
 
-    let delta = Math.floor(this.settings.border.width / 2);
+    const delta = Math.floor(this.settings.border.width / 2);
 
     this.bottomStyle.top = `${top + height - delta}px`;
     this.bottomStyle.left = `${left}px`;
@@ -427,8 +442,19 @@ class Border {
     this.rightStyle.height = `${height + 1}px`;
     this.rightStyle.display = 'block';
 
-    if (isMobileBrowser() || (!this.hasSetting(this.settings.border.cornerVisible) || this.isPartRange(toRow, toColumn))) {
+    let cornerVisibleSetting = this.settings.border.cornerVisible;
+    cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ? cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
+
+    const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn);
+    let [checkRow, checkCol] = [toRow, toColumn];
+
+    if (hookResult && Array.isArray(hookResult)) {
+      [,, checkRow, checkCol] = hookResult;
+    }
+
+    if (isMobileBrowser() || !cornerVisibleSetting || this.isPartRange(checkRow, checkCol)) {
       this.cornerStyle.display = 'none';
+
     } else {
       this.cornerStyle.top = `${top + height - 4}px`;
       this.cornerStyle.left = `${left + width - 4}px`;
@@ -438,10 +464,17 @@ class Border {
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
       this.cornerStyle.display = 'none';
 
-      trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
+      let trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
+      const trimToWindow = trimmingContainer === window;
+
+      if (trimToWindow) {
+        trimmingContainer = document.documentElement;
+      }
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
-        cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2) >= innerWidth(trimmingContainer);
+        const toTdOffsetLeft = trimToWindow ? toTD.getBoundingClientRect().left : toTD.offsetLeft;
+        const cornerRightEdge = toTdOffsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2);
+        const cornerOverlappingContainer = cornerRightEdge >= innerWidth(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.left = `${Math.floor(left + width - 3 - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`;
@@ -450,7 +483,9 @@ class Border {
       }
 
       if (toRow === this.wot.getSetting('totalRows') - 1) {
-        cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2) >= innerHeight(trimmingContainer);
+        const toTdOffsetTop = trimToWindow ? toTD.getBoundingClientRect().top : toTD.offsetTop;
+        const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2);
+        const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.top = `${Math.floor(top + height - 3 - (parseInt(this.cornerDefaultStyle.height, 10) / 2))}px`;
@@ -462,8 +497,93 @@ class Border {
     }
 
     if (isMobileBrowser()) {
-      this.updateMultipleSelectionHandlesPosition(fromRow, fromColumn, top, left, width, height);
+      this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, left, width, height);
     }
+  }
+
+  /**
+   * Check whether an entire column of cells is selected.
+   *
+   * @private
+   * @param {Number} startRowIndex Start row index.
+   * @param {Number} endRowIndex End row index.
+   */
+  isEntireColumnSelected(startRowIndex, endRowIndex) {
+    return startRowIndex === this.wot.wtTable.getFirstRenderedRow() && endRowIndex === this.wot.wtTable.getLastRenderedRow();
+  }
+
+  /**
+   * Check whether an entire row of cells is selected.
+   *
+   * @private
+   * @param {Number} startColumnIndex Start column index.
+   * @param {Number} endColumnIndex End column index.
+   */
+  isEntireRowSelected(startColumnIndex, endColumnIndex) {
+    return startColumnIndex === this.wot.wtTable.getFirstRenderedColumn() && endColumnIndex === this.wot.wtTable.getLastRenderedColumn();
+  }
+
+  /**
+   * Get left/top index and width/height depending on the `direction` provided.
+   *
+   * @private
+   * @param {String} direction `rows` or `columns`, defines if an entire column or row is selected.
+   * @param {Number} fromIndex Start index of the selection.
+   * @param {Number} toIndex End index of the selection.
+   * @param {Number} containerOffset offset of the container.
+   * @return {Array|Boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
+   */
+  getDimensionsFromHeader(direction, fromIndex, toIndex, containerOffset) {
+    const rootHotElement = this.wot.wtTable.wtRootElement.parentNode;
+    let getHeaderFn = null;
+    let dimensionFn = null;
+    let entireSelectionClassname = null;
+    let index = null;
+    let dimension = null;
+    let dimensionProperty = null;
+    let startHeader = null;
+    let endHeader = null;
+
+    switch (direction) {
+      case 'rows':
+        getHeaderFn = (...args) => this.wot.wtTable.getRowHeader(...args);
+        dimensionFn = (...args) => outerHeight(...args);
+        entireSelectionClassname = 'ht__selection--rows';
+        dimensionProperty = 'top';
+
+        break;
+
+      case 'columns':
+        getHeaderFn = (...args) => this.wot.wtTable.getColumnHeader(...args);
+        dimensionFn = (...args) => outerWidth(...args);
+        entireSelectionClassname = 'ht__selection--columns';
+        dimensionProperty = 'left';
+        break;
+      default:
+    }
+
+    if (rootHotElement.className.includes(entireSelectionClassname)) {
+      const columnHeaderLevelCount = this.wot.getSetting('columnHeaders').length;
+
+      startHeader = getHeaderFn(fromIndex, columnHeaderLevelCount - 1);
+      endHeader = getHeaderFn(toIndex, columnHeaderLevelCount - 1);
+
+      if (!startHeader || !endHeader) {
+        return false;
+      }
+
+      const startHeaderOffset = offset(startHeader);
+      const endOffset = offset(endHeader);
+
+      if (startHeader && endHeader) {
+        index = startHeaderOffset[dimensionProperty] - containerOffset[dimensionProperty] - 1;
+        dimension = endOffset[dimensionProperty] + dimensionFn(endHeader) - startHeaderOffset[dimensionProperty];
+      }
+
+      return [startHeader, index, dimension];
+    }
+
+    return false;
   }
 
   /**
@@ -480,18 +600,6 @@ class Border {
       this.selectionHandles.styles.topLeft.display = 'none';
       this.selectionHandles.styles.bottomRight.display = 'none';
     }
-  }
-
-  /**
-   * @param {Function} setting
-   * @returns {*}
-   */
-  hasSetting(setting) {
-    if (typeof setting === 'function') {
-      return setting();
-    }
-
-    return !!setting;
   }
 }
 

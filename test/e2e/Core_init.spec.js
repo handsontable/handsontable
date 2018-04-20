@@ -62,25 +62,4 @@ describe('Core_init', () => {
       mouseOver(this.$container.find('tr:eq(0) td:eq(1)'));
     }).not.toThrow();
   });
-
-  it('Handsontable.Dom should be available as a helper to the plugins', () => {
-    // all public methods of Handsontable.Dom should be exposed here
-    expect(Handsontable.dom.closest).toBeDefined();
-    expect(Handsontable.dom.isChildOf).toBeDefined();
-    expect(Handsontable.dom.index).toBeDefined();
-    expect(Handsontable.dom.hasClass).toBeDefined();
-    expect(Handsontable.dom.addClass).toBeDefined();
-    expect(Handsontable.dom.removeClass).toBeDefined();
-    expect(Handsontable.dom.removeTextNodes).toBeDefined();
-    expect(Handsontable.dom.empty).toBeDefined();
-    expect(Handsontable.dom.fastInnerHTML).toBeDefined();
-    expect(Handsontable.dom.fastInnerText).toBeDefined();
-    expect(Handsontable.dom.isVisible).toBeDefined();
-    expect(Handsontable.dom.offset).toBeDefined();
-    expect(Handsontable.dom.getComputedStyle).toBeDefined();
-    expect(Handsontable.dom.outerWidth).toBeDefined();
-    expect(Handsontable.dom.outerHeight).toBeDefined();
-    expect(Handsontable.dom.getCaretPosition).toBeDefined();
-    expect(Handsontable.dom.setCaretPosition).toBeDefined();
-  });
 });

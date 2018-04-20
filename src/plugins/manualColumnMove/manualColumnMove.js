@@ -177,8 +177,9 @@ class ManualColumnMove extends BasePlugin {
    * @param {Number} target Visual column index being a target for the moved columns.
    */
   moveColumns(columns, target) {
+    const visualColumns = [...columns];
     let priv = privatePool.get(this);
-    let beforeColumnHook = this.hot.runHooks('beforeColumnMove', columns, target);
+    let beforeColumnHook = this.hot.runHooks('beforeColumnMove', visualColumns, target);
 
     priv.disallowMoving = !beforeColumnHook;
 
@@ -201,7 +202,7 @@ class ManualColumnMove extends BasePlugin {
       this.columnsMapper.clearNull();
     }
 
-    this.hot.runHooks('afterColumnMove', columns, target);
+    this.hot.runHooks('afterColumnMove', visualColumns, target);
   }
 
   /**
@@ -213,11 +214,7 @@ class ManualColumnMove extends BasePlugin {
    * @param {Number} endColumn Visual column index for the end of the selection.
    */
   changeSelection(startColumn, endColumn) {
-    let selection = this.hot.selection;
-    let lastRowIndex = this.hot.countRows() - 1;
-
-    selection.setRangeStartOnly(new CellCoords(0, startColumn));
-    selection.setRangeEnd(new CellCoords(lastRowIndex, endColumn), false);
+    this.hot.selectColumns(startColumn, endColumn);
   }
 
   /**
@@ -468,8 +465,8 @@ class ManualColumnMove extends BasePlugin {
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     let wtTable = this.hot.view.wt.wtTable;
-    let isHeaderSelection = this.hot.selection.selectedHeader.cols;
-    let selection = this.hot.getSelectedRange();
+    let isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
+    let selection = this.hot.getSelectedRangeLast();
     let priv = privatePool.get(this);
     let isSortingElement = event.realTarget.className.indexOf('columnSorting') > -1;
 
@@ -564,7 +561,7 @@ class ManualColumnMove extends BasePlugin {
    * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
   onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
-    let selectedRange = this.hot.getSelectedRange();
+    let selectedRange = this.hot.getSelectedRangeLast();
     let priv = privatePool.get(this);
 
     if (!selectedRange || !priv.pressed) {
@@ -599,7 +596,7 @@ class ManualColumnMove extends BasePlugin {
 
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
 
-    if (this.hot.selection.selectedHeader.cols) {
+    if (this.hot.selection.isSelectedByColumnHeader()) {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
     if (priv.columnsToMove.length < 1 || priv.target.col === void 0 || priv.columnsToMove.indexOf(priv.target.col) > -1) {

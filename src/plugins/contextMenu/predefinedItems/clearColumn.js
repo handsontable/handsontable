@@ -9,24 +9,24 @@ export default function clearColumnItem() {
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CLEAR_COLUMN);
     },
-
     callback(key, selection) {
-      let column = selection.start.col;
+      let column = selection[0].start.col;
 
       if (this.countRows()) {
-        this.populateFromArray(0, column, [[null]], Math.max(selection.start.row, selection.end.row), column, 'ContextMenu.clearColumn');
+        this.populateFromArray(0, column, [[null]], Math.max(selection[0].start.row, selection[0].end.row), column, 'ContextMenu.clearColumn');
       }
     },
     disabled() {
-      let selected = getValidSelection(this);
+      const selected = getValidSelection(this);
 
       if (!selected) {
         return true;
       }
-      let entireRowSelection = [selected[0], 0, selected[0], this.countCols() - 1];
-      let rowSelected = entireRowSelection.join(',') === selected.join(',');
+      const [startRow, startColumn, endRow, endColumn] = selected[0];
+      const entireRowSelection = [startRow, 0, endRow, this.countCols() - 1];
+      const rowSelected = entireRowSelection.join(',') === selected.join(',');
 
-      return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
+      return startColumn < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
     }
   };
 }

@@ -40,7 +40,7 @@ describe('Core_destroyEditor', () => {
     keyDownUp('enter');
 
     destroyEditor();
-    expect(getSelected()).toEqual([1, 1, 1, 1]);
+    expect(getSelected()).toEqual([[1, 1, 1, 1]]);
   });
 
   it('should revert original value when param set to true', () => {

@@ -22,7 +22,8 @@ describe('TextEditor', () => {
     keyDown('enter');
 
     var selection = getSelected();
-    expect(selection).toEqual([2, 2, 2, 2]);
+
+    expect(selection).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(true);
   });
 
@@ -36,7 +37,7 @@ describe('TextEditor', () => {
     keyDown('enter');
 
     var selection = getSelected();
-    expect(selection).toEqual([3, 2, 3, 2]);
+    expect(selection).toEqual([[3, 2, 3, 2]]);
   });
 
   it('should move down when enterBeginsEditing equals false', () => {
@@ -48,7 +49,7 @@ describe('TextEditor', () => {
     keyDown('enter');
 
     var selection = getSelected();
-    expect(selection).toEqual([3, 2, 3, 2]);
+    expect(selection).toEqual([[3, 2, 3, 2]]);
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -511,7 +512,7 @@ describe('TextEditor', () => {
     }); // CTRL+A should NOT select all table when cell is edited
 
     var selection = getSelected();
-    expect(selection).toEqual([2, 2, 2, 2]);
+    expect(selection).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(true);
   });
 
@@ -610,7 +611,7 @@ describe('TextEditor', () => {
     this.$container2.find('tbody tr:eq(0) td:eq(0)').simulate('mouseup');
 
     expect(hot1.getSelected()).toBeUndefined();
-    expect(hot2.getSelected()).toEqual([0, 0, 0, 0]);
+    expect(hot2.getSelected()).toEqual([[0, 0, 0, 0]]);
 
     // Open editor in HOT2
     keyDown('enter');
@@ -843,40 +844,36 @@ describe('TextEditor', () => {
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
 
-  it('should open editor at the same coordinates as the edited cell after the table had been scrolled (top)', (done) => {
-    var hot = handsontable({
+  it('should open editor at the same coordinates as the edited cell after the table had been scrolled (top)', async () => {
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       fixedColumnsLeft: 2,
       fixedRowsTop: 2
     });
 
-    var $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view.wt.wtTable.holder);
 
     $holder[0].scrollTop = 500;
+    await sleep(100);
+    $holder[0].scrollLeft = 500;
 
-    setTimeout(() => {
-      $holder[0].scrollLeft = 500;
-    }, 100);
+    await sleep(100);
+    // top
+    selectCell(1, 6);
 
-    setTimeout(() => {
-      // top
-      selectCell(1, 6);
-    }, 200);
+    await sleep(100);
 
-    setTimeout(() => {
-      var currentCell = hot.getCell(1, 6, true);
-      var left = $(currentCell).offset().left;
-      var top = $(currentCell).offset().top;
+    const currentCell = hot.getCell(1, 6, true);
+    const left = $(currentCell).offset().left;
+    const top = $(currentCell).offset().top;
+    const $inputHolder = $('.handsontableInputHolder');
+    keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
-      var $inputHolder = $('.handsontableInputHolder');
-      keyDown(Handsontable.helper.KEY_CODES.ENTER);
-      expect(left).toEqual($inputHolder.offset().left + 1);
-      expect(top).toEqual($inputHolder.offset().top + 1);
-      done();
-    }, 300);
+    expect(left).toEqual($inputHolder.offset().left + 1);
+    expect(top).toEqual($inputHolder.offset().top + 1);
   });
 
-  it('should open editor at the same coordinates as the edited cell after the table had been scrolled (left)', () => {
+  it('should open editor at the same coordinates as the edited cell after the table had been scrolled (left)', async () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       fixedColumnsLeft: 2,
@@ -888,10 +885,12 @@ describe('TextEditor', () => {
     $holder.scrollTop(500);
     $holder.scrollLeft(500);
 
-    hot.render();
+    await sleep(100);
 
-    // left
     selectCell(6, 1);
+
+    await sleep(100);
+
     var currentCell = hot.getCell(6, 1, true);
     var left = $(currentCell).offset().left;
     var top = $(currentCell).offset().top;

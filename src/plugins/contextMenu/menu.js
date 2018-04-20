@@ -11,13 +11,15 @@ import {arrayEach, arrayFilter, arrayReduce} from './../../helpers/array';
 import Cursor from './cursor';
 import EventManager from './../../eventManager';
 import {mixin, hasOwnProperty} from './../../helpers/object';
-import {isUndefined} from './../../helpers/mixed';
+import {isUndefined, isDefined} from './../../helpers/mixed';
 import {debounce, isFunction} from './../../helpers/function';
 import {filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
 import {SEPARATOR} from './predefinedItems';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
+
+const MIN_WIDTH = 215;
 
 /**
  * @class Menu
@@ -31,7 +33,8 @@ class Menu {
       name: null,
       className: '',
       keepInViewport: true,
-      standalone: false
+      standalone: false,
+      minWidth: MIN_WIDTH,
     };
     this.eventManager = new EventManager(this);
     this.container = this.createContainer(this.options.name);
@@ -92,12 +95,18 @@ class Menu {
 
   /**
    * Open menu.
+   *
+   * @fires Hooks#beforeContextMenuShow
+   * @fires Hooks#afterContextMenuShow
    */
   open() {
+    this.runLocalHooks('beforeOpen');
+
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
 
     const delayedOpenSubMenu = debounce((row) => this.openSubMenu(row), 300);
+    const minWidthOfMenu = this.options.minWidth || MIN_WIDTH;
 
     let filteredItems = arrayFilter(this.menuItems, (item) => isItemHidden(item, this.hot));
 
@@ -106,7 +115,14 @@ class Menu {
     let settings = {
       data: filteredItems,
       colHeaders: false,
-      colWidths: [200],
+      autoColumnSize: true,
+      modifyColWidth(width) {
+        if (isDefined(width) && width < minWidthOfMenu) {
+          return minWidthOfMenu;
+        }
+
+        return width;
+      },
       autoRowSize: false,
       readOnly: true,
       copyPaste: false,
@@ -131,7 +147,7 @@ class Menu {
     this.hot.getSettings().outsideClickDeselects = false;
     this.hotMenu = new Core(this.container, settings);
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
-    this.hotMenu.addHook('afterSelection', (r, c, r2, c2, preventScrolling) => this.onAfterSelection(r, c, r2, c2, preventScrolling));
+    this.hotMenu.addHook('afterSelection', (...args) => this.onAfterSelection(...args));
     this.hotMenu.init();
     this.hotMenu.listen();
     this.blockMainTableCallbacks();
@@ -252,18 +268,18 @@ class Menu {
    * @param {Event} [event]
    */
   executeCommand(event) {
-    if (!this.isOpened() || !this.hotMenu.getSelected()) {
+    if (!this.isOpened() || !this.hotMenu.getSelectedLast()) {
       return;
     }
-    const selectedItem = this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelected()[0]);
+    const selectedItem = this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelectedLast()[0]);
 
     this.runLocalHooks('select', selectedItem, event);
 
     if (selectedItem.isCommand === false || selectedItem.name === SEPARATOR) {
       return;
     }
-    const selRange = this.hot.getSelectedRange();
-    const normalizedSelection = selRange ? normalizeSelection(selRange) : {};
+    const selRanges = this.hot.getSelectedRange();
+    const normalizedSelection = selRanges ? normalizeSelection(selRanges) : [];
     let autoClose = true;
 
     // Don't close context menu if item is disabled or it has submenu
@@ -567,7 +583,7 @@ class Menu {
    * @param {Event} event
    */
   onBeforeKeyDown(event) {
-    let selection = this.hotMenu.getSelected();
+    let selection = this.hotMenu.getSelectedLast();
     let stopEvent = false;
     this.keyEvent = true;
 
@@ -665,6 +681,7 @@ class Menu {
    * @param {Number} r2 Selection end row index.
    * @param {Number} c2 Selection end column index.
    * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
+   * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    */
   onAfterSelection(r, c, r2, c2, preventScrolling) {
     if (this.keyEvent === false) {

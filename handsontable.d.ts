@@ -3,7 +3,7 @@ declare namespace _Handsontable {
     constructor(element: Element, options: Handsontable.DefaultSettings);
     addHook(key: string, callback: (() => void) | any[]): void;
     addHookOnce(key: string, callback: (() => void) | any[]): void;
-    alter(action: string, index: number, amount?: number, source?: string, keepEmptyRows?: boolean): void;
+    alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index?: number | Array<[number, number]>, amount?: number, source?: string, keepEmptyRows?: boolean): void;
     clear(): void;
     colOffset(): number;
     colToProp(col: number): string | number;
@@ -20,6 +20,7 @@ declare namespace _Handsontable {
     deselectCell(): void;
     destroy(): void;
     destroyEditor(revertOriginal?: boolean): void;
+    emptySelectedCells(): void;
     getActiveEditor(): object;
     getCell(row: number, col: number, topmost?: boolean): Element;
     getCellEditor(row: number, col: number): object;
@@ -44,8 +45,10 @@ declare namespace _Handsontable {
     getRowHeader(row?: number): any[]|string;
     getRowHeight(row: number): number;
     getSchema(): object;
-    getSelected(): any[];
-    getSelectedRange(): Range;
+    getSelected(): Array<[number, number, number, number]> | undefined;
+    getSelectedLast(): number[] | undefined;
+    getSelectedRange(): Range[] | undefined;
+    getSelectedRangeLast(): Range | undefined;
     getSettings(): object;
     getSourceData(r?: number, c?: number, r2?: number, c2?: number): any[];
     getSourceDataArray(r?: number, c?: number, r2?: number, c2?: number): any[];
@@ -69,8 +72,12 @@ declare namespace _Handsontable {
     rowOffset(): number;
     runHooks(key: string, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
     scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean): boolean;
+    selectAll(): void;
     selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
     selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
+    selectCells(coords: Array<[number, number | string, number, number | string]> | Array<Handsontable.wot.CellRange>, scrollToCell?: boolean, changeListener?: boolean): boolean;
+    selectColumns(startColumn: number | string, endColumn?: number | string): boolean;
+    selectRows(startRow: number, endRow?: number): boolean;
     setCellMeta(row: number, col: number, key: string, val: string): void;
     setCellMetaObject(row: number, col: number, prop: object): void;
     setDataAtCell(row: number | any[], col: number, value: string | object, source?: string): void;
@@ -793,6 +800,19 @@ declare namespace Handsontable {
       paste(triggeredByClick?: boolean): void;
     }
 
+    interface CustomBorders extends Base {
+      savedBorderSettings: any[];
+
+      getSettingIndex(className: string): number;
+      insertBorderIntoSettings(border: object): void;
+      prepareBorderFromCustomAdded(row: number, col: number, borderObj: object): void;
+      prepareBorderFromCustomAddedRange(rowObj: object): void;
+      removeBordersFromDom(borderClassName: string): void;
+      removeAllBorders(row: number, col: number): void;
+      setBorder(row: number, col: number, place: string, remove: boolean): void;
+      prepareBorder(range: object, place: string, remove: boolean): void;
+    }
+
     interface DragToScroll extends Base {
       boundaries: object | void;
       callback: (() => void) | void;
@@ -1114,6 +1134,70 @@ declare namespace Handsontable {
       interface GuidelineUI extends BaseUI { }
     }
 
+    interface MergeCells extends Base {
+      mergedCellsCollection: MergeCellsPlugin.MergedCellsCollection;
+      autofillCalculations: MergeCellsPlugin.AutofillCalculations;
+      selectionCalculations: MergeCellsPlugin.SelectionCalculations;
+
+      clearCollections(): void;
+      mergeSelection(cellRange: wot.CellRange): void;
+      merge(startRow: number, startColumn: number, endRow: number, endColumn: number): void;
+      unmerge(startRow: number, startColumn: number, endRow: number, endColumn: number): void;
+    }
+
+    namespace MergeCellsPlugin {
+      interface AutofillCalculations {
+        plugin: MergeCells;
+        mergedCellsCollection: MergeCellsPlugin.MergedCellsCollection;
+        currentFillData: object;
+
+        correctSelectionAreaSize(selectionArea: number[]): void;
+        getDirection(selectionArea: number[], finalArea: number[]): string;
+        snapDragArea(baseArea: number[], dragArea: number[], dragDirection: string, foundMergedCells: MergeCellsPlugin.MergedCellCoords[]): number[];
+        recreateAfterDataPopulation(changes: any[]): void;
+        dragAreaOverlapsCollections(baseArea: number[], fullArea: number[], direction: string): boolean;
+      }
+
+      interface SelectionCalculations {
+        snapDelta(delta: object, selectionRange: wot.CellRange, mergedCell: MergeCellsPlugin.MergedCellCoords): void;
+        getUpdatedSelectionRange(oldSelectionRange: wot.CellRange, delta: object): wot.CellRange;
+      }
+
+      interface MergedCellCoords {
+        row: number;
+        col: number;
+        rowspan: number;
+        colspan: number;
+        removed: boolean;
+
+        normalize(hotInstance: _Handsontable.Core): void;
+        includes(row: number, column: number): boolean;
+        includesHorizontally(column: number): boolean;
+        includesVertically(row: number): boolean;
+        shift(shiftVector: number[], indexOfChange: number): boolean;
+        isFarther(mergedCell: MergeCellsPlugin.MergedCellCoords, direction: string): boolean | void;
+        getLastRow(): number;
+        getLastColumn(): number;
+        getRange(): wot.CellRange;
+      }
+
+      interface MergedCellsCollection {
+        plugin: MergeCells;
+        mergedCells: MergeCellsPlugin.MergedCellCoords[];
+        hot: _Handsontable.Core;
+
+        get(row: number, column: number): MergeCellsPlugin.MergedCellCoords | boolean;
+        getByRange(range: wot.CellRange | object): MergeCellsPlugin.MergedCellCoords | boolean;
+        getWithinRange(range: wot.CellRange | object, countPartials: boolean): MergeCellsPlugin.MergedCellCoords[] | boolean;
+        add(mergedCellInfo: object): MergeCellsPlugin.MergedCellCoords | boolean;
+        remove(row: number, column: number): MergeCellsPlugin.MergedCellCoords | boolean;
+        clear(): void;
+        isOverlapping(mergedCell: MergeCellsPlugin.MergedCellCoords): boolean;
+        isMergedParent(row: number, column: number): boolean;
+        shiftCollections(direction: string, index: number, count: number): void;
+      }
+    }
+
     interface ManualColumnMove extends Base {
       backlight: moveUI.BacklightUI;
       columnsMapper: MoveColumnsMapper;
@@ -1399,12 +1483,12 @@ declare namespace Handsontable {
     minRows?: number;
     minSpareCols?: number;
     minSpareRows?: number;
-    multiSelect?: boolean;
+    selectionMode?: 'single' | 'range' | 'multiple';
     nestedHeaders?: any[]; // pro
     noWordWrapClassName?: string;
     observeChanges?: boolean;
     observeDOMVisibility?: boolean;
-    outsideClickDeselects?: boolean;
+    outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
     pasteMode?: string;
     persistentState?: boolean;
     placeholder?: any;
@@ -1457,6 +1541,7 @@ declare namespace Handsontable {
     afterColumnSort?: (column: number, order: boolean) => void;
     afterContextMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterContextMenuHide?: (context: object) => void;
+    beforeContextMenuShow?: (context: object) => void;
     afterContextMenuShow?: (context: object) => void;
     afterCopy?: (data: any[], coords: any[]) => void;
     afterCopyLimit?: (selectedRows: number, selectedColumnds: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
@@ -1469,6 +1554,7 @@ declare namespace Handsontable {
     afterDocumentKeyDown?: (event: Event) => void;
     afterDropdownMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterDropdownMenuHide?: (instance: any) => void;
+    beforeDropdownMenuShow?: (instance: any) => void;
     afterDropdownMenuShow?: (instance: any) => void;
     afterFilter?: (formulasStack: any[]) => void;
     afterGetCellMeta?: (row: number, col: number, cellProperties: object) => void;
@@ -1497,10 +1583,10 @@ declare namespace Handsontable {
     afterRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => void;
     afterScrollHorizontally?: () => void;
     afterScrollVertically?: () => void;
-    afterSelection?: (r: number, c: number, r2: number, c2: number) => void;
-    afterSelectionByProp?: (r: number, p: string, r2: number, p2: string) => void;
-    afterSelectionEnd?: (r: number, c: number, r2: number, c2: number) => void;
-    afterSelectionEndByProp?: (r: number, p: string, r2: number, p2: string) => void;
+    afterSelection?: (r: number, c: number, r2: number, c2: number, preventScrolling: object, selectionLayerLevel: number) => void;
+    afterSelectionByProp?: (r: number, p: string, r2: number, p2: string, preventScrolling: object, selectionLayerLevel: number) => void;
+    afterSelectionEnd?: (r: number, c: number, r2: number, c2: number, selectionLayerLevel: number) => void;
+    afterSelectionEndByProp?: (r: number, p: string, r2: number, p2: string, selectionLayerLevel: number) => void;
     afterSetCellMeta?: (row: number, col: number, key: string, value: any) => void;
     afterSetDataAtCell?: (changes: any[], source?: string) => void;
     afterSetDataAtRowProp?: (changes: any[], source?: string) => void;
@@ -1544,13 +1630,13 @@ declare namespace Handsontable {
     beforeRenderer?: (TD: Element, row: number, col: number, prop: string|number, value: string, cellProperties: object) => void;
     beforeRowMove?: (startRow: number, endRow: number) => void;
     beforeRowResize?: (currentRow: number, newSize: number, isDoubleClick: boolean) => any;
-    beforeSetRangeEnd?: (coords: any[]) => void;
-    beforeSetRangeStart?: (coords: any[]) => void;
+    beforeSetRangeEnd?: (coords: wot.CellCoords) => void;
+    beforeSetRangeStart?: (coords: wot.CellCoords) => void;
     beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void;
     beforeTouchScroll?: () => void;
     beforeUndo?: (action: object) => void;
     beforeValidate?: (value: any, row: number, prop: string | number, source?: string) => void;
-    beforeValueRender?: (value: any) => void;
+    beforeValueRender?: (value: any, cellProperties: object) => void;
     construct?: () => void;
     hiddenColumn?: (column: number) => void;
     hiddenRow?: (row: number) => void;
@@ -1709,7 +1795,7 @@ declare namespace Handsontable {
     isMobileBrowser(userAgent?: string): boolean,
     isNumeric(n: any): boolean,
     isObject(obj: any): boolean,
-    isObjectEquals(object1: object | any[], object2: object | any[]): boolean,
+    isObjectEqual(object1: object | any[], object2: object | any[]): boolean,
     isPercentValue(value: string): boolean,
     isPrintableChar(keyCode: number): boolean,
     isSafari(): boolean,
@@ -1821,6 +1907,7 @@ declare namespace Handsontable {
     ManualColumnResize: plugins.ManualColumnResize,
     ManualRowMove: plugins.ManualRowMove,
     ManualRowResize: plugins.ManualRowResize;
+    MergeCells: plugins.MergeCells;
     MultipleSelectionHandles: plugins.MultipleSelectionHandles,
     NestedHeaders: plugins.NestedHeaders,
     NestedRows: plugins.NestedRows,
@@ -1861,6 +1948,8 @@ declare namespace Handsontable {
 declare class Handsontable extends _Handsontable.Core {
   static baseVersion: string;
   static buildDate: string;
+  static packageName: string;
+  static version: string;
   static cellTypes: Handsontable.CellTypes;
   static dom: Handsontable.Dom;
   static editors: Handsontable.Editors;
@@ -1868,7 +1957,6 @@ declare class Handsontable extends _Handsontable.Core {
   static hooks: Handsontable.Hooks;
   static plugins: Handsontable.Plugins;
   static renderers: Handsontable.Renderers;
-  static version: string;
 }
 
 export = Handsontable;

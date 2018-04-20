@@ -164,20 +164,19 @@ class CopyPaste extends BasePlugin {
    * @memberof CopyPaste#
    */
   setCopyableText() {
-    let selRange = this.hot.getSelectedRange();
+    const selRange = this.hot.getSelectedRangeLast();
 
     if (!selRange) {
       return;
     }
-
-    let topLeft = selRange.getTopLeftCorner();
-    let bottomRight = selRange.getBottomRightCorner();
-    let startRow = topLeft.row;
-    let startCol = topLeft.col;
-    let endRow = bottomRight.row;
-    let endCol = bottomRight.col;
-    let finalEndRow = Math.min(endRow, startRow + this.rowsLimit - 1);
-    let finalEndCol = Math.min(endCol, startCol + this.columnsLimit - 1);
+    const topLeft = selRange.getTopLeftCorner();
+    const bottomRight = selRange.getBottomRightCorner();
+    const startRow = topLeft.row;
+    const startCol = topLeft.col;
+    const endRow = bottomRight.row;
+    const endCol = bottomRight.col;
+    const finalEndRow = Math.min(endRow, startRow + this.rowsLimit - 1);
+    const finalEndCol = Math.min(endCol, startCol + this.columnsLimit - 1);
 
     this.copyableRanges.length = 0;
 
@@ -242,9 +241,9 @@ class CopyPaste extends BasePlugin {
    * @returns {Array} Returns array of arrays which will be copied into clipboard.
    */
   getRangedData(ranges) {
-    let dataSet = [];
-    let copyableRows = [];
-    let copyableColumns = [];
+    const dataSet = [];
+    const copyableRows = [];
+    const copyableColumns = [];
 
     // Count all copyable rows and columns
     arrayEach(ranges, (range) => {
@@ -386,7 +385,7 @@ class CopyPaste extends BasePlugin {
         window.clipboardData.setData('Text', value);
       }
 
-      this.hot.selection.empty();
+      this.hot.emptySelectedCells();
       this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
     }
 
@@ -429,7 +428,7 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
-    let selected = this.hot.getSelected();
+    let selected = this.hot.getSelectedLast();
     let coordsFrom = new CellCoords(selected[0], selected[1]);
     let coordsTo = new CellCoords(selected[2], selected[3]);
     let cellRange = new CellRange(coordsFrom, coordsFrom, coordsTo);

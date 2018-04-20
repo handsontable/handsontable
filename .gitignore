@@ -1,9 +1,11 @@
 .DS_Store
 .grunt
 .idea
+.vscode
 _SpecRunner.html
 test/E2ERunner.html
 test/UnitRunner.html
+test/MobileRunner.html
 test/dist/
 src/3rdparty/walkontable/test/dist/
 src/3rdparty/walkontable/dist/

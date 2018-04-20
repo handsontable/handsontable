@@ -2,11 +2,12 @@
  * Handsontable UndoRedo class
  */
 import Hooks from './../../pluginHooks';
-import {arrayMap} from './../../helpers/array';
+import {arrayMap, arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
 import {inherit, deepClone} from './../../helpers/object';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {CellCoords} from './../../3rdparty/walkontable/src';
+import {align} from './../contextMenu/utils';
 
 /**
  * @description
@@ -30,7 +31,7 @@ function UndoRedo(instance) {
   this.ignoreNewActions = false;
 
   instance.addHook('afterChange', (changes, source) => {
-    if (changes && source !== 'UndoRedo.undo' && source !== 'UndoRedo.redo') {
+    if (changes && source !== 'UndoRedo.undo' && source !== 'UndoRedo.redo' && source !== 'MergeCells') {
       plugin.done(new UndoRedo.ChangeAction(changes));
     }
   });
@@ -123,7 +124,24 @@ function UndoRedo(instance) {
 
     plugin.done(new UndoRedo.RowMoveAction(movedRows, target));
   });
-};
+
+  instance.addHook('beforeMergeCells', (cellRange, auto) => {
+    if (auto) {
+      return;
+    }
+
+    plugin.done(new UndoRedo.MergeCellsAction(instance, cellRange));
+  });
+
+  instance.addHook('afterUnmergeCells', (cellRange, auto) => {
+    if (auto) {
+      return;
+    }
+
+    plugin.done(new UndoRedo.UnmergeCellsAction(instance, cellRange));
+  });
+
+}
 
 UndoRedo.prototype.done = function(action) {
   if (!this.ignoreNewActions) {
@@ -251,7 +269,7 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
 
   for (let i = 0, len = data.length; i < len; i++) {
     if (instance.getSettings().minSpareRows && data[i][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
-        emptyRowsAtTheEnd == instance.getSettings().minSpareRows) {
+      emptyRowsAtTheEnd === instance.getSettings().minSpareRows) {
 
       instance.alter('remove_row', parseInt(data[i][0] + 1, 10), instance.getSettings().minSpareRows);
       instance.undoRedo.doneActions.pop();
@@ -259,7 +277,7 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
     }
 
     if (instance.getSettings().minSpareCols && data[i][1] + 1 + instance.getSettings().minSpareCols === instance.countCols() &&
-        emptyColsAtTheEnd == instance.getSettings().minSpareCols) {
+      emptyColsAtTheEnd === instance.getSettings().minSpareCols) {
 
       instance.alter('remove_col', parseInt(data[i][1] + 1, 10), instance.getSettings().minSpareCols);
       instance.undoRedo.doneActions.pop();
@@ -373,7 +391,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   var changes = [];
 
   // TODO: Temporary hook for undo/redo mess
-  instance.runHooks('beforeCreateCol', this.indexes[0], this.indexes[this.indexes.length - 1], 'UndoRedo.undo');
+  instance.runHooks('beforeCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   rangeEach(this.data.length - 1, (i) => {
     row = instance.getSourceDataAtRow(i);
@@ -402,7 +420,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   instance.addHookOnce('afterRender', undoneCallback);
 
   // TODO: Temporary hook for undo/redo mess
-  instance.runHooks('afterCreateCol', this.indexes[0], this.indexes[this.indexes.length - 1], 'UndoRedo.undo');
+  instance.runHooks('afterCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   if (instance.getPlugin('formulas')) {
     instance.getPlugin('formulas').recalculateFull();
@@ -426,24 +444,20 @@ UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.alignment = alignment;
 };
 UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
-  if (!instance.getPlugin('contextMenu').isEnabled()) {
-    return;
-  }
-  for (var row = this.range.from.row; row <= this.range.to.row; row++) {
-    for (var col = this.range.from.col; col <= this.range.to.col; col++) {
-      instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
+  arrayEach(this.range, ({from, to}) => {
+    for (let row = from.row; row <= to.row; row += 1) {
+      for (let col = from.col; col <= to.col; col += 1) {
+        instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
+      }
     }
-  }
+  });
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
 };
 UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback) {
-  if (!instance.getPlugin('contextMenu').isEnabled()) {
-    return;
-  }
-  instance.selectCell(this.range.from.row, this.range.from.col, this.range.to.row, this.range.to.col);
-  instance.getPlugin('contextMenu').executeCommand(`alignment:${this.alignment.replace('ht', '').toLowerCase()}`);
+  align(this.range, this.type, this.alignment, (row, col) => instance.getCellMeta(row, col),
+    (row, col, key, value) => instance.setCellMeta(row, col, key, value));
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
@@ -476,6 +490,61 @@ UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
 };
 
 /**
+ * Merge Cells action.
+ * @util
+ */
+class MergeCellsAction extends UndoRedo.Action {
+  constructor(instance, cellRange) {
+    super();
+    this.cellRange = cellRange;
+    this.rangeData = instance.getData(cellRange.from.row, cellRange.from.col, cellRange.to.row, cellRange.to.col);
+  }
+
+  undo(instance, undoneCallback) {
+    const mergeCellsPlugin = instance.getPlugin('mergeCells');
+    instance.addHookOnce('afterRender', undoneCallback);
+
+    mergeCellsPlugin.unmergeRange(this.cellRange, true);
+    instance.populateFromArray(this.cellRange.from.row, this.cellRange.from.col, this.rangeData, void 0, void 0, 'MergeCells');
+  }
+
+  redo(instance, redoneCallback) {
+    const mergeCellsPlugin = instance.getPlugin('mergeCells');
+    instance.addHookOnce('afterRender', redoneCallback);
+
+    mergeCellsPlugin.mergeRange(this.cellRange);
+  }
+}
+UndoRedo.MergeCellsAction = MergeCellsAction;
+
+/**
+ * Unmerge Cells action.
+ * @util
+ */
+class UnmergeCellsAction extends UndoRedo.Action {
+  constructor(instance, cellRange) {
+    super();
+    this.cellRange = cellRange;
+  }
+
+  undo(instance, undoneCallback) {
+    const mergeCellsPlugin = instance.getPlugin('mergeCells');
+    instance.addHookOnce('afterRender', undoneCallback);
+
+    mergeCellsPlugin.mergeRange(this.cellRange, true);
+  }
+
+  redo(instance, redoneCallback) {
+    const mergeCellsPlugin = instance.getPlugin('mergeCells');
+    instance.addHookOnce('afterRender', redoneCallback);
+
+    mergeCellsPlugin.unmergeRange(this.cellRange, true);
+    instance.render();
+  }
+}
+UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
+
+/**
  * ManualRowMove action.
  * @TODO: removeRow undo should works on logical index
  */
@@ -489,19 +558,20 @@ UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
   let manualRowMove = instance.getPlugin('manualRowMove');
 
   instance.addHookOnce('afterRender', undoneCallback);
+
   let mod = this.rows[0] < this.target ? -1 * this.rows.length : 0;
   let newTarget = this.rows[0] > this.target ? this.rows[0] + this.rows.length : this.rows[0];
   let newRows = [];
   let rowsLen = this.rows.length + mod;
 
-  for (let i = mod; i < rowsLen; i++) {
+  for (let i = mod; i < rowsLen; i += 1) {
     newRows.push(this.target + i);
   }
+
   manualRowMove.moveRows(newRows.slice(), newTarget);
   instance.render();
 
-  instance.selection.setRangeStartOnly(new CellCoords(this.rows[0], 0));
-  instance.selection.setRangeEnd(new CellCoords(this.rows[this.rows.length - 1], instance.countCols() - 1));
+  instance.selectCell(this.rows[0], 0, this.rows[this.rows.length - 1], instance.countCols() - 1, false, false);
 };
 UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
   let manualRowMove = instance.getPlugin('manualRowMove');
@@ -510,8 +580,8 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
   manualRowMove.moveRows(this.rows.slice(), this.target);
   instance.render();
   let startSelection = this.rows[0] < this.target ? this.target - this.rows.length : this.target;
-  instance.selection.setRangeStartOnly(new CellCoords(startSelection, 0));
-  instance.selection.setRangeEnd(new CellCoords(startSelection + this.rows.length - 1, instance.countCols() - 1));
+
+  instance.selectCell(startSelection, 0, startSelection + this.rows.length - 1, instance.countCols() - 1, false, false);
 };
 
 function init() {

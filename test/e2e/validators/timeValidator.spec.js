@@ -364,8 +364,8 @@ describe('timeValidator', () => {
       }, 130);
     });
 
-    it('should rewrite one and two-digit number to the correct format at minutes', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    it('should rewrite one and two-digit number to the correct format at minutes', async () => {
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
@@ -377,15 +377,13 @@ describe('timeValidator', () => {
       });
 
       setDataAtCell(1, 0, '57');
+      await sleep(100);
 
-      setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, '57', 1, 'time', undefined, undefined);
-      }, 100);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, '57', 1, 'time', undefined, undefined);
 
-      setTimeout(() => {
-        expect(getDataAtCell(1, 0)).toEqual('57:00');
-        done();
-      }, 130);
+      await sleep(100);
+
+      expect(getDataAtCell(1, 0)).toEqual('57:00');
     });
 
     it('should not try to correct format of non-date strings', (done) => {

@@ -79,7 +79,7 @@ BaseEditor.prototype.saveValue = function(value, ctrlDown) {
 
   // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
   if (ctrlDown) {
-    selection = this.instance.getSelected();
+    selection = this.instance.getSelectedLast();
 
     if (selection[0] > selection[2]) {
       tmp = selection[0];
@@ -98,8 +98,8 @@ BaseEditor.prototype.saveValue = function(value, ctrlDown) {
   this.instance.populateFromArray(selection[0], selection[1], value, selection[2], selection[3], 'edit');
 };
 
-BaseEditor.prototype.beginEditing = function(initialValue, event) {
-  if (this.state != EditorState.VIRGIN) {
+BaseEditor.prototype.beginEditing = function(newInitialValue, event) {
+  if (this.state !== EditorState.VIRGIN) {
     return;
   }
   this.instance.view.scrollViewport(new CellCoords(this.row, this.col));
@@ -109,7 +109,7 @@ BaseEditor.prototype.beginEditing = function(initialValue, event) {
   // Set the editor value only in the full edit mode. In other type the focusable element has to be empty,
   // otherwise IME (editor for Asia users) doesn't work.
   if (this.isInFullEditMode()) {
-    const stringifiedInitialValue = typeof initialValue === 'string' ? initialValue : stringify(this.originalValue);
+    const stringifiedInitialValue = stringify(typeof newInitialValue === 'string' ? newInitialValue : this.originalValue);
 
     this.setValue(stringifiedInitialValue);
   }

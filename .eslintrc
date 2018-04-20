@@ -42,7 +42,14 @@
     "no-undef": 0,
     "no-underscore-dangle": 0,
     "no-unused-vars": 1,
-    "no-restricted-globals": ["error", "Handsontable"],
+    "no-restricted-globals": [
+      2,
+      "Handsontable",
+      {
+        "name": "console",
+        "message": "Using the `console` object is not allowed within Handsontable. Please use one of the helpers from the `console.js` file instead."
+      }
+    ],
     "no-use-before-define": 0,
     "no-var": 0,
     "no-void": 0,
@@ -72,7 +79,7 @@
     "import/no-unresolved": [
       2,
       {
-        "ignore": ["handsontable"]
+        "ignore": ["handsontable", "walkontable"]
       }
     ],
     "no-mixed-operators": [
@@ -98,12 +105,6 @@
       2,
       {
         "allowParens": true
-      }
-    ],
-    "no-console": [
-      2,
-      {
-        "allow": ["error", "warn", "info"]
       }
     ],
     "indent": [

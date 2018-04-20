@@ -1,19 +1,20 @@
-import numbro from 'numbro';
 import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
 import {columnFactory} from './helpers/setting';
 import {isFunction} from './helpers/function';
-import {isDefined, isUndefined, isRegExp, _injectProductInfo} from './helpers/mixed';
+import {warn} from './helpers/console';
+import {isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty} from './helpers/mixed';
 import {isMobileBrowser} from './helpers/browser';
 import DataMap from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
-import {deepClone, duckSchema, extend, isObject, isObjectEquals, deepObjectSize, hasOwnProperty, createObjectPropListener} from './helpers/object';
-import {arrayFlatten, arrayMap, arrayEach} from './helpers/array';
+import {deepClone, duckSchema, extend, isObject, isObjectEqual, deepObjectSize, hasOwnProperty, createObjectPropListener} from './helpers/object';
+import {arrayFlatten, arrayMap, arrayEach, arrayReduce} from './helpers/array';
+import {toSingleLine} from './helpers/templateLiteralTag';
 import {getPlugin} from './plugins';
 import {getRenderer} from './renderers';
 import {getValidator} from './validators';
 import {randomString} from './helpers/string';
-import {rangeEach} from './helpers/number';
+import {rangeEach, rangeEachReverse} from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
 import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
@@ -26,6 +27,8 @@ import {getCellType} from './cellTypes';
 import {getTranslatedPhrase} from './i18n';
 import {hasLanguageDictionary} from './i18n/dictionariesManager';
 import {warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLanguageCode} from './i18n/utils';
+import {startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving} from './utils/keyStateObserver';
+import {Selection} from './selection';
 
 let activeGuid = null;
 
@@ -33,7 +36,6 @@ let activeGuid = null;
  * Handsontable constructor
  *
  * @core
- * @dependencies numbro
  * @constructor Core
  * @description
  *
@@ -63,8 +65,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     datamap,
     dataSource,
     grid,
-    selection,
     editorManager,
+    preventScrollingToCell = false,
     instance = this,
     GridSettings = function() {
     },
@@ -74,11 +76,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
   extend(GridSettings.prototype, expandType(userSettings));
 
-  applyLanguageSetting(userSettings.language, GridSettings.prototype);
+  applyLanguageSetting(GridSettings.prototype, userSettings.language);
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
   }
+
+  keyStateStartObserving();
 
   this.isDestroyed = false;
   this.rootElement = rootElement;
@@ -114,16 +118,148 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     firstRun: true
   };
 
+  let selection = new Selection(priv.settings, {
+    countCols: () => instance.countCols(),
+    countRows: () => instance.countRows(),
+    propToCol: (prop) => datamap.propToCol(prop),
+    isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
+  });
+
+  this.selection = selection;
+
+  this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
+    this.runHooks('beforeSetRangeStart', cellCoords);
+  });
+
+  this.selection.addLocalHook('beforeSetRangeStartOnly', (cellCoords) => {
+    this.runHooks('beforeSetRangeStartOnly', cellCoords);
+  });
+
+  this.selection.addLocalHook('beforeSetRangeEnd', (cellCoords) => {
+    this.runHooks('beforeSetRangeEnd', cellCoords);
+
+    if (cellCoords.row < 0) {
+      cellCoords.row = this.view.wt.wtTable.getFirstVisibleRow();
+    }
+    if (cellCoords.col < 0) {
+      cellCoords.col = this.view.wt.wtTable.getFirstVisibleColumn();
+    }
+  });
+
+  this.selection.addLocalHook('afterSetRangeEnd', (cellCoords) => {
+    const preventScrolling = createObjectPropListener(false);
+    const selectionRange = this.selection.getSelectedRange();
+    const {from, to} = selectionRange.current();
+    const selectionLayerLevel = selectionRange.size() - 1;
+
+    this.runHooks('afterSelection',
+      from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
+    this.runHooks('afterSelectionByProp',
+      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel);
+
+    const isSelectedByAnyHeader = this.selection.isSelectedByAnyHeader();
+    const currentSelectedRange = this.selection.selectedRange.current();
+
+    let scrollToCell = true;
+
+    if (preventScrollingToCell) {
+      scrollToCell = false;
+    }
+
+    if (preventScrolling.isTouched()) {
+      scrollToCell = !preventScrolling.value;
+    }
+
+    if (scrollToCell !== false && !isSelectedByAnyHeader) {
+      if (currentSelectedRange && !this.selection.isMultiple()) {
+        this.view.scrollViewport(currentSelectedRange.from);
+      } else {
+        this.view.scrollViewport(cellCoords);
+      }
+    }
+
+    const isSelectedByRowHeader = this.selection.isSelectedByRowHeader();
+    const isSelectedByColumnHeader = this.selection.isSelectedByColumnHeader();
+
+    // @TODO: These CSS classes are no longer needed anymore. They are used only as a indicator of the selected
+    // rows/columns in the MergedCells plugin (via border.js#L520 in the walkontable module). After fixing
+    // the Border class this should be removed.
+    if (isSelectedByRowHeader && isSelectedByColumnHeader) {
+      addClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+
+    } else if (isSelectedByRowHeader) {
+      removeClass(this.rootElement, 'ht__selection--columns');
+      addClass(this.rootElement, 'ht__selection--rows');
+
+    } else if (isSelectedByColumnHeader) {
+      removeClass(this.rootElement, 'ht__selection--rows');
+      addClass(this.rootElement, 'ht__selection--columns');
+
+    } else {
+      removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+    }
+
+    this._refreshBorders(null);
+  });
+
+  this.selection.addLocalHook('afterSelectionFinished', (cellRanges) => {
+    const selectionLayerLevel = cellRanges.length - 1;
+    const {from, to} = cellRanges[selectionLayerLevel];
+
+    this.runHooks('afterSelectionEnd',
+      from.row, from.col, to.row, to.col, selectionLayerLevel);
+    this.runHooks('afterSelectionEndByProp',
+      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+  });
+
+  this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple) => {
+    const changedIsMultiple = this.runHooks('afterIsMultipleSelection', isMultiple.value);
+
+    if (isMultiple.value) {
+      isMultiple.value = changedIsMultiple;
+    }
+  });
+
+  this.selection.addLocalHook('beforeModifyTransformStart', (cellCoordsDelta) => {
+    this.runHooks('modifyTransformStart', cellCoordsDelta);
+  });
+  this.selection.addLocalHook('afterModifyTransformStart', (coords, rowTransformDir, colTransformDir) => {
+    this.runHooks('afterModifyTransformStart', coords, rowTransformDir, colTransformDir);
+  });
+  this.selection.addLocalHook('beforeModifyTransformEnd', (cellCoordsDelta) => {
+    this.runHooks('modifyTransformEnd', cellCoordsDelta);
+  });
+  this.selection.addLocalHook('afterModifyTransformEnd', (coords, rowTransformDir, colTransformDir) => {
+    this.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
+  });
+  this.selection.addLocalHook('afterDeselect', () => {
+    editorManager.destroyEditor();
+
+    this._refreshBorders();
+    removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
+
+    this.runHooks('afterDeselect');
+  });
+  this.selection.addLocalHook('insertRowRequire', (totalRows) => {
+    this.alter('insert_row', totalRows, 1, 'auto');
+  });
+  this.selection.addLocalHook('insertColRequire', (totalCols) => {
+    this.alter('insert_col', totalCols, 1, 'auto');
+  });
+
   grid = {
     /**
-     * Inserts or removes rows and columns
+     * Inserts or removes rows and columns.
      *
      * @memberof Core#
      * @function alter
      * @private
-     * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
-     * @param {Number} index
-     * @param {Number} amount
+     * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col".
+     * @param {Number|Array} index Row or column visual index which from the alter action will be triggered.
+     *                             Alter actions such as "remove_row" and "remove_col" support array indexes in the
+     *                             format `[[index, amount], [index, amount]...]` this can be used to remove
+     *                             non-consecutive columns or rows in one call.
+     * @param {Number} amount Ammount rows or columns to remove.
      * @param {String} [source] Optional. Source of hook runner.
      * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
@@ -151,6 +287,42 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         data.splice(...spliceArgs);
       }
 
+      const normalizeIndexesGroup = (indexes) => {
+        if (indexes.length === 0) {
+          return [];
+        }
+
+        const sortedIndexes = [...indexes];
+
+        // Sort the indexes in ascending order.
+        sortedIndexes.sort(([indexA], [indexB]) => {
+          if (indexA === indexB) {
+            return 0;
+          }
+
+          return indexA > indexB ? 1 : -1;
+        });
+
+        // Normalize the {index, amount} groups into bigger groups.
+        const normalizedIndexes = arrayReduce(sortedIndexes, (acc, [index, amount]) => {
+          const previousItem = acc[acc.length - 1];
+          const [prevIndex, prevAmount] = previousItem;
+          const prevLastIndex = prevIndex + prevAmount;
+
+          if (index <= prevLastIndex) {
+            const amountToAdd = Math.max(amount - (prevLastIndex - index), 0);
+
+            previousItem[1] += amountToAdd;
+          } else {
+            acc.push([index, amount]);
+          }
+
+          return acc;
+        }, [sortedIndexes[0]]);
+
+        return normalizedIndexes;
+      };
+
       /* eslint-disable no-case-declarations */
       switch (action) {
         case 'insert_row':
@@ -167,11 +339,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           spliceWith(priv.cellSettings, index, amount, 'array');
 
           if (delta) {
-            if (selection.isSelected() && priv.selRange.from.row >= index) {
-              priv.selRange.from.row += delta;
+            if (selection.isSelected() && selection.selectedRange.current().from.row >= index) {
+              selection.selectedRange.current().from.row += delta;
               selection.transformEnd(delta, 0); // will call render() internally
             } else {
-              selection.refreshBorders(); // it will call render and prepare methods
+              instance._refreshBorders(); // it will call render and prepare methods
             }
           }
           break;
@@ -192,59 +364,111 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
             }
 
-            if (selection.isSelected() && priv.selRange.from.col >= index) {
-              priv.selRange.from.col += delta;
+            if (selection.isSelected() && selection.selectedRange.current().from.col >= index) {
+              selection.selectedRange.current().from.col += delta;
               selection.transformEnd(0, delta); // will call render() internally
             } else {
-              selection.refreshBorders(); // it will call render and prepare methods
+              instance._refreshBorders(); // it will call render and prepare methods
             }
           }
           break;
 
         case 'remove_row':
-          datamap.removeRow(index, amount, source);
-          priv.cellSettings.splice(index, amount);
 
-          var totalRows = instance.countRows();
-          var fixedRowsTop = instance.getSettings().fixedRowsTop;
-          if (fixedRowsTop >= index + 1) {
-            instance.getSettings().fixedRowsTop -= Math.min(amount, fixedRowsTop - index);
-          }
+          const removeRow = (indexes) => {
+            let offset = 0;
 
-          var fixedRowsBottom = instance.getSettings().fixedRowsBottom;
-          if (fixedRowsBottom && index >= totalRows - fixedRowsBottom) {
-            instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom);
+            arrayEach(indexes, ([index, amount]) => {
+              const calcIndex = isEmpty(index) ? instance.countRows() - 1 : Math.max(index - offset, 0);
+
+              // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
+              // compatible with datamap.removeCol method.
+              if (Number.isInteger(index)) {
+                index = Math.max(index - offset, 0);
+              }
+
+              // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
+              // inside the datamap.removeRow breaks the removing functionality.
+              datamap.removeRow(index, amount, source);
+              priv.cellSettings.splice(calcIndex, amount);
+
+              const totalRows = instance.countRows();
+              const fixedRowsTop = instance.getSettings().fixedRowsTop;
+
+              if (fixedRowsTop >= calcIndex + 1) {
+                instance.getSettings().fixedRowsTop -= Math.min(amount, fixedRowsTop - calcIndex);
+              }
+
+              const fixedRowsBottom = instance.getSettings().fixedRowsBottom;
+
+              if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
+                instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom);
+              }
+
+              offset += amount;
+            });
+          };
+
+          if (Array.isArray(index)) {
+            removeRow(normalizeIndexesGroup(index));
+          } else {
+            removeRow([[index, amount]]);
           }
 
           grid.adjustRowsAndCols();
-          selection.refreshBorders(); // it will call render and prepare methods
+          instance._refreshBorders(); // it will call render and prepare methods
           break;
 
         case 'remove_col':
-          let visualColumnIndex = recordTranslator.toPhysicalColumn(index);
 
-          datamap.removeCol(index, amount, source);
+          const removeCol = (indexes) => {
+            let offset = 0;
 
-          for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
-            if (priv.cellSettings[row]) { // if row hasn't been rendered it wouldn't have cellSettings
-              priv.cellSettings[row].splice(visualColumnIndex, amount);
-            }
-          }
-          var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
+            arrayEach(indexes, ([index, amount]) => {
+              const calcIndex = isEmpty(index) ? instance.countCols() - 1 : Math.max(index - offset, 0);
 
-          if (fixedColumnsLeft >= index + 1) {
-            instance.getSettings().fixedColumnsLeft -= Math.min(amount, fixedColumnsLeft - index);
-          }
+              let visualColumnIndex = recordTranslator.toPhysicalColumn(calcIndex);
 
-          if (Array.isArray(instance.getSettings().colHeaders)) {
-            if (typeof visualColumnIndex === 'undefined') {
-              visualColumnIndex = -1;
-            }
-            instance.getSettings().colHeaders.splice(visualColumnIndex, amount);
+              // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
+              // compatible with datamap.removeCol method.
+              if (Number.isInteger(index)) {
+                index = Math.max(index - offset, 0);
+              }
+
+              // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
+              // inside the datamap.removeCol breaks the removing functionality.
+              datamap.removeCol(index, amount, source);
+
+              for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
+                if (priv.cellSettings[row]) { // if row hasn't been rendered it wouldn't have cellSettings
+                  priv.cellSettings[row].splice(visualColumnIndex, amount);
+                }
+              }
+              var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
+
+              if (fixedColumnsLeft >= calcIndex + 1) {
+                instance.getSettings().fixedColumnsLeft -= Math.min(amount, fixedColumnsLeft - calcIndex);
+              }
+
+              if (Array.isArray(instance.getSettings().colHeaders)) {
+                if (typeof visualColumnIndex === 'undefined') {
+                  visualColumnIndex = -1;
+                }
+                instance.getSettings().colHeaders.splice(visualColumnIndex, amount);
+              }
+
+              offset += amount;
+            });
+          };
+
+          if (Array.isArray(index)) {
+            removeCol(normalizeIndexesGroup(index));
+          } else {
+            removeCol([[index, amount]]);
           }
 
           grid.adjustRowsAndCols();
-          selection.refreshBorders(); // it will call render and prepare methods
+          instance._refreshBorders(); // it will call render and prepare methods
 
           break;
         default:
@@ -310,48 +534,50 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
 
       if (selection.isSelected()) {
-        let selectionChanged = false;
-        let fromRow = priv.selRange.from.row;
-        let fromCol = priv.selRange.from.col;
-        let toRow = priv.selRange.to.row;
-        let toCol = priv.selRange.to.col;
+        arrayEach(selection.selectedRange, (range) => {
+          let selectionChanged = false;
+          let fromRow = range.from.row;
+          let fromCol = range.from.col;
+          let toRow = range.to.row;
+          let toCol = range.to.col;
 
-        // if selection is outside, move selection to last row
-        if (fromRow > rowCount - 1) {
-          fromRow = rowCount - 1;
-          selectionChanged = true;
+          // if selection is outside, move selection to last row
+          if (fromRow > rowCount - 1) {
+            fromRow = rowCount - 1;
+            selectionChanged = true;
 
-          if (toRow > fromRow) {
-            toRow = fromRow;
+            if (toRow > fromRow) {
+              toRow = fromRow;
+            }
+          } else if (toRow > rowCount - 1) {
+            toRow = rowCount - 1;
+            selectionChanged = true;
+
+            if (fromRow > toRow) {
+              fromRow = toRow;
+            }
           }
-        } else if (toRow > rowCount - 1) {
-          toRow = rowCount - 1;
-          selectionChanged = true;
+          // if selection is outside, move selection to last row
+          if (fromCol > colCount - 1) {
+            fromCol = colCount - 1;
+            selectionChanged = true;
 
-          if (fromRow > toRow) {
-            fromRow = toRow;
+            if (toCol > fromCol) {
+              toCol = fromCol;
+            }
+          } else if (toCol > colCount - 1) {
+            toCol = colCount - 1;
+            selectionChanged = true;
+
+            if (fromCol > toCol) {
+              fromCol = toCol;
+            }
           }
-        }
-        // if selection is outside, move selection to last row
-        if (fromCol > colCount - 1) {
-          fromCol = colCount - 1;
-          selectionChanged = true;
 
-          if (toCol > fromCol) {
-            toCol = fromCol;
+          if (selectionChanged) {
+            instance.selectCell(fromRow, fromCol, toRow, toCol);
           }
-        } else if (toCol > colCount - 1) {
-          toCol = colCount - 1;
-          selectionChanged = true;
-
-          if (fromCol > toCol) {
-            fromCol = toCol;
-          }
-        }
-
-        if (selectionChanged) {
-          instance.selectCell(fromRow, fromCol, toRow, toCol);
-        }
+        });
       }
       if (instance.view) {
         instance.view.wt.wtOverlays.adjustElementsSize();
@@ -536,7 +762,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                   let valueSchema = duckSchema(value[0] || value);
 
                   /* eslint-disable max-depth */
-                  if (isObjectEquals(orgValueSchema, valueSchema)) {
+                  if (isObjectEqual(orgValueSchema, valueSchema)) {
                     value = deepClone(value);
                   } else {
                     pushData = false;
@@ -560,399 +786,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   };
 
-  /* eslint-disable no-multi-assign */
-  this.selection = selection = { // this public assignment is only temporary
-    inProgress: false,
-
-    selectedHeader: {
-      cols: false,
-      rows: false,
-    },
-
-    /**
-     * @param {Boolean} [rows=false]
-     * @param {Boolean} [cols=false]
-     * @param {Boolean} [corner=false]
-     */
-    setSelectedHeaders(rows = false, cols = false, corner = false) {
-      instance.selection.selectedHeader.rows = rows;
-      instance.selection.selectedHeader.cols = cols;
-      instance.selection.selectedHeader.corner = corner;
-    },
-
-    /**
-     * Sets inProgress to `true`. This enables onSelectionEnd and onSelectionEndByProp to function as desired.
-     */
-    begin() {
-      instance.selection.inProgress = true;
-    },
-
-    /**
-     * Sets inProgress to `false`. Triggers onSelectionEnd and onSelectionEndByProp.
-     */
-    finish() {
-      var sel = instance.getSelected();
-      instance.runHooks('afterSelectionEnd', sel[0], sel[1], sel[2], sel[3]);
-      instance.runHooks('afterSelectionEndByProp', sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
-      instance.selection.inProgress = false;
-    },
-
-    /**
-     * @returns {Boolean}
-     */
-    isInProgress() {
-      return instance.selection.inProgress;
-    },
-
-    /**
-     * Starts selection range on given td object.
-     *
-     * @param {CellCoords} coords Visual coords.
-     * @param keepEditorOpened
-     */
-    setRangeStart(coords, keepEditorOpened) {
-      instance.runHooks('beforeSetRangeStart', coords);
-      priv.selRange = new CellRange(coords, coords, coords);
-      selection.setRangeEnd(coords, null, keepEditorOpened);
-    },
-
-    /**
-     * Starts selection range on given td object.
-     *
-     * @param {CellCoords} coords Visual coords.
-     * @param keepEditorOpened
-     */
-    setRangeStartOnly(coords) {
-      instance.runHooks('beforeSetRangeStartOnly', coords);
-      priv.selRange = new CellRange(coords, coords, coords);
-    },
-
-    /**
-     * Ends selection range on given td object.
-     *
-     * @param {CellCoords} coords Visual coords.
-     * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to range end
-     * @param {Boolean} [keepEditorOpened] If `true`, cell editor will be still opened after changing selection range
-     */
-    setRangeEnd(coords, scrollToCell, keepEditorOpened) {
-      if (priv.selRange === null) {
-        return;
-      }
-      var disableVisualSelection,
-        isHeaderSelected = false,
-        areCoordsPositive = true;
-
-      var firstVisibleRow = instance.view.wt.wtTable.getFirstVisibleRow();
-      var firstVisibleColumn = instance.view.wt.wtTable.getFirstVisibleColumn();
-      var newRangeCoords = {
-        row: null,
-        col: null,
-      };
-
-      // trigger handlers
-      instance.runHooks('beforeSetRangeEnd', coords);
-      instance.selection.begin();
-
-      newRangeCoords.row = coords.row < 0 ? firstVisibleRow : coords.row;
-      newRangeCoords.col = coords.col < 0 ? firstVisibleColumn : coords.col;
-
-      priv.selRange.to = new CellCoords(newRangeCoords.row, newRangeCoords.col);
-
-      if (!priv.settings.multiSelect) {
-        priv.selRange.from = coords;
-      }
-      // set up current selection
-      instance.view.wt.selections.current.clear();
-
-      disableVisualSelection = instance.getCellMeta(priv.selRange.highlight.row, priv.selRange.highlight.col).disableVisualSelection;
-
-      if (typeof disableVisualSelection === 'string') {
-        disableVisualSelection = [disableVisualSelection];
-      }
-
-      if (disableVisualSelection === false ||
-          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('current') === -1) {
-        instance.view.wt.selections.current.add(priv.selRange.highlight);
-      }
-      // set up area selection
-      instance.view.wt.selections.area.clear();
-
-      if ((disableVisualSelection === false ||
-          Array.isArray(disableVisualSelection) && disableVisualSelection.indexOf('area') === -1) &&
-          selection.isMultiple()) {
-        instance.view.wt.selections.area.add(priv.selRange.from);
-        instance.view.wt.selections.area.add(priv.selRange.to);
-      }
-      // set up highlight
-      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
-        instance.view.wt.selections.highlight.clear();
-        instance.view.wt.selections.highlight.add(priv.selRange.from);
-        instance.view.wt.selections.highlight.add(priv.selRange.to);
-      }
-
-      const preventScrolling = createObjectPropListener('value');
-
-      // trigger handlers
-      instance.runHooks('afterSelection',
-        priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col, preventScrolling);
-      instance.runHooks('afterSelectionByProp',
-        priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col), preventScrolling);
-
-      if (instance.selection.selectedHeader.cols || instance.selection.selectedHeader.rows) {
-        isHeaderSelected = true;
-      }
-
-      if (coords.row < 0 || coords.col < 0) {
-        areCoordsPositive = false;
-      }
-
-      if (preventScrolling.isTouched()) {
-        scrollToCell = !preventScrolling.value;
-      }
-
-      if (scrollToCell !== false && !isHeaderSelected && areCoordsPositive) {
-        if (priv.selRange.from && !selection.isMultiple()) {
-          instance.view.scrollViewport(priv.selRange.from);
-        } else {
-          instance.view.scrollViewport(coords);
-        }
-      }
-
-      if (selection.selectedHeader.rows && selection.selectedHeader.cols) {
-        addClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-
-      } else if (selection.selectedHeader.rows) {
-        removeClass(instance.rootElement, 'ht__selection--columns');
-        addClass(instance.rootElement, 'ht__selection--rows');
-
-      } else if (selection.selectedHeader.cols) {
-        removeClass(instance.rootElement, 'ht__selection--rows');
-        addClass(instance.rootElement, 'ht__selection--columns');
-
-      } else {
-        removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-      }
-
-      selection.refreshBorders(null, keepEditorOpened);
-    },
-
-    /**
-     * Destroys editor, redraws borders around cells, prepares editor.
-     *
-     * @param {Boolean} [revertOriginal]
-     * @param {Boolean} [keepEditor]
-     */
-    refreshBorders(revertOriginal, keepEditor) {
-      if (!keepEditor) {
-        editorManager.destroyEditor(revertOriginal);
-      }
-      instance.view.render();
-
-      if (selection.isSelected() && !keepEditor) {
-        editorManager.prepareEditor();
-      }
-    },
-
-    /**
-     * Returns information if we have a multiselection.
-     *
-     * @returns {Boolean}
-     */
-    isMultiple() {
-      var
-        isMultiple = !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row),
-        modifier = instance.runHooks('afterIsMultipleSelection', isMultiple);
-
-      if (isMultiple) {
-        return modifier;
-      }
-    },
-
-    /**
-     * Selects cell relative to current cell (if possible).
-     */
-    transformStart(rowDelta, colDelta, force, keepEditorOpened) {
-      var delta = new CellCoords(rowDelta, colDelta),
-        rowTransformDir = 0,
-        colTransformDir = 0,
-        totalRows,
-        totalCols,
-        coords,
-        fixedRowsBottom;
-
-      instance.runHooks('modifyTransformStart', delta);
-      totalRows = instance.countRows();
-      totalCols = instance.countCols();
-      fixedRowsBottom = instance.getSettings().fixedRowsBottom;
-
-      if (priv.selRange.highlight.row + rowDelta > totalRows - 1) {
-        if (force && priv.settings.minSpareRows > 0 && !(fixedRowsBottom && priv.selRange.highlight.row >= totalRows - fixedRowsBottom - 1)) {
-          instance.alter('insert_row', totalRows);
-          totalRows = instance.countRows();
-
-        } else if (priv.settings.autoWrapCol) {
-          delta.row = 1 - totalRows;
-          delta.col = priv.selRange.highlight.col + delta.col == totalCols - 1 ? 1 - totalCols : 1;
-        }
-      } else if (priv.settings.autoWrapCol && priv.selRange.highlight.row + delta.row < 0 && priv.selRange.highlight.col + delta.col >= 0) {
-        delta.row = totalRows - 1;
-        delta.col = priv.selRange.highlight.col + delta.col == 0 ? totalCols - 1 : -1;
-      }
-
-      if (priv.selRange.highlight.col + delta.col > totalCols - 1) {
-        if (force && priv.settings.minSpareCols > 0) {
-          instance.alter('insert_col', totalCols);
-          totalCols = instance.countCols();
-
-        } else if (priv.settings.autoWrapRow) {
-          delta.row = priv.selRange.highlight.row + delta.row == totalRows - 1 ? 1 - totalRows : 1;
-          delta.col = 1 - totalCols;
-        }
-      } else if (priv.settings.autoWrapRow && priv.selRange.highlight.col + delta.col < 0 && priv.selRange.highlight.row + delta.row >= 0) {
-        delta.row = priv.selRange.highlight.row + delta.row == 0 ? totalRows - 1 : -1;
-        delta.col = totalCols - 1;
-      }
-
-      coords = new CellCoords(priv.selRange.highlight.row + delta.row, priv.selRange.highlight.col + delta.col);
-
-      if (coords.row < 0) {
-        rowTransformDir = -1;
-        coords.row = 0;
-
-      } else if (coords.row > 0 && coords.row >= totalRows) {
-        rowTransformDir = 1;
-        coords.row = totalRows - 1;
-      }
-
-      if (coords.col < 0) {
-        colTransformDir = -1;
-        coords.col = 0;
-
-      } else if (coords.col > 0 && coords.col >= totalCols) {
-        colTransformDir = 1;
-        coords.col = totalCols - 1;
-      }
-      instance.runHooks('afterModifyTransformStart', coords, rowTransformDir, colTransformDir);
-      selection.setRangeStart(coords, keepEditorOpened);
-    },
-
-    /**
-     * Sets selection end cell relative to current selection end cell (if possible).
-     */
-    transformEnd(rowDelta, colDelta) {
-      var delta = new CellCoords(rowDelta, colDelta),
-        rowTransformDir = 0,
-        colTransformDir = 0,
-        totalRows,
-        totalCols,
-        coords;
-
-      instance.runHooks('modifyTransformEnd', delta);
-
-      totalRows = instance.countRows();
-      totalCols = instance.countCols();
-      coords = new CellCoords(priv.selRange.to.row + delta.row, priv.selRange.to.col + delta.col);
-
-      if (coords.row < 0) {
-        rowTransformDir = -1;
-        coords.row = 0;
-
-      } else if (coords.row > 0 && coords.row >= totalRows) {
-        rowTransformDir = 1;
-        coords.row = totalRows - 1;
-      }
-
-      if (coords.col < 0) {
-        colTransformDir = -1;
-        coords.col = 0;
-
-      } else if (coords.col > 0 && coords.col >= totalCols) {
-        colTransformDir = 1;
-        coords.col = totalCols - 1;
-      }
-      instance.runHooks('afterModifyTransformEnd', coords, rowTransformDir, colTransformDir);
-      selection.setRangeEnd(coords, true);
-    },
-
-    /**
-     * Returns `true` if currently there is a selection on screen, `false` otherwise.
-     *
-     * @returns {Boolean}
-     */
-    isSelected() {
-      return (priv.selRange !== null);
-    },
-
-    /**
-     * Returns `true` if coords is within current selection coords.
-     *
-     * @param {CellCoords} coords
-     * @returns {Boolean}
-     */
-    inInSelection(coords) {
-      if (!selection.isSelected()) {
-        return false;
-      }
-
-      return priv.selRange.includes(coords);
-    },
-
-    /**
-     * Deselects all selected cells
-     */
-    deselect() {
-      if (!selection.isSelected()) {
-        return;
-      }
-      instance.selection.inProgress = false; // needed by HT inception
-      priv.selRange = null;
-      instance.view.wt.selections.current.clear();
-      instance.view.wt.selections.area.clear();
-      if (priv.settings.currentHeaderClassName || priv.settings.currentRowClassName || priv.settings.currentColClassName) {
-        instance.view.wt.selections.highlight.clear();
-      }
-      editorManager.destroyEditor();
-      selection.refreshBorders();
-      removeClass(instance.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
-      instance.runHooks('afterDeselect');
-    },
-
-    /**
-     * Select all cells
-     */
-    selectAll() {
-      if (!priv.settings.multiSelect) {
-        return;
-      }
-      selection.setSelectedHeaders(true, true, true);
-      selection.setRangeStart(new CellCoords(0, 0));
-      selection.setRangeEnd(new CellCoords(instance.countRows() - 1, instance.countCols() - 1), false);
-    },
-
-    /**
-     * Deletes data from selected cells
-     */
-    empty() {
-      if (!selection.isSelected()) {
-        return;
-      }
-      var topLeft = priv.selRange.getTopLeftCorner();
-      var bottomRight = priv.selRange.getBottomRightCorner();
-      var r,
-        c,
-        changes = [];
-
-      for (r = topLeft.row; r <= bottomRight.row; r++) {
-        for (c = topLeft.col; c <= bottomRight.col; c++) {
-          if (!instance.getCellMeta(r, c).readOnly) {
-            changes.push([r, c, '']);
-          }
-        }
-      }
-      instance.setDataAtCell(changes);
-    },
-  };
-
   /**
    * Internal function to set `language` key of settings.
    *
@@ -966,7 +799,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (hasLanguageDictionary(normalizedLanguageCode)) {
       instance.runHooks('beforeLanguageChange', normalizedLanguageCode);
 
-      priv.settings.language = normalizedLanguageCode;
+      GridSettings.prototype.language = normalizedLanguageCode;
 
       instance.runHooks('afterLanguageChange', normalizedLanguageCode);
 
@@ -986,7 +819,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.updateSettings(priv.settings, true);
 
     this.view = new TableView(this);
-    editorManager = new EditorManager(instance, priv, selection, datamap);
+    editorManager = EditorManager.getInstance(instance, priv, selection, datamap);
 
     this.forceFullRender = true; // used when data was changed
 
@@ -1025,45 +858,41 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     };
   }
 
+  /**
+   * Get parsed number from numeric string.
+   *
+   * @private
+   * @param {String} numericData Float (separated by a dot or a comma) or integer.
+   * @returns {Number} Number if we get data in parsable format, not changed value otherwise.
+   */
+  function getParsedNumber(numericData) {
+    // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
+    // for example from `450,65` to `450.65`.
+    const unifiedNumericData = numericData.replace(',', '.');
+
+    if (isNaN(parseFloat(unifiedNumericData)) === false) {
+      return parseFloat(unifiedNumericData);
+    }
+
+    return numericData;
+  }
+
   function validateChanges(changes, source, callback) {
-    var waitingForValidator = new ValidatorsQueue();
+    const waitingForValidator = new ValidatorsQueue();
+    const isNumericData = (value) => value.length > 0 && /^-?[\d\s]*(\.|,)?\d*$/.test(value);
+
     waitingForValidator.onQueueEmpty = resolve;
 
-    for (var i = changes.length - 1; i >= 0; i--) {
+    for (let i = changes.length - 1; i >= 0; i--) {
       if (changes[i] === null) {
         changes.splice(i, 1);
       } else {
-        var row = changes[i][0];
-        var col = datamap.propToCol(changes[i][1]);
+        const [row, prop, , newValue] = changes[i];
+        const col = datamap.propToCol(prop);
+        const cellProperties = instance.getCellMeta(row, col);
 
-        var cellProperties = instance.getCellMeta(row, col);
-        const numericFormat = cellProperties.numericFormat;
-        const cellCulture = numericFormat && numericFormat.culture;
-        const cellFormatPattern = numericFormat && numericFormat.pattern;
-
-        if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && (/^-?[\d\s]*(\.|,)?\d*$/.test(changes[i][3]) || cellFormatPattern)) {
-            var len = changes[i][3].length;
-
-            if (isUndefined(cellCulture)) {
-              numbro.culture('en-US');
-
-            } else if (changes[i][3].indexOf('.') === len - 3 && changes[i][3].indexOf(',') === -1) {
-              // this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
-              numbro.culture('en-US');
-            } else {
-
-              numbro.culture(cellCulture);
-            }
-
-            // try to parse to float - https://github.com/foretagsplatsen/numbro/pull/183
-            if (numbro.validate(changes[i][3]) && !isNaN(changes[i][3])) {
-              changes[i][3] = parseFloat(changes[i][3]);
-
-            } else {
-              changes[i][3] = numbro().unformat(changes[i][3]) || changes[i][3];
-            }
-          }
+        if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericData(newValue)) {
+          changes[i][3] = getParsedNumber(newValue);
         }
 
         /* eslint-disable no-loop-func */
@@ -1093,9 +922,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       var beforeChangeResult;
 
       if (changes.length) {
-        beforeChangeResult = instance.runHooks('beforeChange', changes, source);
+        beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
         if (isFunction(beforeChangeResult)) {
-          console.warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
+          warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
         } else if (beforeChangeResult === false) {
           changes.splice(0, changes.length); // invalidate all changes (remove everything from array)
         }
@@ -1162,7 +991,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.forceFullRender = true; // used when data was changed
     grid.adjustRowsAndCols();
     instance.runHooks('beforeChangeRender', changes, source);
-    selection.refreshBorders(null, true);
+    editorManager.lockEditor();
+    instance._refreshBorders(null);
+    editorManager.unlockEditor();
     instance.view.wt.wtOverlays.adjustElementsSize();
     instance.runHooks('afterChange', changes, source || 'edit');
 
@@ -1173,10 +1004,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   }
 
+  /**
+   * Validate a single cell.
+   *
+   * @param {String|Number} value
+   * @param cellProperties
+   * @param callback
+   * @param source
+   */
   this.validateCell = function(value, cellProperties, callback, source) {
     var validator = instance.getCellValidator(cellProperties);
 
-    function done(valid) {
+    // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
+    function done(valid, canBeValidated = true) {
+      // Fixes GH#3903
+      if (!canBeValidated || cellProperties.hidden === true) {
+        callback(valid);
+        return;
+      }
+
       var col = cellProperties.visualCol,
         row = cellProperties.visualRow,
         td = instance.getCell(row, col, true);
@@ -1214,7 +1060,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       // resolve callback even if validator function was not found
       instance._registerTimeout(setTimeout(() => {
         cellProperties.valid = true;
-        done(cellProperties.valid);
+        done(cellProperties.valid, false);
       }, 0));
     }
   };
@@ -1377,7 +1223,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Boolean} [revertOriginal] If != `true`, edited data is saved. Otherwise the previous value is restored.
    */
   this.destroyEditor = function(revertOriginal) {
-    selection.refreshBorders(revertOriginal);
+    instance._refreshBorders(revertOriginal);
   };
 
   /**
@@ -1455,31 +1301,108 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns indexes of the currently selected cells as an array `[startRow, startCol, endRow, endCol]`.
+   * Returns indexes of the currently selected cells as an array of arrays `[[startRow, startCol, endRow, endCol], ...]`.
    *
    * Start row and start col are the coordinates of the active cell (where the selection was started).
    *
+   * The version 0.36.0 adds a non-consecutive selection feature. Since this version, the method returns an array of arrays.
+   * Additionally to collect the coordinates of the currently selected area (as it was previously done by the method)
+   * you need to use `getSelectedLast` method.
+   *
    * @memberof Core#
    * @function getSelected
-   * @returns {Array} Array of the selection's indexes.
+   * @returns {Array[]|undefined} An array of arrays of the selection's coordinates.
    */
   this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return [priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col];
+      return arrayMap(selection.getSelectedRange(), ({from, to}) => [from.row, from.col, to.row, to.col]);
     }
   };
 
   /**
-   * Returns the current selection as a CellRange object.
+   * Returns the last coordinates applied to the table as a an array `[startRow, startCol, endRow, endCol]`.
+   *
+   * @since 0.36.0
+   * @memberof Core#
+   * @function getSelectedLast
+   * @returns {Array|undefined} An array of the selection's coordinates.
+   */
+  this.getSelectedLast = function() {
+    const selected = this.getSelected();
+    let result;
+
+    if (selected && selected.length > 0) {
+      result = selected[selected.length - 1];
+    }
+
+    return result;
+  };
+
+  /**
+   * Returns the current selection as an array of CellRange objects.
+   *
+   * The version 0.36.0 adds a non-consecutive selection feature. Since this version, the method returns an array of arrays.
+   * Additionally to collect the coordinates of the currently selected area (as it was previously done by the method)
+   * you need to use `getSelectedRangeLast` method.
    *
    * @memberof Core#
    * @function getSelectedRange
    * @since 0.11
-   * @returns {CellRange} Selected range object or undefined` if there is no selection.
+   * @returns {CellRange[]|undefined} Selected range object or undefined` if there is no selection.
    */
   this.getSelectedRange = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return priv.selRange;
+      return Array.from(selection.getSelectedRange());
+    }
+  };
+
+  /**
+  * Returns the last coordinates applied to the table as a CellRange object.
+  *
+  * @memberof Core#
+  * @function getSelectedRangeLast
+  * @since 0.36.0
+  * @returns {CellRange|undefined} Selected range object or undefined` if there is no selection.
+   */
+  this.getSelectedRangeLast = function() {
+    const selectedRange = this.getSelectedRange();
+    let result;
+
+    if (selectedRange && selectedRange.length > 0) {
+      result = selectedRange[selectedRange.length - 1];
+    }
+
+    return result;
+  };
+
+  /**
+   * Erases content from cells that have been selected in the table.
+   *
+   * @memberof Core#
+   * @function emptySelectedCells
+   * @since 0.36.0
+   */
+  this.emptySelectedCells = function() {
+    if (!selection.isSelected()) {
+      return;
+    }
+    const changes = [];
+
+    arrayEach(selection.getSelectedRange(), (cellRange) => {
+      const topLeft = cellRange.getTopLeftCorner();
+      const bottomRight = cellRange.getBottomRightCorner();
+
+      rangeEach(topLeft.row, bottomRight.row, (row) => {
+        rangeEach(topLeft.col, bottomRight.col, (column) => {
+          if (!this.getCellMeta(row, column).readOnly) {
+            changes.push([row, column, '']);
+          }
+        });
+      });
+    });
+
+    if (changes.length > 0) {
+      this.setDataAtCell(changes);
     }
   };
 
@@ -1493,7 +1416,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (instance.view) {
       instance.renderCall = true;
       instance.forceFullRender = true; // used when data was changed
-      selection.refreshBorders(null, true);
+      editorManager.lockEditor();
+      instance._refreshBorders(null);
+      editorManager.unlockEditor();
     }
   };
 
@@ -1850,7 +1775,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     grid.adjustRowsAndCols();
     if (instance.view && !priv.firstRun) {
       instance.forceFullRender = true; // used when data was changed
-      selection.refreshBorders(null, true);
+      editorManager.lockEditor();
+      instance._refreshBorders(null);
+      editorManager.unlockEditor();
     }
 
     if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
@@ -1867,12 +1794,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {*} Value of selected cell.
    */
   this.getValue = function() {
-    var sel = instance.getSelected();
+    var sel = instance.getSelectedLast();
+
     if (GridSettings.prototype.getValue) {
       if (isFunction(GridSettings.prototype.getValue)) {
         return GridSettings.prototype.getValue.call(instance);
       } else if (sel) {
-        return instance.getData()[sel[0]][GridSettings.prototype.getValue];
+        return instance.getData()[sel[0][0]][GridSettings.prototype.getValue];
       }
     } else if (sel) {
       return instance.getDataAtCell(sel[0], sel[1]);
@@ -1916,15 +1844,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Clears the data from the grid. (The table settings remain intact.)
+   * Clears the data from the grid (the table settings remain intact).
    *
    * @memberof Core#
    * @function clear
-   * @since 0.11
+   * @since 0.11.0
    */
   this.clear = function() {
-    selection.selectAll();
-    selection.empty();
+    this.selectAll();
+    this.emptySelectedCells();
   };
 
   /**
@@ -2415,7 +2343,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const prop = datamap.colToProp(col);
     let cellProperties;
 
-    const [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
+    let [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, col);
+
+    // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
+    if (physicalRow === null) {
+      physicalRow = row;
+    }
 
     if (!priv.columnSettings[physicalColumn]) {
       priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
@@ -3037,27 +2970,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function countEmptyRows
    * @param {Boolean} [ending] If `true`, will only count empty rows at the end of the data source.
-   * @returns {Number} Count empty rows
-   * @fires Hooks#modifyRow
+   * @returns {Number} Count empty rows.
    */
   this.countEmptyRows = function(ending) {
-    var i = instance.countRows() - 1,
-      empty = 0,
-      row;
+    let emptyRows = 0;
 
-    while (i >= 0) {
-      row = instance.runHooks('modifyRow', i);
+    rangeEachReverse(instance.countRows() - 1, (visualIndex) => {
+      if (instance.isEmptyRow(visualIndex)) {
+        emptyRows += 1;
 
-      if (instance.isEmptyRow(row)) {
-        empty++;
-
-      } else if (ending) {
-        break;
+      } else if (ending === true) {
+        return false;
       }
-      i--;
-    }
+    });
 
-    return empty;
+    return emptyRows;
   };
 
   /**
@@ -3067,25 +2994,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function countEmptyCols
    * @param {Boolean} [ending] If `true`, will only count empty columns at the end of the data source row.
-   * @returns {Number} Count empty cols
+   * @returns {Number} Count empty cols.
    */
   this.countEmptyCols = function(ending) {
     if (instance.countRows() < 1) {
       return 0;
     }
-    var i = instance.countCols() - 1,
-      empty = 0;
 
-    while (i >= 0) {
-      if (instance.isEmptyCol(i)) {
-        empty++;
-      } else if (ending) {
-        break;
+    let emptyColumns = 0;
+
+    rangeEachReverse(instance.countCols() - 1, (visualIndex) => {
+      if (instance.isEmptyCol(visualIndex)) {
+        emptyColumns += 1;
+
+      } else if (ending === true) {
+        return false;
       }
-      i--;
-    }
+    });
 
-    return empty;
+    return emptyColumns;
   };
 
   /**
@@ -3093,7 +3020,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function isEmptyRow
-   * @param {Number} row Row index.
+   * @param {Number} row Visual row index.
    * @returns {Boolean} `true` if the row at the given `row` is empty, `false` otherwise.
    */
   this.isEmptyRow = function(row) {
@@ -3113,60 +3040,97 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Select cell specified by `row` and `col` values or a range of cells finishing at `endRow`, `endCol`.
-   * By default, viewport will be scrolled to selection.
-   * After the `selectCell` method had finished, the instance will be listening to keyboard input on the document.
+   * Select cell specified by `row` and `col` values or a range of cells finishing at `endRow`, `endCol`. If the table
+   * was configured to support data column properties that properties can be used to making a selection.
+   *
+   * By default, viewport will be scrolled to the selection. After the `selectCell` method had finished, the instance
+   * will be listening to keyboard input on the document.
+   *
+   * @example
+   * ```js
+   * // select a single cell
+   * hot.selectCell(2, 4);
+   * // select a single cell using column property
+   * hot.selectCell(2, 'address');
+   * // select a range of cells
+   * hot.selectCell(2, 4, 3, 5);
+   * // select a range of cells using column properties
+   * hot.selectCell(2, 'address', 3, 'phone_number');
+   * // select a range of cells without scrolling to them
+   * hot.selectCell(2, 'address', 3, 'phone_number', false);
+   * ```
    *
    * @memberof Core#
    * @function selectCell
    * @param {Number} row Visual row index.
-   * @param {Number} col Visual column index.
+   * @param {Number|String} column Visual column index or column property.
    * @param {Number} [endRow] Visual end row index (if selecting a range).
-   * @param {Number} [endCol] Visual end column index (if selecting a range).
+   * @param {Number|String} [endColumn] Visual end column index or column property (if selecting a range).
    * @param {Boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
    * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
-  this.selectCell = function(row, col, endRow, endCol, scrollToCell, changeListener) {
-    var coords;
-
-    changeListener = isUndefined(changeListener) || changeListener === true;
-
-    if (typeof row !== 'number' || row < 0 || row >= instance.countRows()) {
+  this.selectCell = function(row, column, endRow, endColumn, scrollToCell = true, changeListener = true) {
+    if (isUndefined(row) || isUndefined(column)) {
       return false;
     }
-    if (typeof col !== 'number' || col < 0 || col >= instance.countCols()) {
-      return false;
-    }
-    if (isDefined(endRow)) {
-      if (typeof endRow !== 'number' || endRow < 0 || endRow >= instance.countRows()) {
-        return false;
-      }
-      if (typeof endCol !== 'number' || endCol < 0 || endCol >= instance.countCols()) {
-        return false;
-      }
-    }
-    coords = new CellCoords(row, col);
-    priv.selRange = new CellRange(coords, coords, coords);
 
-    if (changeListener) {
+    return this.selectCells([[row, column, endRow, endColumn]], scrollToCell, changeListener);
+  };
+
+  /**
+   * Make multiple, non-contiguous selection specified by `row` and `column` values or a range of cells
+   * finishing at `endRow`, `endColumn`. The method supports two input formats which are the same as that
+   * produces by `getSelected` and `getSelectedRange` methods.
+   *
+   * By default, viewport will be scrolled to selection. After the `selectCells` method had finished, the instance
+   * will be listening to keyboard input on the document.
+   *
+   * @example
+   * ```js
+   * // using an array of arrays
+   * hot.selectCells([[1, 1, 2, 2], [3, 3], [6, 2, 0, 2]]);
+   * // using an array of arrays with defined columns as props
+   * hot.selectCells([[1, 'id', 2, 'first_name'], [3, 'full_name'], [6, 'last_name', 0, 'first_name']]);
+   * // or using an array of CellRange objects (produced by `.getSelectedRange()` method)
+   * const selected = hot.getSelectedRange();
+   *
+   * selected[0].from.row = 0;
+   * selected[0].from.col = 0;
+   *
+   * hot.selectCells(selected);
+   * ```
+   *
+   * @memberof Core#
+   * @since 0.38.0
+   * @function selectCells
+   * @param {Array[]|CellRange[]} coords Visual coords passed as an array of array (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
+   *                                     the same format as `getSelected` method returns or as an CellRange objects
+   *                                     which is the same format what `getSelectedRange` method returns.
+   * @param {Boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
+   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
+   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   */
+  this.selectCells = function(coords = [[]], scrollToCell = true, changeListener = true) {
+    if (scrollToCell === false) {
+      preventScrollingToCell = true;
+    }
+
+    const wasSelected = selection.selectCells(coords);
+
+    if (wasSelected && changeListener) {
       instance.listen();
     }
+    preventScrollingToCell = false;
 
-    if (isUndefined(endRow)) {
-      selection.setRangeEnd(priv.selRange.from, scrollToCell);
-
-    } else {
-      selection.setRangeEnd(new CellCoords(endRow, endCol), scrollToCell);
-    }
-    instance.selection.finish();
-    return true;
+    return wasSelected;
   };
 
   /**
    * Select the cell specified by the `row` and `prop` arguments, or a range finishing at `endRow`, `endProp`.
    * By default, viewport will be scrolled to selection.
    *
+   * @deprecated
    * @memberof Core#
    * @function selectCellByProp
    * @param {Number} row Visual row index.
@@ -3174,16 +3138,64 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} [endRow] visual end row index (if selecting a range).
    * @param {String} [endProp] End property name (if selecting a range).
    * @param {Boolean} [scrollToCell=true] If `true`, viewport will be scrolled to the selection.
+   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
-  this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell) {
-    arguments[1] = datamap.propToCol(arguments[1]);
+  this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell = true, changeListener = true) {
+    warn(toSingleLine`Deprecation warning: This method is going to be removed in the next release.\x20
+      If you want to select a cell using props, please use the \`selectCell\` method.`);
 
-    if (isDefined(arguments[3])) {
-      arguments[3] = datamap.propToCol(arguments[3]);
-    }
+    return this.selectCells([[row, prop, endRow, endProp]], scrollToCell, changeListener);
+  };
 
-    return instance.selectCell(...arguments);
+  /**
+   * Select column specified by `startColumn` visual index, column property or a range of columns finishing at `endColumn`.
+   *
+   * @example
+   * ```js
+   * // select column using visual index
+   * hot.selectColumns(1);
+   * // select column using column property
+   * hot.selectColumns('id');
+   * // select range of columns using visual indexes
+   * hot.selectColumns(1, 4);
+   * // select range of columns using column properties
+   * hot.selectColumns('id', 'last_name');
+   * ```
+   *
+   * @memberof Core#
+   * @since 0.38.0
+   * @function selectColumns
+   * @param {Number} startColumn The visual column index from which the selection starts.
+   * @param {Number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
+   *                                         is not defined the column defined by `startColumn` will be selected.
+   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   */
+  this.selectColumns = function(startColumn, endColumn = startColumn) {
+    return selection.selectColumns(startColumn, endColumn);
+  };
+
+  /**
+   * Select row specified by `startRow` visual index or a range of rows finishing at `endRow`.
+   *
+   * @example
+   * ```js
+   * select row using visual index
+   * hot.selectRows(1);
+   * select range of rows using visual indexes
+   * hot.selectRows(1, 4);
+   * ```
+   *
+   * @memberof Core#
+   * @since 0.38.0
+   * @function selectRows
+   * @param {Number} startRow The visual row index from which the selection starts.
+   * @param {Number} [endRow=startRow] The visual row index to which the selection finishes. If `endRow`
+   *                                   is not defined the row defined by `startRow` will be selected.
+   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   */
+  this.selectRows = function(startRow, endRow = startRow) {
+    return selection.selectRows(startRow, endRow);
   };
 
   /**
@@ -3194,6 +3206,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.deselectCell = function() {
     selection.deselect();
+  };
+
+  /**
+   * Select the whole table. The previous selection will be overwritten.
+   *
+   * @since 0.38.2
+   * @memberof Core#
+   * @function selectAll
+   */
+  this.selectAll = function() {
+    preventScrollingToCell = true;
+    selection.selectAll();
+    preventScrollingToCell = false;
   };
 
   /**
@@ -3257,6 +3282,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     dataSource = null;
 
+    keyStateStopObserving();
+
     if (process.env.HOT_PACKAGE_TYPE !== '\x63\x65' && isRootInstance(instance)) {
       const licenseInfo = document.querySelector('#hot-display-license-info');
 
@@ -3266,6 +3293,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     empty(instance.rootElement);
     eventManager.destroy();
+
+    if (editorManager) {
+      editorManager.destroy();
+    }
 
     instance.runHooks('afterDestroy');
     Hooks.getSingleton().destroy(instance);
@@ -3507,6 +3538,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     arrayEach(this.immediates, (handler) => {
       clearImmediate(handler);
     });
+  };
+
+  /**
+   * Refresh selection borders. This is temporary method relic after selection rewrite.
+   *
+   * @private
+   * @param {Boolean} revertOriginal
+   */
+  this._refreshBorders = function(revertOriginal) {
+    editorManager.destroyEditor(revertOriginal);
+    instance.view.render();
+
+    if (selection.isSelected()) {
+      editorManager.prepareEditor();
+    }
   };
 
   Hooks.getSingleton().run(instance, 'construct');

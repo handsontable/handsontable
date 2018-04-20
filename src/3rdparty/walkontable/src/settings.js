@@ -80,6 +80,8 @@ class Settings {
       onCellCornerDblClick: null,
       beforeDraw: null,
       onDraw: null,
+      onBeforeRemoveCellClassNames: null,
+      onAfterDrawSelection: null,
       onBeforeDrawBorders: null,
       onScrollVertically: null,
       onScrollHorizontally: null,
@@ -87,6 +89,7 @@ class Settings {
       onAfterMomentumScroll: null,
       onBeforeStretchingColumnWidth: (width) => width,
       onModifyRowHeaderWidth: null,
+      onModifyGetCellCoords: null,
 
       // constants
       scrollbarWidth: 10,

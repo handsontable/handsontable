@@ -128,16 +128,14 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       }
       break;
 
-    case KEY_CODES.ENTER:
-      var selected = that.instance.getSelected();
-      var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
+    case KEY_CODES.ENTER: {
+      let isMultipleSelection = this.selection.isMultiple();
+
       if ((ctrlDown && !isMultipleSelection) || event.altKey) { // if ctrl+enter or alt+enter, add new line
         if (that.isOpened()) {
-          var
-            caretPosition = getCaretPosition(that.TEXTAREA),
-            value = that.getValue();
-
-          var newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
+          let caretPosition = getCaretPosition(that.TEXTAREA);
+          let value = that.getValue();
+          let newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
 
           that.setValue(newValue);
 
@@ -150,7 +148,7 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
       }
       event.preventDefault(); // don't add newline to field
       break;
-
+    }
     case KEY_CODES.A:
     case KEY_CODES.X:
     case KEY_CODES.C:
@@ -294,21 +292,30 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
     return;
   }
 
-  let currentOffset = offset(this.TD);
-  let containerOffset = offset(this.instance.rootElement);
-  let scrollableContainer = getScrollableElement(this.TD);
-  let totalRowsCount = this.instance.countRows();
+  const currentOffset = offset(this.TD);
+  const containerOffset = offset(this.instance.rootElement);
+  const scrollableContainer = this.instance.view.wt.wtOverlays.topOverlay.mainTableScrollableElement;
+  const totalRowsCount = this.instance.countRows();
+  const containerScrollTop = scrollableContainer !== window ?
+    scrollableContainer.scrollTop : 0;
+  const containerScrollLeft = scrollableContainer !== window ?
+    scrollableContainer.scrollLeft : 0;
+
+  const editorSection = this.checkEditorSection();
+
+  const scrollTop = ['', 'left'].includes(editorSection) ? containerScrollTop : 0;
+  const scrollLeft = ['', 'top', 'bottom'].includes(editorSection) ? containerScrollLeft : 0;
 
   // If colHeaders is disabled, cells in the first row have border-top
-  let editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
-  let editTop = currentOffset.top - containerOffset.top - editTopModifier - (scrollableContainer.scrollTop || 0);
-  let editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
+  const editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
 
-  let settings = this.instance.getSettings();
-  let rowHeadersCount = this.instance.hasRowHeaders();
-  let colHeadersCount = this.instance.hasColHeaders();
-  let editorSection = this.checkEditorSection();
-  let backgroundColor = this.TD.style.backgroundColor;
+  const settings = this.instance.getSettings();
+  const rowHeadersCount = this.instance.hasRowHeaders();
+  const colHeadersCount = this.instance.hasColHeaders();
+  const backgroundColor = this.TD.style.backgroundColor;
+
+  let editTop = currentOffset.top - containerOffset.top - editTopModifier - scrollTop;
+  let editLeft = currentOffset.left - containerOffset.left - 1 - scrollLeft;
   let cssTransformOffset;
 
   // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
@@ -332,12 +339,12 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
       break;
   }
 
-  if (colHeadersCount && this.instance.getSelected()[0] === 0 ||
-      (settings.fixedRowsBottom && this.instance.getSelected()[0] === totalRowsCount - settings.fixedRowsBottom)) {
+  if (colHeadersCount && this.instance.getSelectedLast()[0] === 0 ||
+      (settings.fixedRowsBottom && this.instance.getSelectedLast()[0] === totalRowsCount - settings.fixedRowsBottom)) {
     editTop += 1;
   }
 
-  if (this.instance.getSelected()[1] === 0) {
+  if (this.instance.getSelectedLast()[1] === 0) {
     editLeft += 1;
   }
 
