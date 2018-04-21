@@ -1,17 +1,18 @@
-import moment from 'moment';
 import {
   addClass,
   hasClass,
   removeClass,
 } from './../../helpers/dom/element';
-import {arrayMap, arrayReduce} from './../../helpers/array';
-import {isEmpty} from './../../helpers/mixed';
 import {hasOwnProperty} from './../../helpers/object';
+import {isDefined, isUndefined} from './../../helpers/mixed';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
 import mergeSort from './../../utils/sortingAlgorithms/mergeSort';
 import Hooks from './../../pluginHooks';
 import RowsMapper from './rowsMapper';
+import dateSort from './sortFunction/date';
+import numericSort from './sortFunction/numeric';
+import defaultSort from './sortFunction/default';
 
 Hooks.getSingleton().register('beforeColumnSort');
 Hooks.getSingleton().register('afterColumnSort');
@@ -39,7 +40,7 @@ Hooks.getSingleton().register('afterColumnSort');
  * }
  * ...
  * ```
- * @dependencies ObserveChanges
+ * @dependencies ObserveChanges moment
  */
 class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
@@ -72,18 +73,16 @@ class ColumnSorting extends BasePlugin {
 
     this.setPluginOptions();
 
-    const _this = this;
-
-    if (typeof this.hot.getSettings().observeChanges === 'undefined') {
+    if (isUndefined(this.hot.getSettings().observeChanges)) {
       this.enableObserveChangesPlugin();
     }
 
-    this.addHook('afterTrimRow', (row) => this.sort());
-    this.addHook('afterUntrimRow', (row) => this.sort());
+    this.addHook('afterTrimRow', () => this.sort());
+    this.addHook('afterUntrimRow', () => this.sort());
     this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
     this.addHook('unmodifyRow', (row, source) => this.onUnmodifyRow(row, source));
     this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
-    this.addHook('afterGetColHeader', (col, TH) => this.getColHeader(col, TH));
+    this.addHook('afterGetColHeader', (column, TH) => this.getColHeader(column, TH));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
@@ -123,13 +122,15 @@ class ColumnSorting extends BasePlugin {
     let sortingColumn;
     let sortingOrder;
 
-    if (typeof loadedSortingState === 'undefined') {
+    if (isUndefined(loadedSortingState)) {
       sortingColumn = sortingSettings.column;
       sortingOrder = sortingSettings.sortOrder;
+
     } else {
       sortingColumn = loadedSortingState.sortColumn;
       sortingOrder = loadedSortingState.sortOrder;
     }
+
     if (typeof sortingColumn === 'number') {
       this.lastSortedColumn = sortingColumn;
       this.sortByColumn(sortingColumn, sortingOrder);
@@ -139,16 +140,16 @@ class ColumnSorting extends BasePlugin {
   /**
    * Set sorted column and order info
    *
-   * @param {number} col Sorted visual column index.
+   * @param {number} column Sorted visual column index.
    * @param {boolean|undefined} order Sorting order (`true` for ascending, `false` for descending).
    */
-  setSortingColumn(col, order) {
-    if (typeof col == 'undefined') {
+  setSortingColumn(column, order) {
+    if (isUndefined(column)) {
       this.sortColumn = void 0;
       this.sortOrder = void 0;
 
       return;
-    } else if (this.sortColumn === col && typeof order == 'undefined') {
+    } else if (this.sortColumn === column && isUndefined(order)) {
       if (this.sortOrder === false) {
         this.sortOrder = void 0;
       } else {
@@ -156,16 +157,16 @@ class ColumnSorting extends BasePlugin {
       }
 
     } else {
-      this.sortOrder = typeof order === 'undefined' ? true : order;
+      this.sortOrder = isUndefined(order) ? true : order;
     }
 
-    this.sortColumn = col;
+    this.sortColumn = column;
   }
 
-  sortByColumn(col, order) {
-    this.setSortingColumn(col, order);
+  sortByColumn(column, order) {
+    this.setSortingColumn(column, order);
 
-    if (typeof this.sortColumn == 'undefined') {
+    if (isUndefined(this.sortColumn)) {
       return;
     }
 
@@ -189,11 +190,11 @@ class ColumnSorting extends BasePlugin {
   saveSortingState() {
     let sortingState = {};
 
-    if (typeof this.sortColumn != 'undefined') {
+    if (isDefined(this.sortColumn)) {
       sortingState.sortColumn = this.sortColumn;
     }
 
-    if (typeof this.sortOrder != 'undefined') {
+    if (isDefined(this.sortOrder)) {
       sortingState.sortOrder = this.sortOrder;
     }
 
@@ -242,178 +243,10 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Default sorting algorithm.
-   *
-   * @param {Boolean} sortOrder Sorting order - `true` for ascending, `false` for descending.
-   * @param {Object} columnMeta Column meta object.
-   * @returns {Function} The comparing function.
-   */
-  defaultSort(sortOrder, columnMeta) {
-    return function(a, b) {
-      if (typeof a[1] == 'string') {
-        a[1] = a[1].toLowerCase();
-      }
-      if (typeof b[1] == 'string') {
-        b[1] = b[1].toLowerCase();
-      }
-
-      if (a[1] === b[1]) {
-        return 0;
-      }
-
-      if (isEmpty(a[1])) {
-        if (isEmpty(b[1])) {
-          return 0;
-        }
-
-        if (columnMeta.columnSorting.sortEmptyCells) {
-          return sortOrder ? -1 : 1;
-        }
-
-        return 1;
-      }
-      if (isEmpty(b[1])) {
-        if (isEmpty(a[1])) {
-          return 0;
-        }
-
-        if (columnMeta.columnSorting.sortEmptyCells) {
-          return sortOrder ? 1 : -1;
-        }
-
-        return -1;
-      }
-
-      if (isNaN(a[1]) && !isNaN(b[1])) {
-        return sortOrder ? 1 : -1;
-
-      } else if (!isNaN(a[1]) && isNaN(b[1])) {
-        return sortOrder ? -1 : 1;
-
-      } else if (!(isNaN(a[1]) || isNaN(b[1]))) {
-        a[1] = parseFloat(a[1]);
-        b[1] = parseFloat(b[1]);
-      }
-      if (a[1] < b[1]) {
-        return sortOrder ? -1 : 1;
-      }
-      if (a[1] > b[1]) {
-        return sortOrder ? 1 : -1;
-      }
-
-      return 0;
-    };
-  }
-
-  /**
-   * Date sorting algorithm
-   * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending).
-   * @param {Object} columnMeta Column meta object.
-   * @returns {Function} The compare function.
-   */
-  dateSort(sortOrder, columnMeta) {
-    return function(a, b) {
-      if (a[1] === b[1]) {
-        return 0;
-      }
-
-      if (isEmpty(a[1])) {
-        if (isEmpty(b[1])) {
-          return 0;
-        }
-
-        if (columnMeta.columnSorting.sortEmptyCells) {
-          return sortOrder ? -1 : 1;
-        }
-
-        return 1;
-      }
-
-      if (isEmpty(b[1])) {
-        if (isEmpty(a[1])) {
-          return 0;
-        }
-
-        if (columnMeta.columnSorting.sortEmptyCells) {
-          return sortOrder ? 1 : -1;
-        }
-
-        return -1;
-      }
-
-      var aDate = moment(a[1], columnMeta.dateFormat);
-      var bDate = moment(b[1], columnMeta.dateFormat);
-
-      if (!aDate.isValid()) {
-        return 1;
-      }
-      if (!bDate.isValid()) {
-        return -1;
-      }
-
-      if (bDate.isAfter(aDate)) {
-        return sortOrder ? -1 : 1;
-      }
-      if (bDate.isBefore(aDate)) {
-        return sortOrder ? 1 : -1;
-      }
-
-      return 0;
-    };
-  }
-
-  /**
-   * Numeric sorting algorithm.
-   *
-   * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending).
-   * @param {Object} columnMeta Column meta object.
-   * @returns {Function} The compare function.
-   */
-  numericSort(sortOrder, columnMeta) {
-    return function(a, b) {
-      const parsedA = parseFloat(a[1]);
-      const parsedB = parseFloat(b[1]);
-
-      // Watch out when changing this part of code!
-      // Check below returns 0 (as expected) when comparing empty string, null, undefined
-      if (parsedA === parsedB || (isNaN(parsedA) && isNaN(parsedB))) {
-        return 0;
-      }
-
-      if (columnMeta.columnSorting.sortEmptyCells) {
-        if (isEmpty(a[1])) {
-          return sortOrder ? -1 : 1;
-        }
-
-        if (isEmpty(b[1])) {
-          return sortOrder ? 1 : -1;
-        }
-      }
-
-      if (isNaN(parsedA)) {
-        return 1;
-      }
-
-      if (isNaN(parsedB)) {
-        return -1;
-      }
-
-      if (parsedA < parsedB) {
-        return sortOrder ? -1 : 1;
-
-      } else if (parsedA > parsedB) {
-        return sortOrder ? 1 : -1;
-      }
-
-      return 0;
-    };
-  }
-
-  /**
    * Perform the sorting.
    */
   sort() {
-    if (typeof this.sortOrder == 'undefined') {
+    if (isUndefined(this.sortOrder)) {
       this.rowsMapper._arrayMap = [];
 
       return;
@@ -427,7 +260,7 @@ class ColumnSorting extends BasePlugin {
     this.sortingEnabled = false; // this is required by translateRow plugin hook
     const sortIndex = [];
 
-    if (typeof colMeta.columnSorting.sortEmptyCells === 'undefined') {
+    if (isUndefined(colMeta.columnSorting.sortEmptyCells)) {
       colMeta.columnSorting = {sortEmptyCells: this.sortEmptyCells};
     }
 
@@ -447,13 +280,13 @@ class ColumnSorting extends BasePlugin {
     } else {
       switch (colMeta.type) {
         case 'date':
-          sortFunction = this.dateSort;
+          sortFunction = dateSort;
           break;
         case 'numeric':
-          sortFunction = this.numericSort;
+          sortFunction = numericSort;
           break;
         default:
-          sortFunction = this.defaultSort;
+          sortFunction = defaultSort;
       }
     }
 
@@ -472,7 +305,7 @@ class ColumnSorting extends BasePlugin {
    * Update indicator states.
    */
   updateSortIndicator() {
-    if (typeof this.sortOrder == 'undefined') {
+    if (isUndefined(this.sortOrder)) {
       return;
     }
     const colMeta = this.hot.getCellMeta(0, this.sortColumn);
@@ -515,16 +348,15 @@ class ColumnSorting extends BasePlugin {
    * `afterGetColHeader` callback. Adds column sorting css classes to clickable headers.
    *
    * @private
-   * @param {Number} col Visual column index.
+   * @param {Number} column Visual column index.
    * @param {Element} TH TH HTML element.
    */
-  getColHeader(col, TH) {
-    if (col < 0 || !TH.parentNode) {
+  getColHeader(column, TH) {
+    if (column < 0 || !TH.parentNode) {
       return false;
     }
 
     let headerLink = TH.querySelector('.colHeader');
-    let colspan = TH.getAttribute('colspan');
     let TRs = TH.parentNode.parentNode.childNodes;
     let headerLevel = Array.prototype.indexOf.call(TRs, TH.parentNode);
     headerLevel -= TRs.length;
@@ -533,14 +365,14 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    if (this.hot.getSettings().columnSorting && col >= 0 && headerLevel === -1) {
+    if (this.hot.getSettings().columnSorting && column >= 0 && headerLevel === -1) {
       addClass(headerLink, 'columnSorting');
     }
     removeClass(headerLink, 'descending');
     removeClass(headerLink, 'ascending');
 
-    if (this.sortIndicators[col]) {
-      if (col === this.sortColumn) {
+    if (this.sortIndicators[column]) {
+      if (column === this.sortColumn) {
         if (this.sortOrderClass === 'ascending') {
           addClass(headerLink, 'ascending');
 
@@ -557,7 +389,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Boolean}
    */
   isSorted() {
-    return typeof this.sortColumn != 'undefined';
+    return isDefined(this.sortColumn);
   }
 
   /**
