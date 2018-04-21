@@ -453,6 +453,15 @@ class ColumnSorting extends BasePlugin {
       this.sortByColumn(coords.col);
     }
   }
+
+  /**
+   * Destroy plugin instance.
+   */
+  destroy() {
+    this.rowsMapper.destroy();
+
+    super.destroy();
+  }
 }
 
 registerPlugin('columnSorting', ColumnSorting);
