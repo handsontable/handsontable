@@ -7,6 +7,7 @@ import jaJP from './ja-JP';
 import plPL from './pl-PL';
 import ptBR from './pt-BR';
 import ruRU from './ru-RU';
+import zhTW from './zh-TW';
 
 export {
   deCH,
@@ -15,5 +16,6 @@ export {
   jaJP,
   plPL,
   ptBR,
-  ruRU
+  ruRU,
+  zhTW
 };
