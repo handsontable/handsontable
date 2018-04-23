@@ -3141,7 +3141,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell = true, changeListener = true) {
-    warn(toSingleLine`Deprecation warning: This method is going to be removed in the next release.\x20
+    warn(toSingleLine`Deprecation warning: This method is going to be removed in the next release. 
       If you want to select a cell using props, please use the \`selectCell\` method.`);
 
     return this.selectCells([[row, prop, endRow, endProp]], scrollToCell, changeListener);

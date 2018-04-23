@@ -41,8 +41,8 @@ class MergedCellsCollection {
    * @return {String}
    */
   static IS_OVERLAPPING_WARNING(newMergedCell) {
-    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] overlaps with the other declared merged
-      cell. The overlapping merged cell was not added to the table, please fix your setup.`;
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}], overlaps with the other declared merged 
+    cell. The overlapping merged cell was not added to the table, please fix your setup.`;
   }
 
   /**
