@@ -3,7 +3,7 @@ import {
   hasClass,
   removeClass,
 } from './../../helpers/dom/element';
-import {hasOwnProperty} from './../../helpers/object';
+import {hasOwnProperty, isObject} from './../../helpers/object';
 import {isDefined, isUndefined} from './../../helpers/mixed';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
@@ -16,6 +16,10 @@ import defaultSort from './sortFunction/default';
 
 Hooks.getSingleton().register('beforeColumnSort');
 Hooks.getSingleton().register('afterColumnSort');
+
+const HEADER_CLASS_SORTING = 'columnSorting';
+const HEADER_CLASS_ASC_SORT = 'ascending';
+const HEADER_CLASS_DESC_SORT = 'descending';
 
 /**
  * @plugin ColumnSorting
@@ -45,12 +49,37 @@ Hooks.getSingleton().register('afterColumnSort');
 class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
+    /**
+     * Sort indicators for all columns.
+     *
+     * @type {Array}
+     */
     this.sortIndicators = [];
+    /**
+     * Visual index of last sorted column.
+     *
+     * @type {null|Number}
+     */
     this.lastSortedColumn = null;
     this.sortColumn = void 0;
+    /**
+     * Order of sorting.
+     *
+     * @type {undefined|Boolean}
+     */
     this.sortOrder = void 0;
+    /**
+     * Object containing visual row indexes mapped to data source indexes.
+     *
+     * @type {RowsMapper}
+     */
     this.rowsMapper = new RowsMapper(this);
     this.sortingEnabled = false;
+    /**
+     * Sorting empty cells.
+     *
+     * @type {Boolean}
+     */
     this.sortEmptyCells = false;
   }
 
@@ -314,7 +343,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * 'modifyRow' hook callback.
+   * `modifyRow` hook callback. Translates visual row index to the sorted row index.
    *
    * @private
    * @param {Number} row Visual Row index.
@@ -330,7 +359,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * 'unmodifyRow' hook callback.
+   * Translates sorted row index to visual row index.
    *
    * @private
    * @param {Number} row Physical row index.
@@ -366,18 +395,18 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (this.hot.getSettings().columnSorting && column >= 0 && headerLevel === -1) {
-      addClass(headerLink, 'columnSorting');
+      addClass(headerLink, HEADER_CLASS_SORTING);
     }
-    removeClass(headerLink, 'descending');
-    removeClass(headerLink, 'ascending');
+    removeClass(headerLink, HEADER_CLASS_DESC_SORT);
+    removeClass(headerLink, HEADER_CLASS_ASC_SORT);
 
     if (this.sortIndicators[column]) {
       if (column === this.sortColumn) {
         if (this.sortOrderClass === 'ascending') {
-          addClass(headerLink, 'ascending');
+          addClass(headerLink, HEADER_CLASS_ASC_SORT);
 
         } else if (this.sortOrderClass === 'descending') {
-          addClass(headerLink, 'descending');
+          addClass(headerLink, HEADER_CLASS_DESC_SORT);
         }
       }
     }
@@ -422,7 +451,7 @@ class ColumnSorting extends BasePlugin {
   setPluginOptions() {
     const columnSorting = this.hot.getSettings().columnSorting;
 
-    if (typeof columnSorting === 'object') {
+    if (isObject(columnSorting)) {
       this.sortEmptyCells = columnSorting.sortEmptyCells || false;
 
     } else {
@@ -442,7 +471,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    if (hasClass(event.realTarget, 'columnSorting')) {
+    if (hasClass(event.realTarget, HEADER_CLASS_SORTING)) {
       // reset order state on every new column header click
       if (coords.col !== this.lastSortedColumn) {
         this.sortOrder = true;
