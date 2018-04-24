@@ -62,9 +62,9 @@ class ColumnSorting extends BasePlugin {
     this.lastSortedColumn = null;
     this.sortColumn = void 0;
     /**
-     * Order of sorting. For 'asc' ascending order, for 'desc' descending order, for 'none' the original order.
+     * Order of sorting. For `asc` ascending order, for `desc` descending order, for `none` the original order.
      *
-     * @type {string}
+     * @type {String}
      */
     this.sortOrder = NONE_SORT_STATE;
     /**
@@ -105,8 +105,8 @@ class ColumnSorting extends BasePlugin {
       this.enableObserveChangesPlugin();
     }
 
-    this.addHook('afterTrimRow', () => this.sort());
-    this.addHook('afterUntrimRow', () => this.sort());
+    this.addHook('afterTrimRow', () => this.sortByPresetColumnAndOrder());
+    this.addHook('afterUntrimRow', () => this.sortByPresetColumnAndOrder());
     this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
     this.addHook('unmodifyRow', (row, source) => this.onUnmodifyRow(row, source));
     this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
@@ -147,10 +147,10 @@ class ColumnSorting extends BasePlugin {
   /**
    * Sorting the table by chosen column and order.
    *
-   * @param column Visual column index.
-   * @param {undefined|string} order Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
+   * @param {Number} column Visual column index.
+   * @param {undefined|String} order Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
    */
-  sortByColumn(column, order) {
+  sort(column, order) {
     this.setSortingColumn(column, order);
 
     if (isUndefined(this.sortColumn)) {
@@ -160,8 +160,9 @@ class ColumnSorting extends BasePlugin {
     const allowSorting = this.hot.runHooks('beforeColumnSort', this.sortColumn, this.sortOrder);
 
     if (allowSorting !== false) {
-      this.sort();
+      this.sortByPresetColumnAndOrder();
     }
+
     this.updateSortIndicator();
 
     this.hot.runHooks('afterColumnSort', this.sortColumn, this.sortOrder);
@@ -215,8 +216,8 @@ class ColumnSorting extends BasePlugin {
    * Set sorted column and order info
    *
    * @private
-   * @param {number} column Sorted visual column index.
-   * @param {undefined|string} order Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
+   * @param {Number} column Sorted visual column index.
+   * @param {undefined|String} order Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
    */
   setSortingColumn(column, order) {
     if (isUndefined(column)) {
@@ -271,7 +272,7 @@ class ColumnSorting extends BasePlugin {
    *
    * @private
    */
-  sort() {
+  sortByPresetColumnAndOrder() {
     if (this.sortOrder === NONE_SORT_STATE) {
       this.rowsMapper._arrayMap = [];
 
