@@ -21,6 +21,10 @@ const HEADER_CLASS_SORTING = 'columnSorting';
 const HEADER_CLASS_ASC_SORT = 'ascending';
 const HEADER_CLASS_DESC_SORT = 'descending';
 
+const ASC_SORT_STATE = 'asc';
+const DESC_SORT_STATE = 'desc';
+const NONE_SORT_STATE = 'none';
+
 /**
  * @plugin ColumnSorting
  *
@@ -67,7 +71,7 @@ class ColumnSorting extends BasePlugin {
      *
      * @type {undefined|Boolean}
      */
-    this.sortOrder = void 0;
+    this.sortOrder = NONE_SORT_STATE;
     /**
      * Object containing visual row indexes mapped to data source indexes.
      *
@@ -175,18 +179,30 @@ class ColumnSorting extends BasePlugin {
   setSortingColumn(column, order) {
     if (isUndefined(column)) {
       this.sortColumn = void 0;
-      this.sortOrder = void 0;
+      this.sortOrder = NONE_SORT_STATE;
 
       return;
     } else if (this.sortColumn === column && isUndefined(order)) {
-      if (this.sortOrder === false) {
-        this.sortOrder = void 0;
-      } else {
-        this.sortOrder = !this.sortOrder;
+      switch (this.sortOrder) {
+        case DESC_SORT_STATE:
+          this.sortOrder = NONE_SORT_STATE;
+
+          break;
+
+        case ASC_SORT_STATE:
+          this.sortOrder = DESC_SORT_STATE;
+
+          break;
+
+        case NONE_SORT_STATE:
+        default:
+          this.sortOrder = ASC_SORT_STATE;
+
+          break;
       }
 
     } else {
-      this.sortOrder = isUndefined(order) ? true : order;
+      this.sortOrder = isUndefined(order) ? ASC_SORT_STATE : order;
     }
 
     this.sortColumn = column;
@@ -204,7 +220,6 @@ class ColumnSorting extends BasePlugin {
     if (allowSorting !== false) {
       this.sort();
     }
-    this.updateOrderClass();
     this.updateSortIndicator();
 
     this.hot.runHooks('afterColumnSort', this.sortColumn, this.sortOrder);
@@ -245,21 +260,6 @@ class ColumnSorting extends BasePlugin {
     return storedState.value;
   }
 
-  /**
-   * Update sorting class name state.
-   */
-  updateOrderClass() {
-    let orderClass;
-
-    if (this.sortOrder === true) {
-      orderClass = 'ascending';
-
-    } else if (this.sortOrder === false) {
-      orderClass = 'descending';
-    }
-    this.sortOrderClass = orderClass;
-  }
-
   enableObserveChangesPlugin() {
     let _this = this;
 
@@ -275,7 +275,7 @@ class ColumnSorting extends BasePlugin {
    * Perform the sorting.
    */
   sort() {
-    if (isUndefined(this.sortOrder)) {
+    if (this.sortOrder === NONE_SORT_STATE) {
       this.rowsMapper._arrayMap = [];
 
       return;
@@ -319,7 +319,7 @@ class ColumnSorting extends BasePlugin {
       }
     }
 
-    mergeSort(sortIndex, sortFunction(this.sortOrder, colMeta));
+    mergeSort(sortIndex, sortFunction(this.sortOrder === ASC_SORT_STATE, colMeta));
 
     // Append spareRows
     for (let i = sortIndex.length; i < this.hot.countRows(); i++) {
@@ -334,7 +334,7 @@ class ColumnSorting extends BasePlugin {
    * Update indicator states.
    */
   updateSortIndicator() {
-    if (isUndefined(this.sortOrder)) {
+    if (this.sortOrder === NONE_SORT_STATE) {
       return;
     }
     const colMeta = this.hot.getCellMeta(0, this.sortColumn);
@@ -402,10 +402,10 @@ class ColumnSorting extends BasePlugin {
 
     if (this.sortIndicators[column]) {
       if (column === this.sortColumn) {
-        if (this.sortOrderClass === 'ascending') {
+        if (this.sortOrder === ASC_SORT_STATE) {
           addClass(headerLink, HEADER_CLASS_ASC_SORT);
 
-        } else if (this.sortOrderClass === 'descending') {
+        } else if (this.sortOrder === DESC_SORT_STATE) {
           addClass(headerLink, HEADER_CLASS_DESC_SORT);
         }
       }
@@ -474,7 +474,7 @@ class ColumnSorting extends BasePlugin {
     if (hasClass(event.realTarget, HEADER_CLASS_SORTING)) {
       // reset order state on every new column header click
       if (coords.col !== this.lastSortedColumn) {
-        this.sortOrder = true;
+        this.sortOrder = ASC_SORT_STATE;
       }
 
       this.lastSortedColumn = coords.col;
