@@ -1,5 +1,5 @@
 import {addClass, removeClass} from 'handsontable/helpers/dom/element';
-import {objectEach, deepClone, extend} from 'handsontable/helpers/object';
+import {objectEach, clone, extend} from 'handsontable/helpers/object';
 import {warn} from 'handsontable/helpers/console';
 import {createEmptySpreadsheetData} from 'handsontable/helpers/data';
 import {registerPlugin} from 'handsontable/plugins';
@@ -24,9 +24,12 @@ import './ganttChart.css';
  * ```js
  * ganttChart: {
  *     dataSource: data,
- *     firstWeekDay: 'monday', // sets the first day of the week to either 'monday' or 'sunday'
- *     startYear: 2015 // sets the displayed year to the provided value
+ *     firstWeekDay: 'monday', // Sets the first day of the week to either 'monday' or 'sunday'.
+ *     startYear: 2015 // Sets the displayed year to the provided value.
  *     weekHeaderGenerator: function(start, end) { return start + ' - ' + end; } // sets the label on the week column headers (optional). The `start` and `end` arguments are numbers representing the beginning and end day of the week.
+ *     allowSplitWeeks: true, // If set to `true` (default), will allow splitting week columns between months. If not, plugin will generate "mixed" months, like "Jan/Feb".
+ *     hideDaysBeforeFullWeeks: false, // If set to `true`, the plugin won't render the incomplete weeks before the "full" weeks inside months.
+ *     hideDaysAfterFullWeeks: false, // If set to `true`, the plugin won't render the incomplete weeks after the "full" weeks inside months.
  *   }
  *
  * // Where data can be either an data object or an object containing information about another Handsontable instance, which
@@ -42,7 +45,6 @@ import './ganttChart.css';
  *     label: 0, // labels are stored in the first column
  *     quantity: 1 // quantity information is stored in the second column
  *   },
- *   allowSplitWeeks: true, // If set to `true` (default), will allow splitting week columns between months. If not, plugin will generate "mixed" months, like "Jan/Feb"
  *   asyncUpdates: true // if set to true, the updates from the source instance with be asynchronous. Defaults to false.
  * }
  *
@@ -75,7 +77,7 @@ class GanttChart extends BasePlugin {
     /**
      * Date Calculator object.
      *
-     * @type {Object}
+     * @type {DateCalculator}
      */
     this.dateCalculator = null;
     /**
@@ -189,7 +191,12 @@ class GanttChart extends BasePlugin {
 
     this.currentYear = this.settings.startYear || new Date().getFullYear();
 
-    this.dateCalculator = new DateCalculator(this.currentYear, this.settings.allowSplitWeeks);
+    this.dateCalculator = new DateCalculator({
+      year: this.currentYear,
+      allowSplitWeeks: this.settings.allowSplitWeeks,
+      hideDaysBeforeFullWeeks: this.settings.hideDaysBeforeFullWeeks,
+      hideDaysAfterFullWeeks: this.settings.hideDaysAfterFullWeeks
+    });
     this.dateCalculator.setFirstWeekDay(this.settings.firstWeekDay);
 
     this.monthList = this.dateCalculator.getMonthList();
@@ -352,16 +359,17 @@ class GanttChart extends BasePlugin {
    */
   generateHeaderSet(type) {
     const weekHeaderGenerator = this.settings.weekHeaderGenerator;
-    let headers = [];
+    const headers = [];
 
     objectEach(this.monthList, (month, index) => {
-      let areDaysBeforeFullWeeks = month.daysBeforeFullWeeks > 0 ? 1 : 0;
-      let areDaysAfterFullWeeks = month.daysAfterFullWeeks > 0 ? 1 : 0;
-      let headerCount = month.fullWeeks + (this.settings.allowSplitWeeks ? areDaysBeforeFullWeeks + areDaysAfterFullWeeks : 0);
-      let monthNumber = parseInt(index, 10);
-      let allowSplitWeeks = this.settings.allowSplitWeeks;
+      const areDaysBeforeFullWeeks = month.daysBeforeFullWeeks > 0 ? 1 : 0;
+      const areDaysAfterFullWeeks = month.daysAfterFullWeeks > 0 ? 1 : 0;
+      const areDaysBeforeFullWeeksVisible = this.settings.hideDaysBeforeFullWeeks ? 0 : areDaysBeforeFullWeeks;
+      const areDaysAfterFullWeeksVisible = this.settings.hideDaysAfterFullWeeks ? 0 : areDaysAfterFullWeeks;
+      const headerCount = month.fullWeeks + (this.settings.allowSplitWeeks ? areDaysBeforeFullWeeksVisible + areDaysAfterFullWeeksVisible : 0);
+      const monthNumber = parseInt(index, 10);
+      const allowSplitWeeks = this.settings.allowSplitWeeks;
       let headerLabel = '';
-
 
       if (type === 'months') {
         headers.push({
@@ -377,11 +385,26 @@ class GanttChart extends BasePlugin {
 
           // Mixed month's only column
           if (!allowSplitWeeks && month.fullWeeks === 1) {
-            [start, end] = this.getWeekColumnRange(month, monthNumber, i, true);
+            [start, end] = this.getWeekColumnRange({
+              monthObject: month,
+              monthNumber,
+              headerIndex: i,
+              headerCount,
+              areDaysBeforeFullWeeksVisible,
+              areDaysAfterFullWeeksVisible,
+              mixedMonth: true,
+            });
 
             // Standard week column
           } else {
-            [start, end] = this.getWeekColumnRange(month, monthNumber, i);
+            [start, end] = this.getWeekColumnRange({
+              monthObject: month,
+              monthNumber,
+              headerIndex: i,
+              areDaysBeforeFullWeeksVisible,
+              areDaysAfterFullWeeksVisible,
+              headerCount,
+            });
           }
 
           if (start === end) {
@@ -405,17 +428,26 @@ class GanttChart extends BasePlugin {
    * Get the week column range.
    *
    * @private
-   * @param {Object} monthObject The month object.
-   * @param {Number} monthNumber Index of the month.
-   * @param {Number} headerIndex Index of the header.
-   * @param {Boolean} mixedMonth `true` if the header is the single header of a mixed month.
+   * @param {Object} options The options object.
+   * @param {Object} options.monthObject The month object.
+   * @param {Number} options.monthNumber Index of the month.
+   * @param {Number} options.headerIndex Index of the header.
+   * @param {Boolean} options.areDaysBeforeFullWeeksVisible `true` if the days before full weeks are to be visible.
+   * @param {Boolean} options.areDaysAfterFullWeeksVisible `true` if the days after full weeks are to be visible.
+   * @param {Number} options.headerCount Number of headers to be generated for the provided month.
+   * @param {Boolean} [options.mixedMonth = false] `true` if the header is the single header of a mixed month.
    * @returns {Array}
    */
-  getWeekColumnRange(monthObject, monthNumber, headerIndex, mixedMonth) {
+  getWeekColumnRange({
+    monthObject,
+    monthNumber,
+    headerIndex,
+    headerCount,
+    areDaysBeforeFullWeeksVisible,
+    areDaysAfterFullWeeksVisible,
+    mixedMonth = false
+  }) {
     const allowSplitWeeks = this.settings.allowSplitWeeks;
-    const areDaysBeforeFullWeeks = monthObject.daysBeforeFullWeeks > 0 ? 1 : 0;
-    const areDaysAfterFullWeeks = monthObject.daysAfterFullWeeks > 0 ? 1 : 0;
-    let headerCount = monthObject.fullWeeks + (this.settings.allowSplitWeeks ? areDaysBeforeFullWeeks + areDaysAfterFullWeeks : 0);
 
     let start = null;
     let end = null;
@@ -434,18 +466,18 @@ class GanttChart extends BasePlugin {
         start = this.monthList[monthNumber - 1].days - (WEEK_LENGTH - end) + 1;
       }
 
-    } else if (allowSplitWeeks && areDaysBeforeFullWeeks && headerIndex === 0) {
+    } else if (allowSplitWeeks && areDaysBeforeFullWeeksVisible && headerIndex === 0) {
       start = headerIndex + 1;
       end = monthObject.daysBeforeFullWeeks;
 
-    } else if (allowSplitWeeks && areDaysAfterFullWeeks && headerIndex === headerCount - 1) {
+    } else if (allowSplitWeeks && areDaysAfterFullWeeksVisible && headerIndex === headerCount - 1) {
       start = monthObject.days - monthObject.daysAfterFullWeeks + 1;
       end = monthObject.days;
 
     } else {
       start = null;
       if (allowSplitWeeks) {
-        start = monthObject.daysBeforeFullWeeks + ((headerIndex - areDaysBeforeFullWeeks) * WEEK_LENGTH) + 1;
+        start = monthObject.daysBeforeFullWeeks + ((headerIndex - areDaysBeforeFullWeeksVisible) * WEEK_LENGTH) + 1;
       } else {
         start = monthObject.daysBeforeFullWeeks + (headerIndex * WEEK_LENGTH) + 1;
       }
@@ -488,7 +520,16 @@ class GanttChart extends BasePlugin {
    * @private
    */
   assignGanttSettings() {
-    this.initialSettings = deepClone(this.hot.getSettings());
+    this.initialSettings = {
+      data: clone(this.hot.getSettings().data),
+      readOnly: this.hot.getSettings().readOnly,
+      renderer: this.hot.getSettings().renderer,
+      colWidths: this.hot.getSettings().colWidths,
+      hiddenColumns: this.hot.getSettings().hiddenColumns,
+      nestedHeaders: this.hot.getSettings().nestedHeaders,
+      collapsibleColumns: this.hot.getSettings().collapsibleColumns,
+      columnSorting: this.hot.getSettings().columnSorting,
+    };
 
     let additionalSettings = {
       data: createEmptySpreadsheetData(1, this.overallWeekSectionCount),
@@ -496,12 +537,12 @@ class GanttChart extends BasePlugin {
       renderer: (instance, TD, row, col, prop, value, cellProperties) =>
         this.uniformBackgroundRenderer(instance, TD, row, col, prop, value, cellProperties),
       colWidths: 60,
-      hiddenColumns: true,
+      hiddenColumns: this.hot.getSettings().hiddenColumns ? this.hot.getSettings().hiddenColumns : true,
       nestedHeaders: [
         this.monthHeadersArray.slice(),
         this.weekHeadersArray.slice()
       ],
-      collapsibleColumns: true,
+      collapsibleColumns: this.hot.getSettings().collapsibleColumns ? this.hot.getSettings().collapsibleColumns : true,
       columnSorting: false
     };
 
@@ -559,6 +600,22 @@ class GanttChart extends BasePlugin {
   }
 
   /**
+   * Get the column index of the adjacent week.
+   *
+   * @private
+   * @param {Date|String} date The date object/string.
+   * @param {Boolean} following `true` if the following week is needed.
+   * @param {Boolean} previous `true` if the previous week is needed.
+   */
+  getAdjacentWeekColumn(date, following = true, previous) {
+    date = this.dateCalculator.parseDate(date);
+    let delta = previous === true ? -7 : 7;
+    let adjacentWeek = date.setDate(date.getDate() + delta);
+
+    return this.dateCalculator.dateToColumn(adjacentWeek);
+  }
+
+  /**
    * Create a new range bar.
    *
    * @param {Number} row Row index.
@@ -570,6 +627,24 @@ class GanttChart extends BasePlugin {
   addRangeBar(row, startDate, endDate, additionalData) {
     let startDateColumn = this.dateCalculator.dateToColumn(startDate);
     let endDateColumn = this.dateCalculator.dateToColumn(endDate);
+    let startMoved = false;
+    let endMoved = false;
+
+    if (startDateColumn === null && this.settings.hideDaysBeforeFullWeeks) {
+      startDateColumn = this.getAdjacentWeekColumn(startDate, true, false);
+
+      if (startDateColumn !== null) {
+        startMoved = true;
+      }
+    }
+
+    if (endDateColumn === null && this.settings.hideDaysAfterFullWeeks) {
+      endDateColumn = this.getAdjacentWeekColumn(endDate, false, true);
+
+      if (endDateColumn !== null) {
+        endMoved = true;
+      }
+    }
 
     if (!this.dateCalculator.isValidRangeBarData(startDate, endDate) || startDateColumn == null || endDateColumn == null) {
       return false;
@@ -581,8 +656,8 @@ class GanttChart extends BasePlugin {
 
     this.rangeBars[row][startDateColumn] = {
       barLength: endDateColumn - startDateColumn + 1,
-      partialStart: !this.dateCalculator.isOnTheEdgeOfWeek(startDate)[0],
-      partialEnd: !this.dateCalculator.isOnTheEdgeOfWeek(endDate)[1],
+      partialStart: startMoved ? false : !this.dateCalculator.isOnTheEdgeOfWeek(startDate)[0],
+      partialEnd: endMoved ? false : !this.dateCalculator.isOnTheEdgeOfWeek(endDate)[1],
       additionalData: {}
     };
 

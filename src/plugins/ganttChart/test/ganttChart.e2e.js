@@ -291,6 +291,128 @@ describe('GanttChart', function() {
 
       });
     });
+
+    it('should not render the incomplete week columns at the beginnings of the months, when the `hideDaysBeforeFullWeeks` option is enabled', async () => {
+      const hot = handsontable({
+        colHeaders: true,
+        height: 250,
+        ganttChart: {
+          startYear: 2018,
+          hideDaysBeforeFullWeeks: true
+        }
+      });
+
+      expect(hot.countCols()).toEqual(53);
+
+      let weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+
+      expect(weekHeaders[0].querySelector('span').innerText).toEqual('1 - 7');
+      expect(weekHeaders[1].querySelector('span').innerText).toEqual('8 - 14');
+      expect(weekHeaders[2].querySelector('span').innerText).toEqual('15 - 21');
+      expect(weekHeaders[3].querySelector('span').innerText).toEqual('22 - 28');
+      expect(weekHeaders[4].querySelector('span').innerText).toEqual('29 - 31');
+      expect(weekHeaders[5].querySelector('span').innerText).toEqual('5 - 11');
+      expect(weekHeaders[6].querySelector('span').innerText).toEqual('12 - 18');
+      expect(weekHeaders[7].querySelector('span').innerText).toEqual('19 - 25');
+      expect(weekHeaders[8].querySelector('span').innerText).toEqual('26 - 28');
+      expect(weekHeaders[9].querySelector('span').innerText).toEqual('5 - 11');
+      expect(weekHeaders[10].querySelector('span').innerText).toEqual('12 - 18');
+      expect(weekHeaders[11].querySelector('span').innerText).toEqual('19 - 25');
+      expect(weekHeaders[12].querySelector('span').innerText).toEqual('26 - 31');
+
+      hot.selectCell(0, 52);
+
+      await sleep(200);
+
+      weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+      const firstRendered = 53 - weekHeaders.length;
+
+      expect(weekHeaders[31 - firstRendered].querySelector('span').innerText).toEqual('6 - 12');
+      expect(weekHeaders[32 - firstRendered].querySelector('span').innerText).toEqual('13 - 19');
+      expect(weekHeaders[33 - firstRendered].querySelector('span').innerText).toEqual('20 - 26');
+      expect(weekHeaders[34 - firstRendered].querySelector('span').innerText).toEqual('27 - 31');
+      expect(weekHeaders[35 - firstRendered].querySelector('span').innerText).toEqual('3 - 9');
+      expect(weekHeaders[36 - firstRendered].querySelector('span').innerText).toEqual('10 - 16');
+      expect(weekHeaders[37 - firstRendered].querySelector('span').innerText).toEqual('17 - 23');
+      expect(weekHeaders[38 - firstRendered].querySelector('span').innerText).toEqual('24 - 30');
+    });
+
+    it('should not render the incomplete week columns at the end of the months, when the `hideDaysAfterFullWeeks` option is enabled', async () => {
+      const hot = handsontable({
+        colHeaders: true,
+        height: 250,
+        ganttChart: {
+          startYear: 2018,
+          hideDaysAfterFullWeeks: true
+        }
+      });
+
+      expect(hot.countCols()).toEqual(52);
+
+      let weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+
+      expect(weekHeaders[0].querySelector('span').innerText).toEqual('1 - 7');
+      expect(weekHeaders[1].querySelector('span').innerText).toEqual('8 - 14');
+      expect(weekHeaders[2].querySelector('span').innerText).toEqual('15 - 21');
+      expect(weekHeaders[3].querySelector('span').innerText).toEqual('22 - 28');
+      expect(weekHeaders[4].querySelector('span').innerText).toEqual('1 - 4');
+      expect(weekHeaders[5].querySelector('span').innerText).toEqual('5 - 11');
+      expect(weekHeaders[6].querySelector('span').innerText).toEqual('12 - 18');
+      expect(weekHeaders[7].querySelector('span').innerText).toEqual('19 - 25');
+      expect(weekHeaders[8].querySelector('span').innerText).toEqual('1 - 4');
+      expect(weekHeaders[9].querySelector('span').innerText).toEqual('5 - 11');
+      expect(weekHeaders[10].querySelector('span').innerText).toEqual('12 - 18');
+      expect(weekHeaders[11].querySelector('span').innerText).toEqual('19 - 25');
+      expect(weekHeaders[12].querySelector('span').innerText).toEqual('1');
+
+      hot.selectCell(0, 51);
+
+      await sleep(200);
+
+      weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+      let firstRendered = 53 - weekHeaders.length;
+
+      expect(weekHeaders[31 - firstRendered].querySelector('span').innerText).toEqual('1 - 5');
+      expect(weekHeaders[32 - firstRendered].querySelector('span').innerText).toEqual('6 - 12');
+      expect(weekHeaders[33 - firstRendered].querySelector('span').innerText).toEqual('13 - 19');
+      expect(weekHeaders[34 - firstRendered].querySelector('span').innerText).toEqual('20 - 26');
+      expect(weekHeaders[35 - firstRendered].querySelector('span').innerText).toEqual('1 - 2');
+      expect(weekHeaders[36 - firstRendered].querySelector('span').innerText).toEqual('3 - 9');
+      expect(weekHeaders[37 - firstRendered].querySelector('span').innerText).toEqual('10 - 16');
+      expect(weekHeaders[38 - firstRendered].querySelector('span').innerText).toEqual('17 - 23');
+      expect(weekHeaders[39 - firstRendered].querySelector('span').innerText).toEqual('24 - 30');
+    });
+
+    it('should not render the incomplete week columns at the beginning nor end of the months, when ' +
+      'the `hideDaysBeforeFullWeeks` and `hideDaysAfterFullWeeks` options are enabled', async () => {
+      const hot = handsontable({
+        colHeaders: true,
+        height: 250,
+        ganttChart: {
+          startYear: 2018,
+          hideDaysBeforeFullWeeks: true,
+          hideDaysAfterFullWeeks: true
+        }
+      });
+
+      expect(hot.countCols()).toEqual(42);
+
+      let weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+
+      expect(weekHeaders[0].querySelector('span').innerText).toEqual('1 - 7');
+      expect(weekHeaders[1].querySelector('span').innerText).toEqual('8 - 14');
+      expect(weekHeaders[2].querySelector('span').innerText).toEqual('15 - 21');
+      expect(weekHeaders[3].querySelector('span').innerText).toEqual('22 - 28');
+      expect(weekHeaders[4].querySelector('span').innerText).toEqual('5 - 11');
+      expect(weekHeaders[5].querySelector('span').innerText).toEqual('12 - 18');
+      expect(weekHeaders[6].querySelector('span').innerText).toEqual('19 - 25');
+      expect(weekHeaders[7].querySelector('span').innerText).toEqual('5 - 11');
+      expect(weekHeaders[8].querySelector('span').innerText).toEqual('12 - 18');
+      expect(weekHeaders[9].querySelector('span').innerText).toEqual('19 - 25');
+      expect(weekHeaders[10].querySelector('span').innerText).toEqual('2 - 8');
+      expect(weekHeaders[11].querySelector('span').innerText).toEqual('9 - 15');
+      expect(weekHeaders[12].querySelector('span').innerText).toEqual('16 - 22');
+    });
   });
 
   describe('data sources', function() {
@@ -468,7 +590,67 @@ describe('GanttChart', function() {
       expect(hot.getCellMeta(2, 7).className.indexOf('partial')).toEqual(-1);
       expect(hot.getCellMeta(2, 8).className.indexOf('rangeBar')).toBeGreaterThan(-1);
       expect(hot.getCellMeta(2, 8).className.indexOf('partial')).toBeGreaterThan(-1);
+    });
+  });
 
+  describe('`hideDaysBeforeFullWeeks` and `hideDaysAfterFullWeeks`', () => {
+    it('should render render the remaining parts of the range bars, when the beginning and/or end of the bar is not visible,' +
+      'due to the `hideDaysBeforeFullWeeks` or `hideDaysAfterFullWeeks` setting', () => {
+      const source = [
+        {
+          additionalData: {vendor: 'Vendor One', format: 'Posters', market: 'New York, NY'},
+          startDate: '2/3/2018',
+          endDate: '4/30/2018'
+        },
+        {
+          additionalData: {vendor: 'Vendor Two', format: 'Malls', market: 'Los Angeles, CA'},
+          startDate: '5/3/2018',
+          endDate: '5/30/2018'
+        },
+        {
+          additionalData: {vendor: 'Vendor Three', format: 'Posters', market: 'Chicago, IL'},
+          startDate: '11/1/2018',
+          endDate: '2/20/2019'
+        },
+      ];
+      const hot = handsontable({
+        colHeaders: true,
+        height: 250,
+        ganttChart: {
+          dataSource: source,
+          startYear: 2018,
+          hideDaysBeforeFullWeeks: true,
+          hideDaysAfterFullWeeks: true,
+        }
+      });
+
+      expect((hot.getCellMeta(0, 3).className || '').indexOf('rangeBar')).toEqual(-1);
+      expect(hot.getCellMeta(0, 4).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(0, 5).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(0, 6).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(0, 7).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(0, 8).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(0, 9).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(0, 10).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(0, 11).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(0, 12).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(0, 13).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect((hot.getCellMeta(0, 14).className || '').indexOf('rangeBar')).toEqual(-1);
+
+      expect((hot.getCellMeta(1, 13).className || '').indexOf('rangeBar')).toEqual(-1);
+      expect(hot.getCellMeta(1, 14).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(1, 15).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(1, 16).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect((hot.getCellMeta(1, 17).className || '').indexOf('rangeBar')).toEqual(-1);
+
+      expect((hot.getCellMeta(2, 34).className || '').indexOf('rangeBar')).toEqual(-1);
+      expect(hot.getCellMeta(2, 35).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(2, 36).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(2, 37).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(2, 38).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(2, 39).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(2, 40).className.indexOf('rangeBar')).toBeGreaterThan(-1);
+      expect(hot.getCellMeta(2, 41).className.indexOf('rangeBar')).toBeGreaterThan(-1);
     });
   });
 });

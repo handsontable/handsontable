@@ -12,7 +12,9 @@ beforeEach(() => {
 describe('DateCalculator', () => {
   describe('the `setYear` method', () => {
     it('should set the year as a base for calculations', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
 
       expect(plugin.year).toEqual(2017);
       plugin.setYear(2016);
@@ -22,7 +24,9 @@ describe('DateCalculator', () => {
 
   describe('the `setFirstWeekDay` method', () => {
     it('should set the first week day', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
 
       expect(plugin.firstWeekDay).toEqual('monday');
       plugin.setFirstWeekDay('sunday');
@@ -30,7 +34,9 @@ describe('DateCalculator', () => {
     });
 
     it('should throw a warning if setting the first week day to something else than `monday` or `sunday`', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
       spyOn(global.console, 'warn');
 
       plugin.setFirstWeekDay('Dean Corso');
@@ -41,7 +47,9 @@ describe('DateCalculator', () => {
 
   describe('the `parseDate` method', () => {
     it('should return a Date object if the provided date string is valid and null if it\'s invalid', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
 
       expect(plugin.parseDate('01/01/2017') instanceof Date).toBe(true);
       expect(plugin.parseDate('01/31/2017') instanceof Date).toBe(true);
@@ -50,7 +58,9 @@ describe('DateCalculator', () => {
     });
 
     it('should return a Date object if the provided date object is valid and null if it\'s invalid', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
 
       expect(plugin.parseDate(new Date()) instanceof Date).toBe(true);
       expect(plugin.parseDate({}) instanceof Date).toBe(false);
@@ -60,7 +70,9 @@ describe('DateCalculator', () => {
 
   describe('the `dateToColumn` method', () => {
     it('should return a column for a provided date (in string or Date format), when `allowSplitWeeks` is set to true (default)', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
 
       // mock the day cache creation from the actual plugin:
       plugin.daysInColumns = stdCache;
@@ -71,7 +83,10 @@ describe('DateCalculator', () => {
     });
 
     it('should return a column for a provided date (in string or Date format), when `allowSplitWeeks` is set to false', () => {
-      const plugin = new DateCalculator(2017, false);
+      const plugin = new DateCalculator({
+        year: 2017,
+        allowSplitWeeks: false
+      });
 
       // mock the day cache creation from the actual plugin:
       plugin.daysInColumns = disallowSplitWeeksCache;
@@ -84,7 +99,9 @@ describe('DateCalculator', () => {
 
   describe('the `getWeekColumn` method', () => {
     it('should return a week column index for the provided day and month', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
 
 
       // mock the day cache creation from the actual plugin:
@@ -95,7 +112,10 @@ describe('DateCalculator', () => {
     });
 
     it('should return a week column index for the provided day and month, when `allowSplitWeeks` is set to false', () => {
-      const plugin = new DateCalculator(2017, false);
+      const plugin = new DateCalculator({
+        year: 2017,
+        allowSplitWeeks: false
+      });
 
       // mock the day cache creation from the actual plugin:
       plugin.daysInColumns = disallowSplitWeeksCache;
@@ -107,7 +127,9 @@ describe('DateCalculator', () => {
 
   describe('the `getMonthCacheArray` method', () => {
     it('should get the cached information for the provided month', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
 
       // mock the day cache creation from the actual plugin:
       plugin.daysInColumns = stdCache;
@@ -119,7 +141,9 @@ describe('DateCalculator', () => {
 
   describe('the `columnToDate` method', () => {
     it('should return a Date object for the provided column index, if the column represents a single date', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
 
       // mock the day cache creation from the actual plugin:
       plugin.daysInColumns = stdCache;
@@ -133,13 +157,17 @@ describe('DateCalculator', () => {
 
     // TODO: change the API to work like in the description below
     xit('should return an object with `start` and `end` properties representing a range of dates', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
     });
   });
 
   describe('the `isOnTheEdgeOfWeek` method', () => {
     it('should check whether the provided date is on the edge of the week', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
 
       // mock the day cache creation from the actual plugin:
       plugin.daysInColumns = stdCache;
@@ -152,7 +180,9 @@ describe('DateCalculator', () => {
 
   describe('the `addDaysToCache` method', () => {
     it('should update the plugin cache with the provided information', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
 
       plugin.addDaysToCache(0, 0, 1, 5);
       plugin.addDaysToCache(0, 3, 10, 15);
@@ -176,7 +206,9 @@ describe('DateCalculator', () => {
 
   describe('the `isValidRangeBarData` method', () => {
     it('should check whether the provided start and end dates are valid, to create a range bar', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
 
       expect(plugin.isValidRangeBarData(new Date('02/03/2017'), new Date('03/02/2017'))).toEqual(true);
       expect(plugin.isValidRangeBarData(new Date('03/13/2017'), new Date('12/02/2017'))).toEqual(true);
@@ -186,7 +218,9 @@ describe('DateCalculator', () => {
 
   describe('the `calculateMonthData` method', () => {
     it('should return the object containing information about all the months', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
       const expectedResult = [
         {name: 'January', days: 31},
         {name: 'February', days: 28},
@@ -208,7 +242,9 @@ describe('DateCalculator', () => {
 
   describe('the `calculateWeekStructure` method', () => {
     it('should modify the `monthList` property of the plugin with the month/week structure', () => {
-      const plugin = new DateCalculator(2017);
+      const plugin = new DateCalculator({
+        year: 2017
+      });
 
       // mock the day cache creation from the actual plugin:
       plugin.daysInColumns = stdCache;
@@ -229,7 +265,10 @@ describe('DateCalculator', () => {
     });
 
     it('should modify the `monthList` property of the plugin with the month/week structure, with `allowSplitWeeks` disabled', () => {
-      const plugin = new DateCalculator(2017, false);
+      const plugin = new DateCalculator({
+        year: 2017,
+        allowSplitWeeks: false
+      });
 
       // mock the day cache creation from the actual plugin:
       plugin.daysInColumns = disallowSplitWeeksCache;

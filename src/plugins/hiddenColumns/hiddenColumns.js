@@ -284,11 +284,13 @@ class HiddenColumns extends BasePlugin {
 
       if (classArr.length) {
         let containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
-        let containFirstVisible = classArr.indexOf('firstVisibleColumn');
 
         if (containAfterHiddenColumn > -1) {
           classArr.splice(containAfterHiddenColumn, 1);
         }
+
+        let containFirstVisible = classArr.indexOf('firstVisibleColumn');
+
         if (containFirstVisible > -1) {
           classArr.splice(containFirstVisible, 1);
         }

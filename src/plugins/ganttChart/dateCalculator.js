@@ -9,7 +9,7 @@ import {getMixedMonthObject, getMixedMonthName} from './utils';
  * @plugin GanttChart
  */
 class DateCalculator {
-  constructor(year, allowSplitWeeks) {
+  constructor({year, allowSplitWeeks = true, hideDaysBeforeFullWeeks = false, hideDaysAfterFullWeeks = false}) {
     /**
      * Year to base calculations on.
      *
@@ -25,7 +25,15 @@ class DateCalculator {
     /**
      * The current `allowSplitWeeks` option state.
      */
-    this.allowSplitWeeks = allowSplitWeeks === void 0 ? true : allowSplitWeeks;
+    this.allowSplitWeeks = allowSplitWeeks;
+    /**
+     * The current `hideDaysBeforeFullWeeks` option state.
+     */
+    this.hideDaysBeforeFullWeeks = hideDaysBeforeFullWeeks;
+    /**
+     * The current `hideDaysAfterFullWeeks` option state.
+     */
+    this.hideDaysAfterFullWeeks = hideDaysAfterFullWeeks;
     /**
      * Number of week sections (full weeks + incomplete week blocks in months).
      *
@@ -406,6 +414,8 @@ class DateCalculator {
     const monthList = this.getMonthList();
     const currentYear = this.getYear();
     const mixedMonthToAdd = [];
+    const daysBeforeFullWeeksRatio = this.hideDaysBeforeFullWeeks ? 0 : 1;
+    const daysAfterFullWeeksRatio = this.hideDaysAfterFullWeeks ? 0 : 1;
     let weekOffset = 0;
     let weekSectionCount = 0;
 
@@ -416,15 +426,11 @@ class DateCalculator {
     arrayEach(monthList, (currentMonth, monthIndex) => {
       let firstMonthDay = new Date(currentYear, monthIndex, 1).getDay();
       let mixedMonthsAdded = 0;
-      let mixedMonthName = null;
 
       currentMonth.daysBeforeFullWeeks = (7 - firstMonthDay + weekOffset) % 7;
 
       if (!this.allowSplitWeeks && currentMonth.daysBeforeFullWeeks) {
-        mixedMonthName = getMixedMonthName(monthIndex, monthList);
-
-        mixedMonthToAdd.push(getMixedMonthObject(mixedMonthName, monthIndex));
-
+        mixedMonthToAdd.push(getMixedMonthObject(getMixedMonthName(monthIndex, monthList), monthIndex));
         mixedMonthsAdded++;
       }
 
@@ -433,17 +439,17 @@ class DateCalculator {
 
       if (!this.allowSplitWeeks) {
         if (monthIndex === monthList.length - 1 && currentMonth.daysAfterFullWeeks) {
-          mixedMonthName = getMixedMonthName(monthIndex, monthList);
-
-          mixedMonthToAdd.push(getMixedMonthObject(mixedMonthName, null));
-
+          mixedMonthToAdd.push(getMixedMonthObject(getMixedMonthName(monthIndex, monthList), null));
           mixedMonthsAdded++;
         }
 
         weekSectionCount += currentMonth.fullWeeks + mixedMonthsAdded;
 
       } else {
-        weekSectionCount += currentMonth.fullWeeks + (currentMonth.daysBeforeFullWeeks ? 1 : 0) + (currentMonth.daysAfterFullWeeks ? 1 : 0);
+        const numberOfPartialWeeksBefore = (daysBeforeFullWeeksRatio * (currentMonth.daysBeforeFullWeeks ? 1 : 0));
+        const numberOfPartialWeeksAfter = (daysAfterFullWeeksRatio * (currentMonth.daysAfterFullWeeks ? 1 : 0));
+
+        weekSectionCount += currentMonth.fullWeeks + numberOfPartialWeeksBefore + numberOfPartialWeeksAfter;
       }
     });
 
