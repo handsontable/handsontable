@@ -2,11 +2,9 @@ import BasePlugin from './../_base';
 import { registerPlugin } from './../../plugins';
 import { hasOwnProperty } from './../../helpers/object';
 import { rangeEach } from './../../helpers/number';
-import {
-  CellRange,
-  Selection
-} from './../../3rdparty/walkontable/src';
+import { CellRange } from './../../3rdparty/walkontable/src';
 import {arrayEach} from './../../helpers/array';
+import { createHighlight } from './../../selection/highlight/types';
 import * as C from './../../i18n/constants';
 import {
   bottom,
@@ -22,6 +20,8 @@ import {
   createEmptyBorders,
   extendDefaultBorder
 } from './utils';
+
+export const CUSTOM_SELECTION = 'custom-selection';
 /**
  * @plugin CustomBorders
  *
@@ -134,26 +134,6 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Get index of border from the settings.
-   *
-   * @param {String} className Class name as string.
-   * @returns {Number}
-   */
-  getSettingIndex(className) {
-    let index = -1;
-
-    arrayEach(this.hot.selection.highlight.borders, (selection, i) => {
-      if (selection.settings.className === className) {
-        index = i;
-
-        return false;
-      }
-    });
-
-    return index;
-  }
-
-  /**
    * Insert WalkontableSelection instance into Walkontable settings.
    *
    * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `className` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
@@ -161,19 +141,17 @@ class CustomBorders extends BasePlugin {
   insertBorderIntoSettings(border) {
     this.savedBorders.push(border);
 
-    this.savedBorders = [...new Set(this.savedBorders.map(JSON.stringify))].map(JSON.parse);
+    this.savedBorders = this.savedBorders.filter((obj, index, array) => array.map((mapObj) => mapObj.className).indexOf(obj.className) === index);
 
     const coordinates = {
       row: border.row,
       col: border.col
     };
-    const selection = new Selection(border, new CellRange(coordinates, coordinates, coordinates));
-    const index = this.getSettingIndex(border.className);
+    const cellRange = new CellRange(coordinates, coordinates, coordinates);
+    const selection = createHighlight(CUSTOM_SELECTION, {border, cellRange});
 
-    if (index >= 0) {
-      this.hot.selection.highlight.borders[index] = selection;
-    } else {
-      this.hot.selection.highlight.borders.push(selection);
+    if (!this.hot.selection.highlight.customSelection.includes(selection)) {
+      this.hot.selection.highlight.setCustomSelection(selection);
     }
   }
 
@@ -271,9 +249,10 @@ class CustomBorders extends BasePlugin {
    * @param {String} borderClassName Border class name as string.
    */
   removeClassBorderFromTDs(borderClassName) {
-    arrayEach(this.hot.selection.highlight.borders, (selection, index) => {
+    arrayEach(this.hot.selection.highlight.customSelection, (selection, index) => {
       if (selection.settings.className === borderClassName) {
-        this.hot.selection.highlight.borders.splice(index, 1);
+        this.hot.selection.highlight.customSelection.splice(index, 1);
+
         return false; // breaks forAll
       }
     });
@@ -289,8 +268,9 @@ class CustomBorders extends BasePlugin {
    */
   removeAllBorders(row, col) {
     let borderClassName = createClassName(row, col);
+    let index = this.savedBorders.map((obj) => obj.className).indexOf(borderClassName);
 
-    this.savedBorders = this.savedBorders.filter((obj) => obj.className !== borderClassName);
+    this.savedBorders.splice(index, 1);
 
     this.removeBordersFromDom(borderClassName);
     this.hot.removeCellMeta(row, col, 'borders');
@@ -456,19 +436,15 @@ class CustomBorders extends BasePlugin {
   changeBorderSettings() {
     let customBorders = this.hot.getSettings().customBorders;
 
-    if (customBorders) {
-      if (Array.isArray(customBorders)) {
-        if (!customBorders.length) {
-          this.savedBorders = customBorders;
-        }
-
-        this.createCustomBorders(customBorders);
-
-      } else if (customBorders !== void 0) {
-        let borders = this.savedBorders ? this.savedBorders : customBorders;
-
-        this.createCustomBorders(borders);
+    if (Array.isArray(customBorders)) {
+      if (!customBorders.length) {
+        this.savedBorders = customBorders;
       }
+
+      this.createCustomBorders(customBorders);
+
+    } else if (customBorders !== void 0) {
+      this.createCustomBorders(this.savedBorders);
     }
   }
 

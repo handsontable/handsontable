@@ -82,7 +82,7 @@ class Highlight {
      *
      * @type {Selection[]}
      */
-    this.borders = [];
+    this.customSelection = [];
   }
 
   /**
@@ -227,6 +227,24 @@ class Highlight {
   }
 
   /**
+   * Get Walkontable Selection instance created for controlling highlight of the custom selection functionality.
+   *
+   * @return {Selection}
+   */
+  getCustomSelection() {
+    return [...this.customSelection.values()];
+  }
+
+  /**
+   * Add selection to the custom selection instance. The new selection are added to the end of the selection collection.
+   *
+   * @return {Selection}
+   */
+  setCustomSelection(newSelection) {
+    this.customSelection.push(newSelection);
+  }
+
+  /**
    * Perform cleaning visual highlights for the whole table.
    */
   clear() {
@@ -248,7 +266,7 @@ class Highlight {
       ...this.areas.values(),
       ...this.headers.values(),
       ...this.activeHeaders.values(),
-      ...this.borders,
+      ...this.customSelection,
     ][Symbol.iterator]();
   }
 }
