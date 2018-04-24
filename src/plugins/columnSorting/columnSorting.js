@@ -60,6 +60,9 @@ class ColumnSorting extends BasePlugin {
      * @type {null|Number}
      */
     this.lastSortedColumn = null;
+    /**
+     * Visual index of sorted column.
+     */
     this.sortColumn = void 0;
     /**
      * Order of sorting. For `asc` ascending order, for `desc` descending order, for `none` the original order.
@@ -459,7 +462,7 @@ class ColumnSorting extends BasePlugin {
 
     if (typeof sortingColumn === 'number') {
       this.lastSortedColumn = sortingColumn;
-      this.sortByColumn(sortingColumn, sortingOrder);
+      this.sort(sortingColumn, sortingOrder);
     }
   }
 
@@ -505,7 +508,7 @@ class ColumnSorting extends BasePlugin {
 
       this.lastSortedColumn = coords.col;
 
-      this.sortByColumn(coords.col);
+      this.sort(coords.col);
     }
   }
 }

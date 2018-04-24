@@ -16,10 +16,6 @@ class RowsMapper {
     this.columnSorting = columnSorting;
   }
 
-  getMap() {
-    return this._arrayMap;
-  }
-
   /**
    * Reset current map array and create new one.
    *
