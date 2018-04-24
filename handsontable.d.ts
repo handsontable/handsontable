@@ -691,7 +691,7 @@ declare namespace Handsontable {
     type SortOrderType = 'asc' | 'desc' | 'none';
 
     interface ColumnSortingRowsMapper extends arrayMapper {
-      trimRows: TrimRows;
+      columnSorting: ColumnSorting;
 
       createMap(length?: number): void;
       destroy(): void;
