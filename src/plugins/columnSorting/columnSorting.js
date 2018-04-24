@@ -43,7 +43,7 @@ const NONE_SORT_STATE = 'none';
  * // as a object with initial order (sort ascending column at index 2)
  * columnSorting: {
  *  column: 2,
- *  sortOrder: true, // true = ascending, false = descending, undefined = original order
+ *  sortOrder: 'asc', // 'asc' = ascending, 'desc' = descending, 'none' = original order
  *  sortEmptyCells: true // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
  * }
  * ...
@@ -53,12 +53,7 @@ const NONE_SORT_STATE = 'none';
 class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * Sort indicators for all columns.
-     *
-     * @type {Array}
-     */
-    this.sortIndicators = [];
+    this.sortIndicators = []; // TODO: It could be refactored, we are sorting just by one column, without saving state of previous sort indicators.
     /**
      * Visual index of last sorted column.
      *
@@ -67,9 +62,9 @@ class ColumnSorting extends BasePlugin {
     this.lastSortedColumn = null;
     this.sortColumn = void 0;
     /**
-     * Order of sorting.
+     * Order of sorting. For 'asc' ascending order, for 'desc' descending order, for 'none' the original order.
      *
-     * @type {undefined|Boolean}
+     * @type {string}
      */
     this.sortOrder = NONE_SORT_STATE;
     /**
@@ -78,7 +73,7 @@ class ColumnSorting extends BasePlugin {
      * @type {RowsMapper}
      */
     this.rowsMapper = new RowsMapper(this);
-    this.sortingEnabled = false;
+    this.sortingEnabled = false; // TODO: It should be removed, when global ArrayMapper will be used.
     /**
      * Sorting empty cells.
      *
@@ -115,7 +110,7 @@ class ColumnSorting extends BasePlugin {
     this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
     this.addHook('unmodifyRow', (row, source) => this.onUnmodifyRow(row, source));
     this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
-    this.addHook('afterGetColHeader', (column, TH) => this.getColHeader(column, TH));
+    this.addHook('afterGetColHeader', (column, TH) => this.onAfterGetColHeader(column, TH));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
@@ -141,40 +136,87 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * afterUpdateSettings callback.
-   *
-   * @private
+   * Destroy plugin instance.
    */
-  onAfterUpdateSettings() {
-    this.sortBySettings();
+  destroy() {
+    this.rowsMapper.destroy();
+
+    super.destroy();
   }
 
-  sortBySettings() {
-    let sortingSettings = this.hot.getSettings().columnSorting;
-    let loadedSortingState = this.loadSortingState();
-    let sortingColumn;
-    let sortingOrder;
+  /**
+   * Sorting the table by chosen column and order.
+   *
+   * @param column Visual column index.
+   * @param {undefined|string} order Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
+   */
+  sortByColumn(column, order) {
+    this.setSortingColumn(column, order);
 
-    if (isUndefined(loadedSortingState)) {
-      sortingColumn = sortingSettings.column;
-      sortingOrder = sortingSettings.sortOrder;
-
-    } else {
-      sortingColumn = loadedSortingState.sortColumn;
-      sortingOrder = loadedSortingState.sortOrder;
+    if (isUndefined(this.sortColumn)) {
+      return;
     }
 
-    if (typeof sortingColumn === 'number') {
-      this.lastSortedColumn = sortingColumn;
-      this.sortByColumn(sortingColumn, sortingOrder);
+    const allowSorting = this.hot.runHooks('beforeColumnSort', this.sortColumn, this.sortOrder);
+
+    if (allowSorting !== false) {
+      this.sort();
     }
+    this.updateSortIndicator();
+
+    this.hot.runHooks('afterColumnSort', this.sortColumn, this.sortOrder);
+
+    this.hot.render();
+    this.saveSortingState();
+  }
+
+  /**
+   * Check if any column is in a sorted state.
+   *
+   * @returns {Boolean}
+   */
+  isSorted() {
+    return isDefined(this.sortColumn);
+  }
+
+  /**
+   * Save the sorting state.
+   */
+  saveSortingState() {
+    let sortingState = {};
+
+    if (isDefined(this.sortColumn)) {
+      sortingState.sortColumn = this.sortColumn;
+    }
+
+    if (isDefined(this.sortOrder)) {
+      sortingState.sortOrder = this.sortOrder;
+    }
+
+    if (hasOwnProperty(sortingState, 'sortColumn') || hasOwnProperty(sortingState, 'sortOrder')) {
+      this.hot.runHooks('persistentStateSave', 'columnSorting', sortingState);
+    }
+
+  }
+
+  /**
+   * Load the sorting state.
+   *
+   * @returns {*} Previously saved sorting state.
+   */
+  loadSortingState() {
+    let storedState = {};
+    this.hot.runHooks('persistentStateLoad', 'columnSorting', storedState);
+
+    return storedState.value;
   }
 
   /**
    * Set sorted column and order info
    *
+   * @private
    * @param {number} column Sorted visual column index.
-   * @param {boolean|undefined} order Sorting order (`true` for ascending, `false` for descending).
+   * @param {undefined|string} order Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
    */
   setSortingColumn(column, order) {
     if (isUndefined(column)) {
@@ -208,58 +250,11 @@ class ColumnSorting extends BasePlugin {
     this.sortColumn = column;
   }
 
-  sortByColumn(column, order) {
-    this.setSortingColumn(column, order);
-
-    if (isUndefined(this.sortColumn)) {
-      return;
-    }
-
-    let allowSorting = this.hot.runHooks('beforeColumnSort', this.sortColumn, this.sortOrder);
-
-    if (allowSorting !== false) {
-      this.sort();
-    }
-    this.updateSortIndicator();
-
-    this.hot.runHooks('afterColumnSort', this.sortColumn, this.sortOrder);
-
-    this.hot.render();
-    this.saveSortingState();
-  }
-
   /**
-   * Save the sorting state
-   */
-  saveSortingState() {
-    let sortingState = {};
-
-    if (isDefined(this.sortColumn)) {
-      sortingState.sortColumn = this.sortColumn;
-    }
-
-    if (isDefined(this.sortOrder)) {
-      sortingState.sortOrder = this.sortOrder;
-    }
-
-    if (hasOwnProperty(sortingState, 'sortColumn') || hasOwnProperty(sortingState, 'sortOrder')) {
-      this.hot.runHooks('persistentStateSave', 'columnSorting', sortingState);
-    }
-
-  }
-
-  /**
-   * Load the sorting state.
+   * Enable the ObserveChanges plugin.
    *
-   * @returns {*} Previously saved sorting state.
+   * @private
    */
-  loadSortingState() {
-    let storedState = {};
-    this.hot.runHooks('persistentStateLoad', 'columnSorting', storedState);
-
-    return storedState.value;
-  }
-
   enableObserveChangesPlugin() {
     let _this = this;
 
@@ -272,7 +267,9 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Perform the sorting.
+   * Perform the sorting using a stable sort function.
+   *
+   * @private
    */
   sort() {
     if (this.sortOrder === NONE_SORT_STATE) {
@@ -332,6 +329,8 @@ class ColumnSorting extends BasePlugin {
 
   /**
    * Update indicator states.
+   *
+   * @private
    */
   updateSortIndicator() {
     if (this.sortOrder === NONE_SORT_STATE) {
@@ -340,6 +339,22 @@ class ColumnSorting extends BasePlugin {
     const colMeta = this.hot.getCellMeta(0, this.sortColumn);
 
     this.sortIndicators[this.sortColumn] = colMeta.sortIndicator;
+  }
+
+  /**
+   * Set options by passed settings
+   *
+   * @private
+   */
+  setPluginOptions() {
+    const columnSorting = this.hot.getSettings().columnSorting;
+
+    if (isObject(columnSorting)) {
+      this.sortEmptyCells = columnSorting.sortEmptyCells || false;
+
+    } else {
+      this.sortEmptyCells = false;
+    }
   }
 
   /**
@@ -374,13 +389,13 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * `afterGetColHeader` callback. Adds column sorting css classes to clickable headers.
+   * `onAfterGetColHeader` callback. Adds column sorting css classes to clickable headers.
    *
    * @private
    * @param {Number} column Visual column index.
    * @param {Element} TH TH HTML element.
    */
-  getColHeader(column, TH) {
+  onAfterGetColHeader(column, TH) {
     if (column < 0 || !TH.parentNode) {
       return false;
     }
@@ -413,16 +428,42 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Check if any column is in a sorted state.
+   * afterUpdateSettings callback.
    *
-   * @returns {Boolean}
+   * @private
    */
-  isSorted() {
-    return isDefined(this.sortColumn);
+  onAfterUpdateSettings() {
+    this.sortBySettings();
   }
 
   /**
-   * `afterCreateRow` hook callback.
+   * Sort the table by provided configuration.
+   *
+   * @private
+   */
+  sortBySettings() {
+    let sortingSettings = this.hot.getSettings().columnSorting;
+    let loadedSortingState = this.loadSortingState();
+    let sortingColumn;
+    let sortingOrder;
+
+    if (isUndefined(loadedSortingState)) {
+      sortingColumn = sortingSettings.column;
+      sortingOrder = sortingSettings.sortOrder;
+
+    } else {
+      sortingColumn = loadedSortingState.sortColumn;
+      sortingOrder = loadedSortingState.sortOrder;
+    }
+
+    if (typeof sortingColumn === 'number') {
+      this.lastSortedColumn = sortingColumn;
+      this.sortByColumn(sortingColumn, sortingOrder);
+    }
+  }
+
+  /**
+   * `afterCreateRow` callback. Updates the sorting state after a row have been created.
    *
    * @private
    * @param {Number} index Visual index of the created row.
@@ -441,22 +482,6 @@ class ColumnSorting extends BasePlugin {
    */
   onAfterRemoveRow(removedRows, amount) {
     this.rowsMapper.unshiftItems(removedRows, amount);
-  }
-
-  /**
-   * Set options by passed settings
-   *
-   * @private
-   */
-  setPluginOptions() {
-    const columnSorting = this.hot.getSettings().columnSorting;
-
-    if (isObject(columnSorting)) {
-      this.sortEmptyCells = columnSorting.sortEmptyCells || false;
-
-    } else {
-      this.sortEmptyCells = false;
-    }
   }
 
   /**
@@ -481,15 +506,6 @@ class ColumnSorting extends BasePlugin {
 
       this.sortByColumn(coords.col);
     }
-  }
-
-  /**
-   * Destroy plugin instance.
-   */
-  destroy() {
-    this.rowsMapper.destroy();
-
-    super.destroy();
   }
 }
 
