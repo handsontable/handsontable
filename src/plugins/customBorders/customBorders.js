@@ -21,7 +21,7 @@ import {
   extendDefaultBorder
 } from './utils';
 
-export const CUSTOM_SELECTION = 'custom-selection';
+const CUSTOM_SELECTION = 'custom-selection';
 /**
  * @plugin CustomBorders
  *
