@@ -475,8 +475,8 @@ class Selection {
       return false;
 
     } else if (selectionType === SELECTION_TYPE_UNRECOGNIZED) {
-      throw new Error(toSingleLine`Unsupported format of the selection ranges was passed. To select cells pass\x20
-        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd, columnEnd/columnPropEnd]])\x20
+      throw new Error(toSingleLine`Unsupported format of the selection ranges was passed. To select cells pass 
+        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd, columnEnd/columnPropEnd]]) 
         or as an array of CellRange objects.`);
     }
 
