@@ -189,14 +189,13 @@ function TableView(instance) {
       return that.settings.minSpareRows;
     },
     renderAllRows: that.settings.renderAllRows,
-    rowHeaders: function() {
+    rowHeaders() {
       let headerRenderers = [];
 
       if (instance.hasRowHeaders()) {
-        headerRenderers.push(function(row, TH) {
-          that.appendRowHeader(row, TH);
-        });
+        headerRenderers.push((row, TH) => that.appendRowHeader(row, TH));
       }
+
       instance.runHooks('afterGetRowHeaderRenderers', headerRenderers);
 
       return headerRenderers;

@@ -464,10 +464,17 @@ class Border {
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
       this.cornerStyle.display = 'none';
 
-      const trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
+      let trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
+      const trimToWindow = trimmingContainer === window;
+
+      if (trimToWindow) {
+        trimmingContainer = document.documentElement;
+      }
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
-        const cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2) >= innerWidth(trimmingContainer);
+        const toTdOffsetLeft = trimToWindow ? toTD.getBoundingClientRect().left : toTD.offsetLeft;
+        const cornerRightEdge = toTdOffsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2);
+        const cornerOverlappingContainer = cornerRightEdge >= innerWidth(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.left = `${Math.floor(left + width - 3 - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`;
@@ -476,7 +483,9 @@ class Border {
       }
 
       if (toRow === this.wot.getSetting('totalRows') - 1) {
-        const cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2) >= innerHeight(trimmingContainer);
+        const toTdOffsetTop = trimToWindow ? toTD.getBoundingClientRect().top : toTD.offsetTop;
+        const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2);
+        const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.top = `${Math.floor(top + height - 3 - (parseInt(this.cornerDefaultStyle.height, 10) / 2))}px`;
