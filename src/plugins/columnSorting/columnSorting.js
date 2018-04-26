@@ -76,7 +76,6 @@ class ColumnSorting extends BasePlugin {
      * @type {RowsMapper}
      */
     this.rowsMapper = new RowsMapper(this);
-    this.sortingEnabled = false; // TODO: It should be removed, when global ArrayMapper will be used.
     /**
      * Sorting empty cells.
      *
@@ -119,7 +118,7 @@ class ColumnSorting extends BasePlugin {
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
     this.addHook('afterInit', () => this.sortBySettings());
     this.addHook('afterLoadData', () => {
-      this.rowsMapper._arrayMap = [];
+      this.rowsMapper.clearMap();
 
       if (this.hot.view) {
         this.sortBySettings();
@@ -139,15 +138,6 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
-   */
-  destroy() {
-    this.rowsMapper.destroy();
-
-    super.destroy();
-  }
-
-  /**
    * Sorting the table by chosen column and order.
    *
    * @param {Number} column Visual column index.
@@ -162,10 +152,11 @@ class ColumnSorting extends BasePlugin {
 
     const allowSorting = this.hot.runHooks('beforeColumnSort', this.sortColumn, this.sortOrder);
 
-    if (allowSorting !== false) {
-      this.sortByPresetColumnAndOrder();
+    if (allowSorting === false) {
+      return;
     }
 
+    this.sortByPresetColumnAndOrder();
     this.updateSortIndicator();
 
     this.hot.runHooks('afterColumnSort', this.sortColumn, this.sortOrder);
@@ -240,7 +231,6 @@ class ColumnSorting extends BasePlugin {
 
           break;
 
-        case NONE_SORT_STATE:
         default:
           this.sortOrder = ASC_SORT_STATE;
 
@@ -277,18 +267,16 @@ class ColumnSorting extends BasePlugin {
    */
   sortByPresetColumnAndOrder() {
     if (this.sortOrder === NONE_SORT_STATE) {
-      this.rowsMapper._arrayMap = [];
+      this.rowsMapper.clearMap();
 
       return;
     }
 
+    const indexesWithData = [];
     const colMeta = this.hot.getCellMeta(0, this.sortColumn);
     const emptyRows = this.hot.countEmptyRows();
     let sortFunction;
     let nrOfRows;
-
-    this.sortingEnabled = false; // this is required by translateRow plugin hook
-    const sortIndex = [];
 
     if (isUndefined(colMeta.columnSorting.sortEmptyCells)) {
       colMeta.columnSorting = {sortEmptyCells: this.sortEmptyCells};
@@ -300,8 +288,15 @@ class ColumnSorting extends BasePlugin {
       nrOfRows = this.hot.countRows() - emptyRows;
     }
 
-    for (let i = 0, ilen = nrOfRows; i < ilen; i++) {
-      sortIndex.push([i, this.hot.getDataAtCell(i, this.sortColumn)]);
+    // Function `getSourceDataAtCol` won't call the `modifyRow` hook.
+    const sourceDataAtColumn = this.hot.getSourceDataAtCol(this.sortColumn);
+
+    for (let physicalIndex = 0; physicalIndex < nrOfRows; physicalIndex += 1) {
+      // By passing the plugin name as the third argument we prevent to call translation (we just want get data
+      // not already modified by this plugin; the `onModifyRow` listener shouldn't be called).
+      const visualIndex = this.hot.runHooks('modifyRow', physicalIndex, this.pluginName);
+
+      indexesWithData.push([physicalIndex, sourceDataAtColumn[visualIndex]]);
     }
 
     if (colMeta.sortFunction) {
@@ -320,15 +315,15 @@ class ColumnSorting extends BasePlugin {
       }
     }
 
-    mergeSort(sortIndex, sortFunction(this.sortOrder === ASC_SORT_STATE, colMeta));
+    mergeSort(indexesWithData, sortFunction(this.sortOrder === ASC_SORT_STATE, colMeta));
 
     // Append spareRows
-    for (let i = sortIndex.length; i < this.hot.countRows(); i++) {
-      sortIndex.push([i, this.hot.getDataAtCell(i, this.sortColumn)]);
+    for (let physicalIndex = indexesWithData.length; physicalIndex < this.hot.countRows(); physicalIndex += 1) {
+      indexesWithData.push([physicalIndex, null]);
     }
 
-    this.rowsMapper._arrayMap = sortIndex.map((indexWithData) => indexWithData[0]);
-    this.sortingEnabled = true; // this is required by translateRow plugin hook
+    // Save all indexes to arrayMapper, a completely new sequence is set by the plugin
+    this.rowsMapper._arrayMap = indexesWithData.map((indexWithData) => indexWithData[0]);
   }
 
   /**
@@ -369,7 +364,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Physical row index.
    */
   onModifyRow(row, source) {
-    if (this.sortingEnabled && source !== this.pluginName) {
+    if (source !== this.pluginName) {
       let rowInMapper = this.rowsMapper.getValueByIndex(row);
       row = rowInMapper === null ? row : rowInMapper;
     }
@@ -385,7 +380,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Visual row index.
    */
   onUnmodifyRow(row, source) {
-    if (this.sortingEnabled && source !== this.pluginName) {
+    if (source !== this.pluginName) {
       row = this.rowsMapper.getIndexByValue(row);
     }
 
@@ -510,6 +505,15 @@ class ColumnSorting extends BasePlugin {
 
       this.sort(coords.col);
     }
+  }
+
+  /**
+   * Destroy plugin instance.
+   */
+  destroy() {
+    this.rowsMapper.destroy();
+
+    super.destroy();
   }
 }
 
