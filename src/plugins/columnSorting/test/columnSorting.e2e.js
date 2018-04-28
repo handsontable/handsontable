@@ -4,7 +4,7 @@ describe('ColumnSorting', () => {
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
 
-    this.sort = function(columnIndex) {
+    sortByClickOnColumnHeader = function(columnIndex) {
       const element = this.$container.find(`th span.columnSorting:eq(${columnIndex})`);
 
       element.simulate('mousedown');
@@ -53,7 +53,7 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('3');
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('4');
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('3');
@@ -133,8 +133,8 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(0);
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
+    sortByClickOnColumnHeader(0);
 
     expect(this.$container.find('tr td').first().html()).toEqual('10');
   });
@@ -151,7 +151,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     const htCore = getHtCore();
 
@@ -185,7 +185,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     const htCore = getHtCore();
 
@@ -221,7 +221,7 @@ describe('ColumnSorting', () => {
 
     const htCore = getHtCore();
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
     expect(htCore.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('');
@@ -254,8 +254,8 @@ describe('ColumnSorting', () => {
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
 
-    this.sort(0);
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
+    sortByClickOnColumnHeader(0);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
@@ -860,15 +860,15 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(3);
+    sortByClickOnColumnHeader(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['6999.9999', '7000', 8330, '8330', 8333, 30500, '33900']);
 
-    this.sort(3);
+    sortByClickOnColumnHeader(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['33900', 30500, 8333, 8330, '8330', '7000', '6999.9999']);
 
-    this.sort(3);
+    sortByClickOnColumnHeader(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['6999.9999', 8330, '8330', 8333, '33900', '7000', 30500]);
   });
@@ -899,13 +899,13 @@ describe('ColumnSorting', () => {
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
 
-    this.sort(0); // sort by first column
+    sortByClickOnColumnHeader(0); // sort by first column
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D');
 
-    this.sort(1); // sort by second column
+    sortByClickOnColumnHeader(1); // sort by second column
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
   });
@@ -1350,7 +1350,7 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1397,7 +1397,7 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1602,17 +1602,17 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([1, 'Ted', 'Right']);
     expect(getDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([5, 'Jane', 'Neat']);
     expect(getDataAtRow(4)).toEqual([1, 'Ted', 'Right']);
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([1, 'Ted', 'Right']);
     expect(getDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
@@ -1632,17 +1632,17 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([5, 4, 3, 2, 1]);
     expect(getDataAtCol(1)).toEqual(['Jane', 'Sid', 'Joan', 'Frank', 'Ted']);
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
@@ -1662,7 +1662,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([1, 'Ted', 'Right']);
     expect(getDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
@@ -1670,7 +1670,7 @@ describe('ColumnSorting', () => {
     expect(getSourceDataAtRow(0)).toEqual([1, 'Ted', 'Right']);
     expect(getSourceDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([5, 'Jane', 'Neat']);
     expect(getDataAtRow(4)).toEqual([1, 'Ted', 'Right']);
@@ -1694,7 +1694,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
@@ -1702,7 +1702,7 @@ describe('ColumnSorting', () => {
     expect(getSourceDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getSourceDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([5, 4, 3, 2, 1]);
     expect(getDataAtCol(1)).toEqual(['Jane', 'Sid', 'Joan', 'Frank', 'Ted']);
@@ -1710,7 +1710,7 @@ describe('ColumnSorting', () => {
     expect(getSourceDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getSourceDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
@@ -1730,11 +1730,11 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(1);
+    sortByClickOnColumnHeader(1);
     expect(getDataAtCol(0)).toEqual([2, 1, 3]);
     expect(getDataAtCol(1)).toEqual(['Alabama', 'albuquerque', 'Missouri']);
 
-    this.sort(1);
+    sortByClickOnColumnHeader(1);
     expect(getDataAtCol(0)).toEqual([3, 1, 2]);
     expect(getDataAtCol(1)).toEqual(['Missouri', 'albuquerque', 'Alabama']);
 
@@ -1755,11 +1755,11 @@ describe('ColumnSorting', () => {
       minSpareRows: 1
     });
 
-    this.sort(1);
+    sortByClickOnColumnHeader(1);
     expect(getDataAtCol(0)).toEqual([5, 4, 1, 2, 3, null]);
     expect(getDataAtCol(1)).toEqual(['Jane', 'Sid', 'Ted', '', '', null]);
 
-    this.sort(1);
+    sortByClickOnColumnHeader(1);
     expect(getDataAtCol(0)).toEqual([1, 4, 5, 2, 3, null]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Sid', 'Jane', '', '', null]);
 
@@ -1778,10 +1778,10 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(2);
+    sortByClickOnColumnHeader(2);
     expect(getDataAtCol(2)).toEqual([46, 123, 321, 'Some', 'String']);
 
-    this.sort(2);
+    sortByClickOnColumnHeader(2);
     expect(getDataAtCol(2)).toEqual(['String', 'Some', 321, 123, 46]);
 
   });
@@ -1799,7 +1799,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(1);
+    sortByClickOnColumnHeader(1);
 
     let sortedColumn = this.$container.find('th span.columnSorting')[1];
     let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
@@ -1814,20 +1814,20 @@ describe('ColumnSorting', () => {
       sortIndicator: true
     });
 
-    this.sort(1);
+    sortByClickOnColumnHeader(1);
 
     // descending (updateSettings doesn't reset sorting stack)
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
-    this.sort(1);
+    sortByClickOnColumnHeader(1);
 
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
-    this.sort(1);
+    sortByClickOnColumnHeader(1);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
@@ -1848,20 +1848,20 @@ describe('ColumnSorting', () => {
       ]
     });
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     sortedColumn = this.$container.find('th span.columnSorting')[0];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
-    this.sort(1);
+    sortByClickOnColumnHeader(1);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
-    this.sort(2);
+    sortByClickOnColumnHeader(2);
 
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
@@ -2162,10 +2162,10 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['-5', '10', '12', '1000', null, null]);
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['1000', '12', '10', '-5', null, null]);
   });
 
@@ -2183,10 +2183,10 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['-127', '-10.67', '-4.1', '-0.01', '0.0561', '1000']);
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127']);
   });
 
@@ -2207,10 +2207,10 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['-127', '-10.67', '-4.1', '-0.01', '0.0561', '1000', null, null, null]);
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127', null, null, null]);
   });
 
@@ -2231,10 +2231,10 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['-127', '-10.67', '-4.1', '-0.01', '0.0561', '1000', 'a', 'b', 'hello']);
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['hello', 'b', 'a', '1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127']);
   });
 
@@ -2250,7 +2250,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sort(0);
+    sortByClickOnColumnHeader(0);
 
     expect(hot.toPhysicalRow(0)).toBe(2);
     expect(hot.toPhysicalRow(1)).toBe(0);
