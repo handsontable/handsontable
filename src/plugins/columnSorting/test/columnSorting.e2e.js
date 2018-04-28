@@ -4,7 +4,7 @@ describe('ColumnSorting', () => {
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
 
-    this.this.sortByClickOnColumnHeader = function(columnIndex) {
+    this.sortByClickOnColumnHeader = function(columnIndex) {
       const element = this.$container.find(`th span.columnSorting:eq(${columnIndex})`);
 
       element.simulate('mousedown');
