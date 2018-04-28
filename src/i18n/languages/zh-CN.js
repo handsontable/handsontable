@@ -3,7 +3,8 @@
  * Authors: soakit
  * Last updated: Apr 28, 2018
  *
- * Description: Definition file for Chinese - China language-country.
+ * Description: Definition file for Simplified Chinese -  China (mainland) language-country.
+ * Language Culture Name: zh-CN
  */
 import * as C from '../constants';
 
