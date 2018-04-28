@@ -1,9 +1,9 @@
 /**
  * @preserve
- * Authors: Phyllis Yen
- * Last updated: Mar 9, 2018
+ * Authors: soakit
+ * Last updated: Apr 28, 2018
  *
- * Description: Definition file for Traditional Chinese - Taiwan language-country.
+ * Description: Definition file for Chinese - China language-country.
  */
 import * as C from '../constants';
 
