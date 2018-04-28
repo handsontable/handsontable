@@ -53,7 +53,9 @@ const NONE_SORT_STATE = 'none';
 class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
-    this.sortIndicators = []; // TODO: It could be refactored, we are sorting just by one column, without saving state of previous sort indicators.
+    // TODO: It could be refactored, it's cache which store information about value of `sortIndicator` property
+    // inside meta of first cell from particular column.
+    this.sortIndicators = [];
     /**
      * Visual index of last sorted column.
      *
