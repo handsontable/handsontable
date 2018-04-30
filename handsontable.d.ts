@@ -688,27 +688,28 @@ declare namespace Handsontable {
       toggleCollapsibleSection(coords: object, action: string): void;
     }
 
-    interface ColumnSorting extends Base {
-      lastSortedColumn: number;
-      sortEmptyCells: boolean;
-      sortIndicators: any[];
+    type SortOrderType = 'asc' | 'desc' | 'none';
 
-      dateSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => boolean;
-      defaultSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => boolean;
-      enableObserveChangesPlugin(): void;
-      getColHeader(col: number, TH: HTMLElement): void;
+    interface ColumnSortingRowsMapper extends arrayMapper {
+      columnSorting: ColumnSorting;
+
+      createMap(length?: number): void;
+      destroy(): void;
+    }
+
+    interface ColumnSorting extends Base {
+      lastSortedColumn: null | number;
+      rowsMapper: ColumnSortingRowsMapper;
+      sortIndicators: any[];
+      sortingEnabled: boolean;
+      sortColumn: undefined | number;
+      sortEmptyCells: boolean;
+      sortOrder: SortOrderType;
+
       isSorted(): boolean;
       loadSortingState(): any;
-      numericSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => boolean;
       saveSortingState(): void;
-      setSortingColumn(col: number, order: boolean | void): void;
       sort(): void;
-      sortBySettings(): void;
-      sortByColumn(col: number, order: boolean | void): void;
-      translateRow(row: number): number;
-      untranslateRow(row: number): number;
-      updateOrderClass(): void;
-      updateSortIndicator(): void;
     }
 
     interface ColumnSummary extends Base {
