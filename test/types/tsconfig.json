@@ -9,10 +9,15 @@
     "noImplicitAny": true,
     "noImplicitThis": true,
     "strictNullChecks": false,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "",
+    "paths": {
+      "handsontable": [ "../../" ]
+    }
   },
   "include": [
     "../../handsontable.d.ts",
+    "**/*.types.ts",
     "../../src/plugins/**/test/*.types.ts"
   ]
 }

@@ -177,7 +177,7 @@ describe('Core_getCellMeta', () => {
     updateSettings({
       columnSorting: {
         column: 0,
-        sortOrder: true
+        sortOrder: 'asc'
       }
     });
 

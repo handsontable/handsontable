@@ -73,8 +73,12 @@ declare namespace _Handsontable {
     rowOffset(): number;
     runHooks(key: string, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
     scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean): boolean;
+    selectAll(): void;
     selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
     selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
+    selectCells(coords: Array<[number, number | string, number, number | string]> | Array<Handsontable.wot.CellRange>, scrollToCell?: boolean, changeListener?: boolean): boolean;
+    selectColumns(startColumn: number | string, endColumn?: number | string): boolean;
+    selectRows(startRow: number, endRow?: number): boolean;
     setCellMeta(row: number, col: number, key: string, val: string): void;
     setCellMetaObject(row: number, col: number, prop: object): void;
     setDataAtCell(row: number | Array<[number,number,any]>, col: number, value: string | object, source?: string): void;
@@ -685,10 +689,23 @@ declare namespace Handsontable {
       toggleCollapsibleSection(coords: object, action: string): void;
     }
 
+    type SortOrderType = 'asc' | 'desc' | 'none';
+
+    interface ColumnSortingRowsMapper extends arrayMapper {
+      columnSorting: ColumnSorting;
+
+      createMap(length?: number): void;
+      destroy(): void;
+    }
+
     interface ColumnSorting extends Base {
-      lastSortedColumn: number;
-      sortEmptyCells: boolean;
+      lastSortedColumn: null | number;
+      rowsMapper: ColumnSortingRowsMapper;
       sortIndicators: any[];
+      sortingEnabled: boolean;
+      sortColumn: undefined | number;
+      sortEmptyCells: boolean;
+      sortOrder: SortOrderType;
 
       dateSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
       defaultSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
@@ -698,14 +715,7 @@ declare namespace Handsontable {
       loadSortingState(): any;
       numericSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
       saveSortingState(): void;
-      setSortingColumn(col: number, order: boolean | void): void;
       sort(): void;
-      sortBySettings(): void;
-      sortByColumn(col: number, order: boolean | void): void;
-      translateRow(row: number): number;
-      untranslateRow(row: number): number;
-      updateOrderClass(): void;
-      updateSortIndicator(): void;
     }
 
     interface ColumnSummary extends Base {
@@ -795,6 +805,19 @@ declare namespace Handsontable {
       copy(triggeredByClick?: boolean): void;
       cut(triggeredByClick?: boolean): void;
       paste(triggeredByClick?: boolean): void;
+    }
+
+    interface CustomBorders extends Base {
+      savedBorderSettings: any[];
+
+      getSettingIndex(className: string): number;
+      insertBorderIntoSettings(border: object): void;
+      prepareBorderFromCustomAdded(row: number, col: number, borderObj: object): void;
+      prepareBorderFromCustomAddedRange(rowObj: object): void;
+      removeBordersFromDom(borderClassName: string): void;
+      removeAllBorders(row: number, col: number): void;
+      setBorder(row: number, col: number, place: string, remove: boolean): void;
+      prepareBorder(range: object, place: string, remove: boolean): void;
     }
 
     interface DragToScroll extends Base {
@@ -1472,7 +1495,7 @@ declare namespace Handsontable {
     noWordWrapClassName?: string;
     observeChanges?: boolean;
     observeDOMVisibility?: boolean;
-    outsideClickDeselects?: boolean;
+    outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
     pasteMode?: string;
     persistentState?: boolean;
     placeholder?: any;
@@ -1525,6 +1548,7 @@ declare namespace Handsontable {
     afterColumnSort?: (column: number, order: boolean) => void;
     afterContextMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterContextMenuHide?: (context: object) => void;
+    beforeContextMenuShow?: (context: object) => void;
     afterContextMenuShow?: (context: object) => void;
     afterCopy?: (data: any[], coords: any[]) => void;
     afterCopyLimit?: (selectedRows: number, selectedColumnds: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
@@ -1537,6 +1561,7 @@ declare namespace Handsontable {
     afterDocumentKeyDown?: (event: Event) => void;
     afterDropdownMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterDropdownMenuHide?: (instance: any) => void;
+    beforeDropdownMenuShow?: (instance: any) => void;
     afterDropdownMenuShow?: (instance: any) => void;
     afterFilter?: (formulasStack: any[]) => void;
     afterGetCellMeta?: (row: number, col: number, cellProperties: GridSettings) => void;
@@ -1618,7 +1643,7 @@ declare namespace Handsontable {
     beforeTouchScroll?: () => void;
     beforeUndo?: (action: object) => void;
     beforeValidate?: (value: any, row: number, prop: string | number, source?: string) => void;
-    beforeValueRender?: (value: any) => void;
+    beforeValueRender?: (value: any, cellProperties: object) => void;
     construct?: () => void;
     hiddenColumn?: (column: number) => void;
     hiddenRow?: (row: number) => void;
@@ -1791,7 +1816,7 @@ declare namespace Handsontable {
     isMobileBrowser(userAgent?: string): boolean,
     isNumeric(n: any): boolean,
     isObject(obj: any): boolean,
-    isObjectEquals(object1: object | any[], object2: object | any[]): boolean,
+    isObjectEqual(object1: object | any[], object2: object | any[]): boolean,
     isPercentValue(value: string): boolean,
     isPrintableChar(keyCode: number): boolean,
     isSafari(): boolean,
@@ -1944,6 +1969,8 @@ declare namespace Handsontable {
 declare class Handsontable extends _Handsontable.Core {
   static baseVersion: string;
   static buildDate: string;
+  static packageName: string;
+  static version: string;
   static cellTypes: Handsontable.CellTypes;
   static languages: Handsontable.I18n.Internationalization;
   static dom: Handsontable.Dom;
@@ -1952,7 +1979,6 @@ declare class Handsontable extends _Handsontable.Core {
   static hooks: Handsontable.Hooks;
   static plugins: Handsontable.Plugins;
   static renderers: Handsontable.Renderers;
-  static version: string;
 }
 
 export = Handsontable;

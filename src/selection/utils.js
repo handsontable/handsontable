@@ -1,29 +1,55 @@
 import {CellRange} from './../3rdparty/walkontable/src';
-import {arrayEach, arrayReduce} from './../helpers/array';
+import {arrayEach, arrayReduce, arrayMap} from './../helpers/array';
+import {isUndefined} from './../helpers/mixed';
 
-const SELECTION_TYPE_ARRAY = 'array';
-const SELECTION_TYPE_OBJECT = 'object';
-const SELECTION_TYPES = [SELECTION_TYPE_OBJECT, SELECTION_TYPE_ARRAY];
+export const SELECTION_TYPE_UNRECOGNIZED = 0;
+export const SELECTION_TYPE_EMPTY = 1;
+export const SELECTION_TYPE_ARRAY = 2;
+export const SELECTION_TYPE_OBJECT = 3;
+export const SELECTION_TYPES = [
+  SELECTION_TYPE_OBJECT,
+  SELECTION_TYPE_ARRAY,
+];
+const ARRAY_TYPE_PATTERN = [['number'], ['number', 'string'], ['number', 'undefined'], ['number', 'string', 'undefined']];
+const rootCall = Symbol('root');
+const childCall = Symbol('child');
 
 /**
- * Detect data structure, a holder for coordinates for selection functionality.
+ * Detect selection schema structure.
  *
- * @param {Array[]|CellRange[]} selectionRanges An array of selected ranges. This type of data is produced by
- *                                              `hot.getSelected()` and `hot.getSelectedRange()` methods.
- * @returns {String|undefined} It returns strings: `array` or `object` depends on from what method the selection data is
- *                            provided. If data type is unrecognized than it returns `undefined`.
+ * @param {*} selectionRanges The selected range or and array of selected ranges. This type of data is produced by
+ *                            `hot.getSelected()`, `hot.getSelectedLast()`, `hot.getSelectedRange()`
+ *                            and `hot.getSelectedRangeLast()` methods.
+ * @returns {Number} Returns a number that specifies the type of detected selection schema. If selection schema type
+ *                   is unrecognized than it returns `0`.
  */
-export function detectSelectionType(selectionRanges) {
-  let result;
+export function detectSelectionType(selectionRanges, _callSymbol = rootCall) {
+  if (_callSymbol !== rootCall && _callSymbol !== childCall) {
+    throw new Error('The second argument is used internally only and cannot be overwritten.');
+  }
 
-  if (selectionRanges.length) {
+  const isArray = Array.isArray(selectionRanges);
+  const isRootCall = _callSymbol === rootCall;
+  let result = SELECTION_TYPE_UNRECOGNIZED;
+
+  if (isArray) {
     const firstItem = selectionRanges[0];
 
-    if (Array.isArray(firstItem)) {
-      result = SELECTION_TYPE_ARRAY;
+    if (selectionRanges.length === 0) {
+      result = SELECTION_TYPE_EMPTY;
 
-    } else if (firstItem instanceof CellRange) {
+    } else if (isRootCall && firstItem instanceof CellRange) {
       result = SELECTION_TYPE_OBJECT;
+
+    } else if (isRootCall && Array.isArray(firstItem)) {
+      result = detectSelectionType(firstItem, childCall);
+
+    } else if (selectionRanges.length >= 2 && selectionRanges.length <= 4) {
+      const isArrayType = !selectionRanges.some((value, index) => !ARRAY_TYPE_PATTERN[index].includes(typeof value));
+
+      if (isArrayType) {
+        result = SELECTION_TYPE_ARRAY;
+      }
     }
   }
 
@@ -34,26 +60,55 @@ export function detectSelectionType(selectionRanges) {
  * Factory function designed for normalization data schema from different data structures of the selection ranges.
  *
  * @param {String} type Selection type which will be processed.
- * @returns {Array} Returns normalized data about selected range as an array: `[rowStart, columnStart, rowEnd, columnEnd]`.
+ * @param {Object} [options]
+ * @param {Boolean} [options.keepDirection=false] If `true`, the coordinates which contain the direction of the
+ *                                                selected cells won't be changed. Otherwise, the selection will be
+ *                                                normalized to values starting from top-left to bottom-right.
+ * @param {Function} [options.propToCol] Pass the converting function (usually `datamap.propToCol`) if the column
+ *                                       defined as props should be normalized to the numeric values.
+ * @returns {Number[]} Returns normalized data about selected range as an array (`[rowStart, columnStart, rowEnd, columnEnd]`).
  */
-export function normalizeSelectionFactory(type) {
+export function normalizeSelectionFactory(type, {keepDirection = false, propToCol} = {}) {
   if (!SELECTION_TYPES.includes(type)) {
-    throw new Error('Unsupported selection ranges data type was provided.');
+    throw new Error('Unsupported selection ranges schema type was provided.');
   }
 
   return function(selection) {
     const isObjectType = type === SELECTION_TYPE_OBJECT;
-    const rowStart = isObjectType ? selection.from.row : selection[0];
-    const columnStart = isObjectType ? selection.from.col : selection[1];
-    const rowEnd = isObjectType ? selection.to.row : selection[2];
-    const columnEnd = isObjectType ? selection.to.col : selection[3];
+    let rowStart = isObjectType ? selection.from.row : selection[0];
+    let columnStart = isObjectType ? selection.from.col : selection[1];
+    let rowEnd = isObjectType ? selection.to.row : selection[2];
+    let columnEnd = isObjectType ? selection.to.col : selection[3];
 
-    return [
-      Math.min(rowStart, rowEnd),
-      Math.min(columnStart, columnEnd),
-      Math.max(rowStart, rowEnd),
-      Math.max(columnStart, columnEnd),
-    ];
+    if (typeof propToCol === 'function') {
+      if (typeof columnStart === 'string') {
+        columnStart = propToCol(columnStart);
+      }
+      if (typeof columnEnd === 'string') {
+        columnEnd = propToCol(columnEnd);
+      }
+    }
+
+    if (isUndefined(rowEnd)) {
+      rowEnd = rowStart;
+    }
+    if (isUndefined(columnEnd)) {
+      columnEnd = columnStart;
+    }
+
+    if (!keepDirection) {
+      const origRowStart = rowStart;
+      const origColumnStart = columnStart;
+      const origRowEnd = rowEnd;
+      const origColumnEnd = columnEnd;
+
+      rowStart = Math.min(origRowStart, origRowEnd);
+      columnStart = Math.min(origColumnStart, origColumnEnd);
+      rowEnd = Math.max(origRowStart, origRowEnd);
+      columnEnd = Math.max(origColumnStart, origColumnEnd);
+    }
+
+    return [rowStart, columnStart, rowEnd, columnEnd];
   };
 }
 
@@ -72,7 +127,7 @@ export function normalizeSelectionFactory(type) {
 export function transformSelectionToColumnDistance(selectionRanges) {
   const selectionType = detectSelectionType(selectionRanges);
 
-  if (!selectionType) {
+  if (selectionType === SELECTION_TYPE_UNRECOGNIZED || selectionType === SELECTION_TYPE_EMPTY) {
     return [];
   }
 
@@ -122,7 +177,7 @@ export function transformSelectionToColumnDistance(selectionRanges) {
 export function transformSelectionToRowDistance(selectionRanges) {
   const selectionType = detectSelectionType(selectionRanges);
 
-  if (!selectionType) {
+  if (selectionType === SELECTION_TYPE_UNRECOGNIZED || selectionType === SELECTION_TYPE_EMPTY) {
     return [];
   }
 
@@ -156,3 +211,15 @@ export function transformSelectionToRowDistance(selectionRanges) {
 
   return normalizedRowRanges;
 }
+
+/**
+ * Check if passed value can be treated as valid cell coordinate. The second argument is
+ * used to check if the value doesn't exceed the defined max table rows/columns count.
+ *
+ * @param {*} coord
+ * @param {Number} maxTableItemsCount The value that declares the maximum coordinate that is still validatable.
+ * @return {Boolean}
+ */
+export function isValidCoord(coord, maxTableItemsCount = Infinity) {
+  return typeof coord === 'number' && coord >= 0 && coord < maxTableItemsCount;
+};

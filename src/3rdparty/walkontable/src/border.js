@@ -44,9 +44,9 @@ class Border {
     this.rightStyle = null;
 
     this.cornerDefaultStyle = {
-      width: '5px',
-      height: '5px',
-      borderWidth: '2px',
+      width: '6px',
+      height: '6px',
+      borderWidth: '1px',
       borderStyle: 'solid',
       borderColor: '#FFF'
     };
@@ -282,7 +282,7 @@ class Border {
     this.selectionHandles.styles.bottomRightHitArea.top = `${parseInt(top + height - (hitAreaWidth / 4), 10)}px`;
     this.selectionHandles.styles.bottomRightHitArea.left = `${parseInt(left + width - (hitAreaWidth / 4), 10)}px`;
 
-    if (this.settings.border.multipleSelectionHandlesVisible && this.settings.border.multipleSelectionHandlesVisible()) {
+    if (this.settings.border.cornerVisible && this.settings.border.cornerVisible()) {
       this.selectionHandles.styles.topLeft.display = 'block';
       this.selectionHandles.styles.topLeftHitArea.display = 'block';
 
@@ -445,7 +445,14 @@ class Border {
     let cornerVisibleSetting = this.settings.border.cornerVisible;
     cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ? cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
 
-    if (isMobileBrowser() || !cornerVisibleSetting) {
+    const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn);
+    let [checkRow, checkCol] = [toRow, toColumn];
+
+    if (hookResult && Array.isArray(hookResult)) {
+      [,, checkRow, checkCol] = hookResult;
+    }
+
+    if (isMobileBrowser() || !cornerVisibleSetting || this.isPartRange(checkRow, checkCol)) {
       this.cornerStyle.display = 'none';
 
     } else {
@@ -457,10 +464,17 @@ class Border {
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
       this.cornerStyle.display = 'none';
 
-      const trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
+      let trimmingContainer = getTrimmingContainer(this.wot.wtTable.TABLE);
+      const trimToWindow = trimmingContainer === window;
+
+      if (trimToWindow) {
+        trimmingContainer = document.documentElement;
+      }
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
-        const cornerOverlappingContainer = toTD.offsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2) >= innerWidth(trimmingContainer);
+        const toTdOffsetLeft = trimToWindow ? toTD.getBoundingClientRect().left : toTD.offsetLeft;
+        const cornerRightEdge = toTdOffsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2);
+        const cornerOverlappingContainer = cornerRightEdge >= innerWidth(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.left = `${Math.floor(left + width - 3 - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`;
@@ -469,7 +483,9 @@ class Border {
       }
 
       if (toRow === this.wot.getSetting('totalRows') - 1) {
-        const cornerOverlappingContainer = toTD.offsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2) >= innerHeight(trimmingContainer);
+        const toTdOffsetTop = trimToWindow ? toTD.getBoundingClientRect().top : toTD.offsetTop;
+        const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2);
+        const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.top = `${Math.floor(top + height - 3 - (parseInt(this.cornerDefaultStyle.height, 10) / 2))}px`;
@@ -481,7 +497,7 @@ class Border {
     }
 
     if (isMobileBrowser()) {
-      this.updateMultipleSelectionHandlesPosition(fromRow, fromColumn, top, left, width, height);
+      this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, left, width, height);
     }
   }
 
@@ -547,8 +563,10 @@ class Border {
     }
 
     if (rootHotElement.className.includes(entireSelectionClassname)) {
-      startHeader = getHeaderFn(fromIndex, 0);
-      endHeader = getHeaderFn(toIndex, 0);
+      const columnHeaderLevelCount = this.wot.getSetting('columnHeaders').length;
+
+      startHeader = getHeaderFn(fromIndex, columnHeaderLevelCount - 1);
+      endHeader = getHeaderFn(toIndex, columnHeaderLevelCount - 1);
 
       if (!startHeader || !endHeader) {
         return false;

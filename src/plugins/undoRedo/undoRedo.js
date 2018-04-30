@@ -7,6 +7,7 @@ import {rangeEach} from './../../helpers/number';
 import {inherit, deepClone} from './../../helpers/object';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
 import {CellCoords} from './../../3rdparty/walkontable/src';
+import {align} from './../contextMenu/utils';
 
 /**
  * @description
@@ -129,7 +130,7 @@ function UndoRedo(instance) {
       return;
     }
 
-    plugin.done(new UndoRedo.MergeCells(instance, cellRange));
+    plugin.done(new UndoRedo.MergeCellsAction(instance, cellRange));
   });
 
   instance.addHook('afterUnmergeCells', (cellRange, auto) => {
@@ -137,7 +138,7 @@ function UndoRedo(instance) {
       return;
     }
 
-    plugin.done(new UndoRedo.UnmergeCells(instance, cellRange));
+    plugin.done(new UndoRedo.UnmergeCellsAction(instance, cellRange));
   });
 
 }
@@ -390,7 +391,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   var changes = [];
 
   // TODO: Temporary hook for undo/redo mess
-  instance.runHooks('beforeCreateCol', this.indexes[0], this.indexes[this.indexes.length - 1], 'UndoRedo.undo');
+  instance.runHooks('beforeCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   rangeEach(this.data.length - 1, (i) => {
     row = instance.getSourceDataAtRow(i);
@@ -419,7 +420,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   instance.addHookOnce('afterRender', undoneCallback);
 
   // TODO: Temporary hook for undo/redo mess
-  instance.runHooks('afterCreateCol', this.indexes[0], this.indexes[this.indexes.length - 1], 'UndoRedo.undo');
+  instance.runHooks('afterCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   if (instance.getPlugin('formulas')) {
     instance.getPlugin('formulas').recalculateFull();
@@ -443,13 +444,9 @@ UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.alignment = alignment;
 };
 UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
-  if (!instance.getPlugin('contextMenu').isEnabled()) {
-    return;
-  }
-
   arrayEach(this.range, ({from, to}) => {
-    for (var row = from.row; row <= to.row; row++) {
-      for (var col = from.col; col <= to.col; col++) {
+    for (let row = from.row; row <= to.row; row += 1) {
+      for (let col = from.col; col <= to.col; col += 1) {
         instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
       }
     }
@@ -459,13 +456,8 @@ UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback)
   instance.render();
 };
 UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback) {
-  if (!instance.getPlugin('contextMenu').isEnabled()) {
-    return;
-  }
-  arrayEach(this.range, ({from, to}) => {
-    instance.selectCell(from.row, from.col, to.row, to.col);
-    instance.getPlugin('contextMenu').executeCommand(`alignment:${this.alignment.replace('ht', '').toLowerCase()}`);
-  });
+  align(this.range, this.type, this.alignment, (row, col) => instance.getCellMeta(row, col),
+    (row, col, key, value) => instance.setCellMeta(row, col, key, value));
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
@@ -499,8 +491,9 @@ UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
 
 /**
  * Merge Cells action.
+ * @util
  */
-class MergeCells extends UndoRedo.Action {
+class MergeCellsAction extends UndoRedo.Action {
   constructor(instance, cellRange) {
     super();
     this.cellRange = cellRange;
@@ -522,13 +515,13 @@ class MergeCells extends UndoRedo.Action {
     mergeCellsPlugin.mergeRange(this.cellRange);
   }
 }
-UndoRedo.MergeCells = MergeCells;
+UndoRedo.MergeCellsAction = MergeCellsAction;
 
 /**
  * Unmerge Cells action.
  * @util
  */
-class UnmergeCells extends UndoRedo.Action {
+class UnmergeCellsAction extends UndoRedo.Action {
   constructor(instance, cellRange) {
     super();
     this.cellRange = cellRange;
@@ -549,7 +542,7 @@ class UnmergeCells extends UndoRedo.Action {
     instance.render();
   }
 }
-UndoRedo.UnmergeCells = UnmergeCells;
+UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
 
 /**
  * ManualRowMove action.
@@ -578,8 +571,7 @@ UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
   manualRowMove.moveRows(newRows.slice(), newTarget);
   instance.render();
 
-  instance.selection.setRangeStartOnly(new CellCoords(this.rows[0], 0));
-  instance.selection.setRangeEnd(new CellCoords(this.rows[this.rows.length - 1], instance.countCols() - 1));
+  instance.selectCell(this.rows[0], 0, this.rows[this.rows.length - 1], instance.countCols() - 1, false, false);
 };
 UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
   let manualRowMove = instance.getPlugin('manualRowMove');
@@ -588,8 +580,8 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
   manualRowMove.moveRows(this.rows.slice(), this.target);
   instance.render();
   let startSelection = this.rows[0] < this.target ? this.target - this.rows.length : this.target;
-  instance.selection.setRangeStartOnly(new CellCoords(startSelection, 0));
-  instance.selection.setRangeEnd(new CellCoords(startSelection + this.rows.length - 1, instance.countCols() - 1));
+
+  instance.selectCell(startSelection, 0, startSelection + this.rows.length - 1, instance.countCols() - 1, false, false);
 };
 
 function init() {

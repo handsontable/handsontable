@@ -1,4 +1,3 @@
-
 var _isIE8 = !(document.createTextNode('test').textContent);
 
 export function isIE8() {

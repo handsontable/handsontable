@@ -1,8 +1,10 @@
 import MergedCellCoords from './cellCoords';
 import {CellCoords, CellRange} from '../../3rdparty/walkontable/src/index';
-import {rangeEach} from '../../helpers/number';
+import {rangeEach, rangeEachReverse} from '../../helpers/number';
+import {warn} from '../../helpers/console';
 import {arrayEach} from '../../helpers/array';
 import {applySpanProperties} from './utils';
+import {toSingleLine} from './../../helpers/templateLiteralTag';
 
 /**
  * Defines a container object for the merged cells.
@@ -30,6 +32,17 @@ class MergedCellsCollection {
      * @type {Handsontable}
      */
     this.hot = plugin.hot;
+  }
+
+  /**
+   * Get a warning message for when the declared merged cell data overlaps already existing merged cells.
+   *
+   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @return {String}
+   */
+  static IS_OVERLAPPING_WARNING(newMergedCell) {
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}], overlaps with the other declared merged 
+    cell. The overlapping merged cell was not added to the table, please fix your setup.`;
   }
 
   /**
@@ -128,8 +141,10 @@ class MergedCellsCollection {
     const rowspan = mergedCellInfo.rowspan;
     const colspan = mergedCellInfo.colspan;
     const newMergedCell = new MergedCellCoords(row, column, rowspan, colspan);
+    const alreadyExists = this.get(row, column);
+    const isOverlapping = this.isOverlapping(newMergedCell);
 
-    if (!this.get(row, column) && !this.isOverlapping(newMergedCell)) {
+    if (!alreadyExists && !isOverlapping) {
       if (this.hot) {
         newMergedCell.normalize(this.hot);
       }
@@ -139,8 +154,7 @@ class MergedCellsCollection {
       return newMergedCell;
     }
 
-    console.warn(`The declared merged cell at [${newMergedCell.row}, ${newMergedCell.col}] overlaps with the other declared merged cell. 
-    The overlapping merged cell was not added to the table, please fix your setup.`);
+    warn(MergedCellsCollection.IS_OVERLAPPING_WARNING(newMergedCell));
 
     return false;
   }
@@ -175,7 +189,11 @@ class MergedCellsCollection {
     const hiddenCollectionElements = [];
 
     arrayEach(mergedCells, (mergedCell) => {
-      mergedCellParentsToClear.push([this.hot.getCell(mergedCell.row, mergedCell.col), this.get(mergedCell.row, mergedCell.col), mergedCell.row, mergedCell.col]);
+      const TD = this.hot.getCell(mergedCell.row, mergedCell.col);
+
+      if (TD) {
+        mergedCellParentsToClear.push([TD, this.get(mergedCell.row, mergedCell.col), mergedCell.row, mergedCell.col]);
+      }
     });
 
     this.mergedCells.length = 0;
@@ -184,7 +202,11 @@ class MergedCellsCollection {
       rangeEach(0, mergedCell.rowspan - 1, (j) => {
         rangeEach(0, mergedCell.colspan - 1, (k) => {
           if (k !== 0 || j !== 0) {
-            hiddenCollectionElements.push([this.hot.getCell(mergedCell.row + j, mergedCell.col + k), null, null, null]);
+            const TD = this.hot.getCell(mergedCell.row + j, mergedCell.col + k);
+
+            if (TD) {
+              hiddenCollectionElements.push([TD, null, null, null]);
+            }
           }
         });
       });
@@ -283,8 +305,10 @@ class MergedCellsCollection {
       currentMerge.shift(shiftVector, index);
     });
 
-    arrayEach(this.mergedCells, (currentMerge) => {
-      if (currentMerge.removed) {
+    rangeEachReverse(this.mergedCells.length - 1, 0, (i) => {
+      let currentMerge = this.mergedCells[i];
+
+      if (currentMerge && currentMerge.removed) {
         this.mergedCells.splice(this.mergedCells.indexOf(currentMerge), 1);
       }
     });

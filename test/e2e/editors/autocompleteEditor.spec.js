@@ -437,8 +437,8 @@ describe('AutocompleteEditor', () => {
       expect(hot.getActiveEditor().beginEditing.calls.count()).toBe(3);
     });
 
-    it('should not display all the choices from a long source list and not leave any unused space in the dropdown (YouTrack: #HOT-32)', (done) => {
-      var hot = handsontable({
+    it('should not display all the choices from a long source list and not leave any unused space in the dropdown', async () => {
+      const hot = handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -454,18 +454,16 @@ describe('AutocompleteEditor', () => {
 
       selectCell(0, 0);
       keyDownUp('enter');
-      var $autocomplete = autocomplete();
-      var $autocompleteHolder = $autocomplete.find('.ht_master .wtHolder').first();
+      const $autocomplete = autocomplete();
+      const $autocompleteHolder = $autocomplete.find('.ht_master .wtHolder').first();
+      await sleep(100);
 
-      setTimeout(() => {
-        expect($autocomplete.find('td').first().text()).toEqual('Acura');
-        $autocompleteHolder.scrollTop($autocompleteHolder[0].scrollHeight);
-      }, 100);
+      expect($autocomplete.find('td').first().text()).toEqual('Acura');
 
-      setTimeout(() => {
-        expect($autocomplete.find('td').last().text()).toEqual('Volvo');
-        done();
-      }, 200);
+      $autocompleteHolder.scrollTop($autocompleteHolder[0].scrollHeight);
+      await sleep(100);
+
+      expect($autocomplete.find('td').last().text()).toEqual('Volvo');
     });
 
     it('should display the choices, regardless if they\'re declared as string or numeric', (done) => {
@@ -552,7 +550,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
     });
 
-    it('should flip the dropdown upwards when there is no more room left below the cell after filtering the choice list', (done) => {
+    it('should flip the dropdown upwards when there is no more room left below the cell after filtering the choice list', async () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         columns: [
@@ -569,23 +567,19 @@ describe('AutocompleteEditor', () => {
       selectCell(26, 0);
 
       hot.view.wt.wtTable.holder.scrollTop = 999;
-
       mouseDoubleClick($(getCell(26, 0)));
 
       var autocompleteEditor = $('.autocompleteEditor');
 
-      setTimeout(() => {
-        expect(autocompleteEditor.css('position')).toEqual('relative');
+      await sleep(100);
+      expect(autocompleteEditor.css('position')).toEqual('relative');
 
-        autocompleteEditor.siblings('textarea').first().val('');
-        keyDownUp('backspace');
-      }, 20);
+      autocompleteEditor.siblings('textarea').first().val('');
+      keyDownUp('backspace');
+      await sleep(100);
 
-      setTimeout(() => {
-        expect(autocompleteEditor.css('position')).toEqual('absolute');
-        expect(autocompleteEditor.css('top')).toEqual(`${(-1) * autocompleteEditor.height()}px`);
-        done();
-      }, 100);
+      expect(autocompleteEditor.css('position')).toEqual('absolute');
+      expect(autocompleteEditor.css('top')).toEqual(`${(-1) * autocompleteEditor.height()}px`);
     });
   });
 
@@ -2020,8 +2014,8 @@ describe('AutocompleteEditor', () => {
       expect(hot.getCellMeta(0, 0).allowHtml).toBeFalsy();
     });
 
-    it('should strip html from strings provided in source (async mode)', (done) => {
-      hot = handsontable({
+    it('should strip html from strings provided in source (async mode)', async () => {
+      const hot = handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -2034,20 +2028,21 @@ describe('AutocompleteEditor', () => {
       });
 
       selectCell(0, 0);
-      var editorInput = $('.handsontableInput');
+      const editorInput = $('.handsontableInput');
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
       keyDownUp('enter');
+      await sleep(200);
 
-      setTimeout(() => {
-        editorInput.val('b');
-        keyDownUp('b'.charCodeAt(0));
-      }, 200);
+      editorInput.val('b');
+      keyDownUp('b'.charCodeAt(0));
 
-      setTimeout(() => {
-        var ac = hot.getActiveEditor();
-        var innerHot = ac.htEditor;
+      await sleep(200);
+
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
           ['bar'],
@@ -2057,11 +2052,11 @@ describe('AutocompleteEditor', () => {
         editorInput.val('bar');
         keyDownUp('a'.charCodeAt(0));
         keyDownUp('r'.charCodeAt(0));
-      }, 400);
-
-      setTimeout(() => {
-        var ac = hot.getActiveEditor();
-        var innerHot = ac.htEditor;
+      }
+      await sleep(200);
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
           ['bar']
@@ -2069,17 +2064,15 @@ describe('AutocompleteEditor', () => {
 
         keyDownUp('arrow_down');
         keyDownUp('enter');
-      }, 600);
+      }
+      await sleep(200);
 
-      setTimeout(() => {
-        expect(getCell(0, 0).querySelector('i')).toBeNull();
-        expect(getCell(0, 0).textContent).toMatch('bar');
-        done();
-      }, 700);
+      expect(getCell(0, 0).querySelector('i')).toBeNull();
+      expect(getCell(0, 0).textContent).toMatch('bar');
     });
 
-    it('should strip html from strings provided in source (sync mode)', (done) => {
-      hot = handsontable({
+    it('should strip html from strings provided in source (sync mode)', async () => {
+      const hot = handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -2090,48 +2083,49 @@ describe('AutocompleteEditor', () => {
       });
 
       selectCell(0, 0);
-      var editorInput = $('.handsontableInput');
+      const editorInput = $('.handsontableInput');
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
       keyDownUp('enter');
+      await sleep(200);
+      editorInput.val('b');
+      keyDownUp('b'.charCodeAt(0));
 
-      setTimeout(() => {
-        editorInput.val('b');
-        keyDownUp('b'.charCodeAt(0));
-      }, 200);
+      await sleep(200);
 
-      setTimeout(() => {
-        var ac = hot.getActiveEditor();
-        var innerHot = ac.htEditor;
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
           ['bar'],
           ['baz'],
         ]);
+      }
 
-        editorInput.val('bar');
-        keyDownUp('a'.charCodeAt(0));
-        keyDownUp('r'.charCodeAt(0));
-      }, 400);
+      editorInput.val('bar');
+      keyDownUp('a'.charCodeAt(0));
+      keyDownUp('r'.charCodeAt(0));
 
-      setTimeout(() => {
-        var ac = hot.getActiveEditor();
-        var innerHot = ac.htEditor;
+      await sleep(200);
+
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
           ['bar']
         ]);
+      }
 
-        keyDownUp('arrow_down');
-        keyDownUp('enter');
-      }, 600);
+      keyDownUp('arrow_down');
+      keyDownUp('enter');
 
-      setTimeout(() => {
-        expect(getCell(0, 0).querySelector('i')).toBeNull();
-        expect(getCell(0, 0).textContent).toMatch('bar');
-        done();
-      }, 700);
+      await sleep(100);
+
+      expect(getCell(0, 0).querySelector('i')).toBeNull();
+      expect(getCell(0, 0).textContent).toMatch('bar');
     });
   });
 
@@ -2559,8 +2553,8 @@ describe('AutocompleteEditor', () => {
     }, 60);
   });
 
-  it('should not close editor on scrolling', (done) => {
-    var hot = handsontable({
+  it('should not close editor on scrolling', async () => {
+    const hot = handsontable({
       data: [
         ['', 'two', 'three'],
         ['four', 'five', 'six']
@@ -2583,25 +2577,24 @@ describe('AutocompleteEditor', () => {
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
-    var dropdown = hot.getActiveEditor().htContainer;
+    const dropdown = hot.getActiveEditor().htContainer;
 
     hot.view.wt.wtOverlays.topOverlay.scrollTo(1);
 
-    setTimeout(() => {
-      expect($(dropdown).is(':visible')).toBe(true);
-      selectCell(0, 0);
-    }, 30);
+    await sleep(50);
 
-    setTimeout(() => {
-      $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
-      $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
-      hot.view.wt.wtOverlays.topOverlay.scrollTo(3);
-    }, 80);
+    expect($(dropdown).is(':visible')).toBe(true);
 
-    setTimeout(() => {
-      expect($(dropdown).is(':visible')).toBe(true);
-      done();
-    }, 120);
+    selectCell(0, 0);
+    await sleep(50);
+
+    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
+    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
+    hot.view.wt.wtOverlays.topOverlay.scrollTo(3);
+
+    await sleep(50);
+
+    expect($(dropdown).is(':visible')).toBe(true);
   });
 
   it('should keep textarea caret position, after moving the selection to the suggestion list (pressing down arrow)', (done) => {

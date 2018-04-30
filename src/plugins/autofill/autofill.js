@@ -375,14 +375,7 @@ class Autofill extends BasePlugin {
    * @param {Array} cornersOfArea
    */
   setSelection(cornersOfArea) {
-    this.hot.selection.setRangeStart(new CellCoords(
-      cornersOfArea[0],
-      cornersOfArea[1])
-    );
-    this.hot.selection.setRangeEnd(new CellCoords(
-      cornersOfArea[2],
-      cornersOfArea[3])
-    );
+    this.hot.selectCell(...cornersOfArea, false, false);
   }
 
   /**
