@@ -58,12 +58,6 @@ class ColumnSorting extends BasePlugin {
     this.sortIndicators = [];
     /**
      * Visual index of last sorted column.
-     *
-     * @type {null|Number}
-     */
-    this.lastSortedColumn = null;
-    /**
-     * Visual index of sorted column.
      */
     this.sortColumn = void 0;
     /**
@@ -458,7 +452,6 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (typeof sortingColumn === 'number') {
-      this.lastSortedColumn = sortingColumn;
       this.sort(sortingColumn, sortingOrder);
     }
   }
@@ -499,11 +492,9 @@ class ColumnSorting extends BasePlugin {
 
     if (hasClass(event.realTarget, HEADER_CLASS_SORTING)) {
       // reset order state on every new column header click
-      if (coords.col !== this.lastSortedColumn) {
+      if (coords.col !== this.sortColumn) {
         this.sortOrder = ASC_SORT_STATE;
       }
-
-      this.lastSortedColumn = coords.col;
 
       this.sort(coords.col);
     }
