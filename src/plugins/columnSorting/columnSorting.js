@@ -61,7 +61,7 @@ class ColumnSorting extends BasePlugin {
      */
     this.sortColumn = void 0;
     /**
-     * Order of sorting. For `asc` ascending order, for `desc` descending order, for `none` the original order.
+     * Order of last sorting. For `asc` ascending order, for `desc` descending order, for `none` the original order.
      *
      * @type {String}
      */
@@ -78,6 +78,8 @@ class ColumnSorting extends BasePlugin {
      * @type {Boolean}
      */
     this.sortEmptyCells = false;
+    // It blocks the plugin translation, this flag is checked inside `onModifyRow` listener.
+    this.blockPluginTranslation = false;
   }
 
   /**
@@ -167,7 +169,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Boolean}
    */
   isSorted() {
-    return isDefined(this.sortColumn);
+    return this.isEnabled() && this.sortOrder !== NONE_SORT_STATE;
   }
 
   /**
@@ -274,6 +276,10 @@ class ColumnSorting extends BasePlugin {
     let sortFunction;
     let nrOfRows;
 
+    // Function `getDataAtCell` won't call the `onModifyRow` listener from the plugin (we just want get data
+    // not already modified by `columnSorting` plugin translation.
+    this.blockPluginTranslation = true;
+
     if (isUndefined(colMeta.columnSorting.sortEmptyCells)) {
       colMeta.columnSorting = {sortEmptyCells: this.sortEmptyCells};
     }
@@ -284,15 +290,8 @@ class ColumnSorting extends BasePlugin {
       nrOfRows = this.hot.countRows() - emptyRows;
     }
 
-    // Function `getSourceDataAtCol` won't call the `modifyRow` hook.
-    const sourceDataAtColumn = this.hot.getSourceDataAtCol(this.sortColumn);
-
-    for (let physicalIndex = 0; physicalIndex < nrOfRows; physicalIndex += 1) {
-      // By passing the plugin name as the third argument we prevent to call translation (we just want get data
-      // not already modified by this plugin; the `onModifyRow` listener shouldn't be called).
-      const visualIndex = this.hot.runHooks('modifyRow', physicalIndex, this.pluginName);
-
-      indexesWithData.push([physicalIndex, sourceDataAtColumn[visualIndex]]);
+    for (let visualIndex = 0; visualIndex < nrOfRows; visualIndex += 1) {
+      indexesWithData.push([visualIndex, this.hot.getDataAtCell(visualIndex, this.sortColumn)]);
     }
 
     if (colMeta.sortFunction) {
@@ -314,12 +313,14 @@ class ColumnSorting extends BasePlugin {
     mergeSort(indexesWithData, sortFunction(this.sortOrder === ASC_SORT_STATE, colMeta));
 
     // Append spareRows
-    for (let physicalIndex = indexesWithData.length; physicalIndex < this.hot.countRows(); physicalIndex += 1) {
-      indexesWithData.push([physicalIndex, null]);
+    for (let visualIndex = indexesWithData.length; visualIndex < this.hot.countRows(); visualIndex += 1) {
+      indexesWithData.push([visualIndex, this.hot.getDataAtCell(visualIndex, this.sortColumn)]);
     }
 
     // Save all indexes to arrayMapper, a completely new sequence is set by the plugin
     this.rowsMapper._arrayMap = indexesWithData.map((indexWithData) => indexWithData[0]);
+
+    this.blockPluginTranslation = false;
   }
 
   /**
@@ -360,7 +361,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Physical row index.
    */
   onModifyRow(row, source) {
-    if (source !== this.pluginName) {
+    if (this.blockPluginTranslation === false && source !== this.pluginName) {
       let rowInMapper = this.rowsMapper.getValueByIndex(row);
       row = rowInMapper === null ? row : rowInMapper;
     }
@@ -376,7 +377,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Visual row index.
    */
   onUnmodifyRow(row, source) {
-    if (source !== this.pluginName) {
+    if (this.blockPluginTranslation === false && source !== this.pluginName) {
       row = this.rowsMapper.getIndexByValue(row);
     }
 
