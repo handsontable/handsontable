@@ -10,9 +10,9 @@
 }
 
 /*
-  AutoColumnSize will NOT count size of filter's value box. This element should always fit to another elements elbowing the table.
-  Workaround for quick fix of two main problems:
-  - borders declared in the below class selector are also counted by `offsetWidth` (that could be fixed by not displaying them for GhostTable)
+  AutoColumnSize will NOT count size of filter's value box and filter's selects. These elements should always fit
+  to another elements elbowing the table. Value box could scale, but we have two problems which were fixed by workaround:
+  - borders declared for the `table.htCore` are also counted by `offsetWidth` (however it could be fixed by not displaying them for GhostTable)
   - MultipleSelectUI basing on Handsontable is built only once, so it's `wtHolder` width is counted only once.
 */
 .htGhostTable .htUIMultipleSelectHot, .htGhostTable .htUISelect {
@@ -144,14 +144,19 @@
   background-color: #d2e0d9;
 }
 
+.handsontable .htUISelectAll {
+  margin-right: 10px;
+}
+
 .handsontable .htUIClearAll, .handsontable .htUISelectAll {
   display: inline-block;
-  margin-left: 10px;
 }
+
 .handsontable .htUIClearAll a, .handsontable .htUISelectAll a {
   color: #3283D8;
   font-size: 12px;
 }
+
 .handsontable .htUISelectionControls {
   text-align: right;
 }
@@ -161,7 +166,6 @@
   vertical-align: middle;
   height: 1em;
 }
-
 
 /* UI elements */
 /* Input */
@@ -266,8 +270,12 @@
 
 .handsontable .htUIRadio {
   display: inline-block;
-  margin: 0 5px 0px 0;
+  margin-right: 5px;
   height: 100%;
+}
+
+.handsontable .htUIRadio:last-child {
+  margin-right: 0;
 }
 
 .handsontable .htUIRadio > input[type=radio] {
