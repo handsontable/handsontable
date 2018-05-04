@@ -3,7 +3,7 @@
  * Authors: Phyllis Yen
  * Last updated: Mar 9, 2018
  *
- * Description: Definition file for Traditional Chinese - Taiwan language-country.
+ * Description: Definition file for Chinese - Taiwan language-country.
  */
 import * as C from '../constants';
 
