@@ -79,7 +79,7 @@ class ColumnSorting extends BasePlugin {
      */
     this.sortEmptyCells = false;
     // It blocks the plugin translation, this flag is checked inside `onModifyRow` listener.
-    this.blockPluginTranslation = false;
+    this.blockPluginTranslation = true;
   }
 
   /**
