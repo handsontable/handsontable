@@ -6,11 +6,13 @@ import enUS from './en-US';
 import jaJP from './ja-JP';
 import plPL from './pl-PL';
 import ptBR from './pt-BR';
+import esMX from './es-MX';
 
 export {
   deCH,
   deDE,
   enUS,
+  esMX,
   jaJP,
   plPL,
   ptBR

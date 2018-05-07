@@ -1,6 +1,5 @@
 /**
  * @preserve
- * Authors: Handsoncode
  * Last updated: Mar 05, 2018
  *
  * Description: Definition file for Spanish - Mexico language-country.
@@ -68,7 +67,7 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_ENDS_WITH]: 'Termina con',
   [C.FILTERS_CONDITIONS_CONTAINS]: 'Contiene',
   [C.FILTERS_CONDITIONS_NOT_CONTAIN]: 'No contiene',
-  [C.FILTERS_CONDITIONS_GREATER_THAN]: 'Mayor que ',
+  [C.FILTERS_CONDITIONS_GREATER_THAN]: 'Mayor que',
   [C.FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL]: 'Mayor o igual que',
   [C.FILTERS_CONDITIONS_LESS_THAN]: 'Menor que',
   [C.FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL]: 'Menor o igual que',
