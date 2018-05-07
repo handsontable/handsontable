@@ -1,9 +1,9 @@
 describe('CustomBorders', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-    var wrapper = $('<div></div>').css({
+    let wrapper = $('<div></div>').css({
       width: 400,
       height: 200,
       overflow: 'scroll'
@@ -41,7 +41,7 @@ describe('CustomBorders', () => {
     });
     // [top,left, bottom, right]
 
-    var borders = $('.wtBorder.border_row2col2');
+    const borders = $('.wtBorder.border_row2col2');
     expect(borders.length).toEqual(20); // 4 times 5 elements (top,right, bottom, left, corner)
     expect(borders[0].className).toContain('hidden'); // hidden top
     expect(borders[1].style.backgroundColor).toEqual('red'); // left red
@@ -87,28 +87,28 @@ describe('CustomBorders', () => {
         }]
     });
 
-    for (var row = 1; row <= 3; row++) {
-      for (var column = 1; column <= 4; column++) {
-        if (row == 1) {
-          var topRow = $(`.wtBorder.border_row${row}col${column}`);
+    for (let row = 1; row <= 3; row += 1) {
+      for (let column = 1; column <= 4; column += 1) {
+        if (row === 1) {
+          let topRow = $(`.wtBorder.border_row${row}col${column}`);
           expect(topRow.length).toEqual(20); // borders for all tables (main and hiders)
           expect(topRow[0].style.backgroundColor).toEqual('black');
           expect(topRow[0].style.height).toEqual('2px');
         }
-        if (column == 1) {
-          var leftColumn = $(`.wtBorder.border_row${row}col${column}`);
+        if (column === 1) {
+          let leftColumn = $(`.wtBorder.border_row${row}col${column}`);
           expect(leftColumn.length).toEqual(20); // borders for all tables (main and hiders)
           expect(leftColumn[1].style.backgroundColor).toEqual('red');
           expect(leftColumn[1].style.width).toEqual('2px');
         }
-        if (row == 3) {
-          var bottomRow = $(`.wtBorder.border_row${row}col${column}`);
+        if (row === 3) {
+          let bottomRow = $(`.wtBorder.border_row${row}col${column}`);
           expect(bottomRow.length).toEqual(20); // borders for all tables (main and hiders)
           expect(bottomRow[2].style.backgroundColor).toEqual('red');
           expect(bottomRow[2].style.height).toEqual('2px');
         }
-        if (column == 4) {
-          var rightColumn = $(`.wtBorder.border_row${row}col${column}`);
+        if (column === 4) {
+          let rightColumn = $(`.wtBorder.border_row${row}col${column}`);
           expect(rightColumn.length).toEqual(20); // borders for all tables (main and hiders)
           expect(rightColumn[3].style.backgroundColor).toEqual('black');
           expect(rightColumn[3].style.width).toEqual('3px');
@@ -117,14 +117,14 @@ describe('CustomBorders', () => {
     }
   });
 
-  it('should draw top border from context menu options', (done) => {
-    var hot = handsontable({
+  it('should draw top border from context menu options', async () => {
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
     });
 
-    var defaultBorder = {
+    const defaultBorder = {
         color: '#000',
         width: 1
       },
@@ -133,32 +133,31 @@ describe('CustomBorders', () => {
       };
 
     contextMenu();
-    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
+    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
-    setTimeout(() => {
-      var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
+    await sleep(300);
 
-      button.simulate('mousedown');
+    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
 
-      // expect(getCellMeta(0,0).borders.hasOwnProperty('top')).toBe(true);
-      expect(getCellMeta(0, 0).borders.top).toEqual(defaultBorder);
-      expect(getCellMeta(0, 0).borders.left).toEqual(empty);
-      expect(getCellMeta(0, 0).borders.bottom).toEqual(empty);
-      expect(getCellMeta(0, 0).borders.right).toEqual(empty);
-      done();
-    }, 350);
+    button.simulate('mousedown');
+
+    // expect(getCellMeta(0,0).borders.hasOwnProperty('top')).toBe(true);
+    expect(getCellMeta(0, 0).borders.top).toEqual(defaultBorder);
+    expect(getCellMeta(0, 0).borders.left).toEqual(empty);
+    expect(getCellMeta(0, 0).borders.bottom).toEqual(empty);
+    expect(getCellMeta(0, 0).borders.right).toEqual(empty);
   });
 
-  it('should draw left border from context menu options', (done) => {
-    var hot = handsontable({
+  it('should draw left border from context menu options', async () => {
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
     });
 
-    var defaultBorder = {
+    const defaultBorder = {
         color: '#000',
         width: 1
       },
@@ -167,33 +166,32 @@ describe('CustomBorders', () => {
       };
 
     contextMenu();
-    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
+    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
-    setTimeout(() => {
-      var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
+    await sleep(300);
 
-      button.simulate('mousedown');
+    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
 
-      /* eslint-disable no-prototype-builtins */
-      expect(getCellMeta(0, 0).borders.hasOwnProperty('left')).toBe(true);
-      expect(getCellMeta(0, 0).borders.top).toEqual(empty);
-      expect(getCellMeta(0, 0).borders.left).toEqual(defaultBorder);
-      expect(getCellMeta(0, 0).borders.bottom).toEqual(empty);
-      expect(getCellMeta(0, 0).borders.right).toEqual(empty);
-      done();
-    }, 350);
+    button.simulate('mousedown');
+
+    /* eslint-disable no-prototype-builtins */
+    expect(getCellMeta(0, 0).borders.hasOwnProperty('left')).toBe(true);
+    expect(getCellMeta(0, 0).borders.top).toEqual(empty);
+    expect(getCellMeta(0, 0).borders.left).toEqual(defaultBorder);
+    expect(getCellMeta(0, 0).borders.bottom).toEqual(empty);
+    expect(getCellMeta(0, 0).borders.right).toEqual(empty);
   });
 
-  it('should draw right border from context menu options', (done) => {
-    var hot = handsontable({
+  it('should draw right border from context menu options', async () => {
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
     });
 
-    var defaultBorder = {
+    const defaultBorder = {
         color: '#000',
         width: 1
       },
@@ -202,33 +200,32 @@ describe('CustomBorders', () => {
       };
 
     contextMenu();
-    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
+    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
-    setTimeout(() => {
-      var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
+    await sleep(300);
 
-      button.simulate('mousedown');
+    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
 
-      /* eslint-disable no-prototype-builtins */
-      expect(getCellMeta(0, 0).borders.hasOwnProperty('right')).toBe(true);
-      expect(getCellMeta(0, 0).borders.top).toEqual(empty);
-      expect(getCellMeta(0, 0).borders.left).toEqual(empty);
-      expect(getCellMeta(0, 0).borders.bottom).toEqual(empty);
-      expect(getCellMeta(0, 0).borders.right).toEqual(defaultBorder);
-      done();
-    }, 350);
+    button.simulate('mousedown');
+
+    /* eslint-disable no-prototype-builtins */
+    expect(getCellMeta(0, 0).borders.hasOwnProperty('right')).toBe(true);
+    expect(getCellMeta(0, 0).borders.top).toEqual(empty);
+    expect(getCellMeta(0, 0).borders.left).toEqual(empty);
+    expect(getCellMeta(0, 0).borders.bottom).toEqual(empty);
+    expect(getCellMeta(0, 0).borders.right).toEqual(defaultBorder);
   });
 
-  it('should draw bottom border from context menu options', (done) => {
-    var hot = handsontable({
+  it('should draw bottom border from context menu options', async () => {
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
     });
 
-    var defaultBorder = {
+    const defaultBorder = {
         color: '#000',
         width: 1
       },
@@ -237,27 +234,26 @@ describe('CustomBorders', () => {
       };
 
     contextMenu();
-    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
+    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
-    setTimeout(() => {
-      var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
+    await sleep(300);
 
-      button.simulate('mousedown');
+    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
 
-      /* eslint-disable no-prototype-builtins */
-      expect(getCellMeta(0, 0).borders.hasOwnProperty('right')).toBe(true);
-      expect(getCellMeta(0, 0).borders.top).toEqual(empty);
-      expect(getCellMeta(0, 0).borders.left).toEqual(empty);
-      expect(getCellMeta(0, 0).borders.bottom).toEqual(defaultBorder);
-      expect(getCellMeta(0, 0).borders.right).toEqual(empty);
-      done();
-    }, 350);
+    button.simulate('mousedown');
+
+    /* eslint-disable no-prototype-builtins */
+    expect(getCellMeta(0, 0).borders.hasOwnProperty('right')).toBe(true);
+    expect(getCellMeta(0, 0).borders.top).toEqual(empty);
+    expect(getCellMeta(0, 0).borders.left).toEqual(empty);
+    expect(getCellMeta(0, 0).borders.bottom).toEqual(defaultBorder);
+    expect(getCellMeta(0, 0).borders.right).toEqual(empty);
   });
 
-  it('should remove all bottoms border from context menu options', (done) => {
-    var hot = handsontable({
+  it('should remove all bottoms border from context menu options', async () => {
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: [
@@ -276,22 +272,21 @@ describe('CustomBorders', () => {
     });
 
     contextMenu();
-    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
+    const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
     item.simulate('mouseover');
 
-    setTimeout(() => {
-      var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
+    await sleep(300);
 
-      button.simulate('mousedown');
+    const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+    const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
 
-      expect(getCellMeta(0, 0).borders).toBeUndefined();
-      done();
-    }, 350);
+    button.simulate('mousedown');
+
+    expect(getCellMeta(0, 0).borders).toBeUndefined();
   });
 
   it('should disable `Borders` context menu item when menu was triggered from corner header', () => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
       colHeaders: true,

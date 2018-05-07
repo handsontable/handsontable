@@ -197,7 +197,7 @@ describe('manualColumnMove', () => {
     });
   });
 
-  describe('moving', function() {
+  describe('moving', () => {
     it('should move column by API', function () {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -412,6 +412,7 @@ describe('manualColumnMove', () => {
   });
 
   describe('callbacks', () => {
+
     it('should run `beforeColumnMove` and `afterColumnMove` with proper visual `target` parameter', () => {
       let targetParameterInsideBeforeColumnMoveCallback;
       let targetParameterInsideAfterColumnMoveCallback;
@@ -438,6 +439,35 @@ describe('manualColumnMove', () => {
 
       expect(targetParameterInsideBeforeColumnMoveCallback).toEqual(2);
       expect(targetParameterInsideAfterColumnMoveCallback).toEqual(2);
+    });
+
+    it('should run `beforeColumnMove` and `afterColumnMove` with proper visual `columns` parameter', () => {
+      let columnsParameterInsideBeforeColumnMoveCallback;
+      let columnsParameterInsideAfterColumnMoveCallback;
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        manualColumnMove: true,
+        beforeColumnMove: (columns, target) => {
+          columnsParameterInsideBeforeColumnMoveCallback = columns;
+        },
+        afterColumnMove: (columns, target) => {
+          columnsParameterInsideAfterColumnMoveCallback = columns;
+        }
+      });
+
+      hot.getPlugin('manualColumnMove').moveColumn(2, 0);
+
+      expect(columnsParameterInsideBeforeColumnMoveCallback).toEqual([2]);
+      expect(columnsParameterInsideAfterColumnMoveCallback).toEqual([2]);
+      expect(columnsParameterInsideBeforeColumnMoveCallback).toEqual(columnsParameterInsideAfterColumnMoveCallback);
+
+      hot.getPlugin('manualColumnMove').moveColumn(2, 0);
+
+      expect(columnsParameterInsideBeforeColumnMoveCallback).toEqual([2]);
+      expect(columnsParameterInsideAfterColumnMoveCallback).toEqual([2]);
+      expect(columnsParameterInsideBeforeColumnMoveCallback).toEqual(columnsParameterInsideAfterColumnMoveCallback);
     });
   });
 

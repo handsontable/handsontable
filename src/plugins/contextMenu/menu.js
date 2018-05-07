@@ -11,13 +11,15 @@ import {arrayEach, arrayFilter, arrayReduce} from './../../helpers/array';
 import Cursor from './cursor';
 import EventManager from './../../eventManager';
 import {mixin, hasOwnProperty} from './../../helpers/object';
-import {isUndefined} from './../../helpers/mixed';
+import {isUndefined, isDefined} from './../../helpers/mixed';
 import {debounce, isFunction} from './../../helpers/function';
 import {filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection} from './utils';
 import {KEY_CODES} from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
 import {SEPARATOR} from './predefinedItems';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
+
+const MIN_WIDTH = 215;
 
 /**
  * @class Menu
@@ -31,7 +33,8 @@ class Menu {
       name: null,
       className: '',
       keepInViewport: true,
-      standalone: false
+      standalone: false,
+      minWidth: MIN_WIDTH,
     };
     this.eventManager = new EventManager(this);
     this.container = this.createContainer(this.options.name);
@@ -92,12 +95,18 @@ class Menu {
 
   /**
    * Open menu.
+   *
+   * @fires Hooks#beforeContextMenuShow
+   * @fires Hooks#afterContextMenuShow
    */
   open() {
+    this.runLocalHooks('beforeOpen');
+
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
 
     const delayedOpenSubMenu = debounce((row) => this.openSubMenu(row), 300);
+    const minWidthOfMenu = this.options.minWidth || MIN_WIDTH;
 
     let filteredItems = arrayFilter(this.menuItems, (item) => isItemHidden(item, this.hot));
 
@@ -106,7 +115,14 @@ class Menu {
     let settings = {
       data: filteredItems,
       colHeaders: false,
-      colWidths: [215],
+      autoColumnSize: true,
+      modifyColWidth(width) {
+        if (isDefined(width) && width < minWidthOfMenu) {
+          return minWidthOfMenu;
+        }
+
+        return width;
+      },
       autoRowSize: false,
       readOnly: true,
       copyPaste: false,

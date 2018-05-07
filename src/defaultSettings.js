@@ -1,5 +1,5 @@
 import {isDefined} from './helpers/mixed';
-import {isObjectEquals} from './helpers/object';
+import {isObjectEqual} from './helpers/object';
 
 /**
  * @alias Options
@@ -722,6 +722,21 @@ DefaultSettings.prototype = {
    * ```
    */
   currentHeaderClassName: 'ht__highlight',
+
+  /**
+   * Class name for all active headers in selections. The header will be marked with this class name
+   * only when a whole column or row will be selected.
+   *
+   * @type {String}
+   * @since 0.38.2
+   * @default 'ht__active_highlight'
+   * @example
+   * ```js
+   * activeHeaderClassName: 'ht__active_highlight' // This will add a 'ht__active_highlight' class name to appropriate table headers.
+   * ```
+   */
+  activeHeaderClassName: 'ht__active_highlight',
+
   /**
    * Class name for the Handsontable container element.
    *
@@ -772,7 +787,7 @@ DefaultSettings.prototype = {
         if (typeof value === 'object') {
           meta = this.getCellMeta(row, col);
 
-          return isObjectEquals(this.getSchema()[meta.prop], value);
+          return isObjectEqual(this.getSchema()[meta.prop], value);
         }
         return false;
       }
@@ -1222,7 +1237,7 @@ DefaultSettings.prototype = {
    * // as a object with initial order (sort ascending column at index 2)
    * columnSorting: {
    *   column: 2,
-   *   sortOrder: true, // true = ascending, false = descending, undefined = original order
+   *   sortOrder: 'asc', // 'asc' = ascending, 'desc' = descending, 'none' = original order
    *   sortEmptyCells: true // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
    * }
    * ...

@@ -8,7 +8,6 @@ import {registerPlugin} from './../../plugins';
 import RowsMapper from './rowsMapper';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
-import {CellCoords} from './../../3rdparty/walkontable/src';
 
 import './manualRowMove.css';
 
@@ -176,8 +175,9 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} target Visual row index being a target for the moved rows.
    */
   moveRows(rows, target) {
+    const visualRows = [...rows];
     let priv = privatePool.get(this);
-    let beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, target);
+    let beforeMoveHook = this.hot.runHooks('beforeRowMove', visualRows, target);
 
     priv.disallowMoving = beforeMoveHook === false;
 
@@ -200,7 +200,7 @@ class ManualRowMove extends BasePlugin {
       this.rowsMapper.clearNull();
     }
 
-    this.hot.runHooks('afterRowMove', rows, target);
+    this.hot.runHooks('afterRowMove', visualRows, target);
   }
 
   /**
@@ -212,11 +212,7 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} endRow Visual row index for the end of the selection.
    */
   changeSelection(startRow, endRow) {
-    let selection = this.hot.selection;
-    let lastColIndex = this.hot.countCols() - 1;
-
-    selection.setRangeStartOnly(new CellCoords(startRow, 0));
-    selection.setRangeEnd(new CellCoords(endRow, lastColIndex), false);
+    this.hot.selectRows(startRow, endRow);
   }
 
   /**
@@ -371,7 +367,6 @@ class ManualRowMove extends BasePlugin {
     if (coords.row < 0) {
       // if hover on colHeader
       priv.target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
-
     } else if ((TD.offsetHeight / 2) + tdOffsetTop <= mouseOffsetTop) {
       // if hover on lower part of TD
       priv.target.row = coords.row + 1;
@@ -487,7 +482,7 @@ class ManualRowMove extends BasePlugin {
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     let wtTable = this.hot.view.wt.wtTable;
-    let isHeaderSelection = this.hot.selection.selectedHeader.rows;
+    let isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
     let selection = this.hot.getSelectedRangeLast();
     let priv = privatePool.get(this);
 
@@ -608,7 +603,7 @@ class ManualRowMove extends BasePlugin {
 
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
 
-    if (this.hot.selection.selectedHeader.rows) {
+    if (this.hot.selection.isSelectedByRowHeader()) {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
@@ -740,6 +735,7 @@ class ManualRowMove extends BasePlugin {
   destroy() {
     this.backlight.destroy();
     this.guideline.destroy();
+    this.rowsMapper.destroy();
 
     super.destroy();
   }

@@ -42,8 +42,8 @@ describe('dateValidator', () => {
     }, 100);
   });
 
-  it('should rewrite an ISO 8601 string to the correct format if a date-string in different format is provided', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+  it('should rewrite an ISO 8601 string to the correct format if a date-string in different format is provided', async () => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -55,15 +55,10 @@ describe('dateValidator', () => {
     });
 
     setDataAtCell(1, 0, '2016-03-18');
+    await sleep(200);
 
-    setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, '2016-03-18', 1, 'date', undefined, undefined);
-    }, 100);
-
-    setTimeout(() => {
-      expect(getDataAtCell(1, 0)).toEqual('03/18/2016');
-      done();
-    }, 130);
+    expect(onAfterValidate).toHaveBeenCalledWith(true, '2016-03-18', 1, 'date', undefined, undefined);
+    expect(getDataAtCell(1, 0)).toEqual('03/18/2016');
   });
 
   it('should not positively validate a non-date string', (done) => {
