@@ -988,11 +988,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
     }
 
-    instance.forceFullRender = true; // used when data was changed
+    const changedRows = arrayMap(changes, ([row]) => recordTranslator.toVisualRow(row));
+
     grid.adjustRowsAndCols();
     instance.runHooks('beforeChangeRender', changes, source);
     editorManager.lockEditor();
-    instance._refreshBorders(null);
+    instance._renderChangedRows(changedRows);
     editorManager.unlockEditor();
     instance.view.wt.wtOverlays.adjustElementsSize();
     instance.runHooks('afterChange', changes, source || 'edit');
@@ -2316,6 +2317,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
     }
     priv.cellSettings[physicalRow][physicalColumn][key] = val;
+
     instance.runHooks('afterSetCellMeta', row, col, key, val);
   };
 
@@ -3539,6 +3541,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     arrayEach(this.immediates, (handler) => {
       clearImmediate(handler);
     });
+  };
+
+  /**
+   * Triggers a rendering of just changed rows
+   * @private
+   * @param {Array} Array of visualRowIndexs that map to the changedRows
+   */
+  this._renderChangedRows = function(changedRows) {
+    editorManager.destroyEditor(null);
+    instance.view.selectiveRender(changedRows);
+
+    if (selection.isSelected()) {
+      editorManager.prepareEditor();
+    }
   };
 
   /**

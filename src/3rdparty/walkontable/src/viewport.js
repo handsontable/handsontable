@@ -31,6 +31,7 @@ class Viewport {
     this.rowHeaderWidth = NaN;
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
+    this.firstRenderedSourceIndex = 0;
 
     this.eventManager = new EventManager(this.wot);
     this.eventManager.addEventListener(window, 'resize', () => {
@@ -419,6 +420,14 @@ class Viewport {
   createVisibleCalculators() {
     this.rowsVisibleCalculator = this.createRowsCalculator(true);
     this.columnsVisibleCalculator = this.createColumnsCalculator(true);
+  }
+
+  /**
+   * Saves off the first rendered row's source index so when replacing rows we can know the sourceIndex of the first tr in TBODY
+   * @param {number} sourceIndex of the first rendered row
+   */
+  setFirstRenderedRowSourceIndex(sourceIndex) {
+    this.firstRenderedSourceIndex = sourceIndex;
   }
 
   /**

@@ -288,6 +288,16 @@ class Table {
     return this;
   }
 
+  /*
+   * Triggers rendering of just specific rows
+   * @param {Array} rowsToDraw array of visualRowIndexs to specifically render
+   */
+  selectiveDraw(rowsToDraw) {
+    const wtRenderer = new TableRenderer(this);
+
+    wtRenderer.selectiveRender(rowsToDraw);
+  }
+
   _doDraw() {
     const wtRenderer = new TableRenderer(this);
 
@@ -477,6 +487,10 @@ class Table {
 
   getFirstRenderedRow() {
     return this.wot.wtViewport.rowsRenderCalculator.startRow;
+  }
+
+  getFirstRenderedRowSourceIndex() {
+    return this.wot.wtViewport.firstRenderedSourceIndex;
   }
 
   getFirstVisibleRow() {

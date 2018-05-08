@@ -86,6 +86,23 @@ class Walkontable {
   }
 
   /**
+   * Force a portion of Walkontable's rows to rerender
+   *
+   * @param {Array} rowsToDraw array of visualRowIndexes to specifically render
+   * @returns {Walkontable}
+   */
+  selectiveDraw(rowsToDraw) {
+    this.drawInterrupted = false;
+    if (!isVisible(this.wtTable.TABLE)) {
+      // draw interrupted because TABLE is not visible
+      this.drawInterrupted = true;
+    } else {
+      this.wtTable.selectiveDraw(rowsToDraw);
+    }
+    return this;
+  }
+
+  /**
    * Returns the TD at coords. If topmost is set to true, returns TD from the topmost overlay layer,
    * if not set or set to false, returns TD from the master table.
    *

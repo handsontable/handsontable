@@ -300,4 +300,19 @@ describe('Core_setDataAtCell', () => {
     expect(getDataAtRowProp(1, 'id')).toBe(33);
     expect(getData()).toEqual([['bar', 1], ['b', 33], ['c', 3]]);
   });
+
+  it('should only rerender changed rows', () => {
+    handsontable({
+      data: [{name: 'a', id: 1}, {name: 'b', id: 2}, {name: 'c', id: 3}],
+      columns: [{data: 'name'}, {data: 'id'}],
+    });
+
+    const beforeCellToChange = $('tbody tr').first().find('td')[0];
+    const beforeCellToStay = $('tbody tr').last().find('td')[0];
+    setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
+    const afterCellToChange = $('tbody tr').first().find('td')[0];
+    const afterCellToStay = $('tbody tr').last().find('td')[0];
+    expect(afterCellToChange).not.toEqual(beforeCellToChange);
+    expect(afterCellToStay).toEqual(beforeCellToStay);
+  });
 });

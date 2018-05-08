@@ -40,10 +40,11 @@ class TableRenderer {
     this.columnHeaderCount = 0;
     this.fixedRowsTop = 0;
     this.fixedRowsBottom = 0;
+    this.firstRenderedSourceIndex = 0;
   }
 
   /**
-   *
+   * Renders table
    */
   render() {
     if (!this.wtTable.isWorkingOnClone()) {
@@ -63,7 +64,7 @@ class TableRenderer {
     this.columnHeaderCount = this.columnHeaders.length;
 
     let columnsToRender = this.wtTable.getRenderedColumnsCount();
-    let rowsToRender = this.wtTable.getRenderedRowsCount();
+    let defaultRowsToRender = this.wtTable.getRenderedRowsCount();
     let totalColumns = this.wot.getSetting('totalColumns');
     let totalRows = this.wot.getSetting('totalRows');
     let workspaceWidth;
@@ -85,8 +86,8 @@ class TableRenderer {
       // adjust column widths according to user widths settings
       this.renderColumnHeaders();
 
-      // Render table rows
-      this.renderRows(totalRows, rowsToRender, columnsToRender);
+      this.renderRows(totalRows, defaultRowsToRender, columnsToRender);
+      this.removeRedundantRows(defaultRowsToRender);
 
       if (!this.wtTable.isWorkingOnClone()) {
         workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
@@ -101,7 +102,6 @@ class TableRenderer {
     if (!adjusted) {
       this.adjustAvailableNodes();
     }
-    this.removeRedundantRows(rowsToRender);
 
     if (!this.wtTable.isWorkingOnClone() || this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
       this.markOversizedRows();
@@ -157,6 +157,30 @@ class TableRenderer {
   }
 
   /**
+   * Renders specific rows in the table
+   * @param {Array} rowsToRender array of visualRowIndexs to specifically render
+   */
+  selectiveRender(rowsToRender) {
+    let columnsToRender = this.wtTable.getRenderedColumnsCount();
+    let totalColumns = this.wot.getSetting('totalColumns');
+
+    if (rowsToRender && totalColumns >= 0) {
+      this.renderSpecificRows(rowsToRender, columnsToRender);
+    }
+
+    if (!this.wtTable.isWorkingOnClone() || this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
+      this.markOversizedRows();
+    }
+
+    if (!this.wtTable.isWorkingOnClone()) {
+      this.wot.wtOverlays.refresh(false);
+      this.wot.wtOverlays.applyToDOM();
+    }
+
+    this.wot.getSetting('onDraw', true);
+  }
+
+  /**
    * @param {Number} renderedRowsCount
    */
   removeRedundantRows(renderedRowsCount) {
@@ -171,17 +195,66 @@ class TableRenderer {
    * @param {Number} rowsToRender
    * @param {Number} columnsToRender
    */
+  renderSpecificRows(rowsToRender, columnsToRender) {
+    this.rowHeaders = this.wot.getSetting('rowHeaders');
+    this.rowHeaderCount = this.rowHeaders.length;
+
+    let isWorkingOnClone = this.wtTable.isWorkingOnClone();
+
+    rowsToRender.forEach((sourceRowIndex) => {
+      const renderedRowIndex = sourceRowIndex - this.wtTable.getFirstRenderedRowSourceIndex();
+      const TR = this.createAndReplaceTrForRow(renderedRowIndex);
+
+      // Render row headers
+      this.renderRowHeaders(sourceRowIndex, TR);
+
+      // Add and/or remove TDs to TR to match the desired number
+      this.adjustColumns(TR, columnsToRender + this.rowHeaderCount);
+
+      this.renderCells(sourceRowIndex, TR, columnsToRender);
+
+      if (!isWorkingOnClone ||
+          // Necessary to refresh oversized row heights after editing cell in overlays
+          this.wot.isOverlayName(Overlay.CLONE_BOTTOM)) {
+        // Reset the oversized row cache for this row
+        this.resetOversizedRow(sourceRowIndex);
+      }
+
+      if (TR.firstChild) {
+        // if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is
+        // the way to make sure that the overlay will has same row height
+        let height = this.wot.wtTable.getRowHeight(sourceRowIndex);
+
+        if (height) {
+          // Decrease height. 1 pixel will be "replaced" by 1px border top
+          height--;
+          TR.firstChild.style.height = `${height}px`;
+        } else {
+          TR.firstChild.style.height = '';
+        }
+      }
+    });
+  }
+
+  /**
+   * @param {Number} totalRows
+   * @param {Number} rowsToRender
+   * @param {Number} columnsToRender
+   */
   renderRows(totalRows, rowsToRender, columnsToRender) {
     let lastTD;
     let TR;
     let visibleRowIndex = 0;
     let sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     let isWorkingOnClone = this.wtTable.isWorkingOnClone();
+    if (!isWorkingOnClone) {
+      this.wot.wtViewport.setFirstRenderedRowSourceIndex(sourceRowIndex);
+    }
 
     while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
       if (!performanceWarningAppeared && visibleRowIndex > 1000) {
         performanceWarningAppeared = true;
-        warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number 
+        warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number
           of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
       }
       if (rowsToRender !== void 0 && visibleRowIndex === rowsToRender) {
@@ -376,6 +449,9 @@ class TableRenderer {
       if (visibleColIndex === 0) {
         TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(sourceColIndex)];
       } else {
+        if (!TD.nextSibling) {
+          debugger;
+        }
         TD = TD.nextSibling; // http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
       // If the number of headers has been reduced, we need to replace excess TH with TD
@@ -453,6 +529,29 @@ class TableRenderer {
       // http://jsperf.com/nextsibling-vs-indexed-childnodes
       TR = currentTr.nextSibling;
     }
+    if (TR.className) {
+      TR.removeAttribute('class');
+    }
+
+    return TR;
+  }
+
+  /**
+   * @param {Number} rowIndex
+   * @param {HTMLTableRowElement} currentTr
+   * @returns {HTMLTableCellElement}
+   */
+  createAndReplaceTrForRow(rowIndex) {
+    let TR;
+
+    TR = this.createRow();
+    const toReplace = this.TBODY.childNodes[rowIndex];
+    if (toReplace) {
+      this.TBODY.replaceChild(TR, toReplace);
+    } else {
+      this.appendToTbody(TR);
+    }
+
     if (TR.className) {
       TR.removeAttribute('class');
     }

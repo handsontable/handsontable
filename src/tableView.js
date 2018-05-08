@@ -485,9 +485,24 @@ TableView.prototype.onDraw = function(force) {
   }
 };
 
-TableView.prototype.render = function() {
-  this.wt.draw(!this.instance.forceFullRender);
+/**
+ * Renders table, can specify specific rows to render
+ *
+ * @param {Array} array of visual row indexs to render
+ */
+TableView.prototype.render = function(rowsToRender = null) {
+  this.wt.draw(!this.instance.forceFullRender, rowsToRender);
   this.instance.forceFullRender = false;
+  this.instance.renderCall = false;
+};
+
+/**
+ * Renders specific rows in the table
+ *
+ * @param {Array} array of visual row indexs to render
+ */
+TableView.prototype.selectiveRender = function(rowsToRender) {
+  this.wt.selectiveDraw(rowsToRender);
   this.instance.renderCall = false;
 };
 
