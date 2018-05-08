@@ -78,7 +78,12 @@ class ColumnSorting extends BasePlugin {
      * @type {Boolean}
      */
     this.sortEmptyCells = false;
-    // It blocks the plugin translation, this flag is checked inside `onModifyRow` listener.
+    /**
+     * It blocks the plugin translation, this flag is checked inside `onModifyRow` listener.
+     *
+     * @private
+     * @type {boolean}
+     */
     this.blockPluginTranslation = true;
   }
 
@@ -311,6 +316,7 @@ class ColumnSorting extends BasePlugin {
   /**
    * Get sort function for the particular column basing on its column meta.
    *
+   * @private
    * @param {Object} columnMeta
    * @returns {Function}
    */
