@@ -540,6 +540,86 @@ describe('ColumnSorting', () => {
     ]);
   });
 
+  describe('isSorted', () => {
+    it('should return `false` when plugin is disabled', () => {
+      const hot = handsontable();
+
+      expect(hot.getPlugin('columnSorting').isSorted()).toBeFalsy();
+    });
+
+    it('should return `false` when plugin is enabled and the table was not sorted #1', () => {
+      const hot = handsontable({
+        columnSorting: true
+      });
+
+      expect(hot.getPlugin('columnSorting').isSorted()).toBeFalsy();
+    });
+
+    it('should return `false` when plugin is enabled and the table was not sorted #2', () => {
+      const hot = handsontable({
+        data: [
+          ['Citroen1', 'C4 Coupe', null],
+          ['Mercedes1', 'A 160', '12/01/2008'],
+          ['Mercedes2', 'A 160', '01/14/2006'],
+        ],
+        columnSorting: {
+          column: 1,
+          sortOrder: 'none'
+        }
+      });
+
+      expect(hot.getPlugin('columnSorting').isSorted()).toBeFalsy();
+    });
+
+    it('should return `true` when plugin is enabled and the table was sorted', () => {
+      const hot = handsontable({
+        data: [
+          ['Citroen1', 'C4 Coupe', null],
+          ['Mercedes1', 'A 160', '12/01/2008'],
+          ['Mercedes2', 'A 160', '01/14/2006'],
+        ],
+        columnSorting: {
+          column: 1,
+          sortOrder: 'asc'
+        }
+      });
+
+      expect(hot.getPlugin('columnSorting').isSorted()).toBeTruthy();
+    });
+
+    it('should be handled properly when using the `updateSettings`', () => {
+      const hot = handsontable({
+        data: [
+          ['Citroen1', 'C4 Coupe', null],
+          ['Mercedes1', 'A 160', '12/01/2008'],
+          ['Mercedes2', 'A 160', '01/14/2006'],
+        ],
+        columnSorting: {
+          column: 1,
+          sortOrder: 'asc'
+        }
+      });
+
+      hot.updateSettings({
+        columnSorting: {
+          column: 1,
+          sortOrder: 'none'
+        }
+      });
+
+      expect(hot.getPlugin('columnSorting').isSorted()).toBeFalsy();
+
+      hot.updateSettings({
+        columnSorting: {
+          column: 1,
+          sortOrder: 'desc'
+        }
+      });
+
+      expect(hot.getPlugin('columnSorting').isSorted()).toBeTruthy();
+    });
+  });
+
   describe('data type: date', () => {
     it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
       'option is enabled and `column` property of `columnSorting` option is set', function() {
