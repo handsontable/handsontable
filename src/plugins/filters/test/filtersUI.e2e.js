@@ -1,4 +1,4 @@
-describe('Filters UI', function() {
+describe('Filters UI', () => {
   const id = 'testContainer';
 
   beforeAll(() => {
@@ -678,7 +678,7 @@ describe('Filters UI', function() {
     });
   });
 
-  describe('"by value" component', function() {
+  describe('"by value" component', () => {
     it('should appear under dropdown menu', function() {
       handsontable({
         data: getDataForFilters(),
@@ -848,7 +848,7 @@ describe('Filters UI', function() {
       }, 100);
     });
 
-    describe('Updating "by value" component cache #87', function () {
+    describe('Updating "by value" component cache #87', () => {
       it('should update component view after applying filtering and changing cell value', function() {
         handsontable({
           data: [
@@ -892,6 +892,32 @@ describe('Filters UI', function() {
         const checkedArray = checkboxes.map((element) => element.checked);
 
         expect(checkedArray).toEqual([false, true, true]);
+      });
+
+      it('should not modify checkboxes if the user changed values in another column', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 2),
+          dropdownMenu: true,
+          colHeaders: true,
+          filters: true,
+        });
+
+        const filters = hot.getPlugin('Filters');
+
+        filters.addCondition(0, 'by_value', [['A2', 'A3', 'A4', 'A5']]);
+        filters.filter();
+        hot.selectCell(0, 1);
+        hot.emptySelectedCells();
+
+        dropdownMenu(0);
+
+        const checkboxes = $(byValueBoxRootElement()).find(':checkbox');
+
+        expect(checkboxes[0].checked).toBe(false);
+        expect(checkboxes[1].checked).toBe(true);
+        expect(checkboxes[2].checked).toBe(true);
+        expect(checkboxes[3].checked).toBe(true);
+        expect(checkboxes[4].checked).toBe(true);
       });
 
       it('should show proper number of values after refreshing cache ' +
