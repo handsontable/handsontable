@@ -1,12 +1,12 @@
+import BasePlugin from 'handsontable/plugins/_base';
 import {addClass, removeClass} from 'handsontable/helpers/dom/element';
-import {objectEach, clone, extend} from 'handsontable/helpers/object';
+import {objectEach, clone, deepClone, extend} from 'handsontable/helpers/object';
 import {warn} from 'handsontable/helpers/console';
 import {createEmptySpreadsheetData} from 'handsontable/helpers/data';
 import {registerPlugin} from 'handsontable/plugins';
-import BasePlugin from 'handsontable/plugins/_base';
+import {getDateYear, getEndDate, getStartDate, parseDate} from './utils';
 import DateCalculator from './dateCalculator';
 import GanttChartDataFeed from './ganttChartDataFeed';
-import {DEC_LENGTH, WEEK_LENGTH} from './utils';
 
 import './ganttChart.css';
 
@@ -71,12 +71,14 @@ class GanttChart extends BasePlugin {
     /**
      * Cached plugin settings.
      *
+     * @private
      * @type {Object}
      */
     this.settings = {};
     /**
      * Date Calculator object.
      *
+     * @private
      * @type {DateCalculator}
      */
     this.dateCalculator = null;
@@ -89,37 +91,44 @@ class GanttChart extends BasePlugin {
     /**
      * List of months and their corresponding day counts.
      *
+     * @private
      * @type {Array}
      */
     this.monthList = [];
     /**
      * Array of data for the month headers.
      *
+     * @private
      * @type {Array}
      */
     this.monthHeadersArray = [];
     /**
      * Array of data for the week headers.
      *
+     * @private
      * @type {Array}
      */
     this.weekHeadersArray = [];
     /**
      * Object containing the currently created range bars, along with their corresponding parameters.
      *
+     * @private
      * @type {Object}
      */
     this.rangeBars = {};
     /**
      * Object containing the currently created ranges with coordinates to their range bars.
+     * It's structure is categorized by years, so to get range bar information for a year, one must use `this.rangeList[year]`.
      *
+     * @private
      * @type {Object}
      */
     this.rangeList = {};
     /**
      * Reference to the Nested Headers plugin.
      *
-     * @type {Object}
+     * @private
+     * @type {NestedHeaders}
      */
     this.nestedHeadersPlugin = null;
 
@@ -132,19 +141,21 @@ class GanttChart extends BasePlugin {
     /**
      * Number of week 'blocks' in the nested headers.
      *
+     * @private
      * @type {Number}
      */
     this.overallWeekSectionCount = null;
     /**
      * Initial instance settings - used to rollback the gantt-specific settings during the disabling of the plugin.
      *
+     * @private
      * @type {Object}
      */
     this.initialSettings = null;
     /**
      * Data feed controller for this plugin.
      *
-     * @type {Object}
+     * @type {GanttChartDataFeed}
      */
     this.dataFeed = null;
     /**
@@ -156,6 +167,7 @@ class GanttChart extends BasePlugin {
     /**
      * Metadata of the range bars, used to re-apply meta after updating HOT settings.
      *
+     * @private
      * @type {Object}
      */
     this.rangeBarMeta = Object.create(null);
@@ -245,9 +257,6 @@ class GanttChart extends BasePlugin {
 
     this.deassignGanttSettings();
 
-    this.hot.getPlugin('collapsibleColumns').disablePlugin();
-    this.hot.getPlugin('nestedHeaders').disablePlugin();
-
     removeClass(this.hot.rootElement, 'ganttChart');
 
     super.disablePlugin();
@@ -314,10 +323,6 @@ class GanttChart extends BasePlugin {
    *
    */
   loadData(data, startDateColumn, endDateColumn, additionalData, asyncUpdates) {
-    if (data.length > 1) {
-      this.hot.alter('insert_row', 0, data.length - 1, `${this.pluginName}.loadData`);
-    }
-
     this.dataFeed = new GanttChartDataFeed(this.hot, data, startDateColumn, endDateColumn, additionalData, asyncUpdates);
 
     this.hot.render();
@@ -352,148 +357,12 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Generate headers for the year structure.
-   *
-   * @private
-   * @param {String} type Granulation type ('months'/'weeks'/'days')
-   */
-  generateHeaderSet(type) {
-    const weekHeaderGenerator = this.settings.weekHeaderGenerator;
-    const headers = [];
-
-    objectEach(this.monthList, (month, index) => {
-      const areDaysBeforeFullWeeks = month.daysBeforeFullWeeks > 0 ? 1 : 0;
-      const areDaysAfterFullWeeks = month.daysAfterFullWeeks > 0 ? 1 : 0;
-      const areDaysBeforeFullWeeksVisible = this.settings.hideDaysBeforeFullWeeks ? 0 : areDaysBeforeFullWeeks;
-      const areDaysAfterFullWeeksVisible = this.settings.hideDaysAfterFullWeeks ? 0 : areDaysAfterFullWeeks;
-      const headerCount = month.fullWeeks + (this.settings.allowSplitWeeks ? areDaysBeforeFullWeeksVisible + areDaysAfterFullWeeksVisible : 0);
-      const monthNumber = parseInt(index, 10);
-      const allowSplitWeeks = this.settings.allowSplitWeeks;
-      let headerLabel = '';
-
-      if (type === 'months') {
-        headers.push({
-          label: month.name,
-          colspan: headerCount
-        });
-
-      } else if (type === 'weeks') {
-
-        for (let i = 0; i < headerCount; i++) {
-          let start = null;
-          let end = null;
-
-          // Mixed month's only column
-          if (!allowSplitWeeks && month.fullWeeks === 1) {
-            [start, end] = this.getWeekColumnRange({
-              monthObject: month,
-              monthNumber,
-              headerIndex: i,
-              headerCount,
-              areDaysBeforeFullWeeksVisible,
-              areDaysAfterFullWeeksVisible,
-              mixedMonth: true,
-            });
-
-            // Standard week column
-          } else {
-            [start, end] = this.getWeekColumnRange({
-              monthObject: month,
-              monthNumber,
-              headerIndex: i,
-              areDaysBeforeFullWeeksVisible,
-              areDaysAfterFullWeeksVisible,
-              headerCount,
-            });
-          }
-
-          if (start === end) {
-            headerLabel = start;
-
-          } else {
-            headerLabel = `${start} -  ${end}`;
-          }
-
-          headers.push(weekHeaderGenerator ? weekHeaderGenerator.call(this, start, end) : headerLabel);
-
-          this.dateCalculator.addDaysToCache(monthNumber, headers.length - 1, start, end);
-        }
-      }
-    });
-
-    return headers;
-  }
-
-  /**
-   * Get the week column range.
-   *
-   * @private
-   * @param {Object} options The options object.
-   * @param {Object} options.monthObject The month object.
-   * @param {Number} options.monthNumber Index of the month.
-   * @param {Number} options.headerIndex Index of the header.
-   * @param {Boolean} options.areDaysBeforeFullWeeksVisible `true` if the days before full weeks are to be visible.
-   * @param {Boolean} options.areDaysAfterFullWeeksVisible `true` if the days after full weeks are to be visible.
-   * @param {Number} options.headerCount Number of headers to be generated for the provided month.
-   * @param {Boolean} [options.mixedMonth = false] `true` if the header is the single header of a mixed month.
-   * @returns {Array}
-   */
-  getWeekColumnRange({
-    monthObject,
-    monthNumber,
-    headerIndex,
-    headerCount,
-    areDaysBeforeFullWeeksVisible,
-    areDaysAfterFullWeeksVisible,
-    mixedMonth = false
-  }) {
-    const allowSplitWeeks = this.settings.allowSplitWeeks;
-
-    let start = null;
-    let end = null;
-
-    if (mixedMonth) {
-      if (monthNumber === 0) {
-        end = this.monthList[monthNumber + 1].daysBeforeFullWeeks;
-        start = DEC_LENGTH - (WEEK_LENGTH - end) + 1;
-
-      } else if (monthNumber === this.monthList.length - 1) {
-        end = WEEK_LENGTH - this.monthList[monthNumber - 1].daysAfterFullWeeks;
-        start = this.monthList[monthNumber - 1].days - this.monthList[monthNumber - 1].daysAfterFullWeeks + 1;
-
-      } else {
-        end = this.monthList[monthNumber + 1].daysBeforeFullWeeks;
-        start = this.monthList[monthNumber - 1].days - (WEEK_LENGTH - end) + 1;
-      }
-
-    } else if (allowSplitWeeks && areDaysBeforeFullWeeksVisible && headerIndex === 0) {
-      start = headerIndex + 1;
-      end = monthObject.daysBeforeFullWeeks;
-
-    } else if (allowSplitWeeks && areDaysAfterFullWeeksVisible && headerIndex === headerCount - 1) {
-      start = monthObject.days - monthObject.daysAfterFullWeeks + 1;
-      end = monthObject.days;
-
-    } else {
-      start = null;
-      if (allowSplitWeeks) {
-        start = monthObject.daysBeforeFullWeeks + ((headerIndex - areDaysBeforeFullWeeksVisible) * WEEK_LENGTH) + 1;
-      } else {
-        start = monthObject.daysBeforeFullWeeks + (headerIndex * WEEK_LENGTH) + 1;
-      }
-      end = start + WEEK_LENGTH - 1;
-    }
-
-    return [start, end];
-  }
-
-  /**
    * Generate the month header structure.
    *
    * @private
    */
-  generateMonthHeaders() {
-    return this.generateHeaderSet('months');
+  generateMonthHeaders(year = this.currentYear) {
+    return this.dateCalculator.generateHeaderSet('months', this.settings.weekHeaderGenerator, year);
   }
 
   /**
@@ -501,17 +370,8 @@ class GanttChart extends BasePlugin {
    *
    * @private
    */
-  generateWeekHeaders() {
-    return this.generateHeaderSet('weeks');
-  }
-
-  /**
-   * Generate the day header structure.
-   *
-   * @private
-   */
-  generateDayHeaders() {
-    return this.generateHeaderSet('days');
+  generateWeekHeaders(year = this.currentYear) {
+    return this.dateCalculator.generateHeaderSet('weeks', this.settings.weekHeaderGenerator, year);
   }
 
   /**
@@ -520,16 +380,19 @@ class GanttChart extends BasePlugin {
    * @private
    */
   assignGanttSettings() {
-    this.initialSettings = {
-      data: clone(this.hot.getSettings().data),
-      readOnly: this.hot.getSettings().readOnly,
-      renderer: this.hot.getSettings().renderer,
-      colWidths: this.hot.getSettings().colWidths,
-      hiddenColumns: this.hot.getSettings().hiddenColumns,
-      nestedHeaders: this.hot.getSettings().nestedHeaders,
-      collapsibleColumns: this.hot.getSettings().collapsibleColumns,
-      columnSorting: this.hot.getSettings().columnSorting,
-    };
+    // TODO: commented out temporarily, to be fixed in #68, there's a problem with re-enabling the gantt settings after resetting them
+    // this.initialSettings = {
+    //   data: this.hot.getSettings().data,
+    //   readOnly: this.hot.getSettings().readOnly,
+    //   renderer: this.hot.getSettings().renderer,
+    //   colWidths: this.hot.getSettings().colWidths,
+    //   hiddenColumns: this.hot.getSettings().hiddenColumns,
+    //   nestedHeaders: this.hot.getSettings().nestedHeaders,
+    //   collapsibleColumns: this.hot.getSettings().collapsibleColumns,
+    //   columnSorting: this.hot.getSettings().columnSorting,
+    // };
+
+    this.initialSettings = deepClone(this.hot.getSettings());
 
     let additionalSettings = {
       data: createEmptySpreadsheetData(1, this.overallWeekSectionCount),
@@ -608,7 +471,7 @@ class GanttChart extends BasePlugin {
    * @param {Boolean} previous `true` if the previous week is needed.
    */
   getAdjacentWeekColumn(date, following = true, previous) {
-    date = this.dateCalculator.parseDate(date);
+    date = parseDate(date);
     let delta = previous === true ? -7 : 7;
     let adjacentWeek = date.setDate(date.getDate() + delta);
 
@@ -625,15 +488,20 @@ class GanttChart extends BasePlugin {
    * @returns {Array|Boolean} Array of the bar's row and column.
    */
   addRangeBar(row, startDate, endDate, additionalData) {
+    if (startDate !== null && endDate !== null) {
+      this.prepareDaysInColumnsInfo(parseDate(startDate), parseDate(endDate));
+    }
+
     let startDateColumn = this.dateCalculator.dateToColumn(startDate);
     let endDateColumn = this.dateCalculator.dateToColumn(endDate);
+    let year = getDateYear(startDate); // every range bar should not exceed the limits of one year
     let startMoved = false;
     let endMoved = false;
 
     if (startDateColumn === null && this.settings.hideDaysBeforeFullWeeks) {
       startDateColumn = this.getAdjacentWeekColumn(startDate, true, false);
 
-      if (startDateColumn !== null) {
+      if (startDateColumn !== false) {
         startMoved = true;
       }
     }
@@ -641,20 +509,24 @@ class GanttChart extends BasePlugin {
     if (endDateColumn === null && this.settings.hideDaysAfterFullWeeks) {
       endDateColumn = this.getAdjacentWeekColumn(endDate, false, true);
 
-      if (endDateColumn !== null) {
+      if (endDateColumn !== false) {
         endMoved = true;
       }
     }
 
-    if (!this.dateCalculator.isValidRangeBarData(startDate, endDate) || startDateColumn == null || endDateColumn == null) {
+    if (!this.dateCalculator.isValidRangeBarData(startDate, endDate) || startDateColumn === false || endDateColumn === false) {
       return false;
     }
 
-    if (!this.rangeBars[row]) {
-      this.rangeBars[row] = {};
+    if (!this.rangeBars[year]) {
+      this.rangeBars[year] = {};
     }
 
-    this.rangeBars[row][startDateColumn] = {
+    if (!this.rangeBars[year][row]) {
+      this.rangeBars[year][row] = {};
+    }
+
+    this.rangeBars[year][row][startDateColumn] = {
       barLength: endDateColumn - startDateColumn + 1,
       partialStart: startMoved ? false : !this.dateCalculator.isOnTheEdgeOfWeek(startDate)[0],
       partialEnd: endMoved ? false : !this.dateCalculator.isOnTheEdgeOfWeek(endDate)[1],
@@ -662,18 +534,37 @@ class GanttChart extends BasePlugin {
     };
 
     objectEach(additionalData, (prop, i) => {
-      this.rangeBars[row][startDateColumn].additionalData[i] = prop;
+      this.rangeBars[year][row][startDateColumn].additionalData[i] = prop;
     });
 
-    if (this.colorData[row]) {
-      this.rangeBars[row][startDateColumn].colors = this.colorData[row];
+    if (year === this.dateCalculator.getYear()) {
+
+      if (this.colorData[row]) {
+        this.rangeBars[year][row][startDateColumn].colors = this.colorData[row];
+      }
+
+      this.rangeList[row] = [row, startDateColumn];
+
+      this.renderRangeBar(row, startDateColumn, endDateColumn, additionalData);
     }
 
-    this.rangeList[row] = [row, startDateColumn];
-
-    this.renderRangeBar(row, startDateColumn, endDateColumn, additionalData);
-
     return [row, startDateColumn];
+  }
+
+  /**
+   * Generate the information about which date is represented in which column.
+   *
+   * @private
+   * @param {Date} startDate Start date.
+   * @param {Date} endDate End Date.
+   */
+  prepareDaysInColumnsInfo(startDate, endDate) {
+    for (let i = startDate.getFullYear(); i <= endDate.getFullYear(); i++) {
+      if (this.dateCalculator.daysInColumns[i] === void 0) {
+        this.dateCalculator.calculateWeekStructure(i);
+        this.dateCalculator.generateHeaderSet('weeks', null, i);
+      }
+    }
   }
 
   /**
@@ -684,13 +575,14 @@ class GanttChart extends BasePlugin {
    * @returns {Object|Boolean} Returns false if no bar is found.
    */
   getRangeBarData(row, column) {
+    const year = this.dateCalculator.getYear();
     let rangeBarCoords = this.getRangeBarCoordinates(row);
 
     if (!rangeBarCoords) {
       return false;
     }
 
-    let rangeBarData = this.rangeBars[rangeBarCoords[0]][rangeBarCoords[1]];
+    let rangeBarData = this.rangeBars[year][rangeBarCoords[0]][rangeBarCoords[1]];
 
     if (rangeBarData && row === rangeBarCoords[0] &&
       (column === rangeBarCoords[1] || column > rangeBarCoords[1] && column < rangeBarCoords[1] + rangeBarData.barLength)) {
@@ -720,13 +612,15 @@ class GanttChart extends BasePlugin {
   /**
    * Add a range bar to the table.
    *
+   * @private
    * @param {Number} row Row index.
    * @param {Number} startDateColumn Start column index.
    * @param {Number} endDateColumn End column index.
    * @param {Object} additionalData Additional range data.
    */
   renderRangeBar(row, startDateColumn, endDateColumn, additionalData) {
-    let currentBar = this.rangeBars[row][startDateColumn];
+    const year = this.dateCalculator.getYear();
+    let currentBar = this.rangeBars[year][row][startDateColumn];
 
     for (let i = startDateColumn; i <= endDateColumn; i++) {
       let cellMeta = this.hot.getCellMeta(row, i);
@@ -770,14 +664,15 @@ class GanttChart extends BasePlugin {
    * @param {Number} startDateColumn Column index.
    */
   removeRangeBarByColumn(row, startDateColumn) {
-    let rangeBar = this.rangeBars[row][startDateColumn];
+    const year = this.dateCalculator.getYear();
+    let rangeBar = this.rangeBars[year][row][startDateColumn];
 
     if (!rangeBar) {
       return;
     }
 
     this.unrenderRangeBar(row, startDateColumn, startDateColumn + rangeBar.barLength - 1);
-    this.rangeBars[row][startDateColumn] = null;
+    this.rangeBars[year][row][startDateColumn] = null;
 
     objectEach(this.rangeList, (prop, i) => {
       i = parseInt(i, 10);
@@ -802,6 +697,7 @@ class GanttChart extends BasePlugin {
   /**
    * Remove a range bar from the table.
    *
+   * @private
    * @param {Number} row Row index.
    * @param {Number} startDateColumn Start column index.
    * @param {Number} endDateColumn End column index.
@@ -823,6 +719,7 @@ class GanttChart extends BasePlugin {
   /**
    * A default renderer of the range bars.
    *
+   * @private
    * @param {Object} instance HOT instance.
    * @param {HTMLElement} TD TD element.
    * @param {Number} row Row index.
@@ -834,6 +731,8 @@ class GanttChart extends BasePlugin {
   uniformBackgroundRenderer(instance, TD, row, col, prop, value, cellProperties) {
     let rangeBarInfo = this.getRangeBarData(row, col);
     let rangeBarCoords = this.getRangeBarCoordinates(row);
+
+    TD.innerHTML = '';
 
     if (cellProperties.className) {
       TD.className = cellProperties.className;

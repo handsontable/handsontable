@@ -1,6 +1,7 @@
-import {objectEach, deepClone} from 'handsontable/helpers/object';
+import {objectEach, clone, deepClone} from 'handsontable/helpers/object';
 import {arrayEach} from 'handsontable/helpers/array';
-import DateCalculator from './dateCalculator';
+import {rangeEach} from 'handsontable/helpers/number';
+import {getAdditionalData, getEndDate, getStartDate, setEndDate, setStartDate} from './utils';
 
 /**
  * This class handles the data-related calculations for the GanttChart plugin.
@@ -30,10 +31,19 @@ class GanttChartDataFeed {
    */
   applyData(data, startDateColumn, endDateColumn, additionalData, asyncUpdates) {
     if (Object.prototype.toString.call(data) === '[object Array]') {
+      if (data.length > 1) {
+        this.chartInstance.alter('insert_row', 0, data.length - 1, `${this.pluginName}.loadData`);
+      }
+
       this.loadData(data);
 
-      // if data is a Handsontable instance (probably not the best way to recognize it)
-    } else if (data.guid) {
+    } else if (data instanceof this.chartInstance.constructor) {
+      const sourceRowCount = data.countRows();
+
+      if (sourceRowCount > 1) {
+        this.chartInstance.alter('insert_row', 0, sourceRowCount - 1, `${this.pluginName}.loadData`);
+      }
+
       this.bindWithHotInstance(data, startDateColumn, endDateColumn, additionalData, asyncUpdates);
     }
   }
@@ -193,10 +203,9 @@ class GanttChartDataFeed {
       this.chartPlugin.clearRangeList();
     }
 
-    arrayEach(dataFromSource, (bar) => {
-      bar = this.trimRangeIfNeeded(bar);
-      this.chartPlugin.addRangeBar.apply(this.chartPlugin, bar);
-    });
+    this.loadData(dataFromSource);
+
+    this.chartInstance.render();
   }
 
   /**
@@ -221,35 +230,32 @@ class GanttChartDataFeed {
    * ```
    */
   loadData(data) {
+    let allBars = [];
+
     arrayEach(data, (bar, i) => {
-      bar = this.trimRangeIfNeeded(bar);
-      this.chartPlugin.addRangeBar(i, bar.startDate, bar.endDate, bar.additionalData);
+      bar.row = i;
+
+      const bars = this.splitRangeIfNeeded(bar);
+
+      allBars = allBars.concat(bars);
+    });
+
+    arrayEach(allBars, (bar) => {
+      this.chartPlugin.addRangeBar(bar.row, getStartDate(bar), getEndDate(bar), getAdditionalData(bar));
+      delete bar.row;
     });
   }
 
   /**
-   * Trim the dates in the provided range bar, if they exceed the currently processed year.
+   * Split the provided range into maximum-year-long chunks.
    *
-   * @param {Array|Object} bar Range bar data.
-   * @returns {Array}
+   * @param {Object} bar The range bar object.
+   * @returns {Array} An array of slip chunks (or a single-element array, if no splicing occured)
    */
-  trimRangeIfNeeded(bar) {
-    let dateProps = null;
-    if (bar[1]) {
-      dateProps = {
-        startDate: 1,
-        endDate: 2
-      };
-
-    } else {
-      dateProps = {
-        startDate: 'startDate',
-        endDate: 'endDate'
-      };
-    }
-
-    let startDate = new Date(bar[dateProps.startDate]);
-    let endDate = new Date(bar[dateProps.endDate]);
+  splitRangeIfNeeded(bar) {
+    const splitBars = [];
+    let startDate = new Date(getStartDate(bar));
+    let endDate = new Date(getEndDate(bar));
 
     if (typeof startDate === 'string' || typeof endDate === 'string') {
       return false;
@@ -258,15 +264,25 @@ class GanttChartDataFeed {
     let startYear = startDate.getFullYear();
     let endYear = endDate.getFullYear();
 
-    if (startYear < this.chartPlugin.currentYear && endYear >= this.chartPlugin.currentYear) {
-      bar[dateProps.startDate] = '01/01/' + this.chartPlugin.currentYear;
+    if (startYear === endYear) {
+      return [bar];
     }
 
-    if (endYear > this.chartPlugin.currentYear && startYear <= this.chartPlugin.currentYear) {
-      bar[dateProps.endDate] = '12/31/' + this.chartPlugin.currentYear;
-    }
+    rangeEach(startYear, endYear, (year) => {
+      const newBar = clone(bar);
 
-    return bar;
+      if (year !== startYear) {
+        setStartDate(newBar, '01/01/' + year);
+      }
+
+      if (year !== endYear) {
+        setEndDate(newBar, '12/31/' + year);
+      }
+
+      splitBars.push(newBar);
+    });
+
+    return splitBars;
   }
 
   /**

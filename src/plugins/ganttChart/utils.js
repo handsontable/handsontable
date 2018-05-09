@@ -69,3 +69,97 @@ export function getShorthand(monthName) {
   const MONTH_SHORT_LEN = 3;
   return monthName.substring(0, MONTH_SHORT_LEN);
 }
+
+/**
+ * Get the start date of the provided range bar.
+ *
+ * @param {Object} rangeBar The range bar object.
+ * @returns {Date} The start date.
+ */
+export function getStartDate(rangeBar) {
+  return parseDate(Array.isArray(rangeBar) ? rangeBar[1] : rangeBar.startDate);
+}
+
+/**
+ * Get the end date of the provided range bar.
+ *
+ * @param {Object} rangeBar The range bar object.
+ * @returns {Date} The end date.
+ */
+export function getEndDate(rangeBar) {
+  return parseDate(Array.isArray(rangeBar) ? rangeBar[2] : rangeBar.endDate);
+}
+
+/**
+ * Get the additional data object of the provided range bar.
+ *
+ * @param {Object} rangeBar The range bar object.
+ * @returns {Object} The additional data object.
+ */
+export function getAdditionalData(rangeBar) {
+  return Array.isArray(rangeBar) ? rangeBar[3] : rangeBar.additionalData;
+}
+
+/**
+ * Set the start date of the provided range bar.
+ *
+ * @param {Object} rangeBar The range bar object.
+ * @param {Date} value The new start date value.
+ */
+export function setStartDate(rangeBar, value) {
+  if (Array.isArray(rangeBar)) {
+    rangeBar[1] = value;
+
+  } else {
+    rangeBar.startDate = value;
+  }
+}
+
+/**
+ * Set the end date of the provided range bar.
+ *
+ * @param {Object} rangeBar The range bar object.
+ * @param {Date} value The new end date value.
+ */
+export function setEndDate(rangeBar, value) {
+  if (Array.isArray(rangeBar)) {
+    rangeBar[2] = value;
+
+  } else {
+    rangeBar.endDate = value;
+  }
+}
+
+/**
+ * Parse the provided date and check if it's valid.
+ *
+ * @param {String|Date} date Date string or object.
+ * @returns {Date|null} Parsed Date object or null, if not a valid date string.
+ */
+export function parseDate(date) {
+  if (date === null) {
+    return null;
+  }
+
+  if (!(date instanceof Date)) {
+    date = new Date(date);
+
+    if (date.toString() === 'Invalid Date') {
+      return null;
+    }
+  }
+
+  return date;
+}
+
+/**
+ * Get the year of the provided date.
+ *
+ * @param {Date|String} date Date to get the year from.
+ * @returns {Number|null} The year from the provided date.
+ */
+export function getDateYear(date) {
+  date = parseDate(date);
+
+  return date ? date.getFullYear() : null;
+}
