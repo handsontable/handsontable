@@ -3,7 +3,7 @@ import { registerPlugin } from './../../plugins';
 import { hasOwnProperty } from './../../helpers/object';
 import { rangeEach } from './../../helpers/number';
 import { CellRange } from './../../3rdparty/walkontable/src';
-import {arrayEach} from './../../helpers/array';
+import { arrayEach } from './../../helpers/array';
 import { createHighlight } from './../../selection/highlight/types';
 import * as C from './../../i18n/constants';
 import {
@@ -14,7 +14,7 @@ import {
   top
 } from './contextMenuItem';
 import {
-  createClassName,
+  createID,
   createDefaultCustomBorder,
   createSingleEmptyBorder,
   createEmptyBorders,
@@ -136,12 +136,14 @@ class CustomBorders extends BasePlugin {
   /**
    * Insert WalkontableSelection instance into Walkontable settings.
    *
-   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `className` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    */
   insertBorderIntoSettings(border) {
     this.savedBorders.push(border);
 
-    this.savedBorders = this.savedBorders.filter((obj, index, array) => array.map((mapObj) => mapObj.className).indexOf(obj.className) === index);
+    this.savedBorders = this.savedBorders.filter((obj, index, array) => array.map((mapObj) => mapObj.id).indexOf(obj.id) === index);
+
+    this.clearNullCellRange();
 
     const coordinates = {
       row: border.row,
@@ -150,9 +152,9 @@ class CustomBorders extends BasePlugin {
     const cellRange = new CellRange(coordinates, coordinates, coordinates);
     const selection = createHighlight(CUSTOM_SELECTION, {border, cellRange});
 
-    if (!this.hot.selection.highlight.customSelection.includes(selection)) {
-      this.hot.selection.highlight.setCustomSelection(selection);
-    }
+    this.hot.selection.highlight.addCustomSelection(selection);
+
+    this.hot.view.wt.draw(true);
   }
 
   /**
@@ -171,7 +173,7 @@ class CustomBorders extends BasePlugin {
     this.insertBorderIntoSettings(border);
   }
 
-  /** *
+  /**
    * Prepare borders from setting (object).
    *
    * @param {Object} rowObj Object with `range`, `left`, `right`, `top` and `bottom` properties.
@@ -225,39 +227,24 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Remove borders divs from DOM.
+   * Clear borders settings from custom selections.
    *
-   * @param {String} borderClassName Border class name as string.
+   * @param {String} borderID Border id name as string.
    */
-  removeBordersFromDom(borderClassName) {
-    let borders = this.hot.rootElement.querySelectorAll(`.${borderClassName}:not(td)`);
+  clearBordersFromSelectionSettings(borderID) {
+    let index = this.hot.selection.highlight.customSelections.map((obj) => obj.settings.id).indexOf(borderID);
 
-    rangeEach(0, borders.length - 1, (index) => {
-      let parent = borders[index].parentNode;
-
-      if (parent.parentNode) {
-        parent.parentNode.removeChild(parent);
-      }
-    });
-
-    this.removeClassBorderFromTDs(borderClassName);
+    if (index > -1) {
+      this.hot.selection.highlight.customSelections[index].clear();
+    }
   }
 
   /**
-   * Remove class border from TDs.
+   * Clear cellRange with null value.
    *
-   * @param {String} borderClassName Border class name as string.
    */
-  removeClassBorderFromTDs(borderClassName) {
-    arrayEach(this.hot.selection.highlight.customSelection, (selection, index) => {
-      if (selection.settings.className === borderClassName) {
-        this.hot.selection.highlight.customSelection.splice(index, 1);
-
-        return false; // breaks forAll
-      }
-    });
-
-    this.hot.render();
+  clearNullCellRange() {
+    this.hot.selection.highlight.customSelections = this.hot.selection.highlight.customSelections.filter((obj) => obj.cellRange !== null);
   }
 
   /**
@@ -267,12 +254,11 @@ class CustomBorders extends BasePlugin {
    * @param {Number} col Visual column index.
    */
   removeAllBorders(row, col) {
-    let borderClassName = createClassName(row, col);
-    let index = this.savedBorders.map((obj) => obj.className).indexOf(borderClassName);
+    let borderID = createID(row, col);
 
-    this.savedBorders.splice(index, 1);
+    this.spliceBorder(borderID);
 
-    this.removeBordersFromDom(borderClassName);
+    this.clearBordersFromSelectionSettings(borderID);
     this.hot.removeCellMeta(row, col, 'borders');
   }
 
@@ -293,17 +279,34 @@ class CustomBorders extends BasePlugin {
 
     if (remove) {
       bordersMeta[place] = createSingleEmptyBorder();
+
+      const values = Object.values(bordersMeta);
+      const hideCount = values.reduce((accumulator, obj) => {
+        if (obj.hide) {
+          accumulator += 1;
+        }
+
+        return accumulator;
+      }, 0);
+
+      if (hideCount === 4) {
+        const borderID = createID(row, col);
+
+        this.hot.removeCellMeta(row, col, 'borders');
+        this.spliceBorder(borderID);
+        this.clearBordersFromSelectionSettings(borderID);
+
+      } else {
+        this.hot.setCellMeta(row, col, 'borders', bordersMeta);
+        this.insertBorderIntoSettings(bordersMeta);
+      }
+
     } else {
       bordersMeta[place] = createDefaultCustomBorder();
+
+      this.hot.setCellMeta(row, col, 'borders', bordersMeta);
+      this.insertBorderIntoSettings(bordersMeta);
     }
-
-    this.hot.setCellMeta(row, col, 'borders', bordersMeta);
-
-    let borderClassName = createClassName(row, col);
-    this.removeBordersFromDom(borderClassName);
-    this.insertBorderIntoSettings(bordersMeta);
-
-    this.hot.render();
   }
 
   /**
@@ -378,7 +381,6 @@ class CustomBorders extends BasePlugin {
       }
     });
 
-    this.hot.render();
     this.hot.view.wt.draw(true);
   }
 
@@ -416,16 +418,32 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
+    * Splice border from savedBorders.
+    *
+    * @private
+    * @param {String} borderID Border id name as string.
+    */
+  spliceBorder(borderID) {
+    let index = this.savedBorders.map((obj) => obj.id).indexOf(borderID);
+
+    if (index > -1) {
+      this.savedBorders.splice(index, 1);
+    }
+  }
+
+  /**
     * Clear borders.
     *
     * @private
     */
   clearBorders() {
     rangeEach(0, this.savedBorders.length - 1, (index) => {
-      let borderClassName = this.savedBorders[index].className;
+      let borderID = this.savedBorders[index].id;
 
-      this.removeBordersFromDom(borderClassName);
+      this.clearBordersFromSelectionSettings(borderID);
     });
+
+    this.hot.view.wt.draw(true);
   }
 
   /**

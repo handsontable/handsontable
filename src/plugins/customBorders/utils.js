@@ -2,13 +2,13 @@ import {hasOwnProperty} from './../../helpers/object';
 import {arrayEach} from './../../helpers/array';
 
 /**
- * Create separated class name for borders for each cell.
+ * Create separated id for borders for each cell.
  *
  * @param {Number} row Visual row index.
  * @param {Number} col Visual column index.
  * @returns {String}
  */
-export function createClassName(row, col) {
+export function createID(row, col) {
   return `border_row${row}col${col}`;
 }
 
@@ -51,11 +51,11 @@ export function createDefaultHtBorder() {
  *
  * @param {Number} row Visual row index.
  * @param {Number} col Visual column index.
- * @returns {Object} `{{className: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`
+ * @returns {Object} `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`
  */
 export function createEmptyBorders(row, col) {
   return {
-    className: createClassName(row, col),
+    id: createID(row, col),
     border: createDefaultHtBorder(),
     row,
     col,
@@ -91,7 +91,7 @@ export function extendDefaultBorder(defaultBorder, customBorder) {
 }
 
 /**
- * Check if selection has border by className
+ * Check if selection has border
  *
  * @param hot
  * @param direction
