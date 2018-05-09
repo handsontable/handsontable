@@ -356,7 +356,7 @@ describe('TrimRows', function() {
         data: getMultilineData(5, 10),
         columnSorting: {
           column: 0,
-          sortOrder: false
+          sortOrder: 'desc'
         },
         sortIndicator: true,
         trimRows: [1],
@@ -376,7 +376,7 @@ describe('TrimRows', function() {
         colHeaders: true,
         columnSorting: {
           column: 0,
-          sortOrder: false
+          sortOrder: 'desc'
         },
         sortIndicator: true,
         trimRows: [1],
@@ -405,7 +405,7 @@ describe('TrimRows', function() {
         colHeaders: true,
         columnSorting: {
           column: 0,
-          sortOrder: false
+          sortOrder: 'desc'
         },
         sortIndicator: true,
         trimRows: [1],
