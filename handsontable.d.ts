@@ -1388,6 +1388,20 @@ declare namespace Handsontable {
       untrimRow(row: number): void;
       untrimRows(rows: number[]): void;
     }
+
+    interface Search extends Base {
+      callback: () => void;
+      queryMethod: () => void;
+      searchResultClass: string;
+
+      query(queryStr: string, callback: () => void, queryMethod: () => void): any[];
+      getCallback(): () => void;
+      setCallback(newCallback: () => void): void;
+      getQueryMethod(): () => void;
+      setQueryMethod(newQueryMethod: () => void): void;
+      getSearchResultClass(): string;
+      setSearchResultClass(newElementClass: string): void;
+    }
   }
 
   namespace renderers {
