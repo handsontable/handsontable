@@ -1068,7 +1068,7 @@ describe('Formulas general', function() {
         height: 300
       });
 
-      hot.updateSettings({columnSorting: {column: 2, sortOrder: true}});
+      hot.updateSettings({columnSorting: {column: 2, sortOrder: 'asc'}});
 
       // source data is not involved in the translation process
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
@@ -1083,7 +1083,7 @@ describe('Formulas general', function() {
       expect(hot.getDataAtRow(3)).toEqual([2012, 8042, 10056, 502.75, 12, '\'=SUM(E5)']);
       expect(hot.getDataAtRow(4)).toEqual([5, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 2011]);
 
-      hot.updateSettings({columnSorting: {column: 5, sortOrder: false}});
+      hot.updateSettings({columnSorting: {column: 5, sortOrder: 'desc'}});
 
       // source data is not involved in the translation process
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
@@ -1109,7 +1109,7 @@ describe('Formulas general', function() {
         height: 300
       });
 
-      hot.updateSettings({columnSorting: {column: 2, sortOrder: true}});
+      hot.updateSettings({columnSorting: {column: 2, sortOrder: 'asc'}});
 
       setTimeout(function () {
         hot.setDataAtCell(4, 0, '');
@@ -1165,7 +1165,7 @@ describe('Formulas general', function() {
         height: 300
       });
 
-      hot.updateSettings({columnSorting: {column: 2, sortOrder: true}});
+      hot.updateSettings({columnSorting: {column: 2, sortOrder: 'asc'}});
 
       setTimeout(function () {
         hot.setDataAtCell(3, 1, '=SUM(B1:B3)');
