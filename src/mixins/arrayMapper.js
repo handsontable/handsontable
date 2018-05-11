@@ -159,7 +159,7 @@ const arrayMapper = {
    * @param {Number} visualIndexFrom index to move.
    * @param {Number} visualIndexTo destination of move.
    */
-  move(visualIndexFrom, visualIndexTo) {
+  moveItems(visualIndexFrom, visualIndexTo) {
     this._arrayMap.splice(visualIndexTo, 0, ...this._arrayMap.splice(visualIndexFrom, 1));
   },
 
@@ -168,6 +168,14 @@ const arrayMapper = {
    */
   clearMap() {
     this._arrayMap.length = 0;
+  },
+
+  /**
+   * Destroy class.
+   */
+  destroy() {
+    this.clearMap();
+    this._arrayMap = null;
   }
 };
 

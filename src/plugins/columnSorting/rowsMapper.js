@@ -7,15 +7,6 @@ import {rangeEach} from './../../helpers/number';
  * @plugin ColumnSorting
  */
 class RowsMapper {
-  constructor(columnSorting) {
-    /**
-     * Instance of ColumnSorting plugin.
-     *
-     * @type {ColumnSorting}
-     */
-    this.columnSorting = columnSorting;
-  }
-
   /**
    * Reset current map array and create new one.
    *
@@ -29,13 +20,6 @@ class RowsMapper {
     rangeEach(originLength - 1, (itemIndex) => {
       this._arrayMap[itemIndex] = itemIndex;
     });
-  }
-
-  /**
-   * Destroy class.
-   */
-  destroy() {
-    this._arrayMap = null;
   }
 }
 
