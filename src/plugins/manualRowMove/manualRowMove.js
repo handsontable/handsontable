@@ -172,32 +172,29 @@ class ManualRowMove extends BasePlugin {
    * Move multiple rows.
    *
    * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {Number} target Visual row index being a target for the moved rows.
+   * @param {Number} [target=0] Visual row index being a target for the moved rows.
    */
-  moveRows(rows, target) {
-    const visualRows = [...rows];
+  moveRows(visualRows, target = 0) {
     let priv = privatePool.get(this);
     let beforeMoveHook = this.hot.runHooks('beforeRowMove', visualRows, target);
 
     priv.disallowMoving = beforeMoveHook === false;
 
     if (!priv.disallowMoving) {
-      // first we need to rewrite an visual indexes to physical for save reference after move
-      arrayEach(rows, (row, index, array) => {
-        array[index] = this.rowsMapper.getValueByIndex(row);
-      });
+      const physicalTarget = this.rowsMapper.getValueByIndex(target);
+      const physicalRows = visualRows.map((row) => this.rowsMapper.getValueByIndex(row));
 
-      // next, when we have got an physical indexes, we can move rows
-      arrayEach(rows, (row, index) => {
-        let actualPosition = this.rowsMapper.getIndexByValue(row);
+      arrayEach(physicalRows, (physicalRow, index) => {
+        let actualTarget = this.rowsMapper.getIndexByValue(physicalTarget);
+        let actualRow = this.rowsMapper.getIndexByValue(physicalRow);
 
-        if (actualPosition !== target) {
-          this.rowsMapper.moveRow(actualPosition, target + index);
+        if (visualRows[index] >= target) {
+          this.rowsMapper.moveRow(actualRow, actualTarget);
+
+        } else {
+          this.rowsMapper.moveRow(actualRow, target - 1);
         }
       });
-
-      // after moving we have to clear rowsMapper from null entries
-      this.rowsMapper.clearNull();
     }
 
     this.hot.runHooks('afterRowMove', visualRows, target);
@@ -607,10 +604,11 @@ class ManualRowMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
-    if (rowsLen < 1 || target === void 0 || priv.rowsToMove.indexOf(target) > -1 ||
-        (priv.rowsToMove[rowsLen - 1] === target - 1)) {
+    if (rowsLen < 1 || target === void 0 || priv.rowsToMove.indexOf(target) > -1) {
       return;
     }
+
+    const firstMovedPhysicalRow = this.rowsMapper.getValueByIndex(priv.rowsToMove[0]);
 
     this.moveRows(priv.rowsToMove, target);
 
@@ -618,8 +616,8 @@ class ManualRowMove extends BasePlugin {
     this.hot.render();
 
     if (!priv.disallowMoving) {
-      let selectionStart = this.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
-      let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[rowsLen - 1]);
+      let selectionStart = this.rowsMapper.getIndexByValue(firstMovedPhysicalRow);
+      let selectionEnd = selectionStart + rowsLen - 1;
       this.changeSelection(selectionStart, selectionEnd);
     }
 

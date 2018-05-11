@@ -154,12 +154,12 @@ const arrayMapper = {
   },
 
   /**
-   * Swap indexes in arrayMapper.
+   * Move indexes in arrayMapper.
    *
    * @param {Number} visualIndexFrom index to move.
-   * @param {Number} visualIndexTo index to.
+   * @param {Number} visualIndexTo destination of move.
    */
-  swapIndexes(visualIndexFrom, visualIndexTo) {
+  move(visualIndexFrom, visualIndexTo) {
     this._arrayMap.splice(visualIndexTo, 0, ...this._arrayMap.splice(visualIndexFrom, 1));
   },
 
