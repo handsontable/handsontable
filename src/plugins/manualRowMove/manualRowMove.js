@@ -189,10 +189,10 @@ class ManualRowMove extends BasePlugin {
         let actualRow = this.rowsMapper.getIndexByValue(physicalRow);
 
         if (visualRows[index] >= target) {
-          this.rowsMapper.moveRow(actualRow, actualTarget);
+          this.rowsMapper.moveItems(actualRow, actualTarget);
 
         } else {
-          this.rowsMapper.moveRow(actualRow, target - 1);
+          this.rowsMapper.moveItems(actualRow, target - 1);
         }
       });
     }

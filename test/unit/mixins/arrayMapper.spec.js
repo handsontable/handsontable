@@ -73,33 +73,31 @@ describe('arrayMapper mixin', () => {
     });
   });
 
-  describe('Swap indexes', () => {
-    it('should swap given indexes', () => {
+  describe('Move indexes', () => {
+    it('should move given indexes', () => {
       arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-      arrayMapper.swapIndexes(8, 0);
-      arrayMapper.swapIndexes(3, 1);
-      arrayMapper.swapIndexes(5, 2);
-
-      expect(arrayMapper._arrayMap.length).toBe(10);
+      arrayMapper.moveItems(8, 0);
+      arrayMapper.moveItems(3, 1);
+      arrayMapper.moveItems(5, 2);
       expect(arrayMapper._arrayMap).toEqual([8, 2, 4, 0, 1, 3, 5, 6, 7, 9]);
     });
 
     it('should return to their index', () => {
       arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-      arrayMapper.swapIndexes(5, 0);
-      arrayMapper.swapIndexes(8, 1);
+      arrayMapper.moveItems(5, 0);
+      arrayMapper.moveItems(8, 1);
 
       expect(arrayMapper._arrayMap.length).toBe(10);
       expect(arrayMapper._arrayMap).toEqual([5, 8, 0, 1, 2, 3, 4, 6, 7, 9]);
 
-      arrayMapper.swapIndexes(1, 8);
+      arrayMapper.moveItems(1, 8);
 
       expect(arrayMapper._arrayMap.length).toBe(10);
       expect(arrayMapper._arrayMap).toEqual([5, 0, 1, 2, 3, 4, 6, 7, 8, 9]);
 
-      arrayMapper.swapIndexes(0, 5);
+      arrayMapper.moveItems(0, 5);
 
       expect(arrayMapper._arrayMap.length).toBe(10);
       expect(arrayMapper._arrayMap).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);

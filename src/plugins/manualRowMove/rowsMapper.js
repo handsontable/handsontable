@@ -1,5 +1,4 @@
 import arrayMapper from './../../mixins/arrayMapper';
-import {arrayFilter} from './../../helpers/array';
 import {mixin} from './../../helpers/object';
 import {rangeEach} from './../../helpers/number';
 
@@ -8,15 +7,6 @@ import {rangeEach} from './../../helpers/number';
  * @plugin ManualRowMove
  */
 class RowsMapper {
-  constructor(manualRowMove) {
-    /**
-     * Instance of ManualRowMove plugin.
-     *
-     * @type {ManualRowMove}
-     */
-    this.manualRowMove = manualRowMove;
-  }
-
   /**
    * Reset current map array and create new one.
    *
@@ -30,13 +20,6 @@ class RowsMapper {
     rangeEach(originLength - 1, (itemIndex) => {
       this._arrayMap[itemIndex] = itemIndex;
     });
-  }
-
-  /**
-   * Destroy class.
-   */
-  destroy() {
-    this._arrayMap = null;
   }
 }
 
