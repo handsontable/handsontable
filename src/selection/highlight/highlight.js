@@ -242,11 +242,7 @@ class Highlight {
    * @return {Selection}
    */
   addCustomSelection(newSelection) {
-    let found = this.customSelections.find((selection) => selection.settings.id === newSelection.settings.id);
-
-    if (!found) {
-      this.customSelections.push(newSelection);
-    }
+    this.customSelections.push(newSelection);
   }
 
   /**

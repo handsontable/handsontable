@@ -140,8 +140,7 @@ class CustomBorders extends BasePlugin {
    */
   insertBorderIntoSettings(border) {
     this.savedBorders.push(border);
-
-    this.savedBorders = this.savedBorders.filter((obj, index, array) => array.map((mapObj) => mapObj.id).indexOf(obj.id) === index);
+    this.savedBorders = this.savedBorders.filter((obj, index, array) => array.map((mapObj) => mapObj.id).lastIndexOf(obj.id) === index);
 
     this.clearNullCellRange();
 
@@ -153,6 +152,13 @@ class CustomBorders extends BasePlugin {
     const selection = createHighlight(CUSTOM_SELECTION, {border, cellRange});
 
     this.hot.selection.highlight.addCustomSelection(selection);
+    this.hot.selection.highlight.customSelections.map((mapObj) => mapObj.settings.id).forEach((element, index, arr) => {
+      if (arr.indexOf(element) !== index) {
+        let firstOccurrence = arr.indexOf(element);
+
+        this.hot.selection.highlight.customSelections.splice(firstOccurrence, 1);
+      }
+    });
 
     this.hot.view.wt.draw(true);
   }
@@ -237,6 +243,8 @@ class CustomBorders extends BasePlugin {
     if (index > -1) {
       this.hot.selection.highlight.customSelections[index].clear();
     }
+
+    this.hot.view.wt.draw(true);
   }
 
   /**
@@ -259,6 +267,8 @@ class CustomBorders extends BasePlugin {
     this.spliceBorder(borderID);
 
     this.clearBordersFromSelectionSettings(borderID);
+    this.clearNullCellRange();
+
     this.hot.removeCellMeta(row, col, 'borders');
   }
 
@@ -290,11 +300,7 @@ class CustomBorders extends BasePlugin {
       }, 0);
 
       if (hideCount === 4) {
-        const borderID = createID(row, col);
-
-        this.hot.removeCellMeta(row, col, 'borders');
-        this.spliceBorder(borderID);
-        this.clearBordersFromSelectionSettings(borderID);
+        this.removeAllBorders(row, col);
 
       } else {
         this.hot.setCellMeta(row, col, 'borders', bordersMeta);
@@ -380,8 +386,6 @@ class CustomBorders extends BasePlugin {
         this.prepareBorderFromCustomAdded(customBorders[index].row, customBorders[index].col, customBorders[index]);
       }
     });
-
-    this.hot.view.wt.draw(true);
   }
 
   /**
@@ -442,8 +446,6 @@ class CustomBorders extends BasePlugin {
 
       this.clearBordersFromSelectionSettings(borderID);
     });
-
-    this.hot.view.wt.draw(true);
   }
 
   /**

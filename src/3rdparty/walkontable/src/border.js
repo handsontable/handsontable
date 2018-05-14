@@ -139,6 +139,16 @@ class Border {
   createBorders(settings) {
     this.main = document.createElement('div');
 
+    if (settings.id) {
+      this.main.id = settings.id;
+    }
+
+    if (this.main.id && document.querySelectorAll(`.ht_master #${this.main.id}`).length > 0) {
+      let first = document.querySelectorAll(`.ht_master #${this.main.id}`)[0];
+
+      first.style.display = 'none';
+    }
+
     let borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
     let style = this.main.style;
     style.position = 'absolute';
@@ -148,6 +158,7 @@ class Border {
     for (let i = 0; i < 5; i++) {
       let position = borderDivs[i];
       let div = document.createElement('div');
+
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
 
       if (this.settings[position] && this.settings[position].hide) {
@@ -159,6 +170,7 @@ class Border {
       style.width = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
 
       this.main.appendChild(div);
+      // console.log(this.main, div);
     }
     this.top = this.main.childNodes[0];
     this.left = this.main.childNodes[1];
