@@ -186,40 +186,58 @@ class ManualRowMove extends BasePlugin {
       const physicalMovedRows = visualMovedRows.map((row) => this.rowsMapper.getValueByIndex(row));
 
       arrayEach(visualMovedRows, (visualMovedRow, numberOfMovedIndex) => {
-        const moveDestinationBelow = () => visualMovedRow >= visualTarget;
+        const moveRowFromBottomToTop = () => visualMovedRow > visualTarget;
+        const physicalMovedRow = physicalMovedRows[numberOfMovedIndex];
 
-        if (moveDestinationBelow()) {
-          // When moving from the bottom to the top, index of target should be increased after each move. We can get it by watching for position of element which was located
-          // on target index at the beginning.
-
-          const physicalMovedRow = physicalMovedRows[numberOfMovedIndex];
-
-          // This translation may be needed when mixing moving lower indexes with higher indexes (indexes are not sorted)
-          const newVisualIndexOfMovedRow = this.rowsMapper.getIndexByValue(physicalMovedRow);
-
-          // New index of displaced element. It is visual index of element placed on target position, at the beginning (before move).
-          const indexOfPushedDownElement = this.rowsMapper.getIndexByValue(physicalTarget);
-
-          // Moving element from chosen index to the counted position of destination
-          this.rowsMapper.moveItems(newVisualIndexOfMovedRow, indexOfPushedDownElement);
+        if (moveRowFromBottomToTop()) {
+          this.moveUpRow(physicalMovedRow, physicalTarget);
 
         } else {
-          // When moving from the top to the bottom, index of moved element should be decreased after each move. We can get it by checking for new position of moved element
-          // after each action.
-
-          const physicalMovedRow = physicalMovedRows[numberOfMovedIndex];
-
-          // New index of displaced element. It is visual index of element to move which was changed after previous move.
-          const indexOfPushedUpElement = this.rowsMapper.getIndexByValue(physicalMovedRow);
-
-          // The below subtraction (`visualTarget - 1`) was added as consequence of https://github.com/handsontable/handsontable/issues/4501
-          // Moving element from the counted position to the target index chosen at the start.
-          this.rowsMapper.moveItems(indexOfPushedUpElement, visualTarget - 1);
+          this.moveDownRow(physicalMovedRow, physicalTarget);
         }
       });
     }
 
     this.hot.runHooks('afterRowMove', visualMovedRows, visualTarget);
+  }
+
+  /**
+   * When moving from the bottom to the top, index of target should be increased after each action. We can get it by watching for position of element which was located
+   * on target index at the beginning.
+   *
+   * @private
+   * @param {Number} physicalMovedRow Physical index of moved row.
+   * @param {Number} physicalTarget Physical index of target.
+   */
+  moveUpRow(physicalMovedRow, physicalTarget) {
+    // This translation may be needed when mixing moving lower indexes with higher indexes (moved indexes may be not sorted)
+    const newVisualIndexOfMovedRow = this.rowsMapper.getIndexByValue(physicalMovedRow);
+
+    // New index of displaced element. It is visual index of element placed on target position, at the beginning (before move).
+    const indexOfPushedDownElement = this.rowsMapper.getIndexByValue(physicalTarget);
+
+    // Moving element from chosen index to the counted position of destination
+    this.rowsMapper.moveItems(newVisualIndexOfMovedRow, indexOfPushedDownElement);
+  }
+
+  /**
+   * When moving from the top to the bottom, index of moved element should be decreased after each action. We can get it by checking for new position of moved element
+   * after each subsequent change.
+   *
+   * @private
+   * @param {Number} physicalMovedRow Physical index of moved row.
+   * @param {Number} physicalTarget Physical index of target.
+   */
+  moveDownRow(physicalMovedRow, physicalTarget) {
+    // New index of displaced element. It is visual index of moved element which is changed by previous move actions (when moving multiple rows).
+    const indexOfPulledUpElement = this.rowsMapper.getIndexByValue(physicalMovedRow);
+
+    // This translation may be needed when mixing moving lower indexes with higher indexes (moved indexes may be not sorted)
+    const newVisualIndexOfTarget = this.rowsMapper.getIndexByValue(physicalTarget);
+
+    // The below subtraction (`newVisualIndexOfTarget - 1`) was added as consequence of https://github.com/handsontable/handsontable/issues/4501
+    // Moving element from the counted position to the target index chosen at the start.
+    this.rowsMapper.moveItems(indexOfPulledUpElement, newVisualIndexOfTarget - 1);
   }
 
   /**
