@@ -170,7 +170,6 @@ class Border {
       style.width = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
 
       this.main.appendChild(div);
-      // console.log(this.main, div);
     }
     this.top = this.main.childNodes[0];
     this.left = this.main.childNodes[1];

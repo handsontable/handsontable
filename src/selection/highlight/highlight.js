@@ -239,10 +239,10 @@ class Highlight {
   /**
    * Add selection to the custom selection instance. The new selection are added to the end of the selection collection.
    *
-   * @return {Selection}
+   * @param {Object} options
    */
-  addCustomSelection(newSelection) {
-    this.customSelections.push(newSelection);
+  addCustomSelection(options) {
+    this.customSelections.push(createHighlight(CUSTOM_SELECTION, options));
   }
 
   /**

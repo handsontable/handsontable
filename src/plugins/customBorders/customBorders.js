@@ -4,7 +4,6 @@ import { hasOwnProperty } from './../../helpers/object';
 import { rangeEach } from './../../helpers/number';
 import { CellRange } from './../../3rdparty/walkontable/src';
 import { arrayEach } from './../../helpers/array';
-import { createHighlight } from './../../selection/highlight/types';
 import * as C from './../../i18n/constants';
 import {
   bottom,
@@ -21,7 +20,6 @@ import {
   extendDefaultBorder
 } from './utils';
 
-const CUSTOM_SELECTION = 'custom-selection';
 /**
  * @plugin CustomBorders
  *
@@ -149,9 +147,8 @@ class CustomBorders extends BasePlugin {
       col: border.col
     };
     const cellRange = new CellRange(coordinates, coordinates, coordinates);
-    const selection = createHighlight(CUSTOM_SELECTION, {border, cellRange});
 
-    this.hot.selection.highlight.addCustomSelection(selection);
+    this.hot.selection.highlight.addCustomSelection({border, cellRange});
     this.hot.selection.highlight.customSelections.map((mapObj) => mapObj.settings.id).forEach((element, index, arr) => {
       if (arr.indexOf(element) !== index) {
         let firstOccurrence = arr.indexOf(element);

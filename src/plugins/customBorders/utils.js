@@ -55,6 +55,7 @@ export function createDefaultHtBorder() {
  */
 export function createEmptyBorders(row, col) {
   return {
+    className: createID(row, col),
     id: createID(row, col),
     border: createDefaultHtBorder(),
     row,
@@ -91,7 +92,7 @@ export function extendDefaultBorder(defaultBorder, customBorder) {
 }
 
 /**
- * Check if selection has border
+ * Check if selection has border.
  *
  * @param hot
  * @param direction
@@ -121,7 +122,7 @@ export function checkSelectionBorders(hot, direction) {
 }
 
 /**
- * Mark label in contextMenu as selected
+ * Mark label in contextMenu as selected.
  *
  * @param label
  * @returns {string}
