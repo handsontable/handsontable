@@ -202,8 +202,8 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * When moving from the bottom to the top, index of target should be increased after each action. We can get it by watching for position of element which was located
-   * on target index at the beginning.
+   * When moving from the bottom to the top, index of target should be increased after each action. We can get the index by watching new position of element
+   * which was located on target index at the beginning.
    *
    * @private
    * @param {Number} physicalMovedRow Physical index of moved row.
@@ -221,8 +221,8 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * When moving from the top to the bottom, index of moved element should be decreased after each action. We can get it by checking for new position of moved element
-   * after each subsequent change.
+   * When moving from the top to the bottom, index of moved element should be decreased after each action. We can get the index by checking new position of
+   * each moved element after each subsequent change.
    *
    * @private
    * @param {Number} physicalMovedRow Physical index of moved row.
