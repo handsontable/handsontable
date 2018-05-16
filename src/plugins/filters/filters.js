@@ -391,7 +391,9 @@ class Filters extends BasePlugin {
         const [, prop] = change;
         const columnIndex = this.hot.propToCol(prop);
 
-        this.updateValueComponentCondition(columnIndex);
+        if (this.conditionCollection.hasConditions(columnIndex)) {
+          this.updateValueComponentCondition(columnIndex);
+        }
       });
     }
   }
