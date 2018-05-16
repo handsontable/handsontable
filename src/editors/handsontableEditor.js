@@ -140,9 +140,6 @@ HandsontableEditor.prototype.close = function() {
 };
 
 HandsontableEditor.prototype.focus = function() {
-  if (!this.instance.isDestroyed) {
-    this.instance.listen();
-  }
   TextEditor.prototype.focus.apply(this, arguments);
 };
 

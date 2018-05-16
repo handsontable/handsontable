@@ -12,7 +12,7 @@ class CheckboxEditor extends BaseEditor {
     // are handled inside `checkboxRenderer`. Some events come here from `editorManager`. Below `if` statement was created by author
     // for purpose of handling only `doubleclick` event which may be done on a cell with checkbox.
 
-    if (event.type === 'mouseup') {
+    if (event && event.type === 'mouseup') {
       let checkbox = this.TD.querySelector('input[type="checkbox"]');
 
       if (!hasClass(checkbox, 'htBadValue')) {

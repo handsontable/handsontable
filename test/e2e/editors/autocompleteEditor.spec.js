@@ -411,7 +411,7 @@ describe('AutocompleteEditor', () => {
       expect(autocompleteEditor().width()).toEqual($td.width());
     });
 
-    it('should invoke beginEditing only once after dobleclicking on a cell (#1011)', () => {
+    it('should invoke beginEditing only once after doubleclicking on a cell (#1011)', () => {
       var hot = handsontable({
         columns: [
           {},

@@ -46,11 +46,19 @@ TextEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
   if (!cellProperties.readOnly) {
     this.refreshDimensions(true);
 
+    if (cellProperties.allowInvalid) {
+      this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME)
+    }
+
     if (isMSBrowser()) {
       // Move textarea element out off the viewport due to the cursor overlapping bug on IE.
       this.hideEditableElement();
     }
-    this.instance._registerImmediate(() => this.focus());
+    // @TODO: The fragmentSelection functionality is conflicted with IME. To make fragmentSelection working below is a condition which disables
+    // IME when fragmentSelection is enabled
+    if (!cellProperties.fragmentSelection) {
+      this.instance._registerImmediate(() => this.focus());
+    }
   }
 };
 
@@ -79,6 +87,11 @@ TextEditor.prototype.getValue = function() {
 
 TextEditor.prototype.setValue = function(newValue) {
   this.TEXTAREA.value = newValue;
+};
+
+TextEditor.prototype.beginEditing = function(newInitialValue, event) {
+  this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME).
+  BaseEditor.prototype.beginEditing.apply(this, arguments);
 };
 
 var onBeforeKeyDown = function onBeforeKeyDown(event) {
@@ -195,7 +208,7 @@ TextEditor.prototype.close = function(tdOutside) {
 
 TextEditor.prototype.focus = function() {
   // For IME editor textarea element must be focused using ".select" method. Using ".focus" browser automatically scroll into
-  // focused element which is undesire effect.
+  // the focused element which is undesire effect.
   this.TEXTAREA.select();
   setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
 };
@@ -393,7 +406,6 @@ TextEditor.prototype.bindEvents = function() {
   this.eventManager.addEventListener(this.TEXTAREA, 'cut', (event) => {
     stopPropagation(event);
   });
-
   this.eventManager.addEventListener(this.TEXTAREA, 'paste', (event) => {
     stopPropagation(event);
   });
