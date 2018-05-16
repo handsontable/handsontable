@@ -8,6 +8,15 @@ import {rangeEach} from './../../helpers/number';
  * @plugin ManualColumnMove
  */
 class ColumnsMapper {
+  constructor(manualColumnMove) {
+    /**
+     * Instance of ManualColumnMove plugin.
+     *
+     * @type {ManualColumnMove}
+     */
+    this.manualColumnMove = manualColumnMove;
+  }
+
   /**
    * Reset current map array and create new one.
    *
@@ -21,6 +30,13 @@ class ColumnsMapper {
     rangeEach(originLength - 1, (itemIndex) => {
       this._arrayMap[itemIndex] = itemIndex;
     });
+  }
+
+  /**
+   * Destroy class.
+   */
+  destroy() {
+    this._arrayMap = null;
   }
 
   /**

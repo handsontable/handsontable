@@ -2,8 +2,25 @@ import RowsMapper from 'handsontable/plugins/manualRowMove/rowsMapper';
 
 describe('manualRowMove', () => {
   describe('rowsMapper', () => {
+    it('should set manualRowMove plugin while constructing', () => {
+      var manualRowMoveMock = {};
+      var mapper = new RowsMapper(manualRowMoveMock);
+
+      expect(mapper.manualRowMove).toBe(manualRowMoveMock);
+    });
+
     it('should be mixed with arrayMapper object', () => {
       expect(RowsMapper.MIXINS).toEqual(['arrayMapper']);
+    });
+
+    it('should destroy array after calling destroy method', () => {
+      var mapper = new RowsMapper();
+
+      expect(mapper._arrayMap).toEqual([]);
+
+      mapper.destroy();
+
+      expect(mapper._arrayMap).toBe(null); ;
     });
 
     it('should create map with pairs index->value', () => {

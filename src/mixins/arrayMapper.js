@@ -168,14 +168,6 @@ const arrayMapper = {
    */
   clearMap() {
     this._arrayMap.length = 0;
-  },
-
-  /**
-   * Destroy class.
-   */
-  destroy() {
-    this.clearMap();
-    this._arrayMap = null;
   }
 };
 
