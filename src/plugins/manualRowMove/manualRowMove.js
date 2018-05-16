@@ -175,8 +175,8 @@ class ManualRowMove extends BasePlugin {
    * @param {Number} [visualTarget=0] Visual row index being a visualTarget for the moved rows.
    */
   moveRows(visualMovedRows, visualTarget = 0) {
-    let priv = privatePool.get(this);
-    let beforeMoveHook = this.hot.runHooks('beforeRowMove', visualMovedRows, visualTarget);
+    const priv = privatePool.get(this);
+    const beforeMoveHook = this.hot.runHooks('beforeRowMove', visualMovedRows, visualTarget);
 
     priv.disallowMoving = beforeMoveHook === false;
 
@@ -184,16 +184,22 @@ class ManualRowMove extends BasePlugin {
       // Saving physical indexes (before move) which will be used as IDs. After move we can read NEW visual index of particular row / column by previously saved ID.
       const physicalTarget = this.rowsMapper.getValueByIndex(visualTarget);
       const physicalMovedRows = visualMovedRows.map((row) => this.rowsMapper.getValueByIndex(row));
+      let notMovedRows = 0;
 
-      arrayEach(visualMovedRows, (visualMovedRow, numberOfMovedIndex) => {
-        const moveRowFromBottomToTop = () => visualMovedRow > visualTarget;
-        const physicalMovedRow = physicalMovedRows[numberOfMovedIndex];
+      arrayEach(physicalMovedRows, (physicalMovedRow) => {
+        const newVisualIndexOfMovedRow = this.rowsMapper.getIndexByValue(physicalMovedRow);
+        const newVisualIndexOfTarget = this.rowsMapper.getIndexByValue(physicalTarget);
+        const moveRowFromBottomToTop = () => newVisualIndexOfMovedRow > newVisualIndexOfTarget + notMovedRows;
+        const moveRowFromTopToBottom = () => newVisualIndexOfMovedRow < newVisualIndexOfTarget;
 
         if (moveRowFromBottomToTop()) {
-          this.moveUpRow(physicalMovedRow, physicalTarget);
+          this.moveUpRow(physicalMovedRow, physicalTarget, notMovedRows);
+
+        } else if (moveRowFromTopToBottom()) {
+          this.moveDownRow(physicalMovedRow, physicalTarget);
 
         } else {
-          this.moveDownRow(physicalMovedRow, physicalTarget);
+          notMovedRows += 1;
         }
       });
     }
@@ -208,8 +214,9 @@ class ManualRowMove extends BasePlugin {
    * @private
    * @param {Number} physicalMovedRow Physical index of moved row.
    * @param {Number} physicalTarget Physical index of target.
+   * @param {Number} notMovedRowsOffset Number of not moved rows so far. Some of moved indexes may be equal to target indexes and move action on them is not performed.
    */
-  moveUpRow(physicalMovedRow, physicalTarget) {
+  moveUpRow(physicalMovedRow, physicalTarget, notMovedRowsOffset = 0) {
     // This translation may be needed when mixing moving lower indexes with higher indexes (moved indexes may be not sorted)
     const newVisualIndexOfMovedRow = this.rowsMapper.getIndexByValue(physicalMovedRow);
 
@@ -217,7 +224,7 @@ class ManualRowMove extends BasePlugin {
     const indexOfPushedDownElement = this.rowsMapper.getIndexByValue(physicalTarget);
 
     // Moving element from chosen index to the counted position of destination
-    this.rowsMapper.moveItems(newVisualIndexOfMovedRow, indexOfPushedDownElement);
+    this.rowsMapper.moveItems(newVisualIndexOfMovedRow, indexOfPushedDownElement + notMovedRowsOffset);
   }
 
   /**

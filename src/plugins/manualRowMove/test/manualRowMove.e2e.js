@@ -176,16 +176,12 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
     });
 
-    it('should move many rows by API', () => {
+    it('should move many rows by API #1', () => {
       const hot = handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
-
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
 
       hot.getPlugin('manualRowMove').moveRows([7, 9, 8], 0);
       hot.render();
@@ -193,6 +189,102 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('8');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('10');
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('9');
+    });
+
+    it('should move many rows by API #2', () => {
+      const hot = handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true
+      });
+
+      hot.getPlugin('manualRowMove').moveRows([9, 7, 8], 0);
+      hot.render();
+
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('10');
+      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('8');
+      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('9');
+    });
+
+    it('should move many rows by API #3', () => {
+      const hot = handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true
+      });
+
+      hot.getPlugin('manualRowMove').moveRows([0, 1, 4], 0);
+      hot.render();
+
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('5');
+    });
+
+    it('should move many rows by API #4', () => {
+      const hot = handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true
+      });
+
+      hot.getPlugin('manualRowMove').moveRows([9, 0, 8], 0);
+      hot.render();
+
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('10');
+      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('9');
+    });
+
+    it('should move many rows by API #5', () => {
+      const hot = handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true
+      });
+
+      hot.getPlugin('manualRowMove').moveRows([8, 9, 0], 0);
+      hot.render();
+
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('9');
+      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('10');
+      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
+    });
+
+    it('should move many rows by API #6', () => {
+      const hot = handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true
+      });
+
+      hot.getPlugin('manualRowMove').moveRows([1, 4, 0, 5], 3);
+      hot.render();
+
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('5');
+      expect(spec().$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('1');
+      expect(spec().$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('6');
+      expect(spec().$container.find('tbody tr:eq(5) td:eq(0)').text()).toEqual('4');
+    });
+
+    it('should move many rows by API #7', () => {
+      const hot = handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true
+      });
+
+      hot.getPlugin('manualRowMove').moveRows([5, 0, 4, 1], 3);
+      hot.render();
+
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('6');
+      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
+      expect(spec().$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('5');
+      expect(spec().$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('2');
+      expect(spec().$container.find('tbody tr:eq(5) td:eq(0)').text()).toEqual('4');
     });
 
     it('should trigger the `beforeRowMove` hook before row move with visual indexes as parameters', () => {
