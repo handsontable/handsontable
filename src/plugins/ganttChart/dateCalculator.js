@@ -1,7 +1,7 @@
 import {arrayEach} from 'handsontable/helpers/array';
 import {objectEach} from 'handsontable/helpers/object';
 import {warn} from 'handsontable/helpers/console';
-import {getMixedMonthObject, getMixedMonthName} from './utils';
+import {getMixedMonthObject, getMixedMonthName, parseDate, DEC_LENGTH, WEEK_LENGTH} from './utils';
 
 /**
  * This class handles the date-related calculations for the GanttChart plugin.
@@ -9,7 +9,7 @@ import {getMixedMonthObject, getMixedMonthName} from './utils';
  * @plugin GanttChart
  */
 class DateCalculator {
-  constructor(year, allowSplitWeeks) {
+  constructor({year, allowSplitWeeks = true, hideDaysBeforeFullWeeks = false, hideDaysAfterFullWeeks = false}) {
     /**
      * Year to base calculations on.
      *
@@ -25,7 +25,15 @@ class DateCalculator {
     /**
      * The current `allowSplitWeeks` option state.
      */
-    this.allowSplitWeeks = allowSplitWeeks === void 0 ? true : allowSplitWeeks;
+    this.allowSplitWeeks = allowSplitWeeks;
+    /**
+     * The current `hideDaysBeforeFullWeeks` option state.
+     */
+    this.hideDaysBeforeFullWeeks = hideDaysBeforeFullWeeks;
+    /**
+     * The current `hideDaysAfterFullWeeks` option state.
+     */
+    this.hideDaysAfterFullWeeks = hideDaysAfterFullWeeks;
     /**
      * Number of week sections (full weeks + incomplete week blocks in months).
      *
@@ -33,11 +41,12 @@ class DateCalculator {
      */
     this.weekSectionCount = 0;
     /**
-     * List of months and their week/day related information.
+     * Cache of lists of months and their week/day related information.
+     * It's categorized by year, so month information for a certain year is stored under `this.monthListCache[year]`.
      *
-     * @type {Array}
+     * @type {Object}
      */
-    this.monthList = this.calculateMonthData();
+    this.monthListCache = {};
     /**
      * Object containing references to the year days and their corresponding columns.
      *
@@ -56,8 +65,8 @@ class DateCalculator {
   setYear(year) {
     this.year = year;
 
-    this.monthList = this.calculateMonthData();
-    this.calculateWeekStructure();
+    this.monthListCache[year] = this.calculateMonthData(year);
+    this.calculateWeekStructure(year);
   }
 
   /**
@@ -107,28 +116,24 @@ class DateCalculator {
   /**
    * Get month list along with the month information.
    *
+   * @param {Number} [year] Year for the calculation.
    * @returns {Array}
    */
-  getMonthList() {
-    return this.monthList;
+  getMonthList(year = this.year) {
+    if (!this.monthListCache[year]) {
+      this.monthListCache[year] = this.calculateMonthData(year);
+    }
+
+    return this.monthListCache[year];
   }
 
   /**
-   * Parse the provided date and check if it's valid.
+   * Get month lists for all years declared in the range bars.
    *
-   * @param {String|Date} date Date string or object.
-   * @returns {Date|null} Parsed Date object or null, if not a valid date string.
+   * @returns {Object}
    */
-  parseDate(date) {
-    if (!(date instanceof Date)) {
-      date = new Date(date);
-
-      if (date.toString() === 'Invalid Date') {
-        return null;
-      }
-    }
-
-    return date;
+  getFullMonthList() {
+    return this.monthListCache;
   }
 
   /**
@@ -138,15 +143,17 @@ class DateCalculator {
    * @returns {Number|Boolean}
    */
   dateToColumn(date) {
-    date = this.parseDate(date);
-    if (!date || date.getFullYear() !== this.year) {
+    date = parseDate(date);
+
+    if (!date) {
       return false;
     }
 
     const month = date.getMonth();
     const day = date.getDate() - 1;
+    const year = date.getFullYear();
 
-    return this.getWeekColumn(day, month);
+    return this.getWeekColumn(day, month, year);
   }
 
   /**
@@ -155,11 +162,12 @@ class DateCalculator {
    * @private
    * @param {Number} dayIndex The index of the day.
    * @param {Number} monthIndex The index of the month.
+   * @param {Number} [year] Year for the calculation.
    * @returns {Number} Returns the column index.
    */
-  getWeekColumn(dayIndex, monthIndex) {
+  getWeekColumn(dayIndex, monthIndex, year = this.getYear()) {
     let resultColumn = null;
-    let monthCacheArray = this.getMonthCacheArray(monthIndex);
+    let monthCacheArray = this.getMonthCacheArray(monthIndex, year);
 
     arrayEach(monthCacheArray, (monthCache) => {
       objectEach(monthCache, (column, index) => {
@@ -182,19 +190,20 @@ class DateCalculator {
    * Get the cached day array for the provided month.
    *
    * @private
-   * @param {Number} monthIndex Index of the Month
+   * @param {Number} monthIndex Index of the Month.
+   * @param {Number} [year] Year for the calculation.
    * @returns {Array}
    */
-  getMonthCacheArray(monthIndex) {
-    const monthList = this.getMonthList();
+  getMonthCacheArray(monthIndex, year = this.getYear()) {
+    const monthList = this.getMonthList(year);
     const resultArray = [];
 
     if (this.allowSplitWeeks) {
-      resultArray.push(this.daysInColumns[monthIndex]);
+      resultArray.push(this.daysInColumns[year][monthIndex]);
 
     } else {
       let fullMonthCount = -1;
-      objectEach(this.daysInColumns, (month, i) => {
+      objectEach(this.daysInColumns[year], (month, i) => {
         const monthObject = monthList[i];
 
         if (Object.keys(month).length > 1) {
@@ -203,13 +212,13 @@ class DateCalculator {
 
         if (fullMonthCount === monthIndex) {
           if (monthObject.daysBeforeFullWeeks > 0) {
-            resultArray.push(this.daysInColumns[parseInt(i, 10) - 1]);
+            resultArray.push(this.daysInColumns[year][parseInt(i, 10) - 1]);
           }
 
           resultArray.push(month);
 
           if (monthObject.daysAfterFullWeeks > 0) {
-            resultArray.push(this.daysInColumns[parseInt(i, 10) + 1]);
+            resultArray.push(this.daysInColumns[year][parseInt(i, 10) + 1]);
           }
 
           return false;
@@ -223,13 +232,14 @@ class DateCalculator {
   /**
    * Convert a column index to a certain date.
    *
-   * @param {Number} column
-   * @returns {Date|Array}
+   * @param {Number} column Column index.
+   * @param {Number} [year] Year to be used.
+   * @returns {Object} Object in a form of {start: startDate, end: endDate}
    */
-  columnToDate(column) {
+  columnToDate(column, year = this.getYear()) {
     let month = null;
 
-    objectEach(this.daysInColumns, (monthCache, index) => {
+    objectEach(this.daysInColumns[year], (monthCache, index) => {
       if (monthCache[column]) {
         month = index;
 
@@ -237,12 +247,21 @@ class DateCalculator {
       }
     });
 
-    if (this.daysInColumns[month][column].length === 1) {
-      return new Date(this.year, month, this.daysInColumns[month][column][0]);
+    const monthSection = this.daysInColumns[year][month][column];
+
+    if (monthSection.length === 1) {
+      const resultingDate = new Date(year, month, monthSection[0]);
+
+      return {
+        start: resultingDate,
+        end: resultingDate,
+      };
     }
 
-    // TODO: this should look like {start: startDate, end: endDate}
-    return this.daysInColumns[month][column];
+    return {
+      start: new Date(year, month, monthSection[0]),
+      end: new Date(year, month, monthSection[monthSection.length - 1])
+    };
   }
 
   /**
@@ -253,7 +272,7 @@ class DateCalculator {
    * @returns {Array|Boolean} Returns null, if an invalid date was provided or an array of results ( [1,0] => is on the beginning of the week, [0,1] => is on the end of the week).
    */
   isOnTheEdgeOfWeek(date) {
-    date = this.parseDate(date);
+    date = parseDate(date);
 
     if (!date) {
       return null;
@@ -261,7 +280,8 @@ class DateCalculator {
 
     let month = date.getMonth();
     let day = date.getDate() - 1;
-    let monthCacheArray = this.getMonthCacheArray(month);
+    let year = date.getFullYear();
+    let monthCacheArray = this.getMonthCacheArray(month, year);
     let isOnTheEdgeOfWeek = false;
 
     arrayEach(monthCacheArray, (monthCache) => {
@@ -295,6 +315,149 @@ class DateCalculator {
   }
 
   /**
+   * Generate headers for the year structure.
+   *
+   * @private
+   * @param {String} type Granulation type ('months'/'weeks'/'days')
+   * @param {Function|null} weekHeaderGenerator Function generating the looks of the week headers.
+   * @param {Number} [year=this.year] The year for the calculation.
+   * @returns {Array} The header array
+   */
+  generateHeaderSet(type, weekHeaderGenerator, year = this.year) {
+    const monthList = this.getMonthList(year);
+    const headers = [];
+
+    objectEach(monthList, (month, index) => {
+      const areDaysBeforeFullWeeks = month.daysBeforeFullWeeks > 0 ? 1 : 0;
+      const areDaysAfterFullWeeks = month.daysAfterFullWeeks > 0 ? 1 : 0;
+      const areDaysBeforeFullWeeksVisible = this.hideDaysBeforeFullWeeks ? 0 : areDaysBeforeFullWeeks;
+      const areDaysAfterFullWeeksVisible = this.hideDaysAfterFullWeeks ? 0 : areDaysAfterFullWeeks;
+      const headerCount = month.fullWeeks + (this.allowSplitWeeks ? areDaysBeforeFullWeeksVisible + areDaysAfterFullWeeksVisible : 0);
+      const monthNumber = parseInt(index, 10);
+      let headerLabel = '';
+
+      if (type === 'months') {
+        headers.push({
+          label: month.name,
+          colspan: headerCount
+        });
+
+      } else if (type === 'weeks') {
+
+        for (let i = 0; i < headerCount; i++) {
+          let start = null;
+          let end = null;
+
+          // Mixed month's only column
+          if (!this.allowSplitWeeks && month.fullWeeks === 1) {
+            [start, end] = this.getWeekColumnRange({
+              monthObject: month,
+              monthNumber,
+              headerIndex: i,
+              headerCount,
+              areDaysBeforeFullWeeksVisible,
+              areDaysAfterFullWeeksVisible,
+              mixedMonth: true,
+              year
+            });
+
+            // Standard week column
+          } else {
+            [start, end] = this.getWeekColumnRange({
+              monthObject: month,
+              monthNumber,
+              headerIndex: i,
+              areDaysBeforeFullWeeksVisible,
+              areDaysAfterFullWeeksVisible,
+              headerCount,
+              year
+            });
+          }
+
+          if (start === end) {
+            headerLabel = `${start}`;
+
+          } else {
+            headerLabel = `${start} -  ${end}`;
+          }
+
+          headers.push(weekHeaderGenerator ? weekHeaderGenerator.call(this, start, end) : headerLabel);
+
+          this.addDaysToCache(monthNumber, headers.length - 1, start, end, year);
+        }
+      }
+    });
+
+    return headers;
+  }
+
+  /**
+   * Get the week column range.
+   *
+   * @private
+   * @param {Object} options The options object.
+   * @param {Object} options.monthObject The month object.
+   * @param {Number} options.monthNumber Index of the month.
+   * @param {Number} options.headerIndex Index of the header.
+   * @param {Boolean} options.areDaysBeforeFullWeeksVisible `true` if the days before full weeks are to be visible.
+   * @param {Boolean} options.areDaysAfterFullWeeksVisible `true` if the days after full weeks are to be visible.
+   * @param {Number} options.headerCount Number of headers to be generated for the provided month.
+   * @param {Boolean} [options.mixedMonth=false] `true` if the header is the single header of a mixed month.
+   * @param {Number} [year] Year for the calculation.
+   * @returns {Array}
+   */
+  getWeekColumnRange({
+    monthObject,
+    monthNumber,
+    headerIndex,
+    headerCount,
+    areDaysBeforeFullWeeksVisible,
+    areDaysAfterFullWeeksVisible,
+    mixedMonth = false,
+    year = this.year
+  }) {
+    const monthList = this.getMonthList(year);
+    const allowSplitWeeks = this.allowSplitWeeks;
+
+    let start = null;
+    let end = null;
+
+    if (mixedMonth) {
+      if (monthNumber === 0) {
+        end = monthList[monthNumber + 1].daysBeforeFullWeeks;
+        start = DEC_LENGTH - (WEEK_LENGTH - end) + 1;
+
+      } else if (monthNumber === monthList.length - 1) {
+        end = WEEK_LENGTH - monthList[monthNumber - 1].daysAfterFullWeeks;
+        start = monthList[monthNumber - 1].days - monthList[monthNumber - 1].daysAfterFullWeeks + 1;
+
+      } else {
+        end = monthList[monthNumber + 1].daysBeforeFullWeeks;
+        start = monthList[monthNumber - 1].days - (WEEK_LENGTH - end) + 1;
+      }
+
+    } else if (allowSplitWeeks && areDaysBeforeFullWeeksVisible && headerIndex === 0) {
+      start = headerIndex + 1;
+      end = monthObject.daysBeforeFullWeeks;
+
+    } else if (allowSplitWeeks && areDaysAfterFullWeeksVisible && headerIndex === headerCount - 1) {
+      start = monthObject.days - monthObject.daysAfterFullWeeks + 1;
+      end = monthObject.days;
+
+    } else {
+      start = null;
+      if (allowSplitWeeks) {
+        start = monthObject.daysBeforeFullWeeks + ((headerIndex - areDaysBeforeFullWeeksVisible) * WEEK_LENGTH) + 1;
+      } else {
+        start = monthObject.daysBeforeFullWeeks + (headerIndex * WEEK_LENGTH) + 1;
+      }
+      end = start + WEEK_LENGTH - 1;
+    }
+
+    return [start, end];
+  }
+
+  /**
    * Add days to the column/day cache.
    *
    * @private
@@ -302,29 +465,35 @@ class DateCalculator {
    * @param {Number} columnNumber Index of the column.
    * @param {Number} start First day in the column.
    * @param {Number} end Last day in the column.
+   * @param {Number} [year] Year to process.
    */
-  addDaysToCache(monthNumber, columnNumber, start, end) {
-    if (!this.daysInColumns[monthNumber]) {
-      this.daysInColumns[monthNumber] = {};
+  addDaysToCache(monthNumber, columnNumber, start, end, year = this.getYear()) {
+    if (!this.daysInColumns[year]) {
+      this.daysInColumns[year] = {};
     }
-    if (!this.daysInColumns[monthNumber][columnNumber]) {
-      this.daysInColumns[monthNumber][columnNumber] = [];
+
+    if (!this.daysInColumns[year][monthNumber]) {
+      this.daysInColumns[year][monthNumber] = {};
+    }
+
+    if (!this.daysInColumns[year][monthNumber][columnNumber]) {
+      this.daysInColumns[year][monthNumber][columnNumber] = [];
     }
 
     if (start <= end) {
       for (let dayIndex = start; dayIndex <= end; dayIndex++) {
-        this.daysInColumns[monthNumber][columnNumber].push(dayIndex);
+        this.daysInColumns[year][monthNumber][columnNumber].push(dayIndex);
       }
 
     } else {
       let previousMonthDaysCount = monthNumber - 1 >= 0 ? this.countMonthDays(monthNumber) : 31;
 
       for (let dayIndex = start; dayIndex <= previousMonthDaysCount; dayIndex++) {
-        this.daysInColumns[monthNumber][columnNumber].push(dayIndex);
+        this.daysInColumns[year][monthNumber][columnNumber].push(dayIndex);
       }
 
       for (let dayIndex = 1; dayIndex <= end; dayIndex++) {
-        this.daysInColumns[monthNumber][columnNumber].push(dayIndex);
+        this.daysInColumns[year][monthNumber][columnNumber].push(dayIndex);
       }
     }
   }
@@ -337,8 +506,8 @@ class DateCalculator {
    * @returns {Boolean}
    */
   isValidRangeBarData(startDate, endDate) {
-    let startDateParsed = this.parseDate(startDate);
-    let endDateParsed = this.parseDate(endDate);
+    let startDateParsed = parseDate(startDate);
+    let endDateParsed = parseDate(endDate);
 
     return startDateParsed && endDateParsed && startDateParsed.getTime() <= endDateParsed.getTime();
   }
@@ -346,12 +515,13 @@ class DateCalculator {
   /**
    * Calculate the month/day related information.
    *
+   * @param {Number} [year] Year to be used.
    * @returns {Array}
    */
-  calculateMonthData() {
+  calculateMonthData(year = this.year) {
     return [
       {name: 'January', days: 31},
-      {name: 'February', days: new Date(this.year, 2, 0).getDate()},
+      {name: 'February', days: new Date(year, 2, 0).getDate()},
       {name: 'March', days: 31},
       {name: 'April', days: 30},
       {name: 'May', days: 31},
@@ -368,44 +538,49 @@ class DateCalculator {
   /**
    * Count the number of months.
    *
+   * @param {Number} [year] Year to be used.
    * @returns {Number}
    */
-  countMonths() {
-    return this.monthList.length;
+  countMonths(year = this.getYear()) {
+    return this.monthListCache[year].length;
   }
 
   /**
    * Count days in a month.
    *
    * @param {Number} month Month index, where January = 1, February = 2, etc.
+   * @param {Number} [year] Year to be used.
    * @returns {Number}
    */
-  countMonthDays(month) {
-    return this.monthList[month - 1].days;
+  countMonthDays(month, year = this.getYear()) {
+    return this.monthListCache[year][month - 1].days;
   }
 
   /**
    * Count full weeks in a month.
    *
    * @param {Number} month Month index, where January = 1, February = 2, etc.
+   * @param {Number} [year] Year to be used.
    * @returns {Number}
    */
-  countMonthFullWeeks(month) {
-    return this.monthList[month - 1].fullWeeks;
+  countMonthFullWeeks(month, year = this.getYear()) {
+    return this.monthListCache[year][month - 1].fullWeeks;
   }
 
   /**
    * Calculate week structure within defined months.
    *
    * @private
+   * @param {Number} [year] Year for the calculation.
    */
-  calculateWeekStructure() {
-    this.monthList = this.calculateMonthData();
+  calculateWeekStructure(year = this.getYear()) {
+    this.monthListCache[year] = this.calculateMonthData(year);
 
     const firstWeekDay = this.getFirstWeekDay();
-    const monthList = this.getMonthList();
-    const currentYear = this.getYear();
+    const monthList = this.getMonthList(year);
     const mixedMonthToAdd = [];
+    const daysBeforeFullWeeksRatio = this.hideDaysBeforeFullWeeks ? 0 : 1;
+    const daysAfterFullWeeksRatio = this.hideDaysAfterFullWeeks ? 0 : 1;
     let weekOffset = 0;
     let weekSectionCount = 0;
 
@@ -414,17 +589,13 @@ class DateCalculator {
     }
 
     arrayEach(monthList, (currentMonth, monthIndex) => {
-      let firstMonthDay = new Date(currentYear, monthIndex, 1).getDay();
+      let firstMonthDay = new Date(year, monthIndex, 1).getDay();
       let mixedMonthsAdded = 0;
-      let mixedMonthName = null;
 
       currentMonth.daysBeforeFullWeeks = (7 - firstMonthDay + weekOffset) % 7;
 
       if (!this.allowSplitWeeks && currentMonth.daysBeforeFullWeeks) {
-        mixedMonthName = getMixedMonthName(monthIndex, monthList);
-
-        mixedMonthToAdd.push(getMixedMonthObject(mixedMonthName, monthIndex));
-
+        mixedMonthToAdd.push(getMixedMonthObject(getMixedMonthName(monthIndex, monthList), monthIndex));
         mixedMonthsAdded++;
       }
 
@@ -433,17 +604,17 @@ class DateCalculator {
 
       if (!this.allowSplitWeeks) {
         if (monthIndex === monthList.length - 1 && currentMonth.daysAfterFullWeeks) {
-          mixedMonthName = getMixedMonthName(monthIndex, monthList);
-
-          mixedMonthToAdd.push(getMixedMonthObject(mixedMonthName, null));
-
+          mixedMonthToAdd.push(getMixedMonthObject(getMixedMonthName(monthIndex, monthList), null));
           mixedMonthsAdded++;
         }
 
         weekSectionCount += currentMonth.fullWeeks + mixedMonthsAdded;
 
       } else {
-        weekSectionCount += currentMonth.fullWeeks + (currentMonth.daysBeforeFullWeeks ? 1 : 0) + (currentMonth.daysAfterFullWeeks ? 1 : 0);
+        const numberOfPartialWeeksBefore = (daysBeforeFullWeeksRatio * (currentMonth.daysBeforeFullWeeks ? 1 : 0));
+        const numberOfPartialWeeksAfter = (daysAfterFullWeeksRatio * (currentMonth.daysAfterFullWeeks ? 1 : 0));
+
+        weekSectionCount += currentMonth.fullWeeks + numberOfPartialWeeksBefore + numberOfPartialWeeksAfter;
       }
     });
 
@@ -452,10 +623,12 @@ class DateCalculator {
 
       delete monthObject.index;
 
-      this.addMixedMonth(index === null ? index : monthIndex + index, monthObject);
+      this.addMixedMonth(index === null ? index : monthIndex + index, monthObject, year);
     });
 
-    this.weekSectionCount = weekSectionCount;
+    if (year === this.getYear()) {
+      this.weekSectionCount = weekSectionCount;
+    }
   }
 
   /**
@@ -464,13 +637,14 @@ class DateCalculator {
    * @private
    * @param {Number} index Index for the month.
    * @param {Object} monthObject The month object.
+   * @param {Number} [year] Year for the calculation.
    */
-  addMixedMonth(index, monthObject) {
+  addMixedMonth(index, monthObject, year) {
     if (index === null) {
-      this.monthList.push(monthObject);
+      this.monthListCache[year].push(monthObject);
 
     } else {
-      this.monthList.splice(index, 0, monthObject);
+      this.monthListCache[year].splice(index, 0, monthObject);
     }
   }
 

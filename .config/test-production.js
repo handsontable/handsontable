@@ -30,7 +30,7 @@ module.exports.create = function create(envArgs) {
           'helpers/common.css',
         ],
         externalJsFiles: [
-          '../test/lib/phantom-reporter.js',
+          'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
           'lib/lodash.underscore.js',

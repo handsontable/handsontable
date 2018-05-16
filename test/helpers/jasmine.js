@@ -5,6 +5,8 @@ export function spec() {
   return currentSpec;
 };
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
+
 beforeEach(function() {
   currentSpec = this;
 
