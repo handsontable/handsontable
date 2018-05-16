@@ -530,10 +530,6 @@ describe('manualRowMove', () => {
         manualRowMove: true
       });
 
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
-
       const $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
 
       $rowsHeaders.eq(1).simulate('mousedown');
@@ -555,10 +551,6 @@ describe('manualRowMove', () => {
         manualRowMove: true
       });
 
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
-
       const $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
 
       $rowsHeaders.eq(1).simulate('mousedown');
@@ -571,6 +563,53 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    });
+
+    it('should move the fist row below the last row', () => {
+      handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true
+      });
+
+      const $lastHeader = spec().$container.find('tbody tr:eq(9) th:eq(0)');
+
+      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
+      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
+      spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
+
+      $lastHeader.simulate('mouseover');
+      $lastHeader.simulate('mousemove', {
+        clientY: $lastHeader.offset().top + $lastHeader.height()
+      });
+      $lastHeader.simulate('mouseup');
+
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+      expect(spec().$container.find('tbody tr:eq(9) td:eq(0)').text()).toEqual('1');
+    });
+
+    it('should move the last row above the first row', () => {
+      handsontable({
+        data: arrayOfObjects,
+        rowHeaders: true,
+        manualRowMove: true
+      });
+
+      const $fistHeader = spec().$container.find('tbody tr:eq(0) th:eq(0)');
+
+      spec().$container.find('tbody tr:eq(9) th:eq(0)').simulate('mousedown');
+      spec().$container.find('tbody tr:eq(9) th:eq(0)').simulate('mouseup');
+      spec().$container.find('tbody tr:eq(9) th:eq(0)').simulate('mousedown');
+
+      $fistHeader.simulate('mouseover');
+      $fistHeader.simulate('mousemove', {
+        clientY: $fistHeader.offset().bottom - $fistHeader.height()
+      });
+      $fistHeader.simulate('mouseup');
+
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('10');
+      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+      expect(spec().$container.find('tbody tr:eq(9) td:eq(0)').text()).toEqual('9');
     });
 
     it('should not move row if it\'s not needed', () => {
