@@ -8,7 +8,6 @@ import {registerPlugin} from './../../plugins';
 import RowsMapper from './rowsMapper';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
-import {CellCoords} from './../../3rdparty/walkontable/src';
 
 import './manualRowMove.css';
 
@@ -736,6 +735,7 @@ class ManualRowMove extends BasePlugin {
   destroy() {
     this.backlight.destroy();
     this.guideline.destroy();
+    this.rowsMapper.destroy();
 
     super.destroy();
   }

@@ -1325,7 +1325,7 @@ describe('Core_validate', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       columnSorting: {
         column: 0,
-        sortOrder: false
+        sortOrder: 'desc'
       },
       allowInvalid: false,
       validator(value, callback) {

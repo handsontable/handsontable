@@ -41,8 +41,8 @@ class MergedCellsCollection {
    * @return {String}
    */
   static IS_OVERLAPPING_WARNING(newMergedCell) {
-    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] overlaps with the other declared merged 
-      cell. The overlapping merged cell was not added to the table, please fix your setup.`;
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}], overlaps with the other declared merged 
+    cell. The overlapping merged cell was not added to the table, please fix your setup.`;
   }
 
   /**
@@ -189,7 +189,11 @@ class MergedCellsCollection {
     const hiddenCollectionElements = [];
 
     arrayEach(mergedCells, (mergedCell) => {
-      mergedCellParentsToClear.push([this.hot.getCell(mergedCell.row, mergedCell.col), this.get(mergedCell.row, mergedCell.col), mergedCell.row, mergedCell.col]);
+      const TD = this.hot.getCell(mergedCell.row, mergedCell.col);
+
+      if (TD) {
+        mergedCellParentsToClear.push([TD, this.get(mergedCell.row, mergedCell.col), mergedCell.row, mergedCell.col]);
+      }
     });
 
     this.mergedCells.length = 0;
@@ -198,7 +202,11 @@ class MergedCellsCollection {
       rangeEach(0, mergedCell.rowspan - 1, (j) => {
         rangeEach(0, mergedCell.colspan - 1, (k) => {
           if (k !== 0 || j !== 0) {
-            hiddenCollectionElements.push([this.hot.getCell(mergedCell.row + j, mergedCell.col + k), null, null, null]);
+            const TD = this.hot.getCell(mergedCell.row + j, mergedCell.col + k);
+
+            if (TD) {
+              hiddenCollectionElements.push([TD, null, null, null]);
+            }
           }
         });
       });

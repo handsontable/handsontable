@@ -133,7 +133,6 @@ class MergeCells extends BasePlugin {
   updatePlugin() {
     const settings = this.hot.getSettings().mergeCells;
 
-    this.clearCollections();
     this.disablePlugin();
     this.enablePlugin();
 

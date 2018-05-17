@@ -1,11 +1,11 @@
 describe('ColumnSorting', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
 
-    this.sortByColumn = function(columnIndex) {
-      var element = this.$container.find(`th span.columnSorting:eq(${columnIndex})`);
+    this.sortByClickOnColumnHeader = function(columnIndex) {
+      const element = this.$container.find(`th span.columnSorting:eq(${columnIndex})`);
 
       element.simulate('mousedown');
       element.simulate('mouseup');
@@ -19,7 +19,7 @@ describe('ColumnSorting', () => {
     }
   });
 
-  var arrayOfObjects = function() {
+  const arrayOfObjects = function() {
     return [
       {id: 1, name: 'Ted', lastName: 'Right'},
       {id: 2, name: 'Frank', lastName: 'Honest'},
@@ -35,7 +35,7 @@ describe('ColumnSorting', () => {
   };
 
   it('should sort table by first visible column', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
         [9, 8, 7, 6, 5, 4, 3, 2, 1],
@@ -46,14 +46,14 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('9');
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('3');
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('4');
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('3');
@@ -62,7 +62,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should apply stable sort function #3606', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         ['mercedes1', 'Mercedes', 'A 160', '01/14/2007'],
         ['citroen1', 'Citroen', 'C4 Coupe', '12/01/2007'],
@@ -91,7 +91,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    hot.sort(1, true); // ASC
+    hot.getPlugin('columnSorting').sort(1, 'asc'); // ASC
 
     expect(hot.getDataAtCol(0)).toEqual([
       'bmw1', 'bmw2', 'bmw3',
@@ -100,7 +100,7 @@ describe('ColumnSorting', () => {
       'opel1', 'opel2', 'opel3'
     ]);
 
-    hot.sort(1, false); // DESC
+    hot.getPlugin('columnSorting').sort(1, 'desc'); // DESC
 
     expect(hot.getDataAtCol(0)).toEqual([
       'opel1', 'opel2', 'opel3',
@@ -111,7 +111,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should not throw error when trying run handsontable with columnSorting and autoRowSize in the same time.', () => {
-    var errors = 0;
+    let errors = 0;
 
     try {
       handsontable({
@@ -133,14 +133,14 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(0);
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(this.$container.find('tr td').first().html()).toEqual('10');
   });
 
   it('should remove specified row from sorted table and NOT sort the table again', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [3, 'D'],
@@ -151,9 +151,9 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -163,7 +163,7 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr').length).toEqual(4);
 
     // Now if sort is launched, sorting ordered will be reversed
-    hot.sortOrder = false;
+    hot.getPlugin('columnSorting').sortOrder = false;
 
     hot.alter('remove_row', 0);
 
@@ -174,7 +174,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should add an empty row to sorted table', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'A'],
@@ -185,9 +185,9 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
     expect(htCore.find('tbody tr').length).toEqual(4);
 
@@ -208,7 +208,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should add an empty row to sorted table at a given index', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'A'],
@@ -219,9 +219,9 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
     expect(htCore.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('');
@@ -239,7 +239,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should NOT sort the table after value update in sorted column', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'A'],
@@ -250,12 +250,12 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
 
-    this.sortByColumn(0);
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
@@ -268,26 +268,8 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('20');
   });
 
-  it('defaultSort comparing function shouldn\'t change order when comparing empty string, null and undefined', () => {
-    var hot = handsontable({});
-    var defaultSort = hot.getPlugin('columnSorting').defaultSort;
-
-    expect(defaultSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
-    expect(defaultSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
-    expect(defaultSort(false, {})(['key1', undefined], ['key2', undefined])).toEqual(0);
-
-    expect(defaultSort(false, {})(['key1', ''], ['key2', null])).toEqual(0);
-    expect(defaultSort(false, {})(['key1', null], ['key2', ''])).toEqual(0);
-
-    expect(defaultSort(false, {})(['key1', ''], ['key2', undefined])).toEqual(0);
-    expect(defaultSort(false, {})(['key1', undefined], ['key2', ''])).toEqual(0);
-
-    expect(defaultSort(false, {})(['key1', null], ['key2', undefined])).toEqual(0);
-    expect(defaultSort(false, {})(['key1', undefined], ['key2', null])).toEqual(0);
-  });
-
   it('should place empty strings, null and undefined values at proper position (stability of default comparing function)', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [null, 'Ted Right'],
         [undefined, 'Jane Neat'],
@@ -304,7 +286,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    hot.sort(0, true); // ASC
+    hot.getPlugin('columnSorting').sort(0, 'asc'); // ASC
 
     expect(hot.getDataAtCol(1)).toEqual([
       'Frank Honest',
@@ -321,7 +303,7 @@ describe('ColumnSorting', () => {
       'Eve Branson',
     ]);
 
-    hot.sort(0, false); // DESC
+    hot.getPlugin('columnSorting').sort(0, 'desc'); // DESC
 
     expect(hot.getDataAtCol(1)).toEqual([
       'Eve Well',
@@ -341,7 +323,7 @@ describe('ColumnSorting', () => {
 
   it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` option is enabled ' +
     '(API call, data type: default)', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [6, 'Frank Honest'],
         [null, 'Ted Right'],
@@ -359,7 +341,7 @@ describe('ColumnSorting', () => {
       }
     });
 
-    hot.sort(0, true); // ASC
+    hot.getPlugin('columnSorting').sort(0, 'asc'); // ASC
 
     expect(hot.getDataAtCol(1)).toEqual([
       'Ted Right',
@@ -375,7 +357,7 @@ describe('ColumnSorting', () => {
       'Rob Norris'
     ]);
 
-    hot.sort(0, false); // DESC
+    hot.getPlugin('columnSorting').sort(0, 'desc'); // DESC
 
     expect(hot.getDataAtCol(1)).toEqual([
       'Rob Norris',
@@ -394,7 +376,7 @@ describe('ColumnSorting', () => {
 
   it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
     'option is enabled and `column` property of `columnSorting` option is set (data type: default)', function() {
-    var hot = handsontable({
+    let hot = handsontable({
       data: [
         [6, 'Frank Honest'],
         [null, 'Ted Right'],
@@ -409,7 +391,7 @@ describe('ColumnSorting', () => {
       ],
       columnSorting: {
         sortEmptyCells: true,
-        sortOrder: true,
+        sortOrder: 'asc',
         column: 0
       }
     });
@@ -450,7 +432,7 @@ describe('ColumnSorting', () => {
       ],
       columnSorting: {
         sortEmptyCells: true,
-        sortOrder: false,
+        sortOrder: 'desc',
         column: 0
       }
     });
@@ -474,7 +456,7 @@ describe('ColumnSorting', () => {
 
   it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
     'option is enabled and `column` property of `columnSorting` option is set (data type: numeric)', function() {
-    var hot = handsontable({
+    let hot = handsontable({
       data: [
         [6, 'Frank Honest'],
         [null, 'Ted Right'],
@@ -495,7 +477,7 @@ describe('ColumnSorting', () => {
       ],
       columnSorting: {
         sortEmptyCells: true,
-        sortOrder: true,
+        sortOrder: 'asc',
         column: 0
       }
     });
@@ -536,7 +518,7 @@ describe('ColumnSorting', () => {
       ],
       columnSorting: {
         sortEmptyCells: true,
-        sortOrder: false,
+        sortOrder: 'desc',
         column: 0
       }
     });
@@ -558,28 +540,90 @@ describe('ColumnSorting', () => {
     ]);
   });
 
-  describe('data type: date', () => {
-    it('dateSort comparing function shouldn\'t change order when comparing empty string, null and undefined', () => {
-      var hot = handsontable({});
-      var dateSort = hot.getPlugin('columnSorting').dateSort;
+  describe('isSorted', () => {
+    it('should return `false` when plugin is disabled', () => {
+      const hot = handsontable();
 
-      expect(dateSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
-      expect(dateSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
-      expect(dateSort(false, {})(['key1', undefined], ['key2', undefined])).toEqual(0);
-
-      expect(dateSort(false, {})(['key1', ''], ['key2', null])).toEqual(0);
-      expect(dateSort(false, {})(['key1', null], ['key2', ''])).toEqual(0);
-
-      expect(dateSort(false, {})(['key1', ''], ['key2', undefined])).toEqual(0);
-      expect(dateSort(false, {})(['key1', undefined], ['key2', ''])).toEqual(0);
-
-      expect(dateSort(false, {})(['key1', null], ['key2', undefined])).toEqual(0);
-      expect(dateSort(false, {})(['key1', undefined], ['key2', null])).toEqual(0);
+      expect(hot.getPlugin('columnSorting').isSorted()).toBeFalsy();
     });
 
+    it('should return `false` when plugin is enabled and the table was not sorted #1', () => {
+      const hot = handsontable({
+        columnSorting: true
+      });
+
+      expect(hot.getPlugin('columnSorting').isSorted()).toBeFalsy();
+    });
+
+    it('should return `false` when plugin is enabled and the table was not sorted #2', () => {
+      const hot = handsontable({
+        data: [
+          ['Citroen1', 'C4 Coupe', null],
+          ['Mercedes1', 'A 160', '12/01/2008'],
+          ['Mercedes2', 'A 160', '01/14/2006'],
+        ],
+        columnSorting: {
+          column: 1,
+          sortOrder: 'none'
+        }
+      });
+
+      expect(hot.getPlugin('columnSorting').isSorted()).toBeFalsy();
+    });
+
+    it('should return `true` when plugin is enabled and the table was sorted', () => {
+      const hot = handsontable({
+        data: [
+          ['Citroen1', 'C4 Coupe', null],
+          ['Mercedes1', 'A 160', '12/01/2008'],
+          ['Mercedes2', 'A 160', '01/14/2006'],
+        ],
+        columnSorting: {
+          column: 1,
+          sortOrder: 'asc'
+        }
+      });
+
+      expect(hot.getPlugin('columnSorting').isSorted()).toBeTruthy();
+    });
+
+    it('should be handled properly when using the `updateSettings`', () => {
+      const hot = handsontable({
+        data: [
+          ['Citroen1', 'C4 Coupe', null],
+          ['Mercedes1', 'A 160', '12/01/2008'],
+          ['Mercedes2', 'A 160', '01/14/2006'],
+        ],
+        columnSorting: {
+          column: 1,
+          sortOrder: 'asc'
+        }
+      });
+
+      hot.updateSettings({
+        columnSorting: {
+          column: 1,
+          sortOrder: 'none'
+        }
+      });
+
+      expect(hot.getPlugin('columnSorting').isSorted()).toBeFalsy();
+
+      hot.updateSettings({
+        columnSorting: {
+          column: 1,
+          sortOrder: 'desc'
+        }
+      });
+
+      expect(hot.getPlugin('columnSorting').isSorted()).toBeTruthy();
+    });
+  });
+
+  describe('data type: date', () => {
     it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
       'option is enabled and `column` property of `columnSorting` option is set', function() {
-      var hot = handsontable({
+      let hot = handsontable({
         data: [
           ['Citroen1', 'C4 Coupe', null],
           ['Mercedes1', 'A 160', '12/01/2008'],
@@ -602,7 +646,7 @@ describe('ColumnSorting', () => {
         ],
         columnSorting: {
           sortEmptyCells: true,
-          sortOrder: true,
+          sortOrder: 'asc',
           column: 2
         }
       });
@@ -651,7 +695,7 @@ describe('ColumnSorting', () => {
         ],
         columnSorting: {
           sortEmptyCells: true,
-          sortOrder: false,
+          sortOrder: 'desc',
           column: 2
         }
       });
@@ -674,7 +718,7 @@ describe('ColumnSorting', () => {
     });
 
     it('should sort date columns (MM/DD/YYYY)', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: [
           ['Mercedes', 'A 160', '01/14/2006', 6999.9999],
           ['Citroen', 'C4 Coupe', '12/01/2008', 8330],
@@ -697,7 +741,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      hot.sort(2, true); // ASC
+      hot.getPlugin('columnSorting').sort(2, 'asc'); // ASC
 
       expect(hot.getDataAtRow(0)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
       expect(hot.getDataAtRow(1)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
@@ -705,7 +749,7 @@ describe('ColumnSorting', () => {
       expect(hot.getDataAtRow(3)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
       expect(hot.getDataAtRow(4)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
 
-      hot.sort(2, false); // DESC
+      hot.getPlugin('columnSorting').sort(2, 'desc'); // DESC
 
       expect(hot.getDataAtRow(0)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
       expect(hot.getDataAtRow(1)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
@@ -715,7 +759,7 @@ describe('ColumnSorting', () => {
     });
 
     it('should sort date columns (DD/MM/YYYY)', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: [
           ['Mercedes', 'A 160', '01/12/2012', 6999.9999],
           ['Citroen', 'C4 Coupe', '12/01/2013', 8330],
@@ -738,7 +782,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      hot.sort(2, true); // ASC
+      hot.getPlugin('columnSorting').sort(2, 'asc'); // ASC
 
       expect(hot.getDataAtRow(0)).toEqual(['Mercedes', 'A 160', '01/12/2012', 6999.9999]);
       expect(hot.getDataAtRow(1)).toEqual(['Citroen', 'C4 Coupe', '12/01/2013', 8330]);
@@ -746,7 +790,7 @@ describe('ColumnSorting', () => {
       expect(hot.getDataAtRow(3)).toEqual(['Audi', 'A4 Avant', '11/10/2014', 33900]);
       expect(hot.getDataAtRow(4)).toEqual(['Opel', 'Astra', '02/02/2015', 7000]);
 
-      hot.sort(2, false); // DESC
+      hot.getPlugin('columnSorting').sort(2, 'desc'); // DESC
 
       expect(hot.getDataAtRow(0)).toEqual(['Opel', 'Astra', '02/02/2015', 7000]);
       expect(hot.getDataAtRow(1)).toEqual(['Audi', 'A4 Avant', '11/10/2014', 33900]);
@@ -756,7 +800,7 @@ describe('ColumnSorting', () => {
     });
 
     it('should sort date columns (MMMM Do YYYY)', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: [
           ['Mercedes', 'A 160', 'October 28th 2016', 6999.9999],
           ['Citroen', 'C4 Coupe', 'October 27th 2001', 8330],
@@ -779,7 +823,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      hot.sort(2, true); // ASC
+      hot.getPlugin('columnSorting').sort(2, 'asc'); // ASC
 
       expect(hot.getDataAtRow(0)).toEqual(['Audi', 'A4 Avant', 'July 8th 1999', 33900]);
       expect(hot.getDataAtRow(1)).toEqual(['Opel', 'Astra', 'June 1st 2001', 7000]);
@@ -787,7 +831,7 @@ describe('ColumnSorting', () => {
       expect(hot.getDataAtRow(3)).toEqual(['Citroen', 'C4 Coupe', 'October 27th 2001', 8330]);
       expect(hot.getDataAtRow(4)).toEqual(['Mercedes', 'A 160', 'October 28th 2016', 6999.9999]);
 
-      hot.sort(2, false); // DESC
+      hot.getPlugin('columnSorting').sort(2, 'desc'); // DESC
 
       expect(hot.getDataAtRow(0)).toEqual(['Mercedes', 'A 160', 'October 28th 2016', 6999.9999]);
       expect(hot.getDataAtRow(1)).toEqual(['Citroen', 'C4 Coupe', 'October 27th 2001', 8330]);
@@ -797,7 +841,7 @@ describe('ColumnSorting', () => {
     });
 
     it('should sort date columns along with empty and null values', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: [
           ['Mercedes', 'A 160', '01/14/2006', 6999.9999],
           ['Citroen', 'C4 Coupe', '12/01/2008', 8330],
@@ -822,7 +866,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      hot.sort(2, true); // ASC
+      hot.getPlugin('columnSorting').sort(2, 'asc'); // ASC
 
       expect(hot.getDataAtRow(0)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
       expect(hot.getDataAtRow(1)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
@@ -830,7 +874,7 @@ describe('ColumnSorting', () => {
       expect(hot.getDataAtRow(3)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
       expect(hot.getDataAtRow(4)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
 
-      hot.sort(2, false); // DESC
+      hot.getPlugin('columnSorting').sort(2, 'desc'); // DESC
 
       expect(hot.getDataAtRow(0)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
       expect(hot.getDataAtRow(1)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
@@ -842,7 +886,7 @@ describe('ColumnSorting', () => {
 
   describe('data type: time', () => {
     it('should properly rewrite time into correct format after sort', (done) => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: [
           ['0:00:01 am'],
           ['5:30:14 pm'],
@@ -860,7 +904,7 @@ describe('ColumnSorting', () => {
         colHeaders: true,
         columnSorting: {
           column: 0,
-          sortOrder: false
+          sortOrder: 'desc'
         }
       });
 
@@ -874,7 +918,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should properly sort numeric data', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         ['Mercedes', 'A 160', '01/14/2006', '6999.9999'],
         ['Citroen', 'C4 Coupe', '12/01/2008', 8330],
@@ -896,41 +940,21 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    var htCore = getHtCore();
-
-    this.sortByColumn(3);
+    this.sortByClickOnColumnHeader(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['6999.9999', '7000', 8330, '8330', 8333, 30500, '33900']);
 
-    this.sortByColumn(3);
+    this.sortByClickOnColumnHeader(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['33900', 30500, 8333, 8330, '8330', '7000', '6999.9999']);
 
-    this.sortByColumn(3);
+    this.sortByClickOnColumnHeader(3);
 
     expect(hot.getDataAtCol(3)).toEqual(['6999.9999', 8330, '8330', 8333, '33900', '7000', 30500]);
   });
 
-  it('numericSort comparing function shouldn\'t change order when comparing empty string, null and undefined', () => {
-    var hot = handsontable({});
-    var numericSort = hot.getPlugin('columnSorting').numericSort;
-
-    expect(numericSort(false, {})(['key1', null], ['key2', null])).toEqual(0);
-    expect(numericSort(false, {})(['key1', ''], ['key2', ''])).toEqual(0);
-    expect(numericSort(false, {})(['key1', undefined], ['key2', undefined])).toEqual(0);
-
-    expect(numericSort(false, {})(['key1', ''], ['key2', null])).toEqual(0);
-    expect(numericSort(false, {})(['key1', null], ['key2', ''])).toEqual(0);
-
-    expect(numericSort(false, {})(['key1', ''], ['key2', undefined])).toEqual(0);
-    expect(numericSort(false, {})(['key1', undefined], ['key2', ''])).toEqual(0);
-
-    expect(numericSort(false, {})(['key1', null], ['key2', undefined])).toEqual(0);
-    expect(numericSort(false, {})(['key1', undefined], ['key2', null])).toEqual(0);
-  });
-
   it('should sort table with multiple row headers', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -955,19 +979,19 @@ describe('ColumnSorting', () => {
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
 
-    this.sortByColumn(0); // sort by first column
+    this.sortByClickOnColumnHeader(0); // sort by first column
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D');
 
-    this.sortByColumn(1); // sort by second column
+    this.sortByClickOnColumnHeader(1); // sort by second column
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
   });
 
   it('should allow to define sorting column and order during initialization', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -977,7 +1001,7 @@ describe('ColumnSorting', () => {
       colHeaders: true,
       columnSorting: {
         column: 0,
-        sortOrder: true
+        sortOrder: 'asc'
       }
     });
 
@@ -986,7 +1010,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should allow to change sorting column with updateSettings', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -996,7 +1020,7 @@ describe('ColumnSorting', () => {
       colHeaders: true,
       columnSorting: {
         column: 0,
-        sortOrder: true
+        sortOrder: 'asc'
       }
     });
 
@@ -1006,7 +1030,7 @@ describe('ColumnSorting', () => {
     updateSettings({
       columnSorting: {
         column: 1,
-        sortOrder: true
+        sortOrder: 'asc'
       }
     });
 
@@ -1015,7 +1039,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should allow to change sorting order with updateSettings', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1025,7 +1049,7 @@ describe('ColumnSorting', () => {
       colHeaders: true,
       columnSorting: {
         column: 0,
-        sortOrder: true
+        sortOrder: 'asc'
       }
     });
 
@@ -1034,7 +1058,7 @@ describe('ColumnSorting', () => {
     updateSettings({
       columnSorting: {
         column: 0,
-        sortOrder: false
+        sortOrder: 'desc'
       }
     });
 
@@ -1042,7 +1066,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should allow to change if sorting empty cells with updateSettings', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [2, ''],
@@ -1055,7 +1079,7 @@ describe('ColumnSorting', () => {
       colHeaders: true,
       columnSorting: {
         column: 1,
-        sortOrder: false,
+        sortOrder: 'desc',
         sortEmptyCells: false
       }
     });
@@ -1063,7 +1087,7 @@ describe('ColumnSorting', () => {
     updateSettings({
       columnSorting: {
         column: 1,
-        sortOrder: true,
+        sortOrder: 'asc',
         sortEmptyCells: true
       }
     });
@@ -1074,7 +1098,7 @@ describe('ColumnSorting', () => {
     updateSettings({
       columnSorting: {
         column: 1,
-        sortOrder: true,
+        sortOrder: 'asc',
         sortEmptyCells: false
       }
     });
@@ -1084,7 +1108,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should NOT sort spare rows', () => {
-    var myData = [
+    const myData = [
       {a: 'aaa', b: 2, c: 3},
       {a: 'z', b: 11, c: -4},
       {a: 'dddd', b: 13, c: 13},
@@ -1092,7 +1116,7 @@ describe('ColumnSorting', () => {
     ];
 
     function customIsEmptyRow(row) {
-      var data = this.getSourceData();
+      const data = this.getSourceData();
       return data[row].isNew;
     }
 
@@ -1116,7 +1140,7 @@ describe('ColumnSorting', () => {
     updateSettings({
       columnSorting: {
         column: 0,
-        sortOrder: true
+        sortOrder: 'asc'
       }
     });
 
@@ -1133,7 +1157,7 @@ describe('ColumnSorting', () => {
     updateSettings({
       columnSorting: {
         column: 0,
-        sortOrder: false
+        sortOrder: 'desc'
       }
     });
 
@@ -1149,7 +1173,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should reset column sorting with updateSettings', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1159,7 +1183,7 @@ describe('ColumnSorting', () => {
       colHeaders: true,
       columnSorting: {
         column: 0,
-        sortOrder: true
+        sortOrder: 'asc'
       }
     });
 
@@ -1172,30 +1196,8 @@ describe('ColumnSorting', () => {
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
   });
 
-  it('should expose sort method when columnSorting is enabled', () => {
-    var hot = handsontable();
-
-    expect(hot.getSettings().columnSorting).toBeFalsy();
-    expect(hot.sort).toBeUndefined();
-
-    updateSettings({
-      columnSorting: true
-    });
-
-    expect(hot.getSettings().columnSorting).toBe(true);
-    expect(hot.sort).toBeDefined();
-    expect(typeof hot.sort).toBe('function');
-
-    updateSettings({
-      columnSorting: false
-    });
-
-    expect(hot.getSettings().columnSorting).toBeFalsy();
-    expect(hot.sort).toBeUndefined();
-  });
-
-  it('should sort table using HOT.sort method', function() {
-    var hot = handsontable({
+  it('should sort table using plugin API method', function() {
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1210,7 +1212,7 @@ describe('ColumnSorting', () => {
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
-    hot.sort(0, true);
+    hot.getPlugin('columnSorting').sort(0, 'asc');
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1219,7 +1221,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should reset column sorting with updateSettings', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1229,7 +1231,7 @@ describe('ColumnSorting', () => {
       colHeaders: true,
       columnSorting: {
         column: 0,
-        sortOrder: true
+        sortOrder: 'asc'
       }
     });
 
@@ -1243,7 +1245,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should fire beforeColumnSort event before sorting data', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [2],
         [4],
@@ -1264,17 +1266,17 @@ describe('ColumnSorting', () => {
 
     hot.addHook('beforeColumnSort', this.beforeColumnSortHandler);
 
-    var sortColumn = 0;
-    var sortOrder = true;
+    const sortColumn = 0;
+    const sortOrder = true;
 
-    hot.sort(sortColumn, sortOrder);
+    hot.getPlugin('columnSorting').sort(sortColumn, sortOrder);
 
     expect(this.beforeColumnSortHandler.calls.count()).toEqual(1);
     expect(this.beforeColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
   });
 
   it('should not sorting column when beforeColumnSort returns false', (done) => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [2],
         [4],
@@ -1287,7 +1289,7 @@ describe('ColumnSorting', () => {
       }
     });
 
-    hot.sort(0, true);
+    hot.getPlugin('columnSorting').sort(0, 'asc');
 
     setTimeout(() => {
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
@@ -1299,25 +1301,25 @@ describe('ColumnSorting', () => {
   });
 
   it('should add beforeColumnSort event listener in constructor', () => {
-    var beforeColumnSortCallback = jasmine.createSpy('beforeColumnSortHandler');
+    const beforeColumnSortCallback = jasmine.createSpy('beforeColumnSortHandler');
 
-    var hot = handsontable({
+    const hot = handsontable({
       data: [[2], [4], [1], [3]],
       columnSorting: true,
       beforeColumnSort: beforeColumnSortCallback
     });
 
-    var sortColumn = 0;
-    var sortOrder = true;
+    const sortColumn = 0;
+    const sortOrder = true;
 
-    hot.sort(sortColumn, sortOrder);
+    hot.getPlugin('columnSorting').sort(sortColumn, sortOrder);
 
     expect(beforeColumnSortCallback.calls.count()).toEqual(1);
     expect(beforeColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
   });
 
   it('should fire afterColumnSort event before data has been sorted but before table render', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [2],
         [4],
@@ -1326,12 +1328,12 @@ describe('ColumnSorting', () => {
       ],
       columnSorting: true
     });
-    var rendered = false;
-    var afterColumnSortHandler = jasmine.createSpy('afterColumnSortHandler');
-    var afterRenderSpy = jasmine.createSpy('afterRender');
+    let rendered = 'desc';
+    const afterColumnSortHandler = jasmine.createSpy('afterColumnSortHandler');
+    const afterRenderSpy = jasmine.createSpy('afterRender');
 
     hot.addHook('afterColumnSort', function() {
-      expect(rendered).toBe(false);
+      expect(rendered).toBe('desc');
       afterColumnSortHandler.apply(afterColumnSortHandler, arguments);
     });
     hot.addHook('afterRender', function() {
@@ -1339,11 +1341,11 @@ describe('ColumnSorting', () => {
       afterRenderSpy.apply(afterRenderSpy, arguments);
     });
 
-    var sortColumn = 0;
-    var sortOrder = true;
+    const sortColumn = 0;
+    const sortOrder = 'asc';
     afterRenderSpy.calls.reset();
 
-    hot.sort(sortColumn, sortOrder);
+    hot.getPlugin('columnSorting').sort(sortColumn, sortOrder);
 
     expect(afterColumnSortHandler.calls.count()).toBe(1);
     expect(afterColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
@@ -1351,25 +1353,25 @@ describe('ColumnSorting', () => {
   });
 
   it('should add afterColumnSort event listener in constructor', () => {
-    var afterColumnSortCallback = jasmine.createSpy('afterColumnSortHandler');
+    const afterColumnSortCallback = jasmine.createSpy('afterColumnSortHandler');
 
-    var hot = handsontable({
+    const hot = handsontable({
       data: [[2], [4], [1], [3]],
       columnSorting: true,
       afterColumnSort: afterColumnSortCallback
     });
 
-    var sortColumn = 0;
-    var sortOrder = true;
+    const sortColumn = 0;
+    const sortOrder = true;
 
-    hot.sort(sortColumn, sortOrder);
+    hot.getPlugin('columnSorting').sort(sortColumn, sortOrder);
 
     expect(afterColumnSortCallback.calls.count()).toEqual(1);
     expect(afterColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
   });
 
   it('should insert row when plugin is enabled, but table hasn\'t been sorted', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1388,7 +1390,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should remove row when plugin is enabled, but table hasn\'t been sorted', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1399,7 +1401,7 @@ describe('ColumnSorting', () => {
     });
 
     expect(countRows()).toEqual(4);
-    expect(hot.sortColumn).toBeUndefined();
+    expect(hot.getPlugin('columnSorting').sortColumn).toBeUndefined();
 
     alter('remove_row');
 
@@ -1407,28 +1409,28 @@ describe('ColumnSorting', () => {
   });
 
   it('should display new row added directly to dataSource, when observeChanges plugin is enabled', function(done) {
-    var data = [
+    const data = [
       [1, 'B'],
       [0, 'A'],
       [3, 'D'],
       [2, 'C']
     ];
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       colHeaders: true,
       columnSorting: true,
       observeChanges: true
     });
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1437,7 +1439,7 @@ describe('ColumnSorting', () => {
 
     expect(htCore.find('tbody tr').length).toEqual(4);
 
-    var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+    const afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
     hot.addHook('afterChangesObserved', afterChangesObservedCallback);
 
     data.push([5, 'E']);
@@ -1451,31 +1453,31 @@ describe('ColumnSorting', () => {
   });
 
   it('should not display new row added directly to dataSource, when observeChanges plugin is explicitly disabled', function(done) {
-    var data = [
+    const data = [
       [1, 'B'],
       [0, 'A'],
       [3, 'D'],
       [2, 'C']
     ];
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       colHeaders: true,
       columnSorting: true,
       observeChanges: false
     });
 
-    var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+    const afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
     hot.addHook('afterChangesObserved', afterChangesObservedCallback);
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1497,26 +1499,26 @@ describe('ColumnSorting', () => {
   });
 
   it('should display new row added directly to dataSource, when observeChanges plugin status is undefined', (done) => {
-    var data = [
+    const data = [
       [1, 'B'],
       [0, 'A'],
       [3, 'D'],
       [2, 'C']
     ];
 
-    var onUpdateSettings = jasmine.createSpy('onUpdateSettings');
+    const onUpdateSettings = jasmine.createSpy('onUpdateSettings');
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       colHeaders: true,
       columnSorting: true,
       afterUpdateSettings: onUpdateSettings
     });
 
-    var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+    const afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
     hot.addHook('afterChangesObserved', afterChangesObservedCallback);
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
     // columnSorting enables observeChanges plugin by asynchronously invoking updateSettings
     setTimeout(() => {
@@ -1525,7 +1527,7 @@ describe('ColumnSorting', () => {
       expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
       expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
-      spec().sortByColumn(0);
+      spec().sortByClickOnColumnHeader(0);
 
       expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
       expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1545,7 +1547,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should apply sorting when there are two tables and only one has sorting enabled and has been already sorted (#1020)', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1559,7 +1561,7 @@ describe('ColumnSorting', () => {
 
     this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
     this.$container2.handsontable();
-    var hot2 = this.$container2.handsontable('getInstance');
+    const hot2 = this.$container2.handsontable('getInstance');
 
     selectCell(0, 1);
     keyDown('enter');
@@ -1570,7 +1572,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should reset sorting after loading new data', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1585,7 +1587,7 @@ describe('ColumnSorting', () => {
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
-    hot.sort(0, true);
+    hot.getPlugin('columnSorting').sort(0, 'asc');
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1611,7 +1613,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should reset sorting after loading new data (default sorting column and order set)', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'B'],
         [0, 'D'],
@@ -1620,7 +1622,7 @@ describe('ColumnSorting', () => {
       ],
       columnSorting: {
         column: 1,
-        sortOrder: true
+        sortOrder: 'asc'
       }
     });
 
@@ -1634,7 +1636,7 @@ describe('ColumnSorting', () => {
     expect(this.$container.find('tbody tr:eq(2) td:eq(1)').text()).toEqual('C');
     expect(this.$container.find('tbody tr:eq(3) td:eq(1)').text()).toEqual('D');
 
-    hot.sort(0, true);
+    hot.getPlugin('columnSorting').sort(0, 'asc');
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1667,7 +1669,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should return updated data at specyfied row after sorted', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, 'Frank', 'Honest'],
@@ -1680,24 +1682,24 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([1, 'Ted', 'Right']);
     expect(getDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([5, 'Jane', 'Neat']);
     expect(getDataAtRow(4)).toEqual([1, 'Ted', 'Right']);
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([1, 'Ted', 'Right']);
     expect(getDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
   });
 
   it('should return updated data at specyfied col after sorted', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, 'Frank', 'Honest'],
@@ -1710,24 +1712,24 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([5, 4, 3, 2, 1]);
     expect(getDataAtCol(1)).toEqual(['Jane', 'Sid', 'Joan', 'Frank', 'Ted']);
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
   });
 
   it('should return original data source at specified row after sorted', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, 'Frank', 'Honest'],
@@ -1740,7 +1742,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([1, 'Ted', 'Right']);
     expect(getDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
@@ -1748,7 +1750,7 @@ describe('ColumnSorting', () => {
     expect(getSourceDataAtRow(0)).toEqual([1, 'Ted', 'Right']);
     expect(getSourceDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([5, 'Jane', 'Neat']);
     expect(getDataAtRow(4)).toEqual([1, 'Ted', 'Right']);
@@ -1759,7 +1761,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should return original data source at specified col after sorted', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, 'Frank', 'Honest'],
@@ -1772,7 +1774,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
@@ -1780,7 +1782,7 @@ describe('ColumnSorting', () => {
     expect(getSourceDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getSourceDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([5, 4, 3, 2, 1]);
     expect(getDataAtCol(1)).toEqual(['Jane', 'Sid', 'Joan', 'Frank', 'Ted']);
@@ -1788,7 +1790,7 @@ describe('ColumnSorting', () => {
     expect(getSourceDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getSourceDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
@@ -1798,7 +1800,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should ignore case when sorting', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'albuquerque'],
         [2, 'Alabama'],
@@ -1808,18 +1810,18 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(1);
+    this.sortByClickOnColumnHeader(1);
     expect(getDataAtCol(0)).toEqual([2, 1, 3]);
     expect(getDataAtCol(1)).toEqual(['Alabama', 'albuquerque', 'Missouri']);
 
-    this.sortByColumn(1);
+    this.sortByClickOnColumnHeader(1);
     expect(getDataAtCol(0)).toEqual([3, 1, 2]);
     expect(getDataAtCol(1)).toEqual(['Missouri', 'albuquerque', 'Alabama']);
 
   });
 
   it('should push empty cells to the end of sorted column', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, '', 'Honest'],
@@ -1833,18 +1835,18 @@ describe('ColumnSorting', () => {
       minSpareRows: 1
     });
 
-    this.sortByColumn(1);
+    this.sortByClickOnColumnHeader(1);
     expect(getDataAtCol(0)).toEqual([5, 4, 1, 2, 3, null]);
     expect(getDataAtCol(1)).toEqual(['Jane', 'Sid', 'Ted', '', '', null]);
 
-    this.sortByColumn(1);
+    this.sortByClickOnColumnHeader(1);
     expect(getDataAtCol(0)).toEqual([1, 4, 5, 2, 3, null]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Sid', 'Jane', '', '', null]);
 
   });
 
   it('should push numeric values before non-numeric values, when sorting ascending using the default sorting function', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'Ted', 123],
         [2, '', 'Some'],
@@ -1856,16 +1858,16 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(2);
+    this.sortByClickOnColumnHeader(2);
     expect(getDataAtCol(2)).toEqual([46, 123, 321, 'Some', 'String']);
 
-    this.sortByColumn(2);
+    this.sortByClickOnColumnHeader(2);
     expect(getDataAtCol(2)).toEqual(['String', 'Some', 321, 123, 46]);
 
   });
 
   it('should add a sorting indicator to the column header after it\'s been sorted, only if sortIndicator property is set to true', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, '', 'Honest'],
@@ -1877,10 +1879,10 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(1);
+    this.sortByClickOnColumnHeader(1);
 
-    var sortedColumn = this.$container.find('th span.columnSorting')[1],
-      afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    let sortedColumn = this.$container.find('th span.columnSorting')[1];
+    let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
 
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
@@ -1892,20 +1894,20 @@ describe('ColumnSorting', () => {
       sortIndicator: true
     });
 
-    this.sortByColumn(1);
+    this.sortByClickOnColumnHeader(1);
 
     // descending (updateSettings doesn't reset sorting stack)
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
-    this.sortByColumn(1);
+    this.sortByClickOnColumnHeader(1);
 
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
-    this.sortByColumn(1);
+    this.sortByClickOnColumnHeader(1);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
@@ -1926,28 +1928,28 @@ describe('ColumnSorting', () => {
       ]
     });
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     sortedColumn = this.$container.find('th span.columnSorting')[0];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
-    this.sortByColumn(1);
+    this.sortByClickOnColumnHeader(1);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
-    this.sortByColumn(2);
+    this.sortByClickOnColumnHeader(2);
 
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
   });
 
-  it('should change sorting indicator state on every `hot.sort()` method call (continuously for the same column)', function() {
-    var hot = handsontable({
+  it('should change sorting indicator state on every plugin API method call (continuously for the same column)', function() {
+    const hot = handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, '', 'Honest'],
@@ -1960,34 +1962,34 @@ describe('ColumnSorting', () => {
       sortIndicator: true,
     });
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sort(1);
 
     // ascending
-    var sortedColumn = this.$container.find('th span.columnSorting')[1];
-    var afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    let sortedColumn = this.$container.find('th span.columnSorting')[1];
+    let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sort(1);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sort(1);
 
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sort(1);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sort(1);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
@@ -1995,8 +1997,8 @@ describe('ColumnSorting', () => {
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
   });
 
-  it('should change sorting indicator state on every `hot.sort()` method (calling for different columns)', function() {
-    var hot = handsontable({
+  it('should change sorting indicator state on every plugin API method (calling for different columns)', function() {
+    const hot = handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, '', 'Honest'],
@@ -2009,42 +2011,42 @@ describe('ColumnSorting', () => {
       sortIndicator: true,
     });
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sort(1);
 
     // ascending
-    var sortedColumn = this.$container.find('th span.columnSorting')[1];
-    var afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    let sortedColumn = this.$container.find('th span.columnSorting')[1];
+    let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
-    hot.sort(2);
+    hot.getPlugin('columnSorting').sort(2);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sort(1);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
-    hot.sort(2, false);
+    hot.getPlugin('columnSorting').sort(2, 'desc');
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
-    hot.sort(2, false);
+    hot.getPlugin('columnSorting').sort(2, 'desc');
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
-    hot.sort(2, true);
+    hot.getPlugin('columnSorting').sort(2, 'asc');
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
@@ -2053,7 +2055,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should change sorting indicator state when initial column sorting was provided', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 'Ted', 'Right'],
         [2, '', 'Honest'],
@@ -2064,38 +2066,38 @@ describe('ColumnSorting', () => {
       colHeaders: true,
       columnSorting: {
         column: 1,
-        sortOrder: false
+        sortOrder: 'desc'
       },
       sortIndicator: true,
     });
 
     // descending
-    var sortedColumn = this.$container.find('th span.columnSorting')[1];
-    var afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+    let sortedColumn = this.$container.find('th span.columnSorting')[1];
+    let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sort(1);
 
     // default
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sort(1);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sort(1);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(String.fromCharCode(9660))).toBeGreaterThan(-1);
 
-    hot.sort(1);
+    hot.getPlugin('columnSorting').sort(1);
 
     // default
     sortedColumn = this.$container.find('th span.columnSorting')[1];
@@ -2104,7 +2106,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should properly sort the table, when it\'s scrolled to the far right', () => {
-    var data = [
+    const data = [
       ['Jasmine Ferguson', 'Britney Carey', 'Kelly Decker', 'Lacey Mcleod', 'Leona Shaffer', 'Kelli Ochoa',
         'Adele Roberson', 'Viola Snow', 'Barron Cherry', 'Calhoun Lane', 'Elvia Andrews', 'Katheryn Dale', 'Dorthy Hale',
         'Munoz Randall', 'Fields Morse', 'Hubbard Nichols', 'Chang Yang', 'Osborn Anthony', 'Owens Warner', 'Gloria Hampton'],
@@ -2119,7 +2121,7 @@ describe('ColumnSorting', () => {
         'Santiago Mcclure', 'Claudette Battle', 'Nita Holloway', 'Eula Wolfe', 'Pruitt Stokes', 'Felicia Briggs', 'Melba Bradshaw']
     ];
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       colHeaders: true,
       columnSorting: true
@@ -2127,21 +2129,21 @@ describe('ColumnSorting', () => {
 
     hot.view.wt.wtOverlays.leftOverlay.scrollTo(15);
     hot.render();
-    hot.sort(15);
+    hot.getPlugin('columnSorting').sort(15);
 
     expect(getDataAtCell(0, 15)).toEqual('Ball Levy');
     expect(getDataAtCell(1, 15)).toEqual('Hubbard Nichols');
     expect(getDataAtCell(2, 15)).toEqual('Lenora Guzman');
     expect(getDataAtCell(3, 15)).toEqual('Nita Holloway');
 
-    hot.sort(15);
+    hot.getPlugin('columnSorting').sort(15);
 
     expect(getDataAtCell(3, 15)).toEqual('Ball Levy');
     expect(getDataAtCell(2, 15)).toEqual('Hubbard Nichols');
     expect(getDataAtCell(1, 15)).toEqual('Lenora Guzman');
     expect(getDataAtCell(0, 15)).toEqual('Nita Holloway');
 
-    hot.sort(15);
+    hot.getPlugin('columnSorting').sort(15);
 
     expect(getDataAtCell(0, 15)).toEqual('Hubbard Nichols');
     expect(getDataAtCell(1, 15)).toEqual('Lenora Guzman');
@@ -2150,8 +2152,8 @@ describe('ColumnSorting', () => {
   });
 
   it('should allow specifiyng a custom sorting function', () => {
-    var data = [['1 inch'], ['1 yard'], ['2 feet'], ['0.2 miles']];
-    var hot = handsontable({
+    const data = [['1 inch'], ['1 yard'], ['2 feet'], ['0.2 miles']];
+    const hot = handsontable({
       data,
       colHeaders: true,
       columnSorting: true,
@@ -2159,15 +2161,15 @@ describe('ColumnSorting', () => {
         {
           sortFunction(sortOrder) {
             return function(a, b) {
-              var unitsRatios = {
+              const unitsRatios = {
                 inch: 1,
                 yard: 36,
                 feet: 12,
                 miles: 63360
               };
 
-              var newA = a[1],
-                newB = b[1];
+              let newA = a[1];
+              let newB = b[1];
 
               Handsontable.helper.objectEach(unitsRatios, (val, prop) => {
                 if (a[1].indexOf(prop) > -1) {
@@ -2203,21 +2205,21 @@ describe('ColumnSorting', () => {
     expect(getDataAtCell(2, 0)).toEqual('2 feet');
     expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
 
-    hot.sort(0);
+    hot.getPlugin('columnSorting').sort(0);
 
     expect(getDataAtCell(0, 0)).toEqual('1 inch');
     expect(getDataAtCell(1, 0)).toEqual('2 feet');
     expect(getDataAtCell(2, 0)).toEqual('1 yard');
     expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
 
-    hot.sort(0);
+    hot.getPlugin('columnSorting').sort(0);
 
     expect(getDataAtCell(0, 0)).toEqual('0.2 miles');
     expect(getDataAtCell(1, 0)).toEqual('1 yard');
     expect(getDataAtCell(2, 0)).toEqual('2 feet');
     expect(getDataAtCell(3, 0)).toEqual('1 inch');
 
-    hot.sort(0);
+    hot.getPlugin('columnSorting').sort(0);
 
     expect(getDataAtCell(0, 0)).toEqual('1 inch');
     expect(getDataAtCell(1, 0)).toEqual('1 yard');
@@ -2227,7 +2229,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should properly sort integers with nulls', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         ['12'],
         [null],
@@ -2240,15 +2242,15 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['-5', '10', '12', '1000', null, null]);
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['1000', '12', '10', '-5', null, null]);
   });
 
   it('should properly sort floating points', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         ['0.0561'],
         ['-10.67'],
@@ -2261,15 +2263,15 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['-127', '-10.67', '-4.1', '-0.01', '0.0561', '1000']);
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127']);
   });
 
   it('should properly sort floating points with nulls', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         ['0.0561'],
         ['-10.67'],
@@ -2285,15 +2287,15 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['-127', '-10.67', '-4.1', '-0.01', '0.0561', '1000', null, null, null]);
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127', null, null, null]);
   });
 
   it('should properly sort floating points with non-numerical values', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         ['0.0561'],
         ['-10.67'],
@@ -2309,15 +2311,15 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['-127', '-10.67', '-4.1', '-0.01', '0.0561', '1000', 'a', 'b', 'hello']);
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['hello', 'b', 'a', '1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127']);
   });
 
   it('should modify row translating process when soring is applied (visual to physical and vice versa)', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [2],
         [4],
@@ -2328,7 +2330,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByColumn(0);
+    this.sortByClickOnColumnHeader(0);
 
     expect(hot.toPhysicalRow(0)).toBe(2);
     expect(hot.toPhysicalRow(1)).toBe(0);
@@ -2341,21 +2343,21 @@ describe('ColumnSorting', () => {
   });
 
   describe('should return sorted properly data when maxRows or / and minSpareRow options are set', () => {
-    var testSorting = function(desc, config, result) {
+    const testSorting = function(desc, config, result) {
       it(desc, () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(config.rows, config.columns),
           maxRows: config.maxRow,
           minSpareRows: config.minSpareRows,
           columnSorting: {
-            column: config.sortByColumnIndex,
+            column: config.sortIndex,
             sortOrder: config.sortOrder
           }
         });
 
         expect(getData().length).toEqual(result.dataLength);
 
-        for (var i = 0; i < result.expectations.length; i += 1) {
+        for (let i = 0; i < result.expectations.length; i += 1) {
           expect(getDataAtCell(result.expectations[i].rowIndex, result.expectations[i].columnIndex)).toEqual(result.expectations[i].value);
         }
       });
@@ -2363,31 +2365,31 @@ describe('ColumnSorting', () => {
 
     testSorting(
       'maxRows < data.length',
-      {rows: 9, columns: 9, maxRow: 6, sortByColumnIndex: 1, sortOrder: false},
+      {rows: 9, columns: 9, maxRow: 6, sortIndex: 1, sortOrder: 'desc'},
       {dataLength: 6, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C6'}]}
     );
 
     testSorting(
       'maxRows > data.length',
-      {rows: 8, columns: 8, maxRow: 20, sortByColumnIndex: 1, sortOrder: false},
+      {rows: 8, columns: 8, maxRow: 20, sortIndex: 1, sortOrder: 'desc'},
       {dataLength: 8, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C8'}]}
     );
 
     testSorting(
       'minSpareRows is set; maxRows < data.length',
-      {rows: 9, columns: 9, maxRow: 5, minSpareRows: 3, sortByColumnIndex: 1, sortOrder: false},
+      {rows: 9, columns: 9, maxRow: 5, minSpareRows: 3, sortIndex: 1, sortOrder: 'desc'},
       {dataLength: 5, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C5'}]}
     );
 
     testSorting(
       'minSpareRows is set; maxRows === data.length',
-      {rows: 6, columns: 6, maxRow: 9, minSpareRows: 3, sortByColumnIndex: 1, sortOrder: false},
+      {rows: 6, columns: 6, maxRow: 9, minSpareRows: 3, sortIndex: 1, sortOrder: 'desc'},
       {dataLength: 6 + 3, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C6'}]}
     );
 
     testSorting(
       'minSpareRows is set; maxRows > data.length',
-      {rows: 9, columns: 9, maxRow: 15, minSpareRows: 2, sortByColumnIndex: 1, sortOrder: false},
+      {rows: 9, columns: 9, maxRow: 15, minSpareRows: 2, sortIndex: 1, sortOrder: 'desc'},
       {dataLength: 9 + 2, expectations: [{rowIndex: 0, columnIndex: 2, value: 'C9'}]}
     );
   });
