@@ -103,7 +103,6 @@ BaseEditor.prototype.beginEditing = function(newInitialValue, event) {
     return;
   }
   this.instance.view.scrollViewport(new CellCoords(this.row, this.col));
-  this.instance.view.render(); // ??????????
   this.state = EditorState.EDITING;
 
   // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,

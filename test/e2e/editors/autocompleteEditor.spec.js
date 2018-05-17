@@ -375,8 +375,9 @@ describe('AutocompleteEditor', () => {
       }, 200);
     });
 
-    // TODO: This test never properly tests the case of refreshing editor after re-render the table. The issue which this
-    // test cover is not resolved completely.
+    // TODO: This test never properly tests the case of refreshing editor after re-render the table. Previously this
+    // test passes because sleep timeout was small enough to read the valid width before the editor element was resized.
+    // Related issue #5103
     xit('autocomplete textarea should have cell dimensions (after render)', async () => {
       var data = [
         ['a', 'b'],

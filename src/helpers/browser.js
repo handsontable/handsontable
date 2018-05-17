@@ -1,48 +1,60 @@
+import {objectEach} from './object';
 
-const _isIE8 = !(document.createTextNode('test').textContent);
+const tester = (tester) => {
+  const result = {
+    value: false,
+  };
+  result.test = (ua, vendor) => {
+    result.value = tester(ua, vendor);
+  };
 
-export function isIE8() {
-  return _isIE8;
+  return result;
+};
+
+const browsers = {
+  chrome: tester((ua, vendor) => /Chrome/.test(ua) && /Google/.test(vendor)),
+  edge: tester((ua) => /Edge/.test(ua)),
+  ie: tester((ua) => /Trident/.test(ua)),
+  ie8: tester(() => !(document.createTextNode('test').textContent)),
+  ie9: tester(() => !!(document.documentMode)),
+  mobile: tester((ua) => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
+  safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
+};
+
+export function setBrowserMeta({userAgent = navigator.userAgent, vendor = navigator.vendor} = {}) {
+  objectEach(browsers, ({test}) => void test(userAgent, vendor));
 }
 
-const _isIE9 = !!(document.documentMode);
+setBrowserMeta();
 
-export function isIE9() {
-  return _isIE9;
+export function isChrome() {
+  return browsers.chrome.value;
 }
-
-const _isIE = /Trident/.test(navigator.userAgent);
-
-export function isIE() {
-  return _isIE;
-}
-
-const _isEdge = /Edge/.test(navigator.userAgent);
 
 export function isEdge() {
-  return _isEdge;
+  return browsers.edge.value;
+}
+
+export function isIE() {
+  return browsers.ie.value;
+}
+
+export function isIE8() {
+  return browsers.ie8.value;
+}
+
+export function isIE9() {
+  return browsers.ie9.value;
 }
 
 export function isMSBrowser() {
-  return _isIE || _isEdge;
+  return browsers.ie.value || browsers.edge.value;
 }
 
-const _isSafari = (/Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor));
+export function isMobileBrowser() {
+  return browsers.mobile.value;
+}
 
 export function isSafari() {
-  return _isSafari;
-}
-
-const _isChrome = (/Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor));
-
-export function isChrome() {
-  return _isChrome;
-}
-
-export function isMobileBrowser(userAgent) {
-  if (!userAgent) {
-    userAgent = navigator.userAgent;
-  }
-
-  return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent));
+  return browsers.safari.value;
 }

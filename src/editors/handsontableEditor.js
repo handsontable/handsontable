@@ -134,8 +134,6 @@ HandsontableEditor.prototype.open = function() {
 HandsontableEditor.prototype.close = function() {
   this.htEditor.rootElement.style.display = 'none';
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-  // this.instance.listen();
-
   TextEditor.prototype.close.apply(this, arguments);
 };
 
