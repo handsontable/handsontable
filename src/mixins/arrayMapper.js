@@ -1,6 +1,7 @@
-import {arrayReduce, arrayMap, arrayMax} from './../helpers/array';
+import {arrayReduce, arrayMap, arrayMax, arrayEach} from './../helpers/array';
 import {defineGetter} from './../helpers/object';
 import {rangeEach} from './../helpers/number';
+import {isDefined} from './../helpers/mixed';
 
 const MIXIN_NAME = 'arrayMapper';
 
@@ -156,11 +157,28 @@ const arrayMapper = {
   /**
    * Move indexes in arrayMapper.
    *
-   * @param {Number} visualIndexFrom index to move.
-   * @param {Number} visualIndexTo destination of move.
+   * @param {Array} visualIndexFrom Indexes to move.
+   * @param {Number} visualIndexTo Destination of move (start index).
    */
   moveItems(visualIndexFrom, visualIndexTo) {
-    this._arrayMap.splice(visualIndexTo, 0, ...this._arrayMap.splice(visualIndexFrom, 1));
+    const physicalMovedItems = visualIndexFrom.map((row) => this.getValueByIndex(row));
+
+    // We remove moved elements from the array at start.
+    let lastSplicedElementIndex;
+    let displacedElements = 0;
+
+    arrayEach(visualIndexFrom, (splicedElementIndex) => {
+      if (isDefined(lastSplicedElementIndex) && splicedElementIndex > lastSplicedElementIndex) {
+        displacedElements += 1;
+      }
+
+      this._arrayMap.splice(splicedElementIndex - displacedElements, 1);
+
+      lastSplicedElementIndex = splicedElementIndex;
+    });
+
+    // We add moved elements at the new position.
+    this._arrayMap.splice(visualIndexTo, 0, ...physicalMovedItems);
   },
 
   /**

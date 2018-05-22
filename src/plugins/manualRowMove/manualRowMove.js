@@ -171,80 +171,40 @@ class ManualRowMove extends BasePlugin {
   /**
    * Move multiple rows.
    *
-   * @param {Array} visualMovedRows Array of visual row indexes to be moved.
-   * @param {Number} [visualTarget=0] Visual row index being a visualTarget for the moved rows.
+   * @param {Array} movedRows Array of visual row indexes to be moved.
+   * @param {Number} [destinationStart=0] Visual row index being a start index for the moved rows.
    */
-  moveRows(visualMovedRows, visualTarget = 0) {
+  moveRows(movedRows, destinationStart = 0) {
     const priv = privatePool.get(this);
-    const beforeMoveHook = this.hot.runHooks('beforeRowMove', visualMovedRows, visualTarget);
+    const movePossible = this.isMovePossible(movedRows, destinationStart);
+    const beforeMoveHook = this.hot.runHooks('beforeRowMove', movedRows, destinationStart, movePossible);
 
     priv.disallowMoving = beforeMoveHook === false;
 
-    if (!priv.disallowMoving) {
-      // Saving physical indexes (before move) which will be used as IDs. After move we can read NEW visual index of particular row / column by previously saved ID.
-      const physicalTarget = this.rowsMapper.getValueByIndex(visualTarget);
-      const physicalMovedRows = visualMovedRows.map((row) => this.rowsMapper.getValueByIndex(row));
-      let notMovedRows = 0;
-
-      arrayEach(physicalMovedRows, (physicalMovedRow) => {
-        const newVisualIndexOfMovedRow = this.rowsMapper.getIndexByValue(physicalMovedRow);
-        const newVisualIndexOfTarget = this.rowsMapper.getIndexByValue(physicalTarget);
-        const moveRowFromBottomToTop = () => newVisualIndexOfMovedRow > newVisualIndexOfTarget + notMovedRows;
-        const moveRowFromTopToBottom = () => newVisualIndexOfMovedRow < newVisualIndexOfTarget;
-
-        if (moveRowFromBottomToTop()) {
-          this.moveUpRow(physicalMovedRow, physicalTarget, notMovedRows);
-
-        } else if (moveRowFromTopToBottom()) {
-          this.moveDownRow(physicalMovedRow, physicalTarget);
-
-        } else {
-          notMovedRows += 1;
-        }
-      });
+    if (!priv.disallowMoving && movePossible) {
+      this.rowsMapper.moveItems(movedRows, destinationStart);
     }
 
-    this.hot.runHooks('afterRowMove', visualMovedRows, visualTarget);
+    this.hot.runHooks('afterRowMove', movedRows, destinationStart, movePossible);
   }
 
   /**
-   * When moving from the bottom to the top, index of target should be increased after each action. We can get the index by watching new position of element
-   * which was located on target index at the beginning.
+   * Check if it's possible to move rows to destination position.
    *
-   * @private
-   * @param {Number} physicalMovedRow Physical index of moved row.
-   * @param {Number} physicalTarget Physical index of target.
-   * @param {Number} notMovedRowsOffset Number of not moved rows so far. Some of moved indexes may be equal to target indexes and move action on them is not performed.
-   */
-  moveUpRow(physicalMovedRow, physicalTarget, notMovedRowsOffset = 0) {
-    // This translation may be needed when mixing moving lower indexes with higher indexes (moved indexes may be not sorted)
-    const newVisualIndexOfMovedRow = this.rowsMapper.getIndexByValue(physicalMovedRow);
-
-    // New index of displaced element. It is visual index of element placed on target position, at the beginning (before move).
-    const indexOfPushedDownElement = this.rowsMapper.getIndexByValue(physicalTarget);
-
-    // Moving element from chosen index to the counted position of destination
-    this.rowsMapper.moveItems(newVisualIndexOfMovedRow, indexOfPushedDownElement + notMovedRowsOffset);
-  }
-
-  /**
-   * When moving from the top to the bottom, index of moved element should be decreased after each action. We can get the index by checking new position of
-   * each moved element after each subsequent change.
+   * @param {Array} movedRows Array of visual row indexes to be moved.
+   * @param {Number} destinationStart Visual row index being a start index for the moved rows.
    *
-   * @private
-   * @param {Number} physicalMovedRow Physical index of moved row.
-   * @param {Number} physicalTarget Physical index of target.
+   * @returns {Boolean}
    */
-  moveDownRow(physicalMovedRow, physicalTarget) {
-    // New index of displaced element. It is visual index of moved element which is changed by previous move actions (when moving multiple rows).
-    const indexOfPulledUpElement = this.rowsMapper.getIndexByValue(physicalMovedRow);
+  isMovePossible(movedRows, destinationStart) {
+    // An attempt to transfer more rows to start destination than is possible (only when moving from the top to the bottom).
+    const tooHighDestinationIndex = movedRows.length + destinationStart > this.rowsMapper._arrayMap.length;
 
-    // This translation may be needed when mixing moving lower indexes with higher indexes (moved indexes may be not sorted)
-    const newVisualIndexOfTarget = this.rowsMapper.getIndexByValue(physicalTarget);
+    if (tooHighDestinationIndex) {
+      return false;
+    }
 
-    // The below subtraction (`newVisualIndexOfTarget - 1`) was added as consequence of https://github.com/handsontable/handsontable/issues/4501
-    // Moving element from the counted position to the target index chosen at the start.
-    this.rowsMapper.moveItems(indexOfPulledUpElement, newVisualIndexOfTarget - 1);
+    return true;
   }
 
   /**
@@ -651,11 +611,18 @@ class ManualRowMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
-    if (rowsLen < 1 || target === void 0 || priv.rowsToMove.indexOf(target) > -1) {
+    if (rowsLen < 1 || target === void 0 || priv.rowsToMove.includes(target)) {
       return;
     }
 
-    const firstMovedPhysicalRow = this.rowsMapper.getValueByIndex(priv.rowsToMove[0]);
+    const firstMovedVisualRow = priv.rowsToMove[0];
+    const firstMovedPhysicalRow = this.rowsMapper.getValueByIndex(firstMovedVisualRow);
+    const movingRowFromTopToBottom = firstMovedVisualRow < target;
+
+    if (movingRowFromTopToBottom) {
+      // Counting starting index of destination. It should be changed when moving from the top to the bottom.
+      target -= rowsLen;
+    }
 
     this.moveRows(priv.rowsToMove, target);
 
