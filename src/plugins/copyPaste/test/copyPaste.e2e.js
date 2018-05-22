@@ -59,14 +59,17 @@ describe('CopyPaste', () => {
     });
   });
 
-  it('should reuse focusable element from cell editor', () => {
+  it('should reuse focusable element by borrowing an element from cell editor', async () => {
     handsontable();
     selectCell(0, 0);
 
-    expect($('#HandsontableCopyPaste').length).toEqual(0);
+    await sleep(10);
+
+    expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    expect($('#HandsontableCopyPaste').length).toBe(0);
   });
 
-  it('should create focusable element when cell editor doesn\'t exist', () => {
+  it('should create focusable element when cell editor doesn\'t exist', async () => {
     handsontable({
       editor: false,
     });

@@ -274,4 +274,25 @@ describe('HandsontableEditor', () => {
       expect(hot.getActiveEditor().TEXTAREA.style.visibility).toEqual('');
     });
   });
+
+  describe('IME support', () => {
+    it('should focus editable element after selecting the cell', async () => {
+      handsontable({
+        columns: [
+          {
+            type: 'handsontable',
+            handsontable: {
+              colHeaders: ['Marque', 'Country', 'Parent company'],
+              data: getManufacturerData()
+            }
+          }
+        ]
+      });
+      selectCell(0, 0, 0, 0, true, false);
+
+      await sleep(10);
+
+      expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    });
+  });
 });

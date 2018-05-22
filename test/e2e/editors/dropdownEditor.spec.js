@@ -138,4 +138,22 @@ describe('DropdownEditor', () => {
 
     hot.getActiveEditor().TEXTAREA.removeEventListener('focus', focusListener);
   });
+
+  describe('IME support', () => {
+    it('should focus editable element after selecting the cell', async () => {
+      handsontable({
+        columns: [
+          {
+            type: 'dropdown',
+            source: choices,
+          }
+        ]
+      });
+      selectCell(0, 0, 0, 0, true, false);
+
+      await sleep(10);
+
+      expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    });
+  });
 });
