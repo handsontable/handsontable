@@ -81,10 +81,10 @@ declare namespace _Handsontable {
     selectRows(startRow: number, endRow?: number): boolean;
     setCellMeta(row: number, col: number, key: string, val: string): void;
     setCellMetaObject(row: number, col: number, prop: object): void;
-    setDataAtCell(row: number, col: number, value: string | object, source?: string): void;
-    setDataAtCell(row: Array<[number, number, string | object]>, source?: string): void;
-    setDataAtRowProp(row: number, prop: string, value: string, source?: string): void;
-    setDataAtRowProp(row: Array<[number, string, string]>, source?: string): void;
+    setDataAtCell(row: number, col: string | number, value: any, source?: string): void;
+    setDataAtCell(changes: Array<[number, string | number, any]>, source?: string): void;
+    setDataAtRowProp(row: number, prop: string, value: any, source?: string): void;
+    setDataAtRowProp(changes: Array<[number, string | number, any]>, source?: string): void;
     spliceCol(col: number, index: number, amount: number, elements?: any): void;
     spliceRow(row: number, index: number, amount: number, elements?: any): void;
     toPhysicalColumn(column: number): number;
