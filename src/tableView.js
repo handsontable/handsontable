@@ -93,12 +93,10 @@ function TableView(instance) {
     }
   });
 
-  this.eventManager.addEventListener(document.documentElement, 'touchend', function(event) {
-    setTimeout(function() {
-      if (instance.selection.isInProgress()) {
-        instance.selection.finish();
-      }
-    }, 0);
+  this.eventManager.addEventListener(document.documentElement, 'touchend', () => {
+    if (instance.selection.isInProgress()) {
+      instance.selection.finish();
+    }
   });
 
   this.eventManager.addEventListener(document.documentElement, 'mousedown', function(event) {
