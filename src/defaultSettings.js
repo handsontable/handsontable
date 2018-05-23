@@ -1628,7 +1628,7 @@ DefaultSettings.prototype = {
   numericFormat: void 0,
 
   /**
-   * Language for Handsontable translation. Possible language codes are: `en-US`, `pl-PL`.
+   * Language for Handsontable translation. Possible language codes are [listed here](https://docs.handsontable.com/tutorial-internationalization.html#available-languages).
    *
    * @type {String}
    * @default 'en-US'
