@@ -161,7 +161,7 @@ const arrayMapper = {
    * @param {Number} visualIndexTo Destination of move (start index).
    */
   moveItems(visualIndexFrom, visualIndexTo) {
-    const physicalMovedItems = visualIndexFrom.map((row) => this.getValueByIndex(row));
+    const physicalMovedItems = arrayMap(visualIndexFrom, (row) => this.getValueByIndex(row));
 
     // We remove moved elements from the array at start.
     let lastSplicedElementIndex;
