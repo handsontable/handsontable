@@ -1,6 +1,6 @@
 import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
-import {arrayEach} from './../../helpers/array';
+import {arrayEach, arrayReduce} from './../../helpers/array';
 import {addClass, removeClass, offset} from './../../helpers/dom/element';
 import {rangeEach} from './../../helpers/number';
 import EventManager from './../../eventManager';
@@ -56,7 +56,8 @@ class ManualRowMove extends BasePlugin {
         coords: void 0,
         TD: void 0,
         row: void 0
-      }
+      },
+      cachedDropIndex: void 0
     });
 
     /**
@@ -172,39 +173,76 @@ class ManualRowMove extends BasePlugin {
    * Move multiple rows.
    *
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} [destinationStart=0] Visual row index being a start index for the moved rows.
+   * @param {Number} [finalIndex=0] Visual row index being a start index for the moved rows.
    */
-  moveRows(movedRows, destinationStart = 0) {
+  moveRows(movedRows, finalIndex = 0) {
     const priv = privatePool.get(this);
-    const movePossible = this.isMovePossible(movedRows, destinationStart);
-    const beforeMoveHook = this.hot.runHooks('beforeRowMove', movedRows, destinationStart, movePossible);
+    const dropIndex = priv.cachedDropIndex;
+    const movePossible = this.isMovePossible(movedRows, finalIndex);
+    const beforeMoveHook = this.hot.runHooks('beforeRowMove', movedRows, finalIndex, dropIndex, movePossible);
 
+    priv.cachedDropIndex = void 0;
     priv.disallowMoving = beforeMoveHook === false;
 
     if (!priv.disallowMoving && movePossible) {
-      this.rowsMapper.moveItems(movedRows, destinationStart);
-    }
+      this.rowsMapper.moveItems(movedRows, finalIndex);
 
-    this.hot.runHooks('afterRowMove', movedRows, destinationStart, movePossible);
+      this.hot.runHooks('afterRowMove', movedRows, finalIndex, dropIndex);
+    }
+  }
+
+  /**
+   * Drag multiple rows to drop index position.
+   *
+   * @param {Array} movedRows Array of visual row indexes to be moved.
+   * @param {Number} [dropIndex=0] Visual row index being a drop index for the moved rows.
+   */
+  dragRows(movedRows, dropIndex = 0) {
+    const finalIndex = this.countFinalIndex(movedRows, dropIndex);
+    const priv = privatePool.get(this);
+
+    priv.cachedDropIndex = dropIndex;
+
+    this.moveRows(movedRows, finalIndex);
   }
 
   /**
    * Check if it's possible to move rows to destination position.
    *
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} destinationStart Visual row index being a start index for the moved rows.
+   * @param {Number} finalIndex Visual row index being a start index for the moved rows.
    *
    * @returns {Boolean}
    */
-  isMovePossible(movedRows, destinationStart) {
+  isMovePossible(movedRows, finalIndex) {
     // An attempt to transfer more rows to start destination than is possible (only when moving from the top to the bottom).
-    const tooHighDestinationIndex = movedRows.length + destinationStart > this.rowsMapper._arrayMap.length;
+    const tooHighDestinationIndex = movedRows.length + finalIndex > this.rowsMapper._arrayMap.length;
 
     if (tooHighDestinationIndex) {
       return false;
     }
 
     return true;
+  }
+
+  /**
+   * Count the final row index from the drop index.
+   *
+   * @private
+   * @param {Array} movedRows Array of visual row indexes to be moved.
+   * @param {Number} dropIndex Visual row index being a drop index for the moved rows.
+   * @returns {Number} Visual row index being a start index for the moved rows.
+   */
+  countFinalIndex(movedRows, dropIndex) {
+    const numberOfRowsLowerThanDropIndex = arrayReduce(movedRows, (numberOfRows, currentRowIndex) => {
+      if (currentRowIndex < dropIndex) {
+        numberOfRows += 1;
+      }
+
+      return numberOfRows;
+    }, 0);
+
+    return dropIndex - numberOfRowsLowerThanDropIndex;
   }
 
   /**
@@ -611,20 +649,14 @@ class ManualRowMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
-    if (rowsLen < 1 || target === void 0 || priv.rowsToMove.includes(target)) {
+    if (rowsLen < 1 || target === void 0) {
       return;
     }
 
     const firstMovedVisualRow = priv.rowsToMove[0];
     const firstMovedPhysicalRow = this.rowsMapper.getValueByIndex(firstMovedVisualRow);
-    const movingRowFromTopToBottom = firstMovedVisualRow < target;
 
-    if (movingRowFromTopToBottom) {
-      // Counting starting index of destination. It should be changed when moving from the top to the bottom.
-      target -= rowsLen;
-    }
-
-    this.moveRows(priv.rowsToMove, target);
+    this.dragRows(priv.rowsToMove, target);
 
     this.persistentStateSave();
     this.hot.render();
