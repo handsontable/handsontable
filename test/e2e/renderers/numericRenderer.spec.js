@@ -71,6 +71,25 @@ describe('NumericRenderer', () => {
     }, 100);
   });
 
+  it('should convert scientific notation to decimal form for numeric cells', (done) => {
+    handsontable({
+      cells() {
+        return {
+          type: 'numeric',
+          numericFormat: {pattern: '0,0.000000'}
+        };
+      },
+    });
+
+    setDataAtCell(2, 2, '4.7e-5');
+
+    setTimeout(() => {
+      expect(getCell(2, 2).innerHTML).toEqual('0.000047');
+      expect(getDataAtCell(2, 2)).toEqual(0.000047);
+      done();
+    }, 100);
+  });
+
   it('should add class names `htNumeric` and `htRight` to the cell if it renders a number', () => {
     var DIV = document.createElement('DIV');
     var instance = new Handsontable(DIV, {});

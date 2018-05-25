@@ -90,6 +90,27 @@ describe('numericValidator', () => {
     }, 100);
   });
 
+  it('should validate scientific notation', (done) => {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    setDataAtCell(2, 0, '4.7e-5');
+
+    setTimeout(() => {
+      expect(onAfterValidate).toHaveBeenCalledWith(true, 0.000047, 2, 'id', undefined, undefined);
+      done();
+    }, 100);
+  });
+
   it('should validate signed numeric string', (done) => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 

@@ -22,10 +22,15 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
     const cellCulture = numericFormat && numericFormat.culture;
     const cellFormatPattern = numericFormat && numericFormat.pattern;
     const className = cellProperties.className || '';
+    const scientificNotationRegex = /([+-]?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+-]?\d+))$/;
     let classArr = className.length ? className.split(' ') : [];
 
     if (typeof cellCulture !== 'undefined') {
       numbro.culture(cellCulture);
+    }
+
+    if (typeof value === 'string' && scientificNotationRegex.test(value)) {
+      value = parseFloat(value);
     }
 
     value = numbro(value).format(cellFormatPattern || '0');
