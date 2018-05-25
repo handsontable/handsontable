@@ -1,7 +1,6 @@
 import {arrayReduce, arrayMap, arrayMax, arrayEach} from './../helpers/array';
 import {defineGetter} from './../helpers/object';
 import {rangeEach} from './../helpers/number';
-import {isDefined} from './../helpers/mixed';
 
 const MIXIN_NAME = 'arrayMapper';
 
@@ -77,7 +76,7 @@ const arrayMapper = {
   /**
    * Remove items from index mapper.
    *
-   * @param {Number} visualIndex Visual index
+   * @param {Number|} visualIndexes Visual indexes
    * @param {Number} [amount=1] Defines how many items will be created to an array.
    * @returns {Array} Returns removed items.
    */
@@ -157,28 +156,21 @@ const arrayMapper = {
   /**
    * Move indexes in arrayMapper.
    *
-   * @param {Array} visualIndexFrom Indexes to move.
-   * @param {Number} visualIndexTo Destination of move (start index).
+   * @param {Array} movedIndexes Visual indexes to move.
+   * @param {Number} finalIndex Visual row index being a start index for the moved rows.
    */
-  moveItems(visualIndexFrom, visualIndexTo) {
-    const physicalMovedItems = arrayMap(visualIndexFrom, (row) => this.getValueByIndex(row));
+  moveItems(movedIndexes, finalIndex) {
+    if (typeof movedIndexes === 'number') {
+      movedIndexes = [movedIndexes];
+    }
+
+    const physicalMovedIndexes = arrayMap(movedIndexes, (row) => this.getValueByIndex(row));
 
     // We remove moved elements from the array at start.
-    let lastSplicedElementIndex;
-    let displacedElements = 0;
+    this.removeItems(movedIndexes);
 
-    arrayEach(visualIndexFrom, (splicedElementIndex) => {
-      if (isDefined(lastSplicedElementIndex) && splicedElementIndex > lastSplicedElementIndex) {
-        displacedElements += 1;
-      }
-
-      this._arrayMap.splice(splicedElementIndex - displacedElements, 1);
-
-      lastSplicedElementIndex = splicedElementIndex;
-    });
-
-    // We add moved elements at the new position.
-    this._arrayMap.splice(visualIndexTo, 0, ...physicalMovedItems);
+    // We add moved elements at the destination position.
+    this._arrayMap.splice(finalIndex, 0, ...physicalMovedIndexes);
   },
 
   /**
