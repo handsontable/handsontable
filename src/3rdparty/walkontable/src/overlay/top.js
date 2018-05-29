@@ -161,7 +161,7 @@ class TopOverlay extends Overlay {
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
     tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    overlayRootStyle.height = `${tableHeight === 0 ? tableHeight : tableHeight + 4}px`;
+    overlayRootStyle.height = `${tableHeight === 0 ? tableHeight : tableHeight - 1}px`;
   }
 
   /**

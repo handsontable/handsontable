@@ -242,7 +242,7 @@ class Highlight {
    * @param {Object} options
    */
   addCustomSelection(options) {
-    this.customSelections.push(createHighlight(CUSTOM_SELECTION, options));
+    this.customSelections.push(createHighlight(CUSTOM_SELECTION, {...options}));
   }
 
   /**

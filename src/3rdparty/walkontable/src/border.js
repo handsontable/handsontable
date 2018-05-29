@@ -1,4 +1,6 @@
 import {
+  addClass,
+  removeClass,
   getComputedStyle,
   getTrimmingContainer,
   innerWidth,
@@ -586,6 +588,41 @@ class Border {
     }
 
     return false;
+  }
+
+  /**
+   * Change border style to default.
+   *
+   * @private
+   * @param {HTMLElement} position
+   */
+  changeBorderToDefaultStyle(position) {
+    const defaultBorder = {
+      width: 1,
+      color: '#000',
+    };
+    let style = this[position].style;
+
+    style.backgroundColor = defaultBorder.color;
+    style.width = `${defaultBorder.width}px`;
+    style.height = `${defaultBorder.width}px`;
+  }
+
+  /**
+   * Toggle class 'hidden' to element.
+   *
+   * @private
+   * @param {HTMLElement} position
+   * @return {Boolean}
+   */
+  toggleHiddenClass(position, remove) {
+    this.changeBorderToDefaultStyle(position);
+
+    if (remove) {
+      addClass(this[position], 'hidden');
+    } else {
+      removeClass(this[position], 'hidden');
+    }
   }
 
   /**

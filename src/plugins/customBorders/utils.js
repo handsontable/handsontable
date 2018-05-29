@@ -8,7 +8,7 @@ import {arrayEach} from './../../helpers/array';
  * @param {Number} col Visual column index.
  * @returns {String}
  */
-export function createID(row, col) {
+export function createId(row, col) {
   return `border_row${row}col${col}`;
 }
 
@@ -55,8 +55,7 @@ export function createDefaultHtBorder() {
  */
 export function createEmptyBorders(row, col) {
   return {
-    className: createID(row, col),
-    id: createID(row, col),
+    id: createId(row, col),
     border: createDefaultHtBorder(),
     row,
     col,

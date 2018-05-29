@@ -23,7 +23,7 @@ describe('Core_reCreate', () => {
     destroy();
     handsontable(settings);
 
-    expect(getTopLeftClone().width()).toBe(54);
-    expect(getTopLeftClone().height()).toBe(51);
+    expect(getTopLeftClone().width()).toBe(49);
+    expect(getTopLeftClone().height()).toBe(46);
   });
 });
