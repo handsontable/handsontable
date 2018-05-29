@@ -17,7 +17,7 @@ const arrayMapper = {
    * 2nd can be mapped to 3rd, 3rd to 2nd, etc. (keep in mind that array is indexed from the zero).
    *
    * ¹ internally stored as array index; from 0 to n, where n is number of visible cells in the axis
-   * ² internally stored as array value, contains some indexes (just for not hidden / not trimmed cells) from data source
+   * ² internally stored as array value, contains some indexes (just for not trimmed cells) from data source
    *
    */
   _arrayMap: [],
@@ -58,7 +58,7 @@ const arrayMapper = {
   /**
    * Insert new items to index mapper starting at passed index. New entries will be a continuation of last value in the array.
    *
-   * @param {Number} visualIndex Visual index
+   * @param {Number} visualIndex Visual index.
    * @param {Number} [amount=1] Defines how many items will be added to index mapper.
    * @returns {Array} Returns added items.
    */
@@ -76,27 +76,27 @@ const arrayMapper = {
   /**
    * Remove items from index mapper.
    *
-   * @param {Number|} visualIndexes Visual indexes
+   * @param {Number|Array} visualIndexes Removed indexes.
    * @param {Number} [amount=1] Defines how many items will be created to an array.
    * @returns {Array} Returns removed items.
    */
-  removeItems(visualIndex, amount = 1) {
+  removeItems(visualIndexes, amount = 1) {
     let removedItems = [];
 
-    if (Array.isArray(visualIndex)) {
+    if (Array.isArray(visualIndexes)) {
       let mapCopy = [].concat(this._arrayMap);
 
       // Sort descending
-      visualIndex.sort((a, b) => b - a);
+      visualIndexes.sort((a, b) => b - a);
 
-      removedItems = arrayReduce(visualIndex, (acc, item) => {
+      removedItems = arrayReduce(visualIndexes, (acc, item) => {
         this._arrayMap.splice(item, 1);
 
         return acc.concat(mapCopy.slice(item, item + 1));
       }, []);
 
     } else {
-      removedItems = this._arrayMap.splice(visualIndex, amount);
+      removedItems = this._arrayMap.splice(visualIndexes, amount);
     }
 
     return removedItems;
@@ -156,7 +156,7 @@ const arrayMapper = {
   /**
    * Move indexes in arrayMapper.
    *
-   * @param {Array} movedIndexes Visual indexes to move.
+   * @param {Number|Array} movedIndexes Visual indexes to move.
    * @param {Number} finalIndex Visual row index being a start index for the moved rows.
    */
   moveItems(movedIndexes, finalIndex) {
