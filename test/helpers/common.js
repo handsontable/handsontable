@@ -71,7 +71,12 @@ export function isEditorVisible(editableElement) {
 
   const keyProxyHolder = (editableElement || keyProxy()).parent();
 
-  return keyProxyHolder.size() > 0 ? keyProxyHolder.css('z-index') !== '-1' : false;
+  if (keyProxyHolder.size() === 0) {
+    return false;
+  }
+  const css = (cssProp) => keyProxyHolder.css(cssProp);
+
+  return css('z-index') !== '-1' && css('top') !== '-9999px' && css('left') !== '-9999px';
 };
 
 export function isFillHandleVisible() {

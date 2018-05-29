@@ -253,7 +253,7 @@ function EditorManager(instance, priv, selection) {
 
     // Open editor when text composition is started (IME editor)
     eventManager.addEventListener(document.documentElement, 'compositionstart', (event) => {
-      if (!destroyed && activeEditor && !activeEditor.isOpened()) {
+      if (!destroyed && activeEditor && !activeEditor.isOpened() && instance.isListening()) {
         _this.openEditor('', event);
       }
     });

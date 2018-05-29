@@ -41,39 +41,39 @@ TextEditor.prototype.init = function() {
 };
 
 TextEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellProperties) {
+  const previousState = this.state;
+
   BaseEditor.prototype.prepare.apply(this, arguments);
 
   if (!cellProperties.readOnly) {
     this.refreshDimensions(true);
 
-    if (cellProperties.allowInvalid) {
+    const {
+      allowInvalid,
+      fragmentSelection,
+    } = cellProperties;
+
+    if (allowInvalid) {
       this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME)
     }
 
-    if (isMSBrowser()) {
-      // Move textarea element out off the viewport due to the cursor overlapping bug on IE.
+    if (previousState !== EditorState.FINISHED) {
       this.hideEditableElement();
     }
-    // @TODO: The fragmentSelection functionality is conflicted with IME. To make fragmentSelection working below is a condition which disables
-    // IME when fragmentSelection is enabled
-    if (!cellProperties.fragmentSelection) {
+
+    // @TODO: The fragmentSelection functionality is conflicted with IME. For this feature refocus has to
+    // be disabled (to make IME working).
+    const restoreFocus = !fragmentSelection;
+
+    if (restoreFocus) {
       this.instance._registerImmediate(() => this.focus());
     }
   }
 };
 
 TextEditor.prototype.hideEditableElement = function() {
-  // IE and Edge have the bug where the caret of the editable elements (eg. input, texarea) is always visible
-  // despite the element is overlapped by another element. To hide element we need to move element out of the viewport.
-  if (isMSBrowser()) {
-    this.textareaParentStyle.top = '-9999px';
-    this.textareaParentStyle.left = '-9999px';
-  } else {
-    // For other browsers hide element under Handsontable itself.
-    this.textareaParentStyle.top = '0px';
-    this.textareaParentStyle.left = '0px';
-  }
-
+  this.textareaParentStyle.top = '-9999px';
+  this.textareaParentStyle.left = '-9999px';
   this.textareaParentStyle.zIndex = '-1';
 };
 
@@ -90,6 +90,10 @@ TextEditor.prototype.setValue = function(newValue) {
 };
 
 TextEditor.prototype.beginEditing = function(newInitialValue, event) {
+  if (this.state !== EditorState.VIRGIN) {
+    return;
+  }
+
   this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME).
   BaseEditor.prototype.beginEditing.apply(this, arguments);
 };
@@ -215,6 +219,7 @@ TextEditor.prototype.focus = function() {
 
 TextEditor.prototype.createElements = function() {
   this.TEXTAREA = document.createElement('TEXTAREA');
+  this.TEXTAREA.tabIndex = -1;
 
   addClass(this.TEXTAREA, 'handsontableInput');
 

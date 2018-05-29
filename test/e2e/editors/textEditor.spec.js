@@ -63,6 +63,17 @@ describe('TextEditor', () => {
     expect(keyProxy().val()).toEqual('string');
   });
 
+  it('should render textarea editor with tabindex=-1 attribute', async () => {
+    const hot = handsontable();
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    await sleep(10);
+
+    expect(hot.getActiveEditor().TEXTAREA.getAttribute('tabindex')).toBe('-1');
+  });
+
   it('should render textarea editor in specified size at cell 0, 0 without headers', (done) => {
     var hot = handsontable();
 
@@ -564,7 +575,6 @@ describe('TextEditor', () => {
   });
 
   it('editor size should not exceed the viewport after text edit', function() {
-
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 5),
       width: 200,
@@ -585,7 +595,6 @@ describe('TextEditor', () => {
 
     expect($textarea.offset().left + $textarea.outerWidth()).not.toBeGreaterThan($wtHider.offset().left + this.$container.outerWidth());
     expect($textarea.offset().top + $textarea.outerHeight()).not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
-
   });
 
   it('should open editor after selecting cell in another table and hitting enter', function() {
@@ -1067,7 +1076,7 @@ describe('TextEditor', () => {
     }, 150);
   });
 
-  // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
+  // Input element can not lose the focus while entering new characters. It breaks IME editor functionality.
   it('should not lose the focus on input element while inserting new characters (#839)', async () => {
     let blured = false;
     const listener = () => {
@@ -1107,6 +1116,46 @@ describe('TextEditor', () => {
     done();
   });
 
+  it('should keep editor open, focusable and with untouched value when allowInvalid is set as false', async () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      allowInvalid: false,
+      validator(val, cb) {
+        cb(false);
+      },
+    });
+    selectCell(0, 0);
+
+    keyDown('enter');
+    destroyEditor();
+    document.activeElement.value = '999';
+
+    await sleep(10);
+
+    expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    expect(isEditorVisible()).toBe(true);
+    expect(getActiveEditor().TEXTAREA.value).toBe('999');
+
+    keyDown('enter');
+
+    expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    expect(isEditorVisible()).toBe(true);
+    expect(getActiveEditor().TEXTAREA.value).toBe('999');
+
+    const cell = $(getCell(1, 1));
+
+    mouseDown(cell);
+    mouseUp(cell);
+    mouseDown(cell);
+    mouseUp(cell);
+
+    await sleep(10);
+
+    expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    expect(isEditorVisible()).toBe(true);
+    expect(getActiveEditor().TEXTAREA.value).toBe('999');
+  });
+
   describe('IME support', () => {
     it('should focus editable element after selecting the cell', async () => {
       handsontable({
@@ -1117,6 +1166,29 @@ describe('TextEditor', () => {
       await sleep(10);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    });
+
+    it('editor size should change after composition started', async () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 5),
+        width: 400,
+        height: 400,
+      });
+
+      selectCell(2, 2);
+      keyDownUp('enter');
+
+      const textarea = getActiveEditor().TEXTAREA;
+
+      textarea.value = '测试， 测试， 测试， 测试， 测试';
+      textarea.dispatchEvent(new CompositionEvent('compositionstart')); // Trigger textarea resize
+      textarea.dispatchEvent(new CompositionEvent('compositionupdate')); // Trigger textarea resize
+      textarea.dispatchEvent(new CompositionEvent('compositionend')); // Trigger textarea resize
+
+      await sleep(100);
+
+      expect($(textarea).width()).toBe(244);
+      expect($(textarea).height()).toBe(23);
     });
   });
 });

@@ -1220,10 +1220,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function destroyEditor
-   * @param {Boolean} [revertOriginal] If != `true`, edited data is saved. Otherwise the previous value is restored.
+   * @param {Boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
+   * @param {Boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
    */
-  this.destroyEditor = function(revertOriginal) {
-    instance._refreshBorders(revertOriginal);
+  this.destroyEditor = function(revertOriginal = false, prepareEditorIfNeeded = true) {
+    instance._refreshBorders(revertOriginal, prepareEditorIfNeeded);
   };
 
   /**
@@ -3544,13 +3545,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Refresh selection borders. This is temporary method relic after selection rewrite.
    *
    * @private
-   * @param {Boolean} revertOriginal
+   * @param {Boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
+   * @param {Boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
    */
-  this._refreshBorders = function(revertOriginal) {
+  this._refreshBorders = function(revertOriginal = false, prepareEditorIfNeeded = true) {
     editorManager.destroyEditor(revertOriginal);
     instance.view.render();
 
-    if (selection.isSelected()) {
+    if (prepareEditorIfNeeded && selection.isSelected()) {
       editorManager.prepareEditor();
     }
   };

@@ -140,7 +140,7 @@ function TableView(instance) {
     if (outsideClickDeselects) {
       instance.deselectCell();
     } else {
-      instance.destroyEditor();
+      instance.destroyEditor(false, false);
     }
   });
 
