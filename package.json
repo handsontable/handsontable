@@ -60,7 +60,7 @@
   ],
   "dependencies": {
     "moment": "2.20.1",
-    "numbro": "1.11.0",
+    "numbro": "^2.0.6",
     "pikaday": "1.5.1"
   },
   "devDependencies": {
