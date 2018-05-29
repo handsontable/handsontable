@@ -59,6 +59,36 @@ describe('HandsontableEditor', () => {
     expect(this.$container.find('.handsontableEditor')[0].offsetTop).toEqual(this.$container.find('.handsontableInput')[0].offsetHeight);
   });
 
+  it('should prepare the editor only once per instance', function() {
+    handsontable({
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    expect(this.$container.find('.handsontableEditor').length).toEqual(1);
+  });
+
   it('should destroy the editor when Esc is pressed', function() {
     handsontable({
       columns: [

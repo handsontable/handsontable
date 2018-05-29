@@ -52,8 +52,8 @@ export function RegisteredEditor(editorClass) {
     return instances[hotInstance.guid];
   };
 
-  Hooks.getSingleton().add('afterDestroy', function() {
-    instances = {};
+  Hooks.getSingleton().add('afterDestroy', () => {
+    instances[this.guid] = null;
   });
 }
 
