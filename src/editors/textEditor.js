@@ -205,8 +205,6 @@ TextEditor.prototype.close = function(tdOutside) {
   }
 
   this.hideEditableElement();
-  this.setValue('');
-
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
 };
 
@@ -374,6 +372,7 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
 
   this.textareaParentStyle.top = `${editTop}px`;
   this.textareaParentStyle.left = `${editLeft}px`;
+  this.showEditableElement();
 
   let firstRowOffset = this.instance.view.wt.wtViewport.rowsRenderCalculator.startPosition;
   let firstColumnOffset = this.instance.view.wt.wtViewport.columnsRenderCalculator.startPosition;
