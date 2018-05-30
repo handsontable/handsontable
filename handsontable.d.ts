@@ -1557,7 +1557,7 @@ declare namespace Handsontable {
     afterAddChild?: (parent: object, element: object | void, index: number | void) => void;
     afterBeginEdting?: (row: number, column: number) => void;
     afterCellMetaReset?: () => void;
-    afterChange?: (changes: any[], source: string) => void;
+    afterChange?: (changes: [number, number, string, number | string][], source: string) => void;
     afterChangesObserved?: () => void;
     afterColumnMove?: (startColumn: number, endColumn: number) => void;
     afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
