@@ -20,7 +20,7 @@ declare namespace _Handsontable {
     countVisibleRows(): number;
     deselectCell(): void;
     destroy(): void;
-    destroyEditor(revertOriginal?: boolean): void;
+    destroyEditor(revertOriginal?: boolean, prepareEditorIfNeeded?: boolean): void;
     emptySelectedCells(): void;
     getActiveEditor(): object;
     getCell(row: number, col: number, topmost?: boolean): Element;
@@ -94,6 +94,7 @@ declare namespace _Handsontable {
     unlisten(): void;
     updateSettings(settings: Handsontable.DefaultSettings, init: boolean): void;
     validateCells(callback: (valid: boolean) => void): void;
+    isDestroyed: boolean;
   }
 }
 
@@ -221,8 +222,10 @@ declare namespace Handsontable {
       createElements(): void;
       destroy(): void;
       focus(): void;
+      hideEditableElement(): void;
+      showEditableElement(): void;
       getEditedCell(): Element | undefined;
-      refreshDimensions(): void;
+      refreshDimensions(force?: boolean): void;
       refreshValue(): void;
       TEXTAREA: HTMLInputElement;
       TEXTAREA_PARENT: HTMLElement;
@@ -775,20 +778,15 @@ declare namespace Handsontable {
       open(event: Event): void;
     }
 
-    interface Textarea {
-      element: HTMLElement;
-      isAppended: boolean;
-      refCounter: number;
+    interface FocusableWrapper {
+      mainElement: HTMLElement;
+      eventManager: EventManager;
+      listenersCount: WeakSet<HTMLElement>;
 
-      append(): void;
-      create(): void;
-      deselect(): void;
-      destroy(): void;
-      getValue(): string;
-      hasBeenDestroyed(): boolean;
-      isActive(): boolean;
-      select(): void;
-      setValue(data: string): void;
+      useSecondaryElement(): void;
+      setFocusableElement(element: HTMLElement): void;
+      getFocusableElement(): HTMLElement;
+      focus(): void;
     }
 
     type PasteModeType = 'overwrite' | 'shift_down' | 'shift_right';
@@ -799,7 +797,7 @@ declare namespace Handsontable {
       copyableRanges: any[];
       pasteMode: PasteModeType;
       rowsLimit: number;
-      textarea: Textarea;
+      focusableElement: FocusableWrapper;
 
       setCopyableText(): void;
       getRangedCopyableData(ranges: RangeType[]): string;
@@ -1823,13 +1821,16 @@ declare namespace Handsontable {
     isChrome(): boolean,
     isCtrlKey(keyCode: number): boolean,
     isDefined(variable: any): boolean,
+    isEdge(): boolean,
     isEmpty(variable: any): boolean,
     isFunction(func: any): boolean,
+    isIE(): boolean,
     isIE8(): boolean,
     isIE9(): boolean,
     isKey(keyCode: number, baseCode: string): boolean
     isMetaKey(keyCode: number): boolean,
-    isMobileBrowser(userAgent?: string): boolean,
+    isMobileBrowser(): boolean,
+    isMSBrowser(): boolean,
     isNumeric(n: any): boolean,
     isObject(obj: any): boolean,
     isObjectEqual(object1: object | any[], object2: object | any[]): boolean,
