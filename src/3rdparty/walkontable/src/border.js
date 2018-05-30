@@ -141,16 +141,6 @@ class Border {
   createBorders(settings) {
     this.main = document.createElement('div');
 
-    if (settings.id) {
-      this.main.id = settings.id;
-    }
-
-    if (this.main.id && document.querySelectorAll(`.ht_master #${this.main.id}`).length > 0) {
-      let first = document.querySelectorAll(`.ht_master #${this.main.id}`)[0];
-
-      first.style.display = 'none';
-    }
-
     let borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
     let style = this.main.style;
     style.position = 'absolute';
