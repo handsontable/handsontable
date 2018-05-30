@@ -1180,14 +1180,14 @@ describe('TextEditor', () => {
 
       const textarea = getActiveEditor().TEXTAREA;
 
-      textarea.value = '测试， 测试， 测试， 测试， 测试';
+      textarea.value = 'test, test, test, test, test, test';
       textarea.dispatchEvent(new CompositionEvent('compositionstart')); // Trigger textarea resize
       textarea.dispatchEvent(new CompositionEvent('compositionupdate')); // Trigger textarea resize
       textarea.dispatchEvent(new CompositionEvent('compositionend')); // Trigger textarea resize
 
       await sleep(100);
 
-      expect($(textarea).width()).toBe(244);
+      expect($(textarea).width()).toBe(201);
       expect($(textarea).height()).toBe(23);
     });
   });
