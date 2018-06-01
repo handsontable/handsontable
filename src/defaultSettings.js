@@ -1250,8 +1250,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual column move](http://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial
-   * column order, if set to an array of column indexes.
+   * Turns on [Manual column move](http://docs.handsontable.com/demo-moving.html), if set to a boolean or define initial column order, if set to an array of column indexes.
    *
    * @example
    * ```js
@@ -1271,8 +1270,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual column resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
-   * column resized widths, if set to an array of numbers.
+   * Turns on [Manual column resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial column resized widths, if set to an array of numbers.
    *
    * @example
    * ```js
@@ -1292,8 +1290,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual row move](http://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial
-   * row order, if set to an array of row indexes.
+   * Turns on [Manual row move](http://docs.handsontable.com/demo-moving.html), if set to a boolean or define initial row order if set to an array of row indexes.
    *
    * @example
    * ```js
@@ -1301,7 +1298,7 @@ DefaultSettings.prototype = {
    * // as boolean
    * manualRowMove: true
    * ...
-   * // as a array with initial order (move row index at 0 to 1 and move row index at 1 to 4)
+   * // as a array with initial order (move row index at 1 to 0 and move row index at 4 to 1)
    * manualRowMove: [1, 4]
    * ...
    * ```
@@ -1314,8 +1311,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual row resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
-   * row resized heights, if set to an array of numbers.
+   * Turns on [Manual row resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial row resized heights, if set to an array of numbers.
    *
    * @example
    * ```js

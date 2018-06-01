@@ -16,7 +16,7 @@ const arrayMapper = {
    * It maps from visible row / column to its representation in the data source. For example, when we sorted data, our 1st visible row can represent 4th row from the original data,
    * 2nd can be mapped to 3rd, 3rd to 2nd, etc. (keep in mind that array is indexed from the zero).
    *
-   * ¹ internally stored as array index; from 0 to n, where n is number of visible cells in the axis
+   * ¹ internally stored as array index; from 0 to n, where n is number of visible cells on the axis
    * ² internally stored as array value, contains some indexes (just for not trimmed cells) from data source
    *
    */
@@ -84,12 +84,13 @@ const arrayMapper = {
     let removedItems = [];
 
     if (Array.isArray(visualIndexes)) {
-      let mapCopy = [].concat(this._arrayMap);
+      const mapCopy = [].concat(this._arrayMap);
+      const indexesCopy = [].concat(visualIndexes);
 
       // Sort descending
-      visualIndexes.sort((a, b) => b - a);
+      indexesCopy.sort((a, b) => b - a);
 
-      removedItems = arrayReduce(visualIndexes, (acc, item) => {
+      removedItems = arrayReduce(indexesCopy, (acc, item) => {
         this._arrayMap.splice(item, 1);
 
         return acc.concat(mapCopy.slice(item, item + 1));

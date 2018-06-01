@@ -1002,22 +1002,21 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeColumnSort
    * @param {Number} column Sorted visual column index.
-   * @param {Boolean} order Soring order where:
-   *  * `true` means ascending order,
-   *  * `false` means descending order,
-   *  * `undefined` means original order.
+   * @param {String} order Soring order where:
+   *  * `asc` means ascending order,
+   *  * `desc` means descending order,
+   *  * `none` means original order.
    */
   'beforeColumnSort',
-
   /**
    * Fired after sorting the column.
    *
    * @event Hooks#afterColumnSort
    * @param {Number} column Sorted visual column index.
-   * @param {Boolean} order Soring order where:
-   *  * `true` means ascending order
-   *  * `false` means descending order
-   *  * `undefined` means original order
+   * @param {String} order Soring order where:
+   *  * `asc` means ascending order
+   *  * `desc` means descending order
+   *  * `none` means original order
    */
   'afterColumnSort',
 
@@ -1207,8 +1206,10 @@ const REGISTERED_HOOKS = [
    * Fired before change order of the visual indexes.
    *
    * @event Hooks#beforeRowMove
-   * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {Number} target Visual row index being a target for moved rows.
+   * @param {Array} movedRows Array of visual row indexes to be moved.
+   * @param {Number} finalIndex Visual row index being a start index for the moved rows. The argument says where finally go first from moved elements, the next ones are displaced on the following positions. To check visualization of final index please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Number|undefined} dropIndex It's `undefined` when `dragRows` function wasn't called. The argument says where we are going to slip moved elements. To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Boolean} movePossible Indicates if it will be possible to move rows to destination position.
    */
   'beforeRowMove',
 
@@ -1216,8 +1217,11 @@ const REGISTERED_HOOKS = [
    * Fired after change order of the visual indexes.
    *
    * @event Hooks#afterRowMove
-   * @param {Array} rows Array of visual row indexes that were moved.
-   * @param {Number} target Visual row index being a target for moved rows.
+   * @param {Array} movedRows Array of visual row indexes to be moved.
+   * @param {Number} finalIndex Visual row index being a start index for the moved rows. The argument says where finally go first from moved elements, the next ones are displaced on the following positions. To check visualization of final index please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Number|undefined} dropIndex It's `undefined` when `dragRows` function wasn't called. The argument says where we are going to slip moved elements. To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Boolean} movePossible Indicates if it was possible to move rows to destination position.
+   * @param {Boolean} orderChanged Indicates if order of rows was changed.
    */
   'afterRowMove',
 
