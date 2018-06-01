@@ -42,7 +42,7 @@ const arrayMapper = {
   /**
    * Get visual index by its physical index.
    *
-   * @param {*} physicalIndex Physical index to search.
+   * @param {Number} physicalIndex Physical index to search.
    * @returns {Number|null} Returns a visual index of the index mapper.
    */
   getIndexByValue(physicalIndex) {
@@ -56,10 +56,10 @@ const arrayMapper = {
   },
 
   /**
-   * Insert new items to index mapper starting at passed index. New entries will be a continuation of last value in the array.
+   * Insert new items to the index mapper starting at passed index. New entries will be a continuation of last value in the array.
    *
    * @param {Number} visualIndex Visual index.
-   * @param {Number} [amount=1] Defines how many items will be added to index mapper.
+   * @param {Number} [amount=1] Defines how many items will be added to the index mapper.
    * @returns {Array} Returns added items.
    */
   insertItems(visualIndex, amount = 1) {
@@ -74,9 +74,9 @@ const arrayMapper = {
   },
 
   /**
-   * Remove items from index mapper.
+   * Remove items from the index mapper.
    *
-   * @param {Number|Array} visualIndexes Removed indexes.
+   * @param {Number|Array} visualIndexes Removed index(es).
    * @param {Number} [amount=1] Defines how many items will be created to an array.
    * @returns {Array} Returns removed items.
    */
@@ -106,8 +106,8 @@ const arrayMapper = {
   /**
    * Unshift items (remove and shift chunk of array to the left).
    *
-   * @param {Number|Array} itemIndex Visual index or Array of visual indexes to unshift.
-   * @param {Number} [amount=1] Defines how many items will be removed from an array (when index is passed as number).
+   * @param {Number|Array} itemIndex Visual index(es) to unshift.
+   * @param {Number} [amount=1] Defines how many items will be removed from the index mapper (when index is passed as number).
    */
   unshiftItems(itemIndex, amount = 1) {
     let removedItems = this.removeItems(itemIndex, amount);
@@ -155,9 +155,9 @@ const arrayMapper = {
   },
 
   /**
-   * Move indexes in arrayMapper.
+   * Move indexes in the index mapper.
    *
-   * @param {Number|Array} movedIndexes Visual indexes to move.
+   * @param {Number|Array} movedIndexes Visual index(es) to move.
    * @param {Number} finalIndex Visual row index being a start index for the moved rows.
    */
   moveItems(movedIndexes, finalIndex) {
