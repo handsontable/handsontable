@@ -203,7 +203,7 @@ class Search extends BasePlugin {
   /**
    * Get search result cells class.
    *
-   * @returns {Function} Return the cell class.
+   * @returns {String} Return the cell class.
    */
   getSearchResultClass() {
     return this.searchResultClass;

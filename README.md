@@ -17,7 +17,7 @@ If you are looking for an extended version, try out [Handsontable Pro](//github.
 
 **We are looking for Contributors who would like to help us with translations. [Learn more](https://github.com/handsontable/handsontable/issues/4696)**
 <br/>
-Most wanted languages: Chinese, Italian, Spanish and Swedish.
+Most wanted languages: Danish, Italian, Korean, Portuguese, Spanish and Swedish.
 
 ---
 
