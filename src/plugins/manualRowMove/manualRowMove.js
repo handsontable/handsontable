@@ -65,6 +65,7 @@ class ManualRowMove extends BasePlugin {
     /**
      * List of last removed row indexes.
      *
+     * @private
      * @type {Array}
      */
     this.removedRows = [];
@@ -218,7 +219,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Indicates if it's possible to move rows to destination position. Some of actions aren't possible, i.e. we can't move more than one elements to the last position.
+   * Indicates if it's possible to move rows to destination position. Some of actions aren't possible, i.e. we can't move more than one element to the last position.
    *
    * @param {Array} movedRows Array of visual row indexes to be moved.
    * @param {Number} finalIndex Visual row index being a start index for the moved rows. The argument says where finally go first from moved elements, the next ones are displaced on the following positions. To check visualization of final index please take a look at [documentation](/demo-moving.html#manualRowMove).

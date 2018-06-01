@@ -336,7 +336,7 @@ describe('manualRowMove', () => {
       hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
       hot.render();
 
-      expect(beforeMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
+      expect(beforeMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, void 0, void 0);
     });
 
     it('should trigger the `afterRowMove` hook after row move with visual indexes as parameters', () => {
@@ -355,7 +355,7 @@ describe('manualRowMove', () => {
       hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
       hot.render();
 
-      expect(afterMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
+      expect(afterMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, true, void 0);
     });
 
     it('should run `beforeRowMove` with proper `target` parameter (moving row above first header)', () => {
@@ -412,15 +412,15 @@ describe('manualRowMove', () => {
       expect(targetParameterInsideCallback).toEqual(0);
     });
 
-    it('should run `beforeRowMove` with proper `target` parameter (moving row to the middle of the table)', () => {
-      let targetParameterInsideCallback;
+    it('should run `beforeRowMove` with proper `dropIndex` parameter (moving row to the middle of the table)', () => {
+      let dropIndexParameterInsideCallback;
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         rowHeaders: true,
         manualRowMove: true,
-        beforeRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
+        beforeRowMove: (rows, finalIndex, dropIndex) => {
+          dropIndexParameterInsideCallback = dropIndex;
         }
       });
 
@@ -432,18 +432,18 @@ describe('manualRowMove', () => {
       spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousemove');
       spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
 
-      expect(targetParameterInsideCallback).toEqual(2);
+      expect(dropIndexParameterInsideCallback).toEqual(2);
     });
 
-    it('should run `beforeRowMove` with proper `target` parameter (moving row to the top of last header)', () => {
-      let targetParameterInsideCallback;
+    it('should run `beforeRowMove` with proper `dropIndex` parameter (moving row to the top of last header)', () => {
+      let dropIndexParameterInsideCallback;
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         rowHeaders: true,
         manualRowMove: true,
-        beforeRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
+        beforeRowMove: (rows, finalIndex, dropIndex) => {
+          dropIndexParameterInsideCallback = dropIndex;
         }
       });
 
@@ -455,18 +455,18 @@ describe('manualRowMove', () => {
       spec().$container.find('tbody tr:eq(29) th:eq(0)').simulate('mousemove');
       spec().$container.find('tbody tr:eq(29) th:eq(0)').simulate('mouseup');
 
-      expect(targetParameterInsideCallback).toEqual(29);
+      expect(dropIndexParameterInsideCallback).toEqual(29);
     });
 
-    it('should run `beforeRowMove` with proper `target` parameter (moving row to the bottom of last header)', () => {
-      let targetParameterInsideCallback;
+    it('should run `beforeRowMove` with proper `dropIndex` parameter (moving row to the bottom of last header)', () => {
+      let dropIndexParameterInsideCallback;
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         rowHeaders: true,
         manualRowMove: true,
-        beforeRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
+        beforeRowMove: (rows, finalIndex, dropIndex) => {
+          dropIndexParameterInsideCallback = dropIndex;
         }
       });
       const $lastHeader = spec().$container.find('tbody tr:eq(29) th:eq(0)');
@@ -481,18 +481,18 @@ describe('manualRowMove', () => {
       });
       $lastHeader.simulate('mouseup');
 
-      expect(targetParameterInsideCallback).toEqual(30);
+      expect(dropIndexParameterInsideCallback).toEqual(30);
     });
 
-    it('should run `beforeRowMove` with proper `target` parameter (moving row below last header)', () => {
-      let targetParameterInsideCallback;
+    it('should run `beforeRowMove` with proper `dropIndex` parameter (moving row below last header)', () => {
+      let dropIndexParameterInsideCallback;
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         rowHeaders: true,
         manualRowMove: true,
-        beforeRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
+        beforeRowMove: (rows, finalIndex, dropIndex) => {
+          dropIndexParameterInsideCallback = dropIndex;
         }
       });
       const $lastHeader = spec().$container.find('tbody tr:eq(29) th:eq(0)');
@@ -507,18 +507,18 @@ describe('manualRowMove', () => {
       });
       $lastHeader.simulate('mouseup');
 
-      expect(targetParameterInsideCallback).toEqual(30);
+      expect(dropIndexParameterInsideCallback).toEqual(30);
     });
 
     it('should run `beforeRowMove` with proper visual `target` parameter', () => {
-      let targetParameterInsideCallback;
+      let dropIndexParameterInsideCallback;
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         rowHeaders: true,
         manualRowMove: [1, 2, 0],
-        beforeRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
+        beforeRowMove: (rows, finalIndex, dropIndex) => {
+          dropIndexParameterInsideCallback = dropIndex;
         }
       });
 
@@ -530,18 +530,18 @@ describe('manualRowMove', () => {
       spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousemove');
       spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
 
-      expect(targetParameterInsideCallback).toEqual(2);
+      expect(dropIndexParameterInsideCallback).toEqual(2);
     });
 
     it('should run `afterRowMove` with proper visual `target` parameter', () => {
-      let targetParameterInsideCallback;
+      let dropIndexParameterInsideCallback;
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         rowHeaders: true,
         manualRowMove: [1, 2, 0],
-        afterRowMove: (rows, target) => {
-          targetParameterInsideCallback = target;
+        afterRowMove: (rows, finalIndex, dropIndex) => {
+          dropIndexParameterInsideCallback = dropIndex;
         }
       });
 
@@ -553,7 +553,7 @@ describe('manualRowMove', () => {
       spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousemove');
       spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
 
-      expect(targetParameterInsideCallback).toEqual(2);
+      expect(dropIndexParameterInsideCallback).toEqual(2);
     });
 
     it('should move the second row to the first row', () => {
@@ -645,15 +645,16 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('tbody tr:eq(9) td:eq(0)').text()).toEqual('9');
     });
 
-    it('should not move row if it\'s not needed', () => {
-      let cache = [];
+    it('should trigger `afterRowMove` hook with `orderChanged` parameter set to `false` ' +
+      'when not changed order by move', () => {
+      let orderChangedParameter;
 
       handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true,
-        afterRowMove(rows) {
-          cache.push(rows);
+        afterRowMove(rows, finalIndex, dropIndex, movePossible, orderChanged) {
+          orderChangedParameter = orderChanged;
         }
       });
 
@@ -662,9 +663,9 @@ describe('manualRowMove', () => {
       $rowsHeaders.eq(1).simulate('mousedown');
       $rowsHeaders.eq(1).simulate('mouseup');
       $rowsHeaders.eq(1).simulate('mousedown');
-      $rowsHeaders.eq(3).simulate('mouseup');
+      $rowsHeaders.eq(2).simulate('mouseup');
 
-      expect(cache.length).toEqual(0);
+      expect(orderChangedParameter).toBeFalsy();
     });
 
     it('should properly scrolling viewport if mouse is over part-visible cell', (done) => {
@@ -743,19 +744,19 @@ describe('manualRowMove', () => {
   });
 
   describe('callbacks', () => {
-    it('should run `beforeRowMove` and `afterRowMove` with proper visual `target` parameter', () => {
-      let targetParameterInsideBeforeRowMoveCallback;
-      let targetParameterInsideAfterRowMoveCallback;
+    it('should run `beforeRowMove` and `afterRowMove` with proper visual `dropIndex` parameter', () => {
+      let dropIndexParameterInsideBeforeRowMoveCallback;
+      let dropIndexParameterInsideAfterRowMoveCallback;
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 3),
         rowHeaders: true,
         manualRowMove: true,
-        beforeRowMove: (rows, target) => {
-          targetParameterInsideBeforeRowMoveCallback = target;
+        beforeRowMove: (rows, finalIndex, dropIndex) => {
+          dropIndexParameterInsideBeforeRowMoveCallback = dropIndex;
         },
-        afterRowMove: (rows, target) => {
-          targetParameterInsideAfterRowMoveCallback = target;
+        afterRowMove: (rows, finalIndex, dropIndex) => {
+          dropIndexParameterInsideAfterRowMoveCallback = dropIndex;
         }
       });
 
@@ -767,8 +768,8 @@ describe('manualRowMove', () => {
       spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousemove');
       spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
 
-      expect(targetParameterInsideBeforeRowMoveCallback).toEqual(2);
-      expect(targetParameterInsideAfterRowMoveCallback).toEqual(2);
+      expect(dropIndexParameterInsideBeforeRowMoveCallback).toEqual(2);
+      expect(dropIndexParameterInsideAfterRowMoveCallback).toEqual(2);
     });
 
     it('should run `beforeRowMove` and `afterRowMove` with proper visual `rows` parameter', () => {
@@ -779,10 +780,10 @@ describe('manualRowMove', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         rowHeaders: true,
         manualRowMove: true,
-        beforeRowMove: (rows, target) => {
+        beforeRowMove: (rows) => {
           rowsParameterInsideBeforeRowMoveCallback = rows;
         },
-        afterRowMove: (rows, target) => {
+        afterRowMove: (rows) => {
           rowsParameterInsideAfterRowMoveCallback = rows;
         }
       });
@@ -811,7 +812,7 @@ describe('manualRowMove', () => {
       hot.getPlugin('manualRowMove').moveRow(1, 4);
       hot.render();
 
-      expect(hot.getDataAtCell(3, 0)).toBe('A2');
+      expect(hot.getDataAtCell(4, 0)).toBe('A2');
 
       hot.undo();
 
@@ -827,7 +828,7 @@ describe('manualRowMove', () => {
       hot.getPlugin('manualRowMove').moveRow(1, 4);
       hot.render();
 
-      expect(hot.getDataAtCell(3, 0)).toBe('A2');
+      expect(hot.getDataAtCell(4, 0)).toBe('A2');
 
       hot.undo();
 
@@ -835,7 +836,7 @@ describe('manualRowMove', () => {
 
       hot.redo();
 
-      expect(hot.getDataAtCell(3, 0)).toBe('A2');
+      expect(hot.getDataAtCell(4, 0)).toBe('A2');
     });
   });
 });
