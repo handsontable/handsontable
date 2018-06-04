@@ -69,7 +69,7 @@ describe('CopyPaste', () => {
     expect($('#HandsontableCopyPaste').length).toBe(0);
   });
 
-  it('should create focusable element when cell editor doesn\'t exist', async () => {
+  it('should create focusable element when cell editor doesn\'t exist', () => {
     handsontable({
       editor: false,
     });
