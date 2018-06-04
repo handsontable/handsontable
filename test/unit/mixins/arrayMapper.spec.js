@@ -74,27 +74,13 @@ describe('arrayMapper mixin', () => {
   });
 
   describe('Move indexes', () => {
-    it('should move given index', () => {
+    it('should move single, given index', () => {
       arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
       arrayMapper.moveItems(8, 0); // [8, 0, 1, 2, 3, 4, 5, 6, 7, 9]
       arrayMapper.moveItems(3, 1); // [8, 2, 0, 1, 3, 4, 5, 6, 7, 9]
       arrayMapper.moveItems(5, 2);
       expect(arrayMapper._arrayMap).toEqual([8, 2, 4, 0, 1, 3, 5, 6, 7, 9]);
-    });
-
-    it('should move given indexes #1', () => {
-      arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-      arrayMapper.moveItems([3, 2, 1, 0], 5);
-      expect(arrayMapper._arrayMap).toEqual([4, 5, 6, 7, 8, 3, 2, 1, 0, 9]);
-    });
-
-    it('should move given indexes #2', () => {
-      arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-      arrayMapper.moveItems([0, 1, 2, 3], 5);
-      expect(arrayMapper._arrayMap).toEqual([4, 5, 6, 7, 8, 0, 1, 2, 3, 9]);
     });
 
     it('should return to their index', () => {
@@ -112,6 +98,112 @@ describe('arrayMapper mixin', () => {
       arrayMapper.moveItems(0, 5);
 
       expect(arrayMapper._arrayMap).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    });
+
+    it('should not change order of indexes after specific move', () => {
+      arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+      arrayMapper.moveItems([0], 0);
+      expect(arrayMapper._arrayMap).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      arrayMapper.moveItems([9], 9);
+
+      expect(arrayMapper._arrayMap).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      arrayMapper.moveItems([0, 1, 2], 0);
+
+      expect(arrayMapper._arrayMap).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      // move full array
+      arrayMapper.moveItems([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 0);
+
+      expect(arrayMapper._arrayMap).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      // too height index
+      arrayMapper.moveItems([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 100);
+
+      expect(arrayMapper._arrayMap).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      // too low index
+      arrayMapper.moveItems([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], -1);
+
+      expect(arrayMapper._arrayMap).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    });
+
+    it('should change order of indexes in place', () => {
+      arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+      arrayMapper.moveItems([9, 8, 7, 6, 5, 4, 3, 0, 1, 2], 0);
+      expect(arrayMapper._arrayMap).toEqual([9, 8, 7, 6, 5, 4, 3, 0, 1, 2]);
+    });
+
+    describe('should move given indexes properly from the top to the bottom', () => {
+      it('ascending order of moved indexes', () => {
+        arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        arrayMapper.moveItems([0, 1, 2, 3], 5);
+        expect(arrayMapper._arrayMap).toEqual([4, 5, 6, 7, 8, 0, 1, 2, 3, 9]);
+      });
+
+      it('descending order of moved indexes', () => {
+        arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        arrayMapper.moveItems([3, 2, 1, 0], 5);
+        expect(arrayMapper._arrayMap).toEqual([4, 5, 6, 7, 8, 3, 2, 1, 0, 9]);
+      });
+
+      it('mixed order of moved indexes', () => {
+        arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        arrayMapper.moveItems([1, 3, 2, 0], 5);
+        expect(arrayMapper._arrayMap).toEqual([4, 5, 6, 7, 8, 1, 3, 2, 0, 9]);
+      });
+    });
+
+    describe('should move given indexes properly from the bottom to the top', () => {
+      it('ascending order of moved indexes', () => {
+        arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        arrayMapper.moveItems([4, 5, 6, 7], 2);
+        expect(arrayMapper._arrayMap).toEqual([0, 1, 4, 5, 6, 7, 2, 3, 8, 9]);
+      });
+
+      it('descending order of moved indexes', () => {
+        arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        arrayMapper.moveItems([7, 6, 5, 4], 2);
+        expect(arrayMapper._arrayMap).toEqual([0, 1, 7, 6, 5, 4, 2, 3, 8, 9]);
+      });
+
+      it('mixed order of moved indexes', () => {
+        arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        arrayMapper.moveItems([7, 5, 4, 6], 2);
+        expect(arrayMapper._arrayMap).toEqual([0, 1, 7, 5, 4, 6, 2, 3, 8, 9]);
+      });
+    });
+
+    describe('should move given indexes properly when sequence of moves is mixed', () => {
+      it('ascending order of moved indexes', () => {
+        arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        arrayMapper.moveItems([1, 2, 6, 7], 4);
+        expect(arrayMapper._arrayMap).toEqual([0, 3, 4, 5, 1, 2, 6, 7, 8, 9]);
+      });
+
+      it('descending order of moved indexes', () => {
+        arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        arrayMapper.moveItems([7, 6, 2, 1], 4);
+        expect(arrayMapper._arrayMap).toEqual([0, 3, 4, 5, 7, 6, 2, 1, 8, 9]);
+      });
+
+      it('mixed order of moved indexes', () => {
+        arrayMapper._arrayMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        arrayMapper.moveItems([7, 2, 1, 6], 4);
+        expect(arrayMapper._arrayMap).toEqual([0, 3, 4, 5, 7, 2, 1, 6, 8, 9]);
+      });
     });
   });
 
