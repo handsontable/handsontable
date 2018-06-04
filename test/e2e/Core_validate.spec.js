@@ -1381,8 +1381,7 @@ describe('Core_validate', () => {
   });
 
   it('should close the editor and save the new value after double clicking on a cell, if the previously edited cell validated correctly', async () => {
-    var validated = false;
-    var validationResult;
+    let validationResult;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
@@ -1390,7 +1389,6 @@ describe('Core_validate', () => {
       validator(value, callback) {
         setTimeout(() => {
 
-          validated = true;
           validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
@@ -1406,20 +1404,17 @@ describe('Core_validate', () => {
 
     expect(document.activeElement.value).toEqual('AA');
 
-    var cell = $(getCell(1, 0));
-    var clicks = 0;
+    const cell = $(getCell(1, 0));
 
     await sleep();
 
     mouseDown(cell);
     mouseUp(cell);
-    clicks++;
 
     await sleep(100);
 
     mouseDown(cell);
     mouseUp(cell);
-    clicks++;
 
     await sleep(200);
 
@@ -1429,7 +1424,6 @@ describe('Core_validate', () => {
   });
 
   it('should close the editor and restore the original value after double clicking on a cell, if the previously edited cell have not validated', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
@@ -1437,7 +1431,6 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          validated = true;
           validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
@@ -1451,18 +1444,15 @@ describe('Core_validate', () => {
     expect(document.activeElement.value).toEqual('AAA');
 
     var cell = $(getCell(1, 0));
-    var clicks = 0;
 
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
     }, 0);
 
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
     }, 100);
 
     setTimeout(() => {
