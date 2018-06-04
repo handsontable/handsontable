@@ -61,7 +61,7 @@ class ColumnSorting extends BasePlugin {
      */
     this.sortColumn = void 0;
     /**
-     * Order of sorting. For `asc` ascending order, for `desc` descending order, for `none` the original order.
+     * Order of last sorting. For `asc` ascending order, for `desc` descending order, for `none` the original order.
      *
      * @type {String}
      */
@@ -78,6 +78,13 @@ class ColumnSorting extends BasePlugin {
      * @type {Boolean}
      */
     this.sortEmptyCells = false;
+    /**
+     * It blocks the plugin translation, this flag is checked inside `onModifyRow` listener.
+     *
+     * @private
+     * @type {boolean}
+     */
+    this.blockPluginTranslation = true;
   }
 
   /**
@@ -167,7 +174,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Boolean}
    */
   isSorted() {
-    return isDefined(this.sortColumn);
+    return this.isEnabled() && this.sortOrder !== NONE_SORT_STATE;
   }
 
   /**
@@ -269,13 +276,13 @@ class ColumnSorting extends BasePlugin {
     }
 
     const indexesWithData = [];
-    const colMeta = this.hot.getCellMeta(0, this.sortColumn);
+    const columnMeta = this.hot.getCellMeta(0, this.sortColumn);
+    const sortFunction = this.getSortFunctionForColumn(columnMeta);
     const emptyRows = this.hot.countEmptyRows();
-    let sortFunction;
     let nrOfRows;
 
-    if (isUndefined(colMeta.columnSorting.sortEmptyCells)) {
-      colMeta.columnSorting = {sortEmptyCells: this.sortEmptyCells};
+    if (isUndefined(columnMeta.columnSorting.sortEmptyCells)) {
+      columnMeta.columnSorting = {sortEmptyCells: this.sortEmptyCells};
     }
 
     if (this.hot.getSettings().maxRows === Number.POSITIVE_INFINITY) {
@@ -284,42 +291,47 @@ class ColumnSorting extends BasePlugin {
       nrOfRows = this.hot.countRows() - emptyRows;
     }
 
-    // Function `getSourceDataAtCol` won't call the `modifyRow` hook.
-    const sourceDataAtColumn = this.hot.getSourceDataAtCol(this.sortColumn);
+    // Function `getDataAtCell` won't call the indices translation inside `onModifyRow` listener - we check the `blockPluginTranslation` flag
+    // (we just want to get data not already modified by `columnSorting` plugin translation).
+    this.blockPluginTranslation = true;
 
-    for (let physicalIndex = 0; physicalIndex < nrOfRows; physicalIndex += 1) {
-      // By passing the plugin name as the third argument we prevent to call translation (we just want get data
-      // not already modified by this plugin; the `onModifyRow` listener shouldn't be called).
-      const visualIndex = this.hot.runHooks('modifyRow', physicalIndex, this.pluginName);
-
-      indexesWithData.push([physicalIndex, sourceDataAtColumn[visualIndex]]);
+    for (let visualIndex = 0; visualIndex < nrOfRows; visualIndex += 1) {
+      indexesWithData.push([visualIndex, this.hot.getDataAtCell(visualIndex, this.sortColumn)]);
     }
 
-    if (colMeta.sortFunction) {
-      sortFunction = colMeta.sortFunction;
-
-    } else {
-      switch (colMeta.type) {
-        case 'date':
-          sortFunction = dateSort;
-          break;
-        case 'numeric':
-          sortFunction = numericSort;
-          break;
-        default:
-          sortFunction = defaultSort;
-      }
-    }
-
-    mergeSort(indexesWithData, sortFunction(this.sortOrder === ASC_SORT_STATE, colMeta));
+    mergeSort(indexesWithData, sortFunction(this.sortOrder === ASC_SORT_STATE, columnMeta));
 
     // Append spareRows
-    for (let physicalIndex = indexesWithData.length; physicalIndex < this.hot.countRows(); physicalIndex += 1) {
-      indexesWithData.push([physicalIndex, null]);
+    for (let visualIndex = indexesWithData.length; visualIndex < this.hot.countRows(); visualIndex += 1) {
+      indexesWithData.push([visualIndex, this.hot.getDataAtCell(visualIndex, this.sortColumn)]);
     }
+
+    // The blockade of the indices translation is released.
+    this.blockPluginTranslation = false;
 
     // Save all indexes to arrayMapper, a completely new sequence is set by the plugin
     this.rowsMapper._arrayMap = indexesWithData.map((indexWithData) => indexWithData[0]);
+  }
+
+  /**
+   * Get sort function for the particular column basing on its column meta.
+   *
+   * @private
+   * @param {Object} columnMeta
+   * @returns {Function}
+   */
+  getSortFunctionForColumn(columnMeta) {
+    if (columnMeta.sortFunction) {
+      return columnMeta.sortFunction;
+
+    } else if (columnMeta.type === 'date') {
+      return dateSort;
+
+    } else if (columnMeta.type === 'numeric') {
+      return numericSort;
+    }
+
+    return defaultSort;
   }
 
   /**
@@ -331,9 +343,9 @@ class ColumnSorting extends BasePlugin {
     if (this.sortOrder === NONE_SORT_STATE) {
       return;
     }
-    const colMeta = this.hot.getCellMeta(0, this.sortColumn);
+    const columnMeta = this.hot.getCellMeta(0, this.sortColumn);
 
-    this.sortIndicators[this.sortColumn] = colMeta.sortIndicator;
+    this.sortIndicators[this.sortColumn] = columnMeta.sortIndicator;
   }
 
   /**
@@ -360,7 +372,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Physical row index.
    */
   onModifyRow(row, source) {
-    if (source !== this.pluginName) {
+    if (this.blockPluginTranslation === false && source !== this.pluginName) {
       let rowInMapper = this.rowsMapper.getValueByIndex(row);
       row = rowInMapper === null ? row : rowInMapper;
     }
@@ -376,7 +388,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Visual row index.
    */
   onUnmodifyRow(row, source) {
-    if (source !== this.pluginName) {
+    if (this.blockPluginTranslation === false && source !== this.pluginName) {
       row = this.rowsMapper.getIndexByValue(row);
     }
 

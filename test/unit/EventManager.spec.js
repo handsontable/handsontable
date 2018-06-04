@@ -140,6 +140,29 @@ describe('EventManager', () => {
     em.clear(window, 'click');
   });
 
+  it('should fire touchend event', () => {
+    var instance = {};
+    var em = new EventManager(instance);
+
+    var test = jasmine.createSpy('test');
+    var test1 = jasmine.createSpy('test1');
+
+    em.addEventListener(window, 'touchend', test);
+    em.addEventListener(window, 'touchend', test1);
+    em.addEventListener(window, 'touchend', test1);
+    em.fireEvent(window, 'touchend');
+
+    expect(test.calls.count()).toEqual(1);
+    expect(test1.calls.count()).toEqual(2);
+
+    em.fireEvent(window, 'touchend');
+
+    expect(test.calls.count()).toEqual(2);
+    expect(test1.calls.count()).toEqual(4);
+
+    em.clear(window, 'touchend');
+  });
+
   it('should remove event by calling function returned from addEvent', () => {
     var instance = {};
     var em = new EventManager(instance);
