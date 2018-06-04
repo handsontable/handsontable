@@ -285,7 +285,7 @@ describe('Core_selection', () => {
     selectCell(0, 0);
     keyDownUp('arrow_left');
 
-    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(getSelected()).toEqual([[4, 4, 4, 4]]);
   });
 
   it('should fix start range if provided is out of bounds (to the top)', () => {
@@ -296,7 +296,7 @@ describe('Core_selection', () => {
     selectCell(0, 0);
     keyDownUp('arrow_up');
 
-    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(getSelected()).toEqual([[4, 4, 4, 4]]);
   });
 
   it('should fix start range if provided is out of bounds (to the right)', () => {
@@ -307,7 +307,7 @@ describe('Core_selection', () => {
     selectCell(0, 4);
     keyDownUp('arrow_right');
 
-    expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
 
   it('should fix start range if provided is out of bounds (to the bottom)', () => {
@@ -318,7 +318,7 @@ describe('Core_selection', () => {
     selectCell(4, 0);
     keyDownUp('arrow_down');
 
-    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+    expect(getSelected()).toEqual([[0, 1, 0, 1]]);
   });
 
   it('should fix end range if provided is out of bounds (to the left)', () => {
@@ -1005,27 +1005,27 @@ describe('Core_selection', () => {
     keyDownUp('arrow_left');
 
     expect(spy.calls.mostRecent().args[1]).toBe(0);
-    expect(spy.calls.mostRecent().args[2]).toBe(-1);
+    expect(spy.calls.mostRecent().args[2]).toBe(0);
 
     spy.calls.reset();
     selectCell(2, 4);
     keyDownUp('arrow_right');
 
     expect(spy.calls.mostRecent().args[1]).toBe(0);
-    expect(spy.calls.mostRecent().args[2]).toBe(1);
+    expect(spy.calls.mostRecent().args[2]).toBe(0);
 
     spy.calls.reset();
     selectCell(4, 2);
     keyDownUp('arrow_down');
 
-    expect(spy.calls.mostRecent().args[1]).toBe(1);
+    expect(spy.calls.mostRecent().args[1]).toBe(0);
     expect(spy.calls.mostRecent().args[2]).toBe(0);
 
     spy.calls.reset();
     selectCell(0, 2);
     keyDownUp('arrow_up');
 
-    expect(spy.calls.mostRecent().args[1]).toBe(-1);
+    expect(spy.calls.mostRecent().args[1]).toBe(0);
     expect(spy.calls.mostRecent().args[2]).toBe(0);
   });
 

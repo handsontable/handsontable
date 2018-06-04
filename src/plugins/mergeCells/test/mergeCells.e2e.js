@@ -367,12 +367,12 @@ describe('MergeCells', () => {
       keyDownUp('tab');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       keyDownUp('tab');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
     });
 
     it('should select the cell in the top-left corner of the merged cell, when navigating down using the SHIFT + ENTER key on the' +
@@ -396,12 +396,12 @@ describe('MergeCells', () => {
       keyDownUp('shift+enter');
       keyDownUp('shift+enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('J1');
 
       keyDownUp('shift+enter');
       keyDownUp('shift+enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('I10');
     });
 
     it('should select the cell in the top-left corner of the merged cell, when navigating down using the SHIFT + TAB key on the' +
@@ -425,12 +425,12 @@ describe('MergeCells', () => {
       keyDownUp('shift+tab');
       keyDownUp('shift+enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('J1');
 
       keyDownUp('shift+tab');
       keyDownUp('shift+enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('I1');
       keyDownUp('shift+enter');
     });
   });
