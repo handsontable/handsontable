@@ -6,11 +6,10 @@ import {getSelectionText} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
 import {registerPlugin} from './../../plugins';
-import Textarea from './textarea';
 import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
-import EventManager from './../../eventManager';
 import PasteEvent from './pasteEvent';
+import {createElement, destroyElement} from './focusableElement';
 
 import './copyPaste.css';
 
@@ -43,12 +42,6 @@ const privatePool = new WeakMap();
 class CopyPaste extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * Event manager
-     *
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
     /**
      * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
@@ -83,14 +76,6 @@ class CopyPaste extends BasePlugin {
      * @default 1000
      */
     this.rowsLimit = ROWS_LIMIT;
-    /**
-     * The `textarea` element which is necessary to process copying, cutting off and pasting.
-     *
-     * @private
-     * @type {HTMLElement}
-     * @default undefined
-     */
-    this.textarea = void 0;
 
     privatePool.set(this, {
       isTriggeredByCopy: false,
@@ -119,7 +104,6 @@ class CopyPaste extends BasePlugin {
     const settings = this.hot.getSettings();
     const priv = privatePool.get(this);
 
-    this.textarea = Textarea.getSingleton();
     priv.isFragmentSelectionEnabled = settings.fragmentSelection;
 
     if (typeof settings.copyPaste === 'object') {
@@ -131,7 +115,11 @@ class CopyPaste extends BasePlugin {
     this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
 
-    this.registerEvents();
+    this.focusableElement = createElement();
+    this.focusableElement
+      .addLocalHook('copy', (event) => this.onCopy(event))
+      .addLocalHook('cut', (event) => this.onCut(event))
+      .addLocalHook('paste', (event) => this.onPaste(event));
 
     super.enablePlugin();
   }
@@ -150,8 +138,8 @@ class CopyPaste extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    if (this.textarea) {
-      this.textarea.destroy();
+    if (this.focusableElement) {
+      destroyElement(this.focusableElement);
     }
 
     super.disablePlugin();
@@ -279,8 +267,7 @@ class CopyPaste extends BasePlugin {
     const priv = privatePool.get(this);
 
     priv.isTriggeredByCopy = true;
-
-    this.textarea.select();
+    this.focusableElement.focus();
     document.execCommand('copy');
   }
 
@@ -291,8 +278,7 @@ class CopyPaste extends BasePlugin {
     const priv = privatePool.get(this);
 
     priv.isTriggeredByCut = true;
-
-    this.textarea.select();
+    this.focusableElement.focus();
     document.execCommand('cut');
   }
 
@@ -302,21 +288,10 @@ class CopyPaste extends BasePlugin {
    * @param {String} [value=''] New value, which should be `pasted`.
    */
   paste(value = '') {
-    let pasteData = new PasteEvent();
+    const pasteData = new PasteEvent();
+
     pasteData.clipboardData.setData('text/plain', value);
-
     this.onPaste(pasteData);
-  }
-
-  /**
-   * Register event listeners.
-   *
-   * @private
-   */
-  registerEvents() {
-    this.eventManager.addEventListener(this.textarea.element, 'paste', (event) => this.onPaste(event));
-    this.eventManager.addEventListener(this.textarea.element, 'cut', (event) => this.onCut(event));
-    this.eventManager.addEventListener(this.textarea.element, 'copy', (event) => this.onCopy(event));
   }
 
   /**
@@ -329,6 +304,12 @@ class CopyPaste extends BasePlugin {
     const priv = privatePool.get(this);
 
     if (!this.hot.isListening() && !priv.isTriggeredByCopy) {
+      return;
+    }
+
+    const editor = this.hot.getActiveEditor();
+
+    if (editor && editor.isOpened()) {
       return;
     }
 
@@ -368,6 +349,12 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
+    const editor = this.hot.getActiveEditor();
+
+    if (editor && editor.isOpened()) {
+      return;
+    }
+
     this.setCopyableText();
     priv.isTriggeredByCut = false;
 
@@ -402,21 +389,28 @@ class CopyPaste extends BasePlugin {
     if (!this.hot.isListening()) {
       return;
     }
+
+    const editor = this.hot.getActiveEditor();
+
+    if (editor && editor.isOpened()) {
+      return;
+    }
+
     if (event && event.preventDefault) {
       event.preventDefault();
     }
 
     let inputArray;
+    let pastedData;
 
     if (event && typeof event.clipboardData !== 'undefined') {
-      this.textarea.setValue(event.clipboardData.getData('text/plain'));
+      pastedData = event.clipboardData.getData('text/plain');
 
     } else if (typeof ClipboardEvent === 'undefined' && typeof window.clipboardData !== 'undefined') {
-      this.textarea.setValue(window.clipboardData.getData('Text'));
+      pastedData = window.clipboardData.getData('Text');
     }
 
-    inputArray = SheetClip.parse(this.textarea.getValue());
-    this.textarea.setValue(' ');
+    inputArray = SheetClip.parse(pastedData);
 
     if (inputArray.length === 0) {
       return;
@@ -492,26 +486,36 @@ class CopyPaste extends BasePlugin {
    * @private
    */
   onAfterSelectionEnd() {
-    const priv = privatePool.get(this);
+    const {isFragmentSelectionEnabled} = privatePool.get(this);
     const editor = this.hot.getActiveEditor();
 
-    if (editor && typeof editor.isOpened !== 'undefined' && editor.isOpened()) {
+    if (editor && editor.isOpened()) {
       return;
     }
-    if (priv.isFragmentSelectionEnabled && !this.textarea.isActive() && getSelectionText()) {
+
+    const editableElement = editor ? editor.TEXTAREA : void 0;
+
+    if (editableElement) {
+      this.focusableElement.setFocusableElement(editableElement);
+    } else {
+      this.focusableElement.useSecondaryElement();
+    }
+
+    if (isFragmentSelectionEnabled && this.focusableElement.getFocusableElement() !== document.activeElement && getSelectionText()) {
       return;
     }
 
     this.setCopyableText();
-    this.textarea.select();
+    this.focusableElement.focus();
   }
 
   /**
    * Destroy plugin instance.
    */
   destroy() {
-    if (this.textarea) {
-      this.textarea.destroy();
+    if (this.focusableElement) {
+      destroyElement(this.focusableElement);
+      this.focusableElement = null;
     }
 
     super.destroy();

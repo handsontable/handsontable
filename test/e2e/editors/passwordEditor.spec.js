@@ -113,13 +113,13 @@ describe('PasswordEditor', () => {
     var editorHolder = $('.handsontableInputHolder');
     var editor = editorHolder.find('.handsontableInput');
 
-    expect(editorHolder.is(':visible')).toBe(true);
+    expect(parseInt(editorHolder.css('z-index'), 10)).toBeGreaterThan(0);
 
     editor.val('Edgar');
 
     selectCell(1, 0); // closes editor and saves current value
 
-    expect(editorHolder.is(':visible')).toBe(false);
+    expect(editorHolder.css('z-index')).toBe('-1');
 
     expect(getDataAtCell(0, 0)).toMatch('Edgar');
     expect(getRenderedValue(0, 0)).toMatch('Edgar');
@@ -159,5 +159,18 @@ describe('PasswordEditor', () => {
     expect(blured).toBeFalsy();
 
     hot.getActiveEditor().TEXTAREA.removeEventListener('blur', listener);
+  });
+
+  describe('IME support', () => {
+    it('should focus editable element after selecting the cell', async () => {
+      handsontable({
+        type: 'password',
+      });
+      selectCell(0, 0, 0, 0, true, false);
+
+      await sleep(10);
+
+      expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    });
   });
 });

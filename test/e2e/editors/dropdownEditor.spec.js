@@ -114,10 +114,7 @@ describe('DropdownEditor', () => {
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
   it('should not lose the focus on input element while inserting new characters (#839)', async () => {
-    let blured = false;
-    const listener = () => {
-      blured = true;
-    };
+    const focusListener = jasmine.createSpy('focus');
     const hot = handsontable({
       data: [
         ['one', 'two'],
@@ -133,20 +130,30 @@ describe('DropdownEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp('enter');
-    hot.getActiveEditor().TEXTAREA.addEventListener('blur', listener);
+    hot.getActiveEditor().TEXTAREA.addEventListener('focus', focusListener);
 
-    await sleep(200);
+    await sleep(50);
 
-    hot.getActiveEditor().TEXTAREA.value = 't';
-    keyDownUp('t'.charCodeAt(0));
-    hot.getActiveEditor().TEXTAREA.value = 'te';
-    keyDownUp('e'.charCodeAt(0));
-    hot.getActiveEditor().TEXTAREA.value = 'teo';
-    keyDownUp('o'.charCodeAt(0));
+    expect(focusListener).toHaveBeenCalled();
 
-    expect(blured).toBeFalsy();
+    hot.getActiveEditor().TEXTAREA.removeEventListener('focus', focusListener);
+  });
 
-    hot.getActiveEditor().TEXTAREA.removeEventListener('blur', listener);
+  describe('IME support', () => {
+    it('should focus editable element after selecting the cell', async () => {
+      handsontable({
+        columns: [
+          {
+            type: 'dropdown',
+            source: choices,
+          }
+        ]
+      });
+      selectCell(0, 0, 0, 0, true, false);
+
+      await sleep(10);
+
+      expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    });
   });
 });

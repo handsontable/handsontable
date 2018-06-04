@@ -103,11 +103,15 @@ BaseEditor.prototype.beginEditing = function(newInitialValue, event) {
     return;
   }
   this.instance.view.scrollViewport(new CellCoords(this.row, this.col));
-  this.instance.view.render();
   this.state = EditorState.EDITING;
 
-  newInitialValue = typeof newInitialValue === 'string' ? newInitialValue : this.originalValue;
-  this.setValue(stringify(newInitialValue));
+  // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
+  // otherwise IME (editor for Asia users) doesn't work.
+  if (this.isInFullEditMode()) {
+    const stringifiedInitialValue = typeof newInitialValue === 'string' ? newInitialValue : stringify(this.originalValue);
+
+    this.setValue(stringifiedInitialValue);
+  }
 
   this.open(event);
   this._opened = true;
@@ -141,9 +145,9 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
   }
 
   if (this.state == EditorState.VIRGIN) {
-    this.instance._registerTimeout(setTimeout(() => {
+    this.instance._registerTimeout(() => {
       _this._fireCallbacks(true);
-    }, 0));
+    });
 
     return;
   }
@@ -193,6 +197,7 @@ BaseEditor.prototype.discardEditor = function(result) {
   if (this.state !== EditorState.FINISHED) {
     return;
   }
+
   // validator was defined and failed
   if (result === false && this.cellProperties.allowInvalid !== true) {
     this.instance.selectCell(this.row, this.col);

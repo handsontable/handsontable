@@ -51,7 +51,7 @@ function TableView(instance) {
 
   instance.container.insertBefore(table, instance.container.firstChild);
 
-  this.eventManager.addEventListener(instance.rootElement, 'mousedown', function(event) {
+  this.eventManager.addEventListener(instance.rootElement, 'mousedown', (event) => {
     this.selectionMouseDown = true;
 
     if (!that.isTextSelectionAllowed(event.target)) {
@@ -60,12 +60,15 @@ function TableView(instance) {
       window.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
     }
   });
-  this.eventManager.addEventListener(instance.rootElement, 'mouseup', function(event) {
+  this.eventManager.addEventListener(instance.rootElement, 'mouseup', (event) => {
     this.selectionMouseDown = false;
   });
-  this.eventManager.addEventListener(instance.rootElement, 'mousemove', function(event) {
+  this.eventManager.addEventListener(instance.rootElement, 'mousemove', (event) => {
     if (this.selectionMouseDown && !that.isTextSelectionAllowed(event.target)) {
-      clearTextSelection();
+      // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breakes the IME editor.
+      if (this.settings.fragmentSelection) {
+        clearTextSelection();
+      }
       event.preventDefault();
     }
   });
@@ -143,7 +146,7 @@ function TableView(instance) {
     if (outsideClickDeselects) {
       instance.deselectCell();
     } else {
-      instance.destroyEditor();
+      instance.destroyEditor(false, false);
     }
   });
 

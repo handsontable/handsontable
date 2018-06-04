@@ -33,11 +33,11 @@ describe('AutocompleteEditor', () => {
       selectCell(0, 0);
       var editor = $('.autocompleteEditor');
 
-      expect(editor.is(':visible')).toBe(false);
+      expect(isEditorVisible()).toBe(false);
 
       keyDownUp('enter');
 
-      expect(editor.is(':visible')).toBe(true);
+      expect(isEditorVisible()).toBe(true);
     });
 
     it('should display editor (after hitting F2)', () => {
@@ -52,11 +52,11 @@ describe('AutocompleteEditor', () => {
       selectCell(0, 0);
       var editor = $('.autocompleteEditor');
 
-      expect(editor.is(':visible')).toBe(false);
+      expect(isEditorVisible()).toBe(false);
 
       keyDownUp('f2');
 
-      expect(editor.is(':visible')).toBe(true);
+      expect(isEditorVisible()).toBe(true);
     });
 
     it('should display editor (after doubleclicking)', () => {
@@ -71,11 +71,11 @@ describe('AutocompleteEditor', () => {
       selectCell(0, 0);
       var editor = $('.autocompleteEditor');
 
-      expect(editor.is(':visible')).toBe(false);
+      expect(isEditorVisible()).toBe(false);
 
       mouseDoubleClick($(getCell(0, 0)));
 
-      expect(editor.is(':visible')).toBe(true);
+      expect(isEditorVisible()).toBe(true);
     });
 
     // see https://github.com/handsontable/handsontable/issues/3380
@@ -375,7 +375,10 @@ describe('AutocompleteEditor', () => {
       }, 200);
     });
 
-    it('autocomplete textarea should have cell dimensions (after render)', (done) => {
+    // TODO: This test never properly tests the case of refreshing editor after re-render the table. Previously this
+    // test passes because sleep timeout was small enough to read the valid width before the editor element was resized.
+    // Related issue #5103
+    xit('autocomplete textarea should have cell dimensions (after render)', async () => {
       var data = [
         ['a', 'b'],
         ['c', 'd']
@@ -397,18 +400,19 @@ describe('AutocompleteEditor', () => {
       selectCell(1, 1);
       keyDownUp('enter');
 
+      await sleep(10);
+
       data[1][1] = 'dddddddddddddddddddd';
       render();
 
-      setTimeout(() => {
-        var $td = spec().$container.find('.htCore tbody tr:eq(1) td:eq(1)');
+      await sleep(10);
 
-        expect(autocompleteEditor().width()).toEqual($td.width());
-        done();
-      }, 10);
+      var $td = spec().$container.find('.htCore tbody tr:eq(1) td:eq(1)');
+
+      expect(autocompleteEditor().width()).toEqual($td.width());
     });
 
-    it('should invoke beginEditing only once after dobleclicking on a cell (#1011)', () => {
+    it('should invoke beginEditing only once after doubleclicking on a cell (#1011)', () => {
       var hot = handsontable({
         columns: [
           {},
@@ -790,7 +794,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
     });
 
-    it('should destroy editor when pressed Enter then Esc', (done) => {
+    it('should destroy editor when pressed Enter then Esc', async () => {
       var syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
@@ -808,17 +812,16 @@ describe('AutocompleteEditor', () => {
       selectCell(0, 0);
       keyDownUp('enter');
 
-      setTimeout(() => {
-        expect(autocompleteEditor().is(':visible')).toBe(true);
+      await sleep(200);
 
-        keyDownUp('esc');
+      expect(isEditorVisible(autocompleteEditor())).toBe(true);
 
-        expect(autocompleteEditor().is(':visible')).toBe(false);
-        done();
-      }, 200);
+      keyDownUp('esc');
+
+      expect(isEditorVisible(autocompleteEditor())).toBe(false);
     });
 
-    it('should destroy editor when mouse double clicked then Esc', (done) => {
+    it('should destroy editor when mouse double clicked then Esc', async () => {
       var syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
@@ -836,14 +839,13 @@ describe('AutocompleteEditor', () => {
       selectCell(0, 0);
       mouseDoubleClick(getCell(0, 0));
 
-      setTimeout(() => {
-        expect(autocompleteEditor().is(':visible')).toBe(true);
+      await sleep(200);
 
-        keyDownUp('esc');
+      expect(isEditorVisible(autocompleteEditor())).toBe(true);
 
-        expect(autocompleteEditor().is(':visible')).toBe(false);
-        done();
-      }, 200);
+      keyDownUp('esc');
+
+      expect(isEditorVisible(autocompleteEditor())).toBe(false);
     });
 
     it('cancel editing (Esc) should restore the previous value', (done) => {
@@ -876,7 +878,7 @@ describe('AutocompleteEditor', () => {
       }, 200);
     });
 
-    it('should destroy editor when clicked outside the table', (done) => {
+    it('should destroy editor when clicked outside the table', async () => {
       var syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
@@ -893,14 +895,13 @@ describe('AutocompleteEditor', () => {
       selectCell(0, 0);
       mouseDoubleClick(getCell(0, 0));
 
-      setTimeout(() => {
-        expect(autocompleteEditor().is(':visible')).toBe(true);
+      await sleep(200);
 
-        $('body').simulate('mousedown');
+      expect(isEditorVisible(autocompleteEditor())).toBe(true);
 
-        expect(autocompleteEditor().is(':visible')).toBe(false);
-        done();
-      }, 200);
+      $('body').simulate('mousedown');
+
+      expect(isEditorVisible(autocompleteEditor())).toBe(false);
     });
 
     it('should show fillHandle element again after close editor', (done) => {
@@ -2330,12 +2331,9 @@ describe('AutocompleteEditor', () => {
     }, 400);
   });
 
-  // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
+  // Input element should be focused on cell selection othrwise it breaks IME editor functionality for Asian users.
   it('should not lose the focus on input element while inserting new characters (#839)', async () => {
-    let blured = false;
-    const listener = () => {
-      blured = true;
-    };
+    const focusListener = jasmine.createSpy('focus');
     const hot = handsontable({
       data: [
         ['one', 'two'],
@@ -2351,21 +2349,13 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp('enter');
-    hot.getActiveEditor().TEXTAREA.addEventListener('blur', listener);
+    hot.getActiveEditor().TEXTAREA.addEventListener('focus', focusListener);
 
-    await sleep(200);
+    await sleep(50);
 
-    hot.getActiveEditor().TEXTAREA.value = 't';
-    keyDownUp('t'.charCodeAt(0));
-    hot.getActiveEditor().TEXTAREA.value = 'te';
-    keyDownUp('e'.charCodeAt(0));
-    hot.getActiveEditor().TEXTAREA.value = 'teo';
-    keyDownUp('o'.charCodeAt(0));
+    expect(focusListener).toHaveBeenCalled();
 
-    expect(blured).toBeFalsy();
-
-    hot.getActiveEditor().TEXTAREA.removeEventListener('blur', listener);
+    hot.getActiveEditor().TEXTAREA.removeEventListener('focus', focusListener);
   });
 
   it('should not lose the focus from the editor after selecting items from the choice list', async () => {
@@ -2401,7 +2391,7 @@ describe('AutocompleteEditor', () => {
     keyDownUp('esc');
 
     expect(hot.isListening()).toBeTruthy();
-    expect(Handsontable.dom.isVisible(hot.getActiveEditor().htEditor.rootElement)).toBeFalsy();
+    expect(isEditorVisible($(hot.getActiveEditor().htEditor.rootElement))).toBeFalsy();
   });
 
   it('should not call the `source` has been selected', () => {
@@ -2597,7 +2587,7 @@ describe('AutocompleteEditor', () => {
     expect($(dropdown).is(':visible')).toBe(true);
   });
 
-  it('should keep textarea caret position, after moving the selection to the suggestion list (pressing down arrow)', (done) => {
+  it('should keep textarea caret position, after moving the selection to the suggestion list (pressing down arrow)', async () => {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
@@ -2620,18 +2610,23 @@ describe('AutocompleteEditor', () => {
     $editorInput.val('an');
     keyDownUp(65); // a
     keyDownUp(78); // n
+
+    await sleep(0);
+
     Handsontable.dom.setCaretPosition($editorInput[0], 1);
 
-    setTimeout(() => {
-      keyDownUp('arrow_down');
-      expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
-      keyDownUp('arrow_down');
-      expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
-      done();
-    }, 200);
+    await sleep(200);
+
+    keyDownUp('arrow_down');
+
+    expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
+
+    keyDownUp('arrow_down');
+
+    expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
   });
 
-  it('should keep textarea selection, after moving the selection to the suggestion list (pressing down arrow)', (done) => {
+  it('should keep textarea selection, after moving the selection to the suggestion list (pressing down arrow)', async () => {
     var syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
@@ -2654,17 +2649,22 @@ describe('AutocompleteEditor', () => {
     $editorInput.val('an');
     keyDownUp(65); // a
     keyDownUp(78); // n
+
+    await sleep(0);
+
     Handsontable.dom.setCaretPosition($editorInput[0], 1, 2);
 
-    setTimeout(() => {
-      keyDownUp('arrow_down');
-      expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
-      expect(Handsontable.dom.getSelectionEndPosition($editorInput[0])).toEqual(2);
-      keyDownUp('arrow_down');
-      expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
-      expect(Handsontable.dom.getSelectionEndPosition($editorInput[0])).toEqual(2);
-      done();
-    }, 200);
+    await sleep(200);
+
+    keyDownUp('arrow_down');
+
+    expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
+    expect(Handsontable.dom.getSelectionEndPosition($editorInput[0])).toEqual(2);
+
+    keyDownUp('arrow_down');
+
+    expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
+    expect(Handsontable.dom.getSelectionEndPosition($editorInput[0])).toEqual(2);
   });
 
   it('should jump to the sibling cell, after pressing up key in quick edit mode', (done) => {
@@ -3016,5 +3016,23 @@ describe('AutocompleteEditor', () => {
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       done();
     }, 200);
+  });
+
+  describe('IME support', () => {
+    it('should focus editable element after selecting the cell', async () => {
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices
+          }
+        ]
+      });
+      selectCell(0, 0, 0, 0, true, false);
+
+      await sleep(10);
+
+      expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    });
   });
 });

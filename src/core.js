@@ -84,6 +84,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   keyStateStartObserving();
 
+  this.isDestroyed = false;
   this.rootElement = rootElement;
   this.isHotTableEnv = isChildOfWebComponentTable(this.rootElement);
   EventManager.isHotTableEnv = this.isHotTableEnv;
@@ -1219,10 +1220,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function destroyEditor
-   * @param {Boolean} [revertOriginal] If != `true`, edited data is saved. Otherwise the previous value is restored.
+   * @param {Boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
+   * @param {Boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
    */
-  this.destroyEditor = function(revertOriginal) {
-    instance._refreshBorders(revertOriginal);
+  this.destroyEditor = function(revertOriginal = false, prepareEditorIfNeeded = true) {
+    instance._refreshBorders(revertOriginal, prepareEditorIfNeeded);
   };
 
   /**
@@ -3270,8 +3272,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterDestroy
    */
   this.destroy = function() {
-
     instance._clearTimeouts();
+    instance._clearImmediates();
+
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();
     }
@@ -3303,7 +3306,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (hasOwnProperty(instance, i)) {
         // replace instance methods with post mortem
         if (isFunction(instance[i])) {
-          instance[i] = postMortem;
+          instance[i] = postMortem(i);
 
         } else if (i !== 'guid') {
           // replace instance properties with null (restores memory)
@@ -3312,6 +3315,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         }
       }
     }
+    instance.isDestroyed = true;
 
     // replace private properties with null (restores memory)
     // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
@@ -3332,8 +3336,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @private
    */
-  function postMortem() {
-    throw new Error('This method cannot be called because this Handsontable instance has been destroyed');
+  function postMortem(method) {
+    return () => {
+      throw new Error(`The "${method}" method cannot be called because this Handsontable instance has been destroyed`);
+    };
   }
 
   /**
@@ -3488,10 +3494,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called.
    *
-   * @param {*} handle
+   * @param {Number|Function} handle Handler returned from setTimeout or function to execute (it will be automatically wraped
+   *                                 by setTimeout function).
+   * @param {Number} [delay=0] If first argument is passed as a function this argument set delay of the execution of that function.
    * @private
    */
-  this._registerTimeout = function(handle) {
+  this._registerTimeout = function(handle, delay = 0) {
+    if (typeof handle === 'function') {
+      handle = setTimeout(handle, delay);
+    }
+
     this.timeouts.push(handle);
   };
 
@@ -3501,22 +3513,46 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    */
   this._clearTimeouts = function() {
-    for (var i = 0, ilen = this.timeouts.length; i < ilen; i++) {
-      clearTimeout(this.timeouts[i]);
-    }
+    arrayEach(this.timeouts, (handler) => {
+      clearTimeout(handler);
+    });
+  };
+
+  this.immediates = [];
+
+  /**
+   * Execute function execution to the next event loop cycle. Purpose of this method is to clear all known timeouts when `destroy` method is called.
+   *
+   * @param {Function} callback Function to be delayed in execution.
+   * @private
+   */
+  this._registerImmediate = function(callback) {
+    this.immediates.push(setImmediate(callback));
+  };
+
+  /**
+   * Clears all known timeouts.
+   *
+   * @private
+   */
+  this._clearImmediates = function() {
+    arrayEach(this.immediates, (handler) => {
+      clearImmediate(handler);
+    });
   };
 
   /**
    * Refresh selection borders. This is temporary method relic after selection rewrite.
    *
    * @private
-   * @param {Boolean} revertOriginal
+   * @param {Boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
+   * @param {Boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
    */
-  this._refreshBorders = function(revertOriginal) {
+  this._refreshBorders = function(revertOriginal = false, prepareEditorIfNeeded = true) {
     editorManager.destroyEditor(revertOriginal);
     instance.view.render();
 
-    if (selection.isSelected()) {
+    if (prepareEditorIfNeeded && selection.isSelected()) {
       editorManager.prepareEditor();
     }
   };

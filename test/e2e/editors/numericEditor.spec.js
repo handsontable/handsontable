@@ -698,4 +698,17 @@ describe('NumericEditor', () => {
       });
     });
   });
+
+  describe('IME support', () => {
+    it('should focus editable element after selecting the cell', async () => {
+      handsontable({
+        type: 'numeric', numericFormat: {pattern: '$0,0.00', culture: 'en-US'}
+      });
+      selectCell(0, 0, 0, 0, true, false);
+
+      await sleep(10);
+
+      expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    });
+  });
 });

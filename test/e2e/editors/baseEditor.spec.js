@@ -84,4 +84,35 @@ describe('BaseEditor', () => {
     expect(Handsontable.editors.SelectEditor).toBeDefined();
     expect(Handsontable.editors.TextEditor).toBeDefined();
   });
+
+  describe('IME support', () => {
+    it('should not throw an error when composition is started in multiple instances environment', async () => {
+      const errorSpy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+
+      window.onerror = errorSpy.test;
+
+      const hot1 = handsontable({});
+      const container2 = $(`<div id="${id}2" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
+      const hot2 = container2.handsontable().handsontable('getInstance');
+
+      $(hot1.getCell(1, 1)).simulate('mousedown');
+      $(hot1.getCell(1, 1)).simulate('mouseover');
+      $(hot1.getCell(1, 1)).simulate('mouseup');
+
+      document.documentElement.dispatchEvent(new CompositionEvent('compositionstart'));
+
+      $(hot2.getCell(1, 1)).simulate('mousedown');
+      $(hot2.getCell(1, 1)).simulate('mouseover');
+      $(hot2.getCell(1, 1)).simulate('mouseup');
+
+      document.documentElement.dispatchEvent(new CompositionEvent('compositionstart'));
+
+      expect(errorSpy.test).not.toHaveBeenCalled();
+
+      hot2.destroy();
+      container2.remove();
+      window.onerror = prevError;
+    });
+  });
 });

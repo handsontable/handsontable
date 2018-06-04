@@ -106,9 +106,9 @@ class DateEditor extends TextEditor {
    */
   close() {
     this._opened = false;
-    this.instance._registerTimeout(setTimeout(() => {
+    this.instance._registerTimeout(() => {
       this.instance._refreshBorders();
-    }, 0));
+    });
 
     super.close();
   }
