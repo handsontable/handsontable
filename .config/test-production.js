@@ -36,7 +36,7 @@ module.exports.create = function create(envArgs) {
           'lib/lodash.underscore.js',
           'lib/backbone.js',
           '../dist/handsontable.full.min.js',
-          '../dist/numbro/languages.js',
+          '../node_modules/numbro/dist/languages.min.js',
           '../languages/all.js',
         ],
       })

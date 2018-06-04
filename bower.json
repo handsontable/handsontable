@@ -38,7 +38,7 @@
   "dependencies": {
     "hot-formula-parser": "^2.2.0",
     "moment": "^2.13.0",
-    "numbro": "^1.8.0",
+    "numbro": "^2.0.6",
     "pikaday": "^1.4.0"
   }
 }
