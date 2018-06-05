@@ -575,7 +575,6 @@ UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
 
   instance.deselectCell();
   instance.selectRows(this.rows[0], this.rows[0] + this.rows.length - 1);
-  instance.selectRows(this.rows[0], this.rows[0] + this.rows.length - 1);
 };
 UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
   let manualRowMove = instance.getPlugin('manualRowMove');
