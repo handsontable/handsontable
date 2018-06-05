@@ -250,7 +250,7 @@ describe('manualRowMove', () => {
           expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
         });
 
-        it('should not trigger the `afterRowMove` hook after try to move row, when `beforeRowMove` return false', () => {
+        it('should not move and not trigger the `afterRowMove` hook after try to move row, when `beforeRowMove` return false', () => {
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
           const hot = handsontable({
@@ -267,9 +267,10 @@ describe('manualRowMove', () => {
           hot.getPlugin('manualRowMove').moveRow(0, 1);
 
           expect(afterMoveRowCallback).not.toHaveBeenCalled();
+          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should trigger the `afterRowMove` hook with proper arguments after try of move row to final index, which is too high', () => {
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of move row to final index, which is too high', () => {
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
           const hot = handsontable({
@@ -283,9 +284,10 @@ describe('manualRowMove', () => {
           hot.getPlugin('manualRowMove').moveRow(0, 1000);
 
           expect(afterMoveRowCallback).toHaveBeenCalledWith([0], 1000, void 0, false, false, void 0);
+          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should trigger the `afterRowMove` hook with proper arguments after try of move row to final index, which is too low', () => {
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of move row to final index, which is too low', () => {
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
           const hot = handsontable({
@@ -299,9 +301,10 @@ describe('manualRowMove', () => {
           hot.getPlugin('manualRowMove').moveRow(0, -1);
 
           expect(afterMoveRowCallback).toHaveBeenCalledWith([0], -1, void 0, false, false, void 0);
+          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should trigger the `afterRowMove` hook with proper arguments after try of move too high row', () => {
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of move too high row', () => {
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
           const hot = handsontable({
@@ -315,9 +318,10 @@ describe('manualRowMove', () => {
           hot.getPlugin('manualRowMove').moveRow(1000, 1);
 
           expect(afterMoveRowCallback).toHaveBeenCalledWith([1000], 1, void 0, false, false, void 0);
+          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should trigger the `afterRowMove` hook with proper arguments after try of move too low row', () => {
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of move too low row', () => {
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
           const hot = handsontable({
@@ -331,6 +335,7 @@ describe('manualRowMove', () => {
           hot.getPlugin('manualRowMove').moveRow(-1, 1);
 
           expect(afterMoveRowCallback).toHaveBeenCalledWith([-1], 1, void 0, false, false, void 0);
+          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
       });
 

@@ -191,7 +191,10 @@ class ManualRowMove extends BasePlugin {
       return;
     }
 
-    this.rowsMapper.moveItems(rows, finalIndex);
+    if (movePossible) {
+      this.rowsMapper.moveItems(rows, finalIndex);
+    }
+
     this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePossible && this.isRowOrderChanged(rows, finalIndex));
   }
 
