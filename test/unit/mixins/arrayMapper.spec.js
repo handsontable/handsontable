@@ -119,12 +119,12 @@ describe('arrayMapper mixin', () => {
 
       expect(arrayMapper._arrayMap).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
-      // too height index
+      // too high destination index
       arrayMapper.moveItems([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 100);
 
       expect(arrayMapper._arrayMap).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
-      // too low index
+      // too low destination index
       arrayMapper.moveItems([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], -1);
 
       expect(arrayMapper._arrayMap).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
