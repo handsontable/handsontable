@@ -2922,7 +2922,9 @@ describe('AutocompleteEditor', () => {
           strict: false
         },
         {}
-      ]
+      ],
+      autoWrapCol: false,
+      autoWrapRow: false
     });
 
     selectCell(1, 0);
@@ -2943,7 +2945,7 @@ describe('AutocompleteEditor', () => {
 
       keyDownUp('arrow_up');
 
-      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[11, 0, 11, 0]]);
+      expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
       done();
     }, 200);
   });

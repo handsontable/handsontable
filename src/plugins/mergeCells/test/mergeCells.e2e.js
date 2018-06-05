@@ -352,7 +352,9 @@ describe('MergeCells', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 8, col: 8, rowspan: 2, colspan: 2 }
-        ]
+        ],
+        autoWrapCol: false,
+        autoWrapRow: false
       });
       hot.setDataAtCell(8, 8, 'top-left-corner!');
 
@@ -367,12 +369,12 @@ describe('MergeCells', () => {
       keyDownUp('tab');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
 
       keyDownUp('tab');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
     });
 
     it('should select the cell in the top-left corner of the merged cell, when navigating down using the SHIFT + ENTER key on the' +
@@ -381,7 +383,9 @@ describe('MergeCells', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 0, col: 0, rowspan: 2, colspan: 2 }
-        ]
+        ],
+        autoWrapCol: false,
+        autoWrapRow: false
       });
       hot.setDataAtCell(0, 0, 'top-left-corner!');
 
@@ -396,12 +400,12 @@ describe('MergeCells', () => {
       keyDownUp('shift+enter');
       keyDownUp('shift+enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('J1');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
 
       keyDownUp('shift+enter');
       keyDownUp('shift+enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('I10');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
     });
 
     it('should select the cell in the top-left corner of the merged cell, when navigating down using the SHIFT + TAB key on the' +

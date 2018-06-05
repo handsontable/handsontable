@@ -556,8 +556,8 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean|String|Object}
    * @default fillHandle: {
-       autoInsertRow: false,
-     }
+   *   autoInsertRow: false,
+   * }
    */
   fillHandle: {
     autoInsertRow: false,
