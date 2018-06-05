@@ -166,7 +166,6 @@ class ManualRowMove extends BasePlugin {
    *
    * @param {Number} row Visual row index to be moved.
    * @param {Number} [finalIndex=0] Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   *
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    */
   moveRow(row, finalIndex = 0) {
@@ -229,7 +228,6 @@ class ManualRowMove extends BasePlugin {
    * @param {Array} movedRows Array of visual row indexes to be moved.
    * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
-   *
    * @returns {Boolean}
    */
   isMovePossible(movedRows, finalIndex) {
@@ -254,7 +252,6 @@ class ManualRowMove extends BasePlugin {
    * @param {Array} movedRows Array of visual row indexes to be moved.
    * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
-   *
    * @returns {Boolean}
    */
   isRowOrderChanged(movedRows, finalIndex) {
