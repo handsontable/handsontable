@@ -3085,6 +3085,30 @@ describe('ContextMenu', () => {
     });
   });
 
+  describe('context menu with disabled `allowInvalid`', () => {
+    it('should not close invalid cell', async () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        contextMenu: true,
+        validator: (value, callback) => callback(false),
+        allowInvalid: false
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      contextMenu(getCell(2, 2));
+
+      await sleep(100);
+
+      contextMenu(getCell(2, 2));
+
+      await sleep(100);
+
+      expect(getActiveEditor().isOpened()).toBe(true);
+    });
+  });
+
   describe('context menu with native scroll', () => {
     beforeEach(function() {
       var wrapper = $('<div></div>').css({
