@@ -249,6 +249,89 @@ describe('manualRowMove', () => {
           expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
           expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
         });
+
+        it('should not trigger the `afterRowMove` hook after try to move row, when `beforeRowMove` return false', () => {
+          const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
+
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            colHeaders: true,
+            manualRowMove: true,
+            beforeRowMove() {
+              return false;
+            },
+            afterRowMove: afterMoveRowCallback
+          });
+
+          hot.getPlugin('manualRowMove').moveRow(0, 1);
+
+          expect(afterMoveRowCallback).not.toHaveBeenCalled();
+        });
+
+        it('should trigger the `afterRowMove` hook with proper arguments after try of move row to final index, which is too high', () => {
+          const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
+
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            colHeaders: true,
+            manualRowMove: true,
+            afterRowMove: afterMoveRowCallback
+          });
+
+          hot.getPlugin('manualRowMove').moveRow(0, 1000);
+
+          expect(afterMoveRowCallback).toHaveBeenCalledWith([0], 1000, void 0, false, false, void 0);
+        });
+
+        it('should trigger the `afterRowMove` hook with proper arguments after try of move row to final index, which is too low', () => {
+          const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
+
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            colHeaders: true,
+            manualRowMove: true,
+            afterRowMove: afterMoveRowCallback
+          });
+
+          hot.getPlugin('manualRowMove').moveRow(0, -1);
+
+          expect(afterMoveRowCallback).toHaveBeenCalledWith([0], -1, void 0, false, false, void 0);
+        });
+
+        it('should trigger the `afterRowMove` hook with proper arguments after try of move too high row', () => {
+          const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
+
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            colHeaders: true,
+            manualRowMove: true,
+            afterRowMove: afterMoveRowCallback
+          });
+
+          hot.getPlugin('manualRowMove').moveRow(1000, 1);
+
+          expect(afterMoveRowCallback).toHaveBeenCalledWith([1000], 1, void 0, false, false, void 0);
+        });
+
+        it('should trigger the `afterRowMove` hook with proper arguments after try of move too low row', () => {
+          const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
+
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            colHeaders: true,
+            manualRowMove: true,
+            afterRowMove: afterMoveRowCallback
+          });
+
+          hot.getPlugin('manualRowMove').moveRow(-1, 1);
+
+          expect(afterMoveRowCallback).toHaveBeenCalledWith([-1], 1, void 0, false, false, void 0);
+        });
       });
 
       describe('the `moveRows` method', () => {

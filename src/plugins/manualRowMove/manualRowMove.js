@@ -33,7 +33,8 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * - `dragRow` - drag single row to the new position.
  * - `dragRows` - drag many rows (as an array of indexes) to the new position.
  *
- * [Documentation](/demo-moving.html#manualRowMove) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes, you have to call manually the `render` method on the instance of Handsontable.
+ * [Documentation](/demo-moving.html#manualRowMove) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
+ * you have to call manually the `render` method on the instance of Handsontable.
  *
  * UI components:
  * - `backlight` - highlight of selected rows.
@@ -52,7 +53,6 @@ class ManualRowMove extends BasePlugin {
     privatePool.set(this, {
       rowsToMove: [],
       pressed: void 0,
-      disallowMoving: void 0,
       target: {
         eventPageY: void 0,
         coords: void 0,
@@ -120,7 +120,6 @@ class ManualRowMove extends BasePlugin {
     this.addHook('afterRemoveRow', () => this.onAfterRemoveRow());
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('afterLoadData', () => this.onAfterLoadData());
-    this.addHook('beforeColumnSort', (column, order) => this.onBeforeColumnSort(column, order));
     this.addHook('unmodifyRow', (row) => this.onUnmodifyRow(row));
 
     this.registerEvents();
@@ -164,8 +163,11 @@ class ManualRowMove extends BasePlugin {
 
   /**
    * Move a single row to final index position.
+   *
    * @param {Number} row Visual row index to be moved.
-   * @param {Number} [finalIndex=0] Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Number} [finalIndex=0] Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   *
+   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    */
   moveRow(row, finalIndex = 0) {
     this.moveRows([row], finalIndex);
@@ -175,7 +177,8 @@ class ManualRowMove extends BasePlugin {
    * Move multiple rows to final index position.
    *
    * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {Number} [finalIndex=0] Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Number} [finalIndex=0] Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    */
   moveRows(rows, finalIndex = 0) {
     const priv = privatePool.get(this);
@@ -184,20 +187,21 @@ class ManualRowMove extends BasePlugin {
     const beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, finalIndex, dropIndex, movePossible);
 
     priv.cachedDropIndex = void 0;
-    priv.disallowMoving = beforeMoveHook === false;
 
-    if (!priv.disallowMoving && movePossible) {
-      this.rowsMapper.moveItems(rows, finalIndex);
-
-      this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, this.isRowOrderChanged(rows, finalIndex));
+    if (beforeMoveHook === false) {
+      return;
     }
+
+    this.rowsMapper.moveItems(rows, finalIndex);
+    this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePossible && this.isRowOrderChanged(rows, finalIndex));
   }
 
   /**
    * Drag a single row to drop index position.
    *
    * @param {Number} row Visual row index to be dragged.
-   * @param {Number} [dropIndex=0] Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Number} [dropIndex=0] Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
+   * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
    */
   dragRow(row, dropIndex = 0) {
     this.dragRows([row], dropIndex);
@@ -207,7 +211,8 @@ class ManualRowMove extends BasePlugin {
    * Drag multiple rows to drop index position.
    *
    * @param {Array} rows Array of visual row indexes to be dragged.
-   * @param {Number} [dropIndex=0] Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Number} [dropIndex=0] Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
+   * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
    */
   dragRows(rows, dropIndex = 0) {
     const finalIndex = this.countFinalIndex(rows, dropIndex);
@@ -222,7 +227,8 @@ class ManualRowMove extends BasePlugin {
    * Indicates if it's possible to move rows to the desired position. Some of the actions aren't possible, i.e. you can’t move more than one element to the last position.
    *
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    *
    * @returns {Boolean}
    */
@@ -230,7 +236,11 @@ class ManualRowMove extends BasePlugin {
     // An attempt to transfer more rows to start destination than is possible (only when moving from the top to the bottom).
     const tooHighDestinationIndex = movedRows.length + finalIndex > this.rowsMapper._arrayMap.length;
 
-    if (tooHighDestinationIndex) {
+    const tooLowDestinationIndex = movedRows.length + finalIndex - 1 < 0;
+    const tooLowMovedRowIndex = movedRows.some((movedRow) => movedRow < 0);
+    const tooHighMovedRowIndex = movedRows.some((movedRow) => movedRow >= this.rowsMapper._arrayMap.length);
+
+    if (tooHighDestinationIndex || tooLowDestinationIndex || tooLowMovedRowIndex || tooHighMovedRowIndex) {
       return false;
     }
 
@@ -242,7 +252,8 @@ class ManualRowMove extends BasePlugin {
    *
    * @private
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    *
    * @returns {Boolean}
    */
@@ -526,19 +537,6 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * `beforeColumnSort` hook callback. If user uses the sorting, manual row moving is disabled.
-   *
-   * @private
-   * @param {Number} column Column index where soring is present
-   * @param {*} order State of sorting. ASC/DESC/None
-   */
-  onBeforeColumnSort(column, order) {
-    let priv = privatePool.get(this);
-
-    priv.disallowMoving = order !== void 0;
-  }
-
-  /**
    * Change the behavior of selection / dragging.
    *
    * @private
@@ -686,11 +684,9 @@ class ManualRowMove extends BasePlugin {
     this.persistentStateSave();
     this.hot.render();
 
-    if (!priv.disallowMoving) {
-      let selectionStart = this.rowsMapper.getIndexByValue(firstMovedPhysicalRow);
-      let selectionEnd = selectionStart + rowsLen - 1;
-      this.changeSelection(selectionStart, selectionEnd);
-    }
+    let selectionStart = this.rowsMapper.getIndexByValue(firstMovedPhysicalRow);
+    let selectionEnd = selectionStart + rowsLen - 1;
+    this.changeSelection(selectionStart, selectionEnd);
 
     priv.rowsToMove.length = 0;
   }
