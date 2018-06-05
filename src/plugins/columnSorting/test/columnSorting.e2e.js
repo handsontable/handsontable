@@ -61,6 +61,28 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
+  it('should proper count visible rows after sorted', function() {
+    const hot = handsontable({
+      data: [
+        ['1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'],
+        ['2']
+      ],
+      height: 100,
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByClickOnColumnHeader(0);
+
+    expect(getDataAtCol(0)).toEqual(['1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n', '2']);
+    expect(hot.countVisibleRows()).toEqual(0);
+
+    this.sortByClickOnColumnHeader(0);
+
+    expect(getDataAtCol(0)).toEqual(['2', '1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n']);
+    expect(hot.countVisibleRows()).toEqual(1);
+  });
+
   it('should apply stable sort function #3606', () => {
     const hot = handsontable({
       data: [
