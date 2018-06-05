@@ -13,9 +13,18 @@ describe('settings', () => {
   });
 
   describe('autoWrapCol', () => {
+    it('should be defaults true', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5)
+      });
+
+      expect(hot.getSettings().autoWrapCol).toBe(true);
+    });
+
     it('should move to the neighboring column when it reaches the end of the current', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5)
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        autoWrapCol: true
       });
 
       selectCell(4, 0);
@@ -33,7 +42,8 @@ describe('settings', () => {
 
     it('should move to the start of the table when it reaches the end of the table', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5)
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        autoWrapCol: true
       });
 
       selectCell(4, 4);
