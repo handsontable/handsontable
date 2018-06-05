@@ -12,6 +12,7 @@ import ptBR from './pt-BR';
 import ruRU from './ru-RU';
 import zhCN from './zh-CN';
 import zhTW from './zh-TW';
+import zhTW from './nl-NL';
 
 export {
   deCH,
@@ -25,5 +26,6 @@ export {
   ptBR,
   ruRU,
   zhCN,
-  zhTW
+  zhTW,
+  nlNL
 };
