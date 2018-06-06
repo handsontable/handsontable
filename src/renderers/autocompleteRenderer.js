@@ -41,7 +41,7 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
     getRenderer('text').apply(this, arguments);
   }
 
-  TD.prepend(ARROW);
+  TD.insertBefore(ARROW, TD.firstChild);
   addClass(TD, 'htAutocomplete');
 
   if (!TD.firstChild) { // http://jsperf.com/empty-node-if-needed
