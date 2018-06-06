@@ -250,7 +250,7 @@ describe('manualRowMove', () => {
           expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
         });
 
-        it('should not move and not trigger the `afterRowMove` hook after try to move row, when `beforeRowMove` return false', () => {
+        it('should not move and not trigger the `afterRowMove` hook after try of moving row, when `beforeRowMove` return false', () => {
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
           const hot = handsontable({
@@ -523,7 +523,7 @@ describe('manualRowMove', () => {
           expect(spec().$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('1');
         });
 
-        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging rows to index which is too high', () => {
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging rows to index, which is too high', () => {
           let movePossible;
           let orderChanged;
 
@@ -544,7 +544,7 @@ describe('manualRowMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging rows to index which is too low', () => {
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging rows to index, which is too low', () => {
           let movePossible;
           let orderChanged;
 
@@ -565,7 +565,7 @@ describe('manualRowMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging too low rows to index which is too high', () => {
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging too low rows to index, which is too high', () => {
           let movePossible;
           let orderChanged;
 
@@ -586,7 +586,7 @@ describe('manualRowMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging too low rows to index which is too low', () => {
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging too low rows to index, which is too low', () => {
           let movePossible;
           let orderChanged;
 
