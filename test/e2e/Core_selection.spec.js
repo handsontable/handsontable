@@ -80,7 +80,9 @@ describe('Core_selection', () => {
   it('should fix start range if provided is out of bounds (to the left)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
+      autoWrapCol: false,
+      autoWrapRow: false
     });
     selectCell(0, 0);
     keyDownUp('arrow_left');
@@ -91,7 +93,9 @@ describe('Core_selection', () => {
   it('should fix start range if provided is out of bounds (to the top)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
+      autoWrapCol: false,
+      autoWrapRow: false
     });
     selectCell(0, 0);
     keyDownUp('arrow_up');
@@ -102,7 +106,9 @@ describe('Core_selection', () => {
   it('should fix start range if provided is out of bounds (to the right)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
+      autoWrapCol: false,
+      autoWrapRow: false
     });
     selectCell(0, 4);
     keyDownUp('arrow_right');
@@ -113,7 +119,9 @@ describe('Core_selection', () => {
   it('should fix start range if provided is out of bounds (to the bottom)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
+      autoWrapCol: false,
+      autoWrapRow: false
     });
     selectCell(4, 0);
     keyDownUp('arrow_down');
@@ -797,7 +805,9 @@ describe('Core_selection', () => {
 
     var hot = handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
+      autoWrapCol: false,
+      autoWrapRow: false
     });
     hot.addHook('afterModifyTransformStart', spy);
 

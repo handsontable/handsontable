@@ -369,7 +369,8 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6]
-      ]
+      ],
+      fillHandle: true
     });
 
     selectCell(0, 2);
@@ -536,6 +537,9 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6]
       ],
+      fillHandle: {
+        autoInsertRow: true
+      },
       maxRows: 5
     });
 
@@ -565,7 +569,10 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6]
-      ]
+      ],
+      fillHandle: {
+        autoInsertRow: true
+      },
     });
 
     selectCell(0, 2);
@@ -691,7 +698,10 @@ describe('FillHandle', () => {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6]
-      ]
+      ],
+      fillHandle: {
+        autoInsertRow: true
+      },
     });
 
     selectCell(0, 2);

@@ -2922,7 +2922,9 @@ describe('AutocompleteEditor', () => {
           strict: false
         },
         {}
-      ]
+      ],
+      autoWrapCol: false,
+      autoWrapRow: false
     });
 
     selectCell(1, 0);

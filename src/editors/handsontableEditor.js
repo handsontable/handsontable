@@ -38,6 +38,8 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
     autoRowSize: false,
     readOnly: true,
     fillHandle: false,
+    autoWrapCol: false,
+    autoWrapRow: false,
     afterOnCellMouseDown(_, coords) {
       var value = this.getSourceData(coords.row, coords.col);
 

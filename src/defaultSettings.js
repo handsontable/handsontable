@@ -555,9 +555,13 @@ DefaultSettings.prototype = {
    * ```
    *
    * @type {Boolean|String|Object}
-   * @default true
+   * @default fillHandle: {
+   *   autoInsertRow: false,
+   * }
    */
-  fillHandle: true,
+  fillHandle: {
+    autoInsertRow: false,
+  },
 
   /**
    * Allows to specify the number of fixed (or *frozen*) rows at the top of the table.
@@ -640,17 +644,17 @@ DefaultSettings.prototype = {
    * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
    *
    * @type {Boolean}
-   * @default false
+   * @default true
    */
-  autoWrapRow: false,
+  autoWrapRow: true,
 
   /**
    * If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to the first row in the next column.
    *
    * @type {Boolean}
-   * @default false
+   * @default true
    */
-  autoWrapCol: false,
+  autoWrapCol: true,
 
   /**
    * @description
