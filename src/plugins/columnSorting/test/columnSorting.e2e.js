@@ -72,11 +72,13 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
+    const htCore = getHtCore();
+
     hot.getPlugin('ColumnSorting').sort(0, 'desc');
 
     await 300;
 
-    expect(document.querySelectorAll('td').length).toEqual(2);
+    expect(htCore.find('td').length).toEqual(2);
   });
 
   it('should apply stable sort function #3606', () => {
