@@ -416,6 +416,7 @@ export const getDataAtRow = handsontableMethodFactory('getDataAtRow');
 export const getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 export const getDataType = handsontableMethodFactory('getDataType');
 export const getInstance = handsontableMethodFactory('getInstance');
+export const getPlugin = handsontableMethodFactory('getPlugin');
 export const getRowHeader = handsontableMethodFactory('getRowHeader');
 export const getSelected = handsontableMethodFactory('getSelected');
 export const getSelectedLast = handsontableMethodFactory('getSelectedLast');
@@ -444,7 +445,6 @@ export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
 export const updateSettings = handsontableMethodFactory('updateSettings');
-export const getPlugin = handsontableMethodFactory('getPlugin');
 
 /**
  * Returns column width for HOT container
