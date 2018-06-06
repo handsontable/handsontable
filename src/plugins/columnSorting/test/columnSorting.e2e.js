@@ -61,8 +61,8 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
-  it('should proper count td after sorted', async () => {
-    const hot = handsontable({
+  it('should render a correct number of TD elements after sorting', async () => {
+    handsontable({
       data: [
         ['1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'],
         ['2']
@@ -74,7 +74,7 @@ describe('ColumnSorting', () => {
 
     const htCore = getHtCore();
 
-    hot.getPlugin('ColumnSorting').sort(0, 'desc');
+    getPlugin('ColumnSorting').sort(0, 'desc');
 
     await 300;
 

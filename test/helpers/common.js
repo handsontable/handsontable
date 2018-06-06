@@ -444,6 +444,7 @@ export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
 export const updateSettings = handsontableMethodFactory('updateSettings');
+export const getPlugin = handsontableMethodFactory('getPlugin');
 
 /**
  * Returns column width for HOT container
