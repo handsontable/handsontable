@@ -61,10 +61,10 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
-  it('should proper count hot height after sorted', function() {
+  it('should proper count td after sorted', async () => {
     const hot = handsontable({
       data: [
-        ['1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'],
+        ['1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'],
         ['2']
       ],
       height: 100,
@@ -72,22 +72,11 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    const $table = this.$container.find('table.htCore tbody')[0];
+    hot.getPlugin('ColumnSorting').sort(0, 'desc');
 
-    this.sortByClickOnColumnHeader(0);
+    await 300;
 
-    expect(getDataAtCol(0)).toEqual(['1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n', '2']);
-    expect($table.clientHeight).toEqual(464);
-
-    this.sortByClickOnColumnHeader(0);
-
-    expect(getDataAtCol(0)).toEqual(['2', '1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n']);
-    expect($table.clientHeight).toEqual(487);
-
-    this.sortByClickOnColumnHeader(0);
-
-    expect(getDataAtCol(0)).toEqual(['1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n', '2']);
-    expect($table.clientHeight).toEqual(487);
+    expect(document.querySelectorAll('td').length).toEqual(2);
   });
 
   it('should apply stable sort function #3606', () => {
