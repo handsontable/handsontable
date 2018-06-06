@@ -449,9 +449,6 @@ class TableRenderer {
       if (visibleColIndex === 0) {
         TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(sourceColIndex)];
       } else {
-        if (!TD.nextSibling) {
-          debugger;
-        }
         TD = TD.nextSibling; // http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
       // If the number of headers has been reduced, we need to replace excess TH with TD
