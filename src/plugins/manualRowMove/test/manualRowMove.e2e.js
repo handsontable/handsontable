@@ -270,7 +270,7 @@ describe('manualRowMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of move row to final index, which is too high', () => {
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of moving row to final index, which is too high', () => {
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
           const hot = handsontable({
@@ -287,7 +287,7 @@ describe('manualRowMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of move row to final index, which is too low', () => {
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of moving row to final index, which is too low', () => {
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
           const hot = handsontable({
@@ -304,7 +304,7 @@ describe('manualRowMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of move too high row', () => {
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of moving too high row', () => {
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
           const hot = handsontable({
@@ -321,7 +321,7 @@ describe('manualRowMove', () => {
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
 
-        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of move too low row', () => {
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of moving too low row', () => {
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
           const hot = handsontable({
@@ -521,6 +521,90 @@ describe('manualRowMove', () => {
           expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('4');
           expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
           expect(spec().$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('1');
+        });
+
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging rows to index which is too high', () => {
+          let movePossible;
+          let orderChanged;
+
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            colHeaders: true,
+            manualRowMove: true,
+            afterRowMove(...args) {
+              [, , , movePossible, orderChanged] = args;
+            }
+          });
+
+          hot.getPlugin('manualRowMove').dragRows([1, 2, 3], 15);
+
+          expect(movePossible).toBeFalsy();
+          expect(orderChanged).toBeFalsy();
+          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        });
+
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging rows to index which is too low', () => {
+          let movePossible;
+          let orderChanged;
+
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            colHeaders: true,
+            manualRowMove: true,
+            afterRowMove(...args) {
+              [, , , movePossible, orderChanged] = args;
+            }
+          });
+
+          hot.getPlugin('manualRowMove').dragRows([1, 2, 3], -1);
+
+          expect(movePossible).toBeFalsy();
+          expect(orderChanged).toBeFalsy();
+          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        });
+
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging too low rows to index which is too high', () => {
+          let movePossible;
+          let orderChanged;
+
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            colHeaders: true,
+            manualRowMove: true,
+            afterRowMove(...args) {
+              [, , , movePossible, orderChanged] = args;
+            }
+          });
+
+          hot.getPlugin('manualRowMove').dragRows([-1, -2, -3, -4], 15);
+
+          expect(movePossible).toBeFalsy();
+          expect(orderChanged).toBeFalsy();
+          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        });
+
+        it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging too low rows to index which is too low', () => {
+          let movePossible;
+          let orderChanged;
+
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            colHeaders: true,
+            manualRowMove: true,
+            afterRowMove(...args) {
+              [, , , movePossible, orderChanged] = args;
+            }
+          });
+
+          hot.getPlugin('manualRowMove').dragRows([-2, -3, -4, -5], -1);
+
+          expect(movePossible).toBeFalsy();
+          expect(orderChanged).toBeFalsy();
+          expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         });
       });
     });
