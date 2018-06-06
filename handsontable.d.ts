@@ -1253,8 +1253,11 @@ declare namespace Handsontable {
       removedRows: any[];
       rowsMapper: MoveRowsMapper;
 
-      moveRow(row: number, target: number): void;
-      moveRows(rows: number[], target: number): void;
+      moveRow(row: number, finalIndex: number): void;
+      moveRows(rows: number[], finalIndex: number): void;
+      dragRow(row: number, dropIndex: number): void;
+      dragRows(rows: number[], dropIndex: number): void;
+      isMovePossible(rows: number[], finalIndex: number): boolean;
     }
 
     interface ManualRowResize extends Base {
