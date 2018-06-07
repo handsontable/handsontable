@@ -117,12 +117,12 @@ function UndoRedo(instance) {
     plugin.done(new UndoRedo.FiltersAction(conditionsStack));
   });
 
-  instance.addHook('beforeRowMove', (rows, finalIndex) => {
-    if (rows === false) {
+  instance.addHook('beforeRowMove', (movedRows, target) => {
+    if (movedRows === false) {
       return;
     }
 
-    plugin.done(new UndoRedo.RowMoveAction(rows, finalIndex));
+    plugin.done(new UndoRedo.RowMoveAction(movedRows, target));
   });
 
   instance.addHook('beforeMergeCells', (cellRange, auto) => {
@@ -548,44 +548,40 @@ UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
  * ManualRowMove action.
  * @TODO: removeRow undo should works on logical index
  */
-UndoRedo.RowMoveAction = function(rows, finalIndex) {
-  this.rows = rows.slice();
-  this.finalIndex = finalIndex;
+UndoRedo.RowMoveAction = function(movedRows, target) {
+  this.rows = movedRows.slice();
+  this.target = target;
 };
 inherit(UndoRedo.RowMoveAction, UndoRedo.Action);
 
 UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
-  const manualRowMove = instance.getPlugin('manualRowMove');
-  const copyOfRows = [].concat(this.rows);
-  const rowsMovedUp = copyOfRows.filter((a) => a > this.finalIndex);
-  const rowsMovedDown = copyOfRows.filter((a) => a <= this.finalIndex);
-  const allMovedRows = rowsMovedUp.sort((a, b) => b - a).concat(rowsMovedDown.sort((a, b) => a - b));
+  let manualRowMove = instance.getPlugin('manualRowMove');
 
   instance.addHookOnce('afterRender', undoneCallback);
 
-  // Moving rows from those with higher indexes to those with lower indexes when action was performed from bottom to top
-  // Moving rows from those with lower indexes to those with higher indexes when action was performed from top to bottom
-  for (let i = 0; i < allMovedRows.length; i += 1) {
-    const newPhysicalRow = manualRowMove.rowsMapper.getIndexByValue(allMovedRows[i]);
+  let mod = this.rows[0] < this.target ? -1 * this.rows.length : 0;
+  let newTarget = this.rows[0] > this.target ? this.rows[0] + this.rows.length : this.rows[0];
+  let newRows = [];
+  let rowsLen = this.rows.length + mod;
 
-    manualRowMove.moveRow(newPhysicalRow, allMovedRows[i]);
+  for (let i = mod; i < rowsLen; i += 1) {
+    newRows.push(this.target + i);
   }
 
+  manualRowMove.moveRows(newRows.slice(), newTarget);
   instance.render();
 
-  instance.deselectCell();
-  instance.selectRows(this.rows[0], this.rows[0] + this.rows.length - 1);
+  instance.selectCell(this.rows[0], 0, this.rows[this.rows.length - 1], instance.countCols() - 1, false, false);
 };
 UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
   let manualRowMove = instance.getPlugin('manualRowMove');
 
   instance.addHookOnce('afterRender', redoneCallback);
-
-  manualRowMove.moveRows(this.rows.slice(), this.finalIndex);
+  manualRowMove.moveRows(this.rows.slice(), this.target);
   instance.render();
+  let startSelection = this.rows[0] < this.target ? this.target - this.rows.length : this.target;
 
-  instance.deselectCell();
-  instance.selectRows(this.finalIndex, this.finalIndex + this.rows.length - 1);
+  instance.selectCell(startSelection, 0, startSelection + this.rows.length - 1, instance.countCols() - 1, false, false);
 };
 
 function init() {

@@ -1,6 +1,6 @@
 import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
-import {arrayEach, arrayReduce} from './../../helpers/array';
+import {arrayEach} from './../../helpers/array';
 import {addClass, removeClass, offset} from './../../helpers/dom/element';
 import {rangeEach} from './../../helpers/number';
 import EventManager from './../../eventManager';
@@ -28,17 +28,14 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * This plugin allows to change rows order.
  *
  * API:
- * - `moveRow` - move single row to the new position.
- * - `moveRows` - move many rows (as an array of indexes) to the new position.
- * - `dragRow` - drag single row to the new position.
- * - `dragRows` - drag many rows (as an array of indexes) to the new position.
+ * - moveRow - move single row to the new position.
+ * - moveRows - move many rows (as an array of indexes) to the new position.
  *
- * [Documentation](/demo-moving.html#manualRowMove) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
- * you have to call manually the `render` method on the instance of Handsontable.
+ * If you want apply visual changes, you have to call manually the render() method on the instance of handsontable.
  *
  * UI components:
- * - `backlight` - highlight of selected rows.
- * - `guideline` - line which shows where rows has been moved.
+ * - backlight - highlight of selected rows.
+ * - guideline - line which shows where rows has been moved.
  *
  * @class ManualRowMove
  * @plugin ManualRowMove
@@ -53,19 +50,18 @@ class ManualRowMove extends BasePlugin {
     privatePool.set(this, {
       rowsToMove: [],
       pressed: void 0,
+      disallowMoving: void 0,
       target: {
         eventPageY: void 0,
         coords: void 0,
         TD: void 0,
         row: void 0
-      },
-      cachedDropIndex: void 0
+      }
     });
 
     /**
      * List of last removed row indexes.
      *
-     * @private
      * @type {Array}
      */
     this.removedRows = [];
@@ -120,6 +116,7 @@ class ManualRowMove extends BasePlugin {
     this.addHook('afterRemoveRow', () => this.onAfterRemoveRow());
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('afterLoadData', () => this.onAfterLoadData());
+    this.addHook('beforeColumnSort', (column, order) => this.onBeforeColumnSort(column, order));
     this.addHook('unmodifyRow', (row) => this.onUnmodifyRow(row));
 
     this.registerEvents();
@@ -162,123 +159,48 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Move a single row to final index position.
+   * Move a single row.
    *
    * @param {Number} row Visual row index to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Number} target Visual row index being a target for the moved row.
    */
-  moveRow(row, finalIndex) {
-    this.moveRows([row], finalIndex);
+  moveRow(row, target) {
+    this.moveRows([row], target);
   }
 
   /**
-   * Move multiple rows to final index position.
+   * Move multiple rows.
    *
    * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {Number} target Visual row index being a target for the moved rows.
    */
-  moveRows(rows, finalIndex) {
-    const priv = privatePool.get(this);
-    const dropIndex = priv.cachedDropIndex;
-    const movePossible = this.isMovePossible(rows, finalIndex);
-    const beforeMoveHook = this.hot.runHooks('beforeRowMove', rows, finalIndex, dropIndex, movePossible);
+  moveRows(rows, target) {
+    const visualRows = [...rows];
+    let priv = privatePool.get(this);
+    let beforeMoveHook = this.hot.runHooks('beforeRowMove', visualRows, target);
 
-    priv.cachedDropIndex = void 0;
+    priv.disallowMoving = beforeMoveHook === false;
 
-    if (beforeMoveHook === false) {
-      return;
+    if (!priv.disallowMoving) {
+      // first we need to rewrite an visual indexes to physical for save reference after move
+      arrayEach(rows, (row, index, array) => {
+        array[index] = this.rowsMapper.getValueByIndex(row);
+      });
+
+      // next, when we have got an physical indexes, we can move rows
+      arrayEach(rows, (row, index) => {
+        let actualPosition = this.rowsMapper.getIndexByValue(row);
+
+        if (actualPosition !== target) {
+          this.rowsMapper.moveRow(actualPosition, target + index);
+        }
+      });
+
+      // after moving we have to clear rowsMapper from null entries
+      this.rowsMapper.clearNull();
     }
 
-    if (movePossible) {
-      this.rowsMapper.moveItems(rows, finalIndex);
-    }
-
-    this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePossible && this.isRowOrderChanged(rows, finalIndex));
-  }
-
-  /**
-   * Drag a single row to drop index position.
-   *
-   * @param {Number} row Visual row index to be dragged.
-   * @param {Number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
-   * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
-   */
-  dragRow(row, dropIndex) {
-    this.dragRows([row], dropIndex);
-  }
-
-  /**
-   * Drag multiple rows to drop index position.
-   *
-   * @param {Array} rows Array of visual row indexes to be dragged.
-   * @param {Number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
-   * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
-   */
-  dragRows(rows, dropIndex) {
-    const finalIndex = this.countFinalIndex(rows, dropIndex);
-    const priv = privatePool.get(this);
-
-    priv.cachedDropIndex = dropIndex;
-
-    this.moveRows(rows, finalIndex);
-  }
-
-  /**
-   * Indicates if it's possible to move rows to the desired position. Some of the actions aren't possible, i.e. you can’t move more than one element to the last position.
-   *
-   * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
-   * @returns {Boolean}
-   */
-  isMovePossible(movedRows, finalIndex) {
-    // An attempt to transfer more rows to start destination than is possible (only when moving from the top to the bottom).
-    const tooHighDestinationIndex = movedRows.length + finalIndex > this.rowsMapper._arrayMap.length;
-
-    const tooLowDestinationIndex = finalIndex < 0;
-    const tooLowMovedRowIndex = movedRows.some((movedRow) => movedRow < 0);
-    const tooHighMovedRowIndex = movedRows.some((movedRow) => movedRow >= this.rowsMapper._arrayMap.length);
-
-    if (tooHighDestinationIndex || tooLowDestinationIndex || tooLowMovedRowIndex || tooHighMovedRowIndex) {
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * Indicates if order of rows was changed.
-   *
-   * @private
-   * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
-   * @returns {Boolean}
-   */
-  isRowOrderChanged(movedRows, finalIndex) {
-    return movedRows.some((row, nrOfMovedElement) => row - nrOfMovedElement !== finalIndex);
-  }
-
-  /**
-   * Count the final row index from the drop index.
-   *
-   * @private
-   * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} dropIndex Visual row index, being a drop index for the moved rows.
-   * @returns {Number} Visual row index, being a start index for the moved rows.
-   */
-  countFinalIndex(movedRows, dropIndex) {
-    const numberOfRowsLowerThanDropIndex = arrayReduce(movedRows, (numberOfRows, currentRowIndex) => {
-      if (currentRowIndex < dropIndex) {
-        numberOfRows += 1;
-      }
-
-      return numberOfRows;
-    }, 0);
-
-    return dropIndex - numberOfRowsLowerThanDropIndex;
+    this.hot.runHooks('afterRowMove', visualRows, target);
   }
 
   /**
@@ -537,6 +459,19 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
+   * `beforeColumnSort` hook callback. If user uses the sorting, manual row moving is disabled.
+   *
+   * @private
+   * @param {Number} column Column index where soring is present
+   * @param {*} order State of sorting. ASC/DESC/None
+   */
+  onBeforeColumnSort(column, order) {
+    let priv = privatePool.get(this);
+
+    priv.disallowMoving = order !== void 0;
+  }
+
+  /**
    * Change the behavior of selection / dragging.
    *
    * @private
@@ -672,21 +607,21 @@ class ManualRowMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
-    if (rowsLen < 1 || target === void 0) {
+    if (rowsLen < 1 || target === void 0 || priv.rowsToMove.indexOf(target) > -1 ||
+        (priv.rowsToMove[rowsLen - 1] === target - 1)) {
       return;
     }
 
-    const firstMovedVisualRow = priv.rowsToMove[0];
-    const firstMovedPhysicalRow = this.rowsMapper.getValueByIndex(firstMovedVisualRow);
-
-    this.dragRows(priv.rowsToMove, target);
+    this.moveRows(priv.rowsToMove, target);
 
     this.persistentStateSave();
     this.hot.render();
 
-    let selectionStart = this.rowsMapper.getIndexByValue(firstMovedPhysicalRow);
-    let selectionEnd = selectionStart + rowsLen - 1;
-    this.changeSelection(selectionStart, selectionEnd);
+    if (!priv.disallowMoving) {
+      let selectionStart = this.rowsMapper.getIndexByValue(priv.rowsToMove[0]);
+      let selectionEnd = this.rowsMapper.getIndexByValue(priv.rowsToMove[rowsLen - 1]);
+      this.changeSelection(selectionStart, selectionEnd);
+    }
 
     priv.rowsToMove.length = 0;
   }

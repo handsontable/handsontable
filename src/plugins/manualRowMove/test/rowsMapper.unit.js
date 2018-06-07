@@ -39,7 +39,8 @@ describe('manualRowMove', () => {
       var mapper = new RowsMapper();
       mapper.createMap(6);
 
-      mapper.moveItems(1, 0);
+      mapper.moveRow(1, 0);
+      mapper.clearNull();
 
       expect(mapper._arrayMap[0]).toBe(1);
       expect(mapper._arrayMap[1]).toBe(0);
@@ -47,6 +48,19 @@ describe('manualRowMove', () => {
       expect(mapper._arrayMap[3]).toBe(3);
       expect(mapper._arrayMap[4]).toBe(4);
       expect(mapper._arrayMap[5]).toBe(5);
+    });
+
+    it('should clean from null values', () => {
+      var mapper = new RowsMapper();
+      mapper.createMap(6);
+
+      mapper.moveRow(1, 6);
+      mapper.moveRow(2, 7);
+      mapper.moveRow(4, 8);
+
+      mapper.clearNull();
+
+      expect(mapper._arrayMap.length).toBe(6);
     });
   });
 });
