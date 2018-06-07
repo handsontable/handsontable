@@ -1,7 +1,7 @@
 /**
  * @preserve
- * Authors: Handsoncode
- * Last updated: Nov 15, 2017
+ * Authors: Tomas Rapkauskas, Anton Brouwer
+ * Last updated: Jun 07, 2018
  *
  * Description: Definition file for Dutch - Netherlands language-country.
  */

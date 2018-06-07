@@ -22,10 +22,10 @@ export {
   frFR,
   jaJP,
   nbNO,
+  nlNL,
   plPL,
   ptBR,
   ruRU,
   zhCN,
-  zhTW,
-  nlNL
+  zhTW
 };
