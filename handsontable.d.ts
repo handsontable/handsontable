@@ -1555,7 +1555,7 @@ declare namespace Handsontable {
     afterAddChild?: (parent: object, element: object | void, index: number | void) => void;
     afterBeginEdting?: (row: number, column: number) => void;
     afterCellMetaReset?: () => void;
-    afterChange?: (changes: any[], source: string) => void;
+    afterChange?: (changes: [number, string | number, any, any][], source: string) => void;
     afterChangesObserved?: () => void;
     afterColumnMove?: (startColumn: number, endColumn: number) => void;
     afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
@@ -1622,7 +1622,7 @@ declare namespace Handsontable {
     beforeAutofill?: (start: object, end: object, data: any[]) => void;
     beforeAutofillInsidePopulate?: (index: object, direction: string, input: any[], deltas: any[]) => void;
     beforeCellAlignment?: (stateBefore: any, range: any, type: string, alignmentClass: string) => void;
-    beforeChange?: (changes: any[], source: string) => void;
+    beforeChange?: (changes: [number, string | number, any, any][], source: string) => void;
     beforeChangeRender?: (changes: any[], source: string) => void;
     beforeColumnMove?: (startColumn: number, endColumn: number) => void;
     beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
