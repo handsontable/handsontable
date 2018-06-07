@@ -7,12 +7,12 @@ import esMX from './es-MX';
 import frFR from './fr-FR';
 import jaJP from './ja-JP';
 import nbNO from './nb-NO';
+import nlNL from './nl-NL';
 import plPL from './pl-PL';
 import ptBR from './pt-BR';
 import ruRU from './ru-RU';
 import zhCN from './zh-CN';
 import zhTW from './zh-TW';
-import zhTW from './nl-NL';
 
 export {
   deCH,
