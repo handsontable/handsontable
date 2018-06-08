@@ -1521,7 +1521,7 @@ declare namespace Handsontable {
     renderer?: string | renderers.Base;
     rowHeaders?: boolean | any[] | (() => void);
     rowHeaderWidth?: number | any[];
-    rowHeights?: any[] | (() => void) | number | string;
+    rowHeights?: number[] | ((row: number) => number) | number | string;
     search?: boolean;
     selectOptions?: any[];
     skipColumnOnPaste?: boolean;
