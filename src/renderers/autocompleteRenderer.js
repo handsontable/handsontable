@@ -41,14 +41,14 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
     getRenderer('text').apply(this, arguments);
   }
 
-  TD.appendChild(ARROW);
-  addClass(TD, 'htAutocomplete');
-
   if (!TD.firstChild) { // http://jsperf.com/empty-node-if-needed
     // otherwise empty fields appear borderless in demo/renderers.html (IE)
     TD.appendChild(document.createTextNode(String.fromCharCode(160))); // workaround for https://github.com/handsontable/handsontable/issues/1946
     // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
+
+  TD.insertBefore(ARROW, TD.firstChild);
+  addClass(TD, 'htAutocomplete');
 
   if (!instance.acArrowListener) {
     var eventManager = new EventManager(instance);

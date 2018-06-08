@@ -63,4 +63,14 @@ describe('AutocompleteRenderer', () => {
 
     expect(hot.getActiveEditor().isOpened()).toBe(true);
   });
+
+  it('should prepend the autocomplete arrow at the start of the cell element (#5124)', () => {
+    var hot = handsontable({
+      type: 'autocomplete'
+    });
+
+    var $contents = $(getCell(0, 0)).contents();
+
+    expect($contents.eq(0).hasClass('htAutocompleteArrow')).toBe(true);
+  });
 });
