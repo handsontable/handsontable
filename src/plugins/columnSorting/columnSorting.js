@@ -67,17 +67,17 @@ class ColumnSorting extends BasePlugin {
      */
     this.sortOrder = NONE_SORT_STATE;
     /**
-     * Object containing visual row indexes mapped to data source indexes.
-     *
-     * @type {RowsMapper}
-     */
-    this.rowsMapper = new RowsMapper(this);
-    /**
      * Sorting empty cells.
      *
      * @type {Boolean}
      */
     this.sortEmptyCells = false;
+    /**
+     * Object containing visual row indexes mapped to data source indexes.
+     *
+     * @type {RowsMapper}
+     */
+    this.rowsMapper = new RowsMapper(this);
     /**
      * It blocks the plugin translation, this flag is checked inside `onModifyRow` listener.
      *
@@ -144,30 +144,50 @@ class ColumnSorting extends BasePlugin {
    * Sorting the table by chosen column and order.
    *
    * @param {Number} column Visual column index.
-   * @param {undefined|String} order Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
+   * @param {String} order Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
    */
-  sort(column, order) {
-    this.setSortingColumn(column, order);
+  sort(column, order = this.getNextOrderState(column)) {
+    const allowSorting = this.hot.runHooks('beforeColumnSort', column, order);
 
-    if (isUndefined(this.sortColumn)) {
+    if (isUndefined(column)) {
       return;
     }
-
-    const allowSorting = this.hot.runHooks('beforeColumnSort', this.sortColumn, this.sortOrder);
 
     if (allowSorting === false) {
       return;
     }
 
+    this.sortColumn = column;
+    this.sortOrder = order;
+
     this.sortByPresetColumnAndOrder();
     this.updateSortIndicator();
 
-    this.hot.runHooks('afterColumnSort', this.sortColumn, this.sortOrder);
+    this.hot.runHooks('afterColumnSort', column, order);
 
     this.hot.render();
     this.hot.view.wt.draw(true);
 
     this.saveSortingState();
+  }
+
+  /**
+   * Get new order state for particular column. The states queue looks as follows: 'asc' -> 'desc' -> 'none' -> 'asc'
+   *
+   * @param {Number} column Visual column index.
+   * @returns {String} Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
+   */
+  getNextOrderState(column) {
+    if (this.sortColumn === column) {
+      if (this.sortOrder === DESC_SORT_STATE) {
+        return NONE_SORT_STATE;
+
+      } else if (this.sortOrder === ASC_SORT_STATE) {
+        return DESC_SORT_STATE;
+      }
+    }
+
+    return ASC_SORT_STATE;
   }
 
   /**
@@ -209,44 +229,6 @@ class ColumnSorting extends BasePlugin {
     this.hot.runHooks('persistentStateLoad', 'columnSorting', storedState);
 
     return storedState.value;
-  }
-
-  /**
-   * Set sorted column and order info
-   *
-   * @private
-   * @param {Number} column Sorted visual column index.
-   * @param {undefined|String} order Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
-   */
-  setSortingColumn(column, order) {
-    if (isUndefined(column)) {
-      this.sortColumn = void 0;
-      this.sortOrder = NONE_SORT_STATE;
-
-      return;
-    } else if (this.sortColumn === column && isUndefined(order)) {
-      switch (this.sortOrder) {
-        case DESC_SORT_STATE:
-          this.sortOrder = NONE_SORT_STATE;
-
-          break;
-
-        case ASC_SORT_STATE:
-          this.sortOrder = DESC_SORT_STATE;
-
-          break;
-
-        default:
-          this.sortOrder = ASC_SORT_STATE;
-
-          break;
-      }
-
-    } else {
-      this.sortOrder = isUndefined(order) ? ASC_SORT_STATE : order;
-    }
-
-    this.sortColumn = column;
   }
 
   /**
@@ -345,6 +327,7 @@ class ColumnSorting extends BasePlugin {
     if (this.sortOrder === NONE_SORT_STATE) {
       return;
     }
+
     const columnMeta = this.hot.getCellMeta(0, this.sortColumn);
 
     this.sortIndicators[this.sortColumn] = columnMeta.sortIndicator;
@@ -500,16 +483,11 @@ class ColumnSorting extends BasePlugin {
    * @param {CellCoords} coords Visual coords of the selected cell.
    */
   onAfterOnCellMouseDown(event, coords) {
-    if (coords.row > -1) {
+    if (coords.row >= 0) {
       return;
     }
 
     if (hasClass(event.realTarget, HEADER_CLASS_SORTING)) {
-      // reset order state on every new column header click
-      if (coords.col !== this.sortColumn) {
-        this.sortOrder = ASC_SORT_STATE;
-      }
-
       this.sort(coords.col);
     }
   }
