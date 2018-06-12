@@ -56,8 +56,8 @@
     "data-spreadsheet"
   ],
   "dependencies": {
-    "handsontable": "github:handsontable/handsontable#develop",
-    "hot-formula-parser": "^2.3.1",
+    "handsontable": "handsontable/handsontable#develop",
+    "hot-formula-parser": "^3.0.0",
     "moment": "2.20.1",
     "numbro": "^2.0.6",
     "pikaday": "1.5.1"

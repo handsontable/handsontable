@@ -83,7 +83,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('Hello world!');
   });
 
-  it('DOLLAR', function() {
+  xit('DOLLAR', function() {
     var data = getDataForFormulas(0, 'name', ['=DOLLAR()', '=DOLLAR(A1, 2)']);
 
     data[0].id = 1100;
@@ -135,7 +135,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe(4);
   });
 
-  it('FIXED', function() {
+  xit('FIXED', function() {
     var data = getDataForFormulas(0, 'name', ['=FIXED()', '=FIXED(12345.11, 0)']);
 
     data[0].id = 'k';
@@ -416,7 +416,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(2, 1)).toBe('');
   });
 
-  it('TEXT', function() {
+  xit('TEXT', function() {
     var data = getDataForFormulas(0, 'name', ['=TEXT()', '=TEXT(A1, "####.#")']);
 
     data[0].id = '1234.99';
@@ -501,7 +501,7 @@ describe('Formulas -> text functions', function() {
     expect(hot.getDataAtCell(1, 1)).toBe('FOO BAR');
   });
 
-  it('VALUE', function() {
+  xit('VALUE', function() {
     var data = getDataForFormulas(0, 'name', ['=VALUE()', '=VALUE(A1)', '=VALUE(A2)']);
 
     data[0].id = '$1,000';
