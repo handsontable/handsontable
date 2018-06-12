@@ -57,7 +57,7 @@
   ],
   "dependencies": {
     "handsontable": "github:handsontable/handsontable#release/4.0.0",
-    "hot-formula-parser": "^2.3.1",
+    "hot-formula-parser": "^3.0.0",
     "moment": "2.20.1",
     "numbro": "^2.0.6",
     "pikaday": "1.5.1"
