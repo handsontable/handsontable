@@ -5,6 +5,7 @@
 .handsontable .hide{
   display: none;
 }
+
 .handsontable .relative {
   position: relative;
 }
@@ -63,6 +64,7 @@
   /* reset bootstrap table style. for more info see: https://github.com/handsontable/handsontable/issues/224 */
   max-width: none;
   max-height: none;
+  cursor:default;
 }
 
 .handsontable col {
@@ -164,7 +166,7 @@
 }
 
 #hot-display-license-info {
-  font-size: 9px;
+  font-size: 10px;
   color: #323232 ;
   padding: 5px 0 3px 0;
   font-family: Helvetica, Arial, sans-serif;
@@ -196,14 +198,14 @@
 .handsontable .manualColumnResizer.active,
 .handsontable .manualRowResizer:hover,
 .handsontable .manualRowResizer.active {
-  background-color: #AAB;
+  background-color: #34a9db;
 }
 
 .handsontable .manualColumnResizerGuide {
   position: fixed;
   right: 0;
   top: 0;
-  background-color: #AAB;
+  background-color: #34a9db;
   display: none;
   width: 0;
   border-right: 1px dashed #777;
@@ -214,7 +216,7 @@
   position: fixed;
   left: 0;
   bottom: 0;
-  background-color: #AAB;
+  background-color: #34a9db;
   display: none;
   height: 0;
   border-bottom: 1px dashed #777;
@@ -399,6 +401,7 @@ TextRenderer readOnly cell
   color: #777;
   position: absolute;
   right: 5px;
+  font-size: 9px;
 }
 
 
