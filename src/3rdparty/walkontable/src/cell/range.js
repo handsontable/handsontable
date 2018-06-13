@@ -3,7 +3,7 @@ import CellCoords from './../cell/coords';
 /**
  * A cell range is a set of exactly two CellCoords (that can be the same or different).
  *
- * @class CellRange
+ * @util
  */
 class CellRange {
   /**

@@ -2,7 +2,7 @@
  * CellCoords holds cell coordinates (row, column) and few method to validate them and
  * retrieve as an array or an object
  *
- * @class CellCoords
+ * @util
  */
 class CellCoords {
   /**
