@@ -1121,7 +1121,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     });
   };
 
-   /**
+  /**
    * @description
    * Set new value to a cell. To change many cells at once (recommended way), pass an array of `changes` in format
    * `[[row, prop, value],...]` as the first argument.
@@ -1233,7 +1233,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function populateFromArray
    * @param {Number} row Start visual row index.
-   * @param {Number} col Start visual column index.
+   * @param {Number} column Start visual column index.
    * @param {Array} input 2d array
    * @param {Number} [endRow] End visual row index (use when you want to cut input when certain row is reached).
    * @param {Number} [endCol] End visual column index (use when you want to cut input when certain column is reached).
@@ -1243,7 +1243,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Array} deltas The deltas array. A difference between values of adjacent cells.
    *                       Useful **only** when the type of handled cells is `numeric`.
    */
-  this.populateFromArray = function(row, col, input, endRow, endCol, source, method, direction, deltas) {
+  this.populateFromArray = function(row, column, input, endRow, endCol, source, method, direction, deltas) {
     var c;
 
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
@@ -1251,7 +1251,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     c = typeof endRow === 'number' ? new CellCoords(endRow, endCol) : null;
 
-    return grid.populateFromArray(new CellCoords(row, col), input, c, source, method, direction, deltas);
+    return grid.populateFromArray(new CellCoords(row, column), input, c, source, method, direction, deltas);
   };
 
   /**
@@ -1522,7 +1522,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.getData = function(row, column, row2, column2) {
-    if (isUndefined(r)) {
+    if (isUndefined(row)) {
       return datamap.getAll();
     }
 
@@ -1895,7 +1895,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @example
    * ```js
    * hot.getCoords(hot.getCell(1, 1));
-   * // it returns CellCoords with row: 1, col: 1
+   * // it returns CellCoords object instance with props row: 1 and col: 1.
    * ```
    */
   this.getCoords = function(element) {
@@ -2063,7 +2063,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getSourceData = function(row, column, row2, column2) {
     let data;
 
-    if (r === void 0) {
+    if (row === void 0) {
       data = dataSource.getData();
     } else {
       data = dataSource.getByRange(new CellCoords(row, column), new CellCoords(row2, column2));
@@ -2091,7 +2091,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getSourceDataArray = function(row, column, row2, column2) {
     let data;
 
-    if (r === void 0) {
+    if (row === void 0) {
       data = dataSource.getData(true);
     } else {
       data = dataSource.getByRange(new CellCoords(row, column), new CellCoords(row2, column2), true);
@@ -2305,8 +2305,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Get all the cells meta settings at least once generated in the table (in order of cell initialization).
    *
-   * @since 0.19.0
-   * @returns {Array} Returns Array of ColumnSettings object.
+   * @memberof Core#
+   * @function getCellsMeta
+   * @returns {Array} Returns an array of ColumnSettings object instances.
    */
   this.getCellsMeta = function() {
     return arrayFlatten(priv.cellSettings);
@@ -2385,7 +2386,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Checks if the data format and config allows user to modify the column structure.
-   * @returns {boolean}
+   *
+   * @memberof Core#
+   * @function isColumnModificationAllowed
+   * @returns {Boolean}
    */
   this.isColumnModificationAllowed = function() {
     return !(instance.dataType === 'object' || instance.getSettings().columns);
@@ -2544,8 +2548,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function _validateCells
    * @param {Function} [callback] The callback function.
-   * @param {Array} [rows] Optional. Array of validation target visual row indexes.
-   * @param {Array} [columns] Optional. Array of validation target visual column indexes.
+   * @param {Array} [rows] An array of validation target visual row indexes.
+   * @param {Array} [columns] An array of validation target visual column indexes.
    */
   this._validateCells = function(callback, rows, columns) {
     var waitingForValidator = new ValidatorsQueue();
