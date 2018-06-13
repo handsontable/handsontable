@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable-pro/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "browser": "dist/handsontable.js",
   "main": "commonjs/index.js",
   "module": "es/index.js",
@@ -56,8 +56,8 @@
     "data-spreadsheet"
   ],
   "dependencies": {
-    "handsontable": "handsontable/handsontable#develop",
-    "hot-formula-parser": "^3.0.0",
+    "handsontable": "github:handsontable/handsontable#develop",
+    "hot-formula-parser": "^2.3.1",
     "moment": "2.20.1",
     "numbro": "^2.0.6",
     "pikaday": "1.5.1"

@@ -20,8 +20,8 @@
  * RELIABILITY AND PERFORMANCE WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE
  * UNINTERRUPTED OR ERROR FREE.
  * 
- * Version: 3.0.0
- * Release date: 16/05/2018 (built at 16/05/2018 12:03:57)
+ * Version: 4.0.0
+ * Release date: 13/06/2018 (built at 13/06/2018 12:33:36)
  */
 /**
  * Fix for bootstrap styles
@@ -442,9 +442,9 @@
 }
 
 .handsontableInput {
-  border:none;
+  border: none;
   outline-width: 0;
-  margin: 0 ;
+  margin: 0;
   padding: 1px 5px 0 5px;
   font-family: inherit;
   line-height: 21px;
