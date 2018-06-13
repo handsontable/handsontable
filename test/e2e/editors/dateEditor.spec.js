@@ -441,4 +441,21 @@ describe('DateEditor', () => {
 
     expect(editor.TEXTAREA.value).toEqual(cellValue);
   });
+
+  describe('IME support', () => {
+    it('should focus editable element after selecting the cell', async () => {
+      handsontable({
+        columns: [
+          {
+            editor: 'date',
+          }
+        ]
+      });
+      selectCell(0, 0, 0, 0, true, false);
+
+      await sleep(10);
+
+      expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    });
+  });
 });

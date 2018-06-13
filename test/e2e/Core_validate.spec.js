@@ -1380,9 +1380,8 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('should close the editor and save the new value after double clicking on a cell, if the previously edited cell validated correctly', (done) => {
-    var validated = false;
-    var validationResult;
+  it('should close the editor and save the new value after double clicking on a cell, if the previously edited cell validated correctly', async () => {
+    let validationResult;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
@@ -1390,7 +1389,6 @@ describe('Core_validate', () => {
       validator(value, callback) {
         setTimeout(() => {
 
-          validated = true;
           validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
@@ -1400,38 +1398,32 @@ describe('Core_validate', () => {
     selectCell(0, 0);
     keyDown('enter');
 
-    var editor = $('.handsontableInputHolder');
-    expect(editor.is(':visible')).toBe(true);
+    expect(isEditorVisible()).toBe(true);
 
     document.activeElement.value = 'AA';
 
     expect(document.activeElement.value).toEqual('AA');
 
-    var cell = $(getCell(1, 0));
-    var clicks = 0;
+    const cell = $(getCell(1, 0));
 
-    setTimeout(() => {
-      mouseDown(cell);
-      mouseUp(cell);
-      clicks++;
-    }, 0);
+    await sleep();
 
-    setTimeout(() => {
-      mouseDown(cell);
-      mouseUp(cell);
-      clicks++;
-    }, 100);
+    mouseDown(cell);
+    mouseUp(cell);
 
-    setTimeout(() => {
-      expect(editor.is(':visible')).toBe(false);
-      expect(validationResult).toBe(true);
-      expect(getDataAtCell(0, 0)).toEqual('AA');
-      done();
-    }, 300);
+    await sleep(100);
+
+    mouseDown(cell);
+    mouseUp(cell);
+
+    await sleep(200);
+
+    expect(isEditorVisible()).toBe(false);
+    expect(validationResult).toBe(true);
+    expect(getDataAtCell(0, 0)).toEqual('AA');
   });
 
   it('should close the editor and restore the original value after double clicking on a cell, if the previously edited cell have not validated', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
@@ -1439,7 +1431,6 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          validated = true;
           validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
@@ -1453,18 +1444,15 @@ describe('Core_validate', () => {
     expect(document.activeElement.value).toEqual('AAA');
 
     var cell = $(getCell(1, 0));
-    var clicks = 0;
 
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
     }, 0);
 
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
     }, 100);
 
     setTimeout(() => {
@@ -1474,18 +1462,20 @@ describe('Core_validate', () => {
     }, 300);
   });
 
-  it('should listen to key changes after cell is corrected (allowInvalid: false)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+  it('should listen to key changes after cell is corrected (allowInvalid: false)', async () => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       allowInvalid: false,
       columns: [
-        {data: 'id',
+        {
+          data: 'id',
           type: 'numeric',
           validator(val, cb) {
             cb(parseInt(val, 10) > 100);
-          }},
+          }
+        },
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -1500,22 +1490,21 @@ describe('Core_validate', () => {
 
     keyDownUp('enter'); // should be ignored
 
-    setTimeout(() => {
-      expect(isEditorVisible()).toBe(true);
-      document.activeElement.value = '999';
+    await sleep(200);
 
-      onAfterValidate.calls.reset();
-      keyDownUp('enter'); // should be accepted
-    }, 200);
+    expect(isEditorVisible()).toBe(true);
+    document.activeElement.value = '999';
 
-    setTimeout(() => {
-      expect(isEditorVisible()).toBe(false);
-      expect(getSelected()).toEqual([[3, 0, 3, 0]]);
+    onAfterValidate.calls.reset();
+    keyDownUp('enter'); // should be accepted
 
-      keyDownUp('arrow_up');
-      expect(getSelected()).toEqual([[2, 0, 2, 0]]);
-      done();
-    }, 400);
+    await sleep(200);
+
+    expect(isEditorVisible()).toBe(false);
+    expect(getSelected()).toEqual([[3, 0, 3, 0]]);
+
+    keyDownUp('arrow_up');
+    expect(getSelected()).toEqual([[2, 0, 2, 0]]);
   });
 
   it('should allow keyboard movement when cell is being validated (move DOWN)', async () => {

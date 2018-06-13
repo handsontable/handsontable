@@ -19,12 +19,15 @@ const localHooks = {
    *
    * @param {String} key Hook name.
    * @param {Function} callback Hook callback
+   * @returns {Object}
    */
   addLocalHook(key, callback) {
     if (!this._localHooks[key]) {
       this._localHooks[key] = [];
     }
     this._localHooks[key].push(callback);
+
+    return this;
   },
 
   /**
@@ -41,9 +44,13 @@ const localHooks = {
 
   /**
    * Clear all added hooks.
+   *
+   * @returns {Object}
    */
   clearLocalHooks() {
     this._localHooks = {};
+
+    return this;
   },
 };
 

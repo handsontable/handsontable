@@ -62,6 +62,7 @@ describe('settings', () => {
 
         customEditor.and.callFake(function() {
           this.prepare = function() {};
+          this.isOpened = function() {};
         });
 
         handsontable({
@@ -81,6 +82,7 @@ describe('settings', () => {
 
         customEditor.and.callFake(function() {
           this.prepare = function() {};
+          this.isOpened = function() {};
         });
 
         handsontable({
@@ -97,6 +99,7 @@ describe('settings', () => {
         var customEditor = jasmine.createSpy('customEditor');
         customEditor.and.callFake(function() {
           this.prepare = function() {};
+          this.isOpened = function() {};
         });
 
         Handsontable.editors.registerEditor('myEditor', customEditor);
@@ -118,6 +121,7 @@ describe('settings', () => {
 
         customEditor.and.callFake(function() {
           this.prepare = function() {};
+          this.isOpened = function() {};
         });
 
         Handsontable.editors.registerEditor('myEditor', customEditor);

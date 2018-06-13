@@ -352,7 +352,9 @@ describe('MergeCells', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 8, col: 8, rowspan: 2, colspan: 2 }
-        ]
+        ],
+        autoWrapCol: false,
+        autoWrapRow: false
       });
       hot.setDataAtCell(8, 8, 'top-left-corner!');
 
@@ -381,7 +383,9 @@ describe('MergeCells', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 0, col: 0, rowspan: 2, colspan: 2 }
-        ]
+        ],
+        autoWrapCol: false,
+        autoWrapRow: false
       });
       hot.setDataAtCell(0, 0, 'top-left-corner!');
 
@@ -425,12 +429,12 @@ describe('MergeCells', () => {
       keyDownUp('shift+tab');
       keyDownUp('shift+enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('J1');
 
       keyDownUp('shift+tab');
       keyDownUp('shift+enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('I1');
       keyDownUp('shift+enter');
     });
   });

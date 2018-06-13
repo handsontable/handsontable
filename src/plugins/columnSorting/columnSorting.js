@@ -165,6 +165,8 @@ class ColumnSorting extends BasePlugin {
     this.hot.runHooks('afterColumnSort', this.sortColumn, this.sortOrder);
 
     this.hot.render();
+    this.hot.view.wt.draw(true);
+
     this.saveSortingState();
   }
 

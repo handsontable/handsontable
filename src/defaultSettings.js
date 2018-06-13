@@ -87,7 +87,7 @@ DefaultSettings.prototype = {
    * Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
    * Can be declared as an Array of Arrays, Array of Objects or a Function.
    *
-   * See [Understanding binding as reference](http://docs.handsontable.com/tutorial-data-binding.html#page-reference).
+   * See [Understanding binding as reference](https://docs.handsontable.com/tutorial-data-binding.html#page-reference).
    *
    * @type {Array|Function}
    * @default undefined
@@ -98,7 +98,7 @@ DefaultSettings.prototype = {
    * @description
    * Defines the structure of a new row when data source is an array of objects.
    *
-   * See [data-schema](http://docs.handsontable.com/tutorial-data-sources.html#page-data-schema) for examples.
+   * See [data-schema](https://docs.handsontable.com/tutorial-data-sources.html#page-data-schema) for examples.
    *
    * @type {Object}
    * @default undefined
@@ -278,7 +278,7 @@ DefaultSettings.prototype = {
    *
    * __Notice:__ Using this option sets a fixed number of columns (options `startCols`, `minCols`, `maxCols` will be ignored).
    *
-   * See [documentation -> datasources.html](http://docs.handsontable.com/tutorial-data-sources.html#page-nested) for examples.
+   * See [documentation -> datasources.html](https://docs.handsontable.com/tutorial-data-sources.html#page-nested) for examples.
    *
    * @type {Array|Function}
    * @default undefined
@@ -373,7 +373,7 @@ DefaultSettings.prototype = {
    *
    * To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of an array.
    *
-   * See [Comments](http://docs.handsontable.com/demo-comments_.html) demo for examples.
+   * See [Comments](https://docs.handsontable.com/demo-comments_.html) demo for examples.
    *
    * @since 0.11.0
    * @type {Boolean|Array}
@@ -393,7 +393,7 @@ DefaultSettings.prototype = {
    *
    * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form of an array.
    *
-   * See [Custom Borders](http://docs.handsontable.com/demo-custom-borders.html) demo for examples.
+   * See [Custom Borders](https://docs.handsontable.com/demo-custom-borders.html) demo for examples.
    *
    * @since 0.11.0
    * @type {Boolean|Array}
@@ -555,9 +555,13 @@ DefaultSettings.prototype = {
    * ```
    *
    * @type {Boolean|String|Object}
-   * @default true
+   * @default fillHandle: {
+   *   autoInsertRow: false,
+   * }
    */
-  fillHandle: true,
+  fillHandle: {
+    autoInsertRow: false,
+  },
 
   /**
    * Allows to specify the number of fixed (or *frozen*) rows at the top of the table.
@@ -640,17 +644,17 @@ DefaultSettings.prototype = {
    * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
    *
    * @type {Boolean}
-   * @default false
+   * @default true
    */
-  autoWrapRow: false,
+  autoWrapRow: true,
 
   /**
    * If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to the first row in the next column.
    *
    * @type {Boolean}
-   * @default false
+   * @default true
    */
-  autoWrapCol: false,
+  autoWrapCol: true,
 
   /**
    * @description
@@ -757,7 +761,7 @@ DefaultSettings.prototype = {
   /**
    * @description
    * Defines how the columns react, when the declared table width is different than the calculated sum of all column widths.
-   * [See more](http://docs.handsontable.com/demo-stretching.html) mode. Possible values:
+   * [See more](https://docs.handsontable.com/demo-stretching.html) mode. Possible values:
    *  * `'none'` Disable stretching
    *  * `'last'` Stretch only the last column
    *  * `'all'` Stretch all the columns evenly
@@ -906,7 +910,7 @@ DefaultSettings.prototype = {
    * * `password`.
    * * `text`.
    *
-   * Or you can [register](http://docs.handsontable.com/demo-custom-renderers.html) the custom renderer under specified name and use
+   * Or you can [register](https://docs.handsontable.com/demo-custom-renderers.html) the custom renderer under specified name and use
    * its name as an alias in your configuration.
    *
    * If a function is provided, it will receive the following arguments:
@@ -914,7 +918,7 @@ DefaultSettings.prototype = {
    * function(instance, TD, row, col, prop, value, cellProperties) {}
    * ```
    *
-   * You can read more about custom renderes [in the documentation](http://docs.handsontable.com/demo-custom-renderers.html).
+   * You can read more about custom renderes [in the documentation](https://docs.handsontable.com/demo-custom-renderers.html).
    *
    * @example
    * ```js
@@ -966,7 +970,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Make cell [read only](http://docs.handsontable.com/demo-read-only.html).
+   * Make cell [read only](https://docs.handsontable.com/demo-read-only.html).
    *
    * @type {Boolean}
    * @default false
@@ -984,7 +988,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Setting to true enables the search plugin (see [demo](http://docs.handsontable.com/demo-search-for-values.html)).
+   * Setting to true enables the search plugin (see [demo](https://docs.handsontable.com/demo-search-for-values.html)).
    *
    * @type {Boolean}
    * @default false
@@ -996,15 +1000,15 @@ DefaultSettings.prototype = {
    * Shortcut to define the combination of the cell renderer, editor and validator for the column, cell or whole table.
    *
    * Possible values:
-   *  * [autocomplete](http://docs.handsontable.com/demo-autocomplete.html)
-   *  * [checkbox](http://docs.handsontable.com/demo-checkbox.html)
-   *  * [date](http://docs.handsontable.com/demo-date.html)
-   *  * [dropdown](http://docs.handsontable.com/demo-dropdown.html)
-   *  * [handsontable](http://docs.handsontable.com/demo-handsontable.html)
-   *  * [numeric](http://docs.handsontable.com/demo-numeric.html)
-   *  * [password](http://docs.handsontable.com/demo-password.html)
+   *  * [autocomplete](https://docs.handsontable.com/demo-autocomplete.html)
+   *  * [checkbox](https://docs.handsontable.com/demo-checkbox.html)
+   *  * [date](https://docs.handsontable.com/demo-date.html)
+   *  * [dropdown](https://docs.handsontable.com/demo-dropdown.html)
+   *  * [handsontable](https://docs.handsontable.com/demo-handsontable.html)
+   *  * [numeric](https://docs.handsontable.com/demo-numeric.html)
+   *  * [password](https://docs.handsontable.com/demo-password.html)
    *  * text
-   *  * [time](http://docs.handsontable.com/demo-time.html)
+   *  * [time](https://docs.handsontable.com/demo-time.html)
    *
    * Or you can register the custom cell type under specified name and use
    * its name as an alias in your configuration.
@@ -1057,17 +1061,17 @@ DefaultSettings.prototype = {
    * Defines the editor for the table/column/cell.
    *
    * If a string is provided, it may be one of the following predefined values:
-   *  * [autocomplete](http://docs.handsontable.com/demo-autocomplete.html)
-   *  * [checkbox](http://docs.handsontable.com/demo-checkbox.html)
-   *  * [date](http://docs.handsontable.com/demo-date.html)
-   *  * [dropdown](http://docs.handsontable.com/demo-dropdown.html)
-   *  * [handsontable](http://docs.handsontable.com/demo-handsontable.html)
-   *  * [mobile](http://docs.handsontable.com/demo-mobiles-and-tablets.html)
-   *  * [password](http://docs.handsontable.com/demo-password.html)
-   *  * [select](http://docs.handsontable.com/demo-select.html)
+   *  * [autocomplete](https://docs.handsontable.com/demo-autocomplete.html)
+   *  * [checkbox](https://docs.handsontable.com/demo-checkbox.html)
+   *  * [date](https://docs.handsontable.com/demo-date.html)
+   *  * [dropdown](https://docs.handsontable.com/demo-dropdown.html)
+   *  * [handsontable](https://docs.handsontable.com/demo-handsontable.html)
+   *  * [mobile](https://docs.handsontable.com/demo-mobiles-and-tablets.html)
+   *  * [password](https://docs.handsontable.com/demo-password.html)
+   *  * [select](https://docs.handsontable.com/demo-select.html)
    *  * text
    *
-   * Or you can [register](http://docs.handsontable.com/tutorial-cell-editor.html#registering-an-editor) the custom editor under specified name and use
+   * Or you can [register](https://docs.handsontable.com/tutorial-cell-editor.html#registering-an-editor) the custom editor under specified name and use
    * its name as an alias in your configuration.
    *
    * To disable cell editing completely set `editor` property to `false`.
@@ -1093,7 +1097,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Autocomplete definitions. See [autocomplete demo](http://docs.handsontable.com/demo-autocomplete.html) for examples and definitions.
+   * Autocomplete definitions. See [autocomplete demo](https://docs.handsontable.com/demo-autocomplete.html) for examples and definitions.
    *
    * @type {Array}
    * @default undefined
@@ -1149,14 +1153,14 @@ DefaultSettings.prototype = {
   /**
    * @description
    * Defines if the right-click context menu should be enabled. Context menu allows to create new row or
-   * column at any place in the grid among [other features](http://docs.handsontable.com/demo-context-menu.html).
+   * column at any place in the grid among [other features](https://docs.handsontable.com/demo-context-menu.html).
    * Possible values:
    * * `true` (to enable default options),
    * * `false` (to disable completely)
    * * an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
-   * * an object [with defined structure](http://docs.handsontable.com/demo-context-menu.html#page-custom)
+   * * an object [with defined structure](https://docs.handsontable.com/demo-context-menu.html#page-custom)
    *
-   * See [the context menu demo](http://docs.handsontable.com/demo-context-menu.html) for examples.
+   * See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
    *
    * @example
    * ```js
@@ -1225,7 +1229,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Column sorting](http://docs.handsontable.com/demo-sorting-data.html).
+   * Turns on [Column sorting](https://docs.handsontable.com/demo-sorting-data.html).
    * Can be either a boolean (true/false) or an object with a declared sorting options. See the below example:
    *
    * @example
@@ -1250,7 +1254,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual column move](http://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial
+   * Turns on [Manual column move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial
    * column order, if set to an array of column indexes.
    *
    * @example
@@ -1271,7 +1275,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual column resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
+   * Turns on [Manual column resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * column resized widths, if set to an array of numbers.
    *
    * @example
@@ -1292,7 +1296,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual row move](http://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial
+   * Turns on [Manual row move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial
    * row order, if set to an array of row indexes.
    *
    * @example
@@ -1314,7 +1318,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual row resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
+   * Turns on [Manual row resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * row resized heights, if set to an array of numbers.
    *
    * @example
@@ -1337,7 +1341,7 @@ DefaultSettings.prototype = {
   /**
    * @description
    * If set to `true`, it enables a possibility to merge cells. If set to an array of objects, it merges the cells provided in the objects (see the example below).
-   * [More information on the demo page.](http://docs.handsontable.com/demo-merge-cells.html)
+   * [More information on the demo page.](https://docs.handsontable.com/demo-merge-cells.html)
    *
    * @example
    * ```js
@@ -1390,10 +1394,10 @@ DefaultSettings.prototype = {
    * * `numeric`,
    * * `time`.
    *
-   * Or you can [register](http://docs.handsontable.com/demo-data-validation.html) the validator function under specified name and use
+   * Or you can [register](https://docs.handsontable.com/demo-data-validation.html) the validator function under specified name and use
    * its name as an alias in your configuration.
    *
-   * See more [in the demo](http://docs.handsontable.com/demo-data-validation.html).
+   * See more [in the demo](https://docs.handsontable.com/demo-data-validation.html).
    *
    * @example
    * ```js
@@ -1572,9 +1576,9 @@ DefaultSettings.prototype = {
   /**
    * @description
    * Object which describes if renderer should create checkbox element with label element as a parent. Option desired for
-   * [checkbox](http://docs.handsontable.com/demo-checkbox.html)-typed cells.
+   * [checkbox](https://docs.handsontable.com/demo-checkbox.html)-typed cells.
    *
-   * By default the [checkbox](http://docs.handsontable.com/demo-checkbox.html) renderer renders the checkbox without a label.
+   * By default the [checkbox](https://docs.handsontable.com/demo-checkbox.html) renderer renders the checkbox without a label.
    *
    * Possible object properties:
    *  * `property` - Defines the property name of the data object, which will to be used as a label.
@@ -1600,7 +1604,7 @@ DefaultSettings.prototype = {
   label: void 0,
 
   /**
-   * Display format. This option is desired for [numeric-typed](http://docs.handsontable.com/demo-numeric.html) cells. Format is described by two properties:
+   * Display format. This option is desired for [numeric-typed](https://docs.handsontable.com/demo-numeric.html) cells. Format is described by two properties:
    *
    * - pattern, which is handled by `numbro` for purpose of formatting numbers to desired pattern. List of supported patterns can be found [here](http://numbrojs.com/format.html#numbers).
    * - culture, which is handled by `numbro` for purpose of formatting currencies. Examples showing how it works can be found [here](http://numbrojs.com/format.html#currency). List of supported cultures can be found [here](http://numbrojs.com/languages.html#supported-languages).
@@ -1628,7 +1632,7 @@ DefaultSettings.prototype = {
   numericFormat: void 0,
 
   /**
-   * Language for Handsontable translation. Possible language codes are: `en-US`, `pl-PL`.
+   * Language for Handsontable translation. Possible language codes are [listed here](https://docs.handsontable.com/tutorial-internationalization.html#available-languages).
    *
    * @type {String}
    * @default 'en-US'
@@ -1637,7 +1641,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Data source for [select](http://docs.handsontable.com/demo-select.html)-typed cells.
+   * Data source for [select](https://docs.handsontable.com/demo-select.html)-typed cells.
    *
    * @example
    * ```js

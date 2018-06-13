@@ -77,210 +77,12 @@ describe('Core_selection', () => {
     expect(getSelected()).toBeUndefined();
   });
 
-  it('should not deselect the currently selected cell after clicking on a scrollbar', () => {
-    var hot = handsontable({
-      outsideClickDeselects: false,
-      minRows: 20,
-      minCols: 2,
-      width: 400,
-      height: 100
-    });
-    selectCell(0, 0);
-
-    var holderBoundingBox = hot.view.wt.wtTable.holder.getBoundingClientRect(),
-      verticalScrollbarCoords = {
-        x: holderBoundingBox.left + holderBoundingBox.width - 3,
-        y: holderBoundingBox.top + (holderBoundingBox.height / 2)
-      },
-      horizontalScrollbarCoords = {
-        x: holderBoundingBox.left + (holderBoundingBox.width / 2),
-        y: holderBoundingBox.top + holderBoundingBox.height - 3
-      };
-
-    $(hot.view.wt.wtTable.holder).simulate('mousedown', {
-      clientX: verticalScrollbarCoords.x,
-      clientY: verticalScrollbarCoords.y
-    });
-
-    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
-
-    $(hot.view.wt.wtTable.holder).simulate('mousedown', {
-      clientX: horizontalScrollbarCoords.x,
-      clientY: horizontalScrollbarCoords.y
-    });
-
-    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
-  });
-
-  it('should not deselect currently selected cell', () => {
-    handsontable({
-      outsideClickDeselects: false
-    });
-    selectCell(0, 0);
-
-    $('html').simulate('mousedown');
-
-    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
-  });
-
-  it('should allow to focus on external input and hold current selection informations', () => {
-    var textarea = $('<input id="test_textarea" type="text">').prependTo($('body'));
-
-    handsontable({
-      outsideClickDeselects: false
-    });
-    selectCell(0, 0);
-
-    textarea.simulate('mousedown');
-    textarea.focus();
-
-    expect(document.activeElement.id).toEqual('test_textarea');
-    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
-    textarea.remove();
-  });
-
-  it('should allow to type in external input while holding current selection information', () => {
-    var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
-    var keyPressed;
-    handsontable({
-      outsideClickDeselects: false
-    });
-    selectCell(0, 0);
-
-    textarea.focus();
-    textarea.simulate('mousedown');
-    textarea.simulate('mouseup');
-
-    textarea.on('keydown', (event) => {
-      keyPressed = event.keyCode;
-    });
-
-    var LETTER_A_KEY = 97;
-
-    $(document.activeElement).simulate('keydown', {
-      keyCode: LETTER_A_KEY
-    });
-
-    // textarea should receive the event and be an active element
-    expect(keyPressed).toEqual(LETTER_A_KEY);
-    expect(document.activeElement).toBe(document.getElementById('test_textarea'));
-
-    // should preserve selection, close editor and save changes
-    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
-    expect(getDataAtCell(0, 0)).toBeNull();
-
-    textarea.remove();
-  });
-
-  it('should allow to type in external input after opening cell editor', () => {
-    var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
-    var keyPressed;
-    handsontable({
-      outsideClickDeselects: false
-    });
-    selectCell(0, 0);
-    keyDown('enter');
-    document.activeElement.value = 'Foo';
-
-    textarea.focus();
-    textarea.simulate('mousedown');
-    textarea.simulate('mouseup');
-
-    textarea.on('keydown', (event) => {
-      keyPressed = event.keyCode;
-    });
-
-    var LETTER_A_KEY = 97;
-
-    $(document.activeElement).simulate('keydown', {
-      keyCode: LETTER_A_KEY
-    });
-
-    // textarea should receive the event and be an active element
-    expect(keyPressed).toEqual(LETTER_A_KEY);
-    expect(document.activeElement).toBe(document.getElementById('test_textarea'));
-
-    // should preserve selection, close editor and save changes
-    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
-    expect(getDataAtCell(0, 0)).toEqual('Foo');
-
-    textarea.remove();
-  });
-
-  it('should deselect on outside click if outsideClickDeselects is a function that returns true', () => {
-    var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
-    var keyPressed;
-    handsontable({
-      outsideClickDeselects: () => true,
-    });
-    selectCell(0, 0);
-    keyDown('enter');
-    document.activeElement.value = 'Foo';
-
-    textarea.focus();
-    textarea.simulate('mousedown');
-    textarea.simulate('mouseup');
-
-    textarea.on('keydown', (event) => {
-      keyPressed = event.keyCode;
-    });
-
-    var LETTER_A_KEY = 97;
-
-    $(document.activeElement).simulate('keydown', {
-      keyCode: LETTER_A_KEY
-    });
-
-    // textarea should receive the event and be an active element
-    expect(keyPressed).toEqual(LETTER_A_KEY);
-    expect(document.activeElement).toBe(document.getElementById('test_textarea'));
-
-    // should NOT preserve selection
-    expect(getSelected()).toBeUndefined();
-    expect(getDataAtCell(0, 0)).toEqual('Foo');
-
-    textarea.remove();
-  });
-
-  it('should not deselect on outside click if outsideClickDeselects is a function that returns false', () => {
-    var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
-    var keyPressed;
-    handsontable({
-      outsideClickDeselects: () => false,
-    });
-    selectCell(0, 0);
-    keyDown('enter');
-    document.activeElement.value = 'Foo';
-
-    textarea.focus();
-    textarea.simulate('mousedown');
-    textarea.simulate('mouseup');
-
-    textarea.on('keydown', (event) => {
-      keyPressed = event.keyCode;
-    });
-
-    var LETTER_A_KEY = 97;
-
-    $(document.activeElement).simulate('keydown', {
-      keyCode: LETTER_A_KEY
-    });
-
-    // textarea should receive the event and be an active element
-    expect(keyPressed).toEqual(LETTER_A_KEY);
-    expect(document.activeElement).toBe(document.getElementById('test_textarea'));
-
-    // should preserve selection, close editor and save changes
-    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
-    expect(getDataAtCell(0, 0)).toEqual('Foo');
-
-    textarea.remove();
-  });
-
   it('should fix start range if provided is out of bounds (to the left)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
+      autoWrapCol: false,
+      autoWrapRow: false
     });
     selectCell(0, 0);
     keyDownUp('arrow_left');
@@ -291,7 +93,9 @@ describe('Core_selection', () => {
   it('should fix start range if provided is out of bounds (to the top)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
+      autoWrapCol: false,
+      autoWrapRow: false
     });
     selectCell(0, 0);
     keyDownUp('arrow_up');
@@ -302,7 +106,9 @@ describe('Core_selection', () => {
   it('should fix start range if provided is out of bounds (to the right)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
+      autoWrapCol: false,
+      autoWrapRow: false
     });
     selectCell(0, 4);
     keyDownUp('arrow_right');
@@ -313,7 +119,9 @@ describe('Core_selection', () => {
   it('should fix start range if provided is out of bounds (to the bottom)', () => {
     handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
+      autoWrapCol: false,
+      autoWrapRow: false
     });
     selectCell(4, 0);
     keyDownUp('arrow_down');
@@ -997,7 +805,9 @@ describe('Core_selection', () => {
 
     var hot = handsontable({
       startRows: 5,
-      startCols: 5
+      startCols: 5,
+      autoWrapCol: false,
+      autoWrapRow: false
     });
     hot.addHook('afterModifyTransformStart', spy);
 

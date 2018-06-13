@@ -1,22 +1,22 @@
 describe('Core_destroy', () => {
   var id = 'testContainer';
 
-  beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+  beforeEach(() => {
+    spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
-    if (this.$container) {
+  afterEach(() => {
+    if (spec().$container) {
       destroy();
-      this.$container.remove();
+      spec().$container.remove();
     }
   });
 
-  it('should remove table from the root element', function() {
+  it('should remove table from the root element', () => {
     handsontable();
     destroy();
 
-    expect(this.$container.html()).toEqual('');
+    expect(spec().$container.html()).toEqual('');
   });
 
   it('should remove events from the root element, document element and window', () => {
@@ -42,5 +42,28 @@ describe('Core_destroy', () => {
     $('html').simulate('mousedown');
 
     expect(getSelected()).toBeUndefined();
+  });
+
+  it('should throw an exception when metod on destroyed instance is called', () => {
+    const hot = handsontable();
+
+    destroy();
+
+    expect(() => {
+      hot.getDataAtCell(0, 0);
+    }).toThrowError('The "getDataAtCell" method cannot be called because this Handsontable instance has been destroyed');
+    expect(() => {
+      hot.listen();
+    }).toThrowError('The "listen" method cannot be called because this Handsontable instance has been destroyed');
+  });
+
+  it('should set isDestroyed flag to `true` when instance is destroyed', () => {
+    const hot = handsontable();
+
+    expect(hot.isDestroyed).toBe(false);
+
+    destroy();
+
+    expect(hot.isDestroyed).toBe(true);
   });
 });

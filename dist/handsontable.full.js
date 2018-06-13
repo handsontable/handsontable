@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 3.0.0
- * Release date: 16/05/2018 (built at 09/05/2018 15:18:34)
+ * Version: 4.0.0
+ * Release date: 13/06/2018 (built at 12/06/2018 11:47:13)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -1954,7 +1954,7 @@ var _viewportRows = __webpack_require__(177);
 
 var _viewportRows2 = _interopRequireDefault(_viewportRows);
 
-var _coords = __webpack_require__(56);
+var _coords = __webpack_require__(57);
 
 var _coords2 = _interopRequireDefault(_coords);
 
@@ -3063,7 +3063,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment2.default)('16/05/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment2.default)('13/06/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       var keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
@@ -3124,7 +3124,7 @@ function _checkKeySchema(v) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var store = __webpack_require__(77)('wks');
-var uid = __webpack_require__(50);
+var uid = __webpack_require__(51);
 var Symbol = __webpack_require__(15).Symbol;
 var USE_SYMBOL = typeof Symbol == 'function';
 
@@ -3271,11 +3271,11 @@ var _numericRenderer = __webpack_require__(493);
 
 var _numericRenderer2 = _interopRequireDefault(_numericRenderer);
 
-var _passwordRenderer = __webpack_require__(495);
+var _passwordRenderer = __webpack_require__(494);
 
 var _passwordRenderer2 = _interopRequireDefault(_passwordRenderer);
 
-var _textRenderer = __webpack_require__(496);
+var _textRenderer = __webpack_require__(495);
 
 var _textRenderer2 = _interopRequireDefault(_textRenderer);
 
@@ -5414,7 +5414,7 @@ var _pluginHooks = __webpack_require__(16);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _baseEditor = __webpack_require__(55);
+var _baseEditor = __webpack_require__(56);
 
 var _baseEditor2 = _interopRequireDefault(_baseEditor);
 
@@ -5450,7 +5450,7 @@ var _selectEditor = __webpack_require__(488);
 
 var _selectEditor2 = _interopRequireDefault(_selectEditor);
 
-var _textEditor = __webpack_require__(58);
+var _textEditor = __webpack_require__(59);
 
 var _textEditor2 = _interopRequireDefault(_textEditor);
 
@@ -5496,7 +5496,7 @@ function RegisteredEditor(editorClass) {
   };
 
   _pluginHooks2.default.getSingleton().add('afterDestroy', function () {
-    instances = {};
+    instances[this.guid] = null;
   });
 }
 
@@ -6030,42 +6030,103 @@ module.exports = function (KEY, exec) {
 
 
 exports.__esModule = true;
+exports.setBrowserMeta = setBrowserMeta;
+exports.isChrome = isChrome;
+exports.isEdge = isEdge;
+exports.isIE = isIE;
 exports.isIE8 = isIE8;
 exports.isIE9 = isIE9;
-exports.isSafari = isSafari;
-exports.isChrome = isChrome;
+exports.isMSBrowser = isMSBrowser;
 exports.isMobileBrowser = isMobileBrowser;
-var _isIE8 = !document.createTextNode('test').textContent;
+exports.isSafari = isSafari;
 
-function isIE8() {
-  return _isIE8;
+var _object = __webpack_require__(2);
+
+var tester = function tester(_tester) {
+  var result = {
+    value: false
+  };
+  result.test = function (ua, vendor) {
+    result.value = _tester(ua, vendor);
+  };
+
+  return result;
+};
+
+var browsers = {
+  chrome: tester(function (ua, vendor) {
+    return (/Chrome/.test(ua) && /Google/.test(vendor)
+    );
+  }),
+  edge: tester(function (ua) {
+    return (/Edge/.test(ua)
+    );
+  }),
+  ie: tester(function (ua) {
+    return (/Trident/.test(ua)
+    );
+  }),
+  ie8: tester(function () {
+    return !document.createTextNode('test').textContent;
+  }),
+  ie9: tester(function () {
+    return !!document.documentMode;
+  }),
+  mobile: tester(function (ua) {
+    return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
+    );
+  }),
+  safari: tester(function (ua, vendor) {
+    return (/Safari/.test(ua) && /Apple Computer/.test(vendor)
+    );
+  })
+};
+
+function setBrowserMeta() {
+  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+      _ref$userAgent = _ref.userAgent,
+      userAgent = _ref$userAgent === undefined ? navigator.userAgent : _ref$userAgent,
+      _ref$vendor = _ref.vendor,
+      vendor = _ref$vendor === undefined ? navigator.vendor : _ref$vendor;
+
+  (0, _object.objectEach)(browsers, function (_ref2) {
+    var test = _ref2.test;
+    return void test(userAgent, vendor);
+  });
 }
 
-var _isIE9 = !!document.documentMode;
-
-function isIE9() {
-  return _isIE9;
-}
-
-var _isSafari = /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
-
-function isSafari() {
-  return _isSafari;
-}
-
-var _isChrome = /Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor);
+setBrowserMeta();
 
 function isChrome() {
-  return _isChrome;
+  return browsers.chrome.value;
 }
 
-function isMobileBrowser(userAgent) {
-  if (!userAgent) {
-    userAgent = navigator.userAgent;
-  }
+function isEdge() {
+  return browsers.edge.value;
+}
 
-  return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
-  );
+function isIE() {
+  return browsers.ie.value;
+}
+
+function isIE8() {
+  return browsers.ie8.value;
+}
+
+function isIE9() {
+  return browsers.ie9.value;
+}
+
+function isMSBrowser() {
+  return browsers.ie.value || browsers.edge.value;
+}
+
+function isMobileBrowser() {
+  return browsers.mobile.value;
+}
+
+function isSafari() {
+  return browsers.safari.value;
 }
 
 /***/ }),
@@ -6082,19 +6143,19 @@ var _staticRegister2 = __webpack_require__(40);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _autocompleteValidator = __webpack_require__(497);
+var _autocompleteValidator = __webpack_require__(496);
 
 var _autocompleteValidator2 = _interopRequireDefault(_autocompleteValidator);
 
-var _dateValidator = __webpack_require__(498);
+var _dateValidator = __webpack_require__(497);
 
 var _dateValidator2 = _interopRequireDefault(_dateValidator);
 
-var _numericValidator = __webpack_require__(499);
+var _numericValidator = __webpack_require__(498);
 
 var _numericValidator2 = _interopRequireDefault(_numericValidator);
 
-var _timeValidator = __webpack_require__(500);
+var _timeValidator = __webpack_require__(499);
 
 var _timeValidator2 = _interopRequireDefault(_timeValidator);
 
@@ -6152,7 +6213,7 @@ module.exports = function (it, key) {
 var global = __webpack_require__(15);
 var hide = __webpack_require__(31);
 var has = __webpack_require__(29);
-var SRC = __webpack_require__(50)('src');
+var SRC = __webpack_require__(51)('src');
 var TO_STRING = 'toString';
 var $toString = Function[TO_STRING];
 var TPL = ('' + $toString).split(TO_STRING);
@@ -6187,7 +6248,7 @@ __webpack_require__(39).inspectSource = function (it) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var dP = __webpack_require__(20);
-var createDesc = __webpack_require__(51);
+var createDesc = __webpack_require__(52);
 module.exports = __webpack_require__(22) ? function (object, key, value) {
   return dP.f(object, key, createDesc(1, value));
 } : function (object, key, value) {
@@ -6237,7 +6298,7 @@ module.exports = function (it) {
 /* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var META = __webpack_require__(50)('meta');
+var META = __webpack_require__(51)('meta');
 var isObject = __webpack_require__(9);
 var has = __webpack_require__(29);
 var setDesc = __webpack_require__(20).f;
@@ -6789,7 +6850,7 @@ module.exports = function (it) {
 /* 39 */
 /***/ (function(module, exports) {
 
-var core = module.exports = { version: '2.5.6' };
+var core = module.exports = { version: '2.5.7' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 
@@ -11927,6 +11988,89 @@ window['moment'] = __webpack_require__(47);
 
 
 exports.__esModule = true;
+
+var _array = __webpack_require__(1);
+
+var _object = __webpack_require__(2);
+
+var MIXIN_NAME = 'localHooks';
+
+/**
+ * Mixin object to extend objects functionality for local hooks.
+ *
+ * @type {Object}
+ */
+var localHooks = {
+  /**
+   * Internal hooks storage.
+   */
+  _localHooks: Object.create(null),
+
+  /**
+   * Add hook to the collection.
+   *
+   * @param {String} key Hook name.
+   * @param {Function} callback Hook callback
+   * @returns {Object}
+   */
+  addLocalHook: function addLocalHook(key, callback) {
+    if (!this._localHooks[key]) {
+      this._localHooks[key] = [];
+    }
+    this._localHooks[key].push(callback);
+
+    return this;
+  },
+
+
+  /**
+   * Run hooks.
+   *
+   * @param {String} key Hook name.
+   * @param {*} params
+   */
+  runLocalHooks: function runLocalHooks(key) {
+    var _this = this;
+
+    for (var _len = arguments.length, params = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      params[_key - 1] = arguments[_key];
+    }
+
+    if (this._localHooks[key]) {
+      (0, _array.arrayEach)(this._localHooks[key], function (callback) {
+        return callback.apply(_this, params);
+      });
+    }
+  },
+
+
+  /**
+   * Clear all added hooks.
+   *
+   * @returns {Object}
+   */
+  clearLocalHooks: function clearLocalHooks() {
+    this._localHooks = {};
+
+    return this;
+  }
+};
+
+(0, _object.defineGetter)(localHooks, 'MIXIN_NAME', MIXIN_NAME, {
+  writable: false,
+  enumerable: false
+});
+
+exports.default = localHooks;
+
+/***/ }),
+/* 49 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
 exports.createClassName = createClassName;
 exports.createDefaultCustomBorder = createDefaultCustomBorder;
 exports.createSingleEmptyBorder = createSingleEmptyBorder;
@@ -12070,14 +12214,14 @@ function markSelected(label) {
 }
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ (function(module, exports) {
 
 module.exports = false;
 
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ (function(module, exports) {
 
 var id = 0;
@@ -12088,7 +12232,7 @@ module.exports = function (key) {
 
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ (function(module, exports) {
 
 module.exports = function (bitmap, value) {
@@ -12102,14 +12246,14 @@ module.exports = function (bitmap, value) {
 
 
 /***/ }),
-/* 52 */
+/* 53 */
 /***/ (function(module, exports) {
 
 module.exports = {};
 
 
 /***/ }),
-/* 53 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var def = __webpack_require__(20).f;
@@ -12122,14 +12266,14 @@ module.exports = function (it, tag, stat) {
 
 
 /***/ }),
-/* 54 */
+/* 55 */
 /***/ (function(module, exports) {
 
 exports.f = {}.propertyIsEnumerable;
 
 
 /***/ }),
-/* 55 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12244,11 +12388,15 @@ BaseEditor.prototype.beginEditing = function (newInitialValue, event) {
     return;
   }
   this.instance.view.scrollViewport(new _src.CellCoords(this.row, this.col));
-  this.instance.view.render();
   this.state = EditorState.EDITING;
 
-  newInitialValue = typeof newInitialValue === 'string' ? newInitialValue : this.originalValue;
-  this.setValue((0, _mixed.stringify)(newInitialValue));
+  // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
+  // otherwise IME (editor for Asia users) doesn't work.
+  if (this.isInFullEditMode()) {
+    var stringifiedInitialValue = typeof newInitialValue === 'string' ? newInitialValue : (0, _mixed.stringify)(this.originalValue);
+
+    this.setValue(stringifiedInitialValue);
+  }
 
   this.open(event);
   this._opened = true;
@@ -12282,9 +12430,9 @@ BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown, c
   }
 
   if (this.state == EditorState.VIRGIN) {
-    this.instance._registerTimeout(setTimeout(function () {
+    this.instance._registerTimeout(function () {
       _this._fireCallbacks(true);
-    }, 0));
+    });
 
     return;
   }
@@ -12330,6 +12478,7 @@ BaseEditor.prototype.discardEditor = function (result) {
   if (this.state !== EditorState.FINISHED) {
     return;
   }
+
   // validator was defined and failed
   if (result === false && this.cellProperties.allowInvalid !== true) {
     this.instance.selectCell(this.row, this.col);
@@ -12396,7 +12545,7 @@ BaseEditor.prototype.checkEditorSection = function () {
 exports.default = BaseEditor;
 
 /***/ }),
-/* 56 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12545,7 +12694,7 @@ var CellCoords = function () {
 exports.default = CellCoords;
 
 /***/ }),
-/* 57 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12622,7 +12771,7 @@ function error() {
 };
 
 /***/ }),
-/* 58 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12636,7 +12785,7 @@ var _autoResize = __webpack_require__(478);
 
 var _autoResize2 = _interopRequireDefault(_autoResize);
 
-var _baseEditor = __webpack_require__(55);
+var _baseEditor = __webpack_require__(56);
 
 var _baseEditor2 = _interopRequireDefault(_baseEditor);
 
@@ -12645,6 +12794,8 @@ var _eventManager = __webpack_require__(6);
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _unicode = __webpack_require__(21);
+
+var _browser = __webpack_require__(27);
 
 var _event = __webpack_require__(13);
 
@@ -12664,10 +12815,55 @@ TextEditor.prototype.init = function () {
   this.eventManager = new _eventManager2.default(this);
   this.bindEvents();
   this.autoResize = (0, _autoResize2.default)();
+  this.holderZIndex = -1;
 
   this.instance.addHook('afterDestroy', function () {
     that.destroy();
   });
+};
+
+TextEditor.prototype.prepare = function (row, col, prop, td, originalValue, cellProperties) {
+  var _this = this;
+
+  var previousState = this.state;
+
+  _baseEditor2.default.prototype.prepare.apply(this, arguments);
+
+  if (!cellProperties.readOnly) {
+    this.refreshDimensions(true);
+
+    var allowInvalid = cellProperties.allowInvalid,
+        fragmentSelection = cellProperties.fragmentSelection;
+
+
+    if (allowInvalid) {
+      this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME)
+    }
+
+    if (previousState !== _baseEditor.EditorState.FINISHED) {
+      this.hideEditableElement();
+    }
+
+    // @TODO: The fragmentSelection functionality is conflicted with IME. For this feature refocus has to
+    // be disabled (to make IME working).
+    var restoreFocus = !fragmentSelection;
+
+    if (restoreFocus) {
+      this.instance._registerImmediate(function () {
+        return _this.focus();
+      });
+    }
+  }
+};
+
+TextEditor.prototype.hideEditableElement = function () {
+  this.textareaParentStyle.top = '-9999px';
+  this.textareaParentStyle.left = '-9999px';
+  this.textareaParentStyle.zIndex = '-1';
+};
+
+TextEditor.prototype.showEditableElement = function () {
+  this.textareaParentStyle.zIndex = this.holderZIndex >= 0 ? this.holderZIndex : '';
 };
 
 TextEditor.prototype.getValue = function () {
@@ -12676,6 +12872,15 @@ TextEditor.prototype.getValue = function () {
 
 TextEditor.prototype.setValue = function (newValue) {
   this.TEXTAREA.value = newValue;
+};
+
+TextEditor.prototype.beginEditing = function (newInitialValue, event) {
+  if (this.state !== _baseEditor.EditorState.VIRGIN) {
+    return;
+  }
+
+  this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME).
+  _baseEditor2.default.prototype.beginEditing.apply(this, arguments);
 };
 
 var onBeforeKeyDown = function onBeforeKeyDown(event) {
@@ -12769,30 +12974,32 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
 
 TextEditor.prototype.open = function () {
   this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
+  this.showEditableElement();
 
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 };
 
 TextEditor.prototype.close = function (tdOutside) {
-  this.textareaParentStyle.display = 'none';
-
   this.autoResize.unObserve();
 
   if (document.activeElement === this.TEXTAREA) {
     this.instance.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
   }
+
+  this.hideEditableElement();
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
 };
 
 TextEditor.prototype.focus = function () {
-  this.TEXTAREA.focus();
+  // For IME editor textarea element must be focused using ".select" method. Using ".focus" browser automatically scroll into
+  // the focused element which is undesire effect.
+  this.TEXTAREA.select();
   (0, _element.setCaretPosition)(this.TEXTAREA, this.TEXTAREA.value.length);
 };
 
 TextEditor.prototype.createElements = function () {
-  //    this.$body = $(document.body);
-
   this.TEXTAREA = document.createElement('TEXTAREA');
+  this.TEXTAREA.tabIndex = -1;
 
   (0, _element.addClass)(this.TEXTAREA, 'handsontableInput');
 
@@ -12804,23 +13011,16 @@ TextEditor.prototype.createElements = function () {
   (0, _element.addClass)(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
   this.textareaParentStyle = this.TEXTAREA_PARENT.style;
-  this.textareaParentStyle.top = 0;
-  this.textareaParentStyle.left = 0;
-  this.textareaParentStyle.display = 'none';
+  this.textareaParentStyle.zIndex = '-1';
 
   this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
 
   this.instance.rootElement.appendChild(this.TEXTAREA_PARENT);
-
-  var that = this;
-  this.instance._registerTimeout(setTimeout(function () {
-    that.refreshDimensions();
-  }, 0));
 };
 
 TextEditor.prototype.getEditedCell = function () {
-  var editorSection = this.checkEditorSection(),
-      editedCell;
+  var editorSection = this.checkEditorSection();
+  var editedCell = void 0;
 
   switch (editorSection) {
     case 'top':
@@ -12828,39 +13028,39 @@ TextEditor.prototype.getEditedCell = function () {
         row: this.row,
         col: this.col
       });
-      this.textareaParentStyle.zIndex = 101;
+      this.holderZIndex = 101;
       break;
     case 'top-left-corner':
       editedCell = this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
         row: this.row,
         col: this.col
       });
-      this.textareaParentStyle.zIndex = 103;
+      this.holderZIndex = 103;
       break;
     case 'bottom-left-corner':
       editedCell = this.instance.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell({
         row: this.row,
         col: this.col
       });
-      this.textareaParentStyle.zIndex = 103;
+      this.holderZIndex = 103;
       break;
     case 'left':
       editedCell = this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
         row: this.row,
         col: this.col
       });
-      this.textareaParentStyle.zIndex = 102;
+      this.holderZIndex = 102;
       break;
     case 'bottom':
       editedCell = this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.getCell({
         row: this.row,
         col: this.col
       });
-      this.textareaParentStyle.zIndex = 102;
+      this.holderZIndex = 102;
       break;
     default:
       editedCell = this.instance.getCell(this.row, this.col);
-      this.textareaParentStyle.zIndex = '';
+      this.holderZIndex = -1;
       break;
   }
 
@@ -12876,14 +13076,18 @@ TextEditor.prototype.refreshValue = function () {
 };
 
 TextEditor.prototype.refreshDimensions = function () {
-  if (this.state !== _baseEditor.EditorState.EDITING) {
+  var force = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+  if (this.state !== _baseEditor.EditorState.EDITING && !force) {
     return;
   }
   this.TD = this.getEditedCell();
 
   // TD is outside of the viewport.
   if (!this.TD) {
-    this.close(true);
+    if (!force) {
+      this.close(true);
+    }
 
     return;
   }
@@ -12949,6 +13153,7 @@ TextEditor.prototype.refreshDimensions = function () {
 
   this.textareaParentStyle.top = editTop + 'px';
   this.textareaParentStyle.left = editLeft + 'px';
+  this.showEditableElement();
 
   var firstRowOffset = this.instance.view.wt.wtViewport.rowsRenderCalculator.startPosition;
   var firstColumnOffset = this.instance.view.wt.wtViewport.columnsRenderCalculator.startPosition;
@@ -12970,7 +13175,6 @@ TextEditor.prototype.refreshDimensions = function () {
 
   this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
   this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
-  this.TEXTAREA.style.backgroundColor = ''; // RESET STYLE
   this.TEXTAREA.style.backgroundColor = backgroundColor ? backgroundColor : (0, _element.getComputedStyle)(this.TEXTAREA).backgroundColor;
 
   this.autoResize.init(this.TEXTAREA, {
@@ -12979,8 +13183,6 @@ TextEditor.prototype.refreshDimensions = function () {
     minWidth: Math.min(width, maxWidth),
     maxWidth: maxWidth // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
   }, true);
-
-  this.textareaParentStyle.display = 'block';
 };
 
 TextEditor.prototype.bindEvents = function () {
@@ -12989,7 +13191,6 @@ TextEditor.prototype.bindEvents = function () {
   this.eventManager.addEventListener(this.TEXTAREA, 'cut', function (event) {
     (0, _event.stopPropagation)(event);
   });
-
   this.eventManager.addEventListener(this.TEXTAREA, 'paste', function (event) {
     (0, _event.stopPropagation)(event);
   });
@@ -13022,82 +13223,6 @@ TextEditor.prototype.destroy = function () {
 };
 
 exports.default = TextEditor;
-
-/***/ }),
-/* 59 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _array = __webpack_require__(1);
-
-var _object = __webpack_require__(2);
-
-var MIXIN_NAME = 'localHooks';
-
-/**
- * Mixin object to extend objects functionality for local hooks.
- *
- * @type {Object}
- */
-var localHooks = {
-  /**
-   * Internal hooks storage.
-   */
-  _localHooks: Object.create(null),
-
-  /**
-   * Add hook to the collection.
-   *
-   * @param {String} key Hook name.
-   * @param {Function} callback Hook callback
-   */
-  addLocalHook: function addLocalHook(key, callback) {
-    if (!this._localHooks[key]) {
-      this._localHooks[key] = [];
-    }
-    this._localHooks[key].push(callback);
-  },
-
-
-  /**
-   * Run hooks.
-   *
-   * @param {String} key Hook name.
-   * @param {*} params
-   */
-  runLocalHooks: function runLocalHooks(key) {
-    var _this = this;
-
-    for (var _len = arguments.length, params = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      params[_key - 1] = arguments[_key];
-    }
-
-    if (this._localHooks[key]) {
-      (0, _array.arrayEach)(this._localHooks[key], function (callback) {
-        return callback.apply(_this, params);
-      });
-    }
-  },
-
-
-  /**
-   * Clear all added hooks.
-   */
-  clearLocalHooks: function clearLocalHooks() {
-    this._localHooks = {};
-  }
-};
-
-(0, _object.defineGetter)(localHooks, 'MIXIN_NAME', MIXIN_NAME, {
-  writable: false,
-  enumerable: false
-});
-
-exports.default = localHooks;
 
 /***/ }),
 /* 60 */
@@ -13203,7 +13328,7 @@ var anInstance = __webpack_require__(64);
 var isObject = __webpack_require__(9);
 var fails = __webpack_require__(23);
 var $iterDetect = __webpack_require__(79);
-var setToStringTag = __webpack_require__(53);
+var setToStringTag = __webpack_require__(54);
 var inheritIfRequired = __webpack_require__(453);
 
 module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
@@ -13283,8 +13408,8 @@ module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
 /* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var pIE = __webpack_require__(54);
-var createDesc = __webpack_require__(51);
+var pIE = __webpack_require__(55);
+var createDesc = __webpack_require__(52);
 var toIObject = __webpack_require__(24);
 var toPrimitive = __webpack_require__(73);
 var has = __webpack_require__(29);
@@ -13411,7 +13536,7 @@ var _staticRegister2 = __webpack_require__(40);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _enUS = __webpack_require__(516);
+var _enUS = __webpack_require__(515);
 
 var _enUS2 = _interopRequireDefault(_enUS);
 
@@ -13613,7 +13738,7 @@ module.exports = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var shared = __webpack_require__(77)('keys');
-var uid = __webpack_require__(50);
+var uid = __webpack_require__(51);
 module.exports = function (key) {
   return shared[key] || (shared[key] = uid(key));
 };
@@ -13632,7 +13757,7 @@ var store = global[SHARED] || (global[SHARED] = {});
   return store[key] || (store[key] = value !== undefined ? value : {});
 })('versions', []).push({
   version: core.version,
-  mode: __webpack_require__(49) ? 'pure' : 'global',
+  mode: __webpack_require__(50) ? 'pure' : 'global',
   copyright: '© 2018 Denis Pushkarev (zloirock.ru)'
 });
 
@@ -13827,7 +13952,7 @@ module.exports = function (KEY) {
 "use strict";
 
 var $defineProperty = __webpack_require__(20);
-var createDesc = __webpack_require__(51);
+var createDesc = __webpack_require__(52);
 
 module.exports = function (object, index, value) {
   if (index in object) $defineProperty.f(object, index, createDesc(0, value));
@@ -13843,7 +13968,7 @@ module.exports = function (object, index, value) {
 
 var addToUnscopables = __webpack_require__(46);
 var step = __webpack_require__(110);
-var Iterators = __webpack_require__(52);
+var Iterators = __webpack_require__(53);
 var toIObject = __webpack_require__(24);
 
 // 22.1.3.4 Array.prototype.entries()
@@ -13887,7 +14012,7 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _coords = __webpack_require__(56);
+var _coords = __webpack_require__(57);
 
 var _coords2 = _interopRequireDefault(_coords);
 
@@ -14585,39 +14710,39 @@ var _renderers = __webpack_require__(14);
 
 var _validators = __webpack_require__(28);
 
-var _autocompleteType = __webpack_require__(501);
+var _autocompleteType = __webpack_require__(500);
 
 var _autocompleteType2 = _interopRequireDefault(_autocompleteType);
 
-var _checkboxType = __webpack_require__(502);
+var _checkboxType = __webpack_require__(501);
 
 var _checkboxType2 = _interopRequireDefault(_checkboxType);
 
-var _dateType = __webpack_require__(503);
+var _dateType = __webpack_require__(502);
 
 var _dateType2 = _interopRequireDefault(_dateType);
 
-var _dropdownType = __webpack_require__(504);
+var _dropdownType = __webpack_require__(503);
 
 var _dropdownType2 = _interopRequireDefault(_dropdownType);
 
-var _handsontableType = __webpack_require__(505);
+var _handsontableType = __webpack_require__(504);
 
 var _handsontableType2 = _interopRequireDefault(_handsontableType);
 
-var _numericType = __webpack_require__(506);
+var _numericType = __webpack_require__(505);
 
 var _numericType2 = _interopRequireDefault(_numericType);
 
-var _passwordType = __webpack_require__(507);
+var _passwordType = __webpack_require__(506);
 
 var _passwordType2 = _interopRequireDefault(_passwordType);
 
-var _textType = __webpack_require__(508);
+var _textType = __webpack_require__(507);
 
 var _textType2 = _interopRequireDefault(_textType);
 
-var _timeType = __webpack_require__(509);
+var _timeType = __webpack_require__(508);
 
 var _timeType2 = _interopRequireDefault(_timeType);
 
@@ -14708,17 +14833,17 @@ var _setting = __webpack_require__(90);
 
 var _function = __webpack_require__(43);
 
-var _console = __webpack_require__(57);
+var _console = __webpack_require__(58);
 
 var _mixed = __webpack_require__(11);
 
 var _browser = __webpack_require__(27);
 
-var _dataMap = __webpack_require__(510);
+var _dataMap = __webpack_require__(509);
 
 var _dataMap2 = _interopRequireDefault(_dataMap);
 
-var _editorManager = __webpack_require__(513);
+var _editorManager = __webpack_require__(512);
 
 var _editorManager2 = _interopRequireDefault(_editorManager);
 
@@ -14742,11 +14867,11 @@ var _string = __webpack_require__(36);
 
 var _number = __webpack_require__(5);
 
-var _tableView = __webpack_require__(514);
+var _tableView = __webpack_require__(513);
 
 var _tableView2 = _interopRequireDefault(_tableView);
 
-var _dataSource = __webpack_require__(515);
+var _dataSource = __webpack_require__(514);
 
 var _dataSource2 = _interopRequireDefault(_dataSource);
 
@@ -14776,7 +14901,7 @@ var _utils = __webpack_require__(442);
 
 var _keyStateObserver = __webpack_require__(443);
 
-var _selection = __webpack_require__(519);
+var _selection = __webpack_require__(518);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -14841,6 +14966,7 @@ function Core(rootElement, userSettings) {
 
   (0, _keyStateObserver.startObserving)();
 
+  this.isDestroyed = false;
   this.rootElement = rootElement;
   this.isHotTableEnv = (0, _element.isChildOfWebComponentTable)(this.rootElement);
   _eventManager2.default.isHotTableEnv = this.isHotTableEnv;
@@ -16009,10 +16135,14 @@ function Core(rootElement, userSettings) {
    *
    * @memberof Core#
    * @function destroyEditor
-   * @param {Boolean} [revertOriginal] If != `true`, edited data is saved. Otherwise the previous value is restored.
+   * @param {Boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
+   * @param {Boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
    */
-  this.destroyEditor = function (revertOriginal) {
-    instance._refreshBorders(revertOriginal);
+  this.destroyEditor = function () {
+    var revertOriginal = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+    var prepareEditorIfNeeded = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+    instance._refreshBorders(revertOriginal, prepareEditorIfNeeded);
   };
 
   /**
@@ -18089,8 +18219,9 @@ function Core(rootElement, userSettings) {
    * @fires Hooks#afterDestroy
    */
   this.destroy = function () {
-
     instance._clearTimeouts();
+    instance._clearImmediates();
+
     if (instance.view) {
       // in case HT is destroyed before initialization has finished
       instance.view.destroy();
@@ -18123,7 +18254,7 @@ function Core(rootElement, userSettings) {
       if ((0, _object.hasOwnProperty)(instance, i)) {
         // replace instance methods with post mortem
         if ((0, _function.isFunction)(instance[i])) {
-          instance[i] = postMortem;
+          instance[i] = postMortem(i);
         } else if (i !== 'guid') {
           // replace instance properties with null (restores memory)
           // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
@@ -18131,6 +18262,7 @@ function Core(rootElement, userSettings) {
         }
       }
     }
+    instance.isDestroyed = true;
 
     // replace private properties with null (restores memory)
     // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
@@ -18151,8 +18283,10 @@ function Core(rootElement, userSettings) {
    *
    * @private
    */
-  function postMortem() {
-    throw new Error('This method cannot be called because this Handsontable instance has been destroyed');
+  function postMortem(method) {
+    return function () {
+      throw new Error('The "' + method + '" method cannot be called because this Handsontable instance has been destroyed');
+    };
   }
 
   /**
@@ -18307,10 +18441,18 @@ function Core(rootElement, userSettings) {
   /**
    * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called.
    *
-   * @param {*} handle
+   * @param {Number|Function} handle Handler returned from setTimeout or function to execute (it will be automatically wraped
+   *                                 by setTimeout function).
+   * @param {Number} [delay=0] If first argument is passed as a function this argument set delay of the execution of that function.
    * @private
    */
   this._registerTimeout = function (handle) {
+    var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+
+    if (typeof handle === 'function') {
+      handle = setTimeout(handle, delay);
+    }
+
     this.timeouts.push(handle);
   };
 
@@ -18320,22 +18462,49 @@ function Core(rootElement, userSettings) {
    * @private
    */
   this._clearTimeouts = function () {
-    for (var i = 0, ilen = this.timeouts.length; i < ilen; i++) {
-      clearTimeout(this.timeouts[i]);
-    }
+    (0, _array.arrayEach)(this.timeouts, function (handler) {
+      clearTimeout(handler);
+    });
+  };
+
+  this.immediates = [];
+
+  /**
+   * Execute function execution to the next event loop cycle. Purpose of this method is to clear all known timeouts when `destroy` method is called.
+   *
+   * @param {Function} callback Function to be delayed in execution.
+   * @private
+   */
+  this._registerImmediate = function (callback) {
+    this.immediates.push(setImmediate(callback));
+  };
+
+  /**
+   * Clears all known timeouts.
+   *
+   * @private
+   */
+  this._clearImmediates = function () {
+    (0, _array.arrayEach)(this.immediates, function (handler) {
+      clearImmediate(handler);
+    });
   };
 
   /**
    * Refresh selection borders. This is temporary method relic after selection rewrite.
    *
    * @private
-   * @param {Boolean} revertOriginal
+   * @param {Boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
+   * @param {Boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
    */
-  this._refreshBorders = function (revertOriginal) {
+  this._refreshBorders = function () {
+    var revertOriginal = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+    var prepareEditorIfNeeded = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
     editorManager.destroyEditor(revertOriginal);
     instance.view.render();
 
-    if (selection.isSelected()) {
+    if (prepareEditorIfNeeded && selection.isSelected()) {
       editorManager.prepareEditor();
     }
   };
@@ -19623,7 +19792,7 @@ exports.ITEMS = exports.UNDO = exports.SEPARATOR = exports.ROW_BELOW = exports.R
 
 var _predefinedItems2;
 
-var _alignment = __webpack_require__(551);
+var _alignment = __webpack_require__(550);
 
 Object.defineProperty(exports, 'ALIGNMENT', {
   enumerable: true,
@@ -19632,7 +19801,7 @@ Object.defineProperty(exports, 'ALIGNMENT', {
   }
 });
 
-var _clearColumn = __webpack_require__(552);
+var _clearColumn = __webpack_require__(551);
 
 Object.defineProperty(exports, 'CLEAR_COLUMN', {
   enumerable: true,
@@ -19641,7 +19810,7 @@ Object.defineProperty(exports, 'CLEAR_COLUMN', {
   }
 });
 
-var _columnLeft = __webpack_require__(553);
+var _columnLeft = __webpack_require__(552);
 
 Object.defineProperty(exports, 'COLUMN_LEFT', {
   enumerable: true,
@@ -19650,7 +19819,7 @@ Object.defineProperty(exports, 'COLUMN_LEFT', {
   }
 });
 
-var _columnRight = __webpack_require__(554);
+var _columnRight = __webpack_require__(553);
 
 Object.defineProperty(exports, 'COLUMN_RIGHT', {
   enumerable: true,
@@ -19659,7 +19828,7 @@ Object.defineProperty(exports, 'COLUMN_RIGHT', {
   }
 });
 
-var _readOnly = __webpack_require__(555);
+var _readOnly = __webpack_require__(554);
 
 Object.defineProperty(exports, 'READ_ONLY', {
   enumerable: true,
@@ -19668,7 +19837,7 @@ Object.defineProperty(exports, 'READ_ONLY', {
   }
 });
 
-var _redo = __webpack_require__(556);
+var _redo = __webpack_require__(555);
 
 Object.defineProperty(exports, 'REDO', {
   enumerable: true,
@@ -19677,7 +19846,7 @@ Object.defineProperty(exports, 'REDO', {
   }
 });
 
-var _removeColumn = __webpack_require__(557);
+var _removeColumn = __webpack_require__(556);
 
 Object.defineProperty(exports, 'REMOVE_COLUMN', {
   enumerable: true,
@@ -19686,7 +19855,7 @@ Object.defineProperty(exports, 'REMOVE_COLUMN', {
   }
 });
 
-var _removeRow = __webpack_require__(558);
+var _removeRow = __webpack_require__(557);
 
 Object.defineProperty(exports, 'REMOVE_ROW', {
   enumerable: true,
@@ -19695,7 +19864,7 @@ Object.defineProperty(exports, 'REMOVE_ROW', {
   }
 });
 
-var _rowAbove = __webpack_require__(559);
+var _rowAbove = __webpack_require__(558);
 
 Object.defineProperty(exports, 'ROW_ABOVE', {
   enumerable: true,
@@ -19704,7 +19873,7 @@ Object.defineProperty(exports, 'ROW_ABOVE', {
   }
 });
 
-var _rowBelow = __webpack_require__(560);
+var _rowBelow = __webpack_require__(559);
 
 Object.defineProperty(exports, 'ROW_BELOW', {
   enumerable: true,
@@ -19722,7 +19891,7 @@ Object.defineProperty(exports, 'SEPARATOR', {
   }
 });
 
-var _undo = __webpack_require__(561);
+var _undo = __webpack_require__(560);
 
 Object.defineProperty(exports, 'UNDO', {
   enumerable: true,
@@ -20441,7 +20610,7 @@ module.exports = function (iterator, fn, value, entries) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // check on default Array iterator
-var Iterators = __webpack_require__(52);
+var Iterators = __webpack_require__(53);
 var ITERATOR = __webpack_require__(12)('iterator');
 var ArrayProto = Array.prototype;
 
@@ -20456,7 +20625,7 @@ module.exports = function (it) {
 
 var classof = __webpack_require__(107);
 var ITERATOR = __webpack_require__(12)('iterator');
-var Iterators = __webpack_require__(52);
+var Iterators = __webpack_require__(53);
 module.exports = __webpack_require__(39).getIteratorMethod = function (it) {
   if (it != undefined) return it[ITERATOR]
     || it['@@iterator']
@@ -20499,13 +20668,13 @@ module.exports = function (it) {
 
 "use strict";
 
-var LIBRARY = __webpack_require__(49);
+var LIBRARY = __webpack_require__(50);
 var $export = __webpack_require__(3);
 var redefine = __webpack_require__(30);
 var hide = __webpack_require__(31);
-var Iterators = __webpack_require__(52);
+var Iterators = __webpack_require__(53);
 var $iterCreate = __webpack_require__(452);
-var setToStringTag = __webpack_require__(53);
+var setToStringTag = __webpack_require__(54);
 var getPrototypeOf = __webpack_require__(109);
 var ITERATOR = __webpack_require__(12)('iterator');
 var BUGGY = !([].keys && 'next' in [].keys()); // Safari has buggy iterators w/o `next`
@@ -20755,7 +20924,7 @@ module.exports = Array.isArray || function isArray(arg) {
 // 19.1.2.1 Object.assign(target, source, ...)
 var getKeys = __webpack_require__(37);
 var gOPS = __webpack_require__(69);
-var pIE = __webpack_require__(54);
+var pIE = __webpack_require__(55);
 var toObject = __webpack_require__(33);
 var IObject = __webpack_require__(75);
 var $assign = Object.assign;
@@ -20906,7 +21075,7 @@ __webpack_require__(66)(WEAK_SET, function (get) {
 
 "use strict";
 
-var LIBRARY = __webpack_require__(49);
+var LIBRARY = __webpack_require__(50);
 var global = __webpack_require__(15);
 var ctx = __webpack_require__(32);
 var classof = __webpack_require__(107);
@@ -21127,7 +21296,7 @@ if (!USE_NATIVE) {
 }
 
 $export($export.G + $export.W + $export.F * !USE_NATIVE, { Promise: $Promise });
-__webpack_require__(53)($Promise, PROMISE);
+__webpack_require__(54)($Promise, PROMISE);
 __webpack_require__(111)(PROMISE);
 Wrapper = __webpack_require__(39)[PROMISE];
 
@@ -21233,8 +21402,8 @@ var redefine = __webpack_require__(30);
 var META = __webpack_require__(34).KEY;
 var $fails = __webpack_require__(23);
 var shared = __webpack_require__(77);
-var setToStringTag = __webpack_require__(53);
-var uid = __webpack_require__(50);
+var setToStringTag = __webpack_require__(54);
+var uid = __webpack_require__(51);
 var wks = __webpack_require__(12);
 var wksExt = __webpack_require__(122);
 var wksDefine = __webpack_require__(461);
@@ -21244,7 +21413,7 @@ var anObject = __webpack_require__(18);
 var isObject = __webpack_require__(9);
 var toIObject = __webpack_require__(24);
 var toPrimitive = __webpack_require__(73);
-var createDesc = __webpack_require__(51);
+var createDesc = __webpack_require__(52);
 var _create = __webpack_require__(74);
 var gOPNExt = __webpack_require__(123);
 var $GOPD = __webpack_require__(67);
@@ -21373,10 +21542,10 @@ if (!USE_NATIVE) {
   $GOPD.f = $getOwnPropertyDescriptor;
   $DP.f = $defineProperty;
   __webpack_require__(82).f = gOPNExt.f = $getOwnPropertyNames;
-  __webpack_require__(54).f = $propertyIsEnumerable;
+  __webpack_require__(55).f = $propertyIsEnumerable;
   __webpack_require__(69).f = $getOwnPropertySymbols;
 
-  if (DESCRIPTORS && !__webpack_require__(49)) {
+  if (DESCRIPTORS && !__webpack_require__(50)) {
     redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
   }
 
@@ -22280,7 +22449,7 @@ $export($export.S, 'Object', {
 
 var getKeys = __webpack_require__(37);
 var toIObject = __webpack_require__(24);
-var isEnum = __webpack_require__(54).f;
+var isEnum = __webpack_require__(55).f;
 module.exports = function (isEntries) {
   return function (it) {
     var O = toIObject(it);
@@ -22420,7 +22589,7 @@ var getKeys = __webpack_require__(37);
 var redefine = __webpack_require__(30);
 var global = __webpack_require__(15);
 var hide = __webpack_require__(31);
-var Iterators = __webpack_require__(52);
+var Iterators = __webpack_require__(53);
 var wks = __webpack_require__(12);
 var ITERATOR = wks('iterator');
 var TO_STRING_TAG = wks('toStringTag');
@@ -25778,7 +25947,7 @@ var _element = __webpack_require__(0);
 
 var _function = __webpack_require__(43);
 
-var _coords = __webpack_require__(56);
+var _coords = __webpack_require__(57);
 
 var _coords2 = _interopRequireDefault(_coords);
 
@@ -26569,7 +26738,7 @@ var _templateObject = _taggedTemplateLiteral(['Performance tip: Handsontable ren
 
 var _element = __webpack_require__(0);
 
-var _console = __webpack_require__(57);
+var _console = __webpack_require__(58);
 
 var _templateLiteralTag = __webpack_require__(42);
 
@@ -27883,7 +28052,7 @@ var _eventManager = __webpack_require__(6);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _coords = __webpack_require__(56);
+var _coords = __webpack_require__(57);
 
 var _coords2 = _interopRequireDefault(_coords);
 
@@ -28641,10 +28810,10 @@ function onBeforeKeyDown(event) {
     }
 
     if (editor.htEditor) {
-      editor.instance._registerTimeout(setTimeout(function () {
+      editor.instance._registerTimeout(function () {
         editor.queryChoices(editor.TEXTAREA.value);
         skipOne = true;
-      }, timeOffset));
+      }, timeOffset);
     }
   }
 }
@@ -28664,7 +28833,7 @@ AutocompleteEditor.prototype.open = function () {
   var _this = this;
   var trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
 
-  this.TEXTAREA.style.visibility = 'visible';
+  this.showEditableElement();
   this.focus();
 
   choicesListHot.updateSettings({
@@ -28711,14 +28880,11 @@ AutocompleteEditor.prototype.open = function () {
     skipOne = false;
   }
 
-  _this.instance._registerTimeout(setTimeout(function () {
+  _this.instance._registerTimeout(function () {
     _this.queryChoices(_this.TEXTAREA.value);
-  }, 0));
+  });
 };
 
-AutocompleteEditor.prototype.close = function () {
-  _handsontableEditor2.default.prototype.close.apply(this, arguments);
-};
 AutocompleteEditor.prototype.queryChoices = function (query) {
   var _this3 = this;
 
@@ -29038,7 +29204,7 @@ var _element = __webpack_require__(0);
 
 var _event = __webpack_require__(13);
 
-var _textEditor = __webpack_require__(58);
+var _textEditor = __webpack_require__(59);
 
 var _textEditor2 = _interopRequireDefault(_textEditor);
 
@@ -29078,6 +29244,8 @@ HandsontableEditor.prototype.prepare = function (td, row, col, prop, value, cell
     autoRowSize: false,
     readOnly: true,
     fillHandle: false,
+    autoWrapCol: false,
+    autoWrapRow: false,
     afterOnCellMouseDown: function afterOnCellMouseDown(_, coords) {
       var value = this.getSourceData(coords.row, coords.col);
 
@@ -29159,27 +29327,24 @@ HandsontableEditor.prototype.open = function () {
   // Construct and initialise a new Handsontable
   this.htEditor = new this.instance.constructor(this.htContainer, this.htOptions);
   this.htEditor.init();
+  this.htEditor.rootElement.style.display = '';
 
   if (this.cellProperties.strict) {
     this.htEditor.selectCell(0, 0);
-    this.TEXTAREA.style.visibility = 'hidden';
   } else {
     this.htEditor.deselectCell();
-    this.TEXTAREA.style.visibility = 'visible';
   }
 
   (0, _element.setCaretPosition)(this.TEXTAREA, 0, this.TEXTAREA.value.length);
 };
 
 HandsontableEditor.prototype.close = function () {
+  this.htEditor.rootElement.style.display = 'none';
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-  this.instance.listen();
-
   _textEditor2.default.prototype.close.apply(this, arguments);
 };
 
 HandsontableEditor.prototype.focus = function () {
-  this.instance.listen();
   _textEditor2.default.prototype.focus.apply(this, arguments);
 };
 
@@ -29195,7 +29360,6 @@ HandsontableEditor.prototype.beginEditing = function (initialValue) {
 HandsontableEditor.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (this.htEditor && this.htEditor.isListening()) {
     // if focus is still in the HOT editor
-
     this.instance.listen(); // return the focus to the parent HOT instance
   }
 
@@ -29965,1300 +30129,8 @@ exports.default = HandsontableEditor;
 /* 434 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
- * numbro.js
- * version : 1.11.0
- * author : Företagsplatsen AB
- * license : MIT
- * http://www.foretagsplatsen.se
- */
-
-(function () {
-    'use strict';
-
-    /************************************
-        Constants
-    ************************************/
-
-    var numbro,
-        VERSION = '1.11.0',
-        binarySuffixes = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'],
-        decimalSuffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-        bytes = {
-            general: { scale: 1024, suffixes: decimalSuffixes, marker: 'bd' },
-            binary:  { scale: 1024, suffixes: binarySuffixes, marker: 'b' },
-            decimal: { scale: 1000, suffixes: decimalSuffixes, marker: 'd' }
-        },
-        // general must be before the others because it reuses their characters!
-        byteFormatOrder = [ bytes.general, bytes.binary, bytes.decimal ],
-    // internal storage for culture config files
-        cultures = {},
-    // Todo: Remove in 2.0.0
-        languages = cultures,
-        currentCulture = 'en-US',
-        zeroFormat = null,
-        defaultFormat = '0,0',
-        defaultCurrencyFormat = '0$',
-        // check for nodeJS
-        hasModule = (typeof module !== 'undefined' && module.exports),
-    // default culture
-        enUS = {
-            delimiters: {
-                thousands: ',',
-                decimal: '.'
-            },
-            abbreviations: {
-                thousand: 'k',
-                million: 'm',
-                billion: 'b',
-                trillion: 't'
-            },
-            ordinal: function(number) {
-                var b = number % 10;
-                return (~~(number % 100 / 10) === 1) ? 'th' :
-                    (b === 1) ? 'st' :
-                        (b === 2) ? 'nd' :
-                            (b === 3) ? 'rd' : 'th';
-            },
-            currency: {
-                symbol: '$',
-                position: 'prefix'
-            },
-            defaults: {
-                currencyFormat: ',0000 a'
-            },
-            formats: {
-                fourDigits: '0000 a',
-                fullWithTwoDecimals: '$ ,0.00',
-                fullWithTwoDecimalsNoCurrency: ',0.00'
-            }
-        };
-
-    /************************************
-        Constructors
-    ************************************/
-
-
-    // Numbro prototype object
-    function Numbro(number) {
-        this._value = number;
-    }
-
-    function numberLength(number) {
-        if (number === 0) { return 1; }
-        return Math.floor(Math.log(Math.abs(number)) / Math.LN10) + 1;
-    }
-
-    function zeroes(count) {
-        var i, ret = '';
-
-        for (i = 0; i < count; i++) {
-            ret += '0';
-        }
-
-        return ret;
-    }
-    /**
-     * Implementation of toFixed() for numbers with exponents
-     * This function may return negative representations for zero values e.g. "-0.0"
-     */
-    function toFixedLargeSmall(value, precision) {
-        var mantissa,
-            beforeDec,
-            afterDec,
-            exponent,
-            prefix,
-            endStr,
-            zerosStr,
-            str;
-
-        str = value.toString();
-
-        mantissa = str.split('e')[0];
-        exponent = str.split('e')[1];
-
-        beforeDec = mantissa.split('.')[0];
-        afterDec = mantissa.split('.')[1] || '';
-
-        if (+exponent > 0) {
-            // exponent is positive - add zeros after the numbers
-            str = beforeDec + afterDec + zeroes(exponent - afterDec.length);
-        } else {
-            // exponent is negative
-
-            if (+beforeDec < 0) {
-                prefix = '-0';
-            } else {
-                prefix = '0';
-            }
-
-            // tack on the decimal point if needed
-            if (precision > 0) {
-                prefix += '.';
-            }
-
-            zerosStr = zeroes((-1 * exponent) - 1);
-            // substring off the end to satisfy the precision
-            endStr = (zerosStr + Math.abs(beforeDec) + afterDec).substr(0, precision);
-            str = prefix + endStr;
-        }
-
-        // only add percision 0's if the exponent is positive
-        if (+exponent > 0 && precision > 0) {
-            str += '.' + zeroes(precision);
-        }
-
-        return str;
-    }
-
-    /**
-     * Implementation of toFixed() that treats floats more like decimals
-     *
-     * Fixes binary rounding issues (eg. (0.615).toFixed(2) === '0.61') that present
-     * problems for accounting- and finance-related software.
-     *
-     * Also removes negative signs for zero-formatted numbers. e.g. -0.01 w/ precision 1 -> 0.0
-     */
-    function toFixed(value, precision, roundingFunction, optionals) {
-        var power = Math.pow(10, precision),
-            optionalsRegExp,
-            output;
-
-        if (value.toString().indexOf('e') > -1) {
-            // toFixed returns scientific notation for numbers above 1e21 and below 1e-7
-            output = toFixedLargeSmall(value, precision);
-            // remove the leading negative sign if it exists and should not be present (e.g. -0.00)
-            if (output.charAt(0) === '-' && +output >= 0) {
-                output = output.substr(1); // chop off the '-'
-            }
-        }
-        else {
-            // Multiply up by precision, round accurately, then divide and use native toFixed():
-            output = (roundingFunction(value + 'e+' + precision) / power).toFixed(precision);
-        }
-
-        if (optionals) {
-            optionalsRegExp = new RegExp('0{1,' + optionals + '}$');
-            output = output.replace(optionalsRegExp, '');
-        }
-
-        return output;
-    }
-
-    /************************************
-        Formatting
-    ************************************/
-
-    // determine what type of formatting we need to do
-    function formatNumbro(n, format, roundingFunction) {
-        var output,
-            escapedFormat = format.replace(/\{[^\{\}]*\}/g, '');
-
-        // figure out what kind of format we are dealing with
-        if (escapedFormat.indexOf('$') > -1) { // currency!!!!!
-            output = formatCurrency(n, cultures[currentCulture].currency.symbol, format, roundingFunction);
-        } else if (escapedFormat.indexOf('%') > -1) { // percentage
-            output = formatPercentage(n, format, roundingFunction);
-        } else if (escapedFormat.indexOf(':') > -1) { // time
-            output = formatTime(n, format);
-        } else { // plain ol' numbers or bytes
-            output = formatNumber(n._value, format, roundingFunction);
-        }
-
-        // return string
-        return output;
-    }
-
-    // revert to number
-    function unformatNumbro(n, string) {
-        var stringOriginal = string,
-            thousandRegExp,
-            millionRegExp,
-            billionRegExp,
-            trillionRegExp,
-            bytesMultiplier = false,
-            power;
-
-        if (string.indexOf(':') > -1) {
-            n._value = unformatTime(string);
-        } else {
-            if (string === zeroFormat) {
-                n._value = 0;
-            } else {
-                if (cultures[currentCulture].delimiters.decimal !== '.') {
-                    string = string.replace(/\./g, '').replace(cultures[currentCulture].delimiters.decimal, '.');
-                }
-
-                // see if abbreviations are there so that we can multiply to the correct number
-                thousandRegExp = new RegExp('[^a-zA-Z]' + cultures[currentCulture].abbreviations.thousand +
-                    '(?:\\)|(\\' + cultures[currentCulture].currency.symbol + ')?(?:\\))?)?$');
-                millionRegExp = new RegExp('[^a-zA-Z]' + cultures[currentCulture].abbreviations.million +
-                    '(?:\\)|(\\' + cultures[currentCulture].currency.symbol + ')?(?:\\))?)?$');
-                billionRegExp = new RegExp('[^a-zA-Z]' + cultures[currentCulture].abbreviations.billion +
-                    '(?:\\)|(\\' + cultures[currentCulture].currency.symbol + ')?(?:\\))?)?$');
-                trillionRegExp = new RegExp('[^a-zA-Z]' + cultures[currentCulture].abbreviations.trillion +
-                    '(?:\\)|(\\' + cultures[currentCulture].currency.symbol + ')?(?:\\))?)?$');
-
-                // see if bytes are there so that we can multiply to the correct number
-                for (power = 1; power < binarySuffixes.length && !bytesMultiplier; ++power) {
-                    if (string.indexOf(binarySuffixes[power]) > -1) {
-                        bytesMultiplier = Math.pow(1024, power);
-                    } else if (string.indexOf(decimalSuffixes[power]) > -1) {
-                        bytesMultiplier = Math.pow(1000, power);
-                    }
-                }
-
-                var str = string.replace(/[^0-9\.]+/g, '');
-                if (str === '') {
-                    // An empty string is not a number.
-                    n._value = NaN;
-
-                } else {
-                    // do some math to create our number
-                    n._value = ((bytesMultiplier) ? bytesMultiplier : 1) *
-                        ((stringOriginal.match(thousandRegExp)) ? Math.pow(10, 3) : 1) *
-                        ((stringOriginal.match(millionRegExp)) ? Math.pow(10, 6) : 1) *
-                        ((stringOriginal.match(billionRegExp)) ? Math.pow(10, 9) : 1) *
-                        ((stringOriginal.match(trillionRegExp)) ? Math.pow(10, 12) : 1) *
-                        ((string.indexOf('%') > -1) ? 0.01 : 1) *
-                        (((string.split('-').length +
-                            Math.min(string.split('(').length - 1, string.split(')').length - 1)) % 2) ? 1 : -1) *
-                        Number(str);
-
-                    // round if we are talking about bytes
-                    n._value = (bytesMultiplier) ? Math.ceil(n._value) : n._value;
-                }
-            }
-        }
-        return n._value;
-    }
-
-    function formatCurrency(n, currencySymbol, originalFormat, roundingFunction) {
-        var format = originalFormat,
-            symbolIndex = format.indexOf('$'),
-            openParenIndex = format.indexOf('('),
-            plusSignIndex = format.indexOf('+'),
-            minusSignIndex = format.indexOf('-'),
-            space = '',
-            decimalSeparator = '',
-            spliceIndex,
-            output;
-
-        if(format.indexOf('$') === -1){
-            // Use defaults instead of the format provided
-            if (cultures[currentCulture].currency.position === 'infix') {
-                decimalSeparator = currencySymbol;
-                if (cultures[currentCulture].currency.spaceSeparated) {
-                    decimalSeparator = ' ' + decimalSeparator + ' ';
-                }
-            } else if (cultures[currentCulture].currency.spaceSeparated) {
-                space = ' ';
-            }
-        } else {
-            // check for space before or after currency
-            if (format.indexOf(' $') > -1) {
-                space = ' ';
-                format = format.replace(' $', '');
-            } else if (format.indexOf('$ ') > -1) {
-                space = ' ';
-                format = format.replace('$ ', '');
-            } else {
-                format = format.replace('$', '');
-            }
-        }
-
-        // Format The Number
-        output = formatNumber(n._value, format, roundingFunction, decimalSeparator);
-
-        if (originalFormat.indexOf('$') === -1) {
-            // Use defaults instead of the format provided
-            switch (cultures[currentCulture].currency.position) {
-                case 'postfix':
-                    if (output.indexOf(')') > -1) {
-                        output = output.split('');
-                        output.splice(-1, 0, space + currencySymbol);
-                        output = output.join('');
-                    } else {
-                        output = output + space + currencySymbol;
-                    }
-                    break;
-                case 'infix':
-                    break;
-                case 'prefix':
-                    if (output.indexOf('(') > -1 || output.indexOf('-') > -1) {
-                        output = output.split('');
-                        spliceIndex = Math.max(openParenIndex, minusSignIndex) + 1;
-
-                        output.splice(spliceIndex, 0, currencySymbol + space);
-                        output = output.join('');
-                    } else {
-                        output = currencySymbol + space + output;
-                    }
-                    break;
-                default:
-                    throw Error('Currency position should be among ["prefix", "infix", "postfix"]');
-            }
-        } else {
-            // position the symbol
-            if (symbolIndex <= 1) {
-                if (output.indexOf('(') > -1 || output.indexOf('+') > -1 || output.indexOf('-') > -1) {
-                    output = output.split('');
-                    spliceIndex = 1;
-                    if (symbolIndex < openParenIndex || symbolIndex < plusSignIndex || symbolIndex < minusSignIndex) {
-                        // the symbol appears before the "(", "+" or "-"
-                        spliceIndex = 0;
-                    }
-                    output.splice(spliceIndex, 0, currencySymbol + space);
-                    output = output.join('');
-                } else {
-                    output = currencySymbol + space + output;
-                }
-            } else {
-                if (output.indexOf(')') > -1) {
-                    output = output.split('');
-                    output.splice(-1, 0, space + currencySymbol);
-                    output = output.join('');
-                } else {
-                    output = output + space + currencySymbol;
-                }
-            }
-        }
-
-        return output;
-    }
-
-    function formatForeignCurrency(n, foreignCurrencySymbol, originalFormat, roundingFunction) {
-        return formatCurrency(n, foreignCurrencySymbol, originalFormat, roundingFunction);
-    }
-
-    function formatPercentage(n, format, roundingFunction) {
-        var space = '',
-            output,
-            value = n._value * 100;
-
-        // check for space before %
-        if (format.indexOf(' %') > -1) {
-            space = ' ';
-            format = format.replace(' %', '');
-        } else {
-            format = format.replace('%', '');
-        }
-
-        output = formatNumber(value, format, roundingFunction);
-
-        if (output.indexOf(')') > -1) {
-            output = output.split('');
-            output.splice(-1, 0, space + '%');
-            output = output.join('');
-        } else {
-            output = output + space + '%';
-        }
-
-        return output;
-    }
-
-    function formatTime(n) {
-        var hours = Math.floor(n._value / 60 / 60),
-            minutes = Math.floor((n._value - (hours * 60 * 60)) / 60),
-            seconds = Math.round(n._value - (hours * 60 * 60) - (minutes * 60));
-        return hours + ':' +
-            ((minutes < 10) ? '0' + minutes : minutes) + ':' +
-            ((seconds < 10) ? '0' + seconds : seconds);
-    }
-
-    function unformatTime(string) {
-        var timeArray = string.split(':'),
-            seconds = 0;
-        // turn hours and minutes into seconds and add them all up
-        if (timeArray.length === 3) {
-            // hours
-            seconds = seconds + (Number(timeArray[0]) * 60 * 60);
-            // minutes
-            seconds = seconds + (Number(timeArray[1]) * 60);
-            // seconds
-            seconds = seconds + Number(timeArray[2]);
-        } else if (timeArray.length === 2) {
-            // minutes
-            seconds = seconds + (Number(timeArray[0]) * 60);
-            // seconds
-            seconds = seconds + Number(timeArray[1]);
-        }
-        return Number(seconds);
-    }
-
-    function formatByteUnits (value, suffixes, scale) {
-        var suffix = suffixes[0],
-            power,
-            min,
-            max,
-            abs = Math.abs(value);
-
-        if (abs >= scale) {
-            for (power = 1; power < suffixes.length; ++power) {
-                min = Math.pow(scale, power);
-                max = Math.pow(scale, power + 1);
-
-                if (abs >= min && abs < max) {
-                    suffix = suffixes[power];
-                    value = value / min;
-                    break;
-                }
-            }
-
-            // values greater than or equal to [scale] YB never set the suffix
-            if (suffix === suffixes[0]) {
-                value = value / Math.pow(scale, suffixes.length - 1);
-                suffix = suffixes[suffixes.length - 1];
-            }
-        }
-
-        return { value: value, suffix: suffix };
-    }
-
-    function formatNumber (value, format, roundingFunction, sep) {
-        var negP = false,
-            signed = false,
-            optDec = false,
-            abbr = '',
-            abbrK = false, // force abbreviation to thousands
-            abbrM = false, // force abbreviation to millions
-            abbrB = false, // force abbreviation to billions
-            abbrT = false, // force abbreviation to trillions
-            abbrForce = false, // force abbreviation
-            bytes = '',
-            byteFormat,
-            units,
-            ord = '',
-            abs = Math.abs(value),
-            totalLength,
-            length,
-            minimumPrecision,
-            pow,
-            w,
-            intPrecision,
-            precision,
-            prefix,
-            postfix,
-            thousands,
-            d = '',
-            forcedNeg = false,
-            neg = false,
-            indexOpenP,
-            indexMinus,
-            paren = '',
-            minlen,
-            i;
-
-        // check if number is zero and a custom zero format has been set
-        if (value === 0 && zeroFormat !== null) {
-            return zeroFormat;
-        }
-
-        if (!isFinite(value)) {
-            return '' + value;
-        }
-
-        if (format.indexOf('{') === 0) {
-            var end = format.indexOf('}');
-            if (end === -1) {
-                throw Error('Format should also contain a "}"');
-            }
-            prefix = format.slice(1, end);
-            format = format.slice(end + 1);
-        } else {
-            prefix = '';
-        }
-
-        if (format.indexOf('}') === format.length - 1 && format.length) {
-            var start = format.indexOf('{');
-            if (start === -1) {
-                throw Error('Format should also contain a "{"');
-            }
-            postfix = format.slice(start + 1, -1);
-            format = format.slice(0, start + 1);
-        } else {
-            postfix = '';
-        }
-
-        // check for min length
-        var info;
-        if (format.indexOf('.') === -1) {
-            info = format.match(/([0-9]+).*/);
-        } else {
-            info = format.match(/([0-9]+)\..*/);
-        }
-        minlen = info === null ? -1 : info[1].length;
-
-        // see if we should use parentheses for negative number or if we should prefix with a sign
-        // if both are present we default to parentheses
-        if (format.indexOf('-') !== -1) {
-            forcedNeg = true;
-        }
-        if (format.indexOf('(') > -1) {
-            negP = true;
-            format = format.slice(1, -1);
-        } else if (format.indexOf('+') > -1) {
-            signed = true;
-            format = format.replace(/\+/g, '');
-        }
-
-        // see if abbreviation is wanted
-        if (format.indexOf('a') > -1) {
-            intPrecision = format.split('.')[0].match(/[0-9]+/g) || ['0'];
-            intPrecision = parseInt(intPrecision[0], 10);
-
-            // check if abbreviation is specified
-            abbrK = format.indexOf('aK') >= 0;
-            abbrM = format.indexOf('aM') >= 0;
-            abbrB = format.indexOf('aB') >= 0;
-            abbrT = format.indexOf('aT') >= 0;
-            abbrForce = abbrK || abbrM || abbrB || abbrT;
-
-            // check for space before abbreviation
-            if (format.indexOf(' a') > -1) {
-                abbr = ' ';
-                format = format.replace(' a', '');
-            } else {
-                format = format.replace('a', '');
-            }
-
-            totalLength = numberLength(value);
-            minimumPrecision = totalLength % 3;
-            minimumPrecision = minimumPrecision === 0 ? 3 : minimumPrecision;
-
-            if (intPrecision && abs !== 0) {
-                pow = 3 * ~~((Math.min(intPrecision, totalLength) - minimumPrecision) / 3);
-                abs = abs / Math.pow(10, pow);
-            }
-
-            if (totalLength !== intPrecision) {
-                if (abs >= Math.pow(10, 12) && !abbrForce || abbrT) {
-                    // trillion
-                    abbr = abbr + cultures[currentCulture].abbreviations.trillion;
-                    value = value / Math.pow(10, 12);
-                } else if (abs < Math.pow(10, 12) && abs >= Math.pow(10, 9) && !abbrForce || abbrB) {
-                    // billion
-                    abbr = abbr + cultures[currentCulture].abbreviations.billion;
-                    value = value / Math.pow(10, 9);
-                } else if (abs < Math.pow(10, 9) && abs >= Math.pow(10, 6) && !abbrForce || abbrM) {
-                    // million
-                    abbr = abbr + cultures[currentCulture].abbreviations.million;
-                    value = value / Math.pow(10, 6);
-                } else if (abs < Math.pow(10, 6) && abs >= Math.pow(10, 3) && !abbrForce || abbrK) {
-                    // thousand
-                    abbr = abbr + cultures[currentCulture].abbreviations.thousand;
-                    value = value / Math.pow(10, 3);
-                }
-            }
-
-            length = numberLength(value);
-            if (intPrecision && length < intPrecision && format.indexOf('.') === -1) {
-                format += '[.]';
-                format += zeroes(intPrecision - length);
-            }
-        }
-
-        // see if we are formatting
-        //   binary-decimal bytes (1024 MB), binary bytes (1024 MiB), or decimal bytes (1000 MB)
-        for (i = 0; i < byteFormatOrder.length; ++i) {
-            byteFormat = byteFormatOrder[i];
-
-            if (format.indexOf(byteFormat.marker) > -1) {
-                // check for space before
-                if (format.indexOf(' ' + byteFormat.marker) >-1) {
-                    bytes = ' ';
-                }
-
-                // remove the marker (with the space if it had one)
-                format = format.replace(bytes + byteFormat.marker, '');
-
-                units = formatByteUnits(value, byteFormat.suffixes, byteFormat.scale);
-
-                value = units.value;
-                bytes = bytes + units.suffix;
-
-                break;
-            }
-        }
-
-        // see if ordinal is wanted
-        if (format.indexOf('o') > -1) {
-            // check for space before
-            if (format.indexOf(' o') > -1) {
-                ord = ' ';
-                format = format.replace(' o', '');
-            } else {
-                format = format.replace('o', '');
-            }
-
-            if (cultures[currentCulture].ordinal) {
-                ord = ord + cultures[currentCulture].ordinal(value);
-            }
-        }
-
-        if (format.indexOf('[.]') > -1) {
-            optDec = true;
-            format = format.replace('[.]', '.');
-        }
-
-        precision = format.split('.')[1];
-        thousands = format.indexOf(',');
-
-        if (precision) {
-            var dSplit = [];
-
-            if (precision.indexOf('*') !== -1) {
-                d = value.toString();
-                dSplit = d.split('.');
-                if (dSplit.length > 1) {
-                    d = toFixed(value, dSplit[1].length, roundingFunction);
-                }
-            } else {
-                if (precision.indexOf('[') > -1) {
-                    precision = precision.replace(']', '');
-                    precision = precision.split('[');
-                    d = toFixed(value, (precision[0].length + precision[1].length), roundingFunction,
-                        precision[1].length);
-                } else {
-                    d = toFixed(value, precision.length, roundingFunction);
-                }
-            }
-
-            dSplit = d.split('.');
-            w = dSplit[0];
-
-            if (dSplit.length > 1 && dSplit[1].length) {
-                var p = sep ? abbr + sep : cultures[currentCulture].delimiters.decimal;
-                d = p + dSplit[1];
-            } else {
-                d = '';
-            }
-
-            if (optDec && Number(d.slice(1)) === 0) {
-                d = '';
-            }
-        } else {
-            w = toFixed(value, 0, roundingFunction);
-        }
-
-        // format number
-        if (w.indexOf('-') > -1) {
-            w = w.slice(1);
-            neg = true;
-        }
-
-        if (w.length < minlen) {
-            w = zeroes(minlen - w.length) + w;
-        }
-
-        if (thousands > -1) {
-            w = w.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1' +
-                cultures[currentCulture].delimiters.thousands);
-        }
-
-        if (format.indexOf('.') === 0) {
-            w = '';
-        }
-
-        indexOpenP = format.indexOf('(');
-        indexMinus = format.indexOf('-');
-
-        if (indexOpenP < indexMinus) {
-            paren = ((negP && neg) ? '(' : '') + (((forcedNeg && neg) || (!negP && neg)) ? '-' : '');
-        } else {
-            paren = (((forcedNeg && neg) || (!negP && neg)) ? '-' : '') + ((negP && neg) ? '(' : '');
-        }
-
-        return prefix +
-            paren + ((!neg && signed && value !== 0) ? '+' : '') +
-            w + d +
-            ((ord) ? ord : '') +
-            ((abbr && !sep) ? abbr : '') +
-            ((bytes) ? bytes : '') +
-            ((negP && neg) ? ')' : '') +
-            postfix;
-    }
-
-    /************************************
-        Top Level Functions
-    ************************************/
-
-    numbro = function(input) {
-        if (numbro.isNumbro(input)) {
-            input = input.value();
-        } else if (typeof input === 'string' || typeof input === 'number') {
-            input = numbro.fn.unformat(input);
-        } else {
-            input = NaN;
-        }
-
-        return new Numbro(Number(input));
-    };
-
-    // version number
-    numbro.version = VERSION;
-
-    // compare numbro object
-    numbro.isNumbro = function(obj) {
-        return obj instanceof Numbro;
-    };
-
-    /**
-     * This function allow the user to set a new language with a fallback if
-     * the language does not exist. If no fallback language is provided,
-     * it fallbacks to english.
-     *
-     * @deprecated Since in version 1.6.0. It will be deleted in version 2.0
-     * `setCulture` should be used instead.
-     */
-    numbro.setLanguage = function(newLanguage, fallbackLanguage) {
-        console.warn('`setLanguage` is deprecated since version 1.6.0. Use `setCulture` instead');
-        var key = newLanguage,
-            prefix = newLanguage.split('-')[0],
-            matchingLanguage = null;
-        if (!languages[key]) {
-            Object.keys(languages).forEach(function(language) {
-                if (!matchingLanguage && language.split('-')[0] === prefix) {
-                    matchingLanguage = language;
-                }
-            });
-            key = matchingLanguage || fallbackLanguage || 'en-US';
-        }
-        chooseCulture(key);
-    };
-
-    /**
-     * This function allow the user to set a new culture with a fallback if
-     * the culture does not exist. If no fallback culture is provided,
-     * it falls back to "en-US".
-     */
-    numbro.setCulture = function(newCulture, fallbackCulture) {
-        var key = newCulture,
-            suffix = newCulture.split('-')[1],
-            matchingCulture = null;
-        if (!cultures[key]) {
-            if (suffix) {
-                Object.keys(cultures).forEach(function(language) {
-                    if (!matchingCulture && language.split('-')[1] === suffix) {
-                        matchingCulture = language;
-                    }
-                });
-            }
-
-            key = matchingCulture || fallbackCulture || 'en-US';
-        }
-        chooseCulture(key);
-    };
-
-    /**
-     * This function will load languages and then set the global language.  If
-     * no arguments are passed in, it will simply return the current global
-     * language key.
-     *
-     * @deprecated Since in version 1.6.0. It will be deleted in version 2.0
-     * `culture` should be used instead.
-     */
-    numbro.language = function(key, values) {
-        console.warn('`language` is deprecated since version 1.6.0. Use `culture` instead');
-
-        if (!key) {
-            return currentCulture;
-        }
-
-        if (key && !values) {
-            if (!languages[key]) {
-                throw new Error('Unknown language : ' + key);
-            }
-            chooseCulture(key);
-        }
-
-        if (values || !languages[key]) {
-            setCulture(key, values);
-        }
-
-        return numbro;
-    };
-
-    /**
-     * This function will load cultures and then set the global culture.  If
-     * no arguments are passed in, it will simply return the current global
-     * culture code.
-     */
-    numbro.culture = function(code, values) {
-        if (!code) {
-            return currentCulture;
-        }
-
-        if (code && !values) {
-            if (!cultures[code]) {
-                throw new Error('Unknown culture : ' + code);
-            }
-            chooseCulture(code);
-        }
-
-        if (values || !cultures[code]) {
-            setCulture(code, values);
-        }
-
-        return numbro;
-    };
-
-    /**
-     * This function provides access to the loaded language data.  If
-     * no arguments are passed in, it will simply return the current
-     * global language object.
-     *
-     * @deprecated Since in version 1.6.0. It will be deleted in version 2.0
-     * `culture` should be used instead.
-     */
-    numbro.languageData = function(key) {
-        console.warn('`languageData` is deprecated since version 1.6.0. Use `cultureData` instead');
-
-        if (!key) {
-            return languages[currentCulture];
-        }
-
-        if (!languages[key]) {
-            throw new Error('Unknown language : ' + key);
-        }
-
-        return languages[key];
-    };
-
-    /**
-     * This function provides access to the loaded culture data.  If
-     * no arguments are passed in, it will simply return the current
-     * global culture object.
-     */
-    numbro.cultureData = function(code) {
-        if (!code) {
-            return cultures[currentCulture];
-        }
-
-        if (!cultures[code]) {
-            throw new Error('Unknown culture : ' + code);
-        }
-
-        return cultures[code];
-    };
-
-    numbro.culture('en-US', enUS);
-
-    /**
-     * @deprecated Since in version 1.6.0. It will be deleted in version 2.0
-     * `cultures` should be used instead.
-     */
-    numbro.languages = function() {
-        console.warn('`languages` is deprecated since version 1.6.0. Use `cultures` instead');
-
-        return languages;
-    };
-
-    numbro.cultures = function() {
-        return cultures;
-    };
-
-    numbro.zeroFormat = function(format) {
-        zeroFormat = typeof(format) === 'string' ? format : null;
-    };
-
-    numbro.defaultFormat = function(format) {
-        defaultFormat = typeof(format) === 'string' ? format : '0.0';
-    };
-
-    numbro.defaultCurrencyFormat = function (format) {
-        defaultCurrencyFormat = typeof(format) === 'string' ? format : '0$';
-    };
-
-    numbro.validate = function(val, culture) {
-
-        var _decimalSep,
-            _thousandSep,
-            _currSymbol,
-            _valArray,
-            _abbrObj,
-            _thousandRegEx,
-            cultureData,
-            temp;
-
-        //coerce val to string
-        if (typeof val !== 'string') {
-            val += '';
-            if (console.warn) {
-                console.warn('Numbro.js: Value is not string. It has been co-erced to: ', val);
-            }
-        }
-
-        //trim whitespaces from either sides
-        val = val.trim();
-
-        //replace the initial '+' or '-' sign if present
-        val = val.replace(/^[+-]?/, '');
-
-        //if val is just digits return true
-        if ( !! val.match(/^\d+$/)) {
-            return true;
-        }
-
-        //if val is empty return false
-        if (val === '') {
-            return false;
-        }
-
-        //get the decimal and thousands separator from numbro.cultureData
-        try {
-            //check if the culture is understood by numbro. if not, default it to current culture
-            cultureData = numbro.cultureData(culture);
-        } catch (e) {
-            cultureData = numbro.cultureData(numbro.culture());
-        }
-
-        //setup the delimiters and currency symbol based on culture
-        _currSymbol = cultureData.currency.symbol;
-        _abbrObj = cultureData.abbreviations;
-        _decimalSep = cultureData.delimiters.decimal;
-        if (cultureData.delimiters.thousands === '.') {
-            _thousandSep = '\\.';
-        } else {
-            _thousandSep = cultureData.delimiters.thousands;
-        }
-
-        // validating currency symbol
-        temp = val.match(/^[^\d\.\,]+/);
-        if (temp !== null) {
-            val = val.substr(1);
-            if (temp[0] !== _currSymbol) {
-                return false;
-            }
-        }
-
-        //validating abbreviation symbol
-        temp = val.match(/[^\d]+$/);
-        if (temp !== null) {
-            val = val.slice(0, -1);
-            if (temp[0] !== _abbrObj.thousand && temp[0] !== _abbrObj.million &&
-                    temp[0] !== _abbrObj.billion && temp[0] !== _abbrObj.trillion) {
-                return false;
-            }
-        }
-
-        _thousandRegEx = new RegExp(_thousandSep + '{2}');
-
-        if (!val.match(/[^\d.,]/g)) {
-            _valArray = val.split(_decimalSep);
-            if (_valArray.length > 2) {
-                return false;
-            } else {
-                if (_valArray.length < 2) {
-                    return ( !! _valArray[0].match(/^\d+.*\d$/) && !_valArray[0].match(_thousandRegEx));
-                } else {
-                    if (_valArray[0] === '') {
-                        // for values without leading zero eg. .984
-                        return (!_valArray[0].match(_thousandRegEx) &&
-                            !!_valArray[1].match(/^\d+$/));
-
-                    } else if (_valArray[0].length === 1) {
-                        return ( !! _valArray[0].match(/^\d+$/) &&
-                            !_valArray[0].match(_thousandRegEx) &&
-                            !! _valArray[1].match(/^\d+$/));
-                    } else {
-                        return ( !! _valArray[0].match(/^\d+.*\d$/) &&
-                            !_valArray[0].match(_thousandRegEx) &&
-                            !! _valArray[1].match(/^\d+$/));
-                    }
-                }
-            }
-        }
-
-        return false;
-    };
-
-    /**
-     * * @deprecated Since in version 1.6.0. It will be deleted in version 2.0
-     * `loadCulturesInNode` should be used instead.
-     */
-    numbro.loadLanguagesInNode = function() {
-        console.warn('`loadLanguagesInNode` is deprecated since version 1.6.0. Use `loadCulturesInNode` instead');
-
-        numbro.loadCulturesInNode();
-    };
-
-    numbro.loadCulturesInNode = function() {
-        // TODO: Rename the folder in 2.0.0
-        var cultures = __webpack_require__(494);
-
-        for(var langLocaleCode in cultures) {
-            if(langLocaleCode) {
-                numbro.culture(langLocaleCode, cultures[langLocaleCode]);
-            }
-        }
-    };
-
-    /************************************
-        Helpers
-    ************************************/
-
-    function setCulture(code, values) {
-        cultures[code] = values;
-    }
-
-    function chooseCulture(code) {
-        currentCulture = code;
-        var defaults = cultures[code].defaults;
-        if (defaults && defaults.format) {
-            numbro.defaultFormat(defaults.format);
-        }
-        if (defaults && defaults.currencyFormat) {
-            numbro.defaultCurrencyFormat(defaults.currencyFormat);
-        }
-    }
-
-    function inNodejsRuntime() {
-        return (typeof process !== 'undefined') &&
-            (process.browser === undefined) &&
-            process.title &&
-            (
-                process.title.indexOf('node') !== -1 ||
-                process.title.indexOf('meteor-tool') > 0 ||
-                process.title === 'grunt' ||
-                process.title === 'gulp'
-            ) &&
-            ("function" !== 'undefined');
-    }
-
-    /************************************
-        Floating-point helpers
-    ************************************/
-
-    // The floating-point helper functions and implementation
-    // borrows heavily from sinful.js: http://guipn.github.io/sinful.js/
-
-    /**
-     * Array.prototype.reduce for browsers that don't support it
-     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce#Compatibility
-     */
-    if ('function' !== typeof Array.prototype.reduce) {
-        Array.prototype.reduce = function(callback, optInitialValue) {
-
-            if (null === this || 'undefined' === typeof this) {
-                // At the moment all modern browsers, that support strict mode, have
-                // native implementation of Array.prototype.reduce. For instance, IE8
-                // does not support strict mode, so this check is actually useless.
-                throw new TypeError('Array.prototype.reduce called on null or undefined');
-            }
-
-            if ('function' !== typeof callback) {
-                throw new TypeError(callback + ' is not a function');
-            }
-
-            var index,
-                value,
-                length = this.length >>> 0,
-                isValueSet = false;
-
-            if (1 < arguments.length) {
-                value = optInitialValue;
-                isValueSet = true;
-            }
-
-            for (index = 0; length > index; ++index) {
-                if (this.hasOwnProperty(index)) {
-                    if (isValueSet) {
-                        value = callback(value, this[index], index, this);
-                    } else {
-                        value = this[index];
-                        isValueSet = true;
-                    }
-                }
-            }
-
-            if (!isValueSet) {
-                throw new TypeError('Reduce of empty array with no initial value');
-            }
-
-            return value;
-        };
-    }
-
-
-    /**
-     * Computes the multiplier necessary to make x >= 1,
-     * effectively eliminating miscalculations caused by
-     * finite precision.
-     */
-    function multiplier(x) {
-        var parts = x.toString().split('.');
-        if (parts.length < 2) {
-            return 1;
-        }
-        return Math.pow(10, parts[1].length);
-    }
-
-    /**
-     * Given a variable number of arguments, returns the maximum
-     * multiplier that must be used to normalize an operation involving
-     * all of them.
-     */
-    function correctionFactor() {
-        var args = Array.prototype.slice.call(arguments);
-        return args.reduce(function(prev, next) {
-            var mp = multiplier(prev),
-                mn = multiplier(next);
-            return mp > mn ? mp : mn;
-        }, -Infinity);
-    }
-
-    /************************************
-        Numbro Prototype
-    ************************************/
-
-
-    numbro.fn = Numbro.prototype = {
-
-        clone: function() {
-            return numbro(this);
-        },
-
-        format: function(inputString, roundingFunction) {
-            return formatNumbro(this,
-                inputString ? inputString : defaultFormat,
-                (roundingFunction !== undefined) ? roundingFunction : Math.round
-            );
-        },
-
-        formatCurrency: function(inputString, roundingFunction) {
-            return formatCurrency(this,
-                cultures[currentCulture].currency.symbol,
-                inputString ? inputString : defaultCurrencyFormat,
-                (roundingFunction !== undefined) ? roundingFunction : Math.round
-            );
-        },
-
-        formatForeignCurrency: function(currencySymbol, inputString, roundingFunction) {
-            return formatForeignCurrency(this,
-                currencySymbol,
-                inputString ? inputString : defaultCurrencyFormat,
-                (roundingFunction !== undefined) ? roundingFunction : Math.round
-            );
-        },
-
-        unformat: function(inputString) {
-            if (typeof inputString === 'number') {
-                return inputString;
-            } else if (typeof inputString === 'string') {
-                var result = unformatNumbro(this, inputString);
-
-                // Any unparseable string (represented as NaN in the result) is
-                // converted into undefined.
-                return isNaN(result) ? undefined : result;
-            } else {
-                return undefined;
-            }
-        },
-
-        binaryByteUnits: function() {
-            return formatByteUnits(this._value, bytes.binary.suffixes, bytes.binary.scale).suffix;
-        },
-
-        byteUnits: function() {
-            return formatByteUnits(this._value, bytes.general.suffixes, bytes.general.scale).suffix;
-        },
-
-        decimalByteUnits: function() {
-            return formatByteUnits(this._value, bytes.decimal.suffixes, bytes.decimal.scale).suffix;
-        },
-
-        value: function() {
-            return this._value;
-        },
-
-        valueOf: function() {
-            return this._value;
-        },
-
-        set: function(value) {
-            this._value = Number(value);
-            return this;
-        },
-
-        add: function(value) {
-            var corrFactor = correctionFactor.call(null, this._value, value);
-
-            function cback(accum, curr) {
-                return accum + corrFactor * curr;
-            }
-            this._value = [this._value, value].reduce(cback, 0) / corrFactor;
-            return this;
-        },
-
-        subtract: function(value) {
-            var corrFactor = correctionFactor.call(null, this._value, value);
-
-            function cback(accum, curr) {
-                return accum - corrFactor * curr;
-            }
-            this._value = [value].reduce(cback, this._value * corrFactor) / corrFactor;
-            return this;
-        },
-
-        multiply: function(value) {
-            function cback(accum, curr) {
-                var corrFactor = correctionFactor(accum, curr),
-                    result = accum * corrFactor;
-                result *= curr * corrFactor;
-                result /= corrFactor * corrFactor;
-                return result;
-            }
-            this._value = [this._value, value].reduce(cback, 1);
-            return this;
-        },
-
-        divide: function(value) {
-            function cback(accum, curr) {
-                var corrFactor = correctionFactor(accum, curr);
-                return (accum * corrFactor) / (curr * corrFactor);
-            }
-            this._value = [this._value, value].reduce(cback);
-            return this;
-        },
-
-        difference: function(value) {
-            return Math.abs(numbro(this._value).subtract(value).value());
-        }
-
-    };
-
-    /************************************
-        Exposing Numbro
-    ************************************/
-
-    if (inNodejsRuntime()) {
-        //Todo: Rename the folder in 2.0.0
-        numbro.loadCulturesInNode();
-    }
-
-    // CommonJS module is defined
-    if (hasModule) {
-        module.exports = numbro;
-    } else {
-        /*global ender:false */
-        if (typeof ender === 'undefined') {
-            // here, `this` means `window` in the browser, or `global` on the server
-            // add `numbro` as a global object via a string identifier,
-            // for Closure Compiler 'advanced' mode
-            this.numbro = numbro;
-        }
-
-        /*global define:false */
-        if (true) {
-            !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function() {
-                return numbro;
-            }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-        }
-    }
-
-}.call(typeof window === 'undefined' ? this : window));
+var require;var require;!function(e){if(true)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{("undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this).numbro=e()}}(function(){return function e(t,n,r){function i(o,u){if(!n[o]){if(!t[o]){var s="function"==typeof require&&require;if(!u&&s)return require(o,!0);if(a)return a(o,!0);var c=new Error("Cannot find module '"+o+"'");throw c.code="MODULE_NOT_FOUND",c}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return i(n||e)},l,l.exports,e,t,n,r)}return n[o].exports}for(var a="function"==typeof require&&require,o=0;o<r.length;o++)i(r[o]);return i}({1:[function(e,t,n){!function(e){"use strict";function n(e){function t(e,n){var r,i,a,o,u,s,c=this;if(!(c instanceof t))return q&&_(26,"constructor call without new",e),new t(e,n);if(null!=n&&Z(n,2,64,T,"base")){if(n|=0,s=e+"",10==n)return c=new t(e instanceof t?e:s),A(c,C+c.e+1,R);if((o="number"==typeof e)&&0*e!=0||!new RegExp("^-?"+(r="["+b.slice(0,n)+"]+")+"(?:\\."+r+")?$",n<37?"i":"").test(s))return E(c,s,o,n);o?(c.s=1/e<0?(s=s.slice(1),-1):1,q&&s.replace(/^0\.0*|\./,"").length>15&&_(T,y,e),o=!1):c.s=45===s.charCodeAt(0)?(s=s.slice(1),-1):1,s=g(s,10,n,c.s)}else{if(e instanceof t)return c.s=e.s,c.e=e.e,c.c=(e=e.c)?e.slice():e,void(T=0);if((o="number"==typeof e)&&0*e==0){if(c.s=1/e<0?(e=-e,-1):1,e===~~e){for(i=0,a=e;a>=10;a/=10,i++);return c.e=i,c.c=[e],void(T=0)}s=e+""}else{if(!p.test(s=e+""))return E(c,s,o);c.s=45===s.charCodeAt(0)?(s=s.slice(1),-1):1}}for((i=s.indexOf("."))>-1&&(s=s.replace(".","")),(a=s.search(/e/i))>0?(i<0&&(i=a),i+=+s.slice(a+1),s=s.substring(0,a)):i<0&&(i=s.length),a=0;48===s.charCodeAt(a);a++);for(u=s.length;48===s.charCodeAt(--u););if(s=s.slice(a,u+1))if(u=s.length,o&&q&&u>15&&(e>S||e!==h(e))&&_(T,y,c.s*e),(i=i-a-1)>V)c.c=c.e=null;else if(i<I)c.c=[c.e=0];else{if(c.e=i,c.c=[],a=(i+1)%x,i<0&&(a+=x),a<u){for(a&&c.c.push(+s.slice(0,a)),u-=x;a<u;)c.c.push(+s.slice(a,a+=x));s=s.slice(a),a=x-s.length}else a-=u;for(;a--;s+="0");c.c.push(+s)}else c.c=[c.e=0];T=0}function g(e,n,r,a){var o,u,c,f,g,p,d,h=e.indexOf("."),v=C,m=R;for(r<37&&(e=e.toLowerCase()),h>=0&&(c=W,W=0,e=e.replace(".",""),g=(d=new t(r)).pow(e.length-h),W=c,d.c=s(l(i(g.c),g.e),10,n),d.e=d.c.length),u=c=(p=s(e,r,n)).length;0==p[--c];p.pop());if(!p[0])return"0";if(h<0?--u:(g.c=p,g.e=u,g.s=a,p=(g=L(g,d,v,m,n)).c,f=g.r,u=g.e),o=u+v+1,h=p[o],c=n/2,f=f||o<0||null!=p[o+1],f=m<4?(null!=h||f)&&(0==m||m==(g.s<0?3:2)):h>c||h==c&&(4==m||f||6==m&&1&p[o-1]||m==(g.s<0?8:7)),o<1||!p[0])e=f?l("1",-v):"0";else{if(p.length=o,f)for(--n;++p[--o]>n;)p[o]=0,o||(++u,p=[1].concat(p));for(c=p.length;!p[--c];);for(h=0,e="";h<=c;e+=b.charAt(p[h++]));e=l(e,u)}return e}function F(e,n,r,a){var o,u,s,f,g;if(r=null!=r&&Z(r,0,8,a,m)?0|r:R,!e.c)return e.toString();if(o=e.c[0],s=e.e,null==n)g=i(e.c),g=19==a||24==a&&s<=P?c(g,s):l(g,s);else if(e=A(new t(e),n,r),u=e.e,g=i(e.c),f=g.length,19==a||24==a&&(n<=u||u<=P)){for(;f<n;g+="0",f++);g=c(g,u)}else if(n-=s,g=l(g,u),u+1>f){if(--n>0)for(g+=".";n--;g+="0");}else if((n+=u-f)>0)for(u+1==f&&(g+=".");n--;g+="0");return e.s<0&&o?"-"+g:g}function D(e,n){var r,i,a=0;for(u(e[0])&&(e=e[0]),r=new t(e[0]);++a<e.length;){if(!(i=new t(e[a])).s){r=i;break}n.call(r,i)&&(r=i)}return r}function B(e,t,n,r,i){return(e<t||e>n||e!=f(e))&&_(r,(i||"decimal places")+(e<t||e>n?" out of range":" not an integer"),e),!0}function k(e,t,n){for(var r=1,i=t.length;!t[--i];t.pop());for(i=t[0];i>=10;i/=10,r++);return(n=r+n*x-1)>V?e.c=e.e=null:n<I?e.c=[e.e=0]:(e.e=n,e.c=t),e}function _(e,t,n){var r=new Error(["new BigNumber","cmp","config","div","divToInt","eq","gt","gte","lt","lte","minus","mod","plus","precision","random","round","shift","times","toDigits","toExponential","toFixed","toFormat","toFraction","pow","toPrecision","toString","BigNumber"][e]+"() "+t+": "+n);throw r.name="BigNumber Error",T=0,r}function A(e,t,n,r){var i,a,o,u,s,c,l,f=e.c,g=N;if(f){e:{for(i=1,u=f[0];u>=10;u/=10,i++);if((a=t-i)<0)a+=x,o=t,l=(s=f[c=0])/g[i-o-1]%10|0;else if((c=d((a+1)/x))>=f.length){if(!r)break e;for(;f.length<=c;f.push(0));s=l=0,i=1,o=(a%=x)-x+1}else{for(s=u=f[c],i=1;u>=10;u/=10,i++);l=(o=(a%=x)-x+i)<0?0:s/g[i-o-1]%10|0}if(r=r||t<0||null!=f[c+1]||(o<0?s:s%g[i-o-1]),r=n<4?(l||r)&&(0==n||n==(e.s<0?3:2)):l>5||5==l&&(4==n||r||6==n&&(a>0?o>0?s/g[i-o]:0:f[c-1])%10&1||n==(e.s<0?8:7)),t<1||!f[0])return f.length=0,r?(t-=e.e+1,f[0]=g[(x-t%x)%x],e.e=-t||0):f[0]=e.e=0,e;if(0==a?(f.length=c,u=1,c--):(f.length=c+1,u=g[x-a],f[c]=o>0?h(s/g[i-o]%g[o])*u:0),r)for(;;){if(0==c){for(a=1,o=f[0];o>=10;o/=10,a++);for(o=f[0]+=u,u=1;o>=10;o/=10,u++);a!=u&&(e.e++,f[0]==w&&(f[0]=1));break}if(f[c]+=u,f[c]!=w)break;f[c--]=0,u=1}for(a=f.length;0===f[--a];f.pop());}e.e>V?e.c=e.e=null:e.e<I&&(e.c=[e.e=0])}return e}var L,E,T=0,U=t.prototype,j=new t(1),C=20,R=4,P=-7,$=21,I=-1e7,V=1e7,q=!0,Z=B,z=!1,G=1,W=0,H={decimalSeparator:".",groupSeparator:",",groupSize:3,secondaryGroupSize:0,fractionGroupSeparator:" ",fractionGroupSize:0};return t.another=n,t.ROUND_UP=0,t.ROUND_DOWN=1,t.ROUND_CEIL=2,t.ROUND_FLOOR=3,t.ROUND_HALF_UP=4,t.ROUND_HALF_DOWN=5,t.ROUND_HALF_EVEN=6,t.ROUND_HALF_CEIL=7,t.ROUND_HALF_FLOOR=8,t.EUCLID=9,t.config=t.set=function(){var e,t,n=0,r={},i=arguments,a=i[0],s=a&&"object"==typeof a?function(){if(a.hasOwnProperty(t))return null!=(e=a[t])}:function(){if(i.length>n)return null!=(e=i[n++])};return s(t="DECIMAL_PLACES")&&Z(e,0,M,2,t)&&(C=0|e),r[t]=C,s(t="ROUNDING_MODE")&&Z(e,0,8,2,t)&&(R=0|e),r[t]=R,s(t="EXPONENTIAL_AT")&&(u(e)?Z(e[0],-M,0,2,t)&&Z(e[1],0,M,2,t)&&(P=0|e[0],$=0|e[1]):Z(e,-M,M,2,t)&&(P=-($=0|(e<0?-e:e)))),r[t]=[P,$],s(t="RANGE")&&(u(e)?Z(e[0],-M,-1,2,t)&&Z(e[1],1,M,2,t)&&(I=0|e[0],V=0|e[1]):Z(e,-M,M,2,t)&&(0|e?I=-(V=0|(e<0?-e:e)):q&&_(2,t+" cannot be zero",e))),r[t]=[I,V],s(t="ERRORS")&&(e===!!e||1===e||0===e?(T=0,Z=(q=!!e)?B:o):q&&_(2,t+v,e)),r[t]=q,s(t="CRYPTO")&&(!0===e||!1===e||1===e||0===e?e?!(e="undefined"==typeof crypto)&&crypto&&(crypto.getRandomValues||crypto.randomBytes)?z=!0:q?_(2,"crypto unavailable",e?void 0:crypto):z=!1:z=!1:q&&_(2,t+v,e)),r[t]=z,s(t="MODULO_MODE")&&Z(e,0,9,2,t)&&(G=0|e),r[t]=G,s(t="POW_PRECISION")&&Z(e,0,M,2,t)&&(W=0|e),r[t]=W,s(t="FORMAT")&&("object"==typeof e?H=e:q&&_(2,t+" not an object",e)),r[t]=H,r},t.max=function(){return D(arguments,U.lt)},t.min=function(){return D(arguments,U.gt)},t.random=function(){var e=9007199254740992*Math.random()&2097151?function(){return h(9007199254740992*Math.random())}:function(){return 8388608*(1073741824*Math.random()|0)+(8388608*Math.random()|0)};return function(n){var r,i,a,o,u,s=0,c=[],l=new t(j);if(n=null!=n&&Z(n,0,M,14)?0|n:C,o=d(n/x),z)if(crypto.getRandomValues){for(r=crypto.getRandomValues(new Uint32Array(o*=2));s<o;)(u=131072*r[s]+(r[s+1]>>>11))>=9e15?(i=crypto.getRandomValues(new Uint32Array(2)),r[s]=i[0],r[s+1]=i[1]):(c.push(u%1e14),s+=2);s=o/2}else if(crypto.randomBytes){for(r=crypto.randomBytes(o*=7);s<o;)(u=281474976710656*(31&r[s])+1099511627776*r[s+1]+4294967296*r[s+2]+16777216*r[s+3]+(r[s+4]<<16)+(r[s+5]<<8)+r[s+6])>=9e15?crypto.randomBytes(7).copy(r,s):(c.push(u%1e14),s+=7);s=o/7}else z=!1,q&&_(14,"crypto unavailable",crypto);if(!z)for(;s<o;)(u=e())<9e15&&(c[s++]=u%1e14);for(o=c[--s],n%=x,o&&n&&(u=N[x-n],c[s]=h(o/u)*u);0===c[s];c.pop(),s--);if(s<0)c=[a=0];else{for(a=-1;0===c[0];c.splice(0,1),a-=x);for(s=1,u=c[0];u>=10;u/=10,s++);s<x&&(a-=x-s)}return l.e=a,l.c=c,l}}(),L=function(){function e(e,t,n){var r,i,a,o,u=0,s=e.length,c=t%O,l=t/O|0;for(e=e.slice();s--;)u=((i=c*(a=e[s]%O)+(r=l*a+(o=e[s]/O|0)*c)%O*O+u)/n|0)+(r/O|0)+l*o,e[s]=i%n;return u&&(e=[u].concat(e)),e}function n(e,t,n,r){var i,a;if(n!=r)a=n>r?1:-1;else for(i=a=0;i<n;i++)if(e[i]!=t[i]){a=e[i]>t[i]?1:-1;break}return a}function i(e,t,n,r){for(var i=0;n--;)e[n]-=i,i=e[n]<t[n]?1:0,e[n]=i*r+e[n]-t[n];for(;!e[0]&&e.length>1;e.splice(0,1));}return function(a,o,u,s,c){var l,f,g,p,d,v,m,y,b,S,N,O,M,F,D,B,k,_=a.s==o.s?1:-1,L=a.c,E=o.c;if(!(L&&L[0]&&E&&E[0]))return new t(a.s&&o.s&&(L?!E||L[0]!=E[0]:E)?L&&0==L[0]||!E?0*_:_/0:NaN);for(b=(y=new t(_)).c=[],_=u+(f=a.e-o.e)+1,c||(c=w,f=r(a.e/x)-r(o.e/x),_=_/x|0),g=0;E[g]==(L[g]||0);g++);if(E[g]>(L[g]||0)&&f--,_<0)b.push(1),p=!0;else{for(F=L.length,B=E.length,g=0,_+=2,(d=h(c/(E[0]+1)))>1&&(E=e(E,d,c),L=e(L,d,c),B=E.length,F=L.length),M=B,N=(S=L.slice(0,B)).length;N<B;S[N++]=0);k=E.slice(),k=[0].concat(k),D=E[0],E[1]>=c/2&&D++;do{if(d=0,(l=n(E,S,B,N))<0){if(O=S[0],B!=N&&(O=O*c+(S[1]||0)),(d=h(O/D))>1)for(d>=c&&(d=c-1),m=(v=e(E,d,c)).length,N=S.length;1==n(v,S,m,N);)d--,i(v,B<m?k:E,m,c),m=v.length,l=1;else 0==d&&(l=d=1),m=(v=E.slice()).length;if(m<N&&(v=[0].concat(v)),i(S,v,N,c),N=S.length,-1==l)for(;n(E,S,B,N)<1;)d++,i(S,B<N?k:E,N,c),N=S.length}else 0===l&&(d++,S=[0]);b[g++]=d,S[0]?S[N++]=L[M]||0:(S=[L[M]],N=1)}while((M++<F||null!=S[0])&&_--);p=null!=S[0],b[0]||b.splice(0,1)}if(c==w){for(g=1,_=b[0];_>=10;_/=10,g++);A(y,u+(y.e=g+f*x-1)+1,s,p)}else y.e=f,y.r=+p;return y}}(),E=function(){var e=/^(-?)0([xbo])(?=\w[\w.]*$)/i,n=/^([^.]+)\.$/,r=/^\.([^.]+)$/,i=/^-?(Infinity|NaN)$/,a=/^\s*\+(?=[\w.])|^\s+|\s+$/g;return function(o,u,s,c){var l,f=s?u:u.replace(a,"");if(i.test(f))o.s=isNaN(f)?null:f<0?-1:1;else{if(!s&&(f=f.replace(e,function(e,t,n){return l="x"==(n=n.toLowerCase())?16:"b"==n?2:8,c&&c!=l?e:t}),c&&(l=c,f=f.replace(n,"$1").replace(r,"0.$1")),u!=f))return new t(f,l);q&&_(T,"not a"+(c?" base "+c:"")+" number",u),o.s=null}o.c=o.e=null,T=0}}(),U.absoluteValue=U.abs=function(){var e=new t(this);return e.s<0&&(e.s=1),e},U.ceil=function(){return A(new t(this),this.e+1,2)},U.comparedTo=U.cmp=function(e,n){return T=1,a(this,new t(e,n))},U.decimalPlaces=U.dp=function(){var e,t,n=this.c;if(!n)return null;if(e=((t=n.length-1)-r(this.e/x))*x,t=n[t])for(;t%10==0;t/=10,e--);return e<0&&(e=0),e},U.dividedBy=U.div=function(e,n){return T=3,L(this,new t(e,n),C,R)},U.dividedToIntegerBy=U.divToInt=function(e,n){return T=4,L(this,new t(e,n),0,1)},U.equals=U.eq=function(e,n){return T=5,0===a(this,new t(e,n))},U.floor=function(){return A(new t(this),this.e+1,3)},U.greaterThan=U.gt=function(e,n){return T=6,a(this,new t(e,n))>0},U.greaterThanOrEqualTo=U.gte=function(e,n){return T=7,1===(n=a(this,new t(e,n)))||0===n},U.isFinite=function(){return!!this.c},U.isInteger=U.isInt=function(){return!!this.c&&r(this.e/x)>this.c.length-2},U.isNaN=function(){return!this.s},U.isNegative=U.isNeg=function(){return this.s<0},U.isZero=function(){return!!this.c&&0==this.c[0]},U.lessThan=U.lt=function(e,n){return T=8,a(this,new t(e,n))<0},U.lessThanOrEqualTo=U.lte=function(e,n){return T=9,-1===(n=a(this,new t(e,n)))||0===n},U.minus=U.sub=function(e,n){var i,a,o,u,s=this,c=s.s;if(T=10,e=new t(e,n),n=e.s,!c||!n)return new t(NaN);if(c!=n)return e.s=-n,s.plus(e);var l=s.e/x,f=e.e/x,g=s.c,p=e.c;if(!l||!f){if(!g||!p)return g?(e.s=-n,e):new t(p?s:NaN);if(!g[0]||!p[0])return p[0]?(e.s=-n,e):new t(g[0]?s:3==R?-0:0)}if(l=r(l),f=r(f),g=g.slice(),c=l-f){for((u=c<0)?(c=-c,o=g):(f=l,o=p),o.reverse(),n=c;n--;o.push(0));o.reverse()}else for(a=(u=(c=g.length)<(n=p.length))?c:n,c=n=0;n<a;n++)if(g[n]!=p[n]){u=g[n]<p[n];break}if(u&&(o=g,g=p,p=o,e.s=-e.s),(n=(a=p.length)-(i=g.length))>0)for(;n--;g[i++]=0);for(n=w-1;a>c;){if(g[--a]<p[a]){for(i=a;i&&!g[--i];g[i]=n);--g[i],g[a]+=w}g[a]-=p[a]}for(;0==g[0];g.splice(0,1),--f);return g[0]?k(e,g,f):(e.s=3==R?-1:1,e.c=[e.e=0],e)},U.modulo=U.mod=function(e,n){var r,i,a=this;return T=11,e=new t(e,n),!a.c||!e.s||e.c&&!e.c[0]?new t(NaN):!e.c||a.c&&!a.c[0]?new t(a):(9==G?(i=e.s,e.s=1,r=L(a,e,0,3),e.s=i,r.s*=i):r=L(a,e,0,G),a.minus(r.times(e)))},U.negated=U.neg=function(){var e=new t(this);return e.s=-e.s||null,e},U.plus=U.add=function(e,n){var i,a=this,o=a.s;if(T=12,e=new t(e,n),n=e.s,!o||!n)return new t(NaN);if(o!=n)return e.s=-n,a.minus(e);var u=a.e/x,s=e.e/x,c=a.c,l=e.c;if(!u||!s){if(!c||!l)return new t(o/0);if(!c[0]||!l[0])return l[0]?e:new t(c[0]?a:0*o)}if(u=r(u),s=r(s),c=c.slice(),o=u-s){for(o>0?(s=u,i=l):(o=-o,i=c),i.reverse();o--;i.push(0));i.reverse()}for((o=c.length)-(n=l.length)<0&&(i=l,l=c,c=i,n=o),o=0;n;)o=(c[--n]=c[n]+l[n]+o)/w|0,c[n]=w===c[n]?0:c[n]%w;return o&&(c=[o].concat(c),++s),k(e,c,s)},U.precision=U.sd=function(e){var t,n,r=this,i=r.c;if(null!=e&&e!==!!e&&1!==e&&0!==e&&(q&&_(13,"argument"+v,e),e!=!!e&&(e=null)),!i)return null;if(n=i.length-1,t=n*x+1,n=i[n]){for(;n%10==0;n/=10,t--);for(n=i[0];n>=10;n/=10,t++);}return e&&r.e+1>t&&(t=r.e+1),t},U.round=function(e,n){var r=new t(this);return(null==e||Z(e,0,M,15))&&A(r,~~e+this.e+1,null!=n&&Z(n,0,8,15,m)?0|n:R),r},U.shift=function(e){var n=this;return Z(e,-S,S,16,"argument")?n.times("1e"+f(e)):new t(n.c&&n.c[0]&&(e<-S||e>S)?n.s*(e<0?0:1/0):n)},U.squareRoot=U.sqrt=function(){var e,n,a,o,u,s=this,c=s.c,l=s.s,f=s.e,g=C+4,p=new t("0.5");if(1!==l||!c||!c[0])return new t(!l||l<0&&(!c||c[0])?NaN:c?s:1/0);if(0==(l=Math.sqrt(+s))||l==1/0?(((n=i(c)).length+f)%2==0&&(n+="0"),l=Math.sqrt(n),f=r((f+1)/2)-(f<0||f%2),a=new t(n=l==1/0?"1e"+f:(n=l.toExponential()).slice(0,n.indexOf("e")+1)+f)):a=new t(l+""),a.c[0])for((l=(f=a.e)+g)<3&&(l=0);;)if(u=a,a=p.times(u.plus(L(s,u,g,1))),i(u.c).slice(0,l)===(n=i(a.c)).slice(0,l)){if(a.e<f&&--l,"9999"!=(n=n.slice(l-3,l+1))&&(o||"4999"!=n)){+n&&(+n.slice(1)||"5"!=n.charAt(0))||(A(a,a.e+C+2,1),e=!a.times(a).eq(s));break}if(!o&&(A(u,u.e+C+2,0),u.times(u).eq(s))){a=u;break}g+=4,l+=4,o=1}return A(a,a.e+C+1,R,e)},U.times=U.mul=function(e,n){var i,a,o,u,s,c,l,f,g,p,d,h,v,m,y,b=this,S=b.c,N=(T=17,e=new t(e,n)).c;if(!(S&&N&&S[0]&&N[0]))return!b.s||!e.s||S&&!S[0]&&!N||N&&!N[0]&&!S?e.c=e.e=e.s=null:(e.s*=b.s,S&&N?(e.c=[0],e.e=0):e.c=e.e=null),e;for(a=r(b.e/x)+r(e.e/x),e.s*=b.s,(l=S.length)<(p=N.length)&&(v=S,S=N,N=v,o=l,l=p,p=o),o=l+p,v=[];o--;v.push(0));for(m=w,y=O,o=p;--o>=0;){for(i=0,d=N[o]%y,h=N[o]/y|0,u=o+(s=l);u>o;)i=((f=d*(f=S[--s]%y)+(c=h*f+(g=S[s]/y|0)*d)%y*y+v[u]+i)/m|0)+(c/y|0)+h*g,v[u--]=f%m;v[u]=i}return i?++a:v.splice(0,1),k(e,v,a)},U.toDigits=function(e,n){var r=new t(this);return e=null!=e&&Z(e,1,M,18,"precision")?0|e:null,n=null!=n&&Z(n,0,8,18,m)?0|n:R,e?A(r,e,n):r},U.toExponential=function(e,t){return F(this,null!=e&&Z(e,0,M,19)?1+~~e:null,t,19)},U.toFixed=function(e,t){return F(this,null!=e&&Z(e,0,M,20)?~~e+this.e+1:null,t,20)},U.toFormat=function(e,t){var n=F(this,null!=e&&Z(e,0,M,21)?~~e+this.e+1:null,t,21);if(this.c){var r,i=n.split("."),a=+H.groupSize,o=+H.secondaryGroupSize,u=H.groupSeparator,s=i[0],c=i[1],l=this.s<0,f=l?s.slice(1):s,g=f.length;if(o&&(r=a,a=o,o=r,g-=r),a>0&&g>0){for(r=g%a||a,s=f.substr(0,r);r<g;r+=a)s+=u+f.substr(r,a);o>0&&(s+=u+f.slice(r)),l&&(s="-"+s)}n=c?s+H.decimalSeparator+((o=+H.fractionGroupSize)?c.replace(new RegExp("\\d{"+o+"}\\B","g"),"$&"+H.fractionGroupSeparator):c):s}return n},U.toFraction=function(e){var n,r,a,o,u,s,c,l,f,g=q,p=this,d=p.c,h=new t(j),v=r=new t(j),m=c=new t(j);if(null!=e&&(q=!1,s=new t(e),q=g,(g=s.isInt())&&!s.lt(j)||(q&&_(22,"max denominator "+(g?"out of range":"not an integer"),e),e=!g&&s.c&&A(s,s.e+1,1).gte(j)?s:null)),!d)return p.toString();for(f=i(d),o=h.e=f.length-p.e-1,h.c[0]=N[(u=o%x)<0?x+u:u],e=!e||s.cmp(h)>0?o>0?h:v:s,u=V,V=1/0,s=new t(f),c.c[0]=0;l=L(s,h,0,1),1!=(a=r.plus(l.times(m))).cmp(e);)r=m,m=a,v=c.plus(l.times(a=v)),c=a,h=s.minus(l.times(a=h)),s=a;return a=L(e.minus(r),m,0,1),c=c.plus(a.times(v)),r=r.plus(a.times(m)),c.s=v.s=p.s,o*=2,n=L(v,m,o,R).minus(p).abs().cmp(L(c,r,o,R).minus(p).abs())<1?[v.toString(),m.toString()]:[c.toString(),r.toString()],V=u,n},U.toNumber=function(){return+this},U.toPower=U.pow=function(e,n){var r,i,a,o=h(e<0?-e:+e),u=this;if(null!=n&&(T=23,n=new t(n)),!Z(e,-S,S,23,"exponent")&&(!isFinite(e)||o>S&&(e/=0)||parseFloat(e)!=e&&!(e=NaN))||0==e)return r=Math.pow(+u,e),new t(n?r%n:r);for(n?e>1&&u.gt(j)&&u.isInt()&&n.gt(j)&&n.isInt()?u=u.mod(n):(a=n,n=null):W&&(r=d(W/x+2)),i=new t(j);;){if(o%2){if(!(i=i.times(u)).c)break;r?i.c.length>r&&(i.c.length=r):n&&(i=i.mod(n))}if(!(o=h(o/2)))break;u=u.times(u),r?u.c&&u.c.length>r&&(u.c.length=r):n&&(u=u.mod(n))}return n?i:(e<0&&(i=j.div(i)),a?i.mod(a):r?A(i,W,R):i)},U.toPrecision=function(e,t){return F(this,null!=e&&Z(e,1,M,24,"precision")?0|e:null,t,24)},U.toString=function(e){var t,n=this,r=n.s,a=n.e;return null===a?r?(t="Infinity",r<0&&(t="-"+t)):t="NaN":(t=i(n.c),t=null!=e&&Z(e,2,64,25,"base")?g(l(t,a),0|e,10,r):a<=P||a>=$?c(t,a):l(t,a),r<0&&n.c[0]&&(t="-"+t)),t},U.truncated=U.trunc=function(){return A(new t(this),this.e+1,1)},U.valueOf=U.toJSON=function(){var e,t=this,n=t.e;return null===n?t.toString():(e=i(t.c),e=n<=P||n>=$?c(e,n):l(e,n),t.s<0?"-"+e:e)},U.isBigNumber=!0,null!=e&&t.config(e),t}function r(e){var t=0|e;return e>0||e===t?t:t-1}function i(e){for(var t,n,r=1,i=e.length,a=e[0]+"";r<i;){for(t=e[r++]+"",n=x-t.length;n--;t="0"+t);a+=t}for(i=a.length;48===a.charCodeAt(--i););return a.slice(0,i+1||1)}function a(e,t){var n,r,i=e.c,a=t.c,o=e.s,u=t.s,s=e.e,c=t.e;if(!o||!u)return null;if(n=i&&!i[0],r=a&&!a[0],n||r)return n?r?0:-u:o;if(o!=u)return o;if(n=o<0,r=s==c,!i||!a)return r?0:!i^n?1:-1;if(!r)return s>c^n?1:-1;for(u=(s=i.length)<(c=a.length)?s:c,o=0;o<u;o++)if(i[o]!=a[o])return i[o]>a[o]^n?1:-1;return s==c?0:s>c^n?1:-1}function o(e,t,n){return(e=f(e))>=t&&e<=n}function u(e){return"[object Array]"==Object.prototype.toString.call(e)}function s(e,t,n){for(var r,i,a=[0],o=0,u=e.length;o<u;){for(i=a.length;i--;a[i]*=t);for(a[r=0]+=b.indexOf(e.charAt(o++));r<a.length;r++)a[r]>n-1&&(null==a[r+1]&&(a[r+1]=0),a[r+1]+=a[r]/n|0,a[r]%=n)}return a.reverse()}function c(e,t){return(e.length>1?e.charAt(0)+"."+e.slice(1):e)+(t<0?"e":"e+")+t}function l(e,t){var n,r;if(t<0){for(r="0.";++t;r+="0");e=r+e}else if(n=e.length,++t>n){for(r="0",t-=n;--t;r+="0");e+=r}else t<n&&(e=e.slice(0,t)+"."+e.slice(t));return e}function f(e){return(e=parseFloat(e))<0?d(e):h(e)}var g,p=/^-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i,d=Math.ceil,h=Math.floor,v=" not a boolean or binary digit",m="rounding mode",y="number type has more than 15 significant digits",b="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$_",w=1e14,x=14,S=9007199254740991,N=[1,10,100,1e3,1e4,1e5,1e6,1e7,1e8,1e9,1e10,1e11,1e12,1e13],O=1e7,M=1e9;(g=n()).default=g.BigNumber=g,void 0!==t&&t.exports?t.exports=g:(e||(e="undefined"!=typeof self?self:Function("return this")()),e.BigNumber=g)}(this)},{}],2:[function(e,t,n){"use strict";t.exports={languageTag:"en-US",delimiters:{thousands:",",decimal:"."},abbreviations:{thousand:"k",million:"m",billion:"b",trillion:"t"},spaceSeparated:!1,ordinal:function(e){var t=e%10;return 1==~~(e%100/10)?"th":1===t?"st":2===t?"nd":3===t?"rd":"th"},currency:{symbol:"$",position:"prefix",code:"USD"},currencyFormat:{thousandSeparated:!0,totalLength:4,spaceSeparated:!0},formats:{fourDigits:{totalLength:4,spaceSeparated:!0},fullWithTwoDecimals:{output:"currency",thousandSeparated:!0,mantissa:2},fullWithTwoDecimalsNoCurrency:{thousandSeparated:!0,mantissa:2},fullWithNoDecimals:{output:"currency",thousandSeparated:!0,mantissa:0}}}},{}],3:[function(e,t,n){"use strict";function r(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{},n=arguments[2];if("string"==typeof t&&(t=L.parseFormat(t)),!A.validateFormat(t))return"ERROR: invalid format";var r=t.prefix||"",a=t.postfix||"",o=i(e,t,n);return o=M(o,r),o=F(o,a)}function i(e,t,n){switch(t.output){case"currency":return t=B(t,_.currentCurrencyDefaultFormat()),p(e,t,_);case"percent":return t=B(t,_.currentPercentageDefaultFormat()),g(e,t,_,n);case"byte":return t=B(t,_.currentByteDefaultFormat()),c(e,t,_,n);case"time":return t=B(t,_.currentTimeDefaultFormat()),f(e);case"ordinal":return t=B(t,_.currentOrdinalDefaultFormat()),l(e,t,_);case"number":default:return D({instance:e,providedFormat:t,numbro:n})}}function a(e){var t=T.decimal;return s(e._value,t.suffixes,t.scale).suffix}function o(e){var t=T.binary;return s(e._value,t.suffixes,t.scale).suffix}function u(e){var t=T.general;return s(e._value,t.suffixes,t.scale).suffix}function s(e,t,n){var r=t[0],i=Math.abs(e);if(i>=n){for(var a=1;a<t.length;++a){var o=Math.pow(n,a),u=Math.pow(n,a+1);if(i>=o&&i<u){r=t[a],e/=o;break}}r===t[0]&&(e/=Math.pow(n,t.length-1),r=t[t.length-1])}return{value:e,suffix:r}}function c(e,t,n,r){var i=t.base||"binary",a=T[i],o=s(e._value,a.suffixes,a.scale),u=o.value,c=o.suffix;return D({instance:r(u),providedFormat:t,state:n,defaults:n.currentByteDefaultFormat()})+(n.currentAbbreviations().spaced?" ":"")+c}function l(e,t,n){var r=n.currentOrdinal(),i=Object.assign({},U,t),a=D({instance:e,providedFormat:t,state:n}),o=r(e._value);return a+(i.spaceSeparated?" ":"")+o}function f(e){var t=Math.floor(e._value/60/60),n=Math.floor((e._value-60*t*60)/60),r=Math.round(e._value-60*t*60-60*n);return t+":"+(n<10?"0":"")+n+":"+(r<10?"0":"")+r}function g(e,t,n,r){var i=t.prefixSymbol,a=D({instance:r(100*e._value),providedFormat:t,state:n}),o=Object.assign({},U,t);return i?"%"+(o.spaceSeparated?" ":"")+a:a+(o.spaceSeparated?" ":"")+"%"}function p(e,t,n){var r=n.currentCurrency(),i=Object.assign({},U,t),a=void 0,o="",u=!!i.totalLength||!!i.forceAverage||i.average,s=t.currencyPosition||r.position,c=t.currencySymbol||r.symbol;i.spaceSeparated&&(o=" "),"infix"===s&&(a=o+c+o);var l=D({instance:e,providedFormat:t,state:n,decimalSeparator:a});return"prefix"===s&&(l=e._value<0&&"sign"===i.negative?"-"+o+c+l.slice(1):c+o+l),s&&"postfix"!==s||(l=l+(o=u?"":o)+c),l}function d(e){var t=e.value,n=e.forceAverage,r=e.abbreviations,i=e.spaceSeparated,a=void 0!==i&&i,o=e.totalLength,u=void 0===o?0:o,s="",c=Math.abs(t),l=-1;c>=Math.pow(10,12)&&!n||"trillion"===n?(s=r.trillion,t/=Math.pow(10,12)):c<Math.pow(10,12)&&c>=Math.pow(10,9)&&!n||"billion"===n?(s=r.billion,t/=Math.pow(10,9)):c<Math.pow(10,9)&&c>=Math.pow(10,6)&&!n||"million"===n?(s=r.million,t/=Math.pow(10,6)):(c<Math.pow(10,6)&&c>=Math.pow(10,3)&&!n||"thousand"===n)&&(s=r.thousand,t/=Math.pow(10,3));var f=a?" ":"";if(s&&(s=f+s),u){var g=t.toString().split(".")[0];l=Math.max(u-g.length,0)}return{value:t,abbreviation:s,mantissaPrecision:l}}function h(e){var t=e.value,n=e.characteristicPrecision,r=void 0===n?0:n,i=t.toExponential().split("e"),a=k(i,2),o=a[0],u=a[1],s=+o;if(!r)return{value:s,abbreviation:"e"+u};return 1<r&&(s*=Math.pow(10,r-1),u=(u=+u-(r-1))>=0?"+"+u:u),{value:s,abbreviation:"e"+u}}function v(e){for(var t="",n=0;n<e;n++)t+="0";return t}function m(e,t){var n=e.toString(),r=n.split("e"),i=k(r,2),a=i[0],o=i[1],u=a.split("."),s=k(u,2),c=s[0],l=s[1],f=void 0===l?"":l;if(+o>0)n=c+f+v(o-f.length);else{var g=".";g=+c<0?"-0"+g:"0"+g;var p=(v(-o-1)+Math.abs(c)+f).substr(0,t);p.length<t&&(p+=v(t-p.length)),n=g+p}return+o>0&&t>0&&(n+="."+v(t)),n}function y(e,t){return-1!==e.toString().indexOf("e")?m(e,t):(Math.round(+(e+"e+"+t))/Math.pow(10,t)).toFixed(t)}function b(e,t,n,r){if(-1===r)return e;var i=y(t,r),a=i.toString().split("."),o=k(a,2),u=o[0],s=o[1];return(void 0===s?"":s).match(/^0+$/)&&n?u:i.toString()}function w(e,t,n,r){var i=e,a=i.toString().split("."),o=k(a,2),u=o[0],s=o[1];if(u.match(/^-?0$/)&&n)return s?u.replace("0","")+"."+s:u.replace("0","");if(u.length<r)for(var c=r-u.length,l=0;l<c;l++)i="0"+i;return i.toString()}function x(e,t){for(var n=[],r=0,i=e;i>0;i--)r===t&&(n.unshift(i),r=0),r++;return n}function S(e,t,n,r,i){var a=r.currentDelimiters(),o=a.thousands;i=i||a.decimal;var u=a.thousandsSize||3,s=e.toString(),c=s.split(".")[0],l=s.split(".")[1];return n&&(t<0&&(c=c.slice(1)),x(c.length,u).forEach(function(e,t){c=c.slice(0,e+t)+o+c.slice(e+t)}),t<0&&(c="-"+c)),s=l?c+i+l:c}function N(e,t){return e+t}function O(e,t,n){return 0===t?e:0==+e?e.replace("-",""):t>0?"+"+e:"sign"===n?e:"("+e.replace("-","")+")"}function M(e,t){return t+e}function F(e,t){return e+t}function D(e){var t=e.instance,n=e.providedFormat,r=e.state,i=void 0===r?_:r,a=e.decimalSeparator,o=e.defaults,u=void 0===o?i.currentDefaults():o,s=t._value;if(0===s&&i.hasZeroFormat())return i.getZeroFormat();if(!isFinite(s))return s.toString();var c=Object.assign({},U,u,n),l=c.totalLength,f=l?0:c.characteristic,g=c.optionalCharacteristic,p=c.forceAverage,v=!!l||!!p||c.average,m=l?-1:v&&void 0===n.mantissa?0:c.mantissa,y=!l&&(void 0===n.optionalMantissa?-1===m:c.optionalMantissa),x=c.thousandSeparated,M=c.spaceSeparated,F=c.negative,D=c.forceSign,B=c.exponential,k="";if(v){var A=d({value:s,forceAverage:p,abbreviations:i.currentAbbreviations(),spaceSeparated:M,totalLength:l});s=A.value,k+=A.abbreviation,l&&(m=A.mantissaPrecision)}if(B){var L=h({value:s,characteristicPrecision:f});s=L.value,k=L.abbreviation+k}var E=b(s.toString(),s,y,m);return E=w(E,s,g,f),E=S(E,s,x,i,a),(v||B)&&(E=N(E,k)),(D||s<0)&&(E=O(E,s,F)),E}function B(e,t){if(!e)return t;var n=Object.keys(e);return 1===n.length&&"output"===n[0]?t:e}var k=function(){function e(e,t){var n=[],r=!0,i=!1,a=void 0;try{for(var o,u=e[Symbol.iterator]();!(r=(o=u.next()).done)&&(n.push(o.value),!t||n.length!==t);r=!0);}catch(e){i=!0,a=e}finally{try{!r&&u.return&&u.return()}finally{if(i)throw a}}return n}return function(t,n){if(Array.isArray(t))return t;if(Symbol.iterator in Object(t))return e(t,n);throw new TypeError("Invalid attempt to destructure non-iterable instance")}}(),_=e("./globalState"),A=e("./validating"),L=e("./parsing"),E=["B","KB","MB","GB","TB","PB","EB","ZB","YB"],T={general:{scale:1024,suffixes:E,marker:"bd"},binary:{scale:1024,suffixes:["B","KiB","MiB","GiB","TiB","PiB","EiB","ZiB","YiB"],marker:"b"},decimal:{scale:1e3,suffixes:E,marker:"d"}},U={totalLength:0,characteristic:0,forceAverage:!1,average:!1,mantissa:-1,optionalMantissa:!0,thousandSeparated:!1,spaceSeparated:!1,negative:"sign",forceSign:!1};t.exports=function(e){return{format:function(){for(var t=arguments.length,n=Array(t),i=0;i<t;i++)n[i]=arguments[i];return r.apply(void 0,n.concat([e]))},getByteUnit:function(){for(var t=arguments.length,n=Array(t),r=0;r<t;r++)n[r]=arguments[r];return u.apply(void 0,n.concat([e]))},getBinaryByteUnit:function(){for(var t=arguments.length,n=Array(t),r=0;r<t;r++)n[r]=arguments[r];return o.apply(void 0,n.concat([e]))},getDecimalByteUnit:function(){for(var t=arguments.length,n=Array(t),r=0;r<t;r++)n[r]=arguments[r];return a.apply(void 0,n.concat([e]))},formatOrDefault:B}}},{"./globalState":4,"./parsing":8,"./validating":10}],4:[function(e,t,n){"use strict";function r(e){c=e}function i(){return l[c]}var a=e("./en-US"),o=e("./validating"),u=e("./parsing"),s={},c=void 0,l={},f=null,g={};s.languages=function(){return Object.assign({},l)},s.currentLanguage=function(){return c},s.currentCurrency=function(){return i().currency},s.currentAbbreviations=function(){return i().abbreviations},s.currentDelimiters=function(){return i().delimiters},s.currentOrdinal=function(){return i().ordinal},s.currentDefaults=function(){return Object.assign({},i().defaults,g)},s.currentOrdinalDefaultFormat=function(){return Object.assign({},s.currentDefaults(),i().ordinalFormat)},s.currentByteDefaultFormat=function(){return Object.assign({},s.currentDefaults(),i().byteFormat)},s.currentPercentageDefaultFormat=function(){return Object.assign({},s.currentDefaults(),i().percentageFormat)},s.currentCurrencyDefaultFormat=function(){return Object.assign({},s.currentDefaults(),i().currencyFormat)},s.currentTimeDefaultFormat=function(){return Object.assign({},s.currentDefaults(),i().timeFormat)},s.setDefaults=function(e){e=u.parseFormat(e),o.validateFormat(e)&&(g=e)},s.getZeroFormat=function(){return f},s.setZeroFormat=function(e){return f="string"==typeof e?e:null},s.hasZeroFormat=function(){return null!==f},s.languageData=function(e){if(e){if(l[e])return l[e];throw new Error('Unknown tag "'+e+'"')}return i()},s.registerLanguage=function(e){var t=arguments.length>1&&void 0!==arguments[1]&&arguments[1];if(!o.validateLanguage(e))throw new Error("Invalid language data");l[e.languageTag]=e,t&&r(e.languageTag)},s.setLanguage=function(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:a.languageTag;if(!l[e]){var n=e.split("-")[0],i=Object.keys(l).find(function(e){return e.split("-")[0]===n});if(!l[i])return void r(t);r(i)}r(e)},s.registerLanguage(a),c=a.languageTag,t.exports=s},{"./en-US":2,"./parsing":8,"./validating":10}],5:[function(e,t,n){"use strict";function r(t,n){t.forEach(function(t){var r=void 0;try{r=e("../languages/"+t)}catch(e){console.error('Unable to load "'+t+'". No matching language file found.')}r&&n.registerLanguage(r)})}t.exports=function(e){return{loadLanguagesInNode:function(t){return r(t,e)}}}},{}],6:[function(e,t,n){"use strict";function r(e,t,n){var r=new c(e._value),i=t;return n.isNumbro(t)&&(i=t._value),i=new c(i),e._value=r.add(i).toNumber(),e}function i(e,t,n){var r=new c(e._value),i=t;return n.isNumbro(t)&&(i=t._value),i=new c(i),e._value=r.minus(i).toNumber(),e}function a(e,t,n){var r=new c(e._value),i=t;return n.isNumbro(t)&&(i=t._value),i=new c(i),e._value=r.times(i).toNumber(),e}function o(e,t,n){var r=new c(e._value),i=t;return n.isNumbro(t)&&(i=t._value),i=new c(i),e._value=r.dividedBy(i).toNumber(),e}function u(e,t,n){var r=t;return n.isNumbro(t)&&(r=t._value),e._value=r,e}function s(e,t,n){var r=n(e._value);return i(r,t,n),Math.abs(r._value)}var c=e("bignumber.js");t.exports=function(e){return{add:function(t,n){return r(t,n,e)},subtract:function(t,n){return i(t,n,e)},multiply:function(t,n){return a(t,n,e)},divide:function(t,n){return o(t,n,e)},set:function(t,n){return u(t,n,e)},difference:function(t,n){return s(t,n,e)}}}},{"bignumber.js":1}],7:[function(e,t,n){"use strict";function r(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function i(e){var t=e;return a.isNumbro(e)?t=e._value:"string"==typeof e?t=a.unformat(e):isNaN(e)&&(t=NaN),t}function a(e){return new d(i(e))}var o=function(){function e(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(t,n,r){return n&&e(t.prototype,n),r&&e(t,r),t}}(),u=e("./globalState"),s=e("./validating"),c=e("./loading")(a),l=e("./unformatting"),f=e("./formatting")(a),g=e("./manipulating")(a),p=e("./parsing"),d=function(){function e(t){r(this,e),this._value=t}return o(e,[{key:"clone",value:function(){return a(this._value)}},{key:"format",value:function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};return f.format(this,e)}},{key:"formatCurrency",value:function(e){return"string"==typeof e&&(e=p.parseFormat(e)),e=f.formatOrDefault(e,u.currentCurrencyDefaultFormat()),e.output="currency",f.format(this,e)}},{key:"formatTime",value:function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};return e.output="time",f.format(this,e)}},{key:"binaryByteUnits",value:function(){return f.getBinaryByteUnit(this)}},{key:"decimalByteUnits",value:function(){return f.getDecimalByteUnit(this)}},{key:"byteUnits",value:function(){return f.getByteUnit(this)}},{key:"difference",value:function(e){return g.difference(this,e)}},{key:"add",value:function(e){return g.add(this,e)}},{key:"subtract",value:function(e){return g.subtract(this,e)}},{key:"multiply",value:function(e){return g.multiply(this,e)}},{key:"divide",value:function(e){return g.divide(this,e)}},{key:"set",value:function(e){return g.set(this,i(e))}},{key:"value",value:function(){return this._value}},{key:"valueOf",value:function(){return this._value}}]),e}();a.version="2.0.6",a.isNumbro=function(e){return e instanceof d},a.language=u.currentLanguage,a.registerLanguage=u.registerLanguage,a.setLanguage=u.setLanguage,a.languages=u.languages,a.languageData=u.languageData,a.zeroFormat=u.setZeroFormat,a.defaultFormat=u.currentDefaults,a.setDefaults=u.setDefaults,a.defaultCurrencyFormat=u.currentCurrencyDefaultFormat,a.validate=s.validate,a.loadLanguagesInNode=c.loadLanguagesInNode,a.unformat=l.unformat,t.exports=a},{"./formatting":3,"./globalState":4,"./loading":5,"./manipulating":6,"./parsing":8,"./unformatting":9,"./validating":10}],8:[function(e,t,n){"use strict";function r(e,t){var n=e.match(/^{([^}]*)}/);return n?(t.prefix=n[1],e.slice(n[0].length)):e}function i(e,t){var n=e.match(/{([^}]*)}$/);return n?(t.postfix=n[1],e.slice(0,-n[0].length)):e}function a(e,t){if(-1===e.indexOf("$")){if(-1===e.indexOf("%"))return-1!==e.indexOf("bd")?(t.output="byte",void(t.base="general")):-1!==e.indexOf("b")?(t.output="byte",void(t.base="binary")):-1!==e.indexOf("d")?(t.output="byte",void(t.base="decimal")):void(-1===e.indexOf(":")?-1!==e.indexOf("o")&&(t.output="ordinal"):t.output="time");t.output="percent"}else t.output="currency"}function o(e,t){-1!==e.indexOf(",")&&(t.thousandSeparated=!0)}function u(e,t){-1!==e.indexOf(" ")&&(t.spaceSeparated=!0)}function s(e,t){var n=e.match(/[1-9]+[0-9]*/);n&&(t.totalLength=+n[0])}function c(e,t){var n=e.split(".")[0].match(/0+/);n&&(t.characteristic=n[0].length)}function l(e,t){var n=e.split(".")[1];if(n){var r=n.match(/0+/);r&&(t.mantissa=r[0].length)}}function f(e,t){-1!==e.indexOf("a")&&(t.average=!0)}function g(e,t){-1!==e.indexOf("K")?t.forceAverage="thousand":-1!==e.indexOf("M")?t.forceAverage="million":-1!==e.indexOf("B")?t.forceAverage="billion":-1!==e.indexOf("T")&&(t.forceAverage="trillion")}function p(e,t){e.match(/\[\.]/)?t.optionalMantissa=!0:e.match(/\./)&&(t.optionalMantissa=!1)}function d(e,t){if(-1!==e.indexOf(".")){var n=e.split(".")[0];t.optionalCharacteristic=-1===n.indexOf("0")}}function h(e,t){e.match(/^\+?\([^)]*\)$/)&&(t.negative="parenthesis"),e.match(/^\+?-/)&&(t.negative="sign")}function v(e,t){e.match(/^\+/)&&(t.forceSign=!0)}t.exports={parseFormat:function(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{};return"string"!=typeof e?e:(e=r(e,t),e=i(e,t),a(e,t),s(e,t),c(e,t),d(e,t),f(e,t),g(e,t),l(e,t),p(e,t),o(e,t),u(e,t),h(e,t),v(e,t),t)}}},{}],9:[function(e,t,n){"use strict";function r(e){return e.replace(/[-/\\^$*+?.()|[\]{}]/g,"\\$&")}function i(e,t){var n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:"",a=arguments[3],o=arguments[4],u=arguments[5],s=arguments[6];if(!isNaN(+e))return+e;var l="",f=e.replace(/(^[^(]*)\((.*)\)([^)]*$)/,"$1$2$3");if(f!==e)return-1*i(f,t,n,a,o,u,s);for(var g=0;g<c.length;g++){var p=c[g];if((l=e.replace(p.key,""))!==e)return i(l,t,n,a,o,u,s)*p.factor}if((l=e.replace("%",""))!==e)return i(l,t,n,a,o,u,s)/100;var d=parseFloat(e);if(!isNaN(d)){var h=a(d);if(h&&"."!==h&&(l=e.replace(new RegExp(r(h)+"$"),""))!==e)return i(l,t,n,a,o,u,s);var v={};Object.keys(u).forEach(function(e){v[u[e]]=e});for(var m=Object.keys(v).sort().reverse(),y=m.length,b=0;b<y;b++){var w=m[b],x=v[w];if((l=e.replace(w,""))!==e){var S=void 0;switch(x){case"thousand":S=Math.pow(10,3);break;case"million":S=Math.pow(10,6);break;case"billion":S=Math.pow(10,9);break;case"trillion":S=Math.pow(10,12)}return i(l,t,n,a,o,u,s)*S}}}}function a(e,t){var n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:"",i=e.replace(n,"");return i=i.replace(new RegExp("([0-9])"+r(t.thousands)+"([0-9])","g"),"$1$2"),i=i.replace(t.decimal,".")}function o(e,t){var n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:"",r=arguments[3],o=arguments[4],u=arguments[5],s=arguments[6];if(""!==e)return isNaN(+e)?e===o?0:i(a(e,t,n),t,n,r,o,u,s):+e}function u(e,t){if(!(e.indexOf(":")&&":"!==t.thousands))return!1;var n=e.split(":");if(3!==n.length)return!1;var r=+n[0],i=+n[1],a=+n[2];return!isNaN(r)&&!isNaN(i)&&!isNaN(a)}function s(e){var t=e.split(":"),n=+t[0],r=+t[1];return+t[2]+60*r+3600*n}var c=[{key:"ZiB",factor:Math.pow(1024,7)},{key:"ZB",factor:Math.pow(1e3,7)},{key:"YiB",factor:Math.pow(1024,8)},{key:"YB",factor:Math.pow(1e3,8)},{key:"TiB",factor:Math.pow(1024,4)},{key:"TB",factor:Math.pow(1e3,4)},{key:"PiB",factor:Math.pow(1024,5)},{key:"PB",factor:Math.pow(1e3,5)},{key:"MiB",factor:Math.pow(1024,2)},{key:"MB",factor:Math.pow(1e3,2)},{key:"KiB",factor:Math.pow(1024,1)},{key:"KB",factor:Math.pow(1e3,1)},{key:"GiB",factor:Math.pow(1024,3)},{key:"GB",factor:Math.pow(1e3,3)},{key:"EiB",factor:Math.pow(1024,6)},{key:"EB",factor:Math.pow(1e3,6)},{key:"B",factor:1}];t.exports={unformat:function(t,n){var r=e("./globalState"),i=r.currentDelimiters(),a=r.currentCurrency().symbol,c=r.currentOrdinal(),l=r.getZeroFormat(),f=r.currentAbbreviations(),g=void 0;if("string"==typeof t)g=u(t,i)?s(t):o(t,i,a,c,l,f,n);else{if("number"!=typeof t)return;g=t}if(void 0!==g)return g}}},{"./globalState":4}],10:[function(e,t,n){"use strict";function r(e){if(Array.isArray(e)){for(var t=0,n=Array(e.length);t<e.length;t++)n[t]=e[t];return n}return Array.from(e)}function i(e){return!!s.unformat(e)}function a(e,t,n){var i=arguments.length>3&&void 0!==arguments[3]&&arguments[3],o=Object.keys(e).map(function(r){if(!t[r])return console.error(n+" Invalid key: "+r),!1;var i=e[r],o=t[r];if("string"==typeof o&&(o={type:o}),"format"===o.type){if(!a(i,l,"[Validate "+r+"]",!0))return!1}else if((void 0===i?"undefined":u(i))!==o.type)return console.error(n+" "+r+' type mismatched: "'+o.type+'" expected, "'+(void 0===i?"undefined":u(i))+'" provided'),!1;if(o.restrictions&&o.restrictions.length)for(var s=o.restrictions.length,c=0;c<s;c++){var f=o.restrictions[c],g=f.restriction,p=f.message;if(!g(i,e))return console.error(n+" "+r+" invalid value: "+p),!1}return o.restriction&&!o.restriction(i,e)?(console.error(n+" "+r+" invalid value: "+o.message),!1):o.validValues&&-1===o.validValues.indexOf(i)?(console.error(n+" "+r+" invalid value: must be among "+JSON.stringify(o.validValues)+', "'+i+'" provided'),!1):!(o.children&&!a(i,o.children,"[Validate "+r+"]"))});return i||o.push.apply(o,r(Object.keys(t).map(function(r){var i=t[r];if("string"==typeof i&&(i={type:i}),i.mandatory){var a=i.mandatory;if("function"==typeof a&&(a=a(e)),a&&void 0===e[r])return console.error(n+' Missing mandatory key "'+r+'"'),!1}return!0}))),o.reduce(function(e,t){return e&&t},!0)}function o(e){return a(e,l,"[Validate format]")}var u="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},s=e("./unformatting"),c=/^[a-z]{2,3}(-[a-zA-Z]{4})?(-([A-Z]{2}|[0-9]{3}))?$/,l={output:{type:"string",validValues:["currency","percent","byte","time","ordinal","number"]},base:{type:"string",validValues:["decimal","binary","general"],restriction:function(e,t){return"byte"===t.output},message:"`base` must be provided only when the output is `byte`",mandatory:function(e){return"byte"===e.output}},characteristic:{type:"number",restriction:function(e){return e>=0},message:"value must be positive"},prefix:"string",postfix:"string",forceAverage:{type:"string",validValues:["trillion","billion","million","thousand"]},average:"boolean",currencyPosition:{type:"string",validValues:["prefix","infix","postfix"]},currencySymbol:"string",totalLength:{type:"number",restrictions:[{restriction:function(e){return e>=0},message:"value must be positive"},{restriction:function(e,t){return!t.exponential},message:"`totalLength` is incompatible with `exponential`"}]},mantissa:{type:"number",restriction:function(e){return e>=0},message:"value must be positive"},optionalMantissa:"boolean",optionalCharacteristic:"boolean",thousandSeparated:"boolean",spaceSeparated:"boolean",abbreviations:{type:"object",children:{thousand:"string",million:"string",billion:"string",trillion:"string"}},negative:{type:"string",validValues:["sign","parenthesis"]},forceSign:"boolean",exponential:{type:"boolean"},prefixSymbol:{type:"boolean",restriction:function(e,t){return"percent"===t.output},message:"`prefixSymbol` can be provided only when the output is `percent`"}},f={languageTag:{type:"string",mandatory:!0,restriction:function(e){return e.match(c)},message:"the language tag must follow the BCP 47 specification (see https://tools.ieft.org/html/bcp47)"},delimiters:{type:"object",children:{thousands:"string",decimal:"string",thousandsSize:"number"},mandatory:!0},abbreviations:{type:"object",children:{thousand:{type:"string",mandatory:!0},million:{type:"string",mandatory:!0},billion:{type:"string",mandatory:!0},trillion:{type:"string",mandatory:!0}},mandatory:!0},spaceSeparated:"boolean",ordinal:{type:"function",mandatory:!0},currency:{type:"object",children:{symbol:"string",position:"string",code:"string"},mandatory:!0},defaults:"format",ordinalFormat:"format",byteFormat:"format",percentageFormat:"format",currencyFormat:"format",timeDefaults:"format",formats:{type:"object",children:{fourDigits:{type:"format",mandatory:!0},fullWithTwoDecimals:{type:"format",mandatory:!0},fullWithTwoDecimalsNoCurrency:{type:"format",mandatory:!0},fullWithNoDecimals:{type:"format",mandatory:!0}}}};t.exports={validate:function(e,t){var n=i(e),r=o(t);return n&&r},validateFormat:o,validateInput:i,validateLanguage:function(e){return a(e,f,"[Validate language]")}}},{"./unformatting":9}]},{},[7])(7)});
+//# sourceMappingURL=numbro.min.js.map
 
 
 /*** EXPORTS FROM exports-to-window-loader ***/
@@ -31902,7 +30774,7 @@ DefaultSettings.prototype = {
    * Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
    * Can be declared as an Array of Arrays, Array of Objects or a Function.
    *
-   * See [Understanding binding as reference](http://docs.handsontable.com/tutorial-data-binding.html#page-reference).
+   * See [Understanding binding as reference](https://docs.handsontable.com/tutorial-data-binding.html#page-reference).
    *
    * @type {Array|Function}
    * @default undefined
@@ -31913,7 +30785,7 @@ DefaultSettings.prototype = {
    * @description
    * Defines the structure of a new row when data source is an array of objects.
    *
-   * See [data-schema](http://docs.handsontable.com/tutorial-data-sources.html#page-data-schema) for examples.
+   * See [data-schema](https://docs.handsontable.com/tutorial-data-sources.html#page-data-schema) for examples.
    *
    * @type {Object}
    * @default undefined
@@ -32093,7 +30965,7 @@ DefaultSettings.prototype = {
    *
    * __Notice:__ Using this option sets a fixed number of columns (options `startCols`, `minCols`, `maxCols` will be ignored).
    *
-   * See [documentation -> datasources.html](http://docs.handsontable.com/tutorial-data-sources.html#page-nested) for examples.
+   * See [documentation -> datasources.html](https://docs.handsontable.com/tutorial-data-sources.html#page-nested) for examples.
    *
    * @type {Array|Function}
    * @default undefined
@@ -32188,7 +31060,7 @@ DefaultSettings.prototype = {
    *
    * To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of an array.
    *
-   * See [Comments](http://docs.handsontable.com/demo-comments_.html) demo for examples.
+   * See [Comments](https://docs.handsontable.com/demo-comments_.html) demo for examples.
    *
    * @since 0.11.0
    * @type {Boolean|Array}
@@ -32208,7 +31080,7 @@ DefaultSettings.prototype = {
    *
    * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form of an array.
    *
-   * See [Custom Borders](http://docs.handsontable.com/demo-custom-borders.html) demo for examples.
+   * See [Custom Borders](https://docs.handsontable.com/demo-custom-borders.html) demo for examples.
    *
    * @since 0.11.0
    * @type {Boolean|Array}
@@ -32370,9 +31242,13 @@ DefaultSettings.prototype = {
    * ```
    *
    * @type {Boolean|String|Object}
-   * @default true
+   * @default fillHandle: {
+   *   autoInsertRow: false,
+   * }
    */
-  fillHandle: true,
+  fillHandle: {
+    autoInsertRow: false
+  },
 
   /**
    * Allows to specify the number of fixed (or *frozen*) rows at the top of the table.
@@ -32455,17 +31331,17 @@ DefaultSettings.prototype = {
    * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
    *
    * @type {Boolean}
-   * @default false
+   * @default true
    */
-  autoWrapRow: false,
+  autoWrapRow: true,
 
   /**
    * If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to the first row in the next column.
    *
    * @type {Boolean}
-   * @default false
+   * @default true
    */
-  autoWrapCol: false,
+  autoWrapCol: true,
 
   /**
    * @description
@@ -32572,7 +31448,7 @@ DefaultSettings.prototype = {
   /**
    * @description
    * Defines how the columns react, when the declared table width is different than the calculated sum of all column widths.
-   * [See more](http://docs.handsontable.com/demo-stretching.html) mode. Possible values:
+   * [See more](https://docs.handsontable.com/demo-stretching.html) mode. Possible values:
    *  * `'none'` Disable stretching
    *  * `'last'` Stretch only the last column
    *  * `'all'` Stretch all the columns evenly
@@ -32718,7 +31594,7 @@ DefaultSettings.prototype = {
    * * `password`.
    * * `text`.
    *
-   * Or you can [register](http://docs.handsontable.com/demo-custom-renderers.html) the custom renderer under specified name and use
+   * Or you can [register](https://docs.handsontable.com/demo-custom-renderers.html) the custom renderer under specified name and use
    * its name as an alias in your configuration.
    *
    * If a function is provided, it will receive the following arguments:
@@ -32726,7 +31602,7 @@ DefaultSettings.prototype = {
    * function(instance, TD, row, col, prop, value, cellProperties) {}
    * ```
    *
-   * You can read more about custom renderes [in the documentation](http://docs.handsontable.com/demo-custom-renderers.html).
+   * You can read more about custom renderes [in the documentation](https://docs.handsontable.com/demo-custom-renderers.html).
    *
    * @example
    * ```js
@@ -32778,7 +31654,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Make cell [read only](http://docs.handsontable.com/demo-read-only.html).
+   * Make cell [read only](https://docs.handsontable.com/demo-read-only.html).
    *
    * @type {Boolean}
    * @default false
@@ -32796,7 +31672,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Setting to true enables the search plugin (see [demo](http://docs.handsontable.com/demo-search-for-values.html)).
+   * Setting to true enables the search plugin (see [demo](https://docs.handsontable.com/demo-search-for-values.html)).
    *
    * @type {Boolean}
    * @default false
@@ -32808,15 +31684,15 @@ DefaultSettings.prototype = {
    * Shortcut to define the combination of the cell renderer, editor and validator for the column, cell or whole table.
    *
    * Possible values:
-   *  * [autocomplete](http://docs.handsontable.com/demo-autocomplete.html)
-   *  * [checkbox](http://docs.handsontable.com/demo-checkbox.html)
-   *  * [date](http://docs.handsontable.com/demo-date.html)
-   *  * [dropdown](http://docs.handsontable.com/demo-dropdown.html)
-   *  * [handsontable](http://docs.handsontable.com/demo-handsontable.html)
-   *  * [numeric](http://docs.handsontable.com/demo-numeric.html)
-   *  * [password](http://docs.handsontable.com/demo-password.html)
+   *  * [autocomplete](https://docs.handsontable.com/demo-autocomplete.html)
+   *  * [checkbox](https://docs.handsontable.com/demo-checkbox.html)
+   *  * [date](https://docs.handsontable.com/demo-date.html)
+   *  * [dropdown](https://docs.handsontable.com/demo-dropdown.html)
+   *  * [handsontable](https://docs.handsontable.com/demo-handsontable.html)
+   *  * [numeric](https://docs.handsontable.com/demo-numeric.html)
+   *  * [password](https://docs.handsontable.com/demo-password.html)
    *  * text
-   *  * [time](http://docs.handsontable.com/demo-time.html)
+   *  * [time](https://docs.handsontable.com/demo-time.html)
    *
    * Or you can register the custom cell type under specified name and use
    * its name as an alias in your configuration.
@@ -32869,17 +31745,17 @@ DefaultSettings.prototype = {
    * Defines the editor for the table/column/cell.
    *
    * If a string is provided, it may be one of the following predefined values:
-   *  * [autocomplete](http://docs.handsontable.com/demo-autocomplete.html)
-   *  * [checkbox](http://docs.handsontable.com/demo-checkbox.html)
-   *  * [date](http://docs.handsontable.com/demo-date.html)
-   *  * [dropdown](http://docs.handsontable.com/demo-dropdown.html)
-   *  * [handsontable](http://docs.handsontable.com/demo-handsontable.html)
-   *  * [mobile](http://docs.handsontable.com/demo-mobiles-and-tablets.html)
-   *  * [password](http://docs.handsontable.com/demo-password.html)
-   *  * [select](http://docs.handsontable.com/demo-select.html)
+   *  * [autocomplete](https://docs.handsontable.com/demo-autocomplete.html)
+   *  * [checkbox](https://docs.handsontable.com/demo-checkbox.html)
+   *  * [date](https://docs.handsontable.com/demo-date.html)
+   *  * [dropdown](https://docs.handsontable.com/demo-dropdown.html)
+   *  * [handsontable](https://docs.handsontable.com/demo-handsontable.html)
+   *  * [mobile](https://docs.handsontable.com/demo-mobiles-and-tablets.html)
+   *  * [password](https://docs.handsontable.com/demo-password.html)
+   *  * [select](https://docs.handsontable.com/demo-select.html)
    *  * text
    *
-   * Or you can [register](http://docs.handsontable.com/tutorial-cell-editor.html#registering-an-editor) the custom editor under specified name and use
+   * Or you can [register](https://docs.handsontable.com/tutorial-cell-editor.html#registering-an-editor) the custom editor under specified name and use
    * its name as an alias in your configuration.
    *
    * To disable cell editing completely set `editor` property to `false`.
@@ -32905,7 +31781,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Autocomplete definitions. See [autocomplete demo](http://docs.handsontable.com/demo-autocomplete.html) for examples and definitions.
+   * Autocomplete definitions. See [autocomplete demo](https://docs.handsontable.com/demo-autocomplete.html) for examples and definitions.
    *
    * @type {Array}
    * @default undefined
@@ -32961,14 +31837,14 @@ DefaultSettings.prototype = {
   /**
    * @description
    * Defines if the right-click context menu should be enabled. Context menu allows to create new row or
-   * column at any place in the grid among [other features](http://docs.handsontable.com/demo-context-menu.html).
+   * column at any place in the grid among [other features](https://docs.handsontable.com/demo-context-menu.html).
    * Possible values:
    * * `true` (to enable default options),
    * * `false` (to disable completely)
    * * an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
-   * * an object [with defined structure](http://docs.handsontable.com/demo-context-menu.html#page-custom)
+   * * an object [with defined structure](https://docs.handsontable.com/demo-context-menu.html#page-custom)
    *
-   * See [the context menu demo](http://docs.handsontable.com/demo-context-menu.html) for examples.
+   * See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
    *
    * @example
    * ```js
@@ -33037,7 +31913,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Column sorting](http://docs.handsontable.com/demo-sorting-data.html).
+   * Turns on [Column sorting](https://docs.handsontable.com/demo-sorting-data.html).
    * Can be either a boolean (true/false) or an object with a declared sorting options. See the below example:
    *
    * @example
@@ -33062,7 +31938,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual column move](http://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial
+   * Turns on [Manual column move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial
    * column order, if set to an array of column indexes.
    *
    * @example
@@ -33083,7 +31959,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual column resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
+   * Turns on [Manual column resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * column resized widths, if set to an array of numbers.
    *
    * @example
@@ -33104,7 +31980,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual row move](http://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial
+   * Turns on [Manual row move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial
    * row order, if set to an array of row indexes.
    *
    * @example
@@ -33126,7 +32002,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Turns on [Manual row resize](http://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
+   * Turns on [Manual row resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * row resized heights, if set to an array of numbers.
    *
    * @example
@@ -33149,7 +32025,7 @@ DefaultSettings.prototype = {
   /**
    * @description
    * If set to `true`, it enables a possibility to merge cells. If set to an array of objects, it merges the cells provided in the objects (see the example below).
-   * [More information on the demo page.](http://docs.handsontable.com/demo-merge-cells.html)
+   * [More information on the demo page.](https://docs.handsontable.com/demo-merge-cells.html)
    *
    * @example
    * ```js
@@ -33202,10 +32078,10 @@ DefaultSettings.prototype = {
    * * `numeric`,
    * * `time`.
    *
-   * Or you can [register](http://docs.handsontable.com/demo-data-validation.html) the validator function under specified name and use
+   * Or you can [register](https://docs.handsontable.com/demo-data-validation.html) the validator function under specified name and use
    * its name as an alias in your configuration.
    *
-   * See more [in the demo](http://docs.handsontable.com/demo-data-validation.html).
+   * See more [in the demo](https://docs.handsontable.com/demo-data-validation.html).
    *
    * @example
    * ```js
@@ -33384,9 +32260,9 @@ DefaultSettings.prototype = {
   /**
    * @description
    * Object which describes if renderer should create checkbox element with label element as a parent. Option desired for
-   * [checkbox](http://docs.handsontable.com/demo-checkbox.html)-typed cells.
+   * [checkbox](https://docs.handsontable.com/demo-checkbox.html)-typed cells.
    *
-   * By default the [checkbox](http://docs.handsontable.com/demo-checkbox.html) renderer renders the checkbox without a label.
+   * By default the [checkbox](https://docs.handsontable.com/demo-checkbox.html) renderer renders the checkbox without a label.
    *
    * Possible object properties:
    *  * `property` - Defines the property name of the data object, which will to be used as a label.
@@ -33412,7 +32288,7 @@ DefaultSettings.prototype = {
   label: void 0,
 
   /**
-   * Display format. This option is desired for [numeric-typed](http://docs.handsontable.com/demo-numeric.html) cells. Format is described by two properties:
+   * Display format. This option is desired for [numeric-typed](https://docs.handsontable.com/demo-numeric.html) cells. Format is described by two properties:
    *
    * - pattern, which is handled by `numbro` for purpose of formatting numbers to desired pattern. List of supported patterns can be found [here](http://numbrojs.com/format.html#numbers).
    * - culture, which is handled by `numbro` for purpose of formatting currencies. Examples showing how it works can be found [here](http://numbrojs.com/format.html#currency). List of supported cultures can be found [here](http://numbrojs.com/languages.html#supported-languages).
@@ -33440,7 +32316,7 @@ DefaultSettings.prototype = {
   numericFormat: void 0,
 
   /**
-   * Language for Handsontable translation. Possible language codes are: `en-US`, `pl-PL`.
+   * Language for Handsontable translation. Possible language codes are [listed here](https://docs.handsontable.com/tutorial-internationalization.html#available-languages).
    *
    * @type {String}
    * @default 'en-US'
@@ -33449,7 +32325,7 @@ DefaultSettings.prototype = {
 
   /**
    * @description
-   * Data source for [select](http://docs.handsontable.com/demo-select.html)-typed cells.
+   * Data source for [select](https://docs.handsontable.com/demo-select.html)-typed cells.
    *
    * @example
    * ```js
@@ -33936,7 +32812,7 @@ var _array = __webpack_require__(1);
 
 var _dictionariesManager = __webpack_require__(71);
 
-var _phraseFormatters = __webpack_require__(517);
+var _phraseFormatters = __webpack_require__(516);
 
 var _mixed = __webpack_require__(11);
 
@@ -34012,7 +32888,7 @@ var _mixed = __webpack_require__(11);
 
 var _object = __webpack_require__(2);
 
-var _console = __webpack_require__(57);
+var _console = __webpack_require__(58);
 
 var _templateLiteralTag = __webpack_require__(42);
 
@@ -34236,7 +33112,7 @@ exports.HEADER_TYPE = exports.FILL_TYPE = exports.CELL_TYPE = exports.AREA_TYPE 
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _types = __webpack_require__(520);
+var _types = __webpack_require__(519);
 
 var _array = __webpack_require__(1);
 
@@ -35991,7 +34867,7 @@ var _core = __webpack_require__(89);
 
 var _core2 = _interopRequireDefault(_core);
 
-var _jquery = __webpack_require__(529);
+var _jquery = __webpack_require__(528);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
@@ -36063,7 +34939,7 @@ var _event = __webpack_require__(13);
 
 var domEventHelpers = _interopRequireWildcard(_event);
 
-var _index = __webpack_require__(530);
+var _index = __webpack_require__(529);
 
 var plugins = _interopRequireWildcard(_index);
 
@@ -36102,9 +34978,9 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '09/05/2018 15:18:34';
+Handsontable.buildDate = '12/06/2018 11:47:13';
 Handsontable.packageName = 'handsontable';
-Handsontable.version = '3.0.0';
+Handsontable.version = '4.0.0';
 
 var baseVersion = '';
 
@@ -36243,8 +35119,8 @@ module.exports = __webpack_require__(22) ? Object.defineProperties : function de
 "use strict";
 
 var create = __webpack_require__(74);
-var descriptor = __webpack_require__(51);
-var setToStringTag = __webpack_require__(53);
+var descriptor = __webpack_require__(52);
+var setToStringTag = __webpack_require__(54);
 var IteratorPrototype = {};
 
 // 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
@@ -36454,7 +35330,7 @@ module.exports = function (C, x) {
 
 var global = __webpack_require__(15);
 var core = __webpack_require__(39);
-var LIBRARY = __webpack_require__(49);
+var LIBRARY = __webpack_require__(50);
 var wksExt = __webpack_require__(122);
 var defineProperty = __webpack_require__(20).f;
 module.exports = function (name) {
@@ -36470,7 +35346,7 @@ module.exports = function (name) {
 // all enumerable object keys, includes symbols
 var getKeys = __webpack_require__(37);
 var gOPS = __webpack_require__(69);
-var pIE = __webpack_require__(54);
+var pIE = __webpack_require__(55);
 module.exports = function (it) {
   var result = getKeys(it);
   var getSymbols = gOPS.f;
@@ -37857,7 +36733,7 @@ var _border = __webpack_require__(308);
 
 var _border2 = _interopRequireDefault(_border);
 
-var _coords = __webpack_require__(56);
+var _coords = __webpack_require__(57);
 
 var _coords2 = _interopRequireDefault(_coords);
 
@@ -38204,18 +37080,10 @@ function autoResize() {
       text = document.createTextNode(''),
       span = document.createElement('SPAN'),
       observe = function observe(element, event, handler) {
-    if (element.attachEvent) {
-      element.attachEvent('on' + event, handler);
-    } else {
-      element.addEventListener(event, handler, false);
-    }
+    element.addEventListener(event, handler, false);
   },
       _unObserve = function _unObserve(element, event, handler) {
-    if (element.removeEventListener) {
-      element.removeEventListener(event, handler, false);
-    } else {
-      element.detachEvent('on' + event, handler);
-    }
+    element.removeEventListener(event, handler, false);
   },
       resize = function resize(newChar) {
     var width, scrollHeight;
@@ -38319,7 +37187,6 @@ function autoResize() {
     extendDefaults(config);
 
     if (el.nodeName == 'TEXTAREA') {
-
       el.style.resize = 'none';
       el.style.overflowY = '';
       el.style.height = defaults.minHeight + 'px';
@@ -38335,6 +37202,9 @@ function autoResize() {
       observe(el, 'drop', delayedResize);
       observe(el, 'keydown', delayedResize);
       observe(el, 'focus', resize);
+      observe(el, 'compositionstart', delayedResize);
+      observe(el, 'compositionupdate', delayedResize);
+      observe(el, 'compositionend', delayedResize);
     }
 
     resize();
@@ -38355,6 +37225,9 @@ function autoResize() {
       _unObserve(el, 'drop', delayedResize);
       _unObserve(el, 'keydown', delayedResize);
       _unObserve(el, 'focus', resize);
+      _unObserve(el, 'compositionstart', delayedResize);
+      _unObserve(el, 'compositionupdate', delayedResize);
+      _unObserve(el, 'compositionend', delayedResize);
     },
     resize: resize
   };
@@ -38375,7 +37248,7 @@ exports.__esModule = true;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _baseEditor = __webpack_require__(55);
+var _baseEditor = __webpack_require__(56);
 
 var _baseEditor2 = _interopRequireDefault(_baseEditor);
 
@@ -38410,7 +37283,7 @@ var CheckboxEditor = function (_BaseEditor) {
       // are handled inside `checkboxRenderer`. Some events come here from `editorManager`. Below `if` statement was created by author
       // for purpose of handling only `doubleclick` event which may be done on a cell with checkbox.
 
-      if (event.type === 'mouseup') {
+      if (event && event.type === 'mouseup') {
         var checkbox = this.TD.querySelector('input[type="checkbox"]');
 
         if (!(0, _element.hasClass)(checkbox, 'htBadValue')) {
@@ -38481,7 +37354,7 @@ var _unicode = __webpack_require__(21);
 
 var _event = __webpack_require__(13);
 
-var _textEditor = __webpack_require__(58);
+var _textEditor = __webpack_require__(59);
 
 var _textEditor2 = _interopRequireDefault(_textEditor);
 
@@ -38621,9 +37494,9 @@ var DateEditor = function (_TextEditor) {
       var _this3 = this;
 
       this._opened = false;
-      this.instance._registerTimeout(setTimeout(function () {
+      this.instance._registerTimeout(function () {
         _this3.instance._refreshBorders();
-      }, 0));
+      });
 
       _get(DateEditor.prototype.__proto__ || Object.getPrototypeOf(DateEditor.prototype), 'close', this).call(this);
     }
@@ -41456,9 +40329,9 @@ exports.default = DateEditor;
 
             mom = createUTC([2000, 1]).day(i);
             if (strict && !this._fullWeekdaysParse[i]) {
-                this._fullWeekdaysParse[i] = new RegExp('^' + this.weekdays(mom, '').replace('.', '\.?') + '$', 'i');
-                this._shortWeekdaysParse[i] = new RegExp('^' + this.weekdaysShort(mom, '').replace('.', '\.?') + '$', 'i');
-                this._minWeekdaysParse[i] = new RegExp('^' + this.weekdaysMin(mom, '').replace('.', '\.?') + '$', 'i');
+                this._fullWeekdaysParse[i] = new RegExp('^' + this.weekdays(mom, '').replace('.', '\\.?') + '$', 'i');
+                this._shortWeekdaysParse[i] = new RegExp('^' + this.weekdaysShort(mom, '').replace('.', '\\.?') + '$', 'i');
+                this._minWeekdaysParse[i] = new RegExp('^' + this.weekdaysMin(mom, '').replace('.', '\\.?') + '$', 'i');
             }
             if (!this._weekdaysParse[i]) {
                 regex = '^' + this.weekdays(mom, '') + '|^' + this.weekdaysShort(mom, '') + '|^' + this.weekdaysMin(mom, '');
@@ -42261,7 +41134,7 @@ exports.default = DateEditor;
 
     function preprocessRFC2822(s) {
         // Remove comments and folding whitespace and replace multiple-spaces with a single space
-        return s.replace(/\([^)]*\)|[\n\t]/g, ' ').replace(/(\s\s+)/g, ' ').trim();
+        return s.replace(/\([^)]*\)|[\n\t]/g, ' ').replace(/(\s\s+)/g, ' ').replace(/^\s\s*/, '').replace(/\s\s*$/, '');
     }
 
     function checkWeekday(weekdayStr, parsedInput, config) {
@@ -44440,7 +43313,7 @@ exports.default = DateEditor;
     // Side effect imports
 
 
-    hooks.version = '2.22.1';
+    hooks.version = '2.22.2';
 
     setHookCallback(createLocal);
 
@@ -44843,7 +43716,7 @@ exports.default = DropdownEditor;
 
 exports.__esModule = true;
 
-var _textEditor = __webpack_require__(58);
+var _textEditor = __webpack_require__(59);
 
 var _textEditor2 = _interopRequireDefault(_textEditor);
 
@@ -44889,7 +43762,7 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 
 var _element = __webpack_require__(0);
 
-var _textEditor = __webpack_require__(58);
+var _textEditor = __webpack_require__(59);
 
 var _textEditor2 = _interopRequireDefault(_textEditor);
 
@@ -44955,7 +43828,7 @@ var _event = __webpack_require__(13);
 
 var _unicode = __webpack_require__(21);
 
-var _baseEditor = __webpack_require__(55);
+var _baseEditor = __webpack_require__(56);
 
 var _baseEditor2 = _interopRequireDefault(_baseEditor);
 
@@ -45785,14 +44658,21 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
   if ((0, _number.isNumeric)(value)) {
     var numericFormat = cellProperties.numericFormat;
-    var cellCulture = numericFormat && numericFormat.culture;
+    var cellCulture = numericFormat && numericFormat.culture || '-';
     var cellFormatPattern = numericFormat && numericFormat.pattern;
     var className = cellProperties.className || '';
     var classArr = className.length ? className.split(' ') : [];
 
-    if (typeof cellCulture !== 'undefined') {
-      _numbro2.default.culture(cellCulture);
+    if (typeof cellCulture !== 'undefined' && !_numbro2.default.languages()[cellCulture]) {
+      var shortTag = cellCulture.replace('-', '');
+      var langData = _numbro2.default.allLanguages ? _numbro2.default.allLanguages[cellCulture] : _numbro2.default[shortTag];
+
+      if (langData) {
+        _numbro2.default.registerLanguage(langData);
+      }
     }
+
+    _numbro2.default.setLanguage(cellCulture);
 
     value = (0, _numbro2.default)(value).format(cellFormatPattern || '0');
 
@@ -45814,12 +44694,6 @@ exports.default = numericRenderer;
 
 /***/ }),
 /* 494 */
-/***/ (function(module, exports) {
-
-
-
-/***/ }),
-/* 495 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45863,7 +44737,7 @@ function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = passwordRenderer;
 
 /***/ }),
-/* 496 */
+/* 495 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45920,7 +44794,7 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
 exports.default = textRenderer;
 
 /***/ }),
-/* 497 */
+/* 496 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45982,7 +44856,7 @@ function process(value, callback) {
 }
 
 /***/ }),
-/* 498 */
+/* 497 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46073,7 +44947,7 @@ function correctFormat(value, dateFormat) {
 };
 
 /***/ }),
-/* 499 */
+/* 498 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46103,7 +44977,7 @@ function numericValidator(value, callback) {
 };
 
 /***/ }),
-/* 500 */
+/* 499 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46182,7 +45056,7 @@ function timeValidator(value, callback) {
 };
 
 /***/ }),
-/* 501 */
+/* 500 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46205,7 +45079,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 502 */
+/* 501 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46225,7 +45099,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 503 */
+/* 502 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46249,7 +45123,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 504 */
+/* 503 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46273,7 +45147,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 505 */
+/* 504 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46294,7 +45168,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 506 */
+/* 505 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46318,7 +45192,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 507 */
+/* 506 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46341,7 +45215,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 508 */
+/* 507 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46363,7 +45237,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 509 */
+/* 508 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46387,7 +45261,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 510 */
+/* 509 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46409,13 +45283,13 @@ var _object = __webpack_require__(2);
 
 var _array = __webpack_require__(1);
 
-var _interval = __webpack_require__(511);
+var _interval = __webpack_require__(510);
 
 var _interval2 = _interopRequireDefault(_interval);
 
 var _number = __webpack_require__(5);
 
-var _multiMap = __webpack_require__(512);
+var _multiMap = __webpack_require__(511);
 
 var _multiMap2 = _interopRequireDefault(_multiMap);
 
@@ -47302,7 +46176,7 @@ DataMap.prototype.destroy = function () {
 exports.default = DataMap;
 
 /***/ }),
-/* 511 */
+/* 510 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47451,7 +46325,7 @@ function parseDelay(delay) {
 }
 
 /***/ }),
-/* 512 */
+/* 511 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47510,7 +46384,7 @@ function MultiMap() {
 exports.default = MultiMap;
 
 /***/ }),
-/* 513 */
+/* 512 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47530,7 +46404,7 @@ var _eventManager = __webpack_require__(6);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _baseEditor = __webpack_require__(55);
+var _baseEditor = __webpack_require__(56);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47594,7 +46468,9 @@ function EditorManager(instance, priv, selection) {
     }
     instance.runHooks('beforeKeyDown', event);
 
-    if (destroyed) {
+    // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
+    // character is entering (using IME editor). It is fired mainly on linux (ubuntu) with installed ibus-pinyin package.
+    if (destroyed || event.keyCode === 229) {
       return;
     }
     if ((0, _event.isImmediatePropagationStopped)(event)) {
@@ -47694,11 +46570,11 @@ function EditorManager(instance, priv, selection) {
 
       case _unicode.KEY_CODES.F2:
         /* F2 */
-        _this.openEditor(null, event);
-
         if (activeEditor) {
           activeEditor.enableFullEditMode();
         }
+        _this.openEditor(null, event);
+
         event.preventDefault(); // prevent Opera from opening 'Go to Page dialog'
         break;
 
@@ -47711,11 +46587,10 @@ function EditorManager(instance, priv, selection) {
           }
           moveSelectionAfterEnter(event.shiftKey);
         } else if (instance.getSettings().enterBeginsEditing) {
-          _this.openEditor(null, event);
-
           if (activeEditor) {
             activeEditor.enableFullEditMode();
           }
+          _this.openEditor(null, event);
         } else {
           moveSelectionAfterEnter(event.shiftKey);
         }
@@ -47726,6 +46601,8 @@ function EditorManager(instance, priv, selection) {
       case _unicode.KEY_CODES.ESCAPE:
         if (_this.isEditorOpened()) {
           _this.closeEditorAndRestoreOriginalValue(ctrlDown);
+
+          activeEditor.focus();
         }
         event.preventDefault();
         break;
@@ -47775,14 +46652,20 @@ function EditorManager(instance, priv, selection) {
       }
     });
 
+    // Open editor when text composition is started (IME editor)
+    eventManager.addEventListener(document.documentElement, 'compositionstart', function (event) {
+      if (!destroyed && activeEditor && !activeEditor.isOpened() && instance.isListening()) {
+        _this.openEditor('', event);
+      }
+    });
+
     function onDblClick(event, coords, elem) {
       // may be TD or TH
       if (elem.nodeName === 'TD') {
-        _this.openEditor(null, event);
-
         if (activeEditor) {
           activeEditor.enableFullEditMode();
         }
+        _this.openEditor(null, event);
       }
     }
     instance.view.wt.update('onCellDblClick', onDblClick);
@@ -47893,14 +46776,19 @@ function EditorManager(instance, priv, selection) {
    * @param {DOMEvent} event
    */
   this.openEditor = function (newInitialValue, event) {
-    if (activeEditor && !activeEditor.cellProperties.readOnly) {
-      activeEditor.beginEditing(newInitialValue, event);
-    } else if (activeEditor && activeEditor.cellProperties.readOnly) {
+    if (!activeEditor) {
+      return;
+    }
 
+    var readOnly = activeEditor.cellProperties.readOnly;
+
+    if (readOnly) {
       // move the selection after opening the editor with ENTER key
       if (event && event.keyCode === _unicode.KEY_CODES.ENTER) {
         moveSelectionAfterEnter();
       }
+    } else {
+      activeEditor.beginEditing(newInitialValue, event);
     }
   };
 
@@ -47969,7 +46857,7 @@ EditorManager.getInstance = function (hotInstance, hotSettings, selection, datam
 exports.default = EditorManager;
 
 /***/ }),
-/* 514 */
+/* 513 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48035,7 +46923,7 @@ function TableView(instance) {
   instance.container.insertBefore(table, instance.container.firstChild);
 
   this.eventManager.addEventListener(instance.rootElement, 'mousedown', function (event) {
-    this.selectionMouseDown = true;
+    _this.selectionMouseDown = true;
 
     if (!that.isTextSelectionAllowed(event.target)) {
       clearTextSelection();
@@ -48044,11 +46932,14 @@ function TableView(instance) {
     }
   });
   this.eventManager.addEventListener(instance.rootElement, 'mouseup', function (event) {
-    this.selectionMouseDown = false;
+    _this.selectionMouseDown = false;
   });
   this.eventManager.addEventListener(instance.rootElement, 'mousemove', function (event) {
-    if (this.selectionMouseDown && !that.isTextSelectionAllowed(event.target)) {
-      clearTextSelection();
+    if (_this.selectionMouseDown && !that.isTextSelectionAllowed(event.target)) {
+      // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breakes the IME editor.
+      if (_this.settings.fragmentSelection) {
+        clearTextSelection();
+      }
       event.preventDefault();
     }
   });
@@ -48074,6 +46965,12 @@ function TableView(instance) {
 
     if ((0, _element.isOutsideInput)(document.activeElement) || !instance.selection.isSelected() && !(0, _event.isRightClick)(event)) {
       instance.unlisten();
+    }
+  });
+
+  this.eventManager.addEventListener(document.documentElement, 'touchend', function () {
+    if (instance.selection.isInProgress()) {
+      instance.selection.finish();
     }
   });
 
@@ -48118,7 +47015,7 @@ function TableView(instance) {
     if (outsideClickDeselects) {
       instance.deselectCell();
     } else {
-      instance.destroyEditor();
+      instance.destroyEditor(false, false);
     }
   });
 
@@ -48634,7 +47531,7 @@ TableView.prototype.destroy = function () {
 exports.default = TableView;
 
 /***/ }),
-/* 515 */
+/* 514 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48740,6 +47637,8 @@ var DataSource = function () {
 
         if (typeof property === 'string') {
           row = (0, _object.getProperty)(row, property);
+        } else if (typeof property === 'function') {
+          row = property(row);
         } else {
           row = row[property];
         }
@@ -48895,7 +47794,7 @@ var DataSource = function () {
 exports.default = DataSource;
 
 /***/ }),
-/* 516 */
+/* 515 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48927,7 +47826,7 @@ var dictionary = (_dictionary = {
 exports.default = dictionary;
 
 /***/ }),
-/* 517 */
+/* 516 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48942,7 +47841,7 @@ var _staticRegister2 = __webpack_require__(40);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _pluralize = __webpack_require__(518);
+var _pluralize = __webpack_require__(517);
 
 var _pluralize2 = _interopRequireDefault(_pluralize);
 
@@ -48980,7 +47879,7 @@ exports.getPhraseFormatters = getAll;
 register('pluralize', _pluralize2.default);
 
 /***/ }),
-/* 518 */
+/* 517 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49007,7 +47906,7 @@ function pluralize(phrasePropositions, pluralForm) {
 };
 
 /***/ }),
-/* 519 */
+/* 518 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49020,7 +47919,7 @@ var _highlight = __webpack_require__(444);
 
 var _highlight2 = _interopRequireDefault(_highlight);
 
-var _selection = __webpack_require__(526);
+var _selection = __webpack_require__(525);
 
 var _selection2 = _interopRequireDefault(_selection);
 
@@ -49033,7 +47932,7 @@ exports.Highlight = _highlight2.default;
 exports.Selection = _selection2.default;
 
 /***/ }),
-/* 520 */
+/* 519 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49046,23 +47945,23 @@ var _staticRegister2 = __webpack_require__(40);
 
 var _staticRegister3 = _interopRequireDefault(_staticRegister2);
 
-var _activeHeader = __webpack_require__(521);
+var _activeHeader = __webpack_require__(520);
 
 var _activeHeader2 = _interopRequireDefault(_activeHeader);
 
-var _area = __webpack_require__(522);
+var _area = __webpack_require__(521);
 
 var _area2 = _interopRequireDefault(_area);
 
-var _cell = __webpack_require__(523);
+var _cell = __webpack_require__(522);
 
 var _cell2 = _interopRequireDefault(_cell);
 
-var _fill = __webpack_require__(524);
+var _fill = __webpack_require__(523);
 
 var _fill2 = _interopRequireDefault(_fill);
 
-var _header = __webpack_require__(525);
+var _header = __webpack_require__(524);
 
 var _header2 = _interopRequireDefault(_header);
 
@@ -49086,7 +47985,7 @@ function createHighlight(highlightType, options) {
 exports.createHighlight = createHighlight;
 
 /***/ }),
-/* 521 */
+/* 520 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49112,7 +48011,7 @@ function createHighlight(_ref) {
 exports.default = createHighlight;
 
 /***/ }),
-/* 522 */
+/* 521 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49148,7 +48047,7 @@ function createHighlight(_ref) {
 exports.default = createHighlight;
 
 /***/ }),
-/* 523 */
+/* 522 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49182,7 +48081,7 @@ function createHighlight(_ref) {
 exports.default = createHighlight;
 
 /***/ }),
-/* 524 */
+/* 523 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49213,7 +48112,7 @@ function createHighlight() {
 exports.default = createHighlight;
 
 /***/ }),
-/* 525 */
+/* 524 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49247,7 +48146,7 @@ function createHighlight(_ref) {
 exports.default = createHighlight;
 
 /***/ }),
-/* 526 */
+/* 525 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49265,7 +48164,7 @@ var _highlight = __webpack_require__(444);
 
 var _highlight2 = _interopRequireDefault(_highlight);
 
-var _range = __webpack_require__(527);
+var _range = __webpack_require__(526);
 
 var _range2 = _interopRequireDefault(_range);
 
@@ -49279,11 +48178,11 @@ var _mixed = __webpack_require__(11);
 
 var _array = __webpack_require__(1);
 
-var _localHooks = __webpack_require__(59);
+var _localHooks = __webpack_require__(48);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
-var _transformation = __webpack_require__(528);
+var _transformation = __webpack_require__(527);
 
 var _transformation2 = _interopRequireDefault(_transformation);
 
@@ -49993,7 +48892,7 @@ var Selection = function () {
 exports.default = Selection;
 
 /***/ }),
-/* 527 */
+/* 526 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50171,7 +49070,7 @@ var SelectionRange = function () {
 exports.default = SelectionRange;
 
 /***/ }),
-/* 528 */
+/* 527 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50185,7 +49084,7 @@ var _src = __webpack_require__(4);
 
 var _object = __webpack_require__(2);
 
-var _localHooks = __webpack_require__(59);
+var _localHooks = __webpack_require__(48);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
@@ -50348,7 +49247,7 @@ var Transformation = function () {
 exports.default = Transformation;
 
 /***/ }),
-/* 529 */
+/* 528 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50409,7 +49308,7 @@ function jQueryWrapper(Handsontable) {
 };
 
 /***/ }),
-/* 530 */
+/* 529 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50418,87 +49317,87 @@ function jQueryWrapper(Handsontable) {
 exports.__esModule = true;
 exports.Base = exports.UndoRedo = exports.TouchScroll = exports.Search = exports.PersistentState = exports.ObserveChanges = exports.MultipleSelectionHandles = exports.MergeCells = exports.ManualRowResize = exports.ManualRowMove = exports.ManualColumnResize = exports.ManualColumnMove = exports.ManualColumnFreeze = exports.DragToScroll = exports.CustomBorders = exports.CopyPaste = exports.ContextMenu = exports.Comments = exports.ColumnSorting = exports.AutoRowSize = exports.AutoFill = exports.AutoColumnSize = undefined;
 
-var _persistentState = __webpack_require__(531);
+var _persistentState = __webpack_require__(530);
 
 var _persistentState2 = _interopRequireDefault(_persistentState);
 
-var _autoColumnSize = __webpack_require__(533);
+var _autoColumnSize = __webpack_require__(532);
 
 var _autoColumnSize2 = _interopRequireDefault(_autoColumnSize);
 
-var _autofill = __webpack_require__(534);
+var _autofill = __webpack_require__(533);
 
 var _autofill2 = _interopRequireDefault(_autofill);
 
-var _autoRowSize = __webpack_require__(536);
+var _autoRowSize = __webpack_require__(535);
 
 var _autoRowSize2 = _interopRequireDefault(_autoRowSize);
 
-var _columnSorting = __webpack_require__(537);
+var _columnSorting = __webpack_require__(536);
 
 var _columnSorting2 = _interopRequireDefault(_columnSorting);
 
-var _comments = __webpack_require__(544);
+var _comments = __webpack_require__(543);
 
 var _comments2 = _interopRequireDefault(_comments);
 
-var _contextMenu = __webpack_require__(548);
+var _contextMenu = __webpack_require__(547);
 
 var _contextMenu2 = _interopRequireDefault(_contextMenu);
 
-var _copyPaste = __webpack_require__(565);
+var _copyPaste = __webpack_require__(564);
 
 var _copyPaste2 = _interopRequireDefault(_copyPaste);
 
-var _customBorders = __webpack_require__(572);
+var _customBorders = __webpack_require__(571);
 
 var _customBorders2 = _interopRequireDefault(_customBorders);
 
-var _dragToScroll = __webpack_require__(578);
+var _dragToScroll = __webpack_require__(577);
 
 var _dragToScroll2 = _interopRequireDefault(_dragToScroll);
 
-var _manualColumnFreeze = __webpack_require__(579);
+var _manualColumnFreeze = __webpack_require__(578);
 
 var _manualColumnFreeze2 = _interopRequireDefault(_manualColumnFreeze);
 
-var _manualColumnMove = __webpack_require__(583);
+var _manualColumnMove = __webpack_require__(582);
 
 var _manualColumnMove2 = _interopRequireDefault(_manualColumnMove);
 
-var _manualColumnResize = __webpack_require__(588);
+var _manualColumnResize = __webpack_require__(587);
 
 var _manualColumnResize2 = _interopRequireDefault(_manualColumnResize);
 
-var _manualRowMove = __webpack_require__(589);
+var _manualRowMove = __webpack_require__(588);
 
 var _manualRowMove2 = _interopRequireDefault(_manualRowMove);
 
-var _manualRowResize = __webpack_require__(594);
+var _manualRowResize = __webpack_require__(593);
 
 var _manualRowResize2 = _interopRequireDefault(_manualRowResize);
 
-var _mergeCells = __webpack_require__(595);
+var _mergeCells = __webpack_require__(594);
 
 var _mergeCells2 = _interopRequireDefault(_mergeCells);
 
-var _multipleSelectionHandles = __webpack_require__(601);
+var _multipleSelectionHandles = __webpack_require__(600);
 
 var _multipleSelectionHandles2 = _interopRequireDefault(_multipleSelectionHandles);
 
-var _observeChanges = __webpack_require__(602);
+var _observeChanges = __webpack_require__(601);
 
 var _observeChanges2 = _interopRequireDefault(_observeChanges);
 
-var _search = __webpack_require__(605);
+var _search = __webpack_require__(604);
 
 var _search2 = _interopRequireDefault(_search);
 
-var _touchScroll = __webpack_require__(606);
+var _touchScroll = __webpack_require__(605);
 
 var _touchScroll2 = _interopRequireDefault(_touchScroll);
 
-var _undoRedo = __webpack_require__(607);
+var _undoRedo = __webpack_require__(606);
 
 var _undoRedo2 = _interopRequireDefault(_undoRedo);
 
@@ -50532,7 +49431,7 @@ exports.UndoRedo = _undoRedo2.default;
 exports.Base = _base2.default;
 
 /***/ }),
-/* 531 */
+/* 530 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50550,7 +49449,7 @@ var _base2 = _interopRequireDefault(_base);
 
 var _plugins = __webpack_require__(8);
 
-var _storage = __webpack_require__(532);
+var _storage = __webpack_require__(531);
 
 var _storage2 = _interopRequireDefault(_storage);
 
@@ -50738,7 +49637,7 @@ var PersistentState = function (_BasePlugin) {
 exports.default = PersistentState;
 
 /***/ }),
-/* 532 */
+/* 531 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -50890,7 +49789,7 @@ var Storage = function () {
 exports.default = Storage;
 
 /***/ }),
-/* 533 */
+/* 532 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51567,7 +50466,7 @@ var AutoColumnSize = function (_BasePlugin) {
 exports.default = AutoColumnSize;
 
 /***/ }),
-/* 534 */
+/* 533 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51597,7 +50496,7 @@ var _plugins = __webpack_require__(8);
 
 var _src = __webpack_require__(4);
 
-var _utils = __webpack_require__(535);
+var _utils = __webpack_require__(534);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -52243,7 +51142,7 @@ var Autofill = function (_BasePlugin) {
 exports.default = Autofill;
 
 /***/ }),
-/* 535 */
+/* 534 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52395,7 +51294,7 @@ function getMappedFillHandleSetting(fillHandle) {
 }
 
 /***/ }),
-/* 536 */
+/* 535 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53044,7 +51943,7 @@ var AutoRowSize = function (_BasePlugin) {
 exports.default = AutoRowSize;
 
 /***/ }),
-/* 537 */
+/* 536 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53068,7 +51967,7 @@ var _base2 = _interopRequireDefault(_base);
 
 var _plugins = __webpack_require__(8);
 
-var _mergeSort = __webpack_require__(538);
+var _mergeSort = __webpack_require__(537);
 
 var _mergeSort2 = _interopRequireDefault(_mergeSort);
 
@@ -53076,19 +51975,19 @@ var _pluginHooks = __webpack_require__(16);
 
 var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
-var _rowsMapper = __webpack_require__(540);
+var _rowsMapper = __webpack_require__(539);
 
 var _rowsMapper2 = _interopRequireDefault(_rowsMapper);
 
-var _date = __webpack_require__(541);
+var _date = __webpack_require__(540);
 
 var _date2 = _interopRequireDefault(_date);
 
-var _numeric = __webpack_require__(542);
+var _numeric = __webpack_require__(541);
 
 var _numeric2 = _interopRequireDefault(_numeric);
 
-var _default = __webpack_require__(543);
+var _default = __webpack_require__(542);
 
 var _default2 = _interopRequireDefault(_default);
 
@@ -53293,6 +52192,8 @@ var ColumnSorting = function (_BasePlugin) {
       this.hot.runHooks('afterColumnSort', this.sortColumn, this.sortOrder);
 
       this.hot.render();
+      this.hot.view.wt.draw(true);
+
       this.saveSortingState();
     }
 
@@ -53706,7 +52607,7 @@ var ColumnSorting = function (_BasePlugin) {
 exports.default = ColumnSorting;
 
 /***/ }),
-/* 538 */
+/* 537 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53716,7 +52617,7 @@ exports.__esModule = true;
 exports.default = mergeSort;
 exports.merge = merge;
 
-var _linkedList = __webpack_require__(539);
+var _linkedList = __webpack_require__(538);
 
 var _linkedList2 = _interopRequireDefault(_linkedList);
 
@@ -53831,7 +52732,7 @@ function merge(array, compareFunction, startIndex, middleIndex, endIndex) {
 };
 
 /***/ }),
-/* 539 */
+/* 538 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54142,7 +53043,7 @@ exports.NodeStructure = NodeStructure;
 exports.default = LinkedList;
 
 /***/ }),
-/* 540 */
+/* 539 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54220,7 +53121,7 @@ var RowsMapper = function () {
 exports.default = RowsMapper;
 
 /***/ }),
-/* 541 */
+/* 540 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54296,7 +53197,7 @@ function dateSort(sortOrder, columnMeta) {
 }
 
 /***/ }),
-/* 542 */
+/* 541 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54354,7 +53255,7 @@ function numericSort(sortOrder, columnMeta) {
 }
 
 /***/ }),
-/* 543 */
+/* 542 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54428,7 +53329,7 @@ function defaultSort(sortOrder, columnMeta) {
 }
 
 /***/ }),
-/* 544 */
+/* 543 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54456,13 +53357,13 @@ var _base = __webpack_require__(10);
 
 var _base2 = _interopRequireDefault(_base);
 
-var _commentEditor = __webpack_require__(545);
+var _commentEditor = __webpack_require__(544);
 
 var _commentEditor2 = _interopRequireDefault(_commentEditor);
 
 var _utils = __webpack_require__(19);
 
-var _displaySwitch = __webpack_require__(546);
+var _displaySwitch = __webpack_require__(545);
 
 var _displaySwitch2 = _interopRequireDefault(_displaySwitch);
 
@@ -54470,7 +53371,7 @@ var _constants = __webpack_require__(7);
 
 var C = _interopRequireWildcard(_constants);
 
-__webpack_require__(547);
+__webpack_require__(546);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -55410,7 +54311,7 @@ var Comments = function (_BasePlugin) {
 exports.default = Comments;
 
 /***/ }),
-/* 545 */
+/* 544 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55668,7 +54569,7 @@ var CommentEditor = function () {
 exports.default = CommentEditor;
 
 /***/ }),
-/* 546 */
+/* 545 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55682,7 +54583,7 @@ var _function = __webpack_require__(43);
 
 var _object = __webpack_require__(2);
 
-var _localHooks = __webpack_require__(59);
+var _localHooks = __webpack_require__(48);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
@@ -55811,13 +54712,13 @@ var DisplaySwitch = function () {
 exports.default = DisplaySwitch;
 
 /***/ }),
-/* 547 */
+/* 546 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 548 */
+/* 547 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55839,7 +54740,7 @@ var _pluginHooks2 = _interopRequireDefault(_pluginHooks);
 
 var _array = __webpack_require__(1);
 
-var _commandExecutor = __webpack_require__(549);
+var _commandExecutor = __webpack_require__(548);
 
 var _commandExecutor2 = _interopRequireDefault(_commandExecutor);
 
@@ -55847,11 +54748,11 @@ var _eventManager = __webpack_require__(6);
 
 var _eventManager2 = _interopRequireDefault(_eventManager);
 
-var _itemsFactory = __webpack_require__(550);
+var _itemsFactory = __webpack_require__(549);
 
 var _itemsFactory2 = _interopRequireDefault(_itemsFactory);
 
-var _menu = __webpack_require__(562);
+var _menu = __webpack_require__(561);
 
 var _menu2 = _interopRequireDefault(_menu);
 
@@ -55863,7 +54764,7 @@ var _element = __webpack_require__(0);
 
 var _predefinedItems = __webpack_require__(96);
 
-__webpack_require__(564);
+__webpack_require__(563);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -56263,7 +55164,7 @@ ContextMenu.SEPARATOR = {
 exports.default = ContextMenu;
 
 /***/ }),
-/* 549 */
+/* 548 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56395,7 +55296,7 @@ function findSubCommand(subCommandName, subCommands) {
 exports.default = CommandExecutor;
 
 /***/ }),
-/* 550 */
+/* 549 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56543,7 +55444,7 @@ function _getItems() {
 exports.default = ItemsFactory;
 
 /***/ }),
-/* 551 */
+/* 550 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56863,7 +55764,7 @@ function alignmentItem() {
 }
 
 /***/ }),
-/* 552 */
+/* 551 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56921,7 +55822,7 @@ function clearColumnItem() {
 }
 
 /***/ }),
-/* 553 */
+/* 552 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56984,7 +55885,7 @@ function columnLeftItem() {
 }
 
 /***/ }),
-/* 554 */
+/* 553 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57047,7 +55948,7 @@ function columnRightItem() {
 }
 
 /***/ }),
-/* 555 */
+/* 554 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57109,7 +56010,7 @@ function readOnlyItem() {
 }
 
 /***/ }),
-/* 556 */
+/* 555 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57143,7 +56044,7 @@ function redoItem() {
 }
 
 /***/ }),
-/* 557 */
+/* 556 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57213,7 +56114,7 @@ function removeColumnItem() {
 }
 
 /***/ }),
-/* 558 */
+/* 557 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57283,7 +56184,7 @@ function removeRowItem() {
 }
 
 /***/ }),
-/* 559 */
+/* 558 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57330,7 +56231,7 @@ function rowAboveItem() {
 }
 
 /***/ }),
-/* 560 */
+/* 559 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57377,7 +56278,7 @@ function rowBelowItem() {
 }
 
 /***/ }),
-/* 561 */
+/* 560 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57411,7 +56312,7 @@ function undoItem() {
 }
 
 /***/ }),
-/* 562 */
+/* 561 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57429,7 +56330,7 @@ var _element = __webpack_require__(0);
 
 var _array = __webpack_require__(1);
 
-var _cursor = __webpack_require__(563);
+var _cursor = __webpack_require__(562);
 
 var _cursor2 = _interopRequireDefault(_cursor);
 
@@ -57447,7 +56348,7 @@ var _utils = __webpack_require__(19);
 
 var _unicode = __webpack_require__(21);
 
-var _localHooks = __webpack_require__(59);
+var _localHooks = __webpack_require__(48);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
@@ -58300,7 +57201,7 @@ var Menu = function () {
 exports.default = Menu;
 
 /***/ }),
-/* 563 */
+/* 562 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58450,13 +57351,13 @@ var Cursor = function () {
 exports.default = Cursor;
 
 /***/ }),
-/* 564 */
+/* 563 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 565 */
+/* 564 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58492,27 +57393,21 @@ var _number = __webpack_require__(5);
 
 var _plugins = __webpack_require__(8);
 
-var _textarea = __webpack_require__(566);
-
-var _textarea2 = _interopRequireDefault(_textarea);
-
-var _copy = __webpack_require__(567);
+var _copy = __webpack_require__(565);
 
 var _copy2 = _interopRequireDefault(_copy);
 
-var _cut = __webpack_require__(568);
+var _cut = __webpack_require__(566);
 
 var _cut2 = _interopRequireDefault(_cut);
 
-var _eventManager = __webpack_require__(6);
-
-var _eventManager2 = _interopRequireDefault(_eventManager);
-
-var _pasteEvent = __webpack_require__(569);
+var _pasteEvent = __webpack_require__(567);
 
 var _pasteEvent2 = _interopRequireDefault(_pasteEvent);
 
-__webpack_require__(571);
+var _focusableElement = __webpack_require__(569);
+
+__webpack_require__(570);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -58556,20 +57451,14 @@ var CopyPaste = function (_BasePlugin) {
     _classCallCheck(this, CopyPaste);
 
     /**
-     * Event manager
-     *
-     * @type {EventManager}
-     */
-    var _this = _possibleConstructorReturn(this, (CopyPaste.__proto__ || Object.getPrototypeOf(CopyPaste)).call(this, hotInstance));
-
-    _this.eventManager = new _eventManager2.default(_this);
-    /**
      * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
      * @private
      * @type {Number}
      * @default 1000
      */
+    var _this = _possibleConstructorReturn(this, (CopyPaste.__proto__ || Object.getPrototypeOf(CopyPaste)).call(this, hotInstance));
+
     _this.columnsLimit = COLUMNS_LIMIT;
     /**
      * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
@@ -58597,14 +57486,6 @@ var CopyPaste = function (_BasePlugin) {
      * @default 1000
      */
     _this.rowsLimit = ROWS_LIMIT;
-    /**
-     * The `textarea` element which is necessary to process copying, cutting off and pasting.
-     *
-     * @private
-     * @type {HTMLElement}
-     * @default undefined
-     */
-    _this.textarea = void 0;
 
     privatePool.set(_this, {
       isTriggeredByCopy: false,
@@ -58643,7 +57524,6 @@ var CopyPaste = function (_BasePlugin) {
       var settings = this.hot.getSettings();
       var priv = privatePool.get(this);
 
-      this.textarea = _textarea2.default.getSingleton();
       priv.isFragmentSelectionEnabled = settings.fragmentSelection;
 
       if (_typeof(settings.copyPaste) === 'object') {
@@ -58659,7 +57539,14 @@ var CopyPaste = function (_BasePlugin) {
         return _this2.onAfterSelectionEnd();
       });
 
-      this.registerEvents();
+      this.focusableElement = (0, _focusableElement.createElement)();
+      this.focusableElement.addLocalHook('copy', function (event) {
+        return _this2.onCopy(event);
+      }).addLocalHook('cut', function (event) {
+        return _this2.onCut(event);
+      }).addLocalHook('paste', function (event) {
+        return _this2.onPaste(event);
+      });
 
       _get(CopyPaste.prototype.__proto__ || Object.getPrototypeOf(CopyPaste.prototype), 'enablePlugin', this).call(this);
     }
@@ -58684,8 +57571,8 @@ var CopyPaste = function (_BasePlugin) {
   }, {
     key: 'disablePlugin',
     value: function disablePlugin() {
-      if (this.textarea) {
-        this.textarea.destroy();
+      if (this.focusableElement) {
+        (0, _focusableElement.destroyElement)(this.focusableElement);
       }
 
       _get(CopyPaste.prototype.__proto__ || Object.getPrototypeOf(CopyPaste.prototype), 'disablePlugin', this).call(this);
@@ -58829,8 +57716,7 @@ var CopyPaste = function (_BasePlugin) {
       var priv = privatePool.get(this);
 
       priv.isTriggeredByCopy = true;
-
-      this.textarea.select();
+      this.focusableElement.focus();
       document.execCommand('copy');
     }
 
@@ -58844,8 +57730,7 @@ var CopyPaste = function (_BasePlugin) {
       var priv = privatePool.get(this);
 
       priv.isTriggeredByCut = true;
-
-      this.textarea.select();
+      this.focusableElement.focus();
       document.execCommand('cut');
     }
 
@@ -58861,31 +57746,9 @@ var CopyPaste = function (_BasePlugin) {
       var value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
 
       var pasteData = new _pasteEvent2.default();
+
       pasteData.clipboardData.setData('text/plain', value);
-
       this.onPaste(pasteData);
-    }
-
-    /**
-     * Register event listeners.
-     *
-     * @private
-     */
-
-  }, {
-    key: 'registerEvents',
-    value: function registerEvents() {
-      var _this5 = this;
-
-      this.eventManager.addEventListener(this.textarea.element, 'paste', function (event) {
-        return _this5.onPaste(event);
-      });
-      this.eventManager.addEventListener(this.textarea.element, 'cut', function (event) {
-        return _this5.onCut(event);
-      });
-      this.eventManager.addEventListener(this.textarea.element, 'copy', function (event) {
-        return _this5.onCopy(event);
-      });
     }
 
     /**
@@ -58901,6 +57764,12 @@ var CopyPaste = function (_BasePlugin) {
       var priv = privatePool.get(this);
 
       if (!this.hot.isListening() && !priv.isTriggeredByCopy) {
+        return;
+      }
+
+      var editor = this.hot.getActiveEditor();
+
+      if (editor && editor.isOpened()) {
         return;
       }
 
@@ -58942,6 +57811,12 @@ var CopyPaste = function (_BasePlugin) {
         return;
       }
 
+      var editor = this.hot.getActiveEditor();
+
+      if (editor && editor.isOpened()) {
+        return;
+      }
+
       this.setCopyableText();
       priv.isTriggeredByCut = false;
 
@@ -58975,25 +57850,32 @@ var CopyPaste = function (_BasePlugin) {
   }, {
     key: 'onPaste',
     value: function onPaste(event) {
-      var _this6 = this;
+      var _this5 = this;
 
       if (!this.hot.isListening()) {
         return;
       }
+
+      var editor = this.hot.getActiveEditor();
+
+      if (editor && editor.isOpened()) {
+        return;
+      }
+
       if (event && event.preventDefault) {
         event.preventDefault();
       }
 
       var inputArray = void 0;
+      var pastedData = void 0;
 
       if (event && typeof event.clipboardData !== 'undefined') {
-        this.textarea.setValue(event.clipboardData.getData('text/plain'));
+        pastedData = event.clipboardData.getData('text/plain');
       } else if (typeof ClipboardEvent === 'undefined' && typeof window.clipboardData !== 'undefined') {
-        this.textarea.setValue(window.clipboardData.getData('Text'));
+        pastedData = window.clipboardData.getData('Text');
       }
 
-      inputArray = _SheetClip2.default.parse(this.textarea.getValue());
-      this.textarea.setValue(' ');
+      inputArray = _SheetClip2.default.parse(pastedData);
 
       if (inputArray.length === 0) {
         return;
@@ -59037,7 +57919,7 @@ var CopyPaste = function (_BasePlugin) {
               }
             }
           });
-          _this6.hot.selectCell(areaStart.row, areaStart.col, areaEnd.row + offset.row, areaEnd.col + offset.col);
+          _this5.hot.selectCell(areaStart.row, areaStart.col, areaEnd.row + offset.row, areaEnd.col + offset.col);
         }
       });
 
@@ -59069,18 +57951,29 @@ var CopyPaste = function (_BasePlugin) {
   }, {
     key: 'onAfterSelectionEnd',
     value: function onAfterSelectionEnd() {
-      var priv = privatePool.get(this);
+      var _privatePool$get = privatePool.get(this),
+          isFragmentSelectionEnabled = _privatePool$get.isFragmentSelectionEnabled;
+
       var editor = this.hot.getActiveEditor();
 
-      if (editor && typeof editor.isOpened !== 'undefined' && editor.isOpened()) {
+      if (editor && editor.isOpened()) {
         return;
       }
-      if (priv.isFragmentSelectionEnabled && !this.textarea.isActive() && (0, _element.getSelectionText)()) {
+
+      var editableElement = editor ? editor.TEXTAREA : void 0;
+
+      if (editableElement) {
+        this.focusableElement.setFocusableElement(editableElement);
+      } else {
+        this.focusableElement.useSecondaryElement();
+      }
+
+      if (isFragmentSelectionEnabled && this.focusableElement.getFocusableElement() !== document.activeElement && (0, _element.getSelectionText)()) {
         return;
       }
 
       this.setCopyableText();
-      this.textarea.select();
+      this.focusableElement.focus();
     }
 
     /**
@@ -59090,8 +57983,9 @@ var CopyPaste = function (_BasePlugin) {
   }, {
     key: 'destroy',
     value: function destroy() {
-      if (this.textarea) {
-        this.textarea.destroy();
+      if (this.focusableElement) {
+        (0, _focusableElement.destroyElement)(this.focusableElement);
+        this.focusableElement = null;
       }
 
       _get(CopyPaste.prototype.__proto__ || Object.getPrototypeOf(CopyPaste.prototype), 'destroy', this).call(this);
@@ -59106,192 +58000,7 @@ var CopyPaste = function (_BasePlugin) {
 exports.default = CopyPaste;
 
 /***/ }),
-/* 566 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * @class Textarea
- *
- * @plugin CopyPaste
- */
-var Textarea = function () {
-  _createClass(Textarea, null, [{
-    key: 'getSingleton',
-    value: function getSingleton() {
-      globalSingleton.append();
-
-      return globalSingleton;
-    }
-  }]);
-
-  function Textarea() {
-    _classCallCheck(this, Textarea);
-
-    /**
-     * Main textarea element.
-     *
-     * @type {HTMLElement}
-     */
-    this.element = void 0;
-    /**
-     * Store information about append to the document.body.
-     *
-     * @type {Boolean}
-     */
-    this.isAppended = false;
-    /**
-     * Reference counter.
-     *
-     * @type {Number}
-     */
-    this.refCounter = 0;
-  }
-
-  /**
-   * Apends textarea element to the `body`
-   */
-
-
-  _createClass(Textarea, [{
-    key: 'append',
-    value: function append() {
-      if (this.hasBeenDestroyed()) {
-        this.create();
-      }
-
-      this.refCounter++;
-
-      if (!this.isAppended && document.body) {
-        if (document.body) {
-          this.isAppended = true;
-          document.body.appendChild(this.element);
-        }
-      }
-    }
-
-    /**
-     * Prepares textarea element with proper attributes.
-     */
-
-  }, {
-    key: 'create',
-    value: function create() {
-      this.element = document.createElement('textarea');
-      this.element.id = 'HandsontableCopyPaste';
-      this.element.className = 'copyPaste';
-      this.element.tabIndex = -1;
-      this.element.autocomplete = 'off';
-      this.element.wrap = 'hard';
-      this.element.value = ' ';
-    }
-
-    /**
-     * Deselects textarea element if is active.
-     */
-
-  }, {
-    key: 'deselect',
-    value: function deselect() {
-      if (this.element === document.activeElement) {
-        document.activeElement.blur();
-      }
-    }
-
-    /**
-     * Destroy instance
-     */
-
-  }, {
-    key: 'destroy',
-    value: function destroy() {
-      this.refCounter--;
-      this.refCounter = this.refCounter < 0 ? 0 : this.refCounter;
-
-      if (this.hasBeenDestroyed() && this.element && this.element.parentNode) {
-        this.element.parentNode.removeChild(this.element);
-        this.element = null;
-        this.isAppended = false;
-      }
-    }
-
-    /**
-     * Getter for the element.
-     *
-     * @returns {String}
-     */
-
-  }, {
-    key: 'getValue',
-    value: function getValue() {
-      return this.element.value;
-    }
-
-    /**
-     * Check if instance has been destroyed
-     *
-     * @returns {Boolean}
-     */
-
-  }, {
-    key: 'hasBeenDestroyed',
-    value: function hasBeenDestroyed() {
-      return this.refCounter < 1;
-    }
-
-    /**
-     * Check if the element is an active element in frame.
-     *
-     * @returns {Boolean}
-     */
-
-  }, {
-    key: 'isActive',
-    value: function isActive() {
-      return this.element === document.activeElement;
-    }
-
-    /**
-     * Sets focus on the element and select content.
-     */
-
-  }, {
-    key: 'select',
-    value: function select() {
-      this.element.focus();
-      this.element.select();
-    }
-
-    /**
-     * Setter for the element.
-     *
-     * @param {String} data Value which should be insert into the element.
-     */
-
-  }, {
-    key: 'setValue',
-    value: function setValue(data) {
-      this.element.value = data;
-    }
-  }]);
-
-  return Textarea;
-}();
-
-var globalSingleton = new Textarea();
-
-exports.default = Textarea;
-
-/***/ }),
-/* 567 */
+/* 565 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59330,7 +58039,7 @@ function copyItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 568 */
+/* 566 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59369,7 +58078,7 @@ function cutItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 569 */
+/* 567 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59377,7 +58086,7 @@ function cutItem(copyPastePlugin) {
 
 exports.__esModule = true;
 
-var _clipboardData = __webpack_require__(570);
+var _clipboardData = __webpack_require__(568);
 
 var _clipboardData2 = _interopRequireDefault(_clipboardData);
 
@@ -59394,7 +58103,7 @@ var PasteEvent = function PasteEvent() {
 exports.default = PasteEvent;
 
 /***/ }),
-/* 570 */
+/* 568 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59431,13 +58140,237 @@ var ClipboardData = function () {
 exports.default = ClipboardData;
 
 /***/ }),
-/* 571 */
+/* 569 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.destroyElement = exports.deactivateElement = exports.createElement = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _eventManager = __webpack_require__(6);
+
+var _eventManager2 = _interopRequireDefault(_eventManager);
+
+var _localHooks = __webpack_require__(48);
+
+var _localHooks2 = _interopRequireDefault(_localHooks);
+
+var _object = __webpack_require__(2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * @class FocusableWrapper
+ *
+ * @plugin CopyPaste
+ */
+var FocusableWrapper = function () {
+  function FocusableWrapper() {
+    _classCallCheck(this, FocusableWrapper);
+
+    /**
+     * The main/operational focusable element.
+     *
+     * @type {HTMLElement}
+     */
+    this.mainElement = null;
+    /**
+     * Instance of EventManager.
+     *
+     * @type {EventManager}
+     */
+    this.eventManager = new _eventManager2.default(this);
+    /**
+     * An object for tracking information about event listeners attached to the focusable element.
+     *
+     * @type {WeakSet}
+     */
+    this.listenersCount = new WeakSet();
+  }
+
+  /**
+   * Switch to the secondary focusable element. Used when no any main focusable element is provided.
+   */
+
+
+  _createClass(FocusableWrapper, [{
+    key: 'useSecondaryElement',
+    value: function useSecondaryElement() {
+      var el = createOrGetSecondaryElement();
+
+      if (!this.listenersCount.has(el)) {
+        this.listenersCount.add(el);
+        forwardEventsToLocalHooks(this.eventManager, el, this);
+      }
+
+      this.mainElement = el;
+    }
+
+    /**
+     * Switch to the main focusable element.
+     */
+
+  }, {
+    key: 'setFocusableElement',
+    value: function setFocusableElement(element) {
+      if (!this.listenersCount.has(element)) {
+        this.listenersCount.add(element);
+        forwardEventsToLocalHooks(this.eventManager, element, this);
+      }
+
+      this.mainElement = element;
+    }
+
+    /**
+     * Get currently set focusable element.
+     *
+     * @return {HTMLElement}
+     */
+
+  }, {
+    key: 'getFocusableElement',
+    value: function getFocusableElement() {
+      return this.mainElement;
+    }
+
+    /**
+     * Set focus to the focusable element.
+     */
+
+  }, {
+    key: 'focus',
+    value: function focus() {
+      // Add an empty space to texarea. It is necessary for safari to enable "copy" command from menu bar.
+      this.mainElement.value = ' ';
+      this.mainElement.select();
+    }
+  }]);
+
+  return FocusableWrapper;
+}();
+
+(0, _object.mixin)(FocusableWrapper, _localHooks2.default);
+
+var refCounter = 0;
+
+/**
+ * Create and return the FocusableWrapper instance.
+ *
+ * @return {FocusableWrapper}
+ */
+function createElement() {
+  var focusableWrapper = new FocusableWrapper();
+
+  refCounter += 1;
+
+  return focusableWrapper;
+}
+
+/**
+ * Deactivate the FocusableWrapper instance.
+ *
+ * @param {FocusableWrapper} wrapper
+ */
+function deactivateElement(wrapper) {
+  wrapper.eventManager.clear();
+}
+
+/**
+ * Destroy the FocusableWrapper instance.
+ *
+ * @param {FocusableWrapper} wrapper
+ */
+function destroyElement(wrapper) {
+  if (!(wrapper instanceof FocusableWrapper)) {
+    return;
+  }
+
+  if (refCounter > 0) {
+    refCounter -= 1;
+  }
+
+  deactivateElement(wrapper);
+
+  if (refCounter <= 0) {
+    refCounter = 0;
+
+    // Detach secondary element from the DOM.
+    if (secondaryElement && secondaryElement.parentNode) {
+      secondaryElement.parentNode.removeChild(secondaryElement);
+      secondaryElement = null;
+    }
+    wrapper.mainElement = null;
+  }
+}
+
+var runLocalHooks = function runLocalHooks(eventName, subject) {
+  return function (event) {
+    return subject.runLocalHooks(eventName, event);
+  };
+};
+
+/**
+ * Register copy/cut/paste events and forward their actions to the subject local hooks system.
+ *
+ * @param {HTMLElement} element
+ * @param {FocusableWrapper} subject
+ */
+function forwardEventsToLocalHooks(eventManager, element, subject) {
+  eventManager.addEventListener(element, 'copy', runLocalHooks('copy', subject));
+  eventManager.addEventListener(element, 'cut', runLocalHooks('cut', subject));
+  eventManager.addEventListener(element, 'paste', runLocalHooks('paste', subject));
+}
+
+var secondaryElement = void 0;
+
+/**
+ * Create and attach newly created focusable element to the DOM.
+ *
+ * @return {HTMLElement}
+ */
+function createOrGetSecondaryElement(subject) {
+  if (secondaryElement) {
+
+    if (!secondaryElement.parentElement) {
+      document.body.appendChild(secondaryElement);
+    }
+
+    return secondaryElement;
+  }
+
+  var element = document.createElement('textarea');
+
+  secondaryElement = element;
+  element.id = 'HandsontableCopyPaste';
+  element.className = 'copyPaste';
+  element.tabIndex = -1;
+  element.autocomplete = 'off';
+  element.wrap = 'hard';
+  element.value = ' ';
+
+  document.body.appendChild(element);
+
+  return element;
+}
+
+exports.createElement = createElement;
+exports.deactivateElement = deactivateElement;
+exports.destroyElement = destroyElement;
+
+/***/ }),
+/* 570 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 572 */
+/* 571 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59471,27 +58404,27 @@ var _constants = __webpack_require__(7);
 
 var C = _interopRequireWildcard(_constants);
 
-var _bottom = __webpack_require__(573);
+var _bottom = __webpack_require__(572);
 
 var _bottom2 = _interopRequireDefault(_bottom);
 
-var _left = __webpack_require__(574);
+var _left = __webpack_require__(573);
 
 var _left2 = _interopRequireDefault(_left);
 
-var _noBorders = __webpack_require__(575);
+var _noBorders = __webpack_require__(574);
 
 var _noBorders2 = _interopRequireDefault(_noBorders);
 
-var _right = __webpack_require__(576);
+var _right = __webpack_require__(575);
 
 var _right2 = _interopRequireDefault(_right);
 
-var _top = __webpack_require__(577);
+var _top = __webpack_require__(576);
 
 var _top2 = _interopRequireDefault(_top);
 
-var _utils = __webpack_require__(48);
+var _utils = __webpack_require__(49);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -60020,7 +58953,7 @@ var CustomBorders = function (_BasePlugin) {
 exports.default = CustomBorders;
 
 /***/ }),
-/* 573 */
+/* 572 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60033,7 +58966,7 @@ var _constants = __webpack_require__(7);
 
 var C = _interopRequireWildcard(_constants);
 
-var _utils = __webpack_require__(48);
+var _utils = __webpack_require__(49);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -60056,7 +58989,7 @@ function bottom(customBordersPlugin) {
 }
 
 /***/ }),
-/* 574 */
+/* 573 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60069,7 +59002,7 @@ var _constants = __webpack_require__(7);
 
 var C = _interopRequireWildcard(_constants);
 
-var _utils = __webpack_require__(48);
+var _utils = __webpack_require__(49);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -60093,7 +59026,7 @@ function left(customBordersPlugin) {
 }
 
 /***/ }),
-/* 575 */
+/* 574 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60106,7 +59039,7 @@ var _constants = __webpack_require__(7);
 
 var C = _interopRequireWildcard(_constants);
 
-var _utils = __webpack_require__(48);
+var _utils = __webpack_require__(49);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -60126,7 +59059,7 @@ function noBorders(customBordersPlugin) {
 }
 
 /***/ }),
-/* 576 */
+/* 575 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60139,7 +59072,7 @@ var _constants = __webpack_require__(7);
 
 var C = _interopRequireWildcard(_constants);
 
-var _utils = __webpack_require__(48);
+var _utils = __webpack_require__(49);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -60162,7 +59095,7 @@ function right(customBordersPlugin) {
 }
 
 /***/ }),
-/* 577 */
+/* 576 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60175,7 +59108,7 @@ var _constants = __webpack_require__(7);
 
 var C = _interopRequireWildcard(_constants);
 
-var _utils = __webpack_require__(48);
+var _utils = __webpack_require__(49);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -60199,7 +59132,7 @@ function top(customBordersPlugin) {
 }
 
 /***/ }),
-/* 578 */
+/* 577 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60503,7 +59436,7 @@ var DragToScroll = function (_BasePlugin) {
 exports.default = DragToScroll;
 
 /***/ }),
-/* 579 */
+/* 578 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60523,15 +59456,15 @@ var _plugins = __webpack_require__(8);
 
 var _array = __webpack_require__(1);
 
-var _freezeColumn = __webpack_require__(580);
+var _freezeColumn = __webpack_require__(579);
 
 var _freezeColumn2 = _interopRequireDefault(_freezeColumn);
 
-var _unfreezeColumn = __webpack_require__(581);
+var _unfreezeColumn = __webpack_require__(580);
 
 var _unfreezeColumn2 = _interopRequireDefault(_unfreezeColumn);
 
-__webpack_require__(582);
+__webpack_require__(581);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -60834,7 +59767,7 @@ var ManualColumnFreeze = function (_BasePlugin) {
 exports.default = ManualColumnFreeze;
 
 /***/ }),
-/* 580 */
+/* 579 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60885,7 +59818,7 @@ function freezeColumnItem(manualColumnFreezePlugin) {
 }
 
 /***/ }),
-/* 581 */
+/* 580 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60936,13 +59869,13 @@ function unfreezeColumnItem(manualColumnFreezePlugin) {
 }
 
 /***/ }),
-/* 582 */
+/* 581 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 583 */
+/* 582 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60974,21 +59907,21 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _plugins = __webpack_require__(8);
 
-var _columnsMapper = __webpack_require__(584);
+var _columnsMapper = __webpack_require__(583);
 
 var _columnsMapper2 = _interopRequireDefault(_columnsMapper);
 
-var _backlight = __webpack_require__(585);
+var _backlight = __webpack_require__(584);
 
 var _backlight2 = _interopRequireDefault(_backlight);
 
-var _guideline = __webpack_require__(586);
+var _guideline = __webpack_require__(585);
 
 var _guideline2 = _interopRequireDefault(_guideline);
 
 var _src = __webpack_require__(4);
 
-__webpack_require__(587);
+__webpack_require__(586);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -61847,7 +60780,7 @@ var ManualColumnMove = function (_BasePlugin) {
 exports.default = ManualColumnMove;
 
 /***/ }),
-/* 584 */
+/* 583 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -61954,7 +60887,7 @@ var ColumnsMapper = function () {
 exports.default = ColumnsMapper;
 
 /***/ }),
-/* 585 */
+/* 584 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -62015,7 +60948,7 @@ var BacklightUI = function (_BaseUI) {
 exports.default = BacklightUI;
 
 /***/ }),
-/* 586 */
+/* 585 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -62076,13 +61009,13 @@ var GuidelineUI = function (_BaseUI) {
 exports.default = GuidelineUI;
 
 /***/ }),
-/* 587 */
+/* 586 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 588 */
+/* 587 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -62744,7 +61677,7 @@ var ManualColumnResize = function (_BasePlugin) {
 exports.default = ManualColumnResize;
 
 /***/ }),
-/* 589 */
+/* 588 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -62776,19 +61709,19 @@ var _eventManager2 = _interopRequireDefault(_eventManager);
 
 var _plugins = __webpack_require__(8);
 
-var _rowsMapper = __webpack_require__(590);
+var _rowsMapper = __webpack_require__(589);
 
 var _rowsMapper2 = _interopRequireDefault(_rowsMapper);
 
-var _backlight = __webpack_require__(591);
+var _backlight = __webpack_require__(590);
 
 var _backlight2 = _interopRequireDefault(_backlight);
 
-var _guideline = __webpack_require__(592);
+var _guideline = __webpack_require__(591);
 
 var _guideline2 = _interopRequireDefault(_guideline);
 
-__webpack_require__(593);
+__webpack_require__(592);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -63669,7 +62602,7 @@ var ManualRowMove = function (_BasePlugin) {
 exports.default = ManualRowMove;
 
 /***/ }),
-/* 590 */
+/* 589 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63776,7 +62709,7 @@ var RowsMapper = function () {
 exports.default = RowsMapper;
 
 /***/ }),
-/* 591 */
+/* 590 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63837,7 +62770,7 @@ var BacklightUI = function (_BaseUI) {
 exports.default = BacklightUI;
 
 /***/ }),
-/* 592 */
+/* 591 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63898,13 +62831,13 @@ var GuidelineUI = function (_BaseUI) {
 exports.default = GuidelineUI;
 
 /***/ }),
-/* 593 */
+/* 592 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 594 */
+/* 593 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64489,7 +63422,7 @@ var ManualRowResize = function (_BasePlugin) {
 exports.default = ManualRowResize;
 
 /***/ }),
-/* 595 */
+/* 594 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64517,7 +63450,7 @@ var _event = __webpack_require__(13);
 
 var _src = __webpack_require__(4);
 
-var _cellsCollection = __webpack_require__(596);
+var _cellsCollection = __webpack_require__(595);
 
 var _cellsCollection2 = _interopRequireDefault(_cellsCollection);
 
@@ -64525,15 +63458,15 @@ var _cellCoords = __webpack_require__(97);
 
 var _cellCoords2 = _interopRequireDefault(_cellCoords);
 
-var _autofill = __webpack_require__(597);
+var _autofill = __webpack_require__(596);
 
 var _autofill2 = _interopRequireDefault(_autofill);
 
-var _selection = __webpack_require__(598);
+var _selection = __webpack_require__(597);
 
 var _selection2 = _interopRequireDefault(_selection);
 
-var _toggleMerge = __webpack_require__(599);
+var _toggleMerge = __webpack_require__(598);
 
 var _toggleMerge2 = _interopRequireDefault(_toggleMerge);
 
@@ -64541,13 +63474,13 @@ var _array = __webpack_require__(1);
 
 var _object = __webpack_require__(2);
 
-var _console = __webpack_require__(57);
+var _console = __webpack_require__(58);
 
 var _number = __webpack_require__(5);
 
 var _utils = __webpack_require__(448);
 
-__webpack_require__(600);
+__webpack_require__(599);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -65722,7 +64655,7 @@ var MergeCells = function (_BasePlugin) {
 exports.default = MergeCells;
 
 /***/ }),
-/* 596 */
+/* 595 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65742,7 +64675,7 @@ var _index = __webpack_require__(4);
 
 var _number = __webpack_require__(5);
 
-var _console = __webpack_require__(57);
+var _console = __webpack_require__(58);
 
 var _array = __webpack_require__(1);
 
@@ -66107,7 +65040,7 @@ var MergedCellsCollection = function () {
 exports.default = MergedCellsCollection;
 
 /***/ }),
-/* 597 */
+/* 596 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -66614,7 +65547,7 @@ var AutofillCalculations = function () {
 exports.default = AutofillCalculations;
 
 /***/ }),
-/* 598 */
+/* 597 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -66847,7 +65780,7 @@ var SelectionCalculations = function () {
 exports.default = SelectionCalculations;
 
 /***/ }),
-/* 599 */
+/* 598 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -66909,13 +65842,13 @@ function toggleMergeItem(plugin) {
 }
 
 /***/ }),
-/* 600 */
+/* 599 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 601 */
+/* 600 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -67335,7 +66268,7 @@ var MultipleSelectionHandles = function (_BasePlugin) {
 exports.default = MultipleSelectionHandles;
 
 /***/ }),
-/* 602 */
+/* 601 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -67355,7 +66288,7 @@ var _jsonPatchDuplex = __webpack_require__(449);
 
 var _jsonPatchDuplex2 = _interopRequireDefault(_jsonPatchDuplex);
 
-var _dataObserver = __webpack_require__(603);
+var _dataObserver = __webpack_require__(602);
 
 var _dataObserver2 = _interopRequireDefault(_dataObserver);
 
@@ -67624,7 +66557,7 @@ exports.default = ObserveChanges;
 (0, _plugins.registerPlugin)('observeChanges', ObserveChanges);
 
 /***/ }),
-/* 603 */
+/* 602 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -67638,13 +66571,13 @@ var _jsonPatchDuplex = __webpack_require__(449);
 
 var _jsonPatchDuplex2 = _interopRequireDefault(_jsonPatchDuplex);
 
-var _localHooks = __webpack_require__(59);
+var _localHooks = __webpack_require__(48);
 
 var _localHooks2 = _interopRequireDefault(_localHooks);
 
 var _object = __webpack_require__(2);
 
-var _utils = __webpack_require__(604);
+var _utils = __webpack_require__(603);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -67768,7 +66701,7 @@ var DataObserver = function () {
 exports.default = DataObserver;
 
 /***/ }),
-/* 604 */
+/* 603 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -67860,7 +66793,7 @@ function parsePath(path) {
 }
 
 /***/ }),
-/* 605 */
+/* 604 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -68244,7 +67177,7 @@ var Search = function (_BasePlugin) {
 exports.default = Search;
 
 /***/ }),
-/* 606 */
+/* 605 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -68506,7 +67439,7 @@ var TouchScroll = function (_BasePlugin) {
 exports.default = TouchScroll;
 
 /***/ }),
-/* 607 */
+/* 606 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

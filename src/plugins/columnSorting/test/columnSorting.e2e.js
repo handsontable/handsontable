@@ -61,6 +61,26 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
+  it('should render a correct number of TD elements after sorting', async () => {
+    handsontable({
+      data: [
+        ['1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'],
+        ['2']
+      ],
+      height: 100,
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    const htCore = getHtCore();
+
+    getPlugin('ColumnSorting').sort(0, 'desc');
+
+    await 300;
+
+    expect(htCore.find('td').length).toEqual(2);
+  });
+
   it('should apply stable sort function #3606', () => {
     const hot = handsontable({
       data: [

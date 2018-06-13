@@ -76,6 +76,8 @@ class DataSource {
 
       if (typeof property === 'string') {
         row = getProperty(row, property);
+      } else if (typeof property === 'function') {
+        row = property(row);
       } else {
         row = row[property];
       }

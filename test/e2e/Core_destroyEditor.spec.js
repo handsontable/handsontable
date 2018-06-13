@@ -17,8 +17,8 @@ describe('Core_destroyEditor', () => {
     selectCell(1, 1);
 
     keyDownUp('enter');
-
     destroyEditor();
+
     expect(isEditorVisible()).toEqual(false);
   });
 
