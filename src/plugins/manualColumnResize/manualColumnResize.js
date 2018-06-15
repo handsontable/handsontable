@@ -382,7 +382,7 @@ class ManualColumnResize extends BasePlugin {
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
     const resize = (selectedCol, forceRender) => {
-      this.hot.runHooks('beforeColumnResize', selectedCol, this.newSize);
+      this.hot.runHooks('beforeColumnResize', selectedCol, this.newSize, false);
 
       if (forceRender) {
         render();
