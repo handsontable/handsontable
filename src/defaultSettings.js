@@ -70,7 +70,7 @@ import { isObjectEqual } from './helpers/object';
  * compared to the previous model that used jQuery extend. See: [http://jsperf.com/extending-settings](http://jsperf.com/extending-settings).
  *
  * ---
- * __Important notice:__ In order for the data separation to work properly, make sure that each instance of Handsontable has an unique `id`.
+ * __Important notice:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
  */
 function DefaultSettings() {}
 
