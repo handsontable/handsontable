@@ -1,5 +1,5 @@
-import {isDefined} from './helpers/mixed';
-import {isObjectEqual} from './helpers/object';
+import { isDefined } from './helpers/mixed';
+import { isObjectEqual } from './helpers/object';
 
 /**
  * @alias Options
@@ -11,7 +11,8 @@ import {isObjectEqual} from './helpers/object';
  * Constructor options are applied using an object literal passed as a second argument to the Handsontable constructor.
  *
  * ```js
- * var hot = new Handsontable(document.getElementById('example1'), {
+ * var $container = document.getElementById('example');
+ * var hot = new Handsontable($container, {
  *   data: myArray,
  *   width: 400,
  *   height: 300
@@ -21,19 +22,20 @@ import {isObjectEqual} from './helpers/object';
  * ---
  * ## Cascading configuration
  *
- * Handsontable 0.9 and newer is using *Cascading Configuration*, which is a fast way to provide configuration options
+ * Handsontable is using *Cascading Configuration*, which is a fast way to provide configuration options
  * for the entire table, including its columns and particular cells.
  *
  * Consider the following example:
  * ```js
- * var hot = new Handsontable(document.getElementById('example'), {
+ * var $container = document.getElementById('example');
+ * var hot = new Handsontable($container, {
  *   readOnly: true,
  *   columns: [
  *     {readOnly: false},
  *     {},
  *     {}
  *   ],
- *   cells: function (row, col, prop) {
+ *   cells: function(row, col, prop) {
  *     var cellProperties = {};
  *
  *     if (row === 0 && col === 0) {
@@ -64,13 +66,13 @@ import {isObjectEqual} from './helpers/object';
  * ---
  * ## Architecture performance
  *
- * The Cascading Configuration model is based on prototypical inheritance. It is much faster and memory efficient compared
- * to the previous model that used jQuery extend. See: [http://jsperf.com/extending-settings](http://jsperf.com/extending-settings).
+ * The Cascading Configuration model is based on prototypical inheritance. It is much faster and memory efficient
+ * compared to the previous model that used jQuery extend. See: [http://jsperf.com/extending-settings](http://jsperf.com/extending-settings).
  *
  * ---
- * __Important notice:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
+ * __Important notice:__ In order for the data separation to work properly, make sure that each instance of Handsontable has an unique `id`.
  */
-function DefaultSettings() {};
+function DefaultSettings() {}
 
 DefaultSettings.prototype = {
   /**
@@ -79,6 +81,10 @@ DefaultSettings.prototype = {
    * @pro
    * @type {String}
    * @default 'trial'
+   * @example
+   * ```js
+   * licenseKey: '00000-00000-00000-00000-00000',
+   * ```
    */
   licenseKey: 'trial',
 
@@ -89,8 +95,26 @@ DefaultSettings.prototype = {
    *
    * See [Understanding binding as reference](https://docs.handsontable.com/tutorial-data-binding.html#page-reference).
    *
-   * @type {Array|Function}
+   * @type {Array[]|Object[]|Function}
    * @default undefined
+   * @example
+   * ```js
+   * // as an array of arrays
+   * data: [
+   *    ['A', 'B', 'C'],
+   *    ['D', 'E', 'F'],
+   *    ['G', 'H', 'J']
+   * ]
+   *
+   * // as an array of objects
+   * data: [
+   *    {id: 1, name: 'Ted Right'},
+   *    {id: 2, name: 'Frank Honest'},
+   *    {id: 3, name: 'Joan Well'},
+   *    {id: 4, name: 'Gail Polite'},
+   *    {id: 5, name: 'Michael Fair'},
+   * ]
+   * ```
    */
   data: void 0,
 
@@ -98,10 +122,26 @@ DefaultSettings.prototype = {
    * @description
    * Defines the structure of a new row when data source is an array of objects.
    *
-   * See [data-schema](https://docs.handsontable.com/tutorial-data-sources.html#page-data-schema) for examples.
+   * See [data-schema](https://docs.handsontable.com/tutorial-data-sources.html#page-data-schema) for more options.
    *
    * @type {Object}
    * @default undefined
+   *
+   * @example
+   * ```
+   * // with data schema we can start with an empty table
+   * data: null,
+   * dataSchema: {id: null, name: {first: null, last: null}, address: null},
+   * colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
+   * columns: [
+   *   {data: 'id'},
+   *   {data: 'name.first'},
+   *   {data: 'name.last'},
+   *   {data: 'address'}
+   * ],
+   * startRows: 5,
+   * minSpareRows: 1
+   * ```
    */
   dataSchema: void 0,
 
@@ -110,6 +150,17 @@ DefaultSettings.prototype = {
    *
    * @type {Number|Function}
    * @default undefined
+   *
+   * @example
+   * ```
+   * // as a number
+   * width: 500,
+   *
+   * // as a function
+   * width: function() {
+   *   return 500;
+   * },
+   * ```
    */
   width: void 0,
 
@@ -118,6 +169,17 @@ DefaultSettings.prototype = {
    *
    * @type {Number|Function}
    * @default undefined
+   *
+   * @example
+   * ```js
+   * // as a number
+   * height: 500,
+   *
+   * // as a function
+   * height: function() {
+   *   return 500;
+   * },
+   * ```
    */
   height: void 0,
 
@@ -129,6 +191,12 @@ DefaultSettings.prototype = {
    *
    * @type {Number}
    * @default 5
+   *
+   * @example
+   * ```js
+   * // start with 15 empty rows
+   * startRows: 15,
+   * ```
    */
   startRows: 5,
 
@@ -140,6 +208,12 @@ DefaultSettings.prototype = {
    *
    * @type {Number}
    * @default 5
+   *
+   * @example
+   * ```js
+   * // start with 15 empty columns
+   * startCols: 15,
+   * ```
    */
   startCols: 5,
 
@@ -148,26 +222,21 @@ DefaultSettings.prototype = {
    * You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
    * If a function is set the index of the row is passed as a parameter.
    *
-   * @type {Boolean|Array|Function}
-   * @default null
+   * @type {Boolean|String[]|Function}
+   * @default undefined
+   *
    * @example
    * ```js
-   * ...
-   * // as boolean
+   * // as a boolean
    * rowHeaders: true,
-   * ...
    *
-   * ...
-   * // as array
-   * rowHeaders: [1, 2, 3],
-   * ...
+   * // as an array
+   * rowHeaders: ['1', '2', '3'],
    *
-   * ...
-   * // as function
+   * // as a function
    * rowHeaders: function(index) {
    *   return index + ': AB';
    * },
-   * ...
    * ```
    */
   rowHeaders: void 0,
@@ -177,26 +246,21 @@ DefaultSettings.prototype = {
    * You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
    * If a function is set, then the index of the column is passed as a parameter.
    *
-   * @type {Boolean|Array|Function}
+   * @type {Boolean|String[]|Function}
    * @default null
+   *
    * @example
    * ```js
-   * ...
-   * // as boolean
+   * // as a boolean
    * colHeaders: true,
-   * ...
    *
-   * ...
-   * // as array
+   * // as an array
    * colHeaders: ['A', 'B', 'C'],
-   * ...
    *
-   * ...
-   * // as function
+   * // as a function
    * colHeaders: function(index) {
    *   return index + ': AB';
    * },
-   * ...
    * ```
    */
   colHeaders: null,
@@ -208,29 +272,22 @@ DefaultSettings.prototype = {
    *
    * @type {Array|Function|Number|String}
    * @default undefined
+   *
    * @example
    * ```js
-   * ...
-   * // as numeric, for each column.
+   * // as a number, for each column.
    * colWidths: 100,
-   * ...
    *
-   * * ...
-   * // as string, for each column.
+   * // as a string, for each column.
    * colWidths: '100px',
-   * ...
    *
-   * ...
-   * // as array, based on visual indexes. The rest of the columns have a default width.
+   * // as an array, based on visual indexes. The rest of the columns have a default width.
    * colWidths: [100, 120, 90],
-   * ...
    *
-   * ...
-   * // as function, based on visual indexes.
+   * // as a function, based on visual indexes.
    * colWidths: function(index) {
    *   return index * 10;
    * },
-   * ...
    * ```
    */
   colWidths: void 0,
@@ -245,29 +302,22 @@ DefaultSettings.prototype = {
    *
    * @type {Array|Function|Number|String}
    * @default undefined
+   *
    * @example
    * ```js
-   * ...
-   * // as numeric, for each row.
+   * // as a number, the same for all rows
    * rowHeights: 100,
-   * ...
    *
-   * * ...
-   * // as string, for each row.
+   * // as a string, the same for all row
    * rowHeights: '100px',
-   * ...
    *
-   * ...
-   * // as array, based on visual indexes. The rest of the rows have a default height.
+   * // as an array, based on visual indexes. The rest of the rows have a default height
    * rowHeights: [100, 120, 90],
-   * ...
    *
-   * ...
-   * // as function, based on visual indexes.
+   * // as a function, based on visual indexes
    * rowHeights: function(index) {
    *   return index * 10;
    * },
-   * ...
    * ```
    */
   rowHeights: void 0,
@@ -282,10 +332,11 @@ DefaultSettings.prototype = {
    *
    * @type {Array|Function}
    * @default undefined
+   *
    * @example
    * ```js
-   * ...
-   * // as an array of objects. Order of the objects in array is representation of physical indexes.
+   * // as an array of objects
+   * // order of the objects in array is representation of physical indexes.
    * columns: [
    *   {
    *     // column options for the first column
@@ -300,17 +351,14 @@ DefaultSettings.prototype = {
    *     readOnly: true
    *   }
    * ],
-   * ...
    *
-   * // or as function, based on physical indexes
-   * ...
+   * // or as a function, based on physical indexes
    * columns: function(index) {
- *    return {
- *      type: index > 0 ? 'numeric' : 'text',
- *      readOnly: index < 1
- *    }
+   *   return {
+   *     type: index > 0 ? 'numeric' : 'text',
+   *     readOnly: index < 1
+   *   }
    * }
-   * ...
    * ```
    */
   columns: void 0,
@@ -330,10 +378,10 @@ DefaultSettings.prototype = {
    *
    * @type {Function}
    * @default undefined
+   *
    * @example
    * ```js
-   * ...
-   * cells: function (row, col, prop) {
+   * cells: function(row, col, prop) {
    *   var cellProperties = {};
    *   var visualRowIndex = this.instance.toVisualRow(row);
    *   var visualColIndex = this.instance.toVisualColumn(col);
@@ -344,7 +392,6 @@ DefaultSettings.prototype = {
    *
    *   return cellProperties;
    * },
-   * ...
    * ```
    */
   cells: void 0,
@@ -355,13 +402,17 @@ DefaultSettings.prototype = {
    *
    * @type {Array}
    * @default []
+   *
    * @example
    * ```js
-   * ...
+   * // make cell with coordinates (0,0) read only
    * cell: [
-   *   {row: 0, col: 0, readOnly: true}
+   *   {
+   *     row: 0,
+   *     col: 0,
+   *     readOnly: true
+   *   }
    * ],
-   * ...
    * ```
    */
   cell: [],
@@ -375,51 +426,86 @@ DefaultSettings.prototype = {
    *
    * See [Comments](https://docs.handsontable.com/demo-comments_.html) demo for examples.
    *
-   * @since 0.11.0
    * @type {Boolean|Array}
    * @default false
+   *
    * @example
    * ```js
-   * ...
-   * comments: [{row: 1, col: 1, comment: {value: "Test comment"}}],
-   * ...
+   * // enable comments plugin
+   * comments: true,
+   *
+   * // or
+   * // enable comments plugin and add predefined comments
+   * comments: [
+   *   {
+   *     row: 1,
+   *     col: 1,
+   *     comment: {
+   *       value: "Test comment"
+   *     }
+   *   }
+   * ],
    * ```
    */
   comments: false,
 
   /**
    * @description
-   * If `true`, enables the Custom Borders plugin, which enables an option to apply custom borders through the context menu (configurable with context menu key `borders`).
-   *
-   * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form of an array.
+   * If `true`, enables the Custom Borders plugin, which enables an option to apply custom borders through the context
+   * menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
+   * provide cell coordinates and border styles in a form of an array.
    *
    * See [Custom Borders](https://docs.handsontable.com/demo-custom-borders.html) demo for examples.
    *
-   * @since 0.11.0
    * @type {Boolean|Array}
    * @default false
+   *
    * @example
    * ```js
-   * ...
+   * // enable custom borders
+   * customBorders: true,
+   *
+   * // or
+   * // enable custom borders and start with predefined left border
    * customBorders: [
-   *   {range: {
-   *     from: {row: 1, col: 1},
-   *     to: {row: 3, col: 4}},
-   *     left: {},
+   *   {
+   *     range: {
+   *       from: {
+   *         row: 1,
+   *         col: 1
+   *       },
+   *       to: {
+   *         row: 3,
+   *         col: 4
+   *       }
+   *     },
+   *     left: {
+   *       width: 2,
+   *       color: 'red'
+   *     },
    *     right: {},
    *     top: {},
    *     bottom: {}
    *   }
    * ],
-   * ...
    *
    * // or
-   * ...
    * customBorders: [
-   *   {row: 2, col: 2, left: {width: 2, color: 'red'},
-   *     right: {width: 1, color: 'green'}, top: '', bottom: ''}
+   *   {
+   *     row: 2,
+   *     col: 2,
+   *     left: {
+   *       width: 2,
+   *       color: 'red'
+   *     },
+   *     right: {
+   *       width: 1,
+   *       color: 'green'
+   *     },
+   *     top: '',
+   *     bottom: ''
+   *   }
    * ],
-   * ...
    * ```
    */
   customBorders: false,
@@ -429,6 +515,12 @@ DefaultSettings.prototype = {
    *
    * @type {Number}
    * @default 0
+   *
+   * @example
+   * ```js
+   * // set minimum table size to 10 rows
+   * minRows: 10,
+   * ```
    */
   minRows: 0,
 
@@ -437,6 +529,12 @@ DefaultSettings.prototype = {
    *
    * @type {Number}
    * @default 0
+   *
+   * @example
+   * ```js
+   * // set minimum table size to 10 columns
+   * minCols: 10,
+   * ```
    */
   minCols: 0,
 
@@ -445,6 +543,12 @@ DefaultSettings.prototype = {
    *
    * @type {Number}
    * @default Infinity
+   *
+   * @example
+   * ```js
+   * // limit table size to maximum 300 rows
+   * maxRows: 300,
+   * ```
    */
   maxRows: Infinity,
 
@@ -453,6 +557,12 @@ DefaultSettings.prototype = {
    *
    * @type {Number}
    * @default Infinity
+   *
+   * @example
+   * ```js
+   * // limit table size to maximum 300 columns
+   * maxCols: 300,
+   * ```
    */
   maxCols: Infinity,
 
@@ -462,6 +572,12 @@ DefaultSettings.prototype = {
    *
    * @type {Number}
    * @default 0
+   *
+   * @example
+   * ```js
+   * // always add 3 empty rows at the table end
+   * minSpareRows: 3,
+   * ```
    */
   minSpareRows: 0,
 
@@ -471,6 +587,12 @@ DefaultSettings.prototype = {
    *
    * @type {Number}
    * @default 0
+   *
+   * @example
+   * ```js
+   * // always add 3 empty columns at the table end
+   * minSpareCols: 3,
+   * ```
    */
   minSpareCols: 0,
 
@@ -479,6 +601,12 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default true
+   *
+   * @example
+   * ```js
+   * // hide "Insert row above" and "Insert row below" options from the Context Menu
+   * allowInsertRow: false,
+   * ```
    */
   allowInsertRow: true,
 
@@ -487,6 +615,12 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default true
+   *
+   * @example
+   * ```js
+   * // hide "Insert column left" and "Insert column right" options from the Context Menu
+   * allowInsertColumn: false,
+   * ```
    */
   allowInsertColumn: true,
 
@@ -495,6 +629,12 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default true
+   *
+   * @example
+   * ```js
+   * // hide "Remove row" option from the Context Menu
+   * allowRemoveRow: false,
+   * ```
    */
   allowRemoveRow: true,
 
@@ -503,6 +643,12 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default true
+   *
+   * @example
+   * ```js
+   * // hide "Remove column" option from the Context Menu
+   * allowRemoveColumn: false,
+   * ```
    */
   allowRemoveColumn: true,
 
@@ -516,9 +662,14 @@ DefaultSettings.prototype = {
    * To see how to interact with selection by getting selected data or change styles of the selected cells go to
    * [https://docs.handsontable.com/demo-selecting-ranges.html](https://docs.handsontable.com/demo-selecting-ranges.html).
    *
-   * @since 0.36.0
    * @type {String}
    * @default 'multiple'
+   *
+   * @example
+   * ```js
+   * // only one cell can be selected at a time
+   * selectionMode: 'single',
+   * ```
    */
   selectionMode: 'multiple',
 
@@ -526,38 +677,38 @@ DefaultSettings.prototype = {
    * Enables the fill handle (drag-down and copy-down) functionality, which shows a small rectangle in bottom
    * right corner of the selected area, that let's you expand values to the adjacent cells.
    *
-   * Possible values: `true` (to enable in all directions), `'vertical'` or `'horizontal'` (to enable in one direction),
-   * `false` (to disable completely). Setting to `true` enables the fillHandle plugin.
+   * Setting to `true` enables the fillHandle plugin. Possible values: `true` (to enable in all directions),
+   * `'vertical'` or `'horizontal'` (to enable in one direction), `false` (to disable completely), an object with
+   * options: `autoInsertRow`, `direction`.
    *
-   * Since 0.23.0 you can pass object to plugin which allows you to add more options for this functionality. If `autoInsertRow`
-   * option is `true`, fill-handler will create new rows till it reaches the last row. It is enabled by default.
+   * If `autoInsertRow` option is `true`, fill-handler will create new rows till it reaches the last row.
+   * It is enabled by default.
+   *
+   * @type {Boolean|String|Object}
+   * @default true
    *
    * @example
    * ```js
-   * ...
-   * fillHandle: true // enable plugin in all directions and with autoInsertRow as true
-   * ...
-   * // or
-   * ...
-   * fillHandle: 'vertical' // enable plugin in vertical direction and with autoInsertRow as true
-   * ...
-   * // or
-   * ...
-   * fillHandle: { // enable plugin in both directions and with autoInsertRow as false
-   *   autoInsertRow: false,
-   * }
-   * // or
-   * ...
-   * fillHandle: { // enable plugin in vertical direction and with autoInsertRow as false
-   *   autoInsertRow: false,
-   *   direction: 'vertical' // 'vertical' or 'horizontal'
-   * }
-   * ```
+   * // enable plugin in all directions and with autoInsertRow as true
+   * fillHandle: true,
    *
-   * @type {Boolean|String|Object}
-   * @default fillHandle: {
+   * // or
+   * // enable plugin in vertical direction and with autoInsertRow as true
+   * fillHandle: 'vertical',
+   *
+   * // or
+   * fillHandle: {
+   *   // enable plugin in both directions and with autoInsertRow as false
    *   autoInsertRow: false,
-   * }
+   * },
+   *
+   * // or
+   * fillHandle: {
+   *   // enable plugin in vertical direction and with autoInsertRow as false
+   *   autoInsertRow: false,
+   *   direction: 'vertical'
+   * },
+   * ```
    */
   fillHandle: {
     autoInsertRow: false,
@@ -568,9 +719,11 @@ DefaultSettings.prototype = {
    *
    * @type {Number}
    * @default 0
+   *
    * @example
    * ```js
-   * fixedRowsTop: 3 // This would freeze the top 3 rows of the table.
+   * // freeze the first 3 rows of the table.
+   * fixedRowsTop: 3,
    * ```
    */
   fixedRowsTop: 0,
@@ -581,9 +734,11 @@ DefaultSettings.prototype = {
    * @pro
    * @type {Number}
    * @default 0
+   *
    * @example
    * ```js
-   * fixedRowsBottom: 3 // This would freeze the top 3 rows of the table.
+   * // freeze the last 3 rows of the table.
+   * fixedRowsBottom: 3,
    * ```
    */
   fixedRowsBottom: 0,
@@ -593,9 +748,11 @@ DefaultSettings.prototype = {
    *
    * @type {Number}
    * @default 0
+   *
    * @example
    * ```js
-   * fixedColumnsLeft: 3 // This would freeze the top 3 rows of the table.
+   * // freeze first 3 columns of the table.
+   * fixedColumnsLeft: 3,
    * ```
    */
   fixedColumnsLeft: 0,
@@ -606,6 +763,17 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean|Function}
    * @default true
+   *
+   * @example
+   * ```js
+   * // don't clear current selection when mouse click was outside the grid
+   * outsideClickDeselects: false,
+   *
+   * // or
+   * outsideClickDeselects: function(event) {
+   *   return false;
+   * }
+   * ```
    */
   outsideClickDeselects: true,
 
@@ -615,6 +783,11 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default true
+   *
+   * @example
+   * ```js
+   * enterBeginsEditing: false,
+   * ```
    */
   enterBeginsEditing: true,
 
@@ -626,8 +799,14 @@ DefaultSettings.prototype = {
    *
    * @type {Object|Function}
    * @default {row: 1, col: 0}
+   *
+   * @example
+   * ```js
+   * // move selection diagonal by 1 cell in x and y axis
+   * enterMoves: {row: 1, col: 1},
+   * ```
    */
-  enterMoves: {row: 1, col: 0},
+  enterMoves: { row: 1, col: 0 },
 
   /**
    * Defines the cursor movement after <kbd>TAB</kbd> is pressed (<kbd>SHIFT</kbd> + <kbd>TAB</kbd> uses a negative vector).
@@ -637,14 +816,25 @@ DefaultSettings.prototype = {
    *
    * @type {Object}
    * @default {row: 0, col: 1}
+   *
+   * @example
+   * ```js
+   * tabMoves: {row: 2, col: 2},
+   * ```
    */
-  tabMoves: {row: 0, col: 1},
+  tabMoves: { row: 0, col: 1 },
 
   /**
    * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
    *
    * @type {Boolean}
    * @default true
+   *
+   * @example
+   * ```js
+   * // stop TAB key navigation on the last column
+   * autoWrapRow: false,
+   * ```
    */
   autoWrapRow: true,
 
@@ -653,6 +843,12 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default true
+   *
+   * @example
+   * ```js
+   * // stop ENTER key navigation on the last row
+   * autoWrapCol: false,
+   * ```
    */
   autoWrapCol: true,
 
@@ -660,9 +856,9 @@ DefaultSettings.prototype = {
    * @description
    * Turns on saving the state of column sorting, column positions and column sizes in local storage.
    *
-   * You can save any sort of data in local storage to preserve table state between page reloads.
-   * In order to enable data storage mechanism, `persistentState` option must be set to `true` (you can set it
-   * either during Handsontable initialization or using the `updateSettings` method). When `persistentState` is enabled it exposes 3 hooks:
+   * You can save any sort of data in local storage to preserve table state between page reloads.  In order to enable
+   * data storage mechanism, `persistentState` option must be set to `true` (you can set it either during Handsontable
+   * initialization or using the `updateSettings` method). When `persistentState` is enabled it exposes 3 hooks:
    *
    * __persistentStateSave__ (key: String, value: Mixed)
    *
@@ -670,9 +866,9 @@ DefaultSettings.prototype = {
    *
    * __persistentStateLoad__ (key: String, valuePlaceholder: Object)
    *
-   *   * Loads `value`, saved under given key, form browser local storage. The loaded `value` will be saved in `valuePlaceholder.value`
-   *     (this is due to specific behaviour of `Hooks.run()` method). If no value have been saved under key `valuePlaceholder.value`
-   *     will be `undefined`.
+   *   * Loads `value`, saved under given key, form browser local storage. The loaded `value` will be saved in
+   *   `valuePlaceholder.value` (this is due to specific behaviour of `Hooks.run()` method). If no value have
+   *   been saved under key `valuePlaceholder.value` will be `undefined`.
    *
    * __persistentStateReset__ (key: String)
    *
@@ -687,6 +883,12 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default false
+   *
+   * @example
+   * ```js
+   * // enable the persistent state plugin
+   * persistentState: true,
+   * ```
    */
   persistentState: void 0,
 
@@ -695,9 +897,11 @@ DefaultSettings.prototype = {
    *
    * @type {String}
    * @default undefined
+   *
    * @example
    * ```js
-   * currentRowClassName: 'currentRow' // This will add a 'currentRow' class name to appropriate table cells.
+   * // This will add a 'currentRow' class name to appropriate table cells.
+   * currentRowClassName: 'currentRow',
    * ```
    */
   currentRowClassName: void 0,
@@ -707,9 +911,11 @@ DefaultSettings.prototype = {
    *
    * @type {String}
    * @default undefined
+   *
    * @example
    * ```js
-   * currentColClassName: 'currentColumn' // This will add a 'currentColumn' class name to appropriate table cells.
+   * // This will add a 'currentColumn' class name to appropriate table cells.
+   * currentColClassName: 'currentColumn',
    * ```
    */
   currentColClassName: void 0,
@@ -718,11 +924,12 @@ DefaultSettings.prototype = {
    * Class name for all visible headers in current selection.
    *
    * @type {String}
-   * @since 0.27.0
    * @default 'ht__highlight'
+   *
    * @example
    * ```js
-   * currentHeaderClassName: 'ht__highlight' // This will add a 'ht__highlight' class name to appropriate table headers.
+   * // This will add a 'ht__highlight' class name to appropriate table headers.
+   * currentHeaderClassName: 'ht__highlight',
    * ```
    */
   currentHeaderClassName: 'ht__highlight',
@@ -734,9 +941,11 @@ DefaultSettings.prototype = {
    * @type {String}
    * @since 0.38.2
    * @default 'ht__active_highlight'
+   *
    * @example
    * ```js
-   * activeHeaderClassName: 'ht__active_highlight' // This will add a 'ht__active_highlight' class name to appropriate table headers.
+   * // this will add a 'ht__active_highlight' class name to appropriate table headers.
+   * activeHeaderClassName: 'ht__active_highlight',
    * ```
    */
   activeHeaderClassName: 'ht__active_highlight',
@@ -744,17 +953,34 @@ DefaultSettings.prototype = {
   /**
    * Class name for the Handsontable container element.
    *
-   * @type {String|Array}
+   * @type {String|String[]}
    * @default undefined
+   *
+   * @example
+   * ```js
+   * // set custom class for table container
+   * className: 'your__class--name',
+   *
+   * // or
+   * className: ['first-class-name', 'second-class-name'],
+   * ```
    */
   className: void 0,
 
   /**
    * Class name for all tables inside container element.
    *
-   * @since 0.17.0
-   * @type {String|Array}
+   * @type {String|String[]}
    * @default undefined
+   *
+   * @example
+   * ```js
+   * // set custom class for table element
+   * tableClassName: 'your__class--name',
+   *
+   * // or
+   * tableClassName: ['first-class-name', 'second-class-name'],
+   * ```
    */
   tableClassName: void 0,
 
@@ -768,15 +994,29 @@ DefaultSettings.prototype = {
    *
    * @type {String}
    * @default 'none'
+   *
+   * @example
+   * ```js
+   * // fit table to the container
+   * stretchH: 'all',
+   * ```
    */
   stretchH: 'none',
 
   /**
-   * Lets you overwrite the default `isEmptyRow` method, which checks if row at the provided index is empty.
+   * Overwrites the default `isEmptyRow` method, which checks if row at the provided index is empty.
    *
    * @type {Function}
    * @param {Number} row Visual row index.
    * @returns {Boolean}
+   *
+   * @example
+   * ```js
+   * // define custom checks for empty row
+   * isEmptyRow: function(row) {
+   *    ...
+   * },
+   * ```
    */
   isEmptyRow(row) {
     var col,
@@ -801,16 +1041,24 @@ DefaultSettings.prototype = {
   },
 
   /**
-   * Lets you overwrite the default `isEmptyCol` method, which checks if column at the provided index is empty.
+   * Overwrites the default `isEmptyCol` method, which checks if column at the provided index is empty.
    *
    * @type {Function}
    * @param {Number} col Visual column index
    * @returns {Boolean}
+   *
+   * @example
+   * ```js
+   * // define custom checks for empty column
+   * isEmptyCol: function(row) {
+   *    return false;
+   * },
+   * ```
    */
   isEmptyCol(col) {
-    var row,
-      rowLen,
-      value;
+    var row;
+    var rowLen;
+    var value;
 
     for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
       value = this.getDataAtCell(row, col);
@@ -828,6 +1076,12 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default true
+   *
+   * @example
+   * ```js
+   * // don't rerender the table on visibility changes
+   * observeDOMVisibility: false,
+   * ```
    */
   observeDOMVisibility: true,
 
@@ -839,7 +1093,12 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default true
-   * @since 0.9.5
+   *
+   * @example
+   * ```js
+   * // don't save the invalid values
+   * allowInvalid: false,
+   * ```
    */
   allowInvalid: true,
 
@@ -847,23 +1106,24 @@ DefaultSettings.prototype = {
    * If set to `true`, Handsontable will accept values that are empty (`null`, `undefined` or `''`).
    * If set to `false`, Handsontable will *not* accept the empty values and mark cell as invalid.
    *
-   * @example
-   * ```js
-   * ...
-   * allowEmpty: true // allow empty values for all cells (whole table)
-   * ...
-   * // or
-   * ...
-   * columns: [
-   *   // allow empty values only for 'date' column
-   *   {data: 'date', dateFormat: 'DD/MM/YYYY', allowEmpty: true}
-   * ]
-   * ...
-   * ```
-   *
    * @type {Boolean}
    * @default true
-   * @since 0.23.0
+   *
+   * @example
+   * ```js
+   * // allow empty values for all cells (whole table)
+   * allowEmpty: true,
+   *
+   * // or
+   * columns: [
+   *   {
+   *     data: 'date',
+   *     dateFormat: 'DD/MM/YYYY',
+   *     // allow empty values only for the 'date' column
+   *     allowEmpty: true
+   *   }
+   * ],
+   * ```
    */
   allowEmpty: true,
 
@@ -872,6 +1132,12 @@ DefaultSettings.prototype = {
    *
    * @type {String}
    * @default 'htInvalid'
+   *
+   * @example
+   * ```js
+   * // set custom validation error class
+   * invalidCellClassName: 'highlight--error',
+   * ```
    */
   invalidCellClassName: 'htInvalid',
 
@@ -879,16 +1145,28 @@ DefaultSettings.prototype = {
    * When set to an non-empty string, displayed as the cell content for empty cells. If a value of a different type is provided,
    * it will be stringified and applied as a string.
    *
-   * @type {Mixed}
-   * @default false
+   * @type {String}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // add custom placeholder content to empty cells
+   * placeholder: 'Empty Cell',
+   * ```
    */
-  placeholder: false,
+  placeholder: void 0,
 
   /**
    * CSS class name for cells that have a placeholder in use.
    *
    * @type {String}
    * @default 'htPlaceholder'
+   *
+   * @example
+   * ```js
+   * // set custom placeholder class
+   * placeholderCellClassName: 'has-placeholder',
+   * ```
    */
   placeholderCellClassName: 'htPlaceholder',
 
@@ -897,6 +1175,12 @@ DefaultSettings.prototype = {
    *
    * @type {String}
    * @default 'htDimmed'
+   *
+   * @example
+   * ```js
+   * // set custom read-only class
+   * readOnlyCellClassName: 'is-readOnly',
+   * ```
    */
   readOnlyCellClassName: 'htDimmed',
 
@@ -920,20 +1204,26 @@ DefaultSettings.prototype = {
    *
    * You can read more about custom renderes [in the documentation](https://docs.handsontable.com/demo-custom-renderers.html).
    *
+   * @type {String|Function}
+   * @default undefined
+   *
    * @example
    * ```js
-   * ...
+   * // register custom renderer
    * Handsontable.renderers.registerRenderer('my.renderer', function(instance, TD, row, col, prop, value, cellProperties) {
    *   TD.innerHTML = value;
    * });
-   * ...
+   *
+   * // use it for selected column:
    * columns: [
    *   {
-   *     editor: 'select',
-   *     renderer: 'autocomplete' // as string
+   *     // as a string with the name of build in renderer
+   *     renderer: 'autocomplete',
+   *     editor: 'select'
    *   },
    *   {
-   *     renderer: 'my.renderer' // custom renderer as an alias
+   *     // as an alias to custom renderer registered above
+   *     renderer: 'my.renderer'
    *   },
    *   {
    *     // renderer as custom function
@@ -942,12 +1232,8 @@ DefaultSettings.prototype = {
    *       TD.innerHTML = value;
    *     }
    *   }
-   * ]
-   * ...
+   * ],
    * ```
-   *
-   * @type {String|Function}
-   * @default undefined
    */
   renderer: void 0,
 
@@ -956,6 +1242,12 @@ DefaultSettings.prototype = {
    *
    * @type {String}
    * @default 'htCommentCell'
+   *
+   * @example
+   * ```js
+   * // set custom class for commented cells
+   * commentedCellClassName: 'has-comment',
+   * ```
    */
   commentedCellClassName: 'htCommentCell',
 
@@ -965,6 +1257,16 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean|String}
    * @default false
+   *
+   * @example
+   * ```js
+   * // enable text selection within table
+   * fragmentSelection: true,
+   *
+   * // or
+   * // enable text selection within cells only
+   * fragmentSelection: 'cell',
+   * ```
    */
   fragmentSelection: false,
 
@@ -974,6 +1276,12 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default false
+   *
+   * @example
+   * ```js
+   * // set cell as read only
+   * readOnly: true,
+   * ```
    */
   readOnly: false,
 
@@ -983,6 +1291,16 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default false
+   *
+   * @example
+   * ```js
+   * columns: [
+   *   {
+   *     // don't paste data to this column
+   *     skipColumnOnPaste: true
+   *   }
+   * ],
+   * ```
    */
   skipColumnOnPaste: false,
 
@@ -992,6 +1310,24 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default false
+   *
+   * @example
+   * ```js
+   * // enable search plugin
+   * search: true,
+   *
+   * // or
+   * // as an object with detailed configuration
+   * search: {
+   *   searchResultClass: 'customClass',
+   *   queryMethod: function (queryStr, value) {
+   *     ...
+   *   },
+   *   callback: function (instance, row, col, value, result) {
+   *     ...
+   *   }
+   * }
+   * ```
    */
   search: false,
 
@@ -1013,9 +1349,12 @@ DefaultSettings.prototype = {
    * Or you can register the custom cell type under specified name and use
    * its name as an alias in your configuration.
    *
+   * @type {String}
+   * @default 'text'
+   *
    * @example
    * ```js
-   * ...
+   * // register custom cell type:
    * Handsontable.cellTypes.registerCellType('my.type', {
    *   editor: MyEditorClass,
    *   renderer: function(hot, td, row, col, prop, value, cellProperties) {
@@ -1025,23 +1364,21 @@ DefaultSettings.prototype = {
    *     callback(value === 'foo' ? true : false);
    *   }
    * });
-   * ...
+   *
+   * // use it in column settings:
    * columns: [
    *   {
    *     type: 'text'
    *   },
    *   {
-   *     type: 'my.type' // an alias to custom type
+   *     // an alias to custom type
+   *     type: 'my.type'
    *   },
    *   {
    *     type: 'checkbox'
    *   }
-   * ]
-   * ...
+   * ],
    * ```
-   *
-   * @type {String}
-   * @default 'text'
    */
   type: 'text',
 
@@ -1053,7 +1390,18 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default true
-   * @since 0.10.2
+   *
+   * @example
+   * ```js
+   * cells: [
+   *   {
+   *     cell: 0,
+   *     row: 0,
+   *     // cell with coordinates (0,0) can't be copied
+   *     copyable: false,
+   *   }
+   * ],
+   * ```
    */
   copyable: true,
 
@@ -1076,40 +1424,41 @@ DefaultSettings.prototype = {
    *
    * To disable cell editing completely set `editor` property to `false`.
    *
+   * @type {String|Function|Boolean}
+   * @default undefined
+   *
    * @example
    * ```js
-   * ...
    * columns: [
    *   {
+   *     // set editor for the first column
    *     editor: 'select'
    *   },
    *   {
+   *     // disable editor for the second column
    *     editor: false
    *   }
-   * ]
-   * ...
+   * ],
    * ```
-   *
-   * @type {String|Function|Boolean}
-   * @default 'text'
    */
   editor: void 0,
 
   /**
-   * @description
-   * Autocomplete definitions. See [autocomplete demo](https://docs.handsontable.com/demo-autocomplete.html) for examples and definitions.
-   *
-   * @type {Array}
-   * @default undefined
-   */
-  autoComplete: void 0,
-
-  /**
    * Control number of choices for the autocomplete (or dropdown) typed cells. After exceeding it, a scrollbar for the dropdown list of choices will appear.
    *
-   * @since 0.18.0
    * @type {Number}
    * @default 10
+   *
+   * @example
+   * ```js
+   * columns: [
+   *   {
+   *     type: 'autocomplete',
+   *     // set autocomplete options list height
+   *     visibleRows: 15,
+   *   }
+   * ],
+   * ```
    */
   visibleRows: 10,
 
@@ -1117,9 +1466,19 @@ DefaultSettings.prototype = {
    * Makes autocomplete or dropdown width the same as the edited cell width. If `false` then editor will be scaled
    * according to its content.
    *
-   * @since 0.17.0
    * @type {Boolean}
    * @default true
+   *
+   * @example
+   * ```js
+   * columns: [
+   *   {
+   *     type: 'autocomplete',
+   *     // don't trim dropdown width with column width
+   *     trimDropdown: false,
+   *   }
+   * ],
+   * ```
    */
   trimDropdown: true,
 
@@ -1129,6 +1488,12 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default false
+   *
+   * @example
+   * ```js
+   * // enable debug mode
+   * debug: true,
+   * ```
    */
   debug: false,
 
@@ -1137,7 +1502,17 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default true
-   * @since 0.11.0
+   *
+   * @example
+   * ```js
+   * colWidths: 100,
+   * columns: [
+   *   {
+   *     // fixed column width is set but don't wrap the content
+   *     wordWrap: false,
+   *   }
+   * ],
+   * ```
    */
   wordWrap: true,
 
@@ -1146,15 +1521,19 @@ DefaultSettings.prototype = {
    *
    * @type {String}
    * @default 'htNoWrap'
-   * @since 0.11.0
+   *
+   * @example
+   * ```js
+   * // set custom class for cells which content won't be wrapped
+   * noWordWrapClassName: 'is-noWrapCell',
+   * ```
    */
   noWordWrapClassName: 'htNoWrap',
 
   /**
    * @description
    * Defines if the right-click context menu should be enabled. Context menu allows to create new row or
-   * column at any place in the grid among [other features](https://docs.handsontable.com/demo-context-menu.html).
-   * Possible values:
+   * column at any place in the grid among [other features](https://docs.handsontable.com/demo-context-menu.html). Possible values:
    * * `true` (to enable default options),
    * * `false` (to disable completely)
    * * an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
@@ -1162,17 +1541,17 @@ DefaultSettings.prototype = {
    *
    * See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
    *
+   * @type {Boolean|String[]|Object}
+   * @default undefined
+   *
    * @example
    * ```js
-   * ...
    * // as a boolean
-   * contextMenu: true
-   * ...
+   * contextMenu: true,
+   *
    * // as an array
-   * contextMenu: ['row_above', 'row_below', '--------', 'undo', 'redo']
-   * ...
-   * ```
-   * ...
+   * contextMenu: ['row_above', 'row_below', '--------', 'undo', 'redo'],
+   *
    * // as an object (`name` attribute is required in the custom keys)
    * contextMenu: {
    *   items: {
@@ -1195,27 +1574,22 @@ DefaultSettings.prototype = {
    *       }
    *     }
    *   }
-   * }
-   * ...
+   * },
    * ```
-   * @type {Boolean|Array|Object}
-   * @default undefined
    */
   contextMenu: void 0,
 
   /**
-   * @description
-   * Disable or enable the copy/paste functionality.
-   *
-   * @example
-   * ```js
-   * ...
-   * copyPaste: false,
-   * ...
-   * ```
+   * Disables or enables the copy/paste functionality.
    *
    * @type {Boolean}
    * @default true
+   *
+   * @example
+   * ```js
+   * // disable copy and paste
+   * copyPaste: false,
+   * ```
    */
   copyPaste: true,
 
@@ -1224,52 +1598,61 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default undefined
+   *
+   * @example
+   * ```js
+   * // enable undo and redo
+   * undo: true,
+   * ```
    */
   undo: void 0,
 
   /**
    * @description
-   * Turns on [Column sorting](https://docs.handsontable.com/demo-sorting-data.html).
-   * Can be either a boolean (true/false) or an object with a declared sorting options. See the below example:
-   *
-   * @example
-   * ```js
-   * ...
-   * // as boolean
-   * columnSorting: true
-   * ...
-   * // as a object with initial order (sort ascending column at index 2)
-   * columnSorting: {
-   *   column: 2,
-   *   sortOrder: 'asc', // 'asc' = ascending, 'desc' = descending, 'none' = original order
-   *   sortEmptyCells: true // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
-   * }
-   * ...
-   * ```
+   * Turns on [Column sorting](https://docs.handsontable.com/demo-sorting-data.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+   * * `column` - sorted column
+   * * `sortOrder` - order in which column will be sorted
+   *   * `'asc'` = ascending
+   *   * `'desc'` = descending
+   *   * `'none'` = original order
+   * * `sortEmptyCells` - how empty values should be handled
+   *   * `true` = the table sorts empty cells
+   *   * `false` = the table moves all empty cells to the end of the table
    *
    * @type {Boolean|Object}
    * @default undefined
+   *
+   * @example
+   * ```js
+   * // as a boolean
+   * columnSorting: true,
+   *
+   * // as a object with initial order (sort ascending column at index 2)
+   * columnSorting: {
+   *   column: 2,
+   *   sortOrder: 'asc',
+   *   sortEmptyCells: true
+   * },
+   * ```
    */
   columnSorting: void 0,
 
   /**
-   * @description
    * Turns on [Manual column move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial
    * column order, if set to an array of column indexes.
    *
-   * @example
-   * ```js
-   * ...
-   * // as boolean
-   * manualColumnMove: true
-   * ...
-   * // as a array with initial order (move column index at 0 to 1 and move column index at 1 to 4)
-   * manualColumnMove: [1, 4]
-   * ...
-   * ```
-   *
    * @type {Boolean|Array}
    * @default undefined
+   *
+   * @example
+   * ```js
+   * // as a boolean to enable column move
+   * manualColumnMove: true,
+   *
+   * // as a array with initial order
+   * // (move column index at 0 to 1 and move column index at 1 to 4)
+   * manualColumnMove: [1, 4],
+   * ```
    */
   manualColumnMove: void 0,
 
@@ -1278,19 +1661,18 @@ DefaultSettings.prototype = {
    * Turns on [Manual column resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * column resized widths, if set to an array of numbers.
    *
+   * @type {Boolean|Number[]}
+   * @default undefined
+   *
    * @example
    * ```js
-   * ...
-   * // as boolean
-   * manualColumnResize: true
-   * ...
-   * // as a array with initial widths (column at 0 index has 40px and column at 1 index has 50px)
-   * manualColumnResize: [40, 50]
-   * ...
-   * ```
+   * // as a boolean to enable column resize
+   * manualColumnResize: true,
    *
-   * @type {Boolean|Array}
-   * @default undefined
+   * // as a array with initial widths
+   * // (column at 0 index has 40px and column at 1 index has 50px)
+   * manualColumnResize: [40, 50],
+   * ```
    */
   manualColumnResize: void 0,
 
@@ -1299,20 +1681,18 @@ DefaultSettings.prototype = {
    * Turns on [Manual row move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial
    * row order, if set to an array of row indexes.
    *
+   * @type {Boolean|Number[]}
+   * @default undefined
+   *
    * @example
    * ```js
-   * ...
-   * // as boolean
-   * manualRowMove: true
-   * ...
-   * // as a array with initial order (move row index at 0 to 1 and move row index at 1 to 4)
-   * manualRowMove: [1, 4]
-   * ...
-   * ```
+   * // as a boolean
+   * manualRowMove: true,
    *
-   * @type {Boolean|Array}
-   * @default undefined
-   * @since 0.11.0
+   * // as a array with initial order
+   * // (move row index at 0 to 1 and move row index at 1 to 4)
+   * manualRowMove: [1, 4],
+   * ```
    */
   manualRowMove: void 0,
 
@@ -1321,20 +1701,18 @@ DefaultSettings.prototype = {
    * Turns on [Manual row resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial
    * row resized heights, if set to an array of numbers.
    *
+   * @type {Boolean|Number[]}
+   * @default undefined
+   *
    * @example
    * ```js
-   * ...
-   * // as boolean
-   * manualRowResize: true
-   * ...
-   * // as a array with initial heights (row at 0 index has 40px and row at 1 index has 50px)
-   * manualRowResize: [40, 50]
-   * ...
-   * ```
+   * // as a boolean to enable row resize
+   * manualRowResize: true,
    *
-   * @type {Boolean|Array}
-   * @default undefined
-   * @since 0.11.0
+   * // as an array to set initial heights
+   * // (row at 0 index has 40px and row at 1 index has 50px)
+   * manualRowResize: [40, 50],
+   * ```
    */
   manualRowResize: void 0,
 
@@ -1343,24 +1721,27 @@ DefaultSettings.prototype = {
    * If set to `true`, it enables a possibility to merge cells. If set to an array of objects, it merges the cells provided in the objects (see the example below).
    * [More information on the demo page.](https://docs.handsontable.com/demo-merge-cells.html)
    *
-   * @example
-   * ```js
-   * // enables the mergeCells plugin:
-   * margeCells: true
-   * ...
-   * // declares a list of merged sections:
-   * mergeCells: [
-   *   {row: 1, col: 1, rowspan: 3, colspan: 3}, // rowspan and colspan properties declare the width and height of a merged section in cells
-   *   {row: 3, col: 4, rowspan: 2, colspan: 2},
-   *   {row: 5, col: 6, rowspan: 3, colspan: 3}
-   * ]
-   * ```
    * @type {Boolean|Array}
    * @default false
+   *
+   * @example
+   * ```js
+   * // enables the mergeCells plugin
+   * margeCells: true,
+   *
+   * // declares a list of merged sections
+   * mergeCells: [
+   *   // rowspan and colspan properties declare the width and height of a merged section in cells
+   *   {row: 1, col: 1, rowspan: 3, colspan: 3},
+   *   {row: 3, col: 4, rowspan: 2, colspan: 2},
+   *   {row: 5, col: 6, rowspan: 3, colspan: 3}
+   * ],
+   * ```
    */
   mergeCells: false,
 
   /**
+   * @description
    * Number of rows to be rendered outside of the visible part of the table.
    * By default, it's set to `'auto'`, which makes Handsontable to attempt to calculate the best offset performance-wise.
    *
@@ -1368,10 +1749,16 @@ DefaultSettings.prototype = {
    *
    * @type {Number|String}
    * @default 'auto'
+   *
+   * @example
+   * ```js
+   * viewportRowRenderingOffset: 70,
+   * ```
    */
   viewportRowRenderingOffset: 'auto',
 
   /**
+   * @description
    * Number of columns to be rendered outside of the visible part of the table.
    * By default, it's set to `'auto'`, which makes Handsontable try calculating the best offset performance-wise.
    *
@@ -1379,10 +1766,16 @@ DefaultSettings.prototype = {
    *
    * @type {Number|String}
    * @default 'auto'
+   *
+   * @example
+   * ```js
+   * viewportColumnRenderingOffset: 70,
+   * ```
    */
   viewportColumnRenderingOffset: 'auto',
 
   /**
+   * @description
    * A function, regular expression or a string, which will be used in the process of cell validation.
    * If a function is used, be sure to execute the callback argument with either `true` (`callback(true)`) if the validation passed
    * or with `false` (`callback(false)`), if the validation failed.
@@ -1399,31 +1792,28 @@ DefaultSettings.prototype = {
    *
    * See more [in the demo](https://docs.handsontable.com/demo-data-validation.html).
    *
-   * @example
-   * ```js
-   * // as a function
-   * columns: [
-   *    {
-   *      validator: function(value, callback) { // validation rules }
-   *    }
-   * ]
-   * ...
-   * // as a regexp
-   * columns: [
-   *    {
-   *      validator: /^[0-9]$/ // regular expression
-   *    }
-   * ]
-   * // as a string
-   * columns: [
-   *    {
-   *      validator: 'numeric'
-   *    }
-   * ]
-   * ```
    * @type {Function|RegExp|String}
    * @default undefined
-   * @since 0.9.5
+   *
+   * @example
+   * ```js
+   * columns: [
+   *    {
+   *      // as a function
+   *      validator: function(value, callback) {
+   *          ...
+   *      }
+   *    },
+   *    {
+   *      // regular expression
+   *      validator: /^[0-9]$/
+   *    },
+   *    {
+   *      // as a string
+   *      validator: 'numeric'
+   *    }
+   * ],
+   * ```
    */
   validator: void 0,
 
@@ -1436,73 +1826,85 @@ DefaultSettings.prototype = {
    *  * `false` - Enables any type of visual selection. This is default value.
    *  * `'current'` - Disables the selection of a currently selected cell, the area selection is still present.
    *  * `'area'` - Disables the area selection, the currently selected cell selection is still present.
-   *  * `'header'` - Disables the headers selection, the currently selected cell selection is still present (available since 0.36.0).
+   *  * `'header'` - Disables the headers selection, the currently selected cell selection is still present.
    *
-   * @type {Boolean|String|Array}
+   * @type {Boolean|String|String[]}
    * @default false
-   * @since 0.13.2
+   *
    * @example
    * ```js
-   * ...
-   * // as boolean
+   * // as a boolean
    * disableVisualSelection: true,
-   * ...
    *
-   * ...
-   * // as string ('current', 'area' or 'header')
+   * // as a string ('current', 'area' or 'header')
    * disableVisualSelection: 'current',
-   * ...
    *
-   * ...
-   * // as array
+   * // as an array
    * disableVisualSelection: ['current', 'area'],
-   * ...
    * ```
    */
   disableVisualSelection: false,
 
   /**
-   * @description
    * Set whether to display the current sorting order indicator (a triangle icon in the column header, specifying the sorting order).
    *
    * @type {Boolean}
-   * @default false
-   * @since 0.15.0-beta3
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // show sort indicator for sorted columns
+   * sortIndicator: true,
+   * ```
    */
   sortIndicator: void 0,
 
   /**
-   * Disable or enable ManualColumnFreeze plugin.
+   * Disables or enables ManualColumnFreeze plugin.
    *
    * @type {Boolean}
-   * @default false
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // enable fixed columns
+   * manualColumnFreeze: true,
+   * ```
    */
   manualColumnFreeze: void 0,
 
   /**
-   * @description
    * Defines whether Handsontable should trim the whitespace at the beginning and the end of the cell contents.
    *
    * @type {Boolean}
    * @default true
-   */
-  trimWhitespace: true,
-
-  settings: void 0,
-
-  /**
-   * @description
-   * Defines data source for Autocomplete or Dropdown cell types.
    *
    * @example
    * ```js
-   * ...
+   * columns: [
+   *   {
+   *     // don't remove whitespace
+   *     trimWhitespace: false
+   *   }
+   * ]
+   * ```
+   */
+  trimWhitespace: true,
+
+  /**
+   * Defines data source for Autocomplete or Dropdown cell types.
+   *
+   * @type {Array|Function}
+   * @default undefined
+   *
+   * @example
+   * ```js
    * // source as a array
    * columns: [{
    *   type: 'autocomplete',
    *   source: ['A', 'B', 'C', 'D']
-   * }]
-   * ...
+   * }],
+   *
    * // source as a function
    * columns: [{
    *   type: 'autocomplete',
@@ -1511,12 +1913,8 @@ DefaultSettings.prototype = {
    *       callback(response.items);
    *     })
    *   }
-   * }]
-   * ...
+   * }],
    * ```
-   *
-   * @type {Array|Function}
-   * @default undefined
    */
   source: void 0,
 
@@ -1524,52 +1922,55 @@ DefaultSettings.prototype = {
    * @description
    * Defines the column header name.
    *
+   * @type {String}
+   * @default undefined
+   *
    * @example
    * ```js
-   * ...
-   * columns: [{
+   * // set header names for every column
+   * columns: [
+   *   {
    *     title: 'First name',
    *     type: 'text',
    *   },
    *   {
    *     title: 'Last name',
    *     type: 'text',
-   *   }]
-   * ...
+   *   }
+   * ],
    * ```
-   *
-   * @type {String}
-   * @default undefined
    */
   title: void 0,
 
   /**
    * Data template for `'checkbox'` type when checkbox is checked.
    *
+   * @type {Boolean|String}
+   * @default true
+   *
    * @example
    * ```js
    * checkedTemplate: 'good'
    *
-   * // if a checkbox-typed cell is checked, then getDataAtCell(x,y), where x and y are the coordinates of the cell
-   * // will return 'good'.
+   * // if a checkbox-typed cell is checked, then getDataAtCell(x,y),
+   * // where x and y are the coordinates of the cell will return 'good'.
    * ```
-   * @type {Boolean|String}
-   * @default true
    */
   checkedTemplate: void 0,
 
   /**
    * Data template for `'checkbox'` type when checkbox is unchecked.
    *
+   * @type {Boolean|String}
+   * @default false
+   *
    * @example
    * ```js
    * uncheckedTemplate: 'bad'
    *
-   * // if a checkbox-typed cell is not checked, then getDataAtCell(x,y), where x and y are the coordinates of the cell
-   * // will return 'bad'.
+   * // if a checkbox-typed cell is not checked, then getDataAtCell(x,y),
+   * // where x and y are the coordinates of the cell will return 'bad'.
    * ```
-   * @type {Boolean|String}
-   * @default false
    */
   uncheckedTemplate: void 0,
 
@@ -1587,19 +1988,17 @@ DefaultSettings.prototype = {
    * Valid values are `'before'` and '`after`' (defaults to `'after'`).
    *  * `value` - String or a Function which will be used as label text.
    *
-   * @example
-   * ```js
-   * ...
-   * columns: [{
-   *   type: 'checkbox',
-   *   label: {position: 'after', value: 'My label: '}
-   * }]
-   * ...
-   * ```
-   *
-   * @since 0.19.0
    * @type {Object}
    * @default undefined
+   *
+   * @example
+   * ```js
+   * columns: [{
+   *   type: 'checkbox',
+   *   // add "My label:" after the checkbox
+   *   label: {position: 'after', value: 'My label: '}
+   * }],
+   * ```
    */
   label: void 0,
 
@@ -1611,23 +2010,25 @@ DefaultSettings.prototype = {
    *
    * __Note:__ Please keep in mind that this option is used only to format the displayed output! It has no effect on the input data provided for the cell. The numeric data can be entered to the table only as floats (separated by a dot or a comma) or integers, and are stored in the source dataset as JavaScript numbers.
    *
-   * Since 0.26.0 Handsontable uses [numbro](http://numbrojs.com/) as a main library for numbers formatting.
-   *
-   * @example
-   * ```js
-   * ...
-   * columns: [{
-   *   type: 'numeric',
-   *   numericFormat: {
-   *     pattern: '0,00',
-   *     culture: 'en-US'
-   *   }
-   * }]
-   * ...
-   * ```
+   * Handsontable uses [numbro](http://numbrojs.com/) as a main library for numbers formatting.
    *
    * @since 0.35.0
    * @type {Object}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * columns: [
+   *   {
+   *     type: 'numeric',
+   *     // set desired format pattern and
+   *     numericFormat: {
+   *       pattern: '0,00',
+   *       culture: 'en-US'
+   *     }
+   *   }
+   * ],
+   * ```
    */
   numericFormat: void 0,
 
@@ -1636,24 +2037,31 @@ DefaultSettings.prototype = {
    *
    * @type {String}
    * @default 'en-US'
-   */
-  language: void 0,
-
-  /**
-   * @description
-   * Data source for [select](https://docs.handsontable.com/demo-select.html)-typed cells.
    *
    * @example
    * ```js
-   * ...
-   * columns: [{
-   *   editor: 'select',
-   *   selectOptions: ['A', 'B', 'C'],
-   * }]
-   * ...
+   * // set Polish language
+   * language: 'pl-PL',
    * ```
+   */
+  language: 'en-US',
+
+  /**
+   * Data source for [select](https://docs.handsontable.com/demo-select.html)-typed cells.
    *
-   * @type {Array}
+   * @type {String[]}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * columns: [
+   *   {
+   *     editor: 'select',
+   *     // add three select options to choose from
+   *     selectOptions: ['A', 'B', 'C'],
+   *   }
+   * ],
+   * ```
    */
   selectOptions: void 0,
 
@@ -1661,36 +2069,28 @@ DefaultSettings.prototype = {
    * Enables or disables the autoColumnSize plugin. Default value is `undefined`, which has the same effect as `true`.
    * Disabling this plugin can increase performance, as no size-related calculations would be done.
    *
-   * Column width calculations are divided into sync and async part. Each of this parts has their own advantages and
-   * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous operations don't
-   * block the browser UI.
+   * Column width calculations are divided into sync and async part. Each of those parts has their own advantages and
+   * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
+   * operations don't block the browser UI.
    *
    * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
-   * `syncLimit` option is available since 0.16.0.
    *
-   * You can also use the `useHeaders` option to take the column headers with into calculation.
-   *
-   * @example
-   * ```js
-   * ...
-   * // as a number (300 columns in sync, rest async)
-   * autoColumnSize: {syncLimit: 300},
-   * ...
-   *
-   * ...
-   * // as a string (percent)
-   * autoColumnSize: {syncLimit: '40%'},
-   * ...
-   *
-   * ...
-   * // use headers width while calculation the column width
-   * autoColumnSize: {useHeaders: true},
-   * ...
-   *
-   * ```
+   * You can also use the `useHeaders` option to take the column headers width into calculation.
    *
    * @type {Object|Boolean}
    * @default {syncLimit: 50}
+   *
+   * @example
+   * ```js
+   * // as a number (300 columns in sync, rest async)
+   * autoColumnSize: {syncLimit: 300},
+   *
+   * // as a string (percent)
+   * autoColumnSize: {syncLimit: '40%'},
+   *
+   * // use headers width while calculating the column width
+   * autoColumnSize: {useHeaders: true},
+   * ```
    */
   autoColumnSize: void 0,
 
@@ -1703,22 +2103,18 @@ DefaultSettings.prototype = {
    * block the browser UI.
    *
    * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
-   * `syncLimit` options is available since 0.16.0.
+   *
+   * @type {Object|Boolean}
+   * @default {syncLimit: 500}
    *
    * @example
    * ```js
-   * ...
-   * // as number (300 columns in sync, rest async)
+   * // as a number (300 columns in sync, rest async)
    * autoRowSize: {syncLimit: 300},
-   * ...
    *
-   * ...
-   * // as string (percent)
+   * // as a string (percent)
    * autoRowSize: {syncLimit: '40%'},
-   * ...
    * ```
-   * @type {Object|Boolean}
-   * @default {syncLimit: 1000}
    */
   autoRowSize: void 0,
 
@@ -1727,39 +2123,37 @@ DefaultSettings.prototype = {
    *
    * Option desired for `'date'` - typed cells.
    *
-   * @example
-   * ```js
-   * ...
-   * columns: [{
-   *   type: 'date',
-   *   dateFormat: 'MM/DD/YYYY'
-   * }]
-   * ...
-   * ```
-   *
    * @type {String}
    * @default 'DD/MM/YYYY'
+   *
+   * @example
+   * ```js
+   * columns: [{
+   *   type: 'date',
+   *   // localise date format
+   *   dateFormat: 'MM/DD/YYYY'
+   * }],
+   * ```
    */
-  dateFormat: void 0,
+  dateFormat: 'DD/MM/YYYY',
 
   /**
    * If `true` then dates will be automatically formatted to match the desired format.
    *
    * Option desired for `'date'`-typed typed cells.
    *
+   * @type {Boolean}
+   * @default false
+   *
    * @example
    * ```js
-   * ...
    * columns: [{
    *   type: 'date',
    *   dateFormat: 'YYYY-MM-DD',
+   *   // force selected date format
    *   correctFormat: true
-   * }]
-   * ...
+   * }],
    * ```
-   *
-   * @type {Boolean}
-   * @default false
    */
   correctFormat: false,
 
@@ -1768,60 +2162,63 @@ DefaultSettings.prototype = {
    *
    * Option desired for `'date'`-typed cells.
    *
+   * @type {String}
+   * @default undefined
+   *
    * @example
    * ```js
-   * ...
-   * columns: [{
-   *   type: 'date',
-   *   defaultData: '2015-02-02'
-   * }]
-   * ...
+   * columns: [
+   *   {
+   *     type: 'date',
+   *     // always set this date for empty cells
+   *     defaultDate: '2015-02-02'
+   *   }
+   * ],
    * ```
-   *
-   * @type {String}
    */
   defaultDate: void 0,
 
   /**
-   * If set to `true`, the value entered into the cell must match (case-sensitive) the autocomplete source. Otherwise, cell won't pass the validation.
-   * When filtering the autocomplete source list, the editor will be working in case-insensitive mode.
+   * If set to `true`, the value entered into the cell must match (case-sensitive) the autocomplete source.
+   * Otherwise, cell won't pass the validation. When filtering the autocomplete source list, the editor will
+   * be working in case-insensitive mode.
    *
    * Option desired for `autocomplete`-typed cells.
    *
+   * @type {Boolean}
+   * @default undefined
+   *
    * @example
    * ```js
-   * ...
    * columns: [{
    *   type: 'autocomplete',
    *   source: ['A', 'B', 'C'],
+   *   // force selected value to match the source list
    *   strict: true
-   * }]
-   * ...
+   * }],
    * ```
-   *
-   * @type {Boolean}
    */
   strict: void 0,
 
   /**
-   * @description
-   * If typed `true`, data defined in `source` of the autocomplete or dropdown cell will be treated as HTML.
+   * If set to `true`, data defined in `source` of the autocomplete or dropdown cell will be treated as HTML.
    *
    * __Warning:__ Enabling this option can cause serious XSS vulnerabilities.
    *
    * Option desired for `'autocomplete'`-typed cells.
-   * @example
-   * ```js
-   * ...
-   * columns: [{
-   *   type: 'autocomplete',
-   *   allowHtml: true,
-   *   source: ['<b>foo</b>', '<b>bar</b>']
-   * }]
-   * ...
-   * ```
+   *
    * @type {Boolean}
    * @default false
+   *
+   * @example
+   * ```js
+   * columns: [{
+   *   type: 'autocomplete',
+   *   // use HTML in the source list
+   *   allowHtml: true,
+   *   source: ['<strong>foo</strong>', '<strong>bar</strong>']
+   * }],
+   * ```
    */
   allowHtml: false,
 
@@ -1829,50 +2226,50 @@ DefaultSettings.prototype = {
    * If typed `true` then virtual rendering mechanism for handsontable will be disabled.
    *
    * @type {Boolean}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // disable virtual rows rendering
+   * renderAllRows: true,
+   * ```
    */
   renderAllRows: void 0,
 
   /**
-   * Prevents table to overlap outside the parent element. If `'horizontal'` option is chosen then table will appear horizontal
-   * scrollbar in case where parent's width is narrower then table's width.
+   * Prevents table to overlap outside the parent element. If `'horizontal'` option is chosen then table will show
+   * a horizontal scrollbar if parent's width is narrower then table's width.
    *
    * Possible values:
-   *  * `false` - Disables functionality (Default option).
+   *  * `false` - Disables functionality.
    *  * `horizontal` - Prevents horizontal overflow table.
-   *  * `vertical` - Prevents vertical overflow table (Not implemented yet).
-   *
-   * @since 0.20.3
-   * @example
-   * ```js
-   * ...
-   * preventOverflow: 'horizontal'
-   * ...
-   * ```
+   *  * `vertical` - Prevents vertical overflow table.
    *
    * @type {String|Boolean}
+   * @default false
+   *
+   * @example
+   * ```js
+   * preventOverflow: 'horizontal',
+   * ```
    */
   preventOverflow: false,
 
   /**
    * @description
-   * Plugin allowing binding the table rows with their headers.
-   * If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically, if at the initialization
-   * row 0 has a header titled "A", it will have it no matter what you do with the table.
+   * Plugin allows binding the table rows with their headers.
+   * If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
+   * if at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
    *
    * @pro
-   * @since 1.0.0-beta1
    * @type {Boolean|String}
+   * @default undefined
+   *
    * @example
-   *
    * ```js
-   * ...
-   * var hot = new Handsontable(document.getElementById('example'), {
-   *   date: getData(),
-   *   bindRowsWithHeaders: true
-   * });
-   * ...
+   * // keep row data and row headers in sync
+   * bindRowsWithHeaders: true
    * ```
-   *
    */
   bindRowsWithHeaders: void 0,
 
@@ -1882,27 +2279,27 @@ DefaultSettings.prototype = {
    *
    * Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
    *
-   * Setting the `collapsibleColumns` property to `true` will display a "collapse/expand" button in every header with a defined
-   * `colspan` property.
+   * Setting the `collapsibleColumns` property to `true` will display a "collapse/expand" button in every
+   * header with a defined colspan` property.
    *
-   * To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property as an array of objects, as in
-   * the example below.
+   * To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property
+   * as an array of objects, as in the example below.
    *
    * @pro
-   * @since 1.0.0-beta1
    * @type {Boolean|Array}
+   * @default undefined
+   *
    * @example
    * ```js
-   * ...
-   *  collapsibleColumns: [
-   *    {row: -4, col: 1, collapsible: true},
-   *    {row: -3, col: 5, collapsible: true}
-   *  ]
-   * ...
+   * // enable collapsing for all headers
+   * collapsibleColumns: true,
+   *
    * // or
-   * ...
-   *  collapsibleColumns: true
-   * ...
+   * // enable collapsing for selected headers
+   * collapsibleColumns: [
+   *   {row: -4, col: 1, collapsible: true},
+   *   {row: -3, col: 5, collapsible: true}
+   * ],
    * ```
    */
   collapsibleColumns: void 0,
@@ -1910,21 +2307,59 @@ DefaultSettings.prototype = {
   /**
    * @description
    * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
-   * See the demo for more information.
+   *
+   * Possible types:
+   *  * `'sum'`
+   *  * `'min'`
+   *  * `'max'`
+   *  * `'count'`
+   *  * `'average'`
+   *  * `'custom'` - add `customFunction`
+   *
+   * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
    *
    * @pro
-   * @since 1.0.0-beta1
-   * @type {Object}
+   * @type {Object[]|Function}
+   * @default undefined
+   *
+   * @example
+   * ```
+   * columnSummary: [
+   *   {
+   *     destinationRow: 4,
+   *     destinationColumn: 1,
+   *     forceNumeric: true,
+   *     reversedRowCoords: true,
+   *     suppressDataTypeErrors: false,
+   *     readOnly: true,
+   *     roundFloat: false,
+   *     type: 'custom',
+   *     customFunction: function(endpoint) {
+   *        return 100;
+   *     }
+   *   }
+   * ],
+   * ```
    */
   columnSummary: void 0,
 
   /**
    * This plugin allows adding a configurable dropdown menu to the table's column headers.
-   * The dropdown menu acts like the Context Menu, but is triggered by clicking the button in the header.
+   * The dropdown menu acts like the [Context Menu](#contextMenu), but is triggered by clicking the button in the header.
    *
    * @pro
-   * @since 1.0.0-beta1
-   * @type {Boolean|Object|Array}
+   * @type {Boolean|Object|String[]}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // enable dropdown menu
+   * dropdownMenu: true,
+   *
+   * // or
+   * // enable and configure dropdown menu options
+   * dropdownMenu: ['remove_col', '---------', 'make_read_only', 'alignment']
+   * ```
    */
   dropdownMenu: void 0,
 
@@ -1933,8 +2368,14 @@ DefaultSettings.prototype = {
    * It allows filtering the table data either by the built-in component or with the API.
    *
    * @pro
-   * @since 1.0.0-beta1
    * @type {Boolean}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // enable filters
+   * filters: true,
+   * ```
    */
   filters: void 0,
 
@@ -1942,8 +2383,14 @@ DefaultSettings.prototype = {
    * It allows Handsontable to process formula expressions defined in the provided data.
    *
    * @pro
-   * @since 1.7.0
    * @type {Boolean}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // enable formulas plugin
+   * formulas: true,
+   * ```
    */
   formulas: void 0,
 
@@ -1953,8 +2400,8 @@ DefaultSettings.prototype = {
    * In this case, the whole table becomes read-only.
    *
    * @pro
-   * @since 1.0.0-beta1
    * @type {Object}
+   * @default undefined
    */
   ganttChart: void 0,
 
@@ -1968,27 +2415,73 @@ DefaultSettings.prototype = {
    * * the `onlyTrimmed` property defines if tooltips should be added only to headers, which content is trimmed by the header itself (the content being wider then the header).
    *
    * @pro
-   * @since 1.0.0-beta1
    * @type {Boolean|Object}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // enable tooltips for all headers
+   * headerTooltips: true,
+   *
+   * // or
+   * headerTooltips: {
+   *   rows: false,
+   *   columns: true,
+   *   onlyTrimmed: true
+   * }
+   * ```
    */
   headerTooltips: void 0,
 
   /**
-   * Plugin allowing hiding of certain columns.
+   * Plugin allowing hiding of certain columns. You can pass additional configuration with an object notation.
+   * Options that are then available are:
+   *  * `columns` - an array of rows that should be hidden on plugin initialization
+   *  * `indicators` - enables small ui markers to indicate where are hidden columns
    *
    * @pro
-   * @since 1.0.0-beta1
    * @type {Boolean|Object}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // enable column hiding
+   * hiddenColumns: true,
+   *
+   * // or
+   * hiddenColumns: {
+   *   // set columns that are hidden by default
+   *   columns: [5, 10, 15],
+   *   // show where are hidden columns
+   *   indicators: true
+   * }
+   * ```
    */
   hiddenColumns: void 0,
 
   /**
-   * @description
-   * Plugin allowing hiding of certain rows.
+   * Plugin allowing hiding of certain rows. You can pass additional configuration with an object notation.
+   * Options that are then available are:
+   *  * `rows` - an array of rows that should be hidden on plugin initialization
+   *  * `indicators` - enables small ui markers to indicate where are hidden columns
    *
    * @pro
-   * @since 1.0.0-beta1
    * @type {Boolean|Object}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // enable row hiding
+   * hiddenRows: true,
+   *
+   * // or
+   * hiddenRows: {
+   *   // set rows that are hidden by default
+   *   rows: [5, 10, 15],
+   *   // show where are hidden rows
+   *   indicators: true
+   * }
+   * ```
    */
   hiddenRows: void 0,
 
@@ -1997,8 +2490,17 @@ DefaultSettings.prototype = {
    * Allows creating a nested header structure, using the HTML's colspan attribute.
    *
    * @pro
-   * @since 1.0.0-beta1
    * @type {Array}
+   * @default undefined
+   *
+   * @example
+   * ```
+   * nestedHeaders: [
+   *   ['A', {label: 'B', colspan: 8}, 'C'],
+   *   ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
+   *   ['H', 'I', 'J', 'K', 'L', 'M', 'N', 'R', 'S', 'T']
+   * ],
+   * ```
    */
   nestedHeaders: void 0,
 
@@ -2007,8 +2509,18 @@ DefaultSettings.prototype = {
    * Plugin allowing hiding of certain rows.
    *
    * @pro
-   * @since 1.0.0-beta1
-   * @type {Boolean|Array}
+   * @type {Boolean|Number[]}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // enable plugin
+   * trimRows: true,
+   *
+   * // or
+   * // trim selected rows on table initialization
+   * trimRows: [5, 10, 15],
+   * ```
    */
   trimRows: void 0,
 
@@ -2016,8 +2528,18 @@ DefaultSettings.prototype = {
    * @description
    * Allows setting a custom width of the row headers. You can provide a number or an array of widths, if many row header levels are defined.
    *
-   * @since 0.22.0
-   * @type {Number|Array}
+   * @type {Number|Number[]}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // set width for all row headers
+   * rowHeaderWidth: 25,
+   *
+   * // or
+   * // set width for selected headers only
+   * rowHeaderWidth: [25, 30, 55],
+   * ```
    */
   rowHeaderWidth: void 0,
 
@@ -2025,20 +2547,39 @@ DefaultSettings.prototype = {
    * @description
    * Allows setting a custom height of the column headers. You can provide a number or an array of heights, if many column header levels are defined.
    *
-   * @since 0.22.0
-   * @type {Number|Array}
+   * @type {Number|Number[]}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // set shared height for all headers
+   * columnHeaderHeight: 35,
+   *
+   * // or
+   * // set height for each header individually
+   * columnHeaderHeight: [35, 20, 55],
+   *
+   * // or
+   * // skipped headers will fallback to default value
+   * columnHeaderHeight: [35, undefined, 55],
+   * ```
    */
   columnHeaderHeight: void 0,
 
   /**
    * @description
-   * Enabling this plugin switches table into one-way data binding where changes are applied into data source (from outside table)
-   * will be automatically reflected in the table.
+   * Enabling this plugin switches table into one-way data binding where changes are applied into data source
+   * (from outside table) will be automatically reflected in the table.
    *
    * For every data change [afterChangesObserved](Hooks.html#event:afterChangesObserved) hook will be fired.
    *
    * @type {Boolean}
-   * @default false
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * observeChanges: true,
+   * ```
    */
   observeChanges: void 0,
 
@@ -2046,8 +2587,9 @@ DefaultSettings.prototype = {
    * @description
    * When passed to the `column` property, allows specifying a custom sorting function for the desired column.
    *
-   * @since 0.24.0
    * @type {Function}
+   * @default undefined
+   *
    * @example
    * ```js
    * columns: [
@@ -2062,7 +2604,7 @@ DefaultSettings.prototype = {
    *        }
    *     }
    *   }
-   * ]
+   * ],
    * ```
    */
   sortFunction: void 0,
@@ -2074,6 +2616,18 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default true
+   *
+   * @example
+   * ```js
+   * columns: [
+   *   {
+   *     type: 'autocomplete',
+   *     source: [ ... ],
+   *     // keep options order as they were defined
+   *     sortByRelevance: false
+   *   }
+   * ],
+   * ```
    */
   sortByRelevance: true,
 
@@ -2084,6 +2638,18 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default true
+   *
+   * @example
+   * ```js
+   * columns: [
+   *   {
+   *     type: 'autocomplete',
+   *     source: [ ... ],
+   *     // don't hide options that don't match search query
+   *     filter: false
+   *   }
+   * ],
+   * ```
    */
   filter: true,
 
@@ -2092,6 +2658,18 @@ DefaultSettings.prototype = {
    *
    * @type {Boolean}
    * @default: false
+   *
+   * @example
+   * ```js
+   * columns: [
+   *   {
+   *     type: 'autocomplete',
+   *     source: [ ... ],
+   *     // match case while searching autocomplete options
+   *     filteringCaseSensitive: true
+   *   }
+   * ],
+   * ```
    */
   filteringCaseSensitive: false,
 
@@ -2099,15 +2677,14 @@ DefaultSettings.prototype = {
    * @description
    * Disable or enable the drag to scroll functionality.
    *
-   * @example
-   * ```js
-   * ...
-   * dragToScroll: false,
-   * ...
-   * ```
-   *
    * @type {Boolean}
    * @default true
+   *
+   * @example
+   * ```js
+   * // don't scroll the viewport when selection gets to the viewport edge
+   * dragToScroll: false,
+   * ```
    */
   dragToScroll: true,
 };
