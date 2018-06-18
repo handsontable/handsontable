@@ -8,26 +8,29 @@ import typeFactory, {EXPORT_TYPES} from './typeFactory';
  * @plugin ExportFile
  * @pro
  *
- * @example
+ * @description
+ * Plugin enables exporting table data to file.
  *
+ * @example
  * ```js
- * ...
- * var hot = new Handsontable(document.getElementById('example'), {
+ * const container = document.getElementById('example');
+ * const hot = new Handsontable(container, {
  *   data: getData()
  * });
- * // Access to exportFile plugin instance:
- * var exportPlugin = hot.getPlugin('exportFile');
  *
- * // Export as a string:
+ * // access to exportFile plugin instance
+ * const exportPlugin = hot.getPlugin('exportFile');
+ *
+ * // export as a string
  * exportPlugin.exportAsString('csv');
  *
- * // Export as a Blob object:
+ * // export as a blob object
  * exportPlugin.exportAsBlob('csv');
  *
- * // Export to downloadable file (MyFile.csv):
+ * // export to downloadable file (named: MyFile.csv)
  * exportPlugin.downloadFile('csv', {filename: 'MyFile'});
  *
- * // Export as a string (specified data range):
+ * // export as a string (with specified data range):
  * exportPlugin.exportAsString('csv', {
  *   exportHiddenRows: true,     // default false
  *   exportHiddenColumns: true,  // default false
@@ -36,12 +39,11 @@ import typeFactory, {EXPORT_TYPES} from './typeFactory';
  *   columnDelimiter: ';',       // default ','
  *   range: [1, 1, 6, 6]         // [startRow, endRow, startColumn, endColumn]
  * });
- * ...
  * ```
  */
 class ExportFile extends BasePlugin {
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings.
    *
    * @returns {Boolean}
    */
@@ -50,30 +52,42 @@ class ExportFile extends BasePlugin {
   }
 
   /**
-   * Export table data as a string.
+   * @typedef ExportOptions
+   * @memberof ExportFile
+   * @type {object}
+   * @property {boolean} [exportHiddenRows=false] Include hidden rows in the exported file.
+   * @property {boolean} [exportHiddenColumns=false] Include hidden columns in the exported file.
+   * @property {boolean} [columnHeaders=false] Include column headers in the exported file.
+   * @property {boolean} [rowHeaders=false] Include row headers in the exported file.
+   * @property {string} [columnDelimiter=','] Column delimiter.
+   * @property {string} [range=[]] Cell range that will be exported to file.
+   */
+
+  /**
+   * Exports table data as a string.
    *
    * @param {String} format Export format type eq. `'csv'`.
-   * @param {Object} options see ExportFile.DEFAULT_OPTIONS for available export options.
+   * @param {ExportOptions} options Export options.
   */
   exportAsString(format, options = {}) {
     return this._createTypeFormatter(format, options).export();
   }
 
   /**
-   * Export table data as a blob object.
+   * Exports table data as a blob object.
    *
    * @param {String} format Export format type eq. `'csv'`.
-   * @param {Object} options see ExportFile.DEFAULT_OPTIONS for available export options.
+   * @param {ExportOptions} options Export options.
   */
   exportAsBlob(format, options = {}) {
     return this._createBlob(this._createTypeFormatter(format, options));
   }
 
   /**
-   * Export table data as a downloadable file.
+   * Exports table data as a downloadable file.
    *
    * @param {String} format Export format type eq. `'csv'`.
-   * @param {Object} options see ExportFile.DEFAULT_OPTIONS for available export options.
+   * @param {ExportOptions} options Export options.
    */
   downloadFile(format, options = {}) {
     const formatter = this._createTypeFormatter(format, options);
@@ -103,11 +117,11 @@ class ExportFile extends BasePlugin {
   }
 
   /**
-   * Create and return class formatter for specified export type.
+   * Creates and returns class formatter for specified export type.
    *
    * @private
    * @param {String} format Export format type eq. `'csv'`.
-   * @param {Object} options see ExportFile.DEFAULT_OPTIONS for available export options.
+   * @param {ExportOptions} options Export options.
    */
   _createTypeFormatter(format, options = {}) {
     if (!EXPORT_TYPES[format]) {
@@ -118,7 +132,7 @@ class ExportFile extends BasePlugin {
   }
 
   /**
-   * Create blob object based on provided type formatter class.
+   * Creates blob object based on provided type formatter class.
    *
    * @private
    * @param {BaseType} typeFormatter

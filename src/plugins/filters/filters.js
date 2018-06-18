@@ -21,11 +21,24 @@ import {CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERATI
 import './filters.css';
 
 /**
- * This plugin allows filtering the table data either by the built-in component or with the API.
- *
  * @plugin Filters
  * @pro
  * @dependencies DropdownMenu TrimRows BindRowsWithHeaders HiddenRows
+ *
+ * @description
+ * This plugin allows filtering the table data either by the built-in component or with the API.
+ *
+ * @example
+ * ```
+ * const container = document.getElementById('example');
+ * const hot = new Handsontable(container, {
+ *   data: getData(),
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   dropdownMenu: true,
+ *   filters: true
+ * });
+ * ```
  */
 class Filters extends BasePlugin {
   constructor(hotInstance) {
@@ -33,35 +46,42 @@ class Filters extends BasePlugin {
     /**
      * Instance of {@link EventManager}.
      *
+     * @private
      * @type {EventManager}
      */
     this.eventManager = new EventManager(this);
     /**
      * Instance of {@link TrimRows}.
      *
+     * @private
      * @type {TrimRows}
      */
     this.trimRowsPlugin = null;
     /**
      * Instance of {@link DropdownMenu}.
      *
+     * @private
      * @type {DropdownMenu}
      */
     this.dropdownMenuPlugin = null;
     /**
      * Instance of {@link ConditionCollection}.
      *
+     * @private
      * @type {ConditionCollection}
      */
     this.conditionCollection = null;
     /**
      * Instance of {@link ConditionUpdateObserver}.
      *
+     * @private
      * @type {ConditionUpdateObserver}
      */
     this.conditionUpdateObserver = null;
     /**
      * Map, where key is component identifier and value represent `BaseComponent` element or it derivatives.
+     *
+     * @private
      * @type {Map}
      */
     this.components = new Map([
@@ -74,6 +94,7 @@ class Filters extends BasePlugin {
     /**
      * Object containing information about last selected column physical and visual index for added filter conditions.
      *
+     * @private
      * @type {Object}
      * @default null
      */
@@ -81,6 +102,7 @@ class Filters extends BasePlugin {
     /**
      * Hidden menu rows indexed by physical column index
      *
+     * @private
      * @type {Map}
      */
     this.hiddenRowsCache = new Map();
@@ -90,7 +112,8 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the Handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link Filters#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -100,7 +123,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -174,7 +197,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Register the DOM listeners.
+   * Registers the DOM listeners.
    *
    * @private
    */
@@ -183,7 +206,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     if (this.enabled) {
@@ -203,7 +226,7 @@ class Filters extends BasePlugin {
 
   /**
    * @description
-   * Add condition to the conditions collection at specified column index.
+   * Adds condition to the conditions collection at specified column index.
    *
    * Possible predefined conditions:
    *  * `begins_with` - Begins with
@@ -234,24 +257,33 @@ class Filters extends BasePlugin {
    *
    * @example
    * ```js
-   * // Add filter "Greater than" 95 to column at index 1
-   * hot.getPlugin('filters').addCondition(1, 'gt', [95]);
-   * hot.getPlugin('filters').filter();
+   * const container = document.getElementById('example');
+   * const hot = new Handsontable(container, {
+   *   date: getData(),
+   *   filter: true
+   * });
    *
-   * // Add filter "By value" to column at index 1
-   * // In this case all value's that don't match will be filtered.
-   * hot.getPlugin('filters').addCondition(1, 'by_value', [['ing', 'ed', 'as', 'on']]);
-   * hot.getPlugin('filters').filter();
+   * // access to hiddenRows plugin instance
+   * const filtersPlugin = hot.getPlugin('filters');
    *
-   * // Add filter "Begins with" with value "de" AND "Not contains" with value "ing"
-   * hot.getPlugin('filters').addCondition(1, 'begins_with', ['de'], 'conjunction');
-   * hot.getPlugin('filters').addCondition(1, 'not_contains', ['ing'], 'conjunction');
-   * hot.getPlugin('filters').filter();
+   * // add filter "Greater than" 95 to column at index 1
+   * filtersPlugin.addCondition(1, 'gt', [95]);
+   * filtersPlugin.filter();
    *
-   * // Add filter "Begins with" with value "de" OR "Not contains" with value "ing"
-   * hot.getPlugin('filters').addCondition(1, 'begins_with', ['de'], 'disjunction');
-   * hot.getPlugin('filters').addCondition(1, 'not_contains', ['ing'], 'disjunction');
-   * hot.getPlugin('filters').filter();
+   * // add filter "By value" to column at index 1
+   * // in this case all value's that don't match will be filtered.
+   * filtersPlugin.addCondition(1, 'by_value', [['ing', 'ed', 'as', 'on']]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Begins with" with value "de" AND "Not contains" with value "ing"
+   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'conjunction');
+   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'conjunction');
+   * filtersPlugin.filter();
+   *
+   * // add filter "Begins with" with value "de" OR "Not contains" with value "ing"
+   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'disjunction');
+   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'disjunction');
+   * filtersPlugin.filter();
    * ```
    * @param {Number} column Visual column index.
    * @param {String} name Condition short name.
@@ -265,7 +297,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Remove conditions at specified column index.
+   * Removes conditions at specified column index.
    *
    * @param {Number} column Visual column index.
    */
@@ -276,7 +308,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Clear all conditions previously added to the collection for the specified column index or, if the column index
+   * Clears all conditions previously added to the collection for the specified column index or, if the column index
    * was not passed, clear the conditions for all columns.
    *
    * @param {Number} [column] Visual column index.
@@ -293,7 +325,10 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Filter data based on added filter conditions.
+   * Filters data based on added filter conditions.
+   *
+   * @fires Hooks#beforeFilter
+   * @fires Hooks#afterFilter
    */
   filter() {
     let dataFilter = this._createDataFilter();
@@ -337,7 +372,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Get last selected column index.
+   * Gets last selected column index.
    *
    * @returns {Object|null} Return `null` when column isn't selected otherwise
    * object containing information about selected column with keys `visualIndex` and `physicalIndex`
@@ -347,7 +382,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Clear column selection.
+   * Clears column selection.
    */
   clearColumnSelection() {
     let [row, col] = this.hot.getSelectedLast() || [];
@@ -358,7 +393,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Get handsontable source data with cell meta based on current selection.
+   * Returns handsontable source data with cell meta based on current selection.
    *
    * @param {Number} [column] Column index. By default column index accept the value of the selected column.
    * @returns {Array} Returns array of objects where keys as row index.
@@ -412,7 +447,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Restore components to their cached state.
+   * Restores components to their cached state.
    *
    * @param {Array} components List of components.
    */
@@ -635,7 +670,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Destroy plugin.
+   * Destroys the plugin instance.
    */
   destroy() {
     if (this.enabled) {
@@ -652,7 +687,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Create DataFilter instance based on condition collection.
+   * Creates DataFilter instance based on condition collection.
    *
    * @private
    * @param {ConditionCollection} conditionCollection Condition collection object.
@@ -663,7 +698,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Update components basing on conditions state.
+   * Updates components basing on conditions state.
    *
    * @private
    * @param {Object} conditionsState
@@ -697,7 +732,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Show component for particular column.
+   * Shows component for particular column.
    *
    * @private
    * @param {BaseComponent} component `BaseComponent` element or it derivatives.
@@ -715,7 +750,7 @@ class Filters extends BasePlugin {
 
 
   /**
-   * Remove specific rows from `hiddenRows` cache for particular column.
+   * Removes specific rows from `hiddenRows` cache for particular column.
    *
    * @private
    * @param {Number} column Physical column index.
@@ -732,7 +767,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Get indexes of passed components inside list of `dropdownMenu` items.
+   * Returns indexes of passed components inside list of `dropdownMenu` items.
    *
    * @private
    * @param {...BaseComponent} components List of components.
@@ -755,7 +790,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Change visibility of component.
+   * Changes visibility of component.
    *
    * @private
    * @param {Boolean} visible Determine if components should be visible.
@@ -778,7 +813,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Init `hiddenRows` cache.
+   * Initializes `hiddenRows` cache.
    *
    * @private
    */
@@ -795,7 +830,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Save `hiddenRows` cache for particular row.
+   * Saves `hiddenRows` cache for particular row.
    *
    * @private
    * @param rowIndex Physical row index
@@ -805,7 +840,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Hide components of filters `dropdownMenu`.
+   * Hides components of filters `dropdownMenu`.
    *
    * @private
    * @param {...BaseComponent} components List of components.
@@ -815,7 +850,7 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Show components of filters `dropdownMenu`.
+   * Shows components of filters `dropdownMenu`.
    *
    * @private
    * @param {...BaseComponent} components List of components.
