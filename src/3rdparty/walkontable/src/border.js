@@ -602,16 +602,16 @@ class Border {
    * Toggle class 'hidden' to element.
    *
    * @private
-   * @param {HTMLElement} position
+   * @param {HTMLElement} borderElement
    * @return {Boolean}
    */
-  toggleHiddenClass(position, remove) {
-    this.changeBorderToDefaultStyle(position);
+  toggleHiddenClass(borderElement, remove) {
+    this.changeBorderToDefaultStyle(borderElement);
 
     if (remove) {
-      addClass(this[position], 'hidden');
+      addClass(this[borderElement], 'hidden');
     } else {
-      removeClass(this[position], 'hidden');
+      removeClass(this[borderElement], 'hidden');
     }
   }
 
