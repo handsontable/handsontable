@@ -1596,7 +1596,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after unmerging the cells.
    *
-   * @event Hooks#beforeUnmergeCells
+   * @event Hooks#afterUnmergeCells
    * @param {CellRange} cellRange Selection cell range.
    * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
    */

@@ -108,14 +108,14 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} plugin has to be enabled).
+   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
    */
   saveManualColumnWidths() {
     this.hot.runHooks('persistentStateSave', 'manualColumnWidths', this.manualColumnWidths);
   }
 
   /**
-   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} plugin has to be enabled).
+   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
    *
    * @returns {Array}
    */

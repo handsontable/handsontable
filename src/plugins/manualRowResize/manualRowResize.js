@@ -10,9 +10,10 @@ import {registerPlugin} from './../../plugins';
 
 /**
  * @description
- * ManualRowResize Plugin.
+ * This plugin allows to change rows height. To make rows height persistent the {@link Options#persistentState}
+ * plugin should be enabled.
  *
- * Has 2 UI components:
+ * The plugin creates additional components to make resizing possibly using user interface:
  * - handle - the draggable element that sets the desired height of the row.
  * - guide - the helper guide that shows the desired height as a horizontal guide.
  *
@@ -44,7 +45,8 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ManualRowResize#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -53,7 +55,7 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -84,7 +86,7 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     let initialRowHeights = this.hot.getSettings().manualRowResize;
@@ -98,21 +100,21 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     super.disablePlugin();
   }
 
   /**
-   * Save the current sizes using the persistentState plugin.
+   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
    */
   saveManualRowHeights() {
     this.hot.runHooks('persistentStateSave', 'manualRowHeights', this.manualRowHeights);
   }
 
   /**
-   * Load the previously saved sizes using the persistentState plugin.
+   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
    *
    * @returns {Array}
    */
@@ -127,6 +129,7 @@ class ManualRowResize extends BasePlugin {
   /**
    * Set the resize handle position.
    *
+   * @private
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
@@ -171,6 +174,8 @@ class ManualRowResize extends BasePlugin {
 
   /**
    * Refresh the resize handle position.
+   *
+   * @private
    */
   refreshHandlePosition() {
     this.handle.style.top = `${this.startOffset + this.currentHeight}px`;
@@ -178,6 +183,8 @@ class ManualRowResize extends BasePlugin {
 
   /**
    * Set the resize guide position.
+   *
+   * @private
    */
   setupGuidePosition() {
     let handleWidth = parseInt(outerWidth(this.handle), 10);
@@ -194,6 +201,8 @@ class ManualRowResize extends BasePlugin {
 
   /**
    * Refresh the resize guide position.
+   *
+   * @private
    */
   refreshGuidePosition() {
     this.guide.style.top = this.handle.style.top;
@@ -201,6 +210,8 @@ class ManualRowResize extends BasePlugin {
 
   /**
    * Hide both the resize handle and resize guide.
+   *
+   * @private
    */
   hideHandleAndGuide() {
     removeClass(this.handle, 'active');
@@ -210,6 +221,7 @@ class ManualRowResize extends BasePlugin {
   /**
    * Check if provided element is considered as a row header.
    *
+   * @private
    * @param {HTMLElement} element HTML element.
    * @returns {Boolean}
    */
@@ -230,6 +242,7 @@ class ManualRowResize extends BasePlugin {
   /**
    * Get the TH element from the provided element.
    *
+   * @private
    * @param {HTMLElement} element HTML element.
    * @returns {HTMLElement}
    */
@@ -409,11 +422,11 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Cache the current row height.
+   * Sets the new height for specified row index.
    *
    * @param {Number} row Visual row index.
    * @param {Number} height Row height.
-   * @returns {Number}
+   * @returns {Number} Returns new height.
    */
   setManualSize(row, height) {
     row = this.hot.runHooks('modifyRow', row);

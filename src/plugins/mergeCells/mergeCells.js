@@ -25,7 +25,8 @@ const privatePool = new WeakMap();
 /**
  * @plugin MergeCells
  *
- * @description Plugin, which allows merging cells in the table (using the initial configuration, API or context menu).
+ * @description
+ * Plugin, which allows merging cells in the table (using the initial configuration, API or context menu).
  *
  * @example
  *
@@ -52,6 +53,7 @@ class MergeCells extends BasePlugin {
     /**
      * A container for all the merged cells.
      *
+     * @private
      * @type {MergedCellsCollection}
      */
     this.mergedCellsCollection = null;
@@ -72,7 +74,8 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the Handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link MergeCells#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -81,7 +84,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Enable the plugin.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -119,7 +122,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Disable the plugin.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     this.clearCollections();
@@ -128,7 +131,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Update the plugin (after using the `updateSettings` method)
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     const settings = this.hot.getSettings().mergeCells;
@@ -264,7 +267,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Clear the merged cells from the merged cell container.
+   * Clears the merged cells from the merged cell container.
    */
   clearCollections() {
     this.mergedCellsCollection.clear();
@@ -303,7 +306,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Merge the selection provided as a cell range.
+   * Merges the selection provided as a cell range.
    *
    * @param {CellRange} [cellRange] Selection cell range.
    */
@@ -322,7 +325,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Unmerge the selection provided as a cell range.
+   * Unmerges the selection provided as a cell range.
    *
    * @param {CellRange} [cellRange] Selection cell range.
    */
@@ -457,12 +460,14 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Merge the specified range.
+   * Merges the specified range.
    *
    * @param {Number} startRow Start row of the merged cell.
    * @param {Number} startColumn Start column of the merged cell.
    * @param {Number} endRow End row of the merged cell.
    * @param {Number} endColumn End column of the merged cell.
+   * @fires Hooks#beforeMergeCells
+   * @fires Hooks#afterMergeCells
    */
   merge(startRow, startColumn, endRow, endColumn) {
     const start = new CellCoords(startRow, startColumn);
@@ -472,12 +477,14 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Unmerge the merged cell in the provided range.
+   * Unmerges the merged cell in the provided range.
    *
    * @param {Number} startRow Start row of the merged cell.
    * @param {Number} startColumn Start column of the merged cell.
    * @param {Number} endRow End row of the merged cell.
    * @param {Number} endColumn End column of the merged cell.
+   * @fires Hooks#beforeUnmergeCells
+   * @fires Hooks#afterUnmergeCells
    */
   unmerge(startRow, startColumn, endRow, endColumn) {
     const start = new CellCoords(startRow, startColumn);

@@ -26,7 +26,8 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  * @plugin ManualColumnMove
  *
  * @description
- * This plugin allows to change columns order.
+ * This plugin allows to change columns order. To make columns order persistent the {@link Options#persistentState}
+ * plugin should be enabled.
  *
  * API:
  * - moveColumn - move single column to the new position.
@@ -34,7 +35,7 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  *
  * If you want apply visual changes, you have to call manually the render() method on the instance of Handsontable.
  *
- * This plugin creates additional components to make moving possibly using user interface:
+ * The plugin creates additional components to make moving possibly using user interface:
  * - backlight - highlight of selected columns.
  * - guideline - line which shows where rows has been moved.
  *
@@ -171,6 +172,8 @@ class ManualColumnMove extends BasePlugin {
    *
    * @param {Number} column Visual column index to be moved.
    * @param {Number} target Visual column index being a target for the moved column.
+   * @fires Hooks#beforeColumnMove
+   * @fires Hooks#afterColumnMove
    */
   moveColumn(column, target) {
     this.moveColumns([column], target);
@@ -279,18 +282,14 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Save the manual column positions to the persistent state.
-   *
-   * @private
+   * Saves the manual column positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
    */
   persistentStateSave() {
     this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.columnsMapper._arrayMap);
   }
 
   /**
-   * Load the manual column positions from the persistent state.
-   *
-   * @private
+   * Loads the manual column positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
    */
   persistentStateLoad() {
     let storedState = {};
@@ -303,7 +302,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Prepare array of indexes based on actual selection.
+   * Prepares an array of indexes based on actual selection.
    *
    * @private
    * @returns {Array}
@@ -319,7 +318,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Update the UI visual position.
+   * Updates the UI visual position.
    *
    * @private
    */
