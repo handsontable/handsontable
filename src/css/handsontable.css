@@ -61,7 +61,7 @@
   table-layout: fixed;
   width: 0;
   outline-width: 0;
-  cursor:default;
+  cursor: default;
   /* reset bootstrap table style. for more info see: https://github.com/handsontable/handsontable/issues/224 */
   max-width: none;
   max-height: none;
