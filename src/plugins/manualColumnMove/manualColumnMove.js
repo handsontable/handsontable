@@ -34,7 +34,7 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  *
  * If you want apply visual changes, you have to call manually the render() method on the instance of Handsontable.
  *
- * UI components:
+ * This plugin creates additional components to make moving possibly using user interface:
  * - backlight - highlight of selected columns.
  * - guideline - line which shows where rows has been moved.
  *
@@ -65,37 +65,43 @@ class ManualColumnMove extends BasePlugin {
     /**
      * List of last removed row indexes.
      *
+     * @private
      * @type {Array}
      */
     this.removedColumns = [];
     /**
      * Object containing visual row indexes mapped to data source indexes.
      *
+     * @private
      * @type {RowsMapper}
      */
     this.columnsMapper = new ColumnsMapper(this);
     /**
      * Event Manager object.
      *
+     * @private
      * @type {Object}
      */
     this.eventManager = new EventManager(this);
     /**
      * Backlight UI object.
      *
+     * @private
      * @type {Object}
      */
     this.backlight = new BacklightUI(hotInstance);
     /**
      * Guideline UI object.
      *
+     * @private
      * @type {Object}
      */
     this.guideline = new GuidelineUI(hotInstance);
   }
 
   /**
-   * Check if plugin is enabled.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ManualColumnMove#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -104,7 +110,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Enable the plugin.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -130,7 +136,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -142,7 +148,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     let pluginSettings = this.hot.getSettings().manualColumnMove;
@@ -161,7 +167,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Move a single column.
+   * Moves a single column.
    *
    * @param {Number} column Visual column index to be moved.
    * @param {Number} target Visual column index being a target for the moved column.
@@ -171,10 +177,12 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Move multiple columns.
+   * Moves a multiple columns.
    *
    * @param {Array} columns Array of visual column indexes to be moved.
    * @param {Number} target Visual column index being a target for the moved columns.
+   * @fires Hooks#beforeColumnMove
+   * @fires Hooks#afterColumnMove
    */
   moveColumns(columns, target) {
     const visualColumns = [...columns];
@@ -722,7 +730,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.backlight.destroy();

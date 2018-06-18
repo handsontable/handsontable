@@ -28,13 +28,29 @@ const privatePool = new WeakMap();
 
 /**
  * @description
- * This plugin enables the copy/paste functionality in the Handsontable.
+ * This plugin enables the copy/paste functionality in the Handsontable. The functionality works for API, Context Menu,
+ * using keyboard shortcuts and menu bar from the browser.
+ * Possible values:
+ * * `true` (to enable default options),
+ * * `false` (to disable completely)
+ *
+ * or an object with values:
+ * * `'columnsLimit'` (see {@link CopyPaste#columnsLimit})
+ * * `'rowsLimit'` (see {@link CopyPaste#rowsLimit})
+ * * `'pasteMode'` (see {@link CopyPaste#pasteMode})
+ *
+ * See [the copy/paste demo](https://docs.handsontable.com/demo-copy-paste.html) for examples.
  *
  * @example
  * ```js
- * ...
+ * // Enables the plugin with default values
  * copyPaste: true,
- * ...
+ * // Enables the plugin with custom values
+ * copyPaste: {
+ *   columnsLimit: 25,
+ *   rowsLimit: 50,
+ *   pasteMode: 'shift_down',
+ * },
  * ```
  * @class CopyPaste
  * @plugin CopyPaste
@@ -45,7 +61,6 @@ class CopyPaste extends BasePlugin {
     /**
      * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
-     * @private
      * @type {Number}
      * @default 1000
      */
@@ -63,7 +78,6 @@ class CopyPaste extends BasePlugin {
      * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
      * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
      *
-     * @private
      * @type {String}
      * @default 'overwrite'
      */
@@ -71,7 +85,6 @@ class CopyPaste extends BasePlugin {
     /**
      * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
-     * @private
      * @type {Number}
      * @default 1000
      */
@@ -86,7 +99,8 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Check if plugin is enabled.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link CopyPaste#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -95,7 +109,7 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Enable the plugin.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -125,7 +139,7 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -135,7 +149,7 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     if (this.focusableElement) {
@@ -147,9 +161,6 @@ class CopyPaste extends BasePlugin {
 
   /**
    * Prepares copyable text from the cells selection in the invisible textarea.
-   *
-   * @function setCopyable
-   * @memberof CopyPaste#
    */
   setCopyableText() {
     const selRange = this.hot.getSelectedRangeLast();
@@ -183,10 +194,9 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Create copyable text releated to range objects.
+   * Creates copyable text releated to range objects.
    *
-   * @since 0.19.0
-   * @param {Array} ranges Array of Objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
+   * @param {Object[]} ranges Array of objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
    * @returns {String} Returns string which will be copied into clipboard.
    */
   getRangedCopyableData(ranges) {
@@ -222,11 +232,10 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Create copyable text releated to range objects.
+   * Creates copyable text releated to range objects.
    *
-   * @since 0.31.1
-   * @param {Array} ranges Array of Objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
-   * @returns {Array} Returns array of arrays which will be copied into clipboard.
+   * @param {Object[]} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   * @returns {Array[]} Returns array of arrays which will be copied into clipboard.
    */
   getRangedData(ranges) {
     const dataSet = [];
@@ -261,7 +270,7 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Copy action.
+   * Copies the selected cell into the clipboard.
    */
   copy() {
     const priv = privatePool.get(this);
@@ -272,7 +281,7 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Cut action.
+   * Cuts the selected cell into the clipboard.
    */
   cut() {
     const priv = privatePool.get(this);
@@ -283,9 +292,9 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Simulated paste action.
+   * Simulates the paste action.
    *
-   * @param {String} [value=''] New value, which should be `pasted`.
+   * @param {String} [value] Value to paste.
    */
   paste(value = '') {
     const pasteData = new PasteEvent();
@@ -510,7 +519,7 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     if (this.focusableElement) {

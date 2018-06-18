@@ -10,9 +10,10 @@ import {registerPlugin} from './../../plugins';
 
 /**
  * @description
- * ManualColumnResize Plugin.
+ * This plugin allows to change columns width. To make columns width persistent the {@link Options#persistentState}
+ * plugin should be enabled.
  *
- * Has 2 UI components:
+ * The plugin creates additional components to make resizing possibly using user interface:
  * - handle - the draggable element that sets the desired width of the column.
  * - guide - the helper guide that shows the desired width as a vertical guide.
  *
@@ -44,7 +45,8 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ManualColumnResize#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -53,7 +55,7 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -85,7 +87,7 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     let initialColumnWidth = this.hot.getSettings().manualColumnResize;
@@ -99,21 +101,21 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     super.disablePlugin();
   }
 
   /**
-   * Save the current sizes using the persistentState plugin.
+   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} plugin has to be enabled).
    */
   saveManualColumnWidths() {
     this.hot.runHooks('persistentStateSave', 'manualColumnWidths', this.manualColumnWidths);
   }
 
   /**
-   * Load the previously saved sizes using the persistentState plugin.
+   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} plugin has to be enabled).
    *
    * @returns {Array}
    */
@@ -128,6 +130,7 @@ class ManualColumnResize extends BasePlugin {
   /**
    * Set the resize handle position.
    *
+   * @private
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
@@ -177,6 +180,8 @@ class ManualColumnResize extends BasePlugin {
 
   /**
    * Refresh the resize handle position.
+   *
+   * @private
    */
   refreshHandlePosition() {
     this.handle.style.left = `${this.startOffset + this.currentWidth}px`;
@@ -184,6 +189,8 @@ class ManualColumnResize extends BasePlugin {
 
   /**
    * Set the resize guide position.
+   *
+   * @private
    */
   setupGuidePosition() {
     let handleHeight = parseInt(outerHeight(this.handle), 10);
@@ -201,6 +208,8 @@ class ManualColumnResize extends BasePlugin {
 
   /**
    * Refresh the resize guide position.
+   *
+   * @private
    */
   refreshGuidePosition() {
     this.guide.style.left = this.handle.style.left;
@@ -208,6 +217,8 @@ class ManualColumnResize extends BasePlugin {
 
   /**
    * Hide both the resize handle and resize guide.
+   *
+   * @private
    */
   hideHandleAndGuide() {
     removeClass(this.handle, 'active');
@@ -217,6 +228,7 @@ class ManualColumnResize extends BasePlugin {
   /**
    * Check if provided element is considered a column header.
    *
+   * @private
    * @param {HTMLElement} element HTML element.
    * @returns {Boolean}
    */
@@ -237,6 +249,7 @@ class ManualColumnResize extends BasePlugin {
   /**
    * Get the TH element from the provided element.
    *
+   * @private
    * @param {HTMLElement} element HTML element.
    * @returns {HTMLElement}
    */
@@ -429,11 +442,11 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Cache the current column width.
+   * Sets the new width for specified column index.
    *
    * @param {Number} column Visual column index.
-   * @param {Number} width Column width.
-   * @returns {Number}
+   * @param {Number} width Column width (no less than 20px).
+   * @returns {Number} Returns new width.
    */
   setManualSize(column, width) {
     width = Math.max(width, 20);
@@ -450,7 +463,7 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Clear cache for the current column index.
+   * Clears the cache for the specified column index.
    *
    * @param {Number} column Visual column index.
    */

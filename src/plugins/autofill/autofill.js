@@ -13,14 +13,12 @@ const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
 const INTERVAL_FOR_ADDING_ROW = 200;
 
 /**
- * This plugin provides "drag-down" and "copy-down" functionalities, both operated
- * using the small square in the right bottom of the cell selection.
+ * This plugin provides "drag-down" and "copy-down" functionalities, both operated using the small square in the right
+ * bottom of the cell selection.
  *
- * "Drag-down" expands the value of the selected cells to the neighbouring
- * cells when you drag the small square in the corner.
+ * "Drag-down" expands the value of the selected cells to the neighbouring cells when you drag the small square in the corner.
  *
- * "Copy-down" copies the value of the selection to all empty cells
- * below when you double click the small square.
+ * "Copy-down" copies the value of the selection to all empty cells below when you double click the small square.
  *
  * @class Autofill
  * @plugin Autofill
@@ -30,39 +28,45 @@ class Autofill extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Event manager
+     * Event manager instance.
      *
+     * @private
      * @type {EventManager}
      */
     this.eventManager = new EventManager(this);
     /**
      * Specifies if adding new row started.
      *
+     * @private
      * @type {Boolean}
      */
     this.addingStarted = false;
     /**
      * Specifies if there was mouse down on the cell corner.
      *
+     * @private
      * @type {Boolean}
      */
     this.mouseDownOnCellCorner = false;
     /**
      * Specifies if mouse was dragged outside Handsontable.
      *
+     * @private
      * @type {Boolean}
      */
     this.mouseDragOutside = false;
     /**
      * Specifies how many cell levels were dragged using the handle.
      *
+     * @private
      * @type {Boolean}
      */
     this.handleDraggedCells = 0;
     /**
-     * Specifies allowed directions of drag.
+     * Specifies allowed directions of drag (`'horizontal'` or '`vertical`').
      *
-     * @type {Array}
+     * @private
+     * @type {String[]}
      */
     this.directions = [];
     /**
@@ -74,7 +78,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the Handsontable settings.
+   * Checks if the plugin is enabled in the Handsontable settings.
    *
    * @returns {Boolean}
    */
@@ -83,7 +87,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -101,7 +105,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Update plugin for this Handsontable instance.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -110,7 +114,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     this.clearMappedSettings();
@@ -549,7 +553,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroy the plugin instance.
    */
   destroy() {
     super.destroy();

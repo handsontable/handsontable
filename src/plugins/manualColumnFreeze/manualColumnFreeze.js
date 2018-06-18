@@ -8,8 +8,14 @@ import './manualColumnFreeze.css';
 
 const privatePool = new WeakMap();
 /**
- * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu.
- * You can turn it on by setting a `manualColumnFreeze` property to `true`.
+ * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu or using API.
+ * You can turn it on by setting a {@link Options#manualColumnFreeze} property to `true`.
+ *
+ * @example
+ * ```js
+ * // Enables the plugin
+ * manualColumnFreeze: true,
+ * ```
  *
  * @plugin ManualColumnFreeze
  * @dependencies ManualColumnMove
@@ -25,17 +31,22 @@ class ManualColumnFreeze extends BasePlugin {
     /**
      * Original column positions
      *
+     * @private
      * @type {Array}
      */
     this.frozenColumnsBasePositions = [];
     /**
      * Reference to the `ManualColumnMove` plugin.
+     *
+     * @private
+     * @type {ManualColumnMove}
      */
     this.manualColumnMovePlugin = void 0;
   }
 
   /**
-   * Check if the plugin is enabled in the Handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ManualColumnFreeze#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -44,7 +55,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -59,7 +70,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     let priv = privatePool.get(this);
@@ -71,7 +82,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -81,7 +92,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Freeze the given column (add it to fixed columns).
+   * Freezes the given column (add it to fixed columns).
    *
    * @param {Number} column Visual column index.
    */
@@ -104,11 +115,10 @@ class ManualColumnFreeze extends BasePlugin {
     }
 
     this.getMovePlugin().moveColumn(column, settings.fixedColumnsLeft++);
-
   }
 
   /**
-   * Unfreeze the given column (remove it from fixed columns and bring to it's previous position).
+   * Unfreezes the given column (remove it from fixed columns and bring to it's previous position).
    *
    * @param {Number} column Visual column index.
    */
@@ -180,6 +190,7 @@ class ManualColumnFreeze extends BasePlugin {
 
     return i - 1;
   }
+
   /**
    * Add the manualColumnFreeze context menu entries.
    *
@@ -239,7 +250,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     super.destroy();
