@@ -1859,9 +1859,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * @memberof Core#
    * @function alter
-   * @param {String} action See grid.alter for possible values: `"insert_row"`, `"insert_col"`, `"remove_row"`, `"remove_col"`
-   * @param {Number} index Visual index of the row/column before which the new row/column will be inserted/removed.
-   * @param {Number} [amount = 1] Amound of rows/columns to be inserted/removed.
+   * @param {String} action Possible alter operations:
+   *  * `'insert_row'`
+   *  * `'insert_col'`
+   *  * `'remove_row'`
+   *  * `'remove_col'`
+   * @param {Number|Number[]} index Visual index of the row/column before which the new row/column will be
+   *                                inserted/removed or an array of arrays in format `[[index, amount],...]`.
+   * @param {Number} [amount=1] Amount of rows/columns to be inserted or removed.
    * @param {String} [source] Source indicator.
    * @param {Boolean} [keepEmptyRows] Flag for preventing deletion of empty rows.
    * @description
@@ -3143,7 +3148,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectCellByProp = function(row, prop, endRow, endProp, scrollToCell = true, changeListener = true) {
-    warn(toSingleLine`Deprecation warning: This method is going to be removed in the next release. 
+    warn(toSingleLine`Deprecation warning: This method is going to be removed in the next release.
       If you want to select a cell using props, please use the \`selectCell\` method.`);
 
     return this.selectCells([[row, prop, endRow, endProp]], scrollToCell, changeListener);

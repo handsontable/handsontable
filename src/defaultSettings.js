@@ -2722,6 +2722,22 @@ DefaultSettings.prototype = {
    * ```
    */
   dragToScroll: true,
+
+  /**
+   * @description
+   * Disable or enable the nested rows functionality - displaying nested structures in a two-dimensional data table.
+   *
+   * See [quick setup of the Nested rows](https://docs.handsontable.kbudnik/pro/next/demo-nested-rows.html).
+   * @example
+   * ```js
+   * nestedRows: true,
+   * ```
+   *
+   * @pro
+   * @type {Boolean}
+   * @default false
+   */
+  nestedRows: void 0,
 };
 
 export default DefaultSettings;

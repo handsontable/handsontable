@@ -371,7 +371,7 @@ class ManualRowResize extends BasePlugin {
 
       this.saveManualRowHeights();
 
-      this.hot.runHooks('afterRowResize', selectedRow, this.newSize);
+      this.hot.runHooks('afterRowResize', selectedRow, this.newSize, false);
     };
     if (this.pressed) {
       this.hideHandleAndGuide();
