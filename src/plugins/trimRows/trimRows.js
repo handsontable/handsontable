@@ -9,35 +9,42 @@ import RowsMapper from './rowsMapper';
  * @pro
  *
  * @description
- * Plugin allowing hiding of certain rows.
+ * The plugin allows to trim certain rows. The trimming is achieved by applying the transformation algorithm to the data
+ * transformation. In this case, when the row is trimmed it is not accessible using `getData*` methods thus the trimmed
+ * data is not visible to other plugins.
  *
  * @example
- *
  * ```js
- * ...
- * var hot = new Handsontable(document.getElementById('example'), {
+ * const container = document.getElementById('example');
+ * const hot = new Handsontable(container, {
  *   date: getData(),
+ *   // hide selected rows on table initialization
  *   trimRows: [1, 2, 5]
  * });
- * // Access to trimRows plugin instance:
- * var trimRowsPlugin = hot.getPlugin('trimRows');
  *
- * // Hide row programmatically:
+ * // access the trimRows plugin instance
+ * const trimRowsPlugin = hot.getPlugin('trimRows');
+ *
+ * // hide single row
  * trimRowsPlugin.trimRow(1);
- * // Show rows
+ *
+ * // hide multiple rows
  * trimRowsPlugin.trimRow(1, 2, 9);
- * // or
+ *
+ * // or as an array
  * trimRowsPlugin.trimRows([1, 2, 9]);
- * hot.render();
- * ...
- * // Show row programmatically:
+ *
+ * // show single row
  * trimRowsPlugin.untrimRow(1);
- * // Hide rows
+ *
+ * // show multiple rows
  * trimRowsPlugin.untrimRow(1, 2, 9);
- * // or
+ *
+ * // or as an array
  * trimRowsPlugin.untrimRows([1, 2, 9]);
+ *
+ * // rerender table to see the changes
  * hot.render();
- * ...
  * ```
  */
 class TrimRows extends BasePlugin {
@@ -46,25 +53,29 @@ class TrimRows extends BasePlugin {
     /**
      * List of trimmed row indexes.
      *
+     * @private
      * @type {Array}
      */
     this.trimmedRows = [];
     /**
      * List of last removed row indexes.
      *
+     * @private
      * @type {Array}
      */
     this.removedRows = [];
     /**
      * Object containing visual row indexes mapped to data source indexes.
      *
+     * @private
      * @type {RowsMapper}
      */
     this.rowsMapper = new RowsMapper(this);
   }
 
   /**
-   * Check if plugin is enabled.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link AutoRowSize#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -73,7 +84,7 @@ class TrimRows extends BasePlugin {
   }
 
   /**
-   * Enable the plugin.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -98,7 +109,7 @@ class TrimRows extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     const settings = this.hot.getSettings().trimRows;
@@ -112,7 +123,7 @@ class TrimRows extends BasePlugin {
   }
 
   /**
-   * Disable the plugin.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     this.trimmedRows = [];
@@ -122,9 +133,11 @@ class TrimRows extends BasePlugin {
   }
 
   /**
-   * Trim the rows provided in the array.
+   * Trims the rows provided in the array.
    *
-   * @param {Array} rows Array of physical row indexes.
+   * @param {Number[]} rows Array of physical row indexes.
+   * @fires Hooks#skipLengthCache
+   * @fires Hooks#afterTrimRow
    */
   trimRows(rows) {
     arrayEach(rows, (row) => {
@@ -141,18 +154,20 @@ class TrimRows extends BasePlugin {
   }
 
   /**
-   * Trim the row provided as physical row index (counting from 0).
+   * Trims the row provided as physical row index (counting from 0).
    *
-   * @param {Number} row Physical row index.
+   * @param {...Number} row Physical row index.
    */
   trimRow(...row) {
     this.trimRows(row);
   }
 
   /**
-   * Untrim the rows provided in the array.
+   * Untrims the rows provided in the array.
    *
-   * @param {Array} rows Array of physical row indexes.
+   * @param {Number[]} rows Array of physical row indexes.
+   * @fires Hooks#skipLengthCache
+   * @fires Hooks#afterUntrimRow
    */
   untrimRows(rows) {
     arrayEach(rows, (row) => {
@@ -169,16 +184,16 @@ class TrimRows extends BasePlugin {
   }
 
   /**
-   * Untrim the row provided as row index (counting from 0).
+   * Untrims the row provided as row index (counting from 0).
    *
-   * @param {Number} row Physical row index.
+   * @param {...Number} row Physical row index.
    */
   untrimRow(...row) {
     this.untrimRows(row);
   }
 
   /**
-   * Check if given physical row is hidden.
+   * Checks if given physical row is hidden.
    *
    * @returns {Boolean}
    */
@@ -187,7 +202,7 @@ class TrimRows extends BasePlugin {
   }
 
   /**
-   * Untrim all trimmed rows.
+   * Untrims all trimmed rows.
    */
   untrimAll() {
     this.untrimRows([].concat(this.trimmedRows));
@@ -254,6 +269,8 @@ class TrimRows extends BasePlugin {
    * @private
    * @param {Number} index Visual row index.
    * @param {Number} amount Defines how many rows removed.
+   *
+   * @fires Hooks#modifyRow
    */
   onBeforeRemoveRow(index, amount) {
     this.removedRows.length = 0;
@@ -290,7 +307,7 @@ class TrimRows extends BasePlugin {
   }
 
   /**
-   * Destroy plugin.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.rowsMapper.destroy();

@@ -21,24 +21,28 @@ class Formulas extends BasePlugin {
     /**
      * Instance of {@link EventManager}.
      *
+     * @private
      * @type {EventManager}
      */
     this.eventManager = new EventManager(this);
     /**
      * Instance of {@link DataProvider}.
      *
+     * @private
      * @type {DataProvider}
      */
     this.dataProvider = new DataProvider(this.hot);
     /**
      * Instance of {@link Sheet}.
      *
+     * @private
      * @type {Sheet}
      */
     this.sheet = new Sheet(this.hot, this.dataProvider);
     /**
      * Instance of {@link UndoRedoSnapshot}.
      *
+     * @private
      * @type {UndoRedoSnapshot}
      */
     this.undoRedoSnapshot = new UndoRedoSnapshot(this.sheet);
@@ -53,7 +57,8 @@ class Formulas extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the Handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link Formulas#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -63,7 +68,7 @@ class Formulas extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -100,14 +105,14 @@ class Formulas extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     super.disablePlugin();
   }
 
   /**
-   * Get cell value (evaluated from formula expression) at specified cell coords.
+   * Returns cell value (evaluated from formula expression) at specified cell coords.
    *
    * @param {Number} row Row index.
    * @param {Number} column Column index.
@@ -120,7 +125,7 @@ class Formulas extends BasePlugin {
   }
 
   /**
-   * Check if there are any formula evaluations made under specific cell coords.
+   * Checks if there are any formula evaluations made under specific cell coords.
    *
    * @param {Number} row Row index.
    * @param {Number} column Column index.
@@ -131,28 +136,28 @@ class Formulas extends BasePlugin {
   }
 
   /**
-   * Recalculate all formulas (an algorithm will choose the best method of calculation).
+   * Recalculates all formulas (an algorithm will choose the best method of calculation).
    */
   recalculate() {
     this.sheet.recalculate();
   }
 
   /**
-   * Recalculate all formulas (rebuild dependencies from scratch - slow approach).
+   * Recalculates all formulas (rebuild dependencies from scratch - slow approach).
    */
   recalculateFull() {
     this.sheet.recalculateFull();
   }
 
   /**
-   * Recalculate all formulas (recalculate only changed cells - fast approach).
+   * Recalculates all formulas (recalculate only changed cells - fast approach).
    */
   recalculateOptimized() {
     this.sheet.recalculateOptimized();
   }
 
   /**
-   * Set predefined variable name which can be visible while parsing formula expression.
+   * Sets predefined variable name which can be visible while parsing formula expression.
    *
    * @param {String} name Variable name.
    * @param {*} value Variable value.
@@ -162,7 +167,7 @@ class Formulas extends BasePlugin {
   }
 
   /**
-   * Get variable name.
+   * Returns variable name.
    *
    * @param {String} name Variable name.
    * @returns {*}
@@ -405,7 +410,7 @@ class Formulas extends BasePlugin {
   }
 
   /**
-   * Destroy plugin.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.dataProvider.destroy();

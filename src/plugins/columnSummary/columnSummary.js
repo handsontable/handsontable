@@ -10,7 +10,34 @@ import Endpoints from './endpoints';
  *
  * @description
  * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
- * See the demo for more information.
+ * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
+ *
+ * @example
+ * const container = document.getElementById('example');
+ * const hot = new Handsontable(container, {
+ *   data: getData(),
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   columnSummary: [
+ *     {
+ *       destinationRow: 4,
+ *       destinationColumn: 1,
+ *       type: 'min'
+ *     },
+ *     {
+ *       destinationRow: 0,
+ *       destinationColumn: 3,
+ *       reversedRowCoords: true,
+ *       type: 'max'
+ *     },
+ *     {
+ *       destinationRow: 4,
+ *       destinationColumn: 5,
+ *       type: 'sum',
+ *       forceNumeric: true
+ *     }
+ *   ]
+ * });
  */
 class ColumnSummary extends BasePlugin {
   constructor(hotInstance) {
@@ -18,13 +45,15 @@ class ColumnSummary extends BasePlugin {
     /**
      * The Endpoints class instance. Used to make all endpoint-related operations.
      *
+     * @private
      * @type {null|Endpoints}
      */
     this.endpoints = null;
   }
 
   /**
-   * Check if plugin is enabled.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ColumnSummary#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -33,7 +62,7 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -62,7 +91,7 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Disable the plugin.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     this.endpoints = null;
@@ -71,8 +100,9 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Do the math for a single endpoint.
+   * Calculates math for a single endpoint.
    *
+   * @private
    * @param {Object} endpoint Contains information about the endpoint.
    */
   calculate(endpoint) {
@@ -101,8 +131,9 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Calculate sum of the values contained in ranges provided in the plugin config.
+   * Calculates sum of the values contained in ranges provided in the plugin config.
    *
+   * @private
    * @param {Object} endpoint Contains the endpoint information.
    * @returns {Number} Sum for the selected range
    */
@@ -119,8 +150,9 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Get partial sum of values from a single row range
+   * Returns partial sum of values from a single row range
    *
+   * @private
    * @param {Array} rowRange Range for the sum.
    * @param {Number} col Column index.
    * @returns {Number} The partial sum.
@@ -147,8 +179,9 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Calculate the minimal value for the selected ranges
+   * Calculates the minimal value for the selected ranges
    *
+   * @private
    * @param {Object} endpoint Contains the endpoint information.
    * @param {String} type `'min'` or `'max'`.
    * @returns {Number} Min or Max value.
@@ -184,8 +217,9 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Get a local minimum of the provided sub-range
+   * Returns a local minimum of the provided sub-range
    *
+   * @private
    * @param {Array} rowRange Range for the calculation.
    * @param {Number} col Column index.
    * @param {String} type `'min'` or `'max'`
@@ -222,8 +256,9 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Count empty cells in the provided row range.
+   * Counts empty cells in the provided row range.
    *
+   * @private
    * @param {Array} rowRange Row range for the calculation.
    * @param {Number} col Column index.
    * @returns {Number} Empty cells count.
@@ -247,8 +282,9 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Count non-empty cells in the provided row range.
+   * Counts non-empty cells in the provided row range.
    *
+   * @private
    * @param {Object} endpoint Contains the endpoint information.
    * @returns {Number} Entry count.
    */
@@ -270,8 +306,9 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Calculate the average value from the cells in the range.
+   * Calculates the average value from the cells in the range.
    *
+   * @private
    * @param {Object} endpoint Contains the endpoint information.
    * @returns {Number} Avarage value.
    */
@@ -283,8 +320,9 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Gets a cell value, taking into consideration a basic validation.
+   * Returns a cell value, taking into consideration a basic validation.
    *
+   * @private
    * @param {Number} row Row index.
    * @param {Number} col Column index.
    * @returns {String} The cell value.
@@ -343,6 +381,7 @@ class ColumnSummary extends BasePlugin {
   /**
    * `beforeRowMove` hook callback.
    *
+   * @private
    * @param {Array} rows Array of logical rows to be moved.
    * @param {Number} target Index of the destination row.
    */
@@ -353,6 +392,7 @@ class ColumnSummary extends BasePlugin {
   /**
    * `afterRowMove` hook callback.
    *
+   * @private
    * @param {Array} rows Array of logical rows that were moved.
    * @param {Number} target Index of the destination row.
    */
