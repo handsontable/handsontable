@@ -31,15 +31,13 @@ const privatePool = new WeakMap();
  * @example
  *
  * ```js
- * ...
- * let hot = new Handsontable(document.getElementById('example'), {
+ * const hot = new Handsontable(document.getElementById('example'), {
  *  data: getData(),
  *  mergeCells: [
  *    {row: 0, col: 3, rowspan: 3, colspan: 3},
  *    {row: 2, col: 6, rowspan: 2, colspan: 2},
  *    {row: 4, col: 8, rowspan: 3, colspan: 3}
  *  ],
- * ...
  * ```
  */
 class MergeCells extends BasePlugin {
@@ -145,7 +143,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Validate a single setting object, represented by a single merged cell information object.
+   * Validates a single setting object, represented by a single merged cell information object.
    *
    * @private
    * @param {Object} setting An object with `row`, `col`, `rowspan` and `colspan` properties.
@@ -183,7 +181,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Generate the merged cells from the settings provided to the plugin.
+   * Generates the merged cells from the settings provided to the plugin.
    *
    * @private
    * @param {Array|Boolean} settings The settings provided to the plugin.
@@ -239,7 +237,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Get the range of combined data ranges provided in a form of an array of arrays ([row, column, dataUnderCollection])
+   * Gets the range of combined data ranges provided in a form of an array of arrays ([row, column, dataUnderCollection])
    *
    * @private
    * @param {Array} populationArgumentsList Array containing argument lists for the `populateFromArray` method - row, column and data for population.
@@ -341,7 +339,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Merge cells in the provided cell range.
+   * Merges cells in the provided cell range.
    *
    * @private
    * @param {CellRange} cellRange Cell range to merge.
@@ -409,11 +407,14 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Unmerge the selection provided as a cell range. If no cell range is provided, it uses the current selection.
+   * Unmerges the selection provided as a cell range. If no cell range is provided, it uses the current selection.
    *
    * @private
    * @param {CellRange} cellRange Selection cell range.
    * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
+   * 
+   * @fires Hooks#beforeUnmergeCells
+   * @fires Hooks#afterUnmergeCells
    */
   unmergeRange(cellRange, auto = false) {
     const mergedCells = this.mergedCellsCollection.getWithinRange(cellRange);
@@ -441,7 +442,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Merge or unmerge, based on the cell range provided as `cellRange`.
+   * Merges or unmerges, based on the cell range provided as `cellRange`.
    *
    * @private
    * @param {CellRange} cellRange The cell range to merge or unmerged.
@@ -521,7 +522,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Modify the information on whether the current selection contains multiple cells. The `afterIsMultipleSelection` hook callback.
+   * Modifies the information on whether the current selection contains multiple cells. The `afterIsMultipleSelection` hook callback.
    *
    * @private
    * @param {Boolean} isMultiple

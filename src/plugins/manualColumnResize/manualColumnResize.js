@@ -118,6 +118,9 @@ class ManualColumnResize extends BasePlugin {
    * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
    *
    * @returns {Array}
+   *
+   * @fires Hooks#persistentStateLoad
+   * @fires Hooks#manualColumnWidths
    */
   loadManualColumnWidths() {
     let storedState = {};
@@ -188,7 +191,7 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Set the resize guide position.
+   * Sets the resize guide position.
    *
    * @private
    */
@@ -216,7 +219,7 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Hide both the resize handle and resize guide.
+   * Hides both the resize handle and resize guide.
    *
    * @private
    */
@@ -226,7 +229,7 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Check if provided element is considered a column header.
+   * Checks if provided element is considered a column header.
    *
    * @private
    * @param {HTMLElement} element HTML element.
@@ -247,7 +250,7 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Get the TH element from the provided element.
+   * Gets the TH element from the provided element.
    *
    * @private
    * @param {HTMLElement} element HTML element.
@@ -293,6 +296,9 @@ class ManualColumnResize extends BasePlugin {
    * Auto-size row after doubleclick - callback.
    *
    * @private
+   *
+   * @fires Hooks#beforeColumnResize
+   * @fires Hooks#afterColumnResize
    */
   afterMouseDownTimeout() {
     const render = () => {
@@ -344,7 +350,7 @@ class ManualColumnResize extends BasePlugin {
    * 'mousedown' event callback.
    *
    * @private
-   * @param {MouseEvent} e
+   * @param {MouseEvent} event
    */
   onMouseDown(event) {
     if (hasClass(event.target, 'manualColumnResizer')) {
@@ -367,7 +373,7 @@ class ManualColumnResize extends BasePlugin {
    * 'mousemove' event callback - refresh the handle and guide positions, cache the new column width.
    *
    * @private
-   * @param {MouseEvent} e
+   * @param {MouseEvent} event
    */
   onMouseMove(event) {
     if (this.pressed) {
@@ -386,7 +392,10 @@ class ManualColumnResize extends BasePlugin {
    * 'mouseup' event callback - apply the column resizing.
    *
    * @private
-   * @param {MouseEvent} e
+   * @param {MouseEvent} event
+   *
+   * @fires Hooks#beforeColumnResize
+   * @fires Hooks#afterColumnResize
    */
   onMouseUp(event) {
     const render = () => {
@@ -430,7 +439,7 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Bind the mouse events.
+   * Binds the mouse events.
    *
    * @private
    */
@@ -474,7 +483,7 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Modify the provided column width, based on the plugin settings
+   * Modifies the provided column width, based on the plugin settings
    *
    * @private
    * @param {Number} width Column width.
@@ -494,7 +503,7 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Modify the provided column stretched width. This hook decides if specified column should be stretched or not.
+   * Modifies the provided column stretched width. This hook decides if specified column should be stretched or not.
    *
    * @private
    * @param {Number} stretchedWidth Stretched width.
@@ -515,9 +524,6 @@ class ManualColumnResize extends BasePlugin {
    * `beforeColumnResize` hook callback.
    *
    * @private
-   * @param {Number} currentColumn Index of the resized column.
-   * @param {Number} newSize Calculated new column width.
-   * @param {Boolean} isDoubleClick Flag that determines whether there was a double-click.
    */
   onBeforeColumnResize() {
     // clear the header height cache information

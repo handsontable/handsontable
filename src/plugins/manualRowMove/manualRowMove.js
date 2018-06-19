@@ -227,7 +227,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Get the sum of the heights of rows in the provided range.
+   * Gets the sum of the heights of rows in the provided range.
    *
    * @private
    * @param {Number} from Visual row index.
@@ -247,7 +247,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Load initial settings when persistent state is saved or when plugin was initialized as an array.
+   * Loads initial settings when persistent state is saved or when plugin was initialized as an array.
    *
    * @private
    */
@@ -267,7 +267,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Check if the provided row is in the fixedRowsTop section.
+   * Checks if the provided row is in the fixedRowsTop section.
    *
    * @private
    * @param {Number} row Visual row index to check.
@@ -278,7 +278,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Check if the provided row is in the fixedRowsBottom section.
+   * Checks if the provided row is in the fixedRowsBottom section.
    *
    * @private
    * @param {Number} row Visual row index to check.
@@ -290,6 +290,9 @@ class ManualRowMove extends BasePlugin {
 
   /**
    * Saves the manual row positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
+   *
+   * @fires Hooks#persistentStateSave
+   * @fires Hooks#manualRowMove
    */
   persistentStateSave() {
     this.hot.runHooks('persistentStateSave', 'manualRowMove', this.rowsMapper._arrayMap);
@@ -299,6 +302,9 @@ class ManualRowMove extends BasePlugin {
    * Loads the manual row positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
    *
    * @returns {Array} Stored state.
+   * 
+   * @fires Hooks#persistentStateLoad
+   * @fires Hooks#manualRowMove
    */
   persistentStateLoad() {
     let storedState = {};
@@ -448,7 +454,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Bind the events used by the plugin.
+   * Binds the events used by the plugin.
    *
    * @private
    */
@@ -458,7 +464,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Unbind the events used by the plugin.
+   * Unbinds the events used by the plugin.
    *
    * @private
    */
@@ -480,7 +486,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Change the behavior of selection / dragging.
+   * Changes the behavior of selection / dragging.
    *
    * @private
    * @param {MouseEvent} event

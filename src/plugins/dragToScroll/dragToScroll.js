@@ -98,7 +98,7 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Change callback function.
+   * Changes callback function.
    *
    * @param callback {Function}
    */
@@ -139,7 +139,7 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Register dom listeners.
+   * Registers dom listeners.
    *
    * @private
    */
@@ -149,7 +149,7 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Unbind the events used by the plugin.
+   * Unbinds the events used by the plugin.
    *
    * @private
    */

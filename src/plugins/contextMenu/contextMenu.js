@@ -210,7 +210,7 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
-   * Register dom listeners.
+   * Registers dom listeners.
    *
    * @private
    */
@@ -219,7 +219,7 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
-   * Open menu and re-position it based on the passed coordinates.
+   * Opens menu and re-position it based on the passed coordinates.
    *
    * @param {Object|Event} position An object with `pageX` and `pageY` properties which contains values relative to
    *                                the top left of the fully rendered content area in the browser or with `clientX`
@@ -243,7 +243,7 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
-   * Close the menu.
+   * Closes the menu.
    */
   close() {
     if (!this.menu) {

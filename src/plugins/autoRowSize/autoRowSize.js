@@ -250,7 +250,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Set the sampling options.
+   * Sets the sampling options.
    *
    * @private
    */
@@ -269,7 +269,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Recalculate all rows height (overwrite cache values).
+   * Recalculates all rows height (overwrite cache values).
    */
   recalculateAllRowsHeight() {
     if (isVisible(this.hot.view.wt.wtTable.TABLE)) {
@@ -304,9 +304,9 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Get the calculated row height.
+   * Gets the calculated row height.
    *
-   * @param {Number} column Visual column index.
+   * @param {Number} row Visual row index.
    * @param {Number} [defaultHeight] Default row height. It will be picked up if no calculated height found.
    * @returns {Number}
    */
@@ -348,7 +348,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Get the last visible row.
+   * Gets the last visible row.
    *
    * @returns {Number} Returns row index or -1 if table is not rendered.
    */
@@ -366,7 +366,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Clear cached heights.
+   * Clears cached heights.
    */
   clearCache() {
     this.heights.length = 0;
@@ -374,7 +374,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Clear cache by range.
+   * Clears cache by range.
    *
    * @param {Object|Number} range Row index or an object with `from` and `to` properties which define row range.
    */
@@ -388,7 +388,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Check if all heights were calculated. If not then return `true` (need recalculate).
+   * Checks if all heights were calculated. If not then return `true` (need recalculate).
    *
    * @returns {Boolean}
    */
@@ -489,7 +489,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Destroy the plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.ghostTable.clean();

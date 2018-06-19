@@ -229,7 +229,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Get the sum of the widths of columns in the provided range.
+   * Gets the sum of the widths of columns in the provided range.
    *
    * @private
    * @param {Number} from Visual column index.
@@ -255,7 +255,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Load initial settings when persistent state is saved or when plugin was initialized as an array.
+   * Loads initial settings when persistent state is saved or when plugin was initialized as an array.
    *
    * @private
    */
@@ -271,7 +271,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Check if the provided column is in the fixedColumnsLeft section.
+   * Checks if the provided column is in the fixedColumnsLeft section.
    *
    * @private
    * @param {Number} column Visual column index to check.
@@ -443,7 +443,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Bind the events used by the plugin.
+   * Binds the events used by the plugin.
    *
    * @private
    */
@@ -453,7 +453,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Unbind the events used by the plugin.
+   * Unbinds the events used by the plugin.
    *
    * @private
    */
@@ -462,7 +462,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Change the behavior of selection / dragging.
+   * Changes the behavior of selection / dragging.
    *
    * @private
    * @param {MouseEvent} event `mousedown` event properties.

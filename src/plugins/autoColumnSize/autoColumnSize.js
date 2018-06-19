@@ -166,7 +166,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Calculate a columns width.
+   * Calculates a columns width.
    *
    * @param {Number|Object} colRange Column index or an object with `from` and `to` indexes as a range.
    * @param {Number|Object} rowRange Row index or an object with `from` and `to` indexes as a range.
@@ -197,7 +197,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Calculate all columns width. The calculated column will be cached in the {@link AutoColumnSize#widths} property.
+   * Calculates all columns width. The calculated column will be cached in the {@link AutoColumnSize#widths} property.
    * To retrieve width for specyfied column use {@link AutoColumnSize#getColumnWidth} method.
    *
    * @param {Object|Number} rowRange Row index or an object with `from` and `to` properties which define row range.
@@ -254,7 +254,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Set the sampling options.
+   * Sets the sampling options.
    *
    * @private
    */
@@ -273,7 +273,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Recalculate all columns width (overwrite cache values).
+   * Recalculates all columns width (overwrite cache values).
    */
   recalculateAllColumnsWidth() {
     if (this.hot.view && isVisible(this.hot.view.wt.wtTable.TABLE)) {
@@ -308,7 +308,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get the calculated column width.
+   * Gets the calculated column width.
    *
    * @param {Number} column Column index.
    * @param {Number} [defaultWidth] Default column width. It will be picked up if no calculated width found.
@@ -330,7 +330,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get the first visible column.
+   * Gets the first visible column.
    *
    * @returns {Number} Returns column index or -1 if table is not rendered.
    */
@@ -348,7 +348,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get the last visible column.
+   * Gets the last visible column.
    *
    * @returns {Number} Returns column index or -1 if table is not rendered.
    */
@@ -394,7 +394,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Clear cache of calculated column widths. If you want to clear only selected columns pass an array with their indexes.
+   * Clears cache of calculated column widths. If you want to clear only selected columns pass an array with their indexes.
    * Otherwise whole cache will be cleared.
    *
    * @param {Number[]} [columns] List of physical column indexes to clear.
@@ -410,7 +410,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Check if all widths were calculated. If not then return `true` (need recalculate).
+   * Checks if all widths were calculated. If not then return `true` (need recalculate).
    *
    * @returns {Boolean}
    */
@@ -497,7 +497,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Destroy the plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.ghostTable.clean();

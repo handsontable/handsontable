@@ -169,7 +169,7 @@ class ObserveChanges extends BasePlugin {
   }
 
   /**
-   * Delete all previously exposed methods.
+   * Deletes all previously exposed methods.
    *
    * @private
    */

@@ -150,6 +150,9 @@ class ColumnSorting extends BasePlugin {
    *
    * @param {Number} column Visual column index.
    * @param {String} order Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
+   *
+   * @fires Hooks#beforeColumnSort
+   * @fires Hooks#afterColumnSort
    */
   sort(column, order) {
     this.setSortingColumn(column, order);
@@ -186,6 +189,9 @@ class ColumnSorting extends BasePlugin {
 
   /**
    * Saves the sorting state. To use this method the {@link Options#persistentState} option has to be enabled.
+   *
+   * @fires Hooks#persistentStateSave
+   * @fires Hooks#columnSorting
    */
   saveSortingState() {
     let sortingState = {};
@@ -208,6 +214,9 @@ class ColumnSorting extends BasePlugin {
    * Loads the sorting state. To use this method the {@link Options#persistentState} option has to be enabled.
    *
    * @returns {*} Previously saved sorting state.
+   *
+   * @fires Hooks#persistentStateLoad
+   * @fires Hooks#columnSorting
    */
   loadSortingState() {
     let storedState = {};
@@ -217,7 +226,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Set sorted column and order info
+   * Sets sorted column and order info
    *
    * @private
    * @param {Number} column Sorted visual column index.
@@ -255,7 +264,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Enable the ObserveChanges plugin.
+   * Enables the ObserveChanges plugin.
    *
    * @private
    */
@@ -271,7 +280,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Perform the sorting using a stable sort function.
+   * Performs the sorting using a stable sort function.
    *
    * @private
    */
@@ -321,7 +330,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Get sort function for the particular column basing on its column meta.
+   * Gets sort function for the particular column basing on its column meta.
    *
    * @private
    * @param {Object} columnMeta
@@ -342,7 +351,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Update indicator states.
+   * Updates indicator states.
    *
    * @private
    */
@@ -356,7 +365,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Set options by passed settings
+   * Sets options by passed settings
    *
    * @private
    */

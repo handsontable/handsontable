@@ -190,7 +190,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Register all necessary DOM listeners.
+   * Registers all necessary DOM listeners.
    *
    * @private
    */
@@ -220,7 +220,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Check if the event target is a cell containing a comment.
+   * Checks if the event target is a cell containing a comment.
    *
    * @private
    * @param {Event} event DOM event
@@ -233,7 +233,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Check if the event target is a comment textarea.
+   * Checks if the event target is a comment textarea.
    *
    * @private
    * @param {Event} event DOM event.
@@ -244,7 +244,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Set a comment for a cell according to the previously set range (see {@link Comments#setRange}).
+   * Sets a comment for a cell according to the previously set range (see {@link Comments#setRange}).
    *
    * @param {String} value Comment contents.
    */
@@ -427,7 +427,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Check if there is a comment for selected range.
+   * Checks if there is a comment for selected range.
    *
    * @private
    * @returns {Boolean}

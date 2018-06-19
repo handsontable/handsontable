@@ -122,7 +122,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Get selection data
+   * Gets selection data
    *
    * @private
    * @returns {Array} Array with the data.
@@ -141,6 +141,9 @@ class Autofill extends BasePlugin {
    *
    * @private
    * @returns {Boolean} reports if fill was applied.
+   *
+   * @fires Hooks#modifyAutofillRange
+   * @fires Hooks#beforeAutofill
    */
   fillIn() {
     if (this.hot.selection.highlight.getFill().isEmpty()) {
@@ -214,7 +217,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Reduce the selection area if the handle was dragged outside of the table or on headers.
+   * Reduces the selection area if the handle was dragged outside of the table or on headers.
    *
    * @private
    * @param {CellCoords} coords indexes of selection corners.
@@ -232,13 +235,12 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Get the coordinates of the drag & drop borders.
+   * Gets the coordinates of the drag & drop borders.
    *
    * @private
    * @param {CellCoords} coordsOfSelection `CellCoords` coord object.
    * @returns {Array}
    */
-
   getCoordsOfDragAndDropBorders(coordsOfSelection) {
     const topLeftCorner = this.hot.getSelectedRangeLast().getTopLeftCorner();
     const bottomRightCorner = this.hot.getSelectedRangeLast().getBottomRightCorner();
@@ -353,7 +355,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Add a selection from the start area to the specific row index.
+   * Adds a selection from the start area to the specific row index.
    *
    * @private
    * @param {Array} selectStartArea selection area from which we start to create more comprehensive selection.
@@ -373,7 +375,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Set selection based on passed corners.
+   * Sets selection based on passed corners.
    *
    * @private
    * @param {Array} cornersOfArea
@@ -403,7 +405,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Reset selection of dragged area.
+   * Resets selection of dragged area.
    *
    * @private
    */
@@ -414,7 +416,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Redraw borders.
+   * Redraws borders.
    *
    * @private
    * @param {CellCoords} coords `CellCoords` coord object.
@@ -532,7 +534,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Clear mapped settings.
+   * Clears mapped settings.
    *
    * @private
    */
@@ -553,7 +555,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Destroy the plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     super.destroy();

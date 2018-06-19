@@ -143,7 +143,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Get the reference to the ManualColumnMove plugin.
+   * Gets the reference to the ManualColumnMove plugin.
    *
    * @private
    * @returns {Object}
@@ -192,7 +192,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Add the manualColumnFreeze context menu entries.
+   * Adds the manualColumnFreeze context menu entries.
    *
    * @private
    * @param {Object} options Context menu options.
@@ -206,7 +206,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Enabling `manualColumnMove` plugin on `afterInit` hook.
+   * Enables `manualColumnMove` plugin on `afterInit` hook.
    *
    * @private
    */
@@ -217,7 +217,7 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Prevent moving the rows from/to fixed area.
+   * Prevents moving the rows from/to fixed area.
    *
    * @private
    * @param {Array} rows
