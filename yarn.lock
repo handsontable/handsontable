@@ -2,12 +2,13 @@
 # yarn lockfile v1
 
 
-"@handsontable/formulajs@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@handsontable/formulajs/-/formulajs-2.0.0.tgz#3e41fedbb51a195dd5b8c2694afe171ec08f3a02"
+"@handsontable/formulajs@^1.2.3":
+  version "1.2.3"
+  resolved "http://npm.handsoncode:4873/@handsontable%2fformulajs/-/formulajs-1.2.3.tgz#a98b98bc3d23832730646e3bbd6194413f8faade"
   dependencies:
     bessel "^0.2.0"
     jStat "^1.7.0"
+    numbro "^1.11.0"
 
 abab@^1.0.3:
   version "1.0.4"
@@ -2640,9 +2641,9 @@ handlebars@^4.0.3:
   optionalDependencies:
     uglify-js "^2.6"
 
-handsontable@4.0.0:
+"handsontable@github:handsontable/handsontable#develop":
   version "4.0.0"
-  resolved "https://registry.yarnpkg.com/handsontable/-/handsontable-4.0.0.tgz#1a9591a3f6c2fe13564955d945ea91d20b6c4cf1"
+  resolved "https://codeload.github.com/handsontable/handsontable/tar.gz/1c441de2693b18bc48faac46f7bc8cf591d052fc"
   dependencies:
     moment "2.20.1"
     numbro "^2.0.6"
@@ -2761,11 +2762,11 @@ hosted-git-info@^2.1.4:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-2.6.0.tgz#23235b29ab230c576aab0d4f13fc046b0b038222"
 
-hot-formula-parser@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/hot-formula-parser/-/hot-formula-parser-3.0.0.tgz#4019db8d565b84293ad7d1e46fcc1a4f894bb72e"
+hot-formula-parser@^2.3.1:
+  version "2.3.3"
+  resolved "http://npm.handsoncode:4873/hot-formula-parser/-/hot-formula-parser-2.3.3.tgz#a7f3f8d2d8ea8d68c409c2df4e362f29e37b604d"
   dependencies:
-    "@handsontable/formulajs" "^2.0.0"
+    "@handsontable/formulajs" "^1.2.3"
     tiny-emitter "^2.0.1"
 
 html-comment-regex@^1.1.0:
@@ -4120,6 +4121,10 @@ num2fraction@^1.2.2:
 number-is-nan@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/number-is-nan/-/number-is-nan-1.0.1.tgz#097b602b53422a522c1afb8790318336941a011d"
+
+numbro@^1.11.0:
+  version "1.11.1"
+  resolved "http://npm.handsoncode:4873/numbro/-/numbro-1.11.1.tgz#e0d9ba0ddfc3ad5ac01d9558a49383db214f04be"
 
 numbro@^2.0.6:
   version "2.0.6"
