@@ -302,7 +302,7 @@ class ManualRowMove extends BasePlugin {
    * Loads the manual row positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
    *
    * @returns {Array} Stored state.
-   * 
+   *
    * @fires Hooks#persistentStateLoad
    * @fires Hooks#manualRowMove
    */

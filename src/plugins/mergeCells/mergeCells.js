@@ -412,7 +412,7 @@ class MergeCells extends BasePlugin {
    * @private
    * @param {CellRange} cellRange Selection cell range.
    * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
-   * 
+   *
    * @fires Hooks#beforeUnmergeCells
    * @fires Hooks#afterUnmergeCells
    */

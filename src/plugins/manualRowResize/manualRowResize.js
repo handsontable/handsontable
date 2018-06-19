@@ -435,7 +435,7 @@ class ManualRowResize extends BasePlugin {
    * @param {Number} row Visual row index.
    * @param {Number} height Row height.
    * @returns {Number} Returns new height.
-   * 
+   *
    * @fires Hooks#modifyRow
    */
   setManualSize(row, height) {
@@ -452,7 +452,7 @@ class ManualRowResize extends BasePlugin {
    * @param {Number} height Row height.
    * @param {Number} row Visual row index.
    * @returns {Number}
-   * 
+   *
    * @fires Hooks#modifyRow
    */
   onModifyRowHeight(height, row) {
