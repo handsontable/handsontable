@@ -10,9 +10,10 @@ import {registerPlugin} from './../../plugins';
 
 /**
  * @description
- * ManualRowResize Plugin.
+ * This plugin allows to change rows height. To make rows height persistent the {@link Options#persistentState}
+ * plugin should be enabled.
  *
- * Has 2 UI components:
+ * The plugin creates additional components to make resizing possibly using user interface:
  * - handle - the draggable element that sets the desired height of the row.
  * - guide - the helper guide that shows the desired height as a horizontal guide.
  *
@@ -44,7 +45,8 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ManualRowResize#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -53,7 +55,7 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -84,7 +86,7 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     let initialRowHeights = this.hot.getSettings().manualRowResize;
@@ -98,23 +100,27 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     super.disablePlugin();
   }
 
   /**
-   * Save the current sizes using the persistentState plugin.
+   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * @fires Hooks#persistentStateSave
+   * @fires Hooks#manualRowHeights
    */
   saveManualRowHeights() {
     this.hot.runHooks('persistentStateSave', 'manualRowHeights', this.manualRowHeights);
   }
 
   /**
-   * Load the previously saved sizes using the persistentState plugin.
+   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
    *
    * @returns {Array}
+   * @fires Hooks#persistentStateLoad
+   * @fires Hooks#manualRowHeights
    */
   loadManualRowHeights() {
     let storedState = {};
@@ -125,8 +131,9 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Set the resize handle position.
+   * Sets the resize handle position.
    *
+   * @private
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
@@ -171,13 +178,17 @@ class ManualRowResize extends BasePlugin {
 
   /**
    * Refresh the resize handle position.
+   *
+   * @private
    */
   refreshHandlePosition() {
     this.handle.style.top = `${this.startOffset + this.currentHeight}px`;
   }
 
   /**
-   * Set the resize guide position.
+   * Sets the resize guide position.
+   *
+   * @private
    */
   setupGuidePosition() {
     let handleWidth = parseInt(outerWidth(this.handle), 10);
@@ -194,13 +205,17 @@ class ManualRowResize extends BasePlugin {
 
   /**
    * Refresh the resize guide position.
+   *
+   * @private
    */
   refreshGuidePosition() {
     this.guide.style.top = this.handle.style.top;
   }
 
   /**
-   * Hide both the resize handle and resize guide.
+   * Hides both the resize handle and resize guide.
+   *
+   * @private
    */
   hideHandleAndGuide() {
     removeClass(this.handle, 'active');
@@ -208,8 +223,9 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Check if provided element is considered as a row header.
+   * Checks if provided element is considered as a row header.
    *
+   * @private
    * @param {HTMLElement} element HTML element.
    * @returns {Boolean}
    */
@@ -228,8 +244,9 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Get the TH element from the provided element.
+   * Gets the TH element from the provided element.
    *
+   * @private
    * @param {HTMLElement} element HTML element.
    * @returns {HTMLElement}
    */
@@ -267,6 +284,8 @@ class ManualRowResize extends BasePlugin {
    * Auto-size row after doubleclick - callback.
    *
    * @private
+   * @fires Hooks#beforeRowResize
+   * @fires Hooks#afterRowResize
    */
   afterMouseDownTimeout() {
     const render = () => {
@@ -355,6 +374,8 @@ class ManualRowResize extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event
+   * @fires Hooks#beforeRowResize
+   * @fires Hooks#afterRowResize
    */
   onMouseUp(event) {
     const render = () => {
@@ -397,7 +418,7 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Bind the mouse events.
+   * Binds the mouse events.
    *
    * @private
    */
@@ -409,11 +430,13 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Cache the current row height.
+   * Sets the new height for specified row index.
    *
    * @param {Number} row Visual row index.
    * @param {Number} height Row height.
-   * @returns {Number}
+   * @returns {Number} Returns new height.
+   *
+   * @fires Hooks#modifyRow
    */
   setManualSize(row, height) {
     row = this.hot.runHooks('modifyRow', row);
@@ -423,12 +446,14 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Modify the provided row height, based on the plugin settings.
+   * Modifies the provided row height, based on the plugin settings.
    *
    * @private
    * @param {Number} height Row height.
    * @param {Number} row Visual row index.
    * @returns {Number}
+   *
+   * @fires Hooks#modifyRow
    */
   onModifyRowHeight(height, row) {
     if (this.enabled) {
