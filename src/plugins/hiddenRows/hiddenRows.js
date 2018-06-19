@@ -13,7 +13,9 @@ import './hiddenRows.css';
  * @pro
  *
  * @description
- * Plugin allows to hide certain rows.
+ * Plugin allows to hide certain rows. The hiding is achieved by rendering the rows with height set as 0px.
+ * The plugin not modifies the source data and do not participate in data transformation (the shape of data returned
+ * by `getData*` methods stays intact).
  *
  * Possible plugin settings:
  *  * `copyPasteEnabled` as `Boolean` (default `true`)
@@ -195,7 +197,7 @@ class HiddenRows extends BasePlugin {
   /**
    * Hides the row provided as row index (counting from 0).
    *
-   * @param {Number} row Row index.
+   * @param {...Number} row Row index.
    */
   hideRow(...row) {
     this.hideRows(row);

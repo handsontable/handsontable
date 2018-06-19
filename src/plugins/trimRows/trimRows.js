@@ -9,7 +9,9 @@ import RowsMapper from './rowsMapper';
  * @pro
  *
  * @description
- * Plugin allows to hide selected rows.
+ * The plugin allows to trim certain rows. The trimming is achieved by applying the transformation algorithm to the data
+ * transformation. In this case, when the row is trimmed it is not accessible using `getData*` methods thus the trimmed
+ * data is not visible to other plugins.
  *
  * @example
  * ```js
@@ -134,7 +136,6 @@ class TrimRows extends BasePlugin {
    * Trims the rows provided in the array.
    *
    * @param {Number[]} rows Array of physical row indexes.
-   *
    * @fires Hooks#skipLengthCache
    * @fires Hooks#afterTrimRow
    */
@@ -165,7 +166,6 @@ class TrimRows extends BasePlugin {
    * Untrims the rows provided in the array.
    *
    * @param {Number[]} rows Array of physical row indexes.
-   *
    * @fires Hooks#skipLengthCache
    * @fires Hooks#afterUntrimRow
    */

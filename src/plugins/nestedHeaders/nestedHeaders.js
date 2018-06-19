@@ -21,12 +21,13 @@ import './nestedHeaders.css';
  * @pro
  *
  * @description
- * This plugin allows to create a nested header structure, using the HTML's colspan attribute.
+ * The plugin allows to create a nested header structure, using the HTML's colspan attribute.
  *
- * To make any header wider (covering multiple table columns), it's corresponding configuration array element should be provided as an object with `label` and `colspan` properties.
- * The `label` property defines the header's label, while the `colspan` property defines a number of columns that the header should cover.
+ * To make any header wider (covering multiple table columns), it's corresponding configuration array element should be
+ * provided as an object with `label` and `colspan` properties. The `label` property defines the header's label,
+ * while the `colspan` property defines a number of columns that the header should cover.
  *
- * **Note** that the plugin supports a *nested* structure, which means, any header cannot be wider than it's "parent". In
+ * __Note__ that the plugin supports a *nested* structure, which means, any header cannot be wider than it's "parent". In
  * other words, headers cannot overlap each other.
  * @example
  *
@@ -187,7 +188,7 @@ class NestedHeaders extends BasePlugin {
 
     arrayEach(this.colspanArray, (value, i) => {
       if (this.getNestedParent(i, fixedColumnsLeft) !== fixedColumnsLeft) {
-        warn(toSingleLine`You have declared a Nested Header overlapping the Fixed Columns section - it may lead to visual 
+        warn(toSingleLine`You have declared a Nested Header overlapping the Fixed Columns section - it may lead to visual
           glitches. To prevent that kind of problems, split the nested headers between the fixed and non-fixed columns.`);
       }
     });
@@ -213,7 +214,7 @@ class NestedHeaders extends BasePlugin {
             });
 
             if (childColspanSum > header.colspan) {
-              warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration 
+              warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration
                 is currently not supported and might result in glitches.`);
             }
 

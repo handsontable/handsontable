@@ -23,10 +23,12 @@ import './filters.css';
 /**
  * @plugin Filters
  * @pro
- * @dependencies DropdownMenu TrimRows BindRowsWithHeaders HiddenRows
+ * @dependencies DropdownMenu TrimRows
  *
  * @description
- * This plugin allows filtering the table data either by the built-in component or with the API.
+ * The plugin allows filtering the table data either by the built-in component or with the API.
+ *
+ * See [the filtering demo](https://docs.handsontable.com/demo-filtering.html) for examples.
  *
  * @example
  * ```
@@ -383,6 +385,8 @@ class Filters extends BasePlugin {
 
   /**
    * Clears column selection.
+   *
+   * @private
    */
   clearColumnSelection() {
     let [row, col] = this.hot.getSelectedLast() || [];
@@ -449,6 +453,7 @@ class Filters extends BasePlugin {
   /**
    * Restores components to their cached state.
    *
+   * @private
    * @param {Array} components List of components.
    */
   restoreComponents(components) {
@@ -715,8 +720,8 @@ class Filters extends BasePlugin {
     const operationType = this.conditionCollection.columnTypes[column];
 
     if (conditionsByValue.length === 2 || conditionsWithoutByValue.length === 3) {
-      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually. 
-        The overall amount of conditions exceed the capability of the dropdown menu. 
+      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.
+        The overall amount of conditions exceed the capability of the dropdown menu.
         For more details see the documentation.`);
 
     } else {

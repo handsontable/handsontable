@@ -35,7 +35,17 @@ const BUTTON_CLASS_NAME = 'changeType';
  * @dependencies ContextMenu
  *
  * @description
- * Plugins create dropdown menu for table columns.
+ * This plugin creates the Handsontable Dropdown Menu. It allows to create a new row or column at any place in the grid
+ * among [other features](http://docs.handsontable.com/demo-context-menu.html).
+ * Possible values:
+ * * `true` (to enable default options),
+ * * `false` (to disable completely)
+ *
+ * or array of any available strings:
+ * * `["row_above", "row_below", "col_left", "col_right",
+ * "remove_row", "remove_col", "---------", "undo", "redo"]`.
+ *
+ * See [the dropdown menu demo](http://docs.handsontable.com/demo-dropdown-menu.html) for examples.
  *
  * @example
  * ```
@@ -203,22 +213,27 @@ class DropdownMenu extends BasePlugin {
   }
 
   /**
-   * Opens menu and re-positions it based on the DOM event object.
+   * Opens menu and re-position it based on the passed coordinates.
    *
-   * @param {Event|Object} event Event object.
+   * @param {Object|Event} position An object with `pageX` and `pageY` properties which contains values relative to
+   *                                the top left of the fully rendered content area in the browser or with `clientX`
+   *                                and `clientY`  properties which contains values relative to the upper left edge
+   *                                of the content area (the viewport) of the browser window. This object is structurally
+   *                                compatible with native mouse event so it can be used either.
    * @fires Hooks#beforeDropdownMenuShow
    * @fires Hooks#afterDropdownMenuShow
    */
-  open(event) {
+
+  open(position) {
     if (!this.menu) {
       return;
     }
     this.menu.open();
 
-    if (event.width) {
-      this.menu.setOffset('left', event.width);
+    if (position.width) {
+      this.menu.setOffset('left', position.width);
     }
-    this.menu.setPosition(event);
+    this.menu.setPosition(position);
 
     // ContextMenu is not detected HotTableEnv correctly because is injected outside hot-table
     this.menu.hotMenu.isHotTableEnv = this.hot.isHotTableEnv;

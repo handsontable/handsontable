@@ -14,7 +14,14 @@ import './hiddenColumns.css';
  * @pro
  *
  * @description
- * Plugin allows to hide certain columns.
+ * Plugin allows to hide certain columns. The hiding is achieved by rendering the columns with width set as 0px.
+ * The plugin not modifies the source data and do not participate in data transformation (the shape of data returned
+ * by `getData*` methods stays intact).
+ *
+ * Possible plugin settings:
+ *  * `copyPasteEnabled` as `Boolean` (default `true`)
+ *  * `columns` as `Array`
+ *  * `indicators` as `Boolean` (default `false`)
  *
  * @example
  *
@@ -148,7 +155,7 @@ class HiddenColumns extends BasePlugin {
   }
 
   /**
-   * Show the provided columns.
+   * Shows the provided columns.
    *
    * @param {Number[]} columns Array of column indexes.
    */
@@ -164,16 +171,16 @@ class HiddenColumns extends BasePlugin {
   }
 
   /**
-   * Show a single column.
+   * Shows a single column.
    *
-   * @param {Number} column Column index.
+   * @param {...Number} column Column index.
    */
   showColumn(...column) {
     this.showColumns(column);
   }
 
   /**
-   * Hide the columns provided in the array.
+   * Hides the columns provided in the array.
    *
    * @param {Number[]} columns Array of column indexes.
    */
@@ -189,7 +196,7 @@ class HiddenColumns extends BasePlugin {
   }
 
   /**
-   * Hide a single column.
+   * Hides a single column.
    *
    * @param {...Number} column Column index.
    */
@@ -198,7 +205,7 @@ class HiddenColumns extends BasePlugin {
   }
 
   /**
-   * Check if the provided column is hidden.
+   * Checks if the provided column is hidden.
    *
    * @param {Number} column Column index.
    * @param {Boolean} isLogicIndex flag which determines type of index.

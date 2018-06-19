@@ -18,12 +18,12 @@ import BasePlugin from 'handsontable/plugins/_base';
  * @dependencies NestedHeaders HiddenColumns
  *
  * @description
- * The CollapsibleColumns plugin allows collapsing of columns, covered by a header with the `colspan` property defined.
+ * The {@link CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property defined.
  *
  * Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
  *
- * Setting the `collapsibleColumns` property to `true` will display a "collapse/expand" button in every header with
- * a defined `colspan` property.
+ * Setting the {@link Options#collapsibleColumns} property to `true` will display a "collapse/expand" button in every header
+ * with a defined `colspan` property.
  *
  * To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property as an array
  * of objects, as in the example below.
