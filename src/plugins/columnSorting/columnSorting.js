@@ -405,8 +405,10 @@ class ColumnSorting extends BasePlugin {
       return false;
     }
 
-    let headerLink = TH.querySelector('.colHeader');
-    let TRs = TH.parentNode.parentNode.childNodes;
+    const headerLink = TH.querySelector('.colHeader');
+    const TRs = TH.parentNode.parentNode.childNodes;
+    const addedClasses = [];
+    const removedClassess = [HEADER_CLASS_DESC_SORT, HEADER_CLASS_ASC_SORT];
     let headerLevel = Array.prototype.indexOf.call(TRs, TH.parentNode);
     headerLevel -= TRs.length;
 
@@ -415,21 +417,22 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (this.hot.getSettings().columnSorting && column >= 0 && headerLevel === -1) {
-      addClass(headerLink, HEADER_CLASS_SORTING);
+      addedClasses.push(HEADER_CLASS_SORTING);
     }
-    removeClass(headerLink, HEADER_CLASS_DESC_SORT);
-    removeClass(headerLink, HEADER_CLASS_ASC_SORT);
 
     if (this.sortIndicators[column]) {
       if (column === this.sortColumn) {
         if (this.sortOrder === ASC_SORT_STATE) {
-          addClass(headerLink, HEADER_CLASS_ASC_SORT);
+          addedClasses.push(HEADER_CLASS_ASC_SORT);
 
         } else if (this.sortOrder === DESC_SORT_STATE) {
-          addClass(headerLink, HEADER_CLASS_DESC_SORT);
+          addedClasses.push(HEADER_CLASS_DESC_SORT);
         }
       }
     }
+
+    removeClass(headerLink, removedClassess.filter((removedClass) => addedClasses.includes(removedClass) === false));
+    addClass(headerLink, addedClasses);
   }
 
   /**
