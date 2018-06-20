@@ -953,30 +953,30 @@ const REGISTERED_HOOKS = [
   'modifyGetCellCoords',
 
   /**
-   * Fired by {@link PersistentState} plugin after loading data from local storage. This hook is fired when
+   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
    * {@link Options#persistentState} option is enabled.
    *
    * @event Hooks#persistentStateLoad
-   * @param {String} key Key string.
-   * @param {Object} valuePlaceholder Object containing the loaded data.
+   * @param {String} key Key.
+   * @param {Object} valuePlaceholder Object containing the loaded value under `valuePlaceholder.value` (if no value have been saved, `value` key will be undefined).
    */
   'persistentStateLoad',
 
   /**
-   * Fired by {@link PersistentState} plugin after resetting data from local storage. This hook is fired when
-   * {@link Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin after resetting data from local storage. If no key is given, all values associated with table will be cleared.
+   * This hook is fired when {@link Options#persistentState} option is enabled.
    *
    * @event Hooks#persistentStateReset
-   * @param {String} key Key string.
+   * @param {String} [key] Key.
    */
   'persistentStateReset',
 
   /**
-   * Fired by {@link PersistentState} plugin after saving data to local storage. This hook is fired when
+   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage. This hook is fired when
    * {@link Options#persistentState} option is enabled.
    *
    * @event Hooks#persistentStateSave
-   * @param {String} key Key string.
+   * @param {String} key Key.
    * @param {Mixed} value Value to save.
    */
   'persistentStateSave',
