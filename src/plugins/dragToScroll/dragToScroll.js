@@ -16,32 +16,36 @@ class DragToScroll extends BasePlugin {
     /**
      * Instance of {@link EventManager}.
      *
+     * @private
      * @type {EventManager}
      */
     this.eventManager = new EventManager(this);
     /**
-     * DOMRect - size of an element and its position relative to the viewport,
+     * Size of an element and its position relative to the viewport,
      * e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y:8}.
      *
-     * @type {Object}
+     * @type {DOMRect}
      */
     this.boundaries = null;
     /**
      * Callback function.
      *
+     * @private
      * @type {Function}
      */
     this.callback = null;
     /**
      * Flag indicates mouseDown/mouseUp.
      *
+     * @private
      * @type {Boolean}
      */
     this.listening = false;
   }
 
   /**
-   * Check if the plugin is enabled in the Handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link DragToScroll#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -50,7 +54,7 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -66,7 +70,7 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -76,7 +80,7 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     this.unregisterEvents();
@@ -87,14 +91,14 @@ class DragToScroll extends BasePlugin {
   /**
    * Sets the value of the visible element.
    *
-   * @param boundaries {Object} compatible with getBoundingClientRect
+   * @param boundaries {DOMRect} An object with coordinates compatible with DOMRect.
    */
   setBoundaries(boundaries) {
     this.boundaries = boundaries;
   }
 
   /**
-   * Change callback function.
+   * Changes callback function.
    *
    * @param callback {Function}
    */
@@ -103,10 +107,11 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Check if mouse position (x, y) is outside of the viewport.
+   * Checks if the mouse position (X, Y) is outside of the viewport and fires a callback with calculated X an Y diffs
+   * between passed boundaries.
    *
-   * @param {Number} x
-   * @param {Number} y
+   * @param {Number} x Mouse X coordinate to check.
+   * @param {Number} y Mouse Y coordinate to check.
    */
   check(x, y) {
     let diffX = 0;
@@ -134,7 +139,7 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Register dom listeners.
+   * Registers dom listeners.
    *
    * @private
    */
@@ -144,7 +149,7 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Unbind the events used by the plugin.
+   * Unbinds the events used by the plugin.
    *
    * @private
    */
@@ -207,7 +212,7 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Destroy instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     super.destroy();

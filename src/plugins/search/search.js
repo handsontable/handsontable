@@ -24,22 +24,24 @@ const DEFAULT_QUERY_METHOD = function(query, value) {
 /**
  * @plugin Search
  *
+ * @description
+ * The search plugin provides an easy interface to search data across Handsontable.
+ *
+ * In order to enable search mechanism, {@link Options#search} option must be set to `true`.
+ *
  * @example
- *
  * ```js
- * ...
- *  // as boolean
- *  search: true
- *
- *  // as a object with one or more options
- *  search: {
- *    callback: myNewCallbackFunction,
- *    queryMethod: myNewQueryMethod,
- *    searchResultClass: 'customClass'
- *  }
+ * // as boolean
+ * search: true
+ * // as a object with one or more options
+ * search: {
+ *   callback: myNewCallbackFunction,
+ *   queryMethod: myNewQueryMethod,
+ *   searchResultClass: 'customClass'
+ * }
  *
  * // Access to search plugin instance:
- * var searchPlugin = hot.getPlugin('search');
+ * const searchPlugin = hot.getPlugin('search');
  *
  * // Set callback programmatically:
  * searchPlugin.setCallback(myNewCallbackFunction);
@@ -47,7 +49,6 @@ const DEFAULT_QUERY_METHOD = function(query, value) {
  * searchPlugin.setQueryMethod(myNewQueryMethod);
  * // Set search result cells class programmatically:
  * searchPlugin.setSearchResultClass(customClass);
- * ...
  * ```
  */
 class Search extends BasePlugin {
@@ -56,25 +57,29 @@ class Search extends BasePlugin {
     /**
      * Function called during querying for each cell from the {@link DataMap}.
      *
+     * @private
      * @type {Function}
      */
     this.callback = DEFAULT_CALLBACK;
     /**
      * Query function is responsible for determining whether a query matches the value stored in a cell.
      *
+     * @private
      * @type {Function}
      */
     this.queryMethod = DEFAULT_QUERY_METHOD;
     /**
      * Class name added to each cell that belongs to the searched query.
      *
+     * @private
      * @type {String}
      */
     this.searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
   }
 
   /**
-   * Check if the plugin is enabled in the Handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link AutoRowSize#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -83,7 +88,7 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -99,7 +104,7 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     const beforeRendererCallback = (...args) => this.onBeforeRenderer(...args);
@@ -113,7 +118,7 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -123,13 +128,12 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Query method - used inside search input listener.
+   * Makes the query.
    *
-   * @param {String} queryStr Searched value.
+   * @param {String} queryStr Value to be search.
    * @param {Function} [callback] Callback function performed on cells with values which matches to the searched query.
    * @param {Function} [queryMethod] Query function responsible for determining whether a query matches the value stored in a cell.
-   *
-   * @returns {Array} Return array of objects with `row`, `col`, `data` properties or empty array.
+   * @returns {Object[]} Return an array of objects with `row`, `col`, `data` properties or empty array.
    */
   query(queryStr, callback = this.getCallback(), queryMethod = this.getQueryMethod()) {
     const rowCount = this.hot.countRows();
@@ -165,7 +169,7 @@ class Search extends BasePlugin {
   };
 
   /**
-   * Get callback function.
+   * Gets the callback function.
    *
    * @returns {Function} Return the callback function.
    */
@@ -174,7 +178,7 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Set callback function.
+   * Sets the callback function. This function will be called during querying for each cell.
    *
    * @param {Function} newCallback
    */
@@ -183,7 +187,7 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Get queryMethod function.
+   * Gets the query method function.
    *
    * @returns {Function} Return the query method.
    */
@@ -192,7 +196,7 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Set queryMethod function.
+   * Sets the query method function. The function is responsible for determining whether a query matches the value stored in a cell.
    *
    * @param {Function} newQueryMethod
    */
@@ -201,16 +205,16 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Get search result cells class.
+   * Gets search result cells class name.
    *
-   * @returns {String} Return the cell class.
+   * @returns {String} Return the cell class name.
    */
   getSearchResultClass() {
     return this.searchResultClass;
   }
 
   /**
-   * Set search result cells class.
+   * Sets search result cells class name. This class name will be added to each cell that belongs to the searched query.
    *
    * @param {String} newElementClass
    */
@@ -276,7 +280,7 @@ class Search extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     super.destroy();
