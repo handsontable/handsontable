@@ -58,7 +58,7 @@ class ColumnSorting extends BasePlugin {
      */
     this.sortIndicators = [];
     /**
-     * Visual index of last sorted column.
+     * Physical index of last sorted column.
      *
      * @type {Number}
      */
@@ -165,7 +165,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    this.sortColumn = column;
+    this.sortColumn = this.hot.toPhysicalColumn(column);
     this.sortOrder = order;
 
     this.sortByPresetColumnAndOrder();
@@ -186,7 +186,9 @@ class ColumnSorting extends BasePlugin {
    * @returns {String} Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
    */
   getNextOrderState(column) {
-    if (this.sortColumn === column) {
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+
+    if (this.sortColumn === physicalColumn) {
       if (this.sortOrder === DESC_SORT_STATE) {
         return NONE_SORT_STATE;
 
@@ -273,7 +275,8 @@ class ColumnSorting extends BasePlugin {
     }
 
     const indexesWithData = [];
-    const columnMeta = this.hot.getCellMeta(0, this.sortColumn);
+    const visualColumn = this.hot.toVisualColumn(this.sortColumn);
+    const columnMeta = this.hot.getCellMeta(0, visualColumn);
     const sortFunction = this.getSortFunctionForColumn(columnMeta);
     const emptyRows = this.hot.countEmptyRows();
     let nrOfRows;
@@ -293,14 +296,14 @@ class ColumnSorting extends BasePlugin {
     this.blockPluginTranslation = true;
 
     for (let visualIndex = 0; visualIndex < nrOfRows; visualIndex += 1) {
-      indexesWithData.push([visualIndex, this.hot.getDataAtCell(visualIndex, this.sortColumn)]);
+      indexesWithData.push([visualIndex, this.hot.getDataAtCell(visualIndex, visualColumn)]);
     }
 
     mergeSort(indexesWithData, sortFunction(this.sortOrder === ASC_SORT_STATE, columnMeta));
 
     // Append spareRows
     for (let visualIndex = indexesWithData.length; visualIndex < this.hot.countRows(); visualIndex += 1) {
-      indexesWithData.push([visualIndex, this.hot.getDataAtCell(visualIndex, this.sortColumn)]);
+      indexesWithData.push([visualIndex, this.hot.getDataAtCell(visualIndex, visualColumn)]);
     }
 
     // The blockade of the indices translation is released.
@@ -341,7 +344,8 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    const columnMeta = this.hot.getCellMeta(0, this.sortColumn);
+    const visualColumn = this.hot.toVisualColumn(this.sortColumn);
+    const columnMeta = this.hot.getCellMeta(0, visualColumn);
 
     this.sortIndicators[this.sortColumn] = columnMeta.sortIndicator;
   }
@@ -409,6 +413,7 @@ class ColumnSorting extends BasePlugin {
     const TRs = TH.parentNode.parentNode.childNodes;
     const addedClasses = [];
     const removedClassess = [HEADER_CLASS_DESC_SORT, HEADER_CLASS_ASC_SORT];
+    const physicalColumn = this.hot.toPhysicalColumn(column);
     let headerLevel = Array.prototype.indexOf.call(TRs, TH.parentNode);
     headerLevel -= TRs.length;
 
@@ -420,8 +425,8 @@ class ColumnSorting extends BasePlugin {
       addedClasses.push(HEADER_CLASS_SORTING);
     }
 
-    if (this.sortIndicators[column]) {
-      if (column === this.sortColumn) {
+    if (this.sortIndicators[physicalColumn]) {
+      if (physicalColumn === this.sortColumn) {
         if (this.sortOrder === ASC_SORT_STATE) {
           addedClasses.push(HEADER_CLASS_ASC_SORT);
 
@@ -431,7 +436,9 @@ class ColumnSorting extends BasePlugin {
       }
     }
 
-    removeClass(headerLink, removedClassess.filter((removedClass) => addedClasses.includes(removedClass) === false));
+    const notAddedThenClasses = removedClassess.filter((removedClass) => addedClasses.includes(removedClass) === false);
+
+    removeClass(headerLink, notAddedThenClasses);
     addClass(headerLink, addedClasses);
   }
 

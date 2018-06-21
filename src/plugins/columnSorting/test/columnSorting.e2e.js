@@ -61,6 +61,41 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
+  it('should display sortIndicator properly after changing column order', function() {
+    const modifyCol = (column) => {
+      if (column === 0) {
+        return 1;
+
+      } else if (column === 1) {
+        return 0;
+      }
+
+      return column;
+    };
+
+    const hot = handsontable({
+      data: [
+        [1, 9, 3, 4, 5, 6, 7, 8, 9],
+        [9, 8, 7, 6, 5, 4, 3, 2, 1],
+        [8, 7, 6, 5, 4, 3, 3, 1, 9],
+        [0, 3, 0, 5, 6, 7, 8, 9, 1]
+      ],
+      colHeaders: true,
+      columnSorting: true,
+      sortIndicator: true
+    });
+
+    getPlugin('ColumnSorting').sort(0, 'asc');
+
+    // changing column order: 0 <-> 1
+    hot.updateSettings({modifyCol});
+
+    const sortedColumn = this.$container.find('th span.columnSorting')[1];
+    const afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
+
+    expect(afterValue.indexOf(String.fromCharCode(9650))).toBeGreaterThan(-1);
+  });
+
   it('should render a correct number of TD elements after sorting', async () => {
     handsontable({
       data: [
