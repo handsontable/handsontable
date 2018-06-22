@@ -240,10 +240,10 @@ class CustomBorders extends BasePlugin {
   clearBorders(selection) {
     if (!selection) {
       arrayEach(this.savedBorders, (border) => {
-        let borderId = border.id;
-
-        this.clearBordersFromSelectionSettings(borderId);
+        this.clearBordersFromSelectionSettings(border.id);
+        this.hot.removeCellMeta(border.row, border.col, 'borders');
       });
+
     } else {
       this.setBorders(selection);
     }
@@ -313,6 +313,7 @@ class CustomBorders extends BasePlugin {
 
           if (hasOwnProperty(borderDescriptor, 'top')) {
             border.top = borderDescriptor.top;
+            this.hot.setCellMeta(rowIndex, colIndex, 'borders', border);
           }
         }
 
@@ -321,6 +322,7 @@ class CustomBorders extends BasePlugin {
 
           if (hasOwnProperty(borderDescriptor, 'bottom')) {
             border.bottom = borderDescriptor.bottom;
+            this.hot.setCellMeta(rowIndex, colIndex, 'borders', border);
           }
         }
 
@@ -329,6 +331,7 @@ class CustomBorders extends BasePlugin {
 
           if (hasOwnProperty(borderDescriptor, 'left')) {
             border.left = borderDescriptor.left;
+            this.hot.setCellMeta(rowIndex, colIndex, 'borders', border);
           }
         }
 
@@ -337,11 +340,11 @@ class CustomBorders extends BasePlugin {
 
           if (hasOwnProperty(borderDescriptor, 'right')) {
             border.right = borderDescriptor.right;
+            this.hot.setCellMeta(rowIndex, colIndex, 'borders', border);
           }
         }
 
         if (add > 0) {
-          this.hot.setCellMeta(rowIndex, colIndex, 'borders', border);
           this.insertBorderIntoSettings(border);
         }
       });
@@ -385,14 +388,7 @@ class CustomBorders extends BasePlugin {
     if (remove) {
       bordersMeta[place] = createSingleEmptyBorder();
 
-      const values = Object.values(bordersMeta);
-      const hideCount = arrayReduce(values, (accumulator, value) => {
-        if (value.hide) {
-          accumulator += 1;
-        }
-
-        return accumulator;
-      }, 0);
+      const hideCount = this.countHide(bordersMeta);
 
       if (hideCount === 4) {
         this.removeAllBorders(row, column);
@@ -495,6 +491,24 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
+  * Count hide property in border object.
+  *
+  * @private
+  * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+  */
+  countHide(border) {
+    const values = Object.values(border);
+
+    return arrayReduce(values, (accumulator, value) => {
+      if (value.hide) {
+        accumulator += 1;
+      }
+
+      return accumulator;
+    }, 0);
+  }
+
+  /**
   * Clear borders settings from custom selections.
   *
   * @private
@@ -550,15 +564,22 @@ class CustomBorders extends BasePlugin {
   checkSavedBorders(border) {
     let check = false;
 
-    arrayEach(this.savedBorders, (savedBorder, index) => {
-      if (border.id === savedBorder.id) {
-        this.savedBorders[index] = border;
+    const hideCount = this.countHide(border);
 
-        check = true;
+    if (hideCount === 4) {
+      this.spliceBorder(border.id);
+      check = true;
 
-        return false; // breaks forAll
-      }
-    });
+    } else {
+      arrayEach(this.savedBorders, (savedBorder, index) => {
+        if (border.id === savedBorder.id) {
+          this.savedBorders[index] = border;
+          check = true;
+
+          return false; // breaks forAll
+        }
+      });
+    }
 
     return check;
   }

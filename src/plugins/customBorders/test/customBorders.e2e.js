@@ -52,6 +52,235 @@ describe('CustomBorders', () => {
     });
   });
 
+  it('should draw borders by use setBorders method', async () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      customBorders: true
+    });
+
+    const redBorder = {
+        color: 'red',
+        width: 2
+      },
+      empty = {
+        hide: true
+      },
+      customBorders = hot.getPlugin('customBorders');
+
+    selectCells([[1, 1, 2, 2]]);
+
+    customBorders.setBorders(getSelected(), {
+      top: {
+        width: 2,
+        color: 'red'
+      },
+      bottom: {
+        width: 2,
+        color: 'red'
+      }
+    });
+
+    expect(getCellMeta(1, 1).borders.top).toEqual(redBorder);
+    expect(getCellMeta(1, 1).borders.left).toEqual(empty);
+    expect(getCellMeta(1, 1).borders.bottom).toEqual(empty);
+    expect(getCellMeta(1, 1).borders.right).toEqual(empty);
+
+    expect(getCellMeta(1, 2).borders.top).toEqual(redBorder);
+    expect(getCellMeta(1, 2).borders.left).toEqual(empty);
+    expect(getCellMeta(1, 2).borders.bottom).toEqual(empty);
+    expect(getCellMeta(1, 2).borders.right).toEqual(empty);
+
+    expect(getCellMeta(2, 1).borders.top).toEqual(empty);
+    expect(getCellMeta(2, 1).borders.left).toEqual(empty);
+    expect(getCellMeta(2, 1).borders.bottom).toEqual(redBorder);
+    expect(getCellMeta(2, 1).borders.right).toEqual(empty);
+
+    expect(getCellMeta(2, 2).borders.top).toEqual(empty);
+    expect(getCellMeta(2, 2).borders.left).toEqual(empty);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(redBorder);
+    expect(getCellMeta(2, 2).borders.right).toEqual(empty);
+  });
+
+  it('should redraw borders by use setBorders method', async () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      customBorders: [{
+        row: 2,
+        col: 2,
+        left: {
+          width: 2,
+          color: 'red'
+        },
+        right: {
+          width: 1,
+          color: 'green'
+        },
+        top: {
+          width: 2,
+          color: 'green'
+        }
+      }]
+    });
+
+    const redBorder = {
+        color: 'red',
+        width: 2
+      },
+      empty = {
+        hide: true
+      },
+      customBorders = hot.getPlugin('customBorders');
+
+    selectCell(2, 2);
+
+    customBorders.setBorders(getSelectedRange(), {
+      top: {
+        width: 2,
+        color: 'red'
+      },
+      bottom: {
+        width: 2,
+        color: 'red'
+      }
+    });
+
+    expect(getCellMeta(2, 2).borders.top).toEqual(redBorder);
+    expect(getCellMeta(2, 2).borders.left).toEqual(empty);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(redBorder);
+    expect(getCellMeta(2, 2).borders.right).toEqual(empty);
+  });
+
+  it('should return borders from the selected area by use getBorders method', async () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      customBorders: [{
+        row: 2,
+        col: 2,
+        left: {
+          width: 2,
+          color: 'red'
+        },
+        right: {
+          width: 1,
+          color: 'green'
+        },
+        top: {
+          width: 1,
+          color: 'green'
+        }
+      }]
+    });
+
+    const redBorder = {
+        color: 'red',
+        width: 2
+      },
+      greenBorder = {
+        color: 'green',
+        width: 1
+      },
+      empty = {
+        hide: true
+      },
+      customBorders = hot.getPlugin('customBorders');
+
+    hot.selectCells([[1, 1, 2, 2]]);
+
+    const borders = customBorders.getBorders(getSelected());
+
+    expect(borders.length).toEqual(1);
+    expect(borders[0].top).toEqual(greenBorder);
+    expect(borders[0].left).toEqual(redBorder);
+    expect(borders[0].bottom).toEqual(empty);
+    expect(borders[0].right).toEqual(greenBorder);
+  });
+
+  it('should clear borders from the selected area by use clearBorders method', async () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      customBorders: [{
+        range: {
+          from: {
+            row: 1,
+            col: 1
+          },
+          to: {
+            row: 3,
+            col: 3
+          }
+        },
+        top: {
+          width: 2,
+          color: 'blue'
+        },
+        left: {
+          width: 2,
+          color: 'orange'
+        },
+        bottom: {
+          width: 2,
+          color: 'red'
+        },
+        right: {
+          width: 2,
+          color: 'magenta'
+        }
+      },
+      {
+        row: 2,
+        col: 2,
+        left: {
+          width: 2,
+          color: 'red'
+        },
+        right: {
+          width: 1,
+          color: 'green'
+        },
+        top: {
+          width: 2,
+          color: 'green'
+        }
+      }]
+    });
+
+    const magentaBorder = {
+        color: 'magenta',
+        width: 2
+      },
+      blueBorder = {
+        color: 'blue',
+        width: 2
+      },
+      orangeBorder = {
+        color: 'orange',
+        width: 2
+      },
+      redBorder = {
+        color: 'red',
+        width: 2
+      },
+      customBorders = hot.getPlugin('customBorders');
+
+    selectCells([[0, 0, 2, 2]]);
+
+    customBorders.clearBorders(getSelectedRange());
+
+    expect(getCellMeta(1, 1).borders).toBeUndefined();
+    expect(getCellMeta(1, 2).borders).toBeUndefined();
+    expect(getCellMeta(2, 1).borders).toBeUndefined();
+    expect(getCellMeta(2, 2).borders).toBeUndefined();
+
+    expect(getCellMeta(1, 3).borders.top).toEqual(blueBorder);
+    expect(getCellMeta(1, 3).borders.right).toEqual(magentaBorder);
+    expect(getCellMeta(2, 3).borders.right).toEqual(magentaBorder);
+    expect(getCellMeta(3, 1).borders.left).toEqual(orangeBorder);
+    expect(getCellMeta(3, 1).borders.bottom).toEqual(redBorder);
+    expect(getCellMeta(3, 2).borders.bottom).toEqual(redBorder);
+    expect(getCellMeta(3, 3).borders.right).toEqual(magentaBorder);
+    expect(getCellMeta(3, 3).borders.bottom).toEqual(redBorder);
+  });
+
   it('should draw top border from context menu options', async () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
