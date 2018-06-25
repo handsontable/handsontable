@@ -6,14 +6,13 @@ import {arrayMap, arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
 import {inherit, deepClone} from './../../helpers/object';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
-import {CellCoords} from './../../3rdparty/walkontable/src';
 import {align} from './../contextMenu/utils';
 
 /**
  * @description
  * Handsontable UndoRedo plugin allows to undo and redo certain actions done in the table.
  *
- * __Note__, that not all actions are currently undo-able.
+ * __Note__, that not all actions are currently undo-able. The UndoRedo plugin is enabled by default.
  *
  * @example
  * ```js

@@ -22,29 +22,29 @@ If you use a date picker or numeric cell types, you will also have to include Pi
 If you are a "Bob the Builder" kind of hacker, you will need to load Handsontable JS, CSS and their dependencies:
 ```html
 <!-- Required dependencies (as external scripts) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pikaday/1.5.1/pikaday.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/numbro/1.11.0/numbro.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pikaday@1.5.1/pikaday.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.20.1/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/numbro@2/dist/numbro.min.js"></script>
 
 <!-- Handsontable bare files -->
 <script src="dist/handsontable.js"></script>
-<link rel="stylesheet" media="screen" href="https://cdnjs.cloudflare.com/ajax/libs/pikaday/1.5.1/css/pikaday.min.css">
+<link rel="stylesheet" media="screen" href="https://cdn.jsdelivr.net/npm/pikaday@1.5.1/css/pikaday.min.css">
 <link rel="stylesheet" media="screen" href="dist/handsontable.css">
 ```
 
 **handsontable.js** and **handsontable.css** are compiled ___without___ the needed dependencies.
 
 ## Internationalization
-Since Handsontable [35.0.0](https://docs.handsontable.com/0.35.0/tutorial-release-notes.html) it is possible to include files which will register languages dictionaries. They allow to translate parts of Handsontable UI. You can either use only particular languages files or include all of them at once as a single file.
+Since Handsontable 0.35.0 it is possible to include files which will register languages dictionaries. They allow to translate parts of Handsontable UI. You can either use only particular languages files or include all of them at once as a single file.
 
-All the information about the API and additional options can be found at our [official documentation](https://docs.handsontable.com/0.35.0/tutorial-internationalization.html).
+All the information about the API and additional options can be found at our [official documentation](https://docs.handsontable.com/tutorial-internationalization.html).
 
 ```html
 <!-- Internationalization, Polish - Poland language-country file -->
-<script src="languages/pl-PL.js"></script>
+<script src="dist/languages/pl-PL.js"></script>
 
 <!-- Internationalization, all available language files in one file -->
-<script src="languages/all.js"></script>
+<script src="dist/languages/all.js"></script>
 ```
 
 ## Custom distribution
