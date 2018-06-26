@@ -749,7 +749,7 @@ declare namespace Handsontable {
       loadSortingState(): any;
       numericSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
       saveSortingState(): void;
-      sort(): void;
+      sort(column: number, order?: SortOrderType): void;
     }
 
     interface ColumnSummary extends Base {
@@ -1588,7 +1588,7 @@ declare namespace Handsontable {
     afterChangesObserved?: () => void;
     afterColumnMove?: (startColumn: number, endColumn: number) => void;
     afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
-    afterColumnSort?: (column: number, order: boolean) => void;
+    afterColumnSort?: (column: number, order: plugins.SortOrderType) => void;
     afterContextMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterContextMenuHide?: (context: object) => void;
     beforeContextMenuShow?: (context: object) => void;
@@ -1655,7 +1655,7 @@ declare namespace Handsontable {
     beforeChangeRender?: (changes: any[], source: string) => void;
     beforeColumnMove?: (startColumn: number, endColumn: number) => void;
     beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
-    beforeColumnSort?: (column: number, order: boolean) => void;
+    beforeColumnSort?: (column: number, order: plugins.SortOrderType) => void;
     beforeContextMenuSetItems?: (menuItems: any[]) => void;
     beforeCopy?: (data: any[], coords: any[]) => any;
     beforeCreateCol?: (index: number, amount: number, source?: string) => void;
