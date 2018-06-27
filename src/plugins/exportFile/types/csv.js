@@ -20,6 +20,7 @@ class Csv extends BaseType {
     return {
       mimeType: 'text/csv',
       fileExtension: 'csv',
+      bom: true,
       columnDelimiter: ',',
       rowDelimiter: '\r\n',
     };
@@ -37,9 +38,7 @@ class Csv extends BaseType {
     const hasColumnHeaders = columnHeaders.length > 0;
     let rowHeaders = this.dataProvider.getRowHeaders();
     const hasRowHeaders = rowHeaders.length > 0;
-
-    // Starts with utf-8 BOM
-    let result = '\ufeff';
+    let result = options.bom ? String.fromCharCode(0xFEFF) : '';
 
     if (hasColumnHeaders) {
       columnHeaders = arrayMap(columnHeaders, (value) => this._escapeCell(value, true));
