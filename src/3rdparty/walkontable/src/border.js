@@ -1,5 +1,6 @@
 import {
   addClass,
+  hasClass,
   removeClass,
   getComputedStyle,
   getTrimmingContainer,
@@ -578,6 +579,30 @@ class Border {
     }
 
     return false;
+  }
+
+  /**
+   * Change border style.
+   *
+   * @private
+   * @param {HTMLElement} borderElement
+   */
+  changeBorderStyle(borderElement, border) {
+    let style = this[borderElement].style;
+    let borderStyle = border[borderElement];
+
+    if (!borderStyle || borderStyle.hide) {
+      addClass(this[borderElement], 'hidden');
+
+    } else {
+      style.backgroundColor = borderStyle.color;
+      style.width = `${borderStyle.width}px`;
+      style.height = `${borderStyle.width}px`;
+
+      if (hasClass(this[borderElement], 'hidden')) {
+        removeClass(this[borderElement], 'hidden');
+      }
+    }
   }
 
   /**

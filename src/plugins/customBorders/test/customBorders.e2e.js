@@ -82,20 +82,20 @@ describe('CustomBorders', () => {
 
     expect(getCellMeta(1, 1).borders.top).toEqual(redBorder);
     expect(getCellMeta(1, 1).borders.left).toEqual(empty);
-    expect(getCellMeta(1, 1).borders.bottom).toEqual(empty);
+    expect(getCellMeta(1, 1).borders.bottom).toEqual(redBorder);
     expect(getCellMeta(1, 1).borders.right).toEqual(empty);
 
     expect(getCellMeta(1, 2).borders.top).toEqual(redBorder);
     expect(getCellMeta(1, 2).borders.left).toEqual(empty);
-    expect(getCellMeta(1, 2).borders.bottom).toEqual(empty);
+    expect(getCellMeta(1, 2).borders.bottom).toEqual(redBorder);
     expect(getCellMeta(1, 2).borders.right).toEqual(empty);
 
-    expect(getCellMeta(2, 1).borders.top).toEqual(empty);
+    expect(getCellMeta(2, 1).borders.top).toEqual(redBorder);
     expect(getCellMeta(2, 1).borders.left).toEqual(empty);
     expect(getCellMeta(2, 1).borders.bottom).toEqual(redBorder);
     expect(getCellMeta(2, 1).borders.right).toEqual(empty);
 
-    expect(getCellMeta(2, 2).borders.top).toEqual(empty);
+    expect(getCellMeta(2, 2).borders.top).toEqual(redBorder);
     expect(getCellMeta(2, 2).borders.left).toEqual(empty);
     expect(getCellMeta(2, 2).borders.bottom).toEqual(redBorder);
     expect(getCellMeta(2, 2).borders.right).toEqual(empty);
@@ -126,8 +126,9 @@ describe('CustomBorders', () => {
         color: 'red',
         width: 2
       },
-      empty = {
-        hide: true
+      greenBorder = {
+        color: 'green',
+        width: 1
       },
       customBorders = hot.getPlugin('customBorders');
 
@@ -145,9 +146,9 @@ describe('CustomBorders', () => {
     });
 
     expect(getCellMeta(2, 2).borders.top).toEqual(redBorder);
-    expect(getCellMeta(2, 2).borders.left).toEqual(empty);
+    expect(getCellMeta(2, 2).borders.left).toEqual(redBorder);
     expect(getCellMeta(2, 2).borders.bottom).toEqual(redBorder);
-    expect(getCellMeta(2, 2).borders.right).toEqual(empty);
+    expect(getCellMeta(2, 2).borders.right).toEqual(greenBorder);
   });
 
   it('should return borders from the selected area by use getBorders method', async () => {
