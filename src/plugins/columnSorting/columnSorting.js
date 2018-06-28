@@ -299,7 +299,7 @@ class ColumnSorting extends BasePlugin {
       indexesWithData.push([visualIndex, this.hot.getDataAtCell(visualIndex, visualColumn)]);
     }
 
-    mergeSort(indexesWithData, sortFunction(this.sortOrder === ASC_SORT_STATE, columnMeta));
+    mergeSort(indexesWithData, sortFunction(this.sortOrder, columnMeta));
 
     // Append spareRows
     for (let visualIndex = indexesWithData.length; visualIndex < this.hot.countRows(); visualIndex += 1) {

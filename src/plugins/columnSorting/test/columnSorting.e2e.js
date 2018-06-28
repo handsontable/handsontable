@@ -2243,10 +2243,10 @@ describe('ColumnSorting', () => {
               });
 
               if (newA < newB) {
-                return sortOrder ? -1 : 1;
+                return sortOrder === 'asc' ? -1 : 1;
               }
               if (newA > newB) {
-                return sortOrder ? 1 : -1;
+                return sortOrder === 'asc' ? 1 : -1;
               }
               return 0;
             };

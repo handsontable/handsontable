@@ -3,63 +3,69 @@ import {isEmpty} from '../../../helpers/mixed';
 /**
  * Default sorting algorithm.
  *
- * @param {Boolean} sortOrder Sorting order - `true` for ascending, `false` for descending.
+ * @param {Boolean} sortOrder Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
  * @param {Object} columnMeta Column meta object.
- * @returns {Function} The comparing function.
+ * @returns {Function} The compare function.
  */
+
+const DO_NOT_SWAP = 0;
+const FIRST_BEFORE_SECOND = -1;
+const FIRST_AFTER_SECOND = 1;
+
 export default function defaultSort(sortOrder, columnMeta) {
-  return function(a, b) {
-    if (typeof a[1] === 'string') {
-      a[1] = a[1].toLowerCase();
+  const compareFunction = function (value, nextValue) {
+    if (typeof value[1] === 'string') {
+      value[1] = value[1].toLowerCase();
     }
-    if (typeof b[1] === 'string') {
-      b[1] = b[1].toLowerCase();
-    }
-
-    if (a[1] === b[1]) {
-      return 0;
+    if (typeof nextValue[1] === 'string') {
+      nextValue[1] = nextValue[1].toLowerCase();
     }
 
-    if (isEmpty(a[1])) {
-      if (isEmpty(b[1])) {
-        return 0;
+    if (value[1] === nextValue[1]) {
+      return DO_NOT_SWAP;
+    }
+
+    if (isEmpty(value[1])) {
+      if (isEmpty(nextValue[1])) {
+        return DO_NOT_SWAP;
       }
 
       if (columnMeta.columnSorting.sortEmptyCells) {
-        return sortOrder ? -1 : 1;
+        return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
       }
 
-      return 1;
+      return FIRST_AFTER_SECOND;
     }
-    if (isEmpty(b[1])) {
-      if (isEmpty(a[1])) {
-        return 0;
-      }
 
+    if (isEmpty(nextValue[1])) {
       if (columnMeta.columnSorting.sortEmptyCells) {
-        return sortOrder ? 1 : -1;
+        return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
       }
 
-      return -1;
+      return FIRST_BEFORE_SECOND;
     }
 
-    if (isNaN(a[1]) && !isNaN(b[1])) {
-      return sortOrder ? 1 : -1;
+    if (isNaN(value[1]) && !isNaN(nextValue[1])) {
+      return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
 
-    } else if (!isNaN(a[1]) && isNaN(b[1])) {
-      return sortOrder ? -1 : 1;
+    } else if (!isNaN(value[1]) && isNaN(nextValue[1])) {
+      return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
 
-    } else if (!(isNaN(a[1]) || isNaN(b[1]))) {
-      a[1] = parseFloat(a[1]);
-      b[1] = parseFloat(b[1]);
-    }
-    if (a[1] < b[1]) {
-      return sortOrder ? -1 : 1;
-    }
-    if (a[1] > b[1]) {
-      return sortOrder ? 1 : -1;
+    } else if (!(isNaN(value[1]) || isNaN(nextValue[1]))) {
+      value[1] = parseFloat(value[1]);
+      nextValue[1] = parseFloat(nextValue[1]);
     }
 
-    return 0;
+    if (value[1] < nextValue[1]) {
+      return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
+    }
+
+    if (value[1] > nextValue[1]) {
+      return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
+    }
+
+    return DO_NOT_SWAP;
   };
+
+  return compareFunction;
 }
