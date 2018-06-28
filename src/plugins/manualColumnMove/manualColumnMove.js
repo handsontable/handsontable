@@ -26,7 +26,8 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  * @plugin ManualColumnMove
  *
  * @description
- * This plugin allows to change columns order.
+ * This plugin allows to change columns order. To make columns order persistent the {@link Options#persistentState}
+ * plugin should be enabled.
  *
  * API:
  * - moveColumn - move single column to the new position.
@@ -34,7 +35,7 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  *
  * If you want apply visual changes, you have to call manually the render() method on the instance of Handsontable.
  *
- * UI components:
+ * The plugin creates additional components to make moving possibly using user interface:
  * - backlight - highlight of selected columns.
  * - guideline - line which shows where rows has been moved.
  *
@@ -65,37 +66,43 @@ class ManualColumnMove extends BasePlugin {
     /**
      * List of last removed row indexes.
      *
+     * @private
      * @type {Array}
      */
     this.removedColumns = [];
     /**
      * Object containing visual row indexes mapped to data source indexes.
      *
+     * @private
      * @type {RowsMapper}
      */
     this.columnsMapper = new ColumnsMapper(this);
     /**
      * Event Manager object.
      *
+     * @private
      * @type {Object}
      */
     this.eventManager = new EventManager(this);
     /**
      * Backlight UI object.
      *
+     * @private
      * @type {Object}
      */
     this.backlight = new BacklightUI(hotInstance);
     /**
      * Guideline UI object.
      *
+     * @private
      * @type {Object}
      */
     this.guideline = new GuidelineUI(hotInstance);
   }
 
   /**
-   * Check if plugin is enabled.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ManualColumnMove#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -104,7 +111,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Enable the plugin.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -130,7 +137,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -142,7 +149,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     let pluginSettings = this.hot.getSettings().manualColumnMove;
@@ -161,20 +168,24 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Move a single column.
+   * Moves a single column.
    *
    * @param {Number} column Visual column index to be moved.
    * @param {Number} target Visual column index being a target for the moved column.
+   * @fires Hooks#beforeColumnMove
+   * @fires Hooks#afterColumnMove
    */
   moveColumn(column, target) {
     this.moveColumns([column], target);
   }
 
   /**
-   * Move multiple columns.
+   * Moves a multiple columns.
    *
    * @param {Array} columns Array of visual column indexes to be moved.
    * @param {Number} target Visual column index being a target for the moved columns.
+   * @fires Hooks#beforeColumnMove
+   * @fires Hooks#afterColumnMove
    */
   moveColumns(columns, target) {
     const visualColumns = [...columns];
@@ -218,7 +229,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Get the sum of the widths of columns in the provided range.
+   * Gets the sum of the widths of columns in the provided range.
    *
    * @private
    * @param {Number} from Visual column index.
@@ -244,7 +255,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Load initial settings when persistent state is saved or when plugin was initialized as an array.
+   * Loads initial settings when persistent state is saved or when plugin was initialized as an array.
    *
    * @private
    */
@@ -260,7 +271,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Check if the provided column is in the fixedColumnsLeft section.
+   * Checks if the provided column is in the fixedColumnsLeft section.
    *
    * @private
    * @param {Number} column Visual column index to check.
@@ -271,18 +282,14 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Save the manual column positions to the persistent state.
-   *
-   * @private
+   * Saves the manual column positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
    */
   persistentStateSave() {
     this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.columnsMapper._arrayMap);
   }
 
   /**
-   * Load the manual column positions from the persistent state.
-   *
-   * @private
+   * Loads the manual column positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
    */
   persistentStateLoad() {
     let storedState = {};
@@ -295,7 +302,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Prepare array of indexes based on actual selection.
+   * Prepares an array of indexes based on actual selection.
    *
    * @private
    * @returns {Array}
@@ -311,7 +318,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Update the UI visual position.
+   * Updates the UI visual position.
    *
    * @private
    */
@@ -436,7 +443,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Bind the events used by the plugin.
+   * Binds the events used by the plugin.
    *
    * @private
    */
@@ -446,7 +453,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Unbind the events used by the plugin.
+   * Unbinds the events used by the plugin.
    *
    * @private
    */
@@ -455,7 +462,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Change the behavior of selection / dragging.
+   * Changes the behavior of selection / dragging.
    *
    * @private
    * @param {MouseEvent} event `mousedown` event properties.
@@ -722,7 +729,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.backlight.destroy();

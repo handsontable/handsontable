@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 3.0.0
- * Release date: 16/05/2018 (built at 09/05/2018 15:18:34)
+ * Version: 4.0.0
+ * Release date: 13/06/2018 (built at 12/06/2018 11:47:13)
  */
 /**
  * Fix for bootstrap styles
@@ -445,9 +445,9 @@
 }
 
 .handsontableInput {
-  border:none;
+  border: none;
   outline-width: 0;
-  margin: 0 ;
+  margin: 0;
   padding: 1px 5px 0 5px;
   font-family: inherit;
   line-height: 21px;

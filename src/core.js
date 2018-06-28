@@ -1847,7 +1847,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function alter
-   * @param {String} action Alter operation: `"insert_row"`, `"insert_col"`, `"remove_row"`, `"remove_col"`.
+   * @param {String} action Possible alter operations:
+   *  * `'insert_row'`
+   *  * `'insert_col'`
+   *  * `'remove_row'`
+   *  * `'remove_col'`
    * @param {Number|Number[]} index Visual index of the row/column before which the new row/column will be
    *                                inserted/removed or an array of arrays in format `[[index, amount],...]`.
    * @param {Number} [amount=1] Amount of rows/columns to be inserted or removed.

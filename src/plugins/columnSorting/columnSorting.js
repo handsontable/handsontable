@@ -29,35 +29,38 @@ const NONE_SORT_STATE = 'none';
  * @plugin ColumnSorting
  *
  * @description
- * This plugin sorts the view by a column (but does not sort the data source!).
- * To enable the plugin, set the `columnSorting` property to either:
- * * a boolean value (`true`/`false`),
- * * an object defining the initial sorting order (see the example below).
+ * This plugin sorts the view by a column (but does not sort the data source!). To enable the plugin, set the
+ * {@link Options#columnSorting} property to an object defining the initial sorting order (see the example below).
  *
  * @example
  * ```js
- * ...
  * // as boolean
  * columnSorting: true
- * ...
+ *
  * // as a object with initial order (sort ascending column at index 2)
  * columnSorting: {
  *  column: 2,
  *  sortOrder: 'asc', // 'asc' = ascending, 'desc' = descending, 'none' = original order
  *  sortEmptyCells: true // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
  * }
- * ...
  * ```
  * @dependencies ObserveChanges moment
  */
 class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
-    // TODO: It could be refactored, it's cache which store information about value of `sortIndicator` property
-    // inside meta of first cell from particular column.
+    /**
+     * TODO: It could be refactored, it's cache which store information about value of `sortIndicator` property
+     * inside meta of first cell from particular column.
+     *
+     * @private
+     * @type {Array}
+     */
     this.sortIndicators = [];
     /**
      * Visual index of last sorted column.
+     *
+     * @type {Number}
      */
     this.sortColumn = void 0;
     /**
@@ -69,6 +72,7 @@ class ColumnSorting extends BasePlugin {
     /**
      * Object containing visual row indexes mapped to data source indexes.
      *
+     * @private
      * @type {RowsMapper}
      */
     this.rowsMapper = new RowsMapper(this);
@@ -88,7 +92,8 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ColumnSorting#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -97,7 +102,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -134,17 +139,20 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     super.disablePlugin();
   }
 
   /**
-   * Sorting the table by chosen column and order.
+   * Sorts the table by chosen column and order.
    *
    * @param {Number} column Visual column index.
-   * @param {undefined|String} order Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
+   * @param {String} order Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
+   *
+   * @fires Hooks#beforeColumnSort
+   * @fires Hooks#afterColumnSort
    */
   sort(column, order) {
     this.setSortingColumn(column, order);
@@ -171,7 +179,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Check if any column is in a sorted state.
+   * Checks if any column is in a sorted state.
    *
    * @returns {Boolean}
    */
@@ -180,7 +188,10 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Save the sorting state.
+   * Saves the sorting state. To use this method the {@link Options#persistentState} option has to be enabled.
+   *
+   * @fires Hooks#persistentStateSave
+   * @fires Hooks#columnSorting
    */
   saveSortingState() {
     let sortingState = {};
@@ -200,9 +211,12 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Load the sorting state.
+   * Loads the sorting state. To use this method the {@link Options#persistentState} option has to be enabled.
    *
    * @returns {*} Previously saved sorting state.
+   *
+   * @fires Hooks#persistentStateLoad
+   * @fires Hooks#columnSorting
    */
   loadSortingState() {
     let storedState = {};
@@ -212,7 +226,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Set sorted column and order info
+   * Sets sorted column and order info
    *
    * @private
    * @param {Number} column Sorted visual column index.
@@ -250,7 +264,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Enable the ObserveChanges plugin.
+   * Enables the ObserveChanges plugin.
    *
    * @private
    */
@@ -266,7 +280,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Perform the sorting using a stable sort function.
+   * Performs the sorting using a stable sort function.
    *
    * @private
    */
@@ -316,7 +330,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Get sort function for the particular column basing on its column meta.
+   * Gets sort function for the particular column basing on its column meta.
    *
    * @private
    * @param {Object} columnMeta
@@ -337,7 +351,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Update indicator states.
+   * Updates indicator states.
    *
    * @private
    */
@@ -351,7 +365,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Set options by passed settings
+   * Sets options by passed settings
    *
    * @private
    */
@@ -515,7 +529,7 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.rowsMapper.destroy();

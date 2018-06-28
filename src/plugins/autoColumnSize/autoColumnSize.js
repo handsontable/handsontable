@@ -24,40 +24,34 @@ const privatePool = new WeakMap();
  * If you experience problems with the performance, try turning this feature off and declaring the column widths manually.
  *
  * Column width calculations are divided into sync and async part. Each of this parts has their own advantages and
- * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous operations don't
- * block the browser UI.
+ * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
+ * operations don't block the browser UI.
  *
  * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value to a config object:
  * ```js
- * ...
  * // as a number (300 columns in sync, rest async)
  * autoColumnSize: {syncLimit: 300},
- * ...
  *
- * ...
  * // as a string (percent)
  * autoColumnSize: {syncLimit: '40%'},
- * ...
  * ```
  *
  * To configure this plugin see {@link Options#autoColumnSize}.
  *
  * @example
  * ```js
- * ...
- * var hot = new Handsontable(document.getElementById('example'), {
+ * const hot = new Handsontable(document.getElementById('example'), {
  *   date: getData(),
  *   autoColumnSize: true
  * });
  * // Access to plugin instance:
- * var plugin = hot.getPlugin('autoColumnSize');
+ * const plugin = hot.getPlugin('autoColumnSize');
  *
  * plugin.getColumnWidth(4);
  *
  * if (plugin.isEnabled()) {
  *   // code...
  * }
- * ...
  * ```
  */
 class AutoColumnSize extends BasePlugin {
@@ -84,24 +78,27 @@ class AutoColumnSize extends BasePlugin {
     /**
      * Cached columns widths.
      *
-     * @type {Array}
+     * @type {Number[]}
      */
     this.widths = [];
     /**
      * Instance of {@link GhostTable} for rows and columns size calculations.
      *
+     * @private
      * @type {GhostTable}
      */
     this.ghostTable = new GhostTable(this.hot);
     /**
      * Instance of {@link SamplesGenerator} for generating samples necessary for columns width calculations.
      *
+     * @private
      * @type {SamplesGenerator}
      */
     this.samplesGenerator = new SamplesGenerator((row, col) => (this.hot.getCellMeta(row, col).spanned ? '' : this.hot.getDataAtCell(row, col)));
     /**
      * `true` only if the first calculation was performed
      *
+     * @private
      * @type {Boolean}
      */
     this.firstCalculation = true;
@@ -117,7 +114,8 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link AutoColumnSize#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -126,7 +124,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -149,7 +147,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Update plugin state.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     const changedColumns = this.findColumnsWhereHeaderWasChanged();
@@ -161,18 +159,18 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     super.disablePlugin();
   }
 
   /**
-   * Calculate a columns width.
+   * Calculates a columns width.
    *
-   * @param {Number|Object} colRange Column range object.
-   * @param {Number|Object} rowRange Row range object.
-   * @param {Boolean} [force=false] If `true` force calculate width even when value was cached earlier.
+   * @param {Number|Object} colRange Column index or an object with `from` and `to` indexes as a range.
+   * @param {Number|Object} rowRange Row index or an object with `from` and `to` indexes as a range.
+   * @param {Boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
   calculateColumnsWidth(colRange = {from: 0, to: this.hot.countCols() - 1}, rowRange = {from: 0, to: this.hot.countRows() - 1}, force = false) {
     if (typeof colRange === 'number') {
@@ -199,9 +197,10 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Calculate all columns width.
+   * Calculates all columns width. The calculated column will be cached in the {@link AutoColumnSize#widths} property.
+   * To retrieve width for specyfied column use {@link AutoColumnSize#getColumnWidth} method.
    *
-   * @param {Object|Number} rowRange Row range object.
+   * @param {Object|Number} rowRange Row index or an object with `from` and `to` properties which define row range.
    */
   calculateAllColumnsWidth(rowRange = {from: 0, to: this.hot.countRows() - 1}) {
     let current = 0;
@@ -255,7 +254,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Set the sampling options.
+   * Sets the sampling options.
    *
    * @private
    */
@@ -274,7 +273,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Recalculate all columns width (overwrite cache values).
+   * Recalculates all columns width (overwrite cache values).
    */
   recalculateAllColumnsWidth() {
     if (this.hot.view && isVisible(this.hot.view.wt.wtTable.TABLE)) {
@@ -284,7 +283,8 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get value which tells how many columns should be calculated synchronously. Rest of the columns will be calculated asynchronously.
+   * Gets value which tells how many columns should be calculated synchronously (rest of the columns will be calculated
+   * asynchronously). The limit is calculated based on `syncLimit` set to `autoColumnSize` option (see {@link Options#autoColumnSize}).
    *
    * @returns {Number}
    */
@@ -308,18 +308,18 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get the calculated column width.
+   * Gets the calculated column width.
    *
-   * @param {Number} col Column index.
+   * @param {Number} column Column index.
    * @param {Number} [defaultWidth] Default column width. It will be picked up if no calculated width found.
    * @param {Boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
    * @returns {Number}
    */
-  getColumnWidth(col, defaultWidth = void 0, keepMinimum = true) {
+  getColumnWidth(column, defaultWidth = void 0, keepMinimum = true) {
     let width = defaultWidth;
 
     if (width === void 0) {
-      width = this.widths[col];
+      width = this.widths[column];
 
       if (keepMinimum && typeof width === 'number') {
         width = Math.max(width, ViewportColumnsCalculator.DEFAULT_WIDTH);
@@ -330,7 +330,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get the first visible column.
+   * Gets the first visible column.
    *
    * @returns {Number} Returns column index or -1 if table is not rendered.
    */
@@ -348,7 +348,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Get the last visible column.
+   * Gets the last visible column.
    *
    * @returns {Number} Returns column index or -1 if table is not rendered.
    */
@@ -368,6 +368,7 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Collects all columns which titles has been changed in comparison to the previous state.
    *
+   * @private
    * @returns {Array} It returns an array of physical column indexes.
    */
   findColumnsWhereHeaderWasChanged() {
@@ -393,10 +394,10 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Clear cache of calculated column widths. If you want to clear only selected columns pass an array with their indexes.
+   * Clears cache of calculated column widths. If you want to clear only selected columns pass an array with their indexes.
    * Otherwise whole cache will be cleared.
    *
-   * @param {Array} [columns=[]] List of column indexes (physical indexes) to clear.
+   * @param {Number[]} [columns] List of physical column indexes to clear.
    */
   clearCache(columns = []) {
     if (columns.length) {
@@ -409,7 +410,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Check if all widths were calculated. If not then return `true` (need recalculate).
+   * Checks if all widths were calculated. If not then return `true` (need recalculate).
    *
    * @returns {Boolean}
    */
@@ -496,7 +497,7 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.ghostTable.clean();

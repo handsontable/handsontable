@@ -21,44 +21,41 @@ import {isPercentValue} from './../../helpers/string';
  * If you experience problems with the performance, try turning this feature off and declaring the row heights manually.
  *
  * Row height calculations are divided into sync and async part. Each of this parts has their own advantages and
- * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous operations don't
- * block the browser UI.
+ * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
+ * operations don't block the browser UI.
  *
  * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value to a config object:
  * ```js
- * ...
  * // as a number (300 columns in sync, rest async)
  * autoRowSize: {syncLimit: 300},
- * ...
  *
- * ...
  * // as a string (percent)
  * autoRowSize: {syncLimit: '40%'},
- * ...
+ *
+ * // allow sample duplication
+ * autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
  * ```
  *
- * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row height. Note, that this might have
- * a negative impact on performance.
+ * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
+ * height. __Note__, that this might have a negative impact on performance.
  *
  * To configure this plugin see {@link Options#autoRowSize}.
  *
  * @example
  *
  * ```js
- * ...
- * var hot = new Handsontable(document.getElementById('example'), {
+ * const hot = new Handsontable(document.getElementById('example'), {
  *   date: getData(),
  *   autoRowSize: true
  * });
  * // Access to plugin instance:
- * var plugin = hot.getPlugin('autoRowSize');
+ * const plugin = hot.getPlugin('autoRowSize');
  *
  * plugin.getRowHeight(4);
  *
  * if (plugin.isEnabled()) {
  *   // code...
  * }
- * ...
  * ```
  */
 class AutoRowSize extends BasePlugin {
@@ -75,18 +72,20 @@ class AutoRowSize extends BasePlugin {
     /**
      * Cached rows heights.
      *
-     * @type {Array}
+     * @type {Number[]}
      */
     this.heights = [];
     /**
      * Instance of {@link GhostTable} for rows and columns size calculations.
      *
+     * @private
      * @type {GhostTable}
      */
     this.ghostTable = new GhostTable(this.hot);
     /**
      * Instance of {@link SamplesGenerator} for generating samples necessary for rows height calculations.
      *
+     * @private
      * @type {SamplesGenerator}
      */
     this.samplesGenerator = new SamplesGenerator((row, col) => {
@@ -103,6 +102,7 @@ class AutoRowSize extends BasePlugin {
     /**
      * `true` if only the first calculation was performed.
      *
+     * @private
      * @type {Boolean}
      */
     this.firstCalculation = true;
@@ -118,7 +118,8 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the Handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link AutoRowSize#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -127,7 +128,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -149,7 +150,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     super.disablePlugin();
@@ -158,9 +159,9 @@ class AutoRowSize extends BasePlugin {
   /**
    * Calculate a given rows height.
    *
-   * @param {Number|Object} rowRange Row range object.
-   * @param {Number|Object} colRange Column range object.
-   * @param {Boolean} [force=false] If `true` force calculate height even when value was cached earlier.
+   * @param {Number|Object} rowRange Row index or an object with `from` and `to` indexes as a range.
+   * @param {Number|Object} colRange Column index or an object with `from` and `to` indexes as a range.
+   * @param {Boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
   calculateRowsHeight(rowRange = {from: 0, to: this.hot.countRows() - 1}, colRange = {from: 0, to: this.hot.countCols() - 1}, force = false) {
     if (typeof rowRange === 'number') {
@@ -196,9 +197,10 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Calculate the height of all the rows.
+   * Calculate all rows heights. The calculated row will be cached in the {@link AutoRowSize#heights} property.
+   * To retrieve height for specyfied row use {@link AutoRowSize#getRowHeight} method.
    *
-   * @param {Object|Number} colRange Column range object.
+   * @param {Object|Number} rowRange Row index or an object with `from` and `to` properties which define row range.
    */
   calculateAllRowsHeight(colRange = {from: 0, to: this.hot.countCols() - 1}) {
     let current = 0;
@@ -248,7 +250,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Set the sampling options.
+   * Sets the sampling options.
    *
    * @private
    */
@@ -267,7 +269,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Recalculate all rows height (overwrite cache values).
+   * Recalculates all rows height (overwrite cache values).
    */
   recalculateAllRowsHeight() {
     if (isVisible(this.hot.view.wt.wtTable.TABLE)) {
@@ -277,7 +279,8 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Get value which tells how much rows will be calculated synchronously. Rest rows will be calculated asynchronously.
+   * Gets value which tells how many rows should be calculated synchronously (rest of the rows will be calculated
+   * asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see {@link Options#autoRowSize}).
    *
    * @returns {Number}
    */
@@ -301,10 +304,10 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Get the calculated row height.
+   * Gets the calculated row height.
    *
    * @param {Number} row Visual row index.
-   * @param {Number} [defaultHeight] Default row height. It will be pick up if no calculated height found.
+   * @param {Number} [defaultHeight] Default row height. It will be picked up if no calculated height found.
    * @returns {Number}
    */
   getRowHeight(row, defaultHeight = void 0) {
@@ -345,7 +348,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Get the last visible row.
+   * Gets the last visible row.
    *
    * @returns {Number} Returns row index or -1 if table is not rendered.
    */
@@ -363,7 +366,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Clear cached heights.
+   * Clears cached heights.
    */
   clearCache() {
     this.heights.length = 0;
@@ -371,9 +374,9 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Clear cache by range.
+   * Clears cache by range.
    *
-   * @param {Object|Number} range Row range object.
+   * @param {Object|Number} range Row index or an object with `from` and `to` properties which define row range.
    */
   clearCacheByRange(range) {
     if (typeof range === 'number') {
@@ -385,6 +388,8 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
+   * Checks if all heights were calculated. If not then return `true` (need recalculate).
+   *
    * @returns {Boolean}
    */
   isNeedRecalculate() {
@@ -484,7 +489,7 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.ghostTable.clean();
