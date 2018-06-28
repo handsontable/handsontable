@@ -1,3 +1,6 @@
+/* global Handsontable */
+/* eslint no-restricted-globals: ["off", "Handsontable"] */
+
 export function sleep(delay = 100) {
   return Promise.resolve({
     then: function(resolve) {
@@ -97,24 +100,25 @@ export function getCorrespondingOverlay(cell, container) {
  * Shows context menu
  */
 export function contextMenu(cell) {
-  var hot = spec().$container.data('handsontable');
-  var selected = hot.getSelectedLast();
+  const hotInstance = spec().$container.data('handsontable');
+  let selected = hotInstance.getSelectedLast();
 
   if (!selected) {
-    hot.selectCell(0, 0);
-    selected = hot.getSelectedLast();
+    hotInstance.selectCell(0, 0);
+    selected = hotInstance.getSelectedLast();
   }
   if (!cell) {
     cell = getCell(selected[0], selected[1]);
   }
-  var cellOffset = $(cell).offset();
+  const cellOffset = $(cell).offset();
 
   $(cell).simulate('mousedown', { button: 2 });
   $(cell).simulate('contextmenu', {
     clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
     clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(),
   });
-  $(cell).simulate('mouseup', { button: 2 });
+  // Chrome doesn't call `mouseup`.
+  // $(cell).simulate('mouseup', { button: 2 });
 };
 
 export function closeContextMenu() {
@@ -456,6 +460,7 @@ export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
 export const updateSettings = handsontableMethodFactory('updateSettings');
+export const undo = handsontableMethodFactory('undo');
 
 /**
  * Returns column width for HOT container
@@ -748,3 +753,7 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
   e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false, touches, targetTouches, changedTouches, 1, 0);
   target.dispatchEvent(e);
 };
+
+export function createSpreadsheetData(...args) {
+  return Handsontable.helper.createSpreadsheetData(...args);
+}

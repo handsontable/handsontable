@@ -54,7 +54,17 @@ function Event(instance) {
     }
   };
 
-  var onTouchMove = function(event) {
+  const onContextMenu = function(event) {
+    if (that.instance.hasSetting('onCellContextMenu')) {
+      const cell = that.parentCell(event.realTarget);
+
+      if (cell.TD) {
+        that.instance.getSetting('onCellContextMenu', event, cell.coords, cell.TD, that.instance);
+      }
+    }
+  };
+
+  var onTouchMove = function() {
     that.instance.touchMoving = true;
   };
 
@@ -165,6 +175,7 @@ function Event(instance) {
   };
 
   eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', onMouseDown);
+  eventManager.addEventListener(this.instance.wtTable.holder, 'contextmenu', onContextMenu);
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', onMouseOver);
   eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseout', onMouseOut);
   eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', onMouseUp);
