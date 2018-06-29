@@ -4,7 +4,7 @@ import CellCoords from './../cell/coords';
  * CellRange holds cell coordinates as {@link CellCoords} instances. This object represent unit of the selection layer which
  * can contains multiple contiquous cells or single cell.
  *
- * @class CellRange
+ * @util
  */
 class CellRange {
   constructor(highlight, from = highlight, to = highlight) {
