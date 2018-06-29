@@ -24,6 +24,10 @@ import {
   createEmptyBorders,
   extendDefaultBorder
 } from './utils';
+import {
+  detectSelectionType,
+  normalizeSelectionFactory,
+} from './selection';
 
 /**
  * @plugin CustomBorders
@@ -139,43 +143,31 @@ class CustomBorders extends BasePlugin {
   /**
     * Set custom borders.
     *
-    * @param {Array} selection
+    * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
     * @param {Object} borderObject Object with `top`, `right`, `bottom` and `left` properties.
     */
-  setBorders(selection, borderObject) {
+  setBorders(selectionRanges, borderObject) {
     const defaultBorderKeys = ['top', 'right', 'bottom', 'left'];
     const borderKeys = borderObject ? Object.keys(borderObject) : defaultBorderKeys;
+    const selectionType = detectSelectionType(selectionRanges);
+    const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
 
-    arrayEach(selection, (cell) => {
-      if (Array.isArray(cell)) {
-        const [startRow, startColumn, endRow, endColumn] = cell;
+    arrayEach(selectionRanges, (selection) => {
+      const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
 
-        if (startRow === endRow && startColumn === endColumn) {
-          arrayEach(borderKeys, (borderKey) => {
-            this.prepareBorderFromCustomAdded(startRow, startColumn, borderObject, borderKey);
-          });
-
-        } else {
-          for (let row = startRow; row <= endRow; row += 1) {
-            for (let col = startColumn; col <= endColumn; col += 1) {
-              arrayEach(borderKeys, (borderKey) => {
-                this.prepareBorderFromCustomAdded(row, col, borderObject, borderKey);
-              });
-            }
-          }
-        }
+      if (rowStart === rowEnd && columnStart === columnEnd) {
+        arrayEach(borderKeys, (borderKey) => {
+          this.prepareBorderFromCustomAdded(rowStart, columnStart, borderObject, borderKey);
+        });
 
       } else {
-        const topLeft = cell.getTopLeftCorner();
-        const bottomRight = cell.getBottomRightCorner();
-
-        rangeEach(topLeft.row, bottomRight.row, (row) => {
-          rangeEach(topLeft.col, bottomRight.col, (column) => {
+        for (let row = rowStart; row <= rowEnd; row += 1) {
+          for (let col = columnStart; col <= columnEnd; col += 1) {
             arrayEach(borderKeys, (borderKey) => {
-              this.prepareBorderFromCustomAdded(row, column, borderObject, borderKey);
+              this.prepareBorderFromCustomAdded(row, col, borderObject, borderKey);
             });
-          });
-        });
+          }
+        }
       }
     });
   }
@@ -183,51 +175,37 @@ class CustomBorders extends BasePlugin {
   /**
     * Get custom borders.
     *
-    * @param {Array} selection
+    * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
     */
-  getBorders(selection) {
-    if (!selection) {
+  getBorders(selectionRanges) {
+    if (!Array.isArray(selectionRanges)) {
       return this.savedBorders;
     }
 
+    const selectionType = detectSelectionType(selectionRanges);
+    const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
     let selectedBorders = [];
 
-    arrayEach(selection, (cell) => {
-      if (Array.isArray(cell)) {
-        const [startRow, startColumn, endRow, endColumn] = cell;
+    arrayEach(selectionRanges, (selection) => {
+      const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
 
-        if (startRow === endRow && startColumn === endColumn) {
-          arrayEach(this.savedBorders, (border) => {
-            if (border.row === startRow && border.col === startColumn) {
-              selectedBorders.push(border);
-            }
-          });
-
-        } else {
-          for (let row = startRow; row <= endRow; row += 1) {
-            for (let col = startColumn; col <= endColumn; col += 1) {
-              arrayEach(this.savedBorders, (border) => {
-                if (border.row === row && border.col === col) {
-                  selectedBorders.push(border);
-                }
-              });
-            }
+      if (rowStart === rowEnd && columnStart === columnEnd) {
+        arrayEach(this.savedBorders, (border) => {
+          if (border.row === rowStart && border.col === columnStart) {
+            selectedBorders.push(border);
           }
-        }
+        });
 
       } else {
-        const topLeft = cell.getTopLeftCorner();
-        const bottomRight = cell.getBottomRightCorner();
-
-        rangeEach(topLeft.row, bottomRight.row, (row) => {
-          rangeEach(topLeft.col, bottomRight.col, (column) => {
+        for (let row = rowStart; row <= rowEnd; row += 1) {
+          for (let col = columnStart; col <= columnEnd; col += 1) {
             arrayEach(this.savedBorders, (border) => {
-              if (border.row === row && border.col === column) {
+              if (border.row === row && border.col === col) {
                 selectedBorders.push(border);
               }
             });
-          });
-        });
+          }
+        }
       }
     });
 
@@ -237,11 +215,11 @@ class CustomBorders extends BasePlugin {
   /**
     * Clear custom borders.
     *
-    * @param {Array} selection
+    * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
     */
-  clearBorders(selection) {
-    if (selection) {
-      this.setBorders(selection);
+  clearBorders(selectionRanges) {
+    if (selectionRanges) {
+      this.setBorders(selectionRanges);
 
     } else {
       arrayEach(this.savedBorders, (border) => {

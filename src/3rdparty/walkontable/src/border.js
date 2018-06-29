@@ -585,7 +585,7 @@ class Border {
    * Change border style.
    *
    * @private
-   * @param {HTMLElement} borderElement
+   * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
    */
   changeBorderStyle(borderElement, border) {
     let style = this[borderElement].style;
@@ -595,12 +595,18 @@ class Border {
       addClass(this[borderElement], 'hidden');
 
     } else {
-      style.backgroundColor = borderStyle.color;
-      style.width = `${borderStyle.width}px`;
-      style.height = `${borderStyle.width}px`;
-
       if (hasClass(this[borderElement], 'hidden')) {
         removeClass(this[borderElement], 'hidden');
+      }
+
+      style.backgroundColor = borderStyle.color;
+
+      if (borderElement === 'top' || borderElement === 'bottom') {
+        style.height = `${borderStyle.width}px`;
+      }
+
+      if (borderElement === 'right' || borderElement === 'left') {
+        style.width = `${borderStyle.width}px`;
       }
     }
   }
@@ -627,7 +633,7 @@ class Border {
    * Toggle class 'hidden' to element.
    *
    * @private
-   * @param {HTMLElement} borderElement
+   * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
    * @return {Boolean}
    */
   toggleHiddenClass(borderElement, remove) {
