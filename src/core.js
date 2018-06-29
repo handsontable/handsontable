@@ -1086,9 +1086,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {String} [value] New value.
    * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
    */
-  this.setDataAtCell = function(row, col, value, source) {
+  this.setDataAtCell = function(row, column, value, source) {
     var
-      input = setDataInputToArray(row, col, value),
+      input = setDataInputToArray(row, column, value),
       i,
       ilen,
       changes = [],
@@ -1111,7 +1111,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (!source && typeof row === 'object') {
-      source = col;
+      source = column;
     }
 
     instance.runHooks('afterSetDataAtCell', changes, source);
@@ -3121,7 +3121,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @example
    * ```js
-   * // Uing an array of arrays.
+   * // Using an array of arrays.
    * hot.selectCells([[1, 1, 2, 2], [3, 3], [6, 2, 0, 2]]);
    * // Using an array of arrays with defined columns as props.
    * hot.selectCells([[1, 'id', 2, 'first_name'], [3, 'full_name'], [6, 'last_name', 0, 'first_name']]);
