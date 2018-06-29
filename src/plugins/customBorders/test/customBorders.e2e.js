@@ -52,7 +52,7 @@ describe('CustomBorders', () => {
     });
   });
 
-  it('should throw an exception `Unsupported selection ranges schema type was provided.` after calling setBorder method without parameter', async () => {
+  it('should throw an exception `Unsupported selection ranges schema type was provided.` after calling setBorder method without parameter', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: true
@@ -70,7 +70,7 @@ describe('CustomBorders', () => {
     expect(errors).toEqual(1);
   });
 
-  it('should draw borders by use setBorders method', async () => {
+  it('should draw borders by use setBorders method', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: true
@@ -119,7 +119,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.right).toEqual(empty);
   });
 
-  it('should redraw borders by use setBorders method', async () => {
+  it('should redraw borders by use setBorders method', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: [{
@@ -169,7 +169,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.right).toEqual(greenBorder);
   });
 
-  it('should hide only specific border by use setBorders method with {hide: true}', async () => {
+  it('should hide only specific border by use setBorders method with {hide: true}', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: [{
@@ -222,7 +222,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.right).toEqual(redBorder);
   });
 
-  it('should return borders from the selected area by use getBorders method', async () => {
+  it('should return borders from the selected area by use getBorders method', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: [{
@@ -267,7 +267,7 @@ describe('CustomBorders', () => {
     expect(borders[0].right).toEqual(greenBorder);
   });
 
-  it('should return all borders by use getBorders method without parameter', async () => {
+  it('should return all borders by use getBorders method without parameter', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: [{
@@ -323,7 +323,7 @@ describe('CustomBorders', () => {
     expect(borders.length).toEqual(9);
   });
 
-  it('should clear borders from the selected area by use clearBorders method', async () => {
+  it('should clear borders from the selected area by use clearBorders method', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: [{
@@ -409,7 +409,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(3, 3).borders.bottom).toEqual(redBorder);
   });
 
-  it('should clear all borders by use clearBorders method without parameter', async () => {
+  it('should clear all borders by use clearBorders method without parameter', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       customBorders: [{
