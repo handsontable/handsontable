@@ -63,6 +63,17 @@ describe('TextEditor', () => {
     expect(keyProxy().val()).toEqual('string');
   });
 
+  it('should render textarea editor with tabindex=-1 attribute', async () => {
+    const hot = handsontable();
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    await sleep(10);
+
+    expect(hot.getActiveEditor().TEXTAREA.getAttribute('tabindex')).toBe('-1');
+  });
+
   it('should render textarea editor in specified size at cell 0, 0 without headers', (done) => {
     var hot = handsontable();
 
@@ -163,7 +174,7 @@ describe('TextEditor', () => {
     }, 200);
   });
 
-  it('should hide editor when quick navigation by click scrollbar was triggered', (done) => {
+  it('should hide editor when quick navigation by click scrollbar was triggered', async () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       rowHeaders: true,
@@ -177,10 +188,9 @@ describe('TextEditor', () => {
     keyUp('enter');
     hot.scrollViewportTo(49);
 
-    setTimeout(() => {
-      expect(hot.getActiveEditor().textareaParentStyle.display).toBe('none');
-      done();
-    }, 100);
+    await sleep(100);
+
+    expect(isEditorVisible()).toBe(false);
   });
 
   it('should render textarea editor in specified height (single line)', (done) => {
@@ -565,7 +575,6 @@ describe('TextEditor', () => {
   });
 
   it('editor size should not exceed the viewport after text edit', function() {
-
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 5),
       width: 200,
@@ -586,7 +595,6 @@ describe('TextEditor', () => {
 
     expect($textarea.offset().left + $textarea.outerWidth()).not.toBeGreaterThan($wtHider.offset().left + this.$container.outerWidth());
     expect($textarea.offset().top + $textarea.outerHeight()).not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
-
   });
 
   it('should open editor after selecting cell in another table and hitting enter', function() {
@@ -600,12 +608,13 @@ describe('TextEditor', () => {
 
     // Open editor in HOT1
     keyDown('enter');
-    var editor = $('.handsontableInputHolder');
-    expect(editor.is(':visible')).toBe(true);
+
+    expect(isEditorVisible($(hot1.getActiveEditor().TEXTAREA))).toBe(true);
 
     // Close editor in HOT1
     keyDown('enter');
-    expect(editor.is(':visible')).toBe(false);
+
+    expect(isEditorVisible($(hot1.getActiveEditor().TEXTAREA))).toBe(false);
 
     this.$container2.find('tbody tr:eq(0) td:eq(0)').simulate('mousedown');
     this.$container2.find('tbody tr:eq(0) td:eq(0)').simulate('mouseup');
@@ -615,19 +624,20 @@ describe('TextEditor', () => {
 
     // Open editor in HOT2
     keyDown('enter');
-    editor = $('.handsontableInputHolder');
-    expect(editor.is(':visible')).toBe(true);
+
+    expect(isEditorVisible($(hot2.getActiveEditor().TEXTAREA))).toBe(true);
 
     this.$container2.handsontable('destroy');
     this.$container2.remove();
 
     function handsontable2(options) {
       var container = this.$container2;
+
       container.handsontable(options);
       container[0].focus(); // otherwise TextEditor tests do not pass in IE8
+
       return container.data('handsontable');
     }
-
   });
 
   it('should open editor after pressing a printable character', function() {
@@ -637,22 +647,13 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    var editorHolder = $('.handsontableInputHolder');
-    //    var editorInput = editorHolder.find('.handsontableInput');
-
-    expect(editorHolder.is(':visible')).toBe(false);
-
-    //    var keyboardEvent = $.Event('keydown', {
-    //      keyCode: 'a'.charCodeAt(0)
-    //    });
-
-    //    this.$container.trigger(keyboardEvent);
+    expect(isEditorVisible()).toBe(false);
 
     this.$container.simulate('keydown', {
-      keyCode: 'a'.charCodeAt(0)
+      keyCode: 'A'.charCodeAt(0)
     });
 
-    expect(editorHolder.is(':visible')).toBe(true);
+    expect(isEditorVisible()).toBe(true);
   });
 
   it('should open editor after pressing a printable character with shift key', function() {
@@ -662,34 +663,14 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    var editorHolder = $('.handsontableInputHolder');
-
-    expect(editorHolder.is(':visible')).toBe(false);
-
-    /**
-     * To reliably mimic SHIFT+SOME_KEY combination we have to trigger two events.
-     * First we need to trigger keydown event with SHIFT keyCode (16)
-     * and then trigger a keydown event with keyCode of SOME_KEY and shiftKey property set to true
-     */
-    //    var shiftKeyboardEvent = $.Event('keydown', {
-    //      keyCode: 16, //shift
-    //      shiftKey: true
-    //    });
-    //
-    //    var keyboardEvent = $.Event('keydown', {
-    //      keyCode: 'a'.charCodeAt(0),
-    //      shiftKey: true
-    //    });
+    expect(isEditorVisible()).toBe(false);
 
     this.$container.simulate('keydown', {
-      keyCode: 'a'.charCodeAt(0),
+      keyCode: 'A'.charCodeAt(0),
       shiftKey: true
     });
 
-    //    this.$container.trigger(shiftKeyboardEvent);
-    //    this.$container.trigger(keyboardEvent);
-
-    expect(editorHolder.is(':visible')).toBe(true);
+    expect(isEditorVisible()).toBe(true);
   });
 
   it('should be able to open editor after clearing cell data with DELETE', function() {
@@ -699,18 +680,16 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    var editorHolder = $('.handsontableInputHolder');
-
-    expect(editorHolder.is(':visible')).toBe(false);
+    expect(isEditorVisible()).toBe(false);
 
     this.$container.simulate('keydown', {
       keyCode: 46
     });
-
     this.$container.simulate('keydown', {
-      keyCode: 'a'.charCodeAt(0)
+      keyCode: 'A'.charCodeAt(0)
     });
-    expect(editorHolder.is(':visible')).toBe(true);
+
+    expect(isEditorVisible()).toBe(true);
   });
 
   it('should be able to open editor after clearing cell data with BACKSPACE', function() {
@@ -720,19 +699,16 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    var editorHolder = $('.handsontableInputHolder');
-
-    expect(editorHolder.is(':visible')).toBe(false);
+    expect(isEditorVisible()).toBe(false);
 
     this.$container.simulate('keydown', {
       keyCode: 8 // backspace
     });
-
     this.$container.simulate('keydown', {
-      keyCode: 'a'.charCodeAt(0)
+      keyCode: 'A'.charCodeAt(0)
     });
 
-    expect(editorHolder.is(':visible')).toBe(true);
+    expect(isEditorVisible()).toBe(true);
   });
 
   it('should scroll editor to a cell, if trying to edit cell that is outside of the viewport', () => {
@@ -1100,7 +1076,7 @@ describe('TextEditor', () => {
     }, 150);
   });
 
-  // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
+  // Input element can not lose the focus while entering new characters. It breaks IME editor functionality.
   it('should not lose the focus on input element while inserting new characters (#839)', async () => {
     let blured = false;
     const listener = () => {
@@ -1138,5 +1114,81 @@ describe('TextEditor', () => {
     }).not.toThrow();
 
     done();
+  });
+
+  it('should keep editor open, focusable and with untouched value when allowInvalid is set as false', async () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      allowInvalid: false,
+      validator(val, cb) {
+        cb(false);
+      },
+    });
+    selectCell(0, 0);
+
+    keyDown('enter');
+    destroyEditor();
+    document.activeElement.value = '999';
+
+    await sleep(10);
+
+    expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    expect(isEditorVisible()).toBe(true);
+    expect(getActiveEditor().TEXTAREA.value).toBe('999');
+
+    keyDown('enter');
+
+    expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    expect(isEditorVisible()).toBe(true);
+    expect(getActiveEditor().TEXTAREA.value).toBe('999');
+
+    const cell = $(getCell(1, 1));
+
+    mouseDown(cell);
+    mouseUp(cell);
+    mouseDown(cell);
+    mouseUp(cell);
+
+    await sleep(10);
+
+    expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    expect(isEditorVisible()).toBe(true);
+    expect(getActiveEditor().TEXTAREA.value).toBe('999');
+  });
+
+  describe('IME support', () => {
+    it('should focus editable element after selecting the cell', async () => {
+      handsontable({
+        type: 'text',
+      });
+      selectCell(0, 0, 0, 0, true, false);
+
+      await sleep(10);
+
+      expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    });
+
+    it('editor size should change after composition started', async () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 5),
+        width: 400,
+        height: 400,
+      });
+
+      selectCell(2, 2);
+      keyDownUp('enter');
+
+      const textarea = getActiveEditor().TEXTAREA;
+
+      textarea.value = 'test, test, test, test, test, test';
+      textarea.dispatchEvent(new CompositionEvent('compositionstart')); // Trigger textarea resize
+      textarea.dispatchEvent(new CompositionEvent('compositionupdate')); // Trigger textarea resize
+      textarea.dispatchEvent(new CompositionEvent('compositionend')); // Trigger textarea resize
+
+      await sleep(100);
+
+      expect($(textarea).width()).toBe(201);
+      expect($(textarea).height()).toBe(23);
+    });
   });
 });

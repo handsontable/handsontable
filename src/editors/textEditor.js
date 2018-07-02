@@ -16,6 +16,7 @@ import autoResize from './../../lib/autoResize/autoResize';
 import BaseEditor, {EditorState} from './_baseEditor';
 import EventManager from './../eventManager';
 import {KEY_CODES} from './../helpers/unicode';
+import {isMSBrowser} from './../helpers/browser';
 import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
 
 const TextEditor = BaseEditor.prototype.extend();
@@ -32,10 +33,52 @@ TextEditor.prototype.init = function() {
   this.eventManager = new EventManager(this);
   this.bindEvents();
   this.autoResize = autoResize();
+  this.holderZIndex = -1;
 
   this.instance.addHook('afterDestroy', () => {
     that.destroy();
   });
+};
+
+TextEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellProperties) {
+  const previousState = this.state;
+
+  BaseEditor.prototype.prepare.apply(this, arguments);
+
+  if (!cellProperties.readOnly) {
+    this.refreshDimensions(true);
+
+    const {
+      allowInvalid,
+      fragmentSelection,
+    } = cellProperties;
+
+    if (allowInvalid) {
+      this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME)
+    }
+
+    if (previousState !== EditorState.FINISHED) {
+      this.hideEditableElement();
+    }
+
+    // @TODO: The fragmentSelection functionality is conflicted with IME. For this feature refocus has to
+    // be disabled (to make IME working).
+    const restoreFocus = !fragmentSelection;
+
+    if (restoreFocus) {
+      this.instance._registerImmediate(() => this.focus());
+    }
+  }
+};
+
+TextEditor.prototype.hideEditableElement = function() {
+  this.textareaParentStyle.top = '-9999px';
+  this.textareaParentStyle.left = '-9999px';
+  this.textareaParentStyle.zIndex = '-1';
+};
+
+TextEditor.prototype.showEditableElement = function() {
+  this.textareaParentStyle.zIndex = this.holderZIndex >= 0 ? this.holderZIndex : '';
 };
 
 TextEditor.prototype.getValue = function() {
@@ -44,6 +87,15 @@ TextEditor.prototype.getValue = function() {
 
 TextEditor.prototype.setValue = function(newValue) {
   this.TEXTAREA.value = newValue;
+};
+
+TextEditor.prototype.beginEditing = function(newInitialValue, event) {
+  if (this.state !== EditorState.VIRGIN) {
+    return;
+  }
+
+  this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME).
+  BaseEditor.prototype.beginEditing.apply(this, arguments);
 };
 
 var onBeforeKeyDown = function onBeforeKeyDown(event) {
@@ -140,30 +192,32 @@ var onBeforeKeyDown = function onBeforeKeyDown(event) {
 
 TextEditor.prototype.open = function() {
   this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
+  this.showEditableElement();
 
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 };
 
 TextEditor.prototype.close = function(tdOutside) {
-  this.textareaParentStyle.display = 'none';
-
   this.autoResize.unObserve();
 
   if (document.activeElement === this.TEXTAREA) {
     this.instance.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
   }
+
+  this.hideEditableElement();
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
 };
 
 TextEditor.prototype.focus = function() {
-  this.TEXTAREA.focus();
+  // For IME editor textarea element must be focused using ".select" method. Using ".focus" browser automatically scroll into
+  // the focused element which is undesire effect.
+  this.TEXTAREA.select();
   setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
 };
 
 TextEditor.prototype.createElements = function() {
-  //    this.$body = $(document.body);
-
   this.TEXTAREA = document.createElement('TEXTAREA');
+  this.TEXTAREA.tabIndex = -1;
 
   addClass(this.TEXTAREA, 'handsontableInput');
 
@@ -175,24 +229,16 @@ TextEditor.prototype.createElements = function() {
   addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
   this.textareaParentStyle = this.TEXTAREA_PARENT.style;
-  this.textareaParentStyle.top = 0;
-  this.textareaParentStyle.left = 0;
-  this.textareaParentStyle.display = 'none';
+  this.textareaParentStyle.zIndex = '-1';
 
   this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
 
   this.instance.rootElement.appendChild(this.TEXTAREA_PARENT);
-
-  var that = this;
-  this.instance._registerTimeout(setTimeout(() => {
-    that.refreshDimensions();
-  }, 0));
 };
 
 TextEditor.prototype.getEditedCell = function() {
-  var
-    editorSection = this.checkEditorSection(),
-    editedCell;
+  let editorSection = this.checkEditorSection();
+  let editedCell;
 
   switch (editorSection) {
     case 'top':
@@ -200,39 +246,39 @@ TextEditor.prototype.getEditedCell = function() {
         row: this.row,
         col: this.col
       });
-      this.textareaParentStyle.zIndex = 101;
+      this.holderZIndex = 101;
       break;
     case 'top-left-corner':
       editedCell = this.instance.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
         row: this.row,
         col: this.col
       });
-      this.textareaParentStyle.zIndex = 103;
+      this.holderZIndex = 103;
       break;
     case 'bottom-left-corner':
       editedCell = this.instance.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell({
         row: this.row,
         col: this.col
       });
-      this.textareaParentStyle.zIndex = 103;
+      this.holderZIndex = 103;
       break;
     case 'left':
       editedCell = this.instance.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
         row: this.row,
         col: this.col
       });
-      this.textareaParentStyle.zIndex = 102;
+      this.holderZIndex = 102;
       break;
     case 'bottom':
       editedCell = this.instance.view.wt.wtOverlays.bottomOverlay.clone.wtTable.getCell({
         row: this.row,
         col: this.col
       });
-      this.textareaParentStyle.zIndex = 102;
+      this.holderZIndex = 102;
       break;
     default:
       editedCell = this.instance.getCell(this.row, this.col);
-      this.textareaParentStyle.zIndex = '';
+      this.holderZIndex = -1;
       break;
   }
 
@@ -247,15 +293,17 @@ TextEditor.prototype.refreshValue = function() {
   this.refreshDimensions();
 };
 
-TextEditor.prototype.refreshDimensions = function() {
-  if (this.state !== EditorState.EDITING) {
+TextEditor.prototype.refreshDimensions = function(force = false) {
+  if (this.state !== EditorState.EDITING && !force) {
     return;
   }
   this.TD = this.getEditedCell();
 
   // TD is outside of the viewport.
   if (!this.TD) {
-    this.close(true);
+    if (!force) {
+      this.close(true);
+    }
 
     return;
   }
@@ -324,6 +372,7 @@ TextEditor.prototype.refreshDimensions = function() {
 
   this.textareaParentStyle.top = `${editTop}px`;
   this.textareaParentStyle.left = `${editLeft}px`;
+  this.showEditableElement();
 
   let firstRowOffset = this.instance.view.wt.wtViewport.rowsRenderCalculator.startPosition;
   let firstColumnOffset = this.instance.view.wt.wtViewport.columnsRenderCalculator.startPosition;
@@ -345,7 +394,6 @@ TextEditor.prototype.refreshDimensions = function() {
 
   this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
   this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
-  this.TEXTAREA.style.backgroundColor = ''; // RESET STYLE
   this.TEXTAREA.style.backgroundColor = backgroundColor ? backgroundColor : getComputedStyle(this.TEXTAREA).backgroundColor;
 
   this.autoResize.init(this.TEXTAREA, {
@@ -354,8 +402,6 @@ TextEditor.prototype.refreshDimensions = function() {
     minWidth: Math.min(width, maxWidth),
     maxWidth // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
   }, true);
-
-  this.textareaParentStyle.display = 'block';
 };
 
 TextEditor.prototype.bindEvents = function() {
@@ -364,7 +410,6 @@ TextEditor.prototype.bindEvents = function() {
   this.eventManager.addEventListener(this.TEXTAREA, 'cut', (event) => {
     stopPropagation(event);
   });
-
   this.eventManager.addEventListener(this.TEXTAREA, 'paste', (event) => {
     stopPropagation(event);
   });

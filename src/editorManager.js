@@ -65,7 +65,9 @@ function EditorManager(instance, priv, selection) {
     }
     instance.runHooks('beforeKeyDown', event);
 
-    if (destroyed) {
+    // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
+    // character is entering (using IME editor). It is fired mainly on linux (ubuntu) with installed ibus-pinyin package.
+    if (destroyed || event.keyCode === 229) {
       return;
     }
     if (isImmediatePropagationStopped(event)) {
@@ -165,11 +167,11 @@ function EditorManager(instance, priv, selection) {
 
       case KEY_CODES.F2:
         /* F2 */
-        _this.openEditor(null, event);
-
         if (activeEditor) {
           activeEditor.enableFullEditMode();
         }
+        _this.openEditor(null, event);
+
         event.preventDefault(); // prevent Opera from opening 'Go to Page dialog'
         break;
 
@@ -183,11 +185,11 @@ function EditorManager(instance, priv, selection) {
           moveSelectionAfterEnter(event.shiftKey);
 
         } else if (instance.getSettings().enterBeginsEditing) {
-          _this.openEditor(null, event);
-
           if (activeEditor) {
             activeEditor.enableFullEditMode();
           }
+          _this.openEditor(null, event);
+
         } else {
           moveSelectionAfterEnter(event.shiftKey);
         }
@@ -198,6 +200,8 @@ function EditorManager(instance, priv, selection) {
       case KEY_CODES.ESCAPE:
         if (_this.isEditorOpened()) {
           _this.closeEditorAndRestoreOriginalValue(ctrlDown);
+
+          activeEditor.focus();
         }
         event.preventDefault();
         break;
@@ -247,14 +251,20 @@ function EditorManager(instance, priv, selection) {
       }
     });
 
+    // Open editor when text composition is started (IME editor)
+    eventManager.addEventListener(document.documentElement, 'compositionstart', (event) => {
+      if (!destroyed && activeEditor && !activeEditor.isOpened() && instance.isListening()) {
+        _this.openEditor('', event);
+      }
+    });
+
     function onDblClick(event, coords, elem) {
       // may be TD or TH
       if (elem.nodeName === 'TD') {
-        _this.openEditor(null, event);
-
         if (activeEditor) {
           activeEditor.enableFullEditMode();
         }
+        _this.openEditor(null, event);
       }
     }
     instance.view.wt.update('onCellDblClick', onDblClick);
@@ -372,14 +382,19 @@ function EditorManager(instance, priv, selection) {
    * @param {DOMEvent} event
    */
   this.openEditor = function(newInitialValue, event) {
-    if (activeEditor && !activeEditor.cellProperties.readOnly) {
-      activeEditor.beginEditing(newInitialValue, event);
-    } else if (activeEditor && activeEditor.cellProperties.readOnly) {
+    if (!activeEditor) {
+      return;
+    }
 
+    const readOnly = activeEditor.cellProperties.readOnly;
+
+    if (readOnly) {
       // move the selection after opening the editor with ENTER key
       if (event && event.keyCode === KEY_CODES.ENTER) {
         moveSelectionAfterEnter();
       }
+    } else {
+      activeEditor.beginEditing(newInitialValue, event);
     }
   };
 

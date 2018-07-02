@@ -59,6 +59,36 @@ describe('HandsontableEditor', () => {
     expect(this.$container.find('.handsontableEditor')[0].offsetTop).toEqual(this.$container.find('.handsontableInput')[0].offsetHeight);
   });
 
+  it('should prepare the editor only once per instance', function() {
+    handsontable({
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
+    expect(this.$container.find('.handsontableEditor').length).toEqual(1);
+  });
+
   it('should destroy the editor when Esc is pressed', function() {
     handsontable({
       columns: [
@@ -228,27 +258,6 @@ describe('HandsontableEditor', () => {
 
       expect(innerHot.getSelected()).toEqual([[0, 0, 0, 0]]);
     });
-
-    it('should hide textarea', () => {
-      var hot = handsontable({
-        columns: [
-          {
-            type: 'handsontable',
-            handsontable: {
-              colHeaders: ['Marque', 'Country', 'Parent company'],
-              data: getManufacturerData()
-            },
-            strict: true
-          }
-        ]
-      });
-      selectCell(2, 0);
-
-      keyDownUp('enter');
-
-      expect(hot.getActiveEditor().TEXTAREA.style.visibility).toEqual('hidden');
-
-    });
   });
 
   describe('non strict mode', () => {
@@ -290,8 +299,30 @@ describe('HandsontableEditor', () => {
       selectCell(2, 0);
 
       keyDownUp('enter');
-      expect(hot.getActiveEditor().TEXTAREA.style.visibility).toEqual('visible');
 
+      expect(hot.getActiveEditor().TEXTAREA.parentElement.style.zIndex).toEqual('');
+      expect(hot.getActiveEditor().TEXTAREA.style.visibility).toEqual('');
+    });
+  });
+
+  describe('IME support', () => {
+    it('should focus editable element after selecting the cell', async () => {
+      handsontable({
+        columns: [
+          {
+            type: 'handsontable',
+            handsontable: {
+              colHeaders: ['Marque', 'Country', 'Parent company'],
+              data: getManufacturerData()
+            }
+          }
+        ]
+      });
+      selectCell(0, 0, 0, 0, true, false);
+
+      await sleep(10);
+
+      expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
   });
 });

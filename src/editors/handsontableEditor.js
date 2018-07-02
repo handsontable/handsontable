@@ -38,6 +38,8 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
     autoRowSize: false,
     readOnly: true,
     fillHandle: false,
+    autoWrapCol: false,
+    autoWrapRow: false,
     afterOnCellMouseDown(_, coords) {
       var value = this.getSourceData(coords.row, coords.col);
 
@@ -120,27 +122,24 @@ HandsontableEditor.prototype.open = function() {
   // Construct and initialise a new Handsontable
   this.htEditor = new this.instance.constructor(this.htContainer, this.htOptions);
   this.htEditor.init();
+  this.htEditor.rootElement.style.display = '';
 
   if (this.cellProperties.strict) {
     this.htEditor.selectCell(0, 0);
-    this.TEXTAREA.style.visibility = 'hidden';
   } else {
     this.htEditor.deselectCell();
-    this.TEXTAREA.style.visibility = 'visible';
   }
 
   setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
 };
 
 HandsontableEditor.prototype.close = function() {
+  this.htEditor.rootElement.style.display = 'none';
   this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-  this.instance.listen();
-
   TextEditor.prototype.close.apply(this, arguments);
 };
 
 HandsontableEditor.prototype.focus = function() {
-  this.instance.listen();
   TextEditor.prototype.focus.apply(this, arguments);
 };
 
@@ -155,7 +154,6 @@ HandsontableEditor.prototype.beginEditing = function(initialValue) {
 
 HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
   if (this.htEditor && this.htEditor.isListening()) { // if focus is still in the HOT editor
-
     this.instance.listen(); // return the focus to the parent HOT instance
   }
 
@@ -171,11 +169,9 @@ HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
 };
 
 HandsontableEditor.prototype.assignHooks = function() {
-  var _this = this;
-
   this.instance.addHook('afterDestroy', () => {
-    if (_this.htEditor) {
-      _this.htEditor.destroy();
+    if (this.htEditor) {
+      this.htEditor.destroy();
     }
   });
 };

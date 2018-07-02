@@ -64,8 +64,19 @@ export function countCells() {
   return getHtCore().find('tbody td').length;
 };
 
-export function isEditorVisible() {
-  return !!(keyProxy().is(':visible') && keyProxy().parent().is(':visible') && !keyProxy().parent().is('.htHidden'));
+export function isEditorVisible(editableElement) {
+  if (editableElement && !(editableElement.hasClass('handsontableInput') || editableElement.hasClass('handsontableEditor'))) {
+    throw new Error('Editable element of the editor was not found.');
+  }
+
+  const keyProxyHolder = (editableElement || keyProxy()).parent();
+
+  if (keyProxyHolder.size() === 0) {
+    return false;
+  }
+  const css = (cssProp) => keyProxyHolder.css(cssProp);
+
+  return css('z-index') !== '-1' && css('top') !== '-9999px' && css('left') !== '-9999px';
 };
 
 export function isFillHandleVisible() {
@@ -416,6 +427,7 @@ export const getDataAtRow = handsontableMethodFactory('getDataAtRow');
 export const getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 export const getDataType = handsontableMethodFactory('getDataType');
 export const getInstance = handsontableMethodFactory('getInstance');
+export const getPlugin = handsontableMethodFactory('getPlugin');
 export const getRowHeader = handsontableMethodFactory('getRowHeader');
 export const getSelected = handsontableMethodFactory('getSelected');
 export const getSelectedLast = handsontableMethodFactory('getSelectedLast');

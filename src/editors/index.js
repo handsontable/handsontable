@@ -53,7 +53,7 @@ export function RegisteredEditor(editorClass) {
   };
 
   Hooks.getSingleton().add('afterDestroy', function() {
-    instances = {};
+    instances[this.guid] = null;
   });
 }
 

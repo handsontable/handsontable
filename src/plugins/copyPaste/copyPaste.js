@@ -6,11 +6,10 @@ import {getSelectionText} from './../../helpers/dom/element';
 import {arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
 import {registerPlugin} from './../../plugins';
-import Textarea from './textarea';
 import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
-import EventManager from './../../eventManager';
 import PasteEvent from './pasteEvent';
+import {createElement, destroyElement} from './focusableElement';
 
 import './copyPaste.css';
 
@@ -29,13 +28,29 @@ const privatePool = new WeakMap();
 
 /**
  * @description
- * This plugin enables the copy/paste functionality in the Handsontable.
+ * This plugin enables the copy/paste functionality in the Handsontable. The functionality works for API, Context Menu,
+ * using keyboard shortcuts and menu bar from the browser.
+ * Possible values:
+ * * `true` (to enable default options),
+ * * `false` (to disable completely)
+ *
+ * or an object with values:
+ * * `'columnsLimit'` (see {@link CopyPaste#columnsLimit})
+ * * `'rowsLimit'` (see {@link CopyPaste#rowsLimit})
+ * * `'pasteMode'` (see {@link CopyPaste#pasteMode})
+ *
+ * See [the copy/paste demo](https://docs.handsontable.com/demo-copy-paste.html) for examples.
  *
  * @example
  * ```js
- * ...
+ * // Enables the plugin with default values
  * copyPaste: true,
- * ...
+ * // Enables the plugin with custom values
+ * copyPaste: {
+ *   columnsLimit: 25,
+ *   rowsLimit: 50,
+ *   pasteMode: 'shift_down',
+ * },
  * ```
  * @class CopyPaste
  * @plugin CopyPaste
@@ -44,15 +59,8 @@ class CopyPaste extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Event manager
-     *
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
-    /**
      * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
-     * @private
      * @type {Number}
      * @default 1000
      */
@@ -70,7 +78,6 @@ class CopyPaste extends BasePlugin {
      * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
      * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
      *
-     * @private
      * @type {String}
      * @default 'overwrite'
      */
@@ -78,19 +85,10 @@ class CopyPaste extends BasePlugin {
     /**
      * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
-     * @private
      * @type {Number}
      * @default 1000
      */
     this.rowsLimit = ROWS_LIMIT;
-    /**
-     * The `textarea` element which is necessary to process copying, cutting off and pasting.
-     *
-     * @private
-     * @type {HTMLElement}
-     * @default undefined
-     */
-    this.textarea = void 0;
 
     privatePool.set(this, {
       isTriggeredByCopy: false,
@@ -101,7 +99,8 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Check if plugin is enabled.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link CopyPaste#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -110,7 +109,7 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Enable the plugin.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -119,7 +118,6 @@ class CopyPaste extends BasePlugin {
     const settings = this.hot.getSettings();
     const priv = privatePool.get(this);
 
-    this.textarea = Textarea.getSingleton();
     priv.isFragmentSelectionEnabled = settings.fragmentSelection;
 
     if (typeof settings.copyPaste === 'object') {
@@ -131,13 +129,17 @@ class CopyPaste extends BasePlugin {
     this.addHook('afterContextMenuDefaultOptions', (options) => this.onAfterContextMenuDefaultOptions(options));
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
 
-    this.registerEvents();
+    this.focusableElement = createElement();
+    this.focusableElement
+      .addLocalHook('copy', (event) => this.onCopy(event))
+      .addLocalHook('cut', (event) => this.onCut(event))
+      .addLocalHook('paste', (event) => this.onPaste(event));
 
     super.enablePlugin();
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -147,11 +149,11 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    if (this.textarea) {
-      this.textarea.destroy();
+    if (this.focusableElement) {
+      destroyElement(this.focusableElement);
     }
 
     super.disablePlugin();
@@ -159,9 +161,6 @@ class CopyPaste extends BasePlugin {
 
   /**
    * Prepares copyable text from the cells selection in the invisible textarea.
-   *
-   * @function setCopyable
-   * @memberof CopyPaste#
    */
   setCopyableText() {
     const selRange = this.hot.getSelectedRangeLast();
@@ -195,10 +194,9 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Create copyable text releated to range objects.
+   * Creates copyable text releated to range objects.
    *
-   * @since 0.19.0
-   * @param {Array} ranges Array of Objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
+   * @param {Object[]} ranges Array of objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
    * @returns {String} Returns string which will be copied into clipboard.
    */
   getRangedCopyableData(ranges) {
@@ -234,11 +232,10 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Create copyable text releated to range objects.
+   * Creates copyable text releated to range objects.
    *
-   * @since 0.31.1
-   * @param {Array} ranges Array of Objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
-   * @returns {Array} Returns array of arrays which will be copied into clipboard.
+   * @param {Object[]} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   * @returns {Array[]} Returns array of arrays which will be copied into clipboard.
    */
   getRangedData(ranges) {
     const dataSet = [];
@@ -273,50 +270,37 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Copy action.
+   * Copies the selected cell into the clipboard.
    */
   copy() {
     const priv = privatePool.get(this);
 
     priv.isTriggeredByCopy = true;
-
-    this.textarea.select();
+    this.focusableElement.focus();
     document.execCommand('copy');
   }
 
   /**
-   * Cut action.
+   * Cuts the selected cell into the clipboard.
    */
   cut() {
     const priv = privatePool.get(this);
 
     priv.isTriggeredByCut = true;
-
-    this.textarea.select();
+    this.focusableElement.focus();
     document.execCommand('cut');
   }
 
   /**
-   * Simulated paste action.
+   * Simulates the paste action.
    *
-   * @param {String} [value=''] New value, which should be `pasted`.
+   * @param {String} [value] Value to paste.
    */
   paste(value = '') {
-    let pasteData = new PasteEvent();
+    const pasteData = new PasteEvent();
+
     pasteData.clipboardData.setData('text/plain', value);
-
     this.onPaste(pasteData);
-  }
-
-  /**
-   * Register event listeners.
-   *
-   * @private
-   */
-  registerEvents() {
-    this.eventManager.addEventListener(this.textarea.element, 'paste', (event) => this.onPaste(event));
-    this.eventManager.addEventListener(this.textarea.element, 'cut', (event) => this.onCut(event));
-    this.eventManager.addEventListener(this.textarea.element, 'copy', (event) => this.onCopy(event));
   }
 
   /**
@@ -329,6 +313,12 @@ class CopyPaste extends BasePlugin {
     const priv = privatePool.get(this);
 
     if (!this.hot.isListening() && !priv.isTriggeredByCopy) {
+      return;
+    }
+
+    const editor = this.hot.getActiveEditor();
+
+    if (editor && editor.isOpened()) {
       return;
     }
 
@@ -368,6 +358,12 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
+    const editor = this.hot.getActiveEditor();
+
+    if (editor && editor.isOpened()) {
+      return;
+    }
+
     this.setCopyableText();
     priv.isTriggeredByCut = false;
 
@@ -402,21 +398,28 @@ class CopyPaste extends BasePlugin {
     if (!this.hot.isListening()) {
       return;
     }
+
+    const editor = this.hot.getActiveEditor();
+
+    if (editor && editor.isOpened()) {
+      return;
+    }
+
     if (event && event.preventDefault) {
       event.preventDefault();
     }
 
     let inputArray;
+    let pastedData;
 
     if (event && typeof event.clipboardData !== 'undefined') {
-      this.textarea.setValue(event.clipboardData.getData('text/plain'));
+      pastedData = event.clipboardData.getData('text/plain');
 
     } else if (typeof ClipboardEvent === 'undefined' && typeof window.clipboardData !== 'undefined') {
-      this.textarea.setValue(window.clipboardData.getData('Text'));
+      pastedData = window.clipboardData.getData('Text');
     }
 
-    inputArray = SheetClip.parse(this.textarea.getValue());
-    this.textarea.setValue(' ');
+    inputArray = SheetClip.parse(pastedData);
 
     if (inputArray.length === 0) {
       return;
@@ -492,26 +495,36 @@ class CopyPaste extends BasePlugin {
    * @private
    */
   onAfterSelectionEnd() {
-    const priv = privatePool.get(this);
+    const {isFragmentSelectionEnabled} = privatePool.get(this);
     const editor = this.hot.getActiveEditor();
 
-    if (editor && typeof editor.isOpened !== 'undefined' && editor.isOpened()) {
+    if (editor && editor.isOpened()) {
       return;
     }
-    if (priv.isFragmentSelectionEnabled && !this.textarea.isActive() && getSelectionText()) {
+
+    const editableElement = editor ? editor.TEXTAREA : void 0;
+
+    if (editableElement) {
+      this.focusableElement.setFocusableElement(editableElement);
+    } else {
+      this.focusableElement.useSecondaryElement();
+    }
+
+    if (isFragmentSelectionEnabled && this.focusableElement.getFocusableElement() !== document.activeElement && getSelectionText()) {
       return;
     }
 
     this.setCopyableText();
-    this.textarea.select();
+    this.focusableElement.focus();
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
-    if (this.textarea) {
-      this.textarea.destroy();
+    if (this.focusableElement) {
+      destroyElement(this.focusableElement);
+      this.focusableElement = null;
     }
 
     super.destroy();
