@@ -13,7 +13,6 @@ export default function dateSort(sortOrder, columnMeta) {
   // We are soring array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
   return function ([, value], [, nextValue]) {
     const sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
-    const dateFormat = columnMeta.dateFormat;
 
     if (value === nextValue) {
       return DO_NOT_SWAP;
@@ -42,6 +41,7 @@ export default function dateSort(sortOrder, columnMeta) {
       return FIRST_BEFORE_SECOND;
     }
 
+    const dateFormat = columnMeta.dateFormat;
     const firstDate = moment(value, dateFormat);
     const nextDate = moment(nextValue, dateFormat);
 
