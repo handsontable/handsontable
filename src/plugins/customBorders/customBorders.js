@@ -27,7 +27,7 @@ import {
 import {
   detectSelectionType,
   normalizeSelectionFactory,
-} from './selection';
+} from './../../selection';
 
 /**
  * @plugin CustomBorders
