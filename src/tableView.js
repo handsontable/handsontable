@@ -263,15 +263,16 @@ function TableView(instance) {
     },
     onCellContextMenu: (event, coords, TD, wt) => {
       that.activeWt = wt;
-      instance.runHooks('beforeOnCellContextMenu', event, coords, TD);
 
       if (instance.selection.isInProgress()) {
         instance.selection.finish();
-
-        isMouseDown = false;
       }
 
+      isMouseDown = false;
+
+      instance.runHooks('beforeOnCellContextMenu', event, coords, TD);
       instance.runHooks('afterOnCellContextMenu', event, coords, TD);
+
       that.activeWt = that.wt;
     },
     onCellMouseOut: (event, coords, TD, wt) => {

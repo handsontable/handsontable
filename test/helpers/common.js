@@ -1,6 +1,3 @@
-/* global Handsontable */
-/* eslint no-restricted-globals: ["off", "Handsontable"] */
-
 export function sleep(delay = 100) {
   return Promise.resolve({
     then: function(resolve) {
@@ -348,6 +345,7 @@ export function setCaretPosition(pos) {
   if (el.setSelectionRange) {
     el.focus();
     el.setSelectionRange(pos, pos);
+
   } else if (el.createTextRange) {
     var range = el.createTextRange();
     range.collapse(true);

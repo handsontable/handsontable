@@ -1,6 +1,3 @@
-/* global Handsontable */
-/* eslint no-restricted-globals: ["off", "Handsontable"] */
-
 describe('ContextMenu', () => {
   const id = 'testContainer';
 
@@ -179,14 +176,10 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
-    it('should finish selection after right click on notable cell', () => {
+    it('should finish selection after right click on table cell', () => {
       const hot = handsontable({
         contextMenu: true,
-        height: 100,
       });
-
-      expect(getPlugin('contextMenu')).toBeDefined();
-      expect($('.htContextMenu').is(':visible')).toBe(false);
 
       const cell = getCell(0, 0);
       const cellOffset = $(cell).offset();
@@ -198,6 +191,40 @@ describe('ContextMenu', () => {
       });
 
       expect(hot.selection.isInProgress()).toBe(false);
+    });
+
+    it('should call every selection hooks after right click on table cell', () => {
+      handsontable({
+        contextMenu: true,
+      });
+
+      const afterSelectionCallback = jasmine.createSpy('afterSelectionCallback');
+      const afterSelectionByPropCallback = jasmine.createSpy('afterSelectionByPropCallback');
+      const afterSelectionEndCallback = jasmine.createSpy('afterSelectionEndCallback');
+      const afterSelectionEndByPropCallback = jasmine.createSpy('afterSelectionEndByPropCallback');
+
+      addHook('afterSelection', afterSelectionCallback);
+      addHook('afterSelectionByProp', afterSelectionByPropCallback);
+      addHook('afterSelectionEnd', afterSelectionEndCallback);
+      addHook('afterSelectionEndByProp', afterSelectionEndByPropCallback);
+
+      const cell = getCell(0, 0);
+      const cellOffset = $(cell).offset();
+
+      $(cell).simulate('mousedown', { button: 2 });
+      $(cell).simulate('contextmenu', {
+        clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(),
+        clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(),
+      });
+
+      expect(afterSelectionCallback.calls.count()).toEqual(1);
+      expect(afterSelectionByPropCallback.calls.count()).toEqual(1);
+      expect(afterSelectionEndCallback.calls.count()).toEqual(1);
+      expect(afterSelectionEndByPropCallback.calls.count()).toEqual(1);
+      expect(afterSelectionCallback).toHaveBeenCalledWith(0, 0, 0, 0, jasmine.any(Object), 0);
+      expect(afterSelectionByPropCallback).toHaveBeenCalledWith(0, 0, 0, 0, jasmine.any(Object), 0);
+      expect(afterSelectionEndCallback).toHaveBeenCalledWith(0, 0, 0, 0, 0, void 0);
+      expect(afterSelectionEndByPropCallback).toHaveBeenCalledWith(0, 0, 0, 0, 0, void 0);
     });
 
     it('should not open the menu after clicking an open editor', () => {
@@ -651,7 +678,7 @@ describe('ContextMenu', () => {
           items: {
             alignment: {
               name() {
-                return undefined;
+                return void 0;
               },
               submenu: {
                 items: [
@@ -994,7 +1021,7 @@ describe('ContextMenu', () => {
         .eq(0)
         .simulate('mousedown'); // Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.rowAbove', undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.rowAbove', void 0, void 0, void 0);
       expect(countRows()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1025,7 +1052,7 @@ describe('ContextMenu', () => {
         .eq(0)
         .simulate('mousedown'); // Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.rowAbove', undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.rowAbove', void 0, void 0, void 0);
       expect(countRows()).toEqual(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1107,7 +1134,7 @@ describe('ContextMenu', () => {
         .eq(0)
         .simulate('mousedown'); // Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.rowAbove', undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.rowAbove', void 0, void 0, void 0);
       expect(countRows()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1133,7 +1160,7 @@ describe('ContextMenu', () => {
         .eq(1)
         .simulate('mousedown'); // Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.rowBelow', undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.rowBelow', void 0, void 0, void 0);
       expect(countRows()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1164,7 +1191,7 @@ describe('ContextMenu', () => {
         .eq(1)
         .simulate('mousedown'); // Insert row below
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.rowBelow', undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.rowBelow', void 0, void 0, void 0);
       expect(countRows()).toEqual(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1190,7 +1217,7 @@ describe('ContextMenu', () => {
         .eq(1)
         .simulate('mousedown'); // Insert row below
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.rowBelow', undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.rowBelow', void 0, void 0, void 0);
       expect(countRows()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1217,7 +1244,7 @@ describe('ContextMenu', () => {
         .eq(2)
         .simulate('mousedown'); // Insert col left
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', void 0, void 0, void 0);
       expect(countCols()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1248,7 +1275,7 @@ describe('ContextMenu', () => {
         .eq(3)
         .simulate('mousedown'); // Insert column left
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight', undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight', void 0, void 0, void 0);
       expect(countCols()).toEqual(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1274,7 +1301,7 @@ describe('ContextMenu', () => {
         .eq(2)
         .simulate('mousedown'); // Insert col left
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', void 0, void 0, void 0);
       expect(countCols()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1300,7 +1327,7 @@ describe('ContextMenu', () => {
         .eq(2)
         .simulate('mousedown'); // Insert col right
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', void 0, void 0, void 0);
       expect(countCols()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1331,7 +1358,7 @@ describe('ContextMenu', () => {
         .eq(3)
         .simulate('mousedown'); // Insert column right
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight', undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight', void 0, void 0, void 0);
       expect(countCols()).toEqual(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1357,7 +1384,7 @@ describe('ContextMenu', () => {
         .eq(3)
         .simulate('mousedown'); // Insert col right
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.columnRight', undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.columnRight', void 0, void 0, void 0);
       expect(countCols()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1383,7 +1410,7 @@ describe('ContextMenu', () => {
         .eq(4)
         .simulate('mousedown'); // Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeRow', undefined, undefined);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeRow', void 0, void 0);
       expect(countRows()).toEqual(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1410,7 +1437,7 @@ describe('ContextMenu', () => {
         .eq(4)
         .simulate('mousedown'); // Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(0, 1, [0], 'ContextMenu.removeRow', undefined, undefined);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(0, 1, [0], 'ContextMenu.removeRow', void 0, void 0);
       expect(countRows()).toBe(0);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1436,7 +1463,7 @@ describe('ContextMenu', () => {
         .eq(4)
         .simulate('mousedown'); // Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeRow', undefined, undefined);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeRow', void 0, void 0);
       expect(countRows()).toBe(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1462,7 +1489,7 @@ describe('ContextMenu', () => {
         .eq(5)
         .simulate('mousedown'); // Remove col
 
-      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeColumn', undefined, undefined);
+      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeColumn', void 0, void 0);
       expect(countCols()).toBe(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1489,7 +1516,7 @@ describe('ContextMenu', () => {
         .eq(5)
         .simulate('mousedown'); // Remove column
 
-      expect(afterRemoveColCallback).toHaveBeenCalledWith(0, 1, [0], 'ContextMenu.removeColumn', undefined, undefined);
+      expect(afterRemoveColCallback).toHaveBeenCalledWith(0, 1, [0], 'ContextMenu.removeColumn', void 0, void 0);
       expect(countCols()).toBe(0);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1517,7 +1544,7 @@ describe('ContextMenu', () => {
         .eq(5)
         .simulate('mousedown'); // Remove col
 
-      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeColumn', undefined, undefined);
+      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeColumn', void 0, void 0);
       expect(countCols()).toEqual(1);
     });
 
