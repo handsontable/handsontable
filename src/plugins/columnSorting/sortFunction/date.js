@@ -1,48 +1,49 @@
 import moment from 'moment';
 import {isEmpty} from '../../../helpers/mixed';
-
-const DO_NOT_SWAP = 0;
-const FIRST_BEFORE_SECOND = -1;
-const FIRST_AFTER_SECOND = 1;
+import {DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
 
 /**
  * Date sorting algorithm
  *
- * @param {Boolean} sortOrder Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
+ * @param {String} sortOrder Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
  * @param {Object} columnMeta Column meta object.
  * @returns {Function} The compare function.
  */
 export default function dateSort(sortOrder, columnMeta) {
-  const compareFunction = function (value, nextValue) {
-    if (value[1] === nextValue[1]) {
+  // We are soring array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
+  return function ([, value], [, nextValue]) {
+    const sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
+    const dateFormat = columnMeta.dateFormat;
+
+    if (value === nextValue) {
       return DO_NOT_SWAP;
     }
 
-    if (isEmpty(value[1])) {
-      if (isEmpty(nextValue[1])) {
+    if (isEmpty(value)) {
+      if (isEmpty(nextValue)) {
         // Two empty values
         return DO_NOT_SWAP;
       }
 
-      // Just fist value is empty and `sortEmptyCells` option set
-      if (columnMeta.columnSorting.sortEmptyCells) {
+      // Just fist value is empty and `sortEmptyCells` option was set
+      if (sortEmptyCells) {
         return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
       }
 
       return FIRST_AFTER_SECOND;
     }
 
-    if (isEmpty(nextValue[1])) {
-      // Just second value is empty and `sortEmptyCells` option set
-      if (columnMeta.columnSorting.sortEmptyCells) {
+    if (isEmpty(nextValue)) {
+      // Just second value is empty and `sortEmptyCells` option was set
+      if (sortEmptyCells) {
         return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
       }
 
       return FIRST_BEFORE_SECOND;
     }
 
-    const firstDate = moment(value[1], columnMeta.dateFormat);
-    const nextDate = moment(nextValue[1], columnMeta.dateFormat);
+    const firstDate = moment(value, dateFormat);
+    const nextDate = moment(nextValue, dateFormat);
 
     if (!firstDate.isValid()) {
       return FIRST_AFTER_SECOND;
@@ -62,6 +63,4 @@ export default function dateSort(sortOrder, columnMeta) {
 
     return DO_NOT_SWAP;
   };
-
-  return compareFunction;
 }

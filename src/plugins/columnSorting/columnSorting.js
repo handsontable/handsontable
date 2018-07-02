@@ -5,14 +5,12 @@ import {
 } from './../../helpers/dom/element';
 import {hasOwnProperty, isObject} from './../../helpers/object';
 import {isDefined, isUndefined} from './../../helpers/mixed';
+import {getSortFunctionForColumn} from './utils';
 import BasePlugin from './../_base';
 import {registerPlugin} from './../../plugins';
 import mergeSort from './../../utils/sortingAlgorithms/mergeSort';
 import Hooks from './../../pluginHooks';
 import RowsMapper from './rowsMapper';
-import dateSort from './sortFunction/date';
-import numericSort from './sortFunction/numeric';
-import defaultSort from './sortFunction/default';
 
 Hooks.getSingleton().register('beforeColumnSort');
 Hooks.getSingleton().register('afterColumnSort');
@@ -277,7 +275,7 @@ class ColumnSorting extends BasePlugin {
     const indexesWithData = [];
     const visualColumn = this.hot.toVisualColumn(this.sortColumn);
     const columnMeta = this.hot.getCellMeta(0, visualColumn);
-    const sortFunction = this.getSortFunctionForColumn(columnMeta);
+    const sortFunction = getSortFunctionForColumn(columnMeta);
     const emptyRows = this.hot.countEmptyRows();
     let nrOfRows;
 
@@ -311,27 +309,6 @@ class ColumnSorting extends BasePlugin {
 
     // Save all indexes to arrayMapper, a completely new sequence is set by the plugin
     this.rowsMapper._arrayMap = indexesWithData.map((indexWithData) => indexWithData[0]);
-  }
-
-  /**
-   * Gets sort function for the particular column basing on its column meta.
-   *
-   * @private
-   * @param {Object} columnMeta
-   * @returns {Function}
-   */
-  getSortFunctionForColumn(columnMeta) {
-    if (columnMeta.sortFunction) {
-      return columnMeta.sortFunction;
-
-    } else if (columnMeta.type === 'date') {
-      return dateSort;
-
-    } else if (columnMeta.type === 'numeric') {
-      return numericSort;
-    }
-
-    return defaultSort;
   }
 
   /**

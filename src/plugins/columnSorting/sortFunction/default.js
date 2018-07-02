@@ -1,71 +1,72 @@
 import {isEmpty} from '../../../helpers/mixed';
+import {DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
 
 /**
  * Default sorting algorithm.
  *
- * @param {Boolean} sortOrder Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
+ * @param {String} sortOrder Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
  * @param {Object} columnMeta Column meta object.
  * @returns {Function} The compare function.
  */
-
-const DO_NOT_SWAP = 0;
-const FIRST_BEFORE_SECOND = -1;
-const FIRST_AFTER_SECOND = 1;
-
 export default function defaultSort(sortOrder, columnMeta) {
-  const compareFunction = function (value, nextValue) {
-    if (typeof value[1] === 'string') {
-      value[1] = value[1].toLowerCase();
-    }
-    if (typeof nextValue[1] === 'string') {
-      nextValue[1] = nextValue[1].toLowerCase();
+  // We are soring array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
+  return function ([, value], [, nextValue]) {
+    const sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
+
+    if (typeof value === 'string') {
+      value = value.toLowerCase();
     }
 
-    if (value[1] === nextValue[1]) {
+    if (typeof nextValue === 'string') {
+      nextValue = nextValue.toLowerCase();
+    }
+
+    if (value === nextValue) {
       return DO_NOT_SWAP;
     }
 
-    if (isEmpty(value[1])) {
-      if (isEmpty(nextValue[1])) {
+    if (isEmpty(value)) {
+      if (isEmpty(nextValue)) {
+        // Two empty values
         return DO_NOT_SWAP;
       }
 
-      if (columnMeta.columnSorting.sortEmptyCells) {
+      // Just fist value is empty and `sortEmptyCells` option was set
+      if (sortEmptyCells) {
         return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
       }
 
       return FIRST_AFTER_SECOND;
     }
 
-    if (isEmpty(nextValue[1])) {
-      if (columnMeta.columnSorting.sortEmptyCells) {
+    if (isEmpty(nextValue)) {
+      // Just second value is empty and `sortEmptyCells` option was set
+      if (sortEmptyCells) {
         return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
       }
 
       return FIRST_BEFORE_SECOND;
     }
 
-    if (isNaN(value[1]) && !isNaN(nextValue[1])) {
+    if (isNaN(value) && !isNaN(nextValue)) {
       return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
 
-    } else if (!isNaN(value[1]) && isNaN(nextValue[1])) {
+    } else if (!isNaN(value) && isNaN(nextValue)) {
       return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
 
-    } else if (!(isNaN(value[1]) || isNaN(nextValue[1]))) {
-      value[1] = parseFloat(value[1]);
-      nextValue[1] = parseFloat(nextValue[1]);
+    } else if (!(isNaN(value) || isNaN(nextValue))) {
+      value = parseFloat(value);
+      nextValue = parseFloat(nextValue);
     }
 
-    if (value[1] < nextValue[1]) {
+    if (value < nextValue) {
       return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
     }
 
-    if (value[1] > nextValue[1]) {
+    if (value > nextValue) {
       return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
     }
 
     return DO_NOT_SWAP;
   };
-
-  return compareFunction;
 }
