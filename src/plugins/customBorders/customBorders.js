@@ -155,18 +155,11 @@ class CustomBorders extends BasePlugin {
     arrayEach(selectionRanges, (selection) => {
       const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
 
-      if (rowStart === rowEnd && columnStart === columnEnd) {
-        arrayEach(borderKeys, (borderKey) => {
-          this.prepareBorderFromCustomAdded(rowStart, columnStart, borderObject, borderKey);
-        });
-
-      } else {
-        for (let row = rowStart; row <= rowEnd; row += 1) {
-          for (let col = columnStart; col <= columnEnd; col += 1) {
-            arrayEach(borderKeys, (borderKey) => {
-              this.prepareBorderFromCustomAdded(row, col, borderObject, borderKey);
-            });
-          }
+      for (let row = rowStart; row <= rowEnd; row += 1) {
+        for (let col = columnStart; col <= columnEnd; col += 1) {
+          arrayEach(borderKeys, (borderKey) => {
+            this.prepareBorderFromCustomAdded(row, col, borderObject, borderKey);
+          });
         }
       }
     });
@@ -189,22 +182,13 @@ class CustomBorders extends BasePlugin {
     arrayEach(selectionRanges, (selection) => {
       const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
 
-      if (rowStart === rowEnd && columnStart === columnEnd) {
-        arrayEach(this.savedBorders, (border) => {
-          if (border.row === rowStart && border.col === columnStart) {
-            selectedBorders.push(border);
-          }
-        });
-
-      } else {
-        for (let row = rowStart; row <= rowEnd; row += 1) {
-          for (let col = columnStart; col <= columnEnd; col += 1) {
-            arrayEach(this.savedBorders, (border) => {
-              if (border.row === row && border.col === col) {
-                selectedBorders.push(border);
-              }
-            });
-          }
+      for (let row = rowStart; row <= rowEnd; row += 1) {
+        for (let col = columnStart; col <= columnEnd; col += 1) {
+          arrayEach(this.savedBorders, (border) => {
+            if (border.row === row && border.col === col) {
+              selectedBorders.push(border);
+            }
+          });
         }
       }
     });
