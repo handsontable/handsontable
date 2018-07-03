@@ -143,7 +143,6 @@ class ContextMenu extends BasePlugin {
     let predefinedItems = {
       items: this.itemsFactory.getItems(settings)
     };
-    this.registerEvents();
 
     if (typeof settings.callback === 'function') {
       this.commandExecutor.setCommonCallback(settings.callback);
@@ -171,7 +170,9 @@ class ContextMenu extends BasePlugin {
       this.menu.addLocalHook('beforeOpen', () => this.onMenuBeforeOpen());
       this.menu.addLocalHook('afterOpen', () => this.onMenuAfterOpen());
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
-      this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.apply(this, params));
+      this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
+
+      this.addHook('afterOnCellContextMenu', (event) => this.onAfterOnCellContextMenu(event));
 
       // Register all commands. Predefined and added by user or by plugins
       arrayEach(menuItems, (command) => this.commandExecutor.registerCommand(command.key, command));
@@ -207,15 +208,6 @@ class ContextMenu extends BasePlugin {
       this.menu = null;
     }
     super.disablePlugin();
-  }
-
-  /**
-   * Registers dom listeners.
-   *
-   * @private
-   */
-  registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'contextmenu', (event) => this.onContextMenu(event));
   }
 
   /**
@@ -283,12 +275,12 @@ class ContextMenu extends BasePlugin {
   }
 
   /**
-   * On context menu listener.
+   * On contextmenu listener.
    *
    * @private
    * @param {Event} event
    */
-  onContextMenu(event) {
+  onAfterOnCellContextMenu(event) {
     let settings = this.hot.getSettings();
     let showRowHeaders = settings.rowHeaders;
     let showColHeaders = settings.colHeaders;

@@ -337,6 +337,20 @@ const REGISTERED_HOOKS = [
   'afterOnCellMouseDown',
 
   /**
+   * Fired after clicking right mouse button on a cell or row/column header.
+   *
+   * For example clicking on the row header of cell (0, 0) results with `afterOnCellContextMenu` called
+   * with coordinates `{row: 0, col: -1}`.
+   *
+   * @event Hooks#afterOnCellContextMenu
+   * @since 4.1.0
+   * @param {Event} event `contextmenu` event object.
+   * @param {CellCoords} coords Coordinates object containing the visual row and visual column indexes of the clicked cell.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
+   */
+  'afterOnCellContextMenu',
+
+  /**
    * Fired after hovering a cell or row/column header with the mouse cursor. In case the row/column header was
    * hovered, the index is negative.
    *
@@ -730,6 +744,17 @@ const REGISTERED_HOOKS = [
    *                            object allows or disallows changing the selection for the particular axies.
    */
   'beforeOnCellMouseDown',
+
+  /**
+   * Fired after the user clicked a cell, but before all the calculations related with it.
+   *
+   * @event Hooks#beforeOnCellContextMenu
+   * @since 4.1.0
+   * @param {Event} event The `contextmenu` event object.
+   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
+   * @param {HTMLTableCellElement} TD TD element.
+   */
+  'beforeOnCellContextMenu',
 
   /**
    * Fired after the user moved cursor over a cell, but before all the calculations related with it.
