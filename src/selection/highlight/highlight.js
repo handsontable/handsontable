@@ -6,6 +6,7 @@ export const AREA_TYPE = 'area';
 export const CELL_TYPE = 'cell';
 export const FILL_TYPE = 'fill';
 export const HEADER_TYPE = 'header';
+export const CUSTOM_SELECTION = 'custom-selection';
 
 /**
  * Highlight class responsible for managing Walkontable Selection classes.
@@ -78,11 +79,11 @@ class Highlight {
      */
     this.activeHeaders = new Map();
     /**
-     * The temporary property, holder for borders added through CustomBorders plugin.
+     * Collection of the `custom-selection`, holder for example borders added through CustomBorders plugin.
      *
      * @type {Selection[]}
      */
-    this.borders = [];
+    this.customSelections = [];
   }
 
   /**
@@ -227,6 +228,24 @@ class Highlight {
   }
 
   /**
+   * Get Walkontable Selection instance created for controlling highlight of the custom selection functionality.
+   *
+   * @return {Selection}
+   */
+  getCustomSelections() {
+    return [...this.customSelections.values()];
+  }
+
+  /**
+   * Add selection to the custom selection instance. The new selection are added to the end of the selection collection.
+   *
+   * @param {Object} options
+   */
+  addCustomSelection(options) {
+    this.customSelections.push(createHighlight(CUSTOM_SELECTION, {...options}));
+  }
+
+  /**
    * Perform cleaning visual highlights for the whole table.
    */
   clear() {
@@ -248,7 +267,7 @@ class Highlight {
       ...this.areas.values(),
       ...this.headers.values(),
       ...this.activeHeaders.values(),
-      ...this.borders,
+      ...this.customSelections,
     ][Symbol.iterator]();
   }
 }

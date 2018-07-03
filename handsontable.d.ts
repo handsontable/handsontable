@@ -810,14 +810,9 @@ declare namespace Handsontable {
     interface CustomBorders extends Base {
       savedBorderSettings: any[];
 
-      getSettingIndex(className: string): number;
-      insertBorderIntoSettings(border: object): void;
-      prepareBorderFromCustomAdded(row: number, col: number, borderObj: object): void;
-      prepareBorderFromCustomAddedRange(rowObj: object): void;
-      removeBordersFromDom(borderClassName: string): void;
-      removeAllBorders(row: number, col: number): void;
-      setBorder(row: number, col: number, place: string, remove: boolean): void;
-      prepareBorder(range: object, place: string, remove: boolean): void;
+      setBorders(selection: Range[] | Array<[number, number, number, number]>, borderObject: object): void;
+      getBorders(selection: Range[] | Array<[number, number, number, number]>): Array<[object]>;
+      clearBorders(selection: Range[] | Array<[number, number, number, number]>): void;
     }
 
     interface DragToScroll extends Base {
