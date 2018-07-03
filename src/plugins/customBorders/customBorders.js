@@ -190,7 +190,7 @@ class CustomBorders extends BasePlugin {
     * ```
     *
     * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
-    * @return {Array} Returns array of border objects.
+    * @return {Object[]} Returns array of border objects.
     */
   getBorders(selectionRanges) {
     if (!Array.isArray(selectionRanges)) {
