@@ -30,18 +30,20 @@ import {
 } from './../../selection';
 
 /**
+ * @class CustomBorders
  * @plugin CustomBorders
  *
  * @description
- * This plugin enables an option to apply custom borders through the context menu (configurable with context menu key `borders`).
+ * This plugin enables an option to apply custom borders through the context menu (configurable with context menu key
+ * `borders`).
  *
- * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form of an array.
+ * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
+ * of an array.
  *
  * See [Custom Borders](http://docs.handsontable.com/demo-custom-borders.html) demo for more examples.
  *
  * @example
  * ```js
- * ...
  * customBorders: [
  *   {
  *    range: {
@@ -60,10 +62,8 @@ import {
  *    bottom: {},
  *   },
  * ],
- * ...
  *
  * // or
- * ...
  * customBorders: [
  *   { row: 2,
  *     col: 2,
@@ -79,10 +79,7 @@ import {
  *     bottom: '',
  *   }
  * ],
- * ...
  * ```
- * @private
- * @class CustomBorders
  */
 class CustomBorders extends BasePlugin {
   constructor(hotInstance) {
@@ -91,13 +88,15 @@ class CustomBorders extends BasePlugin {
     /**
      * Saved borders.
      *
+     * @private
      * @type {Array}
      */
     this.savedBorders = [];
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+  * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+  * hook and if it returns `true` than the {@link CustomBorders#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -106,7 +105,7 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -120,7 +119,7 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     this.hideBorders();
@@ -129,7 +128,7 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -150,11 +149,10 @@ class CustomBorders extends BasePlugin {
     * // Using an array of arrays (produced by `.getSelected()` method).
     * customBordersPlugin.setBorders([[1, 1, 2, 2], [6, 2, 0, 2]], {left: {width: 2, color: 'blue'}});
     * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
-    * const selected = hot.getSelectedRange();
-    * customBordersPlugin.setBorders(selected, {left: {hide: false, width: 2, color: 'blue'}});
+    * customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, width: 2, color: 'blue'}});
     * ```
     *
-    * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
+    * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
     * @param {Object} borderObject Object with `top`, `right`, `bottom` and `left` properties.
     */
   setBorders(selectionRanges, borderObject) {
@@ -186,14 +184,13 @@ class CustomBorders extends BasePlugin {
     * // Using an array of arrays (produced by `.getSelected()` method).
     * customBordersPlugin.getBorders([[1, 1, 2, 2], [6, 2, 0, 2]]);
     * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
-    * const selected = hot.getSelectedRange();
-    * customBordersPlugin.getBorders(selected);
+    * customBordersPlugin.getBorders(hot.getSelectedRange());
     * // Using without param - return all customBorders.
     * customBordersPlugin.getBorders();
     * ```
     *
-    * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
-    * @return {Array}
+    * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
+    * @return {Array} Returns array of border objects.
     */
   getBorders(selectionRanges) {
     if (!Array.isArray(selectionRanges)) {
@@ -231,13 +228,12 @@ class CustomBorders extends BasePlugin {
     * // Using an array of arrays (produced by `.getSelected()` method).
     * customBordersPlugin.clearBorders([[1, 1, 2, 2], [6, 2, 0, 2]]);
     * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
-    * const selected = hot.getSelectedRange();
-    * customBordersPlugin.clearBorders(selected);
+    * customBordersPlugin.clearBorders(hot.getSelectedRange());
     * // Using without param - clear all customBorders.
     * customBordersPlugin.clearBorders();
     * ```
     *
-    * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
+    * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
     */
   clearBorders(selectionRanges) {
     if (selectionRanges) {
@@ -743,7 +739,7 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     super.destroy();
