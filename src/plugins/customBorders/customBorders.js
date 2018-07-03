@@ -143,6 +143,17 @@ class CustomBorders extends BasePlugin {
   /**
     * Set custom borders.
     *
+    * @example
+    * ```js
+    * const customBordersPlugin = hot.getPlugin('customBorders');
+    *
+    * // Using an array of arrays (produced by `.getSelected()` method).
+    * customBordersPlugin.setBorders([[1, 1, 2, 2], [6, 2, 0, 2]], {left: {width: 2, color: 'blue'}});
+    * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
+    * const selected = hot.getSelectedRange();
+    * customBordersPlugin.setBorders(selected, {left: {hide: false, width: 2, color: 'blue'}});
+    * ```
+    *
     * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
     * @param {Object} borderObject Object with `top`, `right`, `bottom` and `left` properties.
     */
@@ -168,7 +179,21 @@ class CustomBorders extends BasePlugin {
   /**
     * Get custom borders.
     *
+    * @example
+    * ```js
+    * const customBordersPlugin = hot.getPlugin('customBorders');
+    *
+    * // Using an array of arrays (produced by `.getSelected()` method).
+    * customBordersPlugin.getBorders([[1, 1, 2, 2], [6, 2, 0, 2]]);
+    * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
+    * const selected = hot.getSelectedRange();
+    * customBordersPlugin.getBorders(selected);
+    * // Using without param - return all customBorders.
+    * customBordersPlugin.getBorders();
+    * ```
+    *
     * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
+    * @return {Array}
     */
   getBorders(selectionRanges) {
     if (!Array.isArray(selectionRanges)) {
@@ -198,6 +223,19 @@ class CustomBorders extends BasePlugin {
 
   /**
     * Clear custom borders.
+    *
+    * @example
+    * ```js
+    * const customBordersPlugin = hot.getPlugin('customBorders');
+    *
+    * // Using an array of arrays (produced by `.getSelected()` method).
+    * customBordersPlugin.clearBorders([[1, 1, 2, 2], [6, 2, 0, 2]]);
+    * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
+    * const selected = hot.getSelectedRange();
+    * customBordersPlugin.clearBorders(selected);
+    * // Using without param - clear all customBorders.
+    * customBordersPlugin.clearBorders();
+    * ```
     *
     * @param {Array[]|CellRange[]} selectionRanges Selection ranges produced by Handsontable.
     */
