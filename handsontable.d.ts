@@ -1588,6 +1588,7 @@ declare namespace Handsontable {
     afterModifyTransformEnd?: (coords: wot.CellCoords, rowTransformDir: number, colTransformDir: number) => void;
     afterModifyTransformStart?: (coords: wot.CellCoords, rowTransformDir: number, colTransformDir: number) => void;
     afterMomentumScroll?: () => void;
+    afterOnCellContextMenu?: (event: object, coords: object, TD: Element) => void;
     afterOnCellCornerDblClick?: (event: object) => void;
     afterOnCellCornerMouseDown?: (event: object) => void;
     afterOnCellMouseDown?: (event: object, coords: object, TD: Element) => void;
@@ -1640,7 +1641,8 @@ declare namespace Handsontable {
     beforeInit?: () => void;
     beforeInitWalkontable?: (walkontableConfig: object) => void;
     beforeKeyDown?: (event: Event) => void;
-    beforeOnCellMouseDown?: (event: Event, coords: object, TD: Element) => void;
+    beforeOnCellContextMenu?: (event: object, coords: object, TD: Element) => void;
+    beforeOnCellMouseDown?: (event: Event, coords: object, TD: Element, blockCalculations: object) => void;
     beforeOnCellMouseOut?: (event: Event, coords: wot.CellCoords, TD: Element) => void;
     beforeOnCellMouseOver?: (event: Event, coords: wot.CellCoords, TD: Element, blockCalculations: object) => void;
     beforePaste?: (data: any[], coords: any[]) => any;

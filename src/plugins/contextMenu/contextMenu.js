@@ -172,7 +172,6 @@ class ContextMenu extends BasePlugin {
       this.menu.addLocalHook('afterClose', () => this.onMenuAfterClose());
       this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
-      this.addHook('beforeOnCellContextMenu', (event) => this.onBeforeOnCellContextMenu(event));
       this.addHook('afterOnCellContextMenu', (event) => this.onAfterOnCellContextMenu(event));
 
       // Register all commands. Predefined and added by user or by plugins
@@ -281,7 +280,7 @@ class ContextMenu extends BasePlugin {
    * @private
    * @param {Event} event
    */
-  onBeforeOnCellContextMenu(event) {
+  onAfterOnCellContextMenu(event) {
     let settings = this.hot.getSettings();
     let showRowHeaders = settings.rowHeaders;
     let showColHeaders = settings.colHeaders;
@@ -297,6 +296,9 @@ class ContextMenu extends BasePlugin {
       return;
     }
 
+    event.preventDefault();
+    stopPropagation(event);
+
     if (!(showRowHeaders || showColHeaders)) {
       if (!isValidElement(element) && !(hasClass(element, 'current') && hasClass(element, 'wtBorder'))) {
         return;
@@ -304,17 +306,6 @@ class ContextMenu extends BasePlugin {
     }
 
     this.open(event);
-  }
-
-  /**
-   * On contextmenu listener. Prevents native context menu to be shown.
-   *
-   * @private
-   * @param {Event} event
-   */
-  onAfterOnCellContextMenu(event) {
-    event.preventDefault();
-    stopPropagation(event);
   }
 
   /**
