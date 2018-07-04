@@ -147,7 +147,7 @@ class ColumnSorting extends BasePlugin {
    * Sorts the table by chosen column and order.
    *
    * @param {Number} column Visual column index.
-   * @param {String} order Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
+   * @param {String} [order] Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
    *
    * @fires Hooks#beforeColumnSort
    * @fires Hooks#afterColumnSort
