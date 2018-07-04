@@ -42,6 +42,35 @@ declare namespace _Handsontable {
     getDataAtRowProp(row: number, prop: string): any;
     getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
     getInstance(): Handsontable;
+    getPlugin(pluginName: 'autoColumnSize'): Handsontable.plugins.AutoColumnSize;
+    getPlugin(pluginName: 'autoRowSize'): Handsontable.plugins.AutoRowSize;
+    getPlugin(pluginName: 'autofill'): Handsontable.plugins.Autofill;
+    getPlugin(pluginName: 'bindRowsWithHeaders'): Handsontable.plugins.BindRowsWithHeaders;
+    getPlugin(pluginName: 'collapsibleColumns'): Handsontable.plugins.CollapsibleColumns;
+    getPlugin(pluginName: 'columnSorting'): Handsontable.plugins.ColumnSorting;
+    getPlugin(pluginName: 'columnSummary'): Handsontable.plugins.ColumnSummary;
+    getPlugin(pluginName: 'comments'): Handsontable.plugins.Comments;
+    getPlugin(pluginName: 'contextMenu'): Handsontable.plugins.ContextMenu;
+    getPlugin(pluginName: 'copyPaste'): Handsontable.plugins.CopyPaste;
+    getPlugin(pluginName: 'dragToScroll'): Handsontable.plugins.DragToScroll;
+    getPlugin(pluginName: 'dropdownMenu'): Handsontable.plugins.DropdownMenu;
+    getPlugin(pluginName: 'exportFile'): Handsontable.plugins.ExportFile;
+    getPlugin(pluginName: 'filters'): Handsontable.plugins.Filters;
+    getPlugin(pluginName: 'headerTooltips'): Handsontable.plugins.HeaderTooltips;
+    getPlugin(pluginName: 'hiddenColumns'): Handsontable.plugins.HiddenColumns;
+    getPlugin(pluginName: 'hiddenRows'): Handsontable.plugins.HiddenRows;
+    getPlugin(pluginName: 'manualColumnFreeze'): Handsontable.plugins.ManualColumnFreeze;
+    getPlugin(pluginName: 'manualColumnMove'): Handsontable.plugins.ManualColumnMove;
+    getPlugin(pluginName: 'manualRowMove'): Handsontable.plugins.ManualRowMove;
+    getPlugin(pluginName: 'manualRowResize'): Handsontable.plugins.ManualRowResize;
+    getPlugin(pluginName: 'mergeCells'): Handsontable.plugins.MergeCells;
+    getPlugin(pluginName: 'nestedHeaders'): Handsontable.plugins.NestedHeaders;
+    getPlugin(pluginName: 'observeChanges'): Handsontable.plugins.ObserveChanges;
+    getPlugin(pluginName: 'search'): Handsontable.plugins.Search;
+    getPlugin(pluginName: 'trimRows'): Handsontable.plugins.TrimRows;
+    getPlugin(pluginName: 'formulas'): Handsontable.plugins.Formulas;
+    getPlugin(pluginName: 'ganttChart'): Handsontable.plugins.GanttChart;
+    getPlugin(pluginName: 'nestedRows'): Handsontable.plugins.NestedRows;
     getPlugin(pluginName: string): Handsontable.plugins.Base;
     getRowHeader(row?: number): any[] | string;
     getRowHeight(row: number): number;
@@ -720,7 +749,7 @@ declare namespace Handsontable {
       loadSortingState(): any;
       numericSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
       saveSortingState(): void;
-      sort(): void;
+      sort(column: number, order?: SortOrderType): void;
     }
 
     interface ColumnSummary extends Base {
@@ -1554,7 +1583,7 @@ declare namespace Handsontable {
     afterChangesObserved?: () => void;
     afterColumnMove?: (startColumn: number, endColumn: number) => void;
     afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
-    afterColumnSort?: (column: number, order: boolean) => void;
+    afterColumnSort?: (column: number, order: plugins.SortOrderType) => void;
     afterContextMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterContextMenuHide?: (context: object) => void;
     beforeContextMenuShow?: (context: object) => void;
@@ -1622,7 +1651,7 @@ declare namespace Handsontable {
     beforeChangeRender?: (changes: any[], source: string) => void;
     beforeColumnMove?: (startColumn: number, endColumn: number) => void;
     beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
-    beforeColumnSort?: (column: number, order: boolean) => void;
+    beforeColumnSort?: (column: number, order: plugins.SortOrderType) => void;
     beforeContextMenuSetItems?: (menuItems: any[]) => void;
     beforeCopy?: (data: any[], coords: any[]) => any;
     beforeCreateCol?: (index: number, amount: number, source?: string) => void;
