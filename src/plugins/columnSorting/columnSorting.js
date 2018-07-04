@@ -276,15 +276,16 @@ class ColumnSorting extends BasePlugin {
     const visualColumn = this.hot.toVisualColumn(this.sortColumn);
     const columnMeta = this.hot.getCellMeta(0, visualColumn);
     const sortFunction = getSortFunctionForColumn(columnMeta);
+    const numberOfRows = this.hot.countRows();
     const settings = this.hot.getSettings();
-    let nrOfRows;
+    let numberOfSortedRows;
 
     // `maxRows` option doesn't take into account `minSpareRows` option in specific situation.
-    if (settings.maxRows <= this.hot.countRows()) {
-      nrOfRows = settings.maxRows;
+    if (settings.maxRows <= numberOfRows) {
+      numberOfSortedRows = settings.maxRows;
 
     } else {
-      nrOfRows = this.hot.countRows() - settings.minSpareRows;
+      numberOfSortedRows = numberOfRows - settings.minSpareRows;
     }
 
     if (isUndefined(columnMeta.columnSorting.sortEmptyCells)) {
@@ -295,14 +296,14 @@ class ColumnSorting extends BasePlugin {
     // (we just want to get data not already modified by `columnSorting` plugin translation).
     this.blockPluginTranslation = true;
 
-    for (let visualIndex = 0; visualIndex < nrOfRows; visualIndex += 1) {
+    for (let visualIndex = 0; visualIndex < numberOfSortedRows; visualIndex += 1) {
       indexesWithData.push([visualIndex, this.hot.getDataAtCell(visualIndex, visualColumn)]);
     }
 
     mergeSort(indexesWithData, sortFunction(this.sortOrder, columnMeta));
 
     // Append spareRows
-    for (let visualIndex = indexesWithData.length; visualIndex < this.hot.countRows(); visualIndex += 1) {
+    for (let visualIndex = indexesWithData.length; visualIndex < numberOfRows; visualIndex += 1) {
       indexesWithData.push([visualIndex, this.hot.getDataAtCell(visualIndex, visualColumn)]);
     }
 
