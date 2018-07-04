@@ -810,14 +810,9 @@ declare namespace Handsontable {
     interface CustomBorders extends Base {
       savedBorderSettings: any[];
 
-      getSettingIndex(className: string): number;
-      insertBorderIntoSettings(border: object): void;
-      prepareBorderFromCustomAdded(row: number, col: number, borderObj: object): void;
-      prepareBorderFromCustomAddedRange(rowObj: object): void;
-      removeBordersFromDom(borderClassName: string): void;
-      removeAllBorders(row: number, col: number): void;
-      setBorder(row: number, col: number, place: string, remove: boolean): void;
-      prepareBorder(range: object, place: string, remove: boolean): void;
+      setBorders(selection: Range[] | Array<[number, number, number, number]>, borderObject: object): void;
+      getBorders(selection: Range[] | Array<[number, number, number, number]>): Array<[object]>;
+      clearBorders(selection: Range[] | Array<[number, number, number, number]>): void;
     }
 
     interface DragToScroll extends Base {
@@ -1588,6 +1583,7 @@ declare namespace Handsontable {
     afterModifyTransformEnd?: (coords: wot.CellCoords, rowTransformDir: number, colTransformDir: number) => void;
     afterModifyTransformStart?: (coords: wot.CellCoords, rowTransformDir: number, colTransformDir: number) => void;
     afterMomentumScroll?: () => void;
+    afterOnCellContextMenu?: (event: object, coords: object, TD: Element) => void;
     afterOnCellCornerDblClick?: (event: object) => void;
     afterOnCellCornerMouseDown?: (event: object) => void;
     afterOnCellMouseDown?: (event: object, coords: object, TD: Element) => void;
@@ -1640,7 +1636,8 @@ declare namespace Handsontable {
     beforeInit?: () => void;
     beforeInitWalkontable?: (walkontableConfig: object) => void;
     beforeKeyDown?: (event: Event) => void;
-    beforeOnCellMouseDown?: (event: Event, coords: object, TD: Element) => void;
+    beforeOnCellContextMenu?: (event: object, coords: object, TD: Element) => void;
+    beforeOnCellMouseDown?: (event: Event, coords: object, TD: Element, blockCalculations: object) => void;
     beforeOnCellMouseOut?: (event: Event, coords: wot.CellCoords, TD: Element) => void;
     beforeOnCellMouseOver?: (event: Event, coords: wot.CellCoords, TD: Element, blockCalculations: object) => void;
     beforePaste?: (data: any[], coords: any[]) => any;

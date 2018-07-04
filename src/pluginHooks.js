@@ -337,6 +337,20 @@ const REGISTERED_HOOKS = [
   'afterOnCellMouseDown',
 
   /**
+   * Fired after clicking right mouse button on a cell or row/column header.
+   *
+   * For example clicking on the row header of cell (0, 0) results with `afterOnCellContextMenu` called
+   * with coordinates `{row: 0, col: -1}`.
+   *
+   * @event Hooks#afterOnCellContextMenu
+   * @since 4.1.0
+   * @param {Event} event `contextmenu` event object.
+   * @param {CellCoords} coords Coordinates object containing the visual row and visual column indexes of the clicked cell.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
+   */
+  'afterOnCellContextMenu',
+
+  /**
    * Fired after hovering a cell or row/column header with the mouse cursor. In case the row/column header was
    * hovered, the index is negative.
    *
@@ -732,6 +746,17 @@ const REGISTERED_HOOKS = [
   'beforeOnCellMouseDown',
 
   /**
+   * Fired after the user clicked a cell, but before all the calculations related with it.
+   *
+   * @event Hooks#beforeOnCellContextMenu
+   * @since 4.1.0
+   * @param {Event} event The `contextmenu` event object.
+   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
+   * @param {HTMLTableCellElement} TD TD element.
+   */
+  'beforeOnCellContextMenu',
+
+  /**
    * Fired after the user moved cursor over a cell, but before all the calculations related with it.
    *
    * @event Hooks#beforeOnCellMouseOver
@@ -953,30 +978,30 @@ const REGISTERED_HOOKS = [
   'modifyGetCellCoords',
 
   /**
-   * Fired by {@link PersistentState} plugin after loading data from local storage. This hook is fired when
+   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
    * {@link Options#persistentState} option is enabled.
    *
    * @event Hooks#persistentStateLoad
-   * @param {String} key Key string.
-   * @param {Object} valuePlaceholder Object containing the loaded data.
+   * @param {String} key Key.
+   * @param {Object} valuePlaceholder Object containing the loaded value under `valuePlaceholder.value` (if no value have been saved, `value` key will be undefined).
    */
   'persistentStateLoad',
 
   /**
-   * Fired by {@link PersistentState} plugin after resetting data from local storage. This hook is fired when
-   * {@link Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin after resetting data from local storage. If no key is given, all values associated with table will be cleared.
+   * This hook is fired when {@link Options#persistentState} option is enabled.
    *
    * @event Hooks#persistentStateReset
-   * @param {String} key Key string.
+   * @param {String} [key] Key.
    */
   'persistentStateReset',
 
   /**
-   * Fired by {@link PersistentState} plugin after saving data to local storage. This hook is fired when
+   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage. This hook is fired when
    * {@link Options#persistentState} option is enabled.
    *
    * @event Hooks#persistentStateSave
-   * @param {String} key Key string.
+   * @param {String} key Key.
    * @param {Mixed} value Value to save.
    */
   'persistentStateSave',

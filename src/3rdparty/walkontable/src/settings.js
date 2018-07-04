@@ -70,6 +70,7 @@ class Settings {
 
       // callbacks
       onCellMouseDown: null,
+      onCellContextMenu: null,
       onCellMouseOver: null,
       onCellMouseOut: null,
       onCellMouseUp: null,

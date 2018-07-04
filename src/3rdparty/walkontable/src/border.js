@@ -1,4 +1,7 @@
 import {
+  addClass,
+  hasClass,
+  removeClass,
   getComputedStyle,
   getTrimmingContainer,
   innerWidth,
@@ -148,6 +151,7 @@ class Border {
     for (let i = 0; i < 5; i++) {
       let position = borderDivs[i];
       let div = document.createElement('div');
+
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
 
       if (this.settings[position] && this.settings[position].hide) {
@@ -584,6 +588,71 @@ class Border {
     }
 
     return false;
+  }
+
+  /**
+   * Change border style.
+   *
+   * @private
+   * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   */
+  changeBorderStyle(borderElement, border) {
+    let style = this[borderElement].style;
+    let borderStyle = border[borderElement];
+
+    if (!borderStyle || borderStyle.hide) {
+      addClass(this[borderElement], 'hidden');
+
+    } else {
+      if (hasClass(this[borderElement], 'hidden')) {
+        removeClass(this[borderElement], 'hidden');
+      }
+
+      style.backgroundColor = borderStyle.color;
+
+      if (borderElement === 'top' || borderElement === 'bottom') {
+        style.height = `${borderStyle.width}px`;
+      }
+
+      if (borderElement === 'right' || borderElement === 'left') {
+        style.width = `${borderStyle.width}px`;
+      }
+    }
+  }
+
+  /**
+   * Change border style to default.
+   *
+   * @private
+   * @param {HTMLElement} position
+   */
+  changeBorderToDefaultStyle(position) {
+    const defaultBorder = {
+      width: 1,
+      color: '#000',
+    };
+    let style = this[position].style;
+
+    style.backgroundColor = defaultBorder.color;
+    style.width = `${defaultBorder.width}px`;
+    style.height = `${defaultBorder.width}px`;
+  }
+
+  /**
+   * Toggle class 'hidden' to element.
+   *
+   * @private
+   * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @return {Boolean}
+   */
+  toggleHiddenClass(borderElement, remove) {
+    this.changeBorderToDefaultStyle(borderElement);
+
+    if (remove) {
+      addClass(this[borderElement], 'hidden');
+    } else {
+      removeClass(this[borderElement], 'hidden');
+    }
   }
 
   /**
