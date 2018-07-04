@@ -42,7 +42,7 @@ declare namespace _Handsontable {
     getDataAtRowProp(row: number, prop: string): any;
     getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
     getInstance(): Handsontable;
-    getPlugin(pluginName: string): Handsontable.plugins.Base;
+    getPlugin<T extends keyof Handsontable.PluginsCollection>(pluginName: T): Handsontable.PluginsCollection[T];
     getRowHeader(row?: number): any[] | string;
     getRowHeight(row: number): number;
     getSchema(): object;
@@ -1918,8 +1918,8 @@ declare namespace Handsontable {
 
   interface Plugins {
     AutoColumnSize: plugins.AutoColumnSize,
-    AutoRowSize: plugins.AutoRowSize,
     Autofill: plugins.Autofill,
+    AutoRowSize: plugins.AutoRowSize,
     BasePlugin: plugins.Base,
     BindRowsWithHeaders: plugins.BindRowsWithHeaders,
     CollapsibleColumns: plugins.CollapsibleColumns,
@@ -1947,9 +1947,46 @@ declare namespace Handsontable {
     NestedHeaders: plugins.NestedHeaders,
     NestedRows: plugins.NestedRows,
     ObserveChanges: plugins.ObserveChanges,
+    Search: plugins.Search,
     TouchScroll: plugins.TouchScroll,
     TrimRows: plugins.TrimRows,
     registerPlugin: () => void
+  }
+
+  // Plugin collection, map for getPlugin method
+  interface PluginsCollection {
+    autoColumnSize: plugins.AutoColumnSize,
+    autofill: plugins.Autofill,
+    autoRowSize: plugins.AutoRowSize,
+    bindRowsWithHeaders: plugins.BindRowsWithHeaders,
+    collapsibleColumns: plugins.CollapsibleColumns,
+    columnSorting: plugins.ColumnSorting,
+    columnSummary: plugins.ColumnSummary,
+    comments: plugins.Comments,
+    contextMenu: plugins.ContextMenu,
+    copyPaste: plugins.CopyPaste,
+    dragToScroll: plugins.DragToScroll,
+    dropdownMenu: plugins.DropdownMenu,
+    exportFile: plugins.ExportFile,
+    filters: plugins.Filters,
+    formulas: plugins.Formulas,
+    ganttChart: plugins.GanttChart,
+    headerTooltips: plugins.HeaderTooltips,
+    hiddenColumns: plugins.HiddenColumns,
+    hiddenRows: plugins.HiddenRows,
+    manualColumnFreeze: plugins.ManualColumnFreeze,
+    manualColumnMove: plugins.ManualColumnMove,
+    manualColumnResize: plugins.ManualColumnResize,
+    manualRowMove: plugins.ManualRowMove,
+    manualRowResize: plugins.ManualRowResize;
+    mergeCells: plugins.MergeCells;
+    multipleSelectionHandles: plugins.MultipleSelectionHandles,
+    nestedHeaders: plugins.NestedHeaders,
+    nestedRows: plugins.NestedRows,
+    observeChanges: plugins.ObserveChanges,
+    search: plugins.Search,
+    touchScroll: plugins.TouchScroll,
+    trimRows: plugins.TrimRows,
   }
 
   // plugins

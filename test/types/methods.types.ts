@@ -44,7 +44,6 @@ hot.getDataAtRow(123);
 hot.getDataAtRowProp(123, 'foo');
 hot.getDataType(123, 123, 123, 123);
 hot.getInstance();
-hot.getPlugin('foo');
 hot.getRowHeader(123);
 hot.getRowHeight(123);
 hot.getSchema();
