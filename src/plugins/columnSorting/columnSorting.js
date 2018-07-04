@@ -276,17 +276,19 @@ class ColumnSorting extends BasePlugin {
     const visualColumn = this.hot.toVisualColumn(this.sortColumn);
     const columnMeta = this.hot.getCellMeta(0, visualColumn);
     const sortFunction = getSortFunctionForColumn(columnMeta);
-    const emptyRows = this.hot.countEmptyRows();
+    const settings = this.hot.getSettings();
     let nrOfRows;
+
+    // `maxRows` option doesn't take into account `minSpareRows` option in specific situation.
+    if (settings.maxRows <= this.hot.countRows()) {
+      nrOfRows = settings.maxRows;
+
+    } else {
+      nrOfRows = this.hot.countRows() - settings.minSpareRows;
+    }
 
     if (isUndefined(columnMeta.columnSorting.sortEmptyCells)) {
       columnMeta.columnSorting = {sortEmptyCells: this.sortEmptyCells};
-    }
-
-    if (this.hot.getSettings().maxRows === Number.POSITIVE_INFINITY) {
-      nrOfRows = this.hot.countRows() - this.hot.getSettings().minSpareRows;
-    } else {
-      nrOfRows = this.hot.countRows() - emptyRows;
     }
 
     // Function `getDataAtCell` won't call the indices translation inside `onModifyRow` listener - we check the `blockPluginTranslation` flag
