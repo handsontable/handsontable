@@ -704,21 +704,11 @@ declare namespace Handsontable {
     }
 
     interface ColumnSorting extends Base {
-      lastSortedColumn: null | number;
-      rowsMapper: ColumnSortingRowsMapper;
-      sortIndicators: any[];
-      sortingEnabled: boolean;
       sortColumn: undefined | number;
       sortEmptyCells: boolean;
       sortOrder: SortOrderType;
-
-      dateSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
-      defaultSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
-      enableObserveChangesPlugin(): void;
-      getColHeader(col: number, TH: HTMLElement): void;
       isSorted(): boolean;
       loadSortingState(): any;
-      numericSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
       saveSortingState(): void;
       sort(column: number, order?: SortOrderType): void;
     }
