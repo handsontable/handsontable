@@ -153,11 +153,11 @@ class ColumnSorting extends BasePlugin {
    * @fires Hooks#afterColumnSort
    */
   sort(column, order = this.getNextOrderState(column)) {
-    const allowSorting = this.hot.runHooks('beforeColumnSort', column, order);
-
     if (isUndefined(column)) {
       return;
     }
+
+    const allowSorting = this.hot.runHooks('beforeColumnSort', column, order);
 
     if (allowSorting === false) {
       return;
