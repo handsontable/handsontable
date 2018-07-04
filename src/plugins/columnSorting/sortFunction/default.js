@@ -1,65 +1,72 @@
 import {isEmpty} from '../../../helpers/mixed';
+import {DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
 
 /**
  * Default sorting algorithm.
  *
- * @param {Boolean} sortOrder Sorting order - `true` for ascending, `false` for descending.
+ * @param {String} sortOrder Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
  * @param {Object} columnMeta Column meta object.
- * @returns {Function} The comparing function.
+ * @returns {Function} The compare function.
  */
 export default function defaultSort(sortOrder, columnMeta) {
-  return function(a, b) {
-    if (typeof a[1] === 'string') {
-      a[1] = a[1].toLowerCase();
-    }
-    if (typeof b[1] === 'string') {
-      b[1] = b[1].toLowerCase();
+  // We are soring array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
+  return function ([, value], [, nextValue]) {
+    const sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
+
+    if (typeof value === 'string') {
+      value = value.toLowerCase();
     }
 
-    if (a[1] === b[1]) {
-      return 0;
+    if (typeof nextValue === 'string') {
+      nextValue = nextValue.toLowerCase();
     }
 
-    if (isEmpty(a[1])) {
-      if (isEmpty(b[1])) {
-        return 0;
+    if (value === nextValue) {
+      return DO_NOT_SWAP;
+    }
+
+    if (isEmpty(value)) {
+      if (isEmpty(nextValue)) {
+        // Two empty values
+        return DO_NOT_SWAP;
       }
 
-      if (columnMeta.columnSorting.sortEmptyCells) {
-        return sortOrder ? -1 : 1;
+      // Just fist value is empty and `sortEmptyCells` option was set
+      if (sortEmptyCells) {
+        return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
       }
 
-      return 1;
+      return FIRST_AFTER_SECOND;
     }
-    if (isEmpty(b[1])) {
-      if (isEmpty(a[1])) {
-        return 0;
+
+    if (isEmpty(nextValue)) {
+      // Just second value is empty and `sortEmptyCells` option was set
+      if (sortEmptyCells) {
+        return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
       }
 
-      if (columnMeta.columnSorting.sortEmptyCells) {
-        return sortOrder ? 1 : -1;
-      }
-
-      return -1;
+      return FIRST_BEFORE_SECOND;
     }
 
-    if (isNaN(a[1]) && !isNaN(b[1])) {
-      return sortOrder ? 1 : -1;
+    if (isNaN(value) && !isNaN(nextValue)) {
+      return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
 
-    } else if (!isNaN(a[1]) && isNaN(b[1])) {
-      return sortOrder ? -1 : 1;
+    } else if (!isNaN(value) && isNaN(nextValue)) {
+      return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
 
-    } else if (!(isNaN(a[1]) || isNaN(b[1]))) {
-      a[1] = parseFloat(a[1]);
-      b[1] = parseFloat(b[1]);
-    }
-    if (a[1] < b[1]) {
-      return sortOrder ? -1 : 1;
-    }
-    if (a[1] > b[1]) {
-      return sortOrder ? 1 : -1;
+    } else if (!(isNaN(value) || isNaN(nextValue))) {
+      value = parseFloat(value);
+      nextValue = parseFloat(nextValue);
     }
 
-    return 0;
+    if (value < nextValue) {
+      return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
+    }
+
+    if (value > nextValue) {
+      return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
+    }
+
+    return DO_NOT_SWAP;
   };
 }
