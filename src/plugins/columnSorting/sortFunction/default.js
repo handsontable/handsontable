@@ -1,17 +1,24 @@
-import {isEmpty} from '../../../helpers/mixed';
-import {DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
+import {isEmpty, isUndefined} from '../../../helpers/mixed';
+import {sortByNextColumn, DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND, SORT_EMPTY_CELLS_DEFAULT} from '../utils';
 
 /**
  * Default sorting algorithm.
  *
- * @param {String} sortOrder Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
- * @param {Object} columnMeta Column meta object.
+ * @param {Array} sortOrders Sorting orders (`asc` for ascending, `desc` for descending and `none` for initial state).
+ * @param {Array} columnMetas Column meta objects.
  * @returns {Function} The compare function.
  */
-export default function defaultSort(sortOrder, columnMeta) {
-  // We are soring array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
-  return function ([, value], [, nextValue]) {
-    const sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
+export default function defaultSort(sortOrders, columnMetas) {
+  // We are soring array of arrays. Single array is in form [rowIndex, ...values]. We compare just values, stored at second index of array.
+  return function ([rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex = 0) {
+    let value = values[sortedColumnIndex];
+    let nextValue = nextValues[sortedColumnIndex];
+    const sortOrder = sortOrders[sortedColumnIndex];
+    let sortEmptyCells = columnMetas[sortedColumnIndex].columnSorting.sortEmptyCells;
+
+    if (isUndefined(sortEmptyCells)) {
+      sortEmptyCells = SORT_EMPTY_CELLS_DEFAULT;
+    }
 
     if (typeof value === 'string') {
       value = value.toLowerCase();
@@ -22,13 +29,14 @@ export default function defaultSort(sortOrder, columnMeta) {
     }
 
     if (value === nextValue) {
-      return DO_NOT_SWAP;
+      // Two equal values, we check if there is sorting in next columns.
+      return sortByNextColumn(sortOrders, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
     }
 
     if (isEmpty(value)) {
       if (isEmpty(nextValue)) {
-        // Two empty values
-        return DO_NOT_SWAP;
+        // Two equal values, we check if there is sorting in next columns.
+        return sortByNextColumn(sortOrders, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
       }
 
       // Just fist value is empty and `sortEmptyCells` option was set

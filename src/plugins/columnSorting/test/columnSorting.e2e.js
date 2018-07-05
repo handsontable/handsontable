@@ -2210,14 +2210,16 @@ describe('ColumnSorting', () => {
 
   it('should allow specifiyng a custom sorting function', () => {
     const data = [['1 inch'], ['1 yard'], ['2 feet'], ['0.2 miles']];
-    handsontable({
+    const hot = handsontable({
       data,
       colHeaders: true,
       columnSorting: true,
       columns: [
         {
-          sortFunction(sortOrder) {
-            return function(a, b) {
+          sortFunction(sortOrders) {
+            return function([, ...values], [, ...nextValues]) {
+              const sortOrder = sortOrders[0];
+
               const unitsRatios = {
                 inch: 1,
                 yard: 36,
@@ -2225,20 +2227,20 @@ describe('ColumnSorting', () => {
                 miles: 63360
               };
 
-              let newA = a[1];
-              let newB = b[1];
+              let newA = values[0];
+              let newB = nextValues[0];
 
               Handsontable.helper.objectEach(unitsRatios, (val, prop) => {
-                if (a[1].indexOf(prop) > -1) {
-                  newA = parseFloat(a[1].replace(prop, '')) * val;
+                if (values[0].indexOf(prop) > -1) {
+                  newA = parseFloat(values[0].replace(prop, '')) * val;
 
                   return false;
                 }
               });
 
               Handsontable.helper.objectEach(unitsRatios, (val, prop) => {
-                if (b[1].indexOf(prop) > -1) {
-                  newB = parseFloat(b[1].replace(prop, '')) * val;
+                if (nextValues[0].indexOf(prop) > -1) {
+                  newB = parseFloat(nextValues[0].replace(prop, '')) * val;
 
                   return false;
                 }
@@ -2246,10 +2248,11 @@ describe('ColumnSorting', () => {
 
               if (newA < newB) {
                 return sortOrder === 'asc' ? -1 : 1;
-              }
-              if (newA > newB) {
+
+              } else if (newA > newB) {
                 return sortOrder === 'asc' ? 1 : -1;
               }
+
               return 0;
             };
           }
@@ -2282,7 +2285,6 @@ describe('ColumnSorting', () => {
     expect(getDataAtCell(1, 0)).toEqual('1 yard');
     expect(getDataAtCell(2, 0)).toEqual('2 feet');
     expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
-
   });
 
   it('should properly sort integers with nulls', function() {

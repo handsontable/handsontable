@@ -1,23 +1,31 @@
-import {isEmpty} from '../../../helpers/mixed';
-import {DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
+import {isEmpty, isUndefined} from '../../../helpers/mixed';
+import {sortByNextColumn, DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND, SORT_EMPTY_CELLS_DEFAULT} from '../utils';
 
 /**
  * Numeric sorting algorithm.
  *
- * @param {String} sortOrder Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
- * @param {Object} columnMeta Column meta object.
+ * @param {Array} sortOrders Sorting orders (`asc` for ascending, `desc` for descending and `none` for initial state).
+ * @param {Array} columnMetas Column meta objects.
  * @returns {Function} The compare function.
  */
-export default function numericSort(sortOrder, columnMeta) {
-  // We are soring array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
-  return function ([, value], [, nextValue]) {
-    const sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
+export default function numericSort(sortOrders, columnMetas) {
+  // We are soring array of arrays. Single array is in form [rowIndex, ...values]. We compare just values, stored at second index of array.
+  return function ([rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex = 0) {
+    const value = values[sortedColumnIndex];
+    const nextValue = nextValues[sortedColumnIndex];
     const parsedFirstValue = parseFloat(value);
     const parsedSecondValue = parseFloat(nextValue);
+    const sortOrder = sortOrders[sortedColumnIndex];
+    let sortEmptyCells = columnMetas[sortedColumnIndex].columnSorting.sortEmptyCells;
+
+    if (isUndefined(sortEmptyCells)) {
+      sortEmptyCells = SORT_EMPTY_CELLS_DEFAULT;
+    }
 
     // Watch out when changing this part of code! Check below returns 0 (as expected) when comparing empty string, null, undefined
     if (parsedFirstValue === parsedSecondValue || (isNaN(parsedFirstValue) && isNaN(parsedSecondValue))) {
-      return DO_NOT_SWAP;
+      // Two equal values, we check if there is sorting in next columns.
+      return sortByNextColumn(sortOrders, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
     }
 
     if (sortEmptyCells) {
