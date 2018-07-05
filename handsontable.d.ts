@@ -42,36 +42,7 @@ declare namespace _Handsontable {
     getDataAtRowProp(row: number, prop: string): any;
     getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
     getInstance(): Handsontable;
-    getPlugin(pluginName: 'autoColumnSize'): Handsontable.plugins.AutoColumnSize;
-    getPlugin(pluginName: 'autoRowSize'): Handsontable.plugins.AutoRowSize;
-    getPlugin(pluginName: 'autofill'): Handsontable.plugins.Autofill;
-    getPlugin(pluginName: 'bindRowsWithHeaders'): Handsontable.plugins.BindRowsWithHeaders;
-    getPlugin(pluginName: 'collapsibleColumns'): Handsontable.plugins.CollapsibleColumns;
-    getPlugin(pluginName: 'columnSorting'): Handsontable.plugins.ColumnSorting;
-    getPlugin(pluginName: 'columnSummary'): Handsontable.plugins.ColumnSummary;
-    getPlugin(pluginName: 'comments'): Handsontable.plugins.Comments;
-    getPlugin(pluginName: 'contextMenu'): Handsontable.plugins.ContextMenu;
-    getPlugin(pluginName: 'copyPaste'): Handsontable.plugins.CopyPaste;
-    getPlugin(pluginName: 'dragToScroll'): Handsontable.plugins.DragToScroll;
-    getPlugin(pluginName: 'dropdownMenu'): Handsontable.plugins.DropdownMenu;
-    getPlugin(pluginName: 'exportFile'): Handsontable.plugins.ExportFile;
-    getPlugin(pluginName: 'filters'): Handsontable.plugins.Filters;
-    getPlugin(pluginName: 'headerTooltips'): Handsontable.plugins.HeaderTooltips;
-    getPlugin(pluginName: 'hiddenColumns'): Handsontable.plugins.HiddenColumns;
-    getPlugin(pluginName: 'hiddenRows'): Handsontable.plugins.HiddenRows;
-    getPlugin(pluginName: 'manualColumnFreeze'): Handsontable.plugins.ManualColumnFreeze;
-    getPlugin(pluginName: 'manualColumnMove'): Handsontable.plugins.ManualColumnMove;
-    getPlugin(pluginName: 'manualRowMove'): Handsontable.plugins.ManualRowMove;
-    getPlugin(pluginName: 'manualRowResize'): Handsontable.plugins.ManualRowResize;
-    getPlugin(pluginName: 'mergeCells'): Handsontable.plugins.MergeCells;
-    getPlugin(pluginName: 'nestedHeaders'): Handsontable.plugins.NestedHeaders;
-    getPlugin(pluginName: 'observeChanges'): Handsontable.plugins.ObserveChanges;
-    getPlugin(pluginName: 'search'): Handsontable.plugins.Search;
-    getPlugin(pluginName: 'trimRows'): Handsontable.plugins.TrimRows;
-    getPlugin(pluginName: 'formulas'): Handsontable.plugins.Formulas;
-    getPlugin(pluginName: 'ganttChart'): Handsontable.plugins.GanttChart;
-    getPlugin(pluginName: 'nestedRows'): Handsontable.plugins.NestedRows;
-    getPlugin(pluginName: string): Handsontable.plugins.Base;
+    getPlugin<T extends keyof Handsontable.PluginsCollection>(pluginName: T): Handsontable.PluginsCollection[T];
     getRowHeader(row?: number): any[] | string;
     getRowHeight(row: number): number;
     getSchema(): object;
@@ -733,21 +704,11 @@ declare namespace Handsontable {
     }
 
     interface ColumnSorting extends Base {
-      lastSortedColumn: null | number;
-      rowsMapper: ColumnSortingRowsMapper;
-      sortIndicators: any[];
-      sortingEnabled: boolean;
       sortColumn: undefined | number;
       sortEmptyCells: boolean;
       sortOrder: SortOrderType;
-
-      dateSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
-      defaultSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
-      enableObserveChangesPlugin(): void;
-      getColHeader(col: number, TH: HTMLElement): void;
       isSorted(): boolean;
       loadSortingState(): any;
-      numericSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
       saveSortingState(): void;
       sort(column: number, order?: SortOrderType): void;
     }
@@ -1947,8 +1908,8 @@ declare namespace Handsontable {
 
   interface Plugins {
     AutoColumnSize: plugins.AutoColumnSize,
-    AutoRowSize: plugins.AutoRowSize,
     Autofill: plugins.Autofill,
+    AutoRowSize: plugins.AutoRowSize,
     BasePlugin: plugins.Base,
     BindRowsWithHeaders: plugins.BindRowsWithHeaders,
     CollapsibleColumns: plugins.CollapsibleColumns,
@@ -1976,9 +1937,46 @@ declare namespace Handsontable {
     NestedHeaders: plugins.NestedHeaders,
     NestedRows: plugins.NestedRows,
     ObserveChanges: plugins.ObserveChanges,
+    Search: plugins.Search,
     TouchScroll: plugins.TouchScroll,
     TrimRows: plugins.TrimRows,
     registerPlugin: () => void
+  }
+
+  // Plugin collection, map for getPlugin method
+  interface PluginsCollection {
+    autoColumnSize: plugins.AutoColumnSize,
+    autofill: plugins.Autofill,
+    autoRowSize: plugins.AutoRowSize,
+    bindRowsWithHeaders: plugins.BindRowsWithHeaders,
+    collapsibleColumns: plugins.CollapsibleColumns,
+    columnSorting: plugins.ColumnSorting,
+    columnSummary: plugins.ColumnSummary,
+    comments: plugins.Comments,
+    contextMenu: plugins.ContextMenu,
+    copyPaste: plugins.CopyPaste,
+    dragToScroll: plugins.DragToScroll,
+    dropdownMenu: plugins.DropdownMenu,
+    exportFile: plugins.ExportFile,
+    filters: plugins.Filters,
+    formulas: plugins.Formulas,
+    ganttChart: plugins.GanttChart,
+    headerTooltips: plugins.HeaderTooltips,
+    hiddenColumns: plugins.HiddenColumns,
+    hiddenRows: plugins.HiddenRows,
+    manualColumnFreeze: plugins.ManualColumnFreeze,
+    manualColumnMove: plugins.ManualColumnMove,
+    manualColumnResize: plugins.ManualColumnResize,
+    manualRowMove: plugins.ManualRowMove,
+    manualRowResize: plugins.ManualRowResize;
+    mergeCells: plugins.MergeCells;
+    multipleSelectionHandles: plugins.MultipleSelectionHandles,
+    nestedHeaders: plugins.NestedHeaders,
+    nestedRows: plugins.NestedRows,
+    observeChanges: plugins.ObserveChanges,
+    search: plugins.Search,
+    touchScroll: plugins.TouchScroll,
+    trimRows: plugins.TrimRows,
   }
 
   // plugins
