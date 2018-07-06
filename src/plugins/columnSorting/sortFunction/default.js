@@ -1,5 +1,5 @@
 import {isEmpty, isUndefined} from '../../../helpers/mixed';
-import {sortByNextColumn, DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND, SORT_EMPTY_CELLS_DEFAULT} from '../utils';
+import {getNextColumnSortResult, DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND, SORT_EMPTY_CELLS_DEFAULT} from '../utils';
 
 /**
  * Default sorting algorithm.
@@ -29,14 +29,14 @@ export default function defaultSort(sortOrders, columnMetas) {
     }
 
     if (value === nextValue) {
-      // Two equal values, we check if there is sorting in next columns.
-      return sortByNextColumn(sortOrders, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
+      // Two equal values, we check if sorting should be performed for next columns.
+      return getNextColumnSortResult(sortOrders, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
     }
 
     if (isEmpty(value)) {
       if (isEmpty(nextValue)) {
-        // Two equal values, we check if there is sorting in next columns.
-        return sortByNextColumn(sortOrders, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
+        // Two equal values, we check if sorting should be performed for next columns.
+        return getNextColumnSortResult(sortOrders, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
       }
 
       // Just fist value is empty and `sortEmptyCells` option was set

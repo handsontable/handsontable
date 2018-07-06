@@ -7,8 +7,8 @@ import {isObject} from './../../helpers/object';
 import {isUndefined} from './../../helpers/mixed';
 import {getSortFunctionForColumn} from './utils';
 import BasePlugin from './../_base';
-import {SortedColumnStates} from './sortedColumnStates';
-import {ClassHelper, HEADER_CLASS, HEADER_CLASS_SORTING} from './classHelper';
+import {ColumnStatesManager} from './columnStatesManager';
+import {DomHelper, HEADER_CLASS, HEADER_SORTING_CLASS} from './domHelper';
 import {registerPlugin} from './../../plugins';
 import mergeSort from './../../utils/sortingAlgorithms/mergeSort';
 import Hooks from './../../pluginHooks';
@@ -41,8 +41,18 @@ Hooks.getSingleton().register('afterColumnSort');
 class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
-    this.states = new SortedColumnStates();
-    this.classHelper = new ClassHelper(this.states);
+    /**
+     * Instance of column states manager.
+     *
+     * @type {SortedColumnStates}
+     */
+    this.columnStatesManager = new ColumnStatesManager();
+    /**
+     * Instance of DOM helper.
+     *
+     * @type {DomHelper}
+     */
+    this.domHelper = new DomHelper(this.columnStatesManager);
     /**
      * Sorting empty cells.
      *
@@ -139,7 +149,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    this.states.set(this.hot.toPhysicalColumn(column), order);
+    this.columnStatesManager.setSortingOrder(this.hot.toPhysicalColumn(column), order);
     this.sortByPresetColumnAndOrder();
 
     this.hot.runHooks('afterColumnSort', column, order);
@@ -156,7 +166,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Boolean}
    */
   isSorted() {
-    return this.isEnabled() && this.states.isEmpty() === false;
+    return this.isEnabled() && !this.columnStatesManager.isListOfSortedColumnsEmpty();
   }
 
   /**
@@ -166,8 +176,8 @@ class ColumnSorting extends BasePlugin {
    * @fires Hooks#columnSorting
    */
   saveSortingState() {
-    if (this.states.isEmpty() === false) {
-      this.hot.runHooks('persistentStateSave', 'columnSorting', this.states.getAll());
+    if (this.columnStatesManager.isListOfSortedColumnsEmpty() === false) {
+      this.hot.runHooks('persistentStateSave', 'columnSorting', this.columnStatesManager.getAllStates());
     }
   }
 
@@ -201,6 +211,13 @@ class ColumnSorting extends BasePlugin {
       }, 0));
   }
 
+  /**
+   * Get number of rows which should be sorted.
+   *
+   * @private
+   * @param {Number} numberOfRows Total number of displayed rows.
+   * @returns {Number}
+   */
   getNumberOfSortedRows(numberOfRows) {
     const settings = this.hot.getSettings();
 
@@ -218,17 +235,17 @@ class ColumnSorting extends BasePlugin {
    * @private
    */
   sortByPresetColumnAndOrder() {
-    if (this.states.isEmpty()) {
+    if (this.columnStatesManager.isListOfSortedColumnsEmpty()) {
       this.rowsMapper.clearMap();
 
       return;
     }
 
     const indexesWithData = [];
-    const visualColumn = this.hot.toVisualColumn(this.states.getFirstColumn());
+    const visualColumn = this.hot.toVisualColumn(this.columnStatesManager.getFirstSortedColumn());
     const columnMeta = this.hot.getCellMeta(0, visualColumn);
     const sortFunctionForFirstColumn = getSortFunctionForColumn(columnMeta);
-    const sortedColumnList = this.states.getColumnList();
+    const sortedColumnList = this.columnStatesManager.getSortedColumns();
     const numberOfRows = this.hot.countRows();
 
     // Function `getDataAtCell` won't call the indices translation inside `onModifyRow` listener - we check the `blockPluginTranslation` flag
@@ -242,7 +259,7 @@ class ColumnSorting extends BasePlugin {
       indexesWithData.push([visualRowIndex].concat(getDataForSortedColumns(visualRowIndex)));
     }
 
-    mergeSort(indexesWithData, sortFunctionForFirstColumn(this.states.getOrdersList(),
+    mergeSort(indexesWithData, sortFunctionForFirstColumn(this.columnStatesManager.getOrdersOfSortedColumns(),
       sortedColumnList.map((column) => this.hot.getCellMeta(0, this.hot.toVisualColumn(column)))));
 
     // Append spareRows
@@ -304,6 +321,13 @@ class ColumnSorting extends BasePlugin {
     return row;
   }
 
+  /**
+   * Get if sort indicator is enabled for particular column.
+   *
+   * @private
+   * @param {Number} visualColumn
+   * @returns {Boolean}
+   */
   getColumnSortIndicator(visualColumn) {
     const columnMeta = this.hot.getCellMeta(0, visualColumn);
 
@@ -341,8 +365,8 @@ class ColumnSorting extends BasePlugin {
 
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    removeClass(headerLink, this.classHelper.getRemovedClasses());
-    addClass(headerLink, this.classHelper.getAddedClasses(physicalColumn, this.getColumnSortIndicator(column)));
+    removeClass(headerLink, this.domHelper.getRemovedClasses());
+    addClass(headerLink, this.domHelper.getAddedClasses(physicalColumn, this.getColumnSortIndicator(column)));
   }
 
   /**
@@ -414,7 +438,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     // Click on the header
-    if (hasClass(event.realTarget, HEADER_CLASS_SORTING)) {
+    if (hasClass(event.realTarget, HEADER_SORTING_CLASS)) {
       this.sort(coords.col);
     }
   }

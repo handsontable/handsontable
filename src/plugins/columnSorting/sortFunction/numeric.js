@@ -1,5 +1,5 @@
 import {isEmpty, isUndefined} from '../../../helpers/mixed';
-import {sortByNextColumn, DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND, SORT_EMPTY_CELLS_DEFAULT} from '../utils';
+import {getNextColumnSortResult, DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND, SORT_EMPTY_CELLS_DEFAULT} from '../utils';
 
 /**
  * Numeric sorting algorithm.
@@ -24,8 +24,8 @@ export default function numericSort(sortOrders, columnMetas) {
 
     // Watch out when changing this part of code! Check below returns 0 (as expected) when comparing empty string, null, undefined
     if (parsedFirstValue === parsedSecondValue || (isNaN(parsedFirstValue) && isNaN(parsedSecondValue))) {
-      // Two equal values, we check if there is sorting in next columns.
-      return sortByNextColumn(sortOrders, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
+      // Two equal values, we check if sorting should be performed for next columns.
+      return getNextColumnSortResult(sortOrders, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
     }
 
     if (sortEmptyCells) {

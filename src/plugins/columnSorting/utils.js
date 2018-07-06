@@ -1,7 +1,6 @@
 import dateSort from './sortFunction/date';
 import defaultSort from './sortFunction/default';
 import numericSort from './sortFunction/numeric';
-import {ASC_SORT_STATE, DESC_SORT_STATE} from './sortedColumnStates';
 
 export const DO_NOT_SWAP = 0;
 export const FIRST_BEFORE_SECOND = -1;
@@ -12,7 +11,6 @@ export const SORT_EMPTY_CELLS_DEFAULT = false;
 /**
  * Gets sort function for the particular column basing on its column meta.
  *
- * @private
  * @param {Object} columnMeta
  * @returns {Function}
  */
@@ -31,13 +29,21 @@ export function getSortFunctionForColumn(columnMeta) {
 }
 
 /**
+ * Get result of next column sorting.
+ *
+ * @param {Array} sortOrders Sorting orders (`asc` for ascending, `desc` for descending and `none` for initial state).
+ * @param {Array} columnMetas Column meta objects.
+ * @param {Array} indexWithValues Array is in form [rowIndex, ...values]. We compare just values, stored at second index of array.
+ * @param {Array} nextIndexWithValues Array is in form [rowIndex, ...values]. We compare just values, stored at second index of array.
+ * @param {Number} lastSortedColumn Index of last already sorted column.
+ * @returns {Number} Comparision result; working as compare function in native `Array.prototype.sort` function specification.
  */
-export function sortByNextColumn(sortOrders, columnMetas, indexWithValues, nextIndexWithValues, column) {
-  const nextColumn = column + 1;
+export function getNextColumnSortResult(sortingOrders, columnMetas, indexWithValues, nextIndexWithValues, lastSortedColumn) {
+  const nextColumn = lastSortedColumn + 1;
 
   if (columnMetas[nextColumn]) {
     const sortFunction = getSortFunctionForColumn(columnMetas[nextColumn]);
-    const compareFunction = sortFunction(sortOrders, columnMetas);
+    const compareFunction = sortFunction(sortingOrders, columnMetas);
 
     return compareFunction(indexWithValues, nextIndexWithValues, nextColumn);
   }

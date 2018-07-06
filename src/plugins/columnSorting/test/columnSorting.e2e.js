@@ -50,11 +50,6 @@ describe('ColumnSorting', () => {
 
     const htCore = getHtCore();
 
-    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('9');
-    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('3');
-    expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('4');
-
     this.sortByClickOnColumnHeader(0);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
