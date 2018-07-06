@@ -119,7 +119,6 @@ Handsontable Pro comes with wrappers and directives for most popular frameworks:
 - [React](//github.com/handsontable/react-handsontable)
 - [Vue](//github.com/handsontable/vue-handsontable-official)
 - [Polymer](//github.com/handsontable/hot-table)
-- [Typescript file](//github.com/handsontable/handsontable-pro/blob/master/handsontable.d.ts)
 
 <br/>
 
