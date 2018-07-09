@@ -389,13 +389,16 @@ class ColumnSorting extends BasePlugin {
     let sortingColumn;
     let sortingOrder;
 
-    if (isUndefined(loadedSortingState)) {
-      sortingColumn = sortingSettings.column;
-      sortingOrder = sortingSettings.sortOrder;
+    if (Array.isArray(loadedSortingState)) {
+      const firstSortingState = loadedSortingState[0];
+
+      if (Array.isArray(firstSortingState)) {
+        [sortingColumn, sortingOrder] = [firstSortingState[0], firstSortingState[1]];
+      }
 
     } else {
-      sortingColumn = loadedSortingState.sortColumn;
-      sortingOrder = loadedSortingState.sortOrder;
+      sortingColumn = sortingSettings.column;
+      sortingOrder = sortingSettings.sortOrder;
     }
 
     if (typeof sortingColumn === 'number') {

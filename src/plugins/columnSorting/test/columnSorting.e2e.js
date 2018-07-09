@@ -1025,8 +1025,7 @@ describe('ColumnSorting', () => {
         }
       ],
       colHeaders: true,
-      columnSorting: true,
-      removeRowPlugin: true // this plugin ads an extra row header, so now we have 2 instead of 1
+      columnSorting: true
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
