@@ -119,6 +119,11 @@ HandsontableEditor.prototype.open = function() {
   if (this.htEditor) {
     this.htEditor.destroy();
   }
+
+  if (this.htContainer.style.display === 'none') {
+    this.htContainer.style.display = '';
+  }
+
   // Construct and initialise a new Handsontable
   this.htEditor = new this.instance.constructor(this.htContainer, this.htOptions);
   this.htEditor.init();

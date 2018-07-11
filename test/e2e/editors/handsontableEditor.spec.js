@@ -89,6 +89,48 @@ describe('HandsontableEditor', () => {
     expect(this.$container.find('.handsontableEditor').length).toEqual(1);
   });
 
+  it('should reuse the container and display them after select the same or different cell', function() {
+    handsontable({
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    let container = this.$container.find('.handsontableEditor')[0];
+
+    expect(container.clientHeight).toBeGreaterThan(2);
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    container = this.$container.find('.handsontableEditor')[0];
+
+    expect(container.clientHeight).toBeGreaterThan(2);
+
+    selectCell(1, 0);
+    keyDownUp('enter');
+
+    container = this.$container.find('.handsontableEditor')[0];
+
+    expect(container.clientHeight).toBeGreaterThan(2);
+
+    selectCell(1, 0);
+    keyDownUp('enter');
+
+    container = this.$container.find('.handsontableEditor')[0];
+
+    expect(container.clientHeight).toBeGreaterThan(2);
+  });
+
   it('should destroy the editor when Esc is pressed', function() {
     handsontable({
       columns: [
