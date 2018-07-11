@@ -85,6 +85,7 @@ class GanttChart extends BasePlugin {
     /**
      * Currently loaded year.
      *
+     * @private
      * @type {Number}
      */
     this.currentYear = null;
@@ -135,6 +136,7 @@ class GanttChart extends BasePlugin {
     /**
      * Object containing properties of the source Handsontable instance (the data source).
      *
+     * @private
      * @type {Object}
      */
     this.hotSource = null;
@@ -155,12 +157,14 @@ class GanttChart extends BasePlugin {
     /**
      * Data feed controller for this plugin.
      *
+     * @private
      * @type {GanttChartDataFeed}
      */
     this.dataFeed = null;
     /**
      * Color information set after applying colors to the chart.
      *
+     * @private
      * @type {Object}
      */
     this.colorData = {};
@@ -183,14 +187,17 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Check if plugin is enabled
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link GanttChart#enablePlugin} method is called.
+   *
+   * @returns {Boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().ganttChart;
   }
 
   /**
-   * Enable the plugin
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -235,7 +242,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Disable the plugin.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     if (this.internalUpdateSettings) {
@@ -263,7 +270,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -273,7 +280,9 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Parse the plugin settings.
+   * Parses the plugin settings.
+   *
+   * @private
    */
   parseSettings() {
     this.settings = this.hot.getSettings().ganttChart;
@@ -296,7 +305,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Apply the data source provided in the plugin settings.
+   * Applies the data source provided in the plugin settings.
    *
    * @private
    */
@@ -313,7 +322,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Load chart data to the Handsontable instance.
+   * Loads chart data to the Handsontable instance.
    *
    * @private
    * @param {Array|Object} data Array of objects containing the range data OR another Handsontable instance, to be used as the data feed
@@ -329,7 +338,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Clear the range bars list.
+   * Clears the range bars list.
    *
    * @private
    */
@@ -338,7 +347,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Clear the range list.
+   * Clears the range list.
    *
    * @private
    */
@@ -347,7 +356,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Get a range bar coordinates by the provided row.
+   * Returns a range bar coordinates by the provided row.
    *
    * @param {Number} row Range bar's row.
    * @returns {Object}
@@ -357,7 +366,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Generate the month header structure.
+   * Generates the month header structure.
    *
    * @private
    */
@@ -366,7 +375,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Generate the week header structure.
+   * Generates the week header structure.
    *
    * @private
    */
@@ -375,7 +384,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Assign the settings needed for the Gantt Chart plugin into the Handsontable instance.
+   * Assigns the settings needed for the Gantt Chart plugin into the Handsontable instance.
    *
    * @private
    */
@@ -415,7 +424,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Deassign the Gantt Chart plugin settings (revert to initial settings).
+   * Deassigns the Gantt Chart plugin settings (revert to initial settings).
    *
    * @private
    */
@@ -450,7 +459,9 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Apply the cached cell meta.
+   * Applies the cached cell meta.
+   *
+   * @private
    */
   applyRangeBarMetaCache() {
     objectEach(this.rangeBarMeta, (rowArr, row) => {
@@ -552,7 +563,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Generate the information about which date is represented in which column.
+   * Generates the information about which date is represented in which column.
    *
    * @private
    * @param {Date} startDate Start date.
@@ -568,7 +579,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Get the range bar data of the provided row and column.
+   * Returns the range bar data of the provided row and column.
    *
    * @param {Number} row Row index.
    * @param {Number} column Column index.
@@ -593,7 +604,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Update the range bar data by the provided object.
+   * Updates the range bar data by the provided object.
    *
    * @param {Number} row Row index.
    * @param {Number} column Column index.
@@ -610,7 +621,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Add a range bar to the table.
+   * Adds a range bar to the table.
    *
    * @private
    * @param {Number} row Row index.
@@ -646,7 +657,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Remove a range bar of the provided start date and row.
+   * Removes a range bar of the provided start date and row.
    *
    * @param {Number} row Row index.
    * @param {Date|String} startDate Start date.
@@ -658,7 +669,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Remove a range bar of the provided row and start column.
+   * Removes a range bar of the provided row and start column.
    *
    * @param {Number} row Row index.
    * @param {Number} startDateColumn Column index.
@@ -684,7 +695,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Remove all range bars from the chart-enabled Handsontable instance.
+   * Removes all range bars from the chart-enabled Handsontable instance.
    */
   removeAllRangeBars() {
     objectEach(this.rangeBars, (row, i) => {
@@ -695,7 +706,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Remove a range bar from the table.
+   * Removes a range bar from the table.
    *
    * @private
    * @param {Number} row Row index.
@@ -761,7 +772,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Set range bar colors.
+   * Sets range bar colors.
    *
    * @param {Object} rows Object containing row color data, see example.
    * @example
@@ -789,7 +800,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Update the chart with a new year.
+   * Updates the chart with a new year.
    *
    * @param {Number} year New chart year.
    */
@@ -815,7 +826,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Prevent update settings loop when assigning the additional internal settings.
+   * Prevents update settings loop when assigning the additional internal settings.
    *
    * @private
    */
@@ -830,9 +841,7 @@ class GanttChart extends BasePlugin {
   }
 
   /**
-   * Destroy the plugin
-   *
-   * @private
+   * Destroys the plugin instance.
    */
   destroy() {
     if (this.hotSource) {

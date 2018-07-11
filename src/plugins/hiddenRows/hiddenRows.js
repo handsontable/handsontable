@@ -13,7 +13,9 @@ import './hiddenRows.css';
  * @pro
  *
  * @description
- * Plugin allowing to hide certain rows.
+ * Plugin allows to hide certain rows. The hiding is achieved by rendering the rows with height set as 0px.
+ * The plugin not modifies the source data and do not participate in data transformation (the shape of data returned
+ * by `getData*` methods stays intact).
  *
  * Possible plugin settings:
  *  * `copyPasteEnabled` as `Boolean` (default `true`)
@@ -23,8 +25,8 @@ import './hiddenRows.css';
  * @example
  *
  * ```js
- * ...
- * var hot = new Handsontable(document.getElementById('example'), {
+ * const container = document.getElementById('example');
+ * const hot = new Handsontable(container, {
  *   date: getData(),
  *   hiddenRows: {
  *     copyPasteEnabled: true,
@@ -32,25 +34,30 @@ import './hiddenRows.css';
  *     rows: [1, 2, 5]
  *   }
  * });
- * // Access to hiddenRows plugin instance:
- * var hiddenRowsPlugin = hot.getPlugin('hiddenRows');
  *
- * // Show row programmatically:
+ * // access to hiddenRows plugin instance
+ * const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
+ *
+ * // show single row
  * hiddenRowsPlugin.showRow(1);
- * // Show rows
+ *
+ * // show multiple rows
  * hiddenRowsPlugin.showRow(1, 2, 9);
- * // or
+ *
+ * // or as an array
  * hiddenRowsPlugin.showRows([1, 2, 9]);
- * hot.render();
- * ...
- * // Hide row programmatically:
+ *
+ * // hide single row
  * hiddenRowsPlugin.hideRow(1);
- * // Hide rows
+ *
+ * // hide multiple rows
  * hiddenRowsPlugin.hideRow(1, 2, 9);
- * // or
+ *
+ * // or as an array
  * hiddenRowsPlugin.hideRows([1, 2, 9]);
+ *
+ * // rerender the table to see all changes
  * hot.render();
- * ...
  * ```
  */
 class HiddenRows extends BasePlugin {
@@ -59,18 +66,21 @@ class HiddenRows extends BasePlugin {
     /**
      * Cached settings from Handsontable settings.
      *
+     * @private
      * @type {Object}
      */
     this.settings = {};
     /**
      * List of hidden rows indexes.
      *
-     * @type {Array}
+     * @private
+     * @type {Number[]}
      */
     this.hiddenRows = [];
     /**
      * Last selected row index.
      *
+     * @private
      * @type {Number}
      * @default -1
      */
@@ -78,7 +88,8 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Check if plugin is enabled.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link HiddenRows#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -87,7 +98,7 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Enable the plugin.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -119,7 +130,7 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -131,7 +142,7 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Disable the plugin.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     this.settings = {};
@@ -143,9 +154,9 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Show the rows provided in the array.
+   * Shows the rows provided in the array.
    *
-   * @param {Array} rows Array of row index.
+   * @param {Number[]} rows Array of row index.
    */
   showRows(rows) {
     arrayEach(rows, (row) => {
@@ -159,18 +170,18 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Show the row provided as row index (counting from 0).
+   * Shows the row provided as row index (counting from 0).
    *
-   * @param {Number} row Row index.
+   * @param {...Number} row Row index.
    */
   showRow(...row) {
     this.showRows(row);
   }
 
   /**
-   * Hide the rows provided in the array.
+   * Hides the rows provided in the array.
    *
-   * @param {Array} rows Array of row index.
+   * @param {Number[]} rows Array of row index.
    */
   hideRows(rows) {
     arrayEach(rows, (row) => {
@@ -184,16 +195,16 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Hide the row provided as row index (counting from 0).
+   * Hides the row provided as row index (counting from 0).
    *
-   * @param {Number} row Row index.
+   * @param {...Number} row Row index.
    */
   hideRow(...row) {
     this.hideRows(row);
   }
 
   /**
-   * Check if given row is hidden.
+   * Checks if given row is hidden.
    *
    * @param {Number} row Column index.
    * @param {Boolean} isLogicIndex flag which determines type of index.
@@ -208,7 +219,7 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Reset all rendered cells meta.
+   * Resets all rendered cells meta.
    *
    * @private
    */
@@ -221,22 +232,27 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Get the logical index of the provided row.
+   * Returns the logical index of the provided row.
    *
+   * @private
    * @param {Number} row
    * @returns {Number}
+   *
+   * @fires Hooks#modifyRow
    */
   getLogicalRowIndex(row) {
     return this.hot.runHooks('modifyRow', row);
   }
 
   /**
-   * Set the copy-related cell meta.
+   * Sets the copy-related cell meta.
    *
    * @private
    * @param {Number} row Row index.
    * @param {Number} col Column index.
    * @param {Object} cellProperties Cell meta object properties.
+   *
+   * @fires Hooks#unmodifyRow
    */
   onAfterGetCellMeta(row, col, cellProperties) {
     row = this.hot.runHooks('unmodifyRow', row);
@@ -291,7 +307,7 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Add the needed classes to the headers.
+   * Adds the needed classes to the headers.
    *
    * @private
    * @param {Number} row Row index.
@@ -334,7 +350,7 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Add the additional row height for the hidden row indicators.
+   * Adds the additional row height for the hidden row indicators.
    *
    * @private
    * @param {Number} height Row height.
@@ -484,7 +500,7 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Add Show-hide columns to context menu.
+   * Adds Show-hide columns to context menu.
    *
    * @private
    * @param {Object} options
@@ -500,8 +516,9 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Recalculate index of hidden rows after add row action
+   * Recalculates index of hidden rows after add row action
    *
+   * @private
    * @param {Number} index
    * @param {Number} amount
    */
@@ -518,8 +535,9 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Recalculate index of hidden rows after remove row action
+   * Recalculates index of hidden rows after remove row action
    *
+   * @private
    * @param {Number} index
    * @param {Number} amount
    */
@@ -559,7 +577,7 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Destroy the plugin.
+   * Destroys the plugin instance.
    */
   destroy() {
     super.destroy();

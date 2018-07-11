@@ -29,18 +29,21 @@ class NestedRows extends BasePlugin {
     /**
      * Source data object.
      *
+     * @private
      * @type {Object}
      */
     this.sourceData = null;
     /**
      * Reference to the Trim Rows plugin.
      *
+     * @private
      * @type {Object}
      */
     this.trimRowsPlugin = null;
     /**
      * Reference to the BindRowsWithHeaders plugin.
      *
+     * @private
      * @type {Object}
      */
     this.bindRowsWithHeadersPlugin = null;
@@ -48,6 +51,7 @@ class NestedRows extends BasePlugin {
     /**
      * Reference to the DataManager instance.
      *
+     * @private
      * @type {Object}
      */
     this.dataManager = null;
@@ -55,6 +59,7 @@ class NestedRows extends BasePlugin {
     /**
      * Reference to the HeadersUI instance.
      *
+     * @private
      * @type {Object}
      */
     this.headersUI = null;
@@ -68,14 +73,17 @@ class NestedRows extends BasePlugin {
   }
 
   /**
-   * Checks if the plugin is enabled in the settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link NestedRows#enablePlugin} method is called.
+   *
+   * @returns {Boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().nestedRows;
   }
 
   /**
-   * Enable the plugin.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     this.sourceData = this.hot.getSourceData();
@@ -120,14 +128,14 @@ class NestedRows extends BasePlugin {
   }
 
   /**
-   * Disable the plugin.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     super.disablePlugin();
   }
 
   /**
-   * Update the plugin.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -404,11 +412,11 @@ class NestedRows extends BasePlugin {
   /**
    * `onAfterRemoveRow` hook callback.
    *
+   * @private
    * @param {Number} index Removed row.
    * @param {Number} amount Amount of removed rows.
    * @param {Array} logicRows
    * @param {String} source Source of action.
-   * @private
    */
   onAfterRemoveRow(index, amount, logicRows, source) {
     if (source === this.pluginName) {
@@ -525,10 +533,10 @@ class NestedRows extends BasePlugin {
   /**
    * `afterCreateRow` hook callback.
    *
+   * @private
    * @param {Number} index
    * @param {Number} amount
    * @param {String} source
-   * @private
    */
   onAfterCreateRow(index, amount, source) {
     if (source === this.pluginName) {

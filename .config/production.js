@@ -48,6 +48,7 @@ module.exports.create = function create(envArgs) {
       new ExtractTextPlugin(PACKAGE_FILENAME + (isFullBuild ? '.full' : '') + '.min.css'),
       new OptimizeCssAssetsPlugin({
         assetNameRegExp: isFullBuild ? /\.full\.min\.css$/ : /\.min\.css$/,
+        cssProcessorOptions: { zindex: false },
       })
     );
 

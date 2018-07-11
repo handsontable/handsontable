@@ -70,7 +70,7 @@
 }
 
 .htDropdownMenu table tbody tr td.htSeparator {
-  border-top: 1px solid #bbb;
+  border-top: 1px solid #e6e6e6;
   height: 0;
   padding: 0;
   cursor: default;

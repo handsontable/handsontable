@@ -21,26 +21,26 @@ import './nestedHeaders.css';
  * @pro
  *
  * @description
- * This plugin allows to create a nested header structure, using the HTML's colspan attribute.
+ * The plugin allows to create a nested header structure, using the HTML's colspan attribute.
  *
- * To make any header wider (covering multiple table columns), it's corresponding configuration array element should be provided as an object with `label` and `colspan` properties.
- * The `label` property defines the header's label, while the `colspan` property defines a number of columns that the header should cover.
+ * To make any header wider (covering multiple table columns), it's corresponding configuration array element should be
+ * provided as an object with `label` and `colspan` properties. The `label` property defines the header's label,
+ * while the `colspan` property defines a number of columns that the header should cover.
  *
- * **Note** that the plugin supports a *nested* structure, which means, any header cannot be wider than it's "parent". In
+ * __Note__ that the plugin supports a *nested* structure, which means, any header cannot be wider than it's "parent". In
  * other words, headers cannot overlap each other.
  * @example
  *
  * ```js
- * ...
- * let hot = new Handsontable(document.getElementById('example'), {
+ * const container = document.getElementById('example');
+ * const hot = new Handsontable(container, {
  *   date: getData(),
- *  nestedHeaders: [
+ *   nestedHeaders: [
  *           ['A', {label: 'B', colspan: 8}, 'C'],
  *           ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
  *           ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
  *           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
  *  ],
- * ...
  * ```
  */
 class NestedHeaders extends BasePlugin {
@@ -50,18 +50,21 @@ class NestedHeaders extends BasePlugin {
     /**
      * Nasted headers cached settings.
      *
+     * @private
      * @type {Object}
      */
     this.settings = [];
     /**
      * Cached number of column header levels.
      *
+     * @private
      * @type {Number}
      */
     this.columnHeaderLevelCount = 0;
     /**
      * Array of nested headers' colspans.
      *
+     * @private
      * @type {Array}
      */
     this.colspanArray = [];
@@ -69,6 +72,7 @@ class NestedHeaders extends BasePlugin {
      * Custom helper for getting widths of the nested headers.
      * @TODO This should be changed after refactor handsontable/utils/ghostTable.
      *
+     * @private
      * @type {GhostTable}
      */
     this.ghostTable = new GhostTable(this);
@@ -84,7 +88,7 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Enable the plugin.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -109,7 +113,7 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Disable the plugin.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     this.clearColspans();
@@ -124,7 +128,7 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -176,13 +180,15 @@ class NestedHeaders extends BasePlugin {
 
   /**
    * Check if the nested headers overlap the fixed columns overlay, if so - display a warning.
+   *
+   * @private
    */
   checkForFixedColumnsCollision() {
     let fixedColumnsLeft = this.hot.getSettings().fixedColumnsLeft;
 
     arrayEach(this.colspanArray, (value, i) => {
       if (this.getNestedParent(i, fixedColumnsLeft) !== fixedColumnsLeft) {
-        warn(toSingleLine`You have declared a Nested Header overlapping the Fixed Columns section - it may lead to visual 
+        warn(toSingleLine`You have declared a Nested Header overlapping the Fixed Columns section - it may lead to visual
           glitches. To prevent that kind of problems, split the nested headers between the fixed and non-fixed columns.`);
       }
     });
@@ -190,6 +196,8 @@ class NestedHeaders extends BasePlugin {
 
   /**
    * Check if the configuration contains overlapping headers.
+   *
+   * @private
    */
   checkForOverlappingHeaders() {
     arrayEach(this.colspanArray, (level, i) => {
@@ -206,7 +214,7 @@ class NestedHeaders extends BasePlugin {
             });
 
             if (childColspanSum > header.colspan) {
-              warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration 
+              warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration
                 is currently not supported and might result in glitches.`);
             }
 
@@ -214,12 +222,13 @@ class NestedHeaders extends BasePlugin {
           }
         }
       });
-
     });
   }
 
   /**
    * Create an internal array containing information of the headers with a colspan attribute.
+   *
+   * @private
    */
   setupColspanArray() {
     function checkIfExists(array, index) {
@@ -257,6 +266,7 @@ class NestedHeaders extends BasePlugin {
   /**
    * Fill the "colspan array" with default data for the dummy hidden headers.
    *
+   * @private
    * @param {Number} colspan The colspan value.
    * @param {Number} level Header level.
    */
@@ -271,10 +281,13 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Generates the appropriate header renederer for a header row.
+   * Generates the appropriate header renderer for a header row.
    *
+   * @private
    * @param {Number} headerRow The header row.
    * @returns {Function}
+   *
+   * @fires Hooks#afterGetColHeader
    */
   headerRendererFactory(headerRow) {
     let _this = this;
@@ -323,8 +336,9 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Get the colspan for the provided coordinates.
+   * Returns the colspan for the provided coordinates.
    *
+   * @private
    * @param {Number} row Row index.
    * @param {Number} column Column index.
    * @returns {Number}
@@ -336,8 +350,9 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Translate the level value (header row index from the top) to the row value (negative index).
+   * Translates the level value (header row index from the top) to the row value (negative index).
    *
+   * @private
    * @param {Number} level Header level.
    * @returns {Number}
    */
@@ -346,8 +361,9 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Translate the row value (negative index) to the level value (header row index from the top).
+   * Translates the row value (negative index) to the level value (header row index from the top).
    *
+   * @private
    * @param {Number} row Row index.
    * @returns {Number}
    */
@@ -356,8 +372,9 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Get the column index of the "parent" nested header.
+   * Returns the column index of the "parent" nested header.
    *
+   * @private
    * @param {Number} level Header level.
    * @param {Number} column Column index.
    * @returns {*}
@@ -390,10 +407,10 @@ class NestedHeaders extends BasePlugin {
   /**
    * Returns (physical) indexes of headers below the header with provided coordinates.
    *
+   * @private
    * @param {Number} row Row index.
    * @param {Number} column Column index.
-   * @param {Number} colspan Colspan value.
-   * @returns {Array}
+   * @returns {Number[]}
    */
   getChildHeaders(row, column) {
     let level = this.rowCoordsToLevel(row);
@@ -421,6 +438,8 @@ class NestedHeaders extends BasePlugin {
 
   /**
    * Fill the remaining colspanArray entries for the undeclared column headers.
+   *
+   * @private
    */
   fillTheRemainingColspans() {
     objectEach(this.settings, (levelValue, level) => {
@@ -436,7 +455,7 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Update headers highlight in nested structure.
+   * Updates headers highlight in nested structure.
    *
    * @private
    */
@@ -509,10 +528,7 @@ class NestedHeaders extends BasePlugin {
       let startColumnNestedParent = this.getNestedParent(l, calc.startColumn);
 
       if (startColumnNestedParent < calc.startColumn) {
-        let earlierColumn = Math.min(newStartColumn, startColumnNestedParent);
-
-        newStartColumn = earlierColumn;
-
+        newStartColumn = Math.min(newStartColumn, startColumnNestedParent);
       }
     });
 
@@ -649,7 +665,7 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Destroy the plugin.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.settings = null;
