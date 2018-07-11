@@ -10,17 +10,13 @@ import {registerPlugin} from './../../plugins';
  * @plugin ObserveChanges
  *
  * @description
- * This plugin allows to observe data source changes.
- *
- * By default, the plugin is declared as `undefined`, which makes it disabled.
- * Enabling this plugin switches the table into one-way data binding where changes are applied into the data source (outside from the table)
- * will be automatically reflected in the table.
+ * This plugin allows to observe data source changes. By default, the plugin is declared as `undefined`, which makes it
+ * disabled. Enabling this plugin switches the table into one-way data binding where changes are applied into the data
+ * source (outside from the table) will be automatically reflected in the table.
  *
  * ```js
- * ...
  * // as a boolean
  * observeChanges: true,
- * ...
  * ```
  *
  * To configure this plugin see {@link Options#observeChanges}.
@@ -31,13 +27,15 @@ class ObserveChanges extends BasePlugin {
     /**
      * Instance of {@link DataObserver}.
      *
+     * @private
      * @type {DataObserver}
      */
     this.observer = null;
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ObserveChanges#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -46,7 +44,7 @@ class ObserveChanges extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -69,7 +67,7 @@ class ObserveChanges extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     if (this.observer) {
@@ -147,7 +145,7 @@ class ObserveChanges extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     if (this.observer) {
@@ -171,7 +169,7 @@ class ObserveChanges extends BasePlugin {
   }
 
   /**
-   * Delete all previously exposed methods.
+   * Deletes all previously exposed methods.
    *
    * @private
    */

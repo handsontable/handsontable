@@ -7,7 +7,7 @@ const privatePool = new WeakMap();
 let initializedPlugins = null;
 
 /**
- * @private
+ * @util
  */
 class BasePlugin {
   /**
