@@ -1,60 +1,66 @@
 import moment from 'moment';
 import {isEmpty} from '../../../helpers/mixed';
+import {DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
 
 /**
  * Date sorting algorithm
  *
- * @param {Boolean} sortOrder Sorting order (`true` for ascending, `false` for descending).
+ * @param {String} sortOrder Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
  * @param {Object} columnMeta Column meta object.
  * @returns {Function} The compare function.
  */
 export default function dateSort(sortOrder, columnMeta) {
-  return function(a, b) {
-    if (a[1] === b[1]) {
-      return 0;
+  // We are soring array of arrays. Single array is in form [rowIndex, ...value]. We compare just values, stored at second index of array.
+  return function ([, value], [, nextValue]) {
+    const sortEmptyCells = columnMeta.columnSorting.sortEmptyCells;
+
+    if (value === nextValue) {
+      return DO_NOT_SWAP;
     }
 
-    if (isEmpty(a[1])) {
-      if (isEmpty(b[1])) {
-        return 0;
+    if (isEmpty(value)) {
+      if (isEmpty(nextValue)) {
+        // Two empty values
+        return DO_NOT_SWAP;
       }
 
-      if (columnMeta.columnSorting.sortEmptyCells) {
-        return sortOrder ? -1 : 1;
+      // Just fist value is empty and `sortEmptyCells` option was set
+      if (sortEmptyCells) {
+        return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
       }
 
-      return 1;
+      return FIRST_AFTER_SECOND;
     }
 
-    if (isEmpty(b[1])) {
-      if (isEmpty(a[1])) {
-        return 0;
+    if (isEmpty(nextValue)) {
+      // Just second value is empty and `sortEmptyCells` option was set
+      if (sortEmptyCells) {
+        return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
       }
 
-      if (columnMeta.columnSorting.sortEmptyCells) {
-        return sortOrder ? 1 : -1;
-      }
-
-      return -1;
+      return FIRST_BEFORE_SECOND;
     }
 
-    var aDate = moment(a[1], columnMeta.dateFormat);
-    var bDate = moment(b[1], columnMeta.dateFormat);
+    const dateFormat = columnMeta.dateFormat;
+    const firstDate = moment(value, dateFormat);
+    const nextDate = moment(nextValue, dateFormat);
 
-    if (!aDate.isValid()) {
-      return 1;
-    }
-    if (!bDate.isValid()) {
-      return -1;
+    if (!firstDate.isValid()) {
+      return FIRST_AFTER_SECOND;
     }
 
-    if (bDate.isAfter(aDate)) {
-      return sortOrder ? -1 : 1;
-    }
-    if (bDate.isBefore(aDate)) {
-      return sortOrder ? 1 : -1;
+    if (!nextDate.isValid()) {
+      return FIRST_BEFORE_SECOND;
     }
 
-    return 0;
+    if (nextDate.isAfter(firstDate)) {
+      return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
+    }
+
+    if (nextDate.isBefore(firstDate)) {
+      return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
+    }
+
+    return DO_NOT_SWAP;
   };
 }

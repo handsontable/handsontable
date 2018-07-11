@@ -8,25 +8,20 @@ Hooks.getSingleton().register('persistentStateLoad');
 Hooks.getSingleton().register('persistentStateReset');
 
 /**
- * Save the state of column sorting, column positions and column sizes in local storage
- * to preserve table state between page reloads.
+ * @plugin PersistentState
  *
- * In order to enable data storage mechanism, persistentState option must be set to true.
+ * @description
+ * Save the state of column sorting, column positions and column sizes in local storage to preserve table state
+ * between page reloads.
+ *
+ * In order to enable data storage mechanism, {@link Options#persistentState} option must be set to `true`.
  *
  * When persistentState is enabled it exposes 3 hooks:
- *
- * persistentStateSave (key: String, value: Mixed) -
- * Saves value under given key in browser local storage.
- *
- * persistentStateLoad (key: String, saveTo: Object) -
- * Loads value, saved under given key, form browser local storage.
- * The loaded value will be saved in saveTo.value.
- *
- * persistentStateReset (key: String) -
- * Clears the value saved under key.
- * If no key is given, all values associated with table will be cleared.
- *
- * @plugin persistentState
+ * - {@link Hooks#persistentStateSave} - Saves value under given key in browser local storage.
+ * - {@link Hooks#persistentStateLoad} - Loads value, saved under given key, from browser local storage. The loaded
+ * value will be saved in `saveTo.value`.
+ * - {@link Hooks#persistentStateReset} - Clears the value saved under key. If no key is given, all values associated
+ * with table will be cleared.
  */
 class PersistentState extends BasePlugin {
   constructor(hotInstance) {
@@ -34,13 +29,15 @@ class PersistentState extends BasePlugin {
     /**
      * Instance of {@link Storage}.
      *
+     * @private
      * @type {Storage}
      */
     this.storage = void 0;
   }
 
   /**
-   * Check if the plugin is enabled in the Handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link PersistentState#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -49,7 +46,7 @@ class PersistentState extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -68,7 +65,7 @@ class PersistentState extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     this.storage = void 0;
@@ -77,7 +74,7 @@ class PersistentState extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -87,19 +84,19 @@ class PersistentState extends BasePlugin {
   }
 
   /**
-   * Load value from localStorage.
+   * Loads the value from local storage.
    *
-   * @param {String} key Key string.
-   * @param {Object} saveTo Saved value from browser local storage.
+   * @param {String} key Storage key.
+   * @param {Object} saveTo Saved value from local storage.
    */
   loadValue(key, saveTo) {
     saveTo.value = this.storage.loadValue(key);
   }
 
   /**
-   * Save data to localStorage.
+   * Saves the data to local storage.
    *
-   * @param {String} key Key string.
+   * @param {String} key Storage key.
    * @param {Mixed} value Value to save.
    */
   saveValue(key, value) {
@@ -107,9 +104,9 @@ class PersistentState extends BasePlugin {
   }
 
   /**
-   * Reset given data or all data from localStorage.
+   * Resets the data or all data from local storage.
    *
-   * @param {String} key [optional] Key string.
+   * @param {String} key [optional] Storage key.
    */
   resetValue(key) {
     if (typeof key === 'undefined') {
@@ -121,7 +118,7 @@ class PersistentState extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     super.destroy();

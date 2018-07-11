@@ -8,6 +8,10 @@ export const EditorState = {
   FINISHED: 'STATE_FINISHED'
 };
 
+/**
+ * @util
+ * @class BaseEditor
+ */
 function BaseEditor(instance) {
   this.instance = instance;
   this.state = EditorState.VIRGIN;

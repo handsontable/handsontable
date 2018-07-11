@@ -6,19 +6,17 @@ import {arrayMap, arrayEach} from './../../helpers/array';
 import {rangeEach} from './../../helpers/number';
 import {inherit, deepClone} from './../../helpers/object';
 import {stopImmediatePropagation} from './../../helpers/dom/event';
-import {CellCoords} from './../../3rdparty/walkontable/src';
 import {align} from './../contextMenu/utils';
 
 /**
  * @description
- * Handsontable UndoRedo plugin. It allows to undo and redo certain actions done in the table.
- * Please note, that not all actions are currently undo-able.
+ * Handsontable UndoRedo plugin allows to undo and redo certain actions done in the table.
+ *
+ * __Note__, that not all actions are currently undo-able. The UndoRedo plugin is enabled by default.
  *
  * @example
  * ```js
- * ...
  * undo: true
- * ...
  * ```
  * @class UndoRedo
  * @plugin UndoRedo
@@ -151,10 +149,12 @@ UndoRedo.prototype.done = function(action) {
 };
 
 /**
- * Undo last edit.
+ * Undo the last action performed to the table.
  *
  * @function undo
  * @memberof UndoRedo#
+ * @fires Hooks#beforeUndo
+ * @fires Hooks#afterUndo
  */
 UndoRedo.prototype.undo = function() {
   if (this.isUndoAvailable()) {
@@ -180,10 +180,12 @@ UndoRedo.prototype.undo = function() {
 };
 
 /**
- * Redo edit (used to reverse an undo).
+ * Redo the previous action performed to the table (used to reverse an undo).
  *
  * @function redo
  * @memberof UndoRedo#
+ * @fires Hooks#beforeRedo
+ * @fires Hooks#afterRedo
  */
 UndoRedo.prototype.redo = function() {
   if (this.isRedoAvailable()) {
@@ -209,18 +211,18 @@ UndoRedo.prototype.redo = function() {
 };
 
 /**
- * Check if undo action is available.
+ * Checks if undo action is available.
  *
  * @function isUndoAvailable
  * @memberof UndoRedo#
- * @return {Boolean} Return `true` if undo can be performed, `false` otherwise
+ * @return {Boolean} Return `true` if undo can be performed, `false` otherwise.
  */
 UndoRedo.prototype.isUndoAvailable = function() {
   return this.doneActions.length > 0;
 };
 
 /**
- * Check if redo action is available.
+ * Checks if redo action is available.
  *
  * @function isRedoAvailable
  * @memberof UndoRedo#
@@ -247,6 +249,8 @@ UndoRedo.Action.prototype.redo = function() {};
 
 /**
  * Change action.
+ *
+ * @private
  */
 UndoRedo.ChangeAction = function(changes) {
   this.changes = changes;
@@ -298,6 +302,8 @@ UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
 
 /**
  * Create row action.
+ *
+ * @private
  */
 UndoRedo.CreateRowAction = function(index, amount) {
   this.index = index;
@@ -324,6 +330,8 @@ UndoRedo.CreateRowAction.prototype.redo = function(instance, redoneCallback) {
 
 /**
  * Remove row action.
+ *
+ * @private
  */
 UndoRedo.RemoveRowAction = function(index, data) {
   this.index = index;
@@ -344,6 +352,8 @@ UndoRedo.RemoveRowAction.prototype.redo = function(instance, redoneCallback) {
 
 /**
  * Create column action.
+ *
+ * @private
  */
 UndoRedo.CreateColumnAction = function(index, amount) {
   this.index = index;
@@ -363,6 +373,8 @@ UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) 
 
 /**
  * Remove column action.
+ *
+ * @private
  */
 UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions) {
   this.index = index;
@@ -436,6 +448,8 @@ UndoRedo.RemoveColumnAction.prototype.redo = function(instance, redoneCallback) 
 
 /**
  * Cell alignment action.
+ *
+ * @private
  */
 UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.stateBefore = stateBefore;
@@ -465,6 +479,8 @@ UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback)
 
 /**
  * Filters action.
+ *
+ * @private
  */
 UndoRedo.FiltersAction = function(conditionsStack) {
   this.conditionsStack = conditionsStack;
@@ -546,6 +562,8 @@ UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
 
 /**
  * ManualRowMove action.
+ *
+ * @private
  * @TODO: removeRow undo should works on logical index
  */
 UndoRedo.RowMoveAction = function(movedRows, target) {

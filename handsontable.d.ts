@@ -42,7 +42,7 @@ declare namespace _Handsontable {
     getDataAtRowProp(row: number, prop: string): any;
     getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
     getInstance(): Handsontable;
-    getPlugin(pluginName: string): Handsontable.plugins.Base;
+    getPlugin<T extends keyof Handsontable.PluginsCollection>(pluginName: T): Handsontable.PluginsCollection[T];
     getRowHeader(row?: number): any[] | string;
     getRowHeight(row: number): number;
     getSchema(): object;
@@ -704,23 +704,13 @@ declare namespace Handsontable {
     }
 
     interface ColumnSorting extends Base {
-      lastSortedColumn: null | number;
-      rowsMapper: ColumnSortingRowsMapper;
-      sortIndicators: any[];
-      sortingEnabled: boolean;
       sortColumn: undefined | number;
       sortEmptyCells: boolean;
       sortOrder: SortOrderType;
-
-      dateSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
-      defaultSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
-      enableObserveChangesPlugin(): void;
-      getColHeader(col: number, TH: HTMLElement): void;
       isSorted(): boolean;
       loadSortingState(): any;
-      numericSort(sortOrder: boolean, columnMeta: object): (a: any, b: any) => number;
       saveSortingState(): void;
-      sort(): void;
+      sort(column: number, order?: SortOrderType): void;
     }
 
     interface ColumnSummary extends Base {
@@ -810,14 +800,9 @@ declare namespace Handsontable {
     interface CustomBorders extends Base {
       savedBorderSettings: any[];
 
-      getSettingIndex(className: string): number;
-      insertBorderIntoSettings(border: object): void;
-      prepareBorderFromCustomAdded(row: number, col: number, borderObj: object): void;
-      prepareBorderFromCustomAddedRange(rowObj: object): void;
-      removeBordersFromDom(borderClassName: string): void;
-      removeAllBorders(row: number, col: number): void;
-      setBorder(row: number, col: number, place: string, remove: boolean): void;
-      prepareBorder(range: object, place: string, remove: boolean): void;
+      setBorders(selection: Range[] | Array<[number, number, number, number]>, borderObject: object): void;
+      getBorders(selection: Range[] | Array<[number, number, number, number]>): Array<[object]>;
+      clearBorders(selection: Range[] | Array<[number, number, number, number]>): void;
     }
 
     interface DragToScroll extends Base {
@@ -1559,7 +1544,7 @@ declare namespace Handsontable {
     afterChangesObserved?: () => void;
     afterColumnMove?: (startColumn: number, endColumn: number) => void;
     afterColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
-    afterColumnSort?: (column: number, order: boolean) => void;
+    afterColumnSort?: (column: number, order: plugins.SortOrderType) => void;
     afterContextMenuDefaultOptions?: (predefinedItems: any[]) => void;
     afterContextMenuHide?: (context: object) => void;
     beforeContextMenuShow?: (context: object) => void;
@@ -1588,6 +1573,7 @@ declare namespace Handsontable {
     afterModifyTransformEnd?: (coords: wot.CellCoords, rowTransformDir: number, colTransformDir: number) => void;
     afterModifyTransformStart?: (coords: wot.CellCoords, rowTransformDir: number, colTransformDir: number) => void;
     afterMomentumScroll?: () => void;
+    afterOnCellContextMenu?: (event: object, coords: object, TD: Element) => void;
     afterOnCellCornerDblClick?: (event: object) => void;
     afterOnCellCornerMouseDown?: (event: object) => void;
     afterOnCellMouseDown?: (event: object, coords: object, TD: Element) => void;
@@ -1626,7 +1612,7 @@ declare namespace Handsontable {
     beforeChangeRender?: (changes: any[], source: string) => void;
     beforeColumnMove?: (startColumn: number, endColumn: number) => void;
     beforeColumnResize?: (currentColumn: number, newSize: number, isDoubleClick: boolean) => void;
-    beforeColumnSort?: (column: number, order: boolean) => void;
+    beforeColumnSort?: (column: number, order: plugins.SortOrderType) => void;
     beforeContextMenuSetItems?: (menuItems: any[]) => void;
     beforeCopy?: (data: any[], coords: any[]) => any;
     beforeCreateCol?: (index: number, amount: number, source?: string) => void;
@@ -1640,7 +1626,8 @@ declare namespace Handsontable {
     beforeInit?: () => void;
     beforeInitWalkontable?: (walkontableConfig: object) => void;
     beforeKeyDown?: (event: Event) => void;
-    beforeOnCellMouseDown?: (event: Event, coords: object, TD: Element) => void;
+    beforeOnCellContextMenu?: (event: object, coords: object, TD: Element) => void;
+    beforeOnCellMouseDown?: (event: Event, coords: object, TD: Element, blockCalculations: object) => void;
     beforeOnCellMouseOut?: (event: Event, coords: wot.CellCoords, TD: Element) => void;
     beforeOnCellMouseOver?: (event: Event, coords: wot.CellCoords, TD: Element, blockCalculations: object) => void;
     beforePaste?: (data: any[], coords: any[]) => any;
@@ -1921,8 +1908,8 @@ declare namespace Handsontable {
 
   interface Plugins {
     AutoColumnSize: plugins.AutoColumnSize,
-    AutoRowSize: plugins.AutoRowSize,
     Autofill: plugins.Autofill,
+    AutoRowSize: plugins.AutoRowSize,
     BasePlugin: plugins.Base,
     BindRowsWithHeaders: plugins.BindRowsWithHeaders,
     CollapsibleColumns: plugins.CollapsibleColumns,
@@ -1950,9 +1937,46 @@ declare namespace Handsontable {
     NestedHeaders: plugins.NestedHeaders,
     NestedRows: plugins.NestedRows,
     ObserveChanges: plugins.ObserveChanges,
+    Search: plugins.Search,
     TouchScroll: plugins.TouchScroll,
     TrimRows: plugins.TrimRows,
     registerPlugin: () => void
+  }
+
+  // Plugin collection, map for getPlugin method
+  interface PluginsCollection {
+    autoColumnSize: plugins.AutoColumnSize,
+    autofill: plugins.Autofill,
+    autoRowSize: plugins.AutoRowSize,
+    bindRowsWithHeaders: plugins.BindRowsWithHeaders,
+    collapsibleColumns: plugins.CollapsibleColumns,
+    columnSorting: plugins.ColumnSorting,
+    columnSummary: plugins.ColumnSummary,
+    comments: plugins.Comments,
+    contextMenu: plugins.ContextMenu,
+    copyPaste: plugins.CopyPaste,
+    dragToScroll: plugins.DragToScroll,
+    dropdownMenu: plugins.DropdownMenu,
+    exportFile: plugins.ExportFile,
+    filters: plugins.Filters,
+    formulas: plugins.Formulas,
+    ganttChart: plugins.GanttChart,
+    headerTooltips: plugins.HeaderTooltips,
+    hiddenColumns: plugins.HiddenColumns,
+    hiddenRows: plugins.HiddenRows,
+    manualColumnFreeze: plugins.ManualColumnFreeze,
+    manualColumnMove: plugins.ManualColumnMove,
+    manualColumnResize: plugins.ManualColumnResize,
+    manualRowMove: plugins.ManualRowMove,
+    manualRowResize: plugins.ManualRowResize;
+    mergeCells: plugins.MergeCells;
+    multipleSelectionHandles: plugins.MultipleSelectionHandles,
+    nestedHeaders: plugins.NestedHeaders,
+    nestedRows: plugins.NestedRows,
+    observeChanges: plugins.ObserveChanges,
+    search: plugins.Search,
+    touchScroll: plugins.TouchScroll,
+    trimRows: plugins.TrimRows,
   }
 
   // plugins

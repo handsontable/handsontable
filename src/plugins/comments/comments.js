@@ -30,23 +30,20 @@ const META_READONLY = 'readOnly';
  * @plugin Comments
  *
  * @description
- * This plugin allows setting and managing cell comments by either an option in the context menu or with the use of the API.
+ * This plugin allows setting and managing cell comments by either an option in the context menu or with the use of
+ * the API.
  *
  * To enable the plugin, you'll need to set the comments property of the config object to `true`:
  * ```js
- * ...
  * comments: true
- * ...
  * ```
  *
- * or object with extra predefined plugin config:
+ * or an object with extra predefined plugin config:
  *
  * ```js
- * ...
  * comments: {
  *   displayDelay: 1000
  * }
- * ...
  * ```
  *
  * To add comments at the table initialization, define the `comment` property in the `cell` config array as in an example below.
@@ -54,8 +51,7 @@ const META_READONLY = 'readOnly';
  * @example
  *
  * ```js
- * ...
- * var hot = new Handsontable(document.getElementById('example'), {
+ * const hot = new Handsontable(document.getElementById('example'), {
  *   date: getData(),
  *   comments: true,
  *   cell: [
@@ -65,7 +61,7 @@ const META_READONLY = 'readOnly';
  * });
  *
  * // Access to the Comments plugin instance:
- * var commentsPlugin = hot.getPlugin('comments');
+ * const commentsPlugin = hot.getPlugin('comments');
  *
  * // Manage comments programmatically:
  * commentsPlugin.setCommentAtCell(1, 6, 'Comment contents');
@@ -73,11 +69,10 @@ const META_READONLY = 'readOnly';
  * commentsPlugin.removeCommentAtCell(1, 6);
  *
  * // You can also set range once and use proper methods:
- * commentsPlugin.setRange({row: 1, col: 6});
+ * commentsPlugin.setRange({from: {row: 1, col: 6}});
  * commentsPlugin.setComment('Comment contents');
  * commentsPlugin.show();
  * commentsPlugin.removeComment();
- * ...
  * ```
  */
 class Comments extends BasePlugin {
@@ -86,12 +81,14 @@ class Comments extends BasePlugin {
     /**
      * Instance of {@link CommentEditor}.
      *
+     * @private
      * @type {CommentEditor}
      */
     this.editor = null;
     /**
      * Instance of {@link DisplaySwitch}.
      *
+     * @private
      * @type {DisplaySwitch}
      */
     this.displaySwitch = null;
@@ -103,7 +100,7 @@ class Comments extends BasePlugin {
      */
     this.eventManager = null;
     /**
-     * Current cell range.
+     * Current cell range, an object with `from` property, with `row` and `col` properties (e.q. `{from: {row: 1, col: 6}}`).
      *
      * @type {Object}
      */
@@ -131,7 +128,8 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Check if the plugin is enabled in the Handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link Comments#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -140,7 +138,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -174,7 +172,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Update plugin for this Handsontable instance.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -185,14 +183,14 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     super.disablePlugin();
   }
 
   /**
-   * Register all necessary DOM listeners.
+   * Registers all necessary DOM listeners.
    *
    * @private
    */
@@ -206,25 +204,25 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Set current cell range to be able to use general methods like {@link Comments#setComment},
-   * {@link Comments#removeComment}, {@link Comments#show}.
+   * Sets the current cell range to be able to use general methods like {@link Comments#setComment}, {@link Comments#removeComment}, {@link Comments#show}.
    *
-   * @param {Object} range Object with `from` and `to` properties, each with `row` and `col` properties.
+   * @param {Object} range Object with `from` property, each with `row` and `col` properties.
    */
   setRange(range) {
     this.range = range;
   }
 
   /**
-   * Clear the currently selected cell.
+   * Clears the currently selected cell.
    */
   clearRange() {
     this.range = {};
   }
 
   /**
-   * Check if the event target is a cell containing a comment.
+   * Checks if the event target is a cell containing a comment.
    *
+   * @private
    * @param {Event} event DOM event
    * @returns {Boolean}
    */
@@ -235,8 +233,9 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Check if the event target is a comment textarea.
+   * Checks if the event target is a comment textarea.
    *
+   * @private
    * @param {Event} event DOM event.
    * @returns {Boolean}
    */
@@ -245,7 +244,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Set a comment for a cell according to the previously set range (see {@link Comments#setRange}).
+   * Sets a comment for a cell according to the previously set range (see {@link Comments#setRange}).
    *
    * @param {String} value Comment contents.
    */
@@ -270,23 +269,23 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Set a comment for a cell.
+   * Sets a comment for a specified cell.
    *
    * @param {Number} row Visual row index.
-   * @param {Number} col Visual column index.
+   * @param {Number} column Visual column index.
    * @param {String} value Comment contents.
    */
-  setCommentAtCell(row, col, value) {
+  setCommentAtCell(row, column, value) {
     this.setRange({
-      from: new CellCoords(row, col)
+      from: new CellCoords(row, column)
     });
     this.setComment(value);
   }
 
   /**
-   * Remove a comment from a cell according to previously set range (see {@link Comments#setRange}).
+   * Removes a comment from a cell according to previously set range (see {@link Comments#setRange}).
    *
-   * @param {Boolean} [forceRender = true] If set to `true`, the table will be re-rendered at the end of the operation.
+   * @param {Boolean} [forceRender=true] If set to `true`, the table will be re-rendered at the end of the operation.
    */
   removeComment(forceRender = true) {
     if (!this.range.from) {
@@ -303,21 +302,23 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Remove comment from a cell.
+   * Removes a comment from a specified cell.
    *
    * @param {Number} row Visual row index.
-   * @param {Number} col Visual column index.
-   * @param {Boolean} [forceRender = true] If `true`, the table will be re-rendered at the end of the operation.
+   * @param {Number} column Visual column index.
+   * @param {Boolean} [forceRender=true] If `true`, the table will be re-rendered at the end of the operation.
    */
-  removeCommentAtCell(row, col, forceRender = true) {
+  removeCommentAtCell(row, column, forceRender = true) {
     this.setRange({
-      from: new CellCoords(row, col)
+      from: new CellCoords(row, column)
     });
     this.removeComment(forceRender);
   }
 
   /**
-   * Get comment from a cell at the predefined range.
+   * Gets comment from a cell according to previously set range (see {@link Comments#setRange}).
+   *
+   * @returns {String|undefined} Returns a content of the comment.
    */
   getComment() {
     const row = this.range.from.row;
@@ -327,17 +328,18 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Get comment from a cell at the provided coordinates.
+   * Gets comment from a cell at the provided coordinates.
    *
    * @param {Number} row Visual row index.
    * @param {Number} column Visual column index.
+   * @returns {String|undefined} Returns a content of the comment.
    */
   getCommentAtCell(row, column) {
     return this.getCommentMeta(row, column, META_COMMENT_VALUE);
   }
 
   /**
-   * Show the comment editor accordingly to the previously set range (see {@link Comments#setRange}).
+   * Shows the comment editor accordingly to the previously set range (see {@link Comments#setRange}).
    *
    * @returns {Boolean} Returns `true` if comment editor was shown.
    */
@@ -358,22 +360,22 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Show comment editor according to cell coordinates.
+   * Shows comment editor according to cell coordinates.
    *
    * @param {Number} row Visual row index.
-   * @param {Number} col Visual column index.
+   * @param {Number} column Visual column index.
    * @returns {Boolean} Returns `true` if comment editor was shown.
    */
-  showAtCell(row, col) {
+  showAtCell(row, column) {
     this.setRange({
-      from: new CellCoords(row, col)
+      from: new CellCoords(row, column)
     });
 
     return this.show();
   }
 
   /**
-   * Hide the comment editor.
+   * Hides the comment editor.
    */
   hide() {
     if (!this.editor.hidden) {
@@ -382,7 +384,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Refresh comment editor position and styling.
+   * Refreshes comment editor position and styling.
    *
    * @param {Boolean} [force=false] If `true` then recalculation will be forced.
    */
@@ -425,7 +427,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Check if there is a comment for selected range.
+   * Checks if there is a comment for selected range.
    *
    * @private
    * @returns {Boolean}
@@ -447,7 +449,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Set or update the comment-related cell meta.
+   * Sets or update the comment-related cell meta.
    *
    * @param {Number} row Visual row index.
    * @param {Number} column Visual column index.
@@ -468,7 +470,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Get the comment related meta information.
+   * Gets the comment related meta information.
    *
    * @param {Number} row Visual row index.
    * @param {Number} column Visual column index.
@@ -734,6 +736,7 @@ class Comments extends BasePlugin {
   /**
    * Get `displayDelay` setting of comment plugin.
    *
+   * @private
    * @returns {Number|undefined}
    */
   getDisplayDelaySetting() {
@@ -758,7 +761,7 @@ class Comments extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     if (this.editor) {

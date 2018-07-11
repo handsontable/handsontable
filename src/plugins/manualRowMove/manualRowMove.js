@@ -25,7 +25,8 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * @plugin ManualRowMove
  *
  * @description
- * This plugin allows to change rows order.
+ * This plugin allows to change rows order. To make rows order persistent the {@link Options#persistentState}
+ * plugin should be enabled.
  *
  * API:
  * - moveRow - move single row to the new position.
@@ -33,7 +34,7 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  *
  * If you want apply visual changes, you have to call manually the render() method on the instance of handsontable.
  *
- * UI components:
+ * The plugin creates additional components to make moving possibly using user interface:
  * - backlight - highlight of selected rows.
  * - guideline - line which shows where rows has been moved.
  *
@@ -62,37 +63,43 @@ class ManualRowMove extends BasePlugin {
     /**
      * List of last removed row indexes.
      *
+     * @private
      * @type {Array}
      */
     this.removedRows = [];
     /**
      * Object containing visual row indexes mapped to data source indexes.
      *
+     * @private
      * @type {RowsMapper}
      */
     this.rowsMapper = new RowsMapper(this);
     /**
      * Event Manager object.
      *
+     * @private
      * @type {Object}
      */
     this.eventManager = new EventManager(this);
     /**
      * Backlight UI object.
      *
+     * @private
      * @type {Object}
      */
     this.backlight = new BacklightUI(hotInstance);
     /**
      * Guideline UI object.
      *
+     * @private
      * @type {Object}
      */
     this.guideline = new GuidelineUI(hotInstance);
   }
 
   /**
-   * Check if plugin is enabled.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ManualRowMove#enablePlugin} method is called.
    *
    * @returns {Boolean}
    */
@@ -101,7 +108,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Enable the plugin.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -128,7 +135,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Updates the plugin to use the latest options you have specified.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -140,7 +147,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     let pluginSettings = this.hot.getSettings().manualRowMove;
@@ -159,20 +166,24 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Move a single row.
+   * Moves a single row.
    *
    * @param {Number} row Visual row index to be moved.
    * @param {Number} target Visual row index being a target for the moved row.
+   * @fires Hooks#beforeRowMove
+   * @fires Hooks#afterRowMove
    */
   moveRow(row, target) {
     this.moveRows([row], target);
   }
 
   /**
-   * Move multiple rows.
+   * Moves a multiple rows.
    *
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {Number} target Visual row index being a target for the moved rows.
+   * @fires Hooks#beforeRowMove
+   * @fires Hooks#afterRowMove
    */
   moveRows(rows, target) {
     const visualRows = [...rows];
@@ -216,7 +227,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Get the sum of the heights of rows in the provided range.
+   * Gets the sum of the heights of rows in the provided range.
    *
    * @private
    * @param {Number} from Visual row index.
@@ -236,7 +247,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Load initial settings when persistent state is saved or when plugin was initialized as an array.
+   * Loads initial settings when persistent state is saved or when plugin was initialized as an array.
    *
    * @private
    */
@@ -256,7 +267,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Check if the provided row is in the fixedRowsTop section.
+   * Checks if the provided row is in the fixedRowsTop section.
    *
    * @private
    * @param {Number} row Visual row index to check.
@@ -267,7 +278,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Check if the provided row is in the fixedRowsBottom section.
+   * Checks if the provided row is in the fixedRowsBottom section.
    *
    * @private
    * @param {Number} row Visual row index to check.
@@ -278,19 +289,22 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Save the manual row positions to the persistent state.
+   * Saves the manual row positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
    *
-   * @private
+   * @fires Hooks#persistentStateSave
+   * @fires Hooks#manualRowMove
    */
   persistentStateSave() {
     this.hot.runHooks('persistentStateSave', 'manualRowMove', this.rowsMapper._arrayMap);
   }
 
   /**
-   * Load the manual row positions from the persistent state.
+   * Loads the manual row positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
    *
-   * @private
    * @returns {Array} Stored state.
+   *
+   * @fires Hooks#persistentStateLoad
+   * @fires Hooks#manualRowMove
    */
   persistentStateLoad() {
     let storedState = {};
@@ -440,7 +454,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Bind the events used by the plugin.
+   * Binds the events used by the plugin.
    *
    * @private
    */
@@ -450,7 +464,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Unbind the events used by the plugin.
+   * Unbinds the events used by the plugin.
    *
    * @private
    */
@@ -472,7 +486,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Change the behavior of selection / dragging.
+   * Changes the behavior of selection / dragging.
    *
    * @private
    * @param {MouseEvent} event
@@ -730,7 +744,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.backlight.destroy();
