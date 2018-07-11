@@ -28,18 +28,13 @@ describe('Walkontable.Selection', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
-          className: 'current'
-        })
-      ],
+      selections: createSelectionController(),
       onCellMouseDown(event, coords, TD) {
         wt.selections.getCell().clear();
         wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
-    shimSelectionProperties(wt);
     wt.draw();
 
     var $td1 = $table.find('tbody td:eq(0)');
@@ -62,18 +57,10 @@ describe('Walkontable.Selection', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
-          className: 'current'
-        }),
-        new Walkontable.Selection({
-          className: 'area'
-        })
-      ],
+      selections: createSelectionController(),
       fixedColumnsLeft: 2,
       fixedRowsTop: 2
     });
-    shimSelectionProperties(wt);
 
     wt.selections.createOrGetArea().add(new Walkontable.CellCoords(1, 1));
     wt.selections.createOrGetArea().add(new Walkontable.CellCoords(1, 2));
@@ -95,13 +82,8 @@ describe('Walkontable.Selection', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
-          className: 'current'
-        })
-      ]
+      selections: createSelectionController(),
     });
-    shimSelectionProperties(wt);
     wt.draw();
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
 
@@ -118,22 +100,13 @@ describe('Walkontable.Selection', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
-          border: {
-            width: 1,
-            color: 'red',
-            style: 'solid'
-          }
-        })
-      ],
+      selections: createSelectionController(),
       onCellMouseDown(event, coords, TD) {
         wt.selections.getCell().clear();
         wt.selections.getCell().add(coords);
         wt.draw();
       }
     });
-    shimSelectionProperties(wt);
     wt.draw();
 
     setTimeout(() => {
@@ -161,17 +134,8 @@ describe('Walkontable.Selection', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
-          border: {
-            width: 1,
-            color: 'red',
-            style: 'solid'
-          }
-        })
-      ]
+      selections: createSelectionController(),
     });
-    shimSelectionProperties(wt);
     wt.draw();
 
     wt.selections.getCell().add([20, 0]);
@@ -184,17 +148,8 @@ describe('Walkontable.Selection', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
-          border: {
-            width: 1,
-            color: 'red',
-            style: 'solid'
-          }
-        })
-      ]
+      selections: createSelectionController(),
     });
-    shimSelectionProperties(wt);
     wt.draw();
 
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
@@ -214,17 +169,8 @@ describe('Walkontable.Selection', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
-          border: {
-            width: 1,
-            color: 'red',
-            style: 'solid'
-          }
-        })
-      ]
+      selections: createSelectionController(),
     });
-    shimSelectionProperties(wt);
     wt.draw();
 
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
@@ -237,24 +183,23 @@ describe('Walkontable.Selection', () => {
   it('should highlight cells in selected row & column', () => {
     $wrapper.width(300);
 
+    const customSelection = new Walkontable.Selection({
+      highlightRowClassName: 'highlightRow',
+      highlightColumnClassName: 'highlightColumn'
+    });
+    customSelection.add(new Walkontable.CellCoords(0, 0));
+    customSelection.add(new Walkontable.CellCoords(0, 1));
+
     var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
-          highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
-        })
-      ]
+      selections: createSelectionController({
+        custom: [customSelection],
+      }),
     });
-    shimSelectionProperties(wt);
     wt.draw();
-
-    wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
-    wt.selections.getCell().add(new Walkontable.CellCoords(0, 1));
-    wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(2);
     expect($table.find('.highlightColumn').length).toEqual((wt.wtTable.getRenderedRowsCount() * 2) - 2);
@@ -263,27 +208,30 @@ describe('Walkontable.Selection', () => {
   it('should highlight cells in selected row & column, when same class is shared between 2 selection definitions', () => {
     $wrapper.width(300);
 
+    const customSelection1 = new Walkontable.Selection({
+      highlightRowClassName: 'highlightRow',
+      highlightColumnClassName: 'highlightColumn'
+    });
+
+    customSelection1.add(new Walkontable.CellCoords(0, 0));
+
+    const customSelection2 = new Walkontable.Selection({
+      highlightRowClassName: 'highlightRow',
+      highlightColumnClassName: 'highlightColumn'
+    });
+
+    customSelection2.add(new Walkontable.CellCoords(0, 0));
+
     var wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
-          highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
-        }),
-        new Walkontable.Selection({
-          highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
-        })
-      ]
+      selections: createSelectionController({
+        custom: [customSelection1, customSelection2],
+      }),
     });
-    shimSelectionProperties(wt);
     wt.draw();
-
-    wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
-    wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(3);
     expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.getRenderedRowsCount() - 1);
@@ -295,14 +243,13 @@ describe('Walkontable.Selection', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn'
-        })
-      ]
+        }),
+      }),
     });
-    shimSelectionProperties(wt);
     wt.draw();
 
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
@@ -330,14 +277,13 @@ describe('Walkontable.Selection', () => {
       columnHeaders: [function(row, TH) {
         TH.innerHTML = row + 1;
       }],
-      selections: [
-        new Walkontable.Selection({
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn'
-        })
-      ]
+        }),
+      }),
     });
-    shimSelectionProperties(wt);
     wt.draw();
 
     wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
@@ -386,17 +332,8 @@ describe('Walkontable.Selection', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        selections: [
-          new Walkontable.Selection({
-            border: {
-              width: 1,
-              color: 'red',
-              style: 'solid'
-            }
-          })
-        ]
+        selections: createSelectionController(),
       });
-      shimSelectionProperties(wt);
       wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
       wt.selections.getCell().add(new Walkontable.CellCoords(3, 3));
       var result = wt.selections.getCell().replace(new Walkontable.CellCoords(3, 3), new Walkontable.CellCoords(4, 4));

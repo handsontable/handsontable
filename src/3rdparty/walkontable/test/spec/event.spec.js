@@ -391,8 +391,8 @@ describe('WalkontableEvent', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
           className: 'current',
           border: {
             width: 1,
@@ -400,21 +400,20 @@ describe('WalkontableEvent', () => {
             style: 'solid'
           }
         })
-      ],
+      }),
       onCellMouseDown(event, coords, TD) {
         myCoords = coords;
         myTD = TD;
       }
     });
 
-    shimSelectionProperties(wt);
     wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
     wt.draw();
 
     const $td = $table.find('tbody tr:eq(1) td:eq(1)');
 
     $table.parents('.wtHolder')
-      .find('.wtBorder:first')
+      .find('.current:first')
       .simulate('mousedown');
 
     expect(myCoords).toEqual(new Walkontable.CellCoords(1, 1));
@@ -429,8 +428,8 @@ describe('WalkontableEvent', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
           className: 'current',
           border: {
             width: 1,
@@ -438,21 +437,20 @@ describe('WalkontableEvent', () => {
             style: 'solid'
           }
         })
-      ],
+      }),
       onCellDblClick(event, coords, TD) {
         myCoords = coords;
         myTD = TD;
       }
     });
 
-    shimSelectionProperties(wt);
     wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
     wt.draw();
 
     const $td = $table.find('tbody tr:eq(1) td:eq(1)');
 
     $table.parents('.wtHolder')
-      .find('.wtBorder:first')
+      .find('.current:first')
       .simulate('mousedown')
       .simulate('mouseup')
       .simulate('mousedown')
@@ -470,8 +468,8 @@ describe('WalkontableEvent', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
           className: 'current',
           border: {
             width: 1,
@@ -479,13 +477,12 @@ describe('WalkontableEvent', () => {
             style: 'solid'
           }
         })
-      ],
+      }),
       onCellCornerMouseDown() {
         clicked = true;
       }
     });
 
-    shimSelectionProperties(wt);
     wt.selections.getCell().add(new Walkontable.CellCoords(10, 2));
     wt.draw();
 
@@ -503,8 +500,8 @@ describe('WalkontableEvent', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      selections: [
-        new Walkontable.Selection({
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
           className: 'current',
           border: {
             width: 1,
@@ -512,10 +509,9 @@ describe('WalkontableEvent', () => {
             style: 'solid'
           }
         })
-      ]
+      }),
     });
 
-    shimSelectionProperties(wt);
     wt.selections.getCell().add(new Walkontable.CellCoords(10, 2));
     wt.draw();
 

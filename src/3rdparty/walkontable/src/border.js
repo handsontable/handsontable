@@ -190,12 +190,15 @@ class Border {
     }
     this.disappear();
 
-    if (!this.wot.wtTable.bordersHolder) {
-      this.wot.wtTable.bordersHolder = document.createElement('div');
-      this.wot.wtTable.bordersHolder.className = 'htBorders';
-      this.wot.wtTable.spreader.appendChild(this.wot.wtTable.bordersHolder);
+    let bordersHolder = this.wot.wtTable.bordersHolder;
+
+    if (!bordersHolder) {
+      bordersHolder = document.createElement('div');
+      bordersHolder.className = 'htBorders';
+      this.wot.wtTable.bordersHolder = bordersHolder;
+      this.wot.wtTable.spreader.appendChild(bordersHolder);
     }
-    this.wot.wtTable.bordersHolder.insertBefore(this.main, this.wot.wtTable.bordersHolder.firstChild);
+    bordersHolder.appendChild(this.main);
   }
 
   /**

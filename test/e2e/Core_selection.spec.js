@@ -570,6 +570,22 @@ describe('Core_selection', () => {
     }, 60);
   });
 
+  it('should render selection borders with set proper z-indexes', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    hot.selectCell(1, 1, 2, 2);
+
+    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex).toBe('10');
+    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex).toBe('8');
+  });
+
   it('should set the selection end to the first visible column, when dragging the selection from a cell to a row header', (done) => {
     var hot = handsontable({
       width: 200,

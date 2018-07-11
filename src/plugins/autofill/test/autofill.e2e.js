@@ -1,4 +1,4 @@
-describe('FillHandle', () => {
+describe('AutoFill', () => {
   var id = 'testContainer';
 
   beforeEach(function() {
@@ -30,6 +30,23 @@ describe('FillHandle', () => {
     selectCell(2, 2);
 
     expect(isFillHandleVisible()).toBe(true);
+  });
+
+  it('should render selection borders with set proper z-indexes', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    hot.selectCell(1, 1, 2, 2);
+
+    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex).toBe('10');
+    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex).toBe('8');
+    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .fill')).zIndex).toBe('6');
   });
 
   it('should not change cell value (drag vertically when fillHandle option is set to `horizontal`)', function() {
