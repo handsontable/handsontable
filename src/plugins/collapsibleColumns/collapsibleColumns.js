@@ -18,90 +18,107 @@ import BasePlugin from 'handsontable/plugins/_base';
  * @dependencies NestedHeaders HiddenColumns
  *
  * @description
- * The CollapsibleColumns plugin allows collapsing of columns, covered by a header with the `colspan` property defined.
+ * The {@link CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property defined.
  *
  * Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
  *
- * Setting the `collapsibleColumns` property to `true` will display a "collapse/expand" button in every header with a defined
- * `colspan` property.
+ * Setting the {@link Options#collapsibleColumns} property to `true` will display a "collapse/expand" button in every header
+ * with a defined `colspan` property.
  *
- * To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property as an array of objects, as in
- * the example below.
+ * To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property as an array
+ * of objects, as in the example below.
+ *
  * @example
  * ```js
- * ...
- *  collapsibleColumns: [
- *    {row: -4, col: 1, collapsible: true},
- *    {row: -3, col: 5, collapsible: true}
- *  ]
- * ...
- * ```
- * ```js
- * ...
- *  collapsibleColumns: true
- * ...
+ * const container = document.getElementById('example');
+ * const hot = new Handsontable(container, {
+ *   data: generateDataObj(),
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   // enable plugin
+ *   collapsibleColumns: true,
+ * });
+ *
+ * // or
+ * const hot = new Handsontable(container, {
+ *   data: generateDataObj(),
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   // enable and configure which columns can be collapsed
+ *   collapsibleColumns: [
+ *     {row: -4, col: 1, collapsible: true},
+ *     {row: -3, col: 5, collapsible: true}
+ *   ],
+ * });
  * ```
  */
 class CollapsibleColumns extends BasePlugin {
 
   constructor(hotInstance) {
     super(hotInstance);
-
     /**
      * Cached plugin settings.
      *
+     * @private
      * @type {Boolean|Array}
      */
     this.settings = null;
     /**
      * Object listing headers with buttons enabled.
      *
+     * @private
      * @type {Object}
      */
     this.buttonEnabledList = {};
     /**
      * Cached reference to the HiddenColumns plugin.
      *
+     * @private
      * @type {Object}
      */
     this.hiddenColumnsPlugin = null;
     /**
      * Cached reference to the NestedHeaders plugin.
      *
+     * @private
      * @type {Object}
      */
     this.nestedHeadersPlugin = null;
     /**
      * Object listing the currently collapsed sections.
      *
+     * @private
      * @type {Object}
      */
     this.collapsedSections = {};
     /**
      * Number of column header levels.
      *
+     * @private
      * @type {Number}
      */
     this.columnHeaderLevelCount = null;
     /**
      * Event manager instance reference.
      *
+     * @private
      * @type {EventManager}
      */
     this.eventManager = null;
   }
 
   /**
-   * Check if the plugin is enabled.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link CollapsibleColumns#enablePlugin} method is called.
    *
-   * @returns {boolean}
+   * @returns {Boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().collapsibleColumns;
   }
 
   /**
-   * Enable the plugin.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -130,7 +147,7 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Disable the plugin.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     this.settings = null;
@@ -144,7 +161,7 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Clear the expand/collapse buttons.
+   * Clears the expand/collapse buttons.
    *
    * @private
    */
@@ -191,7 +208,9 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Parse the plugin settings and create a button configuration array.
+   * Parses the plugin settings and create a button configuration array.
+   *
+   * @private
    */
   parseSettings() {
     objectEach(this.settings, (val) => {
@@ -205,8 +224,9 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Check if plugin dependencies are met.
+   * Checks if plugin dependencies are met.
    *
+   * @private
    * @returns {Boolean}
    */
   meetsDependencies() {
@@ -217,6 +237,8 @@ class CollapsibleColumns extends BasePlugin {
 
   /**
    * Checks if all the required dependencies are enabled.
+   *
+   * @private
    */
   checkDependencies() {
     let settings = this.hot.getSettings();
@@ -237,16 +259,17 @@ class CollapsibleColumns extends BasePlugin {
   /**
    * Generates the indicator element.
    *
-   * @param {Number} col Column index.
+   * @private
+   * @param {Number} column Column index.
    * @param {HTMLElement} TH TH Element.
    * @returns {HTMLElement}
    */
-  generateIndicator(col, TH) {
+  generateIndicator(column, TH) {
     let TR = TH.parentNode;
     let THEAD = TR.parentNode;
     let row = ((-1) * THEAD.childNodes.length) + Array.prototype.indexOf.call(THEAD.childNodes, TR);
 
-    if (Object.keys(this.buttonEnabledList).length > 0 && (!this.buttonEnabledList[row] || !this.buttonEnabledList[row][col])) {
+    if (Object.keys(this.buttonEnabledList).length > 0 && (!this.buttonEnabledList[row] || !this.buttonEnabledList[row][column])) {
       return null;
     }
 
@@ -254,7 +277,7 @@ class CollapsibleColumns extends BasePlugin {
 
     addClass(divEl, 'collapsibleIndicator');
 
-    if (this.collapsedSections[row] && this.collapsedSections[row][col] === true) {
+    if (this.collapsedSections[row] && this.collapsedSections[row][column] === true) {
       addClass(divEl, 'collapsed');
       fastInnerText(divEl, '+');
     } else {
@@ -266,8 +289,9 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Mark (internally) a section as 'collapsed' or 'expanded' (optionally, also mark the 'child' headers).
+   * Marks (internally) a section as 'collapsed' or 'expanded' (optionally, also mark the 'child' headers).
    *
+   * @private
    * @param {String} state State ('collapsed' or 'expanded').
    * @param {Number} row Row index.
    * @param {Number} column Column index.
@@ -306,7 +330,7 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Expand section at the provided coords.
+   * Expands section at the provided coords.
    *
    * @param {Object} coords Contains coordinates information. (`coords.row`, `coords.col`)
    */
@@ -316,7 +340,7 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Collapse section at the provided coords.
+   * Collapses section at the provided coords.
    *
    * @param {Object} coords Contains coordinates information. (`coords.row`, `coords.col`)
    */
@@ -326,7 +350,7 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Collapse or expand all collapsible sections, depending on the action parameter.
+   * Collapses or expand all collapsible sections, depending on the action parameter.
    *
    * @param {String} action 'collapse' or 'expand'.
    */
@@ -372,21 +396,21 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Collapse all collapsible sections.
+   * Collapses all collapsible sections.
    */
   collapseAll() {
     this.toggleAllCollapsibleSections('collapse');
   }
 
   /**
-   * Expand all collapsible sections.
+   * Expands all collapsible sections.
    */
   expandAll() {
     this.toggleAllCollapsibleSections('expand');
   }
 
   /**
-   * Collapse/Expand a section.
+   * Collapses/Expands a section.
    *
    * @param {Object} coords Section coordinates.
    * @param {String} action Action definition ('collapse' or 'expand').
@@ -440,7 +464,7 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Add the indicator to the headers.
+   * Adds the indicator to the headers.
    *
    * @private
    * @param {Number} column Column index.
@@ -499,6 +523,8 @@ class CollapsibleColumns extends BasePlugin {
 
   /**
    * AfterRender hook callback.
+   *
+   * @private
    */
   onAfterRender() {
     if (!this.nestedHeadersPlugin.enabled || !this.hiddenColumnsPlugin.enabled) {
@@ -507,7 +533,7 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Destroy the plugin.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.settings = null;

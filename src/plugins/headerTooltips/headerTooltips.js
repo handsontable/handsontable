@@ -10,7 +10,7 @@ import BasePlugin from 'handsontable/plugins/_base.js';
  * @pro
  *
  * @description
- * Allows adding a tooltip to the table headers.
+ * Allows to add a tooltip to the table headers.
  *
  * Available options:
  * * the `rows` property defines if tooltips should be added to row headers,
@@ -19,13 +19,16 @@ import BasePlugin from 'handsontable/plugins/_base.js';
  *
  * @example
  * ```js
- * ...
- *  headerTooltips: {
- *    rows: true,
- *    columns: true,
- *    onlyTrimmed: false
- *  }
- * ...
+ * const container = document.getElementById('example');
+ * const hot = new Handsontable(container, {
+ *   date: getData(),
+ *   // enable and configure header tooltips
+ *   headerTooltips: {
+ *     rows: true,
+ *     columns: true,
+ *     onlyTrimmed: false
+ *   }
+ * });
  * ```
  */
 class HeaderTooltips extends BasePlugin {
@@ -35,22 +38,24 @@ class HeaderTooltips extends BasePlugin {
     /**
      * Cached plugin settings.
      *
+     * @private
      * @type {Boolean|Object}
      */
     this.settings = null;
   }
 
   /**
-   * Check if plugin is enabled.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link HeaderTooltips#enablePlugin} method is called.
    *
-   * @returns {boolean}
+   * @returns {Boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().headerTooltips;
   }
 
   /**
-   * Enable the plugin.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -68,7 +73,7 @@ class HeaderTooltips extends BasePlugin {
   }
 
   /**
-   * Disable the plugin.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     this.settings = null;
@@ -79,7 +84,9 @@ class HeaderTooltips extends BasePlugin {
   }
 
   /**
-   * Parse the plugin settings.
+   * Parses the plugin settings.
+   *
+   * @private
    */
   parseSettings() {
     if (typeof this.settings === 'boolean') {
@@ -92,7 +99,7 @@ class HeaderTooltips extends BasePlugin {
   }
 
   /**
-   * Clear the previously assigned title attributes.
+   * Clears the previously assigned title attributes.
    *
    * @private
    */
@@ -123,7 +130,7 @@ class HeaderTooltips extends BasePlugin {
   }
 
   /**
-   * Add a tooltip to the headers.
+   * Adds a tooltip to the headers.
    *
    * @private
    * @param {Number} index
@@ -146,7 +153,7 @@ class HeaderTooltips extends BasePlugin {
   }
 
   /**
-   * Destroy the plugin.
+   * Destroys the plugin instance.
    */
   destroy() {
     this.settings = null;
