@@ -127,26 +127,58 @@ export function range(from, to) {
 };
 
 /**
- * Rewrite all existing selections from selections[0] etc. to selections.getCell etc
- * @param instance
- * @returns {object} modified instance
+ * Creates the selection controller necessary for the Walkontable to make selections typical for Handsontable such as
+ * current selection, area selection, selection for autofill and custom borders.
+ *
+ * @param {Object} selections An object with custom selection instances.
+ * @returns {Object} Selection controller.
  */
-export function shimSelectionProperties(instance) {
-  if (instance.selections[0]) {
-    instance.selections.getCell = () => instance.selections[0];
-  }
-  if (instance.selections[1]) {
-    instance.selections.createOrGetArea = () => instance.selections[1];
-    instance.selections.getAreas = () => [instance.selections[1]];
-  }
-  if (instance.selections[2]) {
-    instance.selections.createOrGetHeader = () => instance.selections[2];
-  }
-  if (instance.selections[3]) {
-    instance.selections.getFill = () => instance.selections[3];
-  }
+export function createSelectionController({current, area, fill, custom} = {}) {
+  current = current || new Walkontable.Selection({
+    className: 'current',
+    border: {
+      width: 2,
+      color: '#4b89ff',
+    },
+  });
+  area = area || new Walkontable.Selection({
+    className: 'area',
+    border: {
+      width: 1,
+      color: '#4b89ff',
+    },
+  });
+  fill = fill || new Walkontable.Selection({
+    className: 'fill',
+    border: {
+      width: 1,
+      color: '#ff0000',
+    },
+  });
+  custom = custom || [];
 
-  return instance;
+  return {
+    getCell() {
+      return current;
+    },
+    createOrGetArea() {
+      return area;
+    },
+    getAreas() {
+      return [area];
+    },
+    getFill() {
+      return fill;
+    },
+    [Symbol.iterator]() {
+      return [
+        fill,
+        current,
+        area,
+        ...custom,
+      ][Symbol.iterator]();
+    },
+  };
 }
 
 export function getTableTopClone() {
