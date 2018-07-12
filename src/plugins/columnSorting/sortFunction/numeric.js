@@ -1,5 +1,5 @@
-import {isEmpty, isUndefined} from '../../../helpers/mixed';
-import {getNextColumnSortResult, DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND, SORT_EMPTY_CELLS_DEFAULT} from '../utils';
+import {isEmpty} from '../../../helpers/mixed';
+import {getNextColumnSortResult, DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
 
 /**
  * Numeric sorting algorithm.
@@ -8,24 +8,19 @@ import {getNextColumnSortResult, DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_S
  * @param {Array} columnMetas Column meta objects.
  * @returns {Function} The compare function.
  */
-export default function numericSort(sortOrders, columnMetas) {
+export default function numericSort(state, columnMetas) {
   // We are soring array of arrays. Single array is in form [rowIndex, ...values]. We compare just values, stored at second index of array.
   return function ([rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex = 0) {
     const value = values[sortedColumnIndex];
     const nextValue = nextValues[sortedColumnIndex];
     const parsedFirstValue = parseFloat(value);
     const parsedSecondValue = parseFloat(nextValue);
-    const sortOrder = sortOrders[sortedColumnIndex];
-    let sortEmptyCells = columnMetas[sortedColumnIndex].columnSorting.sortEmptyCells;
-
-    if (isUndefined(sortEmptyCells)) {
-      sortEmptyCells = SORT_EMPTY_CELLS_DEFAULT;
-    }
+    const {sortOrder, sortEmptyCells} = state[sortedColumnIndex];
 
     // Watch out when changing this part of code! Check below returns 0 (as expected) when comparing empty string, null, undefined
     if (parsedFirstValue === parsedSecondValue || (isNaN(parsedFirstValue) && isNaN(parsedSecondValue))) {
       // Two equal values, we check if sorting should be performed for next columns.
-      return getNextColumnSortResult(sortOrders, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
+      return getNextColumnSortResult(state, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
     }
 
     if (sortEmptyCells) {

@@ -1,5 +1,5 @@
-import {isEmpty, isUndefined} from '../../../helpers/mixed';
-import {getNextColumnSortResult, DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND, SORT_EMPTY_CELLS_DEFAULT} from '../utils';
+import {isEmpty} from '../../../helpers/mixed';
+import {getNextColumnSortResult, DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND} from '../utils';
 
 /**
  * Default sorting algorithm.
@@ -8,17 +8,13 @@ import {getNextColumnSortResult, DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_S
  * @param {Array} columnMetas Column meta objects.
  * @returns {Function} The compare function.
  */
-export default function defaultSort(sortOrders, columnMetas) {
+export default function defaultSort(state, columnMetas) {
   // We are soring array of arrays. Single array is in form [rowIndex, ...values]. We compare just values, stored at second index of array.
   return function ([rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex = 0) {
+
     let value = values[sortedColumnIndex];
     let nextValue = nextValues[sortedColumnIndex];
-    const sortOrder = sortOrders[sortedColumnIndex];
-    let sortEmptyCells = columnMetas[sortedColumnIndex].columnSorting.sortEmptyCells;
-
-    if (isUndefined(sortEmptyCells)) {
-      sortEmptyCells = SORT_EMPTY_CELLS_DEFAULT;
-    }
+    const {sortOrder, sortEmptyCells} = state[sortedColumnIndex];
 
     if (typeof value === 'string') {
       value = value.toLowerCase();
@@ -30,13 +26,13 @@ export default function defaultSort(sortOrders, columnMetas) {
 
     if (value === nextValue) {
       // Two equal values, we check if sorting should be performed for next columns.
-      return getNextColumnSortResult(sortOrders, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
+      return getNextColumnSortResult(state, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
     }
 
     if (isEmpty(value)) {
       if (isEmpty(nextValue)) {
         // Two equal values, we check if sorting should be performed for next columns.
-        return getNextColumnSortResult(sortOrders, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
+        return getNextColumnSortResult(state, columnMetas, [rowIndex, ...values], [nextRowIndex, ...nextValues], sortedColumnIndex);
       }
 
       // Just fist value is empty and `sortEmptyCells` option was set

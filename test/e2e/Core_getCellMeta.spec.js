@@ -176,8 +176,10 @@ describe('Core_getCellMeta', () => {
     // Column sorting changes the order of displayed rows while keeping table data unchanged
     updateSettings({
       columnSorting: {
-        column: 0,
-        sortOrder: 'asc'
+        columns: [{
+          column: 0,
+          sortOrder: 'asc'
+        }]
       }
     });
 
@@ -196,7 +198,7 @@ describe('Core_getCellMeta', () => {
     let colInsideHook;
 
     const hot = handsontable({
-      beforeGetCellMeta: function (row, col) {
+      beforeGetCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },
@@ -219,7 +221,7 @@ describe('Core_getCellMeta', () => {
     let colInsideHook;
 
     const hot = handsontable({
-      afterGetCellMeta: function (row, col) {
+      afterGetCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },

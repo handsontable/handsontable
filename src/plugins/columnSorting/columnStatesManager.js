@@ -1,8 +1,15 @@
+import {isObject} from '../../helpers/object';
+import {arrayMap} from '../../helpers/array';
 import {isDefined} from '../../helpers/mixed';
 
 export const ASC_SORT_STATE = 'asc';
 export const DESC_SORT_STATE = 'desc';
-export const NONE_SORT_STATE = 'none';
+
+export function isValidColumnState(columnState) {
+  const {column, sortOrder} = columnState;
+
+  return isDefined(column) && [ASC_SORT_STATE, DESC_SORT_STATE].includes(sortOrder);
+}
 
 /**
  * Store and manages states of sorted columns.
@@ -13,30 +20,44 @@ export const NONE_SORT_STATE = 'none';
 export class ColumnStatesManager {
   constructor() {
     /**
-     * Queue of tuples containing sorted columns and their orders.
+     * Queue of states containing sorted columns and their orders. State is an objects containing `column` and `order` properties.
      *
-     * @type {Map<Number, String>}
+     * @private
+     * @type {Array}
      */
-    this.states = new Map();
+    this.sortingStates = [];
   }
 
   /**
    * Get index of first sorted column.
    *
-   * @returns {Number}
+   * @returns {Number|undefined}
    */
   getFirstSortedColumn() {
-    return this.states.keys().next().value;
+    let firstSortedColumn;
+
+    if (this.getNumberOfSortedColumns() > 0) {
+      firstSortedColumn = this.sortingStates[0].column;
+    }
+
+    return firstSortedColumn;
   }
 
   /**
    * Get sorting order of column.
    *
-   * @param {Number} column Physical column index.
+   * @param {Number} searchedColumn Physical column index.
    * @returns {String|undefined} Sorting order (`asc` for ascending, `desc` for descending and undefined for not sorted).
    */
-  getSortingOrderOfColumn(column) {
-    return this.states.get(column);
+  getSortingOrderOfColumn(searchedColumn) {
+    const searchedState = this.sortingStates.find(({column}) => searchedColumn === column);
+    let sortingOrder;
+
+    if (isObject(searchedState)) {
+      sortingOrder = searchedState.sortOrder;
+    }
+
+    return sortingOrder;
   }
 
   /**
@@ -45,56 +66,7 @@ export class ColumnStatesManager {
    * @returns {Array}
    */
   getSortedColumns() {
-    return Array.from(this.states.keys());
-  }
-
-  /**
-   * Get list of sorting orders for sorted columns.
-   *
-   * @returns {Array} Array of sorting orders (`asc` for ascending and `desc` for descending).
-   */
-  getOrdersOfSortedColumns() {
-    return Array.from(this.states.values());
-  }
-
-  /**
-   * Get next sorting order for particular column. The order sequence looks as follows: 'asc' -> 'desc' -> undefined -> 'asc'
-   *
-   * @param {String|undefined} sortingOrder Sorting order (`asc` for ascending, `desc` for descending and undefined for not sorted).
-   * @returns {String|undefined} Next sorting order (`asc` for ascending, `desc` for descending and undefined for not sorted).
-   */
-  getNextSortingOrderForColumn(sortingOrder) {
-    if (sortingOrder === DESC_SORT_STATE) {
-      return void 0;
-
-    } else if (sortingOrder === ASC_SORT_STATE) {
-      return DESC_SORT_STATE;
-    }
-
-    return ASC_SORT_STATE;
-  }
-
-  /**
-   *
-   * Set sorting order for particular column.
-   *
-   * @param {Number} column Physical column index.
-   * @param {String} sortingOrder Sorting order (`asc` for ascending, `desc` for descending and `none` for initial state).
-   * @param {Boolean} [clearAllStates=true] Clear already set states before operation.
-   */
-  setSortingOrder(column, sortingOrder = this.getNextSortingOrderForColumn(this.getSortingOrderOfColumn(column)), clearAllStates = true) {
-    if (clearAllStates) {
-      this.clearAllStates();
-
-    } else {
-      // remove particular column from the stack
-      this.states.delete(column);
-    }
-
-    if (isDefined(sortingOrder) && sortingOrder !== NONE_SORT_STATE) {
-      // add column to the stack (at the end of the list)
-      this.states.set(column, sortingOrder);
-    }
+    return arrayMap(this.sortingStates, ({column}) => column);
   }
 
   /**
@@ -113,7 +85,7 @@ export class ColumnStatesManager {
    * @returns {Number}
    */
   getNumberOfSortedColumns() {
-    return this.states.size;
+    return this.sortingStates.length;
   }
 
   /**
@@ -122,7 +94,7 @@ export class ColumnStatesManager {
    * @returns {Boolean}
    */
   isListOfSortedColumnsEmpty() {
-    return this.states.size === 0;
+    return this.getNumberOfSortedColumns() === 0;
   }
 
   /**
@@ -132,7 +104,11 @@ export class ColumnStatesManager {
    * @returns {Boolean}
    */
   isColumnSorted(column) {
-    return this.states.has(column);
+    return this.getSortedColumns().includes(column);
+  }
+
+  setState(states) {
+    this.sortingStates = states;
   }
 
   /**
@@ -140,14 +116,22 @@ export class ColumnStatesManager {
    *
    * @returns {Array}
    */
+  getColumnState(column) {
+    if (this.isColumnSorted(column)) {
+      return this.sortingStates[this.getIndexOfColumnInStatesQueue(column)];
+    }
+
+    return void 0;
+  }
+
   getAllStates() {
-    return Array.from(this.states);
+    return this.sortingStates;
   }
 
   /**
    * Clear the sorted column states queue.
    */
   clearAllStates() {
-    this.states.clear();
+    this.sortingStates.length = 0;
   }
 }

@@ -7,7 +7,7 @@ describe('ColumnSorting', () => {
       const columnStatesManager = new ColumnStatesManager();
       const domHelper = new DomHelper(columnStatesManager);
 
-      columnStatesManager.setSortingOrder(0, DESC_SORT_STATE, false);
+      columnStatesManager.setState([{column: 0, sortOrder: DESC_SORT_STATE}]);
 
       expect(domHelper.getAddedClasses(0)).toEqual(['columnSorting']);
 
@@ -23,8 +23,10 @@ describe('ColumnSorting', () => {
       const columnStatesManager = new ColumnStatesManager();
       const domHelper = new DomHelper(columnStatesManager);
 
-      columnStatesManager.setSortingOrder(1, DESC_SORT_STATE, false);
-      columnStatesManager.setSortingOrder(0, ASC_SORT_STATE, false);
+      columnStatesManager.setState([
+        {column: 1, sortOrder: DESC_SORT_STATE},
+        {column: 0, sortOrder: ASC_SORT_STATE},
+      ]);
 
       expect(domHelper.getAddedClasses(0)).toEqual(['columnSorting']);
 

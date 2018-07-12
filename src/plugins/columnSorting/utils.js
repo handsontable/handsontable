@@ -6,15 +6,13 @@ export const DO_NOT_SWAP = 0;
 export const FIRST_BEFORE_SECOND = -1;
 export const FIRST_AFTER_SECOND = 1;
 
-export const SORT_EMPTY_CELLS_DEFAULT = false;
-
 /**
  * Gets sort function for the particular column basing on its column meta.
  *
  * @param {Object} columnMeta
  * @returns {Function}
  */
-export function getSortFunctionForColumn(columnMeta) {
+export function getCompareFunctionFactory(columnMeta) {
   if (columnMeta.sortFunction) {
     return columnMeta.sortFunction;
 
@@ -38,12 +36,12 @@ export function getSortFunctionForColumn(columnMeta) {
  * @param {Number} lastSortedColumn Index of last already sorted column.
  * @returns {Number} Comparision result; working as compare function in native `Array.prototype.sort` function specification.
  */
-export function getNextColumnSortResult(sortingOrders, columnMetas, indexWithValues, nextIndexWithValues, lastSortedColumn) {
+export function getNextColumnSortResult(state, columnMetas, indexWithValues, nextIndexWithValues, lastSortedColumn) {
   const nextColumn = lastSortedColumn + 1;
 
   if (columnMetas[nextColumn]) {
-    const sortFunction = getSortFunctionForColumn(columnMetas[nextColumn]);
-    const compareFunction = sortFunction(sortingOrders, columnMetas);
+    const compareFunctionFactory = state[nextColumn].compareFunctionFactory || getCompareFunctionFactory(columnMetas[nextColumn]);
+    const compareFunction = compareFunctionFactory(state, columnMetas);
 
     return compareFunction(indexWithValues, nextIndexWithValues, nextColumn);
   }

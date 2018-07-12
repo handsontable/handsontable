@@ -1,4 +1,4 @@
-describe('ColumnSorting', () => {
+describe('columnSorting', () => {
   const id = 'testContainer';
   const blackDownPointingTriangle = String.fromCharCode(9660); // ▼
   const blackUpPointingTriangle = String.fromCharCode(9650); // ▲
@@ -58,7 +58,7 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
-  it('should display sortIndicator properly after changing column order', function() {
+  it('should display sortIndicator properly after changing sorted column sequence', function() {
     const modifyCol = (column) => {
       if (column === 0) {
         return 1;
@@ -78,13 +78,14 @@ describe('ColumnSorting', () => {
         [0, 3, 0, 5, 6, 7, 8, 9, 1]
       ],
       colHeaders: true,
-      columnSorting: true,
-      sortIndicator: true
+      columnSorting: {
+        indicator: true
+      }
     });
 
-    getPlugin('ColumnSorting').sort(0, 'asc');
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'asc'});
 
-    // changing column order: 0 <-> 1
+    // changing column sequence: 0 <-> 1
     updateSettings({modifyCol});
 
     const sortedColumn = this.$container.find('th span.columnSorting')[1];
@@ -106,7 +107,7 @@ describe('ColumnSorting', () => {
 
     const htCore = getHtCore();
 
-    getPlugin('ColumnSorting').sort(0, 'desc');
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'desc'});
 
     await 300;
 
@@ -143,7 +144,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    getPlugin('columnSorting').sort(1, 'asc'); // ASC
+    getPlugin('columnSorting').sort({column: 1, sortOrder: 'asc'}); // ASC
 
     expect(getDataAtCol(0)).toEqual([
       'bmw1', 'bmw2', 'bmw3',
@@ -152,7 +153,7 @@ describe('ColumnSorting', () => {
       'opel1', 'opel2', 'opel3'
     ]);
 
-    getPlugin('columnSorting').sort(1, 'desc'); // DESC
+    getPlugin('columnSorting').sort({column: 1, sortOrder: 'desc'}); // DESC
 
     expect(getDataAtCol(0)).toEqual([
       'opel1', 'opel2', 'opel3',
@@ -338,7 +339,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    getPlugin('columnSorting').sort(0, 'asc'); // ASC
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'asc'}); // ASC
 
     expect(getDataAtCol(1)).toEqual([
       'Frank Honest',
@@ -355,7 +356,7 @@ describe('ColumnSorting', () => {
       'Eve Branson',
     ]);
 
-    getPlugin('columnSorting').sort(0, 'desc'); // DESC
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'desc'}); // DESC
 
     expect(getDataAtCol(1)).toEqual([
       'Eve Well',
@@ -375,7 +376,7 @@ describe('ColumnSorting', () => {
 
   it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` option is enabled ' +
     '(API call, data type: default)', () => {
-    handsontable({
+    const hot = handsontable({
       data: [
         [6, 'Frank Honest'],
         [null, 'Ted Right'],
@@ -393,7 +394,7 @@ describe('ColumnSorting', () => {
       }
     });
 
-    getPlugin('columnSorting').sort(0, 'asc'); // ASC
+    hot.getPlugin('columnSorting').sort({column: 0, sortOrder: 'asc'}); // ASC
 
     expect(getDataAtCol(1)).toEqual([
       'Ted Right',
@@ -409,7 +410,7 @@ describe('ColumnSorting', () => {
       'Rob Norris'
     ]);
 
-    getPlugin('columnSorting').sort(0, 'desc'); // DESC
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'desc'}); // DESC
 
     expect(getDataAtCol(1)).toEqual([
       'Rob Norris',
@@ -428,7 +429,7 @@ describe('ColumnSorting', () => {
 
   it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
     'option is enabled and `column` property of `columnSorting` option is set (data type: default)', function() {
-    let hot = handsontable({
+    handsontable({
       data: [
         [6, 'Frank Honest'],
         [null, 'Ted Right'],
@@ -443,8 +444,10 @@ describe('ColumnSorting', () => {
       ],
       columnSorting: {
         sortEmptyCells: true,
-        sortOrder: 'asc',
-        column: 0
+        columns: [{
+          column: 0,
+          sortOrder: 'asc'
+        }]
       }
     });
 
@@ -484,8 +487,10 @@ describe('ColumnSorting', () => {
       ],
       columnSorting: {
         sortEmptyCells: true,
-        sortOrder: 'desc',
-        column: 0
+        columns: [{
+          column: 0,
+          sortOrder: 'desc'
+        }]
       }
     });
 
@@ -508,7 +513,7 @@ describe('ColumnSorting', () => {
 
   it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
     'option is enabled and `column` property of `columnSorting` option is set (data type: numeric)', function() {
-    let hot = handsontable({
+    handsontable({
       data: [
         [6, 'Frank Honest'],
         [null, 'Ted Right'],
@@ -529,8 +534,10 @@ describe('ColumnSorting', () => {
       ],
       columnSorting: {
         sortEmptyCells: true,
-        sortOrder: 'asc',
-        column: 0
+        columns: [{
+          column: 0,
+          sortOrder: 'asc'
+        }]
       }
     });
 
@@ -570,8 +577,10 @@ describe('ColumnSorting', () => {
       ],
       columnSorting: {
         sortEmptyCells: true,
-        sortOrder: 'desc',
-        column: 0
+        columns: [{
+          column: 0,
+          sortOrder: 'desc'
+        }]
       }
     });
 
@@ -631,8 +640,10 @@ describe('ColumnSorting', () => {
           ['Mercedes2', 'A 160', '01/14/2006'],
         ],
         columnSorting: {
-          column: 1,
-          sortOrder: 'asc'
+          columns: [{
+            column: 1,
+            sortOrder: 'asc'
+          }]
         }
       });
 
@@ -647,24 +658,29 @@ describe('ColumnSorting', () => {
           ['Mercedes2', 'A 160', '01/14/2006'],
         ],
         columnSorting: {
-          column: 1,
-          sortOrder: 'asc'
+          columns: [
+            {
+              column: 1,
+              sortOrder: 'asc'
+            }
+          ]
         }
       });
 
       updateSettings({
-        columnSorting: {
-          column: 1,
-          sortOrder: 'none'
-        }
+        columnSorting: true
       });
 
       expect(getPlugin('columnSorting').isSorted()).toBeFalsy();
 
       updateSettings({
         columnSorting: {
-          column: 1,
-          sortOrder: 'desc'
+          columns: [
+            {
+              column: 1,
+              sortOrder: 'desc'
+            }
+          ]
         }
       });
 
@@ -698,8 +714,12 @@ describe('ColumnSorting', () => {
         ],
         columnSorting: {
           sortEmptyCells: true,
-          sortOrder: 'asc',
-          column: 2
+          columns: [
+            {
+              column: 2,
+              sortOrder: 'asc'
+            }
+          ]
         }
       });
 
@@ -747,8 +767,12 @@ describe('ColumnSorting', () => {
         ],
         columnSorting: {
           sortEmptyCells: true,
-          sortOrder: 'desc',
-          column: 2
+          columns: [
+            {
+              column: 2,
+              sortOrder: 'desc'
+            }
+          ]
         }
       });
 
@@ -793,7 +817,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      getPlugin('columnSorting').sort(2, 'asc'); // ASC
+      getPlugin('columnSorting').sort({column: 2, sortOrder: 'asc'}); // ASC
 
       expect(getDataAtRow(0)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
       expect(getDataAtRow(1)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
@@ -801,7 +825,7 @@ describe('ColumnSorting', () => {
       expect(getDataAtRow(3)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
       expect(getDataAtRow(4)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
 
-      getPlugin('columnSorting').sort(2, 'desc'); // DESC
+      getPlugin('columnSorting').sort({column: 2, sortOrder: 'desc'}); // DESC
 
       expect(getDataAtRow(0)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
       expect(getDataAtRow(1)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
@@ -834,7 +858,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      getPlugin('columnSorting').sort(2, 'asc'); // ASC
+      getPlugin('columnSorting').sort({column: 2, sortOrder: 'asc'}); // ASC
 
       expect(getDataAtRow(0)).toEqual(['Mercedes', 'A 160', '01/12/2012', 6999.9999]);
       expect(getDataAtRow(1)).toEqual(['Citroen', 'C4 Coupe', '12/01/2013', 8330]);
@@ -842,7 +866,7 @@ describe('ColumnSorting', () => {
       expect(getDataAtRow(3)).toEqual(['Audi', 'A4 Avant', '11/10/2014', 33900]);
       expect(getDataAtRow(4)).toEqual(['Opel', 'Astra', '02/02/2015', 7000]);
 
-      getPlugin('columnSorting').sort(2, 'desc'); // DESC
+      getPlugin('columnSorting').sort({column: 2, sortOrder: 'desc'}); // DESC
 
       expect(getDataAtRow(0)).toEqual(['Opel', 'Astra', '02/02/2015', 7000]);
       expect(getDataAtRow(1)).toEqual(['Audi', 'A4 Avant', '11/10/2014', 33900]);
@@ -875,7 +899,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      getPlugin('columnSorting').sort(2, 'asc'); // ASC
+      getPlugin('columnSorting').sort({column: 2, sortOrder: 'asc'}); // ASC
 
       expect(getDataAtRow(0)).toEqual(['Audi', 'A4 Avant', 'July 8th 1999', 33900]);
       expect(getDataAtRow(1)).toEqual(['Opel', 'Astra', 'June 1st 2001', 7000]);
@@ -883,7 +907,7 @@ describe('ColumnSorting', () => {
       expect(getDataAtRow(3)).toEqual(['Citroen', 'C4 Coupe', 'October 27th 2001', 8330]);
       expect(getDataAtRow(4)).toEqual(['Mercedes', 'A 160', 'October 28th 2016', 6999.9999]);
 
-      getPlugin('columnSorting').sort(2, 'desc'); // DESC
+      getPlugin('columnSorting').sort({column: 2, sortOrder: 'desc'}); // DESC
 
       expect(getDataAtRow(0)).toEqual(['Mercedes', 'A 160', 'October 28th 2016', 6999.9999]);
       expect(getDataAtRow(1)).toEqual(['Citroen', 'C4 Coupe', 'October 27th 2001', 8330]);
@@ -918,7 +942,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      getPlugin('columnSorting').sort(2, 'asc'); // ASC
+      getPlugin('columnSorting').sort({column: 2, sortOrder: 'asc'}); // ASC
 
       expect(getDataAtRow(0)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
       expect(getDataAtRow(1)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
@@ -926,7 +950,7 @@ describe('ColumnSorting', () => {
       expect(getDataAtRow(3)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
       expect(getDataAtRow(4)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
 
-      getPlugin('columnSorting').sort(2, 'desc'); // DESC
+      getPlugin('columnSorting').sort({column: 2, sortOrder: 'desc'}); // DESC
 
       expect(getDataAtRow(0)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
       expect(getDataAtRow(1)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
@@ -1051,8 +1075,10 @@ describe('ColumnSorting', () => {
       ],
       colHeaders: true,
       columnSorting: {
-        column: 0,
-        sortOrder: 'asc'
+        columns: [{
+          column: 0,
+          sortOrder: 'asc'
+        }]
       }
     });
 
@@ -1070,8 +1096,10 @@ describe('ColumnSorting', () => {
       ],
       colHeaders: true,
       columnSorting: {
-        column: 0,
-        sortOrder: 'asc'
+        columns: [{
+          column: 0,
+          sortOrder: 'asc'
+        }]
       }
     });
 
@@ -1080,8 +1108,10 @@ describe('ColumnSorting', () => {
 
     updateSettings({
       columnSorting: {
-        column: 1,
-        sortOrder: 'asc'
+        columns: [{
+          column: 1,
+          sortOrder: 'asc'
+        }]
       }
     });
 
@@ -1099,8 +1129,10 @@ describe('ColumnSorting', () => {
       ],
       colHeaders: true,
       columnSorting: {
-        column: 0,
-        sortOrder: 'asc'
+        columns: [{
+          column: 0,
+          sortOrder: 'asc'
+        }]
       }
     });
 
@@ -1108,8 +1140,10 @@ describe('ColumnSorting', () => {
 
     updateSettings({
       columnSorting: {
-        column: 0,
-        sortOrder: 'desc'
+        columns: [{
+          column: 0,
+          sortOrder: 'desc'
+        }]
       }
     });
 
@@ -1129,17 +1163,21 @@ describe('ColumnSorting', () => {
       ],
       colHeaders: true,
       columnSorting: {
-        column: 1,
-        sortOrder: 'desc',
-        sortEmptyCells: false
+        sortEmptyCells: false,
+        columns: [{
+          column: 1,
+          sortOrder: 'desc'
+        }]
       }
     });
 
     updateSettings({
       columnSorting: {
-        column: 1,
-        sortOrder: 'asc',
-        sortEmptyCells: true
+        sortEmptyCells: true,
+        columns: [{
+          column: 1,
+          sortOrder: 'asc'
+        }]
       }
     });
 
@@ -1148,9 +1186,11 @@ describe('ColumnSorting', () => {
 
     updateSettings({
       columnSorting: {
-        column: 1,
-        sortOrder: 'asc',
-        sortEmptyCells: false
+        sortEmptyCells: false,
+        columns: [{
+          column: 1,
+          sortOrder: 'asc'
+        }]
       }
     });
 
@@ -1190,8 +1230,10 @@ describe('ColumnSorting', () => {
 
     updateSettings({
       columnSorting: {
-        column: 0,
-        sortOrder: 'asc'
+        columns: [{
+          column: 0,
+          sortOrder: 'asc'
+        }]
       }
     });
 
@@ -1207,8 +1249,10 @@ describe('ColumnSorting', () => {
 
     updateSettings({
       columnSorting: {
-        column: 0,
-        sortOrder: 'desc'
+        columns: [{
+          column: 0,
+          sortOrder: 'desc'
+        }]
       }
     });
 
@@ -1233,8 +1277,10 @@ describe('ColumnSorting', () => {
       ],
       colHeaders: true,
       columnSorting: {
-        column: 0,
-        sortOrder: 'asc'
+        columns: [{
+          column: 0,
+          sortOrder: 'asc'
+        }]
       }
     });
 
@@ -1263,7 +1309,7 @@ describe('ColumnSorting', () => {
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
-    getPlugin('columnSorting').sort(0, 'asc');
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'asc'});
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1281,8 +1327,10 @@ describe('ColumnSorting', () => {
       ],
       colHeaders: true,
       columnSorting: {
-        column: 0,
-        sortOrder: 'asc'
+        columns: [{
+          column: 0,
+          sortOrder: 'asc'
+        }]
       }
     });
 
@@ -1317,13 +1365,10 @@ describe('ColumnSorting', () => {
 
     addHook('beforeColumnSort', this.beforeColumnSortHandler);
 
-    const sortColumn = 0;
-    const sortOrder = true;
-
-    getPlugin('columnSorting').sort(sortColumn, sortOrder);
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'asc'});
 
     expect(this.beforeColumnSortHandler.calls.count()).toEqual(1);
-    expect(this.beforeColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
+    expect(this.beforeColumnSortHandler).toHaveBeenCalledWith([], [{column: 0, sortOrder: 'asc'}], void 0, void 0, void 0, void 0);
   });
 
   it('should not sorting column when beforeColumnSort returns false', (done) => {
@@ -1340,7 +1385,7 @@ describe('ColumnSorting', () => {
       }
     });
 
-    getPlugin('columnSorting').sort(0, 'asc');
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'asc'});
 
     setTimeout(() => {
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
@@ -1360,13 +1405,10 @@ describe('ColumnSorting', () => {
       beforeColumnSort: beforeColumnSortCallback
     });
 
-    const sortColumn = 0;
-    const sortOrder = true;
-
-    getPlugin('columnSorting').sort(sortColumn, sortOrder);
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'asc'});
 
     expect(beforeColumnSortCallback.calls.count()).toEqual(1);
-    expect(beforeColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
+    expect(beforeColumnSortCallback).toHaveBeenCalledWith([], [{column: 0, sortOrder: 'asc'}], void 0, void 0, void 0, void 0);
   });
 
   it('should fire afterColumnSort event before data has been sorted but before table render', () => {
@@ -1393,14 +1435,12 @@ describe('ColumnSorting', () => {
       afterRenderSpy.apply(afterRenderSpy, arguments);
     });
 
-    const sortColumn = 0;
-    const sortOrder = 'asc';
     afterRenderSpy.calls.reset();
 
-    getPlugin('columnSorting').sort(sortColumn, sortOrder);
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'asc'});
 
     expect(afterColumnSortHandler.calls.count()).toBe(1);
-    expect(afterColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
+    expect(afterColumnSortHandler).toHaveBeenCalledWith([], [{column: 0, sortOrder: 'asc'}], void 0, void 0, void 0, void 0);
     expect(afterRenderSpy.calls.count()).toBe(1);
   });
 
@@ -1413,13 +1453,10 @@ describe('ColumnSorting', () => {
       afterColumnSort: afterColumnSortCallback
     });
 
-    const sortColumn = 0;
-    const sortOrder = true;
-
-    getPlugin('columnSorting').sort(sortColumn, sortOrder);
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'asc'});
 
     expect(afterColumnSortCallback.calls.count()).toEqual(1);
-    expect(afterColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
+    expect(afterColumnSortCallback).toHaveBeenCalledWith([], [{column: 0, sortOrder: 'asc'}], void 0, void 0, void 0, void 0);
   });
 
   it('should insert row when plugin is enabled, but table hasn\'t been sorted', () => {
@@ -1438,25 +1475,6 @@ describe('ColumnSorting', () => {
     alter('insert_row');
 
     expect(countRows()).toEqual(5);
-  });
-
-  it('should remove row when plugin is enabled, but table hasn\'t been sorted', () => {
-    handsontable({
-      data: [
-        [1, 'B'],
-        [0, 'D'],
-        [3, 'A'],
-        [2, 'C']
-      ],
-      columnSorting: true
-    });
-
-    expect(countRows()).toEqual(4);
-    expect(getPlugin('columnSorting').sortColumn).toBeUndefined();
-
-    alter('remove_row');
-
-    expect(countRows()).toEqual(3);
   });
 
   it('should display new row added directly to dataSource, when observeChanges plugin is enabled', function(done) {
@@ -1606,7 +1624,10 @@ describe('ColumnSorting', () => {
         [2, 'C']
       ],
       columnSorting: {
-        column: 1
+        columns: [{
+          column: 1,
+          sortOrder: 'asc'
+        }]
       }
     });
 
@@ -1638,7 +1659,7 @@ describe('ColumnSorting', () => {
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
     expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
-    getPlugin('columnSorting').sort(0, 'asc');
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'asc'});
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1672,8 +1693,12 @@ describe('ColumnSorting', () => {
         [2, 'C']
       ],
       columnSorting: {
-        column: 1,
-        sortOrder: 'asc'
+        columns: [
+          {
+            column: 1,
+            sortOrder: 'asc'
+          }
+        ]
       }
     });
 
@@ -1687,7 +1712,7 @@ describe('ColumnSorting', () => {
     expect(this.$container.find('tbody tr:eq(2) td:eq(1)').text()).toEqual('C');
     expect(this.$container.find('tbody tr:eq(3) td:eq(1)').text()).toEqual('D');
 
-    getPlugin('columnSorting').sort(0, 'asc');
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'asc'});
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -1942,7 +1967,9 @@ describe('ColumnSorting', () => {
     // ---------------------------------
 
     updateSettings({
-      sortIndicator: true
+      columnSorting: {
+        indicator: true
+      }
     });
 
     this.sortByClickOnColumnHeader(1);
@@ -1957,6 +1984,7 @@ describe('ColumnSorting', () => {
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
+    // console.log(afterValue === '' || afterValue === 'none');
 
     this.sortByClickOnColumnHeader(1);
 
@@ -1965,18 +1993,19 @@ describe('ColumnSorting', () => {
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
 
     expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
+    // console.log(afterValue.indexOf(blackUpPointingTriangle));
 
     // ---------------------------------
     // INDICATOR SET FOR A SINGLE COLUMN
     // ---------------------------------
 
     updateSettings({
-      sortIndicator: void 0,
-      columns: [
-        {},
-        {},
-        {sortIndicator: true}
-      ]
+      columnSorting: {
+        indicator: void 0,
+        columns: [
+          {column: 2, indicator: true}
+        ]
+      }
     });
 
     this.sortByClickOnColumnHeader(0);
@@ -1984,6 +2013,7 @@ describe('ColumnSorting', () => {
     sortedColumn = this.$container.find('th span.columnSorting')[0];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
+    // console.log(afterValue === '' || afterValue === 'none');
 
     this.sortByClickOnColumnHeader(1);
 
@@ -1991,12 +2021,14 @@ describe('ColumnSorting', () => {
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
+    // console.log(afterValue === '' || afterValue === 'none');
 
     this.sortByClickOnColumnHeader(2);
 
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
+    console.log(afterValue.indexOf(blackUpPointingTriangle));
   });
 
   it('should change sorting indicator state on every plugin API method call (continuously for the same column)', function() {
@@ -2083,21 +2115,21 @@ describe('ColumnSorting', () => {
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
 
-    getPlugin('columnSorting').sort(2, 'desc');
+    getPlugin('columnSorting').sort({column: 2, sortOrder: 'desc'});
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
 
-    getPlugin('columnSorting').sort(2, 'desc');
+    getPlugin('columnSorting').sort({column: 2, sortOrder: 'desc'});
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
 
-    getPlugin('columnSorting').sort(2, 'asc');
+    getPlugin('columnSorting').sort({column: 2, sortOrder: 'asc'});
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
@@ -2180,21 +2212,21 @@ describe('ColumnSorting', () => {
 
     hot.view.wt.wtOverlays.leftOverlay.scrollTo(15);
     render();
-    getPlugin('columnSorting').sort(15);
+    getPlugin('columnSorting').sort({column: 15, sortOrder: 'asc'});
 
     expect(getDataAtCell(0, 15)).toEqual('Ball Levy');
     expect(getDataAtCell(1, 15)).toEqual('Hubbard Nichols');
     expect(getDataAtCell(2, 15)).toEqual('Lenora Guzman');
     expect(getDataAtCell(3, 15)).toEqual('Nita Holloway');
 
-    getPlugin('columnSorting').sort(15);
+    getPlugin('columnSorting').sort({column: 15, sortOrder: 'desc'});
 
     expect(getDataAtCell(3, 15)).toEqual('Ball Levy');
     expect(getDataAtCell(2, 15)).toEqual('Hubbard Nichols');
     expect(getDataAtCell(1, 15)).toEqual('Lenora Guzman');
     expect(getDataAtCell(0, 15)).toEqual('Nita Holloway');
 
-    getPlugin('columnSorting').sort(15);
+    getPlugin('columnSorting').sort();
 
     expect(getDataAtCell(0, 15)).toEqual('Hubbard Nichols');
     expect(getDataAtCell(1, 15)).toEqual('Lenora Guzman');
@@ -2204,15 +2236,15 @@ describe('ColumnSorting', () => {
 
   it('should allow specifiyng a custom sorting function', () => {
     const data = [['1 inch'], ['1 yard'], ['2 feet'], ['0.2 miles']];
-    const hot = handsontable({
+    handsontable({
       data,
       colHeaders: true,
-      columnSorting: true,
-      columns: [
-        {
-          sortFunction(sortOrders) {
-            return function([, ...values], [, ...nextValues]) {
-              const sortOrder = sortOrders[0];
+      columnSorting: {
+        columns: [{
+          column: 0,
+          compareFunctionFactory(state) {
+            return function ([, ...values], [, ...nextValues]) {
+              const sortOrder = state[0].sortOrder;
 
               const unitsRatios = {
                 inch: 1,
@@ -2250,8 +2282,8 @@ describe('ColumnSorting', () => {
               return 0;
             };
           }
-        }
-      ]
+        }]
+      }
     });
 
     expect(getDataAtCell(0, 0)).toEqual('1 inch');
@@ -2401,8 +2433,10 @@ describe('ColumnSorting', () => {
         data: createSpreadsheetData(9, 9),
         maxRows: 6,
         columnSorting: {
-          column: 0,
-          sortOrder: 'desc'
+          columns: [{
+            column: 0,
+            sortOrder: 'desc'
+          }]
         }
       });
 
@@ -2414,8 +2448,10 @@ describe('ColumnSorting', () => {
         data: createSpreadsheetData(9, 9),
         maxRows: 20,
         columnSorting: {
-          column: 0,
-          sortOrder: 'desc'
+          columns: [{
+            column: 0,
+            sortOrder: 'desc'
+          }]
         }
       });
 
@@ -2428,8 +2464,10 @@ describe('ColumnSorting', () => {
         maxRows: 5,
         minSpareRows: 3,
         columnSorting: {
-          column: 0,
-          sortOrder: 'desc'
+          columns: [{
+            column: 0,
+            sortOrder: 'desc'
+          }]
         }
       });
 
@@ -2442,8 +2480,10 @@ describe('ColumnSorting', () => {
         maxRows: 9,
         minSpareRows: 3,
         columnSorting: {
-          column: 0,
-          sortOrder: 'desc'
+          columns: [{
+            column: 0,
+            sortOrder: 'desc'
+          }]
         }
       });
 
@@ -2456,8 +2496,10 @@ describe('ColumnSorting', () => {
         maxRows: 15,
         minSpareRows: 2,
         columnSorting: {
-          column: 0,
-          sortOrder: 'desc'
+          columns: [{
+            column: 0,
+            sortOrder: 'desc'
+          }]
         }
       });
 
