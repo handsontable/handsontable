@@ -20,6 +20,13 @@ class ItemsFactory {
   }
 
   /**
+   * Get the predefined items.
+   */
+  getPredefinedItems() {
+    return this.predefinedItems;
+  }
+
+  /**
    * Set predefined items.
    *
    * @param {Array} predefinedItems Array of predefined items.
@@ -80,7 +87,7 @@ function getItems(pattern = null, defaultPattern = [], items = {}) {
         item = value;
       }
       if (isObject(value)) {
-        extend(item, value);
+        item = {...item, ...value};
 
       } else if (typeof item === 'string') {
         item = {name: item};
@@ -102,7 +109,7 @@ function getItems(pattern = null, defaultPattern = [], items = {}) {
         item = {name, key: `${key}`};
       }
       if (isObject(name)) {
-        extend(item, name);
+        item = {...item, ...name};
       }
       if (item.key === void 0) {
         item.key = key;

@@ -11,6 +11,7 @@ class CommandExecutor {
   constructor(hotInstance) {
     this.hot = hotInstance;
     this.commands = {};
+    this.defaultCommands = {};
     this.commonCallback = null;
   }
 
@@ -23,6 +24,17 @@ class CommandExecutor {
    */
   registerCommand(name, commandDescriptor) {
     this.commands[name] = commandDescriptor;
+  }
+
+  /**
+   * Register default command.
+   *
+   * @param {String} name Command name.
+   * @param {Object} commandDescriptor Command descriptor object with properties like `key` (command id),
+   *                                   `callback` (task to execute), `name` (command name), `disabled` (command availability).
+   */
+  registerDefaultCommand(name, commandDescriptor) {
+    this.defaultCommands[name] = commandDescriptor;
   }
 
   /**
@@ -46,30 +58,44 @@ class CommandExecutor {
 
     let subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
     let command = this.commands[commandName];
-
-    if (!command) {
-      throw new Error(`Menu command '${commandName}' not exists.`);
-    }
-    if (subCommandName && command.submenu) {
-      command = findSubCommand(subCommandName, command.submenu.items);
-    }
-    if (command.disabled === true) {
-      return;
-    }
-    if (typeof command.disabled == 'function' && command.disabled.call(this.hot) === true) {
-      return;
-    }
-    if (hasOwnProperty(command, 'submenu')) {
-      return;
-    }
+    let defaultCommand = this.defaultCommands[commandName];
     let callbacks = [];
 
-    if (typeof command.callback === 'function') {
-      callbacks.push(command.callback);
+    if (!command && !defaultCommand) {
+      throw new Error(`Menu command '${commandName}' does not exist.`);
     }
+
+    if (command) {
+      if (subCommandName && command.submenu) {
+        command = findSubCommand(subCommandName, command.submenu.items);
+      }
+      if (command.disabled === true) {
+        return;
+      }
+      if (typeof command.disabled == 'function' && command.disabled.call(this.hot) === true) {
+        return;
+      }
+      if (hasOwnProperty(command, 'submenu')) {
+        return;
+      }
+      if (typeof command.callback === 'function') {
+        callbacks.push(command.callback);
+      }
+    }
+
+    if (defaultCommand) {
+      if (defaultCommand.submenu && subCommandName) {
+        defaultCommand = findSubCommand(subCommandName, defaultCommand.submenu.items);
+      }
+      if (typeof defaultCommand.callback === 'function' && (!command || command.callback !== defaultCommand.callback)) {
+        callbacks.push(defaultCommand.callback);
+      }
+    }
+
     if (typeof this.commonCallback === 'function') {
       callbacks.push(this.commonCallback);
     }
+
     params.unshift(commandSplit.join(':'));
     arrayEach(callbacks, (callback) => callback.apply(this.hot, params));
   }

@@ -3434,4 +3434,64 @@ describe('ContextMenu', () => {
       expect(keys).toEqual(['make_read_only', 'col_left']);
     });
   });
+
+  describe('contextMenu with submenus', () => {
+    it('should justify text with submenu option', async (done) => {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: {
+          items: {
+            Alignment: { // Main test: not same as alignment
+              name: 'Al',
+              submenu: {
+                items: [
+                  { key: 'alignment:justify', name: 'ar' },
+                ],
+              },
+            },
+          }
+        },
+        height: 100
+      });
+
+      contextMenu();
+
+      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0);
+      item.simulate('mouseover');
+
+      setTimeout(function () {
+        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
+
+        button.simulate('mousedown'); // Text justify
+        deselectCell();
+        expect(getCellMeta(0, 0).className).toEqual('htJustify');
+        expect(getCell(0, 0).className).toContain('htJustify');
+        done();
+      }, 350); // menu opens after 300ms
+    });
+
+    it('should execute even with different name', async function() {
+      var hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        contextMenu: {
+          items: {
+            Remove_Row: { key: 'remove_row' },
+          }
+        },
+      });
+
+      selectCell(2, 2);
+      contextMenu();
+
+      // "Remove row" item
+      $('.htContextMenu .ht_master .htCore')
+        .find('tbody td')
+        .not('.htSeparator')
+        .eq(0)
+        .simulate('mousedown');
+
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A4', 'A5']);
+    });
+  });
 });
