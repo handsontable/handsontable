@@ -17,6 +17,6 @@ export default function numericValidator(value, callback) {
     callback(false);
 
   } else {
-    callback(/^-?\d*(\.|,)?\d*$/.test(value));
+    callback(/^\s*[+-]?\s*(?:(?:\d+(?:\.\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/i.test(value));
   }
 };
