@@ -71,7 +71,9 @@ describe('SamplesGenerator', () => {
         ['AA', {id: 2}, 'C', [1, 2, 3, 4, 5], 123456789],
       ];
 
-      return data[row][col];
+      return {
+        value: data[row][col]
+      };
     });
 
     spyOn(sg, 'dataFactory').and.callThrough();
@@ -87,6 +89,57 @@ describe('SamplesGenerator', () => {
     expect(result.get(2).strings).toEqual([{value: 'AA', col: 0}]);
   });
 
+  it('should generate row sample with limited generated items (when the data source contains the same values)', () => {
+    const sg = new SamplesGenerator((row, col) => {
+      const data = [
+        [true, true, true, true, true, true, true, true, true, true],
+      ];
+
+      return {
+        value: data[row][col]
+      };
+    });
+
+    spyOn(sg, 'dataFactory').and.callThrough();
+
+    const result = sg.generateSample('row', {from: 0, to: 9}, 0);
+
+    expect(result.size).toBe(1);
+    expect(result.get(4).strings).toEqual([{col: 0, value: true}]);
+  });
+
+  it('should generate row sample controlled by `bundleCountSeed` (in case of collecting more samples despite their repeatability)', () => {
+    let seedIndex = 0;
+    const sg = new SamplesGenerator((row, col) => {
+      const data = [
+        [true, true, true, true, true, true, true, true, true, true],
+      ];
+
+      seedIndex += 1;
+
+      return {
+        value: data[row][col],
+        bundleCountSeed: seedIndex,
+      };
+    });
+
+    spyOn(sg, 'dataFactory').and.callThrough();
+
+    const result = sg.generateSample('row', {from: 0, to: 9}, 0);
+
+    expect(result.size).toBe(10);
+    expect(result.get(5).strings).toEqual([{col: 0, value: true}]);
+    expect(result.get(6).strings).toEqual([{col: 1, value: true}]);
+    expect(result.get(7).strings).toEqual([{col: 2, value: true}]);
+    expect(result.get(8).strings).toEqual([{col: 3, value: true}]);
+    expect(result.get(9).strings).toEqual([{col: 4, value: true}]);
+    expect(result.get(10).strings).toEqual([{col: 5, value: true}]);
+    expect(result.get(11).strings).toEqual([{col: 6, value: true}]);
+    expect(result.get(12).strings).toEqual([{col: 7, value: true}]);
+    expect(result.get(13).strings).toEqual([{col: 8, value: true}]);
+    expect(result.get(14).strings).toEqual([{col: 9, value: true}]);
+  });
+
   it('should generate column sample', () => {
     var sg = new SamplesGenerator((row, col) => {
       var data = [
@@ -97,7 +150,9 @@ describe('SamplesGenerator', () => {
         [{id: 1}, {id: 2}, {id: 3}, {id: 4}],
       ];
 
-      return data[row][col];
+      return {
+        value: data[row][col]
+      };
     });
 
     spyOn(sg, 'dataFactory').and.callThrough();
@@ -111,5 +166,74 @@ describe('SamplesGenerator', () => {
     expect(result.size).toBe(3);
     expect(result.get(1).strings).toEqual([{value: 'D', row: 1}, {value: [4], row: 3}, {value: {id: 4}, row: 4}]);
     expect(result.get(2).strings).toEqual([{value: 44, row: 0}]);
+  });
+
+  it('should generate column sample with limited generated items (when the data source contains the same values)', () => {
+    const sg = new SamplesGenerator((row, col) => {
+      const data = [
+        [true],
+        [true],
+        [true],
+        [true],
+        [true],
+        [true],
+        [true],
+        [true],
+        [true],
+        [true],
+      ];
+
+      return {
+        value: data[row][col]
+      };
+    });
+
+    spyOn(sg, 'dataFactory').and.callThrough();
+
+    const result = sg.generateSample('col', {from: 0, to: 9}, 0);
+
+    expect(result.size).toBe(1);
+    expect(result.get(4).strings).toEqual([{row: 0, value: true}]);
+  });
+
+  it('should generate column sample controlled by `bundleCountSeed` (in case of collecting more samples despite their repeatability)', () => {
+    let seedIndex = 0;
+    const sg = new SamplesGenerator((row, col) => {
+      const data = [
+        [true],
+        [true],
+        [true],
+        [true],
+        [true],
+        [true],
+        [true],
+        [true],
+        [true],
+        [true],
+      ];
+
+      seedIndex += 1;
+
+      return {
+        value: data[row][col],
+        bundleCountSeed: seedIndex,
+      };
+    });
+
+    spyOn(sg, 'dataFactory').and.callThrough();
+
+    const result = sg.generateSample('col', {from: 0, to: 9}, 0);
+
+    expect(result.size).toBe(10);
+    expect(result.get(5).strings).toEqual([{row: 0, value: true}]);
+    expect(result.get(6).strings).toEqual([{row: 1, value: true}]);
+    expect(result.get(7).strings).toEqual([{row: 2, value: true}]);
+    expect(result.get(8).strings).toEqual([{row: 3, value: true}]);
+    expect(result.get(9).strings).toEqual([{row: 4, value: true}]);
+    expect(result.get(10).strings).toEqual([{row: 5, value: true}]);
+    expect(result.get(11).strings).toEqual([{row: 6, value: true}]);
+    expect(result.get(12).strings).toEqual([{row: 7, value: true}]);
+    expect(result.get(13).strings).toEqual([{row: 8, value: true}]);
+    expect(result.get(14).strings).toEqual([{row: 9, value: true}]);
   });
 });
