@@ -222,6 +222,95 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.right).toEqual(redBorder);
   });
 
+  it('should hide all border by use setBorders method with eg. {top: false}', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      customBorders: [{
+        row: 2,
+        col: 2,
+        left: {
+          width: 2,
+          color: 'red'
+        },
+        right: {
+          width: 2,
+          color: 'red'
+        },
+        top: {
+          width: 1,
+          color: 'green'
+        }
+      }]
+    });
+
+    const greenBorder = {
+        color: 'green',
+        width: 1
+      },
+      redBorder = {
+        color: 'red',
+        width: 2
+      },
+      empty = {
+        hide: true
+      },
+      customBorders = hot.getPlugin('customBorders');
+
+    expect(getCellMeta(2, 2).borders.top).toEqual(greenBorder);
+    expect(getCellMeta(2, 2).borders.left).toEqual(redBorder);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(empty);
+    expect(getCellMeta(2, 2).borders.right).toEqual(redBorder);
+
+    expect(getCellMeta(0, 0).borders).toBeUndefined();
+    expect(getCellMeta(0, 1).borders).toBeUndefined();
+    expect(getCellMeta(0, 2).borders).toBeUndefined();
+    expect(getCellMeta(0, 3).borders).toBeUndefined();
+
+    expect(getCellMeta(1, 0).borders).toBeUndefined();
+    expect(getCellMeta(1, 1).borders).toBeUndefined();
+    expect(getCellMeta(1, 2).borders).toBeUndefined();
+    expect(getCellMeta(1, 3).borders).toBeUndefined();
+
+    expect(getCellMeta(2, 0).borders).toBeUndefined();
+    expect(getCellMeta(2, 1).borders).toBeUndefined();
+    expect(getCellMeta(2, 3).borders).toBeUndefined();
+
+    expect(getCellMeta(3, 0).borders).toBeUndefined();
+    expect(getCellMeta(3, 1).borders).toBeUndefined();
+    expect(getCellMeta(3, 2).borders).toBeUndefined();
+    expect(getCellMeta(3, 3).borders).toBeUndefined();
+
+    selectCell(2, 2);
+
+    customBorders.setBorders(getSelected(), {
+      top: false
+    });
+
+    expect(getCellMeta(2, 2).borders.top).toEqual(empty);
+    expect(getCellMeta(2, 2).borders.left).toEqual(redBorder);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(empty);
+    expect(getCellMeta(2, 2).borders.right).toEqual(redBorder);
+
+    expect(getCellMeta(0, 0).borders).toBeUndefined();
+    expect(getCellMeta(0, 1).borders).toBeUndefined();
+    expect(getCellMeta(0, 2).borders).toBeUndefined();
+    expect(getCellMeta(0, 3).borders).toBeUndefined();
+
+    expect(getCellMeta(1, 0).borders).toBeUndefined();
+    expect(getCellMeta(1, 1).borders).toBeUndefined();
+    expect(getCellMeta(1, 2).borders).toBeUndefined();
+    expect(getCellMeta(1, 3).borders).toBeUndefined();
+
+    expect(getCellMeta(2, 0).borders).toBeUndefined();
+    expect(getCellMeta(2, 1).borders).toBeUndefined();
+    expect(getCellMeta(2, 3).borders).toBeUndefined();
+
+    expect(getCellMeta(3, 0).borders).toBeUndefined();
+    expect(getCellMeta(3, 1).borders).toBeUndefined();
+    expect(getCellMeta(3, 2).borders).toBeUndefined();
+    expect(getCellMeta(3, 3).borders).toBeUndefined();
+  });
+
   it('should return borders from the selected area by use getBorders method', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
