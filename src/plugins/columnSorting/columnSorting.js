@@ -4,8 +4,8 @@ import {
   removeClass,
 } from './../../helpers/dom/element';
 import {isUndefined, isDefined} from './../../helpers/mixed';
-import {isObject, objectEach, extend} from './../../helpers/object';
-import {arrayMap, arrayEach} from './../../helpers/array';
+import {isObject, extend} from './../../helpers/object';
+import {arrayMap} from './../../helpers/array';
 import {getCompareFunctionFactory} from './utils';
 import BasePlugin from './../_base';
 import {ASC_SORT_STATE, DESC_SORT_STATE, isValidColumnState, ColumnStatesManager} from './columnStatesManager';
@@ -20,11 +20,6 @@ Hooks.getSingleton().register('afterColumnSort');
 
 const APPEND_COLUMN_STATE_STRATEGY = 'append';
 const REPLACE_COLUMN_STATE_STRATEGY = 'replace';
-
-const SORT_EMPTY_CELLS_DEFAULT = false;
-const SHOW_SORT_INDICATOR_DEFAULT = false;
-
-const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'compareFunctionFactory'];
 
 /**
  * @plugin ColumnSorting
@@ -51,7 +46,7 @@ class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Instance of column destinationState manager.
+     * Instance of column state manager.
      *
      * @type {SortedColumnStates}
      */
@@ -69,9 +64,6 @@ class ColumnSorting extends BasePlugin {
      * @type {RowsMapper}
      */
     this.rowsMapper = new RowsMapper(this);
-    this.sortEmptyCells = SORT_EMPTY_CELLS_DEFAULT;
-    this.indicator = SHOW_SORT_INDICATOR_DEFAULT;
-    this.compareFunctionFactory = void 0;
     /**
      * It blocks the plugin translation, this flag is checked inside `onModifyRow` listener.
      *
@@ -107,24 +99,22 @@ class ColumnSorting extends BasePlugin {
     this.addHook('afterUntrimRow', () => this.sortByPresetColumnAndOrder());
     this.addHook('modifyRow', (row, source) => this.onModifyRow(row, source));
     this.addHook('unmodifyRow', (row, source) => this.onUnmodifyRow(row, source));
-    this.addHook('afterUpdateSettings', () => this.onAfterUpdateSettings());
+    this.addHook('afterUpdateSettings', (settings) => this.onAfterUpdateSettings(settings));
     this.addHook('afterGetColHeader', (column, TH) => this.onAfterGetColHeader(column, TH));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
     this.addHook('afterRemoveRow', (index, amount) => this.onAfterRemoveRow(index, amount));
-    this.addHook('afterInit', () => this.sortBySettings());
+    this.addHook('afterInit', () => this.loadOrSortBySettings());
     this.addHook('afterLoadData', () => {
       this.rowsMapper.clearMap();
 
       if (this.hot.view) {
-        this.sortBySettings();
+        this.loadOrSortBySettings();
       }
     });
 
-    this.setPluginOptions();
-
     if (this.hot.view) {
-      this.sortBySettings();
+      this.loadOrSortBySettings();
     }
     super.enablePlugin();
   }
@@ -270,7 +260,9 @@ class ColumnSorting extends BasePlugin {
   }
 
   join(state) {
-    return extend(this.getPluginOptions(), state);
+    const columnProperties = extend(this.columnStatesManager.getDefaultColumnProperties(), this.hot.getCellMeta(0, state.column).columnSorting);
+
+    return extend(state, columnProperties);
   }
 
   /**
@@ -289,13 +281,11 @@ class ColumnSorting extends BasePlugin {
    * @fires Hooks#columnSorting
    */
   saveSortingState() {
-    if (this.columnStatesManager.isListOfSortedColumnsEmpty() === false) {
-      const settings = this.getPluginOptions();
+    const settings = this.columnStatesManager.getDefaultColumnProperties();
 
-      settings.columns = this.columnStatesManager.getAllStates();
+    settings.columns = this.columnStatesManager.getAllStates();
 
-      this.hot.runHooks('persistentStateSave', 'columnSorting', settings);
-    }
+    this.hot.runHooks('persistentStateSave', 'columnSorting', settings);
   }
 
   /**
@@ -392,34 +382,6 @@ class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Sets options by passed settings
-   *
-   * @private
-   */
-  setPluginOptions() {
-    const columnSorting = this.hot.getSettings().columnSorting;
-    if (isObject(columnSorting)) {
-      objectEach(columnSorting, (value, property) => {
-        if (inheritedColumnProperties.includes(property)) {
-          this[property] = value;
-        }
-      });
-    }
-  }
-
-  getPluginOptions() {
-    const options = {};
-
-    arrayEach(inheritedColumnProperties, (property) => {
-      if (isDefined(this[property])) {
-        options[property] = this[property];
-      }
-    });
-
-    return options;
-  }
-
-  /**
    * `modifyRow` hook callback. Translates visual row index to the sorted row index.
    *
    * @private
@@ -458,16 +420,15 @@ class ColumnSorting extends BasePlugin {
    * @returns {Boolean}
    */
   getColumnSortIndicator(column) {
-    let { indicator: sortIndicator } = this.getPluginOptions();
     const columnState = this.getSortingState(column);
 
-    // console.log(columnState);
+    if (isDefined(columnState)) {
+      const state = this.join(columnState);
 
-    if (isObject(columnState) && isDefined(columnState.indicator)) {
-      sortIndicator = columnState.indicator;
+      return state.indicator;
     }
 
-    return sortIndicator;
+    return false;
   }
 
   /**
@@ -502,11 +463,6 @@ class ColumnSorting extends BasePlugin {
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
     removeClass(headerLink, this.domHelper.getRemovedClasses());
-
-    // if (column === 0) {
-    //   console.log(this.getColumnSortIndicator(column));
-    // }
-
     addClass(headerLink, this.domHelper.getAddedClasses(physicalColumn, this.getColumnSortIndicator(column)));
   }
 
@@ -515,9 +471,22 @@ class ColumnSorting extends BasePlugin {
    *
    * @private
    */
-  onAfterUpdateSettings() {
-    this.setPluginOptions();
-    this.sortBySettings();
+  onAfterUpdateSettings(settings) {
+    if (isDefined(settings.columnSorting)) {
+      this.sortBySettings(settings.columnSorting);
+    }
+  }
+
+  loadOrSortBySettings() {
+    let sortingSettings = this.hot.getSettings().columnSorting;
+    let loadedSortingState = this.loadSortingState();
+
+    if (isObject(loadedSortingState)) {
+      this.sortBySettings(loadedSortingState);
+
+    } else {
+      this.sortBySettings(sortingSettings);
+    }
   }
 
   /**
@@ -525,15 +494,20 @@ class ColumnSorting extends BasePlugin {
    *
    * @private
    */
-  sortBySettings() {
-    let sortingSettings = this.hot.getSettings().columnSorting;
-    let loadedSortingState = this.loadSortingState();
+  sortBySettings(sortingSettings) {
+    if (isObject(sortingSettings)) {
+      this.columnStatesManager.updateDefaultColumnProperties(sortingSettings);
 
-    if (isObject(loadedSortingState)) {
-      this.sort(loadedSortingState.columns);
+      const columnsSettings = sortingSettings.columns;
 
-    } else if (isObject(sortingSettings) && Array.isArray(sortingSettings.columns) && sortingSettings.columns.every(isValidColumnState)) {
-      this.sort(sortingSettings.columns);
+      if (Array.isArray(columnsSettings) && columnsSettings.every(isValidColumnState)) {
+        this.sort(columnsSettings);
+      }
+
+    } else if (this.getSortingState().length > 0) {
+      // Clear the sort if the table was sorted
+
+      this.sort([]);
     }
   }
 

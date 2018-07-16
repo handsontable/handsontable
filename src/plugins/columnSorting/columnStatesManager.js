@@ -1,9 +1,14 @@
-import {isObject} from '../../helpers/object';
+import {isObject, objectEach} from '../../helpers/object';
 import {arrayMap} from '../../helpers/array';
 import {isDefined} from '../../helpers/mixed';
 
+const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'compareFunctionFactory'];
+
 export const ASC_SORT_STATE = 'asc';
 export const DESC_SORT_STATE = 'desc';
+
+const SORT_EMPTY_CELLS_DEFAULT = false;
+const SHOW_SORT_INDICATOR_DEFAULT = false;
 
 export function isValidColumnState(columnState) {
   const {column, sortOrder} = columnState;
@@ -26,6 +31,10 @@ export class ColumnStatesManager {
      * @type {Array}
      */
     this.sortingStates = [];
+
+    this.sortEmptyCells = SORT_EMPTY_CELLS_DEFAULT;
+    this.indicator = SHOW_SORT_INDICATOR_DEFAULT;
+    this.compareFunctionFactory = void 0;
   }
 
   /**
@@ -126,6 +135,26 @@ export class ColumnStatesManager {
 
   getAllStates() {
     return this.sortingStates;
+  }
+
+  updateDefaultColumnProperties(configuration) {
+    if (!isObject(configuration)) {
+      return;
+    }
+
+    objectEach(configuration, (newValue, property) => {
+      if (inheritedColumnProperties.includes(property)) {
+        this[property] = newValue;
+      }
+    });
+  }
+
+  getDefaultColumnProperties() {
+    return {
+      sortEmptyCells: this.sortEmptyCells,
+      indicator: this.indicator,
+      compareFunctionFactory: this.compareFunctionFactory
+    };
   }
 
   /**

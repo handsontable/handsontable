@@ -58,7 +58,7 @@ describe('columnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
-  it('should display sortIndicator properly after changing sorted column sequence', function() {
+  it('should display indicator properly after changing sorted column sequence', function() {
     const modifyCol = (column) => {
       if (column === 0) {
         return 1;
@@ -394,7 +394,7 @@ describe('columnSorting', () => {
       }
     });
 
-    hot.getPlugin('columnSorting').sort({column: 0, sortOrder: 'asc'}); // ASC
+    hot.getPlugin('columnSorting').sort({sortEmptyCells: true, column: 0, sortOrder: 'asc'}); // ASC
 
     expect(getDataAtCol(1)).toEqual([
       'Ted Right',
@@ -410,7 +410,7 @@ describe('columnSorting', () => {
       'Rob Norris'
     ]);
 
-    getPlugin('columnSorting').sort({column: 0, sortOrder: 'desc'}); // DESC
+    getPlugin('columnSorting').sort({sortEmptyCells: true, column: 0, sortOrder: 'desc'}); // DESC
 
     expect(getDataAtCol(1)).toEqual([
       'Rob Norris',
@@ -979,8 +979,10 @@ describe('columnSorting', () => {
         ],
         colHeaders: true,
         columnSorting: {
-          column: 0,
-          sortOrder: 'desc'
+          columns: [{
+            column: 0,
+            sortOrder: 'desc'
+          }]
         }
       });
 
@@ -1942,7 +1944,7 @@ describe('columnSorting', () => {
 
   });
 
-  it('should add a sorting indicator to the column header after it\'s been sorted, only if sortIndicator property is set to true', function() {
+  it('should add a sorting indicator to the column header after it\'s been sorted, only if indicator property is set to true', function() {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -1967,9 +1969,13 @@ describe('columnSorting', () => {
     // ---------------------------------
 
     updateSettings({
-      columnSorting: {
-        indicator: true
-      }
+      columns() {
+        return {
+          columnSorting: {
+            indicator: true
+          }
+        };
+      },
     });
 
     this.sortByClickOnColumnHeader(1);
@@ -1978,13 +1984,14 @@ describe('columnSorting', () => {
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
+    console.log(afterValue.indexOf(blackDownPointingTriangle));
 
     this.sortByClickOnColumnHeader(1);
 
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
-    // console.log(afterValue === '' || afterValue === 'none');
+    console.log(afterValue === '' || afterValue === 'none');
 
     this.sortByClickOnColumnHeader(1);
 
@@ -1993,18 +2000,22 @@ describe('columnSorting', () => {
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
 
     expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
-    // console.log(afterValue.indexOf(blackUpPointingTriangle));
 
     // ---------------------------------
     // INDICATOR SET FOR A SINGLE COLUMN
     // ---------------------------------
 
     updateSettings({
-      columnSorting: {
-        indicator: void 0,
-        columns: [
-          {column: 2, indicator: true}
-        ]
+      columns(column) {
+        if (column === 2) {
+          return {
+            columnSorting: {
+              indicator: true
+            }
+          };
+        }
+
+        return {};
       }
     });
 
@@ -2013,7 +2024,7 @@ describe('columnSorting', () => {
     sortedColumn = this.$container.find('th span.columnSorting')[0];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
-    // console.log(afterValue === '' || afterValue === 'none');
+    console.log(afterValue === '' || afterValue === 'none');
 
     this.sortByClickOnColumnHeader(1);
 
@@ -2021,63 +2032,12 @@ describe('columnSorting', () => {
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
-    // console.log(afterValue === '' || afterValue === 'none');
 
     this.sortByClickOnColumnHeader(2);
 
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
-    console.log(afterValue.indexOf(blackUpPointingTriangle));
-  });
-
-  it('should change sorting indicator state on every plugin API method call (continuously for the same column)', function() {
-    handsontable({
-      data: [
-        [1, 'Ted', 'Right'],
-        [2, '', 'Honest'],
-        [3, '', 'Well'],
-        [4, 'Sid', 'Strong'],
-        [5, 'Jane', 'Neat'],
-      ],
-      colHeaders: true,
-      columnSorting: true,
-      sortIndicator: true,
-    });
-
-    getPlugin('columnSorting').sort(1);
-
-    // ascending
-    let sortedColumn = this.$container.find('th span.columnSorting')[1];
-    let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
-
-    getPlugin('columnSorting').sort(1);
-
-    // descending
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
-
-    getPlugin('columnSorting').sort(1);
-
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue === '' || afterValue === 'none').toBe(true);
-
-    getPlugin('columnSorting').sort(1);
-
-    // ascending
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
-
-    getPlugin('columnSorting').sort(1);
-
-    // descending
-    sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
   });
 
   it('should change sorting indicator state on every plugin API method (calling for different columns)', function() {
@@ -2090,25 +2050,26 @@ describe('columnSorting', () => {
         [5, 'Jane', 'Neat'],
       ],
       colHeaders: true,
-      columnSorting: true,
-      sortIndicator: true,
+      columnSorting: {
+        indicator: true
+      },
     });
 
-    getPlugin('columnSorting').sort(1);
+    getPlugin('columnSorting').sort({column: 1, sortOrder: 'asc'});
 
     // ascending
     let sortedColumn = this.$container.find('th span.columnSorting')[1];
     let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
 
-    getPlugin('columnSorting').sort(2);
+    getPlugin('columnSorting').sort({column: 2, sortOrder: 'asc'});
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
 
-    getPlugin('columnSorting').sort(1);
+    getPlugin('columnSorting').sort({column: 1, sortOrder: 'asc'});
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
@@ -2148,10 +2109,12 @@ describe('columnSorting', () => {
       ],
       colHeaders: true,
       columnSorting: {
-        column: 1,
-        sortOrder: 'desc'
+        indicator: true,
+        columns: [{
+          column: 1,
+          sortOrder: 'desc'
+        }]
       },
-      sortIndicator: true,
     });
 
     // descending
@@ -2159,28 +2122,28 @@ describe('columnSorting', () => {
     let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
 
-    getPlugin('columnSorting').sort(1);
+    getPlugin('columnSorting').sort();
 
     // default
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue === '' || afterValue === 'none').toBe(true);
 
-    getPlugin('columnSorting').sort(1);
+    getPlugin('columnSorting').sort({column: 1, sortOrder: 'asc'});
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
 
-    getPlugin('columnSorting').sort(1);
+    getPlugin('columnSorting').sort({column: 1, sortOrder: 'desc'});
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
     afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
     expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
 
-    getPlugin('columnSorting').sort(1);
+    getPlugin('columnSorting').sort();
 
     // default
     sortedColumn = this.$container.find('th span.columnSorting')[1];
@@ -2236,54 +2199,51 @@ describe('columnSorting', () => {
 
   it('should allow specifiyng a custom sorting function', () => {
     const data = [['1 inch'], ['1 yard'], ['2 feet'], ['0.2 miles']];
+    const compareFunctionFactory = function(state) {
+      return function ([, ...values], [, ...nextValues]) {
+        const sortOrder = state[0].sortOrder;
+
+        const unitsRatios = {
+          inch: 1,
+          yard: 36,
+          feet: 12,
+          miles: 63360
+        };
+
+        let newA = values[0];
+        let newB = nextValues[0];
+
+        Handsontable.helper.objectEach(unitsRatios, (val, prop) => {
+          if (values[0].indexOf(prop) > -1) {
+            newA = parseFloat(values[0].replace(prop, '')) * val;
+
+            return false;
+          }
+        });
+
+        Handsontable.helper.objectEach(unitsRatios, (val, prop) => {
+          if (nextValues[0].indexOf(prop) > -1) {
+            newB = parseFloat(nextValues[0].replace(prop, '')) * val;
+
+            return false;
+          }
+        });
+
+        if (newA < newB) {
+          return sortOrder === 'asc' ? -1 : 1;
+
+        } else if (newA > newB) {
+          return sortOrder === 'asc' ? 1 : -1;
+        }
+
+        return 0;
+      };
+    };
+
     handsontable({
       data,
       colHeaders: true,
-      columnSorting: {
-        columns: [{
-          column: 0,
-          compareFunctionFactory(state) {
-            return function ([, ...values], [, ...nextValues]) {
-              const sortOrder = state[0].sortOrder;
-
-              const unitsRatios = {
-                inch: 1,
-                yard: 36,
-                feet: 12,
-                miles: 63360
-              };
-
-              let newA = values[0];
-              let newB = nextValues[0];
-
-              Handsontable.helper.objectEach(unitsRatios, (val, prop) => {
-                if (values[0].indexOf(prop) > -1) {
-                  newA = parseFloat(values[0].replace(prop, '')) * val;
-
-                  return false;
-                }
-              });
-
-              Handsontable.helper.objectEach(unitsRatios, (val, prop) => {
-                if (nextValues[0].indexOf(prop) > -1) {
-                  newB = parseFloat(nextValues[0].replace(prop, '')) * val;
-
-                  return false;
-                }
-              });
-
-              if (newA < newB) {
-                return sortOrder === 'asc' ? -1 : 1;
-
-              } else if (newA > newB) {
-                return sortOrder === 'asc' ? 1 : -1;
-              }
-
-              return 0;
-            };
-          }
-        }]
-      }
+      columnSorting: true
     });
 
     expect(getDataAtCell(0, 0)).toEqual('1 inch');
@@ -2291,21 +2251,21 @@ describe('columnSorting', () => {
     expect(getDataAtCell(2, 0)).toEqual('2 feet');
     expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
 
-    getPlugin('columnSorting').sort(0);
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'asc', compareFunctionFactory});
 
     expect(getDataAtCell(0, 0)).toEqual('1 inch');
     expect(getDataAtCell(1, 0)).toEqual('2 feet');
     expect(getDataAtCell(2, 0)).toEqual('1 yard');
     expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
 
-    getPlugin('columnSorting').sort(0);
+    getPlugin('columnSorting').sort({column: 0, sortOrder: 'desc', compareFunctionFactory});
 
     expect(getDataAtCell(0, 0)).toEqual('0.2 miles');
     expect(getDataAtCell(1, 0)).toEqual('1 yard');
     expect(getDataAtCell(2, 0)).toEqual('2 feet');
     expect(getDataAtCell(3, 0)).toEqual('1 inch');
 
-    getPlugin('columnSorting').sort(0);
+    getPlugin('columnSorting').sort();
 
     expect(getDataAtCell(0, 0)).toEqual('1 inch');
     expect(getDataAtCell(1, 0)).toEqual('1 yard');
