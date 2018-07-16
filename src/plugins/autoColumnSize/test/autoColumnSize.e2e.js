@@ -197,7 +197,7 @@ describe('AutoColumnSize', () => {
 
   it('should not wrap the cell values when the whole column has values with the same length', function() {
     handsontable({
-      data:  [
+      data: [
         {
           units: 'EUR / USD'
         },
