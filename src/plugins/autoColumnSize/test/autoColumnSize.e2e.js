@@ -195,6 +195,41 @@ describe('AutoColumnSize', () => {
     expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
   });
 
+  it('should not wrap the cell values when the whole column has values with the same length', function() {
+    handsontable({
+      data: [
+        {
+          units: 'EUR / USD'
+        },
+        {
+          units: 'JPY / USD'
+        },
+        {
+          units: 'GBP / USD'
+        },
+        {
+          units: 'MXN / USD'
+        },
+        {
+          units: 'ARS / USD'
+        }
+      ],
+      autoColumnSize: {
+        samplingRatio: 5,
+      },
+      columns: [
+        {data: 'units'},
+      ]
+    });
+
+    expect([93]).toEqual(jasmine.arrayContaining([colWidth(this.$container, 0)]));
+    expect(rowHeight(spec().$container, 0)).toBe(24);
+    expect(rowHeight(spec().$container, 1)).toBe(23);
+    expect(rowHeight(spec().$container, 2)).toBe(23);
+    expect(rowHeight(spec().$container, 3)).toBe(23);
+    expect(rowHeight(spec().$container, 4)).toBe(23);
+  });
+
   it('should keep last columns width unchanged if all rows was removed', async () => {
     var hot = handsontable({
       data: arrayOfObjects(),

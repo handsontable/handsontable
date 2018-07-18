@@ -137,6 +137,8 @@ class AutoColumnSize extends BasePlugin {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
     }
 
+    this.setSamplingOptions();
+
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', (changes) => this.onBeforeChange(changes));
 
