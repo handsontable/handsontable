@@ -89,15 +89,16 @@ class AutoRowSize extends BasePlugin {
      * @type {SamplesGenerator}
      */
     this.samplesGenerator = new SamplesGenerator((row, col) => {
+      let cellValue;
+
       if (row >= 0) {
-        return this.hot.getDataAtCell(row, col);
+        cellValue = this.hot.getDataAtCell(row, col);
 
       } else if (row === -1) {
-        return this.hot.getColHeader(col);
-
+        cellValue = this.hot.getColHeader(col);
       }
-      return null;
 
+      return {value: cellValue};
     });
     /**
      * `true` if only the first calculation was performed.
@@ -183,9 +184,7 @@ class AutoRowSize extends BasePlugin {
       if (force || this.heights[row] === void 0) {
         const samples = this.samplesGenerator.generateRowSamples(row, colRange);
 
-        samples.forEach((sample, row) => {
-          this.ghostTable.addRow(row, sample);
-        });
+        arrayEach(samples, ([row, sample]) => this.ghostTable.addRow(row, sample));
       }
     });
     if (this.ghostTable.rows.length) {

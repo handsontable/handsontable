@@ -94,7 +94,32 @@ class AutoColumnSize extends BasePlugin {
      * @private
      * @type {SamplesGenerator}
      */
-    this.samplesGenerator = new SamplesGenerator((row, col) => (this.hot.getCellMeta(row, col).spanned ? '' : this.hot.getDataAtCell(row, col)));
+    this.samplesGenerator = new SamplesGenerator((row, column) => {
+      const cellMeta = this.hot.getCellMeta(row, column);
+      let cellValue = '';
+
+      if (!cellMeta.spanned) {
+        cellValue = this.hot.getDataAtCell(row, column);
+      }
+
+      let bundleCountSeed = 0;
+
+      if (cellMeta.label) {
+        const {value: labelValue, property: labelProperty} = cellMeta.label;
+        let labelText = '';
+
+        if (labelValue) {
+          labelText = typeof labelValue === 'function' ? labelValue(row, column, this.hot.colToProp(column), cellValue) : labelValue;
+
+        } else if (labelProperty) {
+          labelText = this.hot.getDataAtRowProp(row, labelProperty);
+        }
+
+        bundleCountSeed = labelText.length;
+      }
+
+      return {value: cellValue, bundleCountSeed};
+    });
     /**
      * `true` only if the first calculation was performed
      *
@@ -186,7 +211,7 @@ class AutoColumnSize extends BasePlugin {
       if (force || (this.widths[col] === void 0 && !this.hot._getColWidthFromSettings(col))) {
         const samples = this.samplesGenerator.generateColumnSamples(col, rowRange);
 
-        samples.forEach((sample, col) => this.ghostTable.addColumn(col, sample));
+        arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
       }
     });
 

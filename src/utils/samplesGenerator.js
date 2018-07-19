@@ -130,22 +130,18 @@ class SamplesGenerator {
    * @returns {Map}
    */
   generateSample(type, range, specifierValue) {
+    if (type !== 'row' && type !== 'col') {
+      throw new Error('Unsupported sample type');
+    }
+
     const samples = new Map();
-    let sampledValues = [];
-    let length;
+    const computedKey = type === 'row' ? 'col' : 'row';
+    const sampledValues = [];
 
     rangeEach(range.from, range.to, (index) => {
-      let value;
-
-      if (type === 'row') {
-        value = this.dataFactory(specifierValue, index);
-
-      } else if (type === 'col') {
-        value = this.dataFactory(index, specifierValue);
-
-      } else {
-        throw new Error('Unsupported sample type');
-      }
+      const {value, bundleCountSeed} = type === 'row' ? this.dataFactory(specifierValue, index) : this.dataFactory(index, specifierValue);
+      const hasCustomBundleSeed = bundleCountSeed > 0;
+      let length;
 
       if (isObject(value)) {
         length = Object.keys(value).length;
@@ -157,20 +153,22 @@ class SamplesGenerator {
         length = stringify(value).length;
       }
 
+      if (hasCustomBundleSeed) {
+        length += bundleCountSeed;
+      }
+
       if (!samples.has(length)) {
         samples.set(length, {
           needed: this.getSampleCount(),
           strings: [],
         });
       }
-      let sample = samples.get(length);
+      const sample = samples.get(length);
 
       if (sample.needed) {
-        let duplicate = sampledValues.indexOf(value) > -1;
+        const duplicate = sampledValues.indexOf(value) > -1;
 
-        if (!duplicate || this.allowDuplicates) {
-          let computedKey = type === 'row' ? 'col' : 'row';
-
+        if (!duplicate || this.allowDuplicates || hasCustomBundleSeed) {
           sample.strings.push({value, [computedKey]: index});
           sampledValues.push(value);
           sample.needed--;
