@@ -514,6 +514,7 @@ TableView.prototype.getCellAtCoords = function(coords, topmost) {
  * @param {Boolean} [snapToRight]
  * @param {Boolean} [snapToBottom]
  * @param {Boolean} [snapToLeft]
+ * @returns {Boolean}
  */
 TableView.prototype.scrollViewport = function(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
   return this.wt.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
@@ -525,6 +526,7 @@ TableView.prototype.scrollViewport = function(coords, snapToTop, snapToRight, sn
  * @param {Number} column Visual column index.
  * @param {Boolean} [snapToLeft]
  * @param {Boolean} [snapToRight]
+ * @returns {Boolean}
  */
 TableView.prototype.scrollViewportHorizontally = function(column, snapToRight, snapToLeft) {
   return this.wt.scrollViewportHorizontally(column, snapToRight, snapToLeft);
@@ -533,9 +535,10 @@ TableView.prototype.scrollViewportHorizontally = function(column, snapToRight, s
 /**
  * Scroll viewport to a row.
  *
- * @param {Number} row Visual row index
+ * @param {Number} row Visual row index.
  * @param {Boolean} [snapToTop]
  * @param {Boolean} [snapToBottom]
+ * @returns {Boolean}
  */
 TableView.prototype.scrollViewportVertically = function(row, snapToTop, snapToBottom) {
   return this.wt.scrollViewportVertically(row, snapToTop, snapToBottom);

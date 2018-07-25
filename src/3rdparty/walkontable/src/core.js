@@ -137,14 +137,14 @@ class Walkontable {
   }
 
   /**
-   * Scrolls the viewport to a cell (rerenders if needed)
+   * Scrolls the viewport to a cell (rerenders if needed).
    *
    * @param {CellCoords} coords
    * @param {Boolean} [snapToTop]
    * @param {Boolean} [snapToRight]
    * @param {Boolean} [snapToBottom]
    * @param {Boolean} [snapToLeft]
-   * @returns {Walkontable}
+   * @returns {Boolean}
    */
   scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
     return this.wtScroll.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
@@ -156,7 +156,7 @@ class Walkontable {
    * @param {Number} column Visual column index.
    * @param {Boolean} [snapToRight]
    * @param {Boolean} [snapToLeft]
-   * @returns {Walkontable}
+   * @returns {Boolean}
    */
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
     return this.wtScroll.scrollViewportHorizontally(column, snapToRight, snapToLeft);
@@ -168,7 +168,7 @@ class Walkontable {
    * @param {Number} row Visual row index.
    * @param {Boolean} [snapToTop]
    * @param {Boolean} [snapToBottom]
-   * @returns {Walkontable}
+   * @returns {Boolean}
    */
   scrollViewportVertically(row, snapToTop, snapToBottom) {
     return this.wtScroll.scrollViewportVertically(row, snapToTop, snapToBottom);

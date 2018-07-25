@@ -22,13 +22,14 @@ class Scroll {
   }
 
   /**
-   * Scrolls viewport to a cell by minimum number of cells
+   * Scrolls viewport to a cell.
    *
    * @param {CellCoords} coords
    * @param {Boolean} [snapToTop]
    * @param {Boolean} [snapToRight]
    * @param {Boolean} [snapToBottom]
    * @param {Boolean} [snapToLeft]
+   * @returns {Boolean}
    */
   scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
     const scrolledHorizontally = this.scrollViewportHorizontally(coords.col, snapToRight, snapToLeft);
@@ -38,12 +39,11 @@ class Scroll {
   }
 
   /**
-   * Scrolls viewport to a column by minimum number of columns.
+   * Scrolls viewport to a column.
    *
    * @param {Number} column Visual column index.
    * @param {Boolean} [snapToRight]
    * @param {Boolean} [snapToLeft]
-   *
    * @returns {Boolean}
    */
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
@@ -70,11 +70,12 @@ class Scroll {
   }
 
   /**
-   * Scrolls viewport to a row by minimum number of rows.
+   * Scrolls viewport to a row.
    *
    * @param {Number} row Visual row index.
    * @param {Boolean} [snapToTop]
    * @param {Boolean} [snapToBottom]
+   * @returns {Boolean}
    */
   scrollViewportVertically(row, snapToTop, snapToBottom) {
     if (!this.wot.drawn) {
