@@ -389,9 +389,8 @@ class Overlays {
       return;
     }
 
-    let topHolder = this.topOverlay.clone.wtTable.holder;
-    let leftHolder = this.leftOverlay.clone.wtTable.holder;
-    let bottomOverlay = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null;
+    const topHolder = this.topOverlay.clone.wtTable.holder;
+    const leftHolder = this.leftOverlay.clone.wtTable.holder;
 
     const [scrollLeft, scrollTop] = [this.scrollableElement.scrollLeft, this.scrollableElement.scrollTop];
 
@@ -401,8 +400,10 @@ class Overlays {
     if (this.horizontalScrolling) {
       topHolder.scrollLeft = scrollLeft;
 
-      if (bottomOverlay) {
-        bottomOverlay.scrollLeft = scrollLeft;
+      const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null;
+
+      if (bottomHolder) {
+        bottomHolder.scrollLeft = scrollLeft;
       }
     }
 
