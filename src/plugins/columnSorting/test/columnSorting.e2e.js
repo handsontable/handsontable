@@ -7,10 +7,10 @@ describe('ColumnSorting', () => {
     this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
 
     this.sortByClickOnColumnHeader = function(columnIndex) {
-      const element = this.$container.find(`th span.columnSorting:eq(${columnIndex})`);
+      const element = this.$container.data('handsontable').view.wt.wtTable.getColumnHeader(columnIndex).querySelector('span.columnSorting');
 
-      element.simulate('mousedown');
-      element.simulate('mouseup');
+      $(element).simulate('mousedown');
+      $(element).simulate('mouseup');
     };
   });
 
@@ -974,7 +974,7 @@ describe('ColumnSorting', () => {
     });
   });
 
-  it('should properly sort numeric data', function() {
+  it('should properly sort numeric data', async () => {
     handsontable({
       data: [
         ['Mercedes', 'A 160', '01/14/2006', '6999.9999'],
@@ -997,15 +997,18 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    this.sortByClickOnColumnHeader(3);
+    spec().sortByClickOnColumnHeader(3);
+    await sleep(50);
 
     expect(getDataAtCol(3)).toEqual(['6999.9999', '7000', 8330, '8330', 8333, 30500, '33900']);
 
-    this.sortByClickOnColumnHeader(3);
+    spec().sortByClickOnColumnHeader(3);
+    await sleep(50);
 
     expect(getDataAtCol(3)).toEqual(['33900', 30500, 8333, 8330, '8330', '7000', '6999.9999']);
 
-    this.sortByClickOnColumnHeader(3);
+    spec().sortByClickOnColumnHeader(3);
+    await sleep(50);
 
     expect(getDataAtCol(3)).toEqual(['6999.9999', 8330, '8330', 8333, '33900', '7000', 30500]);
   });

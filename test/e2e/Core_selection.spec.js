@@ -526,7 +526,7 @@ describe('Core_selection', () => {
     });
 
     hot.render();
-    hot.view.wt.scrollHorizontal(20);
+    hot.scrollViewportTo(void 0, hot.countCols() - 1);
 
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
@@ -545,7 +545,7 @@ describe('Core_selection', () => {
   });
 
   it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', (done) => {
-    var hot = handsontable({
+    const hot = handsontable({
       width: 200,
       height: 200,
       startRows: 20,
@@ -554,9 +554,7 @@ describe('Core_selection', () => {
       rowHeaders: true
     });
 
-    hot.view.wt.scrollVertical(10);
-    hot.view.wt.scrollHorizontal(10);
-
+    hot.scrollViewportTo(10, 10);
     hot.render();
 
     setTimeout(() => {
@@ -596,8 +594,7 @@ describe('Core_selection', () => {
       rowHeaders: true
     });
 
-    hot.view.wt.scrollVertical(10);
-    hot.view.wt.scrollHorizontal(10);
+    hot.scrollViewportTo(10, 10);
 
     hot.render();
 

@@ -78,14 +78,22 @@ class LeftOverlay extends Overlay {
    * Sets the main overlay's horizontal scroll position
    *
    * @param {Number} pos
+   *
+   * @returns {Boolean}
    */
   setScrollPosition(pos) {
-    if (this.mainTableScrollableElement === window) {
-      window.scrollTo(pos, getWindowScrollTop());
+    let result = false;
 
-    } else {
+    if (this.mainTableScrollableElement === window && window.scrollX !== pos) {
+      window.scrollTo(pos, getWindowScrollTop());
+      result = true;
+
+    } else if (this.mainTableScrollableElement.scrollLeft !== pos) {
       this.mainTableScrollableElement.scrollLeft = pos;
+      result = true;
     }
+
+    return result;
   }
 
   /**
@@ -217,6 +225,8 @@ class LeftOverlay extends Overlay {
    *
    * @param sourceCol {Number} Column index which you want to scroll to
    * @param [beyondRendered=false] {Boolean} if `true`, scrolls according to the bottom edge (top edge is by default)
+   *
+   * @returns {Boolean}
    */
   scrollTo(sourceCol, beyondRendered) {
     let newX = this.getTableParentOffset();
@@ -236,7 +246,7 @@ class LeftOverlay extends Overlay {
     }
     newX += scrollbarCompensation;
 
-    this.setScrollPosition(newX);
+    return this.setScrollPosition(newX);
   }
 
   /**

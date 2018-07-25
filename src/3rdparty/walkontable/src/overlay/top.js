@@ -80,14 +80,22 @@ class TopOverlay extends Overlay {
    * Sets the main overlay's vertical scroll position
    *
    * @param {Number} pos
+   *
+   * @returns {Boolean}
    */
   setScrollPosition(pos) {
-    if (this.mainTableScrollableElement === window) {
-      window.scrollTo(getWindowScrollLeft(), pos);
+    let result = false;
 
-    } else {
+    if (this.mainTableScrollableElement === window && window.scrollY !== pos) {
+      window.scrollTo(getWindowScrollLeft(), pos);
+      result = true;
+
+    } else if (this.mainTableScrollableElement.scrollTop !== pos) {
       this.mainTableScrollableElement.scrollTop = pos;
+      result = true;
     }
+
+    return result;
   }
 
   /**
@@ -222,6 +230,8 @@ class TopOverlay extends Overlay {
    *
    * @param sourceRow {Number} Row index which you want to scroll to
    * @param [bottomEdge=false] {Boolean} if `true`, scrolls according to the bottom edge (top edge is by default)
+   *
+   * @returns {Boolean}
    */
   scrollTo(sourceRow, bottomEdge) {
     let newY = this.getTableParentOffset();
@@ -248,7 +258,7 @@ class TopOverlay extends Overlay {
     }
     newY += scrollbarCompensation;
 
-    this.setScrollPosition(newY);
+    return this.setScrollPosition(newY);
   }
 
   /**
