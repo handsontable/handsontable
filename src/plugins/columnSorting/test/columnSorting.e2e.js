@@ -1,7 +1,5 @@
 describe('ColumnSorting', () => {
   const id = 'testContainer';
-  const blackDownPointingTriangle = String.fromCharCode(9660); // ▼
-  const blackUpPointingTriangle = String.fromCharCode(9650); // ▲
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
@@ -63,8 +61,8 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
-  it('should display sortIndicator properly after changing column order', function() {
-    const modifyCol = (column) => {
+  it('should display indicator properly after changing sorted column sequence', function () {
+    const modification = (column) => {
       if (column === 0) {
         return 1;
 
@@ -89,13 +87,11 @@ describe('ColumnSorting', () => {
 
     getPlugin('ColumnSorting').sort(0, 'asc');
 
-    // changing column order: 0 <-> 1
-    updateSettings({modifyCol});
+    // changing column sequence: 0 <-> 1
+    updateSettings({modifyCol: modification, unmodifyCol: modification});
 
     const sortedColumn = this.$container.find('th span.columnSorting')[1];
-    const afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-
-    expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
   });
 
   it('should render a correct number of TD elements after sorting', async () => {
@@ -1939,9 +1935,7 @@ describe('ColumnSorting', () => {
     this.sortByClickOnColumnHeader(1);
 
     let sortedColumn = this.$container.find('th span.columnSorting')[1];
-    let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-
-    expect(afterValue === '' || afterValue === 'none').toBe(true);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
     // ---------------------------------
     // INDICATOR SET FOR THE WHOLE TABLE
@@ -1955,22 +1949,18 @@ describe('ColumnSorting', () => {
 
     // descending (updateSettings doesn't reset sorting stack)
     sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     this.sortByClickOnColumnHeader(1);
 
     sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue === '' || afterValue === 'none').toBe(true);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
     this.sortByClickOnColumnHeader(1);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-
-    expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     // ---------------------------------
     // INDICATOR SET FOR A SINGLE COLUMN
@@ -1988,21 +1978,18 @@ describe('ColumnSorting', () => {
     this.sortByClickOnColumnHeader(0);
 
     sortedColumn = this.$container.find('th span.columnSorting')[0];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue === '' || afterValue === 'none').toBe(true);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
     this.sortByClickOnColumnHeader(1);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue === '' || afterValue === 'none').toBe(true);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
     this.sortByClickOnColumnHeader(2);
 
     sortedColumn = this.$container.find('th span.columnSorting')[2];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
   });
 
   it('should change sorting indicator state on every plugin API method call (continuously for the same column)', function() {
@@ -2024,34 +2011,30 @@ describe('ColumnSorting', () => {
     // ascending
     let sortedColumn = this.$container.find('th span.columnSorting')[1];
     let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort(1);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort(1);
 
     sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue === '' || afterValue === 'none').toBe(true);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
     getPlugin('columnSorting').sort(1);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort(1);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
   });
 
   it('should change sorting indicator state on every plugin API method (calling for different columns)', function() {
@@ -2072,43 +2055,37 @@ describe('ColumnSorting', () => {
 
     // ascending
     let sortedColumn = this.$container.find('th span.columnSorting')[1];
-    let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort(2);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort(1);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort(2, 'desc');
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort(2, 'desc');
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort(2, 'asc');
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[2];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
   });
 
   it('should change sorting indicator state when initial column sorting was provided', function() {
@@ -2130,36 +2107,31 @@ describe('ColumnSorting', () => {
 
     // descending
     let sortedColumn = this.$container.find('th span.columnSorting')[1];
-    let afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort(1);
 
     // default
     sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue === '' || afterValue === 'none').toBe(true);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
     getPlugin('columnSorting').sort(1);
 
     // ascending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackUpPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort(1);
 
     // descending
     sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue.indexOf(blackDownPointingTriangle)).toBeGreaterThan(-1);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort(1);
 
     // default
     sortedColumn = this.$container.find('th span.columnSorting')[1];
-    afterValue = window.getComputedStyle(sortedColumn, ':after').getPropertyValue('content');
-    expect(afterValue === '' || afterValue === 'none').toBe(true);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
   });
 
   it('should properly sort the table, when it\'s scrolled to the far right', () => {
