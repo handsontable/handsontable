@@ -1754,6 +1754,50 @@ DefaultSettings.prototype = {
 
   /**
    * @description
+   * Turns on [Multi-column sorting](https://docs.handsontable.com/demo-sorting-data.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+   * * `columns` - Array containing objects, every with predefined keys:
+   *   * `column` - sorted column
+   *   * `sortOrder` - order in which column will be sorted
+   *     * `'asc'` = ascending
+   *     * `'desc'` = descending
+   * * `indicator` - display status for sorting order indicator (an arrow icon in the column header, specifying the sorting order).
+   *   * `true` = show sort indicator for sorted columns
+   *   * `false` = don't show sort indicator for sorted columns
+   * * `sortEmptyCells` - how empty values should be handled
+   *   * `true` = the table sorts empty cells
+   *   * `false` = the table moves all empty cells to the end of the table
+   * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
+   *
+   * @type {Boolean|Object}
+   * @default undefined
+   *
+   * @example
+   * ```js
+   * // as boolean
+   * multiColumnSorting: true
+   *
+   * // as an object with initial order (sort ascending column at index 2)
+   * multiColumnSorting: {
+   *   columns: [{
+   *     column: 2,
+   *     sortOrder: 'asc', // 'asc' = ascending, 'desc' = descending
+   *   }]
+   * }
+   *
+   * // as an object which define specific sorting options for all columns
+   * multiColumnSorting: {
+   *   sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
+   *   indicator: true, // true = shows indicator for all columns, false = don't show indicator for columns
+   *   compareFunctionFactory: function(sortOrder, columnMeta) {
+   *     return function(value, nextValue) {
+   *       // Some value comparisons which will return -1, 0 or 1...
+   *     }
+   *   }
+   * }```
+   */
+  multiColumnSorting: void 0,
+  /**
+   * @description
    * Number of rows to be rendered outside of the visible part of the table. By default, it's set to `'auto'`, which
    * makes Handsontable to attempt to calculate the best offset performance-wise.
    *
@@ -1857,21 +1901,6 @@ DefaultSettings.prototype = {
    * ```
    */
   disableVisualSelection: false,
-
-  /**
-   * Set whether to display the current sorting order indicator (a triangle icon in the column header, specifying the sorting
-   * order).
-   *
-   * @type {Boolean}
-   * @default undefined
-   *
-   * @example
-   * ```js
-   * // show sort indicator for sorted columns
-   * sortIndicator: true,
-   * ```
-   */
-  sortIndicator: void 0,
 
   /**
    * Disables or enables {@link ManualColumnFreeze} plugin.
@@ -2612,32 +2641,6 @@ DefaultSettings.prototype = {
    * ```
    */
   observeChanges: void 0,
-
-  /**
-   * @description
-   * When passed to the `column` property, allows specifying a custom sorting function for the desired column.
-   *
-   * @type {Function}
-   * @default undefined
-   *
-   * @example
-   * ```js
-   * columns: [
-   *   {
-   *     sortFunction: function(sortOrder) {
-   *        return function(a, b) {
-   *          // sorting function body.
-   *          //
-   *          // Function parameters:
-   *          // sortOrder: If true, the order is ascending, if false - descending. undefined = original order
-   *          // a, b: Two compared elements. These are 2-element arrays, with the first element being the row index, the second - cell value.
-   *        }
-   *     }
-   *   }
-   * ],
-   * ```
-   */
-  sortFunction: void 0,
 
   /**
    * If defined as `true`, the Autocomplete's suggestion list would be sorted by relevance (the closer to the left the

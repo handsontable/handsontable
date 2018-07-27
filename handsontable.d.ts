@@ -696,13 +696,6 @@ declare namespace Handsontable {
 
     type SortOrderType = 'asc' | 'desc' | 'none';
 
-    interface ColumnSortingRowsMapper extends arrayMapper {
-      columnSorting: ColumnSorting;
-
-      createMap(length?: number): void;
-      destroy(): void;
-    }
-
     interface ColumnSorting extends Base {
       sortColumn: undefined | number;
       sortEmptyCells: boolean;
@@ -1097,6 +1090,17 @@ declare namespace Handsontable {
       moveColumn(from: number, to: number): void;
     }
 
+    type MultiSortOrderType = 'asc' | 'desc';
+    type columnSortConfig = { column: number, sortOrder: MultiSortOrderType }
+
+    interface MultiColumnSorting extends Base {
+      clearSort(): void;
+      destroy(): void;
+      getSortConfig(column?: number): object | Array<object>
+      isSorted(): boolean;
+      sort(sortConfig?: columnSortConfig | Array<columnSortConfig>): void;
+    }
+
     interface TrimRowsMapper extends arrayMapper {
       trimRows: TrimRows;
 
@@ -1489,6 +1493,7 @@ declare namespace Handsontable {
     minRows?: number;
     minSpareCols?: number;
     minSpareRows?: number;
+    multiColumnSorting?: boolean | object;
     selectionMode?: 'single' | 'range' | 'multiple';
     nestedHeaders?: any[]; // pro
     noWordWrapClassName?: string;
@@ -1934,6 +1939,7 @@ declare namespace Handsontable {
     ManualRowMove: plugins.ManualRowMove,
     ManualRowResize: plugins.ManualRowResize;
     MergeCells: plugins.MergeCells;
+    MultiColumnSorting: plugins.MultiColumnSorting,
     MultipleSelectionHandles: plugins.MultipleSelectionHandles,
     NestedHeaders: plugins.NestedHeaders,
     NestedRows: plugins.NestedRows,
@@ -1971,6 +1977,7 @@ declare namespace Handsontable {
     manualRowMove: plugins.ManualRowMove,
     manualRowResize: plugins.ManualRowResize;
     mergeCells: plugins.MergeCells;
+    multiColumnSorting: plugins.MultiColumnSorting,
     multipleSelectionHandles: plugins.MultipleSelectionHandles,
     nestedHeaders: plugins.NestedHeaders,
     nestedRows: plugins.NestedRows,
