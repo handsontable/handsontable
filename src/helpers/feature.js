@@ -66,9 +66,9 @@ var _hasCaptionProblem;
 
 function detectCaptionProblem() {
   var TABLE = document.createElement('TABLE');
-  TABLE.style.borderSpacing = 0;
-  TABLE.style.borderWidth = 0;
-  TABLE.style.padding = 0;
+  TABLE.style.borderSpacing = '0';
+  TABLE.style.borderWidth = '0';
+  TABLE.style.padding = '0';
   var TBODY = document.createElement('TBODY');
   TABLE.appendChild(TBODY);
   TBODY.appendChild(document.createElement('TR'));
@@ -77,8 +77,8 @@ function detectCaptionProblem() {
 
   var CAPTION = document.createElement('CAPTION');
   CAPTION.innerHTML = 'c<br>c<br>c<br>c';
-  CAPTION.style.padding = 0;
-  CAPTION.style.margin = 0;
+  CAPTION.style.padding = '0';
+  CAPTION.style.margin = '0';
   TABLE.insertBefore(CAPTION, TBODY);
 
   document.body.appendChild(TABLE);
