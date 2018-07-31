@@ -1038,7 +1038,7 @@ describe('TextEditor', () => {
 
     expect($editorInput.outerWidth()).toEqual(hot.view.wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
 
-    hot.view.wt.scrollHorizontal(3);
+    hot.scrollViewportTo(void 0, 3);
     hot.render();
 
     expect($editorInput.width() + $editorInput.offset().left).toBeLessThan(hot.view.wt.wtTable.holder.clientWidth);

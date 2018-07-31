@@ -170,16 +170,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       scrollToCell = !preventScrolling.value;
     }
 
-    if (scrollToCell !== false && !isSelectedByAnyHeader) {
-      if (currentSelectedRange && !this.selection.isMultiple()) {
-        this.view.scrollViewport(currentSelectedRange.from);
-      } else {
-        this.view.scrollViewport(cellCoords);
-      }
-    }
-
     const isSelectedByRowHeader = this.selection.isSelectedByRowHeader();
     const isSelectedByColumnHeader = this.selection.isSelectedByColumnHeader();
+
+    if (scrollToCell !== false) {
+      if (!isSelectedByAnyHeader) {
+        if (currentSelectedRange && !this.selection.isMultiple()) {
+          this.view.scrollViewport(currentSelectedRange.from);
+        } else {
+          this.view.scrollViewport(cellCoords);
+        }
+
+      } else if (isSelectedByRowHeader) {
+        this.view.scrollViewportVertically(cellCoords.row);
+
+      } else if (isSelectedByColumnHeader) {
+        this.view.scrollViewportHorizontally(cellCoords.col);
+      }
+    }
 
     // @TODO: These CSS classes are no longer needed anymore. They are used only as a indicator of the selected
     // rows/columns in the MergedCells plugin (via border.js#L520 in the walkontable module). After fixing
@@ -3266,30 +3274,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Boolean} `true` if scroll was successful, `false` otherwise.
    */
   this.scrollViewportTo = function(row, column, snapToBottom = false, snapToRight = false) {
-    if (row !== void 0 && (row < 0 || row >= instance.countRows())) {
-      return false;
-    }
-    if (column !== void 0 && (column < 0 || column >= instance.countCols())) {
-      return false;
-    }
-
+    const snapToTop = !snapToBottom;
+    const snapToLeft = !snapToRight;
     let result = false;
 
     if (row !== void 0 && column !== void 0) {
-      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
-      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
-
-      result = true;
+      result = instance.view.scrollViewport(new CellCoords(row, column), snapToTop, snapToRight, snapToBottom, snapToLeft);
     }
     if (typeof row === 'number' && typeof column !== 'number') {
-      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
-
-      result = true;
+      result = instance.view.scrollViewportVertically(row, snapToTop, snapToBottom);
     }
     if (typeof column === 'number' && typeof row !== 'number') {
-      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
-
-      result = true;
+      result = instance.view.scrollViewportHorizontally(column, snapToRight, snapToLeft);
     }
 
     return result;

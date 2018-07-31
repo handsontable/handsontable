@@ -139,15 +139,9 @@ describe('Core_view', () => {
       height: 100
     });
 
-    expect(() => {
-      hot1.view.scrollViewport({row: -1, col: 0});
-    }).toThrow();
-    expect(() => {
-      hot1.view.scrollViewport({row: 0, col: -1});
-    }).toThrow();
-    expect(() => {
-      hot1.view.scrollViewport({row: -1, col: -1});
-    }).toThrow();
+    expect(hot1.view.scrollViewport({row: -1, col: 0})).toBe(false);
+    expect(hot1.view.scrollViewport({row: 0, col: -1})).toBe(false);
+    expect(hot1.view.scrollViewport({row: -1, col: -1})).toBe(false);
   });
 
   it('should scroll viewport, respecting fixed rows', function() {

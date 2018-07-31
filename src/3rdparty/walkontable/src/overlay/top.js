@@ -26,7 +26,7 @@ class TopOverlay extends Overlay {
   }
 
   /**
-   * Checks if overlay should be fully rendered
+   * Checks if overlay should be fully rendered.
    *
    * @returns {Boolean}
    */
@@ -35,7 +35,7 @@ class TopOverlay extends Overlay {
   }
 
   /**
-   * Updates the top overlay position
+   * Updates the top overlay position.
    */
   resetFixedPosition() {
     if (!this.needFullRender || !this.wot.wtTable.holder.parentNode) {
@@ -72,37 +72,43 @@ class TopOverlay extends Overlay {
     }
 
     this.adjustHeaderBordersPosition(headerPosition);
-
     this.adjustElementsSize();
   }
 
   /**
-   * Sets the main overlay's vertical scroll position
+   * Sets the main overlay's vertical scroll position.
    *
    * @param {Number} pos
+   * @returns {Boolean}
    */
   setScrollPosition(pos) {
-    if (this.mainTableScrollableElement === window) {
-      window.scrollTo(getWindowScrollLeft(), pos);
+    let result = false;
 
-    } else {
+    if (this.mainTableScrollableElement === window && window.scrollY !== pos) {
+      window.scrollTo(getWindowScrollLeft(), pos);
+      result = true;
+
+    } else if (this.mainTableScrollableElement.scrollTop !== pos) {
       this.mainTableScrollableElement.scrollTop = pos;
+      result = true;
     }
+
+    return result;
   }
 
   /**
-   * Triggers onScroll hook callback
+   * Triggers onScroll hook callback.
    */
   onScroll() {
     this.wot.getSetting('onScrollHorizontally');
   }
 
   /**
-   * Calculates total sum cells height
+   * Calculates total sum cells height.
    *
-   * @param {Number} from Row index which calculates started from
-   * @param {Number} to Row index where calculation is finished
-   * @returns {Number} Height sum
+   * @param {Number} from Row index which calculates started from.
+   * @param {Number} to Row index where calculation is finished.
+   * @returns {Number} Height sum.
    */
   sumCellSizes(from, to) {
     let sum = 0;
@@ -165,7 +171,7 @@ class TopOverlay extends Overlay {
   }
 
   /**
-   * Adjust overlay root childs size
+   * Adjust overlay root childs size.
    */
   adjustRootChildrenSize() {
     let scrollbarWidth = getScrollbarWidth();
@@ -180,7 +186,7 @@ class TopOverlay extends Overlay {
   }
 
   /**
-   * Adjust the overlay dimensions and position
+   * Adjust the overlay dimensions and position.
    */
   applyToDOM() {
     let total = this.wot.getSetting('totalRows');
@@ -206,7 +212,7 @@ class TopOverlay extends Overlay {
   }
 
   /**
-   * Synchronize calculated left position to an element
+   * Synchronize calculated left position to an element.
    */
   syncOverlayOffset() {
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
@@ -218,10 +224,11 @@ class TopOverlay extends Overlay {
   }
 
   /**
-   * Scrolls vertically to a row
+   * Scrolls vertically to a row.
    *
-   * @param sourceRow {Number} Row index which you want to scroll to
-   * @param [bottomEdge=false] {Boolean} if `true`, scrolls according to the bottom edge (top edge is by default)
+   * @param {Number} sourceRow Row index which you want to scroll to.
+   * @param {Boolean} [bottomEdge] if `true`, scrolls according to the bottom edge (top edge is by default).
+   * @returns {Boolean}
    */
   scrollTo(sourceRow, bottomEdge) {
     let newY = this.getTableParentOffset();
@@ -248,11 +255,11 @@ class TopOverlay extends Overlay {
     }
     newY += scrollbarCompensation;
 
-    this.setScrollPosition(newY);
+    return this.setScrollPosition(newY);
   }
 
   /**
-   * Gets table parent top position
+   * Gets table parent top position.
    *
    * @returns {Number}
    */
@@ -266,18 +273,18 @@ class TopOverlay extends Overlay {
   }
 
   /**
-   * Gets the main overlay's vertical scroll position
+   * Gets the main overlay's vertical scroll position.
    *
-   * @returns {Number} Main table's vertical scroll position
+   * @returns {Number} Main table's vertical scroll position.
    */
   getScrollPosition() {
     return getScrollTop(this.mainTableScrollableElement);
   }
 
   /**
-   * Redraw borders of selection
+   * Redraw borders of selection.
    *
-   * @param {WalkontableSelection} selection Selection for redraw
+   * @param {WalkontableSelection} selection Selection for redraw.
    */
   redrawSelectionBorders(selection) {
     if (selection && selection.cellRange) {
@@ -290,7 +297,7 @@ class TopOverlay extends Overlay {
   }
 
   /**
-   * Redrawing borders of all selections
+   * Redrawing borders of all selections.
    */
   redrawAllSelectionsBorders() {
     const selections = this.wot.selections;
@@ -306,9 +313,9 @@ class TopOverlay extends Overlay {
   }
 
   /**
-   * Adds css classes to hide the header border's header (cell-selection border hiding issue)
+   * Adds css classes to hide the header border's header (cell-selection border hiding issue).
    *
-   * @param {Number} position Header Y position if trimming container is window or scroll top if not
+   * @param {Number} position Header Y position if trimming container is window or scroll top if not.
    */
   adjustHeaderBordersPosition(position) {
     const masterParent = this.wot.wtTable.holder.parentNode;

@@ -137,7 +137,7 @@ describe('stretchH option', () => {
     $wrapper.width(400).height(201);
     spec().data[0][19] = 'longer text';
 
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -150,11 +150,12 @@ describe('stretchH option', () => {
         return index === 19 ? 100 : 50;
       }
     });
+
     wt.draw();
-    wt.scrollHorizontal(19);
+    wt.scrollViewportHorizontally(19);
     wt.draw();
 
-    var wtHider = $table.parents('.wtHider');
+    const wtHider = $table.parents('.wtHider');
 
     expect(wtHider.find('col:eq(6)').width()).toBe(100);
   });

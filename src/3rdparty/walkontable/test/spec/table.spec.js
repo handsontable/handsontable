@@ -413,7 +413,7 @@ describe('WalkontableTable', () => {
     wt.draw();
     var oldCount = count;
 
-    wt.scrollVertical(8);
+    wt.scrollViewportVertically(8);
     wt.draw(true);
     expect(count).not.toBeGreaterThan(oldCount);
   });
@@ -437,11 +437,11 @@ describe('WalkontableTable', () => {
     wt.draw();
     var oldCount = count;
 
-    wt.scrollVertical(10);
+    wt.scrollViewportVertically(10);
     wt.draw(true);
     expect(count).not.toBeGreaterThan(oldCount);
 
-    wt.scrollVertical(11);
+    wt.scrollViewportVertically(getTotalRows() - 1);
     wt.draw(true);
     expect(count).toBeGreaterThan(oldCount);
   });
@@ -466,7 +466,7 @@ describe('WalkontableTable', () => {
     wt.draw();
     var oldCount = count;
 
-    wt.scrollHorizontal(8);
+    wt.scrollViewportHorizontally(8);
     wt.draw(true);
 
     expect(count).not.toBeGreaterThan(oldCount);
@@ -493,11 +493,11 @@ describe('WalkontableTable', () => {
     wt.draw();
     var oldCount = count;
 
-    wt.scrollHorizontal(10);
+    wt.scrollViewportHorizontally(10);
     wt.draw(true);
     expect(count).not.toBeGreaterThan(oldCount);
 
-    wt.scrollHorizontal(11);
+    wt.scrollViewportHorizontally(11);
     wt.draw(true);
     expect(count).toBeGreaterThan(oldCount);
   });
@@ -555,7 +555,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns
       });
       wt.draw();
-      wt.scrollVertical(7);
+      wt.scrollViewportVertically(7);
       wt.draw();
 
       expect(wt.wtTable.isLastRowFullyVisible()).toEqual(true);

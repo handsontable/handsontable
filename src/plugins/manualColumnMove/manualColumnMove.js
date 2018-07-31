@@ -366,7 +366,7 @@ class ManualColumnMove extends BasePlugin {
       // unfortunately first column is bigger than rest
       tdOffsetLeft += priv.target.TD.offsetWidth;
 
-      if (priv.target.col > lastVisible) {
+      if (priv.target.col > lastVisible && lastVisible < priv.countCols) {
         this.hot.scrollViewportTo(void 0, lastVisible + 1, void 0, true);
       }
 
@@ -374,12 +374,12 @@ class ManualColumnMove extends BasePlugin {
       // elsewhere on table
       priv.target.col = priv.coordsColumn;
 
-      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns && firstVisible > 0) {
         this.hot.scrollViewportTo(void 0, firstVisible - 1);
       }
     }
 
-    if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns) {
+    if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns && firstVisible > 0) {
       this.hot.scrollViewportTo(void 0, firstVisible - 1);
     }
 
