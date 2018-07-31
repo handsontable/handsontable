@@ -77,9 +77,9 @@ function Event(instance) {
         that.instance.touchMoving = void 0;
 
         eventManager.removeEventListener('touchmove', onTouchMove, false);
+      } else {
+        onMouseDown(event);
       }
-
-      onMouseDown(event);
 
     }, 30);
   };
