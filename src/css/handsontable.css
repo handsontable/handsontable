@@ -233,7 +233,7 @@
   position: relative;
 }
 
-.handsontable .columnSorting:hover {
+.handsontable .columnSorting.sortAction:hover {
   text-decoration: underline;
   cursor: pointer;
 }
