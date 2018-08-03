@@ -193,6 +193,8 @@ class TableRenderer {
       this.renderRowHeaders(sourceRowIndex, TR);
       // Add and/or remove TDs to TR to match the desired number
       this.adjustColumns(TR, columnsToRender + this.rowHeaderCount);
+      // Render cells
+      this.renderCells(sourceRowIndex, TR, columnsToRender);
 
       if (!isWorkingOnClone ||
           // Necessary to refresh oversized row heights after editing cell in overlays

@@ -59,7 +59,7 @@ describe('Performance', () => {
 
   it('should call renderer triple times for one cell (auto row height, auto column width)', () => {
     var count = 0;
-    vhandsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       autoRowSize: true,
       autoColumnSize: true,
