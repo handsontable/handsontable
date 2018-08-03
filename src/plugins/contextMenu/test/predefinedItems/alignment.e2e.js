@@ -2,7 +2,7 @@ describe('ContextMenu', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function () {
@@ -26,7 +26,7 @@ describe('ContextMenu', function () {
       item.simulate('mouseover');
 
       setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
         button.simulate('mousedown'); // Text left
 
@@ -49,7 +49,7 @@ describe('ContextMenu', function () {
       item.simulate('mouseover');
 
       setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
 
         button.simulate('mousedown'); // Text center
@@ -72,7 +72,7 @@ describe('ContextMenu', function () {
       item.simulate('mouseover');
 
       setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
 
         button.simulate('mousedown'); // Text right
@@ -95,7 +95,7 @@ describe('ContextMenu', function () {
       item.simulate('mouseover');
 
       setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
 
         button.simulate('mousedown'); // Text justify
@@ -119,7 +119,7 @@ describe('ContextMenu', function () {
       item.simulate('mouseover');
 
       setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
 
         button.simulate('mousedown'); // Text top
@@ -143,7 +143,7 @@ describe('ContextMenu', function () {
       item.simulate('mouseover');
 
       setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(5);
 
         button.simulate('mousedown'); // Text middle
@@ -166,7 +166,7 @@ describe('ContextMenu', function () {
       item.simulate('mouseover');
 
       setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(6);
         button.simulate('mousedown'); // Text bottom
         deselectCell();
@@ -192,7 +192,7 @@ describe('ContextMenu', function () {
       item.simulate('mouseover');
 
       setTimeout(function () {
-        var contextSubMenu = $('.htContextMenuSub_' + item.text());
+        var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
         var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
         button.simulate('mousedown'); // Text bottom
         deselectCell();
