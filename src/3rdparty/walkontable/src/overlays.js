@@ -1,12 +1,10 @@
 import {
   getScrollableElement,
   getScrollbarWidth,
-  getScrollLeft,
-  getScrollTop,
 } from './../../../helpers/dom/element';
-import {arrayEach} from './../../../helpers/array';
-import {isKey} from './../../../helpers/unicode';
-import {isMobileBrowser, isChrome} from './../../../helpers/browser';
+import { arrayEach } from './../../../helpers/array';
+import { isKey } from './../../../helpers/unicode';
+import { isChrome } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import Overlay from './overlay/_base.js';
 
@@ -384,7 +382,7 @@ class Overlays {
    * @private
    * @param {Event|Object} event
    */
-  syncScrollPositions(event) {
+  syncScrollPositions() {
     if (this.destroyed) {
       return;
     }
@@ -571,7 +569,7 @@ class Overlays {
     ];
     let result = null;
 
-    arrayEach(overlays, (elem, i) => {
+    arrayEach(overlays, (elem) => {
       if (!elem) {
         return;
       }

@@ -64,7 +64,7 @@ beforeEach(function() {
     },
     toBeFunction() {
       return {
-        compare(actual, expected) {
+        compare(actual) {
           return {
             pass: typeof actual === 'function'
           };

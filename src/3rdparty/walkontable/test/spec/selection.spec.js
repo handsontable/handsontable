@@ -29,7 +29,7 @@ describe('Walkontable.Selection', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       selections: createSelectionController(),
-      onCellMouseDown(event, coords, TD) {
+      onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
         wt.selections.getCell().add(coords);
         wt.draw();
@@ -101,7 +101,7 @@ describe('Walkontable.Selection', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       selections: createSelectionController(),
-      onCellMouseDown(event, coords, TD) {
+      onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
         wt.selections.getCell().add(coords);
         wt.draw();
