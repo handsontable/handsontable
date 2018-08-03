@@ -1168,7 +1168,6 @@ describe('Core_validate', () => {
   });
 
   it('should validate edited cell after selecting another cell', async () => {
-    let validated = false;
     let validatedValue;
 
     handsontable({
@@ -1176,7 +1175,6 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          validated = true;
           validatedValue = value;
           callback(true);
         }, 50);
@@ -1195,7 +1193,6 @@ describe('Core_validate', () => {
   });
 
   it('should leave the new value in editor if it does not validate (async validation), after hitting ENTER', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
@@ -1203,7 +1200,6 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          validated = true;
           validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
@@ -1225,14 +1221,12 @@ describe('Core_validate', () => {
   });
 
   it('should leave the new value in editor if it does not validate (sync validation), after hitting ENTER', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
-        validated = true;
         validationResult = value.length == 2;
         callback(validationResult);
       }
@@ -1253,7 +1247,6 @@ describe('Core_validate', () => {
   });
 
   it('should leave the new value in editor if it does not validate (async validation), after selecting another cell', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
@@ -1261,10 +1254,6 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          setTimeout(() => {
-            validated = true;
-          }, 0);
-
           validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
@@ -1285,7 +1274,6 @@ describe('Core_validate', () => {
   });
 
   it('should leave the new value in editor if it does not validate (sync validation), after selecting another cell', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
@@ -1294,16 +1282,6 @@ describe('Core_validate', () => {
       validator(value, callback) {
         validationResult = value.length == 2;
         callback(validationResult);
-
-        /* Setting this variable has to be async, because we are not interested in when the validation happens, but when
-         the callback is being called. Since internally all the callbacks are processed asynchronously (even if they are
-         synchronous) end of validator function is not the equivalent of whole validation routine end.
-         If it still sounds weird, take a look at HandsontableTextEditorClass.prototype.finishEditing method.
-         */
-
-        setTimeout(() => {
-          validated = true;
-        }, 0);
       }
     });
     selectCell(0, 0);
@@ -1350,7 +1328,6 @@ describe('Core_validate', () => {
   });
 
   it('should close the editor and save the new value if validation fails and allowInvalid is set to "true"', (done) => {
-    var validated = false;
     var validationResult;
 
     handsontable({
@@ -1358,8 +1335,6 @@ describe('Core_validate', () => {
       allowInvalid: true,
       validator(value, callback) {
         setTimeout(() => {
-
-          validated = true;
           validationResult = value.length == 2;
           callback(validationResult);
         }, 100);

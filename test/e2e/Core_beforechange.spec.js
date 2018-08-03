@@ -46,12 +46,9 @@ describe('Core_beforechange', () => {
   });
 
   it('should drop all changes when beforeChange return false', () => {
-    var fired = false;
-
     handsontable({
       data: [['a', 'b'], ['c', 'd']],
-      beforeChange(changes) {
-        fired = true;
+      beforeChange() {
         return false;
       }
     });

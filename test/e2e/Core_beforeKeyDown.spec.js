@@ -17,7 +17,7 @@ describe('Core_beforeKeyDown', () => {
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
-      beforeKeyDown(event) {
+      beforeKeyDown() {
         called = true;
       }
     });
@@ -48,16 +48,12 @@ describe('Core_beforeKeyDown', () => {
   });
 
   it('should prevent hook from running default action', () => {
-    var called = false;
-
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       beforeKeyDown(event) {
-
         event = serveImmediatePropagation(event);
 
         event.stopImmediatePropagation();
-        called = true;
       }
     });
     selectCell(0, 0);
@@ -69,8 +65,6 @@ describe('Core_beforeKeyDown', () => {
   });
 
   it('should overwrite default behavior of delete key, but not this of right arrow', () => {
-    var called = 0;
-
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       beforeKeyDown(event) {
@@ -78,8 +72,6 @@ describe('Core_beforeKeyDown', () => {
           event.stopImmediatePropagation();
           getInstance().alter('insert_row', 1, 1);
         }
-
-        called++;
       }
     });
 
@@ -97,7 +89,7 @@ describe('Core_beforeKeyDown', () => {
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
-      beforeKeyDown(event) {
+      beforeKeyDown() {
         called++;
       }
     });

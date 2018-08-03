@@ -65,7 +65,7 @@ describe('AutocompleteRenderer', () => {
   });
 
   it('should prepend the autocomplete arrow at the start of the cell element (#5124)', () => {
-    var hot = handsontable({
+    handsontable({
       type: 'autocomplete'
     });
 

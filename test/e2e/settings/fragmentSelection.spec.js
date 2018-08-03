@@ -73,7 +73,7 @@ describe('settings', () => {
 
     describe('constructor', () => {
       it('should disallow fragmentSelection when set to false', function() {
-        const hot = handsontable({
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: false
         });
@@ -107,7 +107,7 @@ describe('settings', () => {
 
       xit('should allow fragmentSelection from one cell when set to `cell`', function() {
         // We have to try another way to simulate text selection.
-        var hot = handsontable({
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
         });
@@ -120,7 +120,7 @@ describe('settings', () => {
       });
 
       it('should disallow fragmentSelection from one cell when set to `cell` and when user selects adjacent cell', function() {
-        var hot = handsontable({
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
         });

@@ -19,7 +19,7 @@ describe('Core_updateSettings', () => {
         {},
         {type: 'checkbox'},
       ],
-      cells(row, col, prop) {
+      cells(row, col) {
         if (row === 0 && col === 0) {
           return {
             type: 'numeric'
@@ -47,7 +47,7 @@ describe('Core_updateSettings', () => {
 
         return colMeta;
       },
-      cells(row, col, prop) {
+      cells(row, col) {
         if (row === 0 && col === 0) {
           return {
             type: 'numeric'
@@ -431,7 +431,7 @@ describe('Core_updateSettings', () => {
   });
 
   it('should allow updating the table height', function() {
-    const hot = handsontable({
+    handsontable({
       startRows: 22,
       startCols: 5
     });
@@ -447,7 +447,7 @@ describe('Core_updateSettings', () => {
   });
 
   it('should not reset the table height, when the updateSettings config object doesn\'t have any height specified', function() {
-    const hot = handsontable({
+    handsontable({
       startRows: 22,
       startCols: 5,
       height: 300
@@ -463,7 +463,7 @@ describe('Core_updateSettings', () => {
   });
 
   it('should allow resetting the table height', function() {
-    const hot = handsontable({
+    handsontable({
       startRows: 22,
       startCols: 5,
       height: 300
@@ -505,7 +505,7 @@ describe('Core_updateSettings', () => {
   });
 
   it('should change colHeader\'s row height if is needed', function() {
-    const hot = handsontable({
+    handsontable({
       colHeaders: true,
       rowHeaders: true
     });

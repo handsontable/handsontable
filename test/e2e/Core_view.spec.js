@@ -61,7 +61,7 @@ describe('Core_view', () => {
     this.$container[0].style.height = '100px';
     this.$container[0].style.overflow = 'hidden';
 
-    var hot = handsontable({
+    handsontable({
       startRows: 10,
       startCols: 5,
       colWidths: [47, 47, 47, 47, 47],
@@ -695,7 +695,7 @@ describe('Core_view', () => {
       this.$container[0].style.height = '100px';
       this.$container[0].style.overflow = 'hidden';
 
-      var hot = handsontable({
+      handsontable({
         startRows: 10,
         startCols: 5,
         colWidths: [47, 47, 47, 47, 47],
@@ -734,7 +734,7 @@ describe('Core_view', () => {
         return width;
       });
 
-      var hot = handsontable({
+      handsontable({
         startRows: 2,
         startCols: 5,
         rowHeaders: true,

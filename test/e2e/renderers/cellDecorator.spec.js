@@ -83,7 +83,7 @@ describe('CellDecorator', () => {
   });
 
   it('should set "white-space" css parameter to "nowrap" if htNoWrap class is added to a cell', () => {
-    var hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       columns: [
         {data: 'id'},

@@ -14,7 +14,7 @@ describe('BaseEditor', () => {
 
   describe('ctrl + enter when editor is active', () => {
     it('should populate value from the currently active cell to every cell in the selected range', () => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(6, 6)
       });
 

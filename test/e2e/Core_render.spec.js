@@ -13,7 +13,7 @@ describe('Core_render', () => {
   });
 
   it('all cells should get green background', function() {
-    function greenCell(instance, td, row, col, prop, value, cellProperties) {
+    function greenCell(instance, td) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.style.backgroundColor = 'green';
 

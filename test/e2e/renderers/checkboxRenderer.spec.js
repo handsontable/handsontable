@@ -57,7 +57,7 @@ describe('CheckboxRenderer', () => {
 
   it('should select cell after checkbox click', function(done) {
     var spy = jasmine.createSpyObj('error', ['test']);
-    window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+    window.onerror = function() {
       spy.test();
       return false;
     };
@@ -265,7 +265,7 @@ describe('CheckboxRenderer', () => {
   });
 
   it('should reverse checkboxes state after hitting space, when multiple cells are selected', function() {
-    var hot = handsontable({
+    handsontable({
       data: [[true], [false], [true]],
       columns: [
         {type: 'checkbox'}
@@ -330,7 +330,7 @@ describe('CheckboxRenderer', () => {
 
   it('should toggle checkbox even if cell value is in another datatype', () => {
     // TODO: we MUST add additional layer in data transport, to filter stored data types into their defined data type (cellMeta.type)
-    var hot = handsontable({
+    handsontable({
       data: [['true']],
       columns: [
         {type: 'checkbox'},
