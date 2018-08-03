@@ -433,7 +433,7 @@ describe('ColumnSorting', () => {
 
   it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
     'option is enabled and `column` property of `columnSorting` option is set (data type: default)', function() {
-    let hot = handsontable({
+    handsontable({
       data: [
         [6, 'Frank Honest'],
         [null, 'Ted Right'],
@@ -513,7 +513,7 @@ describe('ColumnSorting', () => {
 
   it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
     'option is enabled and `column` property of `columnSorting` option is set (data type: numeric)', function() {
-    let hot = handsontable({
+    handsontable({
       data: [
         [6, 'Frank Honest'],
         [null, 'Ted Right'],
@@ -680,7 +680,7 @@ describe('ColumnSorting', () => {
   describe('data type: date', () => {
     it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
       'option is enabled and `column` property of `columnSorting` option is set', function() {
-      let hot = handsontable({
+      handsontable({
         data: [
           ['Citroen1', 'C4 Coupe', null],
           ['Mercedes1', 'A 160', '12/01/2008'],
@@ -1621,7 +1621,7 @@ describe('ColumnSorting', () => {
 
     this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
     this.$container2.handsontable();
-    const hot2 = this.$container2.handsontable('getInstance');
+    this.$container2.handsontable('getInstance');
 
     selectCell(0, 1);
     keyDown('enter');

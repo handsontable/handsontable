@@ -456,7 +456,7 @@ describe('AutoColumnSize', () => {
         {data: 'name'}
       ],
       autoColumnSize: true,
-      renderer(instance, td, row, col, prop, value, cellProperties) {
+      renderer(instance, td, row, col) {
         // taken from demo/renderers.html
         Handsontable.renderers.TextRenderer.apply(this, arguments);
         if (row === 1 && col === 0) {
