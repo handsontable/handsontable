@@ -82,8 +82,8 @@ const dictionary = {
 
   [C.FILTERS_VALUES_BLANK_CELLS]: 'Cellen leegmaken',
 
-  [C.FILTERS_DIVS_FILTER_BY_CONDITION]: 'Filteren door conditie',
-  [C.FILTERS_DIVS_FILTER_BY_VALUE]: 'Filteren door waarde',
+  [C.FILTERS_DIVS_FILTER_BY_CONDITION]: 'Filteren op conditie',
+  [C.FILTERS_DIVS_FILTER_BY_VALUE]: 'Filteren op waarde',
 
   [C.FILTERS_LABELS_CONJUNCTION]: 'En',
   [C.FILTERS_LABELS_DISJUNCTION]: 'Of',
