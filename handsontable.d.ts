@@ -48,8 +48,8 @@ declare namespace _Handsontable {
     getSchema(): object;
     getSelected(): Array<[number, number, number, number]> | undefined;
     getSelectedLast(): number[] | undefined;
-    getSelectedRange(): Range[] | undefined;
-    getSelectedRangeLast(): Range | undefined;
+    getSelectedRange():  Handsontable.wot.CellRange[] | undefined;
+    getSelectedRangeLast(): Handsontable.wot.CellRange | undefined;
     getSettings(): Handsontable.DefaultSettings;
     getSourceData(r?: number, c?: number, r2?: number, c2?: number): any[];
     getSourceDataArray(r?: number, c?: number, r2?: number, c2?: number): any[];
