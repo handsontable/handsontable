@@ -1755,7 +1755,7 @@ DefaultSettings.prototype = {
   /**
    * @description
    * Turns on [Multi-column sorting](https://docs.handsontable.com/demo-sorting-data.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
-   * * `columns` - Array containing objects, every with predefined keys:
+   * * `initialConfig` - Array containing objects, every with predefined keys:
    *   * `column` - sorted column
    *   * `sortOrder` - order in which column will be sorted
    *     * `'asc'` = ascending
@@ -1763,6 +1763,9 @@ DefaultSettings.prototype = {
    * * `indicator` - display status for sorting order indicator (an arrow icon in the column header, specifying the sorting order).
    *   * `true` = show sort indicator for sorted columns
    *   * `false` = don't show sort indicator for sorted columns
+   * * `headerAction` - allow to click on the headers to sort
+   *   * `true` = turn on possibility to click on the headers to sort
+   *   * `false` = turn off possibility to click on the headers to sort
    * * `sortEmptyCells` - how empty values should be handled
    *   * `true` = the table sorts empty cells
    *   * `false` = the table moves all empty cells to the end of the table
@@ -1778,7 +1781,7 @@ DefaultSettings.prototype = {
    *
    * // as an object with initial order (sort ascending column at index 2)
    * multiColumnSorting: {
-   *   columns: [{
+   *   initialConfig: [{
    *     column: 2,
    *     sortOrder: 'asc', // 'asc' = ascending, 'desc' = descending
    *   }]
@@ -1788,6 +1791,7 @@ DefaultSettings.prototype = {
    * multiColumnSorting: {
    *   sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
    *   indicator: true, // true = shows indicator for all columns, false = don't show indicator for columns
+   *   headerAction: false, // true = allow to click on the headers to sort, false = turn off possibility to click on the headers to sort
    *   compareFunctionFactory: function(sortOrder, columnMeta) {
    *     return function(value, nextValue) {
    *       // Some value comparisons which will return -1, 0 or 1...
