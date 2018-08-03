@@ -1,10 +1,9 @@
-import Hooks from './../../pluginHooks';
-import {getWindowScrollTop, hasClass, getWindowScrollLeft} from './../../helpers/dom/element';
-import {isMobileBrowser} from './../../helpers/browser';
+import { getWindowScrollTop, hasClass, getWindowScrollLeft } from './../../helpers/dom/element';
+import { isMobileBrowser } from './../../helpers/browser';
 import BasePlugin from './../_base';
 import EventManager from './../../eventManager';
-import {registerPlugin} from './../../plugins';
-import {CellCoords} from './../../3rdparty/walkontable/src';
+import { registerPlugin } from './../../plugins';
+import { CellCoords } from './../../3rdparty/walkontable/src';
 
 /**
  * @private

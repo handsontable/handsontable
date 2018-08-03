@@ -1,7 +1,7 @@
-import {KEY_CODES} from './../helpers/unicode';
-import {extend} from './../helpers/object';
-import {setCaretPosition} from './../helpers/dom/element';
-import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
+import { KEY_CODES } from './../helpers/unicode';
+import { extend } from './../helpers/object';
+import { setCaretPosition } from './../helpers/dom/element';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
 import TextEditor from './textEditor';
 
 const HandsontableEditor = TextEditor.prototype.extend();
@@ -148,7 +148,7 @@ HandsontableEditor.prototype.focus = function() {
   TextEditor.prototype.focus.apply(this, arguments);
 };
 
-HandsontableEditor.prototype.beginEditing = function(initialValue) {
+HandsontableEditor.prototype.beginEditing = function() {
   var onBeginEditing = this.instance.getSettings().onBeginEditing;
 
   if (onBeginEditing && onBeginEditing() === false) {
@@ -157,7 +157,7 @@ HandsontableEditor.prototype.beginEditing = function(initialValue) {
   TextEditor.prototype.beginEditing.apply(this, arguments);
 };
 
-HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
+HandsontableEditor.prototype.finishEditing = function() {
   if (this.htEditor && this.htEditor.isListening()) { // if focus is still in the HOT editor
     this.instance.listen(); // return the focus to the parent HOT instance
   }

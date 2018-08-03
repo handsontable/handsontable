@@ -1,10 +1,10 @@
 import BasePlugin from './../_base';
-import {addClass, hasClass, removeClass, outerWidth} from './../../helpers/dom/element';
+import { addClass, hasClass, removeClass, outerWidth } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
-import {pageX, pageY} from './../../helpers/dom/event';
-import {arrayEach} from './../../helpers/array';
-import {rangeEach} from './../../helpers/number';
-import {registerPlugin} from './../../plugins';
+import { pageY } from './../../helpers/dom/event';
+import { arrayEach } from './../../helpers/array';
+import { rangeEach } from './../../helpers/number';
+import { registerPlugin } from './../../plugins';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
@@ -20,7 +20,6 @@ import {registerPlugin} from './../../plugins';
  * @plugin ManualRowResize
  */
 class ManualRowResize extends BasePlugin {
-
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -373,11 +372,11 @@ class ManualRowResize extends BasePlugin {
    * 'mouseup' event callback - apply the row resizing.
    *
    * @private
-   * @param {MouseEvent} event
+   *
    * @fires Hooks#beforeRowResize
    * @fires Hooks#afterRowResize
    */
-  onMouseUp(event) {
+  onMouseUp() {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
@@ -426,7 +425,7 @@ class ManualRowResize extends BasePlugin {
     this.eventManager.addEventListener(this.hot.rootElement, 'mouseover', (e) => this.onMouseOver(e));
     this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', (e) => this.onMouseDown(e));
     this.eventManager.addEventListener(window, 'mousemove', (e) => this.onMouseMove(e));
-    this.eventManager.addEventListener(window, 'mouseup', (e) => this.onMouseUp(e));
+    this.eventManager.addEventListener(window, 'mouseup', () => this.onMouseUp());
   }
 
   /**

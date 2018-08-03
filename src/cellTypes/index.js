@@ -1,7 +1,7 @@
 import staticRegister from './../utils/staticRegister';
-import {hasEditor, registerEditor} from './../editors';
-import {hasRenderer, registerRenderer} from './../renderers';
-import {hasValidator, registerValidator} from './../validators';
+import { registerEditor } from './../editors';
+import { registerRenderer } from './../renderers';
+import { registerValidator } from './../validators';
 
 import autocompleteCellType from './autocompleteType';
 import checkboxCellType from './checkboxType';

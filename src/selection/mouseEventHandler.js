@@ -1,5 +1,5 @@
-import {isRightClick, isLeftClick} from './../helpers/dom/event';
-import {CellCoords} from './../3rdparty/walkontable/src';
+import { isRightClick, isLeftClick } from './../helpers/dom/event';
+import { CellCoords } from './../3rdparty/walkontable/src';
 
 /**
  * MouseDown handler.
@@ -17,7 +17,6 @@ export function mouseDown({isShiftKey, isLeftClick, isRightClick, coords, select
   const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
   const selectedCorner = selection.isSelectedByCorner();
   const selectedRow = selection.isSelectedByRowHeader();
-  const selectedColumn = selection.isSelectedByColumnHeader();
 
   if (isShiftKey && currentSelection) {
     if (coords.row >= 0 && coords.col >= 0 && !controller.cells) {

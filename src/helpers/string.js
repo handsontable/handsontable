@@ -1,5 +1,4 @@
-import {stringify} from './mixed';
-import {rangeEach} from './number';
+import { stringify } from './mixed';
 
 /**
  * Convert string to upper case first letter.

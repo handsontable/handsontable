@@ -1,7 +1,6 @@
-import {arrayEach, arrayMap} from './../../helpers/array';
-import {rangeEach} from './../../helpers/number';
-import {hasClass} from './../../helpers/dom/element';
-import {KEY as SEPARATOR} from './predefinedItems/separator';
+import { arrayEach, arrayMap } from './../../helpers/array';
+import { hasClass } from './../../helpers/dom/element';
+import { KEY as SEPARATOR } from './predefinedItems/separator';
 
 export function normalizeSelection(selRanges) {
   return arrayMap(selRanges, (range) => ({

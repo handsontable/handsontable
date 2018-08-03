@@ -10,8 +10,8 @@ import {
   outerWidth,
   resetCssTransform,
 } from './../helpers/dom/element';
-import {stopImmediatePropagation} from './../helpers/dom/event';
-import {KEY_CODES} from './../helpers/unicode';
+import { stopImmediatePropagation } from './../helpers/dom/event';
+import { KEY_CODES } from './../helpers/unicode';
 import BaseEditor, {EditorState} from './_baseEditor';
 
 const SelectEditor = BaseEditor.prototype.extend();
@@ -159,10 +159,6 @@ SelectEditor.prototype.refreshDimensions = function() {
     editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
     editorSection = this.checkEditorSection(),
     cssTransformOffset;
-
-  const settings = this.instance.getSettings();
-  let rowHeadersCount = settings.rowHeaders ? 1 : 0;
-  let colHeadersCount = settings.colHeaders ? 1 : 0;
 
   switch (editorSection) {
     case 'top':
