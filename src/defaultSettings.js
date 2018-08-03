@@ -1779,11 +1779,14 @@ DefaultSettings.prototype = {
    * // as boolean
    * multiColumnSorting: true
    *
-   * // as an object with initial order (sort ascending column at index 2)
+   * // as an object with initial sort config (sort ascending for column at index 1 and then sort descending for column at index 0)
    * multiColumnSorting: {
    *   initialConfig: [{
-   *     column: 2,
-   *     sortOrder: 'asc', // 'asc' = ascending, 'desc' = descending
+   *     column: 1,
+   *     sortOrder: 'asc'
+   *   }, {
+   *     column: 0,
+   *     sortOrder: 'desc'
    *   }]
    * }
    *
