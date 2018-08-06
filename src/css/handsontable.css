@@ -246,12 +246,13 @@
   margin-top: -5px;
   /* Centering end */
 
-  right: -8px;
   content: '';
   height: 10px;
   width: 5px;
-  background-size: cover;
-  background-position: center;
+  background-size: 5px 10px;
+  padding-left: 12px;
+  background-repeat: no-repeat;
+  background-position-x: right;
 }
 
 .handsontable span.colHeader.columnSorting.ascending::before {
