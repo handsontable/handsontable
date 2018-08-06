@@ -2484,7 +2484,7 @@ describe('AutocompleteEditor', () => {
     }, 200);
   });
 
-  it('should add a scrollbar to the autocomplete dropdown, only if number of displayed choices exceeds 10', function(done) {
+  it('should add a scrollbar to the autocomplete dropdown, only if number of displayed choices exceeds 10', async () => {
     var hot = handsontable({
       data: [
         ['', 'two', 'three'],
@@ -2502,7 +2502,7 @@ describe('AutocompleteEditor', () => {
       ]
     });
 
-    this.$container.css({
+    spec().$container.css({
       height: 600
     });
 
@@ -2513,22 +2513,21 @@ describe('AutocompleteEditor', () => {
 
     var dropdownHolder = hot.getActiveEditor().htEditor.view.wt.wtTable.holder;
 
-    setTimeout(() => {
-      expect(dropdownHolder.scrollHeight).toBeGreaterThan(dropdownHolder.clientHeight);
+    await sleep(30);
 
-      keyDownUp('esc');
+    expect(dropdownHolder.scrollHeight).toBeGreaterThan(dropdownHolder.clientHeight);
 
-      hot.getSettings().columns[0].source = hot.getSettings().columns[0].source.slice(0).splice(3);
-      hot.updateSettings({});
+    keyDownUp('esc');
 
-      selectCell(0, 0);
-      $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
-    }, 30);
+    hot.getSettings().columns[0].source = hot.getSettings().columns[0].source.slice(0).splice(3);
+    hot.updateSettings({});
 
-    setTimeout(() => {
-      expect(dropdownHolder.scrollHeight > dropdownHolder.clientHeight).toBe(false);
-      done();
-    }, 60);
+    selectCell(0, 0);
+    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
+
+    await sleep(30);
+
+    expect(dropdownHolder.scrollHeight > dropdownHolder.clientHeight).toBe(false);
   });
 
   it('should not close editor on scrolling', async () => {

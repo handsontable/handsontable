@@ -569,7 +569,7 @@ describe('TextEditor', () => {
     expect(editor.focus).toHaveBeenCalled();
   });
 
-  it('editor size should not exceed the viewport after text edit', function() {
+  it('editor size should not exceed the viewport after text edit', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 5),
       width: 200,
@@ -586,20 +586,20 @@ describe('TextEditor', () => {
     keyDownUp(32); // space - trigger textarea resize
 
     var $textarea = $(document.activeElement);
-    var $wtHider = this.$container.find('.wtHider');
+    var $wtHider = spec().$container.find('.wtHider');
 
-    expect($textarea.offset().left + $textarea.outerWidth()).not.toBeGreaterThan($wtHider.offset().left + this.$container.outerWidth());
+    expect($textarea.offset().left + $textarea.outerWidth()).not.toBeGreaterThan($wtHider.offset().left + spec().$container.outerWidth());
     expect($textarea.offset().top + $textarea.outerHeight()).not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
   });
 
   it('should open editor after selecting cell in another table and hitting enter', function() {
-    this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
+    spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
     var hot1 = handsontable();
     var hot2 = handsontable2.call(this);
 
-    this.$container.find('tbody tr:eq(0) td:eq(0)').simulate('mousedown');
-    this.$container.find('tbody tr:eq(0) td:eq(0)').simulate('mouseup');
+    spec().$container.find('tbody tr:eq(0) td:eq(0)').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(0) td:eq(0)').simulate('mouseup');
 
     // Open editor in HOT1
     keyDown('enter');
@@ -611,8 +611,8 @@ describe('TextEditor', () => {
 
     expect(isEditorVisible($(hot1.getActiveEditor().TEXTAREA))).toBe(false);
 
-    this.$container2.find('tbody tr:eq(0) td:eq(0)').simulate('mousedown');
-    this.$container2.find('tbody tr:eq(0) td:eq(0)').simulate('mouseup');
+    spec().$container2.find('tbody tr:eq(0) td:eq(0)').simulate('mousedown');
+    spec().$container2.find('tbody tr:eq(0) td:eq(0)').simulate('mouseup');
 
     expect(hot1.getSelected()).toBeUndefined();
     expect(hot2.getSelected()).toEqual([[0, 0, 0, 0]]);
@@ -622,11 +622,11 @@ describe('TextEditor', () => {
 
     expect(isEditorVisible($(hot2.getActiveEditor().TEXTAREA))).toBe(true);
 
-    this.$container2.handsontable('destroy');
-    this.$container2.remove();
+    spec().$container2.handsontable('destroy');
+    spec().$container2.remove();
 
     function handsontable2(options) {
-      var container = this.$container2;
+      var container = spec().$container2;
 
       container.handsontable(options);
       container[0].focus(); // otherwise TextEditor tests do not pass in IE8
@@ -635,7 +635,7 @@ describe('TextEditor', () => {
     }
   });
 
-  it('should open editor after pressing a printable character', function() {
+  it('should open editor after pressing a printable character', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3)
     });
@@ -644,14 +644,14 @@ describe('TextEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    this.$container.simulate('keydown', {
+    spec().$container.simulate('keydown', {
       keyCode: 'A'.charCodeAt(0)
     });
 
     expect(isEditorVisible()).toBe(true);
   });
 
-  it('should open editor after pressing a printable character with shift key', function() {
+  it('should open editor after pressing a printable character with shift key', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3)
     });
@@ -660,7 +660,7 @@ describe('TextEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    this.$container.simulate('keydown', {
+    spec().$container.simulate('keydown', {
       keyCode: 'A'.charCodeAt(0),
       shiftKey: true
     });
@@ -668,7 +668,7 @@ describe('TextEditor', () => {
     expect(isEditorVisible()).toBe(true);
   });
 
-  it('should be able to open editor after clearing cell data with DELETE', function() {
+  it('should be able to open editor after clearing cell data with DELETE', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3)
     });
@@ -677,17 +677,17 @@ describe('TextEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    this.$container.simulate('keydown', {
+    spec().$container.simulate('keydown', {
       keyCode: 46
     });
-    this.$container.simulate('keydown', {
+    spec().$container.simulate('keydown', {
       keyCode: 'A'.charCodeAt(0)
     });
 
     expect(isEditorVisible()).toBe(true);
   });
 
-  it('should be able to open editor after clearing cell data with BACKSPACE', function() {
+  it('should be able to open editor after clearing cell data with BACKSPACE', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3)
     });
@@ -696,10 +696,10 @@ describe('TextEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    this.$container.simulate('keydown', {
+    spec().$container.simulate('keydown', {
       keyCode: 8 // backspace
     });
-    this.$container.simulate('keydown', {
+    spec().$container.simulate('keydown', {
       keyCode: 'A'.charCodeAt(0)
     });
 
@@ -931,8 +931,8 @@ describe('TextEditor', () => {
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
 
-  it('should display editor with the proper size, when the edited column is beyond the tables container', function() {
-    this.$container.css('overflow', '');
+  it('should display editor with the proper size, when the edited column is beyond the tables container', () => {
+    spec().$container.css('overflow', '');
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 9)
     });
@@ -968,8 +968,8 @@ describe('TextEditor', () => {
 
   });
 
-  it('should render the text without trimming out the whitespace, if trimWhitespace is set to false', function() {
-    this.$container.css('overflow', '');
+  it('should render the text without trimming out the whitespace, if trimWhitespace is set to false', () => {
+    spec().$container.css('overflow', '');
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 9),
       trimWhitespace: false

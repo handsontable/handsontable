@@ -1,4 +1,4 @@
-describe('ContextMenu', function () {
+describe('ContextMenu', () => {
   var id = 'testContainer';
 
   beforeEach(function () {
@@ -12,8 +12,8 @@ describe('ContextMenu', function () {
     }
   });
 
-  describe('remove columns', function() {
-    it('should execute action when single cell is selected', async function() {
+  describe('remove columns', () => {
+    it('should execute action when single cell is selected', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         contextMenu: true,
@@ -32,7 +32,7 @@ describe('ContextMenu', function () {
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'D1', 'E1']);
     });
 
-    it('should execute action when range of the cells are selected', async function() {
+    it('should execute action when range of the cells are selected', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         contextMenu: true,
@@ -51,7 +51,7 @@ describe('ContextMenu', function () {
       expect(getDataAtRow(0)).toEqual(['A1', 'B1']);
     });
 
-    it('should execute action when multiple cells are selected', async function() {
+    it('should execute action when multiple cells are selected', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(8, 5),
         contextMenu: true,

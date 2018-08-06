@@ -28,7 +28,7 @@ describe('RowHeader', () => {
     expect(that.$container.find('tbody th').length).toBeGreaterThan(0);
   });
 
-  it('should show row headers numbered 1-10 by default', function() {
+  it('should show row headers numbered 1-10 by default', () => {
     var startRows = 5;
     handsontable({
       startRows,
@@ -44,7 +44,7 @@ describe('RowHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('5');
   });
 
-  it('should show row headers with custom label', function() {
+  it('should show row headers with custom label', () => {
     var startRows = 5;
     handsontable({
       startRows,
@@ -60,7 +60,7 @@ describe('RowHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('5');
   });
 
-  it('should not show row headers if false', function() {
+  it('should not show row headers if false', () => {
     handsontable({
       rowHeaders: false
     });
@@ -154,18 +154,18 @@ describe('RowHeader', () => {
 
   });
 
-  it('should allow defining custom row header width using the rowHeaderWidth config option', function() {
+  it('should allow defining custom row header width using the rowHeaderWidth config option', () => {
     handsontable({
       startCols: 3,
       rowHeaders: true,
       rowHeaderWidth: 150
     });
 
-    expect(this.$container.find('th').eq(0).outerWidth()).toEqual(150);
-    expect(this.$container.find('col').first().css('width')).toEqual('150px');
+    expect(spec().$container.find('th').eq(0).outerWidth()).toEqual(150);
+    expect(spec().$container.find('col').first().css('width')).toEqual('150px');
   });
 
-  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', function() {
+  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', () => {
     var hot = handsontable({
       startCols: 3,
       rowHeaders: true,
@@ -191,10 +191,10 @@ describe('RowHeader', () => {
     });
     hot.render();
 
-    expect(this.$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(1)').outerWidth()).toEqual(66);
-    expect(this.$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(2)').outerWidth()).toEqual(96);
+    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(1)').outerWidth()).toEqual(66);
+    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(2)').outerWidth()).toEqual(96);
 
-    expect(this.$container.find('col').first().css('width')).toEqual('66px');
-    expect(this.$container.find('col').eq(1).css('width')).toEqual('96px');
+    expect(spec().$container.find('col').first().css('width')).toEqual('66px');
+    expect(spec().$container.find('col').eq(1).css('width')).toEqual('96px');
   });
 });

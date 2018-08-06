@@ -41,7 +41,7 @@ describe('Core_keepEmptyRows', () => {
     ];
   };
 
-  it('should remove columns if needed', function() {
+  it('should remove columns if needed', () => {
     handsontable({
       data: arrayOfNestedObjects(),
       columns: [
@@ -50,10 +50,10 @@ describe('Core_keepEmptyRows', () => {
       ]
     });
 
-    expect(this.$container.find('tbody tr:first td').length).toEqual(2);
+    expect(spec().$container.find('tbody tr:first td').length).toEqual(2);
   });
 
-  it('should remove columns if needed when columns is a function', function() {
+  it('should remove columns if needed when columns is a function', () => {
     handsontable({
       data: arrayOfNestedObjects(),
       columns(column) {
@@ -73,10 +73,10 @@ describe('Core_keepEmptyRows', () => {
       }
     });
 
-    expect(this.$container.find('tbody tr:first td').length).toEqual(2);
+    expect(spec().$container.find('tbody tr:first td').length).toEqual(2);
   });
 
-  it('should create columns if needed', function() {
+  it('should create columns if needed', () => {
     handsontable({
       data: arrayOfNestedObjects(),
       columns: [
@@ -89,10 +89,10 @@ describe('Core_keepEmptyRows', () => {
       ]
     });
 
-    expect(this.$container.find('tbody tr:first td').length).toEqual(6);
+    expect(spec().$container.find('tbody tr:first td').length).toEqual(6);
   });
 
-  it('should create columns if needed when columns is a function', function() {
+  it('should create columns if needed when columns is a function', () => {
     handsontable({
       data: arrayOfNestedObjects(),
       columns(column) {
@@ -123,7 +123,7 @@ describe('Core_keepEmptyRows', () => {
       }
     });
 
-    expect(this.$container.find('tbody tr:first td').length).toEqual(6);
+    expect(spec().$container.find('tbody tr:first td').length).toEqual(6);
   });
 
   it('should create spare cols and rows on init (array data source)', () => {
@@ -141,7 +141,7 @@ describe('Core_keepEmptyRows', () => {
     expect(countCells()).toEqual(36);
   });
 
-  it('should create spare cols and rows on init (object data source)', function() {
+  it('should create spare cols and rows on init (object data source)', () => {
     handsontable({
       data: arrayOfNestedObjects(),
       minRows: 4,
@@ -150,7 +150,7 @@ describe('Core_keepEmptyRows', () => {
 
     expect(countRows()).toEqual(4);
     expect(countCols()).toEqual(6); // because arrayOfNestedObjects has 6 nested properites and they should be figured out if dataSchema/columns is not given
-    expect(this.$container.find('tbody tr:first td:last').text()).toEqual('City Name');
+    expect(spec().$container.find('tbody tr:first td:last').text()).toEqual('City Name');
   });
 
   it('should create new row when last cell in last row is edited', () => {

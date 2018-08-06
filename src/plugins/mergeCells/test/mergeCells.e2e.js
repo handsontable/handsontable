@@ -129,7 +129,7 @@ describe('MergeCells', () => {
   });
 
   describe('merged cells selection', () => {
-    it('should select the whole range of cells which form a merged cell', function() {
+    it('should select the whole range of cells which form a merged cell', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(4, 4),
         mergeCells: [
@@ -142,7 +142,7 @@ describe('MergeCells', () => {
         ]
       });
 
-      let $table = this.$container.find('table.htCore');
+      let $table = spec().$container.find('table.htCore');
       let $td = $table.find('tr:eq(0) td:eq(0)');
 
       expect($td.attr('rowspan')).toEqual('1');
@@ -161,7 +161,7 @@ describe('MergeCells', () => {
       expect(hot.getSelectedLast()).toEqual([0, 0, 0, 3]);
     });
 
-    it('should always make a rectangular selection, when selecting merged and not merged cells', function() {
+    it('should always make a rectangular selection, when selecting merged and not merged cells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(4, 4),
         mergeCells: [
@@ -174,7 +174,7 @@ describe('MergeCells', () => {
         ]
       });
 
-      let $table = this.$container.find('table.htCore');
+      let $table = spec().$container.find('table.htCore');
       let $td = $table.find('tr:eq(1) td:eq(1)');
 
       expect($td.attr('rowspan')).toEqual('2');
@@ -540,7 +540,7 @@ describe('MergeCells', () => {
       expect(hot.countRenderedCols()).toBe(39);
     });
 
-    it('should render whole merged cell even when most columns are not in the viewport - scrolled to the right', function() {
+    it('should render whole merged cell even when most columns are not in the viewport - scrolled to the right', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(5, 40),
         mergeCells: [
@@ -551,7 +551,7 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      this.$container.scrollLeft(99999);
+      spec().$container.scrollLeft(99999);
       hot.render();
 
       expect(hot.countRenderedCols()).toBe(39);

@@ -59,7 +59,7 @@ describe('Core.setCellMeta', () => {
     expect(cellMeta.className).toEqual(className);
   });
 
-  it('should set correct meta classNames for cells using cell in configuration', function() {
+  it('should set correct meta classNames for cells using cell in configuration', () => {
     const classNames = [
       'htCenter htTop',
       'htRight htBottom'
@@ -72,11 +72,11 @@ describe('Core.setCellMeta', () => {
       ]
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual(classNames[0]);
-    expect(this.$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[1]);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual(classNames[0]);
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[1]);
   });
 
-  it('should change cell meta data with updateSettings when the cell option is defined', function() {
+  it('should change cell meta data with updateSettings when the cell option is defined', () => {
     const classNames = [
       'htCenter htTop',
       'htRight htBottom'
@@ -89,15 +89,15 @@ describe('Core.setCellMeta', () => {
       ]
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual(classNames[0]);
-    expect(this.$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[1]);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual(classNames[0]);
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[1]);
 
     updateSettings({
       cell: []
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual('');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual('');
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual('');
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual('');
 
     updateSettings({
       cell: [
@@ -106,8 +106,8 @@ describe('Core.setCellMeta', () => {
       ]
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual(classNames[1]);
-    expect(this.$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[0]);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual(classNames[1]);
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[0]);
   });
 
   it('should call `afterSetCellMeta` plugin hook with visual indexes as parameters', () => {

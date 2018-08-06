@@ -14,39 +14,39 @@ describe('manualColumnMove', () => {
   });
 
   describe('UI', () => {
-    it('should append UI elements to wtHider after click on row header', function() {
+    it('should append UI elements to wtHider after click on row header', () => {
       handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
         manualColumnMove: true
       });
 
-      var $headerTH = this.$container.find('thead tr:eq(0) th:eq(0)');
+      var $headerTH = spec().$container.find('thead tr:eq(0) th:eq(0)');
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
 
-      expect(this.$container.find('.ht__manualColumnMove--guideline').length).toBe(1);
-      expect(this.$container.find('.ht__manualColumnMove--backlight').length).toBe(1);
+      expect(spec().$container.find('.ht__manualColumnMove--guideline').length).toBe(1);
+      expect(spec().$container.find('.ht__manualColumnMove--backlight').length).toBe(1);
     });
 
-    it('should part of UI elements be visible on dragging action', function() {
+    it('should part of UI elements be visible on dragging action', () => {
       handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
         manualColumnMove: true
       });
 
-      var $headerTH = this.$container.find('thead tr:eq(0) th:eq(0)');
+      var $headerTH = spec().$container.find('thead tr:eq(0) th:eq(0)');
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
 
-      expect(this.$container.find('.ht__manualColumnMove--guideline:visible').length).toBe(0);
-      expect(this.$container.find('.ht__manualColumnMove--backlight:visible').length).toBe(1);
+      expect(spec().$container.find('.ht__manualColumnMove--guideline:visible').length).toBe(0);
+      expect(spec().$container.find('.ht__manualColumnMove--backlight:visible').length).toBe(1);
     });
 
-    it('should all of UI elements be visible on dragging action', function() {
+    it('should all of UI elements be visible on dragging action', () => {
       handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
@@ -54,9 +54,9 @@ describe('manualColumnMove', () => {
       });
 
       var $headers = [
-        this.$container.find('thead tr:eq(0) th:eq(0)'),
-        this.$container.find('thead tr:eq(0) th:eq(1)'),
-        this.$container.find('thead tr:eq(0) th:eq(2)'),
+        spec().$container.find('thead tr:eq(0) th:eq(0)'),
+        spec().$container.find('thead tr:eq(0) th:eq(1)'),
+        spec().$container.find('thead tr:eq(0) th:eq(2)'),
       ];
 
       $headers[0].simulate('mousedown');
@@ -65,11 +65,11 @@ describe('manualColumnMove', () => {
       $headers[1].simulate('mouseover');
       $headers[2].simulate('mouseover');
 
-      expect(this.$container.find('.ht__manualColumnMove--guideline:visible').length).toBe(1);
-      expect(this.$container.find('.ht__manualColumnMove--backlight:visible').length).toBe(1);
+      expect(spec().$container.find('.ht__manualColumnMove--guideline:visible').length).toBe(1);
+      expect(spec().$container.find('.ht__manualColumnMove--backlight:visible').length).toBe(1);
     });
 
-    it('should set properly width for the backlight element when stretchH is enabled', function() {
+    it('should set properly width for the backlight element when stretchH is enabled', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 5),
         width: 600,
@@ -78,15 +78,15 @@ describe('manualColumnMove', () => {
         manualColumnMove: true
       });
 
-      var $headerTH = this.$container.find('thead tr:eq(0) th:eq(1)');
+      var $headerTH = spec().$container.find('thead tr:eq(0) th:eq(1)');
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
 
-      expect(this.$container.find('.ht__manualColumnMove--backlight')[0].offsetWidth).toBe($headerTH[0].offsetWidth);
+      expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetWidth).toBe($headerTH[0].offsetWidth);
     });
 
-    it('should set properly width for the backlight element when stretchH is enabled and column order was changed', function() {
+    it('should set properly width for the backlight element when stretchH is enabled and column order was changed', () => {
       handsontable({
         data: [
           {id: 1, flag: 'EUR', currencyCode: 'EUR', currency: 'Euro', level: 0.9033, units: 'EUR / USD', asOf: '08/19/2015', onedChng: 0.0026},
@@ -106,14 +106,14 @@ describe('manualColumnMove', () => {
         ]
       });
 
-      var $headerTH = this.$container.find('thead tr:eq(0) th:eq(6)');
+      var $headerTH = spec().$container.find('thead tr:eq(0) th:eq(6)');
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
 
-      expect(this.$container.find('.ht__manualColumnMove--backlight')[0].offsetWidth).toBe($headerTH[0].offsetWidth);
+      expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetWidth).toBe($headerTH[0].offsetWidth);
     });
 
     it('should set proper left position of the backlight element when colWidths is undefined', () => {
@@ -151,7 +151,7 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetLeft).toBe(150);
     });
 
-    it('should not run moving ui if mousedown was fired on sorting element', function() {
+    it('should not run moving ui if mousedown was fired on sorting element', () => {
       handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
@@ -159,7 +159,7 @@ describe('manualColumnMove', () => {
         columnSorting: true
       });
 
-      var $headerTH = this.$container.find('thead tr:eq(0) th:eq(6)');
+      var $headerTH = spec().$container.find('thead tr:eq(0) th:eq(6)');
       var $summaryElement = $headerTH.find('.columnSorting');
 
       $headerTH.simulate('mousedown');
@@ -167,7 +167,7 @@ describe('manualColumnMove', () => {
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
 
-      var $backlight = this.$container.find('.ht__manualColumnMove--backlight')[0];
+      var $backlight = spec().$container.find('.ht__manualColumnMove--backlight')[0];
       $summaryElement.simulate('mousedown');
 
       var displayProp = $backlight.currentStyle ? $backlight.currentStyle.display : getComputedStyle($backlight, null).display;

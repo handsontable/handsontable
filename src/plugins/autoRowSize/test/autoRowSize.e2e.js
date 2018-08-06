@@ -27,14 +27,14 @@ describe('AutoRowSize', () => {
     ];
   }
 
-  it('should apply auto size by default', function() {
+  it('should apply auto size by default', () => {
     handsontable({
       data: arrayOfObjects()
     });
 
-    var height0 = rowHeight(this.$container, 0);
-    var height1 = rowHeight(this.$container, 1);
-    var height2 = rowHeight(this.$container, 2);
+    var height0 = rowHeight(spec().$container, 0);
+    var height1 = rowHeight(spec().$container, 1);
+    var height2 = rowHeight(spec().$container, 2);
 
     expect(height0).toBeLessThan(height1);
     expect(height1).toBeLessThan(height2);
@@ -174,33 +174,31 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should correctly detect row height when table is hidden on init (display: none)', function(done) {
-    this.$container.css('display', 'none');
+  it('should correctly detect row height when table is hidden on init (display: none)', async () => {
+    spec().$container.css('display', 'none');
     var hot = handsontable({
       data: arrayOfObjects(),
       rowHeaders: true,
       autoRowSize: true
     });
 
-    setTimeout(() => {
-      spec().$container.css('display', 'block');
-      hot.render();
+    await sleep(200);
+    spec().$container.css('display', 'block');
+    hot.render();
 
-      expect(rowHeight(spec().$container, 0)).toBe(24);
-      expect(rowHeight(spec().$container, 1)).toBe(43);
-      expect([106, 127]).toEqual(jasmine.arrayContaining([rowHeight(spec().$container, 2)]));
-      done();
-    }, 200);
+    expect(rowHeight(spec().$container, 0)).toBe(24);
+    expect(rowHeight(spec().$container, 1)).toBe(43);
+    expect([106, 127]).toEqual(jasmine.arrayContaining([rowHeight(spec().$container, 2)]));
   });
 
-  it('should be possible to disable plugin using updateSettings', function() {
+  it('should be possible to disable plugin using updateSettings', () => {
     var hot = handsontable({
       data: arrayOfObjects()
     });
 
-    var height0 = rowHeight(this.$container, 0);
-    var height1 = rowHeight(this.$container, 1);
-    var height2 = rowHeight(this.$container, 2);
+    var height0 = rowHeight(spec().$container, 0);
+    var height1 = rowHeight(spec().$container, 1);
+    var height2 = rowHeight(spec().$container, 2);
 
     expect(height0).toBeLessThan(height1);
     expect(height1).toBeLessThan(height2);
@@ -210,7 +208,7 @@ describe('AutoRowSize', () => {
     });
     hot.setDataAtCell(0, 0, 'A\nB\nC');
 
-    var height4 = rowHeight(this.$container, 0);
+    var height4 = rowHeight(spec().$container, 0);
 
     expect(height4).toBeGreaterThan(height0);
   });
@@ -276,7 +274,7 @@ describe('AutoRowSize', () => {
     $container2.remove();
   });
 
-  it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', function() {
+  it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', () => {
     var $style = $('<style>.htCore.big-table td {font-size: 32px;line-height: 1.1}</style>').appendTo('head');
 
     var hot = handsontable({
@@ -285,7 +283,7 @@ describe('AutoRowSize', () => {
     });
     var height = parseInt(hot.getCell(2, 0).style.height, 10);
 
-    this.$container.find('table').addClass('big-table');
+    spec().$container.find('table').addClass('big-table');
     hot.getPlugin('autoRowSize').clearCache();
     render();
     expect(parseInt(hot.getCell(2, 0).style.height, 10)).toBeGreaterThan(height);

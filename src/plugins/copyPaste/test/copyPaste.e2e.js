@@ -90,7 +90,7 @@ describe('CopyPaste', () => {
       }
     });
 
-    it('should disable copyPaste only in particular table', function() {
+    it('should disable copyPaste only in particular table', () => {
       const hot1 = handsontable();
       const hot2 = spec().$container2.handsontable({ copyPaste: false }).handsontable('getInstance');
 
@@ -98,7 +98,7 @@ describe('CopyPaste', () => {
       expect(hot2.getPlugin('CopyPaste').focusableElement).toBeUndefined();
     });
 
-    it('should not create HandsontableCopyPaste element until the table will be selected', function() {
+    it('should not create HandsontableCopyPaste element until the table will be selected', () => {
       handsontable();
       spec().$container2.handsontable();
 
@@ -118,7 +118,7 @@ describe('CopyPaste', () => {
       expect(document.activeElement).toBe(hot2.getActiveEditor().TEXTAREA);
     });
 
-    it('should destroy HandsontableCopyPaste element as long as at least one table has copyPaste enabled', function() {
+    it('should destroy HandsontableCopyPaste element as long as at least one table has copyPaste enabled', () => {
       const hot1 = handsontable({editor: false});
       const hot2 = spec().$container2.handsontable({editor: false}).handsontable('getInstance');
 
@@ -136,7 +136,7 @@ describe('CopyPaste', () => {
       expect($('#HandsontableCopyPaste').length).toBe(0);
     });
 
-    it('should not touch focusable element borrowed from cell editors', function() {
+    it('should not touch focusable element borrowed from cell editors', () => {
       const hot1 = handsontable();
       const hot2 = spec().$container2.handsontable().handsontable('getInstance');
 

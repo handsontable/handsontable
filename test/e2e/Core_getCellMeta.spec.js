@@ -145,7 +145,7 @@ describe('Core_getCellMeta', () => {
     expect(_this.instance).toBe(HOT);
   });
 
-  it('should get proper cellProperties when order of displayed rows is different than order of stored data', function() {
+  it('should get proper cellProperties when order of displayed rows is different than order of stored data', () => {
     handsontable({
       data: [
         ['C'],
@@ -164,14 +164,14 @@ describe('Core_getCellMeta', () => {
       }
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(false);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C');
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(true);
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A');
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(true);
 
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('B');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('B');
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
     // Column sorting changes the order of displayed rows while keeping table data unchanged
     updateSettings({
@@ -181,14 +181,14 @@ describe('Core_getCellMeta', () => {
       }
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(true);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A');
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(true);
 
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('B');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(false);
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('B');
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('C');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('C');
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
   });
 
   it('should call `beforeGetCellMeta` plugin hook with visual indexes as parameters', () => {

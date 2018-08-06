@@ -12,7 +12,7 @@ describe('Core_render', () => {
     }
   });
 
-  it('all cells should get green background', function() {
+  it('all cells should get green background', () => {
     function greenCell(instance, td) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.style.backgroundColor = 'green';
@@ -35,13 +35,13 @@ describe('Core_render', () => {
       }
     });
 
-    var $tds = this.$container.find('.htCore tbody td');
+    var $tds = spec().$container.find('.htCore tbody td');
     $tds.each(function() {
       expect(this.style.backgroundColor).toEqual('green');
     });
   });
 
-  it('render should update border dimensions', function() {
+  it('render should update border dimensions', () => {
     var data = [
       ['a', 'b'],
       ['c', 'd']
@@ -59,8 +59,8 @@ describe('Core_render', () => {
     data[1][1] = 'dddddddddddddddddddd';
     render();
 
-    var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
-    expect(this.$container.find('.wtBorder.current').width()).toBeGreaterThan($td.width());
+    var $td = spec().$container.find('.htCore tbody tr:eq(1) td:eq(1)');
+    expect(spec().$container.find('.wtBorder.current').width()).toBeGreaterThan($td.width());
   });
 
   it('should not render table twice', () => {
@@ -79,7 +79,7 @@ describe('Core_render', () => {
     expect(counter).toEqual(2); // 1 from load and 1 from populateFromArray
   });
 
-  it('should run afterRenderer hook', function() {
+  it('should run afterRenderer hook', () => {
     var lastCellProperties;
 
     handsontable({
@@ -94,12 +94,12 @@ describe('Core_render', () => {
       }
     });
 
-    expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('Changed by plugin');
+    expect(spec().$container.find('td:eq(0)')[0].innerHTML).toEqual('Changed by plugin');
     expect(lastCellProperties.row).toEqual(1);
     expect(lastCellProperties.col).toEqual(4);
   });
 
-  it('should run beforeValueRender hook', function() {
+  it('should run beforeValueRender hook', () => {
     handsontable({
       data: [['A1', 'B1']],
       beforeValueRender(value, cellProperties) {
@@ -107,11 +107,11 @@ describe('Core_render', () => {
       }
     });
 
-    expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('Test');
-    expect(this.$container.find('td:eq(1)')[0].innerHTML).toEqual('B1');
+    expect(spec().$container.find('td:eq(0)')[0].innerHTML).toEqual('Test');
+    expect(spec().$container.find('td:eq(1)')[0].innerHTML).toEqual('B1');
   });
 
-  it('should run beforeRenderer hook', function() {
+  it('should run beforeRenderer hook', () => {
     var lastCellProperties;
 
     handsontable({
@@ -123,7 +123,7 @@ describe('Core_render', () => {
     });
 
     // Value is overwritten by text renderer
-    expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('1');
+    expect(spec().$container.find('td:eq(0)')[0].innerHTML).toEqual('1');
     expect(lastCellProperties.row).toEqual(1);
     expect(lastCellProperties.col).toEqual(4);
   });
