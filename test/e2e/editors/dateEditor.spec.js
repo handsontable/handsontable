@@ -331,7 +331,7 @@ describe('DateEditor', () => {
   });
 
   it('should display a calendar based on a current date, even if a date in a wrong format was entered previously', (done) => {
-    const hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       columns: [
         {type: 'date'},

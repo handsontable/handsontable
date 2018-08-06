@@ -28,8 +28,7 @@ describe('ColHeader', () => {
     expect(that.$container.find('thead th').length).toBeGreaterThan(0);
   });
 
-  it('should show default columns headers labelled A-(Z * n)', function() {
-    var that = this;
+  it('should show default columns headers labelled A-(Z * n)', () => {
     var startCols = 5;
 
     handsontable({
@@ -46,8 +45,7 @@ describe('ColHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
-  it('should show default columns headers labelled A-(Z * n) when columns as an array is present', function() {
-    var that = this;
+  it('should show default columns headers labelled A-(Z * n) when columns as an array is present', () => {
     var startCols = 5;
 
     handsontable({
@@ -65,14 +63,13 @@ describe('ColHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
-  it('should show default columns headers labelled A-(Z * n) when columns as a function is present', function() {
-    var that = this;
+  it('should show default columns headers labelled A-(Z * n) when columns as a function is present', () => {
     var startCols = 5;
 
     handsontable({
       startCols,
       colHeaders: true,
-      columns(column) {
+      columns() {
         return {};
       }
     });
@@ -86,8 +83,7 @@ describe('ColHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
-  it('should show col headers with custom label', function() {
-    var that = this;
+  it('should show col headers with custom label', () => {
     var startCols = 5;
     handsontable({
       startCols,
@@ -199,7 +195,7 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to define colHeaders with a function', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders(col) {
         switch (col) {
@@ -220,7 +216,7 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set HTML in colHeaders', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One <input type="checkbox">', 'Two <input type="checkbox">']
     });
@@ -232,7 +228,7 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set colHeaders when columns array is present', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns: [
@@ -248,7 +244,7 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set colHeaders when columns function is present', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns(column) {
@@ -269,7 +265,7 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set colHeaders using columns title property', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns: [
@@ -285,7 +281,7 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set colHeaders using columns title property when columns is a function', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns(column) {
@@ -309,7 +305,7 @@ describe('ColHeader', () => {
   });
 
   it('should resize all the column headers in the overlays, according to the other overlays\' height', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 5,
       colHeaders: ['a', 'a', 'a', 'a<BR>a', 'a'],
       fixedColumnsLeft: 2

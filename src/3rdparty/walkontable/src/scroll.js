@@ -5,7 +5,7 @@ import {
   getScrollTop,
   offset,
 } from './../../../helpers/dom/element';
-import {rangeEach, rangeEachReverse} from './../../../helpers/number';
+import { rangeEach, rangeEachReverse } from './../../../helpers/number';
 
 /**
  * @class Scroll
@@ -196,7 +196,6 @@ class Scroll {
       wtTable,
       wtViewport,
       totalColumns,
-      fixedColumnsLeft,
     } = this._getVariables();
 
     let firstVisibleColumn = wtTable.getFirstVisibleColumn();

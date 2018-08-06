@@ -1,6 +1,6 @@
 import EventManager from './../../eventManager';
 import localHooks from './../../mixins/localHooks';
-import {mixin} from './../../helpers/object';
+import { mixin } from './../../helpers/object';
 
 /**
  * @class FocusableWrapper
@@ -149,7 +149,7 @@ let secondaryElement;
  *
  * @return {HTMLElement}
  */
-function createOrGetSecondaryElement(subject) {
+function createOrGetSecondaryElement() {
   if (secondaryElement) {
 
     if (!secondaryElement.parentElement) {
@@ -174,4 +174,4 @@ function createOrGetSecondaryElement(subject) {
   return element;
 }
 
-export {createElement, deactivateElement, destroyElement};
+export { createElement, deactivateElement, destroyElement };

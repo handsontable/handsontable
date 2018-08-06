@@ -340,7 +340,7 @@ describe('AutoRowSize', () => {
         {data: 'name'}
       ],
       autoRowSize: true,
-      renderer(instance, td, row, col, prop, value, cellProperties) {
+      renderer(instance, td, row, col) {
         // taken from demo/renderers.html
         Handsontable.renderers.TextRenderer.apply(this, arguments);
 
@@ -464,7 +464,7 @@ describe('AutoRowSize', () => {
   });
 
   it('should resize the column headers properly, according the their content sizes', () => {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(30, 30),
       colHeaders(index) {
         if (index === 22) {

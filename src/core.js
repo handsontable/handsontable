@@ -1,34 +1,42 @@
-import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
-import {columnFactory} from './helpers/setting';
-import {isFunction} from './helpers/function';
-import {warn} from './helpers/console';
-import {isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty} from './helpers/mixed';
-import {isMobileBrowser} from './helpers/browser';
+import { addClass, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
+import { columnFactory} from './helpers/setting';
+import { isFunction} from './helpers/function';
+import { warn} from './helpers/console';
+import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
+import { isMobileBrowser } from './helpers/browser';
 import DataMap from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
-import {deepClone, duckSchema, extend, isObject, isObjectEqual, deepObjectSize, hasOwnProperty, createObjectPropListener} from './helpers/object';
-import {arrayFlatten, arrayMap, arrayEach, arrayReduce} from './helpers/array';
-import {toSingleLine} from './helpers/templateLiteralTag';
-import {getPlugin} from './plugins';
-import {getRenderer} from './renderers';
-import {getValidator} from './validators';
-import {randomString} from './helpers/string';
-import {rangeEach, rangeEachReverse} from './helpers/number';
+import {
+  deepClone,
+  duckSchema,
+  extend, isObject,
+  isObjectEqual,
+  deepObjectSize,
+  hasOwnProperty,
+  createObjectPropListener
+} from './helpers/object';
+import { arrayFlatten, arrayMap, arrayEach, arrayReduce } from './helpers/array';
+import { toSingleLine } from './helpers/templateLiteralTag';
+import { getPlugin } from './plugins';
+import { getRenderer } from './renderers';
+import { getValidator } from './validators';
+import { randomString } from './helpers/string';
+import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
-import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
-import {getTranslator} from './utils/recordTranslator';
-import {registerAsRootInstance, hasValidParameter, isRootInstance} from './utils/rootInstance';
-import {CellCoords, CellRange, ViewportColumnsCalculator} from './3rdparty/walkontable/src';
+import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
+import { getTranslator} from './utils/recordTranslator';
+import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
+import {CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
-import {getCellType} from './cellTypes';
-import {getTranslatedPhrase} from './i18n';
-import {hasLanguageDictionary} from './i18n/dictionariesManager';
-import {warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLanguageCode} from './i18n/utils';
-import {startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving} from './utils/keyStateObserver';
-import {Selection} from './selection';
+import { getCellType } from './cellTypes';
+import { getTranslatedPhrase } from './i18n';
+import { hasLanguageDictionary } from './i18n/dictionariesManager';
+import { warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLanguageCode } from './i18n/utils';
+import { startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving } from './utils/keyStateObserver';
+import { Selection } from './selection';
 
 let activeGuid = null;
 
@@ -624,11 +632,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       var repeatCol,
         repeatRow,
         cmax,
-        rmax,
-        baseEnd = {
-          row: end === null ? null : end.row,
-          col: end === null ? null : end.col
-        };
+        rmax;
 
       /* eslint-disable no-case-declarations */
       // insert data with specified pasteMode method
@@ -855,8 +859,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
         this.checkIfQueueIsEmpty();
       },
-      onQueueEmpty(valid) {
-      },
+      onQueueEmpty() { },
       checkIfQueueIsEmpty() {
         if (this.validatorsInQueue == 0 && resolved == false) {
           resolved = true;
@@ -1272,8 +1275,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
    * @param {...Number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
    */
-  this.spliceCol = function(column, index, amount/* , elements... */) {
-    return datamap.spliceCol(...arguments);
+  this.spliceCol = function(column, index, amount, ...elements) {
+    return datamap.spliceCol(column, index, amount, ...elements);
   };
 
   /**
@@ -1286,8 +1289,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
    * @param {...Number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
    */
-  this.spliceRow = function(row, index, amount/* , elements... */) {
-    return datamap.spliceRow(...arguments);
+  this.spliceRow = function(row, index, amount, ...elements) {
+    return datamap.spliceRow(row, index, amount, ...elements);
   };
 
   /**

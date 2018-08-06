@@ -4,8 +4,8 @@ import {
   isChildOf,
   getParent,
 } from './../../../helpers/dom/element';
-import {partial} from './../../../helpers/function';
-import {isMobileBrowser} from './../../../helpers/browser';
+import { partial } from './../../../helpers/function';
+import { isMobileBrowser } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 
 /**
@@ -202,7 +202,7 @@ function Event(instance) {
     if (!that.instance.momentumScrolling) {
       that.instance.momentumScrolling = {};
     }
-    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', (event) => {
+    eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', () => {
       clearTimeout(that.instance.momentumScrolling._timeout);
 
       if (!that.instance.momentumScrolling.ongoing) {

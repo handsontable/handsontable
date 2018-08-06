@@ -29,7 +29,6 @@ describe('RowHeader', () => {
   });
 
   it('should show row headers numbered 1-10 by default', function() {
-    var that = this;
     var startRows = 5;
     handsontable({
       startRows,
@@ -46,7 +45,6 @@ describe('RowHeader', () => {
   });
 
   it('should show row headers with custom label', function() {
-    var that = this;
     var startRows = 5;
     handsontable({
       startRows,
@@ -63,7 +61,6 @@ describe('RowHeader', () => {
   });
 
   it('should not show row headers if false', function() {
-    var that = this;
     handsontable({
       rowHeaders: false
     });
@@ -158,7 +155,7 @@ describe('RowHeader', () => {
   });
 
   it('should allow defining custom row header width using the rowHeaderWidth config option', function() {
-    var hot = handsontable({
+    handsontable({
       startCols: 3,
       rowHeaders: true,
       rowHeaderWidth: 150

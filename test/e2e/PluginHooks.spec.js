@@ -265,13 +265,13 @@ describe('PluginHooks', () => {
 
     hot.updateSettings({
       afterGetCellMeta: function() {
-        var a = 'another function';
+        return { a: 'another function' };
       }
     });
 
     hot.updateSettings({
       afterGetCellMeta: function() {
-        var a = 'yet another function';
+        return { a: 'yet another function' };
       }
     });
 
@@ -300,13 +300,13 @@ describe('PluginHooks', () => {
 
     hot.updateSettings({
       afterGetCellMeta: function() {
-        var a = 'another function';
+        return { a: 'another function' };
       }
     });
 
     hot.updateSettings({
       afterGetCellMeta: function() {
-        var a = 'yet another function';
+        return { a: 'yet another function' };
       }
     });
 
@@ -330,11 +330,11 @@ describe('PluginHooks', () => {
     var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
 
     hot.addHook('afterGetCellMeta', function() {
-      var a = 'another function';
+      return { a: 'another function' };
     });
 
     hot.addHook('afterGetCellMeta', function() {
-      var a = 'yet another function';
+      return { a: 'yet another function' };
     });
 
     hot.addHook('afterGetCellMeta', fn2);

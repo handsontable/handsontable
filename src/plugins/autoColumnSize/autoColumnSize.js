@@ -1,14 +1,14 @@
 import BasePlugin from './../_base';
-import {arrayEach, arrayFilter, arrayReduce, arrayMap} from './../../helpers/array';
-import {cancelAnimationFrame, requestAnimationFrame} from './../../helpers/feature';
-import {isVisible} from './../../helpers/dom/element';
+import { arrayEach, arrayFilter, arrayReduce, arrayMap } from './../../helpers/array';
+import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
+import { isVisible} from './../../helpers/dom/element';
 import GhostTable from './../../utils/ghostTable';
-import {isObject, objectEach, hasOwnProperty} from './../../helpers/object';
-import {valueAccordingPercent, rangeEach} from './../../helpers/number';
-import {registerPlugin} from './../../plugins';
+import { isObject, hasOwnProperty } from './../../helpers/object';
+import { valueAccordingPercent, rangeEach } from './../../helpers/number';
+import { registerPlugin } from './../../plugins';
 import SamplesGenerator from './../../utils/samplesGenerator';
-import {isPercentValue} from './../../helpers/string';
-import {ViewportColumnsCalculator} from './../../3rdparty/walkontable/src';
+import { isPercentValue } from './../../helpers/string';
+import { ViewportColumnsCalculator } from './../../3rdparty/walkontable/src';
 
 const privatePool = new WeakMap();
 
@@ -491,7 +491,7 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    const changedColumns = arrayMap(changes, ([row, column]) => this.hot.propToCol(column));
+    const changedColumns = arrayMap(changes, ([, column]) => this.hot.propToCol(column));
 
     this.clearCache(changedColumns);
   }

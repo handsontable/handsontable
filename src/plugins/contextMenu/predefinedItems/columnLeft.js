@@ -1,4 +1,4 @@
-import {getValidSelection} from './../utils';
+import { getValidSelection } from './../utils';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'col_left';
@@ -23,7 +23,7 @@ export default function columnLeftItem() {
       if (!this.isColumnModificationAllowed()) {
         return true;
       }
-      const [startRow, startColumn, endRow, endColumn] = selected[0];
+      const [startRow, startColumn, endRow] = selected[0];
       const entireRowSelection = [startRow, 0, endRow, this.countCols() - 1];
       const rowSelected = entireRowSelection.join(',') === selected.join(',');
       const onlyOneColumn = this.countCols() === 1;

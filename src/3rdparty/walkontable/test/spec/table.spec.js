@@ -507,16 +507,15 @@ describe('WalkontableTable', () => {
       createDataArray(50, 50);
       $wrapper.width(500).height(400);
 
-      var count = 0,
-        wt = new Walkontable.Core({
-          table: $table[0],
-          data: getData,
-          totalRows: getTotalRows,
-          totalColumns: getTotalColumns,
-          columnWidth: 70,
-          fixedColumnsLeft: 2,
-          columnHeaders: [function(col, TH) {}]
-        });
+      var wt = new Walkontable.Core({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnWidth: 70,
+        fixedColumnsLeft: 2,
+        columnHeaders: [function() {}]
+      });
       wt.draw();
 
       expect($('.ht_clone_top_left_corner thead tr th').eq(0).css('border-left-width')).toBe('1px');

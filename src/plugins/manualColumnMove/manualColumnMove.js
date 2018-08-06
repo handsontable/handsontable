@@ -1,14 +1,13 @@
 import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
-import {arrayEach} from './../../helpers/array';
-import {addClass, removeClass, offset} from './../../helpers/dom/element';
-import {rangeEach} from './../../helpers/number';
+import { arrayEach } from './../../helpers/array';
+import { addClass, removeClass, offset } from './../../helpers/dom/element';
+import { rangeEach } from './../../helpers/number';
 import EventManager from './../../eventManager';
 import {registerPlugin} from './../../plugins';
 import ColumnsMapper from './columnsMapper';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
-import {CellCoords} from './../../3rdparty/walkontable/src';
 
 import './manualColumnMove.css';
 

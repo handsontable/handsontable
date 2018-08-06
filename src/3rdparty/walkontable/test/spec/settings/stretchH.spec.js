@@ -198,7 +198,6 @@ describe('stretchH option', () => {
     });
     wt.draw();
 
-    var wtHider = $table.parents('.wtHider');
     expect($table.width()).toBeLessThan($wrapper.width());
     expect($table.find('col:eq(1)').width()).toBe($table.find('col:eq(2)').width());
   });

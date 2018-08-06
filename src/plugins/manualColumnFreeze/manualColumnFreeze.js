@@ -1,6 +1,6 @@
 import BasePlugin from './../_base';
-import {registerPlugin} from './../../plugins';
-import {arrayEach} from './../../helpers/array';
+import { registerPlugin } from './../../plugins';
+import { arrayEach } from './../../helpers/array';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 
@@ -231,7 +231,7 @@ class ManualColumnFreeze extends BasePlugin {
       let disallowMoving = target < frozenLen;
 
       if (!disallowMoving) {
-        arrayEach(rows, (value, index, array) => {
+        arrayEach(rows, (value) => {
           if (value < frozenLen) {
             disallowMoving = true;
             return false;

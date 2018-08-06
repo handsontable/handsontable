@@ -14,7 +14,7 @@ describe('ContextMenu', function () {
 
   describe('alignment', function() {
     it('should align text left', function (done) {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -37,7 +37,7 @@ describe('ContextMenu', function () {
     });
 
     it('should align text center', function (done) {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -60,7 +60,7 @@ describe('ContextMenu', function () {
     });
 
     it('should align text right', function (done) {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -83,7 +83,7 @@ describe('ContextMenu', function () {
     });
 
     it('should justify text', function (done) {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -107,7 +107,7 @@ describe('ContextMenu', function () {
     });
 
     it('should vertical align text top', function (done) {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -131,7 +131,7 @@ describe('ContextMenu', function () {
     });
 
     it('should vertical align text middle', function (done) {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -155,7 +155,7 @@ describe('ContextMenu', function () {
     });
 
     it('should vertical align text bottom', function (done) {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
@@ -178,7 +178,7 @@ describe('ContextMenu', function () {
 
     it('should trigger `afterSetCellMeta` callback after changing alignment by context menu', function (done) {
       var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,

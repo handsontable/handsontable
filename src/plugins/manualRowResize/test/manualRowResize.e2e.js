@@ -25,7 +25,7 @@ describe('manualRowResize', () => {
   });
 
   it('should be enabled after specifying it in updateSettings config', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         {id: 1, name: 'Ted', lastName: 'Right'},
         {id: 2, name: 'Frank', lastName: 'Honest'},
@@ -320,7 +320,7 @@ describe('manualRowResize', () => {
   });
 
   it('should resize (expanding and narrowing) selected rows', function(done) {
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       rowHeaders: true,
       manualRowResize: true
@@ -364,7 +364,7 @@ describe('manualRowResize', () => {
 
   describe('handle and guide', () => {
     it('should display the resize handle in the proper position and with a proper size', function() {
-      var hot = handsontable({
+      handsontable({
         data: [
           {id: 1, name: 'Ted', lastName: 'Right'},
           {id: 2, name: 'Frank', lastName: 'Honest'},

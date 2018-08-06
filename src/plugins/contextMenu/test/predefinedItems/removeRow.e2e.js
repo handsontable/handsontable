@@ -14,7 +14,7 @@ describe('ContextMenu', function () {
 
   describe('remove rows', function() {
     it('should execute action when single cell is selected', async function() {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         contextMenu: true,
       });
@@ -33,7 +33,7 @@ describe('ContextMenu', function () {
     });
 
     it('should execute action when range of the cells are selected', async function() {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         contextMenu: true,
       });
@@ -52,7 +52,7 @@ describe('ContextMenu', function () {
     });
 
     it('should execute action when multiple cells are selected', async function() {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(8, 5),
         contextMenu: true,
       });

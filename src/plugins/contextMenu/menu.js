@@ -134,7 +134,7 @@ class Menu {
       fragmentSelection: 'cell',
       disableVisualSelection: 'area',
       beforeKeyDown: (event) => this.onBeforeKeyDown(event),
-      afterOnCellMouseOver: (event, coords, TD) => {
+      afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
         } else {

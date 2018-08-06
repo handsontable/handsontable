@@ -488,7 +488,7 @@ describe('manualRowMove', () => {
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true,
-        afterRowMove(rows, target) {
+        afterRowMove(rows) {
           cache.push(rows);
         }
       });
@@ -615,10 +615,10 @@ describe('manualRowMove', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         rowHeaders: true,
         manualRowMove: true,
-        beforeRowMove: (rows, target) => {
+        beforeRowMove: (rows) => {
           rowsParameterInsideBeforeRowMoveCallback = rows;
         },
-        afterRowMove: (rows, target) => {
+        afterRowMove: (rows) => {
           rowsParameterInsideAfterRowMoveCallback = rows;
         }
       });

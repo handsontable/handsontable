@@ -1,6 +1,6 @@
-import {CellRange} from './../3rdparty/walkontable/src';
-import {arrayEach, arrayReduce, arrayMap} from './../helpers/array';
-import {isUndefined} from './../helpers/mixed';
+import { CellRange } from './../3rdparty/walkontable/src';
+import { arrayEach, arrayReduce } from './../helpers/array';
+import { isUndefined } from './../helpers/mixed';
 
 export const SELECTION_TYPE_UNRECOGNIZED = 0;
 export const SELECTION_TYPE_EMPTY = 1;

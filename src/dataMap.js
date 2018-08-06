@@ -1,12 +1,11 @@
 import SheetClip from './../lib/SheetClip/SheetClip.js';
-import {cellMethodLookupFactory} from './helpers/data';
-import {columnFactory} from './helpers/setting';
-import {createObjectPropListener, duckSchema, deepExtend, deepClone, isObject, deepObjectSize, hasOwnProperty} from './helpers/object';
-import {extendArray, to2dArray} from './helpers/array';
+import { cellMethodLookupFactory } from './helpers/data';
+import { columnFactory } from './helpers/setting';
+import { createObjectPropListener, duckSchema, deepExtend, deepClone, isObject, deepObjectSize, hasOwnProperty } from './helpers/object';
+import { extendArray, to2dArray } from './helpers/array';
 import Interval from './utils/interval';
-import {rangeEach} from './helpers/number';
+import { rangeEach } from './helpers/number';
 import MultiMap from './multiMap';
-import Hooks from './pluginHooks';
 
 /**
  * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names

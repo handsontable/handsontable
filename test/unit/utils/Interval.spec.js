@@ -22,7 +22,7 @@ describe('Interval', () => {
 
   it('should create interval object which is stopped by default', (done) => {
     var spy = jasmine.createSpy();
-    var i = Interval.create(spy);
+    Interval.create(spy);
 
     setTimeout(() => {
       expect(spy).not.toHaveBeenCalled();

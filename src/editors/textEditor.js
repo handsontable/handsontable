@@ -3,7 +3,6 @@ import {
   getCaretPosition,
   getComputedStyle,
   getCssTransform,
-  getScrollableElement,
   getScrollbarWidth,
   innerWidth,
   offset,
@@ -13,11 +12,10 @@ import {
   hasHorizontalScrollbar
 } from './../helpers/dom/element';
 import autoResize from './../../lib/autoResize/autoResize';
-import BaseEditor, {EditorState} from './_baseEditor';
+import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
-import {KEY_CODES} from './../helpers/unicode';
-import {isMSBrowser} from './../helpers/browser';
-import {stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
+import { KEY_CODES } from './../helpers/unicode';
+import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
 
 const TextEditor = BaseEditor.prototype.extend();
 
@@ -89,7 +87,7 @@ TextEditor.prototype.setValue = function(newValue) {
   this.TEXTAREA.value = newValue;
 };
 
-TextEditor.prototype.beginEditing = function(newInitialValue, event) {
+TextEditor.prototype.beginEditing = function() {
   if (this.state !== EditorState.VIRGIN) {
     return;
   }
@@ -197,7 +195,7 @@ TextEditor.prototype.open = function() {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 };
 
-TextEditor.prototype.close = function(tdOutside) {
+TextEditor.prototype.close = function() {
   this.autoResize.unObserve();
 
   if (document.activeElement === this.TEXTAREA) {
@@ -326,7 +324,6 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
   const editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
 
   const settings = this.instance.getSettings();
-  const rowHeadersCount = this.instance.hasRowHeaders();
   const colHeadersCount = this.instance.hasColHeaders();
   const backgroundColor = this.TD.style.backgroundColor;
 

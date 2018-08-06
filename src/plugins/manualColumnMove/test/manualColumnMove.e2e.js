@@ -287,7 +287,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should move the second column to the first column', function() {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true
@@ -449,10 +449,10 @@ describe('manualColumnMove', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true,
-        beforeColumnMove: (columns, target) => {
+        beforeColumnMove: (columns) => {
           columnsParameterInsideBeforeColumnMoveCallback = columns;
         },
-        afterColumnMove: (columns, target) => {
+        afterColumnMove: (columns) => {
           columnsParameterInsideAfterColumnMoveCallback = columns;
         }
       });

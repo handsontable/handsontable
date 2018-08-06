@@ -81,7 +81,7 @@ describe('Core_getCellMeta', () => {
     handsontable({
       cells() {
         return {
-          renderer(instance, td, row, col, prop, value, cellProperties) {
+          renderer(instance, td) {
             // taken from demo/renderers.html
             Handsontable.renderers.TextRenderer.apply(this, arguments);
             $(td).css({
@@ -110,7 +110,7 @@ describe('Core_getCellMeta', () => {
         if (row === 2 && col === 2) {
           return {
             type: 'checkbox',
-            renderer(instance, td, row, col, prop, value, cellProperties) {
+            renderer(instance, td) {
               // taken from demo/renderers.html
               Handsontable.renderers.TextRenderer.apply(this, arguments);
 
@@ -131,7 +131,7 @@ describe('Core_getCellMeta', () => {
       _this;
 
     handsontable({
-      cells(row, col, prop) {
+      cells(row) {
         called++;
         _row = row;
         _this = this;
@@ -146,14 +146,14 @@ describe('Core_getCellMeta', () => {
   });
 
   it('should get proper cellProperties when order of displayed rows is different than order of stored data', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         ['C'],
         ['A'],
         ['B']
       ],
       minSpareRows: 1,
-      cells(row, col, prop) {
+      cells(row, col) {
         var cellProperties = {};
 
         if (getSourceData()[row][col] === 'A') {

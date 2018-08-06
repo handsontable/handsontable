@@ -166,7 +166,7 @@ describe('AutoFill', () => {
   });
 
   it('should work properly when using updateSettings', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
         [7, 8, 9, 1, 2, 3],
@@ -300,8 +300,6 @@ describe('AutoFill', () => {
     var $table = $('<table><tr><td></td></tr></table>').appendTo('body');
     this.$container.appendTo($table.find('td'));
 
-    var ev;
-
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -326,7 +324,7 @@ describe('AutoFill', () => {
     document.body.removeChild($table[0]);
   });
   it('should fill cells below until the end of content in the neighbouring column with current cell\'s data', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -351,7 +349,7 @@ describe('AutoFill', () => {
   });
 
   it('should fill cells below until the end of content in the neighbouring column with the currently selected area\'s data', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -619,7 +617,7 @@ describe('AutoFill', () => {
   });
 
   it('should fill cells when dragging the handle to the headers', function() {
-    var hot = handsontable({
+    handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -781,7 +779,7 @@ describe('AutoFill', () => {
   });
 
   it('should populate the filled data in the correct order, when dragging the fill handle upwards', function() {
-    const hot = handsontable({
+    handsontable({
       data: [
         [null, null, null, null],
         [null, null, null, null],
@@ -804,7 +802,7 @@ describe('AutoFill', () => {
   });
 
   it('should populate the filled data in the correct order, when dragging the fill handle towards left', function() {
-    const hot = handsontable({
+    handsontable({
       data: [
         [null, null, null, null, null, null, null, null],
         [null, null, null, null, null, 0, 1, 2],

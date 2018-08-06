@@ -30,13 +30,11 @@ describe('AutocompleteEditor', () => {
           }
         ]
       });
-      selectCell(0, 0);
-      var editor = $('.autocompleteEditor');
 
+      selectCell(0, 0);
       expect(isEditorVisible()).toBe(false);
 
       keyDownUp('enter');
-
       expect(isEditorVisible()).toBe(true);
     });
 
@@ -49,13 +47,11 @@ describe('AutocompleteEditor', () => {
           }
         ]
       });
-      selectCell(0, 0);
-      var editor = $('.autocompleteEditor');
 
+      selectCell(0, 0);
       expect(isEditorVisible()).toBe(false);
 
       keyDownUp('f2');
-
       expect(isEditorVisible()).toBe(true);
     });
 
@@ -68,13 +64,11 @@ describe('AutocompleteEditor', () => {
           }
         ]
       });
-      selectCell(0, 0);
-      var editor = $('.autocompleteEditor');
 
+      selectCell(0, 0);
       expect(isEditorVisible()).toBe(false);
 
       mouseDoubleClick($(getCell(0, 0)));
-
       expect(isEditorVisible()).toBe(true);
     });
 
@@ -83,7 +77,7 @@ describe('AutocompleteEditor', () => {
       var spy = jasmine.createSpyObj('error', ['test']);
       var prevError = window.onerror;
 
-      window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+      window.onerror = function() {
         spy.test();
       };
       handsontable({
@@ -352,7 +346,7 @@ describe('AutocompleteEditor', () => {
         process(['long text', 'even longer text', 'extremely long text in the suggestion list', 'short text', 'text', 'another', 'yellow', 'black']);
       });
 
-      var hot = handsontable({
+      handsontable({
         colWidths: [200],
         columns: [
           {
@@ -442,7 +436,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('should not display all the choices from a long source list and not leave any unused space in the dropdown', async () => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -528,7 +522,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('should display the dropdown above the editor, when there is not enough space below the cell AND there is more space above the cell', (done) => {
-      var hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         columns: [
           {
@@ -666,12 +660,10 @@ describe('AutocompleteEditor', () => {
 
     it('should call `afterChange` hook with proper value types - test no. 1 #4143', (done) => {
       let changesInside;
-      let sourceInside;
 
       const afterChange = (changes, source) => {
         if (source !== 'loadData') {
           changesInside = changes;
-          sourceInside = source;
         }
       };
 
@@ -697,12 +689,10 @@ describe('AutocompleteEditor', () => {
 
     it('should call `afterChange` hook with proper value types - test no. 2 #4143', (done) => {
       let changesInside;
-      let sourceInside;
 
       const afterChange = (changes, source) => {
         if (source !== 'loadData') {
           changesInside = changes;
-          sourceInside = source;
         }
       };
 
@@ -911,7 +901,7 @@ describe('AutocompleteEditor', () => {
         process(choices.filter((choice) => choice.indexOf(query) != -1));
       };
 
-      var hot = handsontable({
+      handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -2167,7 +2157,7 @@ describe('AutocompleteEditor', () => {
     var choices = [
       'Wayne', 'Draven', 'Banner', 'Stark', 'Parker', 'Kent', 'Gordon', 'Kyle', 'Simmons'
     ];
-    var hot = handsontable({
+    handsontable({
       columns: [
         {
           editor: 'autocomplete',
@@ -2274,7 +2264,6 @@ describe('AutocompleteEditor', () => {
 
   it('should handle editor if cell data is a function', (done) => {
     spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').and.callThrough();
-    var updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
     var afterValidateCallback = jasmine.createSpy('afterValidateCallbak');
 
     var hot = handsontable({
@@ -2522,7 +2511,6 @@ describe('AutocompleteEditor', () => {
     selectCell(0, 0);
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    var dropdown = hot.getActiveEditor().htContainer;
     var dropdownHolder = hot.getActiveEditor().htEditor.view.wt.wtTable.holder;
 
     setTimeout(() => {

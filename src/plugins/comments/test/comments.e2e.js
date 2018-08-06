@@ -79,7 +79,7 @@ describe('Comments', () => {
 
   describe('Styling', () => {
     it('should display comment indicators in the appropriate cells', () => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         cell: [
@@ -381,7 +381,7 @@ describe('Comments', () => {
     });
 
     it('should remove the comment from a cell after clicking the "Delete comment" entry', () => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
@@ -405,7 +405,7 @@ describe('Comments', () => {
     });
 
     it('should remove comments from a selected group of cells after clicking the "Delete comment" entry', () => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,

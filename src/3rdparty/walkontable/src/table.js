@@ -9,9 +9,8 @@ import {
   overlayContainsElement,
   closest
 } from './../../../helpers/dom/element';
-import {isFunction} from './../../../helpers/function';
+import { isFunction } from './../../../helpers/function';
 import CellCoords from './cell/coords';
-import CellRange from './cell/range';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 import TableRenderer from './tableRenderer';

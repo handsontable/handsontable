@@ -155,7 +155,7 @@ describe('HandsontableEditor', () => {
     var spy = jasmine.createSpyObj('error', ['test']);
     var prevError = window.onerror;
 
-    window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+    window.onerror = function() {
       spy.test();
     };
     handsontable({

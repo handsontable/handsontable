@@ -1,6 +1,5 @@
 import EventManager from '../eventManager';
-import {isCtrlMetaKey, isKey} from '../helpers/unicode';
-import {arrayEach, arrayReduce} from '../helpers/array';
+import { isCtrlMetaKey, isKey } from '../helpers/unicode';
 
 const eventManager = new EventManager();
 const pressedKeys = new Set();

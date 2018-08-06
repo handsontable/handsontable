@@ -41,7 +41,6 @@
     "no-trailing-spaces": 2,
     "no-undef": 0,
     "no-underscore-dangle": 0,
-    "no-unused-vars": 1,
     "no-restricted-globals": [
       2,
       "Handsontable",
