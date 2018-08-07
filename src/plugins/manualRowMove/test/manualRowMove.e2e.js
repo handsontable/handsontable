@@ -541,7 +541,7 @@ describe('manualRowMove', () => {
         rowHeaders: true,
         manualRowMove: true,
         cells(row, col) {
-          if (row == 1 && col == 0) {
+          if (row === 1 && col === 0) {
             this.readOnly = true;
           }
         }
