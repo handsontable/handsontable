@@ -28,7 +28,7 @@ import './filters.css';
  * @description
  * The plugin allows filtering the table data either by the built-in component or with the API.
  *
- * See [the filtering demo](https://docs.handsontable.com/demo-filtering.html) for examples.
+ * See [the filtering demo](https://docs.handsontable.com/pro/demo-filtering.html) for examples.
  *
  * @example
  * ```
