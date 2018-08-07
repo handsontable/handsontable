@@ -152,7 +152,7 @@ describe('manualColumnMove', () => {
     });
 
     xit('should not run moving ui if mousedown was fired on sorting element', function() {
-      var hot = handsontable({
+      handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
         manualColumnMove: true,
@@ -172,6 +172,26 @@ describe('manualColumnMove', () => {
 
       var displayProp = $backlight.currentStyle ? $backlight.currentStyle.display : getComputedStyle($backlight, null).display;
       expect(displayProp).toEqual('none');
+    });
+
+    xit('should run moving ui if mousedown was fired on sorting element when sort header action is not enabled', function() {
+      handsontable({
+        data: singleColumnSortingData(),
+        colHeaders: true,
+        manualColumnMove: true,
+        columnSorting: {
+          headerAction: false
+        }
+      });
+
+      var $headerTH = this.$container.find('thead tr:eq(0) th:eq(6)');
+      var $summaryElement = $headerTH.find('.columnSorting');
+
+      $summaryElement.simulate('mousedown');
+
+      var $backlight = this.$container.find('.ht__manualColumnMove--backlight');
+
+      expect($backlight.length).toBe(0);
     });
   });
 });
