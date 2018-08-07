@@ -12,9 +12,9 @@ describe('Core_view', () => {
     }
   });
 
-  it('should focus cell after viewport is scrolled using down arrow', function() {
-    this.$container[0].style.width = '400px';
-    this.$container[0].style.height = '60px';
+  it('should focus cell after viewport is scrolled using down arrow', () => {
+    spec().$container[0].style.width = '400px';
+    spec().$container[0].style.height = '60px';
 
     handsontable({
       startRows: 20
@@ -56,10 +56,10 @@ describe('Core_view', () => {
     expect(scrollableElement.scrollTop).toBeGreaterThan(initialScrollTop);
   });
 
-  it('should not render "undefined" class name', function() {
-    this.$container[0].style.width = '501px';
-    this.$container[0].style.height = '100px';
-    this.$container[0].style.overflow = 'hidden';
+  it('should not render "undefined" class name', () => {
+    spec().$container[0].style.width = '501px';
+    spec().$container[0].style.height = '100px';
+    spec().$container[0].style.overflow = 'hidden';
 
     handsontable({
       startRows: 10,
@@ -72,12 +72,12 @@ describe('Core_view', () => {
 
     selectCell(0, 0);
 
-    expect(this.$container.find('.undefined').length).toBe(0);
+    expect(spec().$container.find('.undefined').length).toBe(0);
   });
 
-  it('should scroll viewport when partially visible cell is clicked', function() {
-    this.$container[0].style.width = '400px';
-    this.$container[0].style.height = '60px';
+  it('should scroll viewport when partially visible cell is clicked', () => {
+    spec().$container[0].style.width = '400px';
+    spec().$container[0].style.height = '60px';
 
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 3),
@@ -88,8 +88,8 @@ describe('Core_view', () => {
     var scrollTop = hot.rootElement.querySelector('.wtHolder').scrollTop;
 
     expect(scrollTop).toBe(0);
-    expect(this.$container.height()).toEqual(60);
-    expect(this.$container.find('.wtHolder .wtHider').height()).toBeGreaterThan(60);
+    expect(spec().$container.height()).toEqual(60);
+    expect(spec().$container.find('.wtHolder .wtHider').height()).toBeGreaterThan(60);
 
     expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
@@ -101,8 +101,8 @@ describe('Core_view', () => {
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
   });
 
-  it('should scroll viewport without cell selection', function() {
-    this.$container[0].style.width = '400px';
+  it('should scroll viewport without cell selection', () => {
+    spec().$container[0].style.width = '400px';
 
     var hot1 = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 20),
@@ -111,15 +111,15 @@ describe('Core_view', () => {
 
     hot1.scrollViewportTo(10, 10);
 
-    var wtHolder = this.$container.find('.ht_master .wtHolder');
+    var wtHolder = spec().$container.find('.ht_master .wtHolder');
 
     expect(wtHolder[0].scrollTop).toEqual(230);
     expect(wtHolder[0].scrollLeft).toEqual(500);
 
   });
 
-  it('should not throw error while scrolling viewport to 0, 0 (empty data)', function() {
-    this.$container[0].style.width = '400px';
+  it('should not throw error while scrolling viewport to 0, 0 (empty data)', () => {
+    spec().$container[0].style.width = '400px';
 
     var hot1 = handsontable({
       data: [],
@@ -131,8 +131,8 @@ describe('Core_view', () => {
     }).not.toThrow();
   });
 
-  it('should throw error while scrolling viewport below 0 (empty data)', function() {
-    this.$container[0].style.width = '400px';
+  it('should throw error while scrolling viewport below 0 (empty data)', () => {
+    spec().$container[0].style.width = '400px';
 
     var hot1 = handsontable({
       data: [],
@@ -144,9 +144,9 @@ describe('Core_view', () => {
     expect(hot1.view.scrollViewport({row: -1, col: -1})).toBe(false);
   });
 
-  it('should scroll viewport, respecting fixed rows', function() {
-    this.$container[0].style.width = '400px';
-    this.$container[0].style.height = '60px';
+  it('should scroll viewport, respecting fixed rows', () => {
+    spec().$container[0].style.width = '400px';
+    spec().$container[0].style.height = '60px';
 
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 9),
@@ -172,9 +172,9 @@ describe('Core_view', () => {
     expect(hot.rootElement.querySelector('.wtHolder').scrollTop).toBeGreaterThan(scrollTop);
   });
 
-  it('should enable to change fixedRowsTop with updateSettings', function() {
-    this.$container[0].style.width = '400px';
-    this.$container[0].style.height = '60px';
+  it('should enable to change fixedRowsTop with updateSettings', () => {
+    spec().$container[0].style.width = '400px';
+    spec().$container[0].style.height = '60px';
 
     var HOT = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 9),
@@ -218,9 +218,9 @@ describe('Core_view', () => {
     expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
   });
 
-  it('should scroll viewport, respecting fixed columns', function() {
-    this.$container[0].style.width = '200px';
-    this.$container[0].style.height = '100px';
+  it('should scroll viewport, respecting fixed columns', () => {
+    spec().$container[0].style.width = '200px';
+    spec().$container[0].style.height = '100px';
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 9),
@@ -228,7 +228,7 @@ describe('Core_view', () => {
     });
 
     var htCore = getHtCore();
-    var leftClone = this.$container.find('.ht_clone_left');
+    var leftClone = spec().$container.find('.ht_clone_left');
 
     expect(leftClone.find('tr:eq(0) td').length).toEqual(1);
     expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
@@ -252,9 +252,9 @@ describe('Core_view', () => {
 
   });
 
-  it('should enable to change fixedColumnsLeft with updateSettings', function() {
-    this.$container[0].style.width = '200px';
-    this.$container[0].style.height = '100px';
+  it('should enable to change fixedColumnsLeft with updateSettings', () => {
+    spec().$container[0].style.width = '200px';
+    spec().$container[0].style.height = '100px';
 
     var HOT = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 9),
@@ -263,7 +263,7 @@ describe('Core_view', () => {
 
     selectCell(0, 0);
 
-    var leftClone = this.$container.find('.ht_clone_left');
+    var leftClone = spec().$container.find('.ht_clone_left');
 
     expect(leftClone.find('tr:eq(0) td').length).toEqual(1);
     expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
@@ -315,37 +315,36 @@ describe('Core_view', () => {
     expect($(window).scrollTop()).toEqual(lastScroll);
   });
 
-  it('should not shrink table when width and height is not specified for container', function(done) {
+  it('should not shrink table when width and height is not specified for container', async () => {
     var initHeight;
 
-    this.$container[0].style.overflow = 'hidden';
-    this.$container.wrap('<div style="width: 50px;"></div>');
+    spec().$container[0].style.overflow = 'hidden';
+    spec().$container.wrap('<div style="width: 50px;"></div>');
     handsontable({
       startRows: 10,
       startCols: 10
     });
 
-    setTimeout(() => {
-      initHeight = spec().$container.height();
-    }, 250);
+    await sleep(250);
 
-    setTimeout(() => {
-      expect(spec().$container.height()).toEqual(initHeight);
-      done();
-    }, 500);
+    initHeight = spec().$container.height();
+
+    await sleep(250);
+
+    expect(spec().$container.height()).toEqual(initHeight);
   });
 
-  it('should allow height to be a number', function() {
+  it('should allow height to be a number', () => {
     handsontable({
       startRows: 10,
       startCols: 10,
       height: 107
     });
 
-    expect(this.$container.height()).toEqual(107);
+    expect(spec().$container.height()).toEqual(107);
   });
 
-  it('should allow height to be a function', function() {
+  it('should allow height to be a function', () => {
     handsontable({
       startRows: 10,
       startCols: 10,
@@ -354,20 +353,20 @@ describe('Core_view', () => {
       }
     });
 
-    expect(this.$container.height()).toEqual(107);
+    expect(spec().$container.height()).toEqual(107);
   });
 
-  it('should allow width to be a number', function() {
+  it('should allow width to be a number', () => {
     handsontable({
       startRows: 10,
       startCols: 10,
       width: 107,
     });
 
-    expect(this.$container.width()).toEqual(107); // rootElement is full width but this should do the trick
+    expect(spec().$container.width()).toEqual(107); // rootElement is full width but this should do the trick
   });
 
-  it('should allow width to be a function', function() {
+  it('should allow width to be a function', () => {
     handsontable({
       startRows: 10,
       startCols: 10,
@@ -376,13 +375,13 @@ describe('Core_view', () => {
       }
     });
 
-    expect(this.$container.width()).toEqual(107); // rootElement is full width but this should do the trick
+    expect(spec().$container.width()).toEqual(107); // rootElement is full width but this should do the trick
   });
 
-  it('should fire beforeRender event after table has been scrolled', function(done) {
-    this.$container[0].style.width = '400px';
-    this.$container[0].style.height = '60px';
-    this.$container[0].style.overflow = 'hidden';
+  it('should fire beforeRender event after table has been scrolled', async () => {
+    spec().$container[0].style.width = '400px';
+    spec().$container[0].style.height = '60px';
+    spec().$container[0].style.overflow = 'hidden';
 
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(100, 3)
@@ -391,18 +390,17 @@ describe('Core_view', () => {
     var beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
 
     hot.addHook('beforeRender', beforeRenderCallback);
-    this.$container.find('.ht_master .wtHolder').scrollTop(1000);
+    spec().$container.find('.ht_master .wtHolder').scrollTop(1000);
 
-    setTimeout(() => {
-      expect(beforeRenderCallback.calls.count()).toBe(1);
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(beforeRenderCallback.calls.count()).toBe(1);
   });
 
-  it('should fire afterRender event after table has been scrolled', function(done) {
-    this.$container[0].style.width = '400px';
-    this.$container[0].style.height = '60px';
-    this.$container[0].style.overflow = 'hidden';
+  it('should fire afterRender event after table has been scrolled', async () => {
+    spec().$container[0].style.width = '400px';
+    spec().$container[0].style.height = '60px';
+    spec().$container[0].style.overflow = 'hidden';
 
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 3)
@@ -410,18 +408,17 @@ describe('Core_view', () => {
 
     var afterRenderCallback = jasmine.createSpy('afterRenderCallback');
     hot.addHook('afterRender', afterRenderCallback);
-    this.$container.find('.ht_master .wtHolder').first().scrollTop(1000);
+    spec().$container.find('.ht_master .wtHolder').first().scrollTop(1000);
 
-    setTimeout(() => {
-      expect(afterRenderCallback.calls.count()).toBe(1);
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(afterRenderCallback.calls.count()).toBe(1);
   });
 
-  it('should fire afterRender event after table physically rendered', function(done) {
-    this.$container[0].style.width = '400px';
-    this.$container[0].style.height = '60px';
-    this.$container[0].style.overflow = 'hidden';
+  it('should fire afterRender event after table physically rendered', async () => {
+    spec().$container[0].style.width = '400px';
+    spec().$container[0].style.height = '60px';
+    spec().$container[0].style.overflow = 'hidden';
 
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 3)
@@ -431,14 +428,12 @@ describe('Core_view', () => {
       hot.view.wt.wtTable.holder.style.overflow = 'scroll';
       hot.view.wt.wtTable.holder.style.width = '220px';
     });
-    this.$container.find('.ht_master .wtHolder').first().scrollTop(1000);
+    spec().$container.find('.ht_master .wtHolder').first().scrollTop(1000);
 
-    setTimeout(() => {
-      // after afterRender hook triggered element style shouldn't changed
-      expect(hot.view.wt.wtTable.holder.style.overflow).toBe('scroll');
-      expect(hot.view.wt.wtTable.holder.style.width).toBe('220px');
-      done();
-    }, 100);
+    await sleep(100);
+    // after afterRender hook triggered element style shouldn't changed
+    expect(hot.view.wt.wtTable.holder.style.overflow).toBe('scroll');
+    expect(hot.view.wt.wtTable.holder.style.width).toBe('220px');
   });
 
   // TODO fix these tests - https://github.com/handsontable/handsontable/issues/1559
@@ -506,7 +501,7 @@ describe('Core_view', () => {
       expect(hot.getCell(1, 2).clientHeight).toEqual(hot.getCell(1, 1).clientHeight);
     });
 
-    it('should be the same as the row heights in the main table (after scroll)', function() {
+    it('should be the same as the row heights in the main table (after scroll)', () => {
       var myData = Handsontable.helper.createSpreadsheetData(20, 4);
       myData[1][3] = 'very\nlong\ntext';
       myData[5][3] = 'very\nlong\ntext';
@@ -528,13 +523,13 @@ describe('Core_view', () => {
       $(mainHolder).scrollTop(200);
       hot.render();
 
-      var masterTD = this.$container.find('.ht_master tbody tr:eq(5) td:eq(1)')[0];
-      var cloneTD = this.$container.find('.ht_clone_left tbody tr:eq(5) td:eq(1)')[0];
+      var masterTD = spec().$container.find('.ht_master tbody tr:eq(5) td:eq(1)')[0];
+      var cloneTD = spec().$container.find('.ht_clone_left tbody tr:eq(5) td:eq(1)')[0];
 
       expect(cloneTD.clientHeight).toEqual(masterTD.clientHeight);
     });
 
-    it('should be the same as the row heights in the main table (after scroll, in corner)', function() {
+    it('should be the same as the row heights in the main table (after scroll, in corner)', () => {
       var myData = Handsontable.helper.createSpreadsheetData(20, 4);
       myData[1][3] = 'very\nlong\ntext';
       myData[5][3] = 'very\nlong\ntext';
@@ -554,17 +549,17 @@ describe('Core_view', () => {
       var rowHeight = hot.getCell(1, 3).clientHeight;
       var mainHolder = hot.view.wt.wtTable.holder;
 
-      expect(this.$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
+      expect(spec().$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
 
       $(mainHolder).scrollTop(200);
       hot.render();
 
-      expect(this.$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
+      expect(spec().$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
     });
   });
 
   describe('fixed column widths', () => {
-    it('should set the columns width correctly after changes made during updateSettings', function() {
+    it('should set the columns width correctly after changes made during updateSettings', () => {
       var hot = handsontable({
         startRows: 2,
         fixedColumnsLeft: 2,
@@ -585,7 +580,7 @@ describe('Core_view', () => {
         }]
       });
 
-      var leftClone = this.$container.find('.ht_clone_left');
+      var leftClone = spec().$container.find('.ht_clone_left');
 
       expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(80);
 
@@ -604,7 +599,7 @@ describe('Core_view', () => {
       expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(80);
     });
 
-    it('should set the columns width correctly after changes made during updateSettings when columns is a function', function() {
+    it('should set the columns width correctly after changes made during updateSettings when columns is a function', () => {
       var hot = handsontable({
         startCols: 7,
         startRows: 2,
@@ -635,7 +630,7 @@ describe('Core_view', () => {
         }
       });
 
-      var leftClone = this.$container.find('.ht_clone_left');
+      var leftClone = spec().$container.find('.ht_clone_left');
 
       expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(80);
 
@@ -656,8 +651,8 @@ describe('Core_view', () => {
   });
 
   describe('stretchH', () => {
-    it('should stretch all visible columns with the ratio appropriate to the container\'s width', function() {
-      this.$container[0].style.width = '300px';
+    it('should stretch all visible columns with the ratio appropriate to the container\'s width', () => {
+      spec().$container[0].style.width = '300px';
 
       var hot = handsontable({
           startRows: 5,
@@ -667,7 +662,7 @@ describe('Core_view', () => {
           stretchH: 'all'
         }),
         rowHeaderWidth = hot.view.wt.wtViewport.getRowHeaderWidth(),
-        expectedCellWidth = (parseInt(this.$container[0].style.width, 10) - rowHeaderWidth) / 5;
+        expectedCellWidth = (parseInt(spec().$container[0].style.width, 10) - rowHeaderWidth) / 5;
 
       expect(getCell(0, 0).offsetWidth).toEqual(expectedCellWidth);
       expect(getCell(0, 1).offsetWidth).toEqual(expectedCellWidth);
@@ -675,8 +670,8 @@ describe('Core_view', () => {
       expect(getCell(0, 3).offsetWidth).toEqual(expectedCellWidth);
       expect(getCell(0, 4).offsetWidth).toEqual(expectedCellWidth);
 
-      this.$container[0].style.width = '';
-      this.$container.wrap('<div class="temp_wrapper" style="width:400px;"></div>');
+      spec().$container[0].style.width = '';
+      spec().$container.wrap('<div class="temp_wrapper" style="width:400px;"></div>');
       hot.render();
 
       expectedCellWidth = (parseInt($('.temp_wrapper')[0].style.width, 10) - rowHeaderWidth) / 5;
@@ -687,13 +682,13 @@ describe('Core_view', () => {
       expect(getCell(0, 3).offsetWidth).toEqual(expectedCellWidth);
       expect(getCell(0, 4).offsetWidth).toEqual(expectedCellWidth);
 
-      this.$container.unwrap();
+      spec().$container.unwrap();
     });
 
-    it('should stretch all visible columns with overflow hidden', function() {
-      this.$container[0].style.width = '501px';
-      this.$container[0].style.height = '100px';
-      this.$container[0].style.overflow = 'hidden';
+    it('should stretch all visible columns with overflow hidden', () => {
+      spec().$container[0].style.width = '501px';
+      spec().$container[0].style.height = '100px';
+      spec().$container[0].style.overflow = 'hidden';
 
       handsontable({
         startRows: 10,
@@ -704,8 +699,8 @@ describe('Core_view', () => {
         stretchH: 'all'
       });
 
-      var masterTH = this.$container[0].querySelectorAll('.ht_master thead tr th');
-      var overlayTH = this.$container[0].querySelectorAll('.ht_clone_top thead tr th');
+      var masterTH = spec().$container[0].querySelectorAll('.ht_master thead tr th');
+      var overlayTH = spec().$container[0].querySelectorAll('.ht_clone_top thead tr th');
 
       expect(masterTH[0].offsetWidth).toEqual(50);
       expect(overlayTH[0].offsetWidth).toEqual(50);
@@ -719,10 +714,10 @@ describe('Core_view', () => {
       expect(masterTH[5].offsetWidth).toEqual(overlayTH[5].offsetWidth);
     });
 
-    it('should respect stretched widths returned in beforeStretchingColumnWidth hook', function() {
-      this.$container[0].style.width = '501px';
-      this.$container[0].style.height = '100px';
-      this.$container[0].style.overflow = 'hidden';
+    it('should respect stretched widths returned in beforeStretchingColumnWidth hook', () => {
+      spec().$container[0].style.width = '501px';
+      spec().$container[0].style.height = '100px';
+      spec().$container[0].style.overflow = 'hidden';
 
       var callbackSpy = jasmine.createSpy();
 
@@ -743,7 +738,7 @@ describe('Core_view', () => {
         beforeStretchingColumnWidth: callbackSpy
       });
 
-      var $columnHeaders = this.$container.find('thead tr:eq(0) th');
+      var $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
       expect($columnHeaders.eq(0).width()).toEqual(48);
       expect($columnHeaders.eq(1).width()).toEqual(73);

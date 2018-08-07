@@ -86,7 +86,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
-    'selecting entire columns or rows (using multiple selection layers)', function() {
+    'selecting entire columns or rows (using multiple selection layers)', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -110,10 +110,10 @@ describe('MergeCells Selection', () => {
       getCell(3, -1, true),
     ];
     const columnHeaders = [
-      this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)'),
-      this.$container.find('.ht_clone_top tr:eq(0) th:eq(2)'),
-      this.$container.find('.ht_clone_top tr:eq(0) th:eq(3)'),
-      this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)'),
+      spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'),
+      spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)'),
+      spec().$container.find('.ht_clone_top tr:eq(0) th:eq(3)'),
+      spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)'),
     ];
 
     deselectCell();

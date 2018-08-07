@@ -57,7 +57,6 @@
     "object-shorthand": 1,
     "one-var": 0,
     "padded-blocks": 0,
-    "prefer-arrow-callback": 1,
     "prefer-const": 0,
     "prefer-rest-params": 1,
     "prefer-spread": 1,

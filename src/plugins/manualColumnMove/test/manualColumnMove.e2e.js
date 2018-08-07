@@ -13,20 +13,20 @@ describe('manualColumnMove', () => {
   });
 
   describe('init', () => {
-    it('should change column order at init', function() {
+    it('should change column order at init', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: [1, 2, 0]
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
     });
   });
 
   describe('persistentState', () => {
-    it('should load data from cache after initialization of new Handsontable instance', function(done) {
+    it('should load data from cache after initialization of new Handsontable instance', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: true,
@@ -40,8 +40,8 @@ describe('manualColumnMove', () => {
       manualColumnMovePlugin.persistentStateSave();
 
       hot.destroy();
-      this.$container.remove();
-      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+      spec().$container.remove();
+      spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -50,7 +50,6 @@ describe('manualColumnMove', () => {
       });
 
       expect(getDataAtCell(0, 0)).toEqual(dataAt0x2Cell);
-      done();
     });
 
     it('should work with updateSettings properly', () => {
@@ -72,7 +71,7 @@ describe('manualColumnMove', () => {
   });
 
   describe('updateSettings', () => {
-    it('should be enabled after specifying it in updateSettings config', function() {
+    it('should be enabled after specifying it in updateSettings config', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true
@@ -82,59 +81,59 @@ describe('manualColumnMove', () => {
         manualColumnMove: true
       });
 
-      this.$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
-      this.$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseup');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
+      spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseup');
 
-      expect(this.$container.hasClass('after-selection--columns')).toBeGreaterThan(0);
+      expect(spec().$container.hasClass('after-selection--columns')).toBeGreaterThan(0);
     });
 
-    it('should change the default column order with updateSettings', function() {
+    it('should change the default column order with updateSettings', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: true
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
 
       updateSettings({
         manualColumnMove: [2, 1, 0]
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
     });
 
-    it('should change column order with updateSettings', function() {
+    it('should change column order with updateSettings', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: [1, 2, 0]
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
 
       updateSettings({
         manualColumnMove: [2, 1, 0]
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
     });
 
-    it('should update columnsMapper when updateSettings change numbers of columns', function() {
+    it('should update columnsMapper when updateSettings change numbers of columns', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: true
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
 
       hot.getPlugin('manualColumnMove').moveColumn(2, 0);
 
@@ -146,33 +145,33 @@ describe('manualColumnMove', () => {
         ]
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
     });
 
-    it('should reset column order with updateSettings when undefined is passed', function() {
+    it('should reset column order with updateSettings when undefined is passed', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: [1, 2, 0]
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('A1');
 
       updateSettings({
         manualColumnMove: void 0
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
     });
   });
 
-  describe('loadData', function() {
-    it('should increase numbers of columns if it is necessary', function() {
+  describe('loadData', () => {
+    it('should increase numbers of columns if it is necessary', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         manualColumnMove: true
@@ -184,7 +183,7 @@ describe('manualColumnMove', () => {
       expect(hot.getPlugin('manualColumnMove').columnsMapper.__arrayMap.length).toEqual(10);
     });
 
-    it('should decrease numbers of columns if it is necessary', function() {
+    it('should decrease numbers of columns if it is necessary', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         manualColumnMove: true
@@ -198,45 +197,45 @@ describe('manualColumnMove', () => {
   });
 
   describe('moving', () => {
-    it('should move column by API', function () {
+    it('should move column by API', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
 
       hot.getPlugin('manualColumnMove').moveColumn(2, 0);
       hot.render();
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
     });
 
-    it('should move many columns by API', function() {
+    it('should move many columns by API', () => {
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
 
       hot.getPlugin('manualColumnMove').moveColumns([7, 9, 8], 0);
       hot.render();
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('H1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('J1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('I1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('H1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('J1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('I1');
     });
 
-    it('should trigger an beforeColumnMove event before column move', function() {
+    it('should trigger an beforeColumnMove event before column move', () => {
       var beforeMoveColumnCallback = jasmine.createSpy('beforeMoveColumnCallback');
 
       var hot = handsontable({
@@ -246,24 +245,24 @@ describe('manualColumnMove', () => {
         beforeColumnMove: beforeMoveColumnCallback
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
 
       hot.getPlugin('manualColumnMove').moveColumns([8, 9, 7], 0);
       hot.render();
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('I1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('J1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('H1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('I1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('J1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('H1');
 
       expect(beforeMoveColumnCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
     });
 
-    it('should trigger an afterColumnMove event after column move', function() {
+    it('should trigger an afterColumnMove event after column move', () => {
       var afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
-      this.$container.height(150);
+      spec().$container.height(150);
 
       var hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -272,32 +271,32 @@ describe('manualColumnMove', () => {
         afterColumnMove: afterMoveColumnCallback
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
 
       hot.getPlugin('manualColumnMove').moveColumns([8, 9, 7], 0);
       hot.render();
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('I1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('J1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('H1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('I1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('J1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('H1');
 
       expect(afterMoveColumnCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, void 0, void 0, void 0);
     });
 
-    it('should move the second column to the first column', function() {
+    it('should move the second column to the first column', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
 
-      var $rowsHeaders = this.$container.find('.ht_clone_top tr th');
+      var $rowsHeaders = spec().$container.find('.ht_clone_top tr th');
 
       $rowsHeaders.eq(1).simulate('mousedown');
       $rowsHeaders.eq(1).simulate('mouseup');
@@ -306,23 +305,23 @@ describe('manualColumnMove', () => {
       $rowsHeaders.eq(0).simulate('mousemove');
       $rowsHeaders.eq(0).simulate('mouseup');
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
     });
 
-    it('should move the second row to the third row', function() {
+    it('should move the second row to the third row', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true
       });
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
 
-      var $rowsHeaders = this.$container.find('.ht_clone_top tr th');
+      var $rowsHeaders = spec().$container.find('.ht_clone_top tr th');
 
       $rowsHeaders.eq(1).simulate('mousedown');
       $rowsHeaders.eq(1).simulate('mouseup');
@@ -331,9 +330,9 @@ describe('manualColumnMove', () => {
       $rowsHeaders.eq(3).simulate('mousemove');
       $rowsHeaders.eq(3).simulate('mouseup');
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
-      expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
     });
 
     it('should properly scrolling viewport if mouse is over part-visible cell', (done) => {

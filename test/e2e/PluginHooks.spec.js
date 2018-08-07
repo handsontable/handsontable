@@ -222,7 +222,7 @@ describe('PluginHooks', () => {
     expect(i).toEqual(1);
   });
 
-  it('should mark the hook callbacks added with Handsontable initialization', function() {
+  it('should mark the hook callbacks added with Handsontable initialization', () => {
     var fn = function() {};
     var fn2 = function() {};
 
@@ -236,7 +236,7 @@ describe('PluginHooks', () => {
     expect(fn2.initialHook).toEqual(void 0);
   });
 
-  it('should mark the hook callbacks added using the updateSettings method', function() {
+  it('should mark the hook callbacks added using the updateSettings method', () => {
     var fn = function() {};
     var fn2 = function() {};
 
@@ -253,7 +253,7 @@ describe('PluginHooks', () => {
   });
 
   it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method (when there was a hook ' +
-     'already declared in the initialization)', function() {
+     'already declared in the initialization)', () => {
     var fn = function() {};
     var fn2 = function() {};
 
@@ -282,7 +282,7 @@ describe('PluginHooks', () => {
     expect(hot.pluginHookBucket.afterGetCellMeta.length).toEqual(initialCallbackCount);
   });
 
-  it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method', function() {
+  it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method', () => {
     var fn = function() {};
     var fn2 = function() {};
 
@@ -317,7 +317,7 @@ describe('PluginHooks', () => {
     expect(hot.pluginHookBucket.afterGetCellMeta.length).toEqual(initialCallbackCount);
   });
 
-  it('should NOT replace existing hook callbacks, if the\'re added using the addHook method', function() {
+  it('should NOT replace existing hook callbacks, if the\'re added using the addHook method', () => {
     var fn = function() {};
     var fn2 = function() {};
 
@@ -329,13 +329,9 @@ describe('PluginHooks', () => {
 
     var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
 
-    hot.addHook('afterGetCellMeta', function() {
-      return { a: 'another function' };
-    });
+    hot.addHook('afterGetCellMeta', () => ({ a: 'another function' }));
 
-    hot.addHook('afterGetCellMeta', function() {
-      return { a: 'yet another function' };
-    });
+    hot.addHook('afterGetCellMeta', () => ({ a: 'yet another function' }));
 
     hot.addHook('afterGetCellMeta', fn2);
 

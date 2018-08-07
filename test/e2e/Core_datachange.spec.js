@@ -75,9 +75,9 @@ describe('Core_datachange', () => {
     expect(output[0][3]).toEqual('test');
   });
 
-  it('this.rootElement should point to handsontable rootElement', function() {
+  it('this.rootElement should point to handsontable rootElement', () => {
     var output = null;
-    var $container = this.$container;
+    var $container = spec().$container;
 
     handsontable({
       afterChange() {
@@ -89,9 +89,9 @@ describe('Core_datachange', () => {
     expect(output).toEqual($container[0]);
   });
 
-  it('onChange should be triggered after data is rendered to DOM (init)', function() {
+  it('onChange should be triggered after data is rendered to DOM (init)', () => {
     var output = null;
-    var $container = this.$container;
+    var $container = spec().$container;
 
     handsontable({
       data: [
@@ -107,9 +107,9 @@ describe('Core_datachange', () => {
     expect(output).toEqual('Joe Red');
   });
 
-  it('onChange should be triggered after data is rendered to DOM (setDataAtCell)', function() {
+  it('onChange should be triggered after data is rendered to DOM (setDataAtCell)', () => {
     var output = null;
-    var $container = this.$container;
+    var $container = spec().$container;
 
     handsontable({
       data: [

@@ -20,8 +20,8 @@ describe('Core_count', () => {
       expect(instance.countVisibleRows()).toEqual(4);
     });
 
-    it('should return -1 if table is not rendered', function() {
-      this.$container.remove();
+    it('should return -1 if table is not rendered', () => {
+      spec().$container.remove();
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         width: 100
@@ -49,8 +49,8 @@ describe('Core_count', () => {
       expect(instance.countRenderedRows()).toEqual(25);
     });
 
-    it('should return -1 if table is not rendered', function() {
-      this.$container.remove();
+    it('should return -1 if table is not rendered', () => {
+      spec().$container.remove();
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         width: 100
@@ -68,8 +68,8 @@ describe('Core_count', () => {
       expect(instance.countVisibleCols()).toEqual(10);
     });
 
-    it('should return -1 if table is not rendered', function() {
-      this.$container.remove();
+    it('should return -1 if table is not rendered', () => {
+      spec().$container.remove();
       var instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         width: 100

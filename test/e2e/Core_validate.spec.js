@@ -630,7 +630,7 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
   });
 
-  it('should add class name `htInvalid` to an cell that does not validate - when we trigger validateCell', function(done) {
+  it('should add class name `htInvalid` to an cell that does not validate - when we trigger validateCell', async () => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
@@ -640,15 +640,14 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    expect(this.$container.find('td:not(.htInvalid)').length).toEqual(4);
+    expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
     hot.validateCell(hot.getDataAtCell(1, 1), hot.getCellMeta(1, 1), () => {});
 
-    setTimeout(() => {
-      expect(spec().$container.find('td.htInvalid').length).toEqual(1);
-      expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
+    expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
   });
 
   it('should remove class name `htInvalid` from an cell that does validate - when we change validator rules', (done) => {
@@ -1600,7 +1599,7 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('should not allow keyboard movement until cell is validated (move LEFT)', function(done) {
+  it('should not allow keyboard movement until cell is validated (move LEFT)', async () => {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     hot = handsontable({
@@ -1627,19 +1626,18 @@ describe('Core_validate', () => {
     keyDownUp('enter'); // should be accepted but only after 100 ms
     expect(getSelected()).toEqual([[3, 2, 3, 2]]);
 
-    this.$container.simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
-    this.$container.simulate('keyup', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
-    this.$container.simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
-    this.$container.simulate('keyup', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
+    spec().$container.simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
+    spec().$container.simulate('keyup', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
+    spec().$container.simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
+    spec().$container.simulate('keyup', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
 
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
-    setTimeout(() => {
-      expect(isEditorVisible()).toBe(false);
-      expect(getSelected()).toEqual([[3, 0, 3, 0]]);
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(isEditorVisible()).toBe(false);
+    expect(getSelected()).toEqual([[3, 0, 3, 0]]);
   });
 
   it('should not validate cell if editing has been canceled', (done) => {

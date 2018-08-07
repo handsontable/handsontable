@@ -126,7 +126,7 @@ describe('noEditor', () => {
     }, 200);
   });
 
-  it('should not open editor after pressing a printable character', function() {
+  it('should not open editor after pressing a printable character', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       editor: false
@@ -135,12 +135,12 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    this.$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0)});
+    spec().$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0)});
 
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should not open editor after pressing a printable character with shift key', function() {
+  it('should not open editor after pressing a printable character with shift key', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       editor: false
@@ -149,7 +149,7 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    this.$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0), shiftKey: true});
+    spec().$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0), shiftKey: true});
 
     expect(isEditorVisible()).toBe(false);
   });

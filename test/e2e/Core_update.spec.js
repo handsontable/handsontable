@@ -104,7 +104,7 @@ describe('Core_updateSettings', () => {
     }).not.toThrow();
   });
 
-  it('should not reset columns types to text', function() {
+  it('should not reset columns types to text', () => {
     handsontable({
       data: [[1, true]],
       columns: [
@@ -113,7 +113,7 @@ describe('Core_updateSettings', () => {
       ]
     });
 
-    const td = this.$container.find('td');
+    const td = spec().$container.find('td');
 
     expect(td.eq(0).text()).toEqual('1');
     expect(td.eq(1).text()).toEqual('');
@@ -124,7 +124,7 @@ describe('Core_updateSettings', () => {
     expect(td.eq(1).text()).toEqual('');
   });
 
-  it('should not reset columns types to text when columns is a function', function() {
+  it('should not reset columns types to text when columns is a function', () => {
     handsontable({
       data: [[1, true]],
       columns(column) {
@@ -141,7 +141,7 @@ describe('Core_updateSettings', () => {
       }
     });
 
-    const td = this.$container.find('td');
+    const td = spec().$container.find('td');
 
     expect(td.eq(0).text()).toEqual('1');
     expect(td.eq(1).text()).toEqual('');
@@ -430,52 +430,52 @@ describe('Core_updateSettings', () => {
     expect(getCellValidator(0, 0)).toBeUndefined();
   });
 
-  it('should allow updating the table height', function() {
+  it('should allow updating the table height', () => {
     handsontable({
       startRows: 22,
       startCols: 5
     });
 
-    const initialHeight = parseInt(this.$container[0].style.height, 10);
+    const initialHeight = parseInt(spec().$container[0].style.height, 10);
 
     updateSettings({
       height: 300
     });
 
-    expect(parseInt(this.$container[0].style.height, 10)).toEqual(300);
-    expect(parseInt(this.$container[0].style.height, 10)).not.toEqual(initialHeight);
+    expect(parseInt(spec().$container[0].style.height, 10)).toEqual(300);
+    expect(parseInt(spec().$container[0].style.height, 10)).not.toEqual(initialHeight);
   });
 
-  it('should not reset the table height, when the updateSettings config object doesn\'t have any height specified', function() {
+  it('should not reset the table height, when the updateSettings config object doesn\'t have any height specified', () => {
     handsontable({
       startRows: 22,
       startCols: 5,
       height: 300
     });
 
-    const initialHeight = this.$container[0].style.height;
+    const initialHeight = spec().$container[0].style.height;
 
     updateSettings({
       rowHeaders: true
     });
 
-    expect(parseInt(this.$container[0].style.height, 10)).toEqual(parseInt(initialHeight, 10));
+    expect(parseInt(spec().$container[0].style.height, 10)).toEqual(parseInt(initialHeight, 10));
   });
 
-  it('should allow resetting the table height', function() {
+  it('should allow resetting the table height', () => {
     handsontable({
       startRows: 22,
       startCols: 5,
       height: 300
     });
 
-    const initialHeight = this.$container[0].style.height;
+    const initialHeight = spec().$container[0].style.height;
 
     updateSettings({
       height: null
     });
 
-    expect(parseInt(this.$container[0].style.height, 10)).not.toEqual(parseInt(initialHeight, 10));
+    expect(parseInt(spec().$container[0].style.height, 10)).not.toEqual(parseInt(initialHeight, 10));
   });
 
   it('should allow updating the stretching type', () => {
@@ -504,7 +504,7 @@ describe('Core_updateSettings', () => {
     expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
   });
 
-  it('should change colHeader\'s row height if is needed', function() {
+  it('should change colHeader\'s row height if is needed', () => {
     handsontable({
       colHeaders: true,
       rowHeaders: true
@@ -512,17 +512,17 @@ describe('Core_updateSettings', () => {
 
     const rowHeights = [];
 
-    rowHeights.push(this.$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
+    rowHeights.push(spec().$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
     updateSettings({
       colHeaders: ['A<br/>A']
     });
 
-    rowHeights.push(this.$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
+    rowHeights.push(spec().$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
 
     expect(rowHeights[0]).toBeLessThan(rowHeights[1]);
   });
 
-  it('should not overwrite properties (created by columns defined as function) of cells below the viewport by updateSettings #4029', function() {
+  it('should not overwrite properties (created by columns defined as function) of cells below the viewport by updateSettings #4029', () => {
     let rows = 50;
     const columns = 2;
 
@@ -568,7 +568,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(rows, 1).readOnly).toEqual(false);
   });
 
-  it('should not overwrite properties (created by columns defined as array) of cells below the viewport by updateSettings #4029', function() {
+  it('should not overwrite properties (created by columns defined as array) of cells below the viewport by updateSettings #4029', () => {
     let rows = 50;
     const columns = 2;
 

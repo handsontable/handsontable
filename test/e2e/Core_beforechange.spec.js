@@ -12,7 +12,7 @@ describe('Core_beforechange', () => {
     }
   });
 
-  it('this.rootElement should point to handsontable rootElement', function() {
+  it('this.rootElement should point to handsontable rootElement', () => {
     var output = null;
 
     handsontable({
@@ -22,7 +22,7 @@ describe('Core_beforechange', () => {
     });
     setDataAtCell(0, 0, 'test');
 
-    expect(output).toEqual(this.$container[0]);
+    expect(output).toEqual(spec().$container[0]);
   });
 
   it('should remove change from stack', () => {
