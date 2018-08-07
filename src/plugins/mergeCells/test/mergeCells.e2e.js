@@ -1198,7 +1198,7 @@ describe('MergeCells', () => {
           {row: 5, col: 4, rowspan: 2, colspan: 2},
           {row: 1, col: 1, rowspan: 2, colspan: 2},
         ],
-        validator: function(query, callback) {
+        validator(query, callback) {
           callback(true);
         },
         afterValidate: onAfterValidate
