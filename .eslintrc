@@ -14,7 +14,6 @@
     "consistent-return": 1,
     "dot-notation": 2,
     "eol-last": 2,
-    "eqeqeq": 1,
     "func-names": 0,
     "import/extensions": 0,
     "import/no-extraneous-dependencies": 0,

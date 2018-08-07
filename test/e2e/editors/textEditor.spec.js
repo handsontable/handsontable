@@ -960,7 +960,7 @@ describe('TextEditor', () => {
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
     // lame check, needs investigating why sometimes it leaves 2px error
-    if (Handsontable.dom.outerHeight(hot.getActiveEditor().TEXTAREA) == regularHeight) {
+    if (Handsontable.dom.outerHeight(hot.getActiveEditor().TEXTAREA) === regularHeight) {
       expect(Handsontable.dom.outerHeight(hot.getActiveEditor().TEXTAREA)).toEqual(regularHeight);
     } else {
       expect(Handsontable.dom.outerHeight(hot.getActiveEditor().TEXTAREA)).toEqual(regularHeight - 2);
