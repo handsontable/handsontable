@@ -69,7 +69,7 @@ class ManualColumnResize extends BasePlugin {
     this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
     this.addHook('beforeColumnResize', (currentColumn, newSize, isDoubleClick) => this.onBeforeColumnResize(currentColumn, newSize, isDoubleClick));
 
-    if (typeof loadedManualColumnWidths != 'undefined') {
+    if (typeof loadedManualColumnWidths !== 'undefined') {
       this.manualColumnWidths = loadedManualColumnWidths;
     } else if (Array.isArray(initialColumnWidth)) {
       this.manualColumnWidths = initialColumnWidth;
@@ -235,7 +235,7 @@ class ManualColumnResize extends BasePlugin {
    * @returns {Boolean}
    */
   checkIfColumnHeader(element) {
-    if (element != this.hot.rootElement) {
+    if (element !== this.hot.rootElement) {
       let parent = element.parentNode;
 
       if (parent.tagName === 'THEAD') {
@@ -256,8 +256,8 @@ class ManualColumnResize extends BasePlugin {
    * @returns {HTMLElement}
    */
   getTHFromTargetElement(element) {
-    if (element.tagName != 'TABLE') {
-      if (element.tagName == 'TH') {
+    if (element.tagName !== 'TABLE') {
+      if (element.tagName === 'TH') {
         return element;
       }
       return this.getTHFromTargetElement(element.parentNode);
@@ -417,7 +417,7 @@ class ManualColumnResize extends BasePlugin {
       this.hideHandleAndGuide();
       this.pressed = false;
 
-      if (this.newSize != this.startWidth) {
+      if (this.newSize !== this.startWidth) {
         let selectedColsLength = this.selectedCols.length;
 
         if (selectedColsLength > 1) {

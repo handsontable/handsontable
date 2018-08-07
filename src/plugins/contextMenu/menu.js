@@ -463,7 +463,7 @@ class Menu {
 
     let isSubMenu = (item) => hasOwnProperty(item, 'submenu');
     let itemIsSeparator = (item) => new RegExp(SEPARATOR, 'i').test(item.name);
-    let itemIsDisabled = (item) => item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(this.hot) === true);
+    let itemIsDisabled = (item) => item.disabled === true || (typeof item.disabled === 'function' && item.disabled.call(this.hot) === true);
     let itemIsSelectionDisabled = (item) => item.disableSelection;
 
     if (typeof value === 'function') {

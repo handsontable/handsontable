@@ -280,7 +280,7 @@ TextEditor.prototype.getEditedCell = function() {
       break;
   }
 
-  return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
+  return editedCell !== -1 && editedCell !== -2 ? editedCell : void 0;
 };
 
 TextEditor.prototype.refreshValue = function() {
@@ -361,7 +361,7 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
     editLeft += 1;
   }
 
-  if (cssTransformOffset && cssTransformOffset != -1) {
+  if (cssTransformOffset && cssTransformOffset !== -1) {
     this.textareaParentStyle[cssTransformOffset[0]] = cssTransformOffset[1];
   } else {
     resetCssTransform(this.TEXTAREA_PARENT);

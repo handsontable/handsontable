@@ -66,7 +66,7 @@ class ManualRowResize extends BasePlugin {
     let initialRowHeights = this.hot.getSettings().manualRowResize;
     let loadedManualRowHeights = this.loadManualRowHeights();
 
-    if (typeof loadedManualRowHeights != 'undefined') {
+    if (typeof loadedManualRowHeights !== 'undefined') {
       this.manualRowHeights = loadedManualRowHeights;
     } else if (Array.isArray(initialRowHeights)) {
       this.manualRowHeights = initialRowHeights;
@@ -229,7 +229,7 @@ class ManualRowResize extends BasePlugin {
    * @returns {Boolean}
    */
   checkIfRowHeader(element) {
-    if (element != this.hot.rootElement) {
+    if (element !== this.hot.rootElement) {
       let parent = element.parentNode;
 
       if (parent.tagName === 'TBODY') {
@@ -250,8 +250,8 @@ class ManualRowResize extends BasePlugin {
    * @returns {HTMLElement}
    */
   getTHFromTargetElement(element) {
-    if (element.tagName != 'TABLE') {
-      if (element.tagName == 'TH') {
+    if (element.tagName !== 'TABLE') {
+      if (element.tagName === 'TH') {
         return element;
       }
       return this.getTHFromTargetElement(element.parentNode);
@@ -397,7 +397,7 @@ class ManualRowResize extends BasePlugin {
       this.hideHandleAndGuide();
       this.pressed = false;
 
-      if (this.newSize != this.startHeight) {
+      if (this.newSize !== this.startHeight) {
         let selectedRowsLength = this.selectedRows.length;
 
         if (selectedRowsLength > 1) {

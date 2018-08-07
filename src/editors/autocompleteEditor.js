@@ -144,7 +144,7 @@ AutocompleteEditor.prototype.queryChoices = function(query) {
   this.query = query;
   const source = this.cellProperties.source;
 
-  if (typeof source == 'function') {
+  if (typeof source === 'function') {
     source.call(this.cellProperties, query, (choices) => {
       this.rawChoices = choices;
       this.updateChoicesList(this.stripValuesIfNeeded(choices));

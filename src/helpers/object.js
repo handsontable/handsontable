@@ -204,7 +204,7 @@ export function isObjectEqual(object1, object2) {
  * @returns {boolean}
  */
 export function isObject(obj) {
-  return Object.prototype.toString.call(obj) == '[object Object]';
+  return Object.prototype.toString.call(obj) === '[object Object]';
 }
 
 export function defineGetter(object, property, value, options) {

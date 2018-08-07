@@ -607,7 +607,7 @@ export function getScrollableElement(element) {
     overflowX = el.style.overflowX;
     overflowY = el.style.overflowY;
 
-    if (overflow == 'scroll' || overflowX == 'scroll' || overflowY == 'scroll') {
+    if (overflow === 'scroll' || overflowX === 'scroll' || overflowY === 'scroll') {
       return el;
 
     } else if (window.getComputedStyle) {

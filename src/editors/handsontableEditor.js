@@ -68,7 +68,7 @@ var onBeforeKeyDown = function(event) {
   var rowToSelect;
   var selectedRow;
 
-  if (event.keyCode == KEY_CODES.ARROW_DOWN) {
+  if (event.keyCode === KEY_CODES.ARROW_DOWN) {
     if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
       rowToSelect = 0;
     } else if (innerHOT.getSelectedLast()) {
@@ -80,7 +80,7 @@ var onBeforeKeyDown = function(event) {
         rowToSelect = Math.min(lastRow, selectedRow + 1);
       }
     }
-  } else if (event.keyCode == KEY_CODES.ARROW_UP) {
+  } else if (event.keyCode === KEY_CODES.ARROW_UP) {
     if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
       rowToSelect = innerHOT.countRows() - 1;
 
