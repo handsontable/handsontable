@@ -449,8 +449,8 @@ describe('Core_loadData', () => {
     });
 
     // use the "good" Collection methods to emulate Array.splice
-    function hackedSplice(index, howMany /* model1, ... modelN */) {
-      var args = _.toArray(arguments).slice(2).concat({at: index}),
+    function hackedSplice(index, howMany, ...models) {
+      var args = _.toArray([index, howMany, ...models]).slice(2).concat({at: index}),
         removed = this.models.slice(index, index + howMany);
       this.remove(removed).add.apply(this, args);
 
@@ -509,8 +509,8 @@ describe('Core_loadData', () => {
     });
 
     // use the "good" Collection methods to emulate Array.splice
-    function hackedSplice(index, howMany /* model1, ... modelN */) {
-      var args = _.toArray(arguments).slice(2).concat({at: index}),
+    function hackedSplice(index, howMany, ...models) {
+      var args = _.toArray([index, howMany, ...models]).slice(2).concat({at: index}),
         removed = this.models.slice(index, index + howMany);
       this.remove(removed).add.apply(this, args);
 
