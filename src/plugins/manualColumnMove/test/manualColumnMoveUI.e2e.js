@@ -151,7 +151,7 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetLeft).toBe(150);
     });
 
-    it('should not run moving ui if mousedown was fired on sorting element', function() {
+    xit('should not run moving ui if mousedown was fired on sorting element', function() {
       var hot = handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
