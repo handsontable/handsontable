@@ -247,7 +247,7 @@ describe('GhostTable', () => {
   it('should be detected as vertical if at least one row is added', () => {
     var hot = handsontable(hotSettings);
     var samples = new Map();
-    var gt = new Handsontable.__GhostTable(hot);
+    gt = new Handsontable.__GhostTable(hot);
 
     gt.addRow(0, samples);
 
@@ -258,7 +258,7 @@ describe('GhostTable', () => {
   it('should be detected as horizontal if at least one column is added', () => {
     var hot = handsontable(hotSettings);
     var samples = new Map();
-    var gt = new Handsontable.__GhostTable(hot);
+    gt = new Handsontable.__GhostTable(hot);
 
     gt.addColumn(0, samples);
 

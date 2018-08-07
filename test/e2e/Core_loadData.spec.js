@@ -458,14 +458,14 @@ describe('Core_loadData', () => {
     }
 
     // normally, you'd get these from the server with .fetch()
-    function attr(attr) {
+    function attr(attribute) {
       // this lets us remember `attr` for when when it is get/set
       return {
         data(car, value) {
           if (_.isUndefined(value)) {
-            return car.get(attr);
+            return car.get(attribute);
           }
-          car.set(attr, value);
+          car.set(attribute, value);
         }
       };
     }
@@ -518,15 +518,15 @@ describe('Core_loadData', () => {
     }
 
     // normally, you'd get these from the server with .fetch()
-    function attr(attr) {
+    function attr(attribute) {
       // this lets us remember `attr` for when when it is get/set
       return {
         data(car, value) {
           if (_.isUndefined(value)) {
-            return car.get(attr);
+            return car.get(attribute);
           }
 
-          car.set(attr, value);
+          car.set(attribute, value);
         }
       };
     }
