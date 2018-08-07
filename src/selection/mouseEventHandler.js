@@ -1,4 +1,4 @@
-import { isRightClick, isLeftClick } from './../helpers/dom/event';
+import { isRightClick as _isRightClick, isLeftClick as _isLeftClick } from './../helpers/dom/event';
 import { CellCoords } from './../3rdparty/walkontable/src';
 
 /**
@@ -127,7 +127,7 @@ export function handleMouseEvent(event, {coords, selection, controller}) {
     selection,
     controller,
     isShiftKey: event.shiftKey,
-    isLeftClick: isLeftClick(event) || event.type === 'touchstart',
-    isRightClick: isRightClick(event),
+    isLeftClick: _isLeftClick(event) || event.type === 'touchstart',
+    isRightClick: _isRightClick(event),
   });
 }

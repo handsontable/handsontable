@@ -129,38 +129,38 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     const {row: endRow, col: endColumn} = selRange.getBottomRightCorner();
     const changes = [];
 
-    for (let row = startRow; row <= endRow; row += 1) {
-      for (let col = startColumn; col <= endColumn; col += 1) {
-        const cellProperties = instance.getCellMeta(row, col);
+    for (let _row = startRow; _row <= endRow; _row += 1) {
+      for (let _col = startColumn; _col <= endColumn; _col += 1) {
+        const _cellProperties = instance.getCellMeta(_row, _col);
 
-        if (cellProperties.type !== 'checkbox') {
+        if (_cellProperties.type !== 'checkbox') {
           return;
         }
 
         /* eslint-disable no-continue */
-        if (cellProperties.readOnly === true) {
+        if (_cellProperties.readOnly === true) {
           continue;
         }
 
-        if (typeof cellProperties.checkedTemplate === 'undefined') {
-          cellProperties.checkedTemplate = true;
+        if (typeof _cellProperties.checkedTemplate === 'undefined') {
+          _cellProperties.checkedTemplate = true;
         }
-        if (typeof cellProperties.uncheckedTemplate === 'undefined') {
-          cellProperties.uncheckedTemplate = false;
+        if (typeof _cellProperties.uncheckedTemplate === 'undefined') {
+          _cellProperties.uncheckedTemplate = false;
         }
 
-        const dataAtCell = instance.getDataAtCell(row, col);
+        const dataAtCell = instance.getDataAtCell(_row, _col);
 
         if (uncheckCheckbox === false) {
-          if ([cellProperties.checkedTemplate, cellProperties.checkedTemplate.toString()].includes(dataAtCell)) {
-            changes.push([row, col, cellProperties.uncheckedTemplate]);
+          if ([_cellProperties.checkedTemplate, _cellProperties.checkedTemplate.toString()].includes(dataAtCell)) {
+            changes.push([_row, _col, _cellProperties.uncheckedTemplate]);
 
-          } else if ([cellProperties.uncheckedTemplate, cellProperties.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) {
-            changes.push([row, col, cellProperties.checkedTemplate]);
+          } else if ([_cellProperties.uncheckedTemplate, _cellProperties.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) {
+            changes.push([_row, _col, _cellProperties.checkedTemplate]);
           }
 
         } else {
-          changes.push([row, col, cellProperties.uncheckedTemplate]);
+          changes.push([_row, _col, _cellProperties.uncheckedTemplate]);
         }
       }
     }
@@ -185,24 +185,24 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     const topLeft = selRange.getTopLeftCorner();
     const bottomRight = selRange.getBottomRightCorner();
 
-    for (let row = topLeft.row; row <= bottomRight.row; row++) {
-      for (let col = topLeft.col; col <= bottomRight.col; col++) {
-        let cellProperties = instance.getCellMeta(row, col);
+    for (let _row = topLeft.row; _row <= bottomRight.row; _row++) {
+      for (let _col = topLeft.col; _col <= bottomRight.col; _col++) {
+        let _cellProperties = instance.getCellMeta(_row, _col);
 
-        if (cellProperties.type !== 'checkbox') {
+        if (_cellProperties.type !== 'checkbox') {
           return;
         }
 
-        let cell = instance.getCell(row, col);
+        let cell = instance.getCell(_row, _col);
 
         if (cell == null) {
 
-          callback(row, col, cellProperties);
+          callback(_row, _col, _cellProperties);
 
         } else {
           let checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
-          if (checkboxes.length > 0 && !cellProperties.readOnly) {
+          if (checkboxes.length > 0 && !_cellProperties.readOnly) {
             callback(checkboxes);
           }
         }

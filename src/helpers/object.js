@@ -137,10 +137,10 @@ export function mixin(Base, ...mixins) {
   if (!Base.MIXINS) {
     Base.MIXINS = [];
   }
-  arrayEach(mixins, (mixin) => {
-    Base.MIXINS.push(mixin.MIXIN_NAME);
+  arrayEach(mixins, (_mixin) => {
+    Base.MIXINS.push(_mixin.MIXIN_NAME);
 
-    objectEach(mixin, (value, key) => {
+    objectEach(_mixin, (value, key) => {
       if (Base.prototype[key] !== void 0) {
         throw new Error(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`);
       }
@@ -151,12 +151,12 @@ export function mixin(Base, ...mixins) {
         let getter = function _getter(propertyName, initialValue) {
           propertyName = `_${propertyName}`;
 
-          let initValue = (value) => {
-            if (Array.isArray(value) || isObject(value)) {
-              value = deepClone(value);
+          let initValue = (_value) => {
+            if (Array.isArray(_value) || isObject(_value)) {
+              _value = deepClone(_value);
             }
 
-            return value;
+            return _value;
           };
 
           return function() {
@@ -170,8 +170,8 @@ export function mixin(Base, ...mixins) {
         let setter = function _setter(propertyName) {
           propertyName = `_${propertyName}`;
 
-          return function(value) {
-            this[propertyName] = value;
+          return function(_value) {
+            this[propertyName] = _value;
           };
         };
         Object.defineProperty(Base.prototype, key, {
@@ -246,8 +246,8 @@ export function getProperty(object, name) {
   let names = name.split('.');
   let result = object;
 
-  objectEach(names, (name) => {
-    result = result[name];
+  objectEach(names, (_name) => {
+    result = result[_name];
 
     if (result === void 0) {
       result = void 0;

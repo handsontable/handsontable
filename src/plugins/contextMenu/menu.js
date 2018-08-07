@@ -461,10 +461,10 @@ class Menu {
     let item = hot.getSourceDataAtRow(row);
     let wrapper = document.createElement('div');
 
-    let isSubMenu = (item) => hasOwnProperty(item, 'submenu');
-    let itemIsSeparator = (item) => new RegExp(SEPARATOR, 'i').test(item.name);
-    let itemIsDisabled = (item) => item.disabled === true || (typeof item.disabled === 'function' && item.disabled.call(this.hot) === true);
-    let itemIsSelectionDisabled = (item) => item.disableSelection;
+    let isSubMenu = (itemToTest) => hasOwnProperty(itemToTest, 'submenu');
+    let itemIsSeparator = (itemToTest) => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
+    let itemIsDisabled = (itemToTest) => itemToTest.disabled === true || (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
+    let itemIsSelectionDisabled = (itemToTest) => itemToTest.disableSelection;
 
     if (typeof value === 'function') {
       value = value.call(this.hot);
