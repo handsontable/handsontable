@@ -25,6 +25,8 @@ export default function jQueryWrapper(Handsontable) {
       return $this;
     }
 
+    let output;
+
     // Action case
     if (instance) {
       if (typeof instance[action] !== 'undefined') {

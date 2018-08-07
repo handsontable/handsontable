@@ -63,8 +63,8 @@ describe('Performance', () => {
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       autoRowSize: true,
       autoColumnSize: true,
-      renderer(args) {
-        Handsontable.renderers.TextRenderer.apply(this, ...args);
+      renderer(...args) {
+        Handsontable.renderers.TextRenderer.apply(this, args);
         count++;
       }
     });
