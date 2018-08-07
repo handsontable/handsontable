@@ -377,7 +377,7 @@ class TableRenderer {
         TD = TD.nextSibling; // http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
       // If the number of headers has been reduced, we need to replace excess TH with TD
-      if (TD.nodeName == 'TH') {
+      if (TD.nodeName === 'TH') {
         TD = replaceThWithTd(TD, TR);
       }
       if (!hasClass(TD, 'hide')) {
@@ -493,7 +493,7 @@ class TableRenderer {
         TH = document.createElement('TH');
         TR.appendChild(TH);
 
-      } else if (TH.nodeName == 'TD') {
+      } else if (TH.nodeName === 'TD') {
         TH = replaceTdWithTh(TH, TR);
       }
       this.renderRowHeader(row, visibleColIndex, TH);

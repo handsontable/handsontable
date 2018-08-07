@@ -1240,7 +1240,7 @@ describe('Walkontable.CellRange', () => {
       let callCount = 0;
       range.forAll(() => {
         callCount++;
-        if (callCount == 2) {
+        if (callCount === 2) {
           return false;
         }
       });

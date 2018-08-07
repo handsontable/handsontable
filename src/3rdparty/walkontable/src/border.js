@@ -264,7 +264,7 @@ class Border {
     const areaSelection = this.wot.selections.createOrGetArea();
 
     if (areaSelection.cellRange) {
-      if (row != areaSelection.cellRange.to.row || col != areaSelection.cellRange.to.col) {
+      if (row !== areaSelection.cellRange.to.row || col !== areaSelection.cellRange.to.col) {
         return true;
       }
     }
@@ -306,7 +306,7 @@ class Border {
       this.selectionHandles.styles.bottomRightHitArea.display = 'none';
     }
 
-    if (row == this.wot.wtSettings.getSetting('fixedRowsTop') || col == this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
+    if (row === this.wot.wtSettings.getSetting('fixedRowsTop') || col === this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
       this.selectionHandles.styles.topLeft.zIndex = '9999';
       this.selectionHandles.styles.topLeftHitArea.zIndex = '9999';
     } else {
