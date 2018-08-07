@@ -756,7 +756,7 @@ describe('Core_alter', () => {
           {data: 'id'},
           {data: 'name.first'}
         ],
-        beforeCreateRow: beforeCreateRow
+        beforeCreateRow
       });
 
       expect(countRows()).toEqual(3);
