@@ -37,7 +37,7 @@ export default function jQueryWrapper(Handsontable) {
 
     if (instance) {
       if (typeof instance[action] !== 'undefined') {
-        output = instance[action].apply(instance, args);
+        output = instance[action].call(instance, ...args);
 
         if (action === 'destroy') {
           $this.removeData();
