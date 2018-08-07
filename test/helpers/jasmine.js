@@ -301,7 +301,7 @@ beforeEach(function() {
 
   jasmine.addMatchers(matchers);
 
-  if (document.activeElement && document.activeElement != document.body) {
+  if (document.activeElement && document.activeElement !== document.body) {
     document.activeElement.blur();
 
   } else if (!document.activeElement) { // IE

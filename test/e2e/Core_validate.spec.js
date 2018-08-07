@@ -383,7 +383,7 @@ describe('Core_validate', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'B1') {
+        if (value === 'B1') {
           callb(false);
         } else {
           callb(true);
@@ -470,7 +470,7 @@ describe('Core_validate', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'B1') {
+        if (value === 'B1') {
           callb(false);
         } else {
           callb(true);
@@ -495,7 +495,7 @@ describe('Core_validate', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'B1') {
+        if (value === 'B1') {
           callb(false);
         } else {
           callb(true);
@@ -575,7 +575,7 @@ describe('Core_validate', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'B1') {
+        if (value === 'B1') {
           callb(false);
         } else {
           callb(true);
@@ -688,7 +688,7 @@ describe('Core_validate', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'test') {
+        if (value === 'test') {
           callb(false);
         } else {
           callb(true);
@@ -711,7 +711,7 @@ describe('Core_validate', () => {
     var validator = jasmine.createSpy('validator');
 
     validator.and.callFake((value, callb) => {
-      if (value == 123) {
+      if (value === 123) {
         callb(false);
       } else {
         callb(true);
@@ -787,7 +787,7 @@ describe('Core_validate', () => {
       expect(spec().$container.find('td.htInvalid').length).toEqual(0);
       updateSettings({
         validator(value, callb) {
-          if (value == 'test') {
+          if (value === 'test') {
             callb(false);
           } else {
             callb(true);
@@ -820,7 +820,7 @@ describe('Core_validate', () => {
       expect(spec().$container.find('td.htInvalid').length).toEqual(0);
       updateSettings({
         validator(value, callb) {
-          if (value == 'test') {
+          if (value === 'test') {
             callb(false);
           } else {
             callb(true);
@@ -845,7 +845,7 @@ describe('Core_validate', () => {
     var hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'A1') {
+        if (value === 'A1') {
           callb(false);
         } else {
           callb(true);
@@ -1199,7 +1199,7 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -1226,7 +1226,7 @@ describe('Core_validate', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
-        validationResult = value.length == 2;
+        validationResult = value.length === 2;
         callback(validationResult);
       }
     });
@@ -1253,7 +1253,7 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -1279,7 +1279,7 @@ describe('Core_validate', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
-        validationResult = value.length == 2;
+        validationResult = value.length === 2;
         callback(validationResult);
       }
     });
@@ -1334,7 +1334,7 @@ describe('Core_validate', () => {
       allowInvalid: true,
       validator(value, callback) {
         setTimeout(() => {
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -1363,7 +1363,7 @@ describe('Core_validate', () => {
       validator(value, callback) {
         setTimeout(() => {
 
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -1405,7 +1405,7 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -1778,6 +1778,7 @@ describe('Core_validate', () => {
         {
           data: 'id',
           validator(value, cb) {
+            // eslint-disable-next-line
             cb(value == parseInt(value, 10));
           },
           allowInvalid: false
@@ -1834,6 +1835,7 @@ describe('Core_validate', () => {
           colMeta = {
             data: 'id',
             validator(value, cb) {
+              // eslint-disable-next-line
               cb(value == parseInt(value, 10));
             },
             allowInvalid: false
@@ -1899,7 +1901,7 @@ describe('Core_validate', () => {
         {
           data: 'id',
           validator(value, cb) {
-            cb(value == parseInt(value, 10));
+            cb(value === parseInt(value, 10));
           }
         },
         {data: 'name'}
@@ -1992,7 +1994,7 @@ describe('Core_validate', () => {
           colMeta = {
             data: 'id',
             validator(value, cb) {
-              cb(value == parseInt(value, 10));
+              cb(value === parseInt(value, 10));
             }
           };
 
@@ -2030,7 +2032,7 @@ describe('Core_validate', () => {
           colMeta = {
             data: 'id',
             validator(value, cb) {
-              cb(value == parseInt(value, 10));
+              cb(value === parseInt(value, 10));
             }
           };
 
@@ -2068,7 +2070,7 @@ describe('Core_validate', () => {
           colMeta = {
             data: 'id',
             validator(value, cb) {
-              cb(value == parseInt(value, 10));
+              cb(value === parseInt(value, 10));
             }
           };
 

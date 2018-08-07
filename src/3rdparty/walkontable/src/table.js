@@ -584,7 +584,7 @@ class Table {
   }
 
   allRowsInViewport() {
-    return this.wot.getSetting('totalRows') == this.getVisibleRowsCount();
+    return this.wot.getSetting('totalRows') === this.getVisibleRowsCount();
   }
 
   /**
@@ -620,7 +620,7 @@ class Table {
   }
 
   allColumnsInViewport() {
-    return this.wot.getSetting('totalColumns') == this.getVisibleColumnsCount();
+    return this.wot.getSetting('totalColumns') === this.getVisibleColumnsCount();
   }
 
   getColumnWidth(sourceColumn) {

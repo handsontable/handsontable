@@ -604,7 +604,7 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
 
 function init() {
   let instance = this;
-  let pluginEnabled = typeof instance.getSettings().undo == 'undefined' || instance.getSettings().undo;
+  let pluginEnabled = typeof instance.getSettings().undo === 'undefined' || instance.getSettings().undo;
 
   if (pluginEnabled) {
     if (!instance.undoRedo) {

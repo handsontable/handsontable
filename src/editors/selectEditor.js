@@ -42,7 +42,7 @@ SelectEditor.prototype.prepare = function() {
   var selectOptions = this.cellProperties.selectOptions;
   var options;
 
-  if (typeof selectOptions == 'function') {
+  if (typeof selectOptions === 'function') {
     options = this.prepareOptions(selectOptions(this.row, this.col, this.prop));
   } else {
     options = this.prepareOptions(selectOptions);
@@ -67,7 +67,7 @@ SelectEditor.prototype.prepareOptions = function(optionsToPrepare) {
     for (var i = 0, len = optionsToPrepare.length; i < len; i++) {
       preparedOptions[optionsToPrepare[i]] = optionsToPrepare[i];
     }
-  } else if (typeof optionsToPrepare == 'object') {
+  } else if (typeof optionsToPrepare === 'object') {
     preparedOptions = optionsToPrepare;
   }
 
@@ -189,7 +189,7 @@ SelectEditor.prototype.refreshDimensions = function() {
 
   var selectStyle = this.select.style;
 
-  if (cssTransformOffset && cssTransformOffset != -1) {
+  if (cssTransformOffset && cssTransformOffset !== -1) {
     selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
   } else {
     resetCssTransform(this.select);
@@ -242,7 +242,7 @@ SelectEditor.prototype.getEditedCell = function() {
       break;
   }
 
-  return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
+  return editedCell !== -1 && editedCell !== -2 ? editedCell : void 0;
 };
 
 export default SelectEditor;

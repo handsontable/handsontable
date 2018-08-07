@@ -44,7 +44,7 @@ function registerPlugin(pluginName, PluginClass) {
  * @returns {Function} pluginClass Returns plugin instance if exists or `undefined` if not exists.
  */
 function getPlugin(instance, pluginName) {
-  if (typeof pluginName != 'string') {
+  if (typeof pluginName !== 'string') {
     throw Error('Only strings can be passed as "plugin" parameter');
   }
   let _pluginName = toUpperCaseFirst(pluginName);

@@ -373,7 +373,7 @@ describe('manualColumnMove', () => {
         colHeaders: true,
         manualColumnMove: true,
         cells(row, col) {
-          if (row == 1 && col == 0) {
+          if (row === 1 && col === 0) {
             this.readOnly = true;
           }
         }

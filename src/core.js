@@ -861,7 +861,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       },
       onQueueEmpty() { },
       checkIfQueueIsEmpty() {
-        if (this.validatorsInQueue == 0 && resolved == false) {
+        if (this.validatorsInQueue === 0 && resolved === false) {
           resolved = true;
           this.onQueueEmpty(this.valid);
         }
@@ -1038,7 +1038,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         row = cellProperties.visualRow,
         td = instance.getCell(row, col, true);
 
-      if (td && td.nodeName != 'TH') {
+      if (td && td.nodeName !== 'TH') {
         instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
       }
       callback(valid);

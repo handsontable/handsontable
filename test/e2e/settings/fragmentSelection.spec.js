@@ -22,7 +22,7 @@ describe('settings', () => {
       var text = '';
 
       // IE8
-      if (window.getSelection && window.getSelection().toString() && $(window.getSelection()).attr('type') != 'Caret') {
+      if (window.getSelection && window.getSelection().toString() && $(window.getSelection()).attr('type') !== 'Caret') {
         text = window.getSelection();
 
         return text.toString();

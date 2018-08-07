@@ -148,7 +148,7 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
     return;
   }
 
-  if (this.state == EditorState.VIRGIN) {
+  if (this.state === EditorState.VIRGIN) {
     this.instance._registerTimeout(() => {
       _this._fireCallbacks(true);
     });
@@ -156,7 +156,7 @@ BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, ca
     return;
   }
 
-  if (this.state == EditorState.EDITING) {
+  if (this.state === EditorState.EDITING) {
     if (restoreOriginalValue) {
       this.cancelChanges();
       this.instance.view.render();

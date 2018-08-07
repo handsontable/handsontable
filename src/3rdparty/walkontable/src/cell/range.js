@@ -484,16 +484,16 @@ class CellRange {
     };
     const result = [];
 
-    if (thisBorders.top == rangeBorders.top) {
+    if (thisBorders.top === rangeBorders.top) {
       result.push('top');
     }
-    if (thisBorders.right == rangeBorders.right) {
+    if (thisBorders.right === rangeBorders.right) {
       result.push('right');
     }
-    if (thisBorders.bottom == rangeBorders.bottom) {
+    if (thisBorders.bottom === rangeBorders.bottom) {
       result.push('bottom');
     }
-    if (thisBorders.left == rangeBorders.left) {
+    if (thisBorders.left === rangeBorders.left) {
       result.push('left');
     }
 
