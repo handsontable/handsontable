@@ -270,8 +270,8 @@ class ContextMenu extends BasePlugin {
    * @param {String} commandName The command name to be executed.
    * @param {...*} params
    */
-  executeCommand(...params) {
-    this.commandExecutor.execute.apply(this.commandExecutor, params);
+  executeCommand(commandName, ...params) {
+    this.commandExecutor.execute(commandName, ...params);
   }
 
   /**

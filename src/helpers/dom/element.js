@@ -253,7 +253,7 @@ if (classListSupport) {
 
     if (className.length > 0) {
       if (isSupportMultipleClassesArg) {
-        element.classList.add.apply(element.classList, className);
+        element.classList.add(...className);
 
       } else {
         let len = 0;
@@ -275,7 +275,7 @@ if (classListSupport) {
 
     if (className.length > 0) {
       if (isSupportMultipleClassesArg) {
-        element.classList.remove.apply(element.classList, className);
+        element.classList.remove(...className);
 
       } else {
         let len = 0;
