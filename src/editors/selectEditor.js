@@ -36,8 +36,8 @@ SelectEditor.prototype.registerHooks = function() {
   this.instance.addHook('afterRowResize', () => this.refreshDimensions());
 };
 
-SelectEditor.prototype.prepare = function() {
-  BaseEditor.prototype.prepare.apply(this, arguments);
+SelectEditor.prototype.prepare = function(...args) {
+  BaseEditor.prototype.prepare.apply(this, args);
 
   var selectOptions = this.cellProperties.selectOptions;
   var options;

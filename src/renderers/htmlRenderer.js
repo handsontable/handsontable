@@ -12,8 +12,8 @@ import {getRenderer} from './index';
  * @param value
  * @param cellProperties
  */
-function htmlRenderer(instance, TD, row, col, prop, value) {
-  getRenderer('base').apply(this, arguments);
+function htmlRenderer(instance, TD, row, col, prop, value, ...args) {
+  getRenderer('base').apply(this, [instance, TD, row, col, prop, value, ...args]);
 
   if (value === null || value === void 0) {
     value = '';

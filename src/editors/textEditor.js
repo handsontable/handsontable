@@ -38,10 +38,10 @@ TextEditor.prototype.init = function() {
   });
 };
 
-TextEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellProperties) {
+TextEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellProperties, ...args) {
   const previousState = this.state;
 
-  BaseEditor.prototype.prepare.apply(this, arguments);
+  BaseEditor.prototype.prepare.apply(this, [row, col, prop, td, originalValue, cellProperties, ...args]);
 
   if (!cellProperties.readOnly) {
     this.refreshDimensions(true);
@@ -87,13 +87,13 @@ TextEditor.prototype.setValue = function(newValue) {
   this.TEXTAREA.value = newValue;
 };
 
-TextEditor.prototype.beginEditing = function() {
+TextEditor.prototype.beginEditing = function(...args) {
   if (this.state !== EditorState.VIRGIN) {
     return;
   }
 
   this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME).
-  BaseEditor.prototype.beginEditing.apply(this, arguments);
+  BaseEditor.prototype.beginEditing.apply(this, args);
 };
 
 var onBeforeKeyDown = function onBeforeKeyDown(event) {
