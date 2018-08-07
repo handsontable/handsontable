@@ -485,7 +485,7 @@ describe('Search plugin', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 3),
         search: true,
-        columns: function() {
+        columns() {
           return {
             className: ['columns', 'cell']
           };

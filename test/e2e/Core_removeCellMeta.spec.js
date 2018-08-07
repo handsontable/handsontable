@@ -110,7 +110,7 @@ describe('Core_removeCellMeta', () => {
     let colInsideHook;
 
     handsontable({
-      beforeRemoveCellMeta: function (row, col) {
+      beforeRemoveCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },
@@ -133,7 +133,7 @@ describe('Core_removeCellMeta', () => {
     let colInsideHook;
 
     handsontable({
-      afterRemoveCellMeta: function (row, col) {
+      afterRemoveCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },
@@ -153,7 +153,7 @@ describe('Core_removeCellMeta', () => {
 
   it('should block removing cell meta when hook `beforeRemoveCellMeta` return false', () => {
     handsontable({
-      beforeRemoveCellMeta: function (row, col) {
+      beforeRemoveCellMeta(row, col) {
         if (row === 0 && col === 0) {
           return false;
         }

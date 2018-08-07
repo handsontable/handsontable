@@ -1,6 +1,6 @@
 export function sleep(delay = 100) {
   return Promise.resolve({
-    then: function(resolve) {
+    then(resolve) {
       setTimeout(resolve, delay);
     }
   });
