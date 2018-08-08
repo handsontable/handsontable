@@ -81,9 +81,9 @@ describe('Core_getCellMeta', () => {
     handsontable({
       cells() {
         return {
-          renderer(instance, td) {
+          renderer(instance, td, ...args) {
             // taken from demo/renderers.html
-            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
             $(td).css({
               background: 'yellow'
             });
@@ -110,9 +110,9 @@ describe('Core_getCellMeta', () => {
         if (row === 2 && col === 2) {
           return {
             type: 'checkbox',
-            renderer(instance, td) {
+            renderer(instance, td, ...args) {
               // taken from demo/renderers.html
-              Handsontable.renderers.TextRenderer.apply(this, arguments);
+              Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
 
               td.style.backgroundColor = 'yellow';
             }

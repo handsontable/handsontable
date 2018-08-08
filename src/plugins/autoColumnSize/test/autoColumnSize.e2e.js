@@ -456,9 +456,9 @@ describe('AutoColumnSize', () => {
         {data: 'name'}
       ],
       autoColumnSize: true,
-      renderer(instance, td, row, col) {
+      renderer(instance, td, row, col, ...args) {
         // taken from demo/renderers.html
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
+        Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, ...args]);
         if (row === 1 && col === 0) {
           td.style.padding = '100px';
         }

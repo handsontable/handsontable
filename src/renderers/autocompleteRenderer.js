@@ -25,14 +25,11 @@ clonableARROW.appendChild(document.createTextNode(String.fromCharCode(9660)));
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties) {
+function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties, ...args) {
+  const rendererType = cellProperties.allowHtml ? 'html' : 'text';
   var ARROW = clonableARROW.cloneNode(true); // this is faster than createElement
 
-  if (cellProperties.allowHtml) {
-    getRenderer('html').apply(this, arguments);
-  } else {
-    getRenderer('text').apply(this, arguments);
-  }
+  getRenderer(rendererType).apply(this, [instance, TD, row, col, prop, value, cellProperties, ...args]);
 
   if (!TD.firstChild) { // http://jsperf.com/empty-node-if-needed
     // otherwise empty fields appear borderless in demo/renderers.html (IE)

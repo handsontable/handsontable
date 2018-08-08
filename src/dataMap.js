@@ -418,11 +418,10 @@ DataMap.prototype.removeCol = function(index, amount, source) {
  * @param {Number} col Physical index of column in which do you want to do splice
  * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+ * @param {Array} [elements]
  * @returns {Array} Returns removed portion of columns
  */
-DataMap.prototype.spliceCol = function(col, index, amount/* , elements... */) {
-  var elements = arguments.length >= 4 ? [].slice.call(arguments, 3) : [];
-
+DataMap.prototype.spliceCol = function(col, index, amount, ...elements) {
   var colData = this.instance.getDataAtCol(col);
   var removed = colData.slice(index, index + amount);
   var after = colData.slice(index + amount);
@@ -445,11 +444,10 @@ DataMap.prototype.spliceCol = function(col, index, amount/* , elements... */) {
  * @param {Number} row Physical index of row in which do you want to do splice
  * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
  * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
+ * @param {Array} [elements]
  * @returns {Array} Returns removed portion of rows
  */
-DataMap.prototype.spliceRow = function(row, index, amount/* , elements... */) {
-  var elements = arguments.length >= 4 ? [].slice.call(arguments, 3) : [];
-
+DataMap.prototype.spliceRow = function(row, index, amount, ...elements) {
   var rowData = this.instance.getSourceDataAtRow(row);
   var removed = rowData.slice(index, index + amount);
   var after = rowData.slice(index + amount);

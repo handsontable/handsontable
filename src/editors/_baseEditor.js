@@ -61,8 +61,8 @@ BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
 BaseEditor.prototype.extend = function() {
   var baseClass = this.constructor;
 
-  function Editor() {
-    baseClass.apply(this, arguments);
+  function Editor(...args) {
+    baseClass.apply(this, args);
   }
 
   function inherit(Child, Parent) {

@@ -13,8 +13,8 @@ import {rangeEach} from './../helpers/number';
  * @param value
  * @param cellProperties
  */
-function passwordRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  getRenderer('text').apply(this, arguments);
+function passwordRenderer(instance, TD, row, col, prop, value, cellProperties, ...args) {
+  getRenderer('text').apply(this, [instance, TD, row, col, prop, value, cellProperties, ...args]);
 
   value = TD.innerHTML;
 

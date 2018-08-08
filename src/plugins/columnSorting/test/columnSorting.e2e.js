@@ -1392,14 +1392,14 @@ describe('ColumnSorting', () => {
     const afterColumnSortHandler = jasmine.createSpy('afterColumnSortHandler');
     const afterRenderSpy = jasmine.createSpy('afterRender');
 
-    addHook('afterColumnSort', function() {
+    addHook('afterColumnSort', (...args) => {
       expect(rendered).toBe('desc');
-      afterColumnSortHandler.apply(afterColumnSortHandler, arguments);
+      afterColumnSortHandler.apply(afterColumnSortHandler, args);
     });
 
-    addHook('afterRender', function() {
+    addHook('afterRender', (...args) => {
       rendered = true;
-      afterRenderSpy.apply(afterRenderSpy, arguments);
+      afterRenderSpy.apply(afterRenderSpy, args);
     });
 
     const sortColumn = 0;
