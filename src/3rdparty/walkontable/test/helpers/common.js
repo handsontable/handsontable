@@ -19,13 +19,13 @@ export function createDataArray(rows, cols) {
   rows = typeof rows === 'number' ? rows : 100;
   cols = typeof cols === 'number' ? cols : 4;
 
-  for (var i = 0; i < rows; i++) {
-    var row = [];
+  for (let i = 0; i < rows; i++) {
+    const row = [];
 
     if (cols > 0) {
       row.push(i);
 
-      for (var j = 0; j < cols - 1; j++) {
+      for (let j = 0; j < cols - 1; j++) {
         /* eslint-disable no-mixed-operators */
         /* eslint-disable no-bitwise */
         row.push(String.fromCharCode(65 + j % 20).toLowerCase() + (j / 20 | 0 || '')); // | 0 is parseInt - see http://jsperf.com/math-floor-vs-math-round-vs-parseint/18
@@ -47,12 +47,12 @@ export function getTotalColumns() {
   return spec().data[0] ? spec().data[0].length : 0;
 };
 
-var currentSpec;
+let currentSpec;
 
 beforeEach(function() {
   currentSpec = this;
 
-  var matchers = {
+  const matchers = {
     toBeInArray() {
       return {
         compare(actual, expected) {
@@ -76,8 +76,8 @@ beforeEach(function() {
         compare(actual, expected, diff) {
           diff = diff || 1;
 
-          var pass = actual >= expected - diff && actual <= expected + diff;
-          var message = `Expected ${actual} to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+          const pass = actual >= expected - diff && actual <= expected + diff;
+          let message = `Expected ${actual} to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
 
           if (!pass) {
             message = `Expected ${actual} NOT to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
@@ -117,7 +117,7 @@ export function range(from, to) {
     from = [to, to = from][0]; // one-liner for swapping two values
   }
 
-  var result = [];
+  const result = [];
 
   while (to++ < from) {
     result.push(to);
@@ -194,12 +194,12 @@ export function getTableCornerClone() {
 }
 
 export function createSpreadsheetData(rows, columns) {
-  var _rows = [],
-    i,
-    j;
+  const _rows = [];
+  let i;
+  let j;
 
   for (i = 0; i < rows; i++) {
-    var row = [];
+    const row = [];
 
     for (j = 0; j < columns; j++) {
       row.push(spreadsheetColumnLabel(j) + (i + 1));
@@ -234,11 +234,11 @@ export function spreadsheetColumnLabel(index) {
 }
 
 export function walkontableCalculateScrollbarWidth() {
-  var inner = document.createElement('div');
+  const inner = document.createElement('div');
   inner.style.height = '200px';
   inner.style.width = '100%';
 
-  var outer = document.createElement('div');
+  const outer = document.createElement('div');
   outer.style.boxSizing = 'content-box';
   outer.style.height = '150px';
   outer.style.left = '0px';
@@ -250,9 +250,9 @@ export function walkontableCalculateScrollbarWidth() {
   outer.appendChild(inner);
 
   (document.body || document.documentElement).appendChild(outer);
-  var w1 = inner.offsetWidth;
+  const w1 = inner.offsetWidth;
   outer.style.overflow = 'scroll';
-  var w2 = inner.offsetWidth;
+  let w2 = inner.offsetWidth;
   if (w1 === w2) {
     w2 = outer.clientWidth;
   }
@@ -262,7 +262,7 @@ export function walkontableCalculateScrollbarWidth() {
   return (w1 - w2);
 }
 
-var cachedScrollbarWidth;
+let cachedScrollbarWidth;
 
 export function getScrollbarWidth() {
   if (cachedScrollbarWidth === void 0) {
