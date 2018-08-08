@@ -1,6 +1,6 @@
 describe('settings', () => {
   describe('fragmentSelection', () => {
-    var id = 'testContainer';
+    const id = 'testContainer';
 
     beforeEach(function() {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -19,7 +19,7 @@ describe('settings', () => {
      */
     function getSelected() {
       /* eslint-disable no-else-return */
-      var text = '';
+      let text = '';
 
       // IE8
       if (window.getSelection && window.getSelection().toString() && $(window.getSelection()).attr('type') !== 'Caret') {
@@ -28,7 +28,7 @@ describe('settings', () => {
         return text.toString();
 
       } else { // standards
-        var selection = document.selection && document.selection.createRange();
+        const selection = document.selection && document.selection.createRange();
 
         if (!(typeof selection === 'undefined') && selection.text && selection.text.toString()) {
           text = selection.text;
@@ -47,9 +47,9 @@ describe('settings', () => {
      * @param siblings
      */
     function selectElementText(fromEl, siblings) {
-      var doc = window.document;
-      var sel;
-      var range;
+      const doc = window.document;
+      let sel;
+      let range;
 
       if (window.getSelection && doc.createRange) { // standards
         sel = window.getSelection();
@@ -83,7 +83,7 @@ describe('settings', () => {
         mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));
         mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
 
-        var sel = getSelected();
+        const sel = getSelected();
 
         expect(sel).toEqual(' '); // copyPaste has selected space in textarea
       });
@@ -99,7 +99,7 @@ describe('settings', () => {
         mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));
         mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
 
-        var sel = getSelected();
+        let sel = getSelected();
         sel = sel.replace(/\s/g, ''); // tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
 
         expect(sel).toEqual('B1C1D1');
@@ -139,13 +139,13 @@ describe('settings', () => {
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: false
         });
-        var $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
+        const $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
         spec().$container.append($div);
         selectElementText($div[0], 1);
 
         mouseDown($div);
 
-        var sel = getSelected();
+        const sel = getSelected();
         expect(sel).toEqual(false);
       });
 
@@ -154,13 +154,13 @@ describe('settings', () => {
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: true
         });
-        var $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
+        const $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
         spec().$container.append($div);
         selectElementText($div[0], 1);
 
         mouseDown($div);
 
-        var sel = getSelected();
+        const sel = getSelected();
         expect(sel).toEqual(false);
       });
     });
@@ -177,7 +177,7 @@ describe('settings', () => {
         mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));
         mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
 
-        var sel = getSelected();
+        const sel = getSelected();
         expect(sel).toEqual(' '); // copyPaste has selected space in textarea
       });
 
@@ -193,7 +193,7 @@ describe('settings', () => {
         mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));
         mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
 
-        var sel = getSelected();
+        let sel = getSelected();
         sel = sel.replace(/\s/g, ''); // tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
         expect(sel).toEqual('B1C1D1');
       });
