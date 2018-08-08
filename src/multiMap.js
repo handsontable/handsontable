@@ -1,5 +1,5 @@
 function MultiMap() {
-  var map = {
+  const map = {
     arrayMap: [],
     weakMap: new WeakMap(),
   };

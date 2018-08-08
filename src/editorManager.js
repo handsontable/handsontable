@@ -6,11 +6,11 @@ import EventManager from './eventManager';
 import {EditorState} from './editors/_baseEditor';
 
 function EditorManager(instance, priv, selection) {
-  var _this = this,
-    destroyed = false,
-    lock = false,
-    eventManager,
-    activeEditor;
+  const _this = this;
+  let destroyed = false;
+  let lock = false;
+  let eventManager;
+  let activeEditor;
 
   eventManager = new EventManager(instance);
 
@@ -327,13 +327,13 @@ function EditorManager(instance, priv, selection) {
       return;
     }
 
-    var row,
-      col,
-      prop,
-      td,
-      originalValue,
-      cellProperties,
-      editorClass;
+    let row;
+    let col;
+    let prop;
+    let td;
+    let originalValue;
+    let cellProperties;
+    let editorClass;
 
     if (activeEditor && activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved) => {

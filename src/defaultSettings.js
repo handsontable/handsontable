@@ -1032,10 +1032,10 @@ DefaultSettings.prototype = {
    * ```
    */
   isEmptyRow(row) {
-    var col,
-      colLen,
-      value,
-      meta;
+    let col;
+    let colLen;
+    let value;
+    let meta;
 
     for (col = 0, colLen = this.countCols(); col < colLen; col++) {
       value = this.getDataAtCell(row, col);
@@ -1069,9 +1069,9 @@ DefaultSettings.prototype = {
    * ```
    */
   isEmptyCol(col) {
-    var row;
-    var rowLen;
-    var value;
+    let row;
+    let rowLen;
+    let value;
 
     for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
       value = this.getDataAtCell(row, col);

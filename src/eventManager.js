@@ -154,7 +154,7 @@ class EventManager {
       button: 0,
       relatedTarget: undefined,
     };
-    var event;
+    let event;
 
     if (document.createEvent) {
       event = document.createEvent('MouseEvents');

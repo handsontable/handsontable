@@ -67,7 +67,7 @@ export function isPrintableChar(keyCode) {
  * @returns {Boolean}
  */
 export function isMetaKey(keyCode) {
-  var metaKeys = [
+  const metaKeys = [
     KEY_CODES.ARROW_DOWN,
     KEY_CODES.ARROW_UP,
     KEY_CODES.ARROW_LEFT,
