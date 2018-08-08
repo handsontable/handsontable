@@ -2,17 +2,11 @@ describe('AutocompleteEditor', () => {
   const id = 'testContainer';
   const choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
 
-  let hot;
-
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
   afterEach(function() {
-    if (hot) {
-      hot = null;
-    }
-
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -377,7 +371,7 @@ describe('AutocompleteEditor', () => {
         ['c', 'd']
       ];
 
-      hot = handsontable({
+      handsontable({
         data,
         minRows: 4,
         minCols: 4,
@@ -986,7 +980,7 @@ describe('AutocompleteEditor', () => {
         process(choices.filter((choice) => choice.indexOf(query) !== -1));
       });
 
-      hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1254,7 +1248,7 @@ describe('AutocompleteEditor', () => {
         process(choices.filter((choice) => choice.indexOf(query) !== -1));
       });
 
-      hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1312,7 +1306,7 @@ describe('AutocompleteEditor', () => {
         process(choices.filter((choice) => choice.indexOf(query) !== -1));
       });
 
-      hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1403,7 +1397,7 @@ describe('AutocompleteEditor', () => {
         process(choices.filter((choice) => choice.indexOf(query) !== -1));
       });
 
-      hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1457,7 +1451,7 @@ describe('AutocompleteEditor', () => {
       }, 600);
     });
     it('default filtering should be case insensitive', (done) => {
-      hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1516,7 +1510,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('default filtering should be case sensitive when filteringCaseSensitive is false', (done) => {
-      hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1567,7 +1561,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('typing in textarea should NOT filter the lookup list when filtering is disabled', (done) => {
-      hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1608,14 +1602,14 @@ describe('AutocompleteEditor', () => {
     });
 
     it('typing in textarea should highlight the matching phrase', (done) => {
-      const choices = ['Male', 'Female'];
+      const choicesList = ['Male', 'Female'];
       const syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
-        process(choices.filter((choice) => choice.search(new RegExp(query, 'i')) !== -1));
+        process(choicesList.filter((choice) => choice.search(new RegExp(query, 'i')) !== -1));
       });
 
-      hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1654,7 +1648,7 @@ describe('AutocompleteEditor', () => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'queryChoices').and.callThrough();
       const queryChoices = Handsontable.editors.AutocompleteEditor.prototype.queryChoices;
 
-      hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1686,14 +1680,14 @@ describe('AutocompleteEditor', () => {
     });
 
     it('text in textarea should not be interpreted as regexp when highlighting the matching phrase', (done) => {
-      const choices = ['Male', 'Female'];
+      const choicesList = ['Male', 'Female'];
       const syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
-        process(choices.filter((choice) => choice.search(new RegExp(query, 'i')) !== -1));
+        process(choicesList.filter((choice) => choice.search(new RegExp(query, 'i')) !== -1));
       });
 
-      hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1765,11 +1759,11 @@ describe('AutocompleteEditor', () => {
     });
 
     it('typing in textarea should highlight best choice, if strict === true', (done) => {
-      const choices = ['Male', 'Female'];
+      const choicesList = ['Male', 'Female'];
       const syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
-        process(choices.filter((choice) => choice.search(new RegExp(query, 'i')) !== -1));
+        process(choicesList.filter((choice) => choice.search(new RegExp(query, 'i')) !== -1));
       });
 
       const hot = handsontable({
@@ -1875,7 +1869,7 @@ describe('AutocompleteEditor', () => {
 
   describe('allow html mode', () => {
     it('should allow inject html items (async mode)', (done) => {
-      hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -1932,7 +1926,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('should allow inject html items (sync mode)', (done) => {
-      hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -1989,7 +1983,7 @@ describe('AutocompleteEditor', () => {
 
   describe('disallow html mode', () => {
     it('should be disabled by default', () => {
-      hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -2122,7 +2116,7 @@ describe('AutocompleteEditor', () => {
   describe('Autocomplete helper functions:', () => {
     describe('sortByRelevance', () => {
       it('should sort the provided array, so items more relevant to the provided value are listed first', () => {
-        const choices = [
+        const choicesList = [
           'Wayne', // 0
           'Draven', // 1
           'Banner', // 2
@@ -2134,17 +2128,17 @@ describe('AutocompleteEditor', () => {
           'Simmons'// 8
         ];
         let value = 'a';
-        let sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choices);
+        let sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choicesList);
 
         expect(sorted).toEqual([0, 2, 4, 3, 1]);
 
         value = 'o';
-        sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choices);
+        sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choicesList);
 
         expect(sorted).toEqual([6, 8]);
 
         value = 'er';
-        sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choices);
+        sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choicesList);
 
         expect(sorted).toEqual([2, 4]);
       });
@@ -2152,14 +2146,14 @@ describe('AutocompleteEditor', () => {
   });
 
   it('should not modify the suggestion lists\' order, when the sortByRelevance option is set to false', (done) => {
-    const choices = [
+    const choicesList = [
       'Wayne', 'Draven', 'Banner', 'Stark', 'Parker', 'Kent', 'Gordon', 'Kyle', 'Simmons'
     ];
     handsontable({
       columns: [
         {
           editor: 'autocomplete',
-          source: choices,
+          source: choicesList,
           sortByRelevance: false
         }
       ]
@@ -2179,7 +2173,7 @@ describe('AutocompleteEditor', () => {
       expect(listLength).toBe(9);
 
       for (let i = 1; i <= listLength; i++) {
-        expect(dropdownList.find(`tr:nth-child(${i}) td`).text()).toEqual(choices[i - 1]);
+        expect(dropdownList.find(`tr:nth-child(${i}) td`).text()).toEqual(choicesList[i - 1]);
       }
       done();
     }, 30);

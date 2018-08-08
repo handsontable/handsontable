@@ -108,23 +108,23 @@ class Border {
     // Hide border to prevents selection jumping when fragmentSelection is enabled.
     parentElement.style.display = 'none';
 
-    function isOutside(event) {
-      if (event.clientY < Math.floor(bounds.top)) {
+    function isOutside(mouseEvent) {
+      if (mouseEvent.clientY < Math.floor(bounds.top)) {
         return true;
       }
-      if (event.clientY > Math.ceil(bounds.top + bounds.height)) {
+      if (mouseEvent.clientY > Math.ceil(bounds.top + bounds.height)) {
         return true;
       }
-      if (event.clientX < Math.floor(bounds.left)) {
+      if (mouseEvent.clientX < Math.floor(bounds.left)) {
         return true;
       }
-      if (event.clientX > Math.ceil(bounds.left + bounds.width)) {
+      if (mouseEvent.clientX > Math.ceil(bounds.left + bounds.width)) {
         return true;
       }
     }
 
-    function handler(event) {
-      if (isOutside(event)) {
+    function handler(handlerEvent) {
+      if (isOutside(handlerEvent)) {
         _this.eventManager.removeEventListener(document.body, 'mousemove', handler);
         parentElement.style.display = 'block';
       }

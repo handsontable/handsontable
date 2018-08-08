@@ -125,8 +125,8 @@ export function isChildOfWebComponentTable(element) {
   let result = false;
   let parentNode = polymerWrap(element);
 
-  function isHotTable(element) {
-    return element.nodeType === Node.ELEMENT_NODE && element.nodeName === hotTableName.toUpperCase();
+  function isHotTable(testElement) {
+    return testElement.nodeType === Node.ELEMENT_NODE && testElement.nodeName === hotTableName.toUpperCase();
   }
 
   while (parentNode != null) {
@@ -234,7 +234,7 @@ if (classListSupport) {
     return element.classList.contains('test2');
   }());
 
-  _hasClass = function _hasClass(element, className) {
+  _hasClass = function(element, className) {
     if (element.classList === void 0 || typeof className !== 'string' || className === '') {
       return false;
     }
@@ -242,7 +242,7 @@ if (classListSupport) {
     return element.classList.contains(className);
   };
 
-  _addClass = function _addClass(element, className) {
+  _addClass = function(element, className) {
     if (typeof className === 'string') {
       className = className.split(' ');
     }
@@ -264,7 +264,7 @@ if (classListSupport) {
     }
   };
 
-  _removeClass = function _removeClass(element, className) {
+  _removeClass = function(element, className) {
     if (typeof className === 'string') {
       className = className.split(' ');
     }
@@ -287,18 +287,18 @@ if (classListSupport) {
   };
 
 } else {
-  const createClassNameRegExp = function createClassNameRegExp(className) {
+  const createClassNameRegExp = function(className) {
     return new RegExp(`(\\s|^)${className}(\\s|$)`);
   };
 
-  _hasClass = function _hasClass(element, className) {
+  _hasClass = function(element, className) {
     // http://snipplr.com/view/3561/addclass-removeclass-hasclass/
     return element.className !== void 0 && createClassNameRegExp(className).test(element.className);
   };
 
-  _addClass = function _addClass(element, className) {
-    let _className = element.className;
+  _addClass = function(element, className) {
     let len = 0;
+    let _className = element.className;
 
     if (typeof className === 'string') {
       className = className.split(' ');
@@ -317,7 +317,7 @@ if (classListSupport) {
     element.className = _className;
   };
 
-  _removeClass = function _removeClass(element, className) {
+  _removeClass = function(element, className) {
     let len = 0;
     let _className = element.className;
 

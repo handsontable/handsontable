@@ -127,8 +127,8 @@ export function closeContextMenu() {
  * Shows dropdown menu
  */
 export function dropdownMenu(columnIndex) {
-  const hot = spec().$container.data('handsontable');
-  const th = hot.view.wt.wtTable.getColumnHeader(columnIndex || 0);
+  const hotInstance = spec().$container.data('handsontable');
+  const th = hotInstance.view.wt.wtTable.getColumnHeader(columnIndex || 0);
   const button = th.querySelector('.changeType');
 
   if (button) {

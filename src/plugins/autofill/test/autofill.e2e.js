@@ -809,14 +809,12 @@ describe('AutoFill', () => {
     let $container2;
 
     beforeAll(() => {
-      getData = function getData() {
-        return [
-          [1, 2, 3, 4, 5, 6],
-          [7, 8, 9, 1, 2, 3],
-          [4, 5, 6, 7, 8, 9],
-          [1, 2, 3, 4, 5, 6]
-        ];
-      };
+      getData = () => [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ];
 
       $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
         data: getData(),

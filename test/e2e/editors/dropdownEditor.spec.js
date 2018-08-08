@@ -1,17 +1,12 @@
 describe('DropdownEditor', () => {
   const id = 'testContainer';
   const choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
-  let hot;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
   afterEach(function() {
-    if (hot) {
-      hot = null;
-    }
-
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -86,7 +81,7 @@ describe('DropdownEditor', () => {
   });
 
   it('should mark all invalid values as invalid, after pasting them into dropdown-type cells', (done) => {
-    hot = handsontable({
+    handsontable({
       data: [
         ['', 'two', 'three'],
         ['four', 'five', 'six']

@@ -41,11 +41,11 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
     autoWrapCol: false,
     autoWrapRow: false,
     afterOnCellMouseDown(_, coords) {
-      const value = this.getSourceData(coords.row, coords.col);
+      const sourceValue = this.getSourceData(coords.row, coords.col);
 
       // if the value is undefined then it means we don't want to set the value
-      if (value !== void 0) {
-        parent.setValue(value);
+      if (sourceValue !== void 0) {
+        parent.setValue(sourceValue);
       }
       parent.instance.destroyEditor();
     }

@@ -197,9 +197,9 @@ describe('PluginHooks', () => {
     const hot = handsontable();
     const str = 'a';
 
-    hot.addHookOnce('myHook', (str) => `${str}b`);
+    hot.addHookOnce('myHook', (value) => `${value}b`);
 
-    hot.addHookOnce('myHook', (str) => `${str}c`);
+    hot.addHookOnce('myHook', (value) => `${value}c`);
 
     expect(hot.runHooks('myHook', str)).toEqual('abc');
   });
