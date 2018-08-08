@@ -1,5 +1,5 @@
 describe('noEditor', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
@@ -13,8 +13,7 @@ describe('noEditor', () => {
   });
 
   it('shouldn\'t begin editing when enterBeginsEditing equals true', () => {
-    var
-      selection;
+    let selection;
 
     handsontable({
       enterBeginsEditing: true,
@@ -29,8 +28,7 @@ describe('noEditor', () => {
   });
 
   it('shouldn\'t move down after editing', () => {
-    var
-      selection;
+    let selection;
 
     handsontable({
       editor: false
@@ -44,8 +42,7 @@ describe('noEditor', () => {
   });
 
   it('shouldn\'t move down when enterBeginsEditing equals false', () => {
-    var
-      selection;
+    let selection;
 
     handsontable({
       enterBeginsEditing: false,

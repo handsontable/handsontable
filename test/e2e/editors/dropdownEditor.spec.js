@@ -1,9 +1,7 @@
 describe('DropdownEditor', () => {
-  var id = 'testContainer';
-
-  var choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
-
-  var hot;
+  const id = 'testContainer';
+  const choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
+  let hot;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
@@ -23,8 +21,8 @@ describe('DropdownEditor', () => {
   describe('open editor', () => {
     // see https://github.com/handsontable/handsontable/issues/3380
     it('should not throw error while selecting the next cell by hitting enter key', () => {
-      var spy = jasmine.createSpyObj('error', ['test']);
-      var prevError = window.onerror;
+      const spy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
 
       window.onerror = function() {
         spy.test();
