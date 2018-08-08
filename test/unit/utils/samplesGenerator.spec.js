@@ -2,11 +2,11 @@ import SamplesGenerator from 'handsontable/utils/samplesGenerator';
 
 describe('SamplesGenerator', () => {
   it('should internally call `generateSamples` when calling `generateRowSamples`', () => {
-    var sg = new SamplesGenerator();
+    const sg = new SamplesGenerator();
 
     spyOn(sg, 'generateSamples').and.returnValue('test');
 
-    var result = sg.generateRowSamples('first param', 'second param');
+    const result = sg.generateRowSamples('first param', 'second param');
 
     expect(result).toBe('test');
     expect(sg.generateSamples.calls.count()).toBe(1);
@@ -16,11 +16,11 @@ describe('SamplesGenerator', () => {
   });
 
   it('should internally call `generateSamples` when calling `generateColumnSamples`', () => {
-    var sg = new SamplesGenerator();
+    const sg = new SamplesGenerator();
 
     spyOn(sg, 'generateSamples').and.returnValue('test');
 
-    var result = sg.generateColumnSamples('first param', 'second param');
+    const result = sg.generateColumnSamples('first param', 'second param');
 
     expect(result).toBe('test');
     expect(sg.generateSamples.calls.count()).toBe(1);
@@ -30,17 +30,17 @@ describe('SamplesGenerator', () => {
   });
 
   it('should generate collection of Maps when range is passed as Number', () => {
-    var sg = new SamplesGenerator();
+    const sg = new SamplesGenerator();
 
     spyOn(sg, 'generateSample').and.callFake((type, range, index) => {
-      var map = new Map();
+      const map = new Map();
 
       map.set(index, {type, range, index});
 
       return map;
     });
 
-    var result = sg.generateSamples('row', 10, 1);
+    const result = sg.generateSamples('row', 10, 1);
 
     expect(result instanceof Map).toBe(true);
     expect(result.size).toBe(1);
@@ -48,17 +48,17 @@ describe('SamplesGenerator', () => {
   });
 
   it('should generate collection of Maps when range is passed as Object', () => {
-    var sg = new SamplesGenerator();
+    const sg = new SamplesGenerator();
 
     spyOn(sg, 'generateSample').and.callFake((type, range, index) => {
-      var map = new Map();
+      const map = new Map();
 
       map.set(index, {type, range, index});
 
       return map;
     });
 
-    var result = sg.generateSamples('col', 10, {from: 4, to: 12});
+    const result = sg.generateSamples('col', 10, {from: 4, to: 12});
 
     expect(result instanceof Map).toBe(true);
     expect(result.size).toBe(9);
@@ -66,8 +66,8 @@ describe('SamplesGenerator', () => {
   });
 
   it('should generate row sample', () => {
-    var sg = new SamplesGenerator((row, col) => {
-      var data = [
+    const sg = new SamplesGenerator((row, col) => {
+      const data = [
         ['AA', {id: 2}, 'C', [1, 2, 3, 4, 5], 123456789],
       ];
 
@@ -78,7 +78,7 @@ describe('SamplesGenerator', () => {
 
     spyOn(sg, 'dataFactory').and.callThrough();
 
-    var result = sg.generateSample('row', {from: 0, to: 4}, 0);
+    const result = sg.generateSample('row', {from: 0, to: 4}, 0);
 
     expect(sg.dataFactory.calls.count()).toBe(5);
     expect(sg.dataFactory.calls.mostRecent().args[0]).toBe(0);
@@ -141,8 +141,8 @@ describe('SamplesGenerator', () => {
   });
 
   it('should generate column sample', () => {
-    var sg = new SamplesGenerator((row, col) => {
-      var data = [
+    const sg = new SamplesGenerator((row, col) => {
+      const data = [
         [1, 2, 3, 44],
         ['AA', 'BB', 'C', 'D'],
         ['zz', 'xxx', 'c-c', 'vvvvv'],
@@ -157,7 +157,7 @@ describe('SamplesGenerator', () => {
 
     spyOn(sg, 'dataFactory').and.callThrough();
 
-    var result = sg.generateSample('col', {from: 0, to: 4}, 3);
+    const result = sg.generateSample('col', {from: 0, to: 4}, 3);
 
     expect(sg.dataFactory.calls.count()).toBe(5);
     expect(sg.dataFactory.calls.mostRecent().args[0]).toBe(4);
