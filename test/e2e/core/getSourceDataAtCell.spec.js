@@ -1,5 +1,5 @@
 describe('Core.getSourceDataAtCell', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -69,15 +69,14 @@ describe('Core.getSourceDataAtCell', () => {
     });
 
     function model(opts) {
-      var
-        _pub = {},
-        _priv = {
-          id: undefined,
-          name: undefined,
-          address: undefined
-        };
+      const _pub = {};
+      const _priv = {
+        id: undefined,
+        name: undefined,
+        address: undefined
+      };
 
-      for (var i in opts) {
+      for (let i in opts) {
         if (Object.prototype.hasOwnProperty.call(opts, i)) {
           _priv[i] = opts[i];
         }
@@ -114,7 +113,7 @@ describe('Core.getSourceDataAtCell', () => {
           ['2010', 30, 15, 12, 13]
         ],
         modifyRowData(row) {
-          var newDataset = [];
+          const newDataset = [];
 
           if (row === 1) {
             newDataset.push('2016', 0, 0, 0, 0);
