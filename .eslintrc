@@ -49,7 +49,6 @@
       }
     ],
     "no-use-before-define": 0,
-    "no-var": 0,
     "no-void": 0,
     "no-with": 2,
     "object-curly-spacing": 0,

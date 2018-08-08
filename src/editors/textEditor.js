@@ -26,7 +26,7 @@ const TextEditor = BaseEditor.prototype.extend();
  * @dependencies autoResize
  */
 TextEditor.prototype.init = function() {
-  var that = this;
+  const that = this;
   this.createElements();
   this.eventManager = new EventManager(this);
   this.bindEvents();
@@ -96,11 +96,10 @@ TextEditor.prototype.beginEditing = function(...args) {
   BaseEditor.prototype.beginEditing.apply(this, args);
 };
 
-var onBeforeKeyDown = function onBeforeKeyDown(event) {
-  var
-    instance = this,
-    that = instance.getActiveEditor(),
-    ctrlDown;
+const onBeforeKeyDown = function onBeforeKeyDown(event) {
+  const instance = this;
+  const that = instance.getActiveEditor();
+  let ctrlDown;
 
   // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
   ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
@@ -402,7 +401,7 @@ TextEditor.prototype.refreshDimensions = function(force = false) {
 };
 
 TextEditor.prototype.bindEvents = function() {
-  var editor = this;
+  const editor = this;
 
   this.eventManager.addEventListener(this.TEXTAREA, 'cut', (event) => {
     stopPropagation(event);

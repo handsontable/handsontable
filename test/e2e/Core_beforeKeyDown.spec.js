@@ -1,5 +1,5 @@
 describe('Core_beforeKeyDown', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,7 @@ describe('Core_beforeKeyDown', () => {
   });
 
   it('should run beforeKeyDown hook', () => {
-    var called = false;
+    let called = false;
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
@@ -29,7 +29,7 @@ describe('Core_beforeKeyDown', () => {
   });
 
   it('should run afterDocumentKeyDown and beforeKeyDown hook', () => {
-    var called = [];
+    const called = [];
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
@@ -85,7 +85,7 @@ describe('Core_beforeKeyDown', () => {
   });
 
   it('should run beforeKeyDown hook in cell editor handler', () => {
-    var called = 0;
+    let called = 0;
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],

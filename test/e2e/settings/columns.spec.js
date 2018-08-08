@@ -1,7 +1,7 @@
 describe('settings', () => {
   describe('columns', () => {
-    var id = 'testContainer';
-    var arrayOfArrays = function() {
+    const id = 'testContainer';
+    const arrayOfArrays = function() {
       return [
         ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
         ['2008', 10, 11, 12, 13],
@@ -9,7 +9,7 @@ describe('settings', () => {
         ['2010', 30, 15, 12, 13]
       ];
     };
-    var arrayOfObjects = function() {
+    const arrayOfObjects = function() {
       return [
         {id: 1, name: 'Ted', lastName: 'Right', date: '01/01/2015'},
         {id: 2, name: 'Frank', lastName: 'Honest', date: '01/01/15'},
@@ -37,7 +37,7 @@ describe('settings', () => {
 
     describe('as an array of objects', () => {
       it('should not throw exception when passed columns array is empty (data source as array of arrays)', () => {
-        var hot = handsontable({
+        const hot = handsontable({
           data: arrayOfArrays(),
           columns: [
             {data: 0},
@@ -52,7 +52,7 @@ describe('settings', () => {
       });
 
       it('should not throw exception when passed columns array is empty (data source as array of objects)', () => {
-        var hot = handsontable({
+        const hot = handsontable({
           data: arrayOfObjects(),
           columns: [
             {data: 'id'},
@@ -70,7 +70,7 @@ describe('settings', () => {
     describe('as a function', () => {
       describe('init', () => {
         it('should render only these columns which are not `null`', () => {
-          var hot = handsontable({
+          const hot = handsontable({
             data: arrayOfArrays(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
@@ -81,7 +81,7 @@ describe('settings', () => {
         });
 
         it('should properly bind default data when is not defined (data source as array of arrays)', () => {
-          var hot = handsontable({
+          const hot = handsontable({
             data: arrayOfArrays(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
@@ -93,7 +93,7 @@ describe('settings', () => {
         });
 
         it('should properly bind default data when is not defined (data source as array of objects)', () => {
-          var hot = handsontable({
+          const hot = handsontable({
             data: arrayOfObjects(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
@@ -105,7 +105,7 @@ describe('settings', () => {
         });
 
         it('should properly bind defined data (data source as array of arrays)', () => {
-          var hot = handsontable({
+          const hot = handsontable({
             data: arrayOfArrays(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {data: column + 1} : null;
@@ -117,10 +117,10 @@ describe('settings', () => {
         });
 
         it('should properly bind defined data (data source as array of objects)', () => {
-          var hot = handsontable({
+          const hot = handsontable({
             data: arrayOfObjects(),
             columns(column) {
-              var keys = ['id', 'name', 'lastName'];
+              const keys = ['id', 'name', 'lastName'];
 
               return [1, 2].indexOf(column) > -1 ? {data: keys[column - 1]} : null;
             }
@@ -133,7 +133,7 @@ describe('settings', () => {
 
       describe('updateSettings', () => {
         it('should not throw exception when passed columns function without return anything (data source as array of arrays) when columns is a function', () => {
-          var hot = handsontable({
+          const hot = handsontable({
             data: arrayOfArrays(),
             columns(column) {
               return [0, 1, 2].indexOf(column) > -1 ? {data: column} : null;
@@ -146,10 +146,10 @@ describe('settings', () => {
         });
 
         it('should not throw exception when passed columns function without return anything (data source as array of objects) when columns is a function', () => {
-          var hot = handsontable({
+          const hot = handsontable({
             data: arrayOfObjects(),
             columns(column) {
-              var keys = ['id', 'name', 'lasName'];
+              const keys = ['id', 'name', 'lasName'];
 
               return [0, 1, 2].indexOf(column) > -1 ? {data: keys[column]} : null;
             }
@@ -178,7 +178,7 @@ describe('settings', () => {
           selectCell(0, 0);
           keyDown('enter');
 
-          var editor = $('.handsontableInput');
+          const editor = $('.handsontableInput');
 
           expect(editor.is(':visible')).toBe(true);
           expect(editor.is(':password')).toBe(true);
@@ -202,12 +202,12 @@ describe('settings', () => {
 
       describe('validators', () => {
         it('should properly bind defined validator', (done) => {
-          var onAfterValidate = jasmine.createSpy('onAfterValidate');
+          const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
           handsontable({
             data: arrayOfObjects(),
             columns(column) {
-              var settings = [
+              const settings = [
                 {data: 'date', type: 'date'},
                 {data: 'name'},
                 {data: 'lastName'}

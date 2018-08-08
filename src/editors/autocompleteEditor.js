@@ -51,7 +51,7 @@ AutocompleteEditor.prototype.createElements = function(...args) {
   addClass(this.htContainer, window.navigator.platform.indexOf('Mac') === -1 ? '' : 'htMacScroll');
 };
 
-var skipOne = false;
+let skipOne = false;
 function onBeforeKeyDown(event) {
   skipOne = false;
   let editor = this.getActiveEditor();
@@ -289,8 +289,8 @@ AutocompleteEditor.prototype.unflipDropdown = function() {
 };
 
 AutocompleteEditor.prototype.updateDropdownHeight = function() {
-  var currentDropdownWidth = this.htEditor.getColWidth(0) + getScrollbarWidth() + 2;
-  var trimDropdown = this.cellProperties.trimDropdown;
+  const currentDropdownWidth = this.htEditor.getColWidth(0) + getScrollbarWidth() + 2;
+  const trimDropdown = this.cellProperties.trimDropdown;
 
   this.htEditor.updateSettings({
     height: this.getDropdownHeight(),

@@ -39,8 +39,8 @@ SelectEditor.prototype.registerHooks = function() {
 SelectEditor.prototype.prepare = function(...args) {
   BaseEditor.prototype.prepare.apply(this, args);
 
-  var selectOptions = this.cellProperties.selectOptions;
-  var options;
+  const selectOptions = this.cellProperties.selectOptions;
+  let options;
 
   if (typeof selectOptions === 'function') {
     options = this.prepareOptions(selectOptions(this.row, this.col, this.prop));
@@ -50,9 +50,9 @@ SelectEditor.prototype.prepare = function(...args) {
 
   empty(this.select);
 
-  for (var option in options) {
+  for (let option in options) {
     if (Object.prototype.hasOwnProperty.call(options, option)) {
-      var optionElement = document.createElement('OPTION');
+      const optionElement = document.createElement('OPTION');
       optionElement.value = option;
       fastInnerHTML(optionElement, options[option]);
       this.select.appendChild(optionElement);
@@ -61,10 +61,10 @@ SelectEditor.prototype.prepare = function(...args) {
 };
 
 SelectEditor.prototype.prepareOptions = function(optionsToPrepare) {
-  var preparedOptions = {};
+  let preparedOptions = {};
 
   if (Array.isArray(optionsToPrepare)) {
-    for (var i = 0, len = optionsToPrepare.length; i < len; i++) {
+    for (let i = 0, len = optionsToPrepare.length; i < len; i++) {
       preparedOptions[optionsToPrepare[i]] = optionsToPrepare[i];
     }
   } else if (typeof optionsToPrepare === 'object') {
@@ -83,13 +83,14 @@ SelectEditor.prototype.setValue = function(value) {
   this.select.value = value;
 };
 
-var onBeforeKeyDown = function(event) {
-  var instance = this;
-  var editor = instance.getActiveEditor();
+const onBeforeKeyDown = function(event) {
+  const instance = this;
+  const editor = instance.getActiveEditor();
+  const previousOptionIndex = editor.select.selectedIndex - 1;
+  const nextOptionIndex = editor.select.selectedIndex + 1;
 
   switch (event.keyCode) {
     case KEY_CODES.ARROW_UP:
-      var previousOptionIndex = editor.select.selectedIndex - 1;
       if (previousOptionIndex >= 0) {
         editor.select[previousOptionIndex].selected = true;
       }
@@ -99,7 +100,6 @@ var onBeforeKeyDown = function(event) {
       break;
 
     case KEY_CODES.ARROW_DOWN:
-      var nextOptionIndex = editor.select.selectedIndex + 1;
       if (nextOptionIndex <= editor.select.length - 1) {
         editor.select[nextOptionIndex].selected = true;
       }
@@ -107,6 +107,7 @@ var onBeforeKeyDown = function(event) {
       stopImmediatePropagation(event);
       event.preventDefault();
       break;
+
     default:
       break;
   }
@@ -149,16 +150,15 @@ SelectEditor.prototype.refreshDimensions = function() {
 
     return;
   }
-  var
-    width = outerWidth(this.TD) + 1,
-    height = outerHeight(this.TD) + 1,
-    currentOffset = offset(this.TD),
-    containerOffset = offset(this.instance.rootElement),
-    scrollableContainer = getScrollableElement(this.TD),
-    editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0),
-    editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0),
-    editorSection = this.checkEditorSection(),
-    cssTransformOffset;
+  const currentOffset = offset(this.TD);
+  const containerOffset = offset(this.instance.rootElement);
+  const scrollableContainer = getScrollableElement(this.TD);
+  const editorSection = this.checkEditorSection();
+  let width = outerWidth(this.TD) + 1;
+  let height = outerHeight(this.TD) + 1;
+  let editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0);
+  let editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
+  let cssTransformOffset;
 
   switch (editorSection) {
     case 'top':
@@ -187,7 +187,7 @@ SelectEditor.prototype.refreshDimensions = function() {
     editLeft += 1;
   }
 
-  var selectStyle = this.select.style;
+  const selectStyle = this.select.style;
 
   if (cssTransformOffset && cssTransformOffset !== -1) {
     selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
@@ -211,8 +211,8 @@ SelectEditor.prototype.refreshDimensions = function() {
 };
 
 SelectEditor.prototype.getEditedCell = function() {
-  var editorSection = this.checkEditorSection(),
-    editedCell;
+  const editorSection = this.checkEditorSection();
+  let editedCell;
 
   switch (editorSection) {
     case 'top':

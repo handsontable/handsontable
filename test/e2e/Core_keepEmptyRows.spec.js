@@ -1,5 +1,5 @@
 describe('Core_keepEmptyRows', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('Core_keepEmptyRows', () => {
     }
   });
 
-  var arrayOfNestedObjects = function() {
+  const arrayOfNestedObjects = function() {
     return [
       {id: 1,
         name: {
@@ -57,7 +57,7 @@ describe('Core_keepEmptyRows', () => {
     handsontable({
       data: arrayOfNestedObjects(),
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.data = 'id';
@@ -96,7 +96,7 @@ describe('Core_keepEmptyRows', () => {
     handsontable({
       data: arrayOfNestedObjects(),
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.data = 'id';
@@ -154,7 +154,7 @@ describe('Core_keepEmptyRows', () => {
   });
 
   it('should create new row when last cell in last row is edited', () => {
-    var data = [
+    const data = [
       ['one', 'two'],
       ['three', 'four']
     ];
@@ -171,7 +171,7 @@ describe('Core_keepEmptyRows', () => {
   });
 
   it('should create new col when last cell in last row is edited', () => {
-    var data = [
+    const data = [
       ['one', 'two'],
       ['three', 'four']
     ];
@@ -188,11 +188,11 @@ describe('Core_keepEmptyRows', () => {
   });
 
   it('should create new row when last cell in last row is edited by autocomplete', (done) => {
-    var data = [
+    const data = [
       {id: 1, color: 'orange' }
     ];
 
-    var syncSources = jasmine.createSpy('syncSources');
+    const syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
       process(['red', 'dark-yellow', 'yellow', 'light-yellow', 'black']);
@@ -226,11 +226,11 @@ describe('Core_keepEmptyRows', () => {
   });
 
   it('should create new row when last cell in last row is edited by autocomplete when columns is a function', (done) => {
-    var data = [
+    const data = [
       {id: 1, color: 'orange' }
     ];
 
-    var syncSources = jasmine.createSpy('syncSources');
+    const syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
       process(['red', 'dark-yellow', 'yellow', 'light-yellow', 'black']);
@@ -242,7 +242,7 @@ describe('Core_keepEmptyRows', () => {
       colHeaders: true,
       minSpareRows: 1,
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.data = 'id';
@@ -317,7 +317,7 @@ describe('Core_keepEmptyRows', () => {
       startCols: 1,
       minCols: 6,
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if ([0, 1].indexOf(column) < 0) {
           colMeta = null;
@@ -348,7 +348,7 @@ describe('Core_keepEmptyRows', () => {
       startCols: 3,
       minCols: 6,
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if ([0, 1].indexOf(column) < 0) {
           colMeta = null;

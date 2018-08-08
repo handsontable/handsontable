@@ -1,5 +1,5 @@
 describe('Core.countSourceCols', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,7 @@ describe('Core.countSourceCols', () => {
   });
 
   it('should return properly index from ', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [['', '', '', '', '', '', '', '', '', '', '', '', '', '', '']],
       columns(column) {
         return [1, 5, 9].indexOf(column) > -1 ? {} : null;

@@ -1,8 +1,8 @@
 describe('preventOverflow option', () => {
-  var $table,
-    $container,
-    $wrapper,
-    debug = false;
+  let $table;
+  let $container;
+  let $wrapper;
+  let debug = false;
 
   beforeEach(() => {
     $wrapper = $('<div></div>').css({position: 'relative'});
@@ -23,7 +23,7 @@ describe('preventOverflow option', () => {
   });
 
   it('should set overflow to `auto` for master table when `horizontal` value is passed', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
@@ -39,7 +39,7 @@ describe('preventOverflow option', () => {
   });
 
   it('should set overflow-x to `auto` for top clone when `horizontal` value is passed', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,

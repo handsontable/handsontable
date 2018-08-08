@@ -22,7 +22,7 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties, ...ar
     value = cellProperties.placeholder;
   }
 
-  var escaped = stringify(value);
+  let escaped = stringify(value);
 
   if (!instance.getSettings().trimWhitespace) {
     escaped = escaped.replace(/ /g, String.fromCharCode(160));
@@ -30,7 +30,7 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties, ...ar
 
   if (cellProperties.rendererTemplate) {
     empty(TD);
-    var TEMPLATE = document.createElement('TEMPLATE');
+    const TEMPLATE = document.createElement('TEMPLATE');
     TEMPLATE.setAttribute('bind', '{{}}');
     TEMPLATE.innerHTML = cellProperties.rendererTemplate;
     HTMLTemplateElement.decorate(TEMPLATE);

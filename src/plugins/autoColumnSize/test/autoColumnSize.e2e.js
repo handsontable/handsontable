@@ -1,5 +1,5 @@
 describe('AutoColumnSize', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('AutoColumnSize', () => {
     }
   });
 
-  var arrayOfObjects = function() {
+  const arrayOfObjects = function() {
     return [
       {id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one', nestedData: [{id: 1000}]}
     ];
@@ -23,9 +23,9 @@ describe('AutoColumnSize', () => {
       data: arrayOfObjects()
     });
 
-    var width0 = colWidth(spec().$container, 0);
-    var width1 = colWidth(spec().$container, 1);
-    var width2 = colWidth(spec().$container, 2);
+    const width0 = colWidth(spec().$container, 0);
+    const width1 = colWidth(spec().$container, 1);
+    const width2 = colWidth(spec().$container, 2);
 
     expect(width0).toBeLessThan(width1);
     expect(width1).toBeLessThan(width2);
@@ -181,7 +181,7 @@ describe('AutoColumnSize', () => {
   // https://github.com/handsontable/handsontable/issues/2684
   it('should correctly detect column width when table is hidden on init (display: none)', async () => {
     spec().$container.css('display', 'none');
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       colHeaders: ['Identifier', 'First Name']
@@ -231,7 +231,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should keep last columns width unchanged if all rows was removed', async () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
       columns: [
@@ -258,9 +258,9 @@ describe('AutoColumnSize', () => {
       data: arrayOfObjects()
     });
 
-    var width0 = colWidth(spec().$container, 0);
-    var width1 = colWidth(spec().$container, 1);
-    var width2 = colWidth(spec().$container, 2);
+    let width0 = colWidth(spec().$container, 0);
+    let width1 = colWidth(spec().$container, 1);
+    let width2 = colWidth(spec().$container, 2);
 
     expect(width0).toBeLessThan(width1);
     expect(width1).toBeLessThan(width2);
@@ -289,7 +289,7 @@ describe('AutoColumnSize', () => {
       data: arrayOfObjects()
     });
 
-    var widths = {
+    const widths = {
       1: [],
       2: []
     };
@@ -337,9 +337,9 @@ describe('AutoColumnSize', () => {
       autoColumnSize: false
     });
 
-    var width0 = colWidth(spec().$container, 0);
-    var width1 = colWidth(spec().$container, 1);
-    var width2 = colWidth(spec().$container, 2);
+    let width0 = colWidth(spec().$container, 0);
+    let width1 = colWidth(spec().$container, 1);
+    let width2 = colWidth(spec().$container, 2);
 
     expect(width0).toEqual(width1);
     expect(width0).toEqual(width2);
@@ -358,15 +358,15 @@ describe('AutoColumnSize', () => {
   });
 
   it('should consider CSS style of each instance separately', () => {
-    var $style = $('<style>.big .htCore td {font-size: 40px; line-height: 1.1;}</style>').appendTo('head');
-    var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
+    const $style = $('<style>.big .htCore td {font-size: 40px; line-height: 1.1;}</style>').appendTo('head');
+    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
       data: arrayOfObjects()
     });
-    var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
+    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
       data: arrayOfObjects()
     });
-    var hot1 = $container1.handsontable('getInstance');
-    var hot2 = $container2.handsontable('getInstance');
+    const hot1 = $container1.handsontable('getInstance');
+    const hot2 = $container2.handsontable('getInstance');
 
     expect(colWidth($container1, 0)).toEqual(colWidth($container2, 0));
 
@@ -387,14 +387,14 @@ describe('AutoColumnSize', () => {
   });
 
   it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', () => {
-    var $style = $('<style>.htCore.big-table td {font-size: 32px}</style>').appendTo('head');
+    const $style = $('<style>.htCore.big-table td {font-size: 32px}</style>').appendTo('head');
 
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true
     });
 
-    var width = colWidth(spec().$container, 0);
+    const width = colWidth(spec().$container, 0);
 
     spec().$container.find('table').addClass('big-table');
     render();
@@ -447,7 +447,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should consider renderer that uses conditional formatting for specific row & column index', () => {
-    var data = arrayOfObjects();
+    const data = arrayOfObjects();
     data.push({id: '2', name: 'Rocket Man', lastName: 'In a tin can'});
     handsontable({
       data,
@@ -469,7 +469,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should\'t serialize value if it is array (nested data sources)', () => {
-    var spy = jasmine.createSpy('renderer');
+    const spy = jasmine.createSpy('renderer');
 
     handsontable({
       data: arrayOfObjects(),

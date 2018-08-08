@@ -1,8 +1,8 @@
 describe('WalkontableBorder', () => {
-  var $table,
-    $container,
-    $wrapper,
-    debug = false;
+  let $table;
+  let $container;
+  let $wrapper;
+  let debug = false;
 
   beforeEach(() => {
     $container = $('<div></div>');

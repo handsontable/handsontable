@@ -1,5 +1,5 @@
 describe('Core.toVisualRow', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,7 @@ describe('Core.toVisualRow', () => {
   });
 
   it('should return valid visual row index', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       unmodifyRow(row) {
         return row + 3;

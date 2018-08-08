@@ -95,8 +95,8 @@ export function closestDown(element, nodes, until) {
  * @returns {Boolean}
  */
 export function isChildOf(child, parent) {
-  var node = child.parentNode;
-  var queriedParents = [];
+  let node = child.parentNode;
+  let queriedParents = [];
 
   if (typeof parent === 'string') {
     queriedParents = Array.prototype.slice.call(document.querySelectorAll(parent), 0);
@@ -121,11 +121,9 @@ export function isChildOf(child, parent) {
  * @returns {Boolean}
  */
 export function isChildOfWebComponentTable(element) {
-  var hotTableName = 'hot-table',
-    result = false,
-    parentNode;
-
-  parentNode = polymerWrap(element);
+  const hotTableName = 'hot-table';
+  let result = false;
+  let parentNode = polymerWrap(element);
 
   function isHotTable(element) {
     return element.nodeType === Node.ELEMENT_NODE && element.nodeName === hotTableName.toUpperCase();
@@ -181,7 +179,7 @@ export function polymerUnwrap(element) {
  * @return {Number}
  */
 export function index(element) {
-  var i = 0;
+  let i = 0;
 
   if (element.previousSibling) {
     /* eslint-disable no-cond-assign */
@@ -205,10 +203,10 @@ export function overlayContainsElement(overlayType, element) {
   return overlayElement ? overlayElement.contains(element) : null;
 }
 
-var classListSupport = !!document.documentElement.classList;
-var _hasClass,
-  _addClass,
-  _removeClass;
+const classListSupport = !!document.documentElement.classList;
+let _hasClass;
+let _addClass;
+let _removeClass;
 
 function filterEmptyClassNames(classNames) {
   const result = [];
@@ -228,8 +226,8 @@ function filterEmptyClassNames(classNames) {
 }
 
 if (classListSupport) {
-  var isSupportMultipleClassesArg = (function() {
-    var element = document.createElement('div');
+  const isSupportMultipleClassesArg = (function() {
+    const element = document.createElement('div');
 
     element.classList.add('test', 'test2');
 
@@ -289,7 +287,7 @@ if (classListSupport) {
   };
 
 } else {
-  var createClassNameRegExp = function createClassNameRegExp(className) {
+  const createClassNameRegExp = function createClassNameRegExp(className) {
     return new RegExp(`(\\s|^)${className}(\\s|$)`);
   };
 
@@ -299,8 +297,8 @@ if (classListSupport) {
   };
 
   _addClass = function _addClass(element, className) {
-    var len = 0,
-      _className = element.className;
+    let _className = element.className;
+    let len = 0;
 
     if (typeof className === 'string') {
       className = className.split(' ');
@@ -320,8 +318,8 @@ if (classListSupport) {
   };
 
   _removeClass = function _removeClass(element, className) {
-    var len = 0,
-      _className = element.className;
+    let len = 0;
+    let _className = element.className;
 
     if (typeof className === 'string') {
       className = className.split(' ');
@@ -373,8 +371,8 @@ export function removeTextNodes(element, parent) {
     parent.removeChild(element); // bye text nodes!
 
   } else if (['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].indexOf(element.nodeName) > -1) {
-    var childs = element.childNodes;
-    for (var i = childs.length - 1; i >= 0; i--) {
+    const childs = element.childNodes;
+    for (let i = childs.length - 1; i >= 0; i--) {
       removeTextNodes(childs[i], element);
     }
   }
@@ -391,7 +389,7 @@ export function removeTextNodes(element, parent) {
  */
 //
 export function empty(element) {
-  var child;
+  let child;
   /* eslint-disable no-cond-assign */
   while (child = element.lastChild) {
     element.removeChild(child);
@@ -417,10 +415,10 @@ export function fastInnerHTML(element, content) {
  * @return {void}
  */
 
-var textContextSupport = !!document.createTextNode('test').textContent;
+const textContextSupport = !!document.createTextNode('test').textContent;
 
 export function fastInnerText(element, content) {
-  var child = element.firstChild;
+  const child = element.firstChild;
 
   if (child && child.nodeType === 3 && child.nextSibling === null) {
     // fast lane - replace existing text node
@@ -445,7 +443,7 @@ export function fastInnerText(element, content) {
  * @returns {boolean}
  */
 export function isVisible(elem) {
-  var next = elem;
+  let next = elem;
 
   while (polymerUnwrap(next) !== document.documentElement) { // until <html> reached
     if (next === null) { // parent detached from DOM
@@ -482,11 +480,11 @@ export function isVisible(elem) {
  * @return {Object} Returns object with `top` and `left` props
  */
 export function offset(elem) {
-  var offsetLeft,
-    offsetTop,
-    lastElem,
-    docElem,
-    box;
+  let offsetLeft;
+  let offsetTop;
+  let lastElem;
+  let docElem;
+  let box;
 
   docElem = document.documentElement;
 
@@ -534,7 +532,7 @@ export function offset(elem) {
  * @returns {Number}
  */
 export function getWindowScrollTop() {
-  var res = window.scrollY;
+  let res = window.scrollY;
 
   if (res === void 0) { // IE8-11
     res = document.documentElement.scrollTop;
@@ -549,7 +547,7 @@ export function getWindowScrollTop() {
  * @returns {Number}
  */
 export function getWindowScrollLeft() {
-  var res = window.scrollX;
+  let res = window.scrollX;
 
   if (res === void 0) { // IE8-11
     res = document.documentElement.scrollLeft;
@@ -592,15 +590,15 @@ export function getScrollLeft(element) {
  * @returns {HTMLElement} Element's scrollable parent
  */
 export function getScrollableElement(element) {
-  var el = element.parentNode,
-    props = ['auto', 'scroll'],
-    overflow,
-    overflowX,
-    overflowY,
-    computedStyle = '',
-    computedOverflow = '',
-    computedOverflowY = '',
-    computedOverflowX = '';
+  const props = ['auto', 'scroll'];
+  let el = element.parentNode;
+  let overflow;
+  let overflowX;
+  let overflowY;
+  let computedStyle = '';
+  let computedOverflow = '';
+  let computedOverflowY = '';
+  let computedOverflowX = '';
 
   while (el && el.style && document.body !== el) {
     overflow = el.style.overflow;
@@ -643,14 +641,14 @@ export function getScrollableElement(element) {
  * @returns {HTMLElement} Base element's trimming parent
  */
 export function getTrimmingContainer(base) {
-  var el = base.parentNode;
+  let el = base.parentNode;
 
   while (el && el.style && document.body !== el) {
     if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
       return el;
 
     } else if (window.getComputedStyle) {
-      var computedStyle = window.getComputedStyle(el);
+      const computedStyle = window.getComputedStyle(el);
 
       if (computedStyle.getPropertyValue('overflow') !== 'visible' && computedStyle.getPropertyValue('overflow') !== '') {
         return el;
@@ -867,14 +865,14 @@ export function setCaretPosition(element, pos, endPos) {
     try {
       element.setSelectionRange(pos, endPos);
     } catch (err) {
-      var elementParent = element.parentNode;
-      var parentDisplayValue = elementParent.style.display;
+      const elementParent = element.parentNode;
+      const parentDisplayValue = elementParent.style.display;
       elementParent.style.display = 'block';
       element.setSelectionRange(pos, endPos);
       elementParent.style.display = parentDisplayValue;
     }
   } else if (element.createTextRange) { // IE8
-    var range = element.createTextRange();
+    const range = element.createTextRange();
     range.collapse(true);
     range.moveEnd('character', endPos);
     range.moveStart('character', pos);
@@ -886,11 +884,11 @@ var cachedScrollbarWidth;
 
 // http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 function walkontableCalculateScrollbarWidth() {
-  var inner = document.createElement('div');
+  const inner = document.createElement('div');
   inner.style.height = '200px';
   inner.style.width = '100%';
 
-  var outer = document.createElement('div');
+  const outer = document.createElement('div');
   outer.style.boxSizing = 'content-box';
   outer.style.height = '150px';
   outer.style.left = '0px';
@@ -902,9 +900,9 @@ function walkontableCalculateScrollbarWidth() {
   outer.appendChild(inner);
 
   (document.body || document.documentElement).appendChild(outer);
-  var w1 = inner.offsetWidth;
+  const w1 = inner.offsetWidth;
   outer.style.overflow = 'scroll';
-  var w2 = inner.offsetWidth;
+  let w2 = inner.offsetWidth;
   if (w1 == w2) {
     w2 = outer.clientWidth;
   }
@@ -962,7 +960,7 @@ export function setOverlayPosition(overlayElem, left, top) {
 }
 
 export function getCssTransform(element) {
-  var transform;
+  let transform;
 
   if (element.style.transform && (transform = element.style.transform) !== '') {
     return ['transform', transform];
@@ -991,7 +989,7 @@ export function resetCssTransform(element) {
  * @returns {Boolean}
  */
 export function isInput(element) {
-  var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
+  const inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
 
   return element && (inputs.indexOf(element.nodeName) > -1 || element.contentEditable === 'true');
 }

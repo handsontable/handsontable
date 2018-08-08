@@ -19,7 +19,7 @@ describe('DomElement helper', () => {
     });
 
     it('should return true for contentEditable elements', () => {
-      var div = document.createElement('div');
+      const div = document.createElement('div');
 
       div.contentEditable = 'true';
 
@@ -31,24 +31,24 @@ describe('DomElement helper', () => {
   // Handsontable.helper.closestDown
   //
   describe('closestDown', () => {
-    var test1 = '<div class="wrapper1"><table><tbody><tr><td class="test1">test1</td></tr></tbody></table></div>';
-    var test2 = `<div class="wrapper2"><table><tbody><tr><td class="test2">test2${test1}</td></tr></tbody></table></div>`;
+    const test1 = '<div class="wrapper1"><table><tbody><tr><td class="test1">test1</td></tr></tbody></table></div>';
+    const test2 = `<div class="wrapper2"><table><tbody><tr><td class="test2">test2${test1}</td></tr></tbody></table></div>`;
 
     it('should return last TD element (starting from last child element)', () => {
-      var wrapper = document.createElement('div');
+      const wrapper = document.createElement('div');
 
       wrapper.innerHTML = test2;
-      var td1 = wrapper.querySelector('.test1');
-      var td2 = wrapper.querySelector('.test2');
+      const td1 = wrapper.querySelector('.test1');
+      const td2 = wrapper.querySelector('.test2');
 
       expect(closestDown(td1, ['TD'])).toBe(td2);
     });
 
     it('should return proper value depends on passed `until` element', () => {
-      var td = document.createElement('td');
+      const td = document.createElement('td');
 
       td.innerHTML = test2;
-      var wrapper2 = td.querySelector('.wrapper2');
+      const wrapper2 = td.querySelector('.wrapper2');
 
       expect(closestDown(wrapper2, ['TD'])).toBe(td);
       expect(closestDown(wrapper2, ['TD'], wrapper2.firstChild)).toBe(null);
@@ -59,7 +59,7 @@ describe('DomElement helper', () => {
   // Handsontable.helper.getParent
   //
   describe('getParent', () => {
-    var element = null;
+    let element = null;
 
     beforeEach(() => {
       element = document.createElement('div');

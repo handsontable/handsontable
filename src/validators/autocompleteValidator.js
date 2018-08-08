@@ -35,12 +35,12 @@ export default function autocompleteValidator(value, callback) {
  * @param {Function} callback - Callback called with validation result
  */
 function process(value, callback) {
-  var originalVal = value;
+  const originalVal = value;
 
   return function(source) {
-    var found = false;
+    let found = false;
 
-    for (var s = 0, slen = source.length; s < slen; s++) {
+    for (let s = 0, slen = source.length; s < slen; s++) {
       if (originalVal === source[s]) {
         found = true; // perfect match
         break;

@@ -1,5 +1,5 @@
 describe('Core.toPhysicalColumn', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,7 @@ describe('Core.toPhysicalColumn', () => {
   });
 
   it('should return valid physical row index', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       modifyCol(column) {
         return column + 3;

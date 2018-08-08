@@ -59,7 +59,7 @@ class MultipleSelectionHandles extends BasePlugin {
    * @private
    */
   registerListeners() {
-    var _this = this;
+    const _this = this;
 
     function removeFromDragged(query) {
 
@@ -70,7 +70,7 @@ class MultipleSelectionHandles extends BasePlugin {
         return true;
       }
 
-      var entryPosition = _this.dragged.indexOf(query);
+      const entryPosition = _this.dragged.indexOf(query);
 
       if (entryPosition === -1) {
         return false;
@@ -189,12 +189,12 @@ class MultipleSelectionHandles extends BasePlugin {
   }
 
   getCurrentRangeCoords(selectedRange, currentTouch, touchStartDirection, currentDirection, draggedHandle) {
-    var topLeftCorner = selectedRange.getTopLeftCorner(),
-      bottomRightCorner = selectedRange.getBottomRightCorner(),
-      bottomLeftCorner = selectedRange.getBottomLeftCorner(),
-      topRightCorner = selectedRange.getTopRightCorner();
+    const topLeftCorner = selectedRange.getTopLeftCorner();
+    const bottomRightCorner = selectedRange.getBottomRightCorner();
+    const bottomLeftCorner = selectedRange.getBottomLeftCorner();
+    const topRightCorner = selectedRange.getTopRightCorner();
 
-    var newCoords = {
+    let newCoords = {
       start: null,
       end: null
     };

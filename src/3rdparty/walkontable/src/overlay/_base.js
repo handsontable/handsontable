@@ -238,7 +238,7 @@ class Overlay {
    */
   refresh(fastDraw = false) {
     // When hot settings are changed we allow to refresh overlay once before blocking
-    var nextCycleRenderFlag = this.shouldBeRendered();
+    const nextCycleRenderFlag = this.shouldBeRendered();
 
     if (this.clone && (this.needFullRender || nextCycleRenderFlag)) {
       this.clone.draw(fastDraw);

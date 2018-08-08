@@ -1,5 +1,5 @@
 describe('ColHeader', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -27,14 +27,14 @@ describe('ColHeader', () => {
   });
 
   it('should show default columns headers labelled A-(Z * n)', () => {
-    var startCols = 5;
+    const startCols = 5;
 
     handsontable({
       startCols,
       colHeaders: true
     });
 
-    var ths = getHtCore().find('thead th');
+    const ths = getHtCore().find('thead th');
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('A');
     expect($.trim(ths.eq(1).text())).toEqual('B');
@@ -44,7 +44,7 @@ describe('ColHeader', () => {
   });
 
   it('should show default columns headers labelled A-(Z * n) when columns as an array is present', () => {
-    var startCols = 5;
+    const startCols = 5;
 
     handsontable({
       startCols,
@@ -52,7 +52,7 @@ describe('ColHeader', () => {
       columns: [{}, {}, {}, {}, {}]
     });
 
-    var ths = getHtCore().find('thead th');
+    const ths = getHtCore().find('thead th');
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('A');
     expect($.trim(ths.eq(1).text())).toEqual('B');
@@ -62,7 +62,7 @@ describe('ColHeader', () => {
   });
 
   it('should show default columns headers labelled A-(Z * n) when columns as a function is present', () => {
-    var startCols = 5;
+    const startCols = 5;
 
     handsontable({
       startCols,
@@ -72,7 +72,7 @@ describe('ColHeader', () => {
       }
     });
 
-    var ths = getHtCore().find('thead th');
+    const ths = getHtCore().find('thead th');
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('A');
     expect($.trim(ths.eq(1).text())).toEqual('B');
@@ -82,13 +82,13 @@ describe('ColHeader', () => {
   });
 
   it('should show col headers with custom label', () => {
-    var startCols = 5;
+    const startCols = 5;
     handsontable({
       startCols,
       colHeaders: ['First', 'Second', 'Third']
     });
 
-    var ths = getHtCore().find('thead th');
+    const ths = getHtCore().find('thead th');
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('First');
     expect($.trim(ths.eq(1).text())).toEqual('Second');
@@ -106,7 +106,7 @@ describe('ColHeader', () => {
   });
 
   it('should hide columns headers after updateSettings', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startCols: 5,
       colHeaders: true
     });
@@ -123,7 +123,7 @@ describe('ColHeader', () => {
   });
 
   it('should show/hide columns headers after updateSettings', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startCols: 5,
       colHeaders: true
     });
@@ -154,7 +154,7 @@ describe('ColHeader', () => {
   });
 
   it('should show columns headers after updateSettings', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startCols: 5,
       colHeaders: false
     });
@@ -171,12 +171,12 @@ describe('ColHeader', () => {
   });
 
   it('should show new columns headers after updateSettings', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startCols: 3,
       colHeaders: ['A', 'B', 'C']
     });
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
     expect(htCore.find('thead th:eq(0)').text()).toEqual('A');
     expect(htCore.find('thead th:eq(1)').text()).toEqual('B');
     expect(htCore.find('thead th:eq(2)').text()).toEqual('C');
@@ -206,7 +206,7 @@ describe('ColHeader', () => {
       }
     });
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
     expect(htCore.find('thead th:eq(0)').text()).toEqual('One');
     expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
@@ -218,7 +218,7 @@ describe('ColHeader', () => {
       colHeaders: ['One <input type="checkbox">', 'Two <input type="checkbox">']
     });
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
     expect(htCore.find('thead th:eq(0) input[type=checkbox]').length).toEqual(1);
     expect(htCore.find('thead th:eq(1) input[type=checkbox]').length).toEqual(1);
@@ -234,7 +234,7 @@ describe('ColHeader', () => {
       ]
     });
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
     expect(htCore.find('thead th:eq(0)').text()).toEqual('One');
     expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
@@ -245,7 +245,7 @@ describe('ColHeader', () => {
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns(column) {
-        var colMeta = {type: 'text'};
+        let colMeta = {type: 'text'};
 
         if ([0, 1].indexOf(column) < 0) {
           colMeta = null;
@@ -255,7 +255,7 @@ describe('ColHeader', () => {
       }
     });
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
     expect(htCore.find('thead th:eq(0)').text()).toEqual('One');
     expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
@@ -271,7 +271,7 @@ describe('ColHeader', () => {
       ]
     });
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
     expect(htCore.find('thead th:eq(0)').text()).toEqual('Special title');
     expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
@@ -282,7 +282,7 @@ describe('ColHeader', () => {
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns(column) {
-        var colMeta = {type: 'text'};
+        let colMeta = {type: 'text'};
 
         if (column === 0) {
           colMeta.title = 'Special title';
@@ -295,7 +295,7 @@ describe('ColHeader', () => {
       }
     });
 
-    var htCore = getHtCore();
+    const htCore = getHtCore();
 
     expect(htCore.find('thead th:eq(0)').text()).toEqual('Special title');
     expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
@@ -308,14 +308,14 @@ describe('ColHeader', () => {
       fixedColumnsLeft: 2
     });
 
-    var topHeaderExample = $('.ht_clone_top').find('thead tr:first-child th:nth-child(1)'),
+    const topHeaderExample = $('.ht_clone_top').find('thead tr:first-child th:nth-child(1)'),
       masterHeaderExample = $('.ht_master').find('thead tr:first-child th:nth-child(3)');
 
     expect(topHeaderExample.height()).toEqual(masterHeaderExample.height());
   });
 
   it('should allow defining custom column header height using the columnHeaderHeight config option', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startCols: 3,
       colHeaders: true,
       columnHeaderHeight: 40
@@ -327,7 +327,7 @@ describe('ColHeader', () => {
   });
 
   it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startCols: 3,
       colHeaders: true,
       columnHeaderHeight: [45, 65],
@@ -335,8 +335,8 @@ describe('ColHeader', () => {
         array.push((index, TH) => {
           TH.innerHTML = '';
 
-          var div = document.createElement('div');
-          var span = document.createElement('span');
+          const div = document.createElement('div');
+          const span = document.createElement('span');
 
           div.className = 'relative';
           span.className = 'colHeader';

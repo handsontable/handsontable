@@ -57,14 +57,14 @@ DataMap.prototype.recursiveDuckSchema = function(object) {
  * @returns {Number}
  */
 DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
-  var prop,
-    i;
+  let prop;
+
   if (typeof lastCol === 'undefined') {
     lastCol = 0;
     parent = '';
   }
   if (typeof schema === 'object' && !Array.isArray(schema)) {
-    for (i in schema) {
+    for (let i in schema) {
       if (hasOwnProperty(schema, i)) {
         if (schema[i] === null) {
           prop = parent + i;
@@ -148,7 +148,7 @@ DataMap.prototype.colToProp = function(col) {
  * @returns {*}
  */
 DataMap.prototype.propToCol = function(prop) {
-  var col;
+  let col;
 
   if (typeof this.propToColCache.get(prop) === 'undefined') {
     col = prop;
@@ -164,7 +164,7 @@ DataMap.prototype.propToCol = function(prop) {
  * @returns {Object}
  */
 DataMap.prototype.getSchema = function() {
-  var schema = this.instance.getSettings().dataSchema;
+  let schema = this.instance.getSettings().dataSchema;
 
   if (schema) {
     if (typeof schema === 'function') {
@@ -254,11 +254,11 @@ DataMap.prototype.createCol = function(index, amount, source) {
       'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
       'If you want to be able to add new columns, you have to use array datasource.');
   }
-  var rlen = this.instance.countSourceRows(),
-    data = this.dataSource,
-    constructor,
-    numberOfCreatedCols = 0,
-    currentIndex;
+  const rlen = this.instance.countSourceRows();
+  const data = this.dataSource;
+  let constructor;
+  let numberOfCreatedCols = 0;
+  let currentIndex;
 
   if (!amount) {
     amount = 1;
@@ -271,13 +271,13 @@ DataMap.prototype.createCol = function(index, amount, source) {
 
   currentIndex = index;
 
-  var maxCols = this.instance.getSettings().maxCols;
+  const maxCols = this.instance.getSettings().maxCols;
   while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
     constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
 
     if (typeof index !== 'number' || index >= this.instance.countCols()) {
       if (rlen > 0) {
-        for (var r = 0; r < rlen; r++) {
+        for (let r = 0; r < rlen; r++) {
           if (typeof data[r] === 'undefined') {
             data[r] = [];
           }
@@ -422,12 +422,12 @@ DataMap.prototype.removeCol = function(index, amount, source) {
  * @returns {Array} Returns removed portion of columns
  */
 DataMap.prototype.spliceCol = function(col, index, amount, ...elements) {
-  var colData = this.instance.getDataAtCol(col);
-  var removed = colData.slice(index, index + amount);
-  var after = colData.slice(index + amount);
+  const colData = this.instance.getDataAtCol(col);
+  const removed = colData.slice(index, index + amount);
+  const after = colData.slice(index + amount);
 
   extendArray(elements, after);
-  var i = 0;
+  let i = 0;
   while (i < amount) {
     elements.push(null); // add null in place of removed elements
     i++;
@@ -448,12 +448,12 @@ DataMap.prototype.spliceCol = function(col, index, amount, ...elements) {
  * @returns {Array} Returns removed portion of rows
  */
 DataMap.prototype.spliceRow = function(row, index, amount, ...elements) {
-  var rowData = this.instance.getSourceDataAtRow(row);
-  var removed = rowData.slice(index, index + amount);
-  var after = rowData.slice(index + amount);
+  const rowData = this.instance.getSourceDataAtRow(row);
+  const removed = rowData.slice(index, index + amount);
+  const after = rowData.slice(index + amount);
 
   extendArray(elements, after);
-  var i = 0;
+  let i = 0;
   while (i < amount) {
     elements.push(null); // add null in place of removed elements
     i++;
@@ -564,7 +564,7 @@ DataMap.prototype.get = function(row, prop) {
   return value;
 };
 
-var copyableLookup = cellMethodLookupFactory('copyable', false);
+const copyableLookup = cellMethodLookupFactory('copyable', false);
 
 /**
  * Returns single value from the data array (intended for clipboard copy to an external application).
@@ -646,11 +646,11 @@ DataMap.prototype.set = function(row, prop, value, source) {
  * @returns {Number}
  */
 DataMap.prototype.visualRowsToPhysical = function(index, amount) {
-  var totalRows = this.instance.countSourceRows();
-  var physicRow = (totalRows + index) % totalRows;
-  var logicRows = [];
-  var rowsToRemove = amount;
-  var row;
+  const totalRows = this.instance.countSourceRows();
+  const logicRows = [];
+  let physicRow = (totalRows + index) % totalRows;
+  let rowsToRemove = amount;
+  let row;
 
   while (physicRow < totalRows && rowsToRemove) {
     row = this.instance.runHooks('modifyRow', physicRow);
@@ -691,8 +691,8 @@ DataMap.prototype.visualColumnsToPhysical = function(index, amount) {
  * Clears the data array.
  */
 DataMap.prototype.clear = function() {
-  for (var r = 0; r < this.instance.countSourceRows(); r++) {
-    for (var c = 0; c < this.instance.countCols(); c++) {
+  for (let r = 0; r < this.instance.countSourceRows(); r++) {
+    for (let c = 0; c < this.instance.countCols(); c++) {
       this.set(r, this.colToProp(c), '');
     }
   }
@@ -783,12 +783,12 @@ DataMap.prototype.getAll = function() {
  * @returns {Array}
  */
 DataMap.prototype.getRange = function(start, end, destination) {
-  var r,
-    rlen,
-    c,
-    clen,
-    output = [],
-    row;
+  const output = [];
+  let r;
+  let rlen;
+  let c;
+  let clen;
+  let row;
 
   const maxRows = this.instance.getSettings().maxRows;
   const maxCols = this.instance.getSettings().maxCols;
@@ -797,7 +797,7 @@ DataMap.prototype.getRange = function(start, end, destination) {
     return [];
   }
 
-  var getFn = destination === this.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
+  const getFn = destination === this.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
 
   rlen = Math.min(Math.max(maxRows - 1, 0), Math.max(start.row, end.row));
   clen = Math.min(Math.max(maxCols - 1, 0), Math.max(start.col, end.col));

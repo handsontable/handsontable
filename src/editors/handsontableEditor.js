@@ -15,7 +15,7 @@ const HandsontableEditor = TextEditor.prototype.extend();
 HandsontableEditor.prototype.createElements = function(...args) {
   TextEditor.prototype.createElements.apply(this, args);
 
-  var DIV = document.createElement('DIV');
+  const DIV = document.createElement('DIV');
   DIV.className = 'handsontableEditor';
   this.TEXTAREA_PARENT.appendChild(DIV);
 
@@ -26,8 +26,8 @@ HandsontableEditor.prototype.createElements = function(...args) {
 HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellProperties, ...args) {
   TextEditor.prototype.prepare.apply(this, [td, row, col, prop, value, cellProperties, ...args]);
 
-  var parent = this;
-  var options = {
+  const parent = this;
+  const options = {
     startRows: 0,
     startCols: 0,
     minRows: 0,
@@ -41,7 +41,7 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
     autoWrapCol: false,
     autoWrapRow: false,
     afterOnCellMouseDown(_, coords) {
-      var value = this.getSourceData(coords.row, coords.col);
+      const value = this.getSourceData(coords.row, coords.col);
 
       // if the value is undefined then it means we don't want to set the value
       if (value !== void 0) {
@@ -57,16 +57,16 @@ HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellP
   this.htOptions = options;
 };
 
-var onBeforeKeyDown = function(event) {
+const onBeforeKeyDown = function(event) {
   if (isImmediatePropagationStopped(event)) {
     return;
   }
-  var editor = this.getActiveEditor();
+  const editor = this.getActiveEditor();
 
-  var innerHOT = editor.htEditor.getInstance();
+  const innerHOT = editor.htEditor.getInstance();
 
-  var rowToSelect;
-  var selectedRow;
+  let rowToSelect;
+  let selectedRow;
 
   if (event.keyCode === KEY_CODES.ARROW_DOWN) {
     if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
@@ -75,8 +75,8 @@ var onBeforeKeyDown = function(event) {
       if (innerHOT.flipped) {
         rowToSelect = innerHOT.getSelectedLast()[0] + 1;
       } else if (!innerHOT.flipped) {
+        const lastRow = innerHOT.countRows() - 1;
         selectedRow = innerHOT.getSelectedLast()[0];
-        var lastRow = innerHOT.countRows() - 1;
         rowToSelect = Math.min(lastRow, selectedRow + 1);
       }
     }
@@ -149,7 +149,7 @@ HandsontableEditor.prototype.focus = function(...args) {
 };
 
 HandsontableEditor.prototype.beginEditing = function(...args) {
-  var onBeginEditing = this.instance.getSettings().onBeginEditing;
+  const onBeginEditing = this.instance.getSettings().onBeginEditing;
 
   if (onBeginEditing && onBeginEditing() === false) {
     return;
@@ -163,7 +163,7 @@ HandsontableEditor.prototype.finishEditing = function(...args) {
   }
 
   if (this.htEditor && this.htEditor.getSelectedLast()) {
-    var value = this.htEditor.getInstance().getValue();
+    const value = this.htEditor.getInstance().getValue();
 
     if (value !== void 0) { // if the value is undefined then it means we don't want to set the value
       this.setValue(value);

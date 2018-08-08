@@ -1,5 +1,5 @@
 describe('Core_setDataAtCell', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('Core_setDataAtCell', () => {
     }
   });
 
-  var arrayOfNestedObjects = function() {
+  const arrayOfNestedObjects = function() {
     return [
       {id: 1,
         name: {
@@ -32,12 +32,12 @@ describe('Core_setDataAtCell', () => {
     ];
   };
 
-  var htmlText = 'Ben & Jerry\'s';
+  const htmlText = 'Ben & Jerry\'s';
 
   it('HTML special chars should be preserved in data map but escaped in DOM', () => {
     // https://github.com/handsontable/handsontable/issues/147
     handsontable();
-    var td = setDataAtCell(0, 0, htmlText);
+    const td = setDataAtCell(0, 0, htmlText);
     selectCell(0, 0);
 
     $(td).simulate('dblclick');
@@ -175,7 +175,7 @@ describe('Core_setDataAtCell', () => {
     });
 
     function model(opts) {
-      var _pub = {},
+      const _pub = {},
         _priv = $.extend({
           id: undefined,
           name: undefined,
@@ -206,7 +206,7 @@ describe('Core_setDataAtCell', () => {
   });
 
   it('should accept changes array as 1st param and source as 2nd param', () => {
-    var lastSource = '';
+    let lastSource = '';
 
     handsontable({
       afterChange(changes, source) {
@@ -220,8 +220,8 @@ describe('Core_setDataAtCell', () => {
   });
 
   it('should trigger `afterSetDataAtCell` hook with applied changes', () => {
-    var _changes;
-    var _source;
+    let _changes;
+    let _source;
 
     handsontable({
       afterSetDataAtCell(changes, source) {
@@ -259,8 +259,8 @@ describe('Core_setDataAtCell', () => {
   });
 
   it('should trigger `afterSetDataAtRowProp` hook with applied changes', () => {
-    var _changes;
-    var _source;
+    let _changes;
+    let _source;
 
     handsontable({
       columns: [{data: 'name'}, {data: 'id'}],

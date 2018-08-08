@@ -59,7 +59,7 @@ BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
 };
 
 BaseEditor.prototype.extend = function() {
-  var baseClass = this.constructor;
+  const baseClass = this.constructor;
 
   function Editor(...args) {
     baseClass.apply(this, args);
@@ -128,11 +128,11 @@ BaseEditor.prototype.beginEditing = function(newInitialValue, event) {
 };
 
 BaseEditor.prototype.finishEditing = function(restoreOriginalValue, ctrlDown, callback) {
-  var _this = this,
-    val;
+  const _this = this;
+  let val;
 
   if (callback) {
-    var previousCloseCallback = this._closeCallback;
+    const previousCloseCallback = this._closeCallback;
 
     this._closeCallback = function(result) {
       if (previousCloseCallback) {
@@ -244,8 +244,8 @@ BaseEditor.prototype.isWaiting = function() {
 };
 
 BaseEditor.prototype.checkEditorSection = function() {
-  var totalRows = this.instance.countRows();
-  var section = '';
+  const totalRows = this.instance.countRows();
+  let section = '';
 
   if (this.row < this.instance.getSettings().fixedRowsTop) {
     if (this.col < this.instance.getSettings().fixedColumnsLeft) {

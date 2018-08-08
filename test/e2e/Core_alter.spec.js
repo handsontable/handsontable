@@ -1,5 +1,5 @@
 describe('Core_alter', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('Core_alter', () => {
     }
   });
 
-  var arrayOfNestedObjects = function() {
+  const arrayOfNestedObjects = function() {
     return [
       {id: 1,
         name: {
@@ -41,7 +41,7 @@ describe('Core_alter', () => {
     ];
   };
 
-  var arrayOfArrays = function() {
+  const arrayOfArrays = function() {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
@@ -149,7 +149,7 @@ describe('Core_alter', () => {
     });
 
     it('should fire beforeRemoveRow event before removing row', () => {
-      var onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
+      const onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
 
       handsontable({
         data: arrayOfNestedObjects(),
@@ -165,7 +165,7 @@ describe('Core_alter', () => {
     });
 
     it('should not remove row if removing has been canceled by beforeRemoveRow event handler', () => {
-      var onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
+      const onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
 
       onBeforeRemoveRow.and.callFake(() => false);
 
@@ -341,8 +341,8 @@ describe('Core_alter', () => {
     });
 
     it('should fire callback on remove row', () => {
-      var outputBefore;
-      var outputAfter;
+      let outputBefore;
+      let outputAfter;
 
       handsontable({
         minRows: 5,
@@ -365,7 +365,7 @@ describe('Core_alter', () => {
     });
 
     it('should decrement the number of fixed rows, if a fix row is removed', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         startCols: 1,
         startRows: 3,
         fixedRowsTop: 4
@@ -553,7 +553,7 @@ describe('Core_alter', () => {
     });
 
     it('should fire beforeRemoveCol event before removing col', () => {
-      var onBeforeRemoveCol = jasmine.createSpy('onBeforeRemoveCol');
+      const onBeforeRemoveCol = jasmine.createSpy('onBeforeRemoveCol');
 
       handsontable({
         beforeRemoveCol: onBeforeRemoveCol
@@ -564,7 +564,7 @@ describe('Core_alter', () => {
     });
 
     it('should not remove column if removing has been canceled by beforeRemoveCol event handler', () => {
-      var onBeforeRemoveCol = jasmine.createSpy('onBeforeRemoveCol');
+      const onBeforeRemoveCol = jasmine.createSpy('onBeforeRemoveCol');
 
       onBeforeRemoveCol.and.callFake(() => false);
 
@@ -580,8 +580,8 @@ describe('Core_alter', () => {
     });
 
     it('should fire callback on remove col', () => {
-      var outputBefore;
-      var outputAfter;
+      let outputBefore;
+      let outputAfter;
 
       handsontable({
         minRows: 5,
@@ -675,7 +675,7 @@ describe('Core_alter', () => {
     });
 
     it('should decrement the number of fixed columns, if a fix column is removed', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         startCols: 1,
         startRows: 3,
         fixedColumnsLeft: 4

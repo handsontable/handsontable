@@ -51,12 +51,12 @@ export function spreadsheetColumnIndex(label) {
  * @returns {Array}
  */
 export function createSpreadsheetData(rows = 100, columns = 4) {
-  var _rows = [],
-    i,
-    j;
+  const _rows = [];
+  let i;
+  let j;
 
   for (i = 0; i < rows; i++) {
-    var row = [];
+    const row = [];
 
     for (j = 0; j < columns; j++) {
       row.push(spreadsheetColumnLabel(j) + (i + 1));
@@ -75,12 +75,12 @@ export function createSpreadsheetData(rows = 100, columns = 4) {
  * @returns {Array}
  */
 export function createSpreadsheetObjectData(rows = 100, colCount = 4) {
-  var _rows = [],
-    i,
-    j;
+  const _rows = [];
+  let i;
+  let j;
 
   for (i = 0; i < rows; i++) {
-    var row = {};
+    const row = {};
 
     for (j = 0; j < colCount; j++) {
       row[`prop${j}`] = spreadsheetColumnLabel(j) + (i + 1);
@@ -114,12 +114,12 @@ export function createEmptySpreadsheetData(rows, columns) {
 }
 
 export function translateRowsToColumns(input) {
-  var i,
-    ilen,
-    j,
-    jlen,
-    output = [],
-    olen = 0;
+  const output = [];
+  let i;
+  let ilen;
+  let j;
+  let jlen;
+  let olen = 0;
 
   for (i = 0, ilen = input.length; i < ilen; i++) {
     for (j = 0, jlen = input[i].length; j < jlen; j++) {
@@ -165,12 +165,11 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
         return properties[methodName]; // method defined directly
 
       } else if (hasOwnProperty(properties, 'type') && properties.type) { // check if it is own and is not empty
-        var type;
-
         if (typeof properties.type !== 'string') {
           throw new Error('Cell type must be a string ');
         }
-        type = getCellType(properties.type);
+
+        const type = getCellType(properties.type);
 
         if (hasOwnProperty(type, methodName)) {
           return type[methodName]; // method defined in type.

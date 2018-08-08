@@ -3,10 +3,10 @@ import EventManager from './../eventManager';
 import { CellCoords } from './../3rdparty/walkontable/src';
 import { getRenderer } from './index';
 
-var clonableWRAPPER = document.createElement('DIV');
+const clonableWRAPPER = document.createElement('DIV');
 clonableWRAPPER.className = 'htAutocompleteWrapper';
 
-var clonableARROW = document.createElement('DIV');
+const clonableARROW = document.createElement('DIV');
 clonableARROW.className = 'htAutocompleteArrow';
 // workaround for https://github.com/handsontable/handsontable/issues/1946
 // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
@@ -27,7 +27,7 @@ clonableARROW.appendChild(document.createTextNode(String.fromCharCode(9660)));
  */
 function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties, ...args) {
   const rendererType = cellProperties.allowHtml ? 'html' : 'text';
-  var ARROW = clonableARROW.cloneNode(true); // this is faster than createElement
+  const ARROW = clonableARROW.cloneNode(true); // this is faster than createElement
 
   getRenderer(rendererType).apply(this, [instance, TD, row, col, prop, value, cellProperties, ...args]);
 
@@ -41,7 +41,7 @@ function autocompleteRenderer(instance, TD, row, col, prop, value, cellPropertie
   addClass(TD, 'htAutocomplete');
 
   if (!instance.acArrowListener) {
-    var eventManager = new EventManager(instance);
+    const eventManager = new EventManager(instance);
 
     // not very elegant but easy and fast
     instance.acArrowListener = function(event) {

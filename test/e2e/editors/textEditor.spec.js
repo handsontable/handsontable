@@ -1,5 +1,5 @@
 describe('TextEditor', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`).appendTo('body');
@@ -21,7 +21,7 @@ describe('TextEditor', () => {
 
     keyDown('enter');
 
-    var selection = getSelected();
+    const selection = getSelected();
 
     expect(selection).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(true);
@@ -36,7 +36,7 @@ describe('TextEditor', () => {
     keyDown('enter');
     keyDown('enter');
 
-    var selection = getSelected();
+    const selection = getSelected();
     expect(selection).toEqual([[3, 2, 3, 2]]);
   });
 
@@ -48,7 +48,7 @@ describe('TextEditor', () => {
 
     keyDown('enter');
 
-    var selection = getSelected();
+    const selection = getSelected();
     expect(selection).toEqual([[3, 2, 3, 2]]);
     expect(isEditorVisible()).toEqual(false);
   });
@@ -75,7 +75,7 @@ describe('TextEditor', () => {
   });
 
   it('should render textarea editor in specified size at cell 0, 0 without headers', (done) => {
-    var hot = handsontable();
+    const hot = handsontable();
 
     selectCell(0, 0);
 
@@ -89,7 +89,7 @@ describe('TextEditor', () => {
   });
 
   it('should render textarea editor in specified size at cell 1, 0 without headers', (done) => {
-    var hot = handsontable();
+    const hot = handsontable();
 
     selectCell(1, 1);
 
@@ -162,7 +162,7 @@ describe('TextEditor', () => {
     keyDown('enter');
     keyUp('enter');
 
-    var mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view.wt.wtTable.holder;
 
     mainHolder.scrollTop = 150;
     mainHolder.scrollLeft = 150;
@@ -175,7 +175,7 @@ describe('TextEditor', () => {
   });
 
   it('should hide editor when quick navigation by click scrollbar was triggered', async () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       rowHeaders: true,
       colHeaders: true
@@ -194,7 +194,7 @@ describe('TextEditor', () => {
   });
 
   it('should render textarea editor in specified height (single line)', (done) => {
-    var hot = handsontable();
+    const hot = handsontable();
 
     setDataAtCell(2, 2, 'first line');
     selectCell(2, 2);
@@ -208,7 +208,7 @@ describe('TextEditor', () => {
   });
 
   it('should render textarea editor in specified height (multi line)', (done) => {
-    var hot = handsontable();
+    const hot = handsontable();
 
     setDataAtCell(2, 2, 'first line\n second line\n third line...');
     selectCell(2, 2);
@@ -306,7 +306,7 @@ describe('TextEditor', () => {
   });
 
   it('should render nested object value in textarea after change rows order', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [{
         name: {
           first: 'Tom',
@@ -349,7 +349,7 @@ describe('TextEditor', () => {
   });
 
   it('should render nested object value in textarea after change columns order', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [{
         name: {
           first: 'Tom',
@@ -480,7 +480,7 @@ describe('TextEditor', () => {
   });
 
   it('textarea should have cell dimensions (after render)', () => {
-    var data = [
+    const data = [
       ['a', 'b'],
       ['c', 'd']
     ];
@@ -495,7 +495,7 @@ describe('TextEditor', () => {
     });
 
     selectCell(1, 1);
-    var $td = getHtCore().find('tbody tr:eq(1) td:eq(1)');
+    const $td = getHtCore().find('tbody tr:eq(1) td:eq(1)');
 
     keyDownUp('enter');
     expect(keyProxy().width()).toEqual($td.width());
@@ -517,18 +517,17 @@ describe('TextEditor', () => {
       ctrlKey: true
     }); // CTRL+A should NOT select all table when cell is edited
 
-    var selection = getSelected();
+    const selection = getSelected();
     expect(selection).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(true);
   });
 
   it('should open editor after double clicking on a cell', (done) => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2)
     });
-
-    var cell = $(getCell(0, 0));
-    var clicks = 0;
+    const cell = $(getCell(0, 0));
+    let clicks = 0;
 
     window.scrollTo(0, cell.offset().top);
 
@@ -545,7 +544,7 @@ describe('TextEditor', () => {
     }, 100);
 
     setTimeout(() => {
-      var editor = hot.getActiveEditor();
+      const editor = hot.getActiveEditor();
 
       expect(clicks).toBe(2);
       expect(editor.isOpened()).toBe(true);
@@ -555,10 +554,10 @@ describe('TextEditor', () => {
   });
 
   it('should call editor focus() method after opening an editor', () => {
-    var hot = handsontable();
+    const hot = handsontable();
     selectCell(2, 2);
 
-    var editor = hot.getActiveEditor();
+    const editor = hot.getActiveEditor();
 
     spyOn(editor, 'focus');
 
@@ -585,8 +584,8 @@ describe('TextEditor', () => {
     document.activeElement.value = 'Very very very very very very very very very very very very very very very very very long text';
     keyDownUp(32); // space - trigger textarea resize
 
-    var $textarea = $(document.activeElement);
-    var $wtHider = spec().$container.find('.wtHider');
+    const $textarea = $(document.activeElement);
+    const $wtHider = spec().$container.find('.wtHider');
 
     expect($textarea.offset().left + $textarea.outerWidth()).not.toBeGreaterThan($wtHider.offset().left + spec().$container.outerWidth());
     expect($textarea.offset().top + $textarea.outerHeight()).not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
@@ -595,8 +594,8 @@ describe('TextEditor', () => {
   it('should open editor after selecting cell in another table and hitting enter', function() {
     spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
-    var hot1 = handsontable();
-    var hot2 = handsontable2.call(this);
+    const hot1 = handsontable();
+    const hot2 = handsontable2.call(this);
 
     spec().$container.find('tbody tr:eq(0) td:eq(0)').simulate('mousedown');
     spec().$container.find('tbody tr:eq(0) td:eq(0)').simulate('mouseup');
@@ -626,7 +625,7 @@ describe('TextEditor', () => {
     spec().$container2.remove();
 
     function handsontable2(options) {
-      var container = spec().$container2;
+      const container = spec().$container2;
 
       container.handsontable(options);
       container[0].focus(); // otherwise TextEditor tests do not pass in IE8
@@ -707,7 +706,7 @@ describe('TextEditor', () => {
   });
 
   it('should scroll editor to a cell, if trying to edit cell that is outside of the viewport', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 20),
       width: 100,
       height: 50
@@ -731,7 +730,7 @@ describe('TextEditor', () => {
   });
 
   it('should open empty editor after clearing cell value width BACKSPACE', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4)
     });
 
@@ -751,7 +750,7 @@ describe('TextEditor', () => {
   });
 
   it('should open empty editor after clearing cell value width DELETE', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4)
     });
 
@@ -771,7 +770,7 @@ describe('TextEditor', () => {
   });
 
   it('should not open editor after hitting ALT (#1239)', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4)
     });
 
@@ -786,18 +785,18 @@ describe('TextEditor', () => {
   });
 
   it('should open editor at the same coordinates as the edited cell', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(16, 8),
       fixedColumnsLeft: 2,
       fixedRowsTop: 2
     });
 
-    var mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view.wt.wtTable.holder;
 
     // corner
     selectCell(1, 1);
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
-    var $inputHolder = $('.handsontableInputHolder');
+    const $inputHolder = $('.handsontableInputHolder');
     expect($(getCell(1, 1)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(1, 1)).offset().top).toEqual($inputHolder.offset().top + 1);
 
@@ -823,13 +822,13 @@ describe('TextEditor', () => {
   });
 
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (corner)', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(16, 8),
       fixedColumnsLeft: 2,
       fixedRowsTop: 2
     });
 
-    var $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view.wt.wtTable.holder);
 
     $holder.scrollTop(100);
     $holder.scrollLeft(100);
@@ -838,11 +837,11 @@ describe('TextEditor', () => {
 
     // corner
     selectCell(1, 1);
-    var currentCell = hot.getCell(1, 1, true);
-    var left = $(currentCell).offset().left;
-    var top = $(currentCell).offset().top;
+    const currentCell = hot.getCell(1, 1, true);
+    const left = $(currentCell).offset().left;
+    const top = $(currentCell).offset().top;
 
-    var $inputHolder = $('.handsontableInputHolder');
+    const $inputHolder = $('.handsontableInputHolder');
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
@@ -878,13 +877,13 @@ describe('TextEditor', () => {
   });
 
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (left)', async () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       fixedColumnsLeft: 2,
       fixedRowsTop: 2
     });
 
-    var $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view.wt.wtTable.holder);
 
     $holder.scrollTop(500);
     $holder.scrollLeft(500);
@@ -895,24 +894,24 @@ describe('TextEditor', () => {
 
     await sleep(100);
 
-    var currentCell = hot.getCell(6, 1, true);
-    var left = $(currentCell).offset().left;
-    var top = $(currentCell).offset().top;
+    const currentCell = hot.getCell(6, 1, true);
+    const left = $(currentCell).offset().left;
+    const top = $(currentCell).offset().top;
 
-    var $inputHolder = $('.handsontableInputHolder');
+    const $inputHolder = $('.handsontableInputHolder');
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
 
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (non-fixed)', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
       fixedColumnsLeft: 2,
       fixedRowsTop: 2
     });
 
-    var $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view.wt.wtTable.holder);
 
     $holder.scrollTop(500);
     $holder.scrollLeft(500);
@@ -921,11 +920,11 @@ describe('TextEditor', () => {
 
     // non-fixed
     selectCell(7, 7);
-    var currentCell = hot.getCell(7, 7, true);
-    var left = $(currentCell).offset().left;
-    var top = $(currentCell).offset().top;
+    const currentCell = hot.getCell(7, 7, true);
+    const left = $(currentCell).offset().left;
+    const top = $(currentCell).offset().top;
 
-    var $inputHolder = $('.handsontableInputHolder');
+    const $inputHolder = $('.handsontableInputHolder');
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
@@ -933,7 +932,7 @@ describe('TextEditor', () => {
 
   it('should display editor with the proper size, when the edited column is beyond the tables container', () => {
     spec().$container.css('overflow', '');
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 9)
     });
 
@@ -944,7 +943,7 @@ describe('TextEditor', () => {
   });
 
   it('should display editor with the proper size, when editing a last row after the table is scrolled to the bottom', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 8),
       minSpareRows: 1,
       height: 100
@@ -952,7 +951,7 @@ describe('TextEditor', () => {
 
     selectCell(0, 2);
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
-    var regularHeight = Handsontable.dom.outerHeight(hot.getActiveEditor().TEXTAREA);
+    const regularHeight = Handsontable.dom.outerHeight(hot.getActiveEditor().TEXTAREA);
 
     selectCell(3, 2);
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
@@ -970,7 +969,7 @@ describe('TextEditor', () => {
 
   it('should render the text without trimming out the whitespace, if trimWhitespace is set to false', () => {
     spec().$container.css('overflow', '');
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 9),
       trimWhitespace: false
     });
@@ -984,19 +983,19 @@ describe('TextEditor', () => {
   });
 
   it('should insert new line on caret position when pressing ALT + ENTER', () => {
-    var data = [
+    const data = [
       ['Maserati', 'Mazda'],
       ['Honda', 'Mini']
     ];
 
-    var hot = handsontable({
+    const hot = handsontable({
       data
     });
 
     selectCell(0, 0);
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
-    var $editorInput = $('.handsontableInput');
+    const $editorInput = $('.handsontableInput');
 
     Handsontable.dom.setCaretPosition($editorInput[0], 2);
 
@@ -1009,14 +1008,14 @@ describe('TextEditor', () => {
   });
 
   it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', () => {
-    var data = [
+    const data = [
       ['', '', '', '', ''],
       ['', 'The Dude abides. I don\'t know about you but I take comfort in that. It\'s good knowin\' he\'s out there. The ' +
            'Dude. Takin\' \'er easy for all us sinners. Shoosh. I sure hope he makes the finals.', '', '', ''],
       ['', '', '', '', '']
     ];
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       colWidths: 40,
       width: 300,
@@ -1028,8 +1027,8 @@ describe('TextEditor', () => {
     selectCell(1, 1);
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
-    var $editorInput = $('.handsontableInput');
-    var $editedCell = $(hot.getCell(1, 1));
+    const $editorInput = $('.handsontableInput');
+    const $editedCell = $(hot.getCell(1, 1));
 
     expect($editorInput.outerWidth()).toEqual(hot.view.wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
 
@@ -1040,7 +1039,7 @@ describe('TextEditor', () => {
   });
 
   it('should resize editor to properly size after focus', (done) => {
-    var data = [
+    const data = [
       ['', '', '', '', '', '', '', '', '', '', ''],
       ['', '', '', '', '', '', '', '', '', '', ''],
       ['', '', '', '', '', '', '', '', '', '', ''],
@@ -1063,7 +1062,7 @@ describe('TextEditor', () => {
     selectCell(4, 10);
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
-    var $editorInput = $('.handsontableInput');
+    const $editorInput = $('.handsontableInput');
 
     setTimeout(() => {
       expect([105, 119]).toEqual(jasmine.arrayContaining([$editorInput.height()]));
@@ -1100,7 +1099,7 @@ describe('TextEditor', () => {
   });
 
   it('should not throw an exception when window.attachEvent is defined but the text area does not have attachEvent', (done) => {
-    var hot = handsontable();
+    const hot = handsontable();
     window.attachEvent = true;
     selectCell(1, 1);
 

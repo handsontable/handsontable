@@ -1,5 +1,5 @@
 describe('AutoRowSize', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -32,21 +32,21 @@ describe('AutoRowSize', () => {
       data: arrayOfObjects()
     });
 
-    var height0 = rowHeight(spec().$container, 0);
-    var height1 = rowHeight(spec().$container, 1);
-    var height2 = rowHeight(spec().$container, 2);
+    const height0 = rowHeight(spec().$container, 0);
+    const height1 = rowHeight(spec().$container, 1);
+    const height2 = rowHeight(spec().$container, 2);
 
     expect(height0).toBeLessThan(height1);
     expect(height1).toBeLessThan(height2);
   });
 
   it('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (long text in row) #4000', (done) => {
-    var row = ['This is very long text which will break this cell text into two lines'];
-    var data = [];
-    var nrOfRows = 200;
-    var columnWidth = 100;
+    const row = ['This is very long text which will break this cell text into two lines'];
+    const data = [];
+    const nrOfRows = 200;
+    const columnWidth = 100;
 
-    for (var i = 0; i < nrOfRows; i += 1) {
+    for (let i = 0; i < nrOfRows; i += 1) {
       data.push(row);
     }
 
@@ -58,30 +58,30 @@ describe('AutoRowSize', () => {
       autoRowSize: true
     });
 
-    var oldHeight = spec().$container[0].scrollHeight;
+    const oldHeight = spec().$container[0].scrollHeight;
 
     setTimeout(() => {
-      var newHeight = spec().$container[0].scrollHeight;
+      const newHeight = spec().$container[0].scrollHeight;
       expect(oldHeight).toBeLessThan(newHeight);
       done();
     }, 200);
   });
 
   describe('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (`table td` element height set by CSS) #4000', () => {
-    var cellHeightInPx = 100;
-    var nrOfRows = null;
-    var nrOfColumns = 200,
-      style;
+    const cellHeightInPx = 100;
+    const nrOfColumns = 200;
+    let nrOfRows = null;
+    let style;
 
-    var SYNC_CALCULATION_LIMIT = Handsontable.plugins.AutoRowSize.SYNC_CALCULATION_LIMIT;
-    var CALCULATION_STEP = Handsontable.plugins.AutoRowSize.CALCULATION_STEP;
+    const SYNC_CALCULATION_LIMIT = Handsontable.plugins.AutoRowSize.SYNC_CALCULATION_LIMIT;
+    const CALCULATION_STEP = Handsontable.plugins.AutoRowSize.CALCULATION_STEP;
 
     beforeEach(function() {
       if (!this.$container) {
         this.$container = $(`<div id="${id}"></div>`).appendTo('body');
       }
 
-      var css = `.handsontable table td { height: ${cellHeightInPx}px !important }`,
+      const css = `.handsontable table td { height: ${cellHeightInPx}px !important }`,
         head = document.head;
 
       style = document.createElement('style');
@@ -116,7 +116,7 @@ describe('AutoRowSize', () => {
       });
 
       setTimeout(() => {
-        var newHeight = spec().$container[0].scrollHeight;
+        const newHeight = spec().$container[0].scrollHeight;
 
         expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
         done();
@@ -132,7 +132,7 @@ describe('AutoRowSize', () => {
       });
 
       setTimeout(() => {
-        var newHeight = spec().$container[0].scrollHeight;
+        const newHeight = spec().$container[0].scrollHeight;
 
         expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
         done();
@@ -149,7 +149,7 @@ describe('AutoRowSize', () => {
       });
 
       setTimeout(() => {
-        var newHeight = spec().$container[0].scrollHeight;
+        const newHeight = spec().$container[0].scrollHeight;
 
         expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
         done();
@@ -166,7 +166,7 @@ describe('AutoRowSize', () => {
       });
 
       setTimeout(() => {
-        var newHeight = spec().$container[0].scrollHeight;
+        const newHeight = spec().$container[0].scrollHeight;
 
         expect(newHeight).toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
         done();
@@ -176,7 +176,7 @@ describe('AutoRowSize', () => {
 
   it('should correctly detect row height when table is hidden on init (display: none)', async () => {
     spec().$container.css('display', 'none');
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects(),
       rowHeaders: true,
       autoRowSize: true
@@ -192,13 +192,13 @@ describe('AutoRowSize', () => {
   });
 
   it('should be possible to disable plugin using updateSettings', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects()
     });
 
-    var height0 = rowHeight(spec().$container, 0);
-    var height1 = rowHeight(spec().$container, 1);
-    var height2 = rowHeight(spec().$container, 2);
+    const height0 = rowHeight(spec().$container, 0);
+    const height1 = rowHeight(spec().$container, 1);
+    const height2 = rowHeight(spec().$container, 2);
 
     expect(height0).toBeLessThan(height1);
     expect(height1).toBeLessThan(height2);
@@ -208,7 +208,7 @@ describe('AutoRowSize', () => {
     });
     hot.setDataAtCell(0, 0, 'A\nB\nC');
 
-    var height4 = rowHeight(spec().$container, 0);
+    const height4 = rowHeight(spec().$container, 0);
 
     expect(height4).toBeGreaterThan(height0);
   });
@@ -219,9 +219,9 @@ describe('AutoRowSize', () => {
       autoRowSize: false
     });
 
-    var height0 = parseInt(getCell(0, 0).style.height, 10);
-    var height1 = parseInt(getCell(1, 0).style.height, 10);
-    var height2 = parseInt(getCell(2, 0).style.height, 10);
+    let height0 = parseInt(getCell(0, 0).style.height, 10);
+    let height1 = parseInt(getCell(1, 0).style.height, 10);
+    let height2 = parseInt(getCell(2, 0).style.height, 10);
 
     expect(height0).toEqual(height1);
     expect(height0).toEqual(height2);
@@ -240,17 +240,17 @@ describe('AutoRowSize', () => {
   });
 
   it('should consider CSS style of each instance separately', () => {
-    var $style = $('<style>.big .htCore td {font-size: 40px;line-height: 1.1}</style>').appendTo('head');
-    var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
+    const $style = $('<style>.big .htCore td {font-size: 40px;line-height: 1.1}</style>').appendTo('head');
+    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
       data: arrayOfObjects(),
       autoRowSize: true
     });
-    var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
+    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
       data: arrayOfObjects(),
       autoRowSize: true
     });
-    var hot1 = $container1.handsontable('getInstance');
-    var hot2 = $container2.handsontable('getInstance');
+    const hot1 = $container1.handsontable('getInstance');
+    const hot2 = $container2.handsontable('getInstance');
 
     expect(parseInt(hot1.getCell(0, 0).style.height, 10)).toEqual(parseInt(hot2.getCell(0, 0).style.height, 10));
 
@@ -275,13 +275,13 @@ describe('AutoRowSize', () => {
   });
 
   it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', () => {
-    var $style = $('<style>.htCore.big-table td {font-size: 32px;line-height: 1.1}</style>').appendTo('head');
+    const $style = $('<style>.htCore.big-table td {font-size: 32px;line-height: 1.1}</style>').appendTo('head');
 
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects(),
       autoRowSize: true
     });
-    var height = parseInt(hot.getCell(2, 0).style.height, 10);
+    const height = parseInt(hot.getCell(2, 0).style.height, 10);
 
     spec().$container.find('table').addClass('big-table');
     hot.getPlugin('autoRowSize').clearCache();
@@ -292,7 +292,7 @@ describe('AutoRowSize', () => {
   });
 
   it('should not trigger autoColumnSize when column width is defined (through colWidths)', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects(),
       autoRowSize: true,
       rowHeights: [70, 70, 70],
@@ -308,7 +308,7 @@ describe('AutoRowSize', () => {
 
   // Currently columns.height is not supported
   xit('should not trigger autoRowSize when column height is defined (through columns.height)', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects(),
       autoRowSize: true,
       rowHeights: 77,
@@ -328,10 +328,10 @@ describe('AutoRowSize', () => {
   });
 
   it('should consider renderer that uses conditional formatting for specific row & column index', () => {
-    var data = arrayOfObjects();
+    const data = arrayOfObjects();
     data.push({id: '2', name: 'Rocket Man', lastName: 'In a tin can'});
 
-    var hot = handsontable({
+    const hot = handsontable({
       data,
       columns: [
         {data: 'id'},
@@ -360,7 +360,7 @@ describe('AutoRowSize', () => {
   });
 
   it('should recalculate heights after column resize', function() {
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects2(),
       colWidths: 250,
       manualColumnResize: true,
@@ -393,7 +393,7 @@ describe('AutoRowSize', () => {
   });
 
   it('should recalculate heights after column moved', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects2(),
       colWidths: [250, 50],
       manualColumnMove: true,
@@ -402,7 +402,7 @@ describe('AutoRowSize', () => {
       colHeaders: true
     });
 
-    var plugin = hot.getPlugin('manualColumnMove');
+    const plugin = hot.getPlugin('manualColumnMove');
 
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(42); // -1px of cell border
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(105); // -1px of cell border
@@ -417,7 +417,7 @@ describe('AutoRowSize', () => {
   });
 
   it('should recalculate heights with manualRowResize when changing text to multiline', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects2(),
       colWidths: 250,
       manualRowResize: [23, 50],
@@ -438,7 +438,7 @@ describe('AutoRowSize', () => {
   });
 
   it('should recalculate heights after moved row', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects2(),
       colWidths: 250,
       manualRowResize: [23, 50],
@@ -452,7 +452,7 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(49); // -1px of cell border
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBeInArray([22, 42]); // -1px of cell border
 
-    var plugin = hot.getPlugin('manualRowMove');
+    const plugin = hot.getPlugin('manualRowMove');
     plugin.moveRow(1, 0);
     hot.render();
 

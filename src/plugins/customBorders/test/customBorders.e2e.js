@@ -59,7 +59,7 @@ describe('CustomBorders', () => {
     });
 
     const customBorders = hot.getPlugin('customBorders');
-    var errors = 0;
+    let errors = 0;
 
     try {
       customBorders.setBorders();

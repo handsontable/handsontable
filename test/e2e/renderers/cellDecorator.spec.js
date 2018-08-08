@@ -1,5 +1,5 @@
 describe('CellDecorator', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('CellDecorator', () => {
     }
   });
 
-  var arrayOfObjects = function() {
+  const arrayOfObjects = function() {
     return [
       {id: 1, name: 'Ted', lastName: 'Right'},
       {id: 2, name: 'Frank', lastName: 'Honest'},
@@ -21,7 +21,7 @@ describe('CellDecorator', () => {
   };
 
   it('should add an appropriate class name to every cell, if wordWrap=false is set to the whole table', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
         {data: 'id'},
@@ -31,7 +31,7 @@ describe('CellDecorator', () => {
       wordWrap: false
     });
 
-    var cols = countCols(),
+    const cols = countCols(),
       rows = countRows();
 
     for (let i = 0; i < cols; i++) {
@@ -42,7 +42,7 @@ describe('CellDecorator', () => {
   });
 
   it('should add an appropriate class name to every cell in a column, if wordWrap=false is set to the column settings', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
         {data: 'id'},
@@ -51,7 +51,7 @@ describe('CellDecorator', () => {
       ]
     });
 
-    var rows = countRows();
+    const rows = countRows();
 
     for (let i = 0; i < rows; i++) {
       expect($(getCell(i, 1)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(true);
@@ -64,7 +64,7 @@ describe('CellDecorator', () => {
   });
 
   it('should add an appropriate class to a cell, if wordWrap=false is set to a single cell', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
         {data: 'id'},
@@ -101,7 +101,7 @@ describe('CellDecorator', () => {
   });
 
   it('should not add cell `htInvalid` class when trying to add not proper value', (done) => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
         {data: 'id'},
