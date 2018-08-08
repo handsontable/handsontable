@@ -1,6 +1,6 @@
 describe('PluginHooks', () => {
 
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -14,9 +14,9 @@ describe('PluginHooks', () => {
   });
 
   it('should add a many local hooks at init (as array)', () => {
-    var handler1 = jasmine.createSpy('handler1');
-    var handler2 = jasmine.createSpy('handler2');
-    var handler3 = jasmine.createSpy('handler3');
+    const handler1 = jasmine.createSpy('handler1');
+    const handler2 = jasmine.createSpy('handler2');
+    const handler3 = jasmine.createSpy('handler3');
 
     handsontable({
       afterInit: [handler1, handler2, handler3]
@@ -28,11 +28,10 @@ describe('PluginHooks', () => {
   });
 
   it('should remove a global hook', () => {
-    var
-      test = 0,
-      hook = function() {
-        test = 5;
-      };
+    let test = 0;
+    const hook = function() {
+      test = 5;
+    };
 
     Handsontable.hooks.add('afterInit', hook);
     Handsontable.hooks.remove('afterInit', hook);
@@ -43,11 +42,10 @@ describe('PluginHooks', () => {
   });
 
   it('should remove a local hook', () => {
-    var
-      test = 0,
-      hook = function() {
-        test = 5;
-      };
+    let test = 0;
+    const hook = function() {
+      test = 5;
+    };
 
     handsontable();
 
@@ -58,7 +56,7 @@ describe('PluginHooks', () => {
   });
 
   it('should run global hook', () => {
-    var test = 0;
+    let test = 0;
 
     Handsontable.hooks.add('afterInit', () => {
       test = 5;
@@ -68,7 +66,7 @@ describe('PluginHooks', () => {
   });
 
   it('should run local hook', () => {
-    var test = 0;
+    let test = 0;
 
     handsontable();
 
@@ -82,7 +80,7 @@ describe('PluginHooks', () => {
   });
 
   it('should run local hook once', () => {
-    var test = 0;
+    let test = 0;
 
     handsontable();
 
@@ -96,7 +94,7 @@ describe('PluginHooks', () => {
   });
 
   it('should run all hooks', () => {
-    var test = 0;
+    let test = 0;
 
     Handsontable.hooks.add('afterInit', () => {
       test += 5;
@@ -112,15 +110,15 @@ describe('PluginHooks', () => {
   });
 
   it('list of all avaliable plugin hooks should be exposed as a public method', () => {
-    var hooks = Handsontable.hooks.getRegistered(); // this is used in demo/callbacks.html
+    const hooks = Handsontable.hooks.getRegistered(); // this is used in demo/callbacks.html
 
     expect(hooks.indexOf('beforeInit')).toBeGreaterThan(-1);
   });
 
   it('should add a local hook with addHooks method', () => {
-    var hot1 = handsontable();
+    const hot1 = handsontable();
 
-    var test = 0;
+    let test = 0;
 
     hot1.addHook('myHook', () => {
       test += 5;
@@ -131,10 +129,10 @@ describe('PluginHooks', () => {
   });
 
   it('should remove a local hook with removeHook method', () => {
-    var hot1 = handsontable();
+    const hot1 = handsontable();
 
-    var test = 0;
-    var handler = function() {
+    let test = 0;
+    const handler = function() {
       test += 5;
     };
 
@@ -151,10 +149,10 @@ describe('PluginHooks', () => {
   });
 
   it('should add a local hook with addHookOnce method and run it just once', () => {
-    var hot1 = handsontable();
+    const hot1 = handsontable();
 
-    var test = 0;
-    var handler = function() {
+    let test = 0;
+    const handler = function() {
       test += 5;
     };
 
@@ -167,9 +165,9 @@ describe('PluginHooks', () => {
   });
 
   it('should run hook with runHooks and return value', () => {
-    var hot = handsontable();
+    const hot = handsontable();
 
-    var handler = function() {
+    const handler = function() {
       return 5;
     };
 
@@ -179,8 +177,8 @@ describe('PluginHooks', () => {
   });
 
   it('should run two "once" hooks in desired order', () => {
-    var hot = handsontable();
-    var arr = [];
+    const hot = handsontable();
+    const arr = [];
 
     hot.addHookOnce('myHook', () => {
       arr.push(1);
@@ -196,8 +194,8 @@ describe('PluginHooks', () => {
   });
 
   it('should execute two "once" hooks in desired order', () => {
-    var hot = handsontable();
-    var str = 'a';
+    const hot = handsontable();
+    const str = 'a';
 
     hot.addHookOnce('myHook', (str) => `${str}b`);
 
@@ -207,12 +205,12 @@ describe('PluginHooks', () => {
   });
 
   it('adding same hook twice should register it only once (without an error)', () => {
-    var i = 0;
-    var fn = function() {
+    let i = 0;
+    const fn = function() {
       i++;
     };
 
-    var hot = handsontable({
+    const hot = handsontable({
       afterOnCellMouseOver: fn
     });
 
@@ -223,10 +221,10 @@ describe('PluginHooks', () => {
   });
 
   it('should mark the hook callbacks added with Handsontable initialization', () => {
-    var fn = function() {};
-    var fn2 = function() {};
+    const fn = function() {};
+    const fn2 = function() {};
 
-    var hot = handsontable({
+    const hot = handsontable({
       afterChange: fn
     });
 
@@ -237,10 +235,10 @@ describe('PluginHooks', () => {
   });
 
   it('should mark the hook callbacks added using the updateSettings method', () => {
-    var fn = function() {};
-    var fn2 = function() {};
+    const fn = function() {};
+    const fn2 = function() {};
 
-    var hot = handsontable();
+    const hot = handsontable();
 
     hot.updateSettings({
       afterChange: fn
@@ -254,14 +252,14 @@ describe('PluginHooks', () => {
 
   it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method (when there was a hook ' +
      'already declared in the initialization)', () => {
-    var fn = function() {};
-    var fn2 = function() {};
+    const fn = function() {};
+    const fn2 = function() {};
 
-    var hot = handsontable({
+    const hot = handsontable({
       afterGetCellMeta: fn
     });
 
-    var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
+    const initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
 
     hot.updateSettings({
       afterGetCellMeta() {
@@ -283,10 +281,10 @@ describe('PluginHooks', () => {
   });
 
   it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method', () => {
-    var fn = function() {};
-    var fn2 = function() {};
+    const fn = function() {};
+    const fn2 = function() {};
 
-    var hot = handsontable();
+    const hot = handsontable();
 
     hot.addHook('afterGetCellMeta', () => 'doesn\'t matter 1');
     hot.addHook('afterGetCellMeta', () => 'doesn\'t matter 2');
@@ -296,7 +294,7 @@ describe('PluginHooks', () => {
       afterGetCellMeta: fn
     });
 
-    var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
+    const initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
 
     hot.updateSettings({
       afterGetCellMeta() {
@@ -318,16 +316,16 @@ describe('PluginHooks', () => {
   });
 
   it('should NOT replace existing hook callbacks, if the\'re added using the addHook method', () => {
-    var fn = function() {};
-    var fn2 = function() {};
+    const fn = function() {};
+    const fn2 = function() {};
 
-    var hot = handsontable();
+    const hot = handsontable();
 
     hot.updateSettings({
       afterGetCellMeta: fn
     });
 
-    var initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
+    const initialCallbackCount = hot.pluginHookBucket.afterGetCellMeta.length;
 
     hot.addHook('afterGetCellMeta', () => ({ a: 'another function' }));
 
@@ -344,11 +342,11 @@ describe('PluginHooks', () => {
   describe('controlling handler queue execution', () => {
     it('should execute all handlers if none of them hasn\'t skipped', () => {
 
-      var handler1 = jasmine.createSpy('handler1');
-      var handler2 = jasmine.createSpy('handler2');
-      var handler3 = jasmine.createSpy('handler3');
+      const handler1 = jasmine.createSpy('handler1');
+      const handler2 = jasmine.createSpy('handler2');
+      const handler3 = jasmine.createSpy('handler3');
 
-      var hot = handsontable();
+      const hot = handsontable();
 
       hot.addHook('fakeEvent', handler1);
       hot.addHook('fakeEvent', handler2);

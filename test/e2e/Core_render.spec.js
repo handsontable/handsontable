@@ -1,5 +1,5 @@
 describe('Core_render', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -35,14 +35,14 @@ describe('Core_render', () => {
       }
     });
 
-    var $tds = spec().$container.find('.htCore tbody td');
+    const $tds = spec().$container.find('.htCore tbody td');
     $tds.each(function() {
       expect(this.style.backgroundColor).toEqual('green');
     });
   });
 
   it('render should update border dimensions', () => {
-    var data = [
+    const data = [
       ['a', 'b'],
       ['c', 'd']
     ];
@@ -59,12 +59,12 @@ describe('Core_render', () => {
     data[1][1] = 'dddddddddddddddddddd';
     render();
 
-    var $td = spec().$container.find('.htCore tbody tr:eq(1) td:eq(1)');
+    const $td = spec().$container.find('.htCore tbody tr:eq(1) td:eq(1)');
     expect(spec().$container.find('.wtBorder.current').width()).toBeGreaterThan($td.width());
   });
 
   it('should not render table twice', () => {
-    var counter = 0;
+    let counter = 0;
 
     handsontable({
       data: [
@@ -80,7 +80,7 @@ describe('Core_render', () => {
   });
 
   it('should run afterRenderer hook', () => {
-    var lastCellProperties;
+    let lastCellProperties;
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
@@ -112,7 +112,7 @@ describe('Core_render', () => {
   });
 
   it('should run beforeRenderer hook', () => {
-    var lastCellProperties;
+    let lastCellProperties;
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
@@ -129,7 +129,7 @@ describe('Core_render', () => {
   });
 
   it('should reflect changes applied in beforeRenderer into afterRenderer', () => {
-    var afterRenderer = jasmine.createSpy();
+    const afterRenderer = jasmine.createSpy();
 
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],

@@ -1,5 +1,5 @@
 describe('Core_destroyEditor', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -67,7 +67,7 @@ describe('Core_destroyEditor', () => {
     selectCell(0, 0);
     keyDown('enter');
 
-    var editor = $('.handsontableInputHolder');
+    const editor = $('.handsontableInputHolder');
 
     expect(editor.is(':visible')).toBe(true);
 

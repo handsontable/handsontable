@@ -1,5 +1,5 @@
 describe('Core_populateFromArray', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('Core_populateFromArray', () => {
     }
   });
 
-  var arrayOfArrays = function() {
+  const arrayOfArrays = function() {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda', 'Mix'],
       ['2008', 10, 11, 12, 13, {a: 1, b: 2}],
@@ -22,7 +22,7 @@ describe('Core_populateFromArray', () => {
   };
 
   it('should call onChange callback', () => {
-    var output = null;
+    let output = null;
 
     handsontable({
       data: arrayOfArrays(),
@@ -36,7 +36,7 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should populate single value for whole selection', () => {
-    var output = null;
+    let output = null;
 
     handsontable({
       data: arrayOfArrays(),
@@ -50,7 +50,7 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should populate value for whole selection only if populated data isn\'t an array', () => {
-    var output = null;
+    let output = null;
 
     handsontable({
       data: arrayOfArrays(),
@@ -64,7 +64,7 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should populate value for whole selection only if populated data isn\'t an object', () => {
-    var output = null;
+    let output = null;
 
     handsontable({
       data: arrayOfArrays(),
@@ -78,7 +78,7 @@ describe('Core_populateFromArray', () => {
   });
 
   it('shouldn\'t populate value if original value doesn\'t have the same data structure', () => {
-    var output = null;
+    let output = null;
 
     handsontable({
       data: arrayOfArrays(),
@@ -126,11 +126,10 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should run beforeAutofillInsidePopulate hook for each inserted value', () => {
-    var called = 0;
-
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfArrays()
     });
+    let called = 0;
 
     hot.addHook('beforeAutofillInsidePopulate', () => {
       called++;
@@ -143,7 +142,7 @@ describe('Core_populateFromArray', () => {
 
   it('should run beforeAutofillInsidePopulate hook and could change cell data before insert if returned object with value property', () => {
 
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfArrays()
     });
 
