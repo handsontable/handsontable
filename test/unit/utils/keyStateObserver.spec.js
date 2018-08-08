@@ -121,6 +121,94 @@ describe('keyStateObserver', () => {
 
       expect(isPressedCtrlKey()).toBe(false);
     });
+
+    it('should return `false` when left CMD key AND F is pressed', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 91}));
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 70}));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when right CMD key AND F is pressed', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 93}));
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 70}));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when CMD key AND F is pressed (macOS on FF)', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 224}));
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 70}));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when CTRL key AND F is pressed', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 17}));
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 70}));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when left CMD key AND D is pressed', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 91}));
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 68}));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when right CMD key AND D is pressed', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 93}));
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 68}));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when CMD key AND D is pressed (macOS on FF)', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 224}));
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 68}));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
+
+    it('should return `false` when CTRL key AND D is pressed', () => {
+      startObserving();
+
+      expect(isPressedCtrlKey()).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 17}));
+      document.dispatchEvent(new KeyboardEvent('keydown', {keyCode: 68}));
+
+      expect(isPressedCtrlKey()).toBe(false);
+    });
   });
 
   describe('.isPressed', () => {

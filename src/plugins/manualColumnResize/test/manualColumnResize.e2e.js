@@ -1,5 +1,5 @@
 describe('manualColumnResize', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -123,7 +123,7 @@ describe('manualColumnResize', () => {
 
     resizeColumn(1, 65);
 
-    var $columnHeaders = spec().$container.find('thead tr:eq(1) th');
+    const $columnHeaders = spec().$container.find('thead tr:eq(1) th');
 
     expect($columnHeaders.eq(0).width()).toBe(209);
     expect($columnHeaders.eq(1).width()).toBe(64);
@@ -142,7 +142,7 @@ describe('manualColumnResize', () => {
 
     resizeColumn(1, 400);
 
-    var $columnHeaders = spec().$container.find('thead tr:eq(1) th');
+    const $columnHeaders = spec().$container.find('thead tr:eq(1) th');
 
     expect($columnHeaders.eq(0).width()).toBe(125);
     expect($columnHeaders.eq(1).width()).toBe(399);
@@ -158,12 +158,12 @@ describe('manualColumnResize', () => {
       manualColumnResize: true
     });
 
-    var $columnHeaders = spec().$container.find('thead tr:eq(0) th');
-    var $colHeader = spec().$container.find('thead tr:eq(0) th:eq(1)');
+    const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
+    const $colHeader = spec().$container.find('thead tr:eq(0) th:eq(1)');
     $colHeader.simulate('mouseover');
 
-    var $resizer = spec().$container.find('.manualColumnResizer');
-    var resizerPosition = $resizer.position();
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
 
     spec().$container.find('tr:eq(0) th:eq(1)').simulate('mousedown');
     spec().$container.find('tr:eq(0) th:eq(2)').simulate('mouseover');
@@ -189,12 +189,12 @@ describe('manualColumnResize', () => {
       manualColumnResize: true
     });
 
-    var $columnHeaders = spec().$container.find('thead tr:eq(0) th');
-    var $colHeader = spec().$container.find('thead tr:eq(0) th:eq(1)');
+    const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
+    const $colHeader = spec().$container.find('thead tr:eq(0) th:eq(1)');
     $colHeader.simulate('mouseover');
 
-    var $resizer = spec().$container.find('.manualColumnResizer');
-    var resizerPosition = $resizer.position();
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
 
     spec().$container.find('tr:eq(0) th:eq(1)').simulate('mousedown');
     spec().$container.find('tr:eq(0) th:eq(2)').simulate('mouseover');
@@ -223,7 +223,7 @@ describe('manualColumnResize', () => {
 
     resizeColumn(1, 65);
 
-    var $columnHeaders = spec().$container.find('thead tr:eq(1) th');
+    const $columnHeaders = spec().$container.find('thead tr:eq(1) th');
 
     expect($columnHeaders.eq(0).width()).toBe(209);
     expect($columnHeaders.eq(1).width()).toBe(64);
@@ -231,12 +231,12 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(3).width()).toBe(210);
     expect($columnHeaders.eq(4).width()).toBe(211);
 
-    var $th = $columnHeaders.eq(1);
+    const $th = $columnHeaders.eq(1);
 
     $th.simulate('mouseover');
 
-    var $resizer = spec().$container.find('.manualColumnResizer');
-    var resizerPosition = $resizer.position();
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
 
     $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
@@ -263,7 +263,7 @@ describe('manualColumnResize', () => {
 
     resizeColumn(0, 65);
 
-    var $columnHeaders = spec().$container.find('thead tr:eq(0) th');
+    const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
     expect($columnHeaders.eq(0).width()).toBe(63);
     expect($columnHeaders.eq(1).width()).toBe(48);
@@ -271,12 +271,12 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(3).width()).toBe(49);
     expect($columnHeaders.eq(4).width()).toBe(694);
 
-    var $th = $columnHeaders.eq(0);
+    const $th = $columnHeaders.eq(0);
 
     $th.simulate('mouseover');
 
-    var $resizer = spec().$container.find('.manualColumnResizer');
-    var resizerPosition = $resizer.position();
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
 
     $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
@@ -300,8 +300,8 @@ describe('manualColumnResize', () => {
       manualColumnResize: true
     });
 
-    var $columnHeaders = spec().$container.find('thead tr:eq(0) th');
-    var initialColumnWidths = [];
+    const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
+    const initialColumnWidths = [];
 
     $columnHeaders.each(function() {
       initialColumnWidths.push($(this).width());
@@ -309,19 +309,19 @@ describe('manualColumnResize', () => {
 
     resizeColumn.call(this, 0, 100);
 
-    var $resizedTh = $columnHeaders.eq(0);
+    const $resizedTh = $columnHeaders.eq(0);
 
     expect($resizedTh.text()).toEqual('Third');
     expect($resizedTh.outerWidth()).toEqual(100);
 
     // Sizes of remaining columns should stay the same
-    for (var i = 1; i < $columnHeaders.length; i++) {
+    for (let i = 1; i < $columnHeaders.length; i++) {
       expect($columnHeaders.eq(i).width()).toEqual(initialColumnWidths[i]);
     }
   });
 
   it('should trigger an afterColumnResize event after column size changes', () => {
-    var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+    const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
@@ -339,7 +339,7 @@ describe('manualColumnResize', () => {
   });
 
   it('should not trigger an afterColumnResize event if column size does not change (mouseMove event width delta = 0)', () => {
-    var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+    const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
@@ -357,7 +357,7 @@ describe('manualColumnResize', () => {
   });
 
   it('should not trigger an afterColumnResize event if column size does not change (no mouseMove event)', () => {
-    var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+    const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
@@ -368,11 +368,11 @@ describe('manualColumnResize', () => {
 
     expect(colWidth(spec().$container, 0)).toEqual(50);
 
-    var $th = spec().$container.find('thead tr:eq(0) th:eq(0)');
+    const $th = spec().$container.find('thead tr:eq(0) th:eq(0)');
     $th.simulate('mouseover');
 
-    var $resizer = spec().$container.find('.manualColumnResizer');
-    var resizerPosition = $resizer.position();
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
 
     $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
@@ -382,7 +382,7 @@ describe('manualColumnResize', () => {
   });
 
   it('should trigger an afterColumnResize after column size changes, after double click', async () => {
-    var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+    const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
@@ -393,12 +393,12 @@ describe('manualColumnResize', () => {
 
     expect(colWidth(spec().$container, 0)).toEqual(50);
 
-    var $th = spec().$container.find('thead tr:eq(0) th:eq(0)');
+    const $th = spec().$container.find('thead tr:eq(0) th:eq(0)');
 
     $th.simulate('mouseover');
 
-    var $resizer = spec().$container.find('.manualColumnResizer');
-    var resizerPosition = $resizer.position();
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
 
     $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
@@ -429,8 +429,8 @@ describe('manualColumnResize', () => {
 
     resizeColumn(2, 300);
 
-    var $resizer = spec().$container.find('.manualColumnResizer');
-    var resizerPosition = $resizer.position();
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
 
     $resizer.simulate('mousedown', {clientX: resizerPosition.left});
     $resizer.simulate('mouseup');
@@ -458,8 +458,8 @@ describe('manualColumnResize', () => {
     spec().$container.find('thead tr:eq(0) th:eq(3)').simulate('mousemove');
     spec().$container.find('thead tr:eq(0) th:eq(3)').simulate('mouseup');
 
-    var $resizer = spec().$container.find('.manualColumnResizer');
-    var resizerPosition = $resizer.position();
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
 
     await sleep(600);
 
@@ -476,7 +476,7 @@ describe('manualColumnResize', () => {
   });
 
   it('should adjust resize handles position after table size changed', () => {
-    var maxed = false;
+    let maxed = false;
 
     handsontable({
       colHeaders: true,
@@ -489,10 +489,10 @@ describe('manualColumnResize', () => {
 
     spec().$container.find('thead th:eq(0)').simulate('mouseover');
 
-    var handle = spec().$container.find('.manualColumnResizer');
-    var handleBox = handle[0].getBoundingClientRect();
-    var th0 = spec().$container.find('thead th:eq(0)');
-    var thBox = th0[0].getBoundingClientRect();
+    const handle = spec().$container.find('.manualColumnResizer');
+    const th0 = spec().$container.find('thead th:eq(0)');
+    let handleBox = handle[0].getBoundingClientRect();
+    let thBox = th0[0].getBoundingClientRect();
 
     expect(handleBox.left + handleBox.width).toEqual(thBox.left + thBox.width - 1);
 
@@ -507,7 +507,7 @@ describe('manualColumnResize', () => {
   });
 
   it('should display the resize handle in the correct place after the table has been scrolled', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnResize: true,
@@ -515,11 +515,12 @@ describe('manualColumnResize', () => {
       width: 200
     });
 
-    var mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view.wt.wtTable.holder;
+    let $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
 
-    var $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
     $colHeader.simulate('mouseover');
-    var $handle = spec().$container.find('.manualColumnResizer');
+
+    const $handle = spec().$container.find('.manualColumnResizer');
     $handle[0].style.background = 'red';
 
     expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
@@ -548,10 +549,10 @@ describe('manualColumnResize', () => {
         manualColumnResize: true
       });
 
-      var $headerTH = spec().$container.find('thead tr:eq(0) th:eq(1)');
+      const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(1)');
       $headerTH.simulate('mouseover');
 
-      var $handle = $('.manualColumnResizer');
+      const $handle = $('.manualColumnResizer');
 
       expect($handle.offset().left).toEqual($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
       expect($handle.height()).toEqual($headerTH.outerHeight());

@@ -1,6 +1,6 @@
 describe('settings', () => {
   describe('fixedColumnsLeft', () => {
-    var id = 'testContainer';
+    const id = 'testContainer';
 
     beforeEach(function() {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -85,13 +85,13 @@ describe('settings', () => {
       });
 
       it('should not throw errors while scrolling horizontally when fixed columns was set', (done) => {
-        var spy = jasmine.createSpyObj('error', ['test']);
-        var prevError = window.onerror;
+        const spy = jasmine.createSpyObj('error', ['test']);
+        const prevError = window.onerror;
 
         window.onerror = function() {
           spy.test();
         };
-        var hot = handsontable({
+        const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(50, 50),
           width: 200,
           height: 200,

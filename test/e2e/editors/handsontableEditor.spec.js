@@ -1,5 +1,5 @@
 describe('HandsontableEditor', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -152,8 +152,8 @@ describe('HandsontableEditor', () => {
 
   // see https://github.com/handsontable/handsontable/issues/3380
   it('should not throw error while selecting the next cell by hitting enter key', () => {
-    var spy = jasmine.createSpyObj('error', ['test']);
-    var prevError = window.onerror;
+    const spy = jasmine.createSpyObj('error', ['test']);
+    const prevError = window.onerror;
 
     window.onerror = function() {
       spy.test();
@@ -199,7 +199,7 @@ describe('HandsontableEditor', () => {
   });
 
   it('should keep focus on textarea after arrow is pressed', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       columns: [
         {
           type: 'handsontable',
@@ -238,7 +238,7 @@ describe('HandsontableEditor', () => {
   });
 
   it('should focus the TD after HT editor is prepared, finished (by keyboard) and destroyed', () => {
-    var selections = [];
+    const selections = [];
 
     handsontable({
       columns: [
@@ -279,7 +279,7 @@ describe('HandsontableEditor', () => {
 
   describe('strict mode', () => {
     it('should open editor and select cell (0, 0) in inner HOT', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             type: 'handsontable',
@@ -295,8 +295,8 @@ describe('HandsontableEditor', () => {
 
       keyDownUp('enter');
 
-      var ht = hot.getActiveEditor();
-      var innerHot = ht.htEditor;
+      const ht = hot.getActiveEditor();
+      const innerHot = ht.htEditor;
 
       expect(innerHot.getSelected()).toEqual([[0, 0, 0, 0]]);
     });
@@ -305,7 +305,7 @@ describe('HandsontableEditor', () => {
   describe('non strict mode', () => {
 
     it('should open editor and DO NOT select any cell in inner HOT', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             type: 'handsontable',
@@ -320,14 +320,14 @@ describe('HandsontableEditor', () => {
 
       keyDownUp('enter');
 
-      var ht = hot.getActiveEditor();
-      var innerHot = ht.htEditor;
+      const ht = hot.getActiveEditor();
+      const innerHot = ht.htEditor;
 
       expect(innerHot.getSelected()).toBeUndefined();
     });
 
     it('should show textarea', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         columns: [
           {
             type: 'handsontable',

@@ -1,5 +1,5 @@
 describe('Core_getCellMeta', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -31,7 +31,7 @@ describe('Core_getCellMeta', () => {
   });
 
   it('should not allow manual editing of a read only cell', () => {
-    var allCellsReadOnly = false;
+    let allCellsReadOnly = false;
 
     handsontable({
       cells() {
@@ -47,7 +47,7 @@ describe('Core_getCellMeta', () => {
   });
 
   it('should allow manual editing of cell that is no longer read only', () => {
-    var allCellsReadOnly = true;
+    let allCellsReadOnly = true;
 
     handsontable({
       cells() {
@@ -81,9 +81,9 @@ describe('Core_getCellMeta', () => {
     handsontable({
       cells() {
         return {
-          renderer(instance, td) {
+          renderer(instance, td, ...args) {
             // taken from demo/renderers.html
-            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
             $(td).css({
               background: 'yellow'
             });
@@ -110,9 +110,9 @@ describe('Core_getCellMeta', () => {
         if (row === 2 && col === 2) {
           return {
             type: 'checkbox',
-            renderer(instance, td) {
+            renderer(instance, td, ...args) {
               // taken from demo/renderers.html
-              Handsontable.renderers.TextRenderer.apply(this, arguments);
+              Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
 
               td.style.backgroundColor = 'yellow';
             }
@@ -126,9 +126,9 @@ describe('Core_getCellMeta', () => {
   });
 
   it('this in cells should point to cellProperties', () => {
-    var called = 0,
-      _row,
-      _this;
+    let called = 0;
+    let _row;
+    let _this;
 
     handsontable({
       cells(row) {
@@ -138,7 +138,7 @@ describe('Core_getCellMeta', () => {
       }
     });
 
-    var HOT = getInstance();
+    const HOT = getInstance();
 
     expect(called).toBeGreaterThan(0);
     expect(_this.row).toEqual(_row);
@@ -154,7 +154,7 @@ describe('Core_getCellMeta', () => {
       ],
       minSpareRows: 1,
       cells(row, col) {
-        var cellProperties = {};
+        const cellProperties = {};
 
         if (getSourceData()[row][col] === 'A') {
           cellProperties.readOnly = true;

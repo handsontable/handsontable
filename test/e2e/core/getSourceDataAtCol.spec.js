@@ -1,5 +1,5 @@
 describe('Core.getSourceDataAtCol', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -30,15 +30,14 @@ describe('Core.getSourceDataAtCol', () => {
     });
 
     function model(opts) {
-      var
-        _pub = {},
-        _priv = {
-          id: undefined,
-          name: undefined,
-          address: undefined
-        };
+      const _pub = {};
+      const _priv = {
+        id: undefined,
+        name: undefined,
+        address: undefined
+      };
 
-      for (var i in opts) {
+      for (let i in opts) {
         if (Object.prototype.hasOwnProperty.call(opts, i)) {
           _priv[i] = opts[i];
         }

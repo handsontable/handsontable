@@ -22,8 +22,8 @@ const BAD_VALUE_CLASS = 'htBadValue';
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
  */
-function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  getRenderer('base').apply(this, arguments);
+function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, ...args) {
+  getRenderer('base').apply(this, [instance, TD, row, col, prop, value, cellProperties, ...args]);
   registerEvents(instance);
 
   let input = createInput();

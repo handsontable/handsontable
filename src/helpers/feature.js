@@ -57,25 +57,25 @@ export function isTouchSupported() {
  * @returns {Boolean}
  */
 export function isWebComponentSupportedNatively() {
-  var test = document.createElement('div');
+  const test = document.createElement('div');
 
   return !!(test.createShadowRoot && test.createShadowRoot.toString().match(/\[native code\]/));
 }
 
-var _hasCaptionProblem;
+let _hasCaptionProblem;
 
 function detectCaptionProblem() {
-  var TABLE = document.createElement('TABLE');
+  const TABLE = document.createElement('TABLE');
   TABLE.style.borderSpacing = 0;
   TABLE.style.borderWidth = 0;
   TABLE.style.padding = 0;
-  var TBODY = document.createElement('TBODY');
+  const TBODY = document.createElement('TBODY');
   TABLE.appendChild(TBODY);
   TBODY.appendChild(document.createElement('TR'));
   TBODY.firstChild.appendChild(document.createElement('TD'));
   TBODY.firstChild.firstChild.innerHTML = '<tr><td>t<br>t</td></tr>';
 
-  var CAPTION = document.createElement('CAPTION');
+  const CAPTION = document.createElement('CAPTION');
   CAPTION.innerHTML = 'c<br>c<br>c<br>c';
   CAPTION.style.padding = 0;
   CAPTION.style.margin = 0;

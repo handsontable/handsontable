@@ -1,5 +1,5 @@
 describe('Core_removeCellMeta', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -20,7 +20,7 @@ describe('Core_removeCellMeta', () => {
         [0, 9, 8, 7]
       ]
     });
-    var border = {
+    const border = {
       top: {
 
       },

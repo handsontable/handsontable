@@ -7,7 +7,7 @@ import {arrayEach} from './array';
  * @returns {Array|Object}
  */
 export function duckSchema(object) {
-  var schema;
+  let schema;
 
   if (Array.isArray(object)) {
     schema = [];

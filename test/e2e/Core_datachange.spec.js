@@ -1,5 +1,5 @@
 describe('Core_datachange', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,7 @@ describe('Core_datachange', () => {
   });
 
   it('should call onChange callback', () => {
-    var output = null;
+    let output = null;
 
     handsontable({
       afterChange(changes) {
@@ -29,8 +29,8 @@ describe('Core_datachange', () => {
   });
 
   it('should use custom source for datachange', () => {
-    var output = null,
-      src = null;
+    let output = null;
+    let src = null;
 
     handsontable({
       afterChange(changes, source) {
@@ -45,8 +45,8 @@ describe('Core_datachange', () => {
   });
 
   it('should use custom source for datachange with array', () => {
-    var output = null,
-      src = null;
+    let output = null;
+    let src = null;
 
     handsontable({
       afterChange(changes, source) {
@@ -61,7 +61,7 @@ describe('Core_datachange', () => {
   });
 
   it('should trigger datachange event', () => {
-    var output = null;
+    let output = null;
 
     handsontable();
     Handsontable.hooks.add('afterChange', (changes) => {
@@ -76,8 +76,8 @@ describe('Core_datachange', () => {
   });
 
   it('this.rootElement should point to handsontable rootElement', () => {
-    var output = null;
-    var $container = spec().$container;
+    const $container = spec().$container;
+    let output = null;
 
     handsontable({
       afterChange() {
@@ -90,8 +90,8 @@ describe('Core_datachange', () => {
   });
 
   it('onChange should be triggered after data is rendered to DOM (init)', () => {
-    var output = null;
-    var $container = spec().$container;
+    const $container = spec().$container;
+    let output = null;
 
     handsontable({
       data: [
@@ -108,8 +108,8 @@ describe('Core_datachange', () => {
   });
 
   it('onChange should be triggered after data is rendered to DOM (setDataAtCell)', () => {
-    var output = null;
-    var $container = spec().$container;
+    const $container = spec().$container;
+    let output = null;
 
     handsontable({
       data: [
@@ -127,14 +127,14 @@ describe('Core_datachange', () => {
   });
 
   it('onChange event object should contain documented keys and values when triggered by edit', () => {
-    var sampleData = [
+    const sampleData = [
       {
         col1: 'a',
         col2: 'b',
         col3: 'c'
       }
     ];
-    var event = null;
+    let event = null;
 
     handsontable({
       data: sampleData,
@@ -153,7 +153,7 @@ describe('Core_datachange', () => {
   });
 
   it('source parameter should be `edit` when cell value is changed through editor', () => {
-    var sources = [];
+    const sources = [];
 
     handsontable({
       data: [

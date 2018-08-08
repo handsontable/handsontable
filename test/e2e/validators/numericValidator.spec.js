@@ -1,5 +1,5 @@
 describe('numericValidator', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('numericValidator', () => {
     }
   });
 
-  var arrayOfObjects = function() {
+  const arrayOfObjects = function() {
     return [
       {id: 1, name: 'Ted', lastName: 'Right'},
       {id: 2, name: 'Frank', lastName: 'Honest'},
@@ -28,7 +28,7 @@ describe('numericValidator', () => {
   };
 
   it('should validate an empty string (default behavior)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -49,7 +49,7 @@ describe('numericValidator', () => {
   });
 
   it('should not validate non numeric string', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -70,7 +70,7 @@ describe('numericValidator', () => {
   });
 
   it('should validate numeric string', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -91,7 +91,7 @@ describe('numericValidator', () => {
   });
 
   it('should validate signed numeric string', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -113,7 +113,7 @@ describe('numericValidator', () => {
 
   describe('allowEmpty', () => {
     it('should not validate an empty string when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
@@ -134,7 +134,7 @@ describe('numericValidator', () => {
     });
 
     it('should not validate `null` when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
@@ -155,7 +155,7 @@ describe('numericValidator', () => {
     });
 
     it('should not validate `undefined` when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
@@ -176,7 +176,7 @@ describe('numericValidator', () => {
     });
 
     it('should validate 0 when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
@@ -197,7 +197,7 @@ describe('numericValidator', () => {
     });
 
     it('should add / remove `htInvalid` class properly when validating non-numeric data', (done) => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: [
           {id: 1, name: 'Ted', salary: 10000},
           {id: 2, name: 'Frank', salary: '5300'},

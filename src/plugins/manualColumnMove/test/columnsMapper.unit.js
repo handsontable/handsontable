@@ -3,8 +3,8 @@ import ColumnsMapper from 'handsontable/plugins/manualColumnMove/columnsMapper';
 describe('manualColumnMove', () => {
   describe('columnsMapper', () => {
     it('should set manualColumnMove plugin while constructing', () => {
-      var manualColumnMoveMock = {};
-      var mapper = new ColumnsMapper(manualColumnMoveMock);
+      const manualColumnMoveMock = {};
+      const mapper = new ColumnsMapper(manualColumnMoveMock);
 
       expect(mapper.manualColumnMove).toBe(manualColumnMoveMock);
     });
@@ -14,7 +14,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should destroy array after calling destroy method', () => {
-      var mapper = new ColumnsMapper();
+      const mapper = new ColumnsMapper();
 
       expect(mapper._arrayMap).toEqual([]);
 
@@ -24,7 +24,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should create map with pairs index->value', () => {
-      var mapper = new ColumnsMapper();
+      const mapper = new ColumnsMapper();
       mapper.createMap(6);
 
       expect(mapper._arrayMap[0]).toBe(0);
@@ -36,7 +36,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should change order after move action', () => {
-      var mapper = new ColumnsMapper();
+      const mapper = new ColumnsMapper();
       mapper.createMap(6);
 
       mapper.moveColumn(1, 0);
@@ -51,7 +51,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should clean from null values', () => {
-      var mapper = new ColumnsMapper();
+      const mapper = new ColumnsMapper();
       mapper.createMap(6);
 
       mapper.moveColumn(1, 6);

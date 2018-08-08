@@ -1,6 +1,6 @@
 describe('manualRowResize', () => {
-  var id = 'test';
-  var defaultRowHeight = 22;
+  const id = 'test';
+  const defaultRowHeight = 22;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -134,7 +134,7 @@ describe('manualRowResize', () => {
   });
 
   it('should trigger afterRowResize event after row height changes', () => {
-    var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -151,7 +151,7 @@ describe('manualRowResize', () => {
   });
 
   it('should not trigger afterRowResize event if row height does not change (delta = 0)', () => {
-    var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -168,7 +168,7 @@ describe('manualRowResize', () => {
   });
 
   it('should not trigger afterRowResize event after if row height does not change (no mousemove event)', () => {
-    var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -179,11 +179,11 @@ describe('manualRowResize', () => {
 
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
-    var $th = spec().$container.find('tbody tr:eq(0) th:eq(0)');
+    const $th = spec().$container.find('tbody tr:eq(0) th:eq(0)');
     $th.simulate('mouseover');
 
-    var $resizer = spec().$container.find('.manualRowResizer');
-    var resizerPosition = $resizer.position();
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
 
     $resizer.simulate('mousedown', {
       clientY: resizerPosition.top
@@ -196,7 +196,7 @@ describe('manualRowResize', () => {
   });
 
   it('should trigger an afterRowResize after row size changes, after double click', async () => {
-    var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -208,11 +208,11 @@ describe('manualRowResize', () => {
 
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
-    var $th = spec().$container.find('tbody tr:eq(2) th:eq(0)');
+    const $th = spec().$container.find('tbody tr:eq(2) th:eq(0)');
     $th.simulate('mouseover');
 
-    var $resizer = spec().$container.find('.manualRowResizer');
-    var resizerPosition = $resizer.position();
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
 
     $resizer.simulate('mousedown', {
       clientY: resizerPosition.top
@@ -232,7 +232,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1);
   });
   it('should not trigger afterRowResize event after if row height does not change (no dblclick event)', () => {
-    var afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -243,11 +243,11 @@ describe('manualRowResize', () => {
 
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
-    var $th = spec().$container.find('tbody tr:eq(2) th:eq(0)');
+    const $th = spec().$container.find('tbody tr:eq(2) th:eq(0)');
     $th.simulate('mouseover');
 
-    var $resizer = spec().$container.find('.manualRowResizer');
-    var resizerPosition = $resizer.position();
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
 
     $resizer.simulate('mousedown', {
       clientY: resizerPosition.top
@@ -258,7 +258,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
   });
   it('should display the resize handle in the correct place after the table has been scrolled', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 20),
       rowHeaders: true,
       manualRowResize: true,
@@ -266,11 +266,12 @@ describe('manualRowResize', () => {
       width: 200
     });
 
-    var mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view.wt.wtTable.holder;
+    let $rowHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
 
-    var $rowHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
     $rowHeader.simulate('mouseover');
-    var $handle = spec().$container.find('.manualRowResizer');
+
+    const $handle = spec().$container.find('.manualRowResizer');
     $handle[0].style.background = 'red';
 
     expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
@@ -294,8 +295,8 @@ describe('manualRowResize', () => {
 
     resizeRow(2, 300);
 
-    var $resizer = spec().$container.find('.manualRowResizer');
-    var resizerPosition = $resizer.position();
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
 
     spec().$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)').simulate('mousedown');
     spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)').simulate('mouseover');
@@ -326,7 +327,7 @@ describe('manualRowResize', () => {
 
     resizeRow(2, 60);
 
-    var $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
+    const $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
     spec().$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)').simulate('mouseover');
 
     $rowsHeaders.eq(1).simulate('mousedown');
@@ -335,8 +336,8 @@ describe('manualRowResize', () => {
     $rowsHeaders.eq(3).simulate('mousemove');
     $rowsHeaders.eq(3).simulate('mouseup');
 
-    var $resizer = spec().$container.find('.manualRowResizer');
-    var resizerPosition = $resizer.position();
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
 
     await sleep(600);
     $resizer.simulate('mousedown', {clientY: resizerPosition.top});
@@ -372,10 +373,10 @@ describe('manualRowResize', () => {
         manualRowResize: true
       });
 
-      var $headerTH = spec().$container.find('tbody tr:eq(1) th:eq(0)');
+      const $headerTH = spec().$container.find('tbody tr:eq(1) th:eq(0)');
       $headerTH.simulate('mouseover');
 
-      var $handle = $('.manualRowResizer');
+      const $handle = $('.manualRowResizer');
 
       expect($handle.offset().top).toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
