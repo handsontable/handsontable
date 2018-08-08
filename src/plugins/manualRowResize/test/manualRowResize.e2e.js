@@ -267,11 +267,12 @@ describe('manualRowResize', () => {
     });
 
     const mainHolder = hot.view.wt.wtTable.holder;
+    let $rowHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
+
+    $rowHeader.simulate('mouseover');
 
     const $handle = spec().$container.find('.manualRowResizer');
     $handle[0].style.background = 'red';
-    let $rowHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-    $rowHeader.simulate('mouseover');
 
     expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
     expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);

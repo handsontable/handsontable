@@ -516,11 +516,12 @@ describe('manualColumnResize', () => {
     });
 
     const mainHolder = hot.view.wt.wtTable.holder;
+    let $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
+
+    $colHeader.simulate('mouseover');
+
     const $handle = spec().$container.find('.manualColumnResizer');
     $handle[0].style.background = 'red';
-
-    let $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
-    $colHeader.simulate('mouseover');
 
     expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
     expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
