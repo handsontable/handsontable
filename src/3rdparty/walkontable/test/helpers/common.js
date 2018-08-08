@@ -1,6 +1,6 @@
 export function sleep(delay = 100) {
   return Promise.resolve({
-    then: function(resolve) {
+    then(resolve) {
       if (delay === 0) {
         setImmediate(resolve);
       } else {
@@ -64,7 +64,7 @@ beforeEach(function() {
     },
     toBeFunction() {
       return {
-        compare(actual, expected) {
+        compare(actual) {
           return {
             pass: typeof actual === 'function'
           };

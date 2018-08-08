@@ -652,7 +652,7 @@ describe('NumericEditor', () => {
       }, 100);
     };
 
-    it('Moving from numeric editor to text editor', function(done) {
+    it('Moving from numeric editor to text editor', (done) => {
       handsontable({
         data: [
           {id: 1, name: 'Ted', lastName: 'Right', money: 0}
@@ -670,12 +670,12 @@ describe('NumericEditor', () => {
         moveFromCol: 3,
         moveToRow: 0,
         moveToCol: 0,
-        $container: this.$container,
+        $container: spec().$container,
         doneFunc: done
       });
     });
 
-    it('Moving from text editor to numeric editor', function(done) {
+    it('Moving from text editor to numeric editor', (done) => {
       handsontable({
         data: [
           {id: 1, name: 'Ted', lastName: 'Right', money: 0}
@@ -693,7 +693,7 @@ describe('NumericEditor', () => {
         moveFromCol: 1,
         moveToRow: 0,
         moveToCol: 3,
-        $container: this.$container,
+        $container: spec().$container,
         doneFunc: done
       });
     });

@@ -29,7 +29,7 @@ describe('Walkontable.Selection', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       selections: createSelectionController(),
-      onCellMouseDown(event, coords, TD) {
+      onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
         wt.selections.getCell().add(coords);
         wt.draw();
@@ -101,7 +101,7 @@ describe('Walkontable.Selection', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       selections: createSelectionController(),
-      onCellMouseDown(event, coords, TD) {
+      onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
         wt.selections.getCell().add(coords);
         wt.draw();
@@ -143,21 +143,25 @@ describe('Walkontable.Selection', () => {
   });
 
   it('should not scroll the viewport after selection is cleared', () => {
-    var wt = new Walkontable.Core({
+    const wt = new Walkontable.Core({
       table: $table[0],
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       selections: createSelectionController(),
     });
+
     wt.draw();
 
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
     wt.draw();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(0);
-    wt.scrollVertical(10).draw();
+
+    wt.scrollViewportVertically(17);
+    wt.draw();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
     expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);
+
     wt.selections.getCell().clear();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
     expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);

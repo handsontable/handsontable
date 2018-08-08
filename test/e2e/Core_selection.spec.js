@@ -1,5 +1,5 @@
 describe('Core_selection', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -54,7 +54,7 @@ describe('Core_selection', () => {
   });
 
   it('should focus external textarea when clicked during editing', () => {
-    var textarea = $('<input type="text">').prependTo($('body'));
+    const textarea = $('<input type="text">').prependTo($('body'));
 
     handsontable();
     selectCell(0, 0);
@@ -189,8 +189,8 @@ describe('Core_selection', () => {
   });
 
   it('should call onSelectionEnd as many times as onSelection when `selectCell` is called', () => {
-    var tick = 0,
-      tickEnd = 0;
+    let tick = 0;
+    let tickEnd = 0;
 
     handsontable({
       startRows: 5,
@@ -210,7 +210,8 @@ describe('Core_selection', () => {
   });
 
   it('should call onSelectionEnd when user finishes selection by releasing SHIFT key (3 times)', () => {
-    var tick = 0;
+    let tick = 0;
+
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -228,7 +229,8 @@ describe('Core_selection', () => {
   });
 
   it('should call onSelectionEnd when user finishes selection by releasing SHIFT key (1 time)', () => {
-    var tick = 0;
+    let tick = 0;
+
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -245,58 +247,56 @@ describe('Core_selection', () => {
     expect(tick).toEqual(2);
   });
 
-  it('should select columns by click on header with SHIFT key', function() {
+  it('should select columns by click on header with SHIFT key', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
       colHeaders: true
     });
 
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mouseup');
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mouseup');
 
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[0, 1, 4, 4]]);
-
   });
 
-  it('should select rows by click on header with SHIFT key', function() {
+  it('should select rows by click on header with SHIFT key', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
       rowHeaders: true
     });
 
-    this.$container.find('.ht_clone_left tr:eq(1) th:eq(0)').simulate('mousedown');
-    this.$container.find('.ht_clone_left tr:eq(1) th:eq(0)').simulate('mouseup');
+    spec().$container.find('.ht_clone_left tr:eq(1) th:eq(0)').simulate('mousedown');
+    spec().$container.find('.ht_clone_left tr:eq(1) th:eq(0)').simulate('mouseup');
 
-    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', {shiftKey: true});
-    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
+    spec().$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', {shiftKey: true});
+    spec().$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[1, 0, 4, 4]]);
-
   });
 
-  it('should select columns by click on header with SHIFT key', function() {
+  it('should select columns by click on header with SHIFT key', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
       colHeaders: true
     });
 
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mouseup');
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mouseup');
 
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[0, 1, 4, 4]]);
 
   });
 
-  it('should change selection after click on row header with SHIFT key', function() {
+  it('should change selection after click on row header with SHIFT key', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -305,14 +305,14 @@ describe('Core_selection', () => {
 
     selectCell(1, 1, 3, 3);
 
-    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', {shiftKey: true});
-    this.$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
+    spec().$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', {shiftKey: true});
+    spec().$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[1, 0, 4, 4]]);
 
   });
 
-  it('should change selection after click on column header with SHIFT key', function() {
+  it('should change selection after click on column header with SHIFT key', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -321,15 +321,16 @@ describe('Core_selection', () => {
 
     selectCell(1, 1, 3, 3);
 
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', {shiftKey: true});
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[0, 1, 4, 4]]);
   });
 
-  it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', function() {
-    var tick = 0,
-      tickEnd = 0;
+  it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', () => {
+    let tick = 0;
+    let tickEnd = 0;
+
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -341,18 +342,18 @@ describe('Core_selection', () => {
       }
     });
 
-    this.$container.find('tr:eq(0) td:eq(0)').simulate('mousedown');
-    this.$container.find('tr:eq(0) td:eq(1)').simulate('mouseover');
-    this.$container.find('tr:eq(1) td:eq(3)').simulate('mouseover');
+    spec().$container.find('tr:eq(0) td:eq(0)').simulate('mousedown');
+    spec().$container.find('tr:eq(0) td:eq(1)').simulate('mouseover');
+    spec().$container.find('tr:eq(1) td:eq(3)').simulate('mouseover');
 
-    this.$container.find('tr:eq(1) td:eq(3)').simulate('mouseup');
+    spec().$container.find('tr:eq(1) td:eq(3)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[0, 0, 1, 3]]);
     expect(tick).toEqual(3);
     expect(tickEnd).toEqual(1);
   });
 
-  it('should properly select columns, when the user moves the cursor over column headers across two overlays', function() {
+  it('should properly select columns, when the user moves the cursor over column headers across two overlays', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -360,17 +361,18 @@ describe('Core_selection', () => {
       fixedColumnsLeft: 2
     });
 
-    this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mousedown');
-    this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseover');
-    this.$container.find('.ht_clone_top tr:eq(0) th:eq(2)').simulate('mouseover');
-    this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseover');
-    this.$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseup');
+    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mousedown');
+    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseover');
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)').simulate('mouseover');
+    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseover');
+    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[0, 1, 4, 1]]);
   });
 
   it('should move focus to selected cell', () => {
-    var $input = $('<input>').appendTo(document.body);
+    const $input = $('<input>').appendTo(document.body);
+
     handsontable({
       startRows: 5,
       startCols: 5
@@ -385,24 +387,18 @@ describe('Core_selection', () => {
 
   // This test should cover the #893 case, but it always passes. It seems like the keydown event (with CTRL key pressed) isn't delivered.
   it('should not move focus from outside elements on CTRL keydown event, when no cell is selected', () => {
-    var $input = $('<input type="text"/>');
+    const $input = $('<input type="text"/>');
+
     $('body').append($input);
-
     handsontable();
-
     selectCell(0, 0);
 
     expect(document.activeElement.nodeName).toBeInArray(['TEXTAREA', 'BODY', 'HTML']);
 
     $input.focus();
-
     expect(document.activeElement.nodeName).toBe('INPUT');
 
-    // var keyDownEvent = $.Event('keydown', {ctrlKey: true, metaKey: true});
-    // $input.trigger(keyDownEvent);
-
     $input.simulate('keydown', {ctrlKey: true, metaKey: true});
-
     expect(document.activeElement.nodeName).toBe('INPUT');
 
     $input.remove();
@@ -466,8 +462,8 @@ describe('Core_selection', () => {
       `).toBeMatchToSelectionPattern();
   });
 
-  it('should not overwrite background color of the cells with custom CSS classes', function() {
-    var hot = handsontable({
+  it('should not overwrite background color of the cells with custom CSS classes', () => {
+    handsontable({
       width: 300,
       height: 150,
       startRows: 5,
@@ -482,8 +478,8 @@ describe('Core_selection', () => {
     expect(window.getComputedStyle(getCell(1, 1))['background-color']).toBe('rgb(255, 0, 0)');
   });
 
-  it('should select the entire column after column header is clicked (in fixed rows/cols corner)', function() {
-    var hot = handsontable({
+  it('should select the entire column after column header is clicked (in fixed rows/cols corner)', () => {
+    handsontable({
       width: 200,
       height: 100,
       startRows: 10,
@@ -494,7 +490,7 @@ describe('Core_selection', () => {
       fixedColumnsLeft: 2
     });
 
-    this.$container.find('.ht_master thead th:eq(1)').simulate('mousedown');
+    spec().$container.find('.ht_master thead th:eq(1)').simulate('mousedown');
 
     expect(getSelected()).toEqual([[0, 0, 9, 0]]);
     expect(`
@@ -526,7 +522,7 @@ describe('Core_selection', () => {
     });
 
     hot.render();
-    hot.view.wt.scrollHorizontal(20);
+    hot.scrollViewportTo(void 0, hot.countCols() - 1);
 
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
@@ -544,8 +540,32 @@ describe('Core_selection', () => {
       `).toBeMatchToSelectionPattern();
   });
 
-  it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', (done) => {
-    var hot = handsontable({
+  it('should scroll viewport after partially visible column\'s header is clicked, without vertical scroll manipulation', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 100,
+      startRows: 40,
+      startCols: 40,
+      colWidths: 73,
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    const mainHolder = hot.view.wt.wtTable.holder;
+
+    mainHolder.scrollTop = 200;
+
+    const firstLastVisibleColumn = hot.view.wt.wtTable.getLastVisibleColumn();
+    let headerElement = hot.view.wt.wtTable.getColumnHeader(firstLastVisibleColumn + 1);
+
+    $(headerElement).simulate('mousedown');
+
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(firstLastVisibleColumn + 1);
+    expect(mainHolder.scrollTop).toBe(200);
+  });
+
+  it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', async () => {
+    const hot = handsontable({
       width: 200,
       height: 200,
       startRows: 20,
@@ -554,20 +574,17 @@ describe('Core_selection', () => {
       rowHeaders: true
     });
 
-    hot.view.wt.scrollVertical(10);
-    hot.view.wt.scrollHorizontal(10);
-
+    hot.scrollViewportTo(10, 10);
     hot.render();
 
-    setTimeout(() => {
-      $(getCell(12, 11)).simulate('mousedown');
-      spec().$container.find('.ht_clone_top thead th:eq(2)').simulate('mouseover');
-    }, 30);
+    await sleep(30);
 
-    setTimeout(() => {
-      expect(getSelected()).toEqual([[12, 11, 10, 11]]);
-      done();
-    }, 60);
+    $(getCell(12, 11)).simulate('mousedown');
+    spec().$container.find('.ht_clone_top thead th:eq(2)').simulate('mouseover');
+
+    await sleep(30);
+
+    expect(getSelected()).toEqual([[12, 11, 10, 11]]);
   });
 
   it('should render selection borders with set proper z-indexes', () => {
@@ -586,8 +603,8 @@ describe('Core_selection', () => {
     expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex).toBe('8');
   });
 
-  it('should set the selection end to the first visible column, when dragging the selection from a cell to a row header', (done) => {
-    var hot = handsontable({
+  it('should set the selection end to the first visible column, when dragging the selection from a cell to a row header', async () => {
+    const hot = handsontable({
       width: 200,
       height: 200,
       startRows: 20,
@@ -596,31 +613,29 @@ describe('Core_selection', () => {
       rowHeaders: true
     });
 
-    hot.view.wt.scrollVertical(10);
-    hot.view.wt.scrollHorizontal(10);
-
+    hot.scrollViewportTo(10, 10);
     hot.render();
 
-    setTimeout(() => {
-      $(getCell(12, 11)).simulate('mousedown');
-      spec().$container.find('.ht_clone_left tbody th:eq(12)').simulate('mouseover');
-    }, 30);
+    await sleep(30);
 
-    setTimeout(() => {
-      expect(getSelected()).toEqual([[12, 11, 12, 10]]);
-      done();
-    }, 60);
+    $(getCell(12, 11)).simulate('mousedown');
+    spec().$container.find('.ht_clone_left tbody th:eq(12)').simulate('mouseover');
+
+    await sleep(30);
+
+    expect(getSelected()).toEqual([[12, 11, 12, 10]]);
   });
 
-  it('should allow to scroll the table when a whole column is selected and table is longer than it\'s container', function(done) {
-    var errCount = 0;
+  it('should allow to scroll the table when a whole column is selected and table is longer than it\'s container', async () => {
+    let errCount = 0;
+
     $(window).on('error.selectionTest', () => {
       errCount++;
     });
 
-    var onAfterScrollVertically = jasmine.createSpy('onAfterScrollVertically');
+    const onAfterScrollVertically = jasmine.createSpy('onAfterScrollVertically');
 
-    var hot = handsontable({
+    const hot = handsontable({
       height: 100,
       width: 300,
       startRows: 100,
@@ -630,25 +645,24 @@ describe('Core_selection', () => {
       afterScrollVertically: onAfterScrollVertically
     });
 
-    var mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view.wt.wtTable.holder;
 
     mainHolder.scrollTop = 0;
 
-    this.$container.find('thead tr:eq(0) th:eq(2)').simulate('mousedown');
-    this.$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
+    spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mousedown');
+    spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
 
     mainHolder.scrollTop = 120;
 
-    setTimeout(() => {
-      expect(errCount).toEqual(0); // expect no errors to be thrown
+    await sleep(100);
 
-      $(window).off('error.selectionTest');
-      done();
-    }, 100);
+    expect(errCount).toEqual(0); // expect no errors to be thrown
+
+    $(window).off('error.selectionTest');
   });
 
   it('should scroll to the end of the selection, when selecting cells using the keyboard', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       height: 300,
       width: 300,
       startRows: 50,
@@ -659,12 +673,13 @@ describe('Core_selection', () => {
       fixedColumnsLeft: 2
     });
 
-    var mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view.wt.wtTable.holder;
 
     mainHolder.scrollTop = 100;
     selectCell(1, 3);
     keyDownUp('arrow_down');
     expect(mainHolder.scrollTop).toEqual(0);
+
     mainHolder.scrollTop = 100;
     selectCell(1, 3);
     keyDownUp('shift+arrow_down');
@@ -674,40 +689,91 @@ describe('Core_selection', () => {
     selectCell(3, 1);
     keyDownUp('arrow_right');
     expect(mainHolder.scrollLeft).toEqual(0);
+
     mainHolder.scrollLeft = 100;
     selectCell(3, 1);
     keyDownUp('shift+arrow_right');
     expect(mainHolder.scrollLeft).toEqual(0);
 
-    var lastVisibleColumn = hot.view.wt.wtTable.getLastVisibleColumn();
+    const lastVisibleColumn = hot.view.wt.wtTable.getLastVisibleColumn();
     selectCell(3, lastVisibleColumn);
     keyDownUp('arrow_right');
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 1);
+
     keyDownUp('arrow_right');
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 2);
+
     keyDownUp('shift+arrow_right');
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
 
-    var lastVisibleRow = hot.view.wt.wtTable.getLastVisibleRow();
+    const lastVisibleRow = hot.view.wt.wtTable.getLastVisibleRow();
     selectCell(lastVisibleRow, 3);
     keyDownUp('arrow_down');
     expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 1);
+
     keyDownUp('arrow_down');
     expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 2);
+
     keyDownUp('shift+arrow_down');
     expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 3);
-
   });
 
-  it('should select the entire row after row header is clicked', function() {
-    var hot = handsontable({
+  it('should scroll to the last selected row or column of the selection, when user uses the keyboard', () => {
+    const hot = handsontable({
+      height: 300,
+      width: 300,
+      startRows: 50,
+      startCols: 50,
+      colHeaders: true,
+      rowHeaders: true,
+      fixedRowsTop: 2,
+      fixedColumnsLeft: 2
+    });
+
+    const mainHolder = hot.view.wt.wtTable.holder;
+    const lastVisibleColumn = hot.view.wt.wtTable.getLastVisibleColumn();
+    const lastVisibleRow = hot.view.wt.wtTable.getLastVisibleRow();
+    const rowHeader = hot.view.wt.wtTable.getRowHeader(lastVisibleRow);
+    const columnHeader = hot.view.wt.wtTable.getColumnHeader(lastVisibleColumn);
+
+    $(columnHeader).simulate('mousedown');
+    $(columnHeader).simulate('mouseup');
+    keyDownUp('shift+arrow_right');
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 1);
+
+    keyDownUp('shift+arrow_right');
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 2);
+
+    keyDownUp('shift+arrow_right');
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
+
+    const scrollLeft = mainHolder.scrollLeft;
+    expect(scrollLeft).toBeGreaterThan(0);
+    expect(mainHolder.scrollTop).toBe(0);
+
+    $(rowHeader).simulate('mousedown');
+    $(rowHeader).simulate('mouseup');
+    keyDownUp('shift+arrow_down');
+    expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 1);
+
+    keyDownUp('shift+arrow_down');
+    expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 2);
+
+    keyDownUp('shift+arrow_down');
+    expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 3);
+    expect(mainHolder.scrollLeft).toBe(scrollLeft);
+    expect(mainHolder.scrollTop).toBeGreaterThan(0);
+  });
+
+  it('should select the entire row after row header is clicked', () => {
+    handsontable({
       startRows: 5,
       startCols: 5,
       colHeaders: true,
       rowHeaders: true
     });
 
-    this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
+    spec().$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
 
     expect(getSelected()).toEqual([[1, 0, 1, 4]]);
     expect(`
@@ -721,7 +787,31 @@ describe('Core_selection', () => {
       `).toBeMatchToSelectionPattern();
   });
 
-  it('should select the entire row of a partially fixed table after row header is clicked', function() {
+  it('should scroll viewport after partially visible row\'s header is clicked, without horizontal scroll manipulation', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 100,
+      startRows: 40,
+      startCols: 40,
+      rowHeights: 27,
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    const mainHolder = hot.view.wt.wtTable.holder;
+
+    mainHolder.scrollLeft = 200;
+
+    const firstLastVisibleRow = hot.view.wt.wtTable.getLastVisibleRow();
+    let headerElement = hot.view.wt.wtTable.getRowHeader(firstLastVisibleRow + 1);
+
+    $(headerElement).simulate('mousedown');
+
+    expect(hot.view.wt.wtTable.getLastVisibleRow()).toBe(firstLastVisibleRow + 1);
+    expect(mainHolder.scrollLeft).toBe(200);
+  });
+
+  it('should select the entire row of a partially fixed table after row header is clicked', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -731,37 +821,31 @@ describe('Core_selection', () => {
       fixedColumnsLeft: 2
     });
 
-    this.$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
+    spec().$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
     expect(getSelected()).toEqual([[1, 0, 1, 4]]);
-    this.$container.find('tr:eq(3) th:eq(0)').simulate('mousedown');
+
+    spec().$container.find('tr:eq(3) th:eq(0)').simulate('mousedown');
     expect(getSelected()).toEqual([[2, 0, 2, 4]]);
   });
 
   it('should select a cell in a newly added row after automatic row adding, triggered by editing a cell in the last row with minSpareRows > 0, ' +
-    'unless editing happened within the fixed bottom rows', (done) => {
-    var hot = handsontable({
+    'unless editing happened within the fixed bottom rows', async () => {
+    handsontable({
       startRows: 5,
       startCols: 2,
       minSpareRows: 1
     });
 
-    setTimeout(() => {
-      selectCell(4, 0);
-      keyDownUp('enter');
-    }, 10);
+    await sleep(10);
+    selectCell(4, 0);
+    keyDownUp('enter');
 
-    setTimeout(() => {
-      keyDownUp('enter');
-    }, 100);
+    await sleep(90);
+    keyDownUp('enter');
 
-    setTimeout(() => {
-      expect(countRows()).toEqual(6);
-      expect(getSelected()).toEqual([[5, 0, 5, 0]]);
-    }, 200);
-
-    setTimeout(() => {
-      done();
-    }, 250);
+    await sleep(100);
+    expect(countRows()).toEqual(6);
+    expect(getSelected()).toEqual([[5, 0, 5, 0]]);
   });
 
   it('should select a cell which one was added automatically by minSpareCols', () => {
@@ -785,10 +869,11 @@ describe('Core_selection', () => {
   });
 
   it('should change selected coords by modifying coords object via `modifyTransformStart` hook', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startRows: 5,
       startCols: 5
     });
+
     selectCell(0, 0);
 
     hot.addHook('modifyTransformStart', (coords) => {
@@ -801,10 +886,11 @@ describe('Core_selection', () => {
   });
 
   it('should change selected coords by modifying coords object via `modifyTransformEnd` hook', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startRows: 5,
       startCols: 5
     });
+
     selectCell(0, 0);
 
     hot.addHook('modifyTransformEnd', (coords) => {
@@ -817,16 +903,15 @@ describe('Core_selection', () => {
   });
 
   it('should indicate is coords is out of bounds via `afterModifyTransformStart` hook', () => {
-    var spy = jasmine.createSpy();
-
-    var hot = handsontable({
+    const spy = jasmine.createSpy();
+    const hot = handsontable({
       startRows: 5,
       startCols: 5,
       autoWrapCol: false,
       autoWrapRow: false
     });
-    hot.addHook('afterModifyTransformStart', spy);
 
+    hot.addHook('afterModifyTransformStart', spy);
     selectCell(2, 0);
     keyDownUp('arrow_left');
 
@@ -856,14 +941,13 @@ describe('Core_selection', () => {
   });
 
   it('should indicate is coords is out of bounds via `afterModifyTransformEnd` hook', () => {
-    var spy = jasmine.createSpy();
-
-    var hot = handsontable({
+    const spy = jasmine.createSpy();
+    const hot = handsontable({
       startRows: 5,
       startCols: 5
     });
-    hot.addHook('afterModifyTransformEnd', spy);
 
+    hot.addHook('afterModifyTransformEnd', spy);
     selectCell(2, 0);
     keyDownUp('shift+arrow_left');
 
@@ -893,12 +977,11 @@ describe('Core_selection', () => {
   });
 
   it('should change selection after left mouse button on one of selected cell', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startRows: 5,
       startCols: 5
     });
-
-    var cells = $('.ht_master.handsontable td');
+    const cells = $('.ht_master.handsontable td');
 
     cells.eq(6).simulate('mousedown');
     cells.eq(18).simulate('mouseover');
@@ -934,8 +1017,8 @@ describe('Core_selection', () => {
       `).toBeMatchToSelectionPattern();
   });
 
-  it('should redraw selection when option `colHeaders` is set and user scrolled', function (done) {
-    var hot = handsontable({
+  it('should redraw selection when option `colHeaders` is set and user scrolled', async () => {
+    const hot = handsontable({
       startRows: 20,
       startCols: 20,
       colHeaders: true,
@@ -943,30 +1026,28 @@ describe('Core_selection', () => {
       width: 400,
       height: 200
     });
-    var cellVerticalPosition;
-    var borderOffsetInPixels = 1;
-    var topBorder;
+    let cellVerticalPosition;
+    let borderOffsetInPixels = 1;
+    let topBorder;
 
     selectCell(5, 5);
     hot.view.wt.wtOverlays.topOverlay.scrollTo(2);
 
-    setTimeout(function () {
-      cellVerticalPosition = hot.getCell(5, 5).offsetTop;
-      topBorder = $('.wtBorder.current')[0];
-      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-      hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
-    }, 100);
+    await sleep(100);
 
-    setTimeout(function () {
-      cellVerticalPosition = hot.getCell(5, 5).offsetTop;
-      topBorder = $('.wtBorder.current')[0];
-      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-      done();
-    }, 200);
+    cellVerticalPosition = hot.getCell(5, 5).offsetTop;
+    topBorder = $('.wtBorder.current')[0];
+    expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+    hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
+
+    await sleep(100);
+    cellVerticalPosition = hot.getCell(5, 5).offsetTop;
+    topBorder = $('.wtBorder.current')[0];
+    expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
-  it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled', function (done) {
-    var hot = handsontable({
+  it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled', async () => {
+    const hot = handsontable({
       fixedColumnsLeft: 2,
       startRows: 20,
       startCols: 20,
@@ -975,26 +1056,23 @@ describe('Core_selection', () => {
       width: 400,
       height: 200
     });
-    var cellVerticalPosition;
-    var borderOffsetInPixels = 1;
-    var topBorder;
+    let cellVerticalPosition;
+    let borderOffsetInPixels = 1;
+    let topBorder;
 
     selectCell(1, 0);
     hot.view.wt.wtOverlays.topOverlay.scrollTo(5);
 
-    setTimeout(function () {
-      cellVerticalPosition = hot.getCell(1, 0).offsetTop;
-      topBorder = $('.wtBorder.current')[0];
-      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-      hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
-    }, 100);
+    await sleep(100);
+    cellVerticalPosition = hot.getCell(1, 0).offsetTop;
+    topBorder = $('.wtBorder.current')[0];
+    expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
+    hot.view.wt.wtOverlays.topOverlay.scrollTo(0);
 
-    setTimeout(function () {
-      cellVerticalPosition = hot.getCell(1, 0).offsetTop;
-      topBorder = $('.wtBorder.current')[0];
-      expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-      done();
-    }, 200);
+    await sleep(100);
+    cellVerticalPosition = hot.getCell(1, 0).offsetTop;
+    topBorder = $('.wtBorder.current')[0];
+    expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
   describe('multiple selection mode', () => {

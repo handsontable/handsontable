@@ -41,7 +41,6 @@
     "no-trailing-spaces": 2,
     "no-undef": 0,
     "no-underscore-dangle": 0,
-    "no-unused-vars": 1,
     "no-restricted-globals": [
       2,
       "Handsontable",
@@ -55,14 +54,11 @@
     "no-void": 0,
     "no-with": 2,
     "object-curly-spacing": 0,
-    "object-shorthand": 1,
     "one-var": 0,
     "padded-blocks": 0,
-    "prefer-arrow-callback": 1,
     "prefer-const": 0,
     "prefer-rest-params": 1,
     "prefer-spread": 1,
-    "prefer-template": 1,
     "space-infix-ops": 2,
     "vars-on-top": 0,
     "linebreak-style": 0,
@@ -119,10 +115,6 @@
     "comma-style": [
       2,
       "last"
-    ],
-    "max-depth": [
-      2,
-      5
     ],
     "max-len": [
       2,

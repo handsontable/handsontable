@@ -353,7 +353,7 @@ describe('ContextMenu', () => {
   });
 
   describe('menu closing', () => {
-    it('should close menu after click', function () {
+    it('should close menu after click', () => {
       handsontable({
         contextMenu: true,
         height: 100
@@ -363,7 +363,7 @@ describe('ContextMenu', () => {
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
-      mouseDown(this.$container);
+      mouseDown(spec().$container);
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1977,7 +1977,7 @@ describe('ContextMenu', () => {
       expect($menu.find('tbody td:eq(4)').hasClass('htDisabled')).toBe(false);
     });
 
-    it('should disable Remove col in context menu when rows are selected by headers', function() {
+    it('should disable Remove col in context menu when rows are selected by headers', () => {
       handsontable({
         contextMenu: ['remove_col', 'remove_row'],
         height: 100,
@@ -1985,7 +1985,7 @@ describe('ContextMenu', () => {
         rowHeaders: true
       });
 
-      const $rowsHeaders = this.$container.find('.ht_clone_left tr th');
+      const $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
 
       $rowsHeaders.eq(1).simulate('mousedown');
       $rowsHeaders.eq(2).simulate('mouseover');

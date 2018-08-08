@@ -1,5 +1,5 @@
-import {CellCoords} from './../3rdparty/walkontable/src';
-import {stringify} from './../helpers/mixed';
+import { CellCoords } from './../3rdparty/walkontable/src';
+import { stringify } from './../helpers/mixed';
 
 export const EditorState = {
   VIRGIN: 'STATE_VIRGIN', // before editing
@@ -36,7 +36,7 @@ BaseEditor.prototype.getValue = function() {
   throw Error('Editor getValue() method unimplemented');
 };
 
-BaseEditor.prototype.setValue = function(newValue) {
+BaseEditor.prototype.setValue = function() {
   throw Error('Editor setValue() method unimplemented');
 };
 

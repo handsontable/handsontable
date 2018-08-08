@@ -1,7 +1,7 @@
-import {KEY_CODES, isPrintableChar} from './../helpers/unicode';
-import {stringify, isDefined} from './../helpers/mixed';
-import {stripTags} from './../helpers/string';
-import {pivot, arrayMap} from './../helpers/array';
+import { KEY_CODES, isPrintableChar } from './../helpers/unicode';
+import { stringify, isDefined } from './../helpers/mixed';
+import { stripTags } from './../helpers/string';
+import { pivot, arrayMap } from './../helpers/array';
 import {
   addClass,
   getCaretPosition,
@@ -98,7 +98,7 @@ AutocompleteEditor.prototype.open = function() {
   choicesListHot.updateSettings({
     colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
     width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
-    afterRenderer(TD, row, col, prop, value, cellProperties) {
+    afterRenderer(TD, row, col, prop, value) {
       let {filteringCaseSensitive, allowHtml} = _this.cellProperties;
       let indexOfMatch;
       let match;
@@ -433,8 +433,8 @@ AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
   return allowed;
 };
 
-AutocompleteEditor.prototype.discardEditor = function(result) {
-  HandsontableEditor.prototype.discardEditor.apply(this, arguments);
+AutocompleteEditor.prototype.discardEditor = function(...args) {
+  HandsontableEditor.prototype.discardEditor.apply(this, args);
 
   this.instance.view.render();
 };

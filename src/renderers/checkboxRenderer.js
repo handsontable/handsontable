@@ -1,10 +1,10 @@
-import {empty, addClass, hasClass} from './../helpers/dom/element';
-import {equalsIgnoreCase} from './../helpers/string';
+import { empty, addClass } from './../helpers/dom/element';
+import { equalsIgnoreCase } from './../helpers/string';
 import EventManager from './../eventManager';
-import {isKey} from './../helpers/unicode';
-import {partial} from './../helpers/function';
-import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
-import {getRenderer} from './index';
+import { isKey } from './../helpers/unicode';
+import { partial } from './../helpers/function';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
+import { getRenderer } from './index';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -24,8 +24,8 @@ const BAD_VALUE_CLASS = 'htBadValue';
  */
 function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   getRenderer('base').apply(this, arguments);
+  registerEvents(instance);
 
-  const eventManager = registerEvents(instance);
   let input = createInput();
   const labelOptions = cellProperties.label;
   let badValue = false;

@@ -31,7 +31,7 @@ describe('Performance', () => {
 
   it('should call renderer twice for one cell (auto column width)', () => {
     var count = 0;
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       rowHeights: 23,
       renderer() {
@@ -45,7 +45,7 @@ describe('Performance', () => {
 
   it('should call renderer twice for one cell (auto row height)', () => {
     var count = 0;
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       colWidths: 50,
       renderer() {
@@ -59,7 +59,7 @@ describe('Performance', () => {
 
   it('should call renderer triple times for one cell (auto row height, auto column width)', () => {
     var count = 0;
-    var hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       autoRowSize: true,
       autoColumnSize: true,

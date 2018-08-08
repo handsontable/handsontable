@@ -12,24 +12,21 @@ describe('ColHeader', () => {
     }
   });
 
-  it('should not show col headers by default', function() {
-    var that = this;
+  it('should not show col headers by default', () => {
     handsontable();
 
-    expect(that.$container.find('thead th').length).toEqual(0);
+    expect(spec().$container.find('thead th').length).toEqual(0);
   });
 
-  it('should show col headers if true', function() {
-    var that = this;
+  it('should show col headers if true', () => {
     handsontable({
       colHeaders: true
     });
 
-    expect(that.$container.find('thead th').length).toBeGreaterThan(0);
+    expect(spec().$container.find('thead th').length).toBeGreaterThan(0);
   });
 
-  it('should show default columns headers labelled A-(Z * n)', function() {
-    var that = this;
+  it('should show default columns headers labelled A-(Z * n)', () => {
     var startCols = 5;
 
     handsontable({
@@ -46,8 +43,7 @@ describe('ColHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
-  it('should show default columns headers labelled A-(Z * n) when columns as an array is present', function() {
-    var that = this;
+  it('should show default columns headers labelled A-(Z * n) when columns as an array is present', () => {
     var startCols = 5;
 
     handsontable({
@@ -65,14 +61,13 @@ describe('ColHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
-  it('should show default columns headers labelled A-(Z * n) when columns as a function is present', function() {
-    var that = this;
+  it('should show default columns headers labelled A-(Z * n) when columns as a function is present', () => {
     var startCols = 5;
 
     handsontable({
       startCols,
       colHeaders: true,
-      columns(column) {
+      columns() {
         return {};
       }
     });
@@ -86,8 +81,7 @@ describe('ColHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
-  it('should show col headers with custom label', function() {
-    var that = this;
+  it('should show col headers with custom label', () => {
     var startCols = 5;
     handsontable({
       startCols,
@@ -103,13 +97,12 @@ describe('ColHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
-  it('should not show col headers if false', function() {
-    var that = this;
+  it('should not show col headers if false', () => {
     handsontable({
       colHeaders: false
     });
 
-    expect(that.$container.find('th.htColHeader').length).toEqual(0);
+    expect(spec().$container.find('th.htColHeader').length).toEqual(0);
   });
 
   it('should hide columns headers after updateSettings', () => {
@@ -199,7 +192,7 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to define colHeaders with a function', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders(col) {
         switch (col) {
@@ -220,7 +213,7 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set HTML in colHeaders', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One <input type="checkbox">', 'Two <input type="checkbox">']
     });
@@ -232,7 +225,7 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set colHeaders when columns array is present', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns: [
@@ -248,7 +241,7 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set colHeaders when columns function is present', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns(column) {
@@ -269,7 +262,7 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set colHeaders using columns title property', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns: [
@@ -285,7 +278,7 @@ describe('ColHeader', () => {
   });
 
   it('should be possible to set colHeaders using columns title property when columns is a function', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns(column) {
@@ -309,7 +302,7 @@ describe('ColHeader', () => {
   });
 
   it('should resize all the column headers in the overlays, according to the other overlays\' height', () => {
-    var hot = handsontable({
+    handsontable({
       startCols: 5,
       colHeaders: ['a', 'a', 'a', 'a<BR>a', 'a'],
       fixedColumnsLeft: 2
@@ -321,7 +314,7 @@ describe('ColHeader', () => {
     expect(topHeaderExample.height()).toEqual(masterHeaderExample.height());
   });
 
-  it('should allow defining custom column header height using the columnHeaderHeight config option', function() {
+  it('should allow defining custom column header height using the columnHeaderHeight config option', () => {
     var hot = handsontable({
       startCols: 3,
       colHeaders: true,
@@ -330,10 +323,10 @@ describe('ColHeader', () => {
 
     hot.render();
 
-    expect(this.$container.find('th').eq(0).height()).toEqual(40);
+    expect(spec().$container.find('th').eq(0).height()).toEqual(40);
   });
 
-  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', function() {
+  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', () => {
     var hot = handsontable({
       startCols: 3,
       colHeaders: true,
@@ -359,7 +352,7 @@ describe('ColHeader', () => {
     });
     hot.render();
 
-    expect(this.$container.find('.handsontable.ht_clone_top tr:nth-child(1) th:nth-child(1)').height()).toEqual(45);
-    expect(this.$container.find('.handsontable.ht_clone_top tr:nth-child(2) th:nth-child(1)').height()).toEqual(65);
+    expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(1) th:nth-child(1)').height()).toEqual(45);
+    expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(2) th:nth-child(1)').height()).toEqual(65);
   });
 });

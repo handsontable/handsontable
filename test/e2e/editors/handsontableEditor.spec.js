@@ -23,7 +23,7 @@ describe('HandsontableEditor', () => {
     ];
   }
 
-  it('should create an editor that is a Handsontable instance', function() {
+  it('should create an editor that is a Handsontable instance', () => {
     handsontable({
       columns: [
         {
@@ -38,10 +38,10 @@ describe('HandsontableEditor', () => {
     selectCell(2, 0);
 
     keyDownUp('enter');
-    expect(this.$container.find('.handsontableEditor:visible').length).toEqual(1);
+    expect(spec().$container.find('.handsontableEditor:visible').length).toEqual(1);
   });
 
-  it('should create an editor directly below the textarea element', function() {
+  it('should create an editor directly below the textarea element', () => {
     handsontable({
       columns: [
         {
@@ -56,10 +56,10 @@ describe('HandsontableEditor', () => {
     selectCell(2, 0);
 
     keyDownUp('enter');
-    expect(this.$container.find('.handsontableEditor')[0].offsetTop).toEqual(this.$container.find('.handsontableInput')[0].offsetHeight);
+    expect(spec().$container.find('.handsontableEditor')[0].offsetTop).toEqual(spec().$container.find('.handsontableInput')[0].offsetHeight);
   });
 
-  it('should prepare the editor only once per instance', function() {
+  it('should prepare the editor only once per instance', () => {
     handsontable({
       columns: [
         {
@@ -86,10 +86,52 @@ describe('HandsontableEditor', () => {
     keyDownUp('enter');
     keyDownUp('enter');
     keyDownUp('enter');
-    expect(this.$container.find('.handsontableEditor').length).toEqual(1);
+    expect(spec().$container.find('.handsontableEditor').length).toEqual(1);
   });
 
-  it('should destroy the editor when Esc is pressed', function() {
+  it('should reuse the container and display them after select the same or different cell', () => {
+    handsontable({
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    let container = spec().$container.find('.handsontableEditor')[0];
+
+    expect(container.clientHeight).toBeGreaterThan(2);
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    container = spec().$container.find('.handsontableEditor')[0];
+
+    expect(container.clientHeight).toBeGreaterThan(2);
+
+    selectCell(1, 0);
+    keyDownUp('enter');
+
+    container = spec().$container.find('.handsontableEditor')[0];
+
+    expect(container.clientHeight).toBeGreaterThan(2);
+
+    selectCell(1, 0);
+    keyDownUp('enter');
+
+    container = spec().$container.find('.handsontableEditor')[0];
+
+    expect(container.clientHeight).toBeGreaterThan(2);
+  });
+
+  it('should destroy the editor when Esc is pressed', () => {
     handsontable({
       columns: [
         {
@@ -105,7 +147,7 @@ describe('HandsontableEditor', () => {
 
     keyDownUp('enter');
     keyDownUp('esc');
-    expect(this.$container.find('.handsontableEditor:visible').length).toEqual(0);
+    expect(spec().$container.find('.handsontableEditor:visible').length).toEqual(0);
   });
 
   // see https://github.com/handsontable/handsontable/issues/3380
@@ -113,7 +155,7 @@ describe('HandsontableEditor', () => {
     var spy = jasmine.createSpyObj('error', ['test']);
     var prevError = window.onerror;
 
-    window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+    window.onerror = function() {
       spy.test();
     };
     handsontable({
@@ -135,7 +177,7 @@ describe('HandsontableEditor', () => {
     window.onerror = prevError;
   });
 
-  it('Enter pressed in nested HT should set the value and hide the editor', function() {
+  it('Enter pressed in nested HT should set the value and hide the editor', () => {
     handsontable({
       columns: [
         {
@@ -152,7 +194,7 @@ describe('HandsontableEditor', () => {
     keyDownUp('enter');
     keyDownUp('arrow_down');
     keyDownUp('enter');
-    expect(this.$container.find('.handsontableEditor:visible').length).toEqual(0);
+    expect(spec().$container.find('.handsontableEditor:visible').length).toEqual(0);
     expect(getDataAtCell(2, 0)).toEqual('BMW');
   });
 

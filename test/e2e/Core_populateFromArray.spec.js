@@ -92,13 +92,8 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should shift values down', () => {
-    var output = null;
-
     handsontable({
       data: arrayOfArrays(),
-      afterChange(changes) {
-        output = changes;
-      },
       minSpareRows: 1
     });
     populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_down');
@@ -116,13 +111,8 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should shift values right', () => {
-    var output = null;
-
     handsontable({
       data: arrayOfArrays(),
-      afterChange(changes) {
-        output = changes;
-      },
       minSpareCols: 1
     });
     populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_right');
@@ -142,7 +132,7 @@ describe('Core_populateFromArray', () => {
       data: arrayOfArrays()
     });
 
-    hot.addHook('beforeAutofillInsidePopulate', (index) => {
+    hot.addHook('beforeAutofillInsidePopulate', () => {
       called++;
     });
 
@@ -157,7 +147,7 @@ describe('Core_populateFromArray', () => {
       data: arrayOfArrays()
     });
 
-    hot.addHook('beforeAutofillInsidePopulate', (index) => ({
+    hot.addHook('beforeAutofillInsidePopulate', () => ({
       value: 'my_test'
     }));
 
@@ -167,7 +157,7 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should populate 1 row from 2 selected rows', () => {
-    var hot = handsontable({
+    handsontable({
       data: arrayOfArrays()
     });
 
@@ -178,7 +168,7 @@ describe('Core_populateFromArray', () => {
   });
 
   it('should populate 1 column from 2 selected columns`', () => {
-    var hot = handsontable({
+    handsontable({
       data: arrayOfArrays()
     });
 

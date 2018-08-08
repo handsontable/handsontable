@@ -10,12 +10,11 @@ import {
   outerHeight,
   outerWidth,
 } from './../../../helpers/dom/element';
-import {stopImmediatePropagation} from './../../../helpers/dom/event';
-import {hasOwnProperty} from './../../../helpers/object';
-import {isMobileBrowser} from './../../../helpers/browser';
+import { stopImmediatePropagation } from './../../../helpers/dom/event';
+import { hasOwnProperty } from './../../../helpers/object';
+import { isMobileBrowser } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import CellCoords from './cell/coords';
-import Overlay from './overlay/_base.js';
 
 /**
  *

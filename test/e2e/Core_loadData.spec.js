@@ -547,18 +547,18 @@ describe('Core_loadData', () => {
     expect(getCellMeta(0, 0).foo).toBeUndefined();
   });
 
-  it('should clear cell properties after loadData, but before rendering new data', function() {
+  it('should clear cell properties after loadData, but before rendering new data', () => {
     handsontable();
     loadData(arrayOfArrays());
 
     getCellMeta(0, 0).valid = false;
     render();
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
 
     loadData(arrayOfArrays());
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
 
   });
 
