@@ -492,7 +492,7 @@ DataMap.prototype.filterData = function(index, amount) {
   let continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, physicalRows);
 
   if (continueSplicing !== false) {
-    let newData = this.dataSource.filter((row, _index) => physicalRows.indexOf(_index) === -1);
+    let newData = this.dataSource.filter((row, rowIndex) => physicalRows.indexOf(rowIndex) === -1);
 
     return newData;
   }

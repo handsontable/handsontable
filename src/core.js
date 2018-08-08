@@ -284,7 +284,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       amount = amount || 1;
 
-      function spliceWith(data, _index, count, toInject) {
+      function spliceWith(data, startIndex, count, toInject) {
         let valueFactory = () => {
           let result;
 
@@ -299,7 +299,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         };
         let spliceArgs = arrayMap(new Array(count), () => valueFactory());
 
-        spliceArgs.unshift(_index, 0);
+        spliceArgs.unshift(startIndex, 0);
         data.splice(...spliceArgs);
       }
 
@@ -320,17 +320,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         });
 
         // Normalize the {index, amount} groups into bigger groups.
-        const normalizedIndexes = arrayReduce(sortedIndexes, (acc, [_index, _amount]) => {
+        const normalizedIndexes = arrayReduce(sortedIndexes, (acc, [groupIndex, groupAmount]) => {
           const previousItem = acc[acc.length - 1];
           const [prevIndex, prevAmount] = previousItem;
           const prevLastIndex = prevIndex + prevAmount;
 
-          if (_index <= prevLastIndex) {
-            const amountToAdd = Math.max(_amount - (prevLastIndex - _index), 0);
+          if (groupIndex <= prevLastIndex) {
+            const amountToAdd = Math.max(groupAmount - (prevLastIndex - groupIndex), 0);
 
             previousItem[1] += amountToAdd;
           } else {
-            acc.push([_index, _amount]);
+            acc.push([groupIndex, groupAmount]);
           }
 
           return acc;
@@ -394,34 +394,35 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           const removeRow = (indexes) => {
             let offset = 0;
 
-            arrayEach(indexes, ([_index, _amount]) => {
-              const calcIndex = isEmpty(_index) ? instance.countRows() - 1 : Math.max(_index - offset, 0);
+            // Normalize the {index, amount} groups into bigger groups.
+            arrayEach(indexes, ([groupIndex, groupAmount]) => {
+              const calcIndex = isEmpty(groupIndex) ? instance.countRows() - 1 : Math.max(groupIndex - offset, 0);
 
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
-              if (Number.isInteger(_index)) {
-                _index = Math.max(_index - offset, 0);
+              if (Number.isInteger(groupIndex)) {
+                groupIndex = Math.max(groupIndex - offset, 0);
               }
 
               // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeRow breaks the removing functionality.
-              datamap.removeRow(_index, _amount, source);
+              datamap.removeRow(groupIndex, groupAmount, source);
               priv.cellSettings.splice(calcIndex, amount);
 
               const totalRows = instance.countRows();
               const fixedRowsTop = instance.getSettings().fixedRowsTop;
 
               if (fixedRowsTop >= calcIndex + 1) {
-                instance.getSettings().fixedRowsTop -= Math.min(_amount, fixedRowsTop - calcIndex);
+                instance.getSettings().fixedRowsTop -= Math.min(groupAmount, fixedRowsTop - calcIndex);
               }
 
               const fixedRowsBottom = instance.getSettings().fixedRowsBottom;
 
               if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
-                instance.getSettings().fixedRowsBottom -= Math.min(_amount, fixedRowsBottom);
+                instance.getSettings().fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
               }
 
-              offset += _amount;
+              offset += groupAmount;
             });
           };
 
@@ -440,40 +441,41 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           const removeCol = (indexes) => {
             let offset = 0;
 
-            arrayEach(indexes, ([_index, _amount]) => {
-              const calcIndex = isEmpty(_index) ? instance.countCols() - 1 : Math.max(_index - offset, 0);
+            // Normalize the {index, amount} groups into bigger groups.
+            arrayEach(indexes, ([groupIndex, groupAmount]) => {
+              const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
 
               let visualColumnIndex = recordTranslator.toPhysicalColumn(calcIndex);
 
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
-              if (Number.isInteger(_index)) {
-                _index = Math.max(_index - offset, 0);
+              if (Number.isInteger(groupIndex)) {
+                groupIndex = Math.max(groupIndex - offset, 0);
               }
 
               // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeCol breaks the removing functionality.
-              datamap.removeCol(_index, _amount, source);
+              datamap.removeCol(groupIndex, groupAmount, source);
 
               for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
                 if (priv.cellSettings[row]) { // if row hasn't been rendered it wouldn't have cellSettings
-                  priv.cellSettings[row].splice(visualColumnIndex, _amount);
+                  priv.cellSettings[row].splice(visualColumnIndex, groupAmount);
                 }
               }
               var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
 
               if (fixedColumnsLeft >= calcIndex + 1) {
-                instance.getSettings().fixedColumnsLeft -= Math.min(_amount, fixedColumnsLeft - calcIndex);
+                instance.getSettings().fixedColumnsLeft -= Math.min(groupAmount, fixedColumnsLeft - calcIndex);
               }
 
               if (Array.isArray(instance.getSettings().colHeaders)) {
                 if (typeof visualColumnIndex === 'undefined') {
                   visualColumnIndex = -1;
                 }
-                instance.getSettings().colHeaders.splice(visualColumnIndex, _amount);
+                instance.getSettings().colHeaders.splice(visualColumnIndex, groupAmount);
               }
 
-              offset += _amount;
+              offset += groupAmount;
             });
           };
 
@@ -909,15 +911,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         /* eslint-disable no-loop-func */
         if (instance.getCellValidator(cellProperties)) {
           waitingForValidator.addValidatorToQueue();
-          instance.validateCell(changes[i][3], cellProperties, (function(index, _cellProperties) {
+          instance.validateCell(changes[i][3], cellProperties, (function(index, cellPropertiesReference) {
             return function(result) {
               if (typeof result !== 'boolean') {
                 throw new Error('Validation error: result is not boolean');
               }
-              if (result === false && _cellProperties.allowInvalid === false) {
+              if (result === false && cellPropertiesReference.allowInvalid === false) {
                 changes.splice(index, 1); // cancel the change
-                _cellProperties.valid = true; // we cancelled the change, so cell value is still valid
-                const cell = instance.getCell(_cellProperties.visualRow, _cellProperties.visualCol);
+                cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
+                const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
                 removeClass(cell, instance.getSettings().invalidCellClassName);
                 --index;
               }
@@ -1045,9 +1047,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (isRegExp(validator)) {
-      validator = (function(_validator) {
-        return function(_value, _callback) {
-          _callback(_validator.test(_value));
+      validator = (function(expression) {
+        return function(cellValue, validatorCallback) {
+          validatorCallback(expression.test(cellValue));
         };
       }(validator));
     }
@@ -2697,7 +2699,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       result = out;
 
     } else {
-      let translateVisualIndexToColumns = function(_column) {
+      let translateVisualIndexToColumns = function(visualColumnIndex) {
         let arr = [];
         let columnsLen = instance.countSourceCols();
         let index = 0;
@@ -2708,7 +2710,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
         }
 
-        return arr[_column];
+        return arr[visualColumnIndex];
       };
       let baseCol = column;
       column = instance.runHooks('modifyCol', column);
