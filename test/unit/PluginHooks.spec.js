@@ -159,7 +159,7 @@ describe('PluginHooks', () => {
     const fn3 = jasmine.createSpy('fn3');
     const context = {};
     const bucket = {test: [fn1, fn2]};
-    const result;
+    let result;
 
     hooks.globalBucket.test = [fn3];
 
