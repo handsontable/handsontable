@@ -785,8 +785,8 @@ describe('Core_alter', () => {
     });
 
     it('should not change cellMeta after executing `insert row` without parameters (#3581, #3989, #2114)', () => {
-      const greenRenderer = function(instance, td) {
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
+      const greenRenderer = function(instance, td, ...args) {
+        Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
         td.style.backgroundColor = 'green';
       };
 

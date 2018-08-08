@@ -375,8 +375,9 @@ export function triggerPaste(str) {
  * @return {Function}
  */
 export function handsontableMethodFactory(method) {
-  return function() {
+  return function(...args) {
     let instance;
+
     try {
       instance = spec().$container.handsontable('getInstance');
     } catch (err) {
@@ -394,7 +395,7 @@ export function handsontableMethodFactory(method) {
       throw new Error('Something wrong with the test spec: Handsontable instance not found');
     }
 
-    return instance[method](...arguments);
+    return instance[method](...args);
   };
 };
 
