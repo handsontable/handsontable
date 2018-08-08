@@ -1,5 +1,5 @@
 describe('manualColumnMove', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -27,14 +27,14 @@ describe('manualColumnMove', () => {
 
   describe('persistentState', () => {
     it('should load data from cache after initialization of new Handsontable instance', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: true,
         persistentState: true
       });
 
-      var dataAt0x2Cell = getDataAtCell(0, 2);
-      var manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
+      const dataAt0x2Cell = getDataAtCell(0, 2);
+      const manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
 
       manualColumnMovePlugin.moveColumn(2, 0);
       manualColumnMovePlugin.persistentStateSave();
@@ -53,14 +53,14 @@ describe('manualColumnMove', () => {
     });
 
     it('should work with updateSettings properly', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: true,
         persistentState: true
       });
 
-      var dataAt0x2Cell = getDataAtCell(0, 2);
-      var manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
+      const dataAt0x2Cell = getDataAtCell(0, 2);
+      const manualColumnMovePlugin = hot.getPlugin('manualColumnMove');
 
       manualColumnMovePlugin.moveColumn(2, 0);
       manualColumnMovePlugin.persistentStateSave();
@@ -126,7 +126,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should update columnsMapper when updateSettings change numbers of columns', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnMove: true
       });
@@ -172,7 +172,7 @@ describe('manualColumnMove', () => {
 
   describe('loadData', () => {
     it('should increase numbers of columns if it is necessary', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         manualColumnMove: true
       });
@@ -184,7 +184,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should decrease numbers of columns if it is necessary', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         manualColumnMove: true
       });
@@ -198,7 +198,7 @@ describe('manualColumnMove', () => {
 
   describe('moving', () => {
     it('should move column by API', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true
@@ -217,7 +217,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should move many columns by API', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true
@@ -236,9 +236,9 @@ describe('manualColumnMove', () => {
     });
 
     it('should trigger an beforeColumnMove event before column move', () => {
-      var beforeMoveColumnCallback = jasmine.createSpy('beforeMoveColumnCallback');
+      const beforeMoveColumnCallback = jasmine.createSpy('beforeMoveColumnCallback');
 
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true,
@@ -260,11 +260,11 @@ describe('manualColumnMove', () => {
     });
 
     it('should trigger an afterColumnMove event after column move', () => {
-      var afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
+      const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
       spec().$container.height(150);
 
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true,
@@ -296,7 +296,7 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
 
-      var $rowsHeaders = spec().$container.find('.ht_clone_top tr th');
+      const $rowsHeaders = spec().$container.find('.ht_clone_top tr th');
 
       $rowsHeaders.eq(1).simulate('mousedown');
       $rowsHeaders.eq(1).simulate('mouseup');
@@ -321,7 +321,7 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
 
-      var $rowsHeaders = spec().$container.find('.ht_clone_top tr th');
+      const $rowsHeaders = spec().$container.find('.ht_clone_top tr th');
 
       $rowsHeaders.eq(1).simulate('mousedown');
       $rowsHeaders.eq(1).simulate('mouseup');
@@ -336,7 +336,7 @@ describe('manualColumnMove', () => {
     });
 
     it('should properly scrolling viewport if mouse is over part-visible cell', (done) => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 20),
         colHeaders: true,
         rowHeaders: true,
@@ -351,7 +351,7 @@ describe('manualColumnMove', () => {
       setTimeout(() => {
         expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBeGreaterThan(8);
 
-        var $rowsHeaders = spec().$container.find('.ht_clone_top tr th');
+        const $rowsHeaders = spec().$container.find('.ht_clone_top tr th');
 
         $rowsHeaders.eq(2).simulate('mousedown');
         $rowsHeaders.eq(2).simulate('mouseup');
@@ -368,7 +368,7 @@ describe('manualColumnMove', () => {
     });
 
     it('moving column should keep cell meta created using cells function', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true,
@@ -379,7 +379,7 @@ describe('manualColumnMove', () => {
         }
       });
 
-      var htCore = getHtCore();
+      const htCore = getHtCore();
 
       expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
 
@@ -390,7 +390,7 @@ describe('manualColumnMove', () => {
     });
 
     it('moving column should keep cell meta created using cell array', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true,
@@ -399,7 +399,7 @@ describe('manualColumnMove', () => {
         ]
       });
 
-      var htCore = getHtCore();
+      const htCore = getHtCore();
 
       expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
 
@@ -472,12 +472,12 @@ describe('manualColumnMove', () => {
 
   describe('copy-paste', () => {
     it('should create new columns is are needed', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         colHeaders: true,
         manualColumnMove: true,
       });
-      var changesSet = [
+      const changesSet = [
         [3, 4, 'A1'],
         [3, 5, 'B1'],
         [3, 6, 'C1'],
@@ -493,7 +493,7 @@ describe('manualColumnMove', () => {
 
   describe('undoRedo', () => {
     xit('should back changes', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true,
@@ -509,7 +509,7 @@ describe('manualColumnMove', () => {
     });
 
     xit('should revert changes', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         manualColumnMove: true,

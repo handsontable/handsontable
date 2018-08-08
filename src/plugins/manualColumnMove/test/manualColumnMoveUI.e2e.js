@@ -1,6 +1,6 @@
 describe('manualColumnMove', () => {
-  var id = 'testContainer';
-  var arrayOfArrays = Handsontable.helper.createSpreadsheetData(30, 30);
+  const id = 'testContainer';
+  const arrayOfArrays = Handsontable.helper.createSpreadsheetData(30, 30);
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -21,7 +21,7 @@ describe('manualColumnMove', () => {
         manualColumnMove: true
       });
 
-      var $headerTH = spec().$container.find('thead tr:eq(0) th:eq(0)');
+      const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(0)');
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
@@ -37,7 +37,7 @@ describe('manualColumnMove', () => {
         manualColumnMove: true
       });
 
-      var $headerTH = spec().$container.find('thead tr:eq(0) th:eq(0)');
+      const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(0)');
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
@@ -53,7 +53,7 @@ describe('manualColumnMove', () => {
         manualColumnMove: true
       });
 
-      var $headers = [
+      const $headers = [
         spec().$container.find('thead tr:eq(0) th:eq(0)'),
         spec().$container.find('thead tr:eq(0) th:eq(1)'),
         spec().$container.find('thead tr:eq(0) th:eq(2)'),
@@ -78,7 +78,7 @@ describe('manualColumnMove', () => {
         manualColumnMove: true
       });
 
-      var $headerTH = spec().$container.find('thead tr:eq(0) th:eq(1)');
+      const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(1)');
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
@@ -106,7 +106,7 @@ describe('manualColumnMove', () => {
         ]
       });
 
-      var $headerTH = spec().$container.find('thead tr:eq(0) th:eq(6)');
+      const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(6)');
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
@@ -159,18 +159,18 @@ describe('manualColumnMove', () => {
         columnSorting: true
       });
 
-      var $headerTH = spec().$container.find('thead tr:eq(0) th:eq(6)');
-      var $summaryElement = $headerTH.find('.columnSorting');
+      const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(6)');
+      const $summaryElement = $headerTH.find('.columnSorting');
 
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
 
-      var $backlight = spec().$container.find('.ht__manualColumnMove--backlight')[0];
+      const $backlight = spec().$container.find('.ht__manualColumnMove--backlight')[0];
       $summaryElement.simulate('mousedown');
 
-      var displayProp = $backlight.currentStyle ? $backlight.currentStyle.display : getComputedStyle($backlight, null).display;
+      const displayProp = $backlight.currentStyle ? $backlight.currentStyle.display : getComputedStyle($backlight, null).display;
       expect(displayProp).toEqual('none');
     });
   });

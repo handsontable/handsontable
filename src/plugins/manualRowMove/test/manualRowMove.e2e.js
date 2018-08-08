@@ -1,6 +1,6 @@
 describe('manualRowMove', () => {
-  var id = 'testContainer';
-  var arrayOfObjects = [
+  const id = 'testContainer';
+  const arrayOfObjects = [
     {id: 1, name: 'Ted', lastName: 'Right'},
     {id: 2, name: 'Frank', lastName: 'Honest'},
     {id: 3, name: 'Joan', lastName: 'Well'},
@@ -558,7 +558,7 @@ describe('manualRowMove', () => {
     });
 
     it('moving row should keep cell meta created using cell array', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true,
@@ -567,7 +567,7 @@ describe('manualRowMove', () => {
         ]
       });
 
-      var htCore = getHtCore();
+      const htCore = getHtCore();
 
       expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
 
@@ -639,7 +639,7 @@ describe('manualRowMove', () => {
 
   describe('undoRedo', () => {
     it('should back changes', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         rowHeaders: true,
         manualRowMove: true,
@@ -655,7 +655,7 @@ describe('manualRowMove', () => {
     });
 
     it('should revert changes', () => {
-      var hot = handsontable({
+      const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         rowHeaders: true,
         manualRowMove: true,

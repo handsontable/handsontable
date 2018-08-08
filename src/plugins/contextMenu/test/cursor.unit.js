@@ -3,13 +3,13 @@ import Cursor from 'handsontable/plugins/contextMenu/cursor';
 describe('ContextMenu', () => {
   describe('Cursor', () => {
     it('should initialize internal properties on construct (object literal)', () => {
-      var coords = {
+      const coords = {
         top: 10,
         left: 50,
         width: 100,
         height: 200
       };
-      var cursor = new Cursor(coords);
+      const cursor = new Cursor(coords);
 
       expect(cursor.top).toBe(coords.top);
       expect(cursor.topRelative).toBeLessThan(coords.top + 1);
@@ -22,14 +22,14 @@ describe('ContextMenu', () => {
     });
 
     it('should returns boolean value related to if element fits above the cursor', () => {
-      var coords = {
+      const coords = {
         top: 10,
         left: 50,
         width: 100,
         height: 200
       };
-      var cursor = new Cursor(coords);
-      var fakeElement = {
+      const cursor = new Cursor(coords);
+      const fakeElement = {
         offsetHeight: 9
       };
 
@@ -45,17 +45,17 @@ describe('ContextMenu', () => {
     });
 
     it('should returns boolean value related to if element fits below the cursor', () => {
-      var coords = {
+      const coords = {
         top: 10,
         left: 50,
         width: 100,
         height: 200
       };
-      var cursor = new Cursor(coords);
-      var fakeElement = {
+      const cursor = new Cursor(coords);
+      const fakeElement = {
         offsetHeight: 9
       };
-      var viewportHeight = 100;
+      const viewportHeight = 100;
 
       expect(cursor.fitsBelow(fakeElement, viewportHeight)).toBe(true);
 
@@ -69,17 +69,17 @@ describe('ContextMenu', () => {
     });
 
     it('should returns boolean value related to if element fits on the right of the cursor', () => {
-      var coords = {
+      const coords = {
         top: 10,
         left: 20,
         width: 30,
         height: 200
       };
-      var cursor = new Cursor(coords);
-      var fakeElement = {
+      const cursor = new Cursor(coords);
+      const fakeElement = {
         offsetWidth: 9
       };
-      var viewportWidth = 100;
+      const viewportWidth = 100;
 
       expect(cursor.fitsOnRight(fakeElement, viewportWidth)).toBe(true);
 
@@ -93,14 +93,14 @@ describe('ContextMenu', () => {
     });
 
     it('should returns boolean value related to if element fits on the left of the cursor', () => {
-      var coords = {
+      const coords = {
         top: 10,
         left: 50,
         width: 100,
         height: 200
       };
-      var cursor = new Cursor(coords);
-      var fakeElement = {
+      const cursor = new Cursor(coords);
+      const fakeElement = {
         offsetWidth: 9
       };
 

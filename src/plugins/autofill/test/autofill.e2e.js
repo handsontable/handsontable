@@ -1,5 +1,5 @@
 describe('AutoFill', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -297,7 +297,7 @@ describe('AutoFill', () => {
   });
 
   it('should use correct cell coordinates also when Handsontable is used inside a TABLE (#355)', () => {
-    var $table = $('<table><tr><td></td></tr></table>').appendTo('body');
+    const $table = $('<table><tr><td></td></tr></table>').appendTo('body');
     spec().$container.appendTo($table.find('td'));
 
     handsontable({
@@ -334,7 +334,7 @@ describe('AutoFill', () => {
     });
 
     selectCell(1, 3);
-    var fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
+    const fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
     mouseDoubleClick(fillHandle);
 
     expect(getDataAtCell(2, 3)).toEqual(null);
@@ -359,7 +359,7 @@ describe('AutoFill', () => {
     });
 
     selectCell(1, 3, 1, 4);
-    var fillHandle = spec().$container.find('.wtBorder.area.corner')[0];
+    const fillHandle = spec().$container.find('.wtBorder.area.corner')[0];
     mouseDoubleClick(fillHandle);
 
     expect(getDataAtCell(2, 3)).toEqual(null);
@@ -378,7 +378,7 @@ describe('AutoFill', () => {
   });
 
   it('should add new row after dragging the handle to the last table row', async () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -405,7 +405,7 @@ describe('AutoFill', () => {
   });
 
   it('should add new row after dragging the handle to the last table row (autoInsertRow as true)', async () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -434,7 +434,7 @@ describe('AutoFill', () => {
   });
 
   it('should add new row after dragging the handle to the last table row (autoInsertRow as true, vertical)', async () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -464,7 +464,7 @@ describe('AutoFill', () => {
   });
 
   it('should not add new row after dragging the handle to the last table row (autoInsertRow as true, horizontal)', async () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -496,7 +496,7 @@ describe('AutoFill', () => {
   });
 
   it('should not add new row after dragging the handle below the viewport when `autoInsertRow` is disabled', async () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -511,8 +511,8 @@ describe('AutoFill', () => {
     selectCell(0, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-    var ev = {};
-    var $lastRow = spec().$container.find('tr:last-child td:eq(2)');
+    const ev = {};
+    const $lastRow = spec().$container.find('tr:last-child td:eq(2)');
 
     expect(hot.countRows()).toBe(4);
 
@@ -534,7 +534,7 @@ describe('AutoFill', () => {
   });
 
   it('should not add new rows if the current number of rows reaches the maxRows setting', async () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -566,7 +566,7 @@ describe('AutoFill', () => {
   });
 
   it('should add new row after dragging the handle below the viewport', async () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -581,8 +581,8 @@ describe('AutoFill', () => {
     selectCell(0, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-    var ev = {};
-    var $lastRow = spec().$container.find('tr:last-child td:eq(2)');
+    const ev = {};
+    const $lastRow = spec().$container.find('tr:last-child td:eq(2)');
 
     expect(hot.countRows()).toBe(4);
 
@@ -621,7 +621,7 @@ describe('AutoFill', () => {
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
 
-    var errors = 0;
+    let errors = 0;
 
     try {
       spec().$container.find('thead tr:first-child th:eq(2)').simulate('mouseover').simulate('mouseup');
@@ -655,8 +655,8 @@ describe('AutoFill', () => {
   });
 
   it('should not add a new row if dragging from the last row upwards or sideways', async () => {
-    var mouseOverSpy = jasmine.createSpy('mouseOverSpy');
-    var hot = handsontable({
+    const mouseOverSpy = jasmine.createSpy('mouseOverSpy');
+    const hot = handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -692,7 +692,7 @@ describe('AutoFill', () => {
   });
 
   it('should add new row after dragging the handle below the viewport', async () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -707,8 +707,8 @@ describe('AutoFill', () => {
     selectCell(0, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-    var ev = {};
-    var $lastRow = spec().$container.find('tr:last-child td:eq(2)');
+    const ev = {};
+    const $lastRow = spec().$container.find('tr:last-child td:eq(2)');
 
     expect(hot.countRows()).toBe(4);
 
@@ -730,7 +730,7 @@ describe('AutoFill', () => {
   });
 
   it('should not add new row after dragging the handle below the viewport (direction is set to horizontal)', async () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -746,8 +746,8 @@ describe('AutoFill', () => {
     selectCell(0, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-    var ev = {};
-    var $lastRow = spec().$container.find('tr:last-child td:eq(2)');
+    const ev = {};
+    const $lastRow = spec().$container.find('tr:last-child td:eq(2)');
 
     expect(hot.countRows()).toBe(4);
 
@@ -804,9 +804,9 @@ describe('AutoFill', () => {
   });
 
   describe('should works properly when two or more instances of Handsontable was initialized with other settings (#3257)', () => {
-    var getData;
-    var $container1;
-    var $container2;
+    let getData;
+    let $container1;
+    let $container2;
 
     beforeAll(() => {
       getData = function getData() {

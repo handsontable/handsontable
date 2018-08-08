@@ -1,5 +1,5 @@
 describe('ContextMenu', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function () {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -22,13 +22,13 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
       await sleep(350);
 
-      var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
+      const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+      const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
       button.simulate('mousedown'); // Text left
 
       expect(getCellMeta(0, 0).className).toEqual('htLeft');
@@ -44,12 +44,12 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
       await sleep(350);
-      var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
+      const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+      const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
 
       button.simulate('mousedown'); // Text center
       expect(getCellMeta(0, 0).className).toEqual('htCenter');
@@ -65,12 +65,12 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
       await sleep(350);
-      var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
+      const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+      const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
 
       button.simulate('mousedown'); // Text right
       expect(getCellMeta(0, 0).className).toEqual('htRight');
@@ -86,13 +86,13 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
       await sleep(350);
 
-      var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
+      const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+      const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
 
       button.simulate('mousedown'); // Text justify
       deselectCell();
@@ -109,12 +109,12 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
       await sleep(350);
-      var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
+      const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+      const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
 
       button.simulate('mousedown'); // Text top
       deselectCell();
@@ -131,12 +131,12 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
-      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
       await sleep(350);
-      var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(5);
+      const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+      const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(5);
 
       button.simulate('mousedown'); // Text middle
       deselectCell();
@@ -152,12 +152,12 @@ describe('ContextMenu', () => {
       });
 
       contextMenu();
-      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
       await sleep(350);
-      var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(6);
+      const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+      const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(6);
       button.simulate('mousedown'); // Text bottom
       deselectCell();
       expect(getCellMeta(0, 0).className).toEqual('htBottom');
@@ -165,7 +165,7 @@ describe('ContextMenu', () => {
     });
 
     it('should trigger `afterSetCellMeta` callback after changing alignment by context menu', async () => {
-      var afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
+      const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -176,12 +176,12 @@ describe('ContextMenu', () => {
 
       selectCell(2, 3);
       contextMenu();
-      var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       item.simulate('mouseover');
 
       await sleep(350);
-      var contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
-      var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
+      const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+      const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
       button.simulate('mousedown'); // Text bottom
       deselectCell();
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(2, 3, 'className', 'htRight', undefined, undefined);
