@@ -26,7 +26,7 @@ export default function autocompleteValidator(value, callback) {
   } else {
     callback(true);
   }
-};
+}
 
 /**
  * Function responsible for validation of autocomplete value.

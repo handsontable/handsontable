@@ -3588,4 +3588,4 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   Hooks.getSingleton().run(instance, 'construct');
-};
+}
