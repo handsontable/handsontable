@@ -195,8 +195,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
 
         let cell = instance.getCell(visualRow, visualColumn);
 
-        if (cell == null) {
-
+        if (cell === null || cell === void 0) {
           callback(visualRow, visualColumn, cachedCellProperties);
 
         } else {

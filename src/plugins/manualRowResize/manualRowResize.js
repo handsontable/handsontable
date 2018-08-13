@@ -337,7 +337,7 @@ class ManualRowResize extends BasePlugin {
       this.setupGuidePosition();
       this.pressed = this.hot;
 
-      if (this.autoresizeTimeout == null) {
+      if (this.autoresizeTimeout === null) {
         this.autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);
 
         this.hot._registerTimeout(this.autoresizeTimeout);

@@ -15,7 +15,7 @@ export default function dateValidator(value, callback) {
   let valid = true;
   const dateEditor = getEditorInstance('date', this.instance);
 
-  if (value == null) {
+  if (value === null || value === void 0) {
     value = '';
   }
   let isValidDate = moment(new Date(value)).isValid() || moment(value, dateEditor.defaultDateFormat).isValid();
