@@ -276,7 +276,7 @@
   content: '*';
   display: inline-block;
   position: relative;
-  padding-right: 32px; /* The multi-line header need more padding to not hide arrow */
+  padding-right: 14px; /* The multi-line header need more padding to not hide arrow */
 }
 
 /* Selection */
