@@ -47,7 +47,7 @@ class Viewport {
     let height = 0;
 
     if (trimmingContainer === window) {
-      height = document.documentElement.clientHeight;
+      height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
     } else {
       elemHeight = outerHeight(trimmingContainer);
