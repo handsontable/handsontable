@@ -21,7 +21,7 @@
  * UNINTERRUPTED OR ERROR FREE.
  * 
  * Version: 5.0.1
- * Release date: 15/08/2018 (built at 09/08/2018 10:24:46)
+ * Release date: 16/08/2018 (built at 16/08/2018 12:38:43)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3127,7 +3127,7 @@ function _injectProductInfo(key, element) {
 
   if (trial || schemaValidity) {
     if (schemaValidity) {
-      var releaseTime = Math.floor((0, _moment2.default)('15/08/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
+      var releaseTime = Math.floor((0, _moment2.default)('16/08/2018', 'DD/MM/YYYY').toDate().getTime() / 8.64e7);
       var keyGenTime = _extractTime(key);
 
       if (keyGenTime > 45000 || keyGenTime !== parseInt(keyGenTime, 10)) {
@@ -33625,7 +33625,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_handsontable2.default.baseVersion = 'handsontable/handsontable#release/5.0.1';
+_handsontable2.default.baseVersion = '5.0.1';
 
 exports.default = _handsontable2.default;
 
@@ -34267,11 +34267,11 @@ Handsontable.DefaultSettings = _defaultSettings2.default;
 Handsontable.EventManager = _eventManager2.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = '09/08/2018 10:24:46';
+Handsontable.buildDate = '16/08/2018 12:38:43';
 Handsontable.packageName = 'handsontable-pro';
 Handsontable.version = '5.0.1';
 
-var baseVersion = 'handsontable/handsontable#release/5.0.1';
+var baseVersion = '5.0.1';
 
 if (baseVersion) {
   Handsontable.baseVersion = baseVersion;
