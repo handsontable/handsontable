@@ -22,7 +22,7 @@ describe('CopyPaste', () => {
     setData(type, value) {
       this.data = value;
     }
-  };
+  }
 
   function getClipboardEvent() {
     const event = {};

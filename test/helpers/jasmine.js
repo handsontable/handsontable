@@ -5,11 +5,11 @@ let currentSpec;
 
 export function spec() {
   return currentSpec;
-};
+}
 
 function hot() {
   return spec().$container.data('handsontable');
-};
+}
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
 

@@ -62,4 +62,4 @@ export default function timeValidator(value, callback) {
   }
 
   callback(valid);
-};
+}

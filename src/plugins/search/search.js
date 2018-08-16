@@ -166,7 +166,7 @@ class Search extends BasePlugin {
     });
 
     return queryResult;
-  };
+  }
 
   /**
    * Gets the callback function.

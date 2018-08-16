@@ -20,7 +20,6 @@
     "new-cap": 2,
     "newline-per-chained-call": 1,
     "no-eq-null": 2,
-    "no-extra-semi": 0,
     "no-irregular-whitespace": 2,
     "no-mixed-spaces-and-tabs": 2,
     "no-multi-str": 2,
@@ -56,7 +55,6 @@
     "prefer-const": 0,
     "space-infix-ops": 2,
     "vars-on-top": 0,
-    "linebreak-style": 0,
     "camelcase": [
       2,
       {
