@@ -84,7 +84,7 @@ class Storage {
     let keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : void 0;
 
     this.savedKeys = keys ? keys : [];
-  };
+  }
 
   /**
    * Save saved key in localStorage.
@@ -93,7 +93,7 @@ class Storage {
    */
   saveSavedKeys() {
     window.localStorage.setItem(`${this.prefix}__persistentStateKeys`, JSON.stringify(this.savedKeys));
-  };
+  }
 
   /**
    * Clear saved key from localStorage.
@@ -103,7 +103,7 @@ class Storage {
   clearSavedKeys() {
     this.savedKeys.length = 0;
     this.saveSavedKeys();
-  };
+  }
 }
 
 export default Storage;

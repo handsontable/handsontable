@@ -32,7 +32,7 @@ function registerLanguage(languageCodeOrDictionary, dictionary) {
 
   // We do not allow user to work with dictionary by reference, it can cause lot of bugs.
   return deepClone(dictionary);
-};
+}
 
 /**
  * Get language dictionary for specific language code.

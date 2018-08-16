@@ -131,11 +131,11 @@ class TableRenderer {
 
         rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
-        if (rowHeaderWidthSetting != null) {
+        if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== void 0) {
           for (let i = 0; i < this.rowHeaderCount; i++) {
             let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
 
-            width = width == null ? defaultColumnWidth : width;
+            width = (width === null || width === void 0) ? defaultColumnWidth : width;
 
             this.COLGROUP.childNodes[i].style.width = `${width}px`;
           }
@@ -344,7 +344,7 @@ class TableRenderer {
       }
 
       if (Array.isArray(columnHeaderHeightSetting)) {
-        if (columnHeaderHeightSetting[level] != null) {
+        if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== void 0) {
           this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
         }
 
@@ -407,11 +407,11 @@ class TableRenderer {
 
     rowHeaderWidthSetting = this.instance.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
-    if (rowHeaderWidthSetting != null) {
+    if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== void 0) {
       for (let i = 0; i < this.rowHeaderCount; i++) {
         let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[i] : rowHeaderWidthSetting;
 
-        width = width == null ? defaultColumnWidth : width;
+        width = (width === null || width === void 0) ? defaultColumnWidth : width;
 
         this.COLGROUP.childNodes[i].style.width = `${width}px`;
       }

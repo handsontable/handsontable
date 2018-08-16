@@ -103,7 +103,7 @@ class ViewportColumnsCalculator {
       let compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
 
       if (sum >= scrollOffset && sum + columnWidth <= scrollOffset + compensatedViewportWidth) {
-        if (this.startColumn == null) {
+        if (this.startColumn === null || this.startColumn === void 0) {
           this.startColumn = i;
         }
         this.endColumn = i;

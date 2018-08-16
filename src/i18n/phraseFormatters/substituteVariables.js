@@ -14,4 +14,4 @@ export default function substituteVariables(phrasePropositions, zippedVariablesA
   }
 
   return substitute(phrasePropositions, zippedVariablesAndValues);
-};
+}
