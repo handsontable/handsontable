@@ -256,10 +256,8 @@ class Comments extends BasePlugin {
     let comment = '';
 
     if (value !== null && value !== void 0) {
-    // if (value !== null) {
       comment = value;
     } else if (editorValue !== null && editorValue !== void 0) {
-    // } else if (editorValue !== null) {
       comment = editorValue;
     }
 
