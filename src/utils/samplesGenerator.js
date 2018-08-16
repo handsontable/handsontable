@@ -56,7 +56,7 @@ class SamplesGenerator {
       return this.customSampleCount;
     }
     return SamplesGenerator.SAMPLE_COUNT;
-  };
+  }
 
   /**
    * Set the sample count.

@@ -57,7 +57,7 @@ class DisplaySwitch {
   show(range) {
     this.wasLastActionShow = true;
     this.showDebounced(range);
-  };
+  }
 
   /**
    * Cancel hiding comment.

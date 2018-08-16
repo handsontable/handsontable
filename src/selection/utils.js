@@ -222,4 +222,4 @@ export function transformSelectionToRowDistance(selectionRanges) {
  */
 export function isValidCoord(coord, maxTableItemsCount = Infinity) {
   return typeof coord === 'number' && coord >= 0 && coord < maxTableItemsCount;
-};
+}

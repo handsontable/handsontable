@@ -4,15 +4,15 @@ export function sleep(delay = 100) {
       setTimeout(resolve, delay);
     }
   });
-};
+}
 
 export function promisfy(fn) {
   return new Promise((resolve, reject) => fn(resolve, reject));
-};
+}
 
 export function hot() {
   return spec().$container.data('handsontable');
-};
+}
 
 export function handsontable(options) {
   const currentSpec = spec();
@@ -21,7 +21,7 @@ export function handsontable(options) {
   currentSpec.$container[0].focus(); // otherwise TextEditor tests do not pass in IE8
 
   return currentSpec.$container.data('handsontable');
-};
+}
 
 /**
  * As for v. 0.11 the only scrolling method is native scroll, which creates copies of main htCore table inside of the container.
@@ -35,34 +35,34 @@ export function handsontable(options) {
 
 export function getHtCore() {
   return spec().$container.find('.htCore').first();
-};
+}
 
 export function getTopClone() {
   return spec().$container.find('.ht_clone_top');
-};
+}
 
 export function getTopLeftClone() {
   return spec().$container.find('.ht_clone_top_left_corner');
-};
+}
 // for compatybility
 // const getCornerClone = getTopLeftClone;
 
 export function getLeftClone() {
   return spec().$container.find('.ht_clone_left');
-};
+}
 
 export function getBottomClone() {
   return spec().$container.find('.ht_clone_bottom');
-};
+}
 
 export function getBottomLeftClone() {
   return spec().$container.find('.ht_clone_bottom_left_corner');
-};
+}
 
 // Rename me to countTD
 export function countCells() {
   return getHtCore().find('tbody td').length;
-};
+}
 
 export function isEditorVisible(editableElement) {
   if (editableElement && !(editableElement.hasClass('handsontableInput') || editableElement.hasClass('handsontableEditor'))) {
@@ -77,11 +77,11 @@ export function isEditorVisible(editableElement) {
   const css = (cssProp) => keyProxyHolder.css(cssProp);
 
   return css('z-index') !== '-1' && css('top') !== '-9999px' && css('left') !== '-9999px';
-};
+}
 
 export function isFillHandleVisible() {
   return !!spec().$container.find('.wtBorder.corner:visible').length;
-};
+}
 
 export function getCorrespondingOverlay(cell, container) {
   const overlay = $(cell).parents('.handsontable');
@@ -91,7 +91,7 @@ export function getCorrespondingOverlay(cell, container) {
   }
 
   return $(overlay[0]);
-};
+}
 
 /**
  * Shows context menu
@@ -116,12 +116,12 @@ export function contextMenu(cell) {
   });
   // Chrome doesn't call `mouseup`.
   // $(cell).simulate('mouseup', { button: 2 });
-};
+}
 
 export function closeContextMenu() {
   $(document).simulate('mousedown');
   // $(document).trigger('mousedown');
-};
+}
 
 /**
  * Shows dropdown menu
@@ -135,11 +135,11 @@ export function dropdownMenu(columnIndex) {
     $(button).simulate('mousedown');
     $(button).simulate('click');
   }
-};
+}
 
 export function closeDropdownMenu() {
   $(document).simulate('mousedown');
-};
+}
 
 export function dropdownMenuRootElement() {
   const plugin = hot().getPlugin('dropdownMenu');
@@ -150,7 +150,7 @@ export function dropdownMenuRootElement() {
   }
 
   return root;
-};
+}
 
 /**
  * Returns a function that triggers a mouse event
@@ -167,7 +167,7 @@ export function handsontableMouseTriggerFactory(type, button) {
 
     element.simulate(type, ev);
   };
-};
+}
 
 export const mouseDown = handsontableMouseTriggerFactory('mousedown');
 export const mouseMove = handsontableMouseTriggerFactory('mousemove');
@@ -179,7 +179,7 @@ export function mouseDoubleClick(element) {
   mouseUp(element);
   mouseDown(element);
   mouseUp(element);
-};
+}
 
 export const mouseRightDown = handsontableMouseTriggerFactory('mousedown', 3);
 export const mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
@@ -288,7 +288,7 @@ export function handsontableKeyTriggerFactory(type) {
     $.extend(ev, extend);
     $(document.activeElement).simulate(type, ev);
   };
-};
+}
 
 export const keyDown = handsontableKeyTriggerFactory('keydown');
 export const keyUp = handsontableKeyTriggerFactory('keyup');
@@ -307,7 +307,7 @@ export function keyDownUp(key, extend) {
   if (typeof key === 'string' && key.indexOf('shift+') > -1) {
     keyUp('shift');
   }
-};
+}
 
 /**
  * Returns current value of the keyboard proxy textarea
@@ -315,7 +315,7 @@ export function keyDownUp(key, extend) {
  */
 export function keyProxy() {
   return spec().$container.find('textarea.handsontableInput');
-};
+}
 
 export function serveImmediatePropagation(event) {
   if (event != null && event.isImmediatePropagationEnabled == null) {
@@ -330,11 +330,11 @@ export function serveImmediatePropagation(event) {
   }
 
   return event;
-};
+}
 
 export function autocompleteEditor() {
   return spec().$container.find('.handsontableInput');
-};
+}
 
 /**
  * Sets text cursor inside keyboard proxy
@@ -353,21 +353,21 @@ export function setCaretPosition(pos) {
     range.moveStart('character', pos);
     range.select();
   }
-};
+}
 
 /**
  * Returns autocomplete instance
  */
 export function autocomplete() {
   return spec().$container.find('.autocompleteEditor');
-};
+}
 
 /**
  * Triggers paste string on current selection
  */
 export function triggerPaste(str) {
   spec().$container.data('handsontable').getPlugin('CopyPaste').paste(str);
-};
+}
 
 /**
  * Calls a method in current Handsontable instance, returns its output
@@ -397,7 +397,7 @@ export function handsontableMethodFactory(method) {
 
     return instance[method](...args);
   };
-};
+}
 
 export const addHook = handsontableMethodFactory('addHook');
 export const alter = handsontableMethodFactory('alter');
@@ -748,7 +748,7 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
 
   e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false, touches, targetTouches, changedTouches, 1, 0);
   target.dispatchEvent(e);
-};
+}
 
 export function createSpreadsheetData(...args) {
   return Handsontable.helper.createSpreadsheetData(...args);

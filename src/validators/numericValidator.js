@@ -19,4 +19,4 @@ export default function numericValidator(value, callback) {
   } else {
     callback(/^-?\d*(\.|,)?\d*$/.test(value));
   }
-};
+}
