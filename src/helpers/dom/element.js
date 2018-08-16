@@ -12,7 +12,7 @@ export function getParent(element, level = 0) {
   let iteration = -1;
   let parent = null;
 
-  while (element != null) {
+  while (element !== null) {
     if (iteration === level) {
       parent = element;
       break;
@@ -40,7 +40,7 @@ export function getParent(element, level = 0) {
  * @returns {HTMLElement|null}
  */
 export function closest(element, nodes, until) {
-  while (element != null && element !== until) {
+  while (element !== null && element !== until) {
     if (element.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(element.nodeName) > -1 || nodes.indexOf(element) > -1)) {
       return element;
     }
@@ -104,7 +104,7 @@ export function isChildOf(child, parent) {
     queriedParents.push(parent);
   }
 
-  while (node != null) {
+  while (node !== null) {
     if (queriedParents.indexOf(node) > -1) {
       return true;
     }
@@ -129,7 +129,7 @@ export function isChildOfWebComponentTable(element) {
     return testElement.nodeType === Node.ELEMENT_NODE && testElement.nodeName === hotTableName.toUpperCase();
   }
 
-  while (parentNode != null) {
+  while (parentNode !== null) {
     if (isHotTable(parentNode)) {
       result = true;
       break;

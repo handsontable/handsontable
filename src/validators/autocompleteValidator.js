@@ -7,7 +7,7 @@
  * @param {Function} callback - Callback called with validation result
  */
 export default function autocompleteValidator(value, callback) {
-  if (value == null) {
+  if (value === null || value === void 0) {
     value = '';
   }
 

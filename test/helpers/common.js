@@ -318,7 +318,8 @@ export function keyProxy() {
 }
 
 export function serveImmediatePropagation(event) {
-  if (event != null && event.isImmediatePropagationEnabled == null) {
+  if ((event !== null || event !== void 0)
+    && (event.isImmediatePropagationEnabled === null || event.isImmediatePropagationEnabled === void 0)) {
     event.stopImmediatePropagation = function() {
       this.isImmediatePropagationEnabled = false;
       this.cancelBubble = true;
