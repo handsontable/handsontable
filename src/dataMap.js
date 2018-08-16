@@ -1,7 +1,16 @@
 import SheetClip from './../lib/SheetClip/SheetClip.js';
 import { cellMethodLookupFactory } from './helpers/data';
 import { columnFactory } from './helpers/setting';
-import { createObjectPropListener, duckSchema, deepExtend, deepClone, isObject, deepObjectSize, hasOwnProperty } from './helpers/object';
+import {
+  createObjectPropListener,
+  deepClone,
+  deepExtend,
+  deepObjectSize,
+  duckSchema,
+  hasOwnProperty,
+  isObject,
+  objectEach
+} from './helpers/object';
 import { extendArray, to2dArray } from './helpers/array';
 import Interval from './utils/interval';
 import { rangeEach } from './helpers/number';
@@ -64,19 +73,17 @@ DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
     parent = '';
   }
   if (typeof schema === 'object' && !Array.isArray(schema)) {
-    for (let i in schema) {
-      if (hasOwnProperty(schema, i)) {
-        if (schema[i] === null) {
-          prop = parent + i;
-          this.colToPropCache.push(prop);
-          this.propToColCache.set(prop, lastCol);
+    objectEach(schema, (value, key) => {
+      if (value === null) {
+        prop = parent + key;
+        this.colToPropCache.push(prop);
+        this.propToColCache.set(prop, lastCol);
 
-          lastCol++;
-        } else {
-          lastCol = this.recursiveDuckColumns(schema[i], lastCol, `${i}.`);
-        }
+        lastCol++;
+      } else {
+        lastCol = this.recursiveDuckColumns(value, lastCol, `${key}.`);
       }
-    }
+    });
   }
 
   return lastCol;
