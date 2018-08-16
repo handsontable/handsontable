@@ -231,7 +231,7 @@ describe('NestedHeaders', function() {
       expect(levels[3][2].getAttribute('colspan')).toEqual(null);
       expect(levels[3][3].getAttribute('colspan')).toEqual(null);
 
-      hot.view.wt.scrollHorizontal(40);
+      hot.scrollViewportTo(void 0, 40);
       hot.render();
 
       levels = [nonHiddenTHs(0), nonHiddenTHs(1), nonHiddenTHs(2), nonHiddenTHs(3)];

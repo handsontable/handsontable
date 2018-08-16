@@ -193,7 +193,7 @@ describe('CollapsibleColumns', function() {
         height: 300
       });
 
-      hot.view.wt.scrollHorizontal(37);
+      hot.scrollViewportTo(void 0, 37);
       hot.render();
 
       var button = $('.collapsibleIndicator').eq(0);
@@ -259,7 +259,7 @@ describe('CollapsibleColumns', function() {
       });
 
       setTimeout(function() {
-        hot.view.wt.scrollHorizontal(37);
+        hot.scrollViewportTo(void 0, 37);
         hot.render();
 
         var button = $('.collapsibleIndicator').eq(0);

@@ -113,5 +113,21 @@ describe('settings', function () {
         window.onerror = prevError;
       });
     });
+
+    it('should synchronize scroll with master table', async () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        width: 200,
+        height: 200,
+        rowHeaders: true,
+        fixedRowsBottom: 2,
+      });
+
+      getMaster().find('.wtHolder').scrollLeft(100);
+
+      await sleep(10);
+
+      expect(getBottomClone().find('.wtHolder').scrollLeft()).toBe(getMaster().find('.wtHolder').scrollLeft());
+    });
   });
 });
