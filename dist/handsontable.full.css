@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 5.0.0
- * Release date: 11/07/2018 (built at 05/07/2018 08:24:58)
+ * Version: 5.0.1
+ * Release date: 16/08/2018 (built at 16/08/2018 12:19:04)
  */
 /**
  * Fix for bootstrap styles
@@ -352,6 +352,17 @@
 }
 .handsontable .wtBorder.hidden{
   display:none !important;
+}
+
+/* A layer order of the selection types */
+.handsontable .wtBorder.current {
+  z-index: 10;
+}
+.handsontable .wtBorder.area {
+  z-index: 8;
+}
+.handsontable .wtBorder.fill {
+  z-index: 6;
 }
 
 .handsontable td.area,
