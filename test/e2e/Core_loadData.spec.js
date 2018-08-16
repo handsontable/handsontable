@@ -1,5 +1,5 @@
 describe('Core_loadData', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('Core_loadData', () => {
     }
   });
 
-  var arrayOfArrays = function() {
+  const arrayOfArrays = function() {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
@@ -21,7 +21,7 @@ describe('Core_loadData', () => {
     ];
   };
 
-  var arrayOfObjects = function() {
+  const arrayOfObjects = function() {
     return [
       {id: 1, name: 'Ted', lastName: 'Right'},
       {id: 2, name: 'Frank', lastName: 'Honest'},
@@ -36,7 +36,7 @@ describe('Core_loadData', () => {
     ];
   };
 
-  var arrayOfNestedObjects = function() {
+  const arrayOfNestedObjects = function() {
     return [
       {
         id: 1,
@@ -65,7 +65,7 @@ describe('Core_loadData', () => {
     ];
   };
 
-  var htmlData = [
+  const htmlData = [
     ['<b>H&M</b>']
   ];
 
@@ -90,7 +90,7 @@ describe('Core_loadData', () => {
   it('should allow array of objects when columns as a function', () => {
     handsontable({
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.data = 'id';
@@ -130,7 +130,7 @@ describe('Core_loadData', () => {
       data: arrayOfNestedObjects(),
       colHeaders: true,
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.data = 'id';
@@ -161,7 +161,7 @@ describe('Core_loadData', () => {
   });
 
   it('should trigger onChange callback when loaded array of arrays', () => {
-    var called = false;
+    let called = false;
 
     handsontable({
       afterChange(changes, source) {
@@ -176,7 +176,7 @@ describe('Core_loadData', () => {
   });
 
   it('should trigger onChange callback when loaded array of objects', () => {
-    var called = false;
+    let called = false;
 
     handsontable({
       afterChange(changes, source) {
@@ -191,7 +191,7 @@ describe('Core_loadData', () => {
   });
 
   it('should trigger onChange callback when loaded array of nested objects', () => {
-    var called = false;
+    let called = false;
 
     handsontable({
       afterChange(changes, source) {
@@ -241,7 +241,7 @@ describe('Core_loadData', () => {
 
   // https://github.com/handsontable/handsontable/pull/233
   it('should not invoke the cells callback multiple times with the same row/col (without overlays)', () => {
-    var cellsSpy = jasmine.createSpy('cellsSpy');
+    const cellsSpy = jasmine.createSpy('cellsSpy');
 
     handsontable({
       data: arrayOfNestedObjects(),
@@ -254,7 +254,7 @@ describe('Core_loadData', () => {
   });
 
   it('should not invoke the cells callback multiple times with the same row/col (with overlays)', () => {
-    var cellsSpy = jasmine.createSpy('cellsSpy');
+    const cellsSpy = jasmine.createSpy('cellsSpy');
 
     handsontable({
       data: arrayOfNestedObjects(),
@@ -269,7 +269,7 @@ describe('Core_loadData', () => {
   });
 
   it('should remove grid rows if new data source has less of them', () => {
-    var data1 = [
+    const data1 = [
       ['a'],
       ['b'],
       ['c'],
@@ -280,7 +280,7 @@ describe('Core_loadData', () => {
       ['h']
     ];
 
-    var data2 = [
+    const data2 = [
       ['a'],
       ['b'],
       ['c'],
@@ -301,7 +301,7 @@ describe('Core_loadData', () => {
   });
 
   it('should remove grid rows if new data source has less of them (with minSpareRows)', () => {
-    var data1 = [
+    const data1 = [
       ['a'],
       ['b'],
       ['c'],
@@ -311,7 +311,7 @@ describe('Core_loadData', () => {
       ['g'],
       ['h']
     ];
-    var data2 = [
+    const data2 = [
       ['a'],
       ['b'],
       ['c'],
@@ -334,7 +334,7 @@ describe('Core_loadData', () => {
   });
 
   it('loading empty data should remove all rows', () => {
-    var data1 = [
+    const data1 = [
       ['a'],
       ['b'],
       ['c'],
@@ -345,7 +345,7 @@ describe('Core_loadData', () => {
       ['h']
     ];
 
-    var data2 = [];
+    const data2 = [];
 
     handsontable({
       data: data1,
@@ -360,7 +360,7 @@ describe('Core_loadData', () => {
   });
 
   it('should only have as many columns as in settings', () => {
-    var data1 = arrayOfArrays();
+    const data1 = arrayOfArrays();
 
     handsontable({
       data: data1,
@@ -374,12 +374,12 @@ describe('Core_loadData', () => {
   });
 
   it('should only have as many columns as in settings when columns is a function', () => {
-    var data1 = arrayOfArrays();
+    const data1 = arrayOfArrays();
 
     handsontable({
       data: data1,
       columns(column) {
-        var colMeta = {
+        let colMeta = {
           data: column
         };
 
@@ -395,7 +395,7 @@ describe('Core_loadData', () => {
   });
 
   it('should throw error when trying to load a string (constructor)', () => {
-    var errors = 0;
+    let errors = 0;
 
     try {
       handsontable({
@@ -409,7 +409,7 @@ describe('Core_loadData', () => {
   });
 
   it('should throw error when trying to load a string (loadData)', () => {
-    var errors = 0;
+    let errors = 0;
 
     try {
       handsontable();
@@ -424,14 +424,14 @@ describe('Core_loadData', () => {
   it('should load Backbone Collection as data source', () => {
     // code borrowed from demo/backbone.js
 
-    var CarModel = Backbone.Model.extend({});
+    const CarModel = Backbone.Model.extend({});
 
-    var CarCollection = Backbone.Collection.extend({
+    const CarCollection = Backbone.Collection.extend({
       model: CarModel,
       // Backbone.Collection doesn't support `splice`, yet! Easy to add.
       splice: hackedSplice
     });
-    var cars = new CarCollection();
+    const cars = new CarCollection();
 
     cars.add([
       {make: 'Dodge', model: 'Ram', year: 2012, weight: 6811},
@@ -449,23 +449,24 @@ describe('Core_loadData', () => {
     });
 
     // use the "good" Collection methods to emulate Array.splice
-    function hackedSplice(index, howMany /* model1, ... modelN */) {
-      var args = _.toArray(arguments).slice(2).concat({at: index}),
-        removed = this.models.slice(index, index + howMany);
+    function hackedSplice(index, howMany, ...models) {
+      const args = _.toArray([index, howMany, ...models]).slice(2).concat({at: index});
+      const removed = this.models.slice(index, index + howMany);
+
       this.remove(removed).add.apply(this, args);
 
       return removed;
     }
 
     // normally, you'd get these from the server with .fetch()
-    function attr(attr) {
+    function attr(attribute) {
       // this lets us remember `attr` for when when it is get/set
       return {
         data(car, value) {
           if (_.isUndefined(value)) {
-            return car.get(attr);
+            return car.get(attribute);
           }
-          car.set(attr, value);
+          car.set(attribute, value);
         }
       };
     }
@@ -476,14 +477,14 @@ describe('Core_loadData', () => {
   it('should load Backbone Collection as data source when columns is a function', () => {
     // code borrowed from demo/backbone.js
 
-    var CarModel = Backbone.Model.extend({});
+    const CarModel = Backbone.Model.extend({});
 
-    var CarCollection = Backbone.Collection.extend({
+    const CarCollection = Backbone.Collection.extend({
       model: CarModel,
       // Backbone.Collection doesn't support `splice`, yet! Easy to add.
       splice: hackedSplice
     });
-    var cars = new CarCollection();
+    const cars = new CarCollection();
 
     cars.add([
       {make: 'Dodge', model: 'Ram', year: 2012, weight: 6811},
@@ -494,7 +495,7 @@ describe('Core_loadData', () => {
     handsontable({
       data: cars,
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = attr('make');
@@ -509,24 +510,25 @@ describe('Core_loadData', () => {
     });
 
     // use the "good" Collection methods to emulate Array.splice
-    function hackedSplice(index, howMany /* model1, ... modelN */) {
-      var args = _.toArray(arguments).slice(2).concat({at: index}),
-        removed = this.models.slice(index, index + howMany);
+    function hackedSplice(index, howMany, ...models) {
+      const args = _.toArray([index, howMany, ...models]).slice(2).concat({at: index});
+      const removed = this.models.slice(index, index + howMany);
+
       this.remove(removed).add.apply(this, args);
 
       return removed;
     }
 
     // normally, you'd get these from the server with .fetch()
-    function attr(attr) {
+    function attr(attribute) {
       // this lets us remember `attr` for when when it is get/set
       return {
         data(car, value) {
           if (_.isUndefined(value)) {
-            return car.get(attr);
+            return car.get(attribute);
           }
 
-          car.set(attr, value);
+          car.set(attribute, value);
         }
       };
     }
@@ -547,18 +549,18 @@ describe('Core_loadData', () => {
     expect(getCellMeta(0, 0).foo).toBeUndefined();
   });
 
-  it('should clear cell properties after loadData, but before rendering new data', function() {
+  it('should clear cell properties after loadData, but before rendering new data', () => {
     handsontable();
     loadData(arrayOfArrays());
 
     getCellMeta(0, 0).valid = false;
     render();
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
 
     loadData(arrayOfArrays());
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
 
   });
 
@@ -566,7 +568,7 @@ describe('Core_loadData', () => {
   // can't edit anything after starting editing cell with no nested object
   it('should correct behave with cell with no nested object data source corresponding to column mapping', () => {
 
-    var objectData = [
+    const objectData = [
       {id: 1, user: {name: {first: 'Ted', last: 'Right'}}},
       {id: 2, user: {name: {}}},
       {id: 3}
@@ -594,7 +596,7 @@ describe('Core_loadData', () => {
 
   it('should correct behave with cell with no nested object data source corresponding to column mapping when columns is a function', () => {
 
-    var objectData = [
+    const objectData = [
       {id: 1, user: {name: {first: 'Ted', last: 'Right'}}},
       {id: 2, user: {name: {}}},
       {id: 3}
@@ -603,7 +605,7 @@ describe('Core_loadData', () => {
     handsontable({
       data: objectData,
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {data: 'id'};

@@ -1,7 +1,7 @@
-import {KEY_CODES, isPrintableChar} from './../helpers/unicode';
-import {stringify, isDefined} from './../helpers/mixed';
-import {stripTags} from './../helpers/string';
-import {pivot, arrayMap} from './../helpers/array';
+import { KEY_CODES, isPrintableChar } from './../helpers/unicode';
+import { stringify, isDefined } from './../helpers/mixed';
+import { stripTags } from './../helpers/string';
+import { pivot, arrayMap } from './../helpers/array';
 import {
   addClass,
   getCaretPosition,
@@ -23,8 +23,8 @@ const AutocompleteEditor = HandsontableEditor.prototype.extend();
  * @class AutocompleteEditor
  * @dependencies HandsontableEditor
  */
-AutocompleteEditor.prototype.init = function() {
-  HandsontableEditor.prototype.init.apply(this, arguments);
+AutocompleteEditor.prototype.init = function(...args) {
+  HandsontableEditor.prototype.init.apply(this, args);
   this.query = null;
   this.strippedChoices = [];
   this.rawChoices = [];
@@ -44,14 +44,14 @@ AutocompleteEditor.prototype.getValue = function() {
   return this.TEXTAREA.value;
 };
 
-AutocompleteEditor.prototype.createElements = function() {
-  HandsontableEditor.prototype.createElements.apply(this, arguments);
+AutocompleteEditor.prototype.createElements = function(...args) {
+  HandsontableEditor.prototype.createElements.apply(this, args);
 
   addClass(this.htContainer, 'autocompleteEditor');
   addClass(this.htContainer, window.navigator.platform.indexOf('Mac') === -1 ? '' : 'htMacScroll');
 };
 
-var skipOne = false;
+let skipOne = false;
 function onBeforeKeyDown(event) {
   skipOne = false;
   let editor = this.getActiveEditor();
@@ -77,15 +77,15 @@ function onBeforeKeyDown(event) {
   }
 }
 
-AutocompleteEditor.prototype.prepare = function() {
+AutocompleteEditor.prototype.prepare = function(...args) {
   this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
-  HandsontableEditor.prototype.prepare.apply(this, arguments);
+  HandsontableEditor.prototype.prepare.apply(this, args);
 };
 
-AutocompleteEditor.prototype.open = function() {
+AutocompleteEditor.prototype.open = function(...args) {
   // Ugly fix for handsontable which grab window object for autocomplete scroll listener instead table element.
   this.TEXTAREA_PARENT.style.overflow = 'auto';
-  HandsontableEditor.prototype.open.apply(this, arguments);
+  HandsontableEditor.prototype.open.apply(this, args);
   this.TEXTAREA_PARENT.style.overflow = '';
 
   let choicesListHot = this.htEditor.getInstance();
@@ -98,7 +98,7 @@ AutocompleteEditor.prototype.open = function() {
   choicesListHot.updateSettings({
     colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
     width: trimDropdown ? outerWidth(this.TEXTAREA) + getScrollbarWidth() + 2 : void 0,
-    afterRenderer(TD, row, col, prop, value, cellProperties) {
+    afterRenderer(TD, row, col, prop, value) {
       let {filteringCaseSensitive, allowHtml} = _this.cellProperties;
       let indexOfMatch;
       let match;
@@ -144,7 +144,7 @@ AutocompleteEditor.prototype.queryChoices = function(query) {
   this.query = query;
   const source = this.cellProperties.source;
 
-  if (typeof source == 'function') {
+  if (typeof source === 'function') {
     source.call(this.cellProperties, query, (choices) => {
       this.rawChoices = choices;
       this.updateChoicesList(this.stripValuesIfNeeded(choices));
@@ -289,8 +289,8 @@ AutocompleteEditor.prototype.unflipDropdown = function() {
 };
 
 AutocompleteEditor.prototype.updateDropdownHeight = function() {
-  var currentDropdownWidth = this.htEditor.getColWidth(0) + getScrollbarWidth() + 2;
-  var trimDropdown = this.cellProperties.trimDropdown;
+  const currentDropdownWidth = this.htEditor.getColWidth(0) + getScrollbarWidth() + 2;
+  const trimDropdown = this.cellProperties.trimDropdown;
 
   this.htEditor.updateSettings({
     height: this.getDropdownHeight(),
@@ -306,11 +306,11 @@ AutocompleteEditor.prototype.setDropdownHeight = function(height) {
   });
 };
 
-AutocompleteEditor.prototype.finishEditing = function(restoreOriginalValue) {
+AutocompleteEditor.prototype.finishEditing = function(restoreOriginalValue, ...args) {
   if (!restoreOriginalValue) {
     this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
   }
-  HandsontableEditor.prototype.finishEditing.apply(this, arguments);
+  HandsontableEditor.prototype.finishEditing.apply(this, [restoreOriginalValue, ...args]);
 };
 
 AutocompleteEditor.prototype.highlightBestMatchingChoice = function(index) {
@@ -433,8 +433,8 @@ AutocompleteEditor.prototype.allowKeyEventPropagation = function(keyCode) {
   return allowed;
 };
 
-AutocompleteEditor.prototype.discardEditor = function(result) {
-  HandsontableEditor.prototype.discardEditor.apply(this, arguments);
+AutocompleteEditor.prototype.discardEditor = function(...args) {
+  HandsontableEditor.prototype.discardEditor.apply(this, args);
 
   this.instance.view.render();
 };

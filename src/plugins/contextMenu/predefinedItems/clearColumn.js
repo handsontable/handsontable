@@ -1,4 +1,4 @@
-import {getValidSelection} from './../utils';
+import { getValidSelection } from './../utils';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'clear_column';
@@ -22,7 +22,7 @@ export default function clearColumnItem() {
       if (!selected) {
         return true;
       }
-      const [startRow, startColumn, endRow, endColumn] = selected[0];
+      const [startRow, startColumn, endRow] = selected[0];
       const entireRowSelection = [startRow, 0, endRow, this.countCols() - 1];
       const rowSelected = entireRowSelection.join(',') === selected.join(',');
 

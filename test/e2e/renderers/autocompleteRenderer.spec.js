@@ -1,5 +1,5 @@
 describe('AutocompleteRenderer', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,7 @@ describe('AutocompleteRenderer', () => {
   });
 
   it('should contain down arrow glyph', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       type: 'autocomplete',
@@ -22,7 +22,7 @@ describe('AutocompleteRenderer', () => {
     setDataAtCell(2, 2, 'string');
 
     setTimeout(() => {
-      var html = getCell(2, 2).innerHTML;
+      const html = getCell(2, 2).innerHTML;
 
       expect(html).toContain('string');
       expect(html).toContain('\u25BC');
@@ -31,7 +31,7 @@ describe('AutocompleteRenderer', () => {
   });
 
   it('should open cell editor after clicking on arrow glyph', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       type: 'autocomplete'
     });
 
@@ -45,7 +45,7 @@ describe('AutocompleteRenderer', () => {
   });
 
   it('should open cell editor after clicking on arrow glyph, after the table has been destroyed and reinitialized (#1367)', () => {
-    var hot = handsontable({
+    let hot = handsontable({
       type: 'autocomplete'
     });
 
@@ -65,11 +65,11 @@ describe('AutocompleteRenderer', () => {
   });
 
   it('should prepend the autocomplete arrow at the start of the cell element (#5124)', () => {
-    var hot = handsontable({
+    handsontable({
       type: 'autocomplete'
     });
 
-    var $contents = $(getCell(0, 0)).contents();
+    const $contents = $(getCell(0, 0)).contents();
 
     expect($contents.eq(0).hasClass('htAutocompleteArrow')).toBe(true);
   });

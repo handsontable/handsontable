@@ -1,5 +1,5 @@
 describe('RowHeader', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,31 +12,28 @@ describe('RowHeader', () => {
     }
   });
 
-  it('should not show row headers by default', function() {
-    var that = this;
+  it('should not show row headers by default', () => {
     handsontable();
 
-    expect(that.$container.find('tbody th').length).toEqual(0);
+    expect(spec().$container.find('tbody th').length).toEqual(0);
   });
 
-  it('should show row headers if true', function() {
-    var that = this;
+  it('should show row headers if true', () => {
     handsontable({
       rowHeaders: true
     });
 
-    expect(that.$container.find('tbody th').length).toBeGreaterThan(0);
+    expect(spec().$container.find('tbody th').length).toBeGreaterThan(0);
   });
 
-  it('should show row headers numbered 1-10 by default', function() {
-    var that = this;
-    var startRows = 5;
+  it('should show row headers numbered 1-10 by default', () => {
+    const startRows = 5;
     handsontable({
       startRows,
       rowHeaders: true
     });
 
-    var ths = getLeftClone().find('tbody th');
+    const ths = getLeftClone().find('tbody th');
     expect(ths.length).toEqual(startRows);
     expect($.trim(ths.eq(0).text())).toEqual('1');
     expect($.trim(ths.eq(1).text())).toEqual('2');
@@ -45,15 +42,14 @@ describe('RowHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('5');
   });
 
-  it('should show row headers with custom label', function() {
-    var that = this;
-    var startRows = 5;
+  it('should show row headers with custom label', () => {
+    const startRows = 5;
     handsontable({
       startRows,
       rowHeaders: ['First', 'Second', 'Third']
     });
 
-    var ths = getLeftClone().find('tbody th');
+    const ths = getLeftClone().find('tbody th');
     expect(ths.length).toEqual(startRows);
     expect($.trim(ths.eq(0).text())).toEqual('First');
     expect($.trim(ths.eq(1).text())).toEqual('Second');
@@ -62,8 +58,7 @@ describe('RowHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('5');
   });
 
-  it('should not show row headers if false', function() {
-    var that = this;
+  it('should not show row headers if false', () => {
     handsontable({
       rowHeaders: false
     });
@@ -72,7 +67,7 @@ describe('RowHeader', () => {
   });
 
   it('should hide rows headers after updateSetting', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startRows: 5,
       rowHeaders: true
     });
@@ -88,7 +83,7 @@ describe('RowHeader', () => {
   });
 
   it('should show rows headers after updateSettings', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startRows: 5,
       rowHeaders: false
     });
@@ -105,7 +100,7 @@ describe('RowHeader', () => {
   });
 
   it('should show/hide rows headers after multiple updateSettings', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startRows: 5,
       rowHeaders: false
     });
@@ -136,12 +131,12 @@ describe('RowHeader', () => {
   });
 
   it('should show new rows headers after updateSettings', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       startCols: 3,
       rowHeaders: ['A', 'B', 'C']
     });
 
-    var leftClone = getLeftClone();
+    const leftClone = getLeftClone();
 
     expect(leftClone.find('tbody tr:eq(0) th:eq(0)').text()).toEqual('A');
     expect(leftClone.find('tbody tr:eq(1) th:eq(0)').text()).toEqual('B');
@@ -157,19 +152,19 @@ describe('RowHeader', () => {
 
   });
 
-  it('should allow defining custom row header width using the rowHeaderWidth config option', function() {
-    var hot = handsontable({
+  it('should allow defining custom row header width using the rowHeaderWidth config option', () => {
+    handsontable({
       startCols: 3,
       rowHeaders: true,
       rowHeaderWidth: 150
     });
 
-    expect(this.$container.find('th').eq(0).outerWidth()).toEqual(150);
-    expect(this.$container.find('col').first().css('width')).toEqual('150px');
+    expect(spec().$container.find('th').eq(0).outerWidth()).toEqual(150);
+    expect(spec().$container.find('col').first().css('width')).toEqual('150px');
   });
 
-  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', function() {
-    var hot = handsontable({
+  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', () => {
+    const hot = handsontable({
       startCols: 3,
       rowHeaders: true,
       rowHeaderWidth: [66, 96],
@@ -177,8 +172,8 @@ describe('RowHeader', () => {
         array.push((index, TH) => {
           TH.innerHTML = '';
 
-          var div = document.createElement('div');
-          var span = document.createElement('span');
+          const div = document.createElement('div');
+          const span = document.createElement('span');
 
           div.className = 'relative';
           span.className = 'rowHeader';
@@ -194,10 +189,10 @@ describe('RowHeader', () => {
     });
     hot.render();
 
-    expect(this.$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(1)').outerWidth()).toEqual(66);
-    expect(this.$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(2)').outerWidth()).toEqual(96);
+    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(1)').outerWidth()).toEqual(66);
+    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(2)').outerWidth()).toEqual(96);
 
-    expect(this.$container.find('col').first().css('width')).toEqual('66px');
-    expect(this.$container.find('col').eq(1).css('width')).toEqual('96px');
+    expect(spec().$container.find('col').first().css('width')).toEqual('66px');
+    expect(spec().$container.find('col').eq(1).css('width')).toEqual('96px');
   });
 });

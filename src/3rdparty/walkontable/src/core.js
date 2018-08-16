@@ -137,41 +137,41 @@ class Walkontable {
   }
 
   /**
-   * Scroll the viewport to a row at the given index in the data source
-   *
-   * @param {Number} row
-   * @returns {Walkontable}
-   */
-  scrollVertical(row) {
-    this.wtOverlays.topOverlay.scrollTo(row);
-    this.getSetting('onScrollVertically');
-
-    return this;
-  }
-
-  /**
-   * Scroll the viewport to a column at the given index in the data source
-   *
-   * @param {Number} column
-   * @returns {Walkontable}
-   */
-  scrollHorizontal(column) {
-    this.wtOverlays.leftOverlay.scrollTo(column);
-    this.getSetting('onScrollHorizontally');
-
-    return this;
-  }
-
-  /**
-   * Scrolls the viewport to a cell (rerenders if needed)
+   * Scrolls the viewport to a cell (rerenders if needed).
    *
    * @param {CellCoords} coords
-   * @returns {Walkontable}
+   * @param {Boolean} [snapToTop]
+   * @param {Boolean} [snapToRight]
+   * @param {Boolean} [snapToBottom]
+   * @param {Boolean} [snapToLeft]
+   * @returns {Boolean}
    */
-  scrollViewport(coords) {
-    this.wtScroll.scrollViewport(coords);
+  scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
+    return this.wtScroll.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
+  }
 
-    return this;
+  /**
+   * Scrolls the viewport to a column (rerenders if needed).
+   *
+   * @param {Number} column Visual column index.
+   * @param {Boolean} [snapToRight]
+   * @param {Boolean} [snapToLeft]
+   * @returns {Boolean}
+   */
+  scrollViewportHorizontally(column, snapToRight, snapToLeft) {
+    return this.wtScroll.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+  }
+
+  /**
+   * Scrolls the viewport to a row (rerenders if needed).
+   *
+   * @param {Number} row Visual row index.
+   * @param {Boolean} [snapToTop]
+   * @param {Boolean} [snapToBottom]
+   * @returns {Boolean}
+   */
+  scrollViewportVertically(row, snapToTop, snapToBottom) {
+    return this.wtScroll.scrollViewportVertically(row, snapToTop, snapToBottom);
   }
 
   /**

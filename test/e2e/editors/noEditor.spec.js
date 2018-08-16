@@ -1,5 +1,5 @@
 describe('noEditor', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
@@ -13,8 +13,7 @@ describe('noEditor', () => {
   });
 
   it('shouldn\'t begin editing when enterBeginsEditing equals true', () => {
-    var
-      selection;
+    let selection;
 
     handsontable({
       enterBeginsEditing: true,
@@ -29,8 +28,7 @@ describe('noEditor', () => {
   });
 
   it('shouldn\'t move down after editing', () => {
-    var
-      selection;
+    let selection;
 
     handsontable({
       editor: false
@@ -44,8 +42,7 @@ describe('noEditor', () => {
   });
 
   it('shouldn\'t move down when enterBeginsEditing equals false', () => {
-    var
-      selection;
+    let selection;
 
     handsontable({
       enterBeginsEditing: false,
@@ -126,7 +123,7 @@ describe('noEditor', () => {
     }, 200);
   });
 
-  it('should not open editor after pressing a printable character', function() {
+  it('should not open editor after pressing a printable character', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       editor: false
@@ -135,12 +132,12 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    this.$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0)});
+    spec().$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0)});
 
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should not open editor after pressing a printable character with shift key', function() {
+  it('should not open editor after pressing a printable character with shift key', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       editor: false
@@ -149,7 +146,7 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    this.$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0), shiftKey: true});
+    spec().$container.simulate('keydown', {keyCode: 'a'.charCodeAt(0), shiftKey: true});
 
     expect(isEditorVisible()).toBe(false);
   });

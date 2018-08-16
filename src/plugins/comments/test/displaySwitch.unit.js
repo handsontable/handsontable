@@ -168,7 +168,7 @@ describe('Comments', () => {
   });
 
   describe('DisplaySwitch.cancelHiding', () => {
-    it('should not call function after delay', function () {
+    it('should not call function after delay', () => {
       const displaySwitch = new DisplaySwitch(700);
       const onHide = jasmine.createSpy('onHide');
 
@@ -184,7 +184,7 @@ describe('Comments', () => {
       expect(onHide).not.toHaveBeenCalled();
     });
 
-    it('should set timer value to `null`', function () {
+    it('should set timer value to `null`', () => {
       const displaySwitch = new DisplaySwitch(700);
       const onHide = jasmine.createSpy('onHide');
 

@@ -1,5 +1,5 @@
 describe('NumericRenderer', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,7 @@ describe('NumericRenderer', () => {
   });
 
   it('should render formatted number', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       cells() {
@@ -33,7 +33,7 @@ describe('NumericRenderer', () => {
   });
 
   it('should render signed number', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       cells() {
@@ -72,9 +72,9 @@ describe('NumericRenderer', () => {
   });
 
   it('should add class names `htNumeric` and `htRight` to the cell if it renders a number', () => {
-    var DIV = document.createElement('DIV');
-    var instance = new Handsontable(DIV, {});
-    var TD = document.createElement('TD');
+    const DIV = document.createElement('DIV');
+    const instance = new Handsontable(DIV, {});
+    const TD = document.createElement('TD');
     TD.className = 'someClass';
     Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, {});
     expect(TD.className).toEqual('someClass htRight htNumeric');
@@ -82,9 +82,9 @@ describe('NumericRenderer', () => {
   });
 
   it('should add class names `htNumeric` and `htRight` to the cell if it renders a numeric string', () => {
-    var DIV = document.createElement('DIV');
-    var instance = new Handsontable(DIV, {});
-    var TD = document.createElement('TD');
+    const DIV = document.createElement('DIV');
+    const instance = new Handsontable(DIV, {});
+    const TD = document.createElement('TD');
     TD.className = 'someClass';
     Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, '123', {});
     expect(TD.className).toEqual('someClass htRight htNumeric');
@@ -92,9 +92,9 @@ describe('NumericRenderer', () => {
   });
 
   it('should not add class name `htNumeric` to the cell if it renders a text', () => {
-    var DIV = document.createElement('DIV');
-    var instance = new Handsontable(DIV, {});
-    var TD = document.createElement('TD');
+    const DIV = document.createElement('DIV');
+    const instance = new Handsontable(DIV, {});
+    const TD = document.createElement('TD');
     TD.className = 'someClass';
     Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 'abc', {});
     expect(TD.className).toEqual('someClass');
@@ -102,9 +102,9 @@ describe('NumericRenderer', () => {
   });
 
   it('should add class name `htDimmed` to a read only cell', () => {
-    var DIV = document.createElement('DIV');
-    var instance = new Handsontable(DIV, {});
-    var TD = document.createElement('TD');
+    const DIV = document.createElement('DIV');
+    const instance = new Handsontable(DIV, {});
+    const TD = document.createElement('TD');
     Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, {readOnly: true, readOnlyCellClassName: 'htDimmed'});
     expect(TD.className).toContain('htDimmed');
     instance.destroy();
@@ -130,12 +130,12 @@ describe('NumericRenderer', () => {
 
       contextMenu();
 
-      var menu = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator');
+      const menu = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator');
 
       menu.simulate('mouseover');
 
       setTimeout(() => {
-        var contextSubMenu = $(`.htContextMenuSub_${menu.text()}`).find('tbody td').eq(0);
+        const contextSubMenu = $(`.htContextMenuSub_${menu.text()}`).find('tbody td').eq(0);
 
         contextSubMenu.simulate('mousedown');
         contextSubMenu.simulate('mouseup');

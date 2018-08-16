@@ -1,5 +1,5 @@
 describe('Core_validate', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('Core_validate', () => {
     }
   });
 
-  var arrayOfObjects = function() {
+  const arrayOfObjects = function() {
     return [
       {id: 1, name: 'Ted', lastName: 'Right'},
       {id: 2, name: 'Frank', lastName: 'Honest'},
@@ -28,7 +28,7 @@ describe('Core_validate', () => {
   };
 
   it('should call beforeValidate', () => {
-    var fired = null;
+    let fired = null;
 
     handsontable({
       data: arrayOfObjects(),
@@ -47,12 +47,12 @@ describe('Core_validate', () => {
   });
 
   it('should call beforeValidate when columns is a function', () => {
-    var fired = null;
+    let fired = null;
 
     handsontable({
       data: arrayOfObjects(),
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.data = 'id';
@@ -80,7 +80,7 @@ describe('Core_validate', () => {
   });
 
   it('should call afterValidate', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -100,12 +100,12 @@ describe('Core_validate', () => {
   });
 
   it('should call afterValidate when columns is a function', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.data = 'id';
@@ -134,8 +134,8 @@ describe('Core_validate', () => {
   });
 
   it('beforeValidate can manipulate value', (done) => {
-    var result = null;
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    let result = null;
 
     onAfterValidate.and.callFake((valid, value) => {
       result = value;
@@ -163,8 +163,8 @@ describe('Core_validate', () => {
   });
 
   it('beforeValidate can manipulate value when columns is a function', (done) => {
-    var result = null;
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    let result = null;
 
     onAfterValidate.and.callFake((valid, value) => {
       result = value;
@@ -173,7 +173,7 @@ describe('Core_validate', () => {
     handsontable({
       data: arrayOfObjects(),
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.data = 'id';
@@ -206,7 +206,7 @@ describe('Core_validate', () => {
   });
 
   it('should be able to define custom validator function', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -229,12 +229,12 @@ describe('Core_validate', () => {
   });
 
   it('should be able to define custom validator function when columns is a function', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {
@@ -264,7 +264,7 @@ describe('Core_validate', () => {
   });
 
   it('should be able to define custom validator RegExp', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -285,12 +285,12 @@ describe('Core_validate', () => {
   });
 
   it('should be able to define custom validator RegExp when columns is a function', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {data: 'id', validator: /^\d+$/};
@@ -315,8 +315,8 @@ describe('Core_validate', () => {
   });
 
   it('this in validator should point to cellProperties', (done) => {
-    var result = null;
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    let result = null;
 
     handsontable({
       data: arrayOfObjects(),
@@ -342,13 +342,13 @@ describe('Core_validate', () => {
   });
 
   it('this in validator should point to cellProperties when columns is a function', (done) => {
-    var result = null;
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    let result = null;
 
     handsontable({
       data: arrayOfObjects(),
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {
@@ -379,11 +379,11 @@ describe('Core_validate', () => {
   });
 
   it('should not throw error after calling validateCells without first argument', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'B1') {
+        if (value === 'B1') {
           callb(false);
         } else {
           callb(true);
@@ -402,8 +402,8 @@ describe('Core_validate', () => {
   });
 
   it('should throw error after calling validateRows first argument not array', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
         callb(true);
@@ -418,8 +418,8 @@ describe('Core_validate', () => {
   });
 
   it('should throw error after calling validateColumns first argument not array', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
         callb(true);
@@ -434,8 +434,8 @@ describe('Core_validate', () => {
   });
 
   it('should not throw error after calling validateRows without second argument', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
         callb(true);
@@ -450,8 +450,8 @@ describe('Core_validate', () => {
   });
 
   it('should not throw error after calling validateColumns without second argument', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
         callb(true);
@@ -466,11 +466,11 @@ describe('Core_validate', () => {
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - on validateCells', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'B1') {
+        if (value === 'B1') {
           callb(false);
         } else {
           callb(true);
@@ -491,11 +491,11 @@ describe('Core_validate', () => {
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - on validateRows', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'B1') {
+        if (value === 'B1') {
           callb(false);
         } else {
           callb(true);
@@ -575,7 +575,7 @@ describe('Core_validate', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'B1') {
+        if (value === 'B1') {
           callb(false);
         } else {
           callb(true);
@@ -630,9 +630,9 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
   });
 
-  it('should add class name `htInvalid` to an cell that does not validate - when we trigger validateCell', function(done) {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+  it('should add class name `htInvalid` to an cell that does not validate - when we trigger validateCell', async () => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, cb) {
         cb(false);
@@ -640,24 +640,23 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    expect(this.$container.find('td:not(.htInvalid)').length).toEqual(4);
+    expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
     hot.validateCell(hot.getDataAtCell(1, 1), hot.getCellMeta(1, 1), () => {});
 
-    setTimeout(() => {
-      expect(spec().$container.find('td.htInvalid').length).toEqual(1);
-      expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
+    expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
   });
 
   it('should remove class name `htInvalid` from an cell that does validate - when we change validator rules', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var isValid = false;
-    var validator = function() {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    let isValid = false;
+    const validator = function() {
       return isValid;
     };
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, cb) {
         cb(validator());
@@ -684,12 +683,12 @@ describe('Core_validate', () => {
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - on edit', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'test') {
+        if (value === 'test') {
           callb(false);
         } else {
           callb(true);
@@ -708,11 +707,11 @@ describe('Core_validate', () => {
   });
 
   it('should add class name `htInvalid` to a cell without removing other classes', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var validator = jasmine.createSpy('validator');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const validator = jasmine.createSpy('validator');
 
     validator.and.callFake((value, callb) => {
-      if (value == 123) {
+      if (value === 123) {
         callb(false);
       } else {
         callb(true);
@@ -743,8 +742,8 @@ describe('Core_validate', () => {
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - after validateCells', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       afterValidate: onAfterValidate
     });
@@ -776,8 +775,8 @@ describe('Core_validate', () => {
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - after validateRows', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       afterValidate: onAfterValidate
     });
@@ -788,7 +787,7 @@ describe('Core_validate', () => {
       expect(spec().$container.find('td.htInvalid').length).toEqual(0);
       updateSettings({
         validator(value, callb) {
-          if (value == 'test') {
+          if (value === 'test') {
             callb(false);
           } else {
             callb(true);
@@ -809,8 +808,8 @@ describe('Core_validate', () => {
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - after validateColumns', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       afterValidate: onAfterValidate
     });
@@ -821,7 +820,7 @@ describe('Core_validate', () => {
       expect(spec().$container.find('td.htInvalid').length).toEqual(0);
       updateSettings({
         validator(value, callb) {
-          if (value == 'test') {
+          if (value === 'test') {
             callb(false);
           } else {
             callb(true);
@@ -842,11 +841,11 @@ describe('Core_validate', () => {
   });
 
   it('should remove class name `htInvalid` when cell is edited to validate', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callb) {
-        if (value == 'A1') {
+        if (value === 'A1') {
           callb(false);
         } else {
           callb(true);
@@ -872,9 +871,9 @@ describe('Core_validate', () => {
   });
 
   it('should call callback with first argument as `true` if all cells are valid', (done) => {
-    var onValidate = jasmine.createSpy('onValidate');
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onValidate = jasmine.createSpy('onValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(true);
@@ -891,9 +890,9 @@ describe('Core_validate', () => {
   });
 
   it('should call callback with first argument as `true` if all cells are valid - on validateRows', (done) => {
-    var onValidate = jasmine.createSpy('onValidate');
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onValidate = jasmine.createSpy('onValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(true);
@@ -910,9 +909,9 @@ describe('Core_validate', () => {
   });
 
   it('should call callback with first argument as `true` if all cells are valid - on validateColumns', (done) => {
-    var onValidate = jasmine.createSpy('onValidate');
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onValidate = jasmine.createSpy('onValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(true);
@@ -929,9 +928,9 @@ describe('Core_validate', () => {
   });
 
   it('should call callback with first argument as `false` if one of cells is invalid', (done) => {
-    var onValidate = jasmine.createSpy('onValidate');
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onValidate = jasmine.createSpy('onValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(false);
@@ -948,9 +947,9 @@ describe('Core_validate', () => {
   });
 
   it('should call callback with first argument as `false` if one of cells is invalid - on validateRows', (done) => {
-    var onValidate = jasmine.createSpy('onValidate');
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onValidate = jasmine.createSpy('onValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(false);
@@ -967,9 +966,9 @@ describe('Core_validate', () => {
   });
 
   it('should call callback with first argument as `false` if one of cells is invalid - on validateColumns', (done) => {
-    var onValidate = jasmine.createSpy('onValidate');
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var hot = handsontable({
+    const onValidate = jasmine.createSpy('onValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(false);
@@ -986,7 +985,7 @@ describe('Core_validate', () => {
   });
 
   it('should not allow for changes where data is invalid (multiple changes, async)', (done) => {
-    var validatedChanges;
+    let validatedChanges;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
@@ -1028,9 +1027,9 @@ describe('Core_validate', () => {
   });
 
   it('should call beforeChange exactly once after cell value edit and validator is synchronous', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var onBeforeChange = jasmine.createSpy('onBeforeChange');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onBeforeChange = jasmine.createSpy('onBeforeChange');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
@@ -1051,9 +1050,9 @@ describe('Core_validate', () => {
   });
 
   it('should call beforeChange exactly once after cell value edit and validator is asynchronous', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var onBeforeChange = jasmine.createSpy('onBeforeChange');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onBeforeChange = jasmine.createSpy('onBeforeChange');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
@@ -1076,9 +1075,9 @@ describe('Core_validate', () => {
   });
 
   it('should call afterChange exactly once after cell value edit and validator is synchronous', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var onAfterChange = jasmine.createSpy('onAfterChange');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterChange = jasmine.createSpy('onAfterChange');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
@@ -1099,9 +1098,9 @@ describe('Core_validate', () => {
   });
 
   it('should call afterChange exactly once after cell value edit and validator is asynchronous', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var onAfterChange = jasmine.createSpy('onAfterChange');
-    var hot = handsontable({
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterChange = jasmine.createSpy('onAfterChange');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
@@ -1124,10 +1123,10 @@ describe('Core_validate', () => {
   });
 
   it('edited cell should stay on screen until value is validated', (done) => {
-    var isEditorVisibleBeforeChange;
-    var isEditorVisibleAfterChange;
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
-    var onAfterChange = jasmine.createSpy('onAfterChange');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterChange = jasmine.createSpy('onAfterChange');
+    let isEditorVisibleBeforeChange;
+    let isEditorVisibleAfterChange;
 
     onAfterValidate.and.callFake(() => {
       isEditorVisibleBeforeChange = isEditorVisible();
@@ -1168,7 +1167,6 @@ describe('Core_validate', () => {
   });
 
   it('should validate edited cell after selecting another cell', async () => {
-    let validated = false;
     let validatedValue;
 
     handsontable({
@@ -1176,7 +1174,6 @@ describe('Core_validate', () => {
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          validated = true;
           validatedValue = value;
           callback(true);
         }, 50);
@@ -1195,16 +1192,14 @@ describe('Core_validate', () => {
   });
 
   it('should leave the new value in editor if it does not validate (async validation), after hitting ENTER', (done) => {
-    var validated = false;
-    var validationResult;
+    let validationResult;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          validated = true;
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -1225,15 +1220,13 @@ describe('Core_validate', () => {
   });
 
   it('should leave the new value in editor if it does not validate (sync validation), after hitting ENTER', (done) => {
-    var validated = false;
-    var validationResult;
+    let validationResult;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
-        validated = true;
-        validationResult = value.length == 2;
+        validationResult = value.length === 2;
         callback(validationResult);
       }
     });
@@ -1253,19 +1246,14 @@ describe('Core_validate', () => {
   });
 
   it('should leave the new value in editor if it does not validate (async validation), after selecting another cell', (done) => {
-    var validated = false;
-    var validationResult;
+    let validationResult;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          setTimeout(() => {
-            validated = true;
-          }, 0);
-
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -1285,25 +1273,14 @@ describe('Core_validate', () => {
   });
 
   it('should leave the new value in editor if it does not validate (sync validation), after selecting another cell', (done) => {
-    var validated = false;
-    var validationResult;
+    let validationResult;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
-        validationResult = value.length == 2;
+        validationResult = value.length === 2;
         callback(validationResult);
-
-        /* Setting this variable has to be async, because we are not interested in when the validation happens, but when
-         the callback is being called. Since internally all the callbacks are processed asynchronously (even if they are
-         synchronous) end of validator function is not the equivalent of whole validation routine end.
-         If it still sounds weird, take a look at HandsontableTextEditorClass.prototype.finishEditing method.
-         */
-
-        setTimeout(() => {
-          validated = true;
-        }, 0);
       }
     });
     selectCell(0, 0);
@@ -1350,17 +1327,14 @@ describe('Core_validate', () => {
   });
 
   it('should close the editor and save the new value if validation fails and allowInvalid is set to "true"', (done) => {
-    var validated = false;
-    var validationResult;
+    let validationResult;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: true,
       validator(value, callback) {
         setTimeout(() => {
-
-          validated = true;
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -1389,7 +1363,7 @@ describe('Core_validate', () => {
       validator(value, callback) {
         setTimeout(() => {
 
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -1424,14 +1398,14 @@ describe('Core_validate', () => {
   });
 
   it('should close the editor and restore the original value after double clicking on a cell, if the previously edited cell have not validated', (done) => {
-    var validationResult;
+    let validationResult;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
-          validationResult = value.length == 2;
+          validationResult = value.length === 2;
           callback(validationResult);
         }, 100);
       }
@@ -1443,7 +1417,7 @@ describe('Core_validate', () => {
 
     expect(document.activeElement.value).toEqual('AAA');
 
-    var cell = $(getCell(1, 0));
+    const cell = $(getCell(1, 0));
 
     setTimeout(() => {
       mouseDown(cell);
@@ -1547,7 +1521,7 @@ describe('Core_validate', () => {
   });
 
   it('should not allow keyboard movement until cell is validated (move UP)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -1587,7 +1561,7 @@ describe('Core_validate', () => {
   });
 
   it('should not allow keyboard movement until cell is validated (move RIGHT)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -1625,8 +1599,8 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('should not allow keyboard movement until cell is validated (move LEFT)', function(done) {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+  it('should not allow keyboard movement until cell is validated (move LEFT)', async () => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     hot = handsontable({
       data: arrayOfObjects(),
@@ -1652,23 +1626,22 @@ describe('Core_validate', () => {
     keyDownUp('enter'); // should be accepted but only after 100 ms
     expect(getSelected()).toEqual([[3, 2, 3, 2]]);
 
-    this.$container.simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
-    this.$container.simulate('keyup', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
-    this.$container.simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
-    this.$container.simulate('keyup', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
+    spec().$container.simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
+    spec().$container.simulate('keyup', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
+    spec().$container.simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
+    spec().$container.simulate('keyup', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
 
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
-    setTimeout(() => {
-      expect(isEditorVisible()).toBe(false);
-      expect(getSelected()).toEqual([[3, 0, 3, 0]]);
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(isEditorVisible()).toBe(false);
+    expect(getSelected()).toEqual([[3, 0, 3, 0]]);
   });
 
   it('should not validate cell if editing has been canceled', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -1691,12 +1664,12 @@ describe('Core_validate', () => {
   });
 
   it('should not validate cell if editing has been canceled when columns is a function', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {data: 'id'};
@@ -1725,7 +1698,7 @@ describe('Core_validate', () => {
   });
 
   it('should leave cell invalid if editing has been canceled', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -1755,12 +1728,12 @@ describe('Core_validate', () => {
   });
 
   it('should leave cell invalid if editing has been canceled when columns is a function', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {
@@ -1797,14 +1770,15 @@ describe('Core_validate', () => {
   });
 
   it('should open an appropriate editor after cell value is valid again', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
         {
           data: 'id',
           validator(value, cb) {
+            // eslint-disable-next-line
             cb(value == parseInt(value, 10));
           },
           allowInvalid: false
@@ -1817,7 +1791,7 @@ describe('Core_validate', () => {
 
     selectCell(0, 0);
 
-    var activeEditor = hot.getActiveEditor();
+    let activeEditor = hot.getActiveEditor();
 
     expect(activeEditor.row).toEqual(0);
     expect(activeEditor.col).toEqual(0);
@@ -1850,17 +1824,18 @@ describe('Core_validate', () => {
   });
 
   it('should open an appropriate editor after cell value is valid again when columns is a function', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    var hot = handsontable({
+    const hot = handsontable({
       data: arrayOfObjects(),
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {
             data: 'id',
             validator(value, cb) {
+              // eslint-disable-next-line
               cb(value == parseInt(value, 10));
             },
             allowInvalid: false
@@ -1881,7 +1856,7 @@ describe('Core_validate', () => {
 
     selectCell(0, 0);
 
-    var activeEditor = hot.getActiveEditor();
+    let activeEditor = hot.getActiveEditor();
 
     expect(activeEditor.row).toEqual(0);
     expect(activeEditor.col).toEqual(0);
@@ -1914,10 +1889,10 @@ describe('Core_validate', () => {
   });
 
   it('should call the validation callback only once, when using the validateCells method on a mixed set of data', (done) => {
-    var onValidate = jasmine.createSpy('onValidate');
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onValidate = jasmine.createSpy('onValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         {id: 'sth', name: 'Steve'},
         {id: 'sth else', name: 'Bob'}
@@ -1926,7 +1901,7 @@ describe('Core_validate', () => {
         {
           data: 'id',
           validator(value, cb) {
-            cb(value == parseInt(value, 10));
+            cb(value === parseInt(value, 10));
           }
         },
         {data: 'name'}
@@ -1944,10 +1919,10 @@ describe('Core_validate', () => {
   });
 
   it('should call the validation callback only once, when using the validateRows method on a mixed set of data', (done) => {
-    var onValidate = jasmine.createSpy('onValidate');
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onValidate = jasmine.createSpy('onValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         {id: 'sth', name: 'Steve'},
         {id: 'sth else', name: 'Bob'}
@@ -1974,10 +1949,10 @@ describe('Core_validate', () => {
   });
 
   it('should call the validation callback only once, when using the validateColumns method on a mixed set of data', (done) => {
-    var onValidate = jasmine.createSpy('onValidate');
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onValidate = jasmine.createSpy('onValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         {id: 'sth', name: 'Steve'},
         {id: 'sth else', name: 'Bob'}
@@ -2004,22 +1979,22 @@ describe('Core_validate', () => {
   });
 
   it('should call the validation callback only once, when using the validateCells method on a mixed set of data and when columns is a function', (done) => {
-    var onValidate = jasmine.createSpy('onValidate');
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onValidate = jasmine.createSpy('onValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         {id: 'sth', name: 'Steve'},
         {id: 'sth else', name: 'Bob'}
       ],
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {
             data: 'id',
             validator(value, cb) {
-              cb(value == parseInt(value, 10));
+              cb(value === parseInt(value, 10));
             }
           };
 
@@ -2042,22 +2017,22 @@ describe('Core_validate', () => {
   });
 
   it('should call the validation callback only once, when using the validateRows method on a mixed set of data and when columns is a function', (done) => {
-    var onValidate = jasmine.createSpy('onValidate');
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onValidate = jasmine.createSpy('onValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         {id: 'sth', name: 'Steve'},
         {id: 'sth else', name: 'Bob'}
       ],
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {
             data: 'id',
             validator(value, cb) {
-              cb(value == parseInt(value, 10));
+              cb(value === parseInt(value, 10));
             }
           };
 
@@ -2080,22 +2055,22 @@ describe('Core_validate', () => {
   });
 
   it('should call the validation callback only once, when using the validateColumns method on a mixed set of data and when columns is a function', (done) => {
-    var onValidate = jasmine.createSpy('onValidate');
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onValidate = jasmine.createSpy('onValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    var hot = handsontable({
+    const hot = handsontable({
       data: [
         {id: 'sth', name: 'Steve'},
         {id: 'sth else', name: 'Bob'}
       ],
       columns(column) {
-        var colMeta = null;
+        let colMeta = null;
 
         if (column === 0) {
           colMeta = {
             data: 'id',
             validator(value, cb) {
-              cb(value == parseInt(value, 10));
+              cb(value === parseInt(value, 10));
             }
           };
 

@@ -1,34 +1,42 @@
-import {addClass, empty, isChildOfWebComponentTable, removeClass} from './helpers/dom/element';
-import {columnFactory} from './helpers/setting';
-import {isFunction} from './helpers/function';
-import {warn} from './helpers/console';
-import {isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty} from './helpers/mixed';
-import {isMobileBrowser} from './helpers/browser';
+import { addClass, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
+import { columnFactory} from './helpers/setting';
+import { isFunction} from './helpers/function';
+import { warn} from './helpers/console';
+import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
+import { isMobileBrowser } from './helpers/browser';
 import DataMap from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
-import {deepClone, duckSchema, extend, isObject, isObjectEqual, deepObjectSize, hasOwnProperty, createObjectPropListener} from './helpers/object';
-import {arrayFlatten, arrayMap, arrayEach, arrayReduce} from './helpers/array';
-import {toSingleLine} from './helpers/templateLiteralTag';
-import {getPlugin} from './plugins';
-import {getRenderer} from './renderers';
-import {getValidator} from './validators';
-import {randomString} from './helpers/string';
-import {rangeEach, rangeEachReverse} from './helpers/number';
+import {
+  deepClone,
+  duckSchema,
+  extend, isObject,
+  isObjectEqual,
+  deepObjectSize,
+  hasOwnProperty,
+  createObjectPropListener
+} from './helpers/object';
+import { arrayFlatten, arrayMap, arrayEach, arrayReduce } from './helpers/array';
+import { toSingleLine } from './helpers/templateLiteralTag';
+import { getPlugin } from './plugins';
+import { getRenderer } from './renderers';
+import { getValidator } from './validators';
+import { randomString } from './helpers/string';
+import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
-import {translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel} from './helpers/data';
-import {getTranslator} from './utils/recordTranslator';
-import {registerAsRootInstance, hasValidParameter, isRootInstance} from './utils/rootInstance';
-import {CellCoords, CellRange, ViewportColumnsCalculator} from './3rdparty/walkontable/src';
+import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
+import { getTranslator} from './utils/recordTranslator';
+import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
+import {CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
-import {getCellType} from './cellTypes';
-import {getTranslatedPhrase} from './i18n';
-import {hasLanguageDictionary} from './i18n/dictionariesManager';
-import {warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLanguageCode} from './i18n/utils';
-import {startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving} from './utils/keyStateObserver';
-import {Selection} from './selection';
+import { getCellType } from './cellTypes';
+import { getTranslatedPhrase } from './i18n';
+import { hasLanguageDictionary } from './i18n/dictionariesManager';
+import { warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLanguageCode } from './i18n/utils';
+import { startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving } from './utils/keyStateObserver';
+import { Selection } from './selection';
 
 let activeGuid = null;
 
@@ -61,16 +69,15 @@ let activeGuid = null;
  * ---
  */
 export default function Core(rootElement, userSettings, rootInstanceSymbol = false) {
-  var priv,
-    datamap,
-    dataSource,
-    grid,
-    editorManager,
-    preventScrollingToCell = false,
-    instance = this,
-    GridSettings = function() {
-    },
-    eventManager = new EventManager(instance);
+  let preventScrollingToCell = false;
+  let instance = this;
+  let GridSettings = function() {};
+  const eventManager = new EventManager(instance);
+  let priv;
+  let datamap;
+  let dataSource;
+  let grid;
+  let editorManager;
 
   extend(GridSettings.prototype, DefaultSettings.prototype); // create grid settings as a copy of default settings
   extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
@@ -170,16 +177,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       scrollToCell = !preventScrolling.value;
     }
 
-    if (scrollToCell !== false && !isSelectedByAnyHeader) {
-      if (currentSelectedRange && !this.selection.isMultiple()) {
-        this.view.scrollViewport(currentSelectedRange.from);
-      } else {
-        this.view.scrollViewport(cellCoords);
-      }
-    }
-
     const isSelectedByRowHeader = this.selection.isSelectedByRowHeader();
     const isSelectedByColumnHeader = this.selection.isSelectedByColumnHeader();
+
+    if (scrollToCell !== false) {
+      if (!isSelectedByAnyHeader) {
+        if (currentSelectedRange && !this.selection.isMultiple()) {
+          this.view.scrollViewport(currentSelectedRange.from);
+        } else {
+          this.view.scrollViewport(cellCoords);
+        }
+
+      } else if (isSelectedByRowHeader) {
+        this.view.scrollViewportVertically(cellCoords.row);
+
+      } else if (isSelectedByColumnHeader) {
+        this.view.scrollViewportHorizontally(cellCoords.col);
+      }
+    }
 
     // @TODO: These CSS classes are no longer needed anymore. They are used only as a indicator of the selected
     // rows/columns in the MergedCells plugin (via border.js#L520 in the walkontable module). After fixing
@@ -264,11 +279,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
     alter(action, index, amount, source, keepEmptyRows) {
-      var delta;
+      let delta;
 
       amount = amount || 1;
 
-      function spliceWith(data, index, count, toInject) {
+      function spliceWith(data, startIndex, count, toInject) {
         let valueFactory = () => {
           let result;
 
@@ -283,7 +298,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         };
         let spliceArgs = arrayMap(new Array(count), () => valueFactory());
 
-        spliceArgs.unshift(index, 0);
+        spliceArgs.unshift(startIndex, 0);
         data.splice(...spliceArgs);
       }
 
@@ -304,17 +319,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         });
 
         // Normalize the {index, amount} groups into bigger groups.
-        const normalizedIndexes = arrayReduce(sortedIndexes, (acc, [index, amount]) => {
+        const normalizedIndexes = arrayReduce(sortedIndexes, (acc, [groupIndex, groupAmount]) => {
           const previousItem = acc[acc.length - 1];
           const [prevIndex, prevAmount] = previousItem;
           const prevLastIndex = prevIndex + prevAmount;
 
-          if (index <= prevLastIndex) {
-            const amountToAdd = Math.max(amount - (prevLastIndex - index), 0);
+          if (groupIndex <= prevLastIndex) {
+            const amountToAdd = Math.max(groupAmount - (prevLastIndex - groupIndex), 0);
 
             previousItem[1] += amountToAdd;
           } else {
-            acc.push([index, amount]);
+            acc.push([groupIndex, groupAmount]);
           }
 
           return acc;
@@ -359,7 +374,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
           if (delta) {
             if (Array.isArray(instance.getSettings().colHeaders)) {
-              var spliceArray = [index, 0];
+              const spliceArray = [index, 0];
               spliceArray.length += delta; // inserts empty (undefined) elements at the end of an array
               Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
             }
@@ -378,34 +393,35 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           const removeRow = (indexes) => {
             let offset = 0;
 
-            arrayEach(indexes, ([index, amount]) => {
-              const calcIndex = isEmpty(index) ? instance.countRows() - 1 : Math.max(index - offset, 0);
+            // Normalize the {index, amount} groups into bigger groups.
+            arrayEach(indexes, ([groupIndex, groupAmount]) => {
+              const calcIndex = isEmpty(groupIndex) ? instance.countRows() - 1 : Math.max(groupIndex - offset, 0);
 
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
-              if (Number.isInteger(index)) {
-                index = Math.max(index - offset, 0);
+              if (Number.isInteger(groupIndex)) {
+                groupIndex = Math.max(groupIndex - offset, 0);
               }
 
               // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeRow breaks the removing functionality.
-              datamap.removeRow(index, amount, source);
+              datamap.removeRow(groupIndex, groupAmount, source);
               priv.cellSettings.splice(calcIndex, amount);
 
               const totalRows = instance.countRows();
               const fixedRowsTop = instance.getSettings().fixedRowsTop;
 
               if (fixedRowsTop >= calcIndex + 1) {
-                instance.getSettings().fixedRowsTop -= Math.min(amount, fixedRowsTop - calcIndex);
+                instance.getSettings().fixedRowsTop -= Math.min(groupAmount, fixedRowsTop - calcIndex);
               }
 
               const fixedRowsBottom = instance.getSettings().fixedRowsBottom;
 
               if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
-                instance.getSettings().fixedRowsBottom -= Math.min(amount, fixedRowsBottom);
+                instance.getSettings().fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
               }
 
-              offset += amount;
+              offset += groupAmount;
             });
           };
 
@@ -424,40 +440,41 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           const removeCol = (indexes) => {
             let offset = 0;
 
-            arrayEach(indexes, ([index, amount]) => {
-              const calcIndex = isEmpty(index) ? instance.countCols() - 1 : Math.max(index - offset, 0);
+            // Normalize the {index, amount} groups into bigger groups.
+            arrayEach(indexes, ([groupIndex, groupAmount]) => {
+              const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
 
               let visualColumnIndex = recordTranslator.toPhysicalColumn(calcIndex);
 
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
-              if (Number.isInteger(index)) {
-                index = Math.max(index - offset, 0);
+              if (Number.isInteger(groupIndex)) {
+                groupIndex = Math.max(groupIndex - offset, 0);
               }
 
               // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeCol breaks the removing functionality.
-              datamap.removeCol(index, amount, source);
+              datamap.removeCol(groupIndex, groupAmount, source);
 
               for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
                 if (priv.cellSettings[row]) { // if row hasn't been rendered it wouldn't have cellSettings
-                  priv.cellSettings[row].splice(visualColumnIndex, amount);
+                  priv.cellSettings[row].splice(visualColumnIndex, groupAmount);
                 }
               }
-              var fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
+              const fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
 
               if (fixedColumnsLeft >= calcIndex + 1) {
-                instance.getSettings().fixedColumnsLeft -= Math.min(amount, fixedColumnsLeft - calcIndex);
+                instance.getSettings().fixedColumnsLeft -= Math.min(groupAmount, fixedColumnsLeft - calcIndex);
               }
 
               if (Array.isArray(instance.getSettings().colHeaders)) {
                 if (typeof visualColumnIndex === 'undefined') {
                   visualColumnIndex = -1;
                 }
-                instance.getSettings().colHeaders.splice(visualColumnIndex, amount);
+                instance.getSettings().colHeaders.splice(visualColumnIndex, groupAmount);
               }
 
-              offset += amount;
+              offset += groupAmount;
             });
           };
 
@@ -600,12 +617,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      */
     populateFromArray(start, input, end, source, method, direction, deltas) {
       // TODO: either remove or implement the `direction` argument. Currently it's not working at all.
-      var r,
-        rlen,
-        c,
-        clen,
-        setData = [],
-        current = {};
+      let r;
+      let rlen;
+      let c;
+      let clen;
+      const setData = [];
+      const current = {};
 
       rlen = input.length;
 
@@ -613,14 +630,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         return false;
       }
 
-      var repeatCol,
-        repeatRow,
-        cmax,
-        rmax,
-        baseEnd = {
-          row: end === null ? null : end.row,
-          col: end === null ? null : end.col
-        };
+      let repeatCol;
+      let repeatRow;
+      let cmax;
+      let rmax;
 
       /* eslint-disable no-case-declarations */
       // insert data with specified pasteMode method
@@ -834,7 +847,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   function ValidatorsQueue() { // moved this one level up so it can be used in any function here. Probably this should be moved to a separate file
-    var resolved = false;
+    let resolved = false;
 
     return {
       validatorsInQueue: 0,
@@ -847,10 +860,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
         this.checkIfQueueIsEmpty();
       },
-      onQueueEmpty(valid) {
-      },
+      onQueueEmpty() { },
       checkIfQueueIsEmpty() {
-        if (this.validatorsInQueue == 0 && resolved == false) {
+        if (this.validatorsInQueue === 0 && resolved === false) {
           resolved = true;
           this.onQueueEmpty(this.valid);
         }
@@ -898,17 +910,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         /* eslint-disable no-loop-func */
         if (instance.getCellValidator(cellProperties)) {
           waitingForValidator.addValidatorToQueue();
-          instance.validateCell(changes[i][3], cellProperties, (function(i, cellProperties) {
+          instance.validateCell(changes[i][3], cellProperties, (function(index, cellPropertiesReference) {
             return function(result) {
               if (typeof result !== 'boolean') {
                 throw new Error('Validation error: result is not boolean');
               }
-              if (result === false && cellProperties.allowInvalid === false) {
-                changes.splice(i, 1); // cancel the change
-                cellProperties.valid = true; // we cancelled the change, so cell value is still valid
-                const cell = instance.getCell(cellProperties.visualRow, cellProperties.visualCol);
+              if (result === false && cellPropertiesReference.allowInvalid === false) {
+                changes.splice(index, 1); // cancel the change
+                cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
+                const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
                 removeClass(cell, instance.getSettings().invalidCellClassName);
-                --i;
+                --index;
               }
               waitingForValidator.removeValidatorFormQueue();
             };
@@ -919,7 +931,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     waitingForValidator.checkIfQueueIsEmpty();
 
     function resolve() {
-      var beforeChangeResult;
+      let beforeChangeResult;
 
       if (changes.length) {
         beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
@@ -1013,7 +1025,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param source
    */
   this.validateCell = function(value, cellProperties, callback, source) {
-    var validator = instance.getCellValidator(cellProperties);
+    let validator = instance.getCellValidator(cellProperties);
 
     // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
     function done(valid, canBeValidated = true) {
@@ -1023,20 +1035,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         return;
       }
 
-      var col = cellProperties.visualCol,
-        row = cellProperties.visualRow,
-        td = instance.getCell(row, col, true);
+      const col = cellProperties.visualCol;
+      const row = cellProperties.visualRow;
+      const td = instance.getCell(row, col, true);
 
-      if (td && td.nodeName != 'TH') {
+      if (td && td.nodeName !== 'TH') {
         instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
       }
       callback(valid);
     }
 
     if (isRegExp(validator)) {
-      validator = (function(validator) {
-        return function(value, callback) {
-          callback(validator.test(value));
+      validator = (function(expression) {
+        return function(cellValue, validatorCallback) {
+          validatorCallback(expression.test(cellValue));
         };
       }(validator));
     }
@@ -1087,12 +1099,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
    */
   this.setDataAtCell = function(row, column, value, source) {
-    var
-      input = setDataInputToArray(row, column, value),
-      i,
-      ilen,
-      changes = [],
-      prop;
+    const input = setDataInputToArray(row, column, value);
+    const changes = [];
+    let i;
+    let ilen;
+    let prop;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       if (typeof input[i] !== 'object') {
@@ -1134,10 +1145,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {String} [source] String that identifies how this change will be described in changes array (useful in onChange callback).
    */
   this.setDataAtRowProp = function(row, prop, value, source) {
-    var input = setDataInputToArray(row, prop, value),
-      i,
-      ilen,
-      changes = [];
+    const input = setDataInputToArray(row, prop, value);
+    const changes = [];
+    let i;
+    let ilen;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       changes.push([
@@ -1244,7 +1255,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *                       Useful **only** when the type of handled cells is `numeric`.
    */
   this.populateFromArray = function(row, column, input, endRow, endCol, source, method, direction, deltas) {
-    var c;
+    let c;
 
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
       throw new Error('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
@@ -1264,8 +1275,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
    * @param {...Number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
    */
-  this.spliceCol = function(column, index, amount/* , elements... */) {
-    return datamap.spliceCol(...arguments);
+  this.spliceCol = function(column, index, amount, ...elements) {
+    return datamap.spliceCol(column, index, amount, ...elements);
   };
 
   /**
@@ -1278,8 +1289,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
    * @param {...Number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
    */
-  this.spliceRow = function(row, index, amount/* , elements... */) {
-    return datamap.spliceRow(...arguments);
+  this.spliceRow = function(row, index, amount, ...elements) {
+    return datamap.spliceRow(row, index, amount, ...elements);
   };
 
   /**
@@ -1437,11 +1448,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
 
     } else if (data === null) {
+      const dataSchema = datamap.getSchema();
       data = [];
-      var row;
-      var r = 0;
-      var rlen = 0;
-      var dataSchema = datamap.getSchema();
+      let row;
+      let r = 0;
+      let rlen = 0;
 
       for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
         if ((instance.dataType === 'object' || instance.dataType === 'function') && priv.settings.dataSchema) {
@@ -1455,7 +1466,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         } else {
           row = [];
 
-          for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
+          for (let c = 0, clen = priv.settings.startCols; c < clen; c++) {
             row.push(null);
           }
 
@@ -1742,7 +1753,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (typeof settings.width !== 'undefined') {
-      var width = settings.width;
+      let width = settings.width;
 
       if (isFunction(width)) {
         width = width();
@@ -1782,7 +1793,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {*} Value of selected cell.
    */
   this.getValue = function() {
-    var sel = instance.getSelectedLast();
+    const sel = instance.getSelectedLast();
 
     if (GridSettings.prototype.getValue) {
       if (isFunction(GridSettings.prototype.getValue)) {
@@ -1801,8 +1812,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return;
     }
 
-    var type,
-      expandedType = {};
+    const expandedType = {};
+    let type;
 
     if (typeof obj.type === 'object') {
       type = obj.type;
@@ -1810,7 +1821,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       type = getCellType(obj.type);
     }
 
-    for (var i in type) {
+    for (let i in type) {
       if (hasOwnProperty(type, i) && !hasOwnProperty(obj, i)) {
         expandedType[i] = type[i];
       }
@@ -2269,9 +2280,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.setCellMetaObject = function(row, column, prop) {
     if (typeof prop === 'object') {
-      for (var key in prop) {
+      for (let key in prop) {
         if (hasOwnProperty(prop, key)) {
-          var value = prop[key];
+          const value = prop[key];
           this.setCellMeta(row, column, key, value);
         }
       }
@@ -2556,7 +2567,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Array} [columns] An array of validation target visual column indexes.
    */
   this._validateCells = function(callback, rows, columns) {
-    var waitingForValidator = new ValidatorsQueue();
+    const waitingForValidator = new ValidatorsQueue();
 
     if (callback) {
       waitingForValidator.onQueueEmpty = callback;
@@ -2650,7 +2661,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (priv.settings.colHeaders !== void 0 && priv.settings.colHeaders !== null) { // Polymer has empty value = null
       return !!priv.settings.colHeaders;
     }
-    for (var i = 0, ilen = instance.countCols(); i < ilen; i++) {
+    for (let i = 0, ilen = instance.countCols(); i < ilen; i++) {
       if (instance.getColHeader(i)) {
         return true;
       }
@@ -2686,7 +2697,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       result = out;
 
     } else {
-      let translateVisualIndexToColumns = function(column) {
+      let translateVisualIndexToColumns = function(visualColumnIndex) {
         let arr = [];
         let columnsLen = instance.countSourceCols();
         let index = 0;
@@ -2697,7 +2708,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
         }
 
-        return arr[column];
+        return arr[visualColumnIndex];
       };
       let baseCol = column;
       column = instance.runHooks('modifyCol', column);
@@ -2735,8 +2746,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number}
    */
   this._getColWidthFromSettings = function(col) {
-    var cellProperties = instance.getCellMeta(0, col);
-    var width = cellProperties.width;
+    const cellProperties = instance.getCellMeta(0, col);
+    let width = cellProperties.width;
 
     if (width === void 0 || width === priv.settings.width) {
       width = cellProperties.colWidths;
@@ -2798,7 +2809,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     // if (height === void 0 || height === priv.settings.height) {
     //  height = cellProperties.rowHeights;
     // }
-    var height = priv.settings.rowHeights;
+    let height = priv.settings.rowHeights;
 
     if (height !== void 0 && height !== null) {
       switch (typeof height) {
@@ -2830,7 +2841,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#modifyRowHeight
    */
   this.getRowHeight = function(row) {
-    var height = instance._getRowHeightFromSettings(row);
+    let height = instance._getRowHeightFromSettings(row);
 
     height = instance.runHooks('modifyRowHeight', height, row);
 
@@ -3266,30 +3277,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Boolean} `true` if scroll was successful, `false` otherwise.
    */
   this.scrollViewportTo = function(row, column, snapToBottom = false, snapToRight = false) {
-    if (row !== void 0 && (row < 0 || row >= instance.countRows())) {
-      return false;
-    }
-    if (column !== void 0 && (column < 0 || column >= instance.countCols())) {
-      return false;
-    }
-
+    const snapToTop = !snapToBottom;
+    const snapToLeft = !snapToRight;
     let result = false;
 
     if (row !== void 0 && column !== void 0) {
-      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
-      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
-
-      result = true;
+      result = instance.view.scrollViewport(new CellCoords(row, column), snapToTop, snapToRight, snapToBottom, snapToLeft);
     }
     if (typeof row === 'number' && typeof column !== 'number') {
-      instance.view.wt.wtOverlays.topOverlay.scrollTo(row, snapToBottom);
-
-      result = true;
+      result = instance.view.scrollViewportVertically(row, snapToTop, snapToBottom);
     }
     if (typeof column === 'number' && typeof row !== 'number') {
-      instance.view.wt.wtOverlays.leftOverlay.scrollTo(column, snapToRight);
-
-      result = true;
+      result = instance.view.scrollViewportHorizontally(column, snapToRight, snapToLeft);
     }
 
     return result;
@@ -3333,7 +3332,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.runHooks('afterDestroy');
     Hooks.getSingleton().destroy(instance);
 
-    for (var i in instance) {
+    for (let i in instance) {
       if (hasOwnProperty(instance, i)) {
         // replace instance methods with post mortem
         if (isFunction(instance[i])) {
