@@ -19,8 +19,7 @@
     "import/no-extraneous-dependencies": 0,
     "new-cap": 2,
     "newline-per-chained-call": 1,
-    "no-eq-null": 1,
-    "no-extra-semi": 0,
+    "no-eq-null": 2,
     "no-irregular-whitespace": 2,
     "no-mixed-spaces-and-tabs": 2,
     "no-multi-str": 2,
@@ -55,7 +54,6 @@
     "padded-blocks": 0,
     "prefer-const": 0,
     "space-infix-ops": 2,
-    "linebreak-style": 0,
     "camelcase": [
       2,
       {

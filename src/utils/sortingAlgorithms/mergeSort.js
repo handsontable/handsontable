@@ -106,4 +106,4 @@ function merge(array, compareFunction, startIndex, middleIndex, endIndex) {
   }
 
   return array;
-};
+}

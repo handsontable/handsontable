@@ -255,9 +255,9 @@ class Comments extends BasePlugin {
     const editorValue = this.editor.getValue();
     let comment = '';
 
-    if (value != null) {
+    if (value !== null && value !== void 0) {
       comment = value;
-    } else if (editorValue != null) {
+    } else if (editorValue !== null && editorValue !== void 0) {
       comment = editorValue;
     }
 

@@ -265,4 +265,4 @@ export default EventManager;
 
 export function getListenersCounter() {
   return listenersCounter;
-};
+}

@@ -38,7 +38,7 @@ describe('Comments', () => {
   });
 
   describe('updateSettings', () => {
-    it('should change delay, after which comment is showed #4323', (done) => {
+    it('should change delay, after which comment is showed #4323', async () => {
       const rows = 10;
       const columns = 10;
       const hot = handsontable({
@@ -70,10 +70,9 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      setTimeout(() => {
-        expect(editor.parentNode.style.display).toEqual('block');
-        done();
-      }, 150);
+      await sleep(300);
+
+      expect(editor.parentNode.style.display).toEqual('block');
     });
   });
 
@@ -502,15 +501,11 @@ describe('Comments', () => {
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', undefined, undefined, undefined);
     });
 
-    // Doesn't work in PhantomJS
-    // It will work probably when #3961 will be fixed
-    xit('should trigger `afterSetCellMeta` callback after editing comment by context menu', (done) => {
+    it('should trigger `afterSetCellMeta` callback after editing comment by context menu', async () => {
       const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
-      const rows = 10,
-        columns = 10;
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(rows, columns),
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -533,19 +528,21 @@ describe('Comments', () => {
       })[0];
 
       $(editCommentButton).simulate('mousedown');
+      $(editCommentButton).simulate('mouseup');
 
-      setTimeout(() => {
-        $('.htCommentTextArea').val('Edited comment');
+      const textarea = spec().$container[0].parentNode.querySelector('.htCommentTextArea');
+      textarea.focus();
+      textarea.value = 'Edited comment';
 
-        // changing focus
+      await sleep(100);
 
-        $('body').simulate('mousedown');
+      $('body').simulate('mousedown');
+      $('body').simulate('mouseup');
+      textarea.blur();
 
-        setTimeout(() => {
-          expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', {value: 'Edited comment'}, undefined, undefined);
-          done();
-        }, 100);
-      }, 100);
+      await sleep(400);
+
+      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', {value: 'Edited comment'}, undefined, undefined);
     });
   });
 });

@@ -638,7 +638,7 @@ class Table {
 
   getStretchedColumnWidth(sourceColumn) {
     let columnWidth = this.getColumnWidth(sourceColumn);
-    let width = columnWidth == null ? this.instance.wtSettings.settings.defaultColumnWidth : columnWidth;
+    let width = (columnWidth === null || columnWidth === void 0) ? this.instance.wtSettings.settings.defaultColumnWidth : columnWidth;
     let calculator = this.wot.wtViewport.columnsRenderCalculator;
 
     if (calculator) {
