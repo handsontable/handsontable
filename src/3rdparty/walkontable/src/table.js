@@ -680,7 +680,7 @@ class Table {
       width = this.wot.getSetting('defaultColumnWidth');
     }
     if (this.correctHeaderWidth) {
-      width++;
+      width += 1;
     }
 
     return width;

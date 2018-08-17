@@ -127,7 +127,7 @@ class ViewportColumnsCalculator {
         let viewportSum = startPositions[this.endColumn] + columnWidth - startPositions[this.startColumn - 1];
 
         if (viewportSum <= viewportWidth || !onlyFullyVisible) {
-          this.startColumn--;
+          this.startColumn -= 1;
         }
         if (viewportSum > viewportWidth) {
           break;

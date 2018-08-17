@@ -383,7 +383,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
-        count++;
+        count += 1;
         return wt.wtSettings.defaults.cellRenderer(row, column, TD);
       }
     });
@@ -401,7 +401,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
-        count++;
+        count += 1;
         return wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportRowCalculatorOverride(calc) {
@@ -424,7 +424,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
-        count++;
+        count += 1;
         return wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportRowCalculatorOverride(calc) {
@@ -452,7 +452,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
-        count++;
+        count += 1;
         return wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
       viewportColumnCalculatorOverride(calc) {
@@ -477,7 +477,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
-        count++;
+        count += 1;
 
         return wt.wtSettings.defaults.cellRenderer(row, column, TD);
       },
