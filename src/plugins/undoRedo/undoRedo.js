@@ -259,9 +259,9 @@ UndoRedo.ChangeAction = function(changes) {
 inherit(UndoRedo.ChangeAction, UndoRedo.Action);
 
 UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
-  let data = deepClone(this.changes),
-    emptyRowsAtTheEnd = instance.countEmptyRows(true),
-    emptyColsAtTheEnd = instance.countEmptyCols(true);
+  let data = deepClone(this.changes);
+  let emptyRowsAtTheEnd = instance.countEmptyRows(true);
+  let emptyColsAtTheEnd = instance.countEmptyCols(true);
 
   for (let i = 0, len = data.length; i < len; i++) {
     data[i].splice(3, 1);
@@ -313,8 +313,8 @@ UndoRedo.CreateRowAction = function(index, amount) {
 inherit(UndoRedo.CreateRowAction, UndoRedo.Action);
 
 UndoRedo.CreateRowAction.prototype.undo = function(instance, undoneCallback) {
-  let rowCount = instance.countRows(),
-    minSpareRows = instance.getSettings().minSpareRows;
+  let rowCount = instance.countRows();
+  let minSpareRows = instance.getSettings().minSpareRows;
 
   if (this.index >= rowCount && this.index - minSpareRows < rowCount) {
     this.index -= minSpareRows; // work around the situation where the needed row was removed due to an 'undo' of a made change

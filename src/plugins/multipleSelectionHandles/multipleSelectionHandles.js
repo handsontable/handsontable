@@ -134,15 +134,15 @@ class MultipleSelectionHandles extends BasePlugin {
     });
 
     this.eventManager.addEventListener(this.hot.rootElement, 'touchmove', (event) => {
-      let scrollTop = getWindowScrollTop(),
-        scrollLeft = getWindowScrollLeft(),
-        endTarget,
-        targetCoords,
-        selectedRange,
-        rangeWidth,
-        rangeHeight,
-        rangeDirection,
-        newRangeCoords;
+      let scrollTop = getWindowScrollTop();
+      let scrollLeft = getWindowScrollLeft();
+      let endTarget;
+      let targetCoords;
+      let selectedRange;
+      let rangeWidth;
+      let rangeHeight;
+      let rangeDirection;
+      let newRangeCoords;
 
       if (_this.dragged.length === 0) {
         return;
