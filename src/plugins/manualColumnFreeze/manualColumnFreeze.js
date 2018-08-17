@@ -114,9 +114,9 @@ class ManualColumnFreeze extends BasePlugin {
       this.frozenColumnsBasePositions[settings.fixedColumnsLeft] = column;
     }
 
-    settings.fixedColumnsLeft += 1;
-
     this.getMovePlugin().moveColumn(column, settings.fixedColumnsLeft);
+
+    settings.fixedColumnsLeft += 1;
   }
 
   /**

@@ -1882,6 +1882,7 @@ class Hooks {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
         while (index < length) {
           if (!globalHandlers[index] || globalHandlers[index].skip) {
+            index += 1;
             /* eslint-disable no-continue */
             continue;
           }
@@ -1908,6 +1909,7 @@ class Hooks {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
         while (index < length) {
           if (!localHandlers[index] || localHandlers[index].skip) {
+            index += 1;
             /* eslint-disable no-continue */
             continue;
           }
