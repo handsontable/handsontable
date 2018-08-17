@@ -147,7 +147,6 @@ class LeftOverlay extends Overlay {
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wot.getSetting('preventOverflow');
-    let tableWidth;
 
     if (this.trimmingContainer !== window || preventOverflow === 'vertical') {
       let height = this.wot.wtViewport.getWorkspaceHeight() - scrollbarHeight;
@@ -162,7 +161,7 @@ class LeftOverlay extends Overlay {
 
     this.clone.wtTable.holder.style.height = overlayRootStyle.height;
 
-    tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
     overlayRootStyle.width = `${tableWidth === 0 ? tableWidth : tableWidth + 4}px`;
   }
 

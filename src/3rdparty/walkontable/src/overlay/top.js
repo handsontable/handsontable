@@ -151,7 +151,6 @@ class TopOverlay extends Overlay {
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wot.getSetting('preventOverflow');
-    let tableHeight;
 
     if (this.trimmingContainer !== window || preventOverflow === 'horizontal') {
       let width = this.wot.wtViewport.getWorkspaceWidth() - scrollbarWidth;
@@ -166,7 +165,7 @@ class TopOverlay extends Overlay {
 
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
-    tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    const tableHeight = outerHeight(this.clone.wtTable.TABLE);
     overlayRootStyle.height = `${tableHeight === 0 ? tableHeight : tableHeight + 4}px`;
   }
 

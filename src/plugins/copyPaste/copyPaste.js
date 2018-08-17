@@ -409,7 +409,6 @@ class CopyPaste extends BasePlugin {
       event.preventDefault();
     }
 
-    let inputArray;
     let pastedData;
 
     if (event && typeof event.clipboardData !== 'undefined') {
@@ -419,7 +418,7 @@ class CopyPaste extends BasePlugin {
       pastedData = window.clipboardData.getData('Text');
     }
 
-    inputArray = SheetClip.parse(pastedData);
+    const inputArray = SheetClip.parse(pastedData);
 
     if (inputArray.length === 0) {
       return;

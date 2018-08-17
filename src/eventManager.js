@@ -189,12 +189,12 @@ function extendEvent(context, event) {
   let realTarget;
   let target;
   let len;
-  let nativeStopImmediatePropagation;
 
   event.isTargetWebComponent = false;
   event.realTarget = event.target;
 
-  nativeStopImmediatePropagation = event.stopImmediatePropagation;
+  const nativeStopImmediatePropagation = event.stopImmediatePropagation;
+
   event.stopImmediatePropagation = function() {
     nativeStopImmediatePropagation.apply(this);
     _stopImmediatePropagation(this);

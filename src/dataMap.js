@@ -343,9 +343,7 @@ DataMap.prototype.removeRow = function(index, amount, source) {
   }
 
   const data = this.dataSource;
-  let newData;
-
-  newData = this.filterData(index, amount);
+  const newData = this.filterData(index, amount);
 
   if (newData) {
     data.length = 0;
@@ -718,8 +716,8 @@ DataMap.prototype.clearLengthCache = function() {
  * @returns {Number}
  */
 DataMap.prototype.getLength = function() {
-  let maxRows,
-    maxRowsFromSettings = this.instance.getSettings().maxRows;
+  const maxRowsFromSettings = this.instance.getSettings().maxRows;
+  let maxRows;
 
   if (maxRowsFromSettings < 0 || maxRowsFromSettings === 0) {
     maxRows = 0;
@@ -792,9 +790,7 @@ DataMap.prototype.getAll = function() {
 DataMap.prototype.getRange = function(start, end, destination) {
   const output = [];
   let r;
-  let rlen;
   let c;
-  let clen;
   let row;
 
   const maxRows = this.instance.getSettings().maxRows;
@@ -806,8 +802,8 @@ DataMap.prototype.getRange = function(start, end, destination) {
 
   const getFn = destination === this.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
 
-  rlen = Math.min(Math.max(maxRows - 1, 0), Math.max(start.row, end.row));
-  clen = Math.min(Math.max(maxCols - 1, 0), Math.max(start.col, end.col));
+  const rlen = Math.min(Math.max(maxRows - 1, 0), Math.max(start.row, end.row));
+  const clen = Math.min(Math.max(maxCols - 1, 0), Math.max(start.col, end.col));
 
   for (r = Math.min(start.row, end.row); r <= rlen; r++) {
     row = [];

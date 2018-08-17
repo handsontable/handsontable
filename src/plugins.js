@@ -17,12 +17,11 @@ function registerPlugin(pluginName, PluginClass) {
   pluginName = toUpperCaseFirst(pluginName);
 
   Hooks.getSingleton().add('construct', function() {
-    let holder;
-
     if (!registeredPlugins.has(this)) {
       registeredPlugins.set(this, {});
     }
-    holder = registeredPlugins.get(this);
+
+    const holder = registeredPlugins.get(this);
 
     if (!holder[pluginName]) {
       holder[pluginName] = new PluginClass(this);

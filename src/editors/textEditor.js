@@ -99,10 +99,9 @@ TextEditor.prototype.beginEditing = function(...args) {
 const onBeforeKeyDown = function onBeforeKeyDown(event) {
   const instance = this;
   const that = instance.getActiveEditor();
-  let ctrlDown;
 
   // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-  ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+  const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
   // Process only events that have been fired in the editor
   if (event.target !== that.TEXTAREA || isImmediatePropagationStopped(event)) {

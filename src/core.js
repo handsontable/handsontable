@@ -1257,12 +1257,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *                       Useful **only** when the type of handled cells is `numeric`.
    */
   this.populateFromArray = function(row, column, input, endRow, endCol, source, method, direction, deltas) {
-    let c;
-
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
       throw new Error('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
     }
-    c = typeof endRow === 'number' ? new CellCoords(endRow, endCol) : null;
+
+    const c = typeof endRow === 'number' ? new CellCoords(endRow, endCol) : null;
 
     return grid.populateFromArray(new CellCoords(row, column), input, c, source, method, direction, deltas);
   };
@@ -2338,9 +2337,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getCellMeta = function(row, column) {
     const prop = datamap.colToProp(column);
-    let cellProperties;
-
-    let [physicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
+    const [potentialPhysicalRow, physicalColumn] = recordTranslator.toPhysical(row, column);
+    let physicalRow = potentialPhysicalRow;
 
     // Workaround for #11. Connected also with #3849. It should be fixed within #4497.
     if (physicalRow === null) {
@@ -2358,7 +2356,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
     }
 
-    cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
+    const cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
 
     cellProperties.row = physicalRow;
     cellProperties.col = physicalColumn;

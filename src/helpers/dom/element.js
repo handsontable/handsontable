@@ -480,13 +480,11 @@ export function isVisible(elem) {
  * @return {Object} Returns object with `top` and `left` props
  */
 export function offset(elem) {
+  const docElem = document.documentElement;
   let offsetLeft;
   let offsetTop;
   let lastElem;
-  let docElem;
   let box;
-
-  docElem = document.documentElement;
 
   if (hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
     // fixes problem with Firefox ignoring <caption> in TABLE offset (see also export outerHeight)

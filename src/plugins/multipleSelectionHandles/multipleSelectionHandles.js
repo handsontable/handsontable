@@ -134,10 +134,9 @@ class MultipleSelectionHandles extends BasePlugin {
     });
 
     this.eventManager.addEventListener(this.hot.rootElement, 'touchmove', (event) => {
-      let scrollTop = getWindowScrollTop(),
-        scrollLeft = getWindowScrollLeft(),
-        endTarget,
-        targetCoords,
+      const scrollTop = getWindowScrollTop();
+      const scrollLeft = getWindowScrollLeft();
+      let targetCoords,
         selectedRange,
         rangeWidth,
         rangeHeight,
@@ -148,7 +147,7 @@ class MultipleSelectionHandles extends BasePlugin {
         return;
       }
 
-      endTarget = document.elementFromPoint(
+      const endTarget = document.elementFromPoint(
         event.touches[0].screenX - scrollLeft,
         event.touches[0].screenY - scrollTop);
 
