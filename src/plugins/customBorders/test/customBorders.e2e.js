@@ -76,14 +76,9 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const redBorder = {
-        color: 'red',
-        width: 2
-      },
-      empty = {
-        hide: true
-      },
-      customBorders = hot.getPlugin('customBorders');
+    const redBorder = { color: 'red', width: 2 };
+    const empty = { hide: true };
+    const customBorders = hot.getPlugin('customBorders');
 
     selectCells([[1, 1, 2, 2]]);
 
@@ -140,15 +135,9 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const redBorder = {
-        color: 'red',
-        width: 2
-      },
-      greenBorder = {
-        color: 'green',
-        width: 1
-      },
-      customBorders = hot.getPlugin('customBorders');
+    const redBorder = { color: 'red', width: 2 };
+    const greenBorder = { color: 'green', width: 1 };
+    const customBorders = hot.getPlugin('customBorders');
 
     selectCell(2, 2);
 
@@ -190,18 +179,10 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const greenBorder = {
-        color: 'green',
-        width: 1
-      },
-      redBorder = {
-        color: 'red',
-        width: 2
-      },
-      empty = {
-        hide: true
-      },
-      customBorders = hot.getPlugin('customBorders');
+    const greenBorder = { color: 'green', width: 1 };
+    const redBorder = { color: 'red', width: 2 };
+    const empty = { hide: true };
+    const customBorders = hot.getPlugin('customBorders');
 
     expect(getCellMeta(2, 2).borders.top).toEqual(greenBorder);
     expect(getCellMeta(2, 2).borders.left).toEqual(redBorder);
@@ -243,18 +224,10 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const greenBorder = {
-        color: 'green',
-        width: 1
-      },
-      redBorder = {
-        color: 'red',
-        width: 2
-      },
-      empty = {
-        hide: true
-      },
-      customBorders = hot.getPlugin('customBorders');
+    const greenBorder = { color: 'green', width: 1 };
+    const redBorder = { color: 'red', width: 2 };
+    const empty = { hide: true };
+    const customBorders = hot.getPlugin('customBorders');
 
     expect(getCellMeta(2, 2).borders.top).toEqual(greenBorder);
     expect(getCellMeta(2, 2).borders.left).toEqual(redBorder);
@@ -332,18 +305,10 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const redBorder = {
-        color: 'red',
-        width: 2
-      },
-      greenBorder = {
-        color: 'green',
-        width: 1
-      },
-      empty = {
-        hide: true
-      },
-      customBorders = hot.getPlugin('customBorders');
+    const redBorder = { color: 'red', width: 2 };
+    const greenBorder = { color: 'green', width: 1 };
+    const empty = { hide: true };
+    const customBorders = hot.getPlugin('customBorders');
 
     hot.selectCells([[1, 1, 2, 2]]);
 
@@ -461,23 +426,11 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const magentaBorder = {
-        color: 'magenta',
-        width: 2
-      },
-      blueBorder = {
-        color: 'blue',
-        width: 2
-      },
-      orangeBorder = {
-        color: 'orange',
-        width: 2
-      },
-      redBorder = {
-        color: 'red',
-        width: 2
-      },
-      customBorders = hot.getPlugin('customBorders');
+    const magentaBorder = { color: 'magenta', width: 2 };
+    const blueBorder = { color: 'blue', width: 2 };
+    const orangeBorder = { color: 'orange', width: 2 };
+    const redBorder = { color: 'red', width: 2 };
+    const customBorders = hot.getPlugin('customBorders');
 
     selectCells([[0, 0, 2, 2]]);
 
@@ -585,14 +538,9 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const defaultBorder = {
-        color: '#000',
-        width: 1
-      },
-      empty = {
-        hide: true
-      },
-      customBorders = hot.getPlugin('customBorders');
+    const defaultBorder = { color: '#000', width: 1 };
+    const empty = { hide: true };
+    const customBorders = hot.getPlugin('customBorders');
 
     selectCell(0, 0);
 
@@ -640,14 +588,9 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const defaultBorder = {
-        color: '#000',
-        width: 1
-      },
-      empty = {
-        hide: true
-      },
-      customBorders = hot.getPlugin('customBorders');
+    const defaultBorder = { color: '#000', width: 1 };
+    const empty = { hide: true };
+    const customBorders = hot.getPlugin('customBorders');
 
     selectCell(0, 0);
 
@@ -682,13 +625,8 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const defaultBorder = {
-        color: '#000',
-        width: 1
-      },
-      empty = {
-        hide: true
-      };
+    const defaultBorder = { color: '#000', width: 1 };
+    const empty = { hide: true };
 
     contextMenu();
     const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
@@ -715,13 +653,8 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const defaultBorder = {
-        color: '#000',
-        width: 1
-      },
-      empty = {
-        hide: true
-      };
+    const defaultBorder = { color: '#000', width: 1 };
+    const empty = { hide: true };
 
     contextMenu();
     const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
@@ -749,13 +682,8 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const defaultBorder = {
-        color: '#000',
-        width: 1
-      },
-      empty = {
-        hide: true
-      };
+    const defaultBorder = { color: '#000', width: 1 };
+    const empty = { hide: true };
 
     contextMenu();
     const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
@@ -783,13 +711,8 @@ describe('CustomBorders', () => {
       customBorders: true
     });
 
-    const defaultBorder = {
-        color: '#000',
-        width: 1
-      },
-      empty = {
-        hide: true
-      };
+    const defaultBorder = { color: '#000', width: 1 };
+    const empty = { hide: true };
 
     contextMenu();
     const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12);
