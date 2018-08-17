@@ -14,16 +14,16 @@ describe('Core_validate', () => {
 
   const arrayOfObjects = function() {
     return [
-      {id: 1, name: 'Ted', lastName: 'Right'},
-      {id: 2, name: 'Frank', lastName: 'Honest'},
-      {id: 3, name: 'Joan', lastName: 'Well'},
-      {id: 4, name: 'Sid', lastName: 'Strong'},
-      {id: 5, name: 'Jane', lastName: 'Neat'},
-      {id: 6, name: 'Chuck', lastName: 'Jackson'},
-      {id: 7, name: 'Meg', lastName: 'Jansen'},
-      {id: 8, name: 'Rob', lastName: 'Norris'},
-      {id: 9, name: 'Sean', lastName: 'O\'Hara'},
-      {id: 10, name: 'Eve', lastName: 'Branson'}
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' },
+      { id: 4, name: 'Sid', lastName: 'Strong' },
+      { id: 5, name: 'Jane', lastName: 'Neat' },
+      { id: 6, name: 'Chuck', lastName: 'Jackson' },
+      { id: 7, name: 'Meg', lastName: 'Jansen' },
+      { id: 8, name: 'Rob', lastName: 'Norris' },
+      { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+      { id: 10, name: 'Eve', lastName: 'Branson' }
     ];
   };
 
@@ -33,9 +33,9 @@ describe('Core_validate', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       beforeValidate() {
         fired = true;
@@ -85,9 +85,9 @@ describe('Core_validate', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -144,9 +144,9 @@ describe('Core_validate', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', type: 'numeric' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       beforeValidate(value) {
         value = 999;
@@ -211,12 +211,12 @@ describe('Core_validate', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id',
+        { data: 'id',
           validator(value, cb) {
             cb(true);
-          }},
-        {data: 'name'},
-        {data: 'lastName'}
+          } },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -245,10 +245,10 @@ describe('Core_validate', () => {
           };
 
         } else if (column === 1) {
-          colMeta = {data: 'name'};
+          colMeta = { data: 'name' };
 
         } else if (column === 2) {
-          colMeta = {data: 'lastName'};
+          colMeta = { data: 'lastName' };
         }
 
         return colMeta;
@@ -269,9 +269,9 @@ describe('Core_validate', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', validator: /^\d+$/ },
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id', validator: /^\d+$/ },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -293,13 +293,13 @@ describe('Core_validate', () => {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {data: 'id', validator: /^\d+$/};
+          colMeta = { data: 'id', validator: /^\d+$/ };
 
         } else if (column === 1) {
-          colMeta = {data: 'name'};
+          colMeta = { data: 'name' };
 
         } else if (column === 2) {
-          colMeta = {data: 'lastName'};
+          colMeta = { data: 'lastName' };
         }
 
         return colMeta;
@@ -328,8 +328,8 @@ describe('Core_validate', () => {
             cb(true);
           }
         },
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -360,10 +360,10 @@ describe('Core_validate', () => {
           };
 
         } else if (column === 1) {
-          colMeta = {data: 'name'};
+          colMeta = { data: 'name' };
 
         } else if (column === 2) {
-          colMeta = {data: 'lastName'};
+          colMeta = { data: 'lastName' };
         }
 
         return colMeta;
@@ -1450,8 +1450,8 @@ describe('Core_validate', () => {
             cb(parseInt(val, 10) > 100);
           }
         },
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -1488,15 +1488,15 @@ describe('Core_validate', () => {
       data: arrayOfObjects(),
       allowInvalid: false,
       columns: [
-        {data: 'id',
+        { data: 'id',
           type: 'numeric',
           validator(val, cb) {
             setTimeout(() => {
               cb(parseInt(val, 10) > 100);
             }, 100);
-          }},
-        {data: 'name'},
-        {data: 'lastName'}
+          } },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -1527,15 +1527,15 @@ describe('Core_validate', () => {
       data: arrayOfObjects(),
       allowInvalid: false,
       columns: [
-        {data: 'id',
+        { data: 'id',
           type: 'numeric',
           validator(val, cb) {
             setTimeout(() => {
               cb(parseInt(val, 10) > 100);
             }, 100);
-          }},
-        {data: 'name'},
-        {data: 'lastName'}
+          } },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -1567,15 +1567,15 @@ describe('Core_validate', () => {
       data: arrayOfObjects(),
       allowInvalid: false,
       columns: [
-        {data: 'id',
+        { data: 'id',
           type: 'numeric',
           validator(val, cb) {
             setTimeout(() => {
               cb(parseInt(val, 10) > 100);
             }, 100);
-          }},
-        {data: 'name'},
-        {data: 'lastName'}
+          } },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -1606,15 +1606,15 @@ describe('Core_validate', () => {
       data: arrayOfObjects(),
       allowInvalid: false,
       columns: [
-        {data: 'name'},
-        {data: 'lastName'},
-        {data: 'id',
+        { data: 'name' },
+        { data: 'lastName' },
+        { data: 'id',
           type: 'numeric',
           validator(val, cb) {
             setTimeout(() => {
               cb(parseInt(val, 10) > 100);
             }, 100);
-          }}
+          } }
       ],
       afterValidate: onAfterValidate
     });
@@ -1626,10 +1626,10 @@ describe('Core_validate', () => {
     keyDownUp('enter'); // should be accepted but only after 100 ms
     expect(getSelected()).toEqual([[3, 2, 3, 2]]);
 
-    spec().$container.simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
-    spec().$container.simulate('keyup', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
-    spec().$container.simulate('keydown', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
-    spec().$container.simulate('keyup', {keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT});
+    spec().$container.simulate('keydown', { keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT });
+    spec().$container.simulate('keyup', { keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT });
+    spec().$container.simulate('keydown', { keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT });
+    spec().$container.simulate('keyup', { keyCode: Handsontable.helper.KEY_CODES.ARROW_LEFT });
 
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
@@ -1646,9 +1646,9 @@ describe('Core_validate', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'id' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -1672,13 +1672,13 @@ describe('Core_validate', () => {
         let colMeta = null;
 
         if (column === 0) {
-          colMeta = {data: 'id'};
+          colMeta = { data: 'id' };
 
         } else if (column === 1) {
-          colMeta = {data: 'name'};
+          colMeta = { data: 'name' };
 
         } else if (column === 2) {
-          colMeta = {data: 'lastName'};
+          colMeta = { data: 'lastName' };
 
         }
 
@@ -1703,12 +1703,12 @@ describe('Core_validate', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id',
+        { data: 'id',
           validator(value, cb) {
             cb(false);
-          }},
-        {data: 'name'},
-        {data: 'lastName'}
+          } },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -1744,10 +1744,10 @@ describe('Core_validate', () => {
           };
 
         } else if (column === 1) {
-          colMeta = {data: 'name'};
+          colMeta = { data: 'name' };
 
         } else if (column === 2) {
-          colMeta = {data: 'lastName'};
+          colMeta = { data: 'lastName' };
         }
 
         return colMeta;
@@ -1783,8 +1783,8 @@ describe('Core_validate', () => {
           },
           allowInvalid: false
         },
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -1842,10 +1842,10 @@ describe('Core_validate', () => {
           };
 
         } else if (column === 1) {
-          colMeta = {data: 'name'};
+          colMeta = { data: 'name' };
 
         } else if (column === 2) {
-          colMeta = {data: 'lastName'};
+          colMeta = { data: 'lastName' };
 
         }
 
@@ -1894,8 +1894,8 @@ describe('Core_validate', () => {
 
     const hot = handsontable({
       data: [
-        {id: 'sth', name: 'Steve'},
-        {id: 'sth else', name: 'Bob'}
+        { id: 'sth', name: 'Steve' },
+        { id: 'sth else', name: 'Bob' }
       ],
       columns: [
         {
@@ -1904,7 +1904,7 @@ describe('Core_validate', () => {
             cb(value === parseInt(value, 10));
           }
         },
-        {data: 'name'}
+        { data: 'name' }
       ],
       afterValidate: onAfterValidate
     });
@@ -1924,8 +1924,8 @@ describe('Core_validate', () => {
 
     const hot = handsontable({
       data: [
-        {id: 'sth', name: 'Steve'},
-        {id: 'sth else', name: 'Bob'}
+        { id: 'sth', name: 'Steve' },
+        { id: 'sth else', name: 'Bob' }
       ],
       columns: [
         {
@@ -1934,7 +1934,7 @@ describe('Core_validate', () => {
             cb(value === parseInt(value, 10));
           }
         },
-        {data: 'name'}
+        { data: 'name' }
       ],
       afterValidate: onAfterValidate
     });
@@ -1954,8 +1954,8 @@ describe('Core_validate', () => {
 
     const hot = handsontable({
       data: [
-        {id: 'sth', name: 'Steve'},
-        {id: 'sth else', name: 'Bob'}
+        { id: 'sth', name: 'Steve' },
+        { id: 'sth else', name: 'Bob' }
       ],
       columns: [
         {
@@ -1964,7 +1964,7 @@ describe('Core_validate', () => {
             cb(value === parseInt(value, 10));
           }
         },
-        {data: 'name'}
+        { data: 'name' }
       ],
       afterValidate: onAfterValidate
     });
@@ -1984,8 +1984,8 @@ describe('Core_validate', () => {
 
     const hot = handsontable({
       data: [
-        {id: 'sth', name: 'Steve'},
-        {id: 'sth else', name: 'Bob'}
+        { id: 'sth', name: 'Steve' },
+        { id: 'sth else', name: 'Bob' }
       ],
       columns(column) {
         let colMeta = null;
@@ -1999,7 +1999,7 @@ describe('Core_validate', () => {
           };
 
         } else if (column === 1) {
-          colMeta = {data: 'name'};
+          colMeta = { data: 'name' };
         }
 
         return colMeta;
@@ -2022,8 +2022,8 @@ describe('Core_validate', () => {
 
     const hot = handsontable({
       data: [
-        {id: 'sth', name: 'Steve'},
-        {id: 'sth else', name: 'Bob'}
+        { id: 'sth', name: 'Steve' },
+        { id: 'sth else', name: 'Bob' }
       ],
       columns(column) {
         let colMeta = null;
@@ -2037,7 +2037,7 @@ describe('Core_validate', () => {
           };
 
         } else if (column === 1) {
-          colMeta = {data: 'name'};
+          colMeta = { data: 'name' };
         }
 
         return colMeta;
@@ -2060,8 +2060,8 @@ describe('Core_validate', () => {
 
     const hot = handsontable({
       data: [
-        {id: 'sth', name: 'Steve'},
-        {id: 'sth else', name: 'Bob'}
+        { id: 'sth', name: 'Steve' },
+        { id: 'sth else', name: 'Bob' }
       ],
       columns(column) {
         let colMeta = null;
@@ -2075,7 +2075,7 @@ describe('Core_validate', () => {
           };
 
         } else if (column === 1) {
-          colMeta = {data: 'name'};
+          colMeta = { data: 'name' };
         }
 
         return colMeta;

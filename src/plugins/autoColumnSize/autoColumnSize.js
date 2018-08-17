@@ -1,7 +1,7 @@
 import BasePlugin from './../_base';
 import { arrayEach, arrayFilter, arrayReduce, arrayMap } from './../../helpers/array';
 import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
-import { isVisible} from './../../helpers/dom/element';
+import { isVisible } from './../../helpers/dom/element';
 import GhostTable from './../../utils/ghostTable';
 import { isObject, hasOwnProperty } from './../../helpers/object';
 import { valueAccordingPercent, rangeEach } from './../../helpers/number';
@@ -105,7 +105,7 @@ class AutoColumnSize extends BasePlugin {
       let bundleCountSeed = 0;
 
       if (cellMeta.label) {
-        const {value: labelValue, property: labelProperty} = cellMeta.label;
+        const { value: labelValue, property: labelProperty } = cellMeta.label;
         let labelText = '';
 
         if (labelValue) {
@@ -118,7 +118,7 @@ class AutoColumnSize extends BasePlugin {
         bundleCountSeed = labelText.length;
       }
 
-      return {value: cellValue, bundleCountSeed};
+      return { value: cellValue, bundleCountSeed };
     });
     /**
      * `true` only if the first calculation was performed
@@ -199,12 +199,12 @@ class AutoColumnSize extends BasePlugin {
    * @param {Number|Object} rowRange Row index or an object with `from` and `to` indexes as a range.
    * @param {Boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
-  calculateColumnsWidth(colRange = {from: 0, to: this.hot.countCols() - 1}, rowRange = {from: 0, to: this.hot.countRows() - 1}, force = false) {
+  calculateColumnsWidth(colRange = { from: 0, to: this.hot.countCols() - 1 }, rowRange = { from: 0, to: this.hot.countRows() - 1 }, force = false) {
     if (typeof colRange === 'number') {
-      colRange = {from: colRange, to: colRange};
+      colRange = { from: colRange, to: colRange };
     }
     if (typeof rowRange === 'number') {
-      rowRange = {from: rowRange, to: rowRange};
+      rowRange = { from: rowRange, to: rowRange };
     }
 
     rangeEach(colRange.from, colRange.to, (col) => {
@@ -229,7 +229,7 @@ class AutoColumnSize extends BasePlugin {
    *
    * @param {Object|Number} rowRange Row index or an object with `from` and `to` properties which define row range.
    */
-  calculateAllColumnsWidth(rowRange = {from: 0, to: this.hot.countRows() - 1}) {
+  calculateAllColumnsWidth(rowRange = { from: 0, to: this.hot.countRows() - 1 }) {
     let current = 0;
     let length = this.hot.countCols() - 1;
     let timer = null;
@@ -268,7 +268,7 @@ class AutoColumnSize extends BasePlugin {
     };
     // sync
     if (this.firstCalculation && this.getSyncCalculationLimit()) {
-      this.calculateColumnsWidth({from: 0, to: this.getSyncCalculationLimit()}, rowRange);
+      this.calculateColumnsWidth({ from: 0, to: this.getSyncCalculationLimit() }, rowRange);
       this.firstCalculation = false;
       current = this.getSyncCalculationLimit() + 1;
     }
@@ -400,7 +400,7 @@ class AutoColumnSize extends BasePlugin {
    */
   findColumnsWhereHeaderWasChanged() {
     const columnHeaders = this.hot.getColHeader();
-    const {cachedColumnHeaders} = privatePool.get(this);
+    const { cachedColumnHeaders } = privatePool.get(this);
 
     const changedColumns = arrayReduce(columnHeaders, (acc, columnTitle, physicalColumn) => {
       const cachedColumnsLength = cachedColumnHeaders.length;
@@ -459,7 +459,7 @@ class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    this.calculateColumnsWidth({from: this.getFirstVisibleColumn(), to: this.getLastVisibleColumn()}, void 0, force);
+    this.calculateColumnsWidth({ from: this.getFirstVisibleColumn(), to: this.getLastVisibleColumn() }, void 0, force);
 
     if (this.isNeedRecalculate() && !this.inProgress) {
       this.calculateAllColumnsWidth();

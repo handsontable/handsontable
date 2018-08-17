@@ -23,13 +23,13 @@ describe('Handsontable.Dom', () => {
 
     describe('top', () => {
       it('should return offset top with position absolute', function() {
-        this.$div.css({position: 'absolute', top: 200});
+        this.$div.css({ position: 'absolute', top: 200 });
 
         expect(Handsontable.dom.offset(this.div).top).toEqual(200);
       });
 
       it('should return offset top with position absolute & scrolled window', function() {
-        this.$div.css({position: 'absolute', top: 200});
+        this.$div.css({ position: 'absolute', top: 200 });
         $window.scrollTop(1900);
 
         expect(Handsontable.dom.offset(this.div).top).toEqual(200);
@@ -38,13 +38,13 @@ describe('Handsontable.Dom', () => {
       });
 
       it('should return offset top with position fixed', function() {
-        this.$div.css({position: 'fixed', top: 200});
+        this.$div.css({ position: 'fixed', top: 200 });
 
         expect(Handsontable.dom.offset(this.div).top).toEqual(200);
       });
 
       it('should return offset top with position fixed & scrolled window', function() {
-        this.$div.css({position: 'fixed', top: 200});
+        this.$div.css({ position: 'fixed', top: 200 });
         $window.scrollTop(1900);
 
         expect(Handsontable.dom.offset(this.div).top).toEqual(2100); // this is the same jQuery offset returns
@@ -55,13 +55,13 @@ describe('Handsontable.Dom', () => {
 
     describe('left', () => {
       it('should return offset left with position absolute', function() {
-        this.$div.css({position: 'absolute', left: 200});
+        this.$div.css({ position: 'absolute', left: 200 });
 
         expect(Handsontable.dom.offset(this.div).left).toEqual(200);
       });
 
       it('should return offset left with position absolute & scrolled window', function() {
-        this.$div.css({position: 'absolute', left: 200});
+        this.$div.css({ position: 'absolute', left: 200 });
         $window.scrollLeft(1900);
 
         expect(Handsontable.dom.offset(this.div).left).toEqual(200);
@@ -70,13 +70,13 @@ describe('Handsontable.Dom', () => {
       });
 
       it('should return offset left with position fixed', function() {
-        this.$div.css({position: 'fixed', left: 200});
+        this.$div.css({ position: 'fixed', left: 200 });
 
         expect(Handsontable.dom.offset(this.div).left).toEqual(200);
       });
 
       it('should return offset left with position fixed & scrolled window', function() {
-        this.$div.css({position: 'fixed', left: 200});
+        this.$div.css({ position: 'fixed', left: 200 });
         $window.scrollLeft(1900);
 
         expect(Handsontable.dom.offset(this.div).left).toEqual(2100); // this is the same jQuery offset returns

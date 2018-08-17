@@ -53,7 +53,7 @@ function _getItem(name) {
  * @param {Object} type An object with contains keys (eq: `editor`, `renderer`, `validator`) which describes specified behaviour of the cell.
  */
 function _register(name, type) {
-  const {editor, renderer, validator} = type;
+  const { editor, renderer, validator } = type;
 
   if (editor) {
     registerEditor(name, editor);

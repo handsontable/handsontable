@@ -199,7 +199,7 @@ class ManualColumnFreeze extends BasePlugin {
    */
   addContextMenuEntry(options) {
     options.items.push(
-      {name: '---------'},
+      { name: '---------' },
       freezeColumnItem(this),
       unfreezeColumnItem(this)
     );

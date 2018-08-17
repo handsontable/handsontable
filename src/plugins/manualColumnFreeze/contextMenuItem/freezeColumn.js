@@ -7,7 +7,7 @@ export default function freezeColumnItem(manualColumnFreezePlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_FREEZE_COLUMN);
     },
     callback(key, selected) {
-      const [{start: {col: selectedColumn}}] = selected;
+      const [{ start: { col: selectedColumn } }] = selected;
 
       manualColumnFreezePlugin.freezeColumn(selectedColumn);
 

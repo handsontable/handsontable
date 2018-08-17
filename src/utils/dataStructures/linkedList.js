@@ -258,5 +258,5 @@ class LinkedList {
   }
 }
 
-export {NodeStructure};
+export { NodeStructure };
 export default LinkedList;

@@ -1,5 +1,5 @@
-import {isDefined} from './helpers/mixed';
-import {isObjectEqual} from './helpers/object';
+import { isDefined } from './helpers/mixed';
+import { isObjectEqual } from './helpers/object';
 
 /**
  * @alias Options
@@ -814,7 +814,7 @@ DefaultSettings.prototype = {
    * },
    * ```
    */
-  enterMoves: {row: 1, col: 0},
+  enterMoves: { row: 1, col: 0 },
 
   /**
    * Defines the cursor movement after <kbd>TAB</kbd> is pressed (<kbd>SHIFT</kbd> + <kbd>TAB</kbd> uses a negative vector). Can
@@ -835,7 +835,7 @@ DefaultSettings.prototype = {
    * },
    * ```
    */
-  tabMoves: {row: 0, col: 1},
+  tabMoves: { row: 0, col: 1 },
 
   /**
    * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.

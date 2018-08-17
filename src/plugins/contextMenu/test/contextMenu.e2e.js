@@ -57,7 +57,7 @@ describe('ContextMenu', () => {
         items: {
           remove_col: true,
           hsep1: '---------',
-          custom: {name: 'My custom item'},
+          custom: { name: 'My custom item' },
         }
       }
     });
@@ -249,7 +249,7 @@ describe('ContextMenu', () => {
       const hot = handsontable({
         data: [],
         colHeaders: ['Year', 'Kia'],
-        columns: [{data: 0}, {data: 1}],
+        columns: [{ data: 0 }, { data: 1 }],
         contextMenu: true,
         height: 100
       });
@@ -650,7 +650,7 @@ describe('ContextMenu', () => {
               },
               submenu: {
                 items: [
-                  {key: 'alignment:left', name: 'Align to LEFT'}
+                  { key: 'alignment:left', name: 'Align to LEFT' }
                 ]
               }
             }
@@ -682,7 +682,7 @@ describe('ContextMenu', () => {
               },
               submenu: {
                 items: [
-                  {key: 'alignment:left', name: 'Align to LEFT'}
+                  { key: 'alignment:left', name: 'Align to LEFT' }
                 ]
               }
             },
@@ -692,7 +692,7 @@ describe('ContextMenu', () => {
               },
               submenu: {
                 items: [
-                  {key: 'custom1:test', name: 'Test1'}
+                  { key: 'custom1:test', name: 'Test1' }
                 ]
               }
             },
@@ -702,7 +702,7 @@ describe('ContextMenu', () => {
               },
               submenu: {
                 items: [
-                  {key: 'custom2:test', name: 'Test2'}
+                  { key: 'custom2:test', name: 'Test2' }
                 ]
               }
             }
@@ -939,7 +939,7 @@ describe('ContextMenu', () => {
         .find('tbody')
         .find('th')
         .eq(0)
-        .simulate('mousedown', {which: 3});
+        .simulate('mousedown', { which: 3 });
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -962,7 +962,7 @@ describe('ContextMenu', () => {
 
       const header = $('.ht_clone_top .htCore').find('thead').find('th').eq(2);
 
-      header.simulate('mousedown', {which: 3});
+      header.simulate('mousedown', { which: 3 });
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -987,7 +987,7 @@ describe('ContextMenu', () => {
         .find('thead')
         .find('th')
         .eq(0)
-        .simulate('mousedown', {which: 3});
+        .simulate('mousedown', { which: 3 });
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1044,7 +1044,7 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', {which: 3});
+      cell.simulate('mousedown', { which: 3 });
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')
@@ -1183,7 +1183,7 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', {which: 3});
+      cell.simulate('mousedown', { which: 3 });
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')
@@ -1267,7 +1267,7 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', {which: 3});
+      cell.simulate('mousedown', { which: 3 });
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')
@@ -1350,7 +1350,7 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', {which: 3});
+      cell.simulate('mousedown', { which: 3 });
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')

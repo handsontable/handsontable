@@ -1,10 +1,10 @@
 import BasePlugin from './../_base.js';
 import Hooks from './../../pluginHooks';
-import {arrayEach} from './../../helpers/array';
-import {addClass, removeClass, offset} from './../../helpers/dom/element';
-import {rangeEach} from './../../helpers/number';
+import { arrayEach } from './../../helpers/array';
+import { addClass, removeClass, offset } from './../../helpers/dom/element';
+import { rangeEach } from './../../helpers/number';
 import EventManager from './../../eventManager';
-import {registerPlugin} from './../../plugins';
+import { registerPlugin } from './../../plugins';
 import RowsMapper from './rowsMapper';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
@@ -328,7 +328,7 @@ class ManualRowMove extends BasePlugin {
       return selectedRows;
     }
 
-    let {from, to} = selection;
+    let { from, to } = selection;
     let start = Math.min(from.row, to.row);
     let end = Math.max(from.row, to.row);
 
@@ -515,7 +515,7 @@ class ManualRowMove extends BasePlugin {
       this.backlight.appendTo(wtTable.hider);
     }
 
-    let {from, to} = selection;
+    let { from, to } = selection;
     let start = Math.min(from.row, to.row);
     let end = Math.max(from.row, to.row);
 

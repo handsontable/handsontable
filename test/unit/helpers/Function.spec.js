@@ -213,7 +213,7 @@ describe('Function helper', () => {
     it('should correctly detect function', () => {
       const toCheck = [
         function() {},
-        {id() {}},
+        { id() {} },
         1,
         'text',
         /^\d+$/,

@@ -1,10 +1,10 @@
-import Highlight, {AREA_TYPE, HEADER_TYPE, CELL_TYPE} from './highlight/highlight';
+import Highlight, { AREA_TYPE, HEADER_TYPE, CELL_TYPE } from './highlight/highlight';
 import SelectionRange from './range';
-import {CellCoords} from './../3rdparty/walkontable/src';
-import {isPressedCtrlKey} from './../utils/keyStateObserver';
-import {createObjectPropListener, mixin} from './../helpers/object';
-import {isUndefined} from './../helpers/mixed';
-import {arrayEach} from './../helpers/array';
+import { CellCoords } from './../3rdparty/walkontable/src';
+import { isPressedCtrlKey } from './../utils/keyStateObserver';
+import { createObjectPropListener, mixin } from './../helpers/object';
+import { isUndefined } from './../helpers/mixed';
+import { arrayEach } from './../helpers/array';
 import localHooks from './../mixins/localHooks';
 import Transformation from './transformation';
 import {
@@ -14,7 +14,7 @@ import {
   SELECTION_TYPE_EMPTY,
   SELECTION_TYPE_UNRECOGNIZED,
 } from './utils';
-import {toSingleLine} from './../helpers/templateLiteralTag';
+import { toSingleLine } from './../helpers/templateLiteralTag';
 
 /**
  * @class Selection

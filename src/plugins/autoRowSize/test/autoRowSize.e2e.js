@@ -14,16 +14,16 @@ describe('AutoRowSize', () => {
 
   function arrayOfObjects() {
     return [
-      {id: 'Short'},
-      {id: 'Somewhat\nlong'},
-      {id: 'The\nvery\nvery\nvery\nlongest one'}
+      { id: 'Short' },
+      { id: 'Somewhat\nlong' },
+      { id: 'The\nvery\nvery\nvery\nlongest one' }
     ];
   }
   function arrayOfObjects2() {
     return [
-      {id: 'Short', name: 'Somewhat long'},
-      {id: 'Somewhat long', name: 'The very very longest one'},
-      {id: 'The very very very longest one', name: 'Short'}
+      { id: 'Short', name: 'Somewhat long' },
+      { id: 'Somewhat long', name: 'The very very longest one' },
+      { id: 'The very very very longest one', name: 'Short' }
     ];
   }
 
@@ -313,9 +313,9 @@ describe('AutoRowSize', () => {
       autoRowSize: true,
       rowHeights: 77,
       columns: [
-        {height: 70},
-        {height: 70},
-        {height: 70}
+        { height: 70 },
+        { height: 70 },
+        { height: 70 }
       ],
       width: 500,
       height: 100,
@@ -329,13 +329,13 @@ describe('AutoRowSize', () => {
 
   it('should consider renderer that uses conditional formatting for specific row & column index', () => {
     const data = arrayOfObjects();
-    data.push({id: '2', name: 'Rocket Man', lastName: 'In a tin can'});
+    data.push({ id: '2', name: 'Rocket Man', lastName: 'In a tin can' });
 
     const hot = handsontable({
       data,
       columns: [
-        {data: 'id'},
-        {data: 'name'}
+        { data: 'id' },
+        { data: 'name' }
       ],
       autoRowSize: true,
       renderer(instance, td, row, col, ...args) {

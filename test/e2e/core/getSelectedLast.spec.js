@@ -57,10 +57,10 @@ describe('Core.getSelectedLast', () => {
     });
 
     const snapshot = [
-      {from: {row: 5, col: 4}, to: {row: 1, col: 1}},
-      {from: {row: 2, col: 2}, to: {row: 7, col: 2}},
-      {from: {row: 2, col: 4}, to: {row: 2, col: 4}},
-      {from: {row: 7, col: 6}, to: {row: 8, col: 7}},
+      { from: { row: 5, col: 4 }, to: { row: 1, col: 1 } },
+      { from: { row: 2, col: 2 }, to: { row: 7, col: 2 } },
+      { from: { row: 2, col: 4 }, to: { row: 2, col: 4 } },
+      { from: { row: 7, col: 6 }, to: { row: 8, col: 7 } },
     ];
 
     $(getCell(5, 4)).simulate('mousedown');

@@ -11,7 +11,7 @@ describe('MergeCells', () => {
 
     describe('`add` method', () => {
       it('should add a merged cell object to the array of merged cells', () => {
-        const mergedCellsCollection = new MergedCellsCollection({hot: hotMock});
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
         mergedCellsCollection.add({
           row: 0,
@@ -51,7 +51,7 @@ describe('MergeCells', () => {
         'previously declared merged cell', () => {
         const warnSpy = spyOn(console, 'warn');
 
-        const mergedCellsCollection = new MergedCellsCollection({hot: hotMock});
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
         const newMergedCells = [
           {
             row: 0,
@@ -87,7 +87,7 @@ describe('MergeCells', () => {
 
     describe('`remove` method', () => {
       it('should remove a merged cell object from the array of merged cells by passing the starting coordinates', () => {
-        const mergedCellsCollection = new MergedCellsCollection({hot: hotMock});
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
         mergedCellsCollection.add({
           row: 0,
@@ -122,7 +122,7 @@ describe('MergeCells', () => {
       });
 
       it('should remove a merged cell object from the array of merged cells by passing the coordinates from the middle of the merged cell', () => {
-        const mergedCellsCollection = new MergedCellsCollection({hot: hotMock});
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
         mergedCellsCollection.add({
           row: 0,
@@ -159,7 +159,7 @@ describe('MergeCells', () => {
 
     describe('`get` method', () => {
       it('should get a merged cell object from the array of merged cells by passing the starting coordinates', () => {
-        const mergedCellsCollection = new MergedCellsCollection({hot: hotMock});
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
         mergedCellsCollection.add({
           row: 0,
@@ -189,7 +189,7 @@ describe('MergeCells', () => {
       });
 
       it('should get a merged cell object from the array of merged cells by passing coordinates from the middle of the merged cell', () => {
-        const mergedCellsCollection = new MergedCellsCollection({hot: hotMock});
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
         mergedCellsCollection.add({
           row: 0,
@@ -221,7 +221,7 @@ describe('MergeCells', () => {
 
     describe('`getByRange` method', () => {
       it('should get a merged cell object from the array of merged cells by passing coordinates from the middle of the merged cell', () => {
-        const mergedCellsCollection = new MergedCellsCollection({hot: hotMock});
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
         mergedCellsCollection.add({
           row: 0,
@@ -262,7 +262,7 @@ describe('MergeCells', () => {
 
     describe('`getWithinRange` method', () => {
       it('should get an array of merged cells within the provided range', () => {
-        const mergedCellsCollection = new MergedCellsCollection({hot: hotMock});
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
         mergedCellsCollection.add({
           row: 0,
@@ -309,7 +309,7 @@ describe('MergeCells', () => {
 
     describe('`shiftCollections` method', () => {
       it('should shift all the appropriate merged cells in the provided direction', () => {
-        const mergedCellsCollection = new MergedCellsCollection({hot: hotMock});
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
         mergedCellsCollection.add({
           row: 0,
@@ -369,7 +369,7 @@ describe('MergeCells', () => {
       });
 
       it('should resize the merged cell (and shift the merged cells that follow) if the change happened inside a merged cell', () => {
-        const mergedCellsCollection = new MergedCellsCollection({hot: hotMock});
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
         mergedCellsCollection.add({
           row: 0,
@@ -420,7 +420,7 @@ describe('MergeCells', () => {
 
     describe('`isOverlapping` method', () => {
       it('should return whether the provided merged cell overlaps with the others in the merged cell', () => {
-        const mergedCellsCollection = new MergedCellsCollection({hot: hotMock});
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
         mergedCellsCollection.add({
           row: 0,
@@ -441,12 +441,12 @@ describe('MergeCells', () => {
           colspan: 4
         });
 
-        expect(mergedCellsCollection.isOverlapping({row: 30, col: 30, rowspan: 3, colspan: 3})).toEqual(false);
-        expect(mergedCellsCollection.isOverlapping({row: 2, col: 2, rowspan: 3, colspan: 3})).toEqual(true);
-        expect(mergedCellsCollection.isOverlapping({row: 9, col: 9, rowspan: 3, colspan: 3})).toEqual(true);
-        expect(mergedCellsCollection.isOverlapping({row: 21, col: 19, rowspan: 5, colspan: 5})).toEqual(true);
-        expect(mergedCellsCollection.isOverlapping({row: 21, col: 22, rowspan: 5, colspan: 5})).toEqual(true);
-        expect(mergedCellsCollection.isOverlapping({row: 24, col: 25, rowspan: 5, colspan: 5})).toEqual(false);
+        expect(mergedCellsCollection.isOverlapping({ row: 30, col: 30, rowspan: 3, colspan: 3 })).toEqual(false);
+        expect(mergedCellsCollection.isOverlapping({ row: 2, col: 2, rowspan: 3, colspan: 3 })).toEqual(true);
+        expect(mergedCellsCollection.isOverlapping({ row: 9, col: 9, rowspan: 3, colspan: 3 })).toEqual(true);
+        expect(mergedCellsCollection.isOverlapping({ row: 21, col: 19, rowspan: 5, colspan: 5 })).toEqual(true);
+        expect(mergedCellsCollection.isOverlapping({ row: 21, col: 22, rowspan: 5, colspan: 5 })).toEqual(true);
+        expect(mergedCellsCollection.isOverlapping({ row: 24, col: 25, rowspan: 5, colspan: 5 })).toEqual(false);
 
       });
     });

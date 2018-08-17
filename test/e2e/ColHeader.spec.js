@@ -229,8 +229,8 @@ describe('ColHeader', () => {
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns: [
-        {type: 'text'},
-        {type: 'text'}
+        { type: 'text' },
+        { type: 'text' }
       ]
     });
 
@@ -245,7 +245,7 @@ describe('ColHeader', () => {
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns(column) {
-        let colMeta = {type: 'text'};
+        let colMeta = { type: 'text' };
 
         if ([0, 1].indexOf(column) < 0) {
           colMeta = null;
@@ -266,8 +266,8 @@ describe('ColHeader', () => {
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns: [
-        {type: 'text', title: 'Special title'},
-        {type: 'text'}
+        { type: 'text', title: 'Special title' },
+        { type: 'text' }
       ]
     });
 
@@ -282,7 +282,7 @@ describe('ColHeader', () => {
       startCols: 2,
       colHeaders: ['One', 'Two'],
       columns(column) {
-        let colMeta = {type: 'text'};
+        let colMeta = { type: 'text' };
 
         if (column === 0) {
           colMeta.title = 'Special title';

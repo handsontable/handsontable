@@ -1,5 +1,5 @@
-import {objectEach, isObject, extend} from './../../helpers/object';
-import {arrayEach} from './../../helpers/array';
+import { objectEach, isObject, extend } from './../../helpers/object';
+import { arrayEach } from './../../helpers/array';
 import {
   SEPARATOR,
   ITEMS,
@@ -83,7 +83,7 @@ function getItems(pattern = null, defaultPattern = [], items = {}) {
         extend(item, value);
 
       } else if (typeof item === 'string') {
-        item = {name: item};
+        item = { name: item };
       }
       if (item.key === void 0) {
         item.key = key;
@@ -99,7 +99,7 @@ function getItems(pattern = null, defaultPattern = [], items = {}) {
         return;
       }
       if (!item) {
-        item = {name, key: `${key}`};
+        item = { name, key: `${key}` };
       }
       if (isObject(name)) {
         extend(item, name);

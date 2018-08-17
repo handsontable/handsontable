@@ -1,4 +1,4 @@
-import {CellRange} from './../3rdparty/walkontable/src';
+import { CellRange } from './../3rdparty/walkontable/src';
 
 /**
  * The SelectionRange class is a simple CellRanges collection designed for easy manipulation of the multiple

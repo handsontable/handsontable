@@ -1,4 +1,4 @@
-import {objectEach} from './object';
+import { objectEach } from './object';
 
 const tester = (testerFunc) => {
   const result = {
@@ -21,8 +21,8 @@ const browsers = {
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
 };
 
-export function setBrowserMeta({userAgent = navigator.userAgent, vendor = navigator.vendor} = {}) {
-  objectEach(browsers, ({test}) => void test(userAgent, vendor));
+export function setBrowserMeta({ userAgent = navigator.userAgent, vendor = navigator.vendor } = {}) {
+  objectEach(browsers, ({ test }) => void test(userAgent, vendor));
 }
 
 setBrowserMeta();

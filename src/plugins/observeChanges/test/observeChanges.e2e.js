@@ -132,7 +132,7 @@ describe('HandsontableObserveChanges', () => {
         createHOT(data, true);
         const htCore = getHtCore();
 
-        data.push({prop0: 'A3', prop1: 'B3'});
+        data.push({ prop0: 'A3', prop1: 'B3' });
 
         setTimeout(() => {
           expect(htCore.find('tr').length).toEqual(3);
@@ -173,7 +173,7 @@ describe('HandsontableObserveChanges', () => {
         createHOT(data, true);
         const htCore = getHtCore();
 
-        data.push({prop0: 'A3', prop1: 'B3'});
+        data.push({ prop0: 'A3', prop1: 'B3' });
 
         setTimeout(() => {
           expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
@@ -486,7 +486,7 @@ describe('HandsontableObserveChanges', () => {
         const afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
         hot.addHook('afterCreateRow', afterCreateRowCallback);
 
-        data.push({prop0: 'A2', prop1: 'B2'});
+        data.push({ prop0: 'A2', prop1: 'B2' });
 
         setTimeout(() => {
           expect(afterCreateRowCallback.calls.count()).toEqual(1);

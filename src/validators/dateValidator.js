@@ -1,6 +1,6 @@
 import moment from 'moment';
-import {getNormalizedDate} from '../helpers/date';
-import {getEditorInstance} from '../editors';
+import { getNormalizedDate } from '../helpers/date';
+import { getEditorInstance } from '../editors';
 
 /**
  * Date cell validator

@@ -5,7 +5,7 @@ describe('WalkontableTable', () => {
   let debug = false;
 
   beforeEach(() => {
-    $wrapper = $('<div></div>').css({overflow: 'hidden', position: 'relative'});
+    $wrapper = $('<div></div>').css({ overflow: 'hidden', position: 'relative' });
     $wrapper.width(100).height(201);
     $container = $('<div></div>');
     $table = $('<table></table>'); // create a table that is not attached to document

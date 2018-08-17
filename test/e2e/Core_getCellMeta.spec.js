@@ -35,7 +35,7 @@ describe('Core_getCellMeta', () => {
 
     handsontable({
       cells() {
-        return {readOnly: allCellsReadOnly};
+        return { readOnly: allCellsReadOnly };
       }
     });
     allCellsReadOnly = true;
@@ -51,7 +51,7 @@ describe('Core_getCellMeta', () => {
 
     handsontable({
       cells() {
-        return {readOnly: allCellsReadOnly};
+        return { readOnly: allCellsReadOnly };
       }
     });
     allCellsReadOnly = false;
@@ -66,7 +66,7 @@ describe('Core_getCellMeta', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       cells() {
-        return {readOnly: true};
+        return { readOnly: true };
       }
     });
 

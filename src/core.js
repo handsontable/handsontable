@@ -1,7 +1,7 @@
 import { addClass, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
-import { columnFactory} from './helpers/setting';
-import { isFunction} from './helpers/function';
-import { warn} from './helpers/console';
+import { columnFactory } from './helpers/setting';
+import { isFunction } from './helpers/function';
+import { warn } from './helpers/console';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser } from './helpers/browser';
 import DataMap from './dataMap';
@@ -27,9 +27,9 @@ import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
 import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
-import { getTranslator} from './utils/recordTranslator';
+import { getTranslator } from './utils/recordTranslator';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
-import {CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
+import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
 import DefaultSettings from './defaultSettings';
 import { getCellType } from './cellTypes';
@@ -157,7 +157,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.selection.addLocalHook('afterSetRangeEnd', (cellCoords) => {
     const preventScrolling = createObjectPropListener(false);
     const selectionRange = this.selection.getSelectedRange();
-    const {from, to} = selectionRange.current();
+    const { from, to } = selectionRange.current();
     const selectionLayerLevel = selectionRange.size() - 1;
 
     this.runHooks('afterSelection',
@@ -220,7 +220,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.selection.addLocalHook('afterSelectionFinished', (cellRanges) => {
     const selectionLayerLevel = cellRanges.length - 1;
-    const {from, to} = cellRanges[selectionLayerLevel];
+    const { from, to } = cellRanges[selectionLayerLevel];
 
     this.runHooks('afterSelectionEnd',
       from.row, from.col, to.row, to.col, selectionLayerLevel);
@@ -1310,7 +1310,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return arrayMap(selection.getSelectedRange(), ({from, to}) => [from.row, from.col, to.row, to.col]);
+      return arrayMap(selection.getSelectedRange(), ({ from, to }) => [from.row, from.col, to.row, to.col]);
     }
   };
 

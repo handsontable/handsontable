@@ -61,7 +61,7 @@ describe('settings', () => {
 
         handsontable({
           columns(column) {
-            return column === 0 ? {renderer: 'checkbox'} : null;
+            return column === 0 ? { renderer: 'checkbox' } : null;
           }
         });
         expect(Handsontable.renderers.TextRenderer).not.toHaveBeenCalled();
@@ -98,7 +98,7 @@ describe('settings', () => {
 
         handsontable({
           columns(column) {
-            return column === 0 ? {renderer: myRenderer} : null;
+            return column === 0 ? { renderer: myRenderer } : null;
           }
         });
 
@@ -128,7 +128,7 @@ describe('settings', () => {
 
         handsontable({
           columns(column) {
-            return column === 0 ? {renderer: 'myRenderer'} : null;
+            return column === 0 ? { renderer: 'myRenderer' } : null;
           }
         });
 

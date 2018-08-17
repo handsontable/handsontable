@@ -1,10 +1,10 @@
 import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
-import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
+import { offset, outerHeight, outerWidth } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
-import {registerPlugin} from './../../plugins';
-import {CellCoords} from './../../3rdparty/walkontable/src';
-import {getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting} from './utils';
+import { registerPlugin } from './../../plugins';
+import { CellCoords } from './../../3rdparty/walkontable/src';
+import { getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
 
 Hooks.getSingleton().register('modifyAutofillRange');
 Hooks.getSingleton().register('beforeAutofill');
@@ -157,7 +157,7 @@ class Autofill extends BasePlugin {
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
     cornersOfSelectionAndDragAreas = this.hot.runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);
 
-    const {directionOfDrag, startOfDragCoords, endOfDragCoords} = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
+    const { directionOfDrag, startOfDragCoords, endOfDragCoords } = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
 
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();

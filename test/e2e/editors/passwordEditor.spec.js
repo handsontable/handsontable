@@ -139,7 +139,7 @@ describe('PasswordEditor', () => {
         ['Jerry']
       ],
       columns: [
-        {data: 'id', type: 'password'},
+        { data: 'id', type: 'password' },
       ],
     });
 

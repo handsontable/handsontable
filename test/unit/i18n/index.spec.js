@@ -1,5 +1,5 @@
-import {getLanguageDictionary, getLanguagesDictionaries, registerLanguageDictionary} from 'handsontable/i18n/dictionariesManager';
-import {register as registerPhraseFormatter} from 'handsontable/i18n/phraseFormatters';
+import { getLanguageDictionary, getLanguagesDictionaries, registerLanguageDictionary } from 'handsontable/i18n/dictionariesManager';
+import { register as registerPhraseFormatter } from 'handsontable/i18n/phraseFormatters';
 import plPL from 'handsontable/i18n/languages/pl-PL';
 import * as allLanguages from 'handsontable/i18n/languages';
 import * as constants from 'handsontable/i18n/constants';

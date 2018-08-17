@@ -1,6 +1,6 @@
-import {isObject} from './../helpers/object';
-import {rangeEach} from './../helpers/number';
-import {stringify} from './../helpers/mixed';
+import { isObject } from './../helpers/object';
+import { rangeEach } from './../helpers/number';
+import { stringify } from './../helpers/mixed';
 
 /**
  * @class SamplesGenerator
@@ -110,7 +110,7 @@ class SamplesGenerator {
     const samples = new Map();
 
     if (typeof specifierRange === 'number') {
-      specifierRange = {from: specifierRange, to: specifierRange};
+      specifierRange = { from: specifierRange, to: specifierRange };
     }
     rangeEach(specifierRange.from, specifierRange.to, (index) => {
       const sample = this.generateSample(type, range, index);
@@ -139,7 +139,7 @@ class SamplesGenerator {
     const sampledValues = [];
 
     rangeEach(range.from, range.to, (index) => {
-      const {value, bundleCountSeed} = type === 'row' ? this.dataFactory(specifierValue, index) : this.dataFactory(index, specifierValue);
+      const { value, bundleCountSeed } = type === 'row' ? this.dataFactory(specifierValue, index) : this.dataFactory(index, specifierValue);
       const hasCustomBundleSeed = bundleCountSeed > 0;
       let length;
 
@@ -169,7 +169,7 @@ class SamplesGenerator {
         const duplicate = sampledValues.indexOf(value) > -1;
 
         if (!duplicate || this.allowDuplicates || hasCustomBundleSeed) {
-          sample.strings.push({value, [computedKey]: index});
+          sample.strings.push({ value, [computedKey]: index });
           sampledValues.push(value);
           sample.needed--;
         }

@@ -837,7 +837,7 @@ describe('AutoFill', () => {
 
     describe('-> updating settings on 2. instance of Handsontable', () => {
       beforeAll(() => {
-        $container2.handsontable('updateSettings', {fillHandle: 'vertical'});
+        $container2.handsontable('updateSettings', { fillHandle: 'vertical' });
       });
 
       it('checking drag vertically on 2. instance of Handsontable - should change cell value', () => {
