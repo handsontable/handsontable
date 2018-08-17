@@ -70,8 +70,6 @@ TextEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellP
 };
 
 TextEditor.prototype.hideEditableElement = function() {
-  this.textareaParentStyle.top = '-9999px';
-  this.textareaParentStyle.left = '-9999px';
   this.textareaParentStyle.zIndex = '-1';
 };
 
