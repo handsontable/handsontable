@@ -196,10 +196,10 @@ describe('Core_selection', () => {
       startRows: 5,
       startCols: 5,
       afterSelection() {
-        tick++;
+        tick += 1;
       },
       afterSelectionEnd() {
-        tickEnd++;
+        tickEnd += 1;
       }
     });
     selectCell(3, 0);
@@ -216,7 +216,7 @@ describe('Core_selection', () => {
       startRows: 5,
       startCols: 5,
       afterSelectionEnd() {
-        tick++;
+        tick += 1;
       }
     });
     selectCell(3, 0); // makes tick++
@@ -235,7 +235,7 @@ describe('Core_selection', () => {
       startRows: 5,
       startCols: 5,
       afterSelectionEnd() {
-        tick++;
+        tick += 1;
       }
     });
     selectCell(3, 0); // makes tick++
@@ -335,10 +335,10 @@ describe('Core_selection', () => {
       startRows: 5,
       startCols: 5,
       afterSelection() {
-        tick++;
+        tick += 1;
       },
       afterSelectionEnd() {
-        tickEnd++;
+        tickEnd += 1;
       }
     });
 
@@ -630,7 +630,7 @@ describe('Core_selection', () => {
     let errCount = 0;
 
     $(window).on('error.selectionTest', () => {
-      errCount++;
+      errCount += 1;
     });
 
     const onAfterScrollVertically = jasmine.createSpy('onAfterScrollVertically');

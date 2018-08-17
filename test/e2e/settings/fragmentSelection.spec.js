@@ -57,7 +57,7 @@ describe('settings', () => {
         range.setStartBefore(fromEl, 0);
         while (siblings > 1) {
           fromEl = fromEl.nextSibling;
-          siblings--;
+          siblings -= 1;
         }
         range.setEndAfter(fromEl, 0);
         sel.removeAllRanges();
