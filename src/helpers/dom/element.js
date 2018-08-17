@@ -22,7 +22,7 @@ export function getParent(element, level = 0) {
       element = element.host;
 
     } else {
-      iteration++;
+      iteration += 1;
       element = element.parentNode;
     }
   }
@@ -184,7 +184,7 @@ export function index(element) {
   if (element.previousSibling) {
     /* eslint-disable no-cond-assign */
     while (element = element.previousSibling) {
-      ++i;
+      i += 1;
     }
   }
 
@@ -219,7 +219,7 @@ function filterEmptyClassNames(classNames) {
 
   while (classNames[len]) {
     result.push(classNames[len]);
-    len++;
+    len += 1;
   }
 
   return result;
@@ -258,7 +258,7 @@ if (classListSupport) {
 
         while (className && className[len]) {
           element.classList.add(className[len]);
-          len++;
+          len += 1;
         }
       }
     }
@@ -280,7 +280,7 @@ if (classListSupport) {
 
         while (className && className[len]) {
           element.classList.remove(className[len]);
-          len++;
+          len += 1;
         }
       }
     }
@@ -311,7 +311,7 @@ if (classListSupport) {
         if (!createClassNameRegExp(className[len]).test(_className)) {
           _className += ` ${className[len]}`;
         }
-        len++;
+        len += 1;
       }
     }
     element.className = _className;
@@ -327,7 +327,7 @@ if (classListSupport) {
     while (className && className[len]) {
       // String.prototype.trim is defined in polyfill.js
       _className = _className.replace(createClassNameRegExp(className[len]), ' ').trim();
-      len++;
+      len += 1;
     }
     if (element.className !== _className) {
       element.className = _className;

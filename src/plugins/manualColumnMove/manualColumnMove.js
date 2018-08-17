@@ -338,7 +338,7 @@ class ManualColumnMove extends BasePlugin {
 
     if ((priv.rootElementOffset + wtTable.holder.offsetWidth + scrollLeft) < priv.target.eventPageX) {
       if (priv.coordsColumn < priv.countCols) {
-        priv.coordsColumn++;
+        priv.coordsColumn += 1;
       }
     }
 

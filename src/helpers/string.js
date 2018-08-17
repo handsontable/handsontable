@@ -20,7 +20,8 @@ export function equalsIgnoreCase(...strings) {
   let unique = [];
   let length = strings.length;
 
-  while (length--) {
+  while (length) {
+    length -= 1;
     let string = stringify(strings[length]).toLowerCase();
 
     if (unique.indexOf(string) === -1) {

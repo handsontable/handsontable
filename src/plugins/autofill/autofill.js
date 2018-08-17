@@ -488,7 +488,7 @@ class Autofill extends BasePlugin {
    */
   onBeforeCellMouseOver(coords) {
     if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
-      this.handleDraggedCells++;
+      this.handleDraggedCells += 1;
 
       this.showBorder(coords);
       this.addNewRowIfNeeded();
