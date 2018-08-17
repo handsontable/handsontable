@@ -1901,7 +1901,7 @@ class Hooks {
     }
     {
       const localHandlers = this.getBucket(context)[key];
-      let index = -1;
+      let index = 0;
       let length = localHandlers ? localHandlers.length : 0;
 
       if (length) {
