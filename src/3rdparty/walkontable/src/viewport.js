@@ -41,7 +41,7 @@ class Viewport {
    * @returns {number}
    */
   getWorkspaceHeight() {
-    let trimmingContainer = this.instance.wtOverlays.topOverlay.trimmingContainer;
+    const trimmingContainer = this.instance.wtOverlays.topOverlay.trimmingContainer;
     let elemHeight;
     let height = 0;
 
@@ -59,12 +59,12 @@ class Viewport {
 
   getWorkspaceWidth() {
     let width;
-    let totalColumns = this.wot.getSetting('totalColumns');
-    let trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
+    const totalColumns = this.wot.getSetting('totalColumns');
+    const trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
     let overflow;
-    let stretchSetting = this.wot.getSetting('stretchH');
-    let docOffsetWidth = document.documentElement.offsetWidth;
-    let preventOverflow = this.wot.getSetting('preventOverflow');
+    const stretchSetting = this.wot.getSetting('stretchH');
+    const docOffsetWidth = document.documentElement.offsetWidth;
+    const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (preventOverflow) {
       return outerWidth(this.instance.wtTable.wtRootElement);
@@ -144,7 +144,7 @@ class Viewport {
     if (this.containerWidth) {
       return this.containerWidth;
     }
-    let mainContainer = this.instance.wtTable.holder;
+    const mainContainer = this.instance.wtTable.holder;
     let fillWidth;
     let dummyElement;
 
@@ -217,8 +217,8 @@ class Viewport {
    * @returns {Number}
    */
   getRowHeaderWidth() {
-    let rowHeadersHeightSetting = this.instance.getSetting('rowHeaderWidth');
-    let rowHeaders = this.instance.getSetting('rowHeaders');
+    const rowHeadersHeightSetting = this.instance.getSetting('rowHeaderWidth');
+    const rowHeaders = this.instance.getSetting('rowHeaders');
 
     if (rowHeadersHeightSetting) {
       this.rowHeaderWidth = 0;
@@ -263,7 +263,7 @@ class Viewport {
    * @returns {Number}
    */
   getViewportWidth() {
-    let containerWidth = this.getWorkspaceWidth();
+    const containerWidth = this.getWorkspaceWidth();
     let rowHeaderWidth;
 
     if (containerWidth === Infinity) {
@@ -361,7 +361,7 @@ class Viewport {
     fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
 
     if (fixedColumnsLeft) {
-      let fixedColumnsWidth = this.wot.wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
+      const fixedColumnsWidth = this.wot.wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
       pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
     }
@@ -391,8 +391,8 @@ class Viewport {
    */
   createRenderCalculators(fastDraw = false) {
     if (fastDraw) {
-      let proposedRowsVisibleCalculator = this.createRowsCalculator(true);
-      let proposedColumnsVisibleCalculator = this.createColumnsCalculator(true);
+      const proposedRowsVisibleCalculator = this.createRowsCalculator(true);
+      const proposedColumnsVisibleCalculator = this.createColumnsCalculator(true);
 
       if (!(this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) &&
           this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator))) {

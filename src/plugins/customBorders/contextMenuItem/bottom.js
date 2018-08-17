@@ -6,14 +6,14 @@ export default function bottom(customBordersPlugin) {
     key: 'borders:bottom',
     name() {
       let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_BOTTOM);
-      let hasBorder = checkSelectionBorders(this, 'bottom');
+      const hasBorder = checkSelectionBorders(this, 'bottom');
       if (hasBorder) {
         label = markSelected(label);
       }
       return label;
     },
     callback(key, selected) {
-      let hasBorder = checkSelectionBorders(this, 'bottom');
+      const hasBorder = checkSelectionBorders(this, 'bottom');
       customBordersPlugin.prepareBorder(selected, 'bottom', hasBorder);
     }
   };

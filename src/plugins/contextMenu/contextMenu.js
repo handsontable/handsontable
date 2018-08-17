@@ -140,7 +140,7 @@ class ContextMenu extends BasePlugin {
     this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
 
     const settings = this.hot.getSettings().contextMenu;
-    let predefinedItems = {
+    const predefinedItems = {
       items: this.itemsFactory.getItems(settings)
     };
 
@@ -157,7 +157,7 @@ class ContextMenu extends BasePlugin {
       this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
 
       this.itemsFactory.setPredefinedItems(predefinedItems.items);
-      let menuItems = this.itemsFactory.getItems(settings);
+      const menuItems = this.itemsFactory.getItems(settings);
 
       this.menu = new Menu(this.hot, {
         className: 'htContextMenu',
@@ -281,15 +281,15 @@ class ContextMenu extends BasePlugin {
    * @param {Event} event
    */
   onAfterOnCellContextMenu(event) {
-    let settings = this.hot.getSettings();
-    let showRowHeaders = settings.rowHeaders;
-    let showColHeaders = settings.colHeaders;
+    const settings = this.hot.getSettings();
+    const showRowHeaders = settings.rowHeaders;
+    const showColHeaders = settings.colHeaders;
 
     function isValidElement(element) {
       return element.nodeName === 'TD' || element.parentNode.nodeName === 'TD';
     }
     // if event is from hot-table we must get web component element not element inside him
-    let element = event.realTarget;
+    const element = event.realTarget;
     this.close();
 
     if (hasClass(element, 'handsontableInput')) {

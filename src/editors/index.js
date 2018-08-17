@@ -37,7 +37,7 @@ _register('select', SelectEditor);
 _register('text', TextEditor);
 
 export function RegisteredEditor(editorClass) {
-  let instances = {};
+  const instances = {};
   const Clazz = editorClass;
 
   this.getConstructor = function() {

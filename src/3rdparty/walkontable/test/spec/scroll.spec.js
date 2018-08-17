@@ -1,5 +1,5 @@
 describe('WalkontableScroll', () => {
-  let debug = false;
+  const debug = false;
   let $container;
   let $wrapper;
   let $table;

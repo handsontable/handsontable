@@ -184,7 +184,7 @@ class LinkedList {
       return null;
     }
 
-    let temp = this.last;
+    const temp = this.last;
     this.last = this.last.prev;
 
     return temp;

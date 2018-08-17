@@ -13,46 +13,37 @@ describe('noEditor', () => {
   });
 
   it('shouldn\'t begin editing when enterBeginsEditing equals true', () => {
-    let selection;
-
     handsontable({
       enterBeginsEditing: true,
       editor: false
     });
     selectCell(2, 2);
     keyDown('enter');
-    selection = getSelected();
 
-    expect(selection).toEqual([[2, 2, 2, 2]]);
+    expect(getSelected()).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(false);
   });
 
   it('shouldn\'t move down after editing', () => {
-    let selection;
-
     handsontable({
       editor: false
     });
     selectCell(2, 2);
     keyDown('enter');
     keyDown('enter');
-    selection = getSelected();
 
-    expect(selection).toEqual([[2, 2, 2, 2]]);
+    expect(getSelected()).toEqual([[2, 2, 2, 2]]);
   });
 
   it('shouldn\'t move down when enterBeginsEditing equals false', () => {
-    let selection;
-
     handsontable({
       enterBeginsEditing: false,
       editor: false
     });
     selectCell(2, 2);
     keyDown('enter');
-    selection = getSelected();
 
-    expect(selection).toEqual([[3, 2, 3, 2]]);
+    expect(getSelected()).toEqual([[3, 2, 3, 2]]);
     expect(isEditorVisible()).toEqual(false);
   });
 

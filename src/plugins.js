@@ -30,7 +30,7 @@ function registerPlugin(pluginName, PluginClass) {
   });
   Hooks.getSingleton().add('afterDestroy', function() {
     if (registeredPlugins.has(this)) {
-      let pluginsHolder = registeredPlugins.get(this);
+      const pluginsHolder = registeredPlugins.get(this);
 
       objectEach(pluginsHolder, (plugin) => plugin.destroy());
       registeredPlugins.delete(this);
@@ -47,7 +47,7 @@ function getPlugin(instance, pluginName) {
   if (typeof pluginName !== 'string') {
     throw Error('Only strings can be passed as "plugin" parameter');
   }
-  let _pluginName = toUpperCaseFirst(pluginName);
+  const _pluginName = toUpperCaseFirst(pluginName);
 
   if (!registeredPlugins.has(instance) || !registeredPlugins.get(instance)[_pluginName]) {
     return void 0;

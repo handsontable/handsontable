@@ -214,7 +214,7 @@ class ColumnSorting extends BasePlugin {
    * @fires Hooks#columnSorting
    */
   saveSortingState() {
-    let sortingState = {};
+    const sortingState = {};
 
     if (isDefined(this.sortColumn)) {
       sortingState.sortColumn = this.sortColumn;
@@ -238,7 +238,7 @@ class ColumnSorting extends BasePlugin {
    * @fires Hooks#persistentStateLoad
    */
   loadSortingState() {
-    let storedState = {};
+    const storedState = {};
     this.hot.runHooks('persistentStateLoad', 'columnSorting', storedState);
 
     return storedState.value;
@@ -250,7 +250,7 @@ class ColumnSorting extends BasePlugin {
    * @private
    */
   enableObserveChangesPlugin() {
-    let _this = this;
+    const _this = this;
 
     this.hot._registerTimeout(
       setTimeout(() => {
@@ -355,7 +355,7 @@ class ColumnSorting extends BasePlugin {
    */
   onModifyRow(row, source) {
     if (this.blockPluginTranslation === false && source !== this.pluginName) {
-      let rowInMapper = this.rowsMapper.getValueByIndex(row);
+      const rowInMapper = this.rowsMapper.getValueByIndex(row);
       row = rowInMapper === null ? row : rowInMapper;
     }
 
@@ -437,8 +437,8 @@ class ColumnSorting extends BasePlugin {
    * @private
    */
   sortBySettings() {
-    let sortingSettings = this.hot.getSettings().columnSorting;
-    let loadedSortingState = this.loadSortingState();
+    const sortingSettings = this.hot.getSettings().columnSorting;
+    const loadedSortingState = this.loadSortingState();
     let sortingColumn;
     let sortingOrder;
 

@@ -124,7 +124,7 @@ describe('manualColumnMove', () => {
         colHeaders: true,
       });
 
-      let header = spec().$container.find('thead tr:eq(0) th:eq(2)');
+      const header = spec().$container.find('thead tr:eq(0) th:eq(2)');
 
       header.simulate('mousedown');
       header.simulate('mouseup');
@@ -142,7 +142,7 @@ describe('manualColumnMove', () => {
         colHeaders: true,
       });
 
-      let header = spec().$container.find('thead tr:eq(0) th:eq(2)');
+      const header = spec().$container.find('thead tr:eq(0) th:eq(2)');
 
       header.simulate('mousedown');
       header.simulate('mouseup');

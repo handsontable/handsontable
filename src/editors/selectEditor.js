@@ -130,7 +130,7 @@ SelectEditor.prototype.focus = function() {
 };
 
 SelectEditor.prototype.refreshValue = function() {
-  let sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
+  const sourceData = this.instance.getSourceDataAtCell(this.row, this.prop);
   this.originalValue = sourceData;
 
   this.setValue(sourceData);

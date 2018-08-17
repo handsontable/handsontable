@@ -99,7 +99,7 @@ export function createSpreadsheetObjectData(rows = 100, colCount = 4) {
  * @returns {Array}
  */
 export function createEmptySpreadsheetData(rows, columns) {
-  let data = [];
+  const data = [];
   let row;
 
   for (let i = 0; i < rows; i++) {

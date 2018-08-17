@@ -25,7 +25,7 @@ class ItemsFactory {
    * @param {Array} predefinedItemsCollection Array of predefined items.
    */
   setPredefinedItems(predefinedItemsCollection) {
-    let items = {};
+    const items = {};
 
     this.defaultOrderPattern.length = 0;
 
@@ -64,7 +64,7 @@ class ItemsFactory {
 }
 
 function getItems(pattern = null, defaultPattern = [], items = {}) {
-  let result = [];
+  const result = [];
 
   if (pattern && pattern.items) {
     pattern = pattern.items;

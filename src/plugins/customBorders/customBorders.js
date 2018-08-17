@@ -199,7 +199,7 @@ class CustomBorders extends BasePlugin {
 
     const selectionType = detectSelectionType(selectionRanges);
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
-    let selectedBorders = [];
+    const selectedBorders = [];
 
     arrayEach(selectionRanges, (selection) => {
       const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
@@ -319,7 +319,7 @@ class CustomBorders extends BasePlugin {
 
     rangeEach(range.from.row, range.to.row, (rowIndex) => {
       rangeEach(range.from.col, range.to.col, (colIndex) => {
-        let border = createEmptyBorders(rowIndex, colIndex);
+        const border = createEmptyBorders(rowIndex, colIndex);
         let add = 0;
 
         if (rowIndex === range.from.row) {
