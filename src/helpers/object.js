@@ -224,6 +224,7 @@ export function defineGetter(object, property, value, options) {
  * @returns {Object} Returns `object`.
  */
 export function objectEach(object, iteratee) {
+  // eslint-disable-next-line no-restricted-syntax
   for (let key in object) {
     if (!object.hasOwnProperty || (object.hasOwnProperty && Object.prototype.hasOwnProperty.call(object, key))) {
       if (iteratee(object[key], key, object) === false) {

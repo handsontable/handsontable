@@ -14,7 +14,8 @@ import {
   isObjectEqual,
   deepObjectSize,
   hasOwnProperty,
-  createObjectPropListener
+  createObjectPropListener,
+  objectEach
 } from './helpers/object';
 import { arrayFlatten, arrayMap, arrayEach, arrayReduce } from './helpers/array';
 import { toSingleLine } from './helpers/templateLiteralTag';
@@ -1617,6 +1618,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
     }
 
+    // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
       if (i === 'data') {
         /* eslint-disable-next-line no-continue */
@@ -1699,13 +1701,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (isDefined(settings.cell)) {
-      for (let key in settings.cell) {
-        if (hasOwnProperty(settings.cell, key)) {
-          let cell = settings.cell[key];
-
-          instance.setCellMetaObject(cell.row, cell.col, cell);
-        }
-      }
+      objectEach(settings.cell, (cell) => {
+        instance.setCellMetaObject(cell.row, cell.col, cell);
+      });
     }
 
     instance.runHooks('afterCellMetaReset');
@@ -1822,6 +1820,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       type = getCellType(obj.type);
     }
 
+    // eslint-disable-next-line no-restricted-syntax
     for (let i in type) {
       if (hasOwnProperty(type, i) && !hasOwnProperty(obj, i)) {
         expandedType[i] = type[i];
@@ -2281,12 +2280,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.setCellMetaObject = function(row, column, prop) {
     if (typeof prop === 'object') {
-      for (let key in prop) {
-        if (hasOwnProperty(prop, key)) {
-          const value = prop[key];
-          this.setCellMeta(row, column, key, value);
-        }
-      }
+      objectEach(prop, (value, key) => {
+        this.setCellMeta(row, column, key, value);
+      });
     }
   };
 
@@ -3333,19 +3329,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.runHooks('afterDestroy');
     Hooks.getSingleton().destroy(instance);
 
-    for (let i in instance) {
-      if (hasOwnProperty(instance, i)) {
-        // replace instance methods with post mortem
-        if (isFunction(instance[i])) {
-          instance[i] = postMortem(i);
+    objectEach(instance, (property, key, obj) => {
+      // replace instance methods with post mortem
+      if (isFunction(property)) {
+        obj[key] = postMortem(key);
 
-        } else if (i !== 'guid') {
-          // replace instance properties with null (restores memory)
-          // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
-          instance[i] = null;
-        }
+      } else if (key !== 'guid') {
+        // replace instance properties with null (restores memory)
+        // it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
+        obj[key] = null;
       }
-    }
+    });
+
     instance.isDestroyed = true;
 
     // replace private properties with null (restores memory)

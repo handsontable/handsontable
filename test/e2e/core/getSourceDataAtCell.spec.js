@@ -76,11 +76,9 @@ describe('Core.getSourceDataAtCell', () => {
         address: undefined
       };
 
-      for (let i in opts) {
-        if (Object.prototype.hasOwnProperty.call(opts, i)) {
-          _priv[i] = opts[i];
-        }
-      }
+      Handsontable.helper.objectEach(opts, (value, key) => {
+        _priv[key] = value;
+      });
 
       _pub.attr = function(attr, val) {
         if (typeof val === 'undefined') {

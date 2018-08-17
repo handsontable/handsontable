@@ -11,7 +11,7 @@ import {
   outerWidth,
 } from './../../../helpers/dom/element';
 import { stopImmediatePropagation } from './../../../helpers/dom/event';
-import { hasOwnProperty } from './../../../helpers/object';
+import { objectEach } from './../../../helpers/object';
 import { isMobileBrowser } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import CellCoords from './cell/coords';
@@ -232,12 +232,10 @@ class Border {
       'border-radius': `${parseInt(hitAreaWidth / 1.5, 10)}px`,
     };
 
-    for (let prop in hitAreaStyle) {
-      if (hasOwnProperty(hitAreaStyle, prop)) {
-        this.selectionHandles.styles.bottomRightHitArea[prop] = hitAreaStyle[prop];
-        this.selectionHandles.styles.topLeftHitArea[prop] = hitAreaStyle[prop];
-      }
-    }
+    objectEach(hitAreaStyle, (value, key) => {
+      this.selectionHandles.styles.bottomRightHitArea[key] = value;
+      this.selectionHandles.styles.topLeftHitArea[key] = value;
+    });
 
     let handleStyle = {
       position: 'absolute',
@@ -248,12 +246,11 @@ class Border {
       border: '1px solid #4285c8'
     };
 
-    for (let prop in handleStyle) {
-      if (hasOwnProperty(handleStyle, prop)) {
-        this.selectionHandles.styles.bottomRight[prop] = handleStyle[prop];
-        this.selectionHandles.styles.topLeft[prop] = handleStyle[prop];
-      }
-    }
+    objectEach(handleStyle, (value, key) => {
+      this.selectionHandles.styles.bottomRight[key] = value;
+      this.selectionHandles.styles.topLeft[key] = value;
+    });
+
     this.main.appendChild(this.selectionHandles.topLeft);
     this.main.appendChild(this.selectionHandles.bottomRight);
     this.main.appendChild(this.selectionHandles.topLeftHitArea);
