@@ -13,106 +13,106 @@ describe('Core_dataSchema', () => {
   });
 
   it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as object)', () => {
-    const schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
-      hot = handsontable({
-        data: [],
-        dataSchema: schema,
-        minRows: 5,
-        minCols: 4,
-        colHeaders: ['ID', 'First Name', 'Last Name'],
-        columns: [
-          {data: 'id'},
-          {data: 'name.first'},
-          {data: 'name.last'}
-        ],
-        minSpareRows: 1
-      });
+    const schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]};
+    const hot = handsontable({
+      data: [],
+      dataSchema: schema,
+      minRows: 5,
+      minCols: 4,
+      colHeaders: ['ID', 'First Name', 'Last Name'],
+      columns: [
+        {data: 'id'},
+        {data: 'name.first'},
+        {data: 'name.last'}
+      ],
+      minSpareRows: 1
+    });
 
     expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
   });
 
   it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as object) when columns is a function', () => {
-    const schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
-      hot = handsontable({
-        data: [],
-        dataSchema: schema,
-        minRows: 5,
-        minCols: 4,
-        colHeaders: ['ID', 'First Name', 'Last Name'],
-        columns(column) {
-          let colMeta = {};
+    const schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]};
+    const hot = handsontable({
+      data: [],
+      dataSchema: schema,
+      minRows: 5,
+      minCols: 4,
+      colHeaders: ['ID', 'First Name', 'Last Name'],
+      columns(column) {
+        let colMeta = {};
 
-          if (column === 0) {
-            colMeta.data = 'id';
+        if (column === 0) {
+          colMeta.data = 'id';
 
-          } else if (column === 1) {
-            colMeta.data = 'name.first';
+        } else if (column === 1) {
+          colMeta.data = 'name.first';
 
-          } else if (column === 2) {
-            colMeta.data = 'name.last';
+        } else if (column === 2) {
+          colMeta.data = 'name.last';
 
-          } else {
-            colMeta = null;
-          }
+        } else {
+          colMeta = null;
+        }
 
-          return colMeta;
-        },
-        minSpareRows: 1
-      });
+        return colMeta;
+      },
+      minSpareRows: 1
+    });
 
     expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
   });
 
   it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as function)', () => {
-    const schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
-      hot = handsontable({
-        data: [],
-        dataSchema() {
-          return schema;
-        },
-        minRows: 5,
-        minCols: 4,
-        colHeaders: ['ID', 'First Name', 'Last Name'],
-        columns: [
-          {data: 'id'},
-          {data: 'name.first'},
-          {data: 'name.last'}
-        ],
-        minSpareRows: 1
-      });
+    const schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]};
+    const hot = handsontable({
+      data: [],
+      dataSchema() {
+        return schema;
+      },
+      minRows: 5,
+      minCols: 4,
+      colHeaders: ['ID', 'First Name', 'Last Name'],
+      columns: [
+        {data: 'id'},
+        {data: 'name.first'},
+        {data: 'name.last'}
+      ],
+      minSpareRows: 1
+    });
     expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
   });
 
   it('should be equal to `hot.getSchema()` when dataSchema is defined in settings (as function) when columns is a function', () => {
-    const schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]},
-      hot = handsontable({
-        data: [],
-        dataSchema() {
-          return schema;
-        },
-        minRows: 5,
-        minCols: 4,
-        colHeaders: ['ID', 'First Name', 'Last Name'],
-        columns(column) {
-          let colMeta = {};
+    const schema = {id: null, name: {first: null, last: null}, cars: [{brand: null}]};
+    const hot = handsontable({
+      data: [],
+      dataSchema() {
+        return schema;
+      },
+      minRows: 5,
+      minCols: 4,
+      colHeaders: ['ID', 'First Name', 'Last Name'],
+      columns(column) {
+        let colMeta = {};
 
-          if (column === 0) {
-            colMeta.data = 'id';
+        if (column === 0) {
+          colMeta.data = 'id';
 
-          } else if (column === 1) {
-            colMeta.data = 'name.first';
+        } else if (column === 1) {
+          colMeta.data = 'name.first';
 
-          } else if (column === 2) {
-            colMeta.data = 'name.last';
+        } else if (column === 2) {
+          colMeta.data = 'name.last';
 
-          } else {
-            colMeta = null;
-          }
+        } else {
+          colMeta = null;
+        }
 
-          return colMeta;
-        },
-        minSpareRows: 1
-      });
+        return colMeta;
+      },
+      minSpareRows: 1
+    });
     expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
   });
 

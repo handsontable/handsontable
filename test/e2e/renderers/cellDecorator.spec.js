@@ -31,8 +31,8 @@ describe('CellDecorator', () => {
       wordWrap: false
     });
 
-    const cols = countCols(),
-      rows = countRows();
+    const cols = countCols();
+    const rows = countRows();
 
     for (let i = 0; i < cols; i++) {
       for (let j = 0; j < rows; j++) {
