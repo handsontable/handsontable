@@ -150,7 +150,7 @@ export function transformSelectionToColumnDistance(selectionRanges) {
   const orderedIndexes = Array.from(unorderedIndexes).sort((a, b) => a - b);
   const normalizedColumnRanges = arrayReduce(orderedIndexes, (acc, visualColumnIndex, index, array) => {
     if (index !== 0 && visualColumnIndex === array[index - 1] + 1) {
-      acc[acc.length - 1][1]++;
+      acc[acc.length - 1][1] += 1;
 
     } else {
       acc.push([visualColumnIndex, 1]);
@@ -200,7 +200,7 @@ export function transformSelectionToRowDistance(selectionRanges) {
   const orderedIndexes = Array.from(unorderedIndexes).sort((a, b) => a - b);
   const normalizedRowRanges = arrayReduce(orderedIndexes, (acc, rowIndex, index, array) => {
     if (index !== 0 && rowIndex === array[index - 1] + 1) {
-      acc[acc.length - 1][1]++;
+      acc[acc.length - 1][1] += 1;
 
     } else {
       acc.push([rowIndex, 1]);

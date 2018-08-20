@@ -90,7 +90,7 @@ describe('Core_beforeKeyDown', () => {
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       beforeKeyDown() {
-        called++;
+        called += 1;
       }
     });
     selectCell(0, 0);

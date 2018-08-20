@@ -119,7 +119,8 @@ export function range(from, to) {
 
   const result = [];
 
-  while (to++ < from) {
+  while (to < from) {
+    to += 1;
     result.push(to);
   }
 

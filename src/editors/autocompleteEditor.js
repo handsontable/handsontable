@@ -255,7 +255,7 @@ AutocompleteEditor.prototype.limitDropdownIfNeeded = function(spaceAvailable, dr
     do {
       lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.wtSettings.settings.defaultRowHeight;
       tempHeight += lastRowHeight;
-      i++;
+      i += 1;
     } while (tempHeight < spaceAvailable);
 
     height = tempHeight - lastRowHeight;

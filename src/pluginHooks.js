@@ -1875,13 +1875,14 @@ class Hooks {
   run(context, key, p1, p2, p3, p4, p5, p6) {
     {
       const globalHandlers = this.globalBucket[key];
-      let index = -1;
       const length = globalHandlers ? globalHandlers.length : 0;
+      let index = 0;
 
       if (length) {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-        while (++index < length) {
+        while (index < length) {
           if (!globalHandlers[index] || globalHandlers[index].skip) {
+            index += 1;
             /* eslint-disable no-continue */
             continue;
           }
@@ -1894,18 +1895,21 @@ class Hooks {
           if (globalHandlers[index] && globalHandlers[index].runOnce) {
             this.remove(key, globalHandlers[index]);
           }
+
+          index += 1;
         }
       }
     }
     {
       const localHandlers = this.getBucket(context)[key];
-      let index = -1;
       const length = localHandlers ? localHandlers.length : 0;
+      let index = 0;
 
       if (length) {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-        while (++index < length) {
+        while (index < length) {
           if (!localHandlers[index] || localHandlers[index].skip) {
+            index += 1;
             /* eslint-disable no-continue */
             continue;
           }
@@ -1918,6 +1922,8 @@ class Hooks {
           if (localHandlers[index] && localHandlers[index].runOnce) {
             this.remove(key, localHandlers[index], context);
           }
+
+          index += 1;
         }
       }
     }

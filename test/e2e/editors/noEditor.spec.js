@@ -97,13 +97,13 @@ describe('noEditor', () => {
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
+      clicks += 1;
     }, 0);
 
     setTimeout(() => {
       mouseDown(cell);
       mouseUp(cell);
-      clicks++;
+      clicks += 1;
     }, 100);
 
     setTimeout(() => {

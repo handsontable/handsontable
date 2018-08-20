@@ -79,7 +79,7 @@ DataMap.prototype.recursiveDuckColumns = function(schema, lastCol, parent) {
         this.colToPropCache.push(prop);
         this.propToColCache.set(prop, lastCol);
 
-        lastCol++;
+        lastCol += 1;
       } else {
         lastCol = this.recursiveDuckColumns(value, lastCol, `${key}.`);
       }
@@ -124,7 +124,7 @@ DataMap.prototype.createMap = function() {
           this.propToColCache.set(column.data, index);
         }
 
-        filteredIndex++;
+        filteredIndex += 1;
       }
     }
 
@@ -237,7 +237,7 @@ DataMap.prototype.createRow = function(index, amount = 1, source) {
       this.spliceData(index, 0, row);
     }
 
-    numberOfCreatedRows++;
+    numberOfCreatedRows += 1;
   }
 
   this.instance.runHooks('afterCreateRow', index, numberOfCreatedRows, source);
@@ -304,8 +304,8 @@ DataMap.prototype.createCol = function(index, amount, source) {
       this.priv.columnSettings.splice(currentIndex, 0, constructor);
     }
 
-    numberOfCreatedCols++;
-    currentIndex++;
+    numberOfCreatedCols += 1;
+    currentIndex += 1;
   }
 
   this.instance.runHooks('afterCreateCol', index, numberOfCreatedCols, source);
@@ -435,7 +435,7 @@ DataMap.prototype.spliceCol = function(col, index, amount, ...elements) {
   let i = 0;
   while (i < amount) {
     elements.push(null); // add null in place of removed elements
-    i++;
+    i += 1;
   }
   to2dArray(elements);
   this.instance.populateFromArray(index, col, elements, null, null, 'spliceCol');
@@ -461,7 +461,7 @@ DataMap.prototype.spliceRow = function(row, index, amount, ...elements) {
   let i = 0;
   while (i < amount) {
     elements.push(null); // add null in place of removed elements
-    i++;
+    i += 1;
   }
   this.instance.populateFromArray(row, index, [elements], null, null, 'spliceRow');
 
@@ -661,8 +661,8 @@ DataMap.prototype.visualRowsToPhysical = function(index, amount) {
     row = this.instance.runHooks('modifyRow', physicRow);
     logicRows.push(row);
 
-    rowsToRemove--;
-    physicRow++;
+    rowsToRemove -= 1;
+    physicRow += 1;
   }
 
   return logicRows;
@@ -685,8 +685,8 @@ DataMap.prototype.visualColumnsToPhysical = function(index, amount) {
 
     visualCols.push(col);
 
-    colsToRemove--;
-    physicalCol++;
+    colsToRemove -= 1;
+    physicalCol += 1;
   }
 
   return visualCols;
@@ -741,7 +741,7 @@ DataMap.prototype.getLength = function() {
         row = this.instance.runHooks('modifyRow', row);
 
         if (row === null) {
-          --length;
+          length -= 1;
         }
       });
       this.cachedLength = length;

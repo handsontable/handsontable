@@ -131,7 +131,7 @@ class Viewport {
 
     while (from < length) {
       sum += this.wot.wtTable.getColumnWidth(from);
-      from++;
+      from += 1;
     }
 
     return sum;

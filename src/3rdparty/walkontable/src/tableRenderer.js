@@ -162,7 +162,7 @@ class TableRenderer {
   removeRedundantRows(renderedRowsCount) {
     while (this.wtTable.tbodyChildrenLength > renderedRowsCount) {
       this.TBODY.removeChild(this.TBODY.lastChild);
-      this.wtTable.tbodyChildrenLength--;
+      this.wtTable.tbodyChildrenLength -= 1;
     }
   }
 
@@ -210,13 +210,13 @@ class TableRenderer {
 
         if (height) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top
-          height--;
+          height -= 1;
           TR.firstChild.style.height = `${height}px`;
         } else {
           TR.firstChild.style.height = '';
         }
       }
-      visibleRowIndex++;
+      visibleRowIndex += 1;
       sourceRowIndex = this.rowFilter.renderedToSource(visibleRowIndex);
     }
   }
@@ -257,7 +257,7 @@ class TableRenderer {
     }
 
     while (rowCount) {
-      rowCount--;
+      rowCount -= 1;
       sourceRowIndex = this.instance.wtTable.rowFilter.renderedToSource(rowCount);
       previousRowHeight = this.instance.wtTable.getRowHeight(sourceRowIndex);
       currentTr = this.instance.wtTable.getTrForRow(sourceRowIndex);
@@ -271,7 +271,8 @@ class TableRenderer {
 
       if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < rowInnerHeight ||
           previousRowHeight < rowInnerHeight)) {
-        this.instance.wtViewport.oversizedRows[sourceRowIndex] = ++rowInnerHeight;
+        rowInnerHeight += 1;
+        this.instance.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
       }
     }
   }
@@ -328,7 +329,7 @@ class TableRenderer {
     const columnHeaderHeightSetting = this.wot.getSetting('columnHeaderHeight') || [];
 
     while (level) {
-      level--;
+      level -= 1;
 
       previousColHeaderHeight = this.wot.wtTable.getColumnHeaderHeight(level);
       currentHeader = this.wot.wtTable.getColumnHeader(sourceColIndex, level);
@@ -429,7 +430,7 @@ class TableRenderer {
    */
   appendToTbody(TR) {
     this.TBODY.appendChild(TR);
-    this.wtTable.tbodyChildrenLength++;
+    this.wtTable.tbodyChildrenLength += 1;
   }
 
   /**
@@ -538,11 +539,11 @@ class TableRenderer {
 
     while (this.wtTable.colgroupChildrenLength < columnCount + this.rowHeaderCount) {
       this.COLGROUP.appendChild(document.createElement('COL'));
-      this.wtTable.colgroupChildrenLength++;
+      this.wtTable.colgroupChildrenLength += 1;
     }
     while (this.wtTable.colgroupChildrenLength > columnCount + this.rowHeaderCount) {
       this.COLGROUP.removeChild(this.COLGROUP.lastChild);
-      this.wtTable.colgroupChildrenLength--;
+      this.wtTable.colgroupChildrenLength -= 1;
     }
     if (this.rowHeaderCount) {
       addClass(this.COLGROUP.childNodes[0], 'rowHeader');
@@ -568,11 +569,11 @@ class TableRenderer {
 
         while (this.theadChildrenLength < columnCount + this.rowHeaderCount) {
           TR.appendChild(document.createElement('TH'));
-          this.theadChildrenLength++;
+          this.theadChildrenLength += 1;
         }
         while (this.theadChildrenLength > columnCount + this.rowHeaderCount) {
           TR.removeChild(TR.lastChild);
-          this.theadChildrenLength--;
+          this.theadChildrenLength -= 1;
         }
       }
       const theadChildrenLength = this.THEAD.childNodes.length;
@@ -621,11 +622,11 @@ class TableRenderer {
       const TD = document.createElement('TD');
 
       TR.appendChild(TD);
-      count++;
+      count += 1;
     }
     while (count > desiredCount) {
       TR.removeChild(TR.lastChild);
-      count--;
+      count -= 1;
     }
   }
 
@@ -635,7 +636,7 @@ class TableRenderer {
   removeRedundantColumns(columnsToRender) {
     while (this.wtTable.tbodyChildrenLength > columnsToRender) {
       this.TBODY.removeChild(this.TBODY.lastChild);
-      this.wtTable.tbodyChildrenLength--;
+      this.wtTable.tbodyChildrenLength -= 1;
     }
   }
 }
